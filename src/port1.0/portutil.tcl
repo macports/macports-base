@@ -81,12 +81,16 @@ proc options {args} {
 	eval "proc ${option}-append {args} \{ \n\
 	    global ${option} user_options \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
-		    set $option \[concat \$\{$option\} \$args\] \n\
-			 if \{\[info exists option_procs($option)\]\} \{ \n\
-				foreach p \$option_procs($option) \{ \n\
-					eval \"\$p $option append \$args\" \n\
-				\} \n\
-			 \} \n\
+		    if \{\[info exists ${option}\]\} \{ \n\
+			set ${option} \[concat \$\{$option\} \$args\] \n\
+		    \} else \{ \n\
+			set ${option} \$args \n\
+		    \} \n\
+		    if \{\[info exists option_procs($option)\]\} \{ \n\
+			foreach p \$option_procs($option) \{ \n\
+			    eval \"\$p $option append \$args\" \n\
+			\} \n\
+		    \} \n\
 		\} \n\
 	\}"
     }
