@@ -65,9 +65,6 @@ proc makeuserproc {name body} {
 
 proc swdep_resolve {name chain} {
     global $name env
-    puts "I am resolving dependencies one day at a time!"
-    puts "Depname: $name"
-    puts "Chain: $chain"
     if {![info exists $name]} {
 	return 0
     }
@@ -103,7 +100,7 @@ proc swdep_resolve {name chain} {
 	}
     }
     foreach path $search_path {
-	puts "Now checking: $path"
+	ui_debug "Now checking path: $path regex: $depregex"
 	if {![file isdirectory $path]} {
 	    continue
 	}
