@@ -98,7 +98,7 @@ proc dportinit {args} {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_\./\]+$)" $line match val] == 1} {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:\./\]+$)" $line match val] == 1} {
 			set darwinports::$option $val
 			global darwinports::$option
 		    }
