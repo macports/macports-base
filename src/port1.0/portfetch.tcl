@@ -38,7 +38,7 @@ register com.apple.fetch provides fetch
 register com.apple.fetch requires main depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.pass
+options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.pass cvs.tag
 commands cvs
 
 # Defaults
@@ -47,6 +47,7 @@ default fetch.type standard
 default cvs.cmd cvs
 default cvs.pass ""
 default cvs.module {$distname}
+default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-d ${cvs.root}"}
 
@@ -97,8 +98,15 @@ proc getdisttag {name} {
 }
 
 proc getdistname {name} {
-    regexp {(.+):[A-Za-z]+} $name match name
+    regexp {(.+):[A-Za-z_-]+} $name match name
     return $name
+}
+
+proc disttagclean {list} {
+    foreach name $list {
+        lappend val [getdistname $name]
+    }
+    return $val
 }
 
 proc checkfiles {args} {
@@ -151,15 +159,15 @@ proc checkfiles {args} {
 }
 
 proc cvsfetch {args} {
-    global workpath cvs.pass cvs.args cvs.post_args
+    global workpath cvs.pass cvs.args cvs.post_args cvs.tag cvs.module
 	cd $workpath
 	set cvs.args login
 	if {[catch {system "echo ${cvs.pass} | [command cvs] 2>&1"} result]} {
         ui_error "CVS login failed"
         return -1
     }
-	set cvs.args co
-	set cvs.post_args shadowirc
+	set cvs.args "co -r ${cvs.tag}"
+	set cvs.post_args "${cvs.module}"
 	if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS check out failed"
         return -1
