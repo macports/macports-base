@@ -40,7 +40,7 @@ target_requires ${com.apple.dmg} package
 set UI_PREFIX "---> "
 
 proc dmg_main {args} {
-    global portname portversion portrevision portrevision package.destpath UI_PREFIX
+    global portname portversion portrevision package.destpath UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${portname} ${portversion}]"
 
