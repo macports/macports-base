@@ -1,0 +1,16 @@
+SRCS=		Pextlib.c strsed.c
+LIB=		Pextlib
+SHLIB_NAME=	Pextlib.dylib
+NOPROFILE=	TRUE
+LDADD+=		-ltcl
+INSTALLDIR= /usr/local/share/darwinports/Tcl/pextlib1.0
+
+install:
+	mkdir -p ${INSTALLDIR}
+	${.CURDIR}/../pkg_mkindex.tcl ${.CURDIR}
+	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} ${SHLIB_NAME} ${INSTALLDIR}
+
+afterclean:
+	rm -f pkgIndex.tcl
+
+.include <bsd.lib.mk>
