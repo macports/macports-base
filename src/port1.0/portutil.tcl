@@ -1069,16 +1069,16 @@ proc portfile_new {name} {
     return $obj
 }
 
-# build the specified portfile
-proc portfile_run {this} {
-    set portname [$this get name]
-    
-    ui_debug "Building $portname"
+# jkh uses this API so i guess it's public =)
+# builds the specified port (looked up in the index) to the specified target
+# doesn't yet support options or variants...
+proc portexec {portname target} {
+    ui_debug "Executing $target ($portname)"
     array set options [list]
     array set variations [list]
     set res [dportsearch ^$portname\$]
     if {[llength $res] < 2} {
-        ui_error "Dependency $portname not found"
+        ui_error "Portfile $portname not found"
         return -1
     }
 	array set portinfo [lindex $res 1]
@@ -1086,21 +1086,28 @@ proc portfile_run {this} {
     
     set worker [dportopen $porturl options variations]
     if {[catch {dportexec $worker clean} result] || $result != 0} {
-	ui_error "Clean of $portname before build failed: $result"
+	ui_error "Clean of $portname failed: $result"
 	dportclose $worker
 	return -1
     }
-    if {[catch {dportexec $worker install} result] || $result != 0} {
-	ui_error "Build of $portname failed: $result"
-	dportclose $worker
-	return -1
-    }
-    if {[catch {dportexec $worker clean} result] || $result != 0} {
-	ui_error "Clean of $portname after build failed: $result"
-    }
+	if {$target != "clean"} {
+		if {[catch {dportexec $worker $target} result] || $result != 0} {
+		ui_error "Execution $portname $target failed: $result"
+		dportclose $worker
+		return -1
+		}
+	}
     dportclose $worker
     
     return 0
+}
+
+# build the specified portfile
+proc portfile_run {this} {
+    set portname [$this get name]
+	if {[portexec $portname install] == 0} {
+		portexec $portname clean
+    }
 }
 
 proc portfile_test {this} {
