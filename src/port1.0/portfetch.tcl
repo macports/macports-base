@@ -42,7 +42,7 @@ register com.apple.fetch deplist depends_fetch
 options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
-commands cvs
+commands cvs fetch
 
 # Defaults
 default extract_sufx .tar.gz
@@ -54,6 +54,11 @@ default cvs.module {$distname}
 default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-d ${cvs.root}"}
+
+default fetch.cmd curl
+default fetch.dir {${distpath}}
+default fetch.pre_args {"-o ${distfile}"}
+default fetch.args {${site}${distfile}}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -183,27 +188,32 @@ proc checkfiles {args} {
 # information in a custom .cvspass file
 proc cvsfetch {args} {
     global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env
-	cd $workpath
-	set cvs.args login
-	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
-	if {[catch {system "[command cvs] 2>&1"} result]} {
+    cd $workpath
+    set cvs.args login
+    set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
+    if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS login failed"
         return -code error "CVS login failed"
     }
-	set cvs.args "co -r ${cvs.tag}"
-	set cvs.cmd cvs
-	set cvs.post_args "${cvs.module}"
-	if {[catch {system "[command cvs] 2>&1"} result]} {
+    set cvs.args "co -r ${cvs.tag}"
+    set cvs.cmd cvs
+    set cvs.post_args "${cvs.module}"
+    if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS check out failed"
         return -code error "CVS check out failed"
     }
-	return 0
+    return 0
 }
 
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls
+    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd
+
+    # Override curl in the case of FreeBSD
+    if {${os.name} == "freebsd"} {
+	set fetch.cmd "fetch"
+    }
 
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
@@ -231,16 +241,16 @@ proc fetchfiles {args} {
 		} else {
 			set verboseflag "-s -S"
 		}
-		if ![catch {system "curl ${verboseflag} -o \"${distpath}/${distfile}\" \"${site}${distfile}\""} result] {
+		if ![catch {system [command fetch]} result] {
 		    set fetched 1
 		    break
 		} else {
-		    ui_error "curl(1) fetch failed."
+		    ui_error "fetch failed."
 		    exec rm -f ${distpath}/${distfile}
 		}
 	    }
 	    if {![info exists fetched]} {
-		return -code error "curl(1) fetch failed."
+		return -code error "fetch failed."
 	    } else {
 		unset fetched
 	    }

@@ -49,16 +49,25 @@ default make.target.all all
 set UI_PREFIX "---> "
 
 proc build_getmaketype {args} {
-    global make.type make.cmd
+    global make.type make.cmd os.name
+
     if ![info exists make.type] {
 	return gnumake
     }
     switch -exact -- ${make.type} {
 	bsd {
-	    return bsdmake
+	    if {${os.name} == "darwin"} {
+		return bsdmake
+	    } else {
+		return make
+	    }
 	}
 	gnu {
-	    return gnumake
+	    if {${os.name} == "darwin"} {
+		return gnumake
+	    } else {
+		return gmake
+	    }
 	}
 	pbx {
 	    return pbxbuild
