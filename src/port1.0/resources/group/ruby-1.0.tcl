@@ -1,0 +1,248 @@
+# $Id: ruby-1.0.tcl,v 1.1 2004/06/13 09:19:24 toby Exp $
+# ruby-1.0.tcl
+# 
+# Group file for 'ruby' group.
+#
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2002 Apple Computer, Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Apple Computer, Inc. nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Set some variables.
+set ruby.bin	${prefix}/bin/ruby
+set ruby.rdoc	${prefix}/bin/rdoc
+
+proc ruby.extract_config {var {default ""}} {
+	global ruby.bin
+	if {[catch {set val [exec ${ruby.bin} -e "require 'rbconfig';puts Config::CONFIG\[\"${var}\"\]"]}]} {
+		set val ${default}
+	}
+	return $val
+}
+
+set ruby.version	[ruby.extract_config ruby_version]
+set ruby.arch		[ruby.extract_config arch ${os.platform}]
+
+# define installation libraries as vendor location
+set ruby.lib		[ruby.extract_config vendorlibdir ${prefix}/lib/ruby/vendor_ruby/${ruby.version}]
+set ruby.archlib	[ruby.extract_config vendorarchdir ${ruby.lib}/${ruby.arch}]
+
+# define these empty initially, they are set by ruby.setup arguments
+set ruby.module		""
+set ruby.filename	""
+set ruby.project	""
+set ruby.docs		{}
+set ruby.srcdir		""
+
+# ruby group setup procedure
+proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "raa"}} {
+	global destroot prefix worksrcpath
+	global ruby.bin ruby.lib
+	global ruby.module ruby.project ruby.filename ruby.docs ruby.srcdir
+
+	# define ruby global names and lists
+	# check if module is a list or string
+	if {[llength ${module}] > 1} {
+		# if a list, first item is the module name
+		set ruby.module		[lindex ${module} 0]
+		# second argument is the project & file name
+		set ruby.project	[lindex ${module} 1]
+		set ruby.filename	[lindex ${module} 1]
+	} else {
+		# else, module, project, and file name are the same
+		set ruby.module		${module}
+		set ruby.project	${module}
+		set ruby.filename	${module}
+	}
+	set ruby.docs	${docs}
+
+	name			rb-[string tolower ${ruby.module}]
+	version			${vers}
+	categories		ruby
+
+	switch -glob ${source} {
+		rubyforge:*:* {
+			set num [lindex [split ${source} {:}] 1]
+			set ruby.project [string tolower [lindex [split ${source} {:}] 2]]
+			homepage		http://rubyforge.org/projects/${ruby.project}
+			master_sites	http://rubyforge.org/frs/download.php/${num}/
+		}
+		rubyforge:* {
+			set num [lindex [split ${source} {:}] 1]
+			homepage		http://rubyforge.org/projects/${ruby.project}
+			master_sites	http://rubyforge.org/frs/download.php/${num}/
+		}
+		sourceforge:* {
+			set ruby.project [lindex [split ${source} {:}] 1]
+			homepage		http://sourceforge.net/projects/${ruby.project}
+			master_sites	sourceforge:${ruby.project}
+		}
+		sourceforge {
+			homepage		http://sourceforge.net/projects/${ruby.project}
+			master_sites	sourceforge:${ruby.project}
+		}
+	}
+
+	distname		${ruby.filename}-${vers}
+	dist_subdir		ruby
+
+	depends_build	path:${ruby.bin}:ruby
+
+	post-extract {
+		system "find ${worksrcpath} -type d -name CVS | xargs rm -rf"
+	}
+
+	switch -glob ${type} {
+		basic_install.rb {
+			post-patch {
+				# create destroot setup file
+				set fp [open ${worksrcpath}/destroot.rb w]
+				puts $fp {
+					require 'rbconfig'
+					include Config
+					DESTROOT=ENV['DESTROOT'] || ''
+					CONFIG.keys.find_all { |d|
+						d.match(/dir$/) and !d.match(/(src|build|compile)/)
+					}.each {|confdir|
+						CONFIG[confdir]=DESTROOT+CONFIG[confdir]
+					}
+					$:.reverse.each { |d| $:.unshift(DESTROOT+d) }
+				}
+				close $fp
+				# adjust basic install.rb script
+				reinplace "s|site_ruby|vendor_ruby|" ${worksrcpath}/install.rb
+			}
+
+			use_configure	no
+
+			build			{}
+
+			pre-destroot {
+				xinstall -d -m 0755 ${destroot}${ruby.lib}
+			}
+			destroot.env	DESTROOT=${destroot}
+			destroot.cmd	${ruby.bin} -rvendor-specific -rdestroot install.rb
+			destroot.target
+			destroot.destdir
+		}
+		copy_install:* {
+			set ruby.srcdir	[lindex [split ${type} {:}] 1]
+
+			use_configure	no
+
+			build			{}
+
+			destroot {
+				cd ${worksrcpath}/${ruby.srcdir}
+				xinstall -d -m 0755 ${destroot}${ruby.lib}
+				foreach dir [exec find . -type d] {
+					set dir [strsed ${dir} {s|^[.]/||}]
+					xinstall -d -m 0755 ${destroot}${ruby.lib}/${dir}
+				}
+				foreach file [exec find . -type f] {
+					set file [strsed ${file} {s|^[.]/||}]
+					xinstall -m 0644 ${file} ${destroot}${ruby.lib}/${file}
+				}
+			}
+		}
+		install.rb {
+			configure.cmd		${ruby.bin} -rvendor-specific install.rb
+			configure.pre_args	config
+
+			build.cmd			${ruby.bin} -rvendor-specific install.rb
+			build.target		setup
+
+			pre-destroot {
+				reinplace "s|^prefix=${prefix}|prefix=${destroot}${prefix}|g" \
+					${worksrcpath}/config.save
+			}
+			destroot.cmd		${ruby.bin} -rvendor-specific install.rb
+			destroot.target		install
+			destroot.destdir
+		}
+		setup.rb {
+			configure.cmd		${ruby.bin} -rvendor-specific setup.rb
+			configure.pre_args	config
+
+			build.cmd			${ruby.bin} -rvendor-specific setup.rb
+			build.target		setup
+
+			pre-destroot {
+				reinplace "s|${prefix}|${destroot}${prefix}|g" \
+					${worksrcpath}/config.save
+			}
+			destroot.cmd		${ruby.bin} -rvendor-specific setup.rb
+			destroot.target		install
+			destroot.destdir
+		}
+		extconf.rb {
+			configure.cmd		${ruby.bin} -rvendor-specific extconf.rb
+			configure.pre_args
+			configure.args		--prefix=${prefix}
+
+			build.args			RUBY="${ruby.bin} -rvendor-specific"
+
+			destroot.args		RUBY="${ruby.bin} -rvendor-specific"
+		}
+		gnu {
+			build.args			RUBY="${ruby.bin} -rvendor-specific"
+
+			pre-destroot {
+				if {[file isfile ${worksrcpath}/config.save]} {
+					reinplace "s|${prefix}|${destroot}${prefix}|g" \
+						${worksrcpath}/config.save
+				}
+			}
+			destroot.args		RUBY="${ruby.bin} -rvendor-specific"
+		}
+		default {
+			ui_error "ruby.setup: unknown setup type '${type}' specified!"
+			return -code error "ruby.setup failed"
+		}
+	}
+
+	post-destroot {
+		cd ${worksrcpath}
+		# Install documentation files (if specified)
+		if {[llength ${ruby.docs}] > 0} {
+			set docPath ${prefix}/share/doc/${name}
+			xinstall -d -m 0755 ${destroot}${docPath}
+			foreach docitem ${ruby.docs} {
+				if {[file isdirectory ${docitem}]} {
+					foreach dir [exec find ${docitem} -type d] {
+						xinstall -d -m 0755 ${destroot}${docPath}/${dir}
+					}
+					foreach file [exec find ${docitem} -type f] {
+						xinstall -m 0644 ${file} ${destroot}${docPath}/${file}
+					}
+				} else {
+					xinstall -m 0644 ${docitem} ${destroot}${docPath}
+				}
+			}
+		}
+	}
+}
