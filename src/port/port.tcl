@@ -101,7 +101,10 @@ if ![info exists action] {
 	set action build
 }
 
-dportinit
+if {[catch {dportinit} result]} {
+	puts "Failed to initialize ports system, $result"
+	exit 1
+}
 
 switch -- $action {
 	search {
