@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.8 2005/03/02 14:52:40 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.9 2005/03/02 14:56:50 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -540,7 +540,7 @@ proc open_file_map {{readonly 0}} {
 		# reopen it r/o if we wanted it r/o.
 	} else {
 		# open it directly
-		if { $readonly } {
+		if { $readonly == 1 } {
 			filemap open file_map ${map_file}.db readonly
 		} else {
 			filemap open file_map ${map_file}.db
