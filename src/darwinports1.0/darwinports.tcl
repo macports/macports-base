@@ -3,7 +3,7 @@
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # Copyright (c) 2004 Ole Guldberg Jensen <olegb@opendarwin.org>.
-# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -819,6 +819,7 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 
     # XXX This should not happen, but does with the tk port when searching for tcl.
     if {![info exists sources]} { return $matches }
+	set found 0
     foreach source $sources {
     	if {[darwinports::getprotocol $source] == "dports"} {
     		array set attrs [list name $regexp]
@@ -826,39 +827,44 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 			eval lappend matches $res
 		} else {
         	if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
-        	    return -code error "Can't open index file for source $source. Have you synced your source indexes?"
-			}
-	        while {[gets $fd line] >= 0} {
-	            set name [lindex $line 0]
-				if {$case_sensitive == "yes"} {
-					set rxres [regexp -- $regexp $name]
-				} else {
-					set rxres [regexp -nocase -- $regexp $name]
-				}
-	            if {$rxres == 1} {
-	                gets $fd line
-	                array set portinfo $line
-	                if {[info exists portinfo(portarchive)]} {
-	                    set porturl ${source}/$portinfo(portarchive)
-	                } elseif {[info exists portinfo(portdir)]} {
-	                    set porturl ${source}/$portinfo(portdir)
-	                }
-					if {[info exists porturl]} {
-	                    lappend line porturl $porturl
-						ui_debug "Found port in $porturl"
+        	    ui_warn "Can't open index file for source: $source"
+			} else {
+				incr found 1
+				while {[gets $fd line] >= 0} {
+					set name [lindex $line 0]
+					if {$case_sensitive == "yes"} {
+						set rxres [regexp -- $regexp $name]
 					} else {
-						ui_debug "Found port info: $line"
+						set rxres [regexp -nocase -- $regexp $name]
 					}
-	                lappend matches $name
-	                lappend matches $line
-	            } else {
-	                set len [lindex $line 1]
-					catch {seek $fd $len current}
-	            }
-	        }
-	        close $fd
+					if {$rxres == 1} {
+						gets $fd line
+						array set portinfo $line
+						if {[info exists portinfo(portarchive)]} {
+							set porturl ${source}/$portinfo(portarchive)
+						} elseif {[info exists portinfo(portdir)]} {
+							set porturl ${source}/$portinfo(portdir)
+						}
+						if {[info exists porturl]} {
+							lappend line porturl $porturl
+							ui_debug "Found port in $porturl"
+						} else {
+							ui_debug "Found port info: $line"
+						}
+						lappend matches $name
+						lappend matches $line
+					} else {
+						set len [lindex $line 1]
+						catch {seek $fd $len current}
+					}
+				}
+				close $fd
+			}
 		}
     }
+	if {!$found} {
+		return -code error "No index(es) found! Have you synced your source indexes?"
+	}
 
     return $matches
 }
