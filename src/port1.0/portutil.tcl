@@ -88,6 +88,7 @@ proc reinplace {oddpattern file}  {
 
     if {[catch {set result [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 	ui_error "reinplace: $error"
+	close $input
 	return -code error "reinplace failed"
     }
 
@@ -96,6 +97,8 @@ proc reinplace {oddpattern file}  {
 
     if {[catch {exec sed $pattern <@$input >@$output} error]} {
 	ui_error "reinplace: $error"
+	close $output
+	close $input
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
@@ -105,10 +108,14 @@ proc reinplace {oddpattern file}  {
 
     if {[catch {exec cat <@$output >@$input 2>/dev/null} error]} {
 	ui_error "reinplace: $error"
+	close $output
+	close $input
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
 
+    close $output
+    close $input
     file delete "$tmpfile"
     return
 }
