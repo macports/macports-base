@@ -50,8 +50,9 @@ mkchrootbase() {
 			# special case for pax
 			cp /bin/pax $dir/bin/pax
 		done
-		# special case nuke to prevent builder pollution
-		rm -rf $dir/usr/X11R6
+		# special case nukes to prevent builder pollution
+		rm -rf $dir/usr/X11R6 $dir/etc/X11
+		rm -rf $dir/opt/local $dir/etc/ports
 		# If there are any work-arounds, apply them now
 		if [ -f chroot-fixups.tar.gz ]; then
 			echo "Found chroot-fixups.tar.gz - applying to new chroot"
