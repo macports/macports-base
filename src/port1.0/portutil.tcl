@@ -895,6 +895,11 @@ proc use {name} {
 	}
 }
 
+# dont
+# Similar to use, except specifies that a certain target
+# should not be used.  The target with the given name is
+# found, and its requirements changed so that it cannot run.
+
 ##### variant class #####
 
 # constructor for variant objects

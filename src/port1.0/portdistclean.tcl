@@ -51,12 +51,22 @@ proc getdistname {name} {
 proc main {args} {
 	global UI_PREFIX
 
+	# Try to delete the whole subdirectory, if there is one.
+	if {[exists distpath] && [exists dist_subdir]} {
+		set dirpath [file join [option distpath] [option dist_subdir]]
+		
+		if {[file isdirectory $dirpath]} {
+			ui_msg "$UI_PREFIX [format [msgcat::mc "Purging directory %s"] [option dist_subdir]]"
+			exec rm -Rf $dirpath
+			return 0
+		}
+	}
+
 	# Try to delete the cached distribution files.
-	
     if {![file writable [option distpath]]} {
         return -code error [format [msgcat::mc "%s must be writable"] [option distpath]]
     }
-		
+
 	foreach distfile [option distfiles] {
 		# strip any tags
 		set distfile [getdistname $distfile]

@@ -39,9 +39,7 @@ description		Download the distribution files.
 provides		distfiles
 requires		main
 
-options master_sites distfiles patch_sites patchfiles extract.sufx extract.dir extract.post_args checksums
-# XXX: what's this for?
-options dist_subdir
+options master_sites distfiles patch_sites patchfiles extract.sufx extract.dir extract.post_args checksums dist_subdir
 
 # XXX: extract suffix stuff needs to be reworked
 default extract.sufx .tar.gz
@@ -91,6 +89,10 @@ proc main {args} {
 	# the equivalent tag are made visible to the download targets.
 	# Otherwise all master sites will be made visible.
 	
+	if {[exists distpath] && [exists dist_subdir]} {
+		option distpath [file join [option distpath] [option dist_subdir]]
+	}
+	
     if {![file isdirectory [option distpath]]} {
         if {[catch {file mkdir [option distpath]} result]} {
 			return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
@@ -113,4 +115,21 @@ proc main {args} {
 	}
 	
 	# XXX: patch files dont' get extracted, only checksummed
+	
+	# Hoodwink the fetch targets into using patchsites instead of master_sites.
+	set orig_master_sites [option master_sites]
+	option master_sites [option patch_sites]
+	
+	foreach distfile [option patchfiles] {
+		# Make the distfile globally visible.
+		option distfile $distfile
+		
+		# Selects the download, checksum, and extract targets.
+		# extracts the distfile into the work directory.
+		# Don't keep state.
+		eval_targets checksum 0
+	}
+	
+	# Restore the master sites.
+	option master_sites $orig_master_sites
 }

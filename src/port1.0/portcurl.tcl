@@ -69,7 +69,8 @@ proc main {args} {
 			# our discretion as to whether we think someone else will be able to recover.
 			set url "${site}${distfile}"
 			global errorCode
-			switch -exact [lindex $errorCode 2] {
+			set code [lindex $errorCode 2]
+			switch -exact $code {
 				1 { 
 					#set err [msgcat::mc "curl(1) has no support for this protocol."]
 					# tcsh, zsh return 1 if curl(1) isn't found
@@ -85,11 +86,27 @@ proc main {args} {
 				3 { set err [format [msgcat::mc "malformatted URL: %s"] "${site}${distfile}"] }
 				4 { set err [format [msgcat::mc "malformatted username in URL: %s"] "${url}"] }
 				5 { set err [msgcat::mc "The given proxy host could not be resolved."] }
-				6 { set err [format [msgcat::mc "Unknown host: %s"] "${url}"] }
-				7 { set err [format [msgcat::mc "Failed to connect to host: %s"] "${url}"] }
+				6 -
+				7 -
+				9 -
+				10 { 
+					# We failed to connect to the host for a non-transient reason.
+					# Let's remove it from the master_sites list.
+					set ms [option master_sites]
+					set ix [lsearch -exact $ms $site]
+					if {$ix >= 0} {
+						option master_sites [lreplace $ms $ix $ix]
+					}
+
+					switch -exact $code {
+						6 { set err [format [msgcat::mc "Unknown host: %s"] "${url}"] }
+						7 { set err [format [msgcat::mc "Failed to connect to host: %s"] "${url}"] }
+						9 { set err [format [msgcat::mc "FTP access denied: %s"] "${url}"] }
+						10 { set err [format [msgcat::mc "FTP user/password incorrect: %s"] "${url}"] }
+					}
+					ui_info "$UI_PREFIX [format [msgcat::mc "Removing unreachable host from master sites.  %s"] $err]"
+				}
 				8 { set err [format [msgcat::mc "Unrecognized reply from FTP server: %s"] "${url}"] }
-				9 { set err [format [msgcat::mc "FTP access denied: %s"] "${url}"] }
-				10 { set err [format [msgcat::mc "FTP user/password incorrect: %s"] "${url}"] }
 				17 { set err [format [msgcat::mc "FTP could not use binary transfer: %s"] "${url}"] }
 				18 { set err [format [msgcat::mc "Only part of the file was transferred: %s"] "${url}"] }
 				19 { set err [format [msgcat::mc "FTP could not retrieve file: %s"] "${url}"] }
@@ -99,7 +116,7 @@ proc main {args} {
 				35 { set err [format [msgcat::mc "SSL handshaking failed: %s"] "${url}"] }
 				36 { set err [format [msgcat::mc "FTP could not resume download: %s"] "${url}"] }
 				47 { set err [format [msgcat::mc "Too many redirects: %s"] "${url}"] }
-				default { set err [format [msgcat::mc "An error occurred (%s): %s"] [lindex $errorCode 2] "${url}"] }
+				default { set err [format [msgcat::mc "An error occurred (%s): %s"] $code "${url}"] }
 			}
 		}
 	}
