@@ -156,7 +156,7 @@ proc fileinfo_for_index {flist} {
 	    set dir $prefix
 	}
 	if {[file isdirectory $fname] && [tbool registry.contents_recurse]} {
-	    ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $file"
+	    ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $fname"
 	}
 	fileinfo_for_entry rval $dir $file
     }
