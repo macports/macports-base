@@ -1,7 +1,7 @@
 # et:ts=4
 # python-1.0.tcl
 #
-# $Id: python-1.0.tcl,v 1.3.2.1 2004/10/11 06:56:15 fkr Exp $
+# $Id: python-1.0.tcl,v 1.3.2.2 2004/10/11 18:54:35 rshaw Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -46,7 +46,7 @@ build.cmd        ${python.bin} setup.py
 build.target     build
 
 destroot.cmd     ${python.bin} setup.py
-destroot.destdir --root=${destroot} --prefix=${destroot}${prefix}
+destroot.destdir --root=${destroot} --prefix=${prefix}
 
 pre-destroot {
 	xinstall -d -m 755 ${destroot}${prefix}/share/doc/${name}/examples
