@@ -113,7 +113,7 @@ proc destroot_finish {args} {
 						set gzmanfile ${manfile}.gz
 						set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
 						if {[file exists ${gzmanfilepath}]} {
-							set desired 00644
+							set desired 00444
 							set current [file attributes ${gzmanfilepath} -permissions]
 							if {$current != $desired} {
 								ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
