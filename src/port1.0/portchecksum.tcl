@@ -115,9 +115,12 @@ proc checksum_main {args} {
 		return 0
 	}
 
-	# If there is only one file and an even number of arguments are specified,
-	# then we are using the short form for checksums.
-	if {[llength $all_dist_files] == 1 && [expr [llength [option checksums]] % 2] == 0} {
+	# We are using a short checksum form if:
+	# (1) There is only one distfile.
+	# (2) There are an even number of words in checksums (i.e. "md5 cksum sha1 cksum" = 4 words).
+	# (3) There are no more than 2 checksums specified.
+	# * XXX 2 should be number of checksum types, hardcoding for now.
+	if {[llength $all_dist_files] == 1 && [expr [llength [option checksums]] % 2] == 0 && [expr [llength [option checksums]] / 2] <= 2} {
 		option checksums [linsert [option checksums] 0 $all_dist_files]
 	}
 
