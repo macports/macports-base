@@ -147,9 +147,9 @@ proc escape_portname {portname} {
 proc print_usage {args} {
 	global argv0
 	puts "Usage: [file tail $argv0] \[-qa\] \[-f configfile\] \[-p portlist\]"
-	puts "	-q	Quiet mode (no warnings!)"
+	puts "	-q	Quiet mode (no warnings, only errors reported)"
+	puts "	-w	No warnings"
 	puts "	-a	Build all ports"
-	puts "  -w	Force - no warnings"
 }
 
 proc reset_tree {args} {
