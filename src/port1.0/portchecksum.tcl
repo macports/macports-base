@@ -38,6 +38,7 @@ target_requires ${com.apple.checksum} main fetch
 target_prerun ${com.apple.checksum} checksum_start
 
 options checksums
+default checksums ""
 
 set_ui_prefix
 
