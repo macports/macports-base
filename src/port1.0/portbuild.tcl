@@ -59,6 +59,9 @@ proc build_getmaketype {args} {
 	gnu {
 	    return gnumake
 	}
+	pbx {
+	    return pbxbuild
+	}
     }
 }
 

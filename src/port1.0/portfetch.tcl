@@ -38,10 +38,17 @@ register com.apple.fetch provides fetch
 register com.apple.fetch requires main depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2 dist_subdir
+options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.pass
+commands cvs
 
 # Defaults
 default extract_sufx .tar.gz
+default fetch.type standard
+default cvs.cmd cvs
+default cvs.pass ""
+default cvs.module {$distname}
+default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
+default cvs.pre_args {"-d ${cvs.root}"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -68,7 +75,10 @@ namespace eval portfetch { }
 set UI_PREFIX "---> "
 
 proc suffix {distname} {
-    global extract_sufx use_bzip2 use_zip
+    global extract_sufx use_bzip2 use_zip fetch.type
+	if {"${fetch.type}" == "cvs"} {
+        return ""
+    }
     if {[tbool use_bzip2]} {
 	return ${distname}.tar.bz2
     } elseif {[tbool use_zip]} {
@@ -140,6 +150,23 @@ proc checkfiles {args} {
     }
 }
 
+proc cvsfetch {args} {
+    global workpath cvs.pass cvs.args cvs.post_args
+	cd $workpath
+	set cvs.args login
+	if {[catch {system "echo ${cvs.pass} | [command cvs] 2>&1"} result]} {
+        ui_error "CVS login failed"
+        return -1
+    }
+	set cvs.args co
+	set cvs.post_args shadowirc
+	if {[catch {system "[command cvs] 2>&1"} result]} {
+        ui_error "CVS check out failed"
+        return -1
+    }
+	return 0
+}
+
 proc fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls
 
@@ -185,21 +212,26 @@ proc fetchfiles {args} {
 }
 
 proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir
+    global distfiles distname distpath all_dist_files dist_subdir fetch.type
 
     if {[info exist distpath] && [info exists dist_subdir]} {
 	set distpath ${distpath}/${dist_subdir}
     }
-    checkfiles
+    if {"${fetch.type}" == "standard"} {
+        checkfiles
+    }
 }
 
 proc fetch_main {args} {
-    global distname distpath all_dist_files
+    global distname distpath all_dist_files fetch.type
 
     # Check for files, download if neccesary
-    if ![info exists all_dist_files] {
-	return 0
+    if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+        return 0
+    }
+    if {"${fetch.type}" == "cvs"} {
+        return [cvsfetch]
     } else {
-	return [fetchfiles]
+	    return [fetchfiles]
     }
 }
