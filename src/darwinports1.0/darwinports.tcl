@@ -44,7 +44,7 @@ proc dportinit {args} {
 	set portconf /etc/ports.conf
 	lappend conf_files /etc/ports.conf
     }
-    if [file isfile /opt/local/etc/defaults/ports.conf] {
+    if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
 	lappend conf_files /etc/defaults/ports.conf
     }
