@@ -83,7 +83,7 @@ proc uninstall_main {args} {
 	# Now look for a contents list
 	set ix [lsearch $entry contents]
 	if {$ix >= 0} {
-	    set contents [lindex $entry [incr ix]]
+	    set contents [lsort -decreasing [lindex $entry [incr ix]]]
 	    set uninst_err 0
 	    foreach f $contents {
 		set fname [lindex $f 0]
