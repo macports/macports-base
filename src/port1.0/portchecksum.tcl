@@ -48,9 +48,11 @@ proc md5 {file} {
     set pipe [open "|md5 \"${file}\"" r]
     set line [read $pipe]
     if {[regexp $md5regex $line match type filename sum] == 1} {
+	close $pipe
 	return $sum
     } else {
 	# XXX Handle this error beter
+	close $pipe
 	ui_error "$line - md5sum failed!"
 	return -1
     }
