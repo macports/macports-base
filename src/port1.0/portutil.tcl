@@ -55,70 +55,6 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
-# swdep_resolve
-# XXX - Architecture specific
-# XXX - Rely on information from internal defines in cctools/dyld:
-# define DEFAULT_FALLBACK_FRAMEWORK_PATH
-# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
-# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
-# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
-# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
-
-proc swdep_resolve {name} {
-    global $name env sysportpath
-    if {![info exists $name]} {
-	return 0
-    }
-    upvar #0 $name upname
-    foreach depspec $upname {
-	if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9\.$^\?\+\(\)\|\\]+):([A-Za-z\./0-9]+)} "$depspec" match deppath depregex portname] == 1} {
-	    switch -exact -- $deppath {
-		lib {
-		    if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
-			lappend search_path $env(DYLD_FRAMEWORK_PATH)
-		    } else {
-			lappend search_path /Library/Frameworks /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
-		    }
-		    if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
-			lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
-		    }
-		    if {[info exists env(DYLD_LIBRARY_PATH)]} {
-			lappend search_path $env(DYLD_LIBRARY_PATH)
-		    } else {
-			lappend search_path /lib /usr/local/lib /lib /usr/lib
-		    }
-		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
-			lappend search_path $env(DYLD_LIBRARY_PATH)
-		    }
-		    regsub {\.} $depregex {\.} depregex
-		    set depregex \^$depregex.*\\.dylib\$
-		}
-		bin {
-		    set search_path [split $env(PATH) :]
-		    set depregex \^$depregex\$
-		}
-		default {
-		    set search_path [split $deppath :]
-		}
-	    }
-	}
-    }
-    foreach path $search_path {
-	if {![file isdirectory $path]} {
-		continue
-	}
-	foreach filename [readdir $path] {
-		if {[regexp $depregex $filename] == 1} {
-			ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
-			return 0
-		}
-	}
-    }
-    ui_debug "Building $portname"
-    dportbuild $sysportpath/software/$portname build
-    return 0
-}
-
 ########### External Dependancy Manipulation Procedures ###########
 # register
 # Creates a target in the global target list using the internal dependancy
@@ -126,7 +62,6 @@ proc swdep_resolve {name} {
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
 #	<identifier> target <procedure to execute> [run type]
-#	<identifier> swdep <list of dependency option names>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -144,17 +79,8 @@ proc register {name mode args} {
         dlist_set_key targets $name procedure $procedure
 
 	# Set runtype {always,once} if available
-	if {[llength $args] == 3} {
-	    dlist_set_key targets $name runtype [lindex $args 2]
-	}
-    } elseif {[string equal swdep $mode]} {
-	foreach depname $args {
-	    if {![dlist_has_key targets $depname procedure]} {
-		register $depname target swdep_resolve
-		register $depname provides $depname
-		options $depname
-   	    }
-	    register $name requires $depname
+	if {[llength $args] == 2} {
+	    dlist_set_key targets $name runtype [lindex $args 1]
 	}
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
