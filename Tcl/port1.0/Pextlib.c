@@ -8,20 +8,66 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 {
 	Tcl_Obj *resultPtr;
 	char buf[1024];
+	char *cmdstring, *p;
 	FILE *pipe;
+	int i, cmdlen, cmdlenavail;
+	cmdlen = cmdlenavail = 1024;
 
-	if (objc != 2) {
+	resultPtr = Tcl_GetObjResult(interp);
+
+	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
 		return TCL_ERROR;
+	} else if (objc == 2) {
+		cmdstring = Tcl_GetString(objv[1]);
+	} else if (objc > 2) {
+		cmdstring = malloc(cmdlen);
+		if (cmdstring == NULL)
+			return TCL_ERROR;
+		p = cmdstring;
+		/*
+		 * Rather than realloc for every iteration
+		 * through the argument vector, malloc a
+		 * sizable chunk of memory first.
+		 * If we extend beyond what is available,
+		 * then realloc
+		 */
+		for (i = 1; i < objc; i++) {
+			char *arg;
+			int len;
+
+			arg = Tcl_GetString(objv[i]);
+			/* Add 1 for trailing \0 or ' ' */
+			len = strlen(arg) + 1;
+
+			if (len > cmdlenavail) {
+				cmdlen += cmdlenavail + len;
+				cmdstring = reallocf(cmdstring, cmdlen);
+				if (cmdstring == NULL)
+					return TCL_ERROR;
+			}
+			/* Subtract 1 to not copy trailing \0 */
+			memcpy(p, arg, len - 1);
+			p += len;
+
+			if (i == objc - 1) {
+				*(p - 1) = '\0';
+			} else {
+				*(p - 1) = ' ';
+			}
+			cmdlenavail -= len;
+			cmdlen += len;
+		}
 	}
 
-	pipe = popen(Tcl_GetString(objv[1]), "r");
-	resultPtr = Tcl_GetObjResult(interp);
+	pipe = popen(cmdstring, "r");
+	free(cmdstring);
 	while (fgets(buf, 1024, pipe) != NULL) {
 		/* XXX We need the output but this is not at all correct */
 		printf("%s", buf);
 		Tcl_AppendToObj(resultPtr, (void *) &buf, strlen(buf));
 	}
+
 	switch (pclose(pipe)) {
 		case 0:
 			return TCL_OK;
