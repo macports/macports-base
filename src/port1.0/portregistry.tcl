@@ -9,7 +9,8 @@ package require portutil 1.0
 # For now, just write stuff to a file for debugging.
 
 proc registry_new {portname {portversion 1.0}} {
-    return [open "/tmp/$portname-$portversion" w 0644]
+    exec mkdir -p /Library/Receipts/darwinports
+    return [open "/Library/Receipts/darwinports/$portname-$portversion" w 0644]
 }
 
 proc registry_store {rhandle data} {
