@@ -78,6 +78,7 @@ AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(SHLIB_LDFLAGS)
 AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_STUB_LIB_SPEC)
+AC_SUBST(TCL_CC)
 
 #misc variables that need to be expanded for substitution into tcl
 
