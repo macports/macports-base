@@ -504,10 +504,10 @@ proc target_run {this} {
 	    set result [catch {[$this get init] $name} errstr]
 	}
 	
-	if {[check_statefile target $name $target_state_fd]} {
+	if {[check_statefile target $name $target_state_fd] && $result == 0} {
 	    set result 0
 	    ui_debug "Skipping completed $name ($portname)"
-	} else {
+	} elseif {$result == 0} {
 	    # Execute pre-run procedure
 	    if {[$this has prerun]} {
 		set result [catch {[$this get prerun] $name} errstr]
@@ -963,8 +963,7 @@ proc target_provides {this args} {
 			$this set procedure proc-${ident}-${target}
 			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
-					ui_info \\\$result \n\
-					return 1 \n\
+					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
@@ -977,8 +976,7 @@ proc target_provides {this args} {
 			$this append pre proc-pre-${ident}-${target}
 			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
-					ui_info \\\$result \n\
-					return 1 \n\
+					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
@@ -989,8 +987,7 @@ proc target_provides {this args} {
 			$this append post proc-post-${ident}-${target}
 			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
-					ui_info \\\$result \n\
-					return 1 \n\
+					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
