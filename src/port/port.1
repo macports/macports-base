@@ -1,4 +1,4 @@
-.\" portbuild.1
+.\" port.1
 .\"
 .\" Copyright (c) 2002 Apple Computer, Inc.
 .\" All rights reserved.
@@ -31,7 +31,7 @@
 .Dt PORTBUILD 1 "Apple Computer, Inc."
 .Os
 .Sh NAME
-.Nm portbuild
+.Nm port
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
@@ -40,13 +40,13 @@
 .Op options ...
 .Sh DESCRIPTION
 .Nm
-is designed to read and execute the build instructions of a darwin port. If no portdir is specified, the current working directory is assumed. Port options are specified as key=value pairs and take precedence over port-specific and system-wide settings.
+is designed to read and execute the build instructions of a darwin port. If no portdir is specified, the current working directory is assumed. Port options are specified as key=value pairs and take precedence over individual port options and system-wide settings.
 .Sh EXAMPLES
 The following demonstrates invoking
 .Nm
 with the "extract" target and extract_sufx set to ".tgz"
 .Pp
-.Dl "portbuild extract extract_sufx=.tgz"
+.Dl "port extract extract_sufx=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std

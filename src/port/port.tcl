@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-# portbuild.tcl
+# port.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -70,6 +70,6 @@ if [info exists options] {
 } else {
     set workername [dportopen $portdir]
 }
-set result [dportbuild $workername $target]
+set result [dportexec $workername $target]
 dportclose $workername
 return $result

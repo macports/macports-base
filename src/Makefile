@@ -1,5 +1,5 @@
 TCLPKG=		darwinports1.0 port1.0 pextlib1.0
-SUBDIR=		${TCLPKG} portbuild
+SUBDIR=		${TCLPKG} port
 
 all:
 	@for subdir in $(SUBDIR); do\

@@ -122,7 +122,7 @@ proc depends_main {id} {
     }
     ui_debug "Building $portname"
     set worker [dportopen "$sysportpath/$portname"]
-    dportbuild $worker install
+    dportexec $worker install
     dportclose $worker
     return 0
 }

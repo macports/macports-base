@@ -83,7 +83,7 @@ proc dportopen {portdir {options ""}} {
 	set portpath [pwd]
 	set workername workername[incr uniqid]
 	interp create $workername
-	$workername alias dportbuild dportbuild
+	$workername alias dportexec dportexec
 
 	# instantiate the UI functions
 	$workername alias ui_init ui_init
@@ -129,7 +129,7 @@ proc dportopen {portdir {options ""}} {
     return $workername
 }
 
-proc dportbuild {workername target} {
+proc dportexec {workername target} {
     global targets variants portpath portinterp_options uniqid variations
 
     # XXX: don't set variations here, they should come from portbuild somehow
