@@ -64,6 +64,9 @@ namespace eval dpkg {
 	variable pkgrepo "/export/dpkg/"
 	variable architecture "[exec dpkg --print-installation-architecture]"
 
+	variable aptpackagedir
+	variable packagedir
+
 	# portlistfile defaults to ${pkgrepo}/${architecture}/etc/buildlist.txt (set in main)
 	variable portlistfile
 
@@ -177,26 +180,32 @@ proc reset_tree {args} {
 	}
 
 	ui_silent "Linking static distfiles directory to ${portprefix}/var/db/dports/distfiles."
-	if {[catch {system "rmdir ${portprefix}/var/db/dports/distfiles"} error]} {
-		ui_noisy_error "Internal error: $error"
-		exit 1
-	}
+	if {[file isdirectory ${portprefix}/var/db/dports/distfiles"]} {
+		if {[catch {system "rmdir ${portprefix}/var/db/dports/distfiles"} error]} {
+			ui_noisy_error "Internal error: $error"
+			exit 1
+		}
 
-	if {[catch {system "ln -s ${pkgrepo}/distfiles ${portprefix}/var/db/dports/distfiles"} error]} {
-		ui_noisy_error "Internal error: $error"
-		exit 1
+		if {[catch {system "ln -s ${pkgrepo}/distfiles ${portprefix}/var/db/dports/distfiles"} error]} {
+			ui_noisy_error "Internal error: $error"
+			exit 1
+		}
 	}
 }
 
 proc main {argc argv} {
 	global dpkg::configfile dpkg::pkgrepo dpkg::architecture dpkg::portlistfile dpkg::portlist
-	global dpkg::portsArray dpkg::portprefix dpkg::silentmode dpkg::logfd
+	global dpkg::portsArray dpkg::portprefix dpkg::silentmode dpkg::logfd dpkg::packagedir dpkg::aptpackagedir
+
 
 	# Check if portlistfile was set in the configuration file
 	if {![info exists portlistfile]} {
 		# The default portlist file
 		set portlistfile [file join $pkgrepo $architecture etc buildlist.txt]
 	}
+
+	set packagedir ${pkgrepo}/${architecture}/packages/
+	set aptpackagedir ${pkgrepo}/${architecture}/apt/
 
 	# Read command line options
 	set buildall_flag false
@@ -280,11 +289,11 @@ proc main {argc argv} {
 
 	# Ensure that the log directory exists, and open up
 	# the default debug log
-	open_default_log
+	open_default_log w
 
 	# Set the dport options
 	# Package build path
-	set options(package.destpath) ${pkgrepo}/${architecture}/packages/
+	set options(package.destpath) ${packagedir}
 
 	# Ensure that it exists
 	file mkdir $options(package.destpath)
@@ -305,11 +314,20 @@ proc main {argc argv} {
 		exec sleep 10
 	}
 
+	# Destroy the existing apt repository
+	if {[catch {system "rm -Rf ${aptpackagedir}"} error]} {
+		ui_noisy_error "Internal error: $error"
+		exit 1
+	}
+
+	# Recreate
+	file mkdir ${aptpackagedir}
+
 	close_default_log
 
 	foreach port $portlist {
 		# Open the default debug log write/append
-		open_default_log w+
+		open_default_log
 
 		set searchstring [escape_portname $port]
 		if {[catch {set res [dportsearch "^${searchstring}\$"]} error]} {
@@ -330,12 +348,24 @@ proc main {argc argv} {
 			continue
 		}
 
+		# Add apt override line. dpkg is special cased and marked 'required'
+		# TODO: add the ability to specify the "required" priority for specific
+		# ports in a config file.
+		if {"$portinfo(name)" == "dpkg"} {
+			set pkg_priority required
+		} else {
+			set pkg_priority optional
+		}
+		add_override $portinfo(name) $pkg_priority [lindex $portinfo(categories) 0]
+
 		# Skip up-to-date software
 		set pkgfile [get_pkgpath $portinfo(name) $portinfo(version) $portinfo(revision)]
 		if {[file exists ${pkgfile}]} {
 			if {[regsub {^file://} $portinfo(porturl) "" portpath]} {
 				if {[file readable $pkgfile] && ([file mtime ${pkgfile}] > [file mtime ${portpath}/Portfile])} {
 					ui_silent "Skipping ${portinfo(name)}-${portinfo(version)}-${portinfo(revision)}; package is up to date."
+					# Shove the package into the apt repository
+					copy_pkg_to_apt $portinfo(name) $portinfo(version) $portinfo(revision) [lindex $portinfo(categories) 0]
 					continue
 				}
 			}
@@ -402,6 +432,9 @@ proc main {argc argv} {
 		}
 
 		ui_silent "Package build for $portinfo(name) succeeded"
+		
+		# Into the apt repository you go!
+		copy_pkg_to_apt $portinfo(name) $portinfo(version) $portinfo(revision) [lindex $portinfo(categories) 0]
 
 		# Close the log
 		close $logfd
@@ -413,7 +446,7 @@ proc main {argc argv} {
 		dportclose $workername
 	}
 
-	open_default_log w+
+	open_default_log
 
 	ui_silent "Resetting /usr/dports ..."
 	reset_tree
@@ -427,16 +460,17 @@ proc main {argc argv} {
 
 proc get_pkgpath {name version revision} {
 	global dpkg::pkgrepo dpkg::architecture
+	global dpkg::packagedir
 	if {${revision} == 0} {
 		set revision ""
 	} else {
 		set revision "-${revision}"
 	}
 
-	return ${pkgrepo}/${architecture}/packages/${name}_${version}${revision}_${architecture}.deb
+	return ${packagedir}/${name}_${version}${revision}_${architecture}.deb
 }
 
-proc open_default_log {{mode w}} {
+proc open_default_log {{mode a}} {
 	global dpkg::pkgrepo dpkg::architecture dpkg::logfd
 	# Ensure that the log directory exists, and open up
 	# the default debug log
@@ -462,6 +496,25 @@ proc delete_failure_log {name} {
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
+}
+
+proc add_override {name priority section {maintainer ""}} {
+	global dpkg::aptpackagedir
+	set output "${name}	${priority}	${section}"
+	if {${maintainer} != ""} {
+		append output " ${maintainer}"
+	}
+	set fd [open "${aptpackagedir}/override" a 0644]
+	puts $fd $output
+	close $fd
+}
+
+proc copy_pkg_to_apt {name version revision category} {
+	global dpkg::aptpackagedir
+
+	set pkgfile [get_pkgpath $name $version $revision]
+	file mkdir $aptpackagedir/main/$category
+	file link -hard $aptpackagedir/main/$category/[file tail $pkgfile] $pkgfile
 }
 
 # Recursive bottom-up approach of building a list of dependencies.
