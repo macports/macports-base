@@ -56,7 +56,7 @@ proc install_main {args} {
     }
     ui_msg "$UI_PREFIX Installing $portname with target ${build.target.install}"
     set build.target.current ${build.target.install}
-    if [catch {system "[command make]"}] {
+    if [catch {system "[command build]"}] {
 	ui_error "Installation failed."
 	return -code error "Installation failed."
     }
