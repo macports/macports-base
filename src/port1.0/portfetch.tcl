@@ -309,12 +309,12 @@ proc fetchfiles {args} {
 	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
 	}
     }
-    if {![file writable $distpath]} {
-        return -code error [format [msgcat::mc "%s must be writable"] $distpath]
-    }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
 	    ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
+            if {![file writable $distpath]} {
+                return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+            }
             global portfetch::$url_var
             if {![info exists $url_var]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
