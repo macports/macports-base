@@ -12,22 +12,18 @@ PROG=	mtree
 MAN=
 SRCS= compare.c crc.c create.c excludes.c misc.c mtree.c spec.c \
 	verify.c getid.c stat_flags.c pack_dev.c vis.c unvis.c \
-	../md5/md5hl.c ../md5/md5c.c ../md5/sha1.c \
-	../md5/sha1hl.c ../md5/rmd160.c ../md5/rmd160hl.c \
 	fgetln.c __fts13.c err.c setmode.c setprogname.c
 OBJS= compare.o crc.o create.o excludes.o misc.o mtree.o spec.o \
 	verify.o getid.o stat_flags.o pack_dev.o vis.o unvis.o \
-	../md5/md5hl.o ../md5/md5c.o ../md5/sha1.o \
-	../md5/sha1hl.o ../md5/rmd160.o ../md5/rmd160hl.o \
 	fgetln.o __fts13.o err.o setmode.o setprogname.o
 
-CPPFLAGS+=	-I../md5 -I.
+CPPFLAGS+=	-I.
 
 CC=		@CC@
 CCLD=		$(CC)
 LIBS=		@LIBS@
 CPPFLAGS=	@CPPFLAGS@
-DEFS=		@DEFS@ -I. -I@srcdir@ -I../md5
+DEFS=		@DEFS@ -I. -I@srcdir@ -DNO_MD5 -DNO_RMD160 -DNO_SHA1
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
 

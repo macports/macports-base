@@ -56,8 +56,6 @@ __RCSID("$NetBSD: vis.c,v 1.4 2002/12/17 15:14:07 cjep Exp $");
 #include <vis.h>
 #include <stdlib.h>
 
-#include "digest-types.h"
-
 #ifndef __ELF__
 #define _strsvis	strsvis
 #define _strsvisx	strsvisx

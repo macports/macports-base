@@ -68,12 +68,6 @@ __RCSID("$NetBSD: create.c,v 1.5 2002/12/17 12:44:56 grant Exp $");
 
 #include "mtree.h"
 
-#include <md5.h>
-
-#include <rmd160.h>
-
-#include <sha1.h>
-
 #include "extern.h"
 
 #define	INDENTNAMELEN	15

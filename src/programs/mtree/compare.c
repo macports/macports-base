@@ -75,7 +75,6 @@ __RCSID("$NetBSD: compare.c,v 1.5 2003/02/21 11:19:19 grant Exp $");
 #endif
 
 #include <unistd.h>
-#include <digest-types.h>
 
 #ifdef HAVE_MD5_H
 #include <md5.h>
