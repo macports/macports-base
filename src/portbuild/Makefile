@@ -8,7 +8,7 @@ clean:
 
 mkdirs:
 	mkdir -p /usr/local/bin
-	mkdir -p ${SHAREDIR}/man
+	mkdir -p ${SHAREDIR}/man/man1
 
 install: mkdirs maninstall
 	${INSTALL} ${COPY} -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} portbuild.tcl /usr/local/bin/portbuild
