@@ -46,6 +46,13 @@ set UI_PREFIX "---> "
 proc install_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.target.install UI_PREFIX make.target.current
 
+    if ![file exists $prefix] {
+	ui_msg "Warning: The directory $prefix does not exist, creating it."
+	if [catch {exec mkdir -p $prefix} err] {
+	    ui_error "Could not make directory for ${prefix}: $err"
+	    return -1
+	}
+    }
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
     set make.target.current ${make.target.install}
     if [catch {system "[command make]"}] {

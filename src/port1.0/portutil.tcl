@@ -736,7 +736,10 @@ proc open_statefile {args} {
 	file mkdir $portpath/$workdir
     }
     # flock Portfile
-	set statefile [file join $portpath $workdir .darwinports.state]
+    set statefile [file join $portpath $workdir .darwinports.state]
+    if {[file exists $statefile] && ![file writable $statefile]} {
+	return -code error "$statefile is not writable - check permission on port directory"
+    }
     set fd [open $statefile a+]
     if [catch {flock $fd -exclusive -noblock} result] {
         if {"$result" == "EAGAIN"} {
