@@ -84,7 +84,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	while (fgets(buf, BUFSIZ, pipe) != NULL) {
 		/* XXX We need the output but this is not at all correct */
 		printf("%s", buf);
-		Tcl_AppendToObj(resultPtr, (void *) &buf, strlen(buf));
+		Tcl_AppendResult(interp, &buf, NULL);
 	}
 
 	switch (pclose(pipe)) {
