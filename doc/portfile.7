@@ -105,6 +105,15 @@ Upstream version of software
 .Sy Example:
 .Dl version	4.2.1
 
+.It Ic description
+One line description of the software and what it does
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl description	"Dictionary Server Protocol (RFC2229) client"
+
 .It Ic revision
 Local revision number of portfile.
 Increment for port revisions.
@@ -656,30 +665,6 @@ Install target to pass to ${install.cmd}
 .Sy Example:
 .Dl install.target install-src
 
-.El
-
-.Ss REGISTRY OPTIONS
-Register installed package contents
-.Bl -tag -width lc
-
-.It Ic contents
-List of files to be installed by the port
-Files are assumed to be relative to ${prefix} unless the first character is a '/'
-.br
-.Sy Type:
-.Em required
-.br
-.Sy Example:
-.Dl contents		bin/ls man/man1/ls.1.gz
-
-.It Ic description
-One line description of the software and what it does
-.br
-.Sy Type:
-.Em required
-.br
-.Sy Example:
-.Dl description	"Dictionary Server Protocol (RFC2229) client"
 .El
 
 .Sh AUTHORS
