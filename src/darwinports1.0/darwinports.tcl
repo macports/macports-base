@@ -954,16 +954,17 @@ proc upgrade {pname dspec} {
 	} else {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later
+		# XXX BREAKS XXX
 		set num 0
 		foreach i $ilist {
 			set version "[lindex $i 1]_[lindex $i 2]"
-			if { $version > $version_installed } {
+			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
 				set num $i
 			}
 
 			set isactive [lindex $i 4]
-			if {$isactive == 1 && $version_installed < $version} {
+			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
 				# deactivate version_installed
     			if {[catch {portimage::deactivate $pname $version} result]} {
     	    		ui_error "Deactivating $pname $version_installed failed: $result"
@@ -1016,9 +1017,9 @@ proc upgrade {pname dspec} {
 		}
 	}
 
-	# if { [rpm-vercomp $version_installed $version_in_tree] <= 0 } { }
-	if { [rpm-vercomp $version_in_tree $version_installed] <= 0 } {
-		ui_debug "No need to upgrade!"
+	# check installed version against version in ports
+	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 } {
+		ui_debug "No need to upgrade! $pname $version_installed >= $pname $version_in_tree"
 		return 0
 	}
 
