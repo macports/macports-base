@@ -16,6 +16,6 @@ all:: Mk/dports.autoconf.mk
 clean::
 
 distclean::
-	rm -f config.log config.status
+	rm -f config.log config.status configure.lineno
 	rm -rf autom4te.cache
 	rm -f Makefile Mk/dports.autoconf.mk
