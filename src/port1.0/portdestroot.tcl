@@ -33,7 +33,6 @@ package provide portdestroot 1.0
 package require portutil 1.0
 
 set com.apple.destroot [target_new com.apple.destroot destroot_main]
-target_runtype ${com.apple.destroot} always
 target_provides ${com.apple.destroot} destroot
 target_requires ${com.apple.destroot} main fetch extract checksum patch configure build
 target_prerun ${com.apple.destroot} destroot_start
@@ -41,7 +40,7 @@ target_postrun ${com.apple.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.vars destroot.clean
-commands install
+commands destroot
 
 # Set defaults
 default destroot.dir {${build.dir}}
