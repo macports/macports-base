@@ -157,8 +157,6 @@ proc install_binary_if_available {portname basepath} {
 		return
 	}
 	foreach {name array} $res {
-#xxx: kvv
-if {$name == "XFree86"} { continue }
 		array set portinfo $array
 		if {![info exists portinfo(version)]} { continue }
 		if {![info exists portinfo(categories)]} { continue }
@@ -211,7 +209,14 @@ if {[catch {dportinit} result]} {
 
 package require Pextlib
 
-if {[catch {set res [dportsearch .*]} result]} {
+# If no arguments were given, default to all ports.
+if {[llength $argv] == 0} {
+	lappend argv ".*"
+}
+
+foreach pname $argv {
+
+if {[catch {set res [dportsearch "^${pname}\$"]} result]} {
 	puts "port search failed: $result"
 	exit 1
 }
@@ -395,3 +400,6 @@ foreach {name array} $res {
 	set logfd ""
 	file delete ${logpath}/${name}.log
 }
+
+}
+# end foreach pname
