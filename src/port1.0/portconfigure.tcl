@@ -42,16 +42,18 @@ commands configure automake autoconf xmkmf libtool
 # defaults
 default configure.pre_args {--prefix=${prefix}}
 default configure.cmd ./configure
-default configure.dir {${workpath}/${worksrcdir}}
-default autoconf.dir {${workpath}/${worksrcdir}}
-default automake.dir {${workpath}/${worksrcdir}}
+default configure.dir {${worksrcpath}}
+default autoconf.dir {${worksrcpath}}
+default automake.dir {${worksrcpath}}
+default xmkmf.cmd xmkmf
+default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 set UI_PREFIX "---> "
 
 proc configure_main {args} {
     global [info globals]
-    global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX use_configure use_autoconf use_automake
+    global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
 
     if [tbool use_automake] {
 	# XXX depend on automake
@@ -69,7 +71,17 @@ proc configure_main {args} {
 	}
     }
 
-    if [tbool use_configure] {
+    if [tbool use_xmkmf] {
+	# XXX depend on xmkmf
+	if {[catch {system "[command xmkmf]"} result]} {
+	    ui_error "configure target failed: $result"
+	    return -code error "configure target failed: $result"
+	} else {
+	    # XXX should probably use make command abstraction but we know that
+	    # X11 will already set things up so that "make Makefiles" always works.
+	    system "cd ${worksrcpath} && make Makefiles"
+	}
+    } elseif [tbool use_configure] {
         ui_msg "$UI_PREFIX Running configure script"
 	if {[catch {system "[command configure]"} result]} {
 	    ui_error "configure target failed: $result"
