@@ -727,7 +727,7 @@ proc dportsync {args} {
 	}
 }
 
-proc dportsearch {regexp} {
+proc dportsearch {regexp {case_sensitive "yes"}} {
     global darwinports::portdbpath darwinports::sources
     set matches [list]
 
@@ -744,7 +744,12 @@ proc dportsearch {regexp} {
 			}
 	        while {[gets $fd line] >= 0} {
 	            set name [lindex $line 0]
-	            if {[regexp -- $regexp $name] == 1} {
+				if {$case_sensitive == "yes"} {
+					set rxres [regexp -- $regexp $name]
+				} else {
+					set rxres [regexp -nocase -- $regexp $name]
+				}
+	            if {$rxres == 1} {
 	                gets $fd line
 	                array set portinfo $line
 	                if {[info exists portinfo(portarchive)]} {
