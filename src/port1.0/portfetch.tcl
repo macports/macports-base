@@ -42,7 +42,8 @@ register com.apple.fetch deplist depends_fetch
 options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
-commands cvs fetch
+commands cvs
+commands fetch
 
 # Defaults
 default extract_sufx .tar.gz
@@ -57,8 +58,8 @@ default cvs.pre_args {"-d ${cvs.root}"}
 
 default fetch.cmd curl
 default fetch.dir {${distpath}}
-default fetch.pre_args {"-o ${distfile}"}
-default fetch.args {${site}${distfile}}
+default fetch.args {"-o ${distfile}"}
+default fetch.post_args {"${site}${distfile}"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -208,11 +209,17 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd os.name
+    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd os.name fetch.pre_args
+    global distfile site
 
     # Override curl in the case of FreeBSD
     if {${os.name} == "freebsd"} {
 	set fetch.cmd "fetch"
+    }
+    if [tbool ports_verbose] {
+	set fetch.pre_args -v
+    } elseif {${os.name} == "darwin" } {
+	set fetch.pre_args "-s -S"
     }
 
     if {![file isdirectory $distpath]} {
@@ -236,16 +243,11 @@ proc fetchfiles {args} {
             }
 	    foreach site [set $url_var] {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
-		if [tbool ports_verbose] {
-			set verboseflag -v
-		} else {
-			set verboseflag "-s -S"
-		}
-		if ![catch {system [command fetch]} result] {
+		if ![catch {system "[command fetch]"} result] {
 		    set fetched 1
 		    break
 		} else {
-		    ui_error "fetch failed."
+		    ui_error "fetch failed: $result"
 		    exec rm -f ${distpath}/${distfile}
 		}
 	    }
