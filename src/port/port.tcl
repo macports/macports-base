@@ -46,7 +46,6 @@ proc fatal args {
 }
 
 # Main
-set target "build"
 set separator 0
 array set options [list]
 array set variations [list]
@@ -84,13 +83,27 @@ for {set i 0} {$i < $argc} {incr i} {
 	
 	# target
 	} elseif {[regexp {^([A-Za-z0-9\/\._\-]+)$} $arg match opt] == 1} {
-		set target $opt
+		if [info exists target] {
+			set portname $opt
+		} else {
+			set target $opt
+		}
 
 	} else {
 		print_usage; exit
 	}
 }
+
+if ![info exists target] {
+	set target build
+}
+
 dportinit
+if {[info exists portname]} {
+	set portdir [dportsearch ^$portname\$]
+} else {
+	set portdir .
+}
 set workername [dportopen $portdir options variations]
 set result [dportexec $workername $target]
 dportclose $workername

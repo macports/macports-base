@@ -168,6 +168,25 @@ proc dportexec {workername target} {
     return [$workername eval eval_targets targets $target]
 }
 
+proc dportsearch {regexp} {
+    global sysportpath
+    set fd [open $sysportpath/PortIndex r]
+    while {[gets $fd line] >= 0} {
+        set name [lindex $line 0]
+        if {[regexp -- $regexp $name] == 1} {
+                gets $fd line
+                array set portinfo $line
+		close $fd
+                return [file join $sysportpath $portinfo(portdir)]
+        } else {
+                set len [lindex $line 1]
+                seek $fd $len current
+        }
+    }
+    close $fd
+}
+
+
 proc dportinfo {workername} {
     return [$workername eval array get PortInfo]
 }
