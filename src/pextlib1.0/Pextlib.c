@@ -49,6 +49,7 @@
 #endif
 
 #define BUFSIZ 1024
+#define CBUFSIZ 30
 
 #if !defined(__APPLE__)
 extern char **environ;
@@ -122,11 +123,13 @@ static int ui_info(Tcl_Interp *interp, char *mesg)
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char buf[BUFSIZ];
+	char circbuf[CBUFSIZ][BUFSIZ];
+	char errbuf[CBUFSIZ * BUFSIZ];
 	char *args[4];
 	char *cmdstring;
 	FILE *pdes;
 	int fdset[2], nullfd;
-	int ret;
+	int fline, pos, ret;
 	pid_t pid;
 	Tcl_Obj *tcl_result;
 #if defined(__APPLE__)
@@ -172,12 +175,19 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pdes = fdopen(fdset[0], "r");
 
 	/* read from simulated popen() pipe */
+	pos = 0;
+	bzero(circbuf, sizeof(circbuf));
 	while (fgets(buf, BUFSIZ, pdes) != NULL) {
-		int ret = ui_info(interp, buf);
+		memcpy(circbuf[pos++ % CBUFSIZ], buf, BUFSIZ);
+		ret = ui_info(interp, buf);
 		if (ret != TCL_OK)
 			return ret;
 	}
 	fclose(pdes);
+
+	bzero(errbuf, sizeof(errbuf));
+	for (fline = pos; pos < fline + CBUFSIZ; pos++)
+		strcat(errbuf, circbuf[pos % CBUFSIZ]);
 
 	if (wait(&ret) != pid)
 		return TCL_ERROR;
