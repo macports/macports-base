@@ -252,15 +252,16 @@ proc _activate_file {srcfile dstfile} {
 		# fix attributes on the directory.
 		# It's ok if we cannot fix them (this typically happens when
 		# DP is not run as root).
-		set attributes [file attributes $srcfile]	
+		set attributes [file attributes $srcfile]
 		for {set i 0} {$i < [llength $attributes]} {incr i} {
 			set opt [lindex $attributes $i]
 			incr i
 			set arg [lindex $attributes $i]
 			catch {file attributes $dstfile $opt $arg}
-			# set mtime on installed element
-			catch {exec touch -r $srcfile $dstfile}
 		}
+
+		# set mtime on installed element
+		catch {exec touch -r $srcfile $dstfile}
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
