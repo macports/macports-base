@@ -41,20 +41,20 @@ ${com.apple.package} requires registry
 options package.type package.destpath
 
 # Set defaults
-default package.type tarball
+default package.type pkg
 default package.destpath {${workpath}}
 
 set UI_PREFIX "---> "
 
 proc package_main {args} {
-    global portname portversion package.type UI_PREFIX
+    global portname portversion package.type package.destpath UI_PREFIX
 
     set rfile [registry_exists $portname $portversion]
     if ![string length $rfile] {
 	ui_error "Package ${portname}-${portversion} not installed on this system"
 	return -code error "Package ${portname}-${portversion} not installed on this system"
     }
-    ui_msg "$UI_PREFIX Creating ${package.type} package for ${portname}-${portversion}"
+    ui_msg "$UI_PREFIX Creating ${package.type} format package for ${portname}-${portversion}"
     if [regexp .bz2$ $rfile] {
 	set fd [open "|bunzip2 -c $rfile" r]
     } else {
@@ -63,10 +63,22 @@ proc package_main {args} {
     set entry [read $fd]
     close $fd
 
-    # For now the only package type we support is "tarball" but move that
-    # into another routine anyway so that this is abstract enough.
+    # Make sure the destination path exists.
+    system "mkdir -p ${package.destpath}"
 
-    return [package_pkg $portname $portversion $entry]
+    # For now we only support pkg and tarball package types.
+    switch -exact -- ${package.type} {
+	pkg {
+	    return [package_pkg $portname $portversion $entry]
+	}
+	tarball {
+	    return [package_tarball $portname $portversion $entry]
+	}
+	default {
+	    ui_error "Do not know how to generate package of type ${package.type}"
+	    return -code error "Unknown package type: ${package.type}"
+	}
+    }
 }
 
 # Make a tarball version of a package.  This is our "built-in" packaging
