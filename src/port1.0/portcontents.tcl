@@ -57,9 +57,9 @@ proc contents_main {args} {
 	if {$ix >= 0} {
 	    set contents [lindex $entry [incr ix]]
 	    set uninst_err 0
-	    ui_msg "Contents of ${portname}-${portversion}:"
+	    ui_msg "Contents of ${portname}-${portversion}"
 	    foreach f $contents {
-		ui_msg [lindex $f 0]
+		ui_msg "\t[lindex $f 0]"
 	    }
 	} else {
 	    return -code error "No contents list for ${portname}-${portversion}"
