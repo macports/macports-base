@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.8 2004/05/31 21:13:58 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.9 2004/06/01 04:26:33 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -238,19 +238,29 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 		global theConvertedReceipt\n\
 		set theConvertedReceipt(homepage) \$args\n\
 	}"
+	# contents is a special case, there is only one argument and it's a list.
 	interp eval theConverterInterpreter "proc contents {args} {\n\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(contents) \$args\n\
+		set theConvertedReceipt(contents) \[lindex \$args 0\]\n\
 	}"
 	interp eval theConverterInterpreter "array set theConvertedReceipt {}"
 	interp eval theConverterInterpreter $receipt_contents
 	array set receipt_$ref [interp eval theConverterInterpreter "array get theConvertedReceipt"]
 	interp delete theConverterInterpreter
 	
-	# Append the contents list to the file map.
+	# Append the contents list to the file map (only the files).
 	set contents [property_retrieve $ref contents]
 	foreach file $contents {
-		register_file [lindex $file 0] $name
+		set theFilePath [lindex $file 0]
+		if {[file isfile $theFilePath]} {
+			set previousPort [file_registered $theFilePath]
+			if {$previousPort != 0} {
+				ui_warn "Conflict detected for file $theFilePath between $previousPort and $name."
+			}
+			if {[catch {register_file $theFilePath $name}]} {
+				ui_warn "An error occurred while adding $theFilePath to the file_map database."
+			}
+		}
 	}
 	
 	# Save the file_map afterwards
