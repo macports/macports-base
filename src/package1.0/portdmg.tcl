@@ -75,7 +75,7 @@ proc package_dmg {portname portversion portrevision} {
         set blocks [expr ($size/512) + ((($size/512)*3)/100)]
     }
     
-    if {[system "hdiutil create -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
+    if {[system "hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
     if {[catch {set devicename [exec hdid ${tmp_image} | grep "s2" | awk "{ print \$1 }"]} error]} {
@@ -84,11 +84,11 @@ proc package_dmg {portname portversion portrevision} {
     set mount_point [exec mount | grep "${devicename}"]
     regexp {(\/Volumes/[A-Za-z0-9\-\_\s].+)\s\(} $mount_point code mount_point
     system "ditto -rsrcFork ${pkgpath} '${mount_point}/${portname}-${portversion}.pkg'"
-    system "hdiutil detach ${devicename}"
-    if {[system "hdiutil convert ${tmp_image} -format UDCO -o ${final_image}"] != ""} {
+    system "hdiutil detach ${devicename} -quiet"
+    if {[system "hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
-    if {[system "hdiutil internet-enable -yes ${final_image}"] != ""} {
+    if {[system "hdiutil internet-enable -quiet -yes ${final_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     system "rm -f ${tmp_image}"
