@@ -1,0 +1,11 @@
+Things left to do in Darwinports
+
+Task								Who
+----								---
+Implement the variants code					landonf kevinvv
+Add an internal version of ports.conf for "hard defaults"	landonf
+Implement deinstall target					landonf
+Add code for de-registering a port				jkh
+Do Ellen Feiss icon collection port				eric
+Write man page for all targets / options			landonf
+
