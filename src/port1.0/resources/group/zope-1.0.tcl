@@ -1,7 +1,7 @@
 # et:ts=4
 # zope-1.0.tcl
 #
-# $Id: zope-1.0.tcl,v 1.1 2004/04/10 07:32:50 toby Exp $
+# $Id: zope-1.0.tcl,v 1.2 2004/04/11 02:14:16 toby Exp $
 # 
 # Group file for 'zope' group.
 #
@@ -124,6 +124,7 @@ proc zope.setup {product vers {products {}} {extensions {}}} {
 		}
 		system "find ${worksrcpath} -name '*.py\[co\]' | xargs rm"
 		system "find ${worksrcpath} -type d -name CVS | xargs rm -rf"
+		system "find ${worksrcpath} -name '.#*' | xargs rm"
 		reinplace "s|^.*sys.stdout|#&|" ${workpath}/compilezpy.py
 	}
 
