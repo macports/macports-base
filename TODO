@@ -12,3 +12,4 @@ Do Ellen Feiss icon collection port				eric
 Write man page for all targets / options			landonf
 Support for pbxbuild						landonf
 Abstract use_* variables to tie into the dependency system	landonf
+Evaluate effect of directory recursion within registry code	landonf
