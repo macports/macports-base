@@ -66,9 +66,12 @@ if { $argc < 1 } {
     }
 }
 
-if ![file isdirectory dports] {
+if [file isdirectory dports] {
+    port_traverse pindex dports
+} elseif [file isdirectory ../dports] {
+    port_traverse pindex .
+} else {
     puts "Please run me from the darwinports directory (dports/..)"
     return 1
 }
 
-port_traverse pindex dports
