@@ -51,7 +51,7 @@ proc sql_exec {db sql} {
     if {$db != ""} {
         mysqlexec $db $sql
     } else {
-        puts $sql
+        puts "${sql};"
     }
 }
 
