@@ -37,7 +37,7 @@ register com.apple.build provides build
 register com.apple.build requires main fetch extract checksum patch configure depends_build depends_lib
 
 # define options
-options make.target.all make.target.install
+options make.target.all
 commands make
 # defaults
 default make.type bsd

@@ -537,23 +537,15 @@ Target to pass to make for building everything
 .Em all
 .br
 .Sy Example:
-.Dl make.target.install	all-src
+.Dl make.target.all all-src
 
-.It Ic make.target.install
-	DUPLICATE of install target option below
-	Ignore here
 .El
 
 .Ss INSTALL OPTIONS
 Execute necessary install commands
 .Bl -tag -width lc
-.It Ic make.cmd
-DUPLICATE of build option
 
-.It Ic make.type
-DUPLICATE of build option
-
-.Il Ic make.target.install
+.It Ic make.target.install
 Install target to pass to ${make.cmd}
 .br
 .Sy Type:
@@ -564,11 +556,6 @@ Install target to pass to ${make.cmd}
 .Sy Example:
 .Dl make.target.install	install-src
 
-.It Ic contents
-	DUPLICATE of registry option
-
-.It Ic description
-	DUPLICATE of registry option
 .El
 .Ss REGISTRY OPTIONS
 Register installed package contents
