@@ -62,11 +62,11 @@ proc options {args} {
 	    global ${option} user_options \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    foreach val \$args \{ \n\
-				ldelete ${option} \$val \n\
-				if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-				    options::${option} ${option} \n\
-				\} \n\
-			\} \n\
+			ldelete ${option} \$val \n\
+		    \} \n\
+		    if \{\[info commands options::${option}\] != \"\"\} \{ \n\
+			options::${option} ${option} \n\
+		    \} \n\
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
