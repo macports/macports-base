@@ -87,7 +87,7 @@ proc package_pkg {portname portversion} {
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
-	if {$file == "." || $file == ".."} {
+	if {$file == "." || $file == ".." || [file type [file join $dir $file]] == "link" } {
 	    continue
 	}
 	if {[file isdirectory [file join $dir $file]]} {
