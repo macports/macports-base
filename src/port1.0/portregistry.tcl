@@ -138,7 +138,7 @@ proc registery_main {args} {
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
-    ui_msg "$UI_PREFIX Adding $portname to registry [this may take a moment]"
+    ui_msg "$UI_PREFIX Adding $portname to registry (this may take a moment)..."
     lappend data [list prefix $prefix]
     lappend data [list categories $categories]
     if [info exists description] {
