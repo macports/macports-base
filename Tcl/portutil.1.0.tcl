@@ -128,8 +128,12 @@ proc eval_depend {array} {
 				}
 			}
 		}
-		$uparray(procedure,$target) $target
-		lappend finished $target
+		if {[$uparray(procedure,$target) $target] == 0} {
+			lappend finished $target
+		} else {
+			puts "Error in target '$target'"
+			return -1
+		}
 	}
 	return 0
 }

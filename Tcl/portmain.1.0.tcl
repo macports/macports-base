@@ -20,4 +20,5 @@ proc portmain::main {args} {
 	global portname
 	# puts "Building port: $portname"
 	# do nothing
+	return 0
 }

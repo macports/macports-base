@@ -10,4 +10,5 @@ namespace eval portextract {
 proc portextract::main {args} {
 	global portname
 	puts "Extracting port: $portname"
+	return 0
 }

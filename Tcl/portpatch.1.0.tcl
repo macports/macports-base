@@ -10,4 +10,5 @@ namespace eval portpatch {
 proc portpatch::main {args} {
 	global portname
 	puts "Patching port: $portname"
+	return 0
 }

@@ -46,10 +46,11 @@ proc portfetch::checkfiles {args} {
 			}
 		}
 	}
+	return 0
 }
 
 proc portfetch::main {args} {
 	global portname
 	# Check for files, download if neccesary
-	portfetch::checkfiles
+	return [portfetch::checkfiles]
 }

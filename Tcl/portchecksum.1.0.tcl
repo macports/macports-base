@@ -8,12 +8,13 @@ namespace eval portchecksum {
 }
 
 # define globals
-globals portchecksum::options md5sum
+globals portchecksum::options md5file
 
 # define options
-options portchecksum::options md5sum
+options portchecksum::options md5file
 
 proc portchecksum::main {args} {
 	global portname
 	puts "Checksumming port: $portname"
+	return 0
 }
