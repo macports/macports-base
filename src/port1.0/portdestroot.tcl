@@ -76,12 +76,23 @@ proc destroot_main {args} {
 }
 
 proc destroot_finish {args} {
-    global destroot prefix
+    global UI_PREFIX destroot prefix portname
 
 	# compress all manpages with gzip (instead)
-	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.gz | wc -l` -gt 0 \] ; then gunzip man?/*.gz; fi"
-	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.bz2 | wc -l` -gt 0 \] ; then bunzip2 man?/*.bz2; fi"
-	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.\[0-9a-z\] | wc -l` -gt 0 \] ; then gzip -9 man?/*.\[0-9a-z\]; fi"
+	set manpath "${destroot}${prefix}/share/man"
+	ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
+	foreach mandir [readdir "${manpath}"] {
+		if {![regexp {^man(.)$} ${mandir} match manindex]} { continue }
+		foreach manfile [readdir "${manpath}/${mandir}"] {
+			if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+				system "cd ${manpath} && gunzip ${mandir}/${gzfile} && gzip -9v ${mandir}/${manfile}"
+			} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+				system "cd ${manpath} && bunzip2 ${mandir}/${bz2file} && gzip -9v ${mandir}/${manfile}"
+			} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+				system "cd ${manpath} && gzip -9v ${mandir}/${manfile}"
+			}
+		}
+	}
 
     # Prune empty directories in ${destroot}
     catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
