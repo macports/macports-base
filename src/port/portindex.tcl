@@ -43,7 +43,7 @@ proc pindex {portdir} {
     array set portinfo [dportinfo $interp]
     dportclose $interp
     set portinfo(portdir) $portdir
-    puts "Adding port $portinfo(portname)"
+    puts "Adding port $portinfo(name)"
     if {$archive == "1"} {
         if ![file isdirectory [file join $outdir [file dirname $portdir]]] {
             if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
@@ -53,7 +53,7 @@ proc pindex {portdir} {
         }
         set portinfo(portarchive) [file join [file dirname $portdir] [file tail $portdir]].tgz
         cd [file join $directory [file dirname $portinfo(portdir)]]
-        puts "Archiving port $portinfo(portname) to [file join $outdir $portinfo(portarchive)]"
+        puts "Archiving port $portinfo(name) to [file join $outdir $portinfo(portarchive)]"
         if {[catch {exec tar -cf - [file tail $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
             puts "Failed to create port archive $portinfo(portarchive): $result"
             exit 1
@@ -61,7 +61,7 @@ proc pindex {portdir} {
     }
     set output [array get portinfo]
     set len [expr [string length $output] + 1]
-    puts $fd "$portinfo(portname) $len"
+    puts $fd "$portinfo(name) $len"
     puts $fd $output
 }
 

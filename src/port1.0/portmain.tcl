@@ -50,7 +50,7 @@ default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
 default filedir files
-default portrevision 0
+default revision 0
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
 default filesdir {files}
