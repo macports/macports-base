@@ -70,7 +70,7 @@ proc install_start {args} {
 
 proc install_element {src_element dst_element} {
 # don't recursively copy directories
-    if {[file isdirectory $src_element]} {
+    if {[file isdirectory $src_element] && [file type $src_element] != "link"} {
 	file mkdir $dst_element
     } else {
 	file copy -force $src_element $dst_element
