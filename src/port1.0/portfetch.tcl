@@ -146,12 +146,12 @@ proc fetchfiles {args} {
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
 	    ui_error "Unable to create distribution files path: $result"
-	    return 1
+	    return -1
 	}
     }
     if {![file writable $distpath]} {
         ui_error "$distpath must be writable"
-        return 1
+        return -1
     }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
