@@ -286,7 +286,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 # but we really ought to have an opaque handle to a port.  We want to
 # get the source URL and the Portfile.tar.gz md5 from this opaque handle.
 
-proc darwinports::index::fetch_port {url} {
+proc darwinports::index::fetch_port {url destdir} {
 	global darwinports::sources
 	
 	set portsource ""
@@ -335,8 +335,8 @@ proc darwinports::index::fetch_port {url} {
 	# to fetch it again.
 
 
-	set portdir "$portname-$portversion"
-	
+	set portdir [file join "$destdir" "$portname-$portversion"]
+
 	if {[file exists $portdir]} {
 		return $portdir
 	}

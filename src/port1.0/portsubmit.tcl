@@ -48,7 +48,7 @@ proc shell_escape {str} {
 }
 
 proc submit_main {args} {
-    global portname portversion prefix UI_PREFIX workpath
+    global portname portversion prefix UI_PREFIX workpath portpath
 
     # start with the Portfile, and add the files directory if it exists.
     # don't pick up any CVS directories, or .DS_Store turds
@@ -64,6 +64,7 @@ proc submit_main {args} {
     }
 
 	set portsource ""
+	set base_rev ""
 	if {![catch {set fd [open ".dports_source" r]}]} {
 		while {[gets $fd line] != -1} {
 			regexp -- {^(.*): (.*)$} $line unused key value
@@ -82,7 +83,6 @@ proc submit_main {args} {
 	}
 
 	ui_msg "$UI_PREFIX Submitting $portname-$portversion to $portsource"
-	set portsource [regsub -- {^dports} $portsource {http}]
 
     puts -nonewline "Username: "
     flush stdout
@@ -102,7 +102,7 @@ proc submit_main {args} {
 
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url $portsource/cgi-bin/portsubmit.cgi "
+    append cmd "--url [regsub -- {^dports} $portsource {http}]/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
@@ -122,23 +122,66 @@ proc submit_main {args} {
 	return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
     }
 
+	#
+	# Parse the result from the remote index
+	# if ERROR: print the error message
+	# if OK: store the revision info
+	# if CONFLICT: attempt to merge the conflict
+	#
+	
 	set fd [open ${workpath}/.portsubmit.out r]
-	gets $fd line
-	if {[regexp -- {^OK: ([0-9]+)} $line unused transaction]} {
-		while {[gets $fd line] != -1} {
-			if {[regexp -- {^revision: ([0-9]+)} $line unused portrevision]} {
-				set fd2 [open ".dports_source" w]
-				puts $fd2 "source: [regsub -- {^http} $portsource {dports}]"
-				puts $fd2 "port: $portname"
-				puts $fd2 "version: $portversion"
-				puts $fd2 "revision: $portrevision"
-				close $fd2
-			}
-		}
-	} else {
-		return -code error $line
+	array set result [list]
+	while {[gets $fd line] != -1} {
+		regexp -- {^(.*): (.*)$} $line unused key value
+		set result($key) $value
 	}
 	close $fd
+
+	if {[info exists result(OK)]} {
+		set fd [open ".dports_source" w]
+		puts $fd "source: $portsource"
+		puts $fd "port: $portname"
+		puts $fd "version: $portversion"
+		puts $fd "revision: $result(revision)"
+		close $fd
+		
+		ui_msg "$portname-$portversion submitted successfully."
+		ui_msg "New revision: $result(revision)"
+	} elseif {[info exists result(ERROR)]} {
+		return -code error $result(ERROR)
+	} elseif {[info exists result(CONFLICT)]} {
+		# Fetch the newer revision from the index.
+		# XXX: many gross hacks here regarding paths, urls, etc.
+		set tmpdir [mktemp "/tmp/dports.XXXXXXXX"]
+		file mkdir $tmpdir/new
+		file mkdir $tmpdir/old
+		set worker [dportopen $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
+		if {$base_rev != ""} {
+			set worker2 [dportopen $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
+			catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$portname-$portversion/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
+			system "mv $tmpdir/Portfile $portpath/Portfile"
+			dportclose $worker2
+		} else {
+			catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
+			system "mv $tmpdir/Portfile $portpath/Portfile"
+		}
+		dportclose $worker
+		catch {system "rm -Rf $tmpdir"}
+		catch {system "rm -Rf $tmpdir"}
+
+		set fd [open [file join "$portpath" ".dports_source"] w]
+		puts $fd "source: $portsource"
+		puts $fd "port: $portname"
+		puts $fd "version: $portversion"
+		puts $fd "revision: $result(revision)"
+		close $fd
+		
+		ui_error "A newer revision of this port has already been submitted."
+		ui_error "Portfile: $portname-$portversion"
+		ui_error "Base revision: $base_rev"
+		ui_error "Current revision: $result(revision)"
+		ui_error "Please edit the Portfile to resolve any conflicts and resubmit."
+	}
 
     return 0
 }

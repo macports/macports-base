@@ -267,11 +267,15 @@ proc darwinports::getprotocol {url} {
     }
 }
 
-proc darwinports::getportdir {url} {
+# XXX: this really needs to be rethought in light of the remote index
+# I've added the destdir parameter.  This is the location a remotely
+# fetched port will be downloaded to (currently only applies to
+# dports:// sources).
+proc darwinports::getportdir {url {destdir "."}} {
     if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
         switch -regexp -- ${protocol} {
             {^file$} { return $string}
-        {dports} { return [darwinports::index::fetch_port $url] }
+        {dports} { return [darwinports::index::fetch_port $url $destdir] }
 	    {http|ftp} { return [darwinports::fetch_port $url] }
             default { return -code error "Unsupported protocol $protocol" }
         }
@@ -304,7 +308,14 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 		return $dport
 	}
 
-	set portdir [darwinports::getportdir $porturl]
+	array set options_array $options
+	if {[info exists options_array(portdir)]} {
+		set portdir $options_array(portdir)
+	} else {
+		set portdir ""
+	}
+
+	set portdir [darwinports::getportdir $porturl $portdir]
 	cd $portdir
 	set portpath [pwd]
 	set workername [interp create]
