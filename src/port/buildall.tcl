@@ -14,12 +14,13 @@ set chrootfiles {
 	private/var/tmp private/var/vm/app_profile
 	Developer/Applications/Xcode.app Developer/Applications/Utilities
 	Developer/Headers Developer/Makefiles Developer/Private
-	Developer/Tools System/Library/Frameworks System/Library/OpenSSL
+	Developer/Tools System/Library/Frameworks
+	System/Library/PrivateFrameworks System/Library/OpenSSL
 	System/Library/PHP System/Library/Perl
 }
 
 proc makechroot {dir} {
-	global chrootfiles verbose
+	global chrootfiles verbose REPORT REPDIR
 
 	if {![file exists $dir]} {
 		exec mkdir -p $dir
@@ -29,17 +30,17 @@ proc makechroot {dir} {
 	}
 	puts "Creating chroot environment in $dir"
 	foreach idx $chrootfiles {
-		if {[catch {exec tar -cpf - -C / $idx | tar ${verbose} -xpf - -C $dir >& /dev/stdout}]} {
+		if {[catch {exec tar -cpf - -C / $idx | tar -xpf - -C $dir}]} {
 			puts "Warning: Unable to copy $idx into $dir"
 		}
 	}
 	if {[file exists darwinports.tar.gz]} {
 		puts "copying from local darwinports snapshot"
-		exec tar ${verbose} -xpzf darwinports.tar.gz -C $dir >& /dev/stdout
+		exec tar -xpzf darwinports.tar.gz -C $dir
 	} else {
 		puts "Attempting to grab cvs snapshot of darwinports"
 		if {![catch {exec curl -O http://darwinports.opendarwin.org/darwinports-nightly-cvs-snapshot.tar.gz}]} {
-			exec tar ${verbose} -xpzf darwinports-nightly-cvs-snapshot.tar.gz -C $dir >& /dev/stdout
+			exec tar -xpzf darwinports-nightly-cvs-snapshot.tar.gz -C $dir
 		} else {
 			puts "Unable to find darwinports anywhere.  I give up"
 			exit 7
@@ -57,11 +58,13 @@ proc makechroot {dir} {
 	}
 	set f [open $dir/doit.tcl w 0755]
 	puts $f "#!/usr/bin/tclsh"
+	puts $f "set REPDIR $REPDIR"
+	puts $f "set REPORT $REPORT"
 	puts $f [proc_disasm packageall]
 	puts $f "cd darwinports"
-	puts $f "exec make all install"
+	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
 	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
-	puts $f packageall
+	puts $f {if {[catch {packageall} result]} { puts "Warning: packageall returned: $result" }}
 	close $f
 }
 
@@ -81,24 +84,29 @@ proc packageall {} {
 		puts "Unable to open $PI - check permissions."
 		exit 3
 	}
+	exec mkdir -p ${REPDIR}
 	if {[catch {set repfile [open $REPORT w]}]} {
 		puts "Unable to open $REPORT - check permissions."
 		exit 4
 	}
-	exec mkdir -p /Packages
-	exec mkdir -p ${REPDIR}
-	if {[catch {exec port ${verbose} install rpm >& /dev/stdout }]} {
-		puts "Unable to install rpm port - cannot continue"
+	puts "Doing initial installation of RPM bits.."
+	if {[catch {exec port ${verbose} install rpm} result]} {
+		puts "Unable to install rpm port: $result"
 		exit 6
 	}
+	exec mkdir -p /Packages
+	puts "Beginning packaging run.."
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
+		puts "Trying ${portname}..."
 		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
 			puts $repfile "$portname failure"
+			puts "Failing ${portname}..."
 			flush $repfile
 		} else {
 			puts $repfile "$portname success"
+			puts "Succeeding ${portname}..."
 			flush $repfile
 			exec rm -f ${REPDIR}/${portname}.out
 		}
@@ -143,7 +151,7 @@ if {[info exists env(VERBOSE)]} {
 
 if {$dochroot == 1} {
 	makechroot chrootdir
-	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir/$REPORT"
+	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir${REPORT}"
 	exec chroot chrootdir /doit.tcl
 } else {
 	puts "Report will be in $REPORT"
