@@ -86,7 +86,6 @@ proc extract_main {args} {
 	if {[catch {system "[command extract]"} result]} {
 	    return -code error "$result"
 	}
-	ui_info [msgcat::mc "Done"]
     }
     return 0
 }
