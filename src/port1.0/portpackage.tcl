@@ -108,37 +108,37 @@ proc package_pkg {portname portversion entry} {
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
     if {$ix >= 0} {
-	set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
-	set pfile [lindex $plist 0]
-	# XXX hack that allows contents list to be grouped by braces
-	# XXX split contents list up if it contains one argument
-	# XXX this breaks contents lists that contain one filename, with spaces.
-	if {[llength $contents] == 1} {
-	    set clist [eval return $contents]
-	} else {
-	    set clist $contents
+		set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
+		set pfile [lindex $plist 0]
+		# XXX hack that allows contents list to be grouped by braces
+		# XXX split contents list up if it contains one argument
+		# XXX this breaks contents lists that contain one filename, with spaces.
+		if {[llength $contents] == 1} {
+			set clist [eval return $contents]
+		} else {
+			set clist $contents
+		}
+	
+		foreach f $clist {
+			set fname [lindex $f 0]
+			puts $pfile $fname
+		}
+		close $pfile
+	
+		if {![file isdirectory $destpath]} {
+			if {[catch {file mkdir $destpath} result]} {
+			ui_error "Unable to create destination root path: $result"
+			return -code error "Unable to create destination root path: $result"
+			}
+		}
+	
+		if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
+			ui_error "Package creation failed - gnutar returned error status: $return"
+			file delete [lindex $plist 1]
+			return -code error "Package creation failed - gnutar returned error status: $return"
+		}
+		file delete [lindex $plist 1]
 	}
-
-	foreach f $clist {
-	    set fname [lindex $f 0]
-	    puts $pfile $fname
-	}
-	close $pfile
-
-	if {![file isdirectory $destpath]} {
-	    if {[catch {file mkdir $destpath} result]} {
-		ui_error "Unable to create destination root path: $result"
-		return -code error "Unable to create destination root path: $result"
-	    }
-	}
-
-	if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
-	    ui_error "Package creation failed - gnutar returned error status: $return"
-	    file delete [lindex $plist 1]
-	    return -code error "Package creation failed - gnutar returned error status: $return"
-	}
-	file delete [lindex $plist 1]
-
 	if {![file isdirectory $resourcepath]} {
 	    if {[catch {file mkdir $resourcepath} result]} {
 		ui_error "Unable to create package resource directory: $result"
@@ -147,7 +147,7 @@ proc package_pkg {portname portversion entry} {
 	}
 
 # XXX: we need to support .lproj in resources.
-	set pkgpath ${workpath}/${portname}-${portversion}.pkg
+	set pkgpath ${workpath}/${portname}.pkg
 	system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
 	write_PkgInfo ${pkgpath}/Contents/PkgInfo
 	write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
@@ -163,7 +163,6 @@ proc package_pkg {portname portversion entry} {
 	
 #	system "package ${destpath} ${infofile} ${portresourcepath}/package/background.tiff -d ${package.destpath}"
 
-    }
     return 0
 }
 
