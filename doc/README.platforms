@@ -1,8 +1,14 @@
 DarwinPorts can be used on platforms other than Mac OS X 10.2 and 10.3,
 but requires bootstrapping of various requirements.
 
-Currently, DarwinPorts has been verified to work on Solaris 8 & 9
-(Sparc). We will be assuming that you are installing into PREFIX=/opt/local,
+Currently, DarwinPorts has been verified to work on the following
+platforms:
+
+Solaris 8 & 9 (Sparc)
+FreeBSD >= 4.8 (tcl and curl need to be installed manually)
+OpenBSD >= 3.3 (tcl, curl and bzip2 need to be installed manually)
+
+We will be assuming that you are installing into PREFIX=/opt/local,
 although any path can be used. Further, we are assuming a sh-based shell
 
 Solaris:
