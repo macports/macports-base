@@ -3,4 +3,7 @@ all:
 clean:
 
 install:
-	${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 644 ports.conf ${DESTDIR}/etc
+	@if [ ! -e /etc/ports.conf ]; then \
+		set -x; \
+		${INSTALL} -o ${BINOWN} -g ${BINGRP} -m 644 ports.conf ${DESTDIR}/etc; \
+	fi
