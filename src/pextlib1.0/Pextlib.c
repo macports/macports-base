@@ -13,20 +13,23 @@
 
 static int ui_info(Tcl_Interp *interp, char *mesg) {
 	const char ui_proc[] = "eval [list ui_info {";
+	const char ui_proc_end[] = "}]";
 	char *script, *p;
-	int scriptlen;
+	int scriptlen, len;
 
-	scriptlen = sizeof(ui_proc) + strlen(mesg) + 3;
+	scriptlen = sizeof(ui_proc) + strlen(mesg) + strlen(ui_proc_end) + 1;
 	script = malloc(scriptlen);
 	if (script == NULL)
 		return TCL_ERROR;
 	else
 		p = script;
-
+	len = strlen(mesg);
+	if (mesg[len - 1] == '\n')
+	  mesg[len - 1] = '\0';
 	memcpy(script, ui_proc, sizeof(ui_proc));
 	strcat(script, mesg);
-	strcat(script, "}]");
-	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
+	strcat(script, ui_proc_end);
+	return (Tcl_EvalEx(interp, script, scriptlen - 2, 0));
 }
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
