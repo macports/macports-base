@@ -31,6 +31,13 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.2  2002/08/21 05:22:12  landonf
+ * Merge in "bigmove" reorg branch. System now requires bsdmake && bsdmake install
+ * and installs itself and its TCL libraries in /usr/local/share , /System/Library/Tcl/8.3, and /usr/local/bin
+ *
+ * Revision 1.1.2.1  2002/08/20 21:50:51  landonf
+ * Move and seperate Tcl/port1.0
+ *
  * Revision 1.1  2002/08/20 10:06:08  jkh
  * Add in-place string sed function, strsed
  *
