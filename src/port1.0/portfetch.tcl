@@ -257,11 +257,6 @@ proc fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd os.platform fetch.pre_args
     global distfile site
 
-    # Override curl in the case of FreeBSD
-    if {${os.platform} == "freebsd"} {
-	set fetch.cmd "fetch"
-    }
-
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
 	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
