@@ -108,19 +108,33 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 	AC_SUBST(DSTGRP)
 ])
 
-# OD_PROG_MD5
+# OD_LIB_MD5
 #---------------------------------------
-AC_DEFUN([OD_PROG_MD5],[
+# Check for an md5 implementation
+AC_DEFUN([OD_LIB_MD5],[
 
-	AC_PATH_PROG([MD5], [md5], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
-
-	if test "x$MD5" = "x" ; then
-		AC_CONFIG_SUBDIRS([src/programs/md5])
-		MD5='${prefix}/bin/md5'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS md5"
+	# Check for libmd, which is prefered
+	AC_CHECK_LIB([md], [MD5Update],[
+		AC_CHECK_HEADERS([md5.h], ,[
+			AC_MSG_ERROR([libmd was found, but md5.h is missing.])])
+		AC_DEFINE([HAVE_LIBMD], ,[Define if you have the `md' library (-lmd).])
+		MD5_LIBS="-lmd"]
+	)
+	if test "x$MD5_LIBS" = "x" ; then
+		# If libmd is not found, check for libcrypto from OpenSSL
+		AC_CHECK_LIB([crypto], [MD5_Update],[
+			AC_CHECK_HEADERS([openssl/md5.h],,[
+				AC_MSG_ERROR([libcrypt was found, but header file openssl/md5.h is missing.])])
+				AC_DEFINE([HAVE_LIBCRYPTO],,[Define if you have the `crypto' library (-lcrypto).])
+			MD5_LIBS="-lcrypto"
+		], [
+			AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
+		])
 	fi
-
-	AC_SUBST(MD5)
+	if test "x$MD5_LIBS" = "x"; then
+		AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
+	fi
+	AC_SUBST([MD5_LIBS])
 ])
 
 # OD_PROG_MTREE

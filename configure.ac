@@ -10,10 +10,12 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-OD_PROG_MD5
 OD_PROG_MTREE
 
 AC_SUBST(REPLACEMENT_PROGS)
+
+# Check for md5 implementation
+OD_LIB_MD5
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
@@ -38,7 +40,6 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock])
-
 
 # Check for Tcl public headers
 dnl XXX hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)

@@ -34,11 +34,20 @@
 /* Define if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
+/* Define if you have the `md' library (-lmd). */
+#undef HAVE_LIBMD
+
 /* Define if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
 /* Define if you have the `lockf' function. */
 #undef HAVE_LOCKF
+
+/* Define if you have the <md5.h> header file. */
+#undef HAVE_MD5_H
 
 /* Define if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -48,6 +57,9 @@
 
 /* Define if you have the <ndir.h> header file, and it defines `DIR'. */
 #undef HAVE_NDIR_H
+
+/* Define if you have the <openssl/md5.h> header file. */
+#undef HAVE_OPENSSL_MD5_H
 
 /* Define if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
