@@ -156,7 +156,7 @@ mkdir -p outputdir/Packages
 mkdir -p outputdir/logs
 
 echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
-for pkg in `cat $TGTPORTS` do
+for pkg in `cat $TGTPORTS`; do
 	echo "Starting packaging run for $pkg"
 	prepchroot $DIR
 	echo "#!/bin/sh" > $DIR/bootstrap.sh
