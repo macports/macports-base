@@ -52,6 +52,11 @@ mkchrootbase() {
 		done
 		# special case nuke to prevent builder pollution
 		rm -rf $dir/usr/X11R6
+		# If there are any work-arounds, apply them now
+		if [ -f chroot-fixups.tar.gz ]; then
+			echo "Found chroot-fixups.tar.gz - applying to new chroot"
+			tar xpzf chroot-fixups.tar.gz -C $dir
+		fi
 		if [ -f darwinports.tar.gz ]; then
 			echo "Found darwinports.tar.gz - copying into chroot"
 			tar -xpzf darwinports.tar.gz -C $dir
@@ -176,6 +181,11 @@ STUCK_BASEDEV=0
 
 echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
 for pkg in `cat $TGTPORTS`; do
+	if [ -f badports.txt ]; then
+		if ! grep -q $pkg badports.txt; then
+		    continue
+		fi
+	fi
 	prepchroot $DIR
 	echo "Starting packaging run for $pkg"
 	echo "#!/bin/sh" > $DIR/bootstrap.sh
