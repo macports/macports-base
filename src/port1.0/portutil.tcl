@@ -30,9 +30,9 @@
 #
 
 package provide portutil 1.0
+package require Pextlib 1.0
 package require darwinports_dlist 1.0
 package require msgcat
-package require Pextlib 1.0
 
 global targets target_uniqid all_variants
 
@@ -98,14 +98,14 @@ proc exists {name} {
 proc options {args} {
     foreach option $args {
 	eval "proc $option {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\
 		\} \n\
 	\}"
 	
 	eval "proc ${option}-delete {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    foreach val \$args \{ \n\
                        set ${option} \[ldelete \$\{$option\} \$val\] \n\
@@ -116,7 +116,7 @@ proc options {args} {
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    if \{\[info exists ${option}\]\} \{ \n\
 			set ${option} \[concat \$\{$option\} \$args\] \n\
@@ -422,6 +422,16 @@ proc tbool {key} {
 	}
     }
     return 0
+}
+
+# ldelete
+# Deletes a value from the supplied list
+proc ldelete {list value} {
+    set ix [lsearch -exact $list $value]
+    if {$ix >= 0} {
+	return [lreplace $list $ix $ix]
+    }
+    return $list
 }
 
 # reinplace
