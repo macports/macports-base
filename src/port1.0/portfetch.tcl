@@ -239,7 +239,9 @@ proc cvsfetch {args} {
     cd $workpath
     set cvs.args login
     set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
-    if {[catch {system "[command cvs] 2>&1"} result]} {
+    # XXX cvs will request a password from the tty using getpass()
+    # unless there is no controling terminal
+    if {[catch {system -notty "[command cvs] 2>&1"} result]} {
         return -code error [msgcat::mc "CVS login failed"]
     }
     set cvs.args "co -r ${cvs.tag}"

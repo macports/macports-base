@@ -182,15 +182,31 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	FILE *pdes;
 	int fdset[2], nullfd;
 	int fline, pos, ret;
+	int osetsid = 0;
 	pid_t pid;
 	Tcl_Obj *errbuf;
 	Tcl_Obj *tcl_result;
 
-	if (objc != 2) {
+	if (objc != 2 && objc != 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
 		return TCL_ERROR;
 	}
-	cmdstring = Tcl_GetString(objv[1]);
+	
+	if (objc == 3) {
+		char *arg = Tcl_GetString(objv[1]);
+		cmdstring = Tcl_GetString(objv[2]);
+
+		if (!strcmp(arg, "-notty")) {
+			osetsid = 1;
+		} else {
+			tcl_result = Tcl_NewStringObj("bad option ", -1);
+			Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
+			Tcl_SetObjResult(interp, tcl_result);
+			return TCL_ERROR;
+		}
+	} else if (objc == 2) {
+		cmdstring = Tcl_GetString(objv[1]);
+	}
 
 	if (pipe(fdset) == -1)
 		return TCL_ERROR;
@@ -209,9 +225,11 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		dup2(nullfd, STDIN_FILENO);
 		dup2(fdset[1], STDOUT_FILENO);
 		dup2(fdset[1], STDERR_FILENO);
-		/* XXX dropping the controlling terminal */
-		if (setsid() == -1)
-			_exit(1);
+		/* drop the controlling terminal if requested */
+		if (osetsid) {
+			if (setsid() == -1)
+				_exit(1);
+		}
 		/* XXX ugly string constants */
 		args[0] = "sh";
 		args[1] = "-c";
