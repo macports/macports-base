@@ -997,9 +997,6 @@ proc variant_new {name} {
     return $obj
 }
 
-options default_variants
-options_export default_variants
-option_proc default_variants handle_default_variants
 proc handle_default_variants {option action args} {
 	global variations
     switch -regex $action {

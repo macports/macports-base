@@ -39,9 +39,13 @@ set com.apple.main [target_new com.apple.main main]
 ${com.apple.main} provides main
 
 # define options
-options prefix name version revision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms
+options prefix name version revision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
+
 # Export options via PortInfo
 options_export name version revision categories maintainers platforms 
+
+# Assign option procedure to default_variants
+option_proc default_variants handle_default_variants
 
 # Remove trailing "Endian"
 
