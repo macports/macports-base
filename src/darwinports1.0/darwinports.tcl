@@ -1033,7 +1033,8 @@ proc darwinports::selfupdate {args} {
 	ui_debug "DarwinPorts base dir: $dp_base_path"
 
 	# get owner of the darwinports system
-	#set owner [file attributes [file join $dp_path base] -owner]
+	set owner [file attributes [file join $prefix var/db/dports/sources/] -owner]
+	ui_debug "Setting owner: $owner"
 
 	# get darwinports version 
 	set dp_version_path [file join $dp_base_path dp_version]
@@ -1069,10 +1070,10 @@ proc darwinports::selfupdate {args} {
 	}
 
 	# set the darwinports system to the right owner 
-	#ui_debug "Setting ownership to $owner"
-	#if { [catch { exec chown -R $owner $dp_path } result] } {
-		#return -code error "Couldn't change permissions: $result"
-	#}
+	ui_debug "Setting ownership to $owner"
+	if { [catch { exec chown -R $owner [file join $prefix var/db/dports/sources/] } result] } {
+		return -code error "Couldn't change permissions: $result"
+	}
 
 	# set the right version
 	set fd [open $dp_version_path w]
