@@ -188,7 +188,13 @@ proc registry_main {args} {
 	registry_store $rhandle [list run_depends $depends_run]
     }
     if [info exists contents] {
-	registry_store $rhandle [list contents [fileinfo_for_index $contents]]
+	# If it's a list, try and split it up.
+	if {[llength $contents] == 1} {
+	    set x [list contents [eval fileinfo_for_index $contents]]
+	} else {
+	    set x [list contents [fileinfo_for_index $contents]]
+	}
+	registry_store $rhandle $x
     }
     if {[info proc pkg_install] == "pkg_install"} {
 	registry_store $rhandle [list pkg_install [proc_disasm pkg_install]]
