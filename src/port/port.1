@@ -35,7 +35,7 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfo
+.Op Fl vdqfonausbck
 .Op Fl D Ar portdir
 .Ar target
 .Op Ar portname
@@ -70,6 +70,10 @@ verbose mode (generate verbose messages)
 debug mode (generate debugging messages)
 .It Fl q
 quiet mode (suppress messages)
+.It Fl c
+autoclean mode (execute clean after install)
+.It Fl k
+keep mode (don't autoclean after install)
 .It Fl D
 specify
 .Ar portdir

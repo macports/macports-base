@@ -91,7 +91,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfo\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfock\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -150,6 +150,10 @@ for {set i 0} {$i < $argc} {incr i} {
 				set ui_options(ports_debug) no
 			} elseif {$c == "o"} {
 				set options(ports_ignore_older) yes
+			} elseif {$c == "c"} {
+				set options(ports_autoclean) yes
+			} elseif {$c == "k"} {
+				set options(ports_autoclean) no
 			} elseif {$opt == "D"} {
 				incr i
 				set porturl "file://[lindex $argv $i]"

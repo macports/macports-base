@@ -34,8 +34,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype portautoclean"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portautoclean"
 	
     variable open_dports {}
 }
@@ -67,6 +67,7 @@ proc darwinports::ui_event {context message} {
 
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
+	global options
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -172,6 +173,18 @@ proc dportinit {args} {
 		set registry.installtype image
 	}
     
+	# Autoclean mode, whether to automatically call clean after "install"
+	if {![info exists portautoclean]} {
+		set darwinports::portautoclean "yes"
+		global darwinports::portautoclean
+	}
+	# Check command line override for autoclean
+	if {[info exists options(ports_autoclean)]} {
+		if {![string equal $options(ports_autoclean) $portautoclean]} {
+			set darwinports::portautoclean $options(ports_autoclean)
+		}
+	}
+
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
@@ -580,8 +593,10 @@ proc _dportexec {target dport} {
 	set workername [ditem_key $dport workername]
 	if {![catch {$workername eval eval_variants variations $target} result] && $result == 0 &&
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
-		# xxx: clean after installing?
-		#$workername eval eval_targets clean
+		# If auto-clean mode, clean-up after dependency install
+		if {[string equal ${darwinports::portautoclean} "yes"]} {
+			$workername eval eval_targets clean
+		}
 		return 0
 	} else {
 		# An error occurred.
@@ -648,6 +663,12 @@ proc dportexec {dport target} {
 		}
 	}
 
+	# If we're doing an install, check if we should clean after
+	set clean 0
+	if {[string equal ${darwinports::portautoclean} "yes"] && [string equal $target "install"] } {
+		set clean 1
+	}
+
 	# If we're doing image installs, then we should activate after install
 	# xxx: This isn't pretty
 	if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
@@ -655,9 +676,14 @@ proc dportexec {dport target} {
 	}
 	
 	# Build this port with the specified target
-	return [$workername eval eval_targets $target]
-	
-	return 0
+	set result [$workername eval eval_targets $target]
+
+	# If auto-clean mode and successful install, clean-up after install
+	if {$result == 0 && $clean == 1} {
+		$workername eval eval_targets clean
+	}
+
+	return $result
 }
 
 proc darwinports::getindex {source} {
