@@ -5,6 +5,7 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
+package require portregistry 1.0
 
 register com.apple.install target install_main
 register com.apple.install provides install
@@ -19,7 +20,11 @@ proc fileinfo_for_index {flist} {
     global prefix
     set rval {}
     foreach file $flist {
-	set fentry [file join ${prefix} ${file}]
+	if [string match /* $file] {
+	    set fentry $file
+	} else {
+	    set fentry [file join $prefix $file ]
+	}
 	if ![catch {file stat $fentry statvar}] {
 	    set md5regex "^(MD5)\[ \]\\(($fentry)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 $fentry" r]
@@ -32,8 +37,12 @@ proc fileinfo_for_index {flist} {
     return [list $rval]
 }
 
+proc proc_disasm {pname} {
+    return [list proc $pname [list [info args $pname]] [info body $pname]]
+}
+
 proc install_main {args} {
-    global portname portpath workdir worksrcdir prefix make.type make.cmd make.worksrcdir contents make.target.install UI_PREFIX
+    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.install UI_PREFIX
 
     default make.type bsd
     default make.cmd make
@@ -51,17 +60,30 @@ proc install_main {args} {
     default make.target.install install
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
     if ![catch {system "${make.cmd} ${make.target.install}"}] {
+	# it installed successfully, so now we must register it
+	set rhandle [registry_new $portname $portversion]
+	ui_msg "$UI_PREFIX Registering $portname"
+	set data {}
+	lappend data [list prefix $prefix]
+	lappend data [list categories $categories]
+	if [info exists description] {
+	    lappend data [list description $description]
+	}
+	if [info exists depends_run] {
+	    lappend data [list run_depends $depends_run]
+	}
 	if [info exists contents] {
 	    set plist [fileinfo_for_index $contents]
-	    # For now, just write this to a file for debugging.
-	    if ![catch {set fout [open "$portpath/pkg-contents" w 0644]}] {
-		puts $fout "\# Format: {{filename uid gid mode size {md5}} ... }"
-		puts $fout $plist
-		close $fout
-	    } else {
-		ui_error "Cannot open $portpath/pkg-contents file."
-	    }
+	    lappend data [list contents $plist]
 	}
+	if {[info proc pkg_install] == "pkg_install"} {
+	    lappend data [list pkg_install [proc_disasm pkg_install]]
+	}
+	if {[info proc pkg_deinstall] == "pkg_deinstall"} {
+	    lappend data [list pkg_deinstall [proc_disasm pkg_deinstall]]
+	}
+	registry_store $rhandle $data
+	registry_close $rhandle
     } else {
 	ui_error "Installation failed."
 	return -1
