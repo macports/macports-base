@@ -836,13 +836,13 @@ proc eval_variants {variations target} {
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
 	set portname $PortInfo(name)
-	
-	ui_debug "Provided variants: $PortInfo(variants)"
-	ui_debug "Requested variants: [array get upvariations]"
-	# Check to make sure the requested variations are available with this port,
-	# if one is not, warn the user and remove the variant from the array.
+
+	# Check to make sure the requested variations are available with this 
+	# port, if one is not, warn the user and remove the variant from the 
+	# array.
 	foreach key [array names upvariations *] {
-		if {[lsearch $PortInfo(variants) $key] == -1} {
+		if {![info exists PortInfo(variants)] || 
+			[lsearch $PortInfo(variants) $key] == -1} {
 			ui_debug "Requested variant $key is not provided by port $portname."
 			array unset upvariations $key
 		}
