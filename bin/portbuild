@@ -8,7 +8,7 @@ set portdir .
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: $argv0 \[invoice\]"
+	puts "Usage: $argv0 [--target=<target>] \[invoice\]"
 }
 
 proc fatal args {
@@ -18,11 +18,17 @@ proc fatal args {
 }
 
 # Main
-if {$argc > 1} {
+# KVV kludged this up
+set target "all"
+if {$argc > 2} {
 	print_usage
+} elseif {$argc == 2} {
+	set target [lindex $argv 0]
+	if {[regsub -- "--target=" $target "" target] < 1} { print_usage }
+	set portdir [lindex $argv 1]
 } elseif {$argc == 1} {
 	set portdir [lindex $argv 0]
 }
 
 darwinports::init
-darwinports::build $portdir
+darwinports::build $portdir $target

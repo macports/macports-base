@@ -158,9 +158,25 @@ proc depend_list_get_next {waitlist statusdict} {
 
 # Evaluate the dependency list, returning an ordered list suitable
 # for execution.
-proc eval_depend {nodes} {
+# If <target> is specified, then only execute the critical path to
+# the target.
+proc eval_depend {nodes target} {
 	# waitlist - nodes waiting to be executed
 	upvar $nodes waitlist
+
+	if {[string length $target] > 0} {
+		if {[isval waitlist name,$target]} {
+			array set dependents [list]
+			append_dependents dependents waitlist $target
+			array unset waitlist
+			array set waitlist [array get dependents]
+		# Special-case 'all'
+		} elseif {![string equal $target all]} {
+			# XXX: remove puts
+			puts "Warning: unknown target: $target"
+			return
+		}
+	}
 
 	# status - keys will be node names, values will be success or failure.
 	array set statusdict [list]
@@ -181,16 +197,42 @@ proc eval_depend {nodes} {
 			depend_list_del_item waitlist $name
 		} else {
 			# somebody broke!
-			# XXX: remove puts
-			puts "Warning: the following targets did not execute: "
-			foreach name [array names waitlist name,*] {
-				puts -nonewline "$waitlist($name) "
+			set names [array names waitlist name,*]
+			if { [llength $names] > 0} {
+				# XXX: remove puts
+				puts "Warning: the following targets did not execute: "
+				foreach name $names {
+					puts -nonewline "$waitlist($name) "
+				}
+				puts ""
 			}
-			puts ""
 			break
 		}
 	}
+}
+
+# select dependents of <name> from the <itemlist>
+# adding them to <dependents>
+proc append_dependents {dependents itemlist name} {
+	upvar $dependents updependents
+	upvar $itemlist upitemlist
 	
+	# Append item to the list, avoiding duplicates
+	if {![isval updependents name,$name]} {
+		set updependents(name,$name) $upitemlist(name,$name)
+		set updependents(procedure,$name) $upitemlist(procedure,$name)
+		set updependents(requires,$name) $upitemlist(requires,$name)
+		set updependents(uses,$name) $upitemlist(uses,$name)
+	}
+	
+	# Recursively append any hard dependencies
+	if {[isval upitemlist requires,$name]} {
+		foreach dep $upitemlist(requires,$name) {
+			append_dependents updependents upitemlist $dep
+		}
+	}
+	
+	# XXX: add soft-dependencies?
 }
 
 ########### Global Variable Manipulation Procedures ###########

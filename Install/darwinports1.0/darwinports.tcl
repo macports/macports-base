@@ -79,13 +79,13 @@ namespace eval darwinports {
 	}
 
 # XXX incomplete. Waiting for kevin's dependancy related submissions
-	proc build {portdir} {
+	proc build {portdir target} {
 		if [file isdirectory $portdir] {
 			cd $portdir
 			setval darwinports::options portdir [pwd]
 			# XXX These must execute at a global scope
 			uplevel #0 source Portfile
-			uplevel #0 eval_depend portutil::targets
+			uplevel #0 eval_depend portutil::targets $target
 		} else {
 			return -code error "Portdir $portdir does not exist"
 		}
