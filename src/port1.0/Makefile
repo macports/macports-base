@@ -3,7 +3,7 @@ INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/Tcl/port1.0
 DSTUSR?=	root
 DSTGRP?=	admin
 
-SRCS=		port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl portinstall.tcl portregistry.tcl portdepends.tcl portinstall.tcl portuninstall.tcl portregistry.tcl portdepends.tcl portclean.tcl portpackage.tcl portcontents.tcl portmpkg.tcl
+SRCS=		port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl portinstall.tcl portdepends.tcl portinstall.tcl portuninstall.tcl portregistry.tcl portdepends.tcl portclean.tcl portpackage.tcl portcontents.tcl portmpkg.tcl
 
 SUBDIR=		resources
 
