@@ -71,6 +71,6 @@ proc dportbuild {portdir target {options ""}} {
 	$workername eval {flock [open Portfile r] -exclusive}
 	$workername eval eval_targets targets $target
     } else {
-	return -code error "Portdir $portpath does not exist"
+	return -code error "Portdir $portdir does not exist"
     }
 }
