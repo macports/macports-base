@@ -71,13 +71,12 @@ cd darwinports/base
 make all install
 make clean
 sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf
-umount /dev
-umount /dev
 EOF
 	chmod 755 $dir/bootstrap.sh
 	echo "Bootstrapping darwinports in chroot"
 	mountchrootextras $dir
 	chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
+	umountchrootextras $dir
 	[ -z "$DEV" ] || hdiutil detach $DEV >& /dev/null
 	DEV=""
 }
@@ -105,6 +104,7 @@ teardownchroot() {
 		echo "chrootdir not prepped"
 		return 1
 	fi
+	umountchrootextras $dir
 	hdiutil detach $DEV >& /dev/null
 	rm ${CHROOTBASE}.shadow
 	if [ -f $DISTFILES ]; then
@@ -159,8 +159,6 @@ for pkg in `cat $TGTPORTS`; do
 	echo 'export PATH=$PATH:/opt/local/bin' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "if port -v mpkg $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
-	echo "umount /dev" >> $DIR/bootstrap.sh
-	echo "umount /dev" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
 	chroot $DIR /bootstrap.sh
 	if [ ! -f $DIR/tmp/success ]; then
