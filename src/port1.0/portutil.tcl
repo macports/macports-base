@@ -530,9 +530,9 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
 		# somebody broke!
-		set errstring "Warning: the following items did not execute (for $portname): "
+		set errstring "Warning: the following items did not execute (for $portname):"
 		foreach ditem $dlist {
-			lappend errstring [ditem_key $ditem name]
+			append errstring " [ditem_key $ditem name]"
 		}
 		ui_info $errstring
 		set result 1
