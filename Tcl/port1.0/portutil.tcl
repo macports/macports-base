@@ -205,7 +205,7 @@ proc setval {array key val} {
 proc appendval {array key val} {
 	upvar $array uparray
 	if {[isval $array $key]} {
-		setval $array $key [getval $array $key] $val
+		setval $array $key "[getval $array $key] $val"
 	} else {
 		setval $array $key $val
 	}
