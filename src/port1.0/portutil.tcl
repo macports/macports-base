@@ -1161,7 +1161,7 @@ proc adduser {name args} {
     global os.platform
     set passwd {\*}
     set uid [nextuid]
-    set gid [nextgid]
+    set gid [existsgroup nogroup]
     set realname ${name}
     set home /dev/null
     set shell /dev/null
