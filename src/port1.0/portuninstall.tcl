@@ -61,7 +61,13 @@ proc uninstall_main {args} {
 	if {$ix >= 0} {
 	    set contents [lindex $entry $ix]
 	    foreach f [lindex $contents 1] {
-		puts "deleting [lindex $f 1]"
+		set fname [lindex $f 0]
+		ui_info "$UI_PREFIX   Uninstall is removing $fname"
+		if [file isdirectory $fname] {
+		    system "rmdir $fname"
+		} else {
+		    system "rm $fname"
+		}
 	    }
 	    return 0
 	} else {

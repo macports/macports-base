@@ -37,7 +37,7 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description registery.nochecksum registry.path
+options contents description registry.nochecksum registry.path
 
 default registry.path /Library/Receipts/darwinports
 
@@ -97,10 +97,10 @@ proc registry_delete {portname {portversion 1.0}} {
 }
 
 proc fileinfo_for_file {fname} {
-    global register.nochecksum
+    global registry.nochecksum
 
     if ![catch {file stat $fname statvar}] {
-	if ![tbool register.nochecksum] {
+	if ![tbool registry.nochecksum] {
 	    set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 $fname" r]
 	    set line [read $pipe]
@@ -128,6 +128,7 @@ proc fileinfo_for_entry {rval dir entry} {
 	    set subpath [file join $path $name]
 	    if [file isdirectory $subpath] {
 		fileinfo_for_entry myrval $subpath ""
+		fileinfo_for_file $subpath
 	    } elseif [file readable $subpath] {
 		lappend myrval [fileinfo_for_file $subpath]
 	    }
