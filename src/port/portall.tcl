@@ -33,7 +33,7 @@ proc pindex {portdir} {
     global target
     set interp [dportopen $portdir]
     array set portinfo [dportinfo $interp]
-    puts "Building port: $portinfo(portname)"
+    puts "Doing $target for port: $portinfo(portname)"
     dportexec $interp $target
     dportclose $interp
 }
