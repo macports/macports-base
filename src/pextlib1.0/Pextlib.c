@@ -269,12 +269,38 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	return TCL_OK;
 }
 
+int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Channel channel;
+	ClientData handle;
+	char *template, *channelname;
+	int fd;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "template");
+		return TCL_ERROR;
+	}
+
+	template = Tcl_GetString(objv[1]);
+	if ((fd = mkstemp(template)) < 0) {
+		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
+		return TCL_ERROR;
+	}
+
+	channel = Tcl_MakeFileChannel((ClientData) fd, TCL_READABLE|TCL_WRITABLE);
+	Tcl_RegisterChannel(interp, channel);
+	channelname = Tcl_GetChannelName(channel);
+	Tcl_SetResult(interp, channelname, TCL_VOLATILE);
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
