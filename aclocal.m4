@@ -19,7 +19,7 @@ builtin(include,tcl.m4)
 #       Result is cached.
 #
 #	If CoreFoundation is available, defines the following variables:
-#		CFOUNDATION_ENABLED
+#		CFOUNDATION_ENABLE
 #	Substitutes the following vars:
 #               CFOUNDATION_LIBS
 #
