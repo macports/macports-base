@@ -82,8 +82,11 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	ui_error "No MD5 checksums."
-	return -1
+	ui_msg "Warning: No checksums statement in Portfile.  File checksums are:"
+	foreach distfile $all_dist_files {
+	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
+	}
+	return 0
     }
 
     foreach distfile $all_dist_files {
