@@ -89,7 +89,7 @@ set UI_PREFIX "---> "
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.sufx options
 proc suffix {distname} {
     global extract.sufx use_bzip2 use_zip fetch.type
-	if {"${fetch.type}" == "cvs"} {
+    if {"${fetch.type}" == "cvs"} {
         return ""
     }
     if {[tbool use_bzip2]} {

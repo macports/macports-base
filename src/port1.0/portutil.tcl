@@ -235,9 +235,9 @@ proc variant {args} {
     $obj append provides $provides
     $obj append requires $requires
 
-	# make a user procedure named variant-blah-blah
-	# well will call this procedure during variant-run
-	makeuserproc $name \{$code\}
+    # make a user procedure named variant-blah-blah
+    # well will call this procedure during variant-run
+    makeuserproc $name \{$code\}
     lappend all_variants $obj
     
     # Export provided variant to PortInfo
@@ -450,10 +450,10 @@ proc generic_get_next {dlist statusdict} {
 # get_next_proc is used to determine the best item to run
 proc dlist_evaluate {dlist get_next_proc} {
     global portname
-	
+    
     # status - keys will be node names, values will be {-1, 0, 1}.
     array set statusdict [list]
-	
+    
     # XXX: Do we want to evaluate this dynamically instead of statically? 
     foreach obj $dlist {
 	if {[$obj test] == 1} {
@@ -723,7 +723,7 @@ proc variant_run {this} {
     set name [$this get name]
     ui_debug "Executing $name provides [$this get provides]"
     # execute proc with same name as variant.
-	if {[catch ${name} result]} {
+    if {[catch ${name} result]} {
 	ui_error "Error executing $name: $result"
 	return 1
     }
@@ -804,32 +804,32 @@ proc depspec_new {name} {
 }
 
 proc depspec_get {this prop} {
-	set data [$this _data]
-	global $data
-	if {[eval info exists ${data}($prop)]} {
-		eval return $${data}($prop)
-	} else {
-		return ""
-	}
+    set data [$this _data]
+    global $data
+    if {[eval info exists ${data}($prop)]} {
+	eval return $${data}($prop)
+    } else {
+	return ""
+    }
 }
 
 proc depspec_set {this prop args} {
-	set data [$this _data]
-	global $data
-	eval "set ${data}($prop) \"$args\""
+    set data [$this _data]
+    global $data
+    eval "set ${data}($prop) \"$args\""
 }
 
 proc depspec_has {this prop} {
-	set data [$this _data]
-	global $data
-	eval return \[info exists ${data}($prop)\]
+    set data [$this _data]
+    global $data
+    eval return \[info exists ${data}($prop)\]
 }
 
 proc depspec_append {this prop args} {
-	set data [$this _data]
-	global $data
-	set vals [join $args " "]
-	eval lappend ${data}($prop) $vals
+    set data [$this _data]
+    global $data
+    set vals [join $args " "]
+    eval lappend ${data}($prop) $vals
 }
 
 # is the only proc to get direct access to the object's data
@@ -838,15 +838,15 @@ proc depspec_append {this prop args} {
 # and are called with {$this $args}.
 proc depspec_dispatch {this data method args} {
     global $data
-	if {$method == "_data"} { return $data }
-	eval set vtbl $${data}(_vtbl)
-	global $vtbl
-	if {[info exists ${vtbl}($method)]} {
-		eval set function $${vtbl}($method)
-		eval "return \[$function $this $args\]"
-	} else {
-		ui_error "unknown method: $method"
-	}
+    if {$method == "_data"} { return $data }
+    eval set vtbl $${data}(_vtbl)
+    global $vtbl
+    if {[info exists ${vtbl}($method)]} {
+	eval set function $${vtbl}($method)
+	eval "return \[$function $this $args\]"
+    } else {
+	ui_error "unknown method: $method"
+    }
     return ""
 }
 
@@ -873,31 +873,31 @@ set target_vtbl(postrun) target_postrun
 
 # constructor for target depspec class
 proc target_new {name procedure} {
-	global targets
-	set obj [depspec_new $name]
+    global targets
+    set obj [depspec_new $name]
     
     $obj set _vtbl target_vtbl
-	$obj set procedure $procedure
+    $obj set procedure $procedure
     
-	lappend targets $obj
-	
+    lappend targets $obj
+    
     return $obj
 }
 
 proc target_provides {this args} {
-	global targets
-	# Register the pre-/post- hooks for use in Portfile.
-	# Portfile syntax: pre-fetch { puts "hello world" }
-	# User-code exceptions are caught and returned as a result of the target.
-	# Thus if the user code breaks, dependent targets will not execute.
-	foreach target $args {
-		if {[info commands $target] != ""} {
-			ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
-			continue;
-		}
-		set origproc [$this get procedure]
-		set ident [$this get name]
-		eval "proc $target {args} \{ \n\
+    global targets
+    # Register the pre-/post- hooks for use in Portfile.
+    # Portfile syntax: pre-fetch { puts "hello world" }
+    # User-code exceptions are caught and returned as a result of the target.
+    # Thus if the user code breaks, dependent targets will not execute.
+    foreach target $args {
+	if {[info commands $target] != ""} {
+	    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
+	    continue;
+	}
+	set origproc [$this get procedure]
+	set ident [$this get name]
+	eval "proc $target {args} \{ \n\
 			$this set procedure proc-${ident}-${target}
 			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
@@ -910,7 +910,7 @@ proc target_provides {this args} {
 			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
 			makeuserproc userproc-${ident}-${target} \$args \n\
 		\}"
-		eval "proc pre-$target {args} \{ \n\
+	eval "proc pre-$target {args} \{ \n\
 			$this append pre proc-pre-${ident}-${target}
 			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
@@ -922,7 +922,7 @@ proc target_provides {this args} {
 			\}\" \n\
 			makeuserproc userproc-pre-${ident}-${target} \$args \n\
 		\}"
-		eval "proc post-$target {args} \{ \n\
+	eval "proc post-$target {args} \{ \n\
 			$this append post proc-post-${ident}-${target}
 			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
@@ -934,28 +934,28 @@ proc target_provides {this args} {
 			\}\" \n\
 			makeuserproc userproc-post-${ident}-${target} \$args \n\
 		\}"
-	}
-	eval "depspec_append $this provides $args"
+    }
+    eval "depspec_append $this provides $args"
 }
 
 proc target_requires {this args} {
-	eval "depspec_append $this requires $args"
+    eval "depspec_append $this requires $args"
 }
 
 proc target_uses {this args} {
-	eval "depspec_append $this uses $args"
+    eval "depspec_append $this uses $args"
 }
 
 proc target_deplist {this args} {
-	eval "depspec_append $this deplist $args"
+    eval "depspec_append $this deplist $args"
 }
 
 proc target_prerun {this args} {
-	eval "depspec_append $this prerun $args"
+    eval "depspec_append $this prerun $args"
 }
 
 proc target_postrun {this args} {
-	eval "depspec_append $this postrun $args"
+    eval "depspec_append $this postrun $args"
 }
 
 ##### variant depspec subclass #####
@@ -975,20 +975,20 @@ proc variant_new {name} {
 }
 
 proc handle_default_variants {option action args} {
-	global variations
+    global variations
     switch -regex $action {
-		set|append {
-			foreach v $args {
-				if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
-					if {![info exists variations($variant)]} {
-						set variations($variant) $val
-					}
-				}
-			}
+	set|append {
+	    foreach v $args {
+		if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+		    if {![info exists variations($variant)]} {
+			set variations($variant) $val
+		    }
 		}
-		delete {
-			# xxx
-		}
+	    }
+	}
+	delete {
+	    # xxx
+	}
     }
 }
 

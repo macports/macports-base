@@ -48,7 +48,7 @@ package require portcontents 1.0
 
 # System wide default configuration
 if [info exists portdefaultconf] {
-	source $portdefaultconf
+    source $portdefaultconf
 }
 
 # System wide user configuration
