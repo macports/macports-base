@@ -89,6 +89,11 @@ proc checksum_main {args} {
 	return 0
     }
 
+    # Optimization for the 2 argument case for checksums
+    if {[llength $checksums] == 2 && [llength $all_dist_files] == 1} {
+	set checksums [linsert $checksums 0 $all_dist_files]
+    }
+
     foreach distfile $all_dist_files {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
