@@ -3829,7 +3829,7 @@ prefix=$oldprefix
 
 # Output
 
-ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports.tcl.out:src/darwinports1.0/darwinports.tcl"
+ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4141,7 +4141,7 @@ do
   "Mk/dports.autoconf.mk" ) CONFIG_FILES="$CONFIG_FILES Mk/dports.autoconf.mk" ;;
   "doc/prefix.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
   "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
-  "src/darwinports1.0/darwinports.tcl.out" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports.tcl.out:src/darwinports1.0/darwinports.tcl" ;;
+  "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/pextlib1.0/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/pextlib1.0/config.h" ;;
   *) { { echo "$as_me:4146: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}

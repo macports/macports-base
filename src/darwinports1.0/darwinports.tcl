@@ -64,7 +64,7 @@ proc darwinports::ui_event {context message} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::autoconf::dports_conf_path
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -88,9 +88,9 @@ proc dportinit {args} {
 
     # finally /etc/ports/ports.conf, or whatever path was configured
     if {![info exists portconf]} {
-	if {[file isfile @PORTCONFIGDIR_EXPANDED@/ports.conf]} {
-	    set portconf @PORTCONFIGDIR_EXPANDED@/ports.conf
-	    lappend conf_files @PORTCONFIGDIR_EXPANDED@/ports.conf
+	if {[file isfile $dports_conf_path/ports.conf]} {
+	    set portconf $dports_conf_path/ports.conf
+	    lappend conf_files $dports_conf_path/ports.conf
 	}
     }
     if [info exists conf_files] {
@@ -108,7 +108,7 @@ proc dportinit {args} {
     }
 
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in @PORTCONFIGDIR_EXPANDED@/ports.conf or in your ~/.portsrc"
+        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
@@ -127,7 +127,7 @@ proc dportinit {args} {
     }
 
     if ![info exists portdbpath] {
-	return -code error "portdbpath must be set in @PORTCONFIGDIR_EXPANDED@/ports.conf or in your ~/.portsrc"
+	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
     }
     if ![file isdirectory $portdbpath] {
 	if ![file exists $portdbpath] {
