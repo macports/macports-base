@@ -15,7 +15,7 @@ register com.apple.fetch swdep depends_fetch
 options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2
 
 # Defaults
-default extract_sufx tar.gz
+default extract_sufx .tar.gz
 
 set UI_PREFIX "---> "
 
@@ -26,7 +26,7 @@ proc suffix {distname} {
     } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
-	return ${distname}.${extract_sufx}
+	return ${distname}${extract_sufx}
     }
 }
 
