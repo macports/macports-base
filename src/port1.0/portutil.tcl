@@ -767,7 +767,7 @@ proc variant_run {this} {
 }
 
 proc eval_variants {variations target} {
-    global all_variants
+    global all_variants ports_force
     set dlist $all_variants
 	set result 0
     upvar $variations upvariations
@@ -788,15 +788,17 @@ proc eval_variants {variations target} {
 	
 	# Make sure the variations match those stored in the statefile.
 	# If they don't match, print an error indicating a 'port clean' 
-	# should be performed.  Skip this test if the statefile is empty.
-	# Also skip this test if performing a clean so we don't shoot
-	# ourselves in the foot.
+	# should be performed.  
+	# - Skip this test if the statefile is empty.
+	# - Skip this test if performing a clean.
+	# - Skip this test if ports_force was specified.
 
-	if {$target != "clean"} {
+	if {$target != "clean" && 
+		!([info exists ports_force] && $ports_force == "yes")} {
 		set state_fd [open_statefile]
 	
 		if {[check_statefile_variants upvariations $state_fd]} {
-			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean'."
+			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean' or specify the force option."
 			set result 1
 		} else {
 			# Write variations out to the statefile
