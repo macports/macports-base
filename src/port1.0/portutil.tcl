@@ -735,7 +735,17 @@ proc open_statefile {args} {
     if ![file isdirectory $portpath/$workdir] {
 	file mkdir $portpath/$workdir
     }
-    set fd [open "$portpath/$workdir/.darwinports.state" a+]
+    # flock Portfile
+	set statefile [file join $portpath $workdir .darwinports.state]
+    set fd [open $statefile a+]
+    if [catch {flock $fd -exclusive -noblock} result] {
+        if {"$result" == "EAGAIN"} {
+            ui_puts "Waiting for lock on $statefile"
+        } else {
+            return -code error "$result obtaining lock on $statefile"
+        }
+    }
+    flock $fd -exclusive
     return $fd
 }
 
@@ -858,4 +868,3 @@ proc eval_variants {dlist variations} {
         
     dlist_evaluate uplist statusdict [list exec_variant]
 }
-

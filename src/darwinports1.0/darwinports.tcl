@@ -141,19 +141,6 @@ proc dportopen {portdir {options ""} {variations ""}} {
 
         # initialize the UI for the new port
 	$workername eval ui_init
-
-	# flock Portfile
-	# XXX -Unfourtunately, we can't do this until we've sourced the Portfile
-	# and brought in Pextlib (needed for flock)
-	$workername eval {set portfd [open Portfile r]}
-	if [catch {$workername eval {flock $portfd -exclusive -noblock}} result] {
-	    if {"$result" == "EAGAIN"} {
-	    	ui_puts "Waiting for lock on [file join ${portpath} Portfile]"
-	    } else {
-		return -code error "$result obtaining lock on [file join ${portpath} Portfile]"
-	    }
-	}
-	$workername eval {flock $portfd -exclusive}
     } else {
 	return -code error "Portdir $portdir does not exist"
     }
@@ -214,7 +201,5 @@ proc dportinfo {workername} {
 }
 
 proc dportclose {workername} {
-    $workername eval {flock $portfd -unlock}
-    $workername eval {close $portfd}
     interp delete $workername
 }
