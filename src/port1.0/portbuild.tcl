@@ -28,9 +28,15 @@ proc build_main {args} {
     }
 
     cd $configpath
-    if {${make.type} == "bsd"} {
-	set make.cmd bsdmake
+    switch -exact -- ${make.type} {
+	bsd {
+	    set make.cmd bsdmake
+	}
+	gnu {
+	    set make.cmd gnumake
+	}
     }
+	
     default make.target.all all
     ui_msg "$UI_PREFIX Building $portname with target ${make.target.all}"
     system "${make.cmd} ${make.target.all}"
