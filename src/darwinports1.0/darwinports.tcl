@@ -148,7 +148,9 @@ proc dportinit {args} {
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
 					foreach arg [split $line { \t}] {
 						if {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
-							set variations($opt) $sign
+							if {![info exists variations($opt)]} {
+								set variations($opt) $sign
+							}
 						} else {
 							ui_warn "$variants_conf specifies invalid variant syntax '$arg', ignored."
 						}
