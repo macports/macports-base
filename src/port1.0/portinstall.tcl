@@ -58,6 +58,7 @@ proc install_start {args} {
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
+	system "rm -Rf \"${destroot}\""
 	file mkdir "${destroot}"
 	system "cd ${destroot} && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
 	file mkdir "${destroot}/${prefix}"
