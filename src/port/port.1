@@ -72,6 +72,27 @@ specify
 .It Fl f
 force mode (ignore state file)
 .El
+.Sh TARGETS
+.Nm
+knows several targets. The most important is the "install" target, which installs the supplied port.
+.Pp
+The other targets are:
+.Pp
+.Dl uninstall
+.Dl clean
+.Dl search
+.Pp
+Besides the main targets
+.Nm
+takes each single stage of the port building process as a possible target. These
+stages (besides "install") are:
+.Pp
+.Dl fetch
+.Dl extract
+.Dl patch
+.Dl configure
+.Dl build
+.Pp
 .Sh EXAMPLES
 Invoking
 .Nm
@@ -85,11 +106,19 @@ with the "uninstall" target:
 .Pp
 .Dl "port uninstall vim
 .Pp
+To clean up after the port was build:
+.Pp
+.Dl "port clean vim
+.Pp
 Using
 .Nm
 to list all available ports:
 .Pp
 .Dl "port search .+
+.Pp
+To look for a specific port, supply a search string:
+.Pp
+.Dl "port search vim
 .Pp
 The following demonstrates invoking
 .Nm
