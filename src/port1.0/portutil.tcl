@@ -91,26 +91,21 @@ proc command {command} {
 
     set cmdstring ""
     if [info exists ${command}.dir] {
-	upvar #0 ${command}.dir upstring
-	set cmdstring "cd $upstring &&"
+	set cmdstring "cd [set ${command}.dir] &&"
     }
 
     if [info exists ${command}.env] {
-	upvar #0 ${command}.env upstring
-	set cmdstring "$cmdstring $upstring"
+	set cmdstring "$cmdstring [set ${command}.env]"
     }
 
     if [info exists ${command}.cmd] {
-	upvar #0 ${command}.cmd upstring
-	set cmdstring "$cmdstring $upstring"
+	set cmdstring "$cmdstring [set ${command}.cmd]"
     } else {
-	lappend cmdstring ${command}
-	set cmdstring "$cmdstring $command"
+	set cmdstring "$cmdstring ${command}"
     }
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
 	if [info exists $var] {
-	    upvar #0 ${var} upstring
-	    set cmdstring "$cmdstring $upstring"
+	    set cmdstring "$cmdstring [set $var]"
 	}
     }
     return $cmdstring
@@ -190,9 +185,9 @@ proc variant {args} {
 ########### Misc Utility Functions ###########
 
 proc tbool {key} {
-    upvar $key upkey
-    if {[info exists upkey]} {
-	if {[string equal -nocase $upkey "yes"]} {
+    upvar $key $key
+    if {[info exists $key]} {
+	if {[string equal -nocase [set $key] "yes"]} {
 	    return 1
 	}
     }
