@@ -55,10 +55,10 @@ proc ui_puts {str {nonl ""}} {
     if ![ui_enabled] return
 
     if {$nonl == "-nonewline"} {
-	puts -nonewline stdout $str
+	puts -nonewline stdout "$str"
 	flush stdout
     } else {
-	puts $str
+	puts "$str"
     }
 }
 
@@ -76,7 +76,7 @@ proc ui_info {str {nonl ""}} {
     global ports_verbose
 
     if [tbool ports_verbose] {
-	ui_puts $str $nonl
+	ui_puts "$str" $nonl
     }
 }
 
@@ -85,7 +85,7 @@ proc ui_msg {str {nonl ""}} {
     global ports_quiet
 
     if ![tbool ports_quiet] {
-	ui_puts $str $nonl
+	ui_puts "$str" $nonl
     }
 }
 
@@ -141,7 +141,7 @@ proc ui_yesno {promptstr {defvalue ""}} {
 # the user's acknowledgement of the prompt string passed in
 # "promptstr".  There is no return value.
 proc ui_confirm {promptstr} {
-    ui_puts $promptstr -nonewline
+    ui_puts "$promptstr" -nonewline
     ui_gets garbagestr
 }
 
