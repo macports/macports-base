@@ -10,10 +10,10 @@ namespace eval portchecksum {
 }
 
 # define globals
-globals portchecksum::options md5file
+globals portchecksum::options checksums
 
 # define options
-options portchecksum::options md5file
+options portchecksum::options checksums
 
 proc portchecksum::md5 {file} {
 	global distpath
@@ -31,17 +31,11 @@ proc portchecksum::md5 {file} {
 }
 
 proc portchecksum::dmd5 {file} {
-	set fd [open [getval portchecksum::options md5file] r]
-	set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+$)"
-	while {[gets $fd line] >= 0} {
-		if {[regexp $md5regex $line match type filename sum] == 1} {
-			if {$filename == $file} {
-				close $fd
-				return $sum
-			}
+	foreach {name sum} [getval portchecksum::options checksums] {
+		if {$name == $file} {
+			return $sum
 		}
 	}
-	close $fd
 	return -1
 }
 
@@ -53,16 +47,14 @@ proc portchecksum::main {args} {
 		return 0
 	}
 
-	default portchecksum::options md5file $portdir/distinfo
-
-	if ![file isfile [getval portchecksum::options md5file]] {
-		puts "No MD5 checksum file."
+        if ![isval portchecksum::options checksums] {
+		puts "No MD5 checksums."
 		return -1
 	}
 
 	foreach distfile $all_dist_files {
 		set checksum [md5 $distpath/$distfile]
-		set dchecksum [dmd5 $distfile]
+	        set dchecksum [dmd5 $distfile]
 		if {$dchecksum == -1} {
 			puts "No checksum recorded for $distfile"
 			return -1
