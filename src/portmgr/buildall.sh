@@ -13,16 +13,13 @@ DISTFILES=distfiles.dmg
 # Mount all the important bits a chroot build env needs.
 mountchrootextras() {
 	dir=$1
-	mkdir -p $dir/.vol
 	/sbin/mount_devfs devfs ${dir}/dev
 	/sbin/mount_fdesc -o union fdesc ${dir}/dev
-	/sbin/mount_volfs ${dir}/.vol
 }
 
 # Undo the work of mountchrootextras
 umountchrootextras() {
 	dir=$1
-	umount -f $dir/.vol
 	umount ${dir}/dev
 	umount ${dir}/dev
 }
@@ -49,7 +46,7 @@ mkchrootimage() {
 		sz=$(($sz + $mysz))
 	done
 	echo "Creating bootstrap disk image of ${sz}K bytes"
-	hdiutil create -size ${sz}k -fs HFSX ${CHROOTBASE} > /dev/null
+	hdiutil create -size ${sz}k -fs UFS ${CHROOTBASE} > /dev/null
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	echo "Image attached as $DEV"
 	echo "Copying chroot files into bootstrap disk image"
@@ -74,7 +71,6 @@ cd darwinports/base
 make all install
 make clean
 sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf
-umount -f /.vol
 umount /dev
 umount /dev
 EOF
@@ -98,7 +94,6 @@ prepchroot() {
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	mountchrootextras $dir
 	if [ -f $DISTFILES ]; then
-		echo "Using distfiles cache image"
 		DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	fi
 }
@@ -141,6 +136,7 @@ if [ -z "$TGTPORTS" ]; then
 		echo "current directory or unpack a darwinports distribution to get it from"
 		exit 1
 	fi
+	rm -rf outputdir
 	mkdir -p outputdir/summary
 	TGTPORTS=outputdir/summary/portsrun
 	awk 'NF == 2 {print $1}' $PINDEX > $TGTPORTS
@@ -163,7 +159,6 @@ for pkg in `cat $TGTPORTS`; do
 	echo 'export PATH=$PATH:/opt/local/bin' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "if port -v mpkg $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
-	echo "umount -f /.vol" >> $DIR/bootstrap.sh
 	echo "umount /dev" >> $DIR/bootstrap.sh
 	echo "umount /dev" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
