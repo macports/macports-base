@@ -84,6 +84,6 @@ proc build_main {args} {
 
     ui_msg "$UI_PREFIX Building $portname with target ${build.target.all}"
     set build.target.current ${build.target.all}
-    system "[command make]"
+    system "[command build]"
     return 0
 }
