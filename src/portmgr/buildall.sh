@@ -22,7 +22,7 @@ mountchrootextras() {
 # Undo the work of mountchrootextras
 umountchrootextras() {
 	dir=$1
-	umount $dir/.vol
+	umount -f $dir/.vol
 	umount ${dir}/dev
 	umount ${dir}/dev
 }
@@ -39,7 +39,7 @@ mkchrootimage() {
 	DEV=""
 
 	# Add to this list as you find minimum dependencies DP really needs.
-	chrootfiles="bin sbin etc tmp var dev/null usr/include usr/libexec usr/sbin usr/bin usr/lib usr/share private/tmp private/etc private/var/at private/var/cron private/var/db private/var/empty private/var/log private/var/mail private/var/msgs private/var/named private/var/root private/var/run private/var/rwho private/var/spool private/var/tmp private/var/vm/app_profile Developer/Applications/Xcode.app Developer/Applications/Utilities Developer/Headers Developer/Makefiles Developer/Private Developer/Tools System/Library/Frameworks System/Library/CoreServices System/Library/PrivateFrameworks System/Library/OpenSSL System/Library/Perl"
+	chrootfiles="bin sbin etc tmp var dev/null usr/include usr/libexec usr/sbin usr/bin usr/lib usr/share private/tmp private/etc private/var/at private/var/cron private/var/db private/var/empty private/var/log private/var/mail private/var/msgs private/var/named private/var/root private/var/run private/var/rwho private/var/spool private/var/tmp private/var/vm/app_profile Developer/Applications/Xcode.app Developer/Applications/Utilities Developer/Headers Developer/Makefiles Developer/Private Developer/Tools System/Library/Frameworks System/Library/CoreServices System/Library/PrivateFrameworks System/Library/OpenSSL System/Library/Perl System/Library/Java Library/Java"
 
 	echo "Calculating chroot image size..."
 	# start with this size as padding for darwinports
@@ -74,7 +74,7 @@ cd darwinports/base
 make all install
 make clean
 sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf
-umount /.vol
+umount -f /.vol
 umount /dev
 umount /dev
 EOF
@@ -163,7 +163,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo 'export PATH=$PATH:/opt/local/bin' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "if port -v mpkg $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
-	echo "umount /.vol" >> $DIR/bootstrap.sh
+	echo "umount -f /.vol" >> $DIR/bootstrap.sh
 	echo "umount /dev" >> $DIR/bootstrap.sh
 	echo "umount /dev" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
