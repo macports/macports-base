@@ -112,14 +112,12 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 #---------------------------------------
 AC_DEFUN([OD_PROG_MD5],[
 
-	AC_PATH_PROG([MD5], [md5], ,  [ /usr/bin:/usr/sbin:/bin:/sbin ])
+	AC_PATH_PROG([MD5], [md5], ,  [/usr/bin:/usr/sbin:/bin])
 
 	if test "x$MD5" = "x" ; then
-		AC_PATH_PROG([OPENSSL], [openssl],
-			[AC_MSG_ERROR([No suitable md5 program found])],
-			[ /usr/bin:/usr/sbin:/bin:/sbin ])
-
-		MD5="$OPENSSL md5"
+		AC_CONFIG_SUBDIRS([src/programs/md5])
+		MD5='${prefix}/bin/md5'
+		REPLACEMENT_PROGS="$REPLACEMENT_PROGS md5"
 	fi
 
 	AC_SUBST(MD5)
@@ -129,7 +127,14 @@ AC_DEFUN([OD_PROG_MD5],[
 #---------------------------------------
 AC_DEFUN([OD_PROG_MTREE],[
 
-	AC_PATH_PROG([MTREE], [mtree], ,  [ /usr/bin:/usr/sbin:/bin:/sbin ])
+	AC_PATH_PROG([MTREE], [mtree], ,  [/usr/bin:/bin:/sbin])
+
+	if test "x$MTREE" = "x" ; then
+		AC_CONFIG_SUBDIRS([src/programs/mtree])
+		MTREE='$(TOPSRCDIR)/src/programs/mtree/mtree'
+#		MTREE='${prefix}/bin/mtree'
+		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
+	fi
 
 	AC_SUBST(MTREE)
 ])
