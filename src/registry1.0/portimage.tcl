@@ -247,12 +247,22 @@ proc _activate_file {srcfile dstfile} {
 	# Don't recursively copy directories
 	if { [file isdirectory $srcfile] && [file type $srcfile] != "link" } {
 		file mkdir $dstfile
+
+		# fix attributes on the directory.
+		set attributes [file attributes $srcfile]	
+		for {set i 0} {$i < [llength $attributes]} {incr i} {
+			set opt [lindex $attributes $i]
+			incr i
+			set arg [lindex $attributes $i]
+			file attributes $dstfile $opt $arg
+			# set mtime on installed element
+			exec touch -r $srcfile $dstfile
+		}
 	} elseif { [file type $srcfile] == "link" } {
-		file copy $srcfile $dstfile
+		file copy -force $srcfile $dstfile
 	} else {
 		file link -symbolic $dstfile $srcfile
 	}
-
 }
 
 proc _activate_list {flist imagedir} {
@@ -284,20 +294,24 @@ proc _activate_contents {name imagefiles imagedir} {
 
 		set port [registry::file_registered $file] 
 
-		if { $port != 0  && $force != 1 } {
+		if { $port != 0  && $force != 1 && $port != $name } {
 			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first."
 		} elseif { [file exists $file] && $force != 1 } {
 			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
 		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
 			set bakfile ${file}.dp_[clock seconds]
 
-			ui_warn "File $file already exists.  Moving to: $bakfile."
-			file rename -force $file $bakfile
+			if {[file exists $file]} {
+				ui_warn "File $file already exists.  Moving to: $bakfile."
+				file rename -force $file $bakfile
+			}
 			
 			if { $port != 0 } {
 				set bakport [registry::file_registered $file]
 				registry::unregister_file $file
-				registry::register_file $bakfile $bakport
+				if {[file exists $file]} {
+					registry::register_file $bakfile $bakport
+				}
 			}
 		}
 		# Split out the filename's directory and add it and the filename to

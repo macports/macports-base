@@ -167,6 +167,30 @@ proc installed {{name ""} {version ""}} {
 	return $rlist
 }
 
+proc location {portname portversion} {
+	set ilist [registry::installed $portname $portversion]
+
+	if { [llength $ilist] > 1 } {
+		puts "The following versons of $portname are currently installed:"
+		foreach i $ilist { 
+			set iname [lindex $i 0]
+			set iversion [lindex $i 1]
+			set irevision [lindex $i 2]
+			set ivariants [lindex $i 3]
+			set iactive [lindex $i 4]
+			if { $iactive == 0 } {
+				puts "	$iname ${iversion}_${irevision}${ivariants}"
+			} elseif { $iactive == 1 } {
+				puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
+			}
+		}
+		return -1
+	} else {
+		return [lindex $ilist 0]
+	}
+}	
+
+
 # File Map Code
 proc open_file_map {args} {
 	global darwinports::registry.format

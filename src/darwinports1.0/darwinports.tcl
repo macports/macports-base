@@ -33,7 +33,7 @@ package require darwinports_dlist 1.0
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path portdbformat registry.format portinstalltype registry.installtype"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype"
 	
     variable open_dports {}
 }
@@ -64,7 +64,7 @@ proc darwinports::ui_event {context message} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::portdbformat darwinports::registry.format darwinports::portinstalltype darwinports::registry.installtype
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -154,20 +154,20 @@ proc dportinit {args} {
     }
 
 	# Format for receipts, can currently be either "flat" or "sqlite"
-	if {[info exists darwinports::portdbformat]} {
-		if { $darwinports::portdbformat == "sqlite" } {
+	if {[info exists portdbformat]} {
+		if { $portdbformat == "sqlite" } {
 			return -code error "SQLite is not yet supported for registry storage."
 		} 
-		set registry.format receipt_${darwinports::portdbformat}
+		set registry.format receipt_${portdbformat}
 	} else {
 		set registry.format receipt_flat
 	}
 
 	# Installation type, whether to use port "images" or install "direct"
-	if {[info exists darwinports::portinstalltype]} {
-		set registry.installtype $darwinports::portinstalltype
+	if {[info exists portinstalltype]} {
+		set registry.installtype $portinstalltype
 	} else {
-		set registry.installtype direct
+		set registry.installtype image
 	}
     
     set portsharepath ${prefix}/share/darwinports
@@ -497,7 +497,7 @@ proc _dportexec {target dport} {
 # Execute the specified target of the given dport.
 
 proc dportexec {dport target} {
-    global darwinports::portinterp_options darwinports::portinstalltype
+    global darwinports::portinterp_options darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
 
@@ -527,7 +527,7 @@ proc dportexec {dport target} {
 		# install them
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
-		if { [string equal $darwinports::portinstalltype "image"] && [string equal $target "install"] } {
+		if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
 			set dlist [dlist_eval $dlist _dporttest [list _dportexec "activate"]]
 		} else {
 			set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
@@ -545,7 +545,7 @@ proc dportexec {dport target} {
 
 	# If we're doing image installs, then we should activate after install
 	# xxx: This isn't pretty
-	if { [string equal $darwinports::portinstalltype "image"] && [string equal $target "install"] } {
+	if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
 		set target activate
 	}
 	
