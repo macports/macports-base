@@ -6,3 +6,6 @@ portdbpath		@localstatedir_expanded@/db/dports
 
 # Set the directory in which to install ports
 prefix			@prefix_expanded@
+
+# Directory containing the X11 installation.
+x11prefix		/usr/X11R6
