@@ -385,20 +385,28 @@ proc platform {args} {
     variant $platform $code
     
     # Set the variant if this platform matches the platform we're on
+    set matches 1
     if {[info exists os.platform] && ${os.platform} == $os} { 
 	set sel_platform $os
 	if {[info exists os.version] && [info exists release]} {
 	    regexp {([0-9]*)[0-9\.]?} ${os.version} match major
 	    if {$major == $release } { 
-		set sel_platform ${sel_platform}_${release} 
+	    	set sel_platform ${sel_platform}_${release} 
+	    } else {
+		    set matches 0
 	    }
 	}
-	if {[info exists os.arch] && [info exists arch] && ${os.arch} == $arch} {
-	    set sel_platform $arch
-	}
-	variant_set $sel_platform
+	if {$matches == 1 && [info exists arch] && [info exists os.arch]} {
+		if {${os.arch} == $arch} {
+			set sel_platform ${sel_platform}_${arch}
+		} else {
+			set matches 0
+		}
     }
-    
+    if {$matches == 1} {
+    	variant_set $sel_platform
+    }
+    }
 }
 
 ########### Misc Utility Functions ###########
