@@ -216,35 +216,30 @@ proc variant {args} {
     set code [lindex $args end]
     set args [lrange $args 0 [expr $len - 2]]
     
-    set provides [list]
-    set requires [list]
+    set obj [variant_new "temp-variant"]
     
-    # halfway through the list we'll hit 'requires' which tells us
-    # to switch into processing required flavors/depspecs.
-    set after_requires 0
+    # mode indicates what the arg is interpreted as.
+	# possible mode keywords are: requires, conflicts, provides
+	# The default mode is provides.  Arguments are added to the
+	# most recently specified mode (left to right).
+    set mode "provides"
     foreach arg $args {
-        if ([string equal $arg requires]) { 
-            set after_requires 1
-            continue
-        }
-        if ($after_requires) {
-            lappend requires $arg
-        } else {
-            lappend provides $arg
+		switch -exact $arg {
+			provides { set mode "provides" }
+			requires { set mode "requires" }
+			conflicts { set mode "conflicts" }
+			default { $obj append $mode $arg }		
         }
     }
-    set name "variant-[join $provides -]"
-    set obj [variant_new $name]
-    $obj append provides $provides
-    $obj append requires $requires
+    $obj set name "[join [$obj get provides] -]"
 
     # make a user procedure named variant-blah-blah
-    # well will call this procedure during variant-run
-    makeuserproc $name \{$code\}
+    # we will call this procedure during variant-run
+    makeuserproc "variant-[$obj get name]" \{$code\}
     lappend all_variants $obj
     
     # Export provided variant to PortInfo
-    lappend PortInfo(variants) $provides
+    lappend PortInfo(variants) [$obj get provides]
 }
 
 # variant_isset name
@@ -725,8 +720,17 @@ proc choose_variants {dlist variations} {
 proc variant_run {this} {
     set name [$this get name]
     ui_debug "Executing $name provides [$this get provides]"
+
+	# test for conflicting variants
+	foreach v [$this get conflicts] {
+		if {[variant_isset $v]} {
+			ui_error "Variant $name conflicts with $v"
+			return 1
+		}
+	}
+
     # execute proc with same name as variant.
-    if {[catch ${name} result]} {
+    if {[catch "variant-${name}" result]} {
 	ui_error "Error executing $name: $result"
 	return 1
     }
