@@ -1,0 +1,2 @@
+@comment $NetBSD: PLIST,v 1.1 2002/10/31 22:25:19 agc Exp $
+bin/digest
