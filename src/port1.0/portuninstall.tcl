@@ -104,9 +104,9 @@ proc uninstall_main {args} {
 		}
 		ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s"] $fname]"
 		if [file isdirectory $fname] {
-		    if [catch {file delete -- $fname}] {
+		    if [catch {file delete -- $fname} result] {
 			# A non-empty directory is not a fatal error
-			if {$result != "error deleting \"$fullPath\": directory not empty"} {
+			if {$result != "error deleting \"$fname\": directory not empty"} {
 			    ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove directory %s (not empty?)"] $fname]"
 			}
 		    }
