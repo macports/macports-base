@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.4 2005/01/27 07:26:23 rshaw Exp $
+# $Id: portstartupitem.tcl,v 1.5 2005/01/27 08:03:47 rshaw Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -95,22 +95,22 @@ proc startupitem_create_darwin {args} {
 	if { ![exists startupitem.start] } {
 		set startupitem.start "sh ${scriptdir}/${portname}.sh start"
 	} else {
-		set startupitem.start [subst [join ${startupitem.start}]]
+		set startupitem.start [join ${startupitem.start}]
 	}
 	if { ![exists startupitem.stop] } {
 		set startupitem.stop  "sh ${scriptdir}/${portname}.sh stop"
 	} else {
-		set startupitem.stop [subst [join ${startupitem.stop}]]
+		set startupitem.stop [join ${startupitem.stop}]
 	}
 	if { ![exists startupitem.restart] } {
 		set startupitem.restart "sh ${scriptdir}/${portname}.sh restart"
 	} else {
-		set startupitem.restart [subst [join ${startupitem.restart}]]
+		set startupitem.restart [join ${startupitem.restart}]
 	}
 	if { ![exists startupitem.requires] } {
 		set startupitem.requires "\"Disks\", \"NFS\""
 	} else {
-		set startupitem.requires [format {"%s"} [subst [join ${startupitem.requires} {", "}]]]
+		set startupitem.requires [format {"%s"} [join ${startupitem.requires} {", "}]]
 	}
 	set itemname [string toupper ${startupitem.name}]
 	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
