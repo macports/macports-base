@@ -45,13 +45,3 @@ package require portregistry 1.0
 package require portclean 1.0
 package require portpackage 1.0
 package require portcontents 1.0
-
-# System wide default configuration
-if [info exists portdefaultconf] {
-    source $portdefaultconf
-}
-
-# System wide user configuration
-if [info exists portconf] {
-    source $portconf
-}

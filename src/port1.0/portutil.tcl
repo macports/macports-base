@@ -1072,6 +1072,14 @@ proc portexec {portname target} {
 	portexec_int $portname $target $workpath
 }
 
+# build the specified portfile with default workpath
+proc portfile_run {this} {
+    set portname [$this get name]
+	if {[portexec_int $portname install] == 0} {
+		portexec_int $portname clean
+    }
+}
+
 # builds the specified port (looked up in the index) to the specified target
 # doesn't yet support options or variants...
 # newworkpath defines the port's workpath - useful for when one port relies
@@ -1084,15 +1092,15 @@ proc portexec_int {portname target {newworkpath ""}} {
     } else {
         set options(workpath) ${newworkpath}
     }
-
 	# Escape regex special characters
-	regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+	regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string 
 
     set res [dportsearch ^$search_string\$]
     if {[llength $res] < 2} {
-        ui_error "Portfile $portname not found"
+        ui_error "Dependency $portname not found"
         return -1
     }
+
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
     set worker [dportopen $porturl [array get options] $variations]
@@ -1104,14 +1112,6 @@ proc portexec_int {portname target {newworkpath ""}} {
     dportclose $worker
     
     return 0
-}
-
-# build the specified portfile
-proc portfile_run {this} {
-    set portname [$this get name]
-	if {[portexec_int $portname install] == 0} {
-		portexec_int $portname clean
-    }
 }
 
 proc portfile_test {this} {
@@ -1188,7 +1188,7 @@ proc libportfile_test {this} {
 	if {[info exists env(DYLD_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	} else {
-	    lappend search_path /lib /usr/local/lib /lib /usr/lib /opt/local/lib /usr/X11R6/lib ${prefix}/lib
+	    lappend search_path /lib /usr/local/lib /lib /usr/lib /op/local/lib /usr/X11R6/lib ${prefix}/lib
 	}
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
@@ -1305,8 +1305,8 @@ proc adduser {name args} {
 	system "niutil -createprop . /users/${name} shell ${shell}"
     } else {
 	# XXX adduser is only available for darwin, add more support here
-	ui_warning "WARNING: adduser is not implemented on ${os.platform}."
-	ui_warning "The requested user was not created."
+	ui_warn "WARNING: adduser is not implemented on ${os.platform}."
+	ui_warn "The requested user was not created."
     }
 }
 
@@ -1335,7 +1335,7 @@ proc addgroup {name args} {
 	system "niutil -createprop . /groups/${name} users ${users}"
     } else {
 	# XXX addgroup is only available for darwin, add more support here
-	ui_warning "WARNING: addgroup is not implemented on ${os.platform}."
-	ui_warning "The requested group was not created."
+	ui_warn "WARNING: addgroup is not implemented on ${os.platform}."
+	ui_warn "The requested group was not created."
     }
 }

@@ -29,7 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 if {$argc < 1} {
-	puts "Usage: [exec basename $argv0] <directory list>"
+	puts "Usage: $argv0 <directory list>"
 	exit
 }
 foreach dir $argv {

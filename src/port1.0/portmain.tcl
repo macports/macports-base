@@ -47,8 +47,6 @@ options_export name version revision categories maintainers platforms
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 
-# Remove trailing "Endian"
-
 default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
@@ -71,11 +69,11 @@ default portrevision {$revision}
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
 
-set os_endian $tcl_platform(byteOrder)
 default os.platform {[string tolower $tcl_platform(os)]}
 default os.version {$tcl_platform(osVersion)}
 default os.arch {$os_arch}
-default os.endian {[string range $os_endian 0 [expr [string length $os_endian] - 7]]}
+# Remove trailing "Endian"
+default os.endian {[string range $tcl_platform(byteOrder) 0 [expr [string length $tcl_platform(byteOrder)] - 7]]}
 
 
 # Select implicit variants

@@ -128,6 +128,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	int fdset[2], nullfd;
 	int ret;
 	pid_t pid;
+	Tcl_Obj *tcl_result;
 #if defined(__APPLE__)
 	char **environ;
 	environ = *_NSGetEnviron();
@@ -183,8 +184,14 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	if (WIFEXITED(ret)) {
 		if (WEXITSTATUS(ret) == 0)
 			return TCL_OK;
-		else
+		else {
+			tcl_result = Tcl_NewStringObj("shell command \"", -1);
+			Tcl_AppendToObj(tcl_result, cmdstring, -1);
+			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
+			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
+			Tcl_SetObjResult(interp, tcl_result);
 			return TCL_ERROR;
+		}
 	} else
 		return TCL_ERROR;
 }

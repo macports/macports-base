@@ -1,10 +1,7 @@
 OBJS=		Pextlib.o strsed.o
 SHLIB_NAME=	Pextlib
 LDADD+=		-ltcl
-PREFIX?=	/opt/local
 INSTALLDIR= ${PREFIX}/share/darwinports/Tcl/pextlib1.0
-DSTUSR?=	root
-DSTGRP?=	wheel
 
 .c.o:
 	./compile.sh ${CFLAGS} $< -o $@
@@ -17,7 +14,9 @@ all: Pextlib.dylib
 clean:
 	rm -f ${OBJS} `./link.sh -n ${SHLIB_NAME}`
 
-install:
+install: all
 	mkdir -p ${INSTALLDIR}
 	install -c -o "${DSTUSR}" -g "${DSTGRP}" -m 444 `./link.sh -n ${SHLIB_NAME}` ${INSTALLDIR}
 	../pkg_mkindex.tcl ${INSTALLDIR}
+
+include ../../Mk/dports.mk

@@ -35,10 +35,10 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vDqf
+.Op Fl vdqf
 .Op Ar target
 .Op Ar portname
-.Op Fl d Ar portdir
+.Op Fl D Ar portdir
 .Op Ar options ...
 .Op Ar variations ...
 .Sh DESCRIPTION
@@ -62,11 +62,11 @@ variation is not desired
 .Bl -tag -width -indent
 .It Fl v
 verbose mode (generate verbose messages)
-.It Fl D
+.It Fl d
 debug mode (generate debugging messages)
 .It Fl q
 quiet mode (suppress messages)
-.It Fl d
+.It Fl D
 specify
 .Ar portdir
 .It Fl f

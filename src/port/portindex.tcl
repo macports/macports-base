@@ -6,15 +6,79 @@ package require darwinports
 dportinit
 package require Pextlib
 
+# Globals
 set archive 0
 set depth 0
+
+# UI Instantiations
+# ui_options(ports_debug) - If set, output debugging messages.
+# ui_options(ports_verbose) - If set, output info messages (ui_info)
+# ui_options(ports_quiet) - If set, don't output "standard messages"
+
+# ui_options accessor
+proc ui_isset {val} {
+    global ui_options
+    if {[info exists ui_options($val)]} {
+	if {$ui_options($val) == "yes"} {
+	    return 1
+	}
+    }
+    return 0
+}
+
+# Output string "str"
+# If you don't want newlines to be output, you must pass "-nonewline"
+# as the second argument.
+
+proc ui_puts {priority str nonl} {
+    set channel stdout
+    switch $priority {
+        debug {
+            if [ui_isset ports_debug] {
+                set channel stderr
+                set str "DEBUG: $str"
+            } else {
+                return
+            }
+        }
+        info {
+            if ![ui_isset ports_verbose] {
+                return
+            }
+        }
+        msg {
+            if [ui_isset ports_quiet] {
+                return
+            }
+        }
+        error {
+            set str "Error: $str"
+            set channel stderr
+        }
+        warn {
+            set str "Warning: $str"
+        }
+    }
+    if {$nonl == "-nonewline"} {
+	puts -nonewline $channel "$str"
+	flush $channel 
+    } else {
+	puts "$str"
+    }
+}
+
+# These ui procedures should never be called during an index operation
+foreach proc {ui_gets ui_yesno ui_confirm ui_display} {
+	eval proc $proc \{args\} \{return -code error \"Interactive procedure '$proc' called during index\"\}
+}
 
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: [exec basename $argv0] \[-a\] \[-o output directory\] \[directory\]"
+    puts "Usage: $argv0 \[-ad\] \[-o output directory\] \[directory\]"
     puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
+    puts "-d:\tOutput debugging information"
 }
 
 proc port_traverse {func {dir .} {cwd ""}} {
@@ -83,6 +147,8 @@ for {set i 0} {$i < $argc} {incr i} {
         {^-.+} {
             if {$arg == "-a"} { # Turn on archiving
                 set archive 1
+	    } elseif {$arg == "-d"} { # Turn on debug output
+		set ui_options(ports_debug) yes
 	    } elseif {$arg == "-o"} { # Set output directory
 		incr i
 		set outdir [lindex $argv $i]

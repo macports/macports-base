@@ -29,22 +29,43 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 package provide darwinports 1.0
-package require darwinportsui 1.0 
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options uniqid 0
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
+    variable portinterp_options "portdbpath portpath auto_path prefix"
     variable uniqid 0
 }
 
-proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf darwinports::sources darwinports::sources_conf
+# Provided UI instantiations
+# For standard messages, the following priorities are defined
+#     debug, info, msg, warn, error
+# Clients of the library are expected to provide ui_puts with the following prototype:
+#     proc ui_puts {priority string nonl}
+# ui_puts should handle the above defined priorities
 
-    if [file isfile /etc/defaults/ports.conf] {
-    	set portdefaultconf /etc/defaults/ports.conf
-	lappend conf_files /etc/defaults/ports.conf
-    }
+proc ui_debug {str {nonl ""}} {
+    ui_puts debug "$str" $nonl
+}
+
+proc ui_info {str {nonl ""}} {
+    ui_puts info "$str" $nonl
+}
+
+proc ui_msg {str {nonl ""}} {
+    ui_puts msg "$str" $nonl
+}
+
+proc ui_error {str {nonl ""}} {
+    ui_puts error "$str" $nonl
+}
+
+proc ui_warn {str {nonl ""}} {
+    ui_puts warn "$str" $nonl
+}
+
+proc dportinit {args} {
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf
 
     if {[llength [array names env HOME]] > 0} {
 	set HOME [lindex [array get env HOME] 1]
@@ -116,7 +137,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
@@ -126,11 +147,7 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 
     # instantiate the UI functions
-    foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
-        $workername alias $proc $proc
-    }
-
-    foreach proc {ports_verbose ports_quiet ports_debug ports_force} {
+    foreach proc {ui_debug ui_info ui_warn ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
         $workername alias $proc $proc
     }
 
@@ -203,7 +220,7 @@ proc darwinports::getportdir {url} {
 }
 
 proc dportopen {porturl {options ""} {variations ""}} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
     set portdir [darwinports::getportdir $porturl]
     cd $portdir
     set portpath [pwd]
@@ -214,9 +231,6 @@ proc dportopen {porturl {options ""} {variations ""}} {
         return -code error "Could not find Portfile in $portdir"
     }
     $workername eval source Portfile
-
-    # initialize the UI for the new port
-    $workername eval ui_init
 
     return $workername
 }
@@ -304,10 +318,6 @@ proc dportsearch {regexp} {
 	}
     }
     return $matches
-}
-
-proc dportmatch {regexp} {
-	return -code error "dportmatch has been deprecated, use dportsearch instead."
 }
 
 proc dportinfo {workername} {
