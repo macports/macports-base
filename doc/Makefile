@@ -1,16 +1,19 @@
 MAN7=		portfile.7 portstyle.7
 INSTALLDIR=	${DESTDIR}${PREFIX}
 
-all:
+prefix.mtree:
+	cat prefix.mtree.pre | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
+	sed -e "s/gname=GNAME/gname=${DSTGRP}/" > prefix.mtree
+
+all: prefix.mtree
 
 clean:
+	rm -f prefix.mtree
 
 install:
 	mkdir -p ${DESTDIR}${ETCDIR}
 	mkdir -p ${INSTALLDIR}
 	
-	cat prefix.mtree.pre | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
-	sed -e "s/gname=GNAME/gname=${DSTGRP}/" > prefix.mtree
 	cat prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
 	@if [ ! -e ${DESTDIR}/${ETCDIR}/ports.conf ]; then \
 		set -x; \
