@@ -49,6 +49,9 @@ SC_PUBLIC_TCL_HEADERS
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 
+# Check for tclsh binary
+AC_PATH_PROG([TCLSH], [tclsh$TCL_VERSION tclsh])
+
 # Check for Tcl package path
 OD_TCL_PACKAGE_DIR
 

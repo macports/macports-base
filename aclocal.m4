@@ -150,6 +150,7 @@ AC_DEFUN([OD_PROG_MTREE],[
 # Requires:
 #	TCLVERSION must be set
 #	CYGPATH must be set
+#	TCLSH must be set
 #
 # Results:
 #
@@ -174,16 +175,28 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 	    if test x"${with_tclpackagedir}" != x ; then
 		ac_cv_c_tclpkgd=${with_tclpackagedir}
 	    else
+	        tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
+		# On darwin we can do some intelligent guessing
 		if test "`uname -s`" = "Darwin" ; then
-		    if test -d "/System/Library/Tcl/"; then
-			ac_cv_c_tclpkgd="/System/Library/Tcl/"
-		    fi
+		    for path in $tcl_autopath; do
+		        if test "$path" = "/Library/Tcl"; then
+			    ac_cv_c_tclpkgd="$path"
+			    break
+			fi
+		        if test "$path" = "/System/Library/Tcl"; then
+			    if test -d "$path"; then
+				ac_cv_c_tclpkgd="$path"
+				break
+			    fi
+			fi
+		    done
                 else
-		    for i in /usr/lib /usr/pkg/lib /usr/local/lib; do
-			if test -d "$i/tcl$TCL_VERSION" ; then
-			    ac_cv_c_tclpkgd="$i/tcl$TCL_VERSION/"
-                        fi
-		    done 
+		    # Fudge a path from the first entry in the auto_path
+		    tcl_pkgpath=`echo $tcl_autopath | awk '{print \$1}'`
+		    if test -d "$path"; then
+		        ac_cv_tclpkgd="$path"
+		    fi
+		    # If the first entry does not exist, do nothing
 		fi
 	    fi
 	])
