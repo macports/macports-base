@@ -1135,7 +1135,10 @@ proc portexec_int {portname target {newworkpath ""}} {
 
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
-    set worker [dportopen $porturl [array get options] $variations]
+    if {[catch {set worker [dportopen $porturl [array get options] $variations]} result] || $result != 0} {
+        ui_error "Execution $portname $target failed: $result"
+        return -1
+    }
     if {[catch {dportexec $worker $target} result] || $result != 0} {
         ui_error "Execution $portname $target failed: $result"
         dportclose $worker
