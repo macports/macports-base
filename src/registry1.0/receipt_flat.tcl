@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.9 2004/06/01 04:26:33 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.10 2004/06/01 05:16:58 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -75,6 +75,8 @@ proc get_head_entry_receipt_path {portname portversion} {
 	set x [glob -nocomplain [file join ${darwinports::registry.path} receipts ${portname}-*]]
 	if {[string length $x]} {
 	    set matchfile [lindex $x 0]
+		# Remove trailing .bz2, if any.
+		regexp {(.*)\.bz2$} $matchfile match matchfile
 	} else {
 	    set matchfile ""
 	}
@@ -117,7 +119,9 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		
 		# Extract the version from the path.
 		if { $version == 0 } {
-			regexp {$name-(.*)$} [lindex [file split $receipt_file] end] match version
+			set theFileName [file tail $receipt_file]
+			puts $theFileName
+			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
 		# If version wasn't specified, find out the version number.  This will
@@ -178,7 +182,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		}
 
 		# Remove any line starting with #
-		while {[regexp "(^|\n)#.*\n(.*)$" $receipt_contents match foo receipt_contents]} {}
+		while {[regexp "(^|\n)#.*\n(.*)\$" $receipt_contents match foo receipt_contents]} {}
 		array set receipt_$ref $receipt_contents
 	} else {
 		# This is old Images format
@@ -210,44 +214,45 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 	variable receipt_$ref
 	
 	# First set default value for stuff that aren't in the receipt.
-	array set receipt_[set ref] {name $name}
-	array set receipt_[set ref] {version $version}
-	array set receipt_[set ref] {revision $revision}
-	array set receipt_[set ref] {variants $variants}
-	array set receipt_[set ref] {installtype direct}
-	array set receipt_[set ref] {receipt_f receipt_flat}
-	array set receipt_[set ref] {active 1}
+	array set receipt_[set ref] [list name $name]
+	array set receipt_[set ref] [list version $version]
+	array set receipt_[set ref] [list revision $revision]
+	array set receipt_[set ref] [list variants $variants]
+	array set receipt_[set ref] [list installtype direct]
+	array set receipt_[set ref] [list receipt_f receipt_flat]
+	array set receipt_[set ref] [list active 1]
 	
 	# Then start a new interpreter to read the content of the portfile.
 	interp create theConverterInterpreter
+	# Just ignore prefix.
 	interp eval theConverterInterpreter "proc prefix {args} {\n\
 	}"
 	interp eval theConverterInterpreter "proc categories {args} {\n\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(categories) \$args\n\
+		array set theConvertedReceipt \[list categories \$args\]\n\
 	}"
 	interp eval theConverterInterpreter "proc description {args} {\n\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(description) \$args\n\
+		array set theConvertedReceipt \[list description \$args\]\n\
 	}"
 	interp eval theConverterInterpreter "proc long_description {args} {\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(long_description) \$args\n\
+		array set theConvertedReceipt \[list long_description \$args\]\n\
 	}"
 	interp eval theConverterInterpreter "proc homepage {args} {\n\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(homepage) \$args\n\
+		array set theConvertedReceipt \[list homepage \$args\]\n\
 	}"
-	# contents is a special case, there is only one argument and it's a list.
+	# contents already is a list.
 	interp eval theConverterInterpreter "proc contents {args} {\n\
 		global theConvertedReceipt\n\
-		set theConvertedReceipt(contents) \[lindex \$args 0\]\n\
+		array set theConvertedReceipt \[list contents \[lindex \$args 0\]\]\n\
 	}"
 	interp eval theConverterInterpreter "array set theConvertedReceipt {}"
 	interp eval theConverterInterpreter $receipt_contents
 	array set receipt_$ref [interp eval theConverterInterpreter "array get theConvertedReceipt"]
 	interp delete theConverterInterpreter
-	
+
 	# Append the contents list to the file map (only the files).
 	set contents [property_retrieve $ref contents]
 	foreach file $contents {
@@ -260,6 +265,8 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 			if {[catch {register_file $theFilePath $name}]} {
 				ui_warn "An error occurred while adding $theFilePath to the file_map database."
 			}
+		} elseif {![file exists $theFilePath]} {
+			ui_warn "Port $name refers to $theFilePath which doesn't exist."
 		}
 	}
 	
@@ -429,7 +436,7 @@ proc installed {{name ""} {version ""}} {
     	if { $name == "" } {
 			regexp {^(.*)-(.*)$} [lindex [file split $receipt_file] end] match name version
     	} else {
-			regexp {^$name-(.*)$} [lindex [file split $receipt_file] end] match version
+			regexp "^$name-(.*)\$" [lindex [file split $receipt_file] end] match version
 		}
 		
 		# Skip if the name is empty.
@@ -522,12 +529,14 @@ proc file_registered {file} {
 ##
 # determine if a port is registered in the file map, and if it is,
 # get its files.
+# convert the port if required.
 # open the file map if required.
 #
 # - port	the port to test
 # return the 0 if the port is not registered, the list of its files otherwise.
 #
 proc port_registered {name} {
+	# Trust the file map first.
 	variable file_map
 
 	if { ![info exists file_map] } {
@@ -539,7 +548,24 @@ proc port_registered {name} {
 	if { [llength $files] > 0 } {
 		return $files
 	} else {
-		return 0
+		# Is port installed?
+		set matchingPorts [installed $name]
+		if { [llength $matchingPorts] } {
+			# Convert the port and retry.
+			open_entry $name
+			
+			set files [filemap list file_map $name]
+			
+			if { [llength $files] > 0 } {
+				return $files
+			} else {
+				puts "port really has no file"
+				return 0
+			}
+		} else {
+			puts "port doesn't exist"
+			return 0
+		}
 	}
 }
 
