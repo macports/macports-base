@@ -18,3 +18,6 @@ package require portui 1.0
 if [info exists portconf] {
     source $portconf
 }
+
+# Initialize the UI abstraction API
+ui_init

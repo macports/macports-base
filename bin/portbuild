@@ -8,12 +8,12 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    ui_puts "Usage: $argv0 [--target=<target>] \[invoice\]"
+    puts "Usage: $argv0 [--target=<target>] \[invoice\]"
 }
 
 proc fatal args {
     global argv0
-    ui_puts stderr "$argv0: $args"
+    puts stderr "$argv0: $args"
     exit
 }
 
@@ -31,5 +31,4 @@ if {$argc > 2} {
 }
 
 init
-ui_init
 build $portdir build $target
