@@ -1,7 +1,7 @@
 # et:ts=4
 # zope-1.0.tcl
 #
-# $Id: zope-1.0.tcl,v 1.3 2004/07/01 17:21:16 wbb4 Exp $
+# $Id: zope-1.0.tcl,v 1.4 2004/09/07 23:46:00 wbb4 Exp $
 # 
 # Group file for 'zope' group.
 #
@@ -96,7 +96,7 @@ proc zope.setup {product vers {products {}} {extensions {}}} {
 	distname		${zope.product}-${vers}
 	dist_subdir		zope
 
-	depends_build	path:${zope.home}/bin/compilezpy.py:zope
+	depends_lib		path:${zope.home}/bin/compilezpy.py:zope
 
 	platform freebsd {
 		extract.post_args	| gtar -xf -

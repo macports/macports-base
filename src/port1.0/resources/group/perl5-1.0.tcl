@@ -1,7 +1,7 @@
 # et:ts=4
 # perl5-1.0.tcl
 #
-# $Id: perl5-1.0.tcl,v 1.8 2004/06/29 16:30:23 toby Exp $
+# $Id: perl5-1.0.tcl,v 1.9 2004/09/07 23:46:00 wbb4 Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>,
 #                    Toby Peterson <toby@opendarwin.org>
@@ -85,7 +85,7 @@ proc perl5.setup {module vers {cpandir ""}} {
 	distname            ${perl5.module}-${vers}
 	dist_subdir         perl5
 
-	depends_build       path:${perl5.bin}:perl5.8
+	depends_lib	    path:${perl5.bin}:perl5.8
 
 	configure.cmd       ${perl5.bin}
 	configure.pre_args  Makefile.PL

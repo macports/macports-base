@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.2 2004/07/01 17:21:16 wbb4 Exp $
+# $Id: ruby-1.0.tcl,v 1.3 2004/09/07 23:46:00 wbb4 Exp $
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.
@@ -110,7 +110,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "raa"}} {
 	distname		${ruby.filename}-${vers}
 	dist_subdir		ruby
 
-	depends_build	path:${ruby.bin}:ruby
+	depends_lib		path:${ruby.bin}:ruby
 
 	post-extract {
 		system "find ${worksrcpath} -type d -name CVS | xargs rm -rf"
