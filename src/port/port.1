@@ -102,6 +102,8 @@ The other targets are:
 .Dl uninstall
 .Dl deactivate
 .Dl activate
+.Dl installed
+.Dl outdated
 .Dl upgrade
 .Dl clean
 .Dl search
@@ -206,11 +208,15 @@ To deactivate a port (in image mode):
 .Pp
 .Dl "port deactivate vim
 .Pp
+To list out of date ports:
+.Pp
+.Dl "port outdated"
+.Pp
 To upgrade a port (deactivating the older version and activating a newer)
 .Pp
 .Dl "port upgrade vim
 .Pp
-To upgrade all installed ports (the -n option could be used for speed)
+To upgrade all installed ports
 .Pp
 .Dl "port -a upgrade
 .Pp
