@@ -206,7 +206,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			Tcl_SetObjResult(interp, tcl_result);
 			return TCL_ERROR;
 		}
-	} else if (objc == 2) {
+	} else {
 		cmdstring = Tcl_GetString(objv[1]);
 	}
 
@@ -341,7 +341,9 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	int operation = 0, fd, i, ret;
 	int errnoval = 0;
 	int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0;
+#if defined(HAVE_LOCKF) && !defined(HAVE_FLOCK)
 	off_t curpos;
+#endif
 	char *res;
 	Tcl_Channel channel;
 	ClientData handle;
@@ -552,7 +554,6 @@ int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Channel channel;
-	ClientData handle;
 	char *template, *channelname;
 	int fd;
 
