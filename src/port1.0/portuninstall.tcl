@@ -63,11 +63,12 @@ proc uninstall_main {args} {
 	    set uninst_err 0
 	    foreach f $contents {
 		set fname [lindex $f 0]
-		set md5 [lindex $f 5]
-		if {![string match [lindex $md5 3] NONE] && ![tbool uninstall.nochecksum]} {
-		    if ![catch {set sum [md5 $fname]}] {
-			if ![string match $md5 sum] {
-			    ui_info "$UI_PREFIX  Checksum does not match for $fname, not removing"
+		set sum1 [lindex [lindex $f 5] 3]
+		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
+		    if ![catch {set sum2 [md5 $fname]}] {
+			if ![string match $sum1 $sum2] {
+			    ui_info "$UI_PREFIX  Original checksum does not match for $fname, not removing"
+			    set uninst_err 1
 			    continue
 			}
 		    }
