@@ -23,8 +23,6 @@ proc ccextension {file} {
 proc init {args} {
     global auto_path env bootstrap_options sysportpath portconf
 
-    # initialize the UI
-    ui_init
     if [file isfile /etc/ports.conf] {
 	set portconf /etc/ports.conf
 	set fd [open /etc/ports.conf r]

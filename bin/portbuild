@@ -7,28 +7,29 @@ set portdir .
 
 # Standard procedures
 proc print_usage args {
-	global argv0
-	puts "Usage: $argv0 [--target=<target>] \[invoice\]"
+    global argv0
+    ui_puts "Usage: $argv0 [--target=<target>] \[invoice\]"
 }
 
 proc fatal args {
-	global argv0
-	puts stderr "$argv0: $args"
-	exit
+    global argv0
+    ui_puts stderr "$argv0: $args"
+    exit
 }
 
 # Main
 # KVV kludged this up
 set target "all"
 if {$argc > 2} {
-	print_usage
+    print_usage
 } elseif {$argc == 2} {
-	set target [lindex $argv 0]
-	if {[regsub -- "--target=" $target "" target] < 1} { print_usage }
-	set portdir [lindex $argv 1]
+    set target [lindex $argv 0]
+    if {[regsub -- "--target=" $target "" target] < 1} { print_usage }
+    set portdir [lindex $argv 1]
 } elseif {$argc == 1} {
-	set portdir [lindex $argv 0]
+    set portdir [lindex $argv 0]
 }
 
 init
+ui_init
 build $portdir build $target
