@@ -131,6 +131,7 @@ proc depends_main {id} {
     array set portinfo [dportmatch ^$portname\$]
     if {[array size portinfo] == 0} {
         ui_error "Dependency $portname not found"
+        return -1
     }
     set porturl $portinfo(porturl)
     set worker [dportopen $porturl options variations]
