@@ -133,7 +133,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		int ret = ui_info(interp, buf);
 		if (ret != TCL_OK)
 			return ret;
-		Tcl_AppendResult(interp, buf, NULL);
 	}
 	fclose(pdes);
 	wait(&ret);
