@@ -97,8 +97,7 @@ proc pindex {portdir} {
 array set options [list]
 array set variations [list]
 
-if { $argc < 1 } {
-    set target install
+set target install
 if { $argc >= 1 } {
     for {set i 0} {$i < $argc} {incr i} {
 	set arg [lindex $argv $i]
