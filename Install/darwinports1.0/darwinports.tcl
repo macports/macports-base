@@ -22,14 +22,13 @@ namespace eval darwinports {
 	}
 	
 	proc init {args} {
-		global portpath distpath libpath auto_path
+		global portpath distpath libpath auto_path env
 		# Defaults
 
 		set portpath /usr/darwinports
 		darwinports::readconf
 		
 		# Prefer the PORTPATH environment variable
-		upvar env env
 		if {[llength [array names env PORTPATH]] > 0} {
 			set portpath [lindex [array get env PORTPATH] 1]
 		}
