@@ -1,6 +1,9 @@
 # Where to find the sources list.
 sources_conf		@PORTCONFIGDIR_EXPANDED@/sources.conf
 
+# Where to find global variants definition file (optional)
+#variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
+
 # Where to store ports specific database files
 portdbpath		@localstatedir_expanded@/db/dports
 

@@ -34,6 +34,10 @@ install:
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
 		echo "file://${dportsdir}" >> ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
+	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
+		set -x; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${portconfigdir}; \
+	fi
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${portconfigdir}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/darwinports/resources/port1.0/install
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/

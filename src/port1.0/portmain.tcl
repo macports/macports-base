@@ -87,6 +87,8 @@ default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
+if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(puredarwin)]} { variant_set puredarwin }
+if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} { variant_set macosx }
 
 proc main {args} {
     return 0

@@ -36,7 +36,7 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf"
     variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
 	
     variable open_dports {}
@@ -74,8 +74,8 @@ proc puts {args} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask
-	global options
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf
+	global options variations
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -137,6 +137,28 @@ proc dportinit {args} {
 	    return -code error "No sources defined in $sources_conf"
 	}
     }
+
+	if {[info exists variants_conf]} {
+		if {[file exist $variants_conf]} {
+			if {[catch {set fd [open $variants_conf r]} result]} {
+				return -code error "$result"
+			}
+			while {[gets $fd line] >= 0} {
+				set line [string trimright $line]
+				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
+					foreach arg [split $line { \t}] {
+						if {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
+							set variations($opt) $sign
+						} else {
+							ui_warn "$variants_conf specifies invalid variant syntax '$arg', ignored."
+						}
+					}
+				}
+			}
+		} else {
+			ui_debug "$variants_conf does not exist, variants_conf setting ignored."
+		}
+	}
 
     if {![info exists portdbpath]} {
 	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
