@@ -163,9 +163,15 @@ proc darwinports::fetch_port {url} {
     if {[catch {file mkdir $fetchdir} result]} {
         return -code error $result
     }
-    exec curl -s -S -o [file join $fetchdir $fetchfile] $url
-    cd $fetchdir
-    exec tar -zxf $fetchfile
+    if {[catch {exec curl -s -S -o [file join $fetchdir $fetchfile] $url} resule]} {
+	return -code error "Port remote fetch failed: $result"
+    }
+    if {[catch {cd $fetchdir} result]} {
+	return -code error $result
+    }
+    if {[catch {exec tar -zxf $fetchfile} result]} {
+	return -code error "Port extract failed: $result"
+    }
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
         return -code error "Can't decipher portdir from $fetchfile"
     }
