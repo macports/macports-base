@@ -260,52 +260,6 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	return TCL_OK;
 }
 
-/* XXX: cannot set eof > 2GB */
-int FtruncateCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	int fd, ret;
-	long eof = 0;
-	char *res;
-	Tcl_Channel channel;
-	ClientData handle;
-
-	if (objc > 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "channelId eof");
-		return TCL_ERROR;
-	}
-
-	if ((channel = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), NULL)) == NULL)
-	return TCL_ERROR;
-
-	if (Tcl_GetChannelHandle(channel, TCL_READABLE|TCL_WRITABLE, &handle) != TCL_OK) {
-		Tcl_SetResult(interp, "error getting channel handle", TCL_STATIC);
-		return TCL_ERROR;
-	}
-	fd = (int) handle;
-
-	if (Tcl_GetLongFromObj(interp, objv[2], &eof) != TCL_OK) {
-		return TCL_ERROR;
-	}
-
-	if ((ret = ftruncate(fd, eof)) != 0)
-	{
-		switch(errno) {
-			case EBADF:
-				res = "EBADF";
-				break;
-			case EINVAL:
-				res = "EINVAL";
-				break;
-			default:
-				res = strerror(errno);
-				break;
-		}
-		Tcl_SetResult(interp, (void *) res, TCL_STATIC);
-		return TCL_ERROR;
-	}
-	return TCL_OK;
-}
-
 int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	DIR *dirp;
@@ -356,6 +310,29 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	return TCL_OK;
 }
 
+int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	char *template, *sp;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "template");
+		return TCL_ERROR;
+	}
+
+	template = strdup(Tcl_GetString(objv[1]));
+	if (template == NULL)
+		return TCL_ERROR;
+
+	if ((sp = mktemp(template)) == NULL) {
+		Tcl_AppendResult(interp, "mktemp failed: ", strerror(errno), NULL);
+		free(template);
+		return TCL_ERROR;
+	}
+
+	Tcl_SetResult(interp, sp, (Tcl_FreeProc *)free);
+	return TCL_OK;
+}
+
 int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Channel channel;
@@ -390,10 +367,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "ftruncate", FtruncateCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "mktemp", MktempCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;

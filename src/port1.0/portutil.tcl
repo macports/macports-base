@@ -302,45 +302,22 @@ proc reinplace {oddpattern file}  {
     set backpattern [strsed $oddpattern {g/\//\\\\\//}]
     set pattern [strsed $backpattern {g/\|/\//}]
 
-    if {[catch {set input [open "$file" RDWR]} error]} {
+    if {[catch {set tmpfile [mktemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 	ui_error "reinplace: $error"
 	return -code error "reinplace failed"
     }
 
-    if {[catch {set result [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+    if {[catch {exec sed $pattern < $file > $tmpfile} error]} {
 	ui_error "reinplace: $error"
-	close $input
-	return -code error "reinplace failed"
-    }
-
-    set output [lindex $result 0]
-    set tmpfile [lindex $result 1]
-
-    if {[catch {exec sed $pattern <@$input >@$output} error]} {
-	ui_error "reinplace: $error"
-	close $output
-	close $input
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
 
-    seek $output 0
-    seek $input 0
-
-    # copy from strsed output back into the input
-    if {[catch {fcopy $output $input} error]} {
+    if {[catch {exec cp $tmpfile $file} error]} {
 	ui_error "reinplace: $error"
-	close $output
-	close $input
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
-	
-    set eof [file size "$tmpfile"]
-    ftruncate $input $eof 
-
-    close $output
-    close $input
     file delete "$tmpfile"
     return
 }
