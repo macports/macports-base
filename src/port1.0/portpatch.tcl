@@ -49,9 +49,13 @@ default patch.pre_args -p0
 proc patch_main {args} {
     global portname patchfiles distpath filedir workdir worksrcdir portpath UI_PREFIX
 
+    # First make sure that patchfiles exists and isn't stubbed out.
     if ![info exists patchfiles] {
 	return 0
+    } elseif {[string length $patchfiles] == 0} {
+	return 0
     }
+
     foreach patch $patchfiles {
 	if [file exists $portpath/$filedir/$patch] {
 	    lappend patchlist $portpath/$filedir/$patch
