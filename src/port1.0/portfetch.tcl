@@ -264,18 +264,22 @@ proc checkfiles {args} {
 proc cvsfetch {args} {
     global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env
     cd $workpath
-    set cvs.args login
-    set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
-    # XXX cvs will request a password from the tty using getpass()
-    # unless there is no controling terminal
-    if {[catch {system -notty "[command cvs] 2>&1"} result]} {
-        return -code error [msgcat::mc "CVS login failed"]
+    if {[regexp ^:pserver: cvs.root]} {
+	set cvs.args login
+	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
+	# XXX cvs will request a password from the tty using getpass()
+	# unless there is no controling terminal
+	if {[catch {system -notty "[command cvs] 2>&1"} result]} {
+	    return -code error [msgcat::mc "CVS login failed"]
+	}
+    } else {
+	set env(CVS_RSH) ssh
     }
     set cvs.args "co -r ${cvs.tag}"
     set cvs.cmd cvs
     set cvs.post_args "${cvs.module}"
     if {[catch {system "[command cvs] 2>&1"} result]} {
-        return -code error [msgcat::mc "CVS check out failed"]
+	return -code error [msgcat::mc "CVS check out failed"]
     }
     return 0
 }
