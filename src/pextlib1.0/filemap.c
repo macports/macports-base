@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.1.2.3 2004/06/01 06:33:56 pguyot Exp $
+ * $Id: filemap.c,v 1.1.2.4 2004/06/04 17:31:56 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -160,6 +160,10 @@ typedef struct {
 	int fFilemapFD;
 	/** Root of the filemap */
 	SNode*	fRoot;
+	/** If the filemap is read only */
+	char	fIsReadOnly;
+	/** If the filemap was changed */
+	char	fIsDirty;
 } SFilemapObject;
 
 /** Error codes */
@@ -1500,6 +1504,7 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		Tcl_Obj* theObject;
 		SFilemapObject* theFilemapObject;
 		int theFD;
+		char isReadOnly = 0;
 		SNode* theRoot = NULL;
 	
 		thePath = Tcl_GetString(objv[3]);
@@ -1509,7 +1514,21 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theFD < 0)
 		{
 			theErr = errno;
-			break;
+			if (theErr == EACCES)
+			{
+				theErr = 0;
+
+				/* try again without R/W */
+				isReadOnly = 1;
+				theFD = open(thePath, O_RDONLY | O_SHLOCK, 0);
+				if (theFD < 0)
+				{
+					theErr = errno;
+					break;
+				}
+			} else {
+				break;
+			}
 		}
 		
 		/* load the map from the file */
@@ -1531,6 +1550,8 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFilemapObject->fRefCount = 1;
 		theFilemapObject->fFilemapFD = theFD;
 		theFilemapObject->fRoot = theRoot;
+		theFilemapObject->fIsReadOnly = isReadOnly;
+		theFilemapObject->fIsDirty = 0;
 		theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
 		theObject->typePtr = &tclFilemapType;
 		
@@ -1582,6 +1603,9 @@ FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		
 		/* Reload the map from the file */
 		theErr = Load(theFilemapObject->fFilemapFD, &theFilemapObject->fRoot);
+		
+		/* The file tree is not dirty */
+		theFilemapObject->fIsDirty = 0;
 
 		/* return any error */	
 		theResult = SetResultFromErrorCode(interp, theErr);
@@ -1619,14 +1643,23 @@ FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			theResult = TCL_ERROR;
 			break;
 		}
-		
-		/* Save the filemap to file */
-		theErr = Save(
+	
+		/* Only do anything if the tree was modified */
+		if (theFilemapObject->fIsDirty)
+		{
+			/* Save the filemap to file */
+			theErr = Save(
 					theFilemapObject->fFilemapFD,
 					theFilemapObject->fRoot);
 		
-		/* Return any error. */
-		theResult = SetResultFromErrorCode(interp, theErr);
+			/* The file tree is not dirty */
+			theFilemapObject->fIsDirty = 0;
+
+			/* Return any error. */
+			theResult = SetResultFromErrorCode(interp, theErr);	
+		} else {
+			Tcl_SetResult(interp, "", TCL_STATIC);
+		}
     } while (0);
     
 	return theResult;
@@ -1665,12 +1698,20 @@ FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
-		/* Set the value */
-		theErr = Set(
-						&theFilemapObject->fRoot,
-						Tcl_GetString(objv[3]),
-						Tcl_GetString(objv[4]));
-		
+		/* Only change the value if the map is not read only */
+		if (theFilemapObject->fIsReadOnly)
+		{
+			theErr = EPERM;
+		} else {
+			/* Set the value */
+			theErr = Set(
+							&theFilemapObject->fRoot,
+							Tcl_GetString(objv[3]),
+							Tcl_GetString(objv[4]));
+			
+			/* The map is now dirty */
+			theFilemapObject->fIsDirty = 1;
+		}
 		/* Return any error. */
 		theResult = SetResultFromErrorCode(interp, theErr);
     } while (0);
@@ -1710,9 +1751,18 @@ FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
-		/* Delete the value */
-		theErr = Delete(&theFilemapObject->fRoot, Tcl_GetString(objv[3]));
-		
+		/* Only change the value if the map is not read only */
+		if (theFilemapObject->fIsReadOnly)
+		{
+			theErr = EPERM;
+		} else {
+			/* Delete the value */
+			theErr = Delete(&theFilemapObject->fRoot, Tcl_GetString(objv[3]));
+			
+			/* The map is now dirty */
+			theFilemapObject->fIsDirty = 1;
+		}
+
 		/* Return any error. */
 		theResult = SetResultFromErrorCode(interp, theErr);
     } while (0);
