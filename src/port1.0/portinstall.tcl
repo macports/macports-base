@@ -1,7 +1,7 @@
 # et:ts=4
 # portinstall.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ set UI_PREFIX "---> "
 proc install_start {args} {
     global UI_PREFIX portname build.target.install destpath
 
-    ui_msg "$UI_PREFIX Installing ${portname} with target ${build.target.install}"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
 	file mkdir ${destpath}
 }
@@ -59,8 +59,7 @@ proc install_main {args} {
 
     set build.target.current ${build.target.install}
     if [catch {system "[command build]"}] {
-	ui_error "Installation failed."
-	return -code error "Installation failed."
+	return -code error [msgcat::mc "Installation failed"]
     }
     return 0
 }

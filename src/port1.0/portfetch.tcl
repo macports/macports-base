@@ -1,7 +1,7 @@
 # et:ts=4
 # portfetch.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -195,15 +195,13 @@ proc cvsfetch {args} {
     set cvs.args login
     set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
     if {[catch {system "[command cvs] 2>&1"} result]} {
-        ui_error "CVS login failed"
-        return -code error "CVS login failed"
+        return -code error [msgcat::mc "CVS login failed"]
     }
     set cvs.args "co -r ${cvs.tag}"
     set cvs.cmd cvs
     set cvs.post_args "${cvs.module}"
     if {[catch {system "[command cvs] 2>&1"} result]} {
-        ui_error "CVS check out failed"
-        return -code error "CVS check out failed"
+        return -code error [msgcat::mc "CVS check out failed"]
     }
     return 0
 }
@@ -221,36 +219,34 @@ proc fetchfiles {args} {
 
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
-	    ui_error "Unable to create distribution files path: $result"
-	    return -code error "Unable to create distribution files path: $result"
+	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
 	}
     }
     if {![file writable $distpath]} {
-        ui_error "$distpath must be writable"
-        return -code error "$distpath must be writable"
+        return -code error [format [msgcat::mc "%s must be writable"] $distpath]
     }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
-	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
+	    ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
             global portfetch::$url_var
             if ![info exists $url_var] {
-                ui_error "No defined site for tag: $url_var, using master_sites"
+                ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
                 set url_var master_sites
 		global portfetch::$url_var
             }
 	    foreach site [set $url_var] {
-		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 		if {![catch {system "[command fetch]"} result] &&
 		    ![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
 		    set fetched 1
 		    break
 		} else {
-		    ui_error "fetch failed: $result"
 		    exec rm -f ${distpath}/${distfile}.TMP
+		    return -code error "[msgcat::mc "fetch failed"]: $result"
 		}
 	    }
 	    if {![info exists fetched]} {
-		return -code error "fetch failed."
+		return -code error [msgcat::mc "fetch failed"]
 	    } else {
 		unset fetched
 	    }
@@ -274,7 +270,7 @@ proc fetch_init {args} {
 proc fetch_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Fetching $portname"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
 }
 
 # Main fetch routine

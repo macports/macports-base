@@ -1,7 +1,7 @@
 # et:ts=4
 # portregistry.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ set UI_PREFIX "---> "
 proc registry_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Adding %s to registry, this may take a moment..."] ${portname}]"
 }
 
 # For now, just write stuff to a file for debugging.
@@ -183,7 +183,7 @@ proc fileinfo_for_index {flist} {
 	    set dir $prefix
 	}
 	if {[file isdirectory $fname] && [tbool registry.contents_recurse]} {
-	    ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $fname"
+	    ui_msg "$UI_PREFIX [format [msgcat::mc "Warning: Registry adding contents of directory %s"] $fname]"
 	}
 	fileinfo_for_entry rval $dir $file
     }

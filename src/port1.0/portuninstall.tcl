@@ -1,7 +1,7 @@
 # et:ts=4
 # portuninstall.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ proc uninstall_start {args} {
     global portname portversion UI_PREFIX
 
     if [string length [registry_exists $portname $portversion]] {
-	ui_msg "$UI_PREFIX Uninstalling $portname-$portversion"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s-%s"] $portname $portversion]"
     }
 }
 
@@ -76,7 +76,7 @@ proc uninstall_main {args} {
 	    if ![catch {eval $uninstall} err] {
 		pkg_uninstall $portname $portversion
 	    } else {
-		ui_error "Could not evaluate pkg_uninstall procedure: $err"
+		ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
 	    }
 	}
 
@@ -93,20 +93,20 @@ proc uninstall_main {args} {
 		    if ![catch {set sum2 [md5 $fname]}] {
 			if ![string match $sum1 $sum2] {
 			    if ![tbool uninstall.force] {
-				ui_info "$UI_PREFIX  Original checksum does not match for $fname, not removing"
+				ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, not removing"] $fname]"
 				set uninst_err 1
 				continue
 			    } else {
-				ui_info "$UI_PREFIX  Original checksum does not match for $fname, removing anyway [force in effect]"
+				ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, removing anyway [force in effect]"] $fname]"
 			    }
 			}
 		    }
 		}
-		ui_info "$UI_PREFIX Uninstall is removing $fname"
+		ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s"] $fname]"
 		if [file isdirectory $fname] {
 		    if [catch {exec rmdir $fname}] {
 			if ![tbool uninstall.force] {
-			    ui_info "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
+			    ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove directory %s (not empty?)"] $fname]"
 			    set uninst_err 1
 			} else {
 			    # No, I INSIST!
@@ -115,7 +115,7 @@ proc uninstall_main {args} {
 		    }
 		} else {
 		    if [catch {exec rm $fname}] {
-			ui_info "$UI_PREFIX  Uninstall unable to remove file $fname"
+			ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove file %s"] $fname]"
 			set uninst_err 1
 		    }
 		}
@@ -125,8 +125,8 @@ proc uninstall_main {args} {
 		return 0
 	    }
 	} else {
-	    return -code error "Uninstall failed: Port has no contents entry"
+	    return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
 	}
     }
-    return -code error "Uninstall failed: Port not registered as installed"
+    return -code error [msgcat::mc "Uninstall failed: Port not registered as installed"]
 }

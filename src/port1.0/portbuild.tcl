@@ -1,7 +1,7 @@
 # eti:ts=4
 # portbuild.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ proc build_getmaketype {args} {
 	    return pbxbuild
 	}
 	default {
-	    ui_warn "Unknown build.type ${build.type}, using 'gnumake'"
+	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] ${build.type}]"
 	    return gnumake
 	}
     }
@@ -83,7 +83,7 @@ proc build_getmaketype {args} {
 proc build_start {args} {
     global UI_PREFIX portname build.target.all
 
-    ui_msg "$UI_PREFIX Building $portname with target ${build.target.all}"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] ${portname} ${build.target.all}]"
 }
 
 proc build_main {args} {

@@ -1,7 +1,7 @@
 # et:ts=4
 # portpatch.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -62,11 +62,11 @@ proc patch_main {args} {
 	}
     }
     if ![info exists patchlist] {
-	return -code error "Patch files missing"
+	return -code error [msgcat::mc "Patch files missing"]
     }
     cd ${worksrcpath}
     foreach patch $patchlist {
-	ui_info "$UI_PREFIX Applying $patch"
+	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
 	switch -glob -- [file tail $patch] {
 	    *.Z -
 	    *.gz {system "gzcat \"$patch\" | ([command patch])"}

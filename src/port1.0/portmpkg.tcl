@@ -1,7 +1,7 @@
 # et:ts=4
 # portpackage.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,7 @@ proc mpkg_main {args} {
 	    return [package_mpkg $portname $portversion]
 	}
 	default {
-	    ui_error "Do not know how to generate package of type ${package.type}"
-	    return -code error "Unknown package type: ${package.type}"
+	    return -code error [format [msgcat::mc "Unknown package type: %s"] ${package.type}]
 	}
     }
 }

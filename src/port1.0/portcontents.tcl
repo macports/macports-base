@@ -1,7 +1,7 @@
 # et:ts=4
 # portuninstall.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,14 @@ proc contents_main {args} {
 	if {$ix >= 0} {
 	    set contents [lindex $entry [incr ix]]
 	    set uninst_err 0
-	    ui_msg "Contents of ${portname}-${portversion}"
+	    ui_msg "[format [msgcat::mc "Contents of %s-%s"] ${portname} ${portversion}]"
 	    foreach f $contents {
 		ui_msg "\t[lindex $f 0]"
 	    }
 	} else {
-	    return -code error "No contents list for ${portname}-${portversion}"
+	    return -code error "[format [msgcat::mc "No contents list for %s-%s"] ${portname} ${portversion}]"
 	}
     } else {
-	return -code error "Contents listing failed - no registry entry"
+	return -code error [msgcat::mc "Contents listing failed - no registry entry"]
     }
 }

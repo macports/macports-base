@@ -31,6 +31,7 @@
 
 package provide portutil 1.0
 package require Pextlib 1.0
+package require msgcat
 
 global targets target_uniqid all_variants
 
@@ -545,7 +546,7 @@ proc target_run {this} {
 		write_statefile target $name $target_state_fd
 	    }
 	} else {
-	    ui_error "Target error: $name returned: $errstr"
+	    ui_error "Target $name returned: $errstr"
 	    set result 1
 	}
 	

@@ -1,7 +1,7 @@
 # et:ts=4
 # portdepends.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -64,10 +64,10 @@ proc handle_depends_options {option action args} {
 						$obj append requires portfile-$portname
 					}
 				} else {
-					ui_error "unknown depspec type: $deppath"
+					return -code error [format [msgcat::mc ["unknown depspec type: %s"] $deppath]
 				}
 			} else {
-				ui_error "invalid depspec: $depspec"
+				return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec]
 			}
 	    }
 	}

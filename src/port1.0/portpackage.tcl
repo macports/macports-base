@@ -1,7 +1,7 @@
 # et:ts=4
 # portpackage.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,9 @@ proc package_main {args} {
 
     set rfile [registry_exists $portname $portversion]
     if ![string length $rfile] {
-	ui_error "Package ${portname}-${portversion} not installed on this system"
-	return -code error "Package ${portname}-${portversion} not installed on this system"
+	return -code error [format [msgcat::mc "Package %s-%s not installed on this system"] ${portname} ${portversion}]
     }
-    ui_msg "$UI_PREFIX Creating ${package.type} format package for ${portname}-${portversion}"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating %s format package for %s-%s"] ${package.type} ${portname} ${portversion}]"
     if [regexp .bz2$ $rfile] {
 	set fd [open "|bunzip2 -c $rfile" r]
     } else {
@@ -75,8 +74,7 @@ proc package_main {args} {
 	    return [package_tarball $portname $portversion $entry]
 	}
 	default {
-	    ui_error "Do not know how to generate package of type ${package.type}"
-	    return -code error "Unknown package type: ${package.type}"
+	    return -code error [format [msgcat::mc "Unknown package type: %s"] ${package.type}]
 	}
     }
 }
@@ -100,15 +98,13 @@ proc package_tarball {portname portversion entry} {
 	close $pfile
 
 	set ptarget ${package.destpath}/${portname}-${portversion}.tar.gz
-	if [catch {system "gnutar -T [lindex $plist 1] -czPpf ${ptarget}"} err] {
-	    ui_error "Package creation failed - gnutar returned error status: $err"
-	    ui_info "Failed packing list left in [lindex $plist 1]"
-	    return -code error "Package creation failed - gnutar returned error status: $err"
+	if [catch {system "gnutar -T [lindex $plist 1] -czPpf ${ptarget}"} result] {
+	    ui_info [format [msgcat::mc "Package creation failed - Failed packing list left in %s"] [lindex $plist 1]]
+	    return -code error [format [msgcat::mc "Package creation failed - gnutar returned error status: %s"] $result]
 	}
 	exec rm [lindex $plist 1]
     } else {
-	ui_error "Bad registry entry for ${portname}-${portversion}, no contents"
-	return -code error "Bad registry entry for ${portname}-${portversion}, no contents"
+	return -code error [format [msgcat::mc "Bad registry entry for %s-%s, no contents"] ${portname} ${portversion}]
     }
     return 0
 }
@@ -134,22 +130,19 @@ proc package_pkg {portname portversion entry} {
 
 	if {![file isdirectory $destpath]} {
 	    if {[catch {file mkdir $destpath} result]} {
-		ui_error "Unable to create destination root path: $result"
-		return -code error "Unable to create destination root path: $result"
+		return -code error [format [msgcat::mc "Unable to create destination root path: %s"] $result]
 	    }
 	}
 
 	if [catch {system "gnutar -T [lindex $plist 1] -cPpf - | (cd ${destpath} && tar xvf -)"} return] {
-	    ui_error "Package creation failed - gnutar returned error status: $return"
 	    file delete [lindex $plist 1]
-	    return -code error "Package creation failed - gnutar returned error status: $return"
+	    return -code error [format [msgcat::mc "Package creation failed - gnutar returned error status: %s"] $result]
 	}
 	file delete [lindex $plist 1]
     }
     if {![file isdirectory $resourcepath]} {
 	if {[catch {file mkdir $resourcepath} result]} {
-	    ui_error "Unable to create package resource directory: $result"
-	    return -code error "Unable to create package resource directory: $result"
+	    return -code error [format [msgcat::mc "Unable to create package resource directory: %s"] $result]
 	}
     }
 
@@ -320,19 +313,19 @@ proc write_welcome_rtf {filename portname portversion long_description descripti
 proc write_sizes_file {sizesfile portname pkgpath destpath} {
     
     if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
-	return -code error "Reading package bom failed: $result"
+	return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
     if {[catch {set compressedSize [expr [dirSize ${pkgpath}] / 1024]} result]} {
-	return -code error "Error determining compressed size: $result"
+	return -code error [format [msgcat::mc "Error determining compressed size: %s"] $result]
     }
     if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
-	return -code error "Error determining installed size: $result"
+	return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
     }
     if {[catch {set infoSize [file size ${pkgpath}/Contents/Resources/${portname}.info]} result]} {
-	return -code error "Error determining info file size: $result"
+	return -code error [format [msgcat::mc "Error determining info file size: %s"] $result]
     }
     if {[catch {set bomSize [file size ${pkgpath}/Contents/Archive.bom]} result]} {
-	return -code error "Error determining bom file size: $result"
+	return -code error [format [msgcat::mc "Error determining bom file size: %s"] $result]
     }
     incr installedSize $infoSize
     incr installedSize $bomSize

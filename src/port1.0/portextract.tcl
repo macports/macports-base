@@ -1,7 +1,7 @@
 # et:ts=4
 # portextract.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ proc extract_init {args} {
 proc extract_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Extracting $portname"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $portname]"
 }
 
 proc extract_main {args} {
@@ -82,13 +82,12 @@ proc extract_main {args} {
     }
 
     foreach distfile ${extract.only} {
-	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
+	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
 	set extract.args "$distpath/$distfile"
 	if [catch {system "[command extract]"} result] {
-	    ui_error "$result"
 	    return -code error "$result"
 	}
-	ui_info "Done"
+	ui_info [msgcat::mc "Done"]
     }
     return 0
 }

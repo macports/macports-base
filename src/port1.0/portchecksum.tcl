@@ -1,7 +1,7 @@
 # et:ts=4
 # portchecksum.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,9 @@ proc md5 {file} {
     global distpath UI_PREFIX
 
     set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-    set pipe [open "|md5 \"${file}\"" r]
+    if {[catch {set pipe [open "|md5 \"${file}\"" r]} result]} {
+        return -code error "[format [msgcat::mc "Unable to parse checksum: %s"] $result]"
+    }
     set line [read $pipe]
     if {[regexp $md5regex $line match type filename sum] == 1} {
 	close $pipe
@@ -56,10 +58,8 @@ proc md5 {file} {
 	    return -1
 	}
     } else {
-	# XXX Handle this error beter
 	close $pipe
-	ui_error "$line - md5sum failed!"
-	return -1
+	return -code error "[format [msgcat::mc "Unable to parse checksum: %s"] $line]"
     }
 }
 
@@ -77,7 +77,7 @@ proc dmd5 {file} {
 proc checksum_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Verifying checksum for $portname"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum for %s"] $portname]"
 }
 
 proc checksum_main {args} {
@@ -89,11 +89,11 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	ui_error "No checksums statement in Portfile.  File checksums are:"
+	ui_error "[msgcat::mc "No checksums statement in Portfile.  File checksums are:"]"
 	foreach distfile $all_dist_files {
 	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
 	}
-	return -code error "No checksums statement in Portfile."
+	return -code error "[msgcat::mc "No checksums statement in Portfile."]"
     }
 
     # Optimization for the 2 argument case for checksums
@@ -105,10 +105,9 @@ proc checksum_main {args} {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
-	    ui_warn "No checksum recorded for $distfile"
+	    ui_warn "[format [msgcat::mc "No checksum recorded for %s"] $distfile]"
 	} elseif {$checksum != $dchecksum} {
-	    ui_error "Checksum mismatch for $distfile"
-	    return -code error "Checksum mismatch for $distfile"
+	    return -code error "[format [msgcat::mc "Checksum mismatch for %s"] $distfile]"
 	}
     }
     return 0

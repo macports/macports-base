@@ -1,7 +1,7 @@
 # et:ts=4
 # portclean.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ ${com.apple.clean} set prerun clean_start
 proc clean_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Cleaning $portname"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] $portname]"
 }
 
 proc clean_main {args} {

@@ -1,7 +1,7 @@
 # et:ts=4
 # portconfigure.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ set UI_PREFIX "---> "
 proc configure_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Configuring $portname"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] $portname]"
 }
 
 proc configure_main {args} {
@@ -65,24 +65,21 @@ proc configure_main {args} {
     if [tbool use_automake] {
 	# XXX depend on automake
 	if {[catch {system "[command automake]"} result]} {
-	    ui_error "configure target failed: $result"
-	    return -code error "configure target failed: $result"
+	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
 	}
     }
 
     if [tbool use_autoconf] {
 	# XXX depend on autoconf
 	if {[catch {system "[command autoconf]"} result]} {
-	    ui_error "configure target failed: $result"
-	    return -code error "configure target failed: $result"
+	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
     }
 
     if [tbool use_xmkmf] {
 	# XXX depend on xmkmf
 	if {[catch {system "[command xmkmf]"} result]} {
-	    ui_error "configure target failed: $result"
-	    return -code error "configure target failed: $result"
+	    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
 	} else {
 	    # XXX should probably use make command abstraction but we know that
 	    # X11 will already set things up so that "make Makefiles" always works.
@@ -90,8 +87,7 @@ proc configure_main {args} {
 	}
     } elseif [tbool use_configure] {
 	if {[catch {system "[command configure]"} result]} {
-	    ui_error "configure target failed: $result"
-	    return -code error "configure target failed: $result"
+	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
 	}
     }
     return 0
