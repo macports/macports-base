@@ -52,7 +52,7 @@ proc build_getmaketype {args} {
     global make.type make.cmd os.name
 
     if ![info exists make.type] {
-	return gnumake
+	return make
     }
     switch -exact -- ${make.type} {
 	bsd {
