@@ -38,6 +38,13 @@ register com.apple.patch requires main fetch checksum extract depends_build depe
 
 set UI_PREFIX "---> "
 
+# Add command patch
+commands patch
+# Set up defaults
+default patch.dir {${workpath}/${worksrcdir}}
+default patch.cmd patch
+default patch.pre_args -p0
+
 proc patch_main {args} {
     global portname patchfiles distpath filedir workdir worksrcdir portpath UI_PREFIX
 
@@ -59,9 +66,9 @@ proc patch_main {args} {
 	ui_info "$UI_PREFIX Applying $patch"
 	switch -glob -- [file tail $patch] {
 	    *.Z -
-	    *.gz {system "gzcat \"$patch\" | patch -p0"}
-	    *.bz2 {system "bzcat \"$patch\" | patch -p0"}
-	    default {system "patch -p0 < \"$patch\""}
+	    *.gz {system "gzcat \"$patch\" | [command patch]}
+	    *.bz2 {system "bzcat \"$patch\" | [command patch]"}
+	    default {system "[command patch] < \"$patch\""}
 	}
     }
     return 0
