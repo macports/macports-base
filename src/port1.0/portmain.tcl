@@ -39,9 +39,9 @@ register com.apple.main target main
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.name os.version os.arch os.endian
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.name os.version os.arch os.endian architectures
 # Export options via PortInfo
-options_export portname portversion portrevision categories maintainers
+options_export portname portversion portrevision categories maintainers architectures
 
 global os_name os_arch os_endian
 
