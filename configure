@@ -3407,7 +3407,14 @@ echo $ECHO_N "checking for ports config directory... $ECHO_C" >&6
 	if test "$prefix" != "NONE" ; then
 				portconfigdir='${sysconfdir}/ports'
 	else
-				portconfigdir='/etc/ports'
+	   case $host_os in
+	   darwin*)
+		portconfigdir='/private/etc/ports'
+		;;
+	   *)
+		portconfigdir='/etc/ports'
+		;;
+	   esac
 	fi
 
 

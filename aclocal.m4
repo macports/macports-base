@@ -39,7 +39,7 @@ dnl explicitly. If not, search for it
          ])
 
 
-# OD_PATH_PORTCONFIGDIR(DEFAULT_PORTCONFIGDIR, PREFIX)
+# OD_PATH_PORTCONFIGDIR(PREFIX)
 #---------------------------------------
 AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
@@ -48,12 +48,18 @@ AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	
         AC_MSG_CHECKING([for ports config directory])
 
-	if test "$2" != "NONE" ; then
+	if test "$1" != "NONE" ; then
 		dnl user gave --prefix
 		portconfigdir='${sysconfdir}/ports'
 	else
-		dnl just use the default /etc/ports
+	   case $host_os in
+	   darwin*)
+		portconfigdir='/private/etc/ports'
+		;;
+	   *)
 		portconfigdir='/etc/ports'
+		;;
+	   esac
 	fi
 
 
