@@ -1,6 +1,6 @@
 # global port utility procedures
 package provide portutil 1.0
-package require Pextlib 1.0
+#package require Pextlib 1.0
 
 namespace eval portutil {
 	variable globals
@@ -41,7 +41,7 @@ proc register {identifier mode args} {
 		# preflight vulcan mind meld:
 		# "your requirements to my requirements; my provides to your requirements"
 		# XXX: violates data abstraction
-		lappend portutil::targets(provides,$identifier) pre-$args
+		lappend portutil::targets(provides,$identifier) $identifier-pre-$args
 		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
 		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(requires,$ident)"
 		eval "lappend portutil::targets(requires,$args) $portutil::targets(provides,$identifier)"
@@ -49,13 +49,13 @@ proc register {identifier mode args} {
 		# postflight procedure:
 		# your provides to my requires; my provides to the requires of your children
 		# XXX: violates data abstraction
-		lappend portutil::targets(provides,$identifier) post-$args
+		lappend portutil::targets(provides,$identifier) $identifier-post-$args
 		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
 		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(provides,$ident)"
 		foreach name [join $portutil::targets(provides,$ident)] {
 			set matches [depend_list_get_matches portutil::targets requires name]
 			foreach match $matches {
-				lappend portutil::targets(requires,$match) post-$args
+				lappend portutil::targets(requires,$match) $ident-post-$args
 			}
 		}
 	}
@@ -202,24 +202,9 @@ proc depend_list_get_next {waitlist statusdict} {
 # for execution.
 # If <target> is specified, then only execute the critical path to
 # the target.
-proc eval_depend {nodes chain target} {
+proc eval_depend {action nodes} {
 	# waitlist - nodes waiting to be executed
 	upvar $nodes waitlist
-
-	if {[string length $target] > 0} {
-		set matches [depend_list_get_matches waitlist provides $target]
-		if {[llength $matches] > 0} {
-			array set dependents [list]
-			append_dependents dependents waitlist [lindex $matches 0]
-			array unset waitlist
-			array set waitlist [array get dependents]
-		# Special-case 'all'
-		} elseif {![string equal $target all]} {
-			# XXX: remove puts
-			puts "Warning: unknown target: $target"
-			return
-		}
-	}
 
 	# status - keys will be node names, values will be success or failure.
 	array set statusdict [list]
@@ -227,24 +212,13 @@ proc eval_depend {nodes chain target} {
 	# loop for as long as there are nodes in the waitlist.
 	while (1) {
 		set ident [depend_list_get_next waitlist statusdict]
-		if {[string length $ident] == 0} { break }
-		if {[isval waitlist procedure,$chain,$ident]} {
-			# XXX: remove puts
-			puts "DEBUG: Executing $ident in chain $chain"
-			if {[$waitlist(procedure,$chain,$ident) $waitlist(name,$ident)] == 0} {
-				set result success
-			} else {
-				# XXX: remove puts
-				puts "Error in $ident in chain $chain"
-				set result failure
-			}
+		if {[string length $ident] == 0} { 
+			break
+		} else {
+			set result [eval $action waitlist $ident]
 			foreach name $waitlist(provides,$ident) {
 				array set statusdict [list $name $result]
 			}
-			depend_list_del_item waitlist $ident
-		} else {
-			# XXX: remove puts
-			puts "Warning: $ident does not support chain $chain" 
 			depend_list_del_item waitlist $ident
 		}
 	}
@@ -259,6 +233,51 @@ proc eval_depend {nodes chain target} {
 		}
 		puts ""
 	}
+}
+
+
+proc portutil::exec_target {chain waitlist ident} {
+# XXX: Don't depend on entire waitlist, this should really receive just one node.
+	upvar $waitlist upwaitlist
+	if {[isval upwaitlist procedure,$chain,$ident]} {
+		# XXX: remove puts
+		puts "DEBUG: Executing $ident in chain $chain"
+		if {[$upwaitlist(procedure,$chain,$ident) $upwaitlist(name,$ident) $chain] == 0} {
+			set result success
+		} else {
+			# XXX: remove puts
+			puts "Error in $ident in chain $chain"
+			set result failure
+		}
+		depend_list_del_item waitlist $ident
+	} else {
+		# XXX: remove puts
+		puts "Warning: $ident does not support chain $chain" 
+		depend_list_del_item waitlist $ident
+	}
+	return $result
+}
+
+proc eval_targets {nodes chain target} {
+	upvar $nodes waitlist
+	
+	# Select the subset of targets under $target
+	if {[string length $target] > 0} {
+		set matches [depend_list_get_matches waitlist provides $target]
+		if {[llength $matches] > 0} {
+			array set dependents [list]
+			append_dependents dependents waitlist [lindex $matches 0]
+			array unset waitlist
+			array set waitlist [array get dependents]
+		# Special-case 'all'
+		} elseif {![string equal $target all]} {
+			# XXX: remove puts
+			puts "Warning: unknown target: $target"
+			return
+		}
+	}
+	
+	eval_depend [list portutil::exec_target $chain] waitlist
 }
 
 # select dependents of <name> from the <itemlist>

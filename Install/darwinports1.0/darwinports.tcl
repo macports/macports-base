@@ -85,7 +85,7 @@ namespace eval darwinports {
 			setval darwinports::options portpath [pwd]
 			# XXX These must execute at a global scope
 			uplevel #0 source Portfile
-			uplevel #0 eval_depend portutil::targets $chain $target
+			uplevel #0 eval_targets portutil::targets $chain $target
 		} else {
 			return -code error "Portdir $portpath does not exist"
 		}
