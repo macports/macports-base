@@ -114,7 +114,7 @@ proc package_mpkg {portname portversion} {
 	}
 	
 	# copy our own pkg into the mpkg
-	system "cp -Rp ${pkgpath} ${mpkgpath}/Contents/Resources/"
+	system "cp -RPp ${pkgpath} ${mpkgpath}/Contents/Resources/"
 	lappend dependencies ${portname}.pkg
 	
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
