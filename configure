@@ -3809,9 +3809,24 @@ STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
+#misc variables that need to be expanded for substitution into tcl
+
+oldprefix=$prefix
+if test "x$prefix" = "xNONE" ; then
+   prefix=$ac_default_prefix
+fi
+
+eval "prefix_expanded=$prefix"
+
+eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
+
+eval "localstatedir_expanded=$localstatedir"
+
+prefix=$oldprefix
+
 # Output
 
-ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree"
+ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -3892,7 +3907,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:3895: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:3910: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -4065,7 +4080,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:4068: error: ambiguous option: $1
+    { { echo "$as_me:4083: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4084,7 +4099,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:4087: error: unrecognized option: $1
+  -*) { { echo "$as_me:4102: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4122,8 +4137,9 @@ do
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "Mk/dports.autoconf.mk" ) CONFIG_FILES="$CONFIG_FILES Mk/dports.autoconf.mk" ;;
   "doc/prefix.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
+  "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
   "src/pextlib1.0/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/pextlib1.0/config.h" ;;
-  *) { { echo "$as_me:4126: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:4142: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -4253,6 +4269,9 @@ s,@SHLIB_LD@,$SHLIB_LD,;t t
 s,@SHLIB_CFLAGS@,$SHLIB_CFLAGS,;t t
 s,@SHLIB_LDFLAGS@,$SHLIB_LDFLAGS,;t t
 s,@SHLIB_SUFFIX@,$SHLIB_SUFFIX,;t t
+s,@prefix_expanded@,$prefix_expanded,;t t
+s,@PORTCONFIGDIR_EXPANDED@,$PORTCONFIGDIR_EXPANDED,;t t
+s,@localstatedir_expanded@,$localstatedir_expanded,;t t
 CEOF
 
 EOF
@@ -4367,7 +4386,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4370: creating $ac_file" >&5
+    { echo "$as_me:4389: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4385,7 +4404,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4388: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4407: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4398,7 +4417,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4401: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4420: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4459,7 +4478,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:4462: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:4481: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -4470,7 +4489,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4473: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4492: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4483,7 +4502,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4486: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4505: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4600,7 +4619,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:4603: $ac_file is unchanged" >&5
+      { echo "$as_me:4622: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \

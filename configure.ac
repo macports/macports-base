@@ -72,11 +72,27 @@ AC_SUBST(SHLIB_LDFLAGS)
 AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 
+#misc variables that need to be expanded for substitution into tcl
+
+oldprefix=$prefix
+if test "x$prefix" = "xNONE" ; then
+   prefix=$ac_default_prefix
+fi
+
+eval "prefix_expanded=$prefix"
+AC_SUBST(prefix_expanded)
+eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
+AC_SUBST(PORTCONFIGDIR_EXPANDED)
+eval "localstatedir_expanded=$localstatedir"
+AC_SUBST(localstatedir_expanded)
+
+prefix=$oldprefix
+
 dnl man page settings (compressed, links, etc)
 dnl
 dnl SC_CONFIG_MANPAGES
 
 # Output
 
-AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree])
+AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf])
 AC_OUTPUT
