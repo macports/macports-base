@@ -328,22 +328,26 @@ switch -- $action {
 	}
 	provides {
 		# In this case, portname is going to be used for the filename... since
-		# that is the first argument we expect... perhaps ther eis a better way
+		# that is the first argument we expect... perhaps there is a better way
 		# to do this?
 		if { ![info exists portname] } {
 			puts "Please specify a filename to check which port provides that file."
 			exit 1
 		}
-		set file $portname
-		if { [file exists $file] && ![file isdirectory $file] } {
-			set port [registry::file_registered $file] 
-			if { $port != 0 } {
-				puts "$file is provided by: $port"
+		set file [file normalize $portname]
+		if {[file exists $file]} {
+			if {![file isdirectory $file]} {
+				set port [registry::file_registered $file] 
+				if { $port != 0 } {
+					puts "$file is provided by: $port"
+				} else {
+					puts "$file is not provided by a DarwinPorts port."
+				}
 			} else {
-				puts "$file is not provided by a DarwinPorts port."
+				puts "$file is a directory."
 			}
 		} else {
-			puts "$file does not exist or is a directory."
+			puts "$file does not exist."
 		}
 	}
 	activate {
