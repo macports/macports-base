@@ -675,7 +675,6 @@ proc dportregistry::exists {portname {portversion 0}} {
 }
 
 proc dportregistry::store {rhandle data} {
-puts "xxx: $rhandle $data"
     puts $rhandle $data
 }
 
