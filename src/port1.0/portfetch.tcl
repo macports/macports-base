@@ -59,8 +59,8 @@ default cvs.pre_args {"-d ${cvs.root}"}
 default fetch.cmd curl
 default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
-default fetch.pre_args "-f"
-default fetch.post_args {"${site}/${distfile}"}
+default fetch.pre_args {"-f -L"}
+default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}
 
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
@@ -102,6 +102,16 @@ proc suffix {distname} {
 	return ${distname}.zip
     } else {
 	return ${distname}${extract.sufx}
+    }
+}
+
+# Given a site url and the name of the distfile, assemble url and
+# return it
+proc portfetch::assemble_url {site distfile} {
+    if {[string index $site end] != "/"} {
+        return "${site}/${distfile}"
+    } else {
+        return "${site}${distfile}"
     }
 }
 
@@ -148,9 +158,9 @@ proc mirror_sites {mirrors tag subdir} {
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
     	if {"$tag" != ""} {
-	    eval append element "${subdir}/:${tag}"
+	    eval append element "${subdir}:${tag}"
 	} else {
-	    eval append element "${subdir}/"
+	    eval append element "${subdir}"
 	}
         eval lappend ret $element
     }
@@ -186,7 +196,7 @@ proc checkfiles {args} {
 		set subdir "[lindex $splitlist 1]"
 		set tag "[lindex $splitlist 2]"
                 if {[info exists $list.mirror_subdir]} {
-                    append subdir "/[set ${list}.mirror_subdir]"
+                    append subdir "[set ${list}.mirror_subdir]"
                 }
                 set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir]]
             }
