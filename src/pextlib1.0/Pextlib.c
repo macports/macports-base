@@ -69,6 +69,10 @@
 #include <sys/types.h>
 #endif
 
+#if HAVE_SYS_FCNTL_H
+#include <sys/fcntl.h>
+#endif
+
 #if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
 #endif
