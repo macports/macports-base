@@ -714,6 +714,21 @@ The key variant is used to begin the gnome variant as shown in the example.
 .Dl variant gnome {	configure.args-append	--with-gnome \
 				depends_lib-append		lib:gnome-session:gnome-session }
 .El
+.Ss PLATFORM OPTIONS
+DarwinPorts allows for platform-specific conditional modification to be specified in a Portfile, much like variants, for handling differences between platforms and versions of the same platform.
+.Bl -tag -width lc
+.It Ic platform
+The platform key is used to begin the darwin platform definitions as shown in the example from the databases/db4 Portfile.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl platform darwin 6 { configure.args-append   --enable-tcl \
+                                --with-tcl=/System/Library/Tcl/8.3 }
+.br
+The platform version is optional, and an optional architecture can be specified after the version.
+.El
 .Sh AUTHORS
 .An "Landon Fuller" Aq landonf@opendarwin.org
 .An "Kevin Van Vechten" Aq kevin@opendarwin.org

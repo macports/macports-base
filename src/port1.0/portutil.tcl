@@ -348,6 +348,53 @@ proc variant_unset {name} {
     set variations($name) -
 }
 
+# platform <os> [<release>] [<arch>] 
+# Portfile level procedure to provide support for declaring platform-specifics
+# Basically, just wrap 'variant', so that Portfiles' platform declarations can
+# be more readable, and support arch and version specifics
+proc platform {args} {
+	global all_variants PortInfo os.platform os.arch os.version
+	upvar $args upargs
+
+	set len [llength $args]
+	set code [lindex $args end]
+	set os [lindex $args 0]
+	set args [lrange $args 1 [expr $len - 2]]
+	
+	set ditem [variant_new "temp-variant"]
+
+	foreach arg $args {
+		if {[regexp {(^[0-9]$)} $arg match result]} {
+			set release $result
+		} elseif {[regexp {([a-zA-Z0-9]*)} $arg match result]} {
+			set arch $result
+		}
+	}
+
+	# Add the variant for this platform
+	set platform $os
+	if {[info exists release]} { set platform ${platform}_${release} }
+	if {[info exists arch]} { set platform ${platform}_${arch} }
+
+	variant $platform $code
+
+	# Set the variant if this platform matches the platform we're on
+	if {[info exists os.platform] && ${os.platform} == $os} { 
+		set sel_platform $os
+		if {[info exists os.version] && [info exists release]} {
+			regexp {([0-9]*)[0-9\.]?} ${os.version} match major
+			if {$major == $release } { 
+				set sel_platform ${sel_platform}_${release} 
+			}
+		}
+		if {[info exists os.arch] && [info exists arch] && ${os.arch} == $arch} {
+			set sel_platform $arch
+		}
+		variant_set $sel_platform
+	}
+	
+}
+
 ########### Misc Utility Functions ###########
 
 # tbool (testbool)
