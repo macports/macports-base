@@ -628,34 +628,35 @@ proc dportsearch {regexp} {
     foreach source $sources {
     	if {[darwinports::getprotocol $source] == "dports"} {
     		# Strip out ^$ for compatability. (We don't use regexes anymore)
-		set name $regexp
+			set name $regexp
     		regsub -- {^\^} $name {} name
     		regsub -- {\$$} $name {} name
     		array set attrs [list name $name]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
-        if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
-            return -code error "Can't open index file for source $source. Have you synced your source indexes?"
-        }
-        while {[gets $fd line] >= 0} {
-            set name [lindex $line 0]
-            if {[regexp -- $regexp $name] == 1} {
-                gets $fd line
-                array set portinfo $line
-                if {[info exists portinfo(portarchive)]} {
-                    lappend line porturl ${source}/$portinfo(portarchive)
-                } elseif {[info exists portinfo(portdir)]} {
-                    lappend line porturl ${source}/$portinfo(portdir)
-                }
-                lappend matches $name
-                lappend matches $line
-            } else {
-                set len [lindex $line 1]
-                seek $fd $len current
-            }
-        }
-        close $fd
+        	if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+        	    return -code error "Can't open index file for source $source. Have you synced your source indexes?"
+			}
+	        while {[gets $fd line] >= 0} {
+	            set name [lindex $line 0]
+	            if {[regexp -- $regexp $name] == 1} {
+	                gets $fd line
+	                array set portinfo $line
+	                if {[info exists portinfo(portarchive)]} {
+	                    lappend line porturl ${source}/$portinfo(portarchive)
+	                } elseif {[info exists portinfo(portdir)]} {
+	                    lappend line porturl ${source}/$portinfo(portdir)
+	                }
+	                lappend matches $name
+	                lappend matches $line
+	            } else {
+	                set len [lindex $line 1]
+	                seek $fd $len current
+	            }
+	        }
+	        close $fd
+		}
     }
     return $matches
 }
