@@ -108,14 +108,14 @@ proc ui_enabled {} {
 # the UI model in use.  If you don't want newlines to be output, you
 # must pass "-nonewline" as the second argument.
 
-proc ui_puts {str {nonl ""}} {
+proc ui_puts {chan str {nonl ""}} {
     if ![ui_enabled] return
 
     if {$nonl == "-nonewline"} {
-	puts -nonewline stdout "$str"
-	flush stdout
+	puts -nonewline $chan "$str"
+	flush $chan
     } else {
-	puts "$str"
+	puts $chan "$str"
     }
 }
 
@@ -133,7 +133,7 @@ proc ui_info {str {nonl ""}} {
     global system_options
 
     if [isset ports_verbose] {
-	ui_puts "$str" $nonl
+	ui_puts stdout "$str" $nonl
     }
 }
 
@@ -142,13 +142,13 @@ proc ui_msg {str {nonl ""}} {
     global system_options
 
     if ![isset ports_quiet] {
-	ui_puts "$str" $nonl
+	ui_puts stdout "$str" $nonl
     }
 }
 
 # Output message unconditionally as an error message.
 proc ui_error {str} {
-    ui_puts "Error: $str"
+    ui_puts stderr "Error: $str"
 }
 
 # Get a line of input from the user and store in str, returning the
@@ -172,7 +172,7 @@ proc ui_gets {str} {
 proc ui_yesno {promptstr {defvalue ""}} {
     set satisfaction no
     while {$satisfaction == "no"} {
-	ui_puts $promptstr -nonewline
+	ui_puts stdout $promptstr -nonewline
 	if {[ui_gets mystr] == 0} {
 	    if {[string length $defvalue] > 0} {
 		set mystr $defvalue
@@ -198,7 +198,7 @@ proc ui_yesno {promptstr {defvalue ""}} {
 # the user's acknowledgement of the prompt string passed in
 # "promptstr".  There is no return value.
 proc ui_confirm {promptstr} {
-    ui_puts "$promptstr" -nonewline
+    ui_puts stdout "$promptstr" -nonewline
     ui_gets garbagestr
 }
 
