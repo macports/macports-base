@@ -50,7 +50,7 @@
 extern char **environ;
 #endif
 
-char * ui_escape(const char *source)
+char *ui_escape(const char *source)
 {
 	char *d, *dest;
 	const char *s;
@@ -92,7 +92,7 @@ static int ui_info(Tcl_Interp *interp, char *mesg)
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
 	char *script, *string, *p;
-	int scriptlen, len;
+	int scriptlen, len, rval;
 
 	string = ui_escape(mesg);
 	if (string == NULL)
@@ -110,7 +110,9 @@ static int ui_info(Tcl_Interp *interp, char *mesg)
 	strcat(script, string);
 	strcat(script, ui_proc_end);
 	free(string);
-	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
+	rval = Tcl_EvalEx(interp, script, scriptlen - 1, 0);
+	free(script);
+	return rval;
 }
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
