@@ -44,7 +44,7 @@ target_prerun ${com.apple.activate} activate_start
 set_ui_prefix
 
 proc activate_start {args} {
-	global UI_PREFIX portname portversion portrevision variations os.platform os.arch portvariants
+	global UI_PREFIX portname portversion portrevision variations portvariants
     
 	if { ![info exists portvariants] } {
 		set portvariants ""
@@ -53,7 +53,7 @@ proc activate_start {args} {
 
 	 	# Put together variants in the form +foo+bar for the registry
 		foreach v $vlist {
-			if { ![string equal $v ${os.platform}] && ![string equal $v ${os.arch}] } {
+			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
 				set portvariants "${portvariants}+${v}"
 			}
 		}

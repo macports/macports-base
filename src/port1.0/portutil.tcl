@@ -525,7 +525,7 @@ proc makeuserproc {name body} {
 ########### Internal Dependancy Manipulation Procedures ###########
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -538,6 +538,14 @@ proc target_run {ditem} {
 	
 	if { ![info exists portvariants] } {
 		set portvariants ""
+		set vlist [lsort -ascii [array names variations]]
+
+		# Put together variants in the form +foo+bar for the registry
+		foreach v $vlist {
+			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
+				set portvariants "${portvariants}+${v}"
+			}
+		}
 	}
 
 	if {$result == 0} {

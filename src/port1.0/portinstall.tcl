@@ -41,18 +41,18 @@ target_prerun ${com.apple.install} install_start
 set_ui_prefix
 
 proc install_start {args} {
-	global UI_PREFIX portname portversion portrevision variations os.platform os.arch portvariants
+	global UI_PREFIX portname portversion portrevision variations portvariants
     
 	if { ![info exists portvariants] } {
 		set portvariants ""
-	}
 
-	set vlist [lsort -ascii [array names variations]]
+		set vlist [lsort -ascii [array names variations]]
 
- 	# Put together variants in the form +foo+bar for the registry
-	foreach v $vlist {
-		if { ![string equal $v ${os.platform}] && ![string equal $v ${os.arch}] } {
-			set portvariants "${portvariants}+${v}"
+		# Put together variants in the form +foo+bar for the registry
+		foreach v $vlist {
+			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
+				set portvariants "${portvariants}+${v}"
+			}
 		}
 	}
 
