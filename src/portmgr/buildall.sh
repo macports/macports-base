@@ -106,7 +106,6 @@ teardownchroot() {
 	fi
 	umountchrootextras $dir
 	[ -z "$DISTDEV" ] || hdiutil detach $DISTDEV >& /dev/null
-	fi
 	hdiutil detach $DEV >& /dev/null
 	rm ${CHROOTBASE}.shadow
 	DEV=""; DISTDEV=""
