@@ -695,7 +695,7 @@ proc check_statefile_variants {variations fd} {
 			set mismatch 1
 		} else {
 			foreach key [array names upvariations *] {
-				if {![info exists $oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
+				if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
 					set mismatch 1
 					break
 				}
