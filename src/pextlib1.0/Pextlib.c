@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.70 2004/11/12 07:59:01 landonf Exp $
+ * $Id: Pextlib.c,v 1.71 2005/01/20 03:38:46 landonf Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -90,6 +90,10 @@
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#if HAVE_SYS_STAT_H
+#include <sys/stat.h>
 #endif
 
 #include <tcl.h>
@@ -700,10 +704,61 @@ int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	return TCL_OK;
 }
 
+int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
+{
+	Tcl_Obj *tcl_result;
+	char *tcl_mask, *p;
+	const size_t stringlen = 4; /* 3 digits & \0 */
+	int i;
+	mode_t *set;
+	mode_t newmode;
+	mode_t oldmode;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "numask");
+		return TCL_ERROR;
+	}
+
+	tcl_mask = Tcl_GetString(objv[1]);
+	if ((set = setmode(tcl_mask)) == NULL) {
+		Tcl_SetResult(interp, "Invalid umask mode", TCL_STATIC);
+		return TCL_ERROR;
+	}
+
+	newmode = getmode(set, 0);
+
+	oldmode = umask(newmode);
+
+	tcl_mask = malloc(stringlen); /* 4 digits & \0 */
+	if (!tcl_mask) {
+		return TCL_ERROR;
+	}
+
+	/* Totally gross and cool */
+	p = tcl_mask + stringlen;
+	*p = '\0';
+	for (i = stringlen - 1; i > 0; i--) {
+		p--;
+		*p = (oldmode & 7) + '0';
+		oldmode >>= 3;
+	}
+	if (*p != '0') {
+		p--;
+		*p = '0';
+	}
+
+	tcl_result = Tcl_NewStringObj(p, -1);
+	free(tcl_mask);
+
+	Tcl_SetObjResult(interp, tcl_result);
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
-	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return TCL_ERROR;
+
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
@@ -721,7 +776,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
-	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
+	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
+
+	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
+
 	return TCL_OK;
 }
