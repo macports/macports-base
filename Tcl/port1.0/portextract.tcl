@@ -1,4 +1,3 @@
-#-*- mode: Fundamental; tab-width: 4; -*-
 # ex:ts=4
 #
 # Insert some license text here at some point soon.
@@ -33,7 +32,7 @@ proc extract_main {args} {
 	set extract.after_args "-d $portpath/$workdir"
     }
 
-    puts "Extracting for $distname"
+    ui_puts "Extracting for $distname"
     if [file exists $workdir] {
 	file delete -force $portpath/$workdir
     }
@@ -41,14 +40,14 @@ proc extract_main {args} {
     file mkdir $portpath/$workdir
     cd $portpath/$workdir
     foreach distfile ${extract.only} {
-	puts -nonewline "$distfile: "
+	ui_puts "$distfile: " -nonewline
 	flush stdout
 	set cmd "${extract.cmd} [join ${extract.before_args}] $distpath/$distfile [join ${extract.after_args}]"
 	if [catch {system $cmd} result] {
-	    puts $result
+	    ui_puts $result
 	    return -1
 	}
-	puts "done"
+	ui_puts "done"
     }
     return 0
 }

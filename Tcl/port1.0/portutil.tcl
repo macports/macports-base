@@ -1,4 +1,3 @@
-#-*- mode: Fundamental; tab-width: 4; -*-
 # ex:ts=4
 #
 # Insert some license text here at some point soon.
@@ -67,8 +66,7 @@ proc register {name mode args} {
         set chain [lindex $args 0]
         set procedure [lindex $args 1]
         if {[dlist_has_key targets $name procedure,$chain]} {
-            # XXX: remove puts
-            puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
+            ui_puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure,$chain $procedure
 	
@@ -76,8 +74,7 @@ proc register {name mode args} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
         } else {
-            # XXX: remove puts
-            puts "Warning: target '$name' not-registered in register $mode"
+            ui_puts "Warning: target '$name' not-registered in register $mode"
         }
         
         if {[string equal provides $mode]} {
@@ -321,12 +318,11 @@ proc dlist_evaluate {dlist action} {
     set names [array names uplist name,*]
     if { [llength $names] > 0} {
 	# somebody broke!
-	# XXX: remove puts
-	puts "Warning: the following items did not execute: "
+	ui_puts "Warning: the following items did not execute: "
 	foreach name $names {
-	    puts -nonewline "$uplist($name) "
+	    ui_puts "$uplist($name) " -nonewline
 	}
-	puts ""
+	ui_puts ""
     }
 }
 
@@ -335,18 +331,16 @@ proc exec_target {chain dlist name} {
     upvar $dlist uplist
     if {[dlist_has_key uplist $name procedure,$chain]} {
 	set procedure [dlist_get_key uplist $name procedure,$chain]
-	# XXX: remove puts
-	puts "DEBUG: Executing $name in chain $chain"
+	ui_puts "DEBUG: Executing $name in chain $chain"
 	if {[$procedure $name $chain] == 0} {
 	    set result success
 	} else {
-	    # XXX: remove puts
-	    puts "Error in $name in chain $chain"
+	    ui_puts "Error in $name in chain $chain"
 	    set result failure
 	}
     } else {
 	# XXX: remove puts
-	puts "Warning: $name does not support chain $chain"
+	ui_puts "Warning: $name does not support chain $chain"
 	set result failure
     }
     return $result
@@ -365,8 +359,7 @@ proc eval_targets {dlist chain target} {
 	    array set uplist [array get dependents]
 	    # Special-case 'all'
 	} elseif {![string equal $target all]} {
-	    # XXX: remove puts
-	    puts "Warning: unknown target: $target"
+	    ui_puts "Warning: unknown target: $target"
 	    return
 	}
     }

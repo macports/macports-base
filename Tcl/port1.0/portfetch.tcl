@@ -1,4 +1,3 @@
-#-*- mode: Fundamental; tab-width: 4; -*-
 # ex:ts=4
 #
 # Insert some license text here at some point soon.
@@ -51,9 +50,9 @@ proc fetchfiles {args} {
 
     foreach distfile $all_dist_files {
 	if {![file isfile $distpath/$distfile]} {
-	    puts "$distfile doesn't seem to exist in $distpath"
+	    ui_puts "$distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
-		puts "Attempting to fetch from $site"
+		ui_puts "Attempting to fetch from $site"
 		if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 		    set fetched 1
 		    break

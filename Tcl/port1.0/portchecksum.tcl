@@ -1,4 +1,3 @@
-#-*- mode: Fundamental; tab-width: 4; -*-
 # ex:ts=4
 #
 # Insert some license text here at some point soon.
@@ -24,8 +23,8 @@ proc md5 {file} {
 	return $sum
     } else {
 	# XXX Handle this error beter
-	puts $line
-	puts "md5sum failed!"
+	ui_puts $line
+	ui_puts "md5sum failed!"
 	return -1
     }
 }
@@ -50,7 +49,7 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	puts "No MD5 checksums."
+	ui_puts "No MD5 checksums."
 	return -1
     }
 
@@ -58,13 +57,13 @@ proc checksum_main {args} {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
-	    puts "No checksum recorded for $distfile"
+	    ui_puts "No checksum recorded for $distfile"
 	    return -1
 	}
 	if {$checksum == $dchecksum} {
-	    puts "Checksum OK for $distfile"
+	    ui_puts "Checksum OK for $distfile"
 	} else {
-	    puts "Checksum mismatch for $distfile"
+	    ui_puts "Checksum mismatch for $distfile"
 	    return -1
 	}
     }

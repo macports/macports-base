@@ -1,4 +1,3 @@
-#-*- mode: Fundamental; tab-width: 4; -*-
 # ex:ts=4
 #
 # Insert some license text here at some point soon.
