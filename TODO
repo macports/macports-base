@@ -2,7 +2,6 @@ Things left to do in Darwinports
 
 Task								Who
 ----								---
-Fix strsed segfault						landonf
 Add descriptions and contents lists to all ports		eric
 Implement the variants code					landonf kevinvv
 Add an internal version of ports.conf for "hard defaults"	landonf
