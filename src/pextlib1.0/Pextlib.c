@@ -1,9 +1,10 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.68 2004/11/05 11:40:55 pguyot Exp $
+ * $Id: Pextlib.c,v 1.69 2004/11/12 07:58:02 landonf Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
+ * Copyright (c) 2004 Landon Fuller.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
