@@ -126,14 +126,8 @@ proc uninstall_main {args} {
 		}
 	    }
 	    if {!$uninst_err || [tbool uninstall.force]} {
-		if {[regexp .bz2$ $rfile]} {
-			regsub {.bz2$} $rfile {} r_file
-			set r_version [lindex [split $r_file -] 1]
-		} else {
-			set r_version [lindex [split $rfile -] 1]
-		}
-		registry_delete $portname $r_version
-		return 0
+			registry_delete $portname
+			return 0
 	    }
 	} else {
 	    return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]

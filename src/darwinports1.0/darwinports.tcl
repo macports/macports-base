@@ -712,12 +712,24 @@ proc dportregistry::close {rhandle} {
     }
 }
 
-proc dportregistry::delete {portname {portversion 1.0}} {
+proc dportregistry::delete {portname {portversion 0}} {
     global darwinports::registry.path
 
-    # Try both versions, just to be sure.
-    exec rm -f [file join ${darwinports::registry.path} ${portname}-${portversion}]
-    exec rm -f [file join ${darwinports::registry.path} ${portname}-${portversion}].bz2
+    # regex match case, as in exists
+    if {$portversion == 0} {
+		set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
+		if {[string length $x]} {
+		    exec rm -f [lindex $x 0]
+		}
+	} else {
+		# Remove the file (with or without .bz2 suffix)
+		set filename [file join ${darwinports::registry.path} ${portname}-${portversion}]
+		if { [file exists $filename] } {
+			exec rm -rf $filename
+		} elseif { [file exists ${filename}.bz2] } {
+			exec rm -rf ${filename}.bz2
+		}
+	}
 }
 
 proc dportregistry::fileinfo_for_file {fname} {
