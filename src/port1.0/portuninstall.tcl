@@ -111,7 +111,7 @@ proc uninstall_main {args} {
 			}
 		    }
 		} else {
-		    if [catch {exec rm $fname}] {
+		    if [catch {file delete -- $fname}] {
 			ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove file %s"] $fname]"
 			set uninst_err 1
 		    }
