@@ -1185,7 +1185,7 @@ proc libportfile_test {this} {
 	if {[info exists env(DYLD_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	} else {
-	    lappend search_path /lib /usr/local/lib /lib /usr/lib /op/local/lib /usr/X11R6/lib ${prefix}/lib
+	    lappend search_path /lib /usr/local/lib /lib /usr/lib /opt/local/lib /usr/X11R6/lib ${prefix}/lib
 	}
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
