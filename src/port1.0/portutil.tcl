@@ -77,29 +77,38 @@ proc tbool {key} {
     return 0
 }
 
-proc reinplace {file pattern} {
+proc reinplace {oddpattern file}  {
+    set backpattern [strsed $oddpattern {g/\//\\\\\//}]
+    set pattern [strsed $backpattern {g/\|/\//}]
+
     if {[catch {set input [open "$file" RDWR]} error]} {
 	ui_error "reinplace: $error"
 	return -code error "reinplace failed"
     }
-    if {[catch {set result [mkstemp "/tmp/${file}.sed.XXXXXXXX"]} error]} {
+
+    if {[catch {set result [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 	ui_error "reinplace: $error"
 	return -code error "reinplace failed"
     }
+
     set output [lindex $result 0]
     set tmpfile [lindex $result 1]
-    if {[catch {exec sed "$pattern" <@$input >@$output 2>/dev/null} error]} {
+
+    if {[catch {exec sed $pattern <@$input >@$output} error]} {
 	ui_error "reinplace: $error"
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
+
     seek $output 0
     seek $input 0
+
     if {[catch {exec cat <@$output >@$input 2>/dev/null} error]} {
 	ui_error "reinplace: $error"
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
+
     file delete "$tmpfile"
     return
 }
