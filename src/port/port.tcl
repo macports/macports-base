@@ -146,7 +146,7 @@ for {set i 0} {$i < $argc} {incr i} {
 	set options($key) \"$val\"
 	
 	# action
-    } elseif {[regexp {^([A-Za-z0-9/._\-^$\[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
+    } elseif {[regexp {^([A-Za-z0-9/._\-^$ \[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
 	if {[info exists action]} {
 	    set portname $opt
 	} else {
