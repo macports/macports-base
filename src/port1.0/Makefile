@@ -5,9 +5,9 @@ all:
 
 clean:
 
-install: all
+install:
 	mkdir -p ${INSTALLDIR}
 	@set -x; for file in ${SRCS}; do \
-		${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} $$file ${INSTALLDIR}; \
+		install -c -o root -g wheel -m 444 $$file ${INSTALLDIR}; \
 	done
 	../pkg_mkindex.tcl ${INSTALLDIR}
