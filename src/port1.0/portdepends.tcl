@@ -91,7 +91,7 @@ proc depends_main {id} {
 		    if {[info exists env(DYLD_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
 		    } else {
-			lappend search_path /lib /usr/local/lib /lib /usr/lib
+			lappend search_path /lib /usr/local/lib /lib /usr/lib /opt/local/lib
 		    }
 		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
