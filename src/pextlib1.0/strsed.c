@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.8  2002/10/04 07:12:21  jkh
+ * Remove some gratuitous externs
+ *
  * Revision 1.7  2002/08/31 06:30:25  jkh
  * Move from /usr/local into /opt/local
  *
@@ -244,9 +247,7 @@ register char *string;
 register char *pattern;
 int *range;
 {
-    extern char *realloc();
     extern char *strdup();
-    extern void free();
 
 #ifdef GNU_REGEX
     extern char *re_compile_pattern();
@@ -564,7 +565,6 @@ int *range;
      */
     else{
 	if (first_time){
-	    extern char *malloc();
 	    if (!(re_comp_buf.buffer = (char *)malloc((unsigned)200))){
 		RETURN(0);
 	    }
@@ -1384,7 +1384,6 @@ int size;
      */
     
     static void mem_save();
-    extern char *malloc();
 
     if (who < 0 || who >= MEM_SLOTS){
 	return 0;
@@ -1479,7 +1478,6 @@ int x;
      *
      */
 
-    extern void free();
     register int i;
     register int saved = 0;
     
