@@ -197,6 +197,13 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		if (WEXITSTATUS(ret) == 0)
 			return TCL_OK;
 		else {
+			/* set errorCode [list CHILDSTATUS <pid> <code>] */
+			Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+			Tcl_SetObjErrorCode(interp, errorCode);
+
 			tcl_result = Tcl_NewStringObj("shell command \"", -1);
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
