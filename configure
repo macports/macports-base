@@ -312,7 +312,7 @@ ac_includes_default="\
 #endif"
 
 ac_default_prefix=/opt/local
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE MTREE subdirs REPLACEMENT_PROGS CPP EGREP MD5_LIBS PORTCONFIGDIR DSTUSR DSTGRP TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE MTREE subdirs REPLACEMENT_PROGS CPP EGREP MD5_LIBS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -855,6 +855,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-dports-dir=DIR   Specify alternate dports directory
   --with-install-user=USER
                           Specify user ownership of installed files
   --with-install-group=GROUP
@@ -3353,7 +3354,50 @@ echo "$as_me: error: Neither OpenSSL or libmd were found. A working md5 implemen
 
 
 
+# set default dports-directory
+DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
+
 # Check for paths
+
+
+
+
+
+# Check whether --with-dports-dir or --without-dports-dir was given.
+if test "${with_dports_dir+set}" = set; then
+  withval="$with_dports_dir"
+   dportsdir="$withval"
+fi;
+
+
+ 	echo "$as_me:$LINENO: checking for dports tree" >&5
+echo $ECHO_N "checking for dports tree... $ECHO_C" >&6
+ 	if test "x$dportsdir" != "x" ; then
+ 	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
+ 		:
+ 	  else
+ 		{ { echo "$as_me:$LINENO: error: $dportsdir not a valid dports tree" >&5
+echo "$as_me: error: $dportsdir not a valid dports tree" >&2;}
+   { (exit 1); exit 1; }; }
+ 	  fi
+ 	else
+ 		 		if test "x$DPORTS_DIR_DEFAULT" != "x" ; then
+ 		  if test -d "$DPORTS_DIR_DEFAULT" -a -e "$DPORTS_DIR_DEFAULT/PortIndex" ; then
+ 			dportsdir=$DPORTS_DIR_DEFAULT
+ 		  fi
+ 		fi
+ 	fi
+
+ 	if test "x$dportsdir" != "x" ; then
+ 		echo "$as_me:$LINENO: result: $dportsdir" >&5
+echo "${ECHO_T}$dportsdir" >&6
+ 		DPORTSDIR="$dportsdir"
+
+ 	else
+ 		{ echo "$as_me:$LINENO: WARNING: No dports tree found" >&5
+echo "$as_me: WARNING: No dports tree found" >&2;}
+ 	fi
+
 
 
 
@@ -6183,6 +6227,7 @@ s,@REPLACEMENT_PROGS@,$REPLACEMENT_PROGS,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
 s,@MD5_LIBS@,$MD5_LIBS,;t t
+s,@DPORTSDIR@,$DPORTSDIR,;t t
 s,@PORTCONFIGDIR@,$PORTCONFIGDIR,;t t
 s,@DSTUSR@,$DSTUSR,;t t
 s,@DSTGRP@,$DSTGRP,;t t
