@@ -60,7 +60,7 @@ default cvs.pre_args {"-d ${cvs.root}"}
 default fetch.cmd curl
 default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
-default fetch.pre_args "-L"
+default fetch.pre_args ""
 default fetch.post_args {"${site}${distfile}"}
 
 # Set distfiles
