@@ -111,6 +111,8 @@ AC_DEFUN(SC_PATH_TCLCONFIG, [
 			`ls -d /usr/lib 2>/dev/null` \
 			`ls -d /usr/pkg/lib 2>/dev/null` \
 			`ls -d /System/Library/Tcl/8.3 2>/dev/null` \
+			`ls -d /usr/local/lib/tcl8.4 2>/dev/null` \
+			`ls -d /usr/local/lib/tcl8.3 2>/dev/null` \
 			; do
 		    if test -f "$i/tclConfig.sh" ; then
 			ac_cv_c_tclconfig=`(cd $i; pwd)`
