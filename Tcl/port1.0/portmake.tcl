@@ -12,17 +12,13 @@ register com.apple.make provides make
 register com.apple.make requires main fetch extract checksum patch configure
 
 # define options
-options make make.cmd make.type make.target.all make.target.install
+options make.cmd make.type make.target.all make.target.install
 
 proc make_main {args} {
-    global portname portpath workdir worksrcdir prefix make make.type make.cmd make.worksrcdir make.target.all
+    global portname portpath workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.all
 
-    default make yes
     default make.type bsd
     default make.cmd make
-    if ![tbool make] {
-	return 0
-    }
 
     if [info exists make.worksrcdir] {
 	set configpath ${portpath}/${workdir}/${worksrcdir}/${make.worksrcdir}
