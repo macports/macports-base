@@ -127,7 +127,6 @@ proc fileinfo_for_entry {rval dir entry} {
     upvar $rval myrval
     set path [file join $dir $entry]
     if {[file isdirectory $path] && [tbool registry.contents_recurse]} {
-	ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $path"
 	foreach name [readdir $path] {
 	    if {[string match $name .] || [string match $name ..]} {
 		continue
@@ -145,9 +144,13 @@ proc fileinfo_for_entry {rval dir entry} {
 }
 
 proc fileinfo_for_index {flist} {
-    global prefix
+    global prefix registry.contents_recurse UI_PREFIX
+
     set rval {}
     foreach file $flist {
+	if {[file isdirectory $file] && [tbool registry.contents_recurse]} {
+	    ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $file"
+	}
 	if [string match /* $file] {
 	    fileinfo_for_entry rval / $file
 	} else {
