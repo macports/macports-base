@@ -33,24 +33,30 @@
 
 package provide darwinports_index 1.0
 
-namespace eval darwinports_index {
+namespace eval darwinports::index {
 	variable has_sqlite {}
 }
 
-proc dports_index_init {} {
-	global darwinports_index::has_sqlite darwinports::prefix
-	if {$darwinports_index::has_sqlite == 1 ||
+proc darwinports::index::init {} {
+	global darwinports::index::has_sqlite darwinports::prefix
+	if {$darwinports::index::has_sqlite == 1 ||
 		[file exists ${darwinports::prefix}/lib/tclsqlite.dylib]} {
 		load ${darwinports::prefix}/lib/tclsqlite.dylib Sqlite
-		set darwinports_index::has_sqlite 1
+		set darwinports::index::has_sqlite 1
 	} else {
 		return -code error "Sqlite must be installed to use a remote index.  Use the tclsqlite port."
 	}
 }
 
+proc darwinports::index::get_path {source} {
+    global darwinports::portdbpath
+    regsub {://} $source {.} source_dir
+    regsub -all {/} $source_dir {_} source_dir
+    return [file join $portdbpath sources $source_dir]
+}
 
 
-# portindex_sync
+# darwinports::index::sync
 # Interact with the remote index at the specified URL.
 # Replays the SQL transactions contained in the remote
 # index file into a local database, creating it if it
@@ -63,18 +69,19 @@ proc dports_index_init {} {
 #              on the url will be appended to this path.
 # url        - the url of the remote index to synchronize with
 
-proc dports_index_sync {portdbpath url} {
-	dports_index_init
+proc darwinports::index::sync {portdbpath url} {
+	darwinports::index::init
 
-	set indexpath [file join $portdbpath portindex]
-	set indexpath [file join $indexpath [regsub -all -- {[^A-Za-z0-9._]} $url {-}]]
+	set indexpath [darwinports::index::get_path $url]
 	if {[catch {file mkdir $indexpath} result]} {
 		return -code error "$indexpath could not be created: $result"
 	}
 
 	set oldpath [pwd]
 	cd $indexpath
-
+	
+	# We actually use http:// as the transport mechanism
+	set url [regsub -- {^dports} $url {http}]
 
 	# If the database didn't exist, initialize it.
 	# The schema is available on the server in the initialize.sql file.
@@ -155,4 +162,203 @@ proc dports_index_sync {portdbpath url} {
 	# Clean Up
 	DB close
 	cd $oldpath
+}
+
+# darwinports::index::search
+#
+# Searches the cached copy of the specified port index for
+# the Portfile satisfying the given query.
+#
+# Todo -- in the future we may want to do an implicit "port sync"
+# when this function is called.
+#
+# portdbpath - the path to which the local database should
+#              be stored.  "portindex/" and a unique hash based
+#              on the url will be appended to this path.
+# url        - the url of the remote index to search
+#
+# attrs      - an array of the attributes to search for
+#			   currently only "name" is supported.
+
+proc darwinports::index::search {portdbpath url attrslist} {
+	darwinports::index::init
+	set indexpath [darwinports::index::get_path $url]
+
+	if {![file exists $indexpath/database.sqlite]} {
+		return -code error "Can't open index file for source $url. Have you synced your source indexes (port sync)?"
+	}
+
+	sqlite DB $indexpath/database.sqlite
+	
+	
+	# The guts of the search logic.
+	# Precedence is as follows:
+	# - If a name, version, and revision is specified return that single port.
+	# - If a name and version is specified, return the highest revision
+	# - If only a name is specified, return the highest revision of 
+	#   all distinct name, version combinations.
+	# - NOTE: it is an error to specify a revision without a version.
+
+	set pids [list]
+	array set attrs $attrslist
+	if {[info exists attrs(name)]} {
+		set name $attrs(name)
+
+		# If version was not specified, find all distinct versions;
+		# otherwise use the specified version.
+		if {![info exists attrs(version)]} {
+			set sql "SELECT version FROM ports WHERE name LIKE '$name' GROUP BY version ORDER BY version DESC"
+			set versions [DB eval $sql]
+		} else {
+			set versions [list $attrs(version)]
+		}
+	
+		# If revision was not specified, find the highest revision;
+		# otherwise use the specified revision.
+		if {![info exists attrs(revision)]} {
+			foreach version $versions {
+				set sql "SELECT max(revision) FROM ports WHERE name LIKE '$name' AND version LIKE '$version'"
+				set revisions($version) [DB eval $sql]
+			}
+		} else {
+			set revisions($version) $attrs(revision)
+		}
+		
+		foreach version $versions {
+			set sql "SELECT pid FROM ports WHERE name LIKE '$name' AND version LIKE '$version' AND revision LIKE '$revisions($version)'"
+			lappend pids [DB eval $sql]
+		}
+	}
+	
+	# Historically dportsearch has returned a serialized list of arrays.
+	# This is kinda gross and really needs to change to a more opaque
+	# data type in the future, but to ease the transition we're it the old
+	# way here.  For each port that matched the query, build up an array 
+	# from the keywords table and append it to the list.
+
+	set result [list]
+
+	foreach pid $pids {
+		set portinfo [list]
+		set primary_key [DB eval "SELECT name,version,revision FROM ports WHERE pid=$pid"]
+		set name [lindex $primary_key 0]
+		set version [lindex $primary_key 1]
+		set revision [lindex $primary_key 2]
+		lappend portinfo name $name
+		lappend portinfo version $version
+		lappend portinfo revision $revision
+		
+		set auxiliary_keys [DB eval "SELECT keyword, value FROM keywords WHERE pid=$pid"]
+		foreach {key value} $auxiliary_keys {
+			# XXX - special case list types: categories, maintainers, master_sites
+			lappend portinfo $key $value
+		}
+		
+		# Craft a URL where the port can be found.
+		lappend portinfo porturl $url/files/$name/$version/$revision/Portfile.tar.gz
+		
+		# Make a note of where this port came from.
+		lappend portsource $url
+		
+		lappend result $name
+		lappend result $portinfo
+	}
+
+	DB close
+
+	return $result
+}
+
+
+
+# darwinports::index::fetch_port
+#
+# Checks for a locally cached copy of the port, or downloads the port
+# from the specified URL.  The port is extracted into the current working
+# directory.
+#
+# The cached portfiles are in the same directory as the cached remote index.
+#
+# TODO - the existing infrastructure only gives us a URL at this point,
+# but we really ought to have an opaque handle to a port.  We want to
+# get the source URL and the Portfile.tar.gz md5 from this opaque handle.
+
+proc darwinports::index::fetch_port {url} {
+	global darwinports::sources
+	
+	set portname ""
+	set portversion ""
+	
+	# Iterate through the sources, to see which one this port is coming from.
+	# If the port is not coming from a known source, return an error (for now).
+	
+	set indexpath ""
+	set fetchpath ""
+	foreach source $sources {
+		if {[regexp -- "^$source" $url] == 1} {
+			set indexpath [darwinports::index::get_path $source]
+			
+			# Extract the relative portion of the url, 
+			# and append it to the indexpath, this is where
+			# we will store the cached Portfile.
+			set dir [file dirname [regsub -- "$source/?" $url {}]]
+
+			# XXX: crude hack to get port name and version, should realy come from opaque port handle.
+			set portname [lindex [file split $dir] 1]
+			set portversion [lindex [file split $dir] 2]
+
+			set fetchpath [file join $indexpath $dir]
+			break
+		}
+	}
+	
+	if {$indexpath == "" || $fetchpath == ""} {
+		return -code error "Port URL has unknown source: $url"
+	}
+	
+	if {[catch {file mkdir $fetchpath} result]} {
+		return -code error $result
+	}
+
+	# If the portdir already exists, we don't bother extracting again.
+	
+	# Look to see if the file exists in our cache, if it does, attempt
+	# to extract it into the temporary directory that we will build in.
+	# If it does not exist, or if the tar extraction fails, then attempt
+	# to fetch it again.
+
+
+	set portdir "$portname-$portversion"
+	
+	if {[file exists $portdir]} {
+		return $portdir
+	}
+	
+	if {[catch {file mkdir $portdir} result]} {
+		return -code error $result
+	}
+
+	set fetchfile [file join $fetchpath [file tail $url]]
+	set retries 2
+	while {$retries > 0} {
+		if {[file exists $fetchfile]} {
+			set oldcwd [pwd]
+			cd $portdir
+			
+			if {[catch {exec tar -zxf $fetchfile} result]} {
+				return -code error "Could not unpack port file: $result"
+			}
+			
+			cd $oldcwd
+		} else {		
+			# We actually use http:// as the transport mechanism
+			set url [regsub -- {^dports} $url {http}]
+			if {[catch {exec curl -L -s -S -o $fetchfile $url} result ]} {
+				return -code error "Could not download port from remote index: $result"
+			}
+		}
+		incr retries -1
+	}
+	
+	return $portdir
 }

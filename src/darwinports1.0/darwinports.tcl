@@ -29,6 +29,7 @@
 #
 package provide darwinports 1.0
 package require darwinports_dlist 1.0
+package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
@@ -270,6 +271,7 @@ proc darwinports::getportdir {url} {
     if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
         switch -regexp -- ${protocol} {
             {^file$} { return $string}
+        {dports} { return [darwinports::index::fetch_port $url] }
 	    {http|ftp} { return [darwinports::fetch_port $url] }
             default { return -code error "Unsupported protocol $protocol" }
         }
@@ -560,15 +562,18 @@ proc dportsync {args} {
         # Special case file:// sources
         if {[darwinports::getprotocol $source] == "file"} {
             continue
-        }
-        set indexfile [darwinports::getindex $source]
-	if {[catch {file mkdir [file dirname $indexfile]} result]} {
-            return -code error $result
-        }
-	if {![file writable [file dirname $indexfile]]} {
-	    return -code error "You do not have permission to write to [file dirname $indexfile]"
-	}
-	exec curl -L -s -S -o $indexfile $source/PortIndex
+        } elseif {[darwinports::getprotocol $source] == "dports"} {
+			darwinports::index::sync $darwinports::portdbpath $source
+        } else {
+			set indexfile [darwinports::getindex $source]
+			if {[catch {file mkdir [file dirname $indexfile]} result]} {
+				return -code error $result
+			}
+			if {![file writable [file dirname $indexfile]]} {
+				return -code error "You do not have permission to write to [file dirname $indexfile]"
+			}
+			exec curl -L -s -S -o $indexfile $source/PortIndex
+		}
     }
 }
 
@@ -577,6 +582,14 @@ proc dportsearch {regexp} {
     set matches [list]
 
     foreach source $sources {
+    	if {[darwinports::getprotocol $source] == "dports"} {
+    		# Strip out ^$ for compatability. (We don't use regexes anymore)
+    		regsub -- {^\^} $regexp {} regexp
+    		regsub -- {\$$} $regexp {} regexp
+    		array set attrs [list name $regexp]
+			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
+			eval lappend matches $res
+		} else {
         if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
             return -code error "Can't open index file for source $source. Have you synced your source indexes?"
         }
@@ -598,7 +611,9 @@ proc dportsearch {regexp} {
             }
         }
         close $fd
+        }
     }
+
     return $matches
 }
 
