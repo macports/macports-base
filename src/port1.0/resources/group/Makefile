@@ -1,6 +1,6 @@
 INSTALLDIR=	${DESTDIR}${prefix}/share/darwinports/resources/port1.0/group
 
-RSRCS=		perl5-1.0.tcl python-1.0.tcl zope-1.0.tcl
+RSRCS=		perl5-1.0.tcl python-1.0.tcl ruby-1.0.tcl zope-1.0.tcl
 
 include ../../../../Mk/dports.autoconf.mk
 
