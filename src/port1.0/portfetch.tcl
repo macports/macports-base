@@ -54,6 +54,7 @@ default cvs.pre_args {"-d ${cvs.root}"}
 # Set distfiles
 default distfiles {[suffix $distname]}
 
+# Option-executed procedures
 namespace eval options { }
 proc options::use_bzip2 {args} {
     global use_bzip2 extract_sufx
@@ -70,11 +71,12 @@ proc options::use_zip {args} {
 }
 
 # Name space for internal implementation variables
-
+# Site lists are stored here
 namespace eval portfetch { }
 
 set UI_PREFIX "---> "
 
+# Given a distname, return a suffix based on the use_zip / use_bzip2 / extract_sufx options
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip fetch.type
 	if {"${fetch.type}" == "cvs"} {
@@ -89,6 +91,8 @@ proc suffix {distname} {
     }
 }
 
+# Given a distribution file name, return the appended tag
+# Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
 proc getdisttag {name} {
     if {[regexp {.+:([A-Za-z]+)} $name match tag]} {
         return $tag
@@ -97,11 +101,16 @@ proc getdisttag {name} {
     }
 }
 
+# Given a distribution file name, return the name without an attached tag
+# Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
 proc getdistname {name} {
     regexp {(.+):[A-Za-z_-]+} $name match name
     return $name
 }
 
+# XXX
+# Helper function for portextract.tcl that strips all tag names from a list
+# Used to clean ${distfiles} for setting the ${extract.only} default
 proc disttagclean {list} {
     if {"$list" == ""} {
         return $list
@@ -112,6 +121,11 @@ proc disttagclean {list} {
     return $val
 }
 
+# Checks all files and their tags to assemble url lists for later fetching
+# sites tags create variables in the portfetch:: namespace containing all sites
+# within that tag distfiles are added in $site $distfile format, where $site is
+# the name of a variable in the portfetch:: namespace containing a list of fetch
+# sites
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
 	portpath master_sites
@@ -161,6 +175,8 @@ proc checkfiles {args} {
     }
 }
 
+# Perform a CVS login and fetch, storing the CVS login
+# information in a custom .cvspass file
 proc cvsfetch {args} {
     global workpath cvs.pass cvs.args cvs.post_args cvs.tag cvs.module
 	cd $workpath
@@ -178,6 +194,8 @@ proc cvsfetch {args} {
 	return 0
 }
 
+# Perform a standard fetch, assembling fetch urls from
+# the listed url varable and associated distfile
 proc fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls
 
@@ -222,6 +240,7 @@ proc fetchfiles {args} {
     return 0
 }
 
+# Initialize fetch target, calling checkfiles if neccesary
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type
 
@@ -233,6 +252,10 @@ proc fetch_init {args} {
     }
 }
 
+# Main fetch routine
+# If all_dist_files is not populated and $fetch.type == standard, then
+# there are no files to download. Otherwise, either do a cvs checkout
+# or call the standard fetchfiles procedure
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
 
