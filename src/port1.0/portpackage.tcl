@@ -114,7 +114,7 @@ proc package_tarball {portname portversion entry} {
 }
 
 proc package_pkg {portname portversion entry} {
-    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath long_description
+    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath long_description homepage
 
     set resourcepath ${workpath}/pkg_resources
     set rfile [registry_exists $portname $portversion]

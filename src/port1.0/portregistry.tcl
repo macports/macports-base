@@ -39,10 +39,10 @@ ${com.apple.registry} deplist depends_run depends_lib
 ${com.apple.registry} set prerun registry_start
 
 # define options
-options contents long_description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
+options contents long_description description homepage registry.nochecksum registry.path registry.nobzip registry.contents_recurse
 
 # Export options via PortInfo
-options_export description long_description
+options_export description long_description homepage
 
 default registry.path {[file join ${portdbpath} receipts]}
 
@@ -207,7 +207,7 @@ proc proc_disasm {pname} {
 }
 
 proc registry_main {args} {
-    global portname portversion portpath categories description long_description depends_run contents package-install uninstall workdir worksrcdir prefix UI_PREFIX
+    global portname portversion portpath categories description long_description homepage depends_run contents package-install uninstall workdir worksrcdir prefix UI_PREFIX
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
@@ -219,6 +219,9 @@ proc registry_main {args} {
     }
     if [info exists long_description] {
 	registry_store $rhandle [concat long_description ${long_description}]
+    }
+    if [info exists homepage] {
+	registry_store $rhandle [concat homepage ${homepage}]
     }
     if [info exists depends_run] {
 	registry_store $rhandle [list run_depends $depends_run]
