@@ -77,7 +77,7 @@ proc dmd5 {file} {
 proc checksum_start {args} {
     global UI_PREFIX portname
 
-    ui_msg "$UI_PREFIX Checksumming $portname"
+    ui_msg "$UI_PREFIX Verifying checksum for $portname"
 }
 
 proc checksum_main {args} {
@@ -105,12 +105,8 @@ proc checksum_main {args} {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
-	    ui_error "No checksum recorded for $distfile"
-	    return -code error "No checksum recorded for $distfile"
-	}
-	if {$checksum == $dchecksum} {
-	    ui_msg "$UI_PREFIX Checksum OK for $distfile"
-	} else {
+	    ui_warn "No checksum recorded for $distfile"
+	} elseif {$checksum != $dchecksum} {
 	    ui_error "Checksum mismatch for $distfile"
 	    return -code error "Checksum mismatch for $distfile"
 	}
