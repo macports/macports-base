@@ -125,7 +125,7 @@ proc swdep_resolve {name chain} {
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
 #	<identifier> target <chain> <procedure to execute> [run type]
-#	<identifier> swdep <chain> <dependency option name>
+#	<identifier> swdep <chain> <list of dependency option names>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -149,13 +149,14 @@ proc register {name mode args} {
 	}
     } elseif {[string equal swdep $mode]} {
 	set chain [lindex $args 0]
-	set depname [lindex $args 1]
-	if {![dlist_has_key targets $depname procedure,$chain]} {
-	    register $depname target $chain swdep_resolve
-	    register $depname provides $depname
-	    options $depname
+	foreach depname [lrange $args 1 end] {
+	    if {![dlist_has_key targets $depname procedure,$chain]} {
+		register $depname target $chain swdep_resolve
+		register $depname provides $depname
+		options $depname
+   	    }
+	    register $name requires $depname
 	}
-	register $name requires $depname
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
