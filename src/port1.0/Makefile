@@ -8,6 +8,7 @@ clean:
 install:
 	mkdir -p ${INSTALLDIR}
 	${.CURDIR}/../pkg_mkindex.tcl ${.CURDIR}
+	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} pkgIndex.tcl ${INSTALLDIR}
 	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} port.tcl ${INSTALLDIR}
 	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} portchecksum.tcl ${INSTALLDIR}
 	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} portconfigure.tcl ${INSTALLDIR}

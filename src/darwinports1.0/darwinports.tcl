@@ -8,19 +8,6 @@ set bootstrap_options "sysportpath libpath auto_path"
 set portinterp_options "sysportpath portpath auto_path portconf"
 set uniqid 0
 
-# XXX not portable
-proc ccextension {file} {
-    if {[regexp {([A-Za-z]+).c} [file tail $file] match name] == 1} {
-	set objfile [file join [file dirname $file] $name.dylib]
-	if {[file exists $objfile]} {
-	    if {[file mtime $file] <= [file mtime $objfile]} {
-		return
-	    }
-	}
-	exec cc -dynamiclib $file -o $objfile -ltcl
-    }
-}
-
 proc init {args} {
     global auto_path env bootstrap_options sysportpath portconf
 
@@ -46,19 +33,11 @@ proc init {args} {
     }
 	
     if ![info exists libpath] {
-	set libpath [file join $sysportpath Tcl]
+	set libpath /usr/local/share/darwinports/Tcl
     }
 
     if [file isdirectory $libpath] {
 	lappend auto_path $libpath
-	foreach dir [glob -nocomplain -directory $libpath -types d *] {
-	    if [file isdirectory $dir] {
-		foreach srcfile [glob -nocomplain -directory $dir -types f *.c] {
-		    ccextension $srcfile
-		}
-		catch {pkg_mkIndex $dir *.tcl *.so *.dylib} result
-	    }
-	}
     } else {
 	return -code error "Library directory '$libpath' must exist"
     }
