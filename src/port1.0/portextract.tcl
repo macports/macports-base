@@ -52,7 +52,7 @@ default extract.cmd gzip
 default extract.pre_args -dc
 default extract.post_args {{| tar -xf -}}
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath

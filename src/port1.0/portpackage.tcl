@@ -43,7 +43,7 @@ options package.type package.destpath
 # Set defaults
 default package.destpath {${workpath}}
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc package_main {args} {
     global portname portversion portrevision package.type package.destpath UI_PREFIX

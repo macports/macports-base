@@ -49,7 +49,7 @@ default xmkmf.cmd xmkmf
 default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc configure_start {args} {
     global UI_PREFIX

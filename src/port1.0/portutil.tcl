@@ -1099,3 +1099,13 @@ proc binaryInPath {binary} {
     
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
 }
+
+# Set the UI prefix to something standard (so it can be grepped for in output)
+proc set_ui_prefix {} {
+	global UI_PREFIX env
+	if {[info exists env(UI_PREFIX)]} {
+		set UI_PREFIX $env(UI_PREFIX)
+	} else {
+		set UI_PREFIX "---> "
+	}
+}

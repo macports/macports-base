@@ -40,7 +40,7 @@ target_provides ${com.apple.clean} clean
 target_requires ${com.apple.clean} main
 target_prerun ${com.apple.clean} clean_start
 
-set UI_PREFIX "--->"
+set_ui_prefix
 
 proc clean_start {args} {
     global UI_PREFIX

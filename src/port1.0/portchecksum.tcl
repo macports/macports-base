@@ -40,7 +40,7 @@ target_prerun ${com.apple.checksum} checksum_start
 # define options
 options checksums
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc dmd5 {file} {
     foreach {name type sum} [option checksums] {

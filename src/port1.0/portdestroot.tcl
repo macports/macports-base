@@ -51,7 +51,7 @@ default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
 default destroot.clean no
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc destroot_start {args} {
     global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean

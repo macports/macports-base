@@ -19,7 +19,7 @@ default test.cmd {${build.cmd}}
 default test.pre_args {${test.target}}
 default test.target test
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc test_start {args} {
     global UI_PREFIX portname

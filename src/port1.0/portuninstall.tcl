@@ -41,7 +41,7 @@ target_prerun ${com.apple.uninstall} uninstall_start
 # define options
 options uninstall.force uninstall.nochecksum
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc uninstall_start {args} {
     global portname portversion UI_PREFIX

@@ -37,7 +37,7 @@ target_runtype ${com.apple.dmg} always
 target_provides ${com.apple.dmg} dmg 
 target_requires ${com.apple.dmg} package 
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc dmg_main {args} {
     global portname portversion portrevision package.destpath UI_PREFIX

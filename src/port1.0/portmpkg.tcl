@@ -40,7 +40,7 @@ target_requires ${com.apple.mpkg} package
 # define options
 options package.type package.destpath
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc mpkg_main {args} {
     global portname portversion portrevision package.type package.destpath UI_PREFIX

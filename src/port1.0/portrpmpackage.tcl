@@ -39,7 +39,7 @@ target_requires ${com.apple.rpmpackage} destroot
 
 options package.destpath
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc rpmpackage_main {args} {
     global portname portversion portrevision UI_PREFIX

@@ -38,7 +38,7 @@ target_provides ${com.apple.install} install
 target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
 target_prerun ${com.apple.install} install_start
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc install_start {args} {
     global UI_PREFIX portname portversion

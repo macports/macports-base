@@ -36,7 +36,7 @@ set com.apple.patch [target_new com.apple.patch patch_main]
 target_provides ${com.apple.patch} patch
 target_requires ${com.apple.patch} main fetch checksum extract 
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 # Add command patch
 commands patch

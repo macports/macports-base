@@ -91,7 +91,7 @@ proc fix_extract_suffix {option action args} {
 # Site lists are stored here
 namespace eval portfetch { }
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.suffix options
 proc suffix {distname} {

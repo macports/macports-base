@@ -46,7 +46,7 @@ default build.cmd {[build_getmaketype]}
 default build.pre_args {${build.target}}
 default build.target "all"
 
-set UI_PREFIX "---> "
+set_ui_prefix
 
 proc build_getmaketype {args} {
     if {![exists build.type]} {
