@@ -80,7 +80,7 @@ proc register {name mode args} {
         set procedure [lindex $args 0]
         set init [lindex $args 1]
         if {[dlist_has_key targets $name procedure]} {
-            ui_info "Warning: target '$name' re-registered (new procedure: '$procedure')"
+            ui_debug "Warning: target '$name' re-registered (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure $procedure
         dlist_set_key targets $name init $init
