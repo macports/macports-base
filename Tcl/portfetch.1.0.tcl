@@ -9,7 +9,7 @@ namespace eval portfetch {
 }
 
 # define globals: distname master_sites distfiles patchfiles dist_subdir
-globals portfetch::options distname master_sites extract_sufx distfiles patchfiles dist_subdir use_zip use_bzip2 all_dist_files
+globals portfetch::options distname distfiles patchfiles dist_subdir all_dist_files
 
 # define options: distname master_sites
 options portfetch::options distname master_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
@@ -27,7 +27,7 @@ proc portfetch::suffix {distname} {
 }
 
 proc portfetch::checkfiles {args} {
-	global portpath master_sites distpath
+	global portpath distpath
 
 	if {![file isdirectory $distpath]} {
 		file mkdir $distpath
@@ -35,7 +35,7 @@ proc portfetch::checkfiles {args} {
 	foreach distfile [getval portfetch::options distfiles] {
 		if {![file isfile $distpath/$distfile]} {
 			puts "$distfile doesn't seem to exist in $distpath"
-			foreach site $master_sites {
+			foreach site [getval portfetch::options master_sites] {
 				puts "Attempting to fetch from $site"
 				if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 					set fetched 1
