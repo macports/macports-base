@@ -41,7 +41,7 @@ ${com.apple.install} set prerun install_start
 ${com.apple.install} set postrun install_registry
 
 # define options
-options install.target build.target.install
+options install.target install.destroot build.target.install 
 commands install
 
 # Set defaults
@@ -49,7 +49,8 @@ default install.dir {${build.dir}}
 default install.cmd {${build.cmd}}
 default install.pre_args {${install.target}}
 default install.target install
-default install.post_args {DESTDIR=${destroot}}
+default install.post_args {${install.destroot}}
+default install.destroot {DESTDIR=${destroot}}
 
 set UI_PREFIX "---> "
 
