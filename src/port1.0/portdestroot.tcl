@@ -79,6 +79,6 @@ proc destroot_finish {args} {
     global destroot
     
     # Prune empty directories in ${destroot}
-    catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir 2>/dev/null"}
+    catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
     return 0
 }
