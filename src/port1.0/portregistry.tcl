@@ -49,7 +49,7 @@ proc registry_new {portname {portversion 1.0}} {
 }
 
 proc registry_store {rhandle data} {
-    puts $rhandle "\# Contents Format: {{filename uid gid mode size {md5}} ... }"
+    puts $rhandle "\# Format: {{var value} {contents {filename uid gid mode size {md5}} ... }"
     puts $rhandle $data
 }
 
@@ -65,11 +65,12 @@ proc registry_close {rhandle} {
     close $rhandle
 }
 
+# Beginning of utility routines.
 proc fileinfo_for_file {fname} {
     if ![catch {file stat $fname statvar}] {
 	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	set pipe [open "|md5 $fname" r]
-	set line [read $pipe]
+	set line [string trimright [read $pipe] "\n"]
 	if {[regexp $md5regex $line match type filename sum] == 1} {
 	    close $pipe
 	    return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
