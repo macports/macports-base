@@ -30,5 +30,5 @@ if {$argc > 2} {
 	set portdir [lindex $argv 0]
 }
 
-darwinports::init
-darwinports::build $portdir build $target
+init
+build $portdir build $target
