@@ -98,13 +98,6 @@ proc fatal args {
     exit
 }
 
-proc escape_string {str} {
-	regsub -all "\\+" $str "\\\+" str
-	regsub -all "\\." $str "\\\." str
-
-	return $str
-}
-
 # Main
 set separator 0
 array set options [list]
@@ -190,7 +183,7 @@ switch -- $action {
         }
 
         # search for port
-        if {[catch {dportsearch ^[escape_string $portname]$} result]} {
+        if {[catch {dportsearch ^$portname$} result]} {
 	    puts "port search failed: $result"
 	    exit 1
         }
@@ -248,7 +241,7 @@ switch -- $action {
         }
 	
         # search for port
-        if {[catch {dportsearch ^[escape_string $portname]$} result]} {
+        if {[catch {dportsearch ^$portname$} result]} {
 	    puts "port search failed: $result"
 	    exit 1
         }
@@ -317,7 +310,7 @@ switch -- $action {
 	    puts "You must specify a search pattern"
 	    exit 1
 	}
-	if {[catch {set res [dportsearch [escape_string $portname]]} result]} {
+	if {[catch {set res [dportsearch $portname]} result]} {
 	    puts "port search failed: $result"
 	    exit 1
 	}
