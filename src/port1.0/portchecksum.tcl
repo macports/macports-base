@@ -45,14 +45,47 @@ default checksums ""
 
 set_ui_prefix
 
+# fchecksums
+#
+# Returns only the checksums for the given file.
+#
+proc fchecksums {file} {
+	set checksum_types "md5 sha1"
+
+	set i [lsearch [option checksums] $file]
+
+	if {$i == -1} {
+		return -1
+	}
+
+	# Start at the first item after the filename.
+	set start [expr $i + 1]
+
+	# Check every other item, making sure they're valid checksum types.
+	while {1} {
+		if {[lsearch $checksum_types [lindex [option checksums] [expr $i + 1]]] == -1} {
+			break
+		}
+
+		incr i 2
+	}
+
+	# If no checksums were found, the checksums option is probably invalid.
+	if {$start >= $i} {
+		return -1
+	}
+
+	return [lrange [option checksums] $start $i]
+}
+
 # dmd5
 #
 # Returns the expected checksum for the given file.
 # If no checksum is found, returns -1.
 #
 proc dmd5 {file} {
-	foreach {name type sum} [option checksums] {
-		if {[string equal $name $file]} {
+	foreach {type sum} [fchecksums $file] {
+		if {[string equal $type md5]} {
 			return $sum
 		}
 	}
@@ -82,8 +115,9 @@ proc checksum_main {args} {
 		return 0
 	}
 
-	# Optimization for the two-argument case for checksums.
-	if {[llength [option checksums]] == 2 && [llength $all_dist_files] == 1} {
+	# If there is only one file and an even number of arguments are specified,
+	# then we are using the short form for checksums.
+	if {[llength $all_dist_files] == 1 && [expr [llength [option checksums]] % 2] == 0} {
 		option checksums [linsert [option checksums] 0 $all_dist_files]
 	}
 
