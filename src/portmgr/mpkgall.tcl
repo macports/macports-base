@@ -91,6 +91,109 @@ proc copy_package_if_available {portname basepath destpath} {
 	return $dependencies
 }
 
+proc write_description_plist {infofile portname portversion description} {
+	set infofd [open ${infofile} w+]
+	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+}
+	puts $infofd "<dict>
+	<key>IFPkgDescriptionDeleteWarning</key>
+	<string></string>
+	<key>IFPkgDescriptionDescription</key>
+	<string>${description}</string>
+	<key>IFPkgDescriptionTitle</key>
+	<string>${portname}</string>
+	<key>IFPkgDescriptionVersion</key>
+	<string>${portversion}</string>
+</dict>
+</plist>"
+	close $infofd
+}
+
+proc write_welcome_html {filename portname portversion long_description description homepage} {
+    set fd [open ${filename} w+]
+    if {$long_description == ""} {
+	set long_description $description
+    }
+
+puts $fd "
+<html lang=\"en\">
+<head>
+	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
+	<title>Install ${portname}</title>
+</head>
+<body>
+<font face=\"Helvetica\"><b>Welcome to the ${portname} for Mac OS X Installer</b></font>
+<p>
+<font face=\"Helvetica\">${long_description}</font>
+<p>"
+
+    if {$homepage != ""} {
+	puts $fd "<font face=\"Helvetica\">${homepage}</font><p>"
+    }
+
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.</font>
+</body>
+</html>"
+
+    close $fd
+}
+
+proc write_PkgInfo {infofile} {
+	set infofd [open ${infofile} w+]
+	puts $infofd "pmkrpkg1"
+	close $infofd
+}
+
+proc mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
+	set vers [split $portversion "."]
+	
+	if {[string index $destination end] != "/"} {
+		append destination /
+	}
+	
+	set depxml ""
+	foreach dep $dependencies {
+		append depxml "<dict>
+			<key>IFPkgFlagPackageLocation</key>
+			<string>${dep}</string>
+			<key>IFPkgFlagPackageSelection</key>
+			<string>selected</string>
+		</dict>
+		"
+	}
+
+	set infofd [open ${infofile} w+]
+	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+}
+	puts $infofd "<dict>
+	<key>CFBundleGetInfoString</key>
+	<string>${portname} ${portversion}</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.opendarwin.darwinports.mpkg.${portname}</string>
+	<key>CFBundleName</key>
+	<string>${portname}</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${portversion}</string>
+	<key>IFMajorVersion</key>
+	<integer>${portrevision}</integer>
+	<key>IFMinorVersion</key>
+	<integer>0</integer>
+	<key>IFPkgFlagComponentDirectory</key>
+	<string>./Contents/Resources</string>
+	<key>IFPkgFlagPackageList</key>
+	<array>
+		${depxml}</array>
+	<key>IFPkgFormatVersion</key>
+	<real>0.10000000149011612</real>
+</dict>
+</plist>"
+	close $infofd
+}
+
 
 # Standard procedures
 
@@ -111,8 +214,6 @@ if {[catch {dportinit} result]} {
 }
 
 package require Pextlib
-package require portmpkg 1.0
-package require portpackage 1.0
 
 # If no arguments were given, default to all ports.
 if {[llength $argv] == 0} {

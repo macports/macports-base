@@ -43,7 +43,7 @@ options package.type package.destpath
 set UI_PREFIX "---> "
 
 proc mpkg_main {args} {
-    global portname portversion package.type package.destpath UI_PREFIX
+    global portname portversion portrevision package.type package.destpath UI_PREFIX
 
     # Make sure the destination path exists.
     system "mkdir -p ${package.destpath}"
@@ -51,7 +51,7 @@ proc mpkg_main {args} {
     # For now we only support pkg and tarball package types.
     switch -exact -- ${package.type} {
 	pkg {
-	    return [package_mpkg $portname $portversion]
+	    return [package_mpkg $portname $portversion $portrevision]
 	}
 	default {
 	    return -code error [format [msgcat::mc "Unknown package type: %s"] ${package.type}]
@@ -111,7 +111,7 @@ proc make_one_package {portname portversion mpkgpath} {
 	}
 }
 
-proc package_mpkg {portname portversion} {
+proc package_mpkg {portname portversion portrevision} {
     global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage depends_run depends_lib
 
 	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
@@ -137,7 +137,7 @@ proc package_mpkg {portname portversion} {
 	lappend dependencies ${portname}-${portversion}.pkg
 	
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-    mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $prefix $dependencies
+    mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
     write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
@@ -153,12 +153,8 @@ proc package_mpkg {portname portversion} {
 	return 0
 }
 
-proc mpkg_write_info_plist {infofile portname portversion destination dependencies} {
+proc mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
 	set vers [split $portversion "."]
-	set major [lindex $vers 0]
-	set minor [lindex $vers 1]
-	if {$major == ""} {set major "0"}
-	if {$minor == ""} {set minor "0"}
 	
 	if {[string index $destination end] != "/"} {
 		append destination /
@@ -190,9 +186,9 @@ proc mpkg_write_info_plist {infofile portname portversion destination dependenci
 	<key>CFBundleShortVersionString</key>
 	<string>${portversion}</string>
 	<key>IFMajorVersion</key>
-	<integer>${major}</integer>
+	<integer>${portrevision}</integer>
 	<key>IFMinorVersion</key>
-	<integer>${minor}</integer>
+	<integer>0</integer>
 	<key>IFPkgFlagComponentDirectory</key>
 	<string>./Contents/Resources</string>
 	<key>IFPkgFlagPackageList</key>
