@@ -31,7 +31,6 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
-package require portregistry 1.0
 
 register com.apple.install target install_main install_init
 register com.apple.install provides install
@@ -41,58 +40,6 @@ register com.apple.install requires main fetch extract checksum patch configure 
 options make.cmd make.type make.target.install contents description
 
 set UI_PREFIX "---> "
-
-proc fileinfo_for_file {fname} {
-    if ![catch {file stat $fname statvar}] {
-	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-	set pipe [open "|md5 $fname" r]
-	set line [read $pipe]
-	if {[regexp $md5regex $line match type filename sum] == 1} {
-	    close $pipe
-	    return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	}
-	close $pipe
-    }
-    return {}
-}
-
-proc fileinfo_for_entry {rval dir entry} {
-    upvar $rval myrval
-    set path [file join $dir $entry]
-    if [file isdirectory $path] {
-	foreach name [readdir $path] {
-	    if {[string match $name .] || [string match $name ..]} {
-		continue
-	    }
-	    set subpath [file join $path $name]
-	    if [file isdirectory $subpath] {
-		fileinfo_for_entry myrval $subpath ""
-	    } elseif [file readable $subpath] {
-		lappend myrval [fileinfo_for_file $subpath]
-	    }
-	}
-    } elseif [file readable $path] {
-	lappend myrval [fileinfo_for_file $path]
-    }
-    return $myrval
-}
-
-proc fileinfo_for_index {flist} {
-    global prefix
-    set rval {}
-    foreach file $flist {
-	if [string match /* $file] {
-	    fileinfo_for_entry rval / $file
-	} else {
-	    fileinfo_for_entry rval $prefix $file
-	}
-    }
-    return $rval
-}
-
-proc proc_disasm {pname} {
-    return [list proc $pname [list [info args $pname]] [info body $pname]]
-}
 
 proc install_init {args} {
     global make.target.install
@@ -110,32 +57,7 @@ proc install_main {args} {
 
     cd $configpath
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
-    if ![catch {system "env PREFIX=${prefix} ${make.cmd} ${make.target.install}"}] {
-	# it installed successfully, so now we must register it
-	set rhandle [registry_new $portname $portversion]
-	ui_msg "$UI_PREFIX Registering $portname"
-	set data {}
-	lappend data [list prefix $prefix]
-	lappend data [list categories $categories]
-	if [info exists description] {
-	    lappend data [list description $description]
-	}
-	if [info exists depends_run] {
-	    lappend data [list run_depends $depends_run]
-	}
-	if [info exists contents] {
-	    set plist [fileinfo_for_index $contents]
-	    lappend data [list contents $plist]
-	}
-	if {[info proc pkg_install] == "pkg_install"} {
-	    lappend data [list pkg_install [proc_disasm pkg_install]]
-	}
-	if {[info proc pkg_deinstall] == "pkg_deinstall"} {
-	    lappend data [list pkg_deinstall [proc_disasm pkg_deinstall]]
-	}
-	registry_store $rhandle $data
-	registry_close $rhandle
-    } else {
+    if [catch {system "env PREFIX=${prefix} ${make.cmd} ${make.target.install}"}] {
 	ui_error "Installation failed."
 	return -1
     }

@@ -29,8 +29,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portregistry 1.0
+package provide portregister 1.0
 package require portutil 1.0
+
+register com.apple.register target register_main register_init
+register com.apple.register provides register
+register com.apple.register requires main fetch extract checksum patch configure build install depends_run depends_lib
+
+# define options
+options contents description
+
+set UI_PREFIX "---> "
 
 # For now, just write stuff to a file for debugging.
 
@@ -54,4 +63,99 @@ proc registry_traverse {func} {
 
 proc registry_close {rhandle} {
     close $rhandle
+}
+
+proc fileinfo_for_file {fname} {
+    if ![catch {file stat $fname statvar}] {
+	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	set pipe [open "|md5 $fname" r]
+	set line [read $pipe]
+	if {[regexp $md5regex $line match type filename sum] == 1} {
+	    close $pipe
+	    return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	}
+	close $pipe
+    }
+    return {}
+}
+
+proc fileinfo_for_entry {rval dir entry} {
+    upvar $rval myrval
+    set path [file join $dir $entry]
+    if [file isdirectory $path] {
+	foreach name [readdir $path] {
+	    if {[string match $name .] || [string match $name ..]} {
+		continue
+	    }
+	    set subpath [file join $path $name]
+	    if [file isdirectory $subpath] {
+		fileinfo_for_entry myrval $subpath ""
+	    } elseif [file readable $subpath] {
+		lappend myrval [fileinfo_for_file $subpath]
+	    }
+	}
+    } elseif [file readable $path] {
+	lappend myrval [fileinfo_for_file $path]
+    }
+    return $myrval
+}
+
+proc fileinfo_for_index {flist} {
+    global prefix
+    set rval {}
+    foreach file $flist {
+	if [string match /* $file] {
+	    fileinfo_for_entry rval / $file
+	} else {
+	    fileinfo_for_entry rval $prefix $file
+	}
+    }
+    return $rval
+}
+
+proc proc_disasm {pname} {
+    set p "proc "
+    append p $pname " {"
+    set space ""
+    foreach arg [info args $pname] {
+	if [info default $pname $arg value] {
+	    append p "$space{" [list $arg $value] "}"
+	} else {
+	    append p $space $arg
+	}
+	set space " "
+    }
+    append p "} {" [info body $pname] "}"
+    return $p
+}
+
+proc register_init {} {
+}
+
+proc register_main {} {
+    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix UI_PREFIX
+
+    # Package installed successfully, so now we must register it
+    set rhandle [registry_new $portname $portversion]
+    ui_msg "$UI_PREFIX Registering $portname"
+    lappend data [list prefix $prefix]
+    lappend data [list categories $categories]
+    if [info exists description] {
+	lappend data [list description $description]
+    }
+    if [info exists depends_run] {
+	lappend data [list run_depends $depends_run]
+    }
+    if [info exists contents] {
+	set plist [fileinfo_for_index $contents]
+	lappend data [list contents $plist]
+    }
+    if {[info proc pkg_install] == "pkg_install"} {
+	lappend data [list pkg_install [proc_disasm pkg_install]]
+    }
+    if {[info proc pkg_deinstall] == "pkg_deinstall"} {
+	lappend data [list pkg_deinstall [proc_disasm pkg_deinstall]]
+    }
+    registry_store $rhandle $data
+    registry_close $rhandle
 }
