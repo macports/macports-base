@@ -161,7 +161,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\"";
-	int operation = 0, fd, i;
+	int operation = 0, fd, i, ret;
+	char *res;
 	Tcl_Channel channel;
 	ClientData handle;
 
@@ -207,9 +208,26 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 			operation |= LOCK_NB;
 		}
 	}
-	if (flock(fd, operation) != 0)
+	if ((ret = flock(fd, operation)) != 0)
 	{
-		Tcl_SetResult(interp, (void *) strerror(errno), TCL_STATIC);
+		switch(errno) {
+			case EAGAIN:
+				res = "EAGAIN";
+				break;
+			case EBADF:
+				res = "EBADF";
+				break;
+			case EINVAL:
+				res = "EINVAL";
+				break;
+			case EOPNOTSUPP:
+				res = "EOPNOTSUPP";
+				break;
+			default:
+				res = strerror(errno);
+				break;
+		}
+		Tcl_SetResult(interp, (void *) res, TCL_STATIC);
 		return TCL_ERROR;
 	}
 	return TCL_OK;
