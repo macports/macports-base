@@ -2,6 +2,7 @@ Things left to do in Darwinports
 
 Task								Who
 ----								---
+Create index magic						landonf
 Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
      specific sites						landonf
