@@ -9,6 +9,106 @@ namespace eval portutil {
 
 ########### External High Level Procedures ###########
 
+# options
+# Exports options in an array as externally callable procedures
+# Thus, "options myarray name date" would create procedures named "name"
+# and "date" that set the array items keyed by "name" and "date"
+# Arguments: <array for export> <options (keys in array) to export>
+proc options {array args} {
+	foreach option $args {
+		eval proc $option {args} \{ setval $array $option {$args} \}
+	}
+}
+
+# default
+# Checks if variable is set, if not, sets to supplied value
+proc default {array key val} {
+	upvar $array uparray
+	if {![isval $array $key]} {
+		setval $array $key $val
+	}
+}
+
+# globals
+# Specifies which keys from an array should be exported as global variables.
+# Often used directly with options procedure
+proc globals {array args} {
+	foreach key $args {
+		if {[info exists portutil::globals($key)]} {
+			error "Re-exporting global $key"
+		}
+		set portutil::globals($key) $array
+	}
+}
+
+
+########### Global Variable Manipulation Procedures ###########
+
+proc globalval {array key} {
+	upvar $array uparray
+	global $key
+	set $key $uparray($key)
+	set portutil::globals($key) $array
+}
+
+proc unglobalval {key} {
+	global $key
+	if {[info exists $key]} {
+		unset $key
+	}
+	if {[info exists portutil::globals($key)]} {
+		unset portutil::globals($key)
+	}
+}
+
+########### Base Data Accessor Procedures ###########
+
+proc setval {array key val} {
+	upvar $array uparray
+	set uparray($key) $val
+	if {[info exists portutil::globals($key)]} {
+		if {$portutil::globals($key) == $array} {
+			globalval uparray $key
+		}
+	}
+}
+
+proc appendval {array key val} {
+	upvar $array uparray
+	if {[isval $array $key]} {
+		setval $array $key "[getval $array $key] $val"
+	} else {
+		setval $array $key $val
+	}
+}
+
+proc isval {array key} {
+	upvar $array uparray
+	return [info exists uparray($key)]
+}
+
+proc getval {array key} {
+	upvar $array uparray
+	if {![info exists uparray($key)]} {
+		error "Undefined option $key in $array"
+	} else {
+		if {[info exists portutil::globals($key)]} {
+			upvar #0 $key upkey
+			setval $array $key $upkey
+		}
+		return $uparray($key)
+	}
+}
+
+proc delval {array key} {
+	upvar $array uparray
+	unset uparray($key)
+	if {[info exists portutil::globals($key)]} {
+		unglobalval $key
+	}
+}
+
+########### External Dependancy Manipulation Procedures ###########
 # register
 # Creates a target in the global target list using the internal dependancy
 #     functions
@@ -70,39 +170,7 @@ proc unregister {mode target} {
 	}
 }
 
-# options
-# Exports options in an array as externally callable procedures
-# Thus, "options myarray name date" would create procedures named "name"
-# and "date" that set the array items keyed by "name" and "date"
-# Arguments: <array for export> <options (keys in array) to export>
-proc options {array args} {
-	foreach option $args {
-		eval proc $option {args} \{ setval $array $option {$args} \}
-	}
-}
-
-# default
-# Checks if variable is set, if not, sets to supplied value
-proc default {array key val} {
-	upvar $array uparray
-	if {![isval $array $key]} {
-		setval $array $key $val
-	}
-}
-
-# globals
-# Specifies which keys from an array should be exported as global variables.
-# Often used directly with options procedure
-proc globals {array args} {
-	foreach key $args {
-		if {[info exists portutil::globals($key)]} {
-			error "Re-exporting global $key"
-		}
-		set portutil::globals($key) $array
-	}
-}
-
-########### Dependancy Manipulation Procedures ###########
+########### Internal Dependancy Manipulation Procedures ###########
 
 # depend_list_add
 # Creates a new node in the dependency list with the given name.
@@ -302,93 +370,4 @@ proc append_dependents {dependents itemlist name} {
 	}
 	
 	# XXX: add soft-dependencies?
-}
-
-########### Global Variable Manipulation Procedures ###########
-
-proc globalval {array key} {
-	upvar $array uparray
-	global $key
-	set $key $uparray($key)
-	set portutil::globals($key) $array
-}
-
-proc unglobalval {key} {
-	global $key
-	if {[info exists $key]} {
-		unset $key
-	}
-	if {[info exists portutil::globals($key)]} {
-		unset portutil::globals($key)
-	}
-}
-
-########### Stack/List Manipulation Procedures ###########
-
-proc push {list value} {
-	upvar $list stack
-	lappend list $value
-}
-
-proc pop {list} {
-	upvar $list stack
-	set value [lindex $list end]
-	set list [lrange $list 0 [expr [llength $list]-2]]
-	return $value
-}
-
-proc ldelete {list value} {
-	set ix [lsearch -exact $list $value]
-	if {$ix >= 0} {
-		return [lreplace $list $ix $ix]
-	} else {
-		return $list
-	}
-}
-
-########### Base Data Accessor Procedures ###########
-
-proc setval {array key val} {
-	upvar $array uparray
-	set uparray($key) $val
-	if {[info exists portutil::globals($key)]} {
-		if {$portutil::globals($key) == $array} {
-			globalval uparray $key
-		}
-	}
-}
-
-proc appendval {array key val} {
-	upvar $array uparray
-	if {[isval $array $key]} {
-		setval $array $key "[getval $array $key] $val"
-	} else {
-		setval $array $key $val
-	}
-}
-
-proc isval {array key} {
-	upvar $array uparray
-	return [info exists uparray($key)]
-}
-
-proc getval {array key} {
-	upvar $array uparray
-	if {![info exists uparray($key)]} {
-		error "Undefined option $key in $array"
-	} else {
-		if {[info exists portutil::globals($key)]} {
-			upvar #0 $key upkey
-			setval $array $key $upkey
-		}
-		return $uparray($key)
-	}
-}
-
-proc delval {array key} {
-	upvar $array uparray
-	unset uparray($key)
-	if {[info exists portutil::globals($key)]} {
-		unglobalval $key
-	}
 }
