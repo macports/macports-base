@@ -355,8 +355,8 @@ proc _dportsearchpath {depregex search_path} {
 
 proc _libtest {dport} {
     global env tcl_platform
-    set depspec [ditem_key $dport depspec]
-	set depregex [lindex [split $depspec :] 1]
+	set depline [ditem_key $dport depspec]
+	set depspec [split [lindex [split $depline :] 1] "."]
 	set prefix [_dportkey $dport prefix]
 	
 	if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
@@ -374,11 +374,13 @@ proc _libtest {dport} {
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
-	regsub {\.} $depregex {\.} depregex
+	set depname [lindex $depspec 0]
+	set depversion [lindex $depspec 1]
 	if {$tcl_platform(os) == "Darwin"} {
-		set depregex \^${depregex}\\.dylib\$
+		set depregex \^${depname}\\.$depversion.dylib\$
 	} else {
-		set depregex \^${depregex}\\.so\$
+		
+		set depregex \^${depname}\\.so\\.$depversion\$
 	}
 
 	return [_dportsearchpath $depregex $search_path]
