@@ -236,6 +236,16 @@
         ..
         skel
         ..
+        var
+            db
+                dports
+                    distfiles
+                    ..
+                    receipts
+                    ..
+                ..
+            ..
+        ..
         xml
         ..
     ..
