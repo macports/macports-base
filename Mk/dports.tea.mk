@@ -10,8 +10,9 @@ clean::
 	rm -f ${OBJS} ${SHLIB_NAME}
 
 distclean:: clean
+	rm -f config.h
 
 install:: all
 	mkdir -p ${INSTALLDIR}
-	install -c -o "${DSTUSR}" -g "${DSTGRP}" -m 444 ${SHLIB_NAME} ${INSTALLDIR}
-	../pkg_mkindex.tcl ${INSTALLDIR}
+	install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
+	$(SILENT)../pkg_mkindex.tcl ${INSTALLDIR}
