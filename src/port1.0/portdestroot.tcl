@@ -43,6 +43,7 @@ target_postrun ${com.apple.destroot} destroot_finish
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs
 options startupitem.create startupitem.requires
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
+options startupitem.type
 commands destroot
 
 # Set defaults
@@ -54,6 +55,9 @@ default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
 default destroot.clean no
 default destroot.keepdirs ""
+
+default startupitem.name {${portname}}
+default startupitem.type "SystemStarter"
 
 set_ui_prefix
 

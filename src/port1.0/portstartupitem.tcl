@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.1 2005/01/18 18:58:15 mww Exp $
+# $Id: portstartupitem.tcl,v 1.2 2005/01/20 02:17:42 landonf Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -33,65 +33,128 @@
 #
 
 package provide portstartupitem 1.0
+package require portutil 1.0
 
-proc startupitem_create {args} {
+set_ui_prefix
+
+proc startupitem_create_rcng {args} {
 	global prefix destroot portname os.platform
 	global startupitem.name startupitem.requires
-	global startupitem.start startupitem.start startupitem.start
-	ui_msg "creating startup item/script"
+	global startupitem.start startupitem.stop startupitem.restart
+	global startupitem.type
 
-	if {${os.platform} == "darwin"} {
-	    set scriptdir ${prefix}/etc/startup
-		if { ![exists startupitem.name] } {
-			set startupitem.name ${portname}
-		}
-		if { ![exists startupitem.start] } {
-			set startupitem.start "sh ${scriptdir}/${portname}.sh start"
-		}
-		if { ![exists startupitem.stop] } {
-			set startupitem.stop  "sh ${scriptdir}/${portname}.sh stop"
-		}
-		if { ![exists startupitem.restart] } {
-			set startupitem.restart "sh ${scriptdir}/${portname}.sh restart"
-		}
-		if { ![exists startupitem.requires] } {
-			set startupitem.requires "\"Disks\", \"NFS\""
-		}
-		set itemname [string toupper ${startupitem.name}]
-		set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
-		file mkdir ${destroot}${itemdir}
-		set item [open "${destroot}${itemdir}/${startupitem.name}" a]
-		puts ${item} "#!/bin/sh"
-		puts ${item} "#\n# DarwinPorts generated StartupItem\n#\n"
-		puts ${item} ". ${prefix}/etc/rc.common\n"
-		puts ${item} "StartService ()\n\{"
-		puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
-		puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
-		puts ${item} "\t\t${startupitem.start}"
-		puts ${item} "\tfi\n\}\n"
-		puts ${item} "StopService ()\n\{"
-		puts ${item} "\t\tConsoleMessage \"Stopping ${startupitem.name}\""
-		puts ${item} "\t\t${startupitem.stop}"
-		puts ${item} "\}\n"
-		puts ${item} "RestartService ()\n\{"
-		puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
-		puts ${item} "\t\tConsoleMessage \"Restarting ${startupitem.name}\""
-		puts ${item} "\t\t${startupitem.restart}"
-		puts ${item} "\tfi\n\}\n"
-		puts ${item} "RunService \"\$1\""
-		close ${item}
-		set para [open "${destroot}${itemdir}/StartupParameters.plist" a]
-		puts ${para} "\{"
-		puts ${para} "\tDescription\t= \"${startupitem.name}\";"
-		puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
-		puts ${para} "\tRequires\t= (${startupitem.requires});"
-		puts ${para} "\tOrderPreference\t= \"None\";"
-		puts ${para} "\}"
-		close ${para}
-		file mkdir ${destroot}/Library/StartupItems
-		system "cd ${destroot}/Library/StartupItems && ln -sf ${itemdir}"
-	} else {
-		ui_warn "WARNING: startupitem is not implemented on ${os.platform}."
+	set scriptdir ${destroot}/${prefix}/etc/rc.d
+
+	if { ![exists startupitem.requires] } {
+		set startupitem.requires ""
 	}
 
+	# XXX We can't share defaults with startupitem_create_darwin
+	foreach item {startupitem.start startupitem.stop startupitem.restart} {
+		if {![info exists $item]} {
+			return -code error "Missing required option $item"
+		}
+	}
+
+	file mkdir ${destroot} ${scriptdir}
+	set fd [open [file join ${scriptdir} ${startupitem.name}.sh] w 0755]
+
+	puts ${fd} "#!/bin/sh"
+	puts ${fd} "#"
+	puts ${fd} "# DarwinPorts generated RCng Script"
+	puts ${fd} "#"
+	puts ${fd} ""
+	puts ${fd} "# PROVIDE: ${startupitem.name}"
+	puts ${fd} "# REQUIRE: ${startupitem.requires}"
+	# TODO: Implement BEFORE support
+	puts ${fd} "# BEFORE:"
+	puts ${fd} "# KEYWORD: DarwinPorts"
+	puts ${fd} ""
+	puts ${fd} ". ${prefix}/etc/rc.subr"
+	puts ${fd} ""
+	puts ${fd} "name=\"${startupitem.name}\""
+	puts ${fd} "start_cmd=\"${startupitem.start}\""
+	puts ${fd} "stop_cmd=\"${startupitem.stop}\""
+	puts ${fd} "restart_cmd=\"${startupitem.restart}\""
+	puts ${fd} ""
+	puts ${fd} "load_rc_config \"${startupitem.name}\""
+	puts ${fd} ""
+	puts ${fd} "run_rc_command \"\$1\""
+	close ${fd}
+}
+
+proc startupitem_create_darwin {args} {
+	global prefix destroot portname os.platform
+	global startupitem.name startupitem.requires
+	global startupitem.start startupitem.stop startupitem.restart
+	global startupitem.type
+
+	set scriptdir ${prefix}/etc/startup
+	if { ![exists startupitem.name] } {
+		set startupitem.name ${portname}
+	}
+	if { ![exists startupitem.start] } {
+		set startupitem.start "sh ${scriptdir}/${portname}.sh start"
+	}
+	if { ![exists startupitem.stop] } {
+		set startupitem.stop  "sh ${scriptdir}/${portname}.sh stop"
+	}
+	if { ![exists startupitem.restart] } {
+		set startupitem.restart "sh ${scriptdir}/${portname}.sh restart"
+	}
+	if { ![exists startupitem.requires] } {
+		set startupitem.requires "\"Disks\", \"NFS\""
+	}
+	set itemname [string toupper ${startupitem.name}]
+	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
+	file mkdir ${destroot}${itemdir}
+	set item [open "${destroot}${itemdir}/${startupitem.name}" a]
+	puts ${item} "#!/bin/sh"
+	puts ${item} "#\n# DarwinPorts generated StartupItem\n#\n"
+	puts ${item} ". ${prefix}/etc/rc.common\n"
+	puts ${item} "StartService ()\n\{"
+	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
+	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
+	puts ${item} "\t\t${startupitem.start}"
+	puts ${item} "\tfi\n\}\n"
+	puts ${item} "StopService ()\n\{"
+	puts ${item} "\t\tConsoleMessage \"Stopping ${startupitem.name}\""
+	puts ${item} "\t\t${startupitem.stop}"
+	puts ${item} "\}\n"
+	puts ${item} "RestartService ()\n\{"
+	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
+	puts ${item} "\t\tConsoleMessage \"Restarting ${startupitem.name}\""
+	puts ${item} "\t\t${startupitem.restart}"
+	puts ${item} "\tfi\n\}\n"
+	puts ${item} "RunService \"\$1\""
+	close ${item}
+	set para [open "${destroot}${itemdir}/StartupParameters.plist" a]
+	puts ${para} "\{"
+	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
+	puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
+	puts ${para} "\tRequires\t= (${startupitem.requires});"
+	puts ${para} "\tOrderPreference\t= \"None\";"
+	puts ${para} "\}"
+	close ${para}
+	file mkdir ${destroot}/Library/StartupItems
+	system "cd ${destroot}/Library/StartupItems && ln -sf ${itemdir}"
+}
+
+proc startupitem_create {args} {
+	global os.platform UI_PREFIX
+	global startupitem.type
+	ui_msg "$UI_PREFIX [msgcat::mc "Creating Startup Script"]"
+
+	switch -exact ${os.platform} {
+		"darwin" {
+			if {${startupitem.type} == "RCng"} {
+				startupitem_create_rcng
+			} else {
+				startupitem_create_darwin
+			}
+		}
+		default {
+			startupitem_create_rcng
+		}
+	}
 }
