@@ -3,7 +3,7 @@
 package require darwinports
 
 # globals
-set invoice Portfile
+set portdir .
 
 # Standard procedures
 proc print_usage args {
@@ -21,14 +21,8 @@ proc fatal args {
 if {$argc > 1} {
 	print_usage
 } elseif {$argc == 1} {
-	set invoice [lindex $argv 0]
+	set portdir [lindex $argv 0]
 }
 
 darwinports::init
-
-if [file isfile $invoice] {
-	source $invoice
-} else {
-	fatal invoice file '$invoice' is not a file or does not exist
-}
-eval_depend portutil::targets
+darwinports::build $portdir

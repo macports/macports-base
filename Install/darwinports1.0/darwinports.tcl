@@ -68,13 +68,26 @@ namespace eval darwinports {
 		# Bootstrap ports system and bring in darwinports packages
 		set portpath [darwinports::bootstrap]
 		# Register standard darwinports package options
-		globals darwinports::options portpath distdir prefix
-		options darwinports::options portpath distdir prefix
+		globals darwinports::options portpath distdir portdir prefix
+		options darwinports::options portpath distdir portdir prefix
 		# Register defaults
 		default darwinports::options portpath $portpath
 		default darwinports::options prefix /usr/local/bin
 		default darwinports::options distdir [file join $portpath distfiles]
 
 		return
+	}
+
+# XXX incomplete. Waiting for kevin's dependancy related submissions
+	proc build {portdir} {
+		if [file isdirectory $portdir] {
+			cd $portdir
+			setval darwinports::options portdir [pwd]
+			# XXX These must execute at a global scope
+			uplevel #0 source Portfile
+			uplevel #0 eval_depend portutil::targets
+		} else {
+			return -code error "Portdir $portdir does not exist"
+		}
 	}
 }
