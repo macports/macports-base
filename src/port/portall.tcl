@@ -31,7 +31,10 @@ proc port_traverse {func {dir .}} {
 
 proc pindex {portdir} {
     global target
-    set interp [dportopen file://$portdir]
+    if [catch {set interp [dportopen file://$portdir]} err] {
+	puts "Error: Couldn't create interpreter for $portdir: $err"
+	return -1
+    }
     array set portinfo [dportinfo $interp]
     puts "Doing $target for port: $portinfo(portname)"
     dportexec $interp $target
