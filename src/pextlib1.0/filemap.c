@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.1.2.4 2004/06/04 17:31:56 pguyot Exp $
+ * $Id: filemap.c,v 1.1.2.5 2004/06/30 05:13:03 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -1504,15 +1504,27 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		Tcl_Obj* theObject;
 		SFilemapObject* theFilemapObject;
 		int theFD;
+		struct flock theLock;
 		char isReadOnly = 0;
 		SNode* theRoot = NULL;
 	
 		thePath = Tcl_GetString(objv[3]);
 				
 		/* open the file */
-		theFD = open(thePath, O_RDWR | O_CREAT | O_EXLOCK, 0664);
-		if (theFD < 0)
+		theFD = open(thePath, O_RDWR | O_CREAT, 0664);
+		if (theFD >= 0)
 		{
+			/* Get a R/W lock on it (wait if required) */
+			theLock.l_type = F_WRLCK;
+			theLock.l_whence = SEEK_SET;
+			theLock.l_start = 0;
+			theLock.l_len = 0;
+			if (fcntl(theFD, F_SETLKW, &theLock) == -1)
+			{
+				theErr = errno;
+				break;
+			}
+		} else {
 			theErr = errno;
 			if (theErr == EACCES)
 			{
@@ -1520,8 +1532,18 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 				/* try again without R/W */
 				isReadOnly = 1;
-				theFD = open(thePath, O_RDONLY | O_SHLOCK, 0);
+				theFD = open(thePath, O_RDONLY, 0);
 				if (theFD < 0)
+				{
+					theErr = errno;
+					break;
+				}
+
+				theLock.l_type = F_RDLCK;
+				theLock.l_whence = SEEK_SET;
+				theLock.l_start = 0;
+				theLock.l_len = 0;
+				if (fcntl(theFD, F_SETLKW, &theLock) == -1)
 				{
 					theErr = errno;
 					break;
