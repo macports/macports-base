@@ -52,7 +52,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
-#include <paths.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,6 +63,10 @@
 
 #ifndef __unused
 #define __unused    /* no attribute */
+#endif
+
+#if HAVE_PATHS_H
+#include <paths.h>
 #endif
 
 #ifndef _PATH_DEVNULL

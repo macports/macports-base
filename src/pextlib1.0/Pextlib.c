@@ -53,10 +53,10 @@
 
 #if HAVE_PATHS_H
 #include <paths.h>
-#else
-#ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL "/dev/null"
 #endif
+
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL   "/dev/null"
 #endif
 
 #include <pwd.h>
