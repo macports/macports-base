@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.8 2004/01/14 11:25:06 jkh Exp $
+# $Id: mirror_sites.tcl,v 1.9 2004/01/14 11:52:21 jkh Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -23,12 +23,18 @@ set portfetch::mirror_sites::sites(apache) {
 }
 
 set portfetch::mirror_sites::sites(freebsd) {
-    ftp://ftp.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
-    ftp://ftp.se.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
-    ftp://ftp.uk.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
-    ftp://ftp.ru.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
-    ftp://ftp.jp.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
-    ftp://ftp.tw.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/
+    ftp://ftp.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir:
+    ftp://ftp.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir:
+    ftp://ftp.se.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir
+    ftp://ftp.se.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
+    ftp://ftp.uk.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir
+    ftp://ftp.uk.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
+    ftp://ftp.ru.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir
+    ftp://ftp.ru.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
+    ftp://ftp.jp.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir
+    ftp://ftp.jp.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
+    ftp://ftp.tw.FreeBSD.org/pub/FreeBSD/ports/distfiles/:nosubdir
+    ftp://ftp.tw.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
 }
 
 set portfetch::mirror_sites::sites(gnome) {
