@@ -150,51 +150,84 @@ dnl print a warning
 # ---------------------
 AC_DEFUN([OD_CHECK_X11], [
 
+	AC_PATH_XTRA
+
 	# Check for libX11
 	AC_CHECK_LIB([X11], [XOpenDisplay],[
-			# found the library. check for header
-			oldCPPFLAGS="$CPPFLAGS"
-			CPPFLAGS="-I/usr/X11R6/include $CPPFLAGS"
-			AC_CHECK_HEADERS([X11/X.h], ,[
-				case $host_os in
-					darwin*)
-						echo "***************************************************"
-						if test -d /Library/Receipts/X11User.pkg ; then
-							if test -d /Library/Receipts/X11SDK.pkg ; then
-								cat <<EOF;
-It appears that you are running Mac OS X and have both the X11 and X11SDK
-packages installed. However, for some reason the headers in
-/usr/X11R6/include are not accessible. Please correct this and
-re-run ./configure
+		has_x_runtime=yes
+		], [ has_x_runtime=no ], [-L/usr/X11R6/lib $X_LIBS])
+
+# 	echo "------done---------"
+# 	echo "x_includes=${x_includes}"
+# 	echo "x_libraries=${x_libraries}"
+# 	echo "no_x=${no_x}"
+# 	echo "X_CFLAGS=${X_CFLAGS}"
+# 	echo "X_LIBS=${X_LIBS}"
+# 	echo "X_DISPLAY_MISSING=${X_DISPLAY_MISSING}"
+# 	echo "has_x_runtime=${has_x_runtime}"
+# 	echo "host_os=${host_os}"
+# 	echo "------done---------"
+
+	state=
+
+	case "__${has_x_runtime}__${no_x}__" in
+		"__no__yes__")
+		# either the user said --without-x, or it was not found
+		# at all (runtime or headers)
+			AC_MSG_WARN([X11 not available. You will not be able to use dports that use X11])
+			state=0
+			;;
+		"__yes__yes__")
+			state=1
+			;;
+		"__yes____")
+			state=2
+			;;
+		*)
+			state=3
+			;;
+	esac
+
+	case $host_os in
+		darwin*)	
+			case $state in
+				1)
+					cat <<EOF;
+Please install the X11 SDK packages from the
+Xcode Developer Tools CD
 EOF
-							else
-								cat <<EOF;
-It appears that you are running Mac OS X and have the X11 package
-installed, but do *not* have the X11SDK package installed. You can
-find this package on the Xcode Tools CD of your Mac OS X CD Installation
-Set, or on the Restore CDs/DVDs that came with your computer. Please
-install this package and re-run ./configure
+					AC_MSG_ERROR([Broken X11 install. No X11 headers])
+
+					;;
+				3)
+					cat <<EOF;
+Unknown configuration problem. Please install the X11 runtime
+and/or X11 SDK  packages from the Xcode Developer Tools CD
 EOF
-							fi
-						else
-								cat <<EOF;
-It appears that you are running Mac OS X and have installed X11
-from a third party, without installing the associated X11 development
-headers. Please correct this and re-run ./configure
+					AC_MSG_ERROR([Broken X11 install])
+					;;
+			esac
+			;;
+		*)	
+			case $state in
+				1)
+					cat <<EOF;
+Please install the X11 developer headers for your platform
 EOF
-						fi
-						AC_MSG_ERROR([Inconsistent X11 installation])
-						;;
-					*)
-						AC_MSG_ERROR([libX11 was found, but X.h is missing.])
-						;;
-				esac					
-				])
-			CPPFLAGS="$oldCPPFLAGS"
-			],
-			[ AC_MSG_WARN([libX11 was not found])
-		], [-L/usr/X11R6/lib]
-	)
+					AC_MSG_ERROR([Broken X11 install. No X11 headers])
+
+					;;
+				3)
+					cat <<EOF;
+Unknown configuration problem. Please install the X11
+implementation for your platform
+EOF
+					AC_MSG_ERROR([Broken X11 install])
+					;;
+			esac
+			;;
+	esac
+
 ])
 
 # OD_PROG_MTREE
