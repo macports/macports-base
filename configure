@@ -684,8 +684,8 @@ Optional Packages:
                           Specify user ownership of installed files
   --with-install-group=GROUP
                           Specify group ownership of installed files
-  --with-tclinclude       directory containing the public Tcl header files.
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
+  --with-tclinclude       directory containing the public Tcl header files.
   --with-tclpackage       Tcl package installation directory.
 
 Some influential environment variables:
@@ -3721,70 +3721,6 @@ EOF
 fi
 done
 
-# Check for Tcl public headers
-CYGPATH=echo
-
-    echo "$as_me:3727: checking for Tcl public headers" >&5
-echo $ECHO_N "checking for Tcl public headers... $ECHO_C" >&6
-
-# Check whether --with-tclinclude or --without-tclinclude was given.
-if test "${with_tclinclude+set}" = set; then
-  withval="$with_tclinclude"
-  with_tclinclude=${withval}
-fi;
-
-    if test x"${with_tclinclude}" != x ; then
-	if test -f "${with_tclinclude}/tcl.h" ; then
-	    ac_cv_c_tclh=${with_tclinclude}
-	else
-	    { { echo "$as_me:3740: error: ${with_tclinclude} directory does not contain Tcl public header file tcl.h" >&5
-echo "$as_me: error: ${with_tclinclude} directory does not contain Tcl public header file tcl.h" >&2;}
-   { (exit 1); exit 1; }; }
-	fi
-    else
-	if test "${ac_cv_c_tclh+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-
-	    # Use the value from --with-tclinclude, if it was given
-
-	    if test x"${with_tclinclude}" != x ; then
-		ac_cv_c_tclh=${with_tclinclude}
-	    else
-		# Check in the includedir, if --prefix was specified
-
-		eval "temp_includedir=${includedir}"
-		for i in \
-			`ls -d ${temp_includedir} 2>/dev/null` \
-			/usr/local/include /usr/include ; do
-		    if test -f "$i/tcl.h" ; then
-			ac_cv_c_tclh=$i
-			break
-		    fi
-		done
-	    fi
-
-fi
-
-    fi
-
-    # Print a message based on how we determined the include path
-
-    if test x"${ac_cv_c_tclh}" = x ; then
-	{ { echo "$as_me:3774: error: tcl.h not found.  Please specify its location with --with-tclinclude" >&5
-echo "$as_me: error: tcl.h not found.  Please specify its location with --with-tclinclude" >&2;}
-   { (exit 1); exit 1; }; }
-    else
-	echo "$as_me:3778: result: ${ac_cv_c_tclh}" >&5
-echo "${ECHO_T}${ac_cv_c_tclh}" >&6
-    fi
-
-    # Convert to a native path and substitute into the output files.
-
-    INCLUDE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclh}`
-
-    TCL_INCLUDES=-I\"${INCLUDE_DIR_NATIVE}\"
-
 # Load tclConfig.sh
 
     #
@@ -3802,7 +3738,7 @@ if test "${with_tcl+set}" = set; then
   withval="$with_tcl"
   with_tclconfig=${withval}
 fi;
-	echo "$as_me:3805: checking for Tcl configuration" >&5
+	echo "$as_me:3741: checking for Tcl configuration" >&5
 echo $ECHO_N "checking for Tcl configuration... $ECHO_C" >&6
 	if test "${ac_cv_c_tclconfig+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -3813,7 +3749,7 @@ else
 		if test -f "${with_tclconfig}/tclConfig.sh" ; then
 		    ac_cv_c_tclconfig=`(cd ${with_tclconfig}; pwd)`
 		else
-		    { { echo "$as_me:3816: error: ${with_tclconfig} directory doesn't contain tclConfig.sh" >&5
+		    { { echo "$as_me:3752: error: ${with_tclconfig} directory doesn't contain tclConfig.sh" >&5
 echo "$as_me: error: ${with_tclconfig} directory doesn't contain tclConfig.sh" >&2;}
    { (exit 1); exit 1; }; }
 		fi
@@ -3867,26 +3803,26 @@ fi
 
 	if test x"${ac_cv_c_tclconfig}" = x ; then
 	    TCL_BIN_DIR="# no Tcl configs found"
-	    { echo "$as_me:3870: WARNING: Can't find Tcl configuration definitions" >&5
+	    { echo "$as_me:3806: WARNING: Can't find Tcl configuration definitions" >&5
 echo "$as_me: WARNING: Can't find Tcl configuration definitions" >&2;}
 	    exit 0
 	else
 	    no_tcl=
 	    TCL_BIN_DIR=${ac_cv_c_tclconfig}
-	    echo "$as_me:3876: result: found $TCL_BIN_DIR/tclConfig.sh" >&5
+	    echo "$as_me:3812: result: found $TCL_BIN_DIR/tclConfig.sh" >&5
 echo "${ECHO_T}found $TCL_BIN_DIR/tclConfig.sh" >&6
 	fi
     fi
 
-    echo "$as_me:3881: checking for existence of $TCL_BIN_DIR/tclConfig.sh" >&5
+    echo "$as_me:3817: checking for existence of $TCL_BIN_DIR/tclConfig.sh" >&5
 echo $ECHO_N "checking for existence of $TCL_BIN_DIR/tclConfig.sh... $ECHO_C" >&6
 
     if test -f "$TCL_BIN_DIR/tclConfig.sh" ; then
-        echo "$as_me:3885: result: loading" >&5
+        echo "$as_me:3821: result: loading" >&5
 echo "${ECHO_T}loading" >&6
 	. $TCL_BIN_DIR/tclConfig.sh
     else
-        echo "$as_me:3889: result: file not found" >&5
+        echo "$as_me:3825: result: file not found" >&5
 echo "${ECHO_T}file not found" >&6
     fi
 
@@ -3917,10 +3853,79 @@ echo "${ECHO_T}file not found" >&6
     eval "TCL_STUB_LIB_FLAG=\"${TCL_STUB_LIB_FLAG}\""
     eval "TCL_STUB_LIB_SPEC=\"${TCL_STUB_LIB_SPEC}\""
 
+# Check for Tcl public headers
+CYGPATH=echo
+
+    echo "$as_me:3859: checking for Tcl public headers" >&5
+echo $ECHO_N "checking for Tcl public headers... $ECHO_C" >&6
+
+# Check whether --with-tclinclude or --without-tclinclude was given.
+if test "${with_tclinclude+set}" = set; then
+  withval="$with_tclinclude"
+  with_tclinclude=${withval}
+fi;
+
+    if test x"${with_tclinclude}" != x ; then
+	if test -f "${with_tclinclude}/tcl.h" ; then
+	    ac_cv_c_tclh=${with_tclinclude}
+	else
+	    { { echo "$as_me:3872: error: ${with_tclinclude} directory does not contain Tcl public header file tcl.h" >&5
+echo "$as_me: error: ${with_tclinclude} directory does not contain Tcl public header file tcl.h" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+    else
+	if test "${ac_cv_c_tclh+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+	    # Use the value from --with-tclinclude, if it was given
+
+	    if test x"${with_tclinclude}" != x ; then
+		ac_cv_c_tclh=${with_tclinclude}
+	    else
+		# Check in the includedir, if --prefix was specified
+
+		eval "temp_includedir=${includedir}"
+		for i in \
+			`ls -d ${temp_includedir} 2>/dev/null` \
+			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION}; do
+		    if test -f "$i/tcl.h" ; then
+			ac_cv_c_tclh=$i
+			break
+		    fi
+		done
+	    fi
+
+fi
+
+    fi
+
+    # Print a message based on how we determined the include path
+
+    if test x"${ac_cv_c_tclh}" = x ; then
+	{ { echo "$as_me:3906: error: tcl.h not found.  Please specify its location with --with-tclinclude" >&5
+echo "$as_me: error: tcl.h not found.  Please specify its location with --with-tclinclude" >&2;}
+   { (exit 1); exit 1; }; }
+    else
+	echo "$as_me:3910: result: ${ac_cv_c_tclh}" >&5
+echo "${ECHO_T}${ac_cv_c_tclh}" >&6
+    fi
+
+    # Convert to a native path and substitute into the output files.
+
+    INCLUDE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclh}`
+
+    TCL_INCLUDES=-I\"${INCLUDE_DIR_NATIVE}\"
+
 # Check for tclsh binary
-# Extract the first word of "tclsh tclsh$TCL_VERSION", so it can be a program name with args.
-set dummy tclsh tclsh$TCL_VERSION; ac_word=$2
-echo "$as_me:3923: checking for $ac_word" >&5
+
+	case $host_os in
+		freebsd*)
+			# FreeBSD installs a dummy tclsh (annoying)
+			# Look for a real versioned tclsh first
+			# Extract the first word of "tclsh${TCL_VERSION} tclsh", so it can be a program name with args.
+set dummy tclsh${TCL_VERSION} tclsh; ac_word=$2
+echo "$as_me:3928: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 if test "${ac_cv_path_TCLSH+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -3937,7 +3942,7 @@ for ac_dir in $ac_dummy; do
   test -z "$ac_dir" && ac_dir=.
   if $as_executable_p "$ac_dir/$ac_word"; then
    ac_cv_path_TCLSH="$ac_dir/$ac_word"
-   echo "$as_me:3940: found $ac_dir/$ac_word" >&5
+   echo "$as_me:3945: found $ac_dir/$ac_word" >&5
    break
 fi
 done
@@ -3948,16 +3953,64 @@ fi
 TCLSH=$ac_cv_path_TCLSH
 
 if test -n "$TCLSH"; then
-  echo "$as_me:3951: result: $TCLSH" >&5
+  echo "$as_me:3956: result: $TCLSH" >&5
 echo "${ECHO_T}$TCLSH" >&6
 else
-  echo "$as_me:3954: result: no" >&5
+  echo "$as_me:3959: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
+			;;
+		*)
+			# Otherwise, look for a non-versioned tclsh
+			# Extract the first word of "tclsh tclsh${TCL_VERSION}", so it can be a program name with args.
+set dummy tclsh tclsh${TCL_VERSION}; ac_word=$2
+echo "$as_me:3968: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_TCLSH+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $TCLSH in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TCLSH="$TCLSH" # Let the user override the test with a path.
+  ;;
+  *)
+  ac_save_IFS=$IFS; IFS=$ac_path_separator
+ac_dummy="$PATH"
+for ac_dir in $ac_dummy; do
+  IFS=$ac_save_IFS
+  test -z "$ac_dir" && ac_dir=.
+  if $as_executable_p "$ac_dir/$ac_word"; then
+   ac_cv_path_TCLSH="$ac_dir/$ac_word"
+   echo "$as_me:3985: found $ac_dir/$ac_word" >&5
+   break
+fi
+done
+
+  ;;
+esac
+fi
+TCLSH=$ac_cv_path_TCLSH
+
+if test -n "$TCLSH"; then
+  echo "$as_me:3996: result: $TCLSH" >&5
+echo "${ECHO_T}$TCLSH" >&6
+else
+  echo "$as_me:3999: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+			;;
+	esac
+	if test "x$TCLSH" = "x" ; then
+		{ { echo "$as_me:4006: error: Could not find tclsh" >&5
+echo "$as_me: error: Could not find tclsh" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+
 # Check for Tcl package path
 
-    echo "$as_me:3960: checking for Tcl package directory" >&5
+    echo "$as_me:4013: checking for Tcl package directory" >&5
 echo $ECHO_N "checking for Tcl package directory... $ECHO_C" >&6
 
 # Check whether --with-tclpackage or --without-tclpackage was given.
@@ -3978,29 +4031,31 @@ else
 	    if test x"${with_tclpackagedir}" != x ; then
 		ac_cv_c_tclpkgd=${with_tclpackagedir}
 	    else
-	        tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
 		# On darwin we can do some intelligent guessing
-		if test "`uname -s`" = "Darwin" ; then
-		    for path in $tcl_autopath; do
-		        if test "$path" = "/Library/Tcl"; then
-			    ac_cv_c_tclpkgd="$path"
-			    break
-			fi
-		        if test "$path" = "/System/Library/Tcl"; then
-			    if test -d "$path"; then
+		case $host_os in
+		    darwin*)
+			for path in $tcl_autopath; do
+			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
 				break
 			    fi
+			    if test "$path" = "/System/Library/Tcl"; then
+				if test -d "$path"; then
+				    ac_cv_c_tclpkgd="$path"
+				    break
+			        fi
+			    fi
+			done
+		    ;;
+		    *)
+			# Fudge a path from the first entry in the auto_path
+	        	tcl_pkgpath=`echo 'puts [lindex \$auto_path 0]' | $TCLSH`
+			if test -d "$tcl_pkgpath"; then
+			    ac_cv_c_tclpkgd="$tcl_pkgpath"
 			fi
-		    done
-                else
-		    # Fudge a path from the first entry in the auto_path
-		    tcl_pkgpath=`echo $tcl_autopath | awk '{print \}'`
-		    if test -d "$path"; then
-		        ac_cv_tclpkgd="$path"
-		    fi
-		    # If the first entry does not exist, do nothing
-		fi
+			# If the first entry does not exist, do nothing
+		    ;;
+		esac
 	    fi
 
 fi
@@ -4008,11 +4063,11 @@ fi
     fi
 
     if test x"${ac_cv_c_tclpkgd}" = x ; then
-	{ { echo "$as_me:4011: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&5
+	{ { echo "$as_me:4066: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&5
 echo "$as_me: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&2;}
    { (exit 1); exit 1; }; }
     else
-	echo "$as_me:4015: result: ${ac_cv_c_tclpkgd}" >&5
+	echo "$as_me:4070: result: ${ac_cv_c_tclpkgd}" >&5
 echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
     fi
 
@@ -4024,7 +4079,7 @@ echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
 
 # Allows building of shared libraries
 
-    echo "$as_me:4027: checking how to build libraries" >&5
+    echo "$as_me:4082: checking how to build libraries" >&5
 echo $ECHO_N "checking how to build libraries... $ECHO_C" >&6
     # Check whether --enable-shared or --disable-shared was given.
 if test "${enable_shared+set}" = set; then
@@ -4042,11 +4097,11 @@ fi;
     fi
 
     if test "$tcl_ok" = "yes" ; then
-	echo "$as_me:4045: result: shared" >&5
+	echo "$as_me:4100: result: shared" >&5
 echo "${ECHO_T}shared" >&6
 	SHARED_BUILD=1
     else
-	echo "$as_me:4049: result: static" >&5
+	echo "$as_me:4104: result: static" >&5
 echo "${ECHO_T}static" >&6
 	SHARED_BUILD=0
 
@@ -4167,7 +4222,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:4170: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:4225: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -4340,7 +4395,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:4343: error: ambiguous option: $1
+    { { echo "$as_me:4398: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4359,7 +4414,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:4362: error: unrecognized option: $1
+  -*) { { echo "$as_me:4417: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4401,7 +4456,7 @@ do
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
-  *) { { echo "$as_me:4404: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:4459: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -4514,7 +4569,6 @@ s,@DPORTSDIR@,$DPORTSDIR,;t t
 s,@PORTCONFIGDIR@,$PORTCONFIGDIR,;t t
 s,@DSTUSR@,$DSTUSR,;t t
 s,@DSTGRP@,$DSTGRP,;t t
-s,@TCL_INCLUDES@,$TCL_INCLUDES,;t t
 s,@TCL_VERSION@,$TCL_VERSION,;t t
 s,@TCL_BIN_DIR@,$TCL_BIN_DIR,;t t
 s,@TCL_SRC_DIR@,$TCL_SRC_DIR,;t t
@@ -4524,6 +4578,7 @@ s,@TCL_LIB_SPEC@,$TCL_LIB_SPEC,;t t
 s,@TCL_STUB_LIB_FILE@,$TCL_STUB_LIB_FILE,;t t
 s,@TCL_STUB_LIB_FLAG@,$TCL_STUB_LIB_FLAG,;t t
 s,@TCL_STUB_LIB_SPEC@,$TCL_STUB_LIB_SPEC,;t t
+s,@TCL_INCLUDES@,$TCL_INCLUDES,;t t
 s,@TCLSH@,$TCLSH,;t t
 s,@TCL_PACKAGE_DIR@,$TCL_PACKAGE_DIR,;t t
 s,@INCLUDES@,$INCLUDES,;t t
@@ -4652,7 +4707,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4655: creating $ac_file" >&5
+    { echo "$as_me:4710: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4670,7 +4725,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4673: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4728: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4683,7 +4738,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4686: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4741: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4744,7 +4799,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:4747: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:4802: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -4755,7 +4810,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4758: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4813: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4768,7 +4823,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4771: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4826: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4885,7 +4940,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:4888: $ac_file is unchanged" >&5
+      { echo "$as_me:4943: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -4989,7 +5044,7 @@ if test "$no_recursion" != yes; then
     # parts of a large source tree are present.
     test -d $srcdir/$ac_subdir || continue
 
-    { echo "$as_me:4992: configuring in $ac_subdir" >&5
+    { echo "$as_me:5047: configuring in $ac_subdir" >&5
 echo "$as_me: configuring in $ac_subdir" >&6;}
     case $srcdir in
     .) ;;
@@ -5011,7 +5066,7 @@ done; }
 
        if test -d ./$ac_subdir; then :;
        else
-         { { echo "$as_me:5014: error: cannot create \`pwd\`/$ac_subdir" >&5
+         { { echo "$as_me:5069: error: cannot create \`pwd\`/$ac_subdir" >&5
 echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
        fi
@@ -5042,7 +5097,7 @@ echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
     elif test -f $ac_sub_srcdir/configure.in; then
       ac_sub_configure=$ac_configure
     else
-      { echo "$as_me:5045: WARNING: no configuration information is in $ac_subdir" >&5
+      { echo "$as_me:5100: WARNING: no configuration information is in $ac_subdir" >&5
 echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
       ac_sub_configure=
     fi
@@ -5056,12 +5111,12 @@ echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
         ac_sub_cache_file=$ac_dots$cache_file ;;
       esac
 
-      { echo "$as_me:5059: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
+      { echo "$as_me:5114: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
 echo "$as_me: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&6;}
       # The eval makes quoting arguments work.
       eval $ac_sub_configure $ac_sub_configure_args \
            --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir ||
-        { { echo "$as_me:5064: error: $ac_sub_configure failed for $ac_subdir" >&5
+        { { echo "$as_me:5119: error: $ac_sub_configure failed for $ac_subdir" >&5
 echo "$as_me: error: $ac_sub_configure failed for $ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
     fi
