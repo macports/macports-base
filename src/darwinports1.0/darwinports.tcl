@@ -146,7 +146,7 @@ proc dportinit {args} {
 			while {[gets $fd line] >= 0} {
 				set line [string trimright $line]
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
-					foreach arg [split $line { \t}] {
+					foreach arg [split $line " \t"] {
 						if {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
 							if {![info exists variations($opt)]} {
 								set variations($opt) $sign
