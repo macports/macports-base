@@ -7,6 +7,7 @@ dportinit
 package require Pextlib
 
 set archive 0
+set depth 0
 
 # Standard procedures
 proc print_usage args {
@@ -17,22 +18,25 @@ proc print_usage args {
 }
 
 proc port_traverse {func {dir .} {cwd ""}} {
+    global depth
     set pwd [pwd]
     if [catch {cd $dir} err] {
-	puts $err
-	return
+	    puts $err
+	    return
     }
     foreach name [readdir .] {
-	if {[string match $name .] || [string match $name ..]} {
-	    continue
-	}
-	if [file isdirectory $name] {
-	    port_traverse $func $name [file join $cwd $name]
-	} else {
-	    if [string match $name Portfile] {
-		$func $cwd 
-	    }
-	}
+        if {[string match $name "."] || [string match $name ".."]} {
+            continue
+        }
+        if {[file isdirectory $name] && $depth != 2} {
+            incr depth 1
+            port_traverse $func $name [file join $cwd $name]			
+            incr depth -1
+        } else {
+            if [string match $name Portfile] {
+                $func $cwd 
+            }
+        }
     }
     cd $pwd
 }
