@@ -608,13 +608,13 @@ proc dlist_append_dependents {dlist obj result} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global portpath workdir
+    global workpath portname
     
-    if ![file isdirectory $portpath/$workdir] {
-	file mkdir $portpath/$workdir
+    if ![file isdirectory $workpath ] {
+	file mkdir $workpath
     }
     # flock Portfile
-    set statefile [file join $portpath $workdir .darwinports.state]
+    set statefile [file join $workpath .darwinports.${portname}.state]
     if {[file exists $statefile] && ![file writable $statefile]} {
 	return -code error "$statefile is not writable - check permission on port directory"
     }
@@ -1069,21 +1069,32 @@ proc portfile_new {name} {
     return $obj
 }
 
-# jkh uses this API so i guess it's public =)
+# portfile primitive that calls portexec_int with newworkpath == ${workpath}
+proc portexec {portname target} {
+	global workpath
+	portexec_int $portname $target $workpath
+}
+
 # builds the specified port (looked up in the index) to the specified target
 # doesn't yet support options or variants...
-proc portexec {portname target} {
+# newworkpath defines the port's workpath - useful for when one port relies
+# on the source, etc, of another
+proc portexec_int {portname target {newworkpath ""}} {
     ui_debug "Executing $target ($portname)"
-    array set options [list]
     array set variations [list]
+    if {$newworkpath == ""} {
+        array set options [list]
+    } else {
+        set options(workpath) ${newworkpath}
+    }
+	
     set res [dportsearch ^$portname\$]
     if {[llength $res] < 2} {
         ui_error "Portfile $portname not found"
         return -1
     }
-	array set portinfo [lindex $res 1]
+    array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
-    
     set worker [dportopen $porturl options variations]
     if {[catch {dportexec $worker clean} result] || $result != 0} {
 	ui_error "Clean of $portname failed: $result"
