@@ -130,6 +130,7 @@ proc proc_disasm {pname} {
 }
 
 proc register_init {args} {
+    return 0
 }
 
 proc register_main {args} {
@@ -158,4 +159,5 @@ proc register_main {args} {
     }
     registry_store $rhandle $data
     registry_close $rhandle
+    return 0
 }
