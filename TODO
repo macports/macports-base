@@ -11,6 +11,7 @@ Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
 Write man page for all targets / options			landonf
 Add reinplace TCL command					landonf
+Support for pbxbuild						landonf
 Return an error on execution failure in darwinports
     sub-interpreter						landonf
 Abstract use_* variables to tie into the dependency system	landonf
