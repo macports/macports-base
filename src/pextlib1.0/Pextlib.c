@@ -178,7 +178,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pos = 0;
 	bzero(circbuf, sizeof(circbuf));
 	while (fgets(buf, BUFSIZ, pdes) != NULL) {
-		memcpy(circbuf[pos++ % CBUFSIZ], buf, BUFSIZ);
+		memcpy(circbuf[pos], buf, BUFSIZ);
+		if (pos++ == CBUFSIZ)
+			pos = 0;
 		ret = ui_info(interp, buf);
 		if (ret != TCL_OK)
 			return ret;
