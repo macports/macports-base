@@ -1,36 +1,31 @@
 MAN7=		portfile.7 portstyle.7
-INSTALLDIR=	${DESTDIR}${PREFIX}
+INSTALLDIR=	${DESTDIR}${prefix}
 
-include ../Mk/dports.mk
 include ../Mk/dports.autoconf.mk
 
-prefix.mtree:
-	cat prefix.mtree.pre | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
-	sed -e "s/gname=GNAME/gname=${DSTGRP}/" > prefix.mtree
-
-all: prefix.mtree
+all:
 
 clean:
-	rm -f prefix.mtree
 
 distclean: clean
+	rm -f prefix.mtree
 
 install:
-	mkdir -p ${DESTDIR}${ETCDIR}
-	mkdir -p ${INSTALLDIR}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${DESTDIR}${portconfigdir}
 
 	cat prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
-	@if test ! -e ${DESTDIR}/${ETCDIR}/ports.conf ; then \
+	$(SILENT)if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${ETCDIR}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
 	fi
 
-	@if test ! -e ${DESTDIR}${ETCDIR}/sources.conf ; then \
+	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${ETCDIR}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
 	fi
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${ETCDIR}
-	mkdir -p ${INSTALLDIR}/share/darwinports/resources/port1.0/install
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${portconfigdir}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}/share/darwinports/resources/port1.0/install
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}/man/man7
