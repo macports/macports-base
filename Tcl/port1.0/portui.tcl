@@ -7,6 +7,7 @@ package provide portui 1.0
 
 # Can be set to make the entire UI go into "batch mode"
 global _ui_is_enabled
+global ports_debug
 
 # do whatever interesting things need to be done to initialize the UI
 # environment.  Always called by convention though it does nothing
@@ -49,6 +50,15 @@ proc ui_puts {str {nonl ""}} {
 	flush stdout
     } else {
 	puts $str
+    }
+}
+
+# Output debugging messages if the ports_debug variable is set.
+proc ui_debug {str} {
+    global ports_debug
+
+    if [info exists ports_debug] {
+	puts stderr "DEBUG: $str"
     }
 }
 
