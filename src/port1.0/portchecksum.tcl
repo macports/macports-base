@@ -108,7 +108,7 @@ proc checksum_main {args} {
 		}
 
 		# Post file checksum
-		ui_debug "[format [msgcat::mc "Correct checksum: %s %s %s"] ${distfile} md5 ${checksum}]"
+		ui_info "[format [msgcat::mc "Correct checksum: %s %s %s"] ${distfile} md5 ${checksum}]"
 
 		# Raise the failure flag
 		set fail yes
