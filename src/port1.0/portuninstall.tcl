@@ -57,7 +57,7 @@ proc uninstall_main {args} {
 
 	# First look to see if the port has registered an uninstall procedure
 	set ix [lsearch $entry pkg_uninstall]
-	if ${$ix >= 0} {
+	if {$ix >= 0} {
 	    set uninstall [lindex $entry [incr ix]]
 	    if ![catch {eval $uninstall} err] {
 		pkg_uninstall $portname $portversion
