@@ -27,7 +27,7 @@ proc portfetch::suffix {distname} {
 }
 
 proc portfetch::checkfiles {args} {
-	global portpath distpath
+	global distdir
 	lappend filelist [getval portfetch::options distfiles]
 	if {[isval portfetch::options patchfiles]} {
 		lappend filelist [getval portfetch::options patchfiles]
@@ -41,18 +41,18 @@ proc portfetch::checkfiles {args} {
 }
 
 proc portfetch::fetchfiles {args} {
-	global portpath distpath
+	global distdir
 
-	if {![file isdirectory $distpath]} {
-		file mkdir $distpath
+	if {![file isdirectory $distdir]} {
+		file mkdir $distdir
 	}
 
 	foreach distfile [getval portfetch::options all_dist_files] {
-		if {![file isfile $distpath/$distfile]} {
-			puts "$distfile doesn't seem to exist in $distpath"
+		if {![file isfile $distdir/$distfile]} {
+			puts "$distfile doesn't seem to exist in $distdir"
 			foreach site [getval portfetch::options master_sites] {
 				puts "Attempting to fetch from $site"
-				if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
+				if ![catch {exec curl -o ${distdir}/${distfile} ${site}${distfile} >&@ stdout} result] {
 					set fetched 1
 					break
 				}

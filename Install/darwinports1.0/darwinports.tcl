@@ -68,12 +68,12 @@ namespace eval darwinports {
 		# Bootstrap ports system and bring in darwinports packages
 		set portpath [darwinports::bootstrap]
 		# Register standard darwinports package options
-		globals darwinports::options portpath distpath prefix
-		options darwinports::options portpath distpath prefix
+		globals darwinports::options portpath distdir prefix
+		options darwinports::options portpath distdir prefix
 		# Register defaults
 		default darwinports::options portpath $portpath
 		default darwinports::options prefix /usr/local/bin
-		default darwinports::options distpath [file join $portpath distfiles]
+		default darwinports::options distdir [file join $portpath distfiles]
 
 		return
 	}
