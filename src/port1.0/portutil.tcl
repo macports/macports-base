@@ -107,13 +107,14 @@ proc swdep_resolve {name chain} {
 		continue
 	}
 	foreach filename [readdir $path] {
+		ui_debug "Checking dependency $filename $depregex"
 		if {[regexp $depregex $filename] == 1} {
 			ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 			return 0
 		}
 	}
     }
-    puts "Executing $portname"
+    ui_debug "Building $portname"
     dportbuild $sysportpath/software/$portname build build
     return 0
 }
