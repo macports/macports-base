@@ -41,7 +41,7 @@ proc dports_index_init {} {
 	global darwinports_index::has_sqlite darwinports::prefix
 	if {$darwinports_index::has_sqlite == 1 ||
 		[file exists ${darwinports::prefix}/lib/tclsqlite.dylib]} {
-		load /opt/local/lib/tclsqlite.dylib Sqlite
+		load ${darwinports::prefix}/lib/tclsqlite.dylib Sqlite
 		set darwinports_index::has_sqlite 1
 	} else {
 		return -code error "Sqlite must be installed to use a remote index.  Use the tclsqlite port."
