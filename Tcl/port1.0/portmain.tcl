@@ -10,8 +10,11 @@ register com.apple.main provides main
 global main_opts
 global targets
 
-puts $sysportpath
-default distpath distfiles
+# XXX Special case sysportpath. This variable is set by the bootstrap
+# and may not exist
+if [info exists sysportpath] {
+	default distpath $sysportpath/distfiles
+}
 default prefix /usr/local/
 default workdir work
 default filedir files
