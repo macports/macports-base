@@ -1,7 +1,7 @@
 # et:ts=4
 # python-1.0.tcl
 #
-# $Id: python-1.0.tcl,v 1.2 2004/04/21 08:40:02 toby Exp $
+# $Id: python-1.0.tcl,v 1.2.2.1 2004/04/25 17:09:19 pguyot Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.

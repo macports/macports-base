@@ -166,6 +166,9 @@
 /* Define to 1 if strerror_r returns char *. */
 #undef STRERROR_R_CHAR_P
 
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING
+
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 

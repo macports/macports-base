@@ -385,20 +385,28 @@ proc platform {args} {
     variant $platform $code
     
     # Set the variant if this platform matches the platform we're on
+    set matches 1
     if {[info exists os.platform] && ${os.platform} == $os} { 
 	set sel_platform $os
 	if {[info exists os.version] && [info exists release]} {
 	    regexp {([0-9]*)[0-9\.]?} ${os.version} match major
 	    if {$major == $release } { 
-		set sel_platform ${sel_platform}_${release} 
+	    	set sel_platform ${sel_platform}_${release} 
+	    } else {
+		    set matches 0
 	    }
 	}
-	if {[info exists os.arch] && [info exists arch] && ${os.arch} == $arch} {
-	    set sel_platform $arch
-	}
-	variant_set $sel_platform
+	if {$matches == 1 && [info exists arch] && [info exists os.arch]} {
+		if {${os.arch} == $arch} {
+			set sel_platform ${sel_platform}_${arch}
+		} else {
+			set matches 0
+		}
     }
-    
+    if {$matches == 1} {
+    	variant_set $sel_platform
+    }
+    }
 }
 
 ########### Misc Utility Functions ###########
@@ -847,7 +855,10 @@ proc eval_variants {variations target} {
         set newlist [dlist_append_dependents $dlist $variant $newlist]
     }
     
-    dlist_eval $newlist "" variant_run
+    set dlist [dlist_eval $newlist "" variant_run]
+    if {[llength $dlist] > 0} {
+	return 1
+    }
     
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean' 
@@ -1118,7 +1129,7 @@ proc addgroup {name args} {
 }
 
 # proc to calculate size of a directory
-# moved here from portpackage.tcl
+# moved here from portpkg.tcl
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
@@ -1154,5 +1165,18 @@ proc set_ui_prefix {} {
 		set UI_PREFIX $env(UI_PREFIX)
 	} else {
 		set UI_PREFIX "---> "
+	}
+}
+
+# Use a specified group/version.
+proc PortGroup {group version} {
+	global portresourcepath
+
+	set groupFile ${portresourcepath}/group/${group}-${version}.tcl
+
+	if {[file exists $groupFile]} {
+		uplevel "source $groupFile"
+	} else {
+		ui_warn "Group file could not be located."
 	}
 }

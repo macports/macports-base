@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.13 2004/01/18 08:35:09 jkh Exp $
+# $Id: mirror_sites.tcl,v 1.13.4.1 2004/04/25 17:09:18 pguyot Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -11,6 +11,13 @@
 # Please keep this list sorted.
 
 namespace eval portfetch::mirror_sites { }
+
+set portfetch::mirror_sites::sites(afterstep) {
+	ftp://ftp.afterstep.org/
+	ftp://ftp.kddlabs.co.jp/X11/AfterStep/
+	ftp://ftp.dti.ad.jp/pub/X/AfterStep/
+	ftp://ftp.chg.ru/pub/X11/windowmanagers/afterstep/
+}
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
@@ -38,13 +45,10 @@ set portfetch::mirror_sites::sites(freebsd) {
 }
 
 set portfetch::mirror_sites::sites(gnome) {
-    ftp://ftp.gnome.org/pub/GNOME/
-    http://archive.progeny.com/GNOME/
-    http://ftp.rpmfind.net/linux/gnome.org/
     ftp://ftp.mirror.ac.uk/sites/ftp.gnome.org/pub/GNOME/
-    http://fr.rpmfind.net/linux/gnome.org/
     http://ftp.linux.org.uk/mirrors/ftp.gnome.org/
-    http://planetmirror.com/pub/GNOME/
+    http://www.gtlib.cc.gatech.edu/pub/gnome/
+    http://public.planetmirror.com/pub/gnome/
     ftp://ftp.dit.upm.es/linux/gnome/
     ftp://ftp.dataplus.se/pub/linux/gnome/
     ftp://ftp.chg.ru/pub/X11/gnome/
@@ -53,10 +57,10 @@ set portfetch::mirror_sites::sites(gnome) {
     ftp://ftp.belnet.be/mirror/ftp.gnome.org/
     ftp://ftp.no.gnome.org/pub/GNOME/
     ftp://www.t.ring.gr.jp/pub/X/gnome/
+    http://www.t.ring.gr.jp/archives/X/gnome/
     http://archive.progeny.com/GNOME/
     ftp://ftp.tuwien.ac.at/linux/gnome.org/
-    http://mirror.aarnet.edu.au/pub/GNOME/
-    ftp://ftp.cse.buffalo.edu/pub/Gnome/
+    http://ftp.gnome.org/pub/GNOME/
 }
 
 set portfetch::mirror_sites::sites(gnu) {
@@ -132,10 +136,9 @@ set portfetch::mirror_sites::sites(kde) {
 }
 
 set portfetch::mirror_sites::sites(opendarwin) {
-	http://distfiles.opendarwin.org/:nosubdir
-	http://distfiles-od.opendarwin.org/:nosubdir
-	http://distfiles-msn.opendarwin.org/:nosubdir
-	http://distfiles-bay13.opendarwin.org/:nosubdir
+    http://distfiles-od.opendarwin.org/:nosubdir
+    http://distfiles-msn.opendarwin.org/:nosubdir
+    http://distfiles-bay13.opendarwin.org/:nosubdir
 }
 
 set portfetch::mirror_sites::sites(perl_cpan) {
@@ -225,9 +228,7 @@ set portfetch::mirror_sites::sites(tcltk) {
 }
 
 set portfetch::mirror_sites::sites(xcontrib) {
-    ftp://crl.dec.com/pub/X11/contrib/
-    ftp://ftp.net.ohio-state.edu/disk/d/X11/contrib/
-    ftp://uiarchive.uiuc.edu/pub/ftp/ftp.x.org/contrib/
+    ftp://ftp.net.ohio-state.edu/pub/X11/contrib/
     ftp://ftp.gwdg.de/pub/x11/x.org/contrib/
     ftp://ftp.duke.edu/pub/X11/contrib/
     ftp://ftp.x.org/contrib/
@@ -237,7 +238,7 @@ set portfetch::mirror_sites::sites(xcontrib) {
     ftp://mirror.xmission.com/X/contrib/
     ftp://ftp2.x.org/contrib/
     ftp://sunsite.tus.ac.jp/pub/archives/X11/contrib/
-    ftp://ftp.is.co.za/x/contrib/
+    ftp://gd.tuwien.ac.at/hci/x.org/contrib/
     ftp://ftp.sunet.se/pub/X11/contrib/
     ftp://ftp.mirror.ac.uk/sites/ftp.x.org/contrib/
     ftp://ftp.dl.ac.uk/src/X/contrib/
@@ -246,24 +247,24 @@ set portfetch::mirror_sites::sites(xcontrib) {
 }
 
 set portfetch::mirror_sites::sites(xfree) {
-    ftp://ftp.xfree86.org/pub/XFree86/source/
-    ftp://ftp.rge.com/pub/X/XFree86/source/
-    ftp://archive.progeny.com/XFree86/source/
-    ftp://ftp.mirrorcentral.com/pub/XFree86/source/
-    ftp://ftp.dti.ad.jp/pub/X/XFree86/XFree86/source/
-    ftp://gd.tuwien.Ac.at/hci/X11/XFree86/source/
-    ftp://ftp.fit.vutbr.cz/pub/XFree86/source/
-    ftp://ftp.free.fr/pub/XFree86/source/
-    ftp://mir1.ovh.net/ftp.xfree86.org/source/
-    ftp://ftp.lami.univ-evry.fr/XFree86/source/
-    ftp://ftp.cs.tu-berlin.de/pub/X/XFree86/source/
-    ftp://ftp.gwdg.de/pub/xfree86/XFree86/source/
-    http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.xfree86.org/XFree86/source/
-    ftp://ftp.rediris.es/mirror/XFree86/source/
-    ftp://ftp.esat.net/pub/X11/XFree86/source/
-    ftp://ftp.nl.uu.net/pub/XFree86/source/
-    ftp://sunsite.uio.no/pub/XFree86/source/
-    ftp://ftp.task.gda.pl/pub/XFree86/source/
-    ftp://ftp.physics.uvt.ro/pub/XFree86/source/
-    ftp://ftp.chg.ru/pub/XFree86/source/
+    ftp://ftp.rge.com/pub/X/XFree86/
+    ftp://archive.progeny.com/XFree86/
+    ftp://ftp.mirrorcentral.com/pub/XFree86/
+    ftp://ftp.dti.ad.jp/pub/X/XFree86/XFree86/
+    ftp://gd.tuwien.Ac.at/hci/X11/XFree86/
+    ftp://ftp.fit.vutbr.cz/pub/XFree86/
+    ftp://ftp.free.fr/pub/XFree86/
+    ftp://mir1.ovh.net/ftp.xfree86.org/
+    ftp://ftp.lami.univ-evry.fr/XFree86/
+    ftp://ftp.cs.tu-berlin.de/pub/X/XFree86/
+    ftp://ftp.gwdg.de/pub/xfree86/XFree86/
+    http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.xfree86.org/XFree86/
+    ftp://ftp.rediris.es/mirror/XFree86/
+    ftp://ftp.esat.net/pub/X11/XFree86/
+    ftp://ftp.nl.uu.net/pub/XFree86/
+    ftp://sunsite.uio.no/pub/XFree86/
+    ftp://ftp.task.gda.pl/pub/XFree86/
+    ftp://ftp.physics.uvt.ro/pub/XFree86/
+    ftp://ftp.chg.ru/pub/XFree86/
+    ftp://ftp.xfree86.org/pub/XFree86/
 }

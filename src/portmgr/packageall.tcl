@@ -382,7 +382,7 @@ foreach {name array} $res {
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}	
-	if {[catch {set result [dportexec $workername package]} result] ||
+	if {[catch {set result [dportexec $workername pkg]} result] ||
 		$result == 1} {
 	    ui_error "port package failed: $result"
 		dportclose $workername

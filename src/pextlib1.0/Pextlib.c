@@ -496,7 +496,7 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	path = Tcl_GetString(objv[1]);
 	dirp = opendir(path);
 	if (!dirp) {
-		Tcl_SetResult(interp, "Directory not found", TCL_STATIC);
+		Tcl_SetResult(interp, "Cannot read directory", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);
@@ -684,6 +684,13 @@ int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	return xinstall(interp, objc, objv);
 }
 
+int FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	extern int findfunc(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
+	return findfunc(interp, objc, objv);
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -700,6 +707,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;

@@ -31,6 +31,7 @@
 # standard package load
 package provide port 1.0
 
+package require dp_package 1.0
 package require portmain 1.0
 package require portdepends 1.0
 package require portfetch 1.0
@@ -41,10 +42,7 @@ package require portconfigure 1.0
 package require portbuild 1.0
 package require portdestroot 1.0
 package require portinstall 1.0
-package require portclean 1.0
-package require portpackage 1.0
-package require portrpmpackage 1.0
-package require portmpkg 1.0
-package require portdmg 1.0
-package require porttest 1.0
 package require portactivate 1.0
+package require portclean 1.0
+package require porttest 1.0
+package require portsubmit 1.0

@@ -12,3 +12,6 @@ portdbformat		flat
 
 # Type of installation to do for ports, "direct" or "image".  See documentation.
 portinstalltype		image
+
+# Directory containing the X11 installation.
+x11prefix		/usr/X11R6

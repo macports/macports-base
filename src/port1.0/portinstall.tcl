@@ -161,7 +161,7 @@ proc install_main {args} {
 		registry_register_deps $depends_lib $portname
 	}
     if {[info exists installPlist]} {
-		registry_prop_store $regref contents [fileinfo_for_index $installPlist]
+		registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
 	}
 	if {[info exists package-install]} {
 		registry_prop_store $regref package-install ${package-install}

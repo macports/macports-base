@@ -121,7 +121,16 @@ AC_DEFUN([OD_LIB_MD5],[
 	# Check for libmd, which is prefered
 	AC_CHECK_LIB([md], [MD5Update],[
 		AC_CHECK_HEADERS([md5.h], ,[
-			AC_MSG_ERROR([libmd was found, but md5.h is missing.])])
+			case $host_os in
+				darwin*)	
+					AC_MSG_NOTICE([Please install the BSD SDK package from the Xcode Developer Tools CD.])
+					;;
+				*)	
+					AC_MSG_NOTICE([Please install the libmd developer headers for your platform.])
+					;;
+			esac
+			AC_MSG_ERROR([libmd was found, but md5.h is missing.])
+		])
 		AC_DEFINE([HAVE_LIBMD], ,[Define if you have the `md' library (-lmd).])
 		MD5_LIBS="-lmd"]
 	)
@@ -129,8 +138,17 @@ AC_DEFUN([OD_LIB_MD5],[
 		# If libmd is not found, check for libcrypto from OpenSSL
 		AC_CHECK_LIB([crypto], [MD5_Update],[
 			AC_CHECK_HEADERS([openssl/md5.h],,[
-				AC_MSG_ERROR([libcrypt was found, but header file openssl/md5.h is missing.])])
-				AC_DEFINE([HAVE_LIBCRYPTO],,[Define if you have the `crypto' library (-lcrypto).])
+				case $host_os in
+					darwin*)	
+					AC_MSG_NOTICE([Please install the BSD SDK package from the Xcode Developer Tools CD.])
+						;;
+					*)	
+					AC_MSG_NOTICE([Please install the libmd developer headers for your platform.])
+						;;
+				esac
+				AC_MSG_ERROR([libcrypt was found, but header file openssl/md5.h is missing.])
+			])
+			AC_DEFINE([HAVE_LIBCRYPTO],,[Define if you have the `crypto' library (-lcrypto).])
 			MD5_LIBS="-lcrypto"
 		], [
 			AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
@@ -140,6 +158,94 @@ AC_DEFUN([OD_LIB_MD5],[
 		AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
 	fi
 	AC_SUBST([MD5_LIBS])
+])
+
+dnl This macro checks for X11 presence. If the libraries are
+dnl present, so must the headers be. If nothing is present,
+dnl print a warning
+
+# OD_CHECK_X11
+# ---------------------
+AC_DEFUN([OD_CHECK_X11], [
+
+	AC_PATH_XTRA
+
+	# Check for libX11
+	AC_CHECK_LIB([X11], [XOpenDisplay],[
+		has_x_runtime=yes
+		], [ has_x_runtime=no ], [-L/usr/X11R6/lib $X_LIBS])
+
+# 	echo "------done---------"
+# 	echo "x_includes=${x_includes}"
+# 	echo "x_libraries=${x_libraries}"
+# 	echo "no_x=${no_x}"
+# 	echo "X_CFLAGS=${X_CFLAGS}"
+# 	echo "X_LIBS=${X_LIBS}"
+# 	echo "X_DISPLAY_MISSING=${X_DISPLAY_MISSING}"
+# 	echo "has_x_runtime=${has_x_runtime}"
+# 	echo "host_os=${host_os}"
+# 	echo "------done---------"
+
+	state=
+
+	case "__${has_x_runtime}__${no_x}__" in
+		"__no__yes__")
+		# either the user said --without-x, or it was not found
+		# at all (runtime or headers)
+			AC_MSG_WARN([X11 not available. You will not be able to use dports that use X11])
+			state=0
+			;;
+		"__yes__yes__")
+			state=1
+			;;
+		"__yes____")
+			state=2
+			;;
+		*)
+			state=3
+			;;
+	esac
+
+	case $host_os in
+		darwin*)	
+			case $state in
+				1)
+					cat <<EOF;
+Please install the X11 SDK packages from the
+Xcode Developer Tools CD
+EOF
+					AC_MSG_ERROR([Broken X11 install. No X11 headers])
+
+					;;
+				3)
+					cat <<EOF;
+Unknown configuration problem. Please install the X11 runtime
+and/or X11 SDK  packages from the Xcode Developer Tools CD
+EOF
+					AC_MSG_ERROR([Broken X11 install])
+					;;
+			esac
+			;;
+		*)	
+			case $state in
+				1)
+					cat <<EOF;
+Please install the X11 developer headers for your platform
+EOF
+					AC_MSG_ERROR([Broken X11 install. No X11 headers])
+
+					;;
+				3)
+					cat <<EOF;
+Unknown configuration problem. Please install the X11
+implementation for your platform
+EOF
+					AC_MSG_ERROR([Broken X11 install])
+					;;
+			esac
+			;;
+	esac
+
 ])
 
 # OD_PROG_MTREE
@@ -261,4 +367,3 @@ AC_DEFUN([OD_PROG_TCLSH],[
 
 	AC_SUBST(TCLSH)
 ])
-

@@ -232,10 +232,9 @@ proc darwinports::worker_init {workername portpath options variations} {
 	$workername alias registry_activate portimage::activate
 	$workername alias registry_deactivate portimage::deactivate
 	$workername alias registry_register_deps registry::register_dependencies
-
-	$workername alias fileinfo_for_index dportregistry::fileinfo_for_index
-	$workername alias fileinfo_for_file dportregistry::fileinfo_for_file
-	$workername alias fileinfo_for_entry dportregistry::fileinfo_for_entry
+	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
+	$workername alias registry_fileinfo_for_file registry::fileinfo_for_file
+	$workername alias registry_fileinfo_for_entry registry::fileinfo_for_entry
 
 
     foreach opt $portinterp_options {
@@ -361,7 +360,13 @@ proc _dportsearchpath {depregex search_path} {
 	if {![file isdirectory $path]} {
 	    continue
 	}
-	foreach filename [readdir $path] {
+
+	if {[catch {set filelist [readdir $path]} result]} {
+		return -code error "$result ($path)"
+		set filelist ""
+	}
+
+	foreach filename $filelist {
 	    if {[regexp $depregex $filename] == 1} {
 		ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 		set found 1
@@ -378,12 +383,12 @@ proc _dportsearchpath {depregex search_path} {
 # define DEFAULT_FALLBACK_FRAMEWORK_PATH
 # /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
 # define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+#   -- Since /usr/local is bad, using /lib:/usr/lib only.
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
-proc _libtest {dport} {
+proc _libtest {dport depspec} {
     global env tcl_platform
-    set depspec [ditem_key $dport depspec]
 	set depline [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix]
 	
@@ -398,7 +403,7 @@ proc _libtest {dport} {
 	if {[info exists env(DYLD_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
-	lappend search_path /lib /usr/local/lib /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
+	lappend search_path /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
@@ -418,9 +423,8 @@ proc _libtest {dport} {
 
 ### _bintest is private; subject to change without notice
 
-proc _bintest {dport} {
+proc _bintest {dport depspec} {
     global env
-    set depspec [ditem_key $dport depspec]
 	set depregex [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix] 
 	
@@ -433,9 +437,8 @@ proc _bintest {dport} {
 
 ### _pathtest is private; subject to change without notice
 
-proc _pathtest {dport} {
+proc _pathtest {dport depspec} {
     global env
-    set depspec [ditem_key $dport depspec]
 	set depregex [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix] 
     
@@ -454,9 +457,29 @@ proc _pathtest {dport} {
 	return [_dportsearchpath $depregex $search_path]
 }
 
-### _dportest is private; may change without notice
+### _dportinstalled is private; may change without notice
 
-proc _dporttest {dport} {
+# Determine if a port is already *installed*, as in "in the registry".
+proc _dportinstalled {dport} {
+	# Check for the presense of the port in the registry
+	set workername [ditem_key $dport workername]
+	set res [$workername eval registry_exists \${portname} \${portversion}]
+	if {$res != 0} {
+		ui_debug "Found Dependency: receipt: $res"
+		return 1
+	} else {
+		return 0
+	}
+}
+
+### _dporispresent is private; may change without notice
+
+# Determine if some depspec is satisfied or if the given port is installed.
+# We actually start with the registry (faster?)
+#
+# dport		the port to test (to figure out if it's present)
+# depspec	the dependency test specification (path, bin, lib, etc.)
+proc _dportispresent {dport depspec} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
@@ -465,12 +488,11 @@ proc _dporttest {dport} {
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
-		set depspec [ditem_key $dport depspec]
 		set type [lindex [split $depspec :] 0]
 		switch $type {
-			lib { return [_libtest $dport] }
-			bin { return [_bintest $dport] }
-			path { return [_pathtest $dport] }
+			lib { return [_libtest $dport $depspec] }
+			bin { return [_bintest $dport $depspec] }
+			path { return [_pathtest $dport $depspec] }
 			default {return -code error "unknown depspec type: $type"}
 		}
 		return 0
@@ -509,10 +531,14 @@ proc dportexec {dport target} {
 	# Before we build the port, we must build its dependencies.
 	# XXX: need a more general way of comparing against targets
 	set dlist {}
+	if {$target == "package"} {
+		ui_warn "package target replaced by pkg target, please use the pkg target in the future."
+		set target "pkg"
+	}
 	if {$target == "configure" || $target == "build"
 		|| $target == "destroot" || $target == "install"
-		|| $target == "package" || $target == "mpkg"
-		|| $target == "rpmpackage" } {
+		|| $target == "pkg" || $target == "mpkg"
+		|| $target == "rpmpackage" || $target == "dpkg" } {
 
 		if {[dportdepends $dport 1 1] != 0} {
 			return 1
@@ -528,9 +554,9 @@ proc dportexec {dport target} {
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
 		if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
-			set dlist [dlist_eval $dlist _dporttest [list _dportexec "activate"]]
+			set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
 		} else {
-			set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+			set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
 		}
 		
 		if {$dlist != {}} {
@@ -605,16 +631,12 @@ proc dportsearch {regexp} {
                 }
                 lappend matches $name
                 lappend matches $line
-		set match 1
             } else {
                 set len [lindex $line 1]
                 seek $fd $len current
             }
         }
         close $fd
-	if {[info exists match] && $match == 1} {
-	    break
-	}
     }
     return $matches
 }
@@ -689,23 +711,25 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 		set options [ditem_key $dport options]
 		set variations [ditem_key $dport variations]
-		
-		# XXX: This should use the depspec flavor of dportopen,
-		# but for now, simply set the key directly.
+
+		# Figure out the subport.	
 		set subport [dportopen $porturl $options $variations]
-		ditem_key $subport depspec $depspec
 
-		# Append the sub-port's provides to the port's requirements list.
-		ditem_append $dport requires "[ditem_key $subport provides]"
-
-		if {$recurseDeps != ""} {
-			# Skip the port if it's already in the accumulated list.
-			if {[lsearch $accDeps $portname] == -1} {
-				# Add it to the list
-				lappend accDeps $portname
+		# Is that dependency satisfied or this port installed?
+		# If not, add it to the list. Otherwise, don't.
+		if {![_dportispresent $subport $depspec]} {
+			# Append the sub-port's provides to the port's requirements list.
+			ditem_append_unique $dport requires "[ditem_key $subport provides]"
+	
+			if {$recurseDeps != ""} {
+				# Skip the port if it's already in the accumulated list.
+				if {[lsearch $accDeps $portname] == -1} {
+					# Add it to the list
+					lappend accDeps $portname
 				
-				# We'll recursively iterate on it.
-				lappend subPorts $subport
+					# We'll recursively iterate on it.
+					lappend subPorts $subport
+				}
 			}
 		}
 	}
@@ -722,52 +746,3 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	
 	return 0
 }
-
-# Snarfed from portregistry.tcl
-# For now, just write stuff to a file for debugging.
-
-namespace eval dportregistry {}
-
-proc dportregistry::fileinfo_for_file {fname} {
-    # Add the link to the registry, not the actual file.
-    # (we won't store the md5 of the target of links since it's meaningless
-    # and $statvar(mode) tells us that links are links).
-    if {![catch {file lstat $fname statvar}]} {
-	if {[file isfile $fname] && [file type $fname] != "link"} {
-	    if {[catch {md5 file $fname} md5sum] == 0} {
-		# Create a line that matches md5(1)'s output
-		# for backwards compatibility
-		set line "MD5 ($fname) = $md5sum"
-		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	    }
-	} else {
-	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
-	}
-    }
-    return {}
-}
-
-proc dportregistry::fileinfo_for_entry {rval dir entry} {
-    upvar $rval myrval
-    set path [file join $dir $entry]
-    lappend myrval [dportregistry::fileinfo_for_file $path]
-    return $myrval
-}
-
-proc dportregistry::fileinfo_for_index {flist} {
-    global prefix
-
-    set rval {}
-    foreach file $flist {
-	if {[string match /* $file]} {
-	    set fname $file
-	    set dir /
-	} else {
-	    set fname [file join $prefix $file]
-	    set dir $prefix
-	}
-	dportregistry::fileinfo_for_entry rval $dir $file
-    }
-    return $rval
-}
-

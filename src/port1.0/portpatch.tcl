@@ -53,6 +53,8 @@ proc patch_main {args} {
 	return 0
     }
     
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
+
     foreach patch [option patchfiles] {
 	if {[file exists [option filespath]/$patch]} {
 	    lappend patchlist [option filespath]/$patch
@@ -66,9 +68,14 @@ proc patch_main {args} {
     cd [option worksrcpath]
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
+	if {[option os.platform] == "linux"} {
+	    set gzcat "zcat"
+	} else {
+	    set gzcat "gzcat"
+	}
 	switch -glob -- [file tail $patch] {
 	    *.Z -
-	    *.gz {system "gzcat \"$patch\" | ([command patch])"}
+	    *.gz {system "$gzcat \"$patch\" | ([command patch])"}
 	    *.bz2 {system "bzcat \"$patch\" | ([command patch])"}
 	    default {system "[command patch] < \"$patch\""}
 	}

@@ -253,6 +253,49 @@ proc open_dep_map {args} {
 	return [${darwinports::registry.format}::open_dep_map $args]
 }
 
+proc fileinfo_for_file {fname} {
+    # Add the link to the registry, not the actual file.
+    # (we won't store the md5 of the target of links since it's meaningless
+    # and $statvar(mode) tells us that links are links).
+    if {![catch {file lstat $fname statvar}]} {
+	if {[file isfile $fname] && [file type $fname] != "link"} {
+	    if {[catch {md5 file $fname} md5sum] == 0} {
+		# Create a line that matches md5(1)'s output
+		# for backwards compatibility
+		set line "MD5 ($fname) = $md5sum"
+		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	    }
+	} else {
+	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
+	}
+    }
+    return {}
+}
+
+proc fileinfo_for_entry {rval dir entry} {
+    upvar $rval myrval
+    set path [file join $dir $entry]
+    lappend myrval [fileinfo_for_file $path]
+    return $myrval
+}
+
+proc fileinfo_for_index {flist} {
+    global prefix
+
+    set rval {}
+    foreach file $flist {
+	if {[string match /* $file]} {
+	    set fname $file
+	    set dir /
+	} else {
+	    set fname [file join $prefix $file]
+	    set dir $prefix
+	}
+	fileinfo_for_entry rval $dir $file
+    }
+    return $rval
+}
+
 # List all ports this one depends on
 proc list_depends {name} {
 	global darwinports::registry.format
