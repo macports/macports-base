@@ -145,61 +145,69 @@ proc ui_confirm {promptstr} {
 proc ui_display {filename} {
 }
 
+# Recursive bottom-up approach of building a list of dependencies.
+proc get_dependencies {portname includeBuildDeps} {
+	set result {}
+	
+	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		ui_puts err "Internal error: port search failed: $error"
+		return {}
+	}
+	foreach {name array} $res {
+		array set portinfo $array
+		if {![info exists portinfo(name)] ||
+			![info exists portinfo(version)] || 
+			![info exists portinfo(categories)]} {
+			ui_puts err "Internal error: $name missing some portinfo keys"
+			continue
+		}
+		
+		set portname $portinfo(name)
+		set portversion $portinfo(version)
+		set category [lindex $portinfo(categories) 0]
+
+		# Append the package itself to the result list
+		#set pkgpath ${category}/${portname}-${portversion}.pkg
+		lappend result [list $portname $portversion $category]
+
+		# Append the package's dependents to the result list
+		set depends {}
+		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+		if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} { 
+			eval "lappend depends $portinfo(depends_build)"
+		}
+		foreach depspec $depends {
+			set dep [lindex [split $depspec :] 2]
+			set x [get_dependencies $dep $includeBuildDeps]
+			eval "lappend result $x"
+			set result [lsort -unique $result]
+		}
+	}
+	return $result
+}
 
 # Install binary packages if they've already been built.  This will
 # speed up the testing, since we won't have to recompile dependencies
 # which have already been compiled.
 
-proc install_binary_if_available {portname basepath args} {
-	if {[llength $args] > 0} {
-		set already_installed [lindex $args 0]
-	} else {
-		set already_installed {}
-	}
-
-	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
-		ui_puts err "Internal error: port search failed: $error"
-		return
-	}
-	foreach {name array} $res {
-		array set portinfo $array
-		if {![info exists portinfo(version)]} { continue }
-		if {![info exists portinfo(categories)]} { continue }
-		
-		set portversion $portinfo(version)
-		set category [lindex $portinfo(categories) 0]
-				
-		set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
-
-		if {[lsearch -exact $already_installed $pkgpath] == -1} {
-			if {[file readable $pkgpath]} {
-				ui_puts msg "installing binary: $pkgpath"
-				if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
-					ui_puts err "Internal error: $error"
-				}
-				# Touch the receipt
-				# xxx: use some variable to describe this path
-				if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
-					ui_puts err "Internal error: $error"
-				}
-				lappend already_installed $pkgpath
-			}
-
-			set depends {}
-			if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-			if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-			if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
-			foreach depspec $depends {
-				set dep [lindex [split $depspec :] 2]
-				set x [install_binary_if_available $dep $basepath $already_installed]
-				eval "lappend already_installed $x"
-			}
-
-		} else {
-			ui_puts "skipping binary (already installed): $pkgpath"
+proc install_binary_if_available {dep basepath} {
+	set portname [lindex $dep 0]
+	set portversion [lindex $dep 1]
+	set category [lindex $dep 2]
+	
+	set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
+	if {[file readable $pkgpath]} {
+		ui_puts msg "installing binary: $pkgpath"
+		if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
+			ui_puts err "Internal error: $error"
+		}
+		# Touch the receipt
+		# xxx: use some variable to describe this path
+		if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
+			ui_puts err "Internal error: $error"
 		}
 	}
-	return $already_installed
 }
 
 
@@ -280,7 +288,7 @@ foreach {name array} $res {
 
 	ui_puts msg "removing /opt"
 	#unset ui_options(ports_verbose)
-	if {[catch {system "rm -R /opt"} error]} {
+	if {[catch {system "rm -Rf /opt"} error]} {
 		puts stderr "Internal error: $error"
 	}
 	if {[catch {system "cd $env(HOME)/darwinports && make && make install"} error]} {
@@ -379,12 +387,17 @@ foreach {name array} $res {
 	ui_puts msg "packaging ${category}/${portname}-${portversion}"
 
 	# Install binary dependencies if we can, to speed things up.
-	set depends {}
-	if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-	if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-	if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
-	foreach depspec $depends {
-		set dep [lindex [split $depspec :] 2]
+	#set depends {}
+	#if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+	#if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+	#if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
+	#foreach depspec $depends {
+	#	set dep [lindex [split $depspec :] 2]
+		#install_binary_if_available $dep $pkgbase
+	#}
+	set dependencies [get_dependencies $portname 1]
+	set dependencies [lsort -unique $dependencies]
+	foreach dep $dependencies {
 		install_binary_if_available $dep $pkgbase
 	}
 
