@@ -2,6 +2,7 @@
 # portdestroot.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -83,8 +84,12 @@ proc destroot_finish {args} {
     set exclude_dirs [list]
     set exclude_phrase ""
     foreach path [option destroot.keepdirs] {
-	xinstall -m 0755 -d ${path}
-	xinstall -c -m 0644 /dev/null ${path}/.turd_${portname}
+		if {![file isdirectory ${path}]} {
+			xinstall -m 0755 -d ${path}
+		}
+		if {![file exists ${path}/.turd_${portname}]} {
+			xinstall -c -m 0644 /dev/null ${path}/.turd_${portname}
+		}
     	lappend exclude_dirs "-path \"${path}\""
     }
     if { [llength ${exclude_dirs}] > 0 } {
