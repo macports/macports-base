@@ -163,7 +163,7 @@ proc install_binary_if_available {dep} {
 	set portversion [lindex $dep 1]
 	set revision [lindex $dep 2]
 
-	foreach dir {"/opt/local/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
+	foreach dir {"${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
 		foreach arch {"ppc" "i386" "fat"} {
 			set rpmpath "${dir}/${arch}/${portname}-${portversion}-${revision}.${arch}.rpm"
 			if {[file readable $rpmpath]} {
