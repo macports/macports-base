@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.23 2004/11/26 18:58:42 mww Exp $
+# $Id: mirror_sites.tcl,v 1.24 2004/11/26 19:14:51 mww Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -272,4 +272,25 @@ set portfetch::mirror_sites::sites(xfree) {
     ftp://ftp.physics.uvt.ro/pub/XFree86/
     ftp://ftp.chg.ru/pub/XFree86/
     ftp://ftp.xfree86.org/pub/XFree86/
+}
+
+set portfetch::mirror_sites::sites(openbsd) {
+    ftp://ftp.openbsd.org/pub/OpenBSD/
+    ftp://ftp.de.openbsd.org/unix/OpenBSD/
+    ftp://ftp.jp.openbsd.org/pub/OpenBSD/
+    ftp://ftp.ca.openbsd.org/unix/OpenBSD/
+    http://ftp.uni-stuttgart.de/pub/OpenBSD/
+    http://carroll.cac.psu.edu/pub/OpenBSD/
+    http://mirror.pacific.net.au/OpenBSD/
+    http://ftp.chg.ru/pub/OpenBSD/
+    ftp://ftp.kd85.com/pub/OpenBSD/
+    ftp://openbsd.informatik.uni-erlangen.de/pub/OpenBSD/
+    ftp://gd.tuwien.ac.at/opsys/OpenBSD/
+    ftp://reptile.kd85.com/pub/OpenBSD/
+    ftp://muk.kd85.com/pub/OpenBSD/
+    ftp://ftp.stacken.kth.se/pub/OpenBSD/
+    ftp://ftp3.usa.openbsd.org/pub/OpenBSD/
+    ftp://ftp5.usa.openbsd.org/pub/OpenBSD/
+    ftp://rt.fm/pub/OpenBSD/
+    ftp://ftp.openbsd.md5.com.ar/pub/OpenBSD/
 }
