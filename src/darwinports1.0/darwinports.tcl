@@ -36,8 +36,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivetype"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivetype"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype"
 	
     variable open_dports {}
 }
@@ -178,6 +178,24 @@ proc dportinit {args} {
 	if {![info exists portarchivemode]} {
 		set darwinports::portarchivemode "yes"
 		global darwinports::portarchivemode
+	}
+
+	# Archive path, where to store/retrieve binary archive packages
+	if {![info exists portarchivepath]} {
+		set darwinports::portarchivepath [file join $portdbpath packages]
+		global darwinports::portarchivepath
+	}
+	if {$portarchivemode == "yes"} {
+		if {![file isdirectory $portarchivepath]} {
+			if {![file exists $portarchivepath]} {
+				if {[catch {file mkdir $portarchivepath} result]} {
+					return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
+				}
+			}
+		}
+		if {![file isdirectory $portarchivepath]} {
+			return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
+		}
 	}
 
 	# Archive type, what type of binary archive to use (CPIO, gzipped

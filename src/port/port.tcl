@@ -1,6 +1,7 @@
 #!@TCLSH@
 # port.tcl
 #
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -89,7 +90,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfona\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfonasb\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -152,6 +153,10 @@ for {set i 0} {$i < $argc} {incr i} {
 				set options(ports_nodeps) yes
 			} elseif {$c == "a"} {
 				set options(port_upgrade_all) yes
+			} elseif {$c == "s"} {
+				set options(ports_source_only) yes
+			} elseif {$c == "b"} {
+				set options(ports_binary_only) yes
 			} elseif {$opt == "D"} {
 				incr i
 				set porturl "file://[lindex $argv $i]"

@@ -35,7 +35,7 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfona
+.Op Fl vdqfonasb
 .Op Fl D Ar portdir
 .Ar target
 .Op Ar portname
@@ -82,6 +82,10 @@ specify
 force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
+.It Fl s
+source-only mode (only build and install from source, ignores all binary archives, does not create/recreate binary archives) (only applies when archive mode is enabled)
+.It Fl b
+binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
 .El
 .Sh TARGETS
 .Nm
@@ -253,3 +257,5 @@ To build an RPM from a port, use the "rpmpackage" target instead:
 .An Landon Fuller Aq landonf@opendarwin.org
 .An Kevin Van Vechten Aq kevin@opendarwin.org
 .An Jordan K. Hubbard Aq jkh@opendarwin.org
+.An Ole Guldberg Jensen Aq olegb@opendarwin.org
+.An Robert Shaw Aq rshaw@opendarwin.org

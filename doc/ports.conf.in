@@ -20,6 +20,9 @@ x11prefix		/usr/X11R6
 # Create and use binary archive packages for installation/reinstallation ease
 portarchivemode		yes
 
+# Where to store/retrieve ports binary archive files
+portarchivepath		@localstatedir_expanded@/db/dports/packages
+
 # Type of binary archive packages to create when using archive mode
 #
 # Note: Only cpgz, cpio, and xar formats currently support resource

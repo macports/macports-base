@@ -48,7 +48,7 @@ default unarchive.pre_args {}
 default unarchive.args {}
 default unarchive.post_args {}
 
-default unarchive.srcpath {[file join $portdbpath packages]}
+default unarchive.srcpath {${portarchivepath}}
 default unarchive.file {}
 default unarchive.path {}
 
@@ -56,6 +56,7 @@ set_ui_prefix
 
 proc unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
+	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants portpath
 	global unarchive.srcpath unarchive.file unarchive.path
 
@@ -87,15 +88,22 @@ proc unarchive_init {args} {
 	set skipped 0
 	if {[check_statefile target com.apple.unarchive $target_state_fd]} {
 		return 0
+	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
+		ui_debug "Skipping unarchive ($portname) since source-only is set"
+		set skipped 1
 	} elseif {[check_statefile target com.apple.destroot $target_state_fd]} {
 		ui_debug "Skipping unarchive ($portname) since destroot completed"
-		set skipped 1
-	} elseif {![file exist ${unarchive.path}]} {
-		ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} not found"
 		set skipped 1
 	} elseif {[info exists ports_force] && $ports_force == "yes"} {
 		ui_debug "Skipping unarchive ($portname) since force is set"
 		set skipped 1
+	} elseif {![file exist ${unarchive.path}]} {
+		if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
+			return -code error "Archive ${unarchive.file} not found, required when binary-only is set!"
+		} else {
+			ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} not found"
+			set skipped 1
+		}
 	} elseif {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
 		ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
 		set skipped 1
@@ -234,7 +242,6 @@ proc unarchive_finish {args} {
 	# Reset state file with archive version
     set statefile [file join $workpath .darwinports.${portname}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
-	file delete -force [file join $destpath "+STATE"]
 
     # Update the state from unpacked archive version
     set target_state_fd [open_statefile]
@@ -242,6 +249,13 @@ proc unarchive_finish {args} {
 	# Archive unpacked, skip archive target
 	write_statefile target "com.apple.archive" $target_state_fd
     
+	# Cleanup all control files when finished
+	set control_files [glob -nocomplain -types f [file join $destpath +*]]
+	foreach file $control_files {
+		ui_debug "Removing $file"
+		file delete -force $file
+	}
+
 	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
 	return 0
 }

@@ -48,7 +48,7 @@ default archive.pre_args {}
 default archive.args {}
 default archive.post_args {}
 
-default archive.destpath {[file join $portdbpath packages]}
+default archive.destpath {${portarchivepath}}
 default archive.file {}
 default archive.path {}
 
@@ -56,7 +56,8 @@ set_ui_prefix
 
 proc archive_init {args} {
 	global UI_PREFIX target_state_fd
-	global variations package.destpath workpath portpath ports_force
+	global variations package.destpath workpath portpath
+	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants
 	global archive.destpath archive.file archive.path
 
@@ -88,6 +89,12 @@ proc archive_init {args} {
 	set skipped 0
 	if {[check_statefile target com.apple.archive $target_state_fd]} {
 		return 0
+	} elseif {[check_statefile target com.apple.unarchive $target_state_fd] && ([info exists ports_binary_only] && $ports_binary_only == "yes")} {
+		ui_debug "Skipping archive ($portname) since binary-only is set"
+		set skipped 1
+	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
+		ui_debug "Skipping archive ($portname) since source-only is set"
+		set skipped 1
 	} elseif {[file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes")} {
 		#ui_msg "$UI_PREFIX [format [msgcat::mc "Archive for %s %s_%s%s is already up-to-date"] $portname $portversion $portrevision $portvariants]"
 		#set skipped 1
@@ -207,7 +214,8 @@ proc archive_start {args} {
 
 proc archive_main {args} {
 	global UI_PREFIX
-	global workpath destpath portname
+	global workpath destpath
+	global portname portversion portrevision portvariants
 	global archive.destpath archive.path archive.file
 
 	# Remove existing archive
@@ -222,9 +230,58 @@ proc archive_main {args} {
 	}
 
 	# Copy state file into destroot for archiving
+	# +STATE contains a copy of the DP state information
     set statefile [file join $workpath .darwinports.${portname}.state]
 	file copy -force $statefile [file join $destpath "+STATE"]
 
+	# Create some informational files that we don't really use just yet,
+	# but we may in the future in order to allow port installation from
+	# archives without a full "dports" tree of Portfiles.
+	#
+	# Note: These have been modeled after FreeBSD type package files to
+	# start. We can change them however we want for actual future use if
+	# needed.
+	#
+	# +COMMENT contains the port description
+	set fd [open [file join $destpath "+COMMENT"] w]
+    if {[exists description]} {
+		puts $fd "[option description]"
+	}
+	close $fd
+	# +DESC contains the port long_description and homepage
+	set fd [open [file join $destpath "+DESC"] w]
+	if {[exists long_description]} {
+		puts $fd "[option long_description]"
+	}
+	if {[exists homepage]} {
+		puts $fd "\nWWW: [option homepage]"
+	}
+	close $fd
+	# +CONTENTS contains the port version/name info and all installed
+	# files and checksums
+	set control [list]
+	set fd [open [file join $destpath "+CONTENTS"] w]
+	puts $fd "@name ${portname}-${portversion}_${portrevision}${portvariants}"
+	foreach fullpath [exec find $destpath ! -type d] {
+		set relpath [strsed $fullpath "s|^$destpath/||"]
+		if {![regexp {^[+]} $relpath]} {
+			puts $fd "$relpath"
+			if {[file isfile $fullpath]} {
+				ui_debug "checksum file: $fullpath"
+				set checksum [md5 file $fullpath]
+				puts $fd "@comment MD5:$checksum"
+			}
+		} else {
+			lappend control $relpath
+		}
+	}
+	foreach relpath $control {
+		puts $fd "@ignore"
+		puts $fd "$relpath"
+	}
+	close $fd
+
+	# Now create the archive
 	ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
     system "[command archive]"
     return 0
@@ -234,8 +291,12 @@ proc archive_finish {args} {
 	global UI_PREFIX
 	global destpath archive.file
 
-	# cleanup copy of state file
-	file delete -force [file join $destpath "+STATE"]
+	# Cleanup all control files when finished
+	set control_files [glob -nocomplain -types f [file join $destpath +*]]
+	foreach file $control_files {
+		ui_debug "removing file: $file"
+		file delete -force $file
+	}
 
 	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
 	return 0
