@@ -5,5 +5,3 @@ INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
 include ../../Mk/dports.autoconf.mk
 include ../../Mk/dports.tea.mk
 
-LIBS+=		${MD5_LIBS}
-CFLAGS+=	-Wall
