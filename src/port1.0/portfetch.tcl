@@ -207,7 +207,7 @@ proc checkfiles {args} {
         }
         
         foreach site $site_list {
-	    if {[regexp {([a-zA-Z]+://.+/):([a-zA-Z]+)} $site match site tag]} {
+	    if {[regexp {([a-zA-Z]+://.+/?):([a-zA-Z]+)} $site match site tag]} {
                 lappend portfetch::$tag $site
             } else {
                 lappend portfetch::$list $site
