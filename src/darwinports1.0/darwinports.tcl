@@ -531,7 +531,7 @@ proc _dportinstalled {dport} {
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
 	if {$res != 0} {
-		ui_debug "Found Dependency: receipt: $res"
+		ui_debug "[ditem_key $dport provides] is installed"
 		return 1
 	} else {
 		return 0
@@ -550,7 +550,7 @@ proc _dportispresent {dport depspec} {
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
 	if {$res != 0} {
-		ui_debug "Found Dependency: receipt: $res"
+		ui_debug "Found Dependency: receipt exists for [ditem_key $dport provides]"
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
