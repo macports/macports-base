@@ -413,7 +413,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			snprintf(errmsg, sizeof errmsg, "%s: Inappropriate file type: %s",
 				 funcname, from_name);
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-			errno = EFTYPE;
+			errno = EINVAL;
 			return TCL_ERROR;
 		}
 		/* Build the target path. */
@@ -436,7 +436,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		snprintf(errmsg, sizeof errmsg, "%s: Can only install to regular files, not to %s",
 			 funcname, to_name);
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
-		errno = EFTYPE;
+		errno = EINVAL;
 		return TCL_ERROR;
 	}
 
