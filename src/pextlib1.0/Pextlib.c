@@ -134,6 +134,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		close(fdset[0]);
 		dup2(fdset[1], STDOUT_FILENO);
 		dup2(fdset[1], STDERR_FILENO);
+		/* XXX dropping the controlling terminal */
+		if (setsid() == -1)
+			_exit(1);
 		/* XXX ugly string constants */
 		args[0] = "sh";
 		args[1] = "-c";
