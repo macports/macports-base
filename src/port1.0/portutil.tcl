@@ -58,7 +58,7 @@ proc options {args} {
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\
 			 if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			     options::${option} ${option} \n\
+			     options::${option} set \n\
 			 \} \n\
 		\} \n\
 	\}"
@@ -70,7 +70,7 @@ proc options {args} {
 			ldelete ${option} \$val \n\
 		    \} \n\
 		    if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			options::${option} ${option} \n\
+			options::${option} delete \n\
 		    \} \n\
 		\} \n\
 	\}"
@@ -79,7 +79,7 @@ proc options {args} {
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    set $option \[concat \$$option \$args\] \n\
 			if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			    options::${option} ${option} \n\
+			    options::${option} append \n\
 			\} \n\
 		\} \n\
 	\}"
