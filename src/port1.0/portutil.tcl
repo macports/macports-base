@@ -427,6 +427,7 @@ proc register {name mode args} {
 				}
                 set ident [lindex [depspec_get_matches $targets provides $args] 0]
                 set origproc [$ident get procedure]
+				set ident [$ident get name]
                 eval "proc $target {args} \{ \n\
 					global target_uniqid \n\
 					set id \[incr target_uniqid\] \n\
