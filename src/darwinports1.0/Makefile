@@ -1,10 +1,13 @@
+INSTALLDIR=	/System/Library/Tcl/8.3/darwinports1.0
+SRCS=		darwinports.tcl
+
 all:
 
 clean:
-	rm -f pkgIndex.tcl
 
 install:
-	mkdir -p /System/Library/Tcl/8.3/darwinports1.0
-	${.CURDIR}/../pkg_mkindex.tcl ${.CURDIR}
-	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} darwinports.tcl /System/Library/Tcl/8.3/darwinports1.0
-	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} pkgIndex.tcl /System/Library/Tcl/8.3/darwinports1.0
+	mkdir -p ${INSTALLDIR}
+	@set -x; for file in ${SRCS}; do \
+		install -c -o root -g wheel -m 444 $$file ${INSTALLDIR}; \
+	done
+	../pkg_mkindex.tcl ${INSTALLDIR}
