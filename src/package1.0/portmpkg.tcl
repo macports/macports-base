@@ -38,25 +38,17 @@ target_provides ${com.apple.mpkg} mpkg
 target_requires ${com.apple.mpkg} pkg
 
 # define options
-options package.type package.destpath
+options package.destpath
 
 set_ui_prefix
 
 proc mpkg_main {args} {
-    global portname portversion portrevision package.type package.destpath UI_PREFIX
+    global portname portversion portrevision package.destpath UI_PREFIX
 
     # Make sure the destination path exists.
     system "mkdir -p ${package.destpath}"
 
-    # For now we only support pkg and tarball package types.
-    switch -exact -- ${package.type} {
-	pkg {
-	    return [package_mpkg $portname $portversion $portrevision]
-	}
-	default {
-	    return -code error [format [msgcat::mc "Unknown package type: %s"] ${package.type}]
-	}
-    }
+    return [package_mpkg $portname $portversion $portrevision]
 }
 
 proc make_dependency_list {portname} {
@@ -103,8 +95,8 @@ proc make_one_package {portname portversion mpkgpath} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources package.type pkg]]
-			dportexec $worker package
+			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources mpkg pkg]]
+			dportexec $worker pkg
 		}
 		
 		unset portinfo
