@@ -153,6 +153,8 @@ proc ui_display {filename} {
 proc install_binary_if_available {portname basepath args} {
 	if {[llength $args] > 0} {
 		set already_installed [lindex $args 0]
+	} else {
+		set already_installed {}
 	}
 
 	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
@@ -168,6 +170,7 @@ proc install_binary_if_available {portname basepath args} {
 		set category [lindex $portinfo(categories) 0]
 				
 		set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
+		
 		if {[lsearch -exact $already_installed $pkgpath] == -1} {
 			if {[file readable $pkgpath]} {
 				ui_puts msg "installing binary: $pkgpath"
@@ -181,17 +184,18 @@ proc install_binary_if_available {portname basepath args} {
 				}
 				lappend already_installed $pkgpath
 			}
+
+			set depends {}
+			if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+			if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+			if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
+			foreach depspec $depends {
+				set dep [lindex [split $depspec :] 2]
+				install_binary_if_available $dep $basepath $already_installed
+			}
+
 		} else {
 			ui_puts "skipping binary (already installed): $pkgpath"
-		}
-
-		set depends {}
-		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-		if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
-		foreach depspec $depends {
-			set dep [lindex [split $depspec :] 2]
-			install_binary_if_available $dep $basepath $already_installed
 		}
 	}
 }
