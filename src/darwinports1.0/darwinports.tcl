@@ -98,28 +98,18 @@ proc dportopen {portdir options variations} {
 	set portpath [pwd]
 	set workername workername[incr uniqid]
 	interp create $workername
-	$workername alias dportexec dportexec
-	$workername alias dportopen dportopen
-	$workername alias dportclose dportclose
+	foreach proc {dportexec dportopen dportclose} {
+		$workername alias $proc $proc
+	}
 
 	# instantiate the UI functions
-	$workername alias ui_init ui_init
-	$workername alias ui_enable ui_enable
-	$workername alias ui_disble ui_disable
-	$workername alias ui_enabled ui_enabled
-	$workername alias ui_puts ui_puts
-	$workername alias ui_debug ui_debug
-	$workername alias ui_info ui_info
-	$workername alias ui_msg ui_msg
-	$workername alias ui_error ui_error
-	$workername alias ui_gets ui_gets
-	$workername alias ui_yesno ui_yesno
-	$workername alias ui_confirm ui_confirm
-	$workername alias ui_display ui_display
+	foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
+		$workername alias $proc $proc
+	}
 
-	$workername alias ports_verbose ports_verbose
-	$workername alias ports_quiet ports_quiet
-	$workername alias ports_debug ports_debug
+	foreach proc {ports_verbose ports_quiet ports_debug} {
+		$workername alias $proc $proc
+	}
 
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt
@@ -165,7 +155,7 @@ proc dportopen {portdir options variations} {
 proc dportexec {workername target} {
     global targets variants portpath portinterp_options uniqid variations
 
-	$workername eval eval_variants variants variations
+    $workername eval eval_variants variants variations
     return [$workername eval eval_targets targets $target]
 }
 
