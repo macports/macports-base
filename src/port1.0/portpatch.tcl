@@ -34,7 +34,8 @@ package require portutil 1.0
 
 register com.apple.patch target patch_main
 register com.apple.patch provides patch
-register com.apple.patch requires main fetch checksum extract depends_build depends_lib
+register com.apple.patch requires main fetch checksum extract 
+register com.apple.patch deplist depends_build depends_lib
 
 set UI_PREFIX "---> "
 

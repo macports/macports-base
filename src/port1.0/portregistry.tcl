@@ -34,7 +34,8 @@ package require portutil 1.0
 
 register com.apple.registry target registry_main
 register com.apple.registry provides registry
-register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
+register com.apple.registry requires main fetch extract checksum patch configure build install 
+register com.apple.registry deplist depends_run depends_lib
 
 # define options
 options contents long-description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse

@@ -54,11 +54,13 @@ namespace eval options {
 proc options {args} {
     foreach option $args {
     	eval "proc $option {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\
-			 if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			     options::${option} set \n\
+			 if \{\[info exists option_procs($option)\]\} \{ \n\
+				foreach p \$option_procs($option) \{ \n\
+					eval \"\$p $option set \$args\" \n\
+				\} \n\
 			 \} \n\
 		\} \n\
 	\}"
@@ -69,18 +71,22 @@ proc options {args} {
 		    foreach val \$args \{ \n\
 			ldelete ${option} \$val \n\
 		    \} \n\
-		    if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			options::${option} delete \n\
-		    \} \n\
+			 if \{\[info exists option_procs($option)\]\} \{ \n\
+				foreach p \$option_procs($option) \{ \n\
+					eval \"\$p $option delete \$args\" \n\
+				\} \n\
+			 \} \n\
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
 	    global ${option} user_options \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    set $option \[concat \$$option \$args\] \n\
-			if \{\[info commands options::${option}\] != \"\"\} \{ \n\
-			    options::${option} append \n\
-			\} \n\
+			 if \{\[info exists option_procs($option)\]\} \{ \n\
+				foreach p \$option_procs($option) \{ \n\
+					eval \"\$p $option append \$args\" \n\
+				\} \n\
+			 \} \n\
 		\} \n\
 	\}"
     }
@@ -93,6 +99,11 @@ proc options_export {args} {
 		set PortInfo(${option}) \$${option}\n\
         \}"
     }
+}
+
+proc option_proc {option args} {
+	global option_procs
+	eval "lappend option_procs($option) $args"
 }
 
 # commands
@@ -372,6 +383,7 @@ proc makeuserproc {name body} {
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
+#	<identifier> deplist <list of deplist names>
 #	<provides> preflight <proc name>
 #	<provides> postflight <proc name>
 proc register {name mode args} {
@@ -470,6 +482,9 @@ proc register {name mode args} {
                     makeuserproc userproc-post-$target\$id \$args \}"
             }
         }
+
+	} elseif {$mode == "deplist"} {
+		$obj append $mode $args
 	
     } elseif {$mode == "preflight"} {
 		# Find target which provides the specified name, and add a preflight.
@@ -578,7 +593,8 @@ proc generic_get_next {dlist statusdict} {
 # dlist is a collection of depspec objects to be run
 # get_next_proc is used to determine the best item to run
 proc dlist_evaluate {dlist get_next_proc} {
-
+	global portname
+	
     # status - keys will be node names, values will be {-1, 0, 1}.
     array set statusdict [list]
 	
@@ -588,6 +604,7 @@ proc dlist_evaluate {dlist get_next_proc} {
 			foreach name [$obj get provides] {
 				set statusdict($name) 1
 			}
+			ldelete dlist $obj
 		}
 	}
     
@@ -606,14 +623,13 @@ proc dlist_evaluate {dlist get_next_proc} {
 			}
 			
 			# Delete the item from the waiting list.
-			set i [lsearch $dlist $obj]
-			set dlist [lreplace $dlist $i $i]
+			ldelete dlist $obj
 		}
     }
     
 	if {[llength $dlist] > 0} {
 		# somebody broke!
-		ui_info "Warning: the following items did not execute: "
+		ui_info "Warning: the following items did not execute (for $portname): "
 		foreach obj $dlist {
 			ui_info "[$obj get name] " -nonewline
 		}
@@ -624,7 +640,7 @@ proc dlist_evaluate {dlist get_next_proc} {
 }
 
 proc target_run {this} {
-	global target_state_fd
+	global target_state_fd portname
 	set result 0
 	set procedure [$this get procedure]
     if {$procedure != ""} {
@@ -636,7 +652,7 @@ proc target_run {this} {
 				
 		if {[check_statefile $name $target_state_fd]} {
 			set result 0
-			ui_debug "Skipping completed $name"
+			ui_debug "Skipping completed $name ($portname)"
 		} else {
 			# Execute pre-run procedure
 			if {[$this has prerun]} {
@@ -652,7 +668,7 @@ proc target_run {this} {
 			}
 
 			if {$result == 0} {
-				ui_debug "Executing $name"
+				ui_debug "Executing $name ($portname)"
 				set result [catch {$procedure $name}]
 			}
 			
@@ -664,7 +680,7 @@ proc target_run {this} {
 				}
 			}
 			# Execute post-run procedure
-			if {$result == 0 && [$this has postrun]} {
+			if {[$this has postrun] && $result == 0} {
 				set postrun [$this get postrun]
 				ui_debug "Executing $postrun"
 				set result [catch {$postrun $name}]
@@ -1010,4 +1026,166 @@ proc variant_new {name} {
 
 
 
+##### portfile depspec subclass #####
+global portfile_vtbl
+array set portfile_vtbl [array get depspec_vtbl]
+set portfile_vtbl(run) portfile_run
+set portfile_vtbl(test) portfile_test
+
+proc portfile_new {name} {
+	set obj [depspec_new $name]
+	
+	$obj set _vtbl portfile_vtbl
+	
+	return $obj
+}
+
+# build the specified portfile
+proc portfile_run {this} {
+	set portname [$this get name]
+	
+    ui_debug "Building $portname"
+    array set options [list]
+    array set variations [list]
+    array set portinfo [dportmatch ^$portname\$]
+    if {[array size portinfo] == 0} {
+        ui_error "Dependency $portname not found"
+        return -1
+    }
+    set porturl $portinfo(porturl)
+
+    set worker [dportopen $porturl options variations]
+	if {[catch {dportexec $worker clean} result] || $result != 0} {
+		ui_error "Clean of $portname before build failed: $result"
+		dportclose $worker
+		return -1
+    }
+	if {[catch {dportexec $worker install} result] || $result != 0} {
+		ui_error "Build of $portname failed: $result"
+		dportclose $worker
+		return -1
+	}
+	if {[catch {dportexec $worker clean} result] || $result != 0} {
+		ui_error "Clean of $portname after build failed: $result"
+    }
+    dportclose $worker
+	
+	return 0
+}
+
+proc portfile_test {this} {
+	set receipt [registry_exists [$this get name]]
+	if {$receipt != ""} {
+		ui_debug "Found Dependency: receipt: $receipt"
+		return 1
+	} else {
+		return 0
+	}
+}
+
+proc portfile_search_path {depregex search_path} {
+	set found 0
+    foreach path $search_path {
+		if {![file isdirectory $path]} {
+			continue
+		}
+		foreach filename [readdir $path] {
+			if {[regexp $depregex $filename] == 1} {
+				ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
+				set found 1
+				break
+			}
+		}
+	}
+	return $found
+}
+
+
+
+##### lib portfile depspec subclass #####
+global libportfile_vtbl
+array set libportfile_vtbl [array get portfile_vtbl]
+set libportfile_vtbl(test) libportfile_test
+
+proc libportfile_new {name match} {
+	set obj [portfile_new $name]
+	
+	$obj set _vtbl libportfile_vtbl
+	$obj set depregex $match
+	
+	return $obj
+}
+
+# XXX - Architecture specific
+# XXX - Rely on information from internal defines in cctools/dyld:
+# define DEFAULT_FALLBACK_FRAMEWORK_PATH
+# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
+# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
+# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
+
+proc libportfile_test {this} {
+	global env prefix 
+
+	# Check the registry first
+	set result [portfile_test $this]
+	if {$result == 1} {
+		return $result
+	} else {
+		# Not in the registry, check the library path.
+		set depregex [$this get depregex]
+		
+		if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
+		lappend search_path $env(DYLD_FRAMEWORK_PATH)
+		} else {
+		lappend search_path /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
+		}
+		if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
+		lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
+		}
+		if {[info exists env(DYLD_LIBRARY_PATH)]} {
+		lappend search_path $env(DYLD_LIBRARY_PATH)
+		} else {
+		lappend search_path /lib /usr/local/lib /lib /usr/lib /op/local/lib /usr/X11R6/lib ${prefix}/lib
+		}
+		if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
+		lappend search_path $env(DYLD_LIBRARY_PATH)
+		}
+		regsub {\.} $depregex {\.} depregex
+		set depregex \^$depregex.*\\.dylib\$
+
+		return [portfile_search_path $depregex $search_path]
+	}
+}
+
 ##### bin portfile depspec subclass #####
+global binportfile_vtbl
+array set binportfile_vtbl [array get portfile_vtbl]
+set binportfile_vtbl(test) binportfile_test
+
+proc binportfile_new {name match} {
+	set obj [portfile_new $name]
+	
+	$obj set _vtbl binportfile_vtbl
+	$obj set depregex $match
+
+	return $obj
+}
+
+proc binportfile_test {this} {
+	global env prefix 
+
+	# Check the registry first
+	set result [portfile_test $this]
+	if {$result == 1} {
+		return $result
+	} else {
+		# Not in the registry, check the binary path.
+		set depregex [$this get depregex]
+
+		set search_path [split $env(PATH) :]
+		set depregex \^$depregex\$
+		
+		return [portfile_search_path $depregex $search_path]
+	}
+}

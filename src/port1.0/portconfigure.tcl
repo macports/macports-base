@@ -34,7 +34,8 @@ package require portutil 1.0
 
 register com.apple.configure target configure_main
 register com.apple.configure provides configure
-register com.apple.configure requires main fetch extract checksum patch depends_build depends_lib
+register com.apple.configure requires main fetch extract checksum patch
+register com.apple.configure deplist depends_build depends_lib
 
 # define options
 commands configure automake autoconf xmkmf libtool
