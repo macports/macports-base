@@ -127,6 +127,7 @@ proc uninstall {portname {v ""}} {
 		set uninst_err 0
 		set files [list]
 		foreach f $contents {
+			set fname [lindex $f 0]
 			set md5index [lsearch -regex [lrange $f 1 end] MD5]
 			if {$md5index != -1} {
 				set sumx [lindex $f [expr $md5index + 1]]
