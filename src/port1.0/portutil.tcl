@@ -118,34 +118,36 @@ proc command {command} {
 
 # default
 proc default {option val} {
-    global $option
-	if {[trace vinfo $option)] != ""} {
+    global $option option_defaults
+	if {[info exists option_defaults($option)]} {
 		ui_debug "Re-registering default for $option"
 	} else {
 		# If option is already set and we did not set it
 		# do not reset the value
 		if {[info exists $option]} {
-#			ui_debug "Default for $option ignored; option was already set external to default procedure"
 			return
 		}
 	}
+	set option_defaults($option) $val
 	set $option $val
 	trace variable $option rwu default_check
 }
 
 proc default_check {optionName index op} {
-	global $optionName
+	global option_defaults $optionName
 	switch $op {
 		w {
+			unset option_defaults($optionName)
 			trace vdelete $optionName rwu default_check
 			return
 		}
 		r {
 			upvar $optionName option
-			uplevel #0 "set $optionName $option" 
+			uplevel #0 "set $optionName \[list $option_defaults($optionName)\]"
 			return
 		}
 		u {
+			unset option_defaults($optionName)
 			trace vdelete $optionName rwu default_check
 			return
 		}
