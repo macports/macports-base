@@ -72,6 +72,9 @@ make all install
 make clean
 sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf
 EOF
+	if [ "$PKGTYPE" = "dpkg" ]; then
+	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh
+	fi
 	chmod 755 $dir/bootstrap.sh
 	echo "Bootstrapping darwinports in chroot"
 	mountchrootextras $dir
@@ -100,14 +103,23 @@ teardownchroot() {
 	DEV=""; DISTDEV=""
 }
 
-# OK, here's where we kick it all off
+# main:  This is where we start the show.
 TGTPORTS=""
+PKGTYPE=mpkg
+
 if [ $# -lt 1 ]; then
-	echo "Usage: $0 chrootdir [targetportsfile]"
+	echo "Usage: $0 chrootdir [-p pkgtype] [targetportsfile]"
 	exit 1
 else
 	DIR=$1
 	shift
+	if [ $# -gt 1 ]; then
+		if [ $1 = "-p" ]; then
+		    shift
+		    PKGTYPE=$1
+		    shift
+		fi
+	fi
 	if [ $# -gt 0 ]; then
 		TGTPORTS=$1
 	fi
@@ -149,7 +161,7 @@ for pkg in `cat $TGTPORTS`; do
         echo "/sbin/mount_fdesc -o union fdesc /dev" >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
-	echo "if port -v mpkg $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
+	echo "if port -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
 	echo "umount /.vol" >> $DIR/bootstrap.sh
 	echo "umount /dev" >> $DIR/bootstrap.sh
 	echo "umount -f /dev" >> $DIR/bootstrap.sh
@@ -161,7 +173,11 @@ for pkg in `cat $TGTPORTS`; do
 		type="failed"
 	else
 		echo $pkg >> outputdir/summary/portspackaged
-		mv $DIR/Package/*.mpkg outputdir/Packages/
+		if [ "$PKGTYPE" = "mpkg" ]; then
+		    mv $DIR/Package/*.mpkg outputdir/Packages/
+		elif [ "$PKGTYPE" = "dpkg" ]; then
+		    mv $DIR/Package/*.deb outputdir/Packages/
+		fi
 		type="succeeded"
 	fi
 	mv $DIR/tmp/$pkg.log outputdir/logs/$type
