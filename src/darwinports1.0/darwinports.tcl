@@ -66,17 +66,32 @@ proc darwinports::ui_event {context message} {
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
 
-    if {[llength [array names env HOME]] > 0} {
-	set HOME [lindex [array get env HOME] 1]
-	if [file isfile [file join ${HOME} .portsrc]] {
-	    set portconf [file join ${HOME} .portsrc]
+    # first look at PORTSRC for testing/debugging
+    if {[llength [array names env PORTSRC]] > 0} {
+	set PORTSRC [lindex [array get env PORTSRC] 1]
+	if {[file isfile ${PORTSRC}]} {
+	    set portconf ${PORTSRC}
 	    lappend conf_files ${portconf}
 	}
     }
 
-    if {![info exists portconf] && [file isfile /etc/ports/ports.conf]} {
-	set portconf /etc/ports/ports.conf
-	lappend conf_files /etc/ports/ports.conf
+    # then look in ~/.portsrc
+    if {![info exists portconf]} {
+	if {[llength [array names env HOME]] > 0} {
+	    set HOME [lindex [array get env HOME] 1]
+	    if {[file isfile [file join ${HOME} .portsrc]]} {
+		set portconf [file join ${HOME} .portsrc]
+		lappend conf_files ${portconf}
+	    }
+	}
+    }
+
+    # finally /etc/ports/ports.conf, or whatever path was configured
+    if {![info exists portconf]} {
+	if {[file isfile @PORTCONFIGDIR_EXPANDED@/ports.conf]} {
+	    set portconf @PORTCONFIGDIR_EXPANDED@/ports.conf
+	    lappend conf_files @PORTCONFIGDIR_EXPANDED@/ports.conf
+	}
     }
     if [info exists conf_files] {
 	foreach file $conf_files {
@@ -93,7 +108,7 @@ proc dportinit {args} {
     }
 
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in /etc/ports/ports.conf or in your .portsrc"
+        return -code error "sources_conf must be set in @PORTCONFIGDIR_EXPANDED@/ports.conf or in your ~/.portsrc"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
@@ -112,7 +127,7 @@ proc dportinit {args} {
     }
 
     if ![info exists portdbpath] {
-	return -code error "portdbpath must be set in /etc/ports/ports.conf or in your ~/.portsrc"
+	return -code error "portdbpath must be set in @PORTCONFIGDIR_EXPANDED@/ports.conf or in your ~/.portsrc"
     }
     if ![file isdirectory $portdbpath] {
 	if ![file exists $portdbpath] {
