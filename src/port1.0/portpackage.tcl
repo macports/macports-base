@@ -93,7 +93,6 @@ proc package_tarball {portname portversion entry} {
 	    set verbose ""
 	}
 	set pkgdir [file join $sysportpath packages]
-puts $pkgdir
 	if [file isdirectory $pkgdir] {
 	    set ptarget $pkgdir/${portname}-${portversion}.tar.gz
 	} else {
