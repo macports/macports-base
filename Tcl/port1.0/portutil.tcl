@@ -34,8 +34,13 @@ proc register {mode target args} {
 	}
 }
 
-proc deregister_target {target} {
-	depend_list_del_item portutil::targets portutil::targets $target
+# unregister
+# Unregisters a target in the global target list
+# Arguments: target <target name>
+proc unregister {mode target} {
+	if {[string equal target $mode]} {
+		depend_list_del_item portutil::targets portutil::targets $target
+	}
 }
 
 # options
@@ -173,10 +178,7 @@ proc eval_depend {nodes} {
 				puts "Error in $name"
 				array set statusdict [list $name failure]
 			}
-			array unset waitlist name,$name
-			array unset waitlist procedure,$name
-			array unset waitlist requires,$name
-			array unset waitlist uses,$name
+			depend_list_del_item waitlist $name
 		} else {
 			# somebody broke!
 			# XXX: remove puts
