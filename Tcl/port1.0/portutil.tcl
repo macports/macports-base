@@ -125,6 +125,7 @@ proc depend_list_has_pending {waitlist uses} {
 # Get the next item from the depend list
 # (private)
 proc depend_list_get_next {waitlist statusdict} {
+	set nextitem ""
 	# arbitrary large number ~ INT_MAX
 	set minfailed 2000000000
 	upvar $waitlist upwaitlist
@@ -151,11 +152,8 @@ proc depend_list_get_next {waitlist statusdict} {
 			set nextitem $name
 		}
 	}
-	if [info exists nextitem] {
 		return $nextitem
 	}
-	return -code break
-}
 
 
 # Evaluate the dependency list, returning an ordered list suitable
@@ -200,12 +198,14 @@ proc eval_depend {nodes target} {
 		} else {
 			# somebody broke!
 			set names [array names waitlist name,*]
+			if { [llength $names] > 0} {
 			# XXX: remove puts
 			puts "Warning: the following targets did not execute: "
 			foreach name $names {
 				puts -nonewline "$waitlist($name) "
 			}
 			puts ""
+			}
 			break
 		}
 	}
