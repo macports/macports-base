@@ -170,7 +170,7 @@ EOF
 								cat <<EOF;
 It appears that you are running Mac OS X and have the X11 package
 installed, but do *not* have the X11SDK package installed. You can
-find this package on the Xcode Tools CD of you Mac OS X CD Installation
+find this package on the Xcode Tools CD of your Mac OS X CD Installation
 Set, or on the Restore CDs/DVDs that came with your computer. Please
 install this package and re-run ./configure
 EOF
