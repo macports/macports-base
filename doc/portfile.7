@@ -667,6 +667,16 @@ Install target to pass to ${destroot.cmd}
 .br
 .Sy Example:
 .Dl destroot.target install-src
+.It Ic destroot.umask
+Umask to use during destroot
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em 022
+.br
+.Sy Example:
+.Dl destroot.umask 002
 .El
 .Ss TEST OPTIONS
 Execute commands to run test suites bundled with a port.

@@ -40,7 +40,7 @@ target_prerun ${com.apple.destroot} destroot_start
 target_postrun ${com.apple.destroot} destroot_finish
 
 # define options
-options destroot.target destroot.destdir destroot.clean destroot.keepdirs
+options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
 options startupitem.create startupitem.requires
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type
@@ -53,6 +53,7 @@ default destroot.pre_args {${destroot.target}}
 default destroot.target install
 default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
+default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
 
@@ -61,10 +62,18 @@ default startupitem.type "SystemStarter"
 
 set_ui_prefix
 
+namespace eval destroot {
+	# Save old umask
+	variable oldmask
+}
+
 proc destroot_start {args} {
     global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean
+    global destroot::oldmask destroot.umask
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
+
+    set oldmask [umask ${destroot.umask}]
     
     if { ${destroot.clean} == "yes" } {
 	system "rm -Rf \"${destroot}\""
@@ -84,7 +93,7 @@ proc destroot_main {args} {
 }
 
 proc destroot_finish {args} {
-    global UI_PREFIX destroot prefix portname startupitem.create
+    global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask
     # Create startup-scripts/items
     if {[tbool startupitem.create]} {
         package require portstartupitem 1.0
@@ -193,5 +202,8 @@ proc destroot_finish {args} {
 		ui_debug "Deleting stray info/dir file."
 	    file delete "${destroot}${prefix}/share/info/dir"
 	}
+    # Restore umask
+    umask $oldmask
+
     return 0
 }
