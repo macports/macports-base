@@ -29,7 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # standard package load
-package provide pkg 1.0
+package provide dp_package 1.0
 
 package require portrpmpackage 1.0
 package require portpkg 1.0
