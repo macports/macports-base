@@ -11,7 +11,7 @@ clean:
 test:
 
 distclean: clean
-	rm -f prefix.mtree ports.conf
+	rm -f prefix.mtree ports.conf macosx.mtree
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
