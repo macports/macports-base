@@ -1,0 +1,29 @@
+* 2002/09/23
+	Bugfix only for OSF1 4.x. Thanks to Simon Burge <simonb@netbsd.org>
+	for catching it.
+
+* version 20010807.1
+	Sources synced with NetBSD digest version 20010807: minor bug fix.
+
+	Automake is no more used.
+	Memset/bzero, memcpy,bcopy usage cleanup.
+	Version number is now <NetBSD-version-number>.<portable-version-number>
+	this could help various things...
+
+* version 20010709p1
+	Sources synced with NetBSD digest version 20010709: portability fixes.
+
+	Tested on :
+	hppa1.1-hp-hpux11.00 with gcc 2.92.2
+	hppa1.1-hp-hpux11.00 with HP92453-01 A.11.01.21505.GP HP C Compiler
+	hppa-hp-hpux10.20 with gcc 2.95.1
+	hppa-hp-hpux10.20 with HP92453-01 A.10.32.20 HP C Compiler
+	sparc-sun-solaris2.8 with gcc 2.95.2
+	sparc-sun-solaris2.7 with gcc 2.95.2
+	sparc-unknown-netbsdelf1.5.1 with egcs-1.1.2 (bundled cc)
+	sparc-unknown-netbsd1.2.1 with gcc 2.7.2 (bundled cc)
+	i386-unknown-openbsd2.9 with gcc  2.95.2 (bundled cc)
+	i386-unknown-freebsd4.1.1 with gcc 2.95.2 (bundled cc)
+		
+* version 20010320p1
+	First release based on NetBSD digest version 20010320.

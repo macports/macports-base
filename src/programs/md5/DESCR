@@ -1,0 +1,5 @@
+This utility is a wrapper for the md5(3), sha1(3) and rmd160(3)
+routines.
+
+The utility is linked statically, so that it can be used without any
+shared libraries installed on the system.
