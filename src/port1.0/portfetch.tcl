@@ -14,9 +14,12 @@ register com.apple.fetch swdep build depends_fetch
 # define options: distname master_sites
 options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2
 
+# Defaults
+default extract_sufx tar.gz
+
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip
-    if {[tbool extract_sufx]} {
+    if {[info exists extract_sufx]} {
 	return ${distname}.${extract_sufx}
     } elseif {[tbool use_bzip2]} {
 	return ${distname}.tar.bz2
