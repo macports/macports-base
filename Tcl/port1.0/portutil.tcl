@@ -1,6 +1,6 @@
 # global port utility procedures
 package provide portutil 1.0
-package require Pextlib
+package require Pextlib 1.0
 
 namespace eval portutil {
 	variable globals

@@ -2,7 +2,7 @@
 # the 'main' target is provided by this package
 # main is a magic target and should not be replaced
 package provide portmain 1.0
-package require portutil
+package require portutil 1.0
 
 register_target main portmain::main
 namespace eval portmain {

@@ -1,6 +1,6 @@
 # global port routines
 package provide portpatch 1.0
-package require portutil
+package require portutil 1.0
 
 register_target patch portpatch::main main fetch checksum extract
 namespace eval portpatch {

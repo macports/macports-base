@@ -1,6 +1,6 @@
 # global port routines
 package provide portfetch 1.0
-package require portutil
+package require portutil 1.0
 
 register_target fetch portfetch::main main
 namespace eval portfetch {

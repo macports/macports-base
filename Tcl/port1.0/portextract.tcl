@@ -1,6 +1,6 @@
 # global port routines
 package provide portextract 1.0
-package require portutil
+package require portutil 1.0
 
 register_target extract portextract::main main fetch checksum
 namespace eval portextract {
