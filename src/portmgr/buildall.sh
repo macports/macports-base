@@ -8,17 +8,17 @@
 
 # What we want to call the base chroot images
 CHROOTBASE=chrootbase.sparseimage
-DISTFILES=distfiles.dmg
+DPORTSCACHE=dportscache.sparseimage
 FSTYPE=HFSX
 
 # Some conservative (and large) defaults.
-BASE_PADDING=4000000
-DISTFILES_SIZE=8192M
+BASE_PADDING=8000000
+DPORTSCACHE_SIZE=32767M
 
 # deal with fatal errors
 bomb() {
 	echo "Error: $*"
-	echo "BASEDEV=${BASEDEV} DISTDEV=${DISTDEV}"
+	echo "BASEDEV=${BASEDEV} DPORTSDEV=${DPORTSDEV}"
 	exit 1
 }
 
@@ -63,11 +63,17 @@ mkchrootbase() {
 		fi
 		bootstrapdports $dir
 	fi
-	if [ -f ${DISTFILES} ]; then
-		echo "Using existing ${DISTFILES} for efficiency"
+	if [ -f ${DPORTSCACHE} ]; then
+		echo "Using existing ${DPORTSCACHE} for efficiency"
 	else
-		echo "Creating distfiles cache of size ${DISTFILES_SIZE}"
-		hdiutil create -size ${DISTFILES_SIZE} -fs ${FSTYPE} -volname distfiles ${DISTFILES} > /dev/null
+		echo "Creating dports cache of size ${DPORTSCACHE_SIZE}"
+		hdiutil create -size ${DPORTSCACHE_SIZE} -fs ${FSTYPE} -volname distfiles ${DPORTSCACHE} > /dev/null
+		DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		mkdir -p $dir/distfiles
+		mkdir -p $dir/receipts
+		mkdir -p $dir/software
+		mkdir -p $dir/packages/darwin/powerpc
+		hdiutil detach $DPORTSDEV >& /dev/null && DPORTSDEV=""
 	fi
 }
 
@@ -102,7 +108,7 @@ prepchroot() {
 		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		mkdir -p $dir/.vol
 	fi
- 	DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+ 	DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir/opt/local/var/db/dports -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	/sbin/mount_devfs devfs $dir/dev || bomb "unable to mount devfs"
 	/sbin/mount_fdesc -o union fdesc $dir/dev || bomb "unable to mount fdesc"
 }
@@ -112,8 +118,8 @@ teardownchroot() {
 	dir=$1
 	umount -f $dir/dev  || (echo "unable to umount devfs"; STUCK_BASEDEV=1)
 	umount -f $dir/dev  || (echo "unable to umount fdesc"; STUCK_BASEDEV=1)
-	[ -z "$DISTDEV" ] || (hdiutil detach $DISTDEV >& /dev/null || bomb "unable to detach DISTDEV")
-	DISTDEV=""
+	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV >& /dev/null || bomb "unable to detach DPORTSDEV")
+	DPORTSDEV=""
 	if [ ! -z "$BASEDEV" ]; then
 		if hdiutil detach $BASEDEV >& /dev/null; then
 			STUCK_BASEDEV=0
