@@ -32,9 +32,10 @@
 package provide portpackage 1.0
 package require portutil 1.0
 
-register com.apple.package target package_main always
-register com.apple.package provides packager
-register com.apple.package requires registry
+set com.apple.package [target_new com.apple.package package_main]
+${com.apple.package} set runtype always
+${com.apple.package} provides packager
+${com.apple.package} requires registry
 
 # define options
 options package.type package.dir

@@ -32,11 +32,11 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register com.apple.extract target extract_main
-register com.apple.extract init extract_init
-register com.apple.extract provides extract
-register com.apple.extract requires fetch checksum
-register com.apple.extract deplist depends_extract
+set com.apple.extract [target_new com.apple.extract extract_main]
+${com.apple.extract} set init extract_init
+${com.apple.extract} provides extract
+${com.apple.extract} requires fetch checksum
+${com.apple.extract} deplist depends_extract
 
 # define options
 options extract.only

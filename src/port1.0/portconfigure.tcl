@@ -32,10 +32,10 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-register com.apple.configure target configure_main
-register com.apple.configure provides configure
-register com.apple.configure requires main fetch extract checksum patch
-register com.apple.configure deplist depends_build depends_lib
+set com.apple.configure [target_new com.apple.configure configure_main]
+${com.apple.configure} provides configure
+${com.apple.configure} requires main fetch extract checksum patch
+${com.apple.configure} deplist depends_build depends_lib
 
 # define options
 commands configure automake autoconf xmkmf libtool

@@ -32,10 +32,10 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-register com.apple.patch target patch_main
-register com.apple.patch provides patch
-register com.apple.patch requires main fetch checksum extract 
-register com.apple.patch deplist depends_build depends_lib
+set com.apple.patch [target_new com.apple.patch patch_main]
+${com.apple.patch} provides patch
+${com.apple.patch} requires main fetch checksum extract 
+${com.apple.patch} deplist depends_build depends_lib
 
 set UI_PREFIX "---> "
 

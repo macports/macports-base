@@ -32,9 +32,10 @@
 package provide portuninstall 1.0
 package require portutil 1.0
 
-register com.apple.uninstall target uninstall_main always
-register com.apple.uninstall provides uninstall
-register com.apple.uninstall requires main
+set com.apple.uninstall [target_new com.apple.uninstall uninstall_main]
+${com.apple.uninstall} set runtype always
+${com.apple.uninstall} provides uninstall
+${com.apple.uninstall} requires main
 
 # define options
 options uninstall.force uninstall.nochecksum

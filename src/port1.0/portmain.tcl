@@ -35,8 +35,8 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-register com.apple.main target main
-register com.apple.main provides main
+set com.apple.main [target_new com.apple.main main]
+${com.apple.main} provides main
 
 # define options
 options prefix name version revision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms

@@ -32,10 +32,10 @@
 package provide portinstall 1.0
 package require portutil 1.0
 
-register com.apple.install target install_main
-register com.apple.install provides install
-register com.apple.install requires main fetch extract checksum patch configure build 
-register com.apple.install deplist depends_run depends_lib
+set com.apple.install [target_new com.apple.install install_main]
+${com.apple.install} provides install
+${com.apple.install} requires main fetch extract checksum patch configure build 
+${com.apple.install} deplist depends_run depends_lib
 
 # define options
 options build.target.install

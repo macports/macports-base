@@ -383,143 +383,6 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
-########### External Dependancy Manipulation Procedures ###########
-# register
-# Creates a target in the global target list using the internal dependancy
-#     functions
-# Arguments: <identifier> <mode> <args ...>
-# The following modes are supported:
-#	<identifier> target <procedure to execute> [run type]
-#	<identifier> init <procedure to execute>
-#	<identifier> prerun <procedure to execute>
-#	<identifier> postrun <procedure to execute>
-#	<identifier> provides <list of target names>
-#	<identifier> requires <list of target names>
-#	<identifier> uses <list of target names>
-#	<identifier> deplist <list of deplist names>
-#	<provides> preflight <proc name>
-#	<provides> postflight <proc name>
-proc register {name mode args} {
-    global targets target_uniqid
-    
-    set obj [dlist_get_by_name $targets $name]
-    if {$obj == ""} {
-	set obj [target_new $name]
-	lappend targets $obj
-    }
-    
-    if {$mode == "target"} {
-        set procedure [lindex $args 0]
-        if {[$obj has procedure]} {
-            ui_debug "Warning: target '$name' re-registered (new procedure: '$procedure')"
-        }
-        $obj set procedure $procedure
-	
-	# Set runtype {always,once} if available
-	if {[llength $args] >= 2} {
-	    $obj set runtype [lindex $args 1]
-	}
-    } elseif {$mode == "init"} {
-	set init [lindex $args 0]
-	if {[$obj has init]} {
-	    ui_debug "Warning: target '$name' re-registered init procedure (new procedure: '$init')"
-	}
-	$obj set init $init
-    } elseif {$mode == "prerun"} {
-	set prerun [lindex $args 0]
-	if {[$obj has prerun]} {
-	    ui_debug "Warning: target '$name' re-registered pre-run procedure (new procedure: '$prerun')"
-	}
-	$obj prerun $prerun
-    } elseif {$mode == "postrun"} {
-	set postrun [lindex $args 0]
-	if {[$obj has postrun]} {
-	    ui_debug "Warning: target '$name' re-registered post-run procedure (new procedure: '$postrun')"
-	}
-	$obj set postrun $postrun
-    } elseif {$mode == "requires" || $mode == "uses" || $mode == "provides"} {
-	$obj append $mode $args
-        
-        if {$mode == "provides"} {
-            # If it's a provides, register the pre-/post- hooks for use in Portfile.
-            # Portfile syntax: pre-fetch { puts "hello world" }
-            # User-code exceptions are caught and returned as a result of the target.
-            # Thus if the user code breaks, dependent targets will not execute.
-            foreach target $args {
-		if {[info commands $target] != ""} {
-		    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
-		    continue;
-		}
-                set ident [lindex [depspec_get_matches $targets provides $args] 0]
-                set origproc [$ident get procedure]
-		set ident [$ident get name]
-                eval "proc $target {args} \{ \n\
-					global target_uniqid \n\
-					set id \[incr target_uniqid\] \n\
-                    register $ident target proc-$target\$id \n\
-                    eval \"proc proc-$target\$id \{name\} \{ \n\
-                        if \\\[catch userproc-$target\$id result\\\] \{ \n\
-							ui_info \\\$result \n\
-							return 1 \n\
-						\} else \{ \n\
-							return 0 \n\
-						\} \n\
-                    \}\" \n\
-                    eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
-                    makeuserproc userproc-$target\$id \$args \}"
-                eval "proc pre-$target {args} \{ \n\
-					global target_uniqid \n\
-					set id \[incr target_uniqid\] \n\
-                    register $target preflight pre-$target\$id \n\
-                    eval \"proc pre-$target\$id \{name\} \{ \n\
-                        if \\\[catch userproc-pre-$target\$id result\\\] \{ \n\
-							ui_info \\\$result \n\
-							return 1 \n\
-						\} else \{ \n\
-							return 0 \n\
-						\} \n\
-                    \}\" \n\
-                    makeuserproc userproc-pre-$target\$id \$args \}"
-                eval "proc post-$target {args} \{ \n\
-					global target_uniqid \n\
-					set id \[incr target_uniqid\] \n\
-                    register $target postflight post-$target\$id \n\
-                    eval \"proc post-$target\$id \{name\} \{ \n\
-                        if \\\[catch userproc-post-$target\$id result\\\] \{ \n\
-							ui_info \\\$result \n\
-							return 1 \n\
-						\} else \{ \n\
-							return 0 \n\
-						\} \n\
-                    \}\" \n\
-                    makeuserproc userproc-post-$target\$id \$args \}"
-            }
-        }
-	
-    } elseif {$mode == "deplist"} {
-	$obj append $mode $args
-	
-    } elseif {$mode == "preflight"} {
-	# Find target which provides the specified name, and add a preflight.
-	# XXX: this only returns the first match, is this what we want?
-	set obj [lindex [depspec_get_matches $targets provides $name] 0]
-	$obj append pre $args
-	
-    } elseif {$mode == "postflight"} {
-	# Find target which provides the specified name, and add a preflight.
-	# XXX: this only returns the first match, is this what we want?
-	set obj [lindex [depspec_get_matches $targets provides $name] 0]
-	$obj append post $args
-    }
-}
-
-
-# unregister
-# Unregisters a target in the global target list
-# Arguments: target <target name>
-proc unregister {mode target} {
-}
-
 ########### Internal Dependancy Manipulation Procedures ###########
 
 # returns a depspec by name
@@ -973,7 +836,7 @@ proc depspec_get {this prop} {
 proc depspec_set {this prop args} {
 	set data [$this _data]
 	global $data
-	eval set ${data}($prop) $args
+	eval "set ${data}($prop) \"$args\""
 }
 
 proc depspec_has {this prop} {
@@ -1021,14 +884,98 @@ proc depspec_run {this} {
 global target_vtbl
 array set target_vtbl [array get depspec_vtbl]
 set target_vtbl(run) target_run
+set target_vtbl(provides) target_provides
+set target_vtbl(requires) target_requires
+set target_vtbl(uses) target_uses
+set target_vtbl(deplist) target_deplist
+set target_vtbl(prerun) target_prerun
+set target_vtbl(postrun) target_postrun
 
 # constructor for target depspec class
-proc target_new {name} {
-    set obj [depspec_new $name]
+proc target_new {name procedure} {
+	global targets
+	set obj [depspec_new $name]
     
     $obj set _vtbl target_vtbl
+	$obj set procedure $procedure
     
+	lappend targets $obj
+	
     return $obj
+}
+
+proc target_provides {this args} {
+	global targets
+	# Register the pre-/post- hooks for use in Portfile.
+	# Portfile syntax: pre-fetch { puts "hello world" }
+	# User-code exceptions are caught and returned as a result of the target.
+	# Thus if the user code breaks, dependent targets will not execute.
+	foreach target $args {
+		if {[info commands $target] != ""} {
+			ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
+			continue;
+		}
+		set origproc [$this get procedure]
+		set ident [$this get name]
+		eval "proc $target {args} \{ \n\
+			$this set procedure proc-${ident}-${target}
+			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
+				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
+					ui_info \\\$result \n\
+					return 1 \n\
+				\} else \{ \n\
+					return 0 \n\
+				\} \n\
+			\}\" \n\
+			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
+			makeuserproc userproc-${ident}-${target} \$args \n\
+		\}"
+		eval "proc pre-$target {args} \{ \n\
+			$this append pre proc-pre-${ident}-${target}
+			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
+				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
+					ui_info \\\$result \n\
+					return 1 \n\
+				\} else \{ \n\
+					return 0 \n\
+				\} \n\
+			\}\" \n\
+			makeuserproc userproc-pre-${ident}-${target} \$args \n\
+		\}"
+		eval "proc post-$target {args} \{ \n\
+			$this append post proc-post-${ident}-${target}
+			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
+				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
+					ui_info \\\$result \n\
+					return 1 \n\
+				\} else \{ \n\
+					return 0 \n\
+				\} \n\
+			\}\" \n\
+			makeuserproc userproc-post-${ident}-${target} \$args \n\
+		\}"
+	}
+	eval "depspec_append $this provides $args"
+}
+
+proc target_requires {this args} {
+	eval "depspec_append $this requires $args"
+}
+
+proc target_uses {this args} {
+	eval "depspec_append $this uses $args"
+}
+
+proc target_deplist {this args} {
+	eval "depspec_append $this deplist $args"
+}
+
+proc target_prerun {this args} {
+	eval "depspec_append $this prerun $args"
+}
+
+proc target_postrun {this args} {
+	eval "depspec_append $this postrun $args"
 }
 
 ##### variant depspec subclass #####

@@ -32,9 +32,9 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-register com.apple.checksum target checksum_main
-register com.apple.checksum provides checksum
-register com.apple.checksum requires main fetch
+set com.apple.checksum [target_new com.apple.checksum checksum_main]
+${com.apple.checksum} provides checksum
+${com.apple.checksum} requires main fetch
 
 # define options
 options checksums

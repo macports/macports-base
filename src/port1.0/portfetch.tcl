@@ -32,11 +32,11 @@
 package provide portfetch 1.0
 package require portutil 1.0
 
-register com.apple.fetch target fetch_main
-register com.apple.fetch init fetch_init
-register com.apple.fetch provides fetch
-register com.apple.fetch requires main
-register com.apple.fetch deplist depends_fetch
+set com.apple.fetch [target_new com.apple.fetch fetch_main]
+${com.apple.fetch} set init fetch_init
+${com.apple.fetch} provides fetch
+${com.apple.fetch} requires main
+${com.apple.fetch} deplist depends_fetch
 
 # define options: distname master_sites
 options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
