@@ -251,6 +251,52 @@ proc darwinports::getportdir {url} {
     }
 }
 
+# dportopen2
+# Opens a DarwinPorts portfile specified by a depspec.  The portfile is
+# opened with the given list of options and variations.  The result
+# of this function should be treated as an opaque handle to a
+# DarwinPorts Portfile.
+
+proc dportopen2 {depspec {options ""} {variations ""}} {	
+	# grab the type; if it's cpan just return the shim
+	set type [lindex [split $depspec :] 0]
+	if {$type == "cpan"} {
+		set dport [ditem_create]
+		lappend darwinports::open_dports $dport
+		ditem_key $dport name "CPAN"
+		ditem_key $dport refcnt 1
+		ditem_key $dport depspec $depspec
+		ditem_key $dport provides $depspec
+		# should it require perl?
+		return $dport
+	}
+	
+	# grab the portname portion of the depspec
+	set portname [lindex [split $depspec :] 2]
+	
+	# Find the porturl
+	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		ui_error "Internal error: port search failed: $error"
+		return ""
+	}
+	foreach {name array} $res {
+		array set portinfo $array
+		if {[info exists portinfo(porturl)]} {
+			set porturl $portinfo(porturl)
+			break
+		}
+	}
+
+	if {![info exists porturl]} {
+		ui_error "Dependency '$portname' not found."
+		return ""
+	}
+	
+	set dport [dportopen $porturl $options $variations]
+	ditem_key $dport depspec $depspec
+	return $dport
+}
+
 # dportopen
 # Opens a DarwinPorts portfile specified by a URL.  The portfile is
 # opened with the given list of options and variations.  The result
@@ -391,12 +437,33 @@ proc _pathtest {dport} {
 	return [_dportsearchpath $depregex $search_path]
 }
 
+### _cpantest is private; subject to change without notice
+
+proc _cpantest {dport} {
+    set depspec [ditem_key $dport depspec]
+	set depregex [lindex [split $depspec :] 1]
+
+	# We code :: as / because : already had meaning
+	regsub -all {/} $depregex "::" cpanModule
+	
+	# Use perl(1) to see if the module is installed.
+	if {[catch {system "perl -e \"use ${cpanModule}\""} result]} {
+		return 0
+	} else {
+		ui_debug "Found Dependency: CPAN: ${cpanModule}"
+		return 1
+	}
+}
+
 ### _dportest is private; may change without notice
 
 proc _dporttest {dport} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
-	set res [$workername eval registry_exists \${portname} \${portversion}]
+	set res ""
+	if {$workername != {}} {
+		set res [$workername eval registry_exists \${portname} \${portversion}]
+	}
 	if {$res != ""} {
 		ui_debug "Found Dependency: receipt: $res"
 		return 1
@@ -408,6 +475,7 @@ proc _dporttest {dport} {
 			lib { return [_libtest $dport] }
 			bin { return [_bintest $dport] }
 			path { return [_pathtest $dport] }
+			cpan { return [_cpantest $dport] }
 			default {return -code error "unknown depspec type: $type"}
 		}
 		return 0
@@ -417,15 +485,33 @@ proc _dporttest {dport} {
 ### _dportexec is private; may change without notice
 
 proc _dportexec {target dport} {
-	# xxx: set the work path?
-	set workername [ditem_key $dport workername]
-	if {![catch {$workername eval eval_targets $target} result] && $result == 0} {
-		# xxx: clean after installing?
-		#$workername eval eval_targets clean
-		return 0
+	# grab the type portion of the depspec
+	set depspec [ditem_key $dport depspec]
+	set type [lindex [split $depspec :] 0]
+	# If it's a CPAN depspec, use the CPAN shim.
+	# XXX: this really belongs in Biome;  Biome should have a CPAN source.
+	if {$type == "cpan"} {
+		# We code :: as / because : already had meaning
+		regsub -all {/} [lindex [split $depspec :] 1] "::" cpanModule
+		ui_msg "---> Installing CPAN module ${cpanModule}"
+		if {[catch {system "perl -MCPAN -e \"print CPAN::Shell->install('${cpanModule}')\""} result]} {
+			ui_error "$result"
+			return 1
+		} else {
+			# Test to see if it installed.
+			return [expr [catch {system "perl -e \"use ${cpanModule}\""} result]]
+		}
 	} else {
-		# An error occurred.
-		return 1
+		# xxx: set the work path?
+		set workername [ditem_key $dport workername]
+		if {![catch {$workername eval eval_targets $target} result] && $result == 0} {
+			# xxx: clean after installing?
+			#$workername eval eval_targets clean
+			return 0
+		} else {
+			# An error occurred.
+			return 1
+		}
 	}
 }
 
@@ -547,7 +633,11 @@ proc dportsearch {regexp} {
 
 proc dportinfo {dport} {
 	set workername [ditem_key $dport workername]
-    return [$workername eval array get PortInfo]
+	if {$workername != {}} {
+		return [$workername eval array get PortInfo]
+	} else {
+		return [list]
+	}
 }
 
 proc dportclose {dport} {
@@ -589,35 +679,10 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 	}
 
 	foreach depspec $depends {
-		# grab the portname portion of the depspec
-		set portname [lindex [split $depspec :] 2]
+		set subport [dportopen2 $depspec [ditem_key $dport options] [ditem_key $dport variations]]
+
+		if {$subport == ""} { continue }
 		
-		# Find the porturl
-		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
-			ui_error "Internal error: port search failed: $error"
-			return 1
-		}
-		foreach {name array} $res {
-			array set portinfo $array
-			if {[info exists portinfo(porturl)]} {
-				set porturl $portinfo(porturl)
-				break
-			}
-		}
-
-		if {![info exists porturl]} {
-			ui_error "Dependency '$portname' not found."
-			return 1
-		}
-
-		set options [ditem_key $dport options]
-		set variations [ditem_key $dport variations]
-		
-		# XXX: This should use the depspec flavor of dportopen,
-		# but for now, simply set the key directly.
-		set subport [dportopen $porturl $options $variations]
-		ditem_key $subport depspec $depspec
-
 		# Append the sub-port's provides to the port's requirements list.
 		ditem_append $dport requires "[ditem_key $subport provides]"
 
