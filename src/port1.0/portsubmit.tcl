@@ -115,5 +115,12 @@ proc submit_main {args} {
 	return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
     }
 
+	set fd [open ${workpath}/.portsubmit.out r]
+	gets $fd line
+	if {![regexp -- {^OK:} $line]} {
+		return -code error $line
+	}
+	close $fd
+
     return 0
 }

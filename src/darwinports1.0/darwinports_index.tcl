@@ -189,7 +189,8 @@ proc darwinports::index::search {portdbpath url attrslist} {
 	}
 
 	sqlite DB $indexpath/database.sqlite
-	
+	# Map some functions into the SQL namespace
+	DB function regexp regexp
 	
 	# The guts of the search logic.
 	# Precedence is as follows:
@@ -207,7 +208,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 		# If version was not specified, find all distinct versions;
 		# otherwise use the specified version.
 		if {![info exists attrs(version)]} {
-			set sql "SELECT version FROM ports WHERE name LIKE '$name' GROUP BY version ORDER BY version DESC"
+			set sql "SELECT version FROM ports WHERE regexp('--','$name',name) GROUP BY version ORDER BY version DESC"
 			set versions [DB eval $sql]
 		} else {
 			set versions [list $attrs(version)]
@@ -217,7 +218,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 		# otherwise use the specified revision.
 		if {![info exists attrs(revision)]} {
 			foreach version $versions {
-				set sql "SELECT max(revision) FROM ports WHERE name LIKE '$name' AND version LIKE '$version'"
+				set sql "SELECT max(revision) FROM ports WHERE regexp('--','$name',name) AND version LIKE '$version'"
 				set revisions($version) [DB eval $sql]
 			}
 		} else {
@@ -225,7 +226,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 		}
 		
 		foreach version $versions {
-			set sql "SELECT pid FROM ports WHERE name LIKE '$name' AND version LIKE '$version' AND revision LIKE '$revisions($version)'"
+			set sql "SELECT pid FROM ports WHERE regexp('--','$name',name) AND version LIKE '$version' AND revision LIKE '$revisions($version)'"
 			lappend pids [DB eval $sql]
 		}
 	}

@@ -429,7 +429,7 @@ foreach {name array} $allpackages {
 			}
 			array set prebuildinfo [lindex $search 1]
 			set ui_options(ports_verbose) yes
-			if {[catch {set workername [dportopen $prebuildinfo(porturl) [array get options] [array get variations]]} result] ||
+			if {[catch {set workername [dportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
 				$result == 1} {
 				ui_error "Internal error: unable to install ${prebuild}... exiting"
 				exit 1

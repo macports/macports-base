@@ -315,13 +315,17 @@ proc darwinports::getportdir {url} {
 # of this function should be treated as an opaque handle to a
 # DarwinPorts Portfile.
 
-proc dportopen {porturl {options ""} {variations ""}} {
+proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
     global darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
 
 	# Look for an already-open DPort with the same URL.
 	# XXX: should compare options and variations here too.
 	# if found, return the existing reference and bump the refcount.
-	set dport [dlist_search $darwinports::open_dports porturl $porturl]
+	if {$nocache != ""} {
+		set dport {}
+	} else {
+		set dport [dlist_search $darwinports::open_dports porturl $porturl]
+	}
 	if {$dport != {}} {
 		set refcnt [ditem_key $dport refcnt]
 		incr refcnt
@@ -663,11 +667,7 @@ proc dportsearch {regexp} {
 
     foreach source $sources {
     	if {[darwinports::getprotocol $source] == "dports"} {
-    		# Strip out ^$ for compatability. (We don't use regexes anymore)
-			set name $regexp
-    		regsub -- {^\^} $name {} name
-    		regsub -- {\$$} $name {} name
-    		array set attrs [list name $name]
+    		array set attrs [list name $regexp]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
