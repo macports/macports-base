@@ -32,7 +32,7 @@ proc port_traverse {func {dir .}} {
 proc pindex {portdir} {
     global target options variations
 
-    if [catch {set interp [dportopen file://$portdir options variations]} err] {
+    if [catch {set interp [dportopen file://$portdir [array get options] $variations]} err] {
 	puts "Error: Couldn't create interpreter for $portdir: $err"
 	return -1
     }
@@ -45,7 +45,7 @@ proc pindex {portdir} {
 
 # zero-out the options array
 array set options [list]
-array set variations [list]
+set variations [list]
 
 if { $argc < 1 } {
     set target build
