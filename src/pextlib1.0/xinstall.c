@@ -1046,7 +1046,6 @@ install_dir(Tcl_Interp *interp, char *path)
 				else {
 					char msg[255];
 
-					*p = ch;
 					snprintf(msg, sizeof msg, "%s: mkdir %s\n", funcname, path);
 					ui_info(interp, msg);
 				}
