@@ -91,6 +91,7 @@ sub validate_param() {
 
 my $name         = &validate_param(qr[^A-Za-z0-9_.-], $cgi->param('name'));
 my $version      = &validate_param(qr[^A-Za-z0-9_.-], $cgi->param('version'));
+my $base_rev     = &validate_param(qr[^0-9], $cgi->param('base_rev'));
 my $md5          = &validate_param(qr[^A-Fa-f0-9], $cgi->param('md5'));
 my $submitted_by = &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=-],
 		   $cgi->param('submitted_by'));
@@ -119,14 +120,26 @@ my @master_sites  = split(' ', &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=:/-],
 # the value back out to the file, and returns the
 # value to the caller.
 #
-sub atomic_serial($) {
-    my ($filename) = @_;
+# The optional second parameter is used to detect
+# conflicts.  If the existing serial does not equal
+# the second parameter, then the serial is not
+# updated and this function returns the existing
+# serial number as a negative number.
+#
+sub atomic_serial($$) {
+    my ($filename, $last_rev) = @_;
     sysopen(SERIAL, $filename, O_RDWR|O_CREAT|O_EXLOCK) or die "Unable to open $filename: $!";
     my $serial = <SERIAL>;
+    chomp($serial);
     if (!$serial) {
         $serial = "1";
     } else {
-        $serial = $serial + 1;
+        if (!defined($last_rev) or ($serial eq $last_rev)) {
+            $serial = $serial + 1;
+        } else {
+            close(SERIAL);
+            return -1 * $serial;
+        }
     }
     # serials are monotonically increasing, so simply
     # over-writing the previous contents should be OK.
@@ -224,7 +237,20 @@ foreach my $d (split('/', $dir)) {
         chdir($d) or die "Unable to chdir: $!";
     }
 }
-$revision = &atomic_serial(".last_revision");
+$revision = &atomic_serial(".last_revision", $base_rev);
+
+#
+# If the new revision does not immediately follow the revision that the
+# submission is based on, then someone else has submitted an intermediate
+# change.  Therefore there is likely a conflict.  Report the conflict to the
+# client, and indicate which revision the conflict must be resolved with.
+#
+
+if ($revision < 0) {
+    print "CONFLICT: $transaction\n";
+    print "revision: ", -1 * $revision, "\n";
+    exit;
+}
 
 mkdir("$revision");
 chdir("$revision");

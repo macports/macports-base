@@ -65,8 +65,13 @@ proc submit_main {args} {
 
 	set portsource ""
 	if {![catch {set fd [open ".dports_source" r]}]} {
-		set line [gets $fd]
-		regexp -- {^source: (.*)$} $line unused portsource
+		while {[gets $fd line] != -1} {
+			regexp -- {^(.*): (.*)$} $line unused key value
+			switch -- $key {
+				source { set portsource $value }
+				revision { set base_rev $value }
+			}
+		}
 		close $fd
 	}
 	if {$portsource == ""} {
@@ -101,6 +106,7 @@ proc submit_main {args} {
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
+    append cmd "-F base_rev=${base_rev} "
     append cmd "-F md5=[md5 file ${workpath}/Portfile.tar.gz] "
     append cmd "-F attachment=@${workpath}/Portfile.tar.gz "
     append cmd "-F \"submitted_by=[shell_escape $username]\" "
@@ -111,7 +117,7 @@ proc submit_main {args} {
     append cmd "-F \"long_description=[shell_escape $long_description]\" "
     append cmd "-F \"master_sites=[shell_escape $master_sites]\" "
 
-    #puts $cmd
+    ui_debug $cmd
     if {[system $cmd] != ""} {
 	return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
     }
