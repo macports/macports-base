@@ -230,21 +230,26 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	}
 	fclose(pdes);
 
-	/* Copy the contents of the circular buffer to errbuf */
-	errbuf = Tcl_NewStringObj(NULL, 0);
-	for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-		if (circbuf[pos % CBUFSIZ].len == 0)
-			break;
-		Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line, circbuf[pos % CBUFSIZ].len);
-		free(circbuf[pos % CBUFSIZ].line);
-	}
-
 	if (wait(&ret) != pid)
 		return TCL_ERROR;
 	if (WIFEXITED(ret)) {
 		if (WEXITSTATUS(ret) == 0)
 			return TCL_OK;
 		else {
+			/* Copy the contents of the circular buffer to errbuf */
+			errbuf = Tcl_NewStringObj(NULL, 0);
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len == 0)
+				continue; /* skip empty lines */
+
+				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
+						circbuf[pos % CBUFSIZ].len);
+
+				/* Re-add previously stripped newline */
+				Tcl_AppendToObj(errbuf, "\n", 1);
+				free(circbuf[pos % CBUFSIZ].line);
+			}
+
 			/* set errorCode [list CHILDSTATUS <pid> <code>] */
 			Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
