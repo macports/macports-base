@@ -37,10 +37,11 @@ register com.apple.package provides packager
 register com.apple.package requires registry
 
 # define options
-options package.type
+options package.type package.dir
 
 # Set defaults
 default package.type tarball
+default package.dir ""
 
 set UI_PREFIX "---> "
 
@@ -89,9 +90,8 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set verbose ""
 	}
-	set pkgdir [file join $portdbpath packages]
-	if [file isdirectory $pkgdir] {
-	    set ptarget $pkgdir/${portname}-${portversion}.tar.gz
+	if [file isdirectory $package.dir] {
+	    set ptarget $package.dir/${portname}-${portversion}.tar.gz
 	} else {
 	    set ptarget ${portname}-${portversion}.tar.gz
 	}
