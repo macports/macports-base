@@ -47,7 +47,7 @@ proc extract_main {args} {
 	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
 	set cmd "${extract.cmd} [join ${extract.before_args}] $distpath/$distfile [join ${extract.after_args}]"
 	if [catch {system $cmd} result] {
-	    ui_error "$UI_PREFIX $result"
+	    ui_error "$result"
 	    return -1
 	}
 	ui_info "Done"

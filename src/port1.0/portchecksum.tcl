@@ -25,7 +25,7 @@ proc md5 {file} {
 	return $sum
     } else {
 	# XXX Handle this error beter
-	ui_error "$UI_PREFIX $line - md5sum failed!"
+	ui_error "$line - md5sum failed!"
 	return -1
     }
 }
@@ -50,7 +50,7 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	ui_error "$UI_PREFIX No MD5 checksums."
+	ui_error "No MD5 checksums."
 	return -1
     }
 
@@ -58,13 +58,13 @@ proc checksum_main {args} {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
-	    ui_error "$UI_PREFIX No checksum recorded for $distfile"
+	    ui_error "No checksum recorded for $distfile"
 	    return -1
 	}
 	if {$checksum == $dchecksum} {
 	    ui_msg "$UI_PREFIX Checksum OK for $distfile"
 	} else {
-	    ui_error "$UI_PREFIX Checksum mismatch for $distfile"
+	    ui_error "Checksum mismatch for $distfile"
 	    return -1
 	}
     }
