@@ -34,7 +34,10 @@ package require Pextlib 1.0
 
 global targets target_uniqid variants
 
+set targets [list]
 set target_uniqid 0
+
+set variants [list]
 
 ########### External High Level Procedures ###########
 
@@ -208,10 +211,12 @@ proc variant {args} {
         }
     }
     set name "variant-[join $provides -]"
-    dlist_add_item variants $name
-    dlist_append_key variants $name provides $provides
-    dlist_append_key variants $name requires $requires
-    dlist_set_key variants $name procedure $code
+    set obj [variant_new $name]
+    $obj append provides $provides
+    $obj append requires $requires
+    $obj set code $code
+	lappend variants $obj
+
     # Export provided variant to PortInfo
     lappend PortInfo(variants) $provides
 }
@@ -262,9 +267,9 @@ proc tbool {key} {
 # Deletes a value from the supplied list
 proc ldelete {list value} {
     upvar $list uplist
-    set ix [lsearch -exact $uplist $value]
+    set ix [lsearch -exact uplist $value]
     if {$ix >= 0} {
-	set uplist [lreplace $uplist $ix $ix]
+	set uplist [lreplace uplist $ix $ix]
     }
 }
 
@@ -371,56 +376,57 @@ proc makeuserproc {name body} {
 #	<provides> postflight <proc name>
 proc register {name mode args} {
     global targets target_uniqid
-    dlist_add_item targets $name
+    
+	set obj [dlist_get_by_name $targets $name]
+	if {$obj == ""} {
+		set obj [target_new $name]
+		lappend targets $obj
+	}
 
-    if {[string equal target $mode]} {
+    if {$mode == "target"} {
         set procedure [lindex $args 0]
-        if {[dlist_has_key targets $name procedure]} {
+        if {[$obj has procedure]} {
             ui_debug "Warning: target '$name' re-registered (new procedure: '$procedure')"
         }
-        dlist_set_key targets $name procedure $procedure
+        $obj set procedure $procedure
 		
-	# Set runtype {always,once} if available
-	if {[llength $args] >= 2} {
-	    dlist_set_key targets $name runtype [lindex $args 1]
-	}
-    } elseif {[string equal init $mode]} {
-	set init [lindex $args 0]
-	if {[dlist_has_key targets $name init]} {
-	   ui_debug "Warning: target '$name' re-registered init procedure (new procedure: '$init')"
-	}
-	dlist_set_key targets $name init $init
-    } elseif {[string equal prerun $mode]} {
-	set prerun [lindex $args 0]
-	if {[dlist_has_key targets $name prerun]} {
-	   ui_debug "Warning: target '$name' re-registered pre-run procedure (new procedure: '$prerun')"
-	}
-	dlist_set_key targets $name prerun $prerun
-    } elseif {[string equal postrun $mode]} {
-	set postrun [lindex $args 0]
-	if {[dlist_has_key targets $name postrun]} {
-	   ui_debug "Warning: target '$name' re-registered post-run procedure (new procedure: '$postrun')"
-	}
-	dlist_set_key targets $name postrun $postrun
-    } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
-        if {[dlist_has_item targets $name]} {
-            dlist_append_key targets $name $mode $args
-        } else {
-            ui_info "Warning: target '$name' not-registered in register $mode"
-        }
+		# Set runtype {always,once} if available
+		if {[llength $args] >= 2} {
+			$obj set runtype [lindex $args 1]
+		}
+    } elseif {$mode == "init"} {
+		set init [lindex $args 0]
+		if {[$obj has init]} {
+			ui_debug "Warning: target '$name' re-registered init procedure (new procedure: '$init')"
+		}
+		$obj set init $init
+    } elseif {$mode == "prerun"} {
+		set prerun [lindex $args 0]
+		if {[$obj has prerun]} {
+			ui_debug "Warning: target '$name' re-registered pre-run procedure (new procedure: '$prerun')"
+		}
+		$obj prerun $prerun
+    } elseif {$mode == "postrun"} {
+		set postrun [lindex $args 0]
+		if {[$obj has postrun]} {
+			ui_debug "Warning: target '$name' re-registered post-run procedure (new procedure: '$postrun')"
+		}
+		$obj set postrun $postrun
+    } elseif {$mode == "requires" || $mode == "uses" || $mode == "provides"} {
+		$obj append $mode $args
         
-        if {[string equal provides $mode]} {
+        if {$mode == "provides"} {
             # If it's a provides, register the pre-/post- hooks for use in Portfile.
             # Portfile syntax: pre-fetch { puts "hello world" }
             # User-code exceptions are caught and returned as a result of the target.
             # Thus if the user code breaks, dependent targets will not execute.
             foreach target $args {
-		if {[info commands $target] != ""} {
-		    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
-		    continue;
-		}
-                set ident [lindex [dlist_get_matches targets provides $args] 0]
-                set origproc [dlist_get_key targets $ident procedure]
+				if {[info commands $target] != ""} {
+					ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
+					continue;
+				}
+                set ident [lindex [depspec_get_matches $targets provides $args] 0]
+                set origproc [$ident get procedure]
                 eval "proc $target {args} \{ \n\
 					global target_uniqid \n\
 					set id \[incr target_uniqid\] \n\
@@ -464,17 +470,17 @@ proc register {name mode args} {
             }
         }
 	
-    } elseif {[string equal preflight $mode]} {
+    } elseif {$mode == "preflight"} {
 		# Find target which provides the specified name, and add a preflight.
 		# XXX: this only returns the first match, is this what we want?
-		set ident [lindex [dlist_get_matches targets provides $name] 0]
-		dlist_append_key targets $ident pre $args
+		set obj [lindex [depspec_get_matches $targets provides $name] 0]
+		$obj append pre $args
 		
-    } elseif {[string equal postflight $mode]} {
+    } elseif {$mode == "postflight"} {
 		# Find target which provides the specified name, and add a preflight.
 		# XXX: this only returns the first match, is this what we want?
-		set ident [lindex [dlist_get_matches targets provides $name] 0]
-		dlist_append_key targets $ident post $args
+		set obj [lindex [depspec_get_matches $targets provides $name] 0]
+		$obj post $args
 	}
 }
 
@@ -487,97 +493,42 @@ proc unregister {mode target} {
 
 ########### Internal Dependancy Manipulation Procedures ###########
 
-# Dependency List (dlist)
-# The dependency list is really just one big array.  (I would have
-# liked to make this nested arrays, but that's not feasible in Tcl,
-# thus we'll use the $fieldname,$groupname syntax to mimic structures.
-#
-# Dependency lists may contain private data, via the 
-# dlist_*_key APIs.  However, it must be recognized that the
-# following keys are reserved for use by the evaluation engine.
-# (Don't fret, you want these keys anyway, honest.)  These keys also
-# have predefined accessor APIs to remind you of their significance.
-#
-# Reserved keys: 
-# name		- The unique identifier of the item.  No Commas!
-# provides	- The list of tokens this item provides
-# requires	- The list of hard-dependency tokens
-# uses		- The list of soft-dependency tokens
-# runtype	- The runtype of the item {always,once}
-
-# Sets the key/value to an item in the dependency list
-proc dlist_set_key {dlist name key args} {
-    upvar $dlist uplist
-    # might be keen to validate $name here.
-    eval "set uplist($key,$name) $args"
-}
-
-# Appends the value to the list stored at the key of the item
-proc dlist_append_key {dlist name key args} {
-    upvar $dlist uplist
-    if {![dlist_has_key uplist $name $key]} { set uplist($key,$name) [list] }
-    eval "lappend uplist($key,$name) [join $args]"
-}
-
-# Return true if the key exists for the item, false otherwise
-proc dlist_has_key {dlist name key} {
-    upvar $dlist uplist
-    return [info exists uplist($key,$name)]
-}
-
-# Retrieves the value of the key of an item in the dependency list
-proc dlist_get_key {dlist name key} {
-    upvar $dlist uplist
-    if {[info exists uplist($key,$name)]} {
-	return $uplist($key,$name)
-    } else {
-	return ""
-    }
-}
-
-# Adds a colorless odorless item to the dependency list
-proc dlist_add_item {dlist name} {
-    upvar $dlist uplist
-    set uplist(name,$name) $name
-}
-
-# Deletes all keys of the specified item
-proc dlist_remove_item {dlist name} {
-    upvar $dlist uplist
-    array unset uplist *,$name
-}
-
-# Tests if the item is present in the dependency list
-proc dlist_has_item {dlist name} {
-    upvar $dlist uplist
-    return [info exists uplist(name,$name)]
-}
-
-# Return a list of names of items that provide the given name
-proc dlist_get_matches {dlist key value} {
-    upvar $dlist uplist
-    set result [list]
-    foreach ident [array names uplist name,*] {
-	set name $uplist($ident)
-	foreach val [dlist_get_key uplist $name $key] {
-	    if {[string equal $val $value] && 
-		![info exists ${result}($name)]} {
-		lappend result $name
-	    }
+# returns a depspec by name
+proc dlist_get_by_name {dlist name} {
+	set result ""
+	foreach d $dlist {
+		if {[$d get name] == $name} {
+			set result $d
+			break
+		}
 	}
+	return $result
+}
+
+# returns a list of depspecs that contain the given name in the given key
+proc depspec_get_matches {dlist key value} {
+    set result [list]
+    foreach d $dlist {
+		foreach val [$d get $key] {
+			if {$val == $value} {
+				lappend result $d
+			}
+		}
     }
     return $result
 }
 
 # Count the unmet dependencies in the dlist based on the statusdict
-proc dlist_count_unmet {names statusdict} {
+proc dlist_count_unmet {dlist statusdict names} {
     upvar $statusdict upstatusdict
     set unmet 0
     foreach name $names {
-	if {![info exists upstatusdict($name)] ||
-	    ![string equal $upstatusdict($name) success]} {
-	    incr unmet
-	}
+		# Service was provided, check next.
+		if {[info exists upstatusdict($name)] && $upstatusdict($name) == 1} {
+			continue
+		} else {
+			incr unmet
+		}
     }
     return $unmet
 }
@@ -585,76 +536,85 @@ proc dlist_count_unmet {names statusdict} {
 # Returns true if any of the dependencies are pending in the dlist
 proc dlist_has_pending {dlist uses} {
     foreach name $uses {
-	if {[info exists ${dlist}(name,$name)]} { 
-	    return 1
-	}
+		if {[llength [depspec_get_matches $dlist provides $name]] > 0} {
+			return 1
+		}
     }
     return 0
 }
 
 # Get the name of the next eligible item from the dependency list
-proc dlist_get_next {dlist statusdict} {
+proc generic_get_next {dlist statusdict} {
     set nextitem ""
     # arbitrary large number ~ INT_MAX
     set minfailed 2000000000
-    upvar $dlist uplist
     upvar $statusdict upstatusdict
     
-    foreach n [array names uplist name,*] {
-	set name $uplist($n)
-	
-	# skip if unsatisfied hard dependencies
-	if {[dlist_count_unmet [dlist_get_key uplist $name requires] upstatusdict]} { continue }
-	
-	# favor item with fewest unment soft dependencies
-	set unmet [dlist_count_unmet [dlist_get_key uplist $name uses] upstatusdict]
-	
-	# delay items with unmet soft dependencies that can be filled
-	if {$unmet > 0 && [dlist_has_pending dlist [dlist_get_key uplist $name uses]]} { continue }
-	
-	if {$unmet >= $minfailed} {
-	    # not better than our last pick
-	    continue
-	} else {
-	    # better than our last pick
-	    set minfailed $unmet
-	    set nextitem $name
-	}
+    foreach obj $dlist {		
+		# skip if unsatisfied hard dependencies
+		if {[dlist_count_unmet $dlist upstatusdict [$obj get requires]]} { continue }
+		
+		# favor item with fewest unment soft dependencies
+		set unmet [dlist_count_unmet $dlist upstatusdict [$obj get uses]]
+
+		# delay items with unmet soft dependencies that can be filled
+		if {$unmet > 0 && [dlist_has_pending $dlist [$obj get uses]]} { continue }
+		
+		if {$unmet >= $minfailed} {
+			# not better than our last pick
+			continue
+		} else {
+			# better than our last pick
+			set minfailed $unmet
+			set nextitem $obj
+		}
     }
     return $nextitem
 }
 
 
-# Evaluate the dlist, invoking action on each name in the dlist as it
-# becomes eligible.
-proc dlist_evaluate {dlist downstatusdict action} {
-    # dlist - nodes waiting to be executed
-    upvar $dlist uplist
-    upvar $downstatusdict statusdict
-    
-    # status - keys will be node names, values will be success or failure.
+# Evaluate the list of depspecs, running each as it becomes eligible.
+# dlist is a collection of depspec objects to be run
+# get_next_proc is used to determine the best item to run
+proc dlist_evaluate {dlist get_next_proc} {
+
+    # status - keys will be node names, values will be {-1, 0, 1}.
     array set statusdict [list]
+	
+	# XXX: Do we want to evaluate this dynamically instead of statically? 
+	foreach obj $dlist {
+		if {[$obj test] == 1} {
+			foreach name [$obj get provides] {
+				set statusdict($name) 1
+			}
+		}
+	}
     
     # loop for as long as there are nodes in the dlist.
     while (1) {
-	set name [dlist_get_next uplist statusdict]
-	if {[string length $name] == 0} { 
-	    break
-	} else {
-	    set result [eval $action uplist $name]
-	    foreach token $uplist(provides,$name) {
-		array set statusdict [list $token $result]
-	    }
-	    dlist_remove_item uplist $name
-	}
+		set obj [$get_next_proc $dlist statusdict]
+
+		if {$obj == ""} { 
+			break
+		} else {
+			set result [$obj run]
+			# depspec->run returns an error code, so 0 == success.
+			# translate this to the statusdict notation where 1 == success.
+			foreach name [$obj get provides] {
+				set statusdict($name) [expr $result == 0]
+			}
+			
+			# Delete the item from the waiting list.
+			set i [lsearch $dlist $obj]
+			set dlist [lreplace $dlist $i $i]
+		}
     }
     
-    set names [array names uplist name,*]
-	if { [llength $names] > 0} {
+	if {[llength $dlist] > 0} {
 		# somebody broke!
 		ui_info "Warning: the following items did not execute: "
-		foreach name $names {
-			ui_info "$uplist($name) " -nonewline
+		foreach obj $dlist {
+			ui_info "[$obj get name] " -nonewline
 		}
 		ui_info ""
 		return 1
@@ -662,26 +622,26 @@ proc dlist_evaluate {dlist downstatusdict action} {
 	return 0
 }
 
-proc exec_target {fd dlist name} {
-# XXX: Don't depend on entire dlist, this should really receive just one node.
-    upvar $dlist uplist
-
-    if {[dlist_has_key uplist $name procedure]} {
-		set procedure [dlist_get_key uplist $name procedure]
-		if {[dlist_has_key uplist $name init]} {
-			[dlist_get_key uplist $name init] $name
+proc target_run {this} {
+	global target_state_fd
+	set procedure [$this get procedure]
+    if {$procedure != ""} {
+		set name [$this get name]
+	
+		if {[$this has init]} {
+			[$this get init] $name
 		}
 				
-		if {[check_statefile $name $fd]} {
+		if {[check_statefile $name $target_state_fd]} {
 			set result 0
 			ui_debug "Skipping completed $name"
 		} else {
 			# Execute pre-run procedure
-			if {[dlist_has_key uplist $name prerun]} {
-				[dlist_get_key uplist $name prerun] $name
+			if {[$this has prerun]} {
+				[$this get prerun] $name
 			}
 
-			foreach pre [dlist_get_key uplist $name pre] {
+			foreach pre [$this get pre] {
 				ui_debug "Executing $pre"
 				if {[$pre $name] != 0} { return failure }
 			}
@@ -689,7 +649,7 @@ proc exec_target {fd dlist name} {
 			ui_debug "Executing $name"
 			set result [$procedure $name]
 
-			foreach post [dlist_get_key uplist $name post] {
+			foreach post [$this get post] {
 				ui_debug "Executing $post"
 				if {[$post $name] != 0} { 
 					set result 1 
@@ -697,86 +657,76 @@ proc exec_target {fd dlist name} {
 				}
 			}
 			# Execute post-run procedure
-			if {[dlist_has_key uplist $name postrun]} {
-				[dlist_get_key uplist $name postrun] $name
+			if {[$this has postrun]} {
+				set postrun [$this get postrun]
+				ui_debug "Executing $postrun"
+				$postrun $name
 			}
 		}
 		if {$result == 0} {
-			set result success
-			if {[dlist_get_key uplist $name runtype] != "always"} {
-			write_statefile $name $fd
+			set result 0
+			if {[$this get runtype] != "always"} {
+				write_statefile $name $target_state_fd
 			}
 		} else {
 			ui_error "Target error: $name returned $result"
-			set result failure
+			set result 1
 		}
 		
     } else {
 		ui_info "Warning: $name does not have a registered procedure"
-		set result failure
+		set result 1
     }
-	
+
     return $result
 }
 
-proc eval_targets {dlist target} {
-    upvar $dlist uplist
+proc eval_targets {target} {
+	global targets target_state_fd
+	set dlist $targets
 
     # Select the subset of targets under $target
-    if {[string length $target] > 0} {
+    if {$target != ""} {
 		# XXX munge target. install really means registry, then install
 		# If more than one target ever needs this, make this a generic interface
-		if {[string equal $target "install"]} {
+		if {$target == "install"} {
 			set target registry
 		}
-        set matches [dlist_get_matches uplist provides $target]
+        set matches [depspec_get_matches $dlist provides $target]
         if {[llength $matches] > 0} {
-            array set dependents [list]
-            dlist_append_dependents dependents uplist [lindex $matches 0]
-            array unset uplist
-            array set uplist [array get dependents]
-            # Special-case 'all'
-        } elseif {![string equal $target all]} {
-            ui_error "unknown target: $target"
+			set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
+		# Special-case 'all'
+        } elseif {$target != "all"} {
+            ui_info "unknown target: $target"
             return 1
         }
     }
-    
-    array set statusdict [list]
-    
+        
     # Restore the state from a previous run.
-    set fd [open_statefile]
+    set target_state_fd [open_statefile]
     
-    set ret [dlist_evaluate uplist statusdict [list exec_target $fd]]
+    set ret [dlist_evaluate $dlist generic_get_next]
 
-    close $fd
-    return $ret
+    close $target_state_fd
+	return $ret
 }
 
-# select dependents of <name> from the <itemlist>
-# adding them to <dependents>
-proc dlist_append_dependents {dependents dlist name} {
-    upvar $dependents updependents
-    upvar $dlist uplist
+# returns the names of dependents of <name> from the <itemlist>
+proc dlist_append_dependents {dlist obj result} {
 
-    # Append item to the list, avoiding duplicates
-    if {![info exists updependents(name,$name)]} {
-	set names [array names uplist *,$name]
-        foreach n $names {
-            set updependents($n) $uplist($n)
-        }
-    }
-    
+	# Append the item to the list, avoiding duplicates
+	if {[lsearch $result $obj] == -1} {
+		lappend result $obj
+	}
+    	
     # Recursively append any hard dependencies
-    if {[info exists uplist(requires,$name)]} {
-        foreach dep $uplist(requires,$name) {
-            foreach provide [dlist_get_matches uplist provides $dep] {
-                dlist_append_dependents updependents uplist $provide
-            }
+	foreach dep [$obj get requires] {
+		foreach provider [depspec_get_matches $dlist provides $dep] {
+			set result [dlist_append_dependents $dlist $provider $result]
         }
     }
-    
     # XXX: add soft-dependencies?
+	return $result
 }
 
 # open_statefile
@@ -860,20 +810,17 @@ proc port_traverse {func {dir .}} {
 
 # Each variant which provides a subset of the requested variations
 # will be chosen.  Returns a list of the selected variants.
-proc choose_variants {variants variations} {
-    upvar $variants upvariants 
+proc choose_variants {dlist variations} {
     upvar $variations upvariations
 
     set selected [list]
     
-    foreach n [array names upvariants name,*] {
-		set name $upvariants($n)
-		
+    foreach obj $dlist {
 		# Enumerate through the provides, tallying the pros and cons.
 		set pros 0
 		set cons 0
 		set ignored 0
-		foreach flavor [dlist_get_key upvariants $name provides] {
+		foreach flavor [$obj get provides] {
 			if {[info exists upvariations($flavor)]} {
 				if {$upvariations($flavor) == "+"} {
 					incr pros
@@ -888,41 +835,173 @@ proc choose_variants {variants variations} {
 		if {$cons > 0} { continue }
 		
 		if {$pros > 0 && $ignored == 0} {
-			lappend selected $name
+			lappend selected $obj
 		}
 	}
     return $selected
 }
 
-proc exec_variant {dlist name} {
-# XXX: Don't depend on entire dlist, this should really receive just one node.
-    upvar $dlist uplist
-    ui_debug "Executing $name"
-    makeuserproc $name-code "\{[dlist_get_key uplist $name procedure]\}"
-    $name-code
-    return success
+proc variant_run {this} {
+	set name [$this get name]
+    ui_debug "Executing $name provides [$this get provides]"
+    makeuserproc $name-code "\{[$this get code]\}"
+    if ([catch $name-code result]) {
+		ui_error "Error executing $name: $result"
+		return 1
+	}
+    return 0
 }
 
-proc eval_variants {dlist variations} {
-    upvar $dlist uplist
+proc eval_variants {variations} {
+	global variants
+	set dlist $variants
 	upvar $variations upvariations
-
-	set chosen [choose_variants uplist upvariations]
-
-    # now that we've selected variants, change all provides [a b c] to [a-b-c]
-    # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
-    foreach n [array names uplist provides,*] {
-        array set uplist [list $n [join $uplist($n) -]]
-    }
-	
-	array set dependents [list]
-    foreach variant $chosen {
-        dlist_append_dependents dependents uplist $variant
-    }
-	array unset uplist
-	array set uplist [array get dependents]
+	set chosen [choose_variants $dlist upvariations]
     
-    array set statusdict [list]
-        
-    dlist_evaluate uplist statusdict [list exec_variant]
+	# now that we've selected variants, change all provides [a b c] to [a-b-c]
+    # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
+    #foreach obj $dlist {
+    #    $obj set provides [list [join [$obj get provides] -]]
+    #}
+	
+	set newlist [list]
+    foreach variant $chosen {
+        set newlist [dlist_append_dependents $dlist $variant $newlist]
+    }
+
+    dlist_evaluate $newlist generic_get_next
 }
+
+##### DEPSPEC #####
+
+# Object-Oriented Depspecs
+#
+# Each depspec will have its data stored in an array
+# (indexed by field name) and its procedures will be
+# called via the dispatch procedure that is returned
+# from depspec_new.
+#
+# sample usage:
+# set obj [depspec_new]
+# $obj set name "hello"
+#
+
+# Depspec
+#	str name
+#	str provides[]
+#	str requires[]
+#	str uses[]
+
+global depspec_uniqid
+set depspec_uniqid 0
+
+# Depspec class definition.
+global depspec_vtbl
+set depspec_vtbl(test) depspec_test
+set depspec_vtbl(run) depspec_run
+
+# constructor for abstract depspec class
+proc depspec_new {name} {
+	global depspec_uniqid
+	set id [incr depspec_uniqid]
+	
+	# declare the array of data
+	set data dpspc_data_${id}
+	set disp dpspc_disp_${id}
+	
+	global $data 
+	set ${data}(name) $name
+	set ${data}(_vtbl) depspec_vtbl
+	
+	eval "proc $disp {method args} { \n \
+			global $data \n \
+			eval return \\\[depspec_dispatch $disp $data \$method \$args\\\] \n \
+		}"
+	
+	return $disp
+}
+
+# is the only proc to get access to the object's data
+# so the get/set routines are defined here.  this lets
+# the virtual members get a real "this" object.
+proc depspec_dispatch {this data method args} {
+	global $data
+	switch $method {
+		get {
+			set prop [lindex $args 0]
+			if {[eval info exists ${data}($prop)]} {
+				eval return $${data}($prop)
+			} else {
+				return ""
+			}
+		}
+		set {
+			set prop [lindex $args 0]
+			eval "set ${data}($prop) [lrange $args 1 end]"
+		}
+		has {
+			set prop [lindex $args 0]
+			return [info exists ${data}($prop)]
+		}
+		append {
+			set prop [lindex $args 0]
+			set vals [join [lrange $args 1 end] " "]
+			eval "lappend ${data}($prop) $vals"
+		}
+		default {
+			eval set vtbl $${data}(_vtbl)
+			global $vtbl
+			if {[info exists ${vtbl}($method)]} {
+				eval set function $${vtbl}($method)
+				eval "return \[$function $this $args\]"
+			} else {
+				ui_error "unknown method: $method"
+			}
+		}
+	}
+	return ""
+}
+
+proc depspec_test {this} {
+	return 0
+}
+
+proc depspec_run {this} {
+	return 0
+}
+
+##### target depspec subclass #####
+
+# Target class definition.
+global target_vtbl
+array set target_vtbl [array get depspec_vtbl]
+set target_vtbl(run) target_run
+
+# constructor for target depspec class
+proc target_new {name} {
+	set obj [depspec_new $name]
+	
+	$obj set _vtbl target_vtbl
+
+	return $obj
+}
+
+##### variant depspec subclass #####
+
+# Variant class definition.
+global variant_vtbl
+array set variant_vtbl [array get depspec_vtbl]
+set variant_vtbl(run) variant_run
+
+# constructor for target depspec class
+proc variant_new {name} {
+	set obj [depspec_new $name]
+	
+	$obj set _vtbl variant_vtbl
+
+	return $obj
+}
+
+
+
+##### bin portfile depspec subclass #####

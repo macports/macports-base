@@ -227,8 +227,8 @@ proc dportopen {porturl {options ""} {variations ""}} {
 proc dportexec {workername target} {
     global darwinports::portinterp_options darwinports::uniqid
 
-    $workername eval eval_variants variants variations
-    return [$workername eval eval_targets targets $target]
+    $workername eval eval_variants variations
+    return [$workername eval eval_targets $target]
 }
 
 proc darwinports::getindex {source} {
