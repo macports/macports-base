@@ -27,6 +27,13 @@ namespace eval darwinports {
 
 		set portpath /usr/darwinports
 		darwinports::readconf
+		
+		# Prefer the PORTPATH environment variable
+		upvar env env
+		if {[llength [array names env PORTPATH]] > 0} {
+			set portpath [lindex [array get env PORTPATH] 1]
+		}
+
 		if ![info exists distpath] {
 			set distpath $portpath/distfiles
 		}
