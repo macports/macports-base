@@ -62,6 +62,7 @@ default fetch.args {"-o ${distfile}.TMP"}
 default fetch.pre_args {"-f -L"}
 default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}
 
+default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 
@@ -154,20 +155,30 @@ proc mirror_sites {mirrors tag subdir} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}
     }
-    
+
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
-	if {"$subdir" == ""} {
+	
+	# here we have the chance to take a look at tags, that possibly
+	# have been assigned in mirror_sites.tcl
+	set splitlist [split $element :]
+	if {[llength $splitlist] > 1} {
+		set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
+		set mirror_tag "[lindex $splitlist 2]"
+	}
+
+	if {$subdir == "" && $mirror_tag != "nosubdir"} {
 	    set subdir ${portname}
 	}
 
-    	if {"$tag" != ""} {
+	if {"$tag" != ""} {
 	    eval append element "${subdir}:${tag}"
 	} else {
 	    eval append element "${subdir}"
 	}
         eval lappend ret $element
     }
+
     return $ret
 }
 
@@ -179,7 +190,9 @@ proc mirror_sites {mirrors tag subdir} {
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
 	master_sites filespath master_sites.mirror_subdir \
-        patch_sites.mirror_subdir
+        patch_sites.mirror_subdir fallback_mirror_site
+
+    append master_sites " ${fallback_mirror_site}"
 
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist

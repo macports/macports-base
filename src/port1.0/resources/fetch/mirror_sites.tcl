@@ -1,8 +1,12 @@
-# $Id: mirror_sites.tcl,v 1.3 2003/09/12 23:48:35 fkr Exp $
+# $Id: mirror_sites.tcl,v 1.4 2003/11/03 17:36:42 fkr Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
 # Most of these are taken shamelessly from FreeBSD.
+#
+# Appending :nosubdir as a tag to a mirror, means that
+# the portfetch target will NOT append a subdirectory to
+# the mirror site.
 #
 # Please keep this list sorted.
 
@@ -99,6 +103,12 @@ set portfetch::mirror_sites::sites(kde) {
     ftp://ftp.dataplus.se/pub/linux/kde/
     ftp://ftp.informatik.hu-berlin.de/pub/Mirrors/ftp.kde.org/
     ftp://ftp.chg.ru/pub/X11/kde/
+}
+
+set portfetch::mirror_sites::sites(opendarwin) {
+	http://distfiles.opendarwin.org/
+	http://distfiles-od.opendarwin.org/:nosubdir
+	http://distfiles-msn.opendarwin.org/:nosubdir
 }
 
 set portfetch::mirror_sites::sites(perl_cpan) {
