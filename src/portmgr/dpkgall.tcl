@@ -90,7 +90,7 @@ proc ui_puts {messageArray} {
 	array set message $messageArray
 	switch -- $message(priority) {
 		debug {
-			return
+			set str "Debug: $message(data)"
 		}
 		info {
 			set str $message(data)
@@ -107,7 +107,7 @@ proc ui_puts {messageArray} {
 	}
 	if {[info exists logfd] && [string length $logfd] > 0 } {
 		log_message $logfd $str
-	} else {
+	} elseif {$message(priority) != "debug"} {
 		# If there's no log file, echo to stdout
 		puts $str
 	}
@@ -207,7 +207,7 @@ proc reset_tree {args} {
 
 	ui_silent "Linking static distfiles directory to ${portprefix}/var/db/dports/distfiles."
 	if {[file isdirectory ${portprefix}/var/db/dports/distfiles"]} {
-		if {[catch {system "rmdir ${portprefix}/var/db/dports/distfiles"} error]} {
+		if {[catch {system "rm -rf ${portprefix}/var/db/dports/distfiles"} error]} {
 			ui_noisy_error "Internal error: $error"
 			exit 1
 		}
@@ -376,10 +376,6 @@ proc main {argc argv} {
 	# Force mode
 	set options(ports_force) yes
 
-	# Noisy output
-	set options(ports_verbose) yes
-	set options(ports_debug) yes
-
 	# Set variations (empty)
 	set variations [list]
 
@@ -507,18 +503,24 @@ proc main {argc argv} {
 		if {[catch {set result [dportexec $workername dpkg]} result] || $result == 1} {
 			ui_noisy_error "Packaging $portinfo(name) failed, consult build log"
 
-			# Close the log
-			close $logfd
-
 			# Copy the log to the failure directory
 			copy_failure_log $portinfo(name)
 
 			# Close the port
 			dportclose $workername
 
+			# Close the log
+			close $logfd
+
+			# Open default log
+			open_default_log
+
 			ui_silent "Resetting /usr/dports ..."
 			reset_tree
 			ui_silent "Done."
+
+			# Close the log
+			close $logfd
 
 			continue
 		}
@@ -855,8 +857,14 @@ proc install_binary_if_available {dep} {
 	set portversion [lindex $dep 1]
 	set portrevision [lindex $dep 2]
 	set category [lindex $dep 3]
+
+	if {${portrevision} != ""} {
+		set verstring ${portversion}_${portrevision}
+	} else {
+		set verstring ${portversion}
+	}
 	
-	set receiptdir [file join $portprefix var db receipts ${portname} ${portversion}]
+	set receiptdir [file join $portprefix var db receipts ${portname} ${verstring}]
 	set pkgpath [get_pkgpath ${portname} ${portversion} ${portrevision}]
 
 	# Check if the package is available, and ensure that it has not already been
