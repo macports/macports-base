@@ -312,7 +312,6 @@ proc fetchfiles {args} {
 		    break
 		} else {
 		    exec rm -f ${distpath}/${distfile}.TMP
-		    ui_error "[msgcat::mc "Unable to fetch:"]: $result"
 		}
 	    }
 	    if {![info exists fetched]} {
