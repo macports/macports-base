@@ -22,6 +22,8 @@ default prefix /usr/local/
 default workdir work
 default filedir files
 default portrevision 0
+default os_arch $tcl_platform(machine)
+default os_version $tcl_platform(osVersion)
 
 # define options
 options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath
