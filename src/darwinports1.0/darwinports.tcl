@@ -160,7 +160,7 @@ proc darwinports::worker_init {workername portpath options variations} {
 }
 
 proc darwinports::fetch_port {url} {
-    global darwinports::portdbpath os.name
+    global darwinports::portdbpath tcl_platform
     set fetchdir [file join $portdbpath portdirs]
     set fetchfile [file tail $url]
     if {[catch {file mkdir $fetchdir} result]} {
@@ -169,12 +169,12 @@ proc darwinports::fetch_port {url} {
     if {![file writable $fetchdir]} {
     	return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
-    if {${os.name} == "darwin"} {
+    if {${tcl_platform(os)} == "Darwin"} {
 	if {[catch {exec curl -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
 	    return -code error "Port remote fetch failed: $result"
 	}
     } else {
-	if {[catch {exec fetch -o [file join $fetchdir $fetchfile] $url} result]} {
+	if {[catch {exec fetch -q -o [file join $fetchdir $fetchfile] $url} result]} {
 	    return -code error "Port remote fetch failed: $result"
 	}
     }
@@ -260,7 +260,7 @@ proc darwinports::getindex {source} {
 }
 
 proc dportsync {args} {
-    global darwinports::sources darwinports::portdbpath os.name
+    global darwinports::sources darwinports::portdbpath tcl_platform
 
     foreach source $sources {
         # Special case file:// sources
@@ -274,10 +274,10 @@ proc dportsync {args} {
 	if {![file writable [file dirname $indexfile]]} {
 	    return -code error "You do not have permission to write to [file dirname $indexfile]"
 	}
-	if {${os.name} == "darwin"} {
+	if {${tcl_platform(os)} == "Darwin"} {
 	    exec curl -s -S -o $indexfile $source/PortIndex
 	} else {
-	    exec fetch -o $indexfile $source/PortIndex
+	    exec fetch -q -o $indexfile $source/PortIndex
 	}
     }
 }
