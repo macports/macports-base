@@ -28,8 +28,7 @@ clean:
 distclean: clean
 
 install: mkdirs
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}/man/man1
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/man/man1
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port ${INSTALLDIR}/bin/port
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portall ${INSTALLDIR}/bin/portall
