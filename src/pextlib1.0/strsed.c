@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.6  2002/08/28 04:06:18  landonf
+ * Dynamically allocate exp_regs
+ *
  * Revision 1.5  2002/08/22 23:21:52  landonf
  * Fix compiler warnings, use regoff_t type
  *
@@ -151,6 +154,7 @@
 
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #ifdef GNU_REGEX
 #include "regex.h"
@@ -195,6 +199,8 @@
 
 #define RETURN(n)     \
     mem_free(n);      \
+    if (exp_regs != NULL) \
+    free(exp_regs); \
     return (char *)n
 
 static struct {
@@ -248,7 +254,7 @@ int *range;
 #endif
 
 #ifdef HS_REGEX
-    static regmatch_t exp_regs[100];
+    static regmatch_t *exp_regs = NULL;
     static regex_t exp;
 #endif
 
@@ -300,8 +306,6 @@ int *range;
 	/* We use first_time again if we are GNU_REGEX, and reset it later. */
 	first_time = 0;
 
-	for (i = 0; i < 100; i++)
-		exp_regs[i].rm_so = exp_regs[i].rm_eo = 0;
 #endif
     }
 
@@ -614,7 +618,11 @@ int *range;
 	    match = re_search(&re_comp_buf, str, str_len, 0, str_len, &regs);
 #endif
 #ifdef HS_REGEX
-	    match = regexec(&exp, str, strlen(str), exp_regs, 0) ? NO_MATCH : 1;
+	    /* XXX Not even trying to use custom memory routines */
+	    if (!(exp_regs = calloc(str_len, sizeof(regmatch_t)))) {
+		return 0;
+	    }
+	    match = regexec(&exp, str, str_len, exp_regs, 0) ? NO_MATCH : 1;
 #endif
 	}
 
