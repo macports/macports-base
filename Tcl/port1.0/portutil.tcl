@@ -13,8 +13,10 @@ namespace eval portutil {
 # Creates a target in the global target list using the internal dependancy
 #     functions
 # Arguments: target <target name> <procedure to execute>
-# Arguments: requires <list of target names>
-# Arguments: uses <list of target names>
+# Arguments: requires <target name> <list of target names>
+# Arguments: uses <target name> <list of target names>
+# Arguments: preflight <target name> <target name>
+# Arguments: postflight <target name> <target name>
 proc register {mode target args} {	
 	if {[string equal target $mode]} {
 		if {[isval portutil::targets $target]} {
@@ -22,14 +24,34 @@ proc register {mode target args} {
 			puts "Warning: target '$target' re-registered (new procedure: '$procedure')"
 		}
 		depend_list_add_item portutil::targets $target $args [list] [list]
-	} else {
-		# requires or uses or whatever ;-)
+	} elseif {[string equal requires $mode] || [string equal uses $mode]} {
 		if {[isval portutil::targets name,$target]} {
 			# XXX: violates data abstraction
 			eval "lappend portutil::targets($mode,$target) $args"
 		} else {
 			# XXX: remove puts
 			puts "Warning: target '$target' not-registered in register $mode"
+		}
+	} elseif {[string equal preflight $mode]} {
+		# preflight vulcan mind meld:
+		# "your requirements to my requirements; my provides to your requirements"
+		# XXX: violates data abstraction
+		eval "lappend portutil::targets(requires,$target) $portutil::targets(requires,$args)"
+		lappend portutil::targets(requires,$args) $target
+	} elseif {[string equal postflight $mode]} {
+		# postflight procedure:
+		# your provides to my requires; my provides to the requires of your children
+		# XXX: violates data abstraction
+		lappend portutil::targets(requires,$target) $args
+		foreach node [array names portutil::targets name,*] {
+			set name $portutil::targets($node)
+			if {[string equal $target $name]} { continue }
+			set requires $portutil::targets(requires,$name)
+			foreach val $requires {
+				if {[string equal $val $args]} {
+					lappend portutil::targets(requires,$name) $target
+				}
+			}
 		}
 	}
 }
