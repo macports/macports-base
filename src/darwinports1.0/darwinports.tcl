@@ -369,6 +369,15 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 #			category/port/ as its parameter)
 # root:		the directory with all the categories directories.
 proc dporttraverse {func {root .}} {
+	# Save the current directory
+	set pwd [pwd]
+	
+	# Join the root.
+	set pathToRoot [file join $pwd $root]
+
+	# Go to root because some callers expects us to be there.
+	cd $pathToRoot
+
     foreach category [readdir $root] {
     	set pathToCategory [file join $root $category]
         if {[file isdirectory $pathToCategory]} {
@@ -379,10 +388,17 @@ proc dporttraverse {func {root .}} {
 					[file exists [file join $pathToPort "Portfile"]]} {
 					# Call the function.
 					$func [file join $category $port]
+					
+					# Restore the current directory because some
+					# functions changes it.
+					cd $pathToRoot
 				}
 			}
         }
 	}
+	
+	# Restore the current directory.
+	cd $pwd
 }
 
 ### _dportsearchpath is private; subject to change without notice
