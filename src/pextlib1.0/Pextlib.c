@@ -120,7 +120,8 @@ static pid_t pid;
 static void system_handler(int sig)
 {
         signaled = 1;
-	kill(pid, sig);
+	fprintf(stderr, "User Interrupt.\n");
+	killpg(pid, sig);
 }
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -167,6 +168,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		/* XXX dropping the controlling terminal */
 		if (setsid() == -1)
 			_exit(1);
+		setpgrp(0, getpid());
 		/* XXX ugly string constants */
 		args[0] = "sh";
 		args[1] = "-c";
@@ -179,7 +181,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pdes = fdopen(fdset[0], "r");
 
 	/* read from simulated popen() pipe */
-	while (fgets(buf, BUFSIZ, pdes) != NULL && !signaled) {
+	while (fgets(buf, BUFSIZ, pdes) != NULL) {
 		int ret = ui_info(interp, buf);
 		if (ret != TCL_OK) {
 		        signal(SIGINT, oldsig);
