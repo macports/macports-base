@@ -46,3 +46,4 @@ package require portuninstall 1.0
 package require portclean 1.0
 package require porttest 1.0
 package require portsubmit 1.0
+package require portrequires 1.0
