@@ -33,6 +33,8 @@
 
 package require darwinports
 
+proc ui_puts {name} {}
+
 # This should be a command line argument.
 # if true, use_db insructs the script to insert directly into a database
 # otherwise, sql statements will be printed to stdout.
