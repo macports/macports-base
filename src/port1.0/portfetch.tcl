@@ -311,6 +311,7 @@ proc fetchfiles {args} {
 		    set fetched 1
 		    break
 		} else {
+		    ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
 		    exec rm -f ${distpath}/${distfile}.TMP
 		}
 	    }
