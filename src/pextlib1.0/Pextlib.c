@@ -87,7 +87,8 @@ char * ui_escape(const char *source)
 	return dest;
 }
 
-static int ui_info(Tcl_Interp *interp, char *mesg) {
+static int ui_info(Tcl_Interp *interp, char *mesg)
+{
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
 	char *script, *string, *p;
@@ -320,6 +321,7 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 	if ((fd = mkstemp(template)) < 0) {
 		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
+		free(template);
 		return TCL_ERROR;
 	}
 
