@@ -4732,9 +4732,20 @@ _ACEOF
 
 else
 
+			case $host_os in
+				darwin*)
+					{ echo "$as_me:$LINENO: Please install the BSD SDK package from the Xcode Developer Tools CD." >&5
+echo "$as_me: Please install the BSD SDK package from the Xcode Developer Tools CD." >&6;}
+					;;
+				*)
+					{ echo "$as_me:$LINENO: Please install the libmd developer headers for your platform." >&5
+echo "$as_me: Please install the libmd developer headers for your platform." >&6;}
+					;;
+			esac
 			{ { echo "$as_me:$LINENO: error: libmd was found, but md5.h is missing." >&5
 echo "$as_me: error: libmd was found, but md5.h is missing." >&2;}
    { (exit 1); exit 1; }; }
+
 fi
 
 done
@@ -4946,9 +4957,20 @@ _ACEOF
 
 else
 
+				case $host_os in
+					darwin*)
+					{ echo "$as_me:$LINENO: Please install the BSD SDK package from the Xcode Developer Tools CD." >&5
+echo "$as_me: Please install the BSD SDK package from the Xcode Developer Tools CD." >&6;}
+						;;
+					*)
+					{ echo "$as_me:$LINENO: Please install the libmd developer headers for your platform." >&5
+echo "$as_me: Please install the libmd developer headers for your platform." >&6;}
+						;;
+				esac
 				{ { echo "$as_me:$LINENO: error: libcrypt was found, but header file openssl/md5.h is missing." >&5
 echo "$as_me: error: libcrypt was found, but header file openssl/md5.h is missing." >&2;}
    { (exit 1); exit 1; }; }
+
 fi
 
 done
