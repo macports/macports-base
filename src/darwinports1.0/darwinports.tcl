@@ -1022,7 +1022,7 @@ proc upgrade {pname dspec} {
 		if { [lindex $num 4] == 0} {
 			# activate the latest installed version
 			if {[catch {portimage::activate $pname $version_installed$variant} result]} {
-    			ui_error "Deactivating $pname $version_installed failed: $result"
+    			ui_error "Activating $pname $version_installed failed: $result"
 				return 1
 			}
 		}
@@ -1084,6 +1084,7 @@ proc upgrade {pname dspec} {
 	}
 
 	# check if the variants is present in $version_in_tree
+	set oldvariant $variant
 	set variant [split $variant +]
 	ui_debug "variants to install $variant"
 	if {[info exists portinfo(variants)]} {
@@ -1109,6 +1110,13 @@ proc upgrade {pname dspec} {
 	# install version_in_tree
 	if {[catch {set result [dportexec $workername install]} result]} {
 		ui_error "Unable to exec port: $result"
+
+		# activate the newest not b0rked version
+		# activate the latest installed version
+		if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
+    		ui_error "Activating $pname $version_installed failed: $result"
+			return 1
+		}
 		return 1
 	}
 
