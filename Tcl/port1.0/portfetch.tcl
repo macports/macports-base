@@ -8,7 +8,6 @@ register com.apple.fetch requires main
 
 namespace eval portfetch {
 	variable options
-	variable internal
 }
 
 # define globals: distname master_sites distfiles patchfiles dist_subdir
