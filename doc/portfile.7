@@ -500,6 +500,15 @@ Directory in which to run ${configure.cmd}
 .Sy Example:
 .Dl configure.dir		src
 
+.It Ic configure.env
+Environmental variables to set during configure command
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl configure.env       CFLAGS="-no-cpp-precomp"
+
 .It Ic use_automake
 If set to yes, use automake
 .br
@@ -617,7 +626,6 @@ Arguments to pass to ${build.cmd} before ${build.args}
 .Sy Default:
 .Em ${build.target}
 
-
 .It Ic build.args
 Arguments to pass to ${build.cmd}
 .br
@@ -627,6 +635,14 @@ Arguments to pass to ${build.cmd}
 .Sy Example:
 .Dl build.args	-DNOWARN
 
+.It Ic build.env
+Environmental variables to set during build command
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl build.env       CPPFLAGS="-no-cpp-precomp"
 
 .It Ic build.target.all
 .br
