@@ -46,7 +46,7 @@ proc portchecksum::dmd5 {file} {
 }
 
 proc portchecksum::main {args} {
-	global distdir portdir all_dist_files
+	global distdir portpath portdir all_dist_files
 
 	# If no files have been downloaded there is nothing to checksum
 	if ![info exists all_dist_files] {
@@ -61,7 +61,7 @@ proc portchecksum::main {args} {
 	}
 
 	foreach distfile $all_dist_files {
-		set checksum [md5 $distdir/$distfile]
+		set checksum [md5 $portpath/$distdir/$distfile]
 		set dchecksum [dmd5 $distfile]
 		if {$dchecksum == -1} {
 			puts "No checksum recorded for $distfile"
