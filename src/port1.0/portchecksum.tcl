@@ -101,14 +101,16 @@ proc checksum_main {args} {
 		# Check for missing checksum or a mismatch.
 		if {$dchecksum == -1} {
 			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-			ui_debug "[format [msgcat::mc "Checksum: %s %s %s"] ${distfile} md5 ${checksum}]"
 		} elseif {![string equal $checksum $dchecksum]} {
-			ui_info "[format [msgcat::mc "Checksum mismatch for %s"] $distfile]"
+			ui_error "[format [msgcat::mc "Checksum mismatch for %s"] $distfile]"
 		} else {
 			continue
 		}
 
-		# Raise the failure flag.
+		# Post file checksum
+		ui_debug "[format [msgcat::mc "Correct checksum: %s %s %s"] ${distfile} md5 ${checksum}]"
+
+		# Raise the failure flag
 		set fail yes
 	}
 
