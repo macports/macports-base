@@ -6,7 +6,7 @@
 # subsequently dictates.
 set chrootfiles {
 	bin sbin etc tmp var dev/null usr/include usr/libexec
-	usr/sbin usr/lib usr/share private/tmp private/etc
+	usr/sbin usr/bin usr/lib usr/share private/tmp private/etc
 	private/var/at private/var/cron private/var/db private/var/empty
 	private/var/log private/var/mail private/var/msgs
 	private/var/named private/var/root private/var/run
@@ -46,9 +46,15 @@ proc makechroot {dir} {
 		}
 	}
 	exec mkdir -p $dir/.vol
-	exec /sbin/mount_devfs devfs ${dir}/dev
-	exec /sbin/mount_fdesc -o union fdesc ${dir}/dev
-	exec /sbin/mount_volfs ${dir}/.vol
+	if {[catch {exec /sbin/mount_devfs devfs ${dir}/dev} result]} {
+		puts "Warning: error mounting devfs: $result"
+	}
+	if {[catch {exec /sbin/mount_fdesc -o union fdesc ${dir}/dev} result]} {
+		puts "Warning: error mounting fdesc: $result"
+	}
+	if {[catch {exec /sbin/mount_volfs ${dir}/.vol} result]} {
+		puts "Warning: error mounting volfs: $result"
+	}
 	set f [open $dir/doit.tcl w 0755]
 	puts $f "#!/usr/bin/tclsh"
 	puts $f [proc_disasm packageall]
