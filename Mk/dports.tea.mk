@@ -13,6 +13,6 @@ distclean:: clean
 	rm -f config.h
 
 install:: all
-	mkdir -p ${INSTALLDIR}
-	install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
 	$(SILENT)../pkg_mkindex.tcl ${INSTALLDIR}

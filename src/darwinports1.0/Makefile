@@ -13,7 +13,7 @@ distclean: clean
 	rm -f darwinports_autoconf.tcl;
 
 install:
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
