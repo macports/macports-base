@@ -20,6 +20,6 @@ case `uname -s` in
 	;;
 
 	FreeBSD)
-		cc -shared $* -o ${LIB}.so -L/usr/local/lib -ltcl84
+		cc -shared $* -o ${LIB}.so -L/usr/local/lib -ltcl83
 	;;
 esac
