@@ -57,9 +57,9 @@ set UI_PREFIX "---> "
 proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
-    if {[exists use_bzip2]} {
+    if {[tbool use_bzip2]} {
 	option extract.cmd [binaryInPath "bzip2"]
-    } elseif {[exists use_zip]} {
+    } elseif {[tbool use_zip]} {
 	option extract.cmd [binaryInPath "unzip"]
 	option extract.pre_args -q
 	option extract.post_args "-d [option extract.dir]"
