@@ -548,6 +548,7 @@ proc _libtest {dport depspec} {
 	}
 
 	set i [string first . $depline]
+	if {$i < 0} {set i [string length $depline]}
 	set depname [string range $depline 0 [expr $i - 1]]
 	set depversion [string range $depline $i end]
 	regsub {\.} $depversion {\.} depversion
