@@ -40,7 +40,7 @@ register com.apple.install deplist depends_run depends_lib
 # define options
 options build.target.install
 # Set defaults
-default build.target.current install
+default build.target.install install
 
 set UI_PREFIX "---> "
 

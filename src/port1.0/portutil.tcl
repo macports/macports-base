@@ -696,7 +696,7 @@ proc target_run {this} {
 				write_statefile $name $target_state_fd
 			}
 		} else {
-			ui_error "Target error: $name returned $errstr"
+			ui_error "Target error: $name returned: $errstr"
 			set result 1
 		}
 		
