@@ -1,5 +1,5 @@
 /*
- * md5.h
+ * md5cmd.h
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * All rights reserved.

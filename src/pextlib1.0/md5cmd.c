@@ -1,5 +1,5 @@
 /*
- * Pextlib.c
+ * md5cmd.c
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * All rights reserved.
@@ -34,6 +34,10 @@
 #endif
 
 #include <tcl.h>
+
+#if HAVE_STRING_H
+#include <string.h>
+#endif
 
 #if defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD)
 
@@ -103,15 +107,16 @@ char *MD5Data(const unsigned char *data, unsigned int len, char *buf)
 	MD5Update(&ctx, data, len);
 	return MD5End(&ctx, buf);
 }
-
-#elif !defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD) /* HAVE_LIBCRYPTO !HAVE_LIBMD */
+#elif defined(HAVE_LIBMD)
+#include <sys/types.h>
+#include <md5.h>
+#else
 #error libcrypto or libmd are required
 #endif
 
 int MD5Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *file, *action;
-	char *checksum;
 	char buf[33];
 	const char usage_message[] = "Usage: md5 file ?file?";
 	const char error_message[] = "Could not open file: ";

@@ -83,7 +83,7 @@
 
 #include <tcl.h>
 
-#include "md5.h"
+#include "md5cmd.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
