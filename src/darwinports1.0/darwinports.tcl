@@ -595,6 +595,13 @@ proc _dportexec {target dport} {
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# If auto-clean mode, clean-up after dependency install
 		if {[string equal ${darwinports::portautoclean} "yes"]} {
+			# Make sure we are back in the port path before clean
+			# otherwise if the current directory had been changed to
+			# inside the port,  the next port may fail when trying to
+			# install because [pwd] will return a "no file or directory"
+			# error since the directory it was in is now gone.
+			set portpath [ditem_key $dport portpath]
+			catch {cd $portpath}
 			$workername eval eval_targets clean
 		}
 		return 0
@@ -680,6 +687,9 @@ proc dportexec {dport target} {
 
 	# If auto-clean mode and successful install, clean-up after install
 	if {$result == 0 && $clean == 1} {
+		# Make sure we are back in the port path, just in case
+		set portpath [ditem_key $dport portpath]
+		catch {cd $portpath}
 		$workername eval eval_targets clean
 	}
 
