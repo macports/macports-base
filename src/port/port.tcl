@@ -198,12 +198,12 @@ switch -- $action {
 		continue
 	    }
 	    if ![info exists portinfo(portdir)] {
-		set displayname $portinfo(name)
+	        set output [format "%-20s\t%-8s\t%s" $portinfo(name) $portinfo(version) $portinfo(description)]
 	    } else {
-		set displayname $portinfo(portdir)
+	        set output [format "%-8s\t%-14s\t%-8s\t%s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
 	    }
 	    set portfound 1
-	    puts [format "%-20s\t%-8s\t%s" $displayname $portinfo(version) $portinfo(description)]
+	    puts $output
 	    unset portinfo
 	}
 	if {![info exists portfound] || $portfound == 0} {
