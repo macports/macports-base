@@ -39,12 +39,12 @@ description		Extract files using bzip2(1)
 requires		checksum
 provides		extract zip
 
-# XXX: need a way to change defaults if "use" is issued.
-#default extract.sufx .zip
-#		option extract.cmd unzip
-#		option extract.pre_args -q
-#		option extract.post_args "-d [option extract.dir]"
-
+proc set_defaults {args} {
+	default extract.sufx .zip
+	default extract.cmd unzip
+	default extract.pre_args -q
+	default extract.post_args {-d [option extract.dir]}
+}
 
 set UI_PREFIX "---> "
 

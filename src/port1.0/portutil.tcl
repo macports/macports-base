@@ -532,6 +532,7 @@ proc eval_targets {target {keepstate "1"}} {
 			foreach match $matches {
 				eval "lappend dlist [dlist_append_dependents $origdlist $match [list]]"
 			}
+			set dlist [lsort -unique $dlist]
 		} else {
 			ui_error "unknown target: $target"
             return 1
