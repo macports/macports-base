@@ -167,7 +167,7 @@ proc option_deprecate {option {newoption ""} } {
 }
 
 proc option_proc {option args} {
-    global option_procs
+    global option_procs $option
     eval "lappend option_procs($option) $args"
     # Add a read trace to the variable, as the option procedures have no access to reads
     trace variable $option rwu option_proc_trace
