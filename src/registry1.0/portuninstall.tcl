@@ -38,7 +38,7 @@ set UI_PREFIX "---> "
 namespace eval portuninstall {
 
 proc uninstall {portname {v ""}} {
-	global uninstall.force uninstall.nochecksum ports_force UI_PREFIX
+	global uninstall.force uninstall.nochecksum UI_PREFIX options
 
 	set ilist [registry::installed $portname $v]
 	if { [llength $ilist] > 1 } {
@@ -65,8 +65,39 @@ proc uninstall {portname {v ""}} {
 	set ref [registry::open_entry $portname $version $revision $variants]
 
 	# If global forcing is on, make it the same as a local force flag.
-	if {[info exists ports_force] && [string equal -nocase $ports_force "yes"] } {
+	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
 		set uninstall.force "yes"
+	}
+
+	# Check and make sure no ports depend on this one
+	registry::open_dep_map	
+	set deplist [registry::list_dependents $portname]
+	if { [llength $deplist] > 0 } {
+		set dl [list]
+		# Check the deps first
+		foreach dep $deplist { 
+			set depport [lindex $dep 2]
+			ui_debug "$depport depends on this port"
+			# xxx: Should look at making registry::installed return 0 or 
+			# something instead  of erroring.
+			if { ![catch {set installed [registry::installed $depport]} res] } {
+				if { [llength [registry::installed $depport]] > 0 } {
+					lappend dl $depport
+				}
+			}
+		}
+		# Now see if we need to error
+		if { [llength $dl] > 0 } {
+			ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
+			foreach depport $dl {
+				ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
+			}
+			if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
+				ui_warn "Uninstall forced.  Proceeding despite dependencies."
+			} else {
+				return -code error "Please uninstall the ports that depend on $portname first."
+			}
+		}
 	}
 
 	set installtype [registry::property_retrieve $ref installtype]
@@ -77,7 +108,7 @@ proc uninstall {portname {v ""}} {
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s %s_%s%s"] $portname $version $revision $variants]"
 
-	# First look to see if the port has registered an uninstall procedure
+	# Look to see if the port has registered an uninstall procedure
 	set uninstall [registry::property_retrieve $ref pkg_uninstall] 
 	if { $uninstall != 0 } {
 		if {![catch {eval $uninstall} err]} {
@@ -86,6 +117,9 @@ proc uninstall {portname {v ""}} {
 			ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
 		}
 	}
+
+	# Remove the port from the deps_map
+	registry::unregister_dependencies $portname
 
 	# Now look for a contents list
 	set contents [registry::property_retrieve $ref contents]
@@ -136,6 +170,7 @@ proc uninstall {portname {v ""}} {
 			registry::delete_entry $ref
 			return 0
 		}
+	
 	} else {
 		return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
 	}

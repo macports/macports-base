@@ -41,6 +41,7 @@ namespace eval receipt_flat {
 # receipt_list will hold a reference to each "receipt" that is currently open
 variable receipt_list [list]
 variable file_map [list]
+variable dep_map [list]
 namespace export receipt_list file_map
 
 # Create a new entry and place it in the receipt_list
@@ -259,13 +260,14 @@ proc installed {{name ""} {version ""}} {
 	return $rlist
 }
 
+# File Map stuff
 proc open_file_map {args} {
 	global darwinports::registry.path
 	variable file_map
 
 	set receipt_path [file join ${darwinports::registry.path} receipts]
 
-	set map_file [file join ${receipt_path} map]
+	set map_file [file join ${receipt_path} file_map]
 
 	if { ![file exists $map_file] } {
 		system "touch $map_file"
@@ -336,10 +338,110 @@ proc write_file_map {args} {
 
 	set receipt_path [file join ${darwinports::registry.path} receipts]
 
-	set map_file [file join ${receipt_path} map]
+	set map_file [file join ${receipt_path} file_map]
 
 	set map_handle [open ${map_file}.tmp w 0644]
 	puts $map_handle $file_map
+	close $map_handle
+
+	if { [file exists ${map_file}] } {
+		system "rm -rf ${map_file}"
+	} elseif { [file exists ${map_file}.bz2] } {
+		system "rm -rf ${map_file}.bz2"
+	}
+
+	system "mv ${map_file}.tmp ${map_file}"
+
+	# We should really not use absolute path for bzip2
+	if { [file exists ${map_file}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip] } {
+		system "/usr/bin/bzip2 -f ${map_file}"
+	}
+
+	return 1
+}
+
+# Dependency Map Code
+proc open_dep_map {args} {
+	global darwinports::registry.path
+	variable dep_map
+
+	set receipt_path [file join ${darwinports::registry.path} receipts]
+
+	set map_file [file join ${receipt_path} dep_map]
+
+	if { ![file exists $map_file] } {
+		system "touch $map_file"
+	}
+
+	# xxx: Again, we shouldn't use absolute paths
+	if { [file exists ${map_file}.bz2] && [file exists /usr/bin/bzip2] } {
+		set dep_map [exec /usr/bin/bzip2 -d -c ${map_file}.bz2]
+	} else {
+		set map_handle [open ${map_file} r]
+		set dep_map [read $map_handle]
+		close $map_handle
+	}
+	if { ![llength $dep_map] > 0 } {
+		set dep_map [list]
+	}
+}
+
+# List all ports this one depends on
+proc list_depends {name} {
+	variable dep_map
+	if { [llength $dep_map] < 1 && [info exists dep_map] } {
+		open_dep_map
+	}
+	set rlist [list]
+	foreach de $dep_map {
+		if { $name == [lindex $de 2] } {
+			lappend rlist $de
+		}
+	}
+	return $rlist
+}
+
+# List all the ports that depend on this port
+proc list_dependents {name} {
+	variable dep_map
+	if { [llength $dep_map] < 1 && [info exists dep_map] } {
+		open_dep_map
+	}
+	set rlist [list]
+	foreach de $dep_map {
+		if { $name == [lindex $de 0] } {
+			lappend rlist $de
+		}
+	}
+	return $rlist
+}
+
+proc register_dep {dep type port} {
+	variable dep_map
+	lappend dep_map [list $dep $type $port]
+}
+
+proc unregister_dep {dep type port} {
+	variable dep_map
+	set new_map [list]
+	foreach de $dep_map {
+		if { $de != [list $dep $type $port] } {
+			lappend new_map $de
+		}
+	}
+	set dep_map $new_map
+}
+
+proc write_dep_map {args} {
+	global darwinports::registry.path
+	variable dep_map
+
+	set receipt_path [file join ${darwinports::registry.path} receipts]
+
+	set map_file [file join ${receipt_path} dep_map]
+
+	set map_handle [open ${map_file}.tmp w 0644]
+	puts $map_handle $dep_map
 	close $map_handle
 
 	if { [file exists ${map_file}] } {

@@ -198,6 +198,62 @@ proc write_file_map {args} {
 	return [${darwinports::registry.format}::write_file_map $args]
 }
 
+# Dependency Map Code
+proc register_dependencies {deps name} {
+
+	open_dep_map
+	foreach dep $deps {
+		# We expect the form type:regexp:port to come in, but we don't need to 
+		# store it that way in the dep map.
+		set type [lindex [split $dep :] 0]
+		set depport [lindex [split $dep :] 2]
+		register_dep $depport $type $name
+	}
+	write_dep_map
+}
+
+proc unregister_dependencies {name} {
+
+	open_dep_map
+	foreach dep [list_depends $name] {
+		unregister_dep [lindex $dep 0] [lindex $dep 1] [lindex $dep 2]
+	}
+	write_dep_map
+}
+
+proc open_dep_map {args} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::open_dep_map $args]
+}
+
+# List all ports this one depends on
+proc list_depends {name} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::list_depends $name]
+}
+
+# List all the ports that depend on this port
+proc list_dependents {name} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::list_dependents $name]
+}
+
+proc register_dep {dep type port} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::register_dep $dep $type $port]
+}
+
+proc unregister_dep {dep type port} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::unregister_dep $dep $type $port]
+}
+
+proc write_dep_map {args} {
+	global darwinports::registry.format
+	return [${darwinports::registry.format}::write_dep_map $args]
+}
+
+
 # End of registry namespace
 }
 

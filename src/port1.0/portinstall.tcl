@@ -130,7 +130,7 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
 }
 
 proc install_main {args} {
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo
 
 	# Begin the registry entry
    	set regref [registry_new $portname $portversion $portrevision $portvariants]
@@ -153,8 +153,13 @@ proc install_main {args} {
 		registry_prop_store $regref maintainers ${maintainers}
     }
 	if {[info exists depends_run]} {
-		registry_prop_store $regref run_depends $depends_run
+		registry_prop_store $regref depends_run $depends_run
+		registry_register_deps $depends_run $portname
     }
+	if {[info exists depends_lib]} {
+		registry_prop_store $regref depends_lib $depends_lib
+		registry_register_deps $depends_lib $portname
+	}
     if {[info exists installPlist]} {
 		registry_prop_store $regref contents [fileinfo_for_index $installPlist]
 	}
@@ -164,7 +169,7 @@ proc install_main {args} {
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
 		registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
     }
-
+	
 	registry_write $regref 
 
     return 0
