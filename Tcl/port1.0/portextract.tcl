@@ -38,7 +38,7 @@ proc extract_main {args} {
     foreach distfile ${extract.only} {
 	puts -nonewline "$distfile: "
 	flush stdout
-	set cmd "${extract.cmd} ${extract.before_args} $distpath/$distfile ${extract.after_args}"
+	set cmd "${extract.cmd} [join ${extract.before_args}] $distpath/$distfile [join ${extract.after_args}]"
 	if [catch {system $cmd} result] {
 	    puts $result
 	    return -1
