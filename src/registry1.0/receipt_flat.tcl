@@ -32,6 +32,7 @@
 package provide receipt_flat 1.0
 
 package require darwinports 1.0
+package require Pextlib 1.0
 
 ##
 # Receipts Code supporting flat-files
@@ -40,7 +41,7 @@ namespace eval receipt_flat {
 
 # receipt_list will hold a reference to each "receipt" that is currently open
 variable receipt_list [list]
-variable file_map [list]
+variable file_map
 variable dep_map [list]
 namespace export receipt_list file_map
 
@@ -268,59 +269,92 @@ proc installed {{name ""} {version ""}} {
 }
 
 # File Map stuff
+
+##
+# open the file map and store a reference to it into variable file_map.
+# convert from the old format if required.
+#
 proc open_file_map {args} {
 	global darwinports::registry.path
 	variable file_map
 
+	# Don't reopen it (it actually would deadlock us)
+	if { [info exists file_map] } {
+		return 0
+	}
+
 	set receipt_path [file join ${darwinports::registry.path} receipts]
-
 	set map_file [file join ${receipt_path} file_map]
+	set old_filemap [list]
 
-	if { ![file exists $map_file] } {
-		system "touch $map_file"
+	if { ![file exists ${map_file}.db] } {
+		# Convert to new format
+		if { [file exists ${map_file}.bz2] && [file exists /usr/bin/bzip2] } {
+			# xxx: Again, we shouldn't use absolute paths
+			set old_filemap [exec /usr/bin/bzip2 -d -c ${map_file}.bz2]
+		} elseif { [file exists $map_file] } {		
+			set map_handle [open ${map_file} r]
+			set old_filemap [read $map_handle]
+			close $map_handle
+		}
 	}
+
+	# Open the map (new format)
+	filemap open file_map ${map_file}
 	
-	if { [file exists ${map_file}.bz2] && [file exists /usr/bin/bzip2] } {
-		# xxx: Again, we shouldn't use absolute paths
-		set file_map [exec /usr/bin/bzip2 -d -c ${map_file}.bz2]
-	} else {
-		set map_handle [open ${map_file} r]
-		set file_map [read $map_handle]
-		close $map_handle
-	}
-	if { ![llength $file_map] > 0 } {
-		set file_map [list]
+	# Translate from old format.
+	if { [llength $old_filemap] > 0 } {
+		# Tell the user.
+		ui_msg "Converting file map to new format (this may take a while)"
+
+		foreach f $file_map {
+			filemap set file_map [lindex $f 0] [lindex $f 1]
+		}
+		
+		# Save it afterwards.
+		filemap save file_map
 	}
 }
 
+##
+# determine if a file is registered in the file map, and if it is,
+# get its port.
+# open the file map if required.
+#
+# - file	the file to test
+# return the 0 if the file is not registered, the name of the port otherwise.
+#
 proc file_registered {file} {
 	variable file_map
-	if { [llength $file_map] < 1 && [info exists file_map] } {
+
+	if { ![info exists file_map] } {
 		open_file_map
 	}
-	foreach f $file_map {
-		# Make a string insensitive comparison
-		# This would be nasty if
-		# - the FS was case sensitive
-		# - ports would take advantage of it
-		if { [string equal -nocase $file [lindex $f 0]] } {
-			return [lindex $f 1]
-		}
+
+	if {[filemap exists file_map $file]} {
+		return [filemap get file_map $file]
+	} else {
+		return 0
 	}
-	return 0
 }
 
+##
+# determine if a port is registered in the file map, and if it is,
+# get its files.
+# open the file map if required.
+#
+# - port	the port to test
+# return the 0 if the port is not registered, the list of its files otherwise.
+#
 proc port_registered {name} {
 	variable file_map
-	if { [llength $file_map] < 1 && [info exists file_map] } {
+
+	if { ![info exists file_map] } {
 		open_file_map
 	}
-	set files [list]
-	foreach f $file_map {
-		if { $name == [lindex $f 1] } {
-			lappend files [lindex $f 0]
-		}
-	}
+
+	set files [filemap list file_map $name]
+
 	if { [llength $files] > 0 } {
 		return $files
 	} else {
@@ -328,44 +362,50 @@ proc port_registered {name} {
 	}
 }
 
+##
+# register a file in the file map.
+# open the file map if required.
+#
+# - file	the file to register
+# - port	the port to associate with the file
+#
 proc register_file {file port} {
 	variable file_map
-	lappend file_map [list $file $port]
+
+	if { ![info exists file_map] } {
+		open_file_map
+	}
+
+	filemap set $file $port
 }
 
+##
+# unregister a file from the file map.
+# open the file map if required.
+#
+# - file	the file to unregister
+#
 proc unregister_file {file} {
 	variable file_map
-	set new_map [list]
-	foreach fe $file_map {
-		if { ![string equal [lindex $fe 0] $file] } {
-			lappend new_map $fe
-		}
+
+	if { ![info exists file_map] } {
+		open_file_map
 	}
-	set file_map $new_map
+
+	filemap unset $file
 }
 
+##
+# save the file map to disk.
+# do not do anything if the file map wasn't open.
+#
+# always return 1
+#
 proc write_file_map {args} {
 	variable file_map
 
-	set receipt_path [file join ${darwinports::registry.path} receipts]
-
-	set map_file [file join ${receipt_path} file_map]
-
-	set map_handle [open ${map_file}.tmp w 0644]
-	puts $map_handle $file_map
-	close $map_handle
-
-	if { [file exists ${map_file}] } {
-		system "rm -rf ${map_file}"
-	} elseif { [file exists ${map_file}.bz2] } {
-		system "rm -rf ${map_file}.bz2"
-	}
-
-	system "mv ${map_file}.tmp ${map_file}"
-
-	# We should really not use absolute path for bzip2
-	if { [file exists ${map_file}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip] } {
-		system "/usr/bin/bzip2 -f ${map_file}"
+	if { [info exists file_map] } {
+		filemap save file_map
 	}
 
 	return 1

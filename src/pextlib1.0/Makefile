@@ -1,5 +1,5 @@
 OBJS=		Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
-		find.o options.o strcasecmp.o vercomp.o
+		find.o options.o strcasecmp.o vercomp.o filemap.o
 SHLIB_NAME=	Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
 
@@ -10,3 +10,4 @@ include ../../Mk/dports.tea.mk
 
 test:: ${SHLIB_NAME}
 	${TCLSH} tests/options.tcl ${SHLIB_NAME}
+	${TCLSH} tests/filemap.tcl ${SHLIB_NAME}
