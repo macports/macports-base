@@ -44,7 +44,7 @@ namespace eval options {
 # options
 # Exports options in an array as externally callable procedures
 # Thus, "options name date" would create procedures named "name"
-# and "date" that set global variables "array" and "date", respectively
+# and "date" that set global variables "name" and "date", respectively
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
