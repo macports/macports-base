@@ -39,8 +39,8 @@
 #
 #####
 
-my $htdocs = "/Library/WebServer/Documents";
-my $portpasswd = "$htdocs/ports/index/.portpasswd";
+my $PREFIX = "@@PREFIX@@";
+my $portpasswd = "$PREFIX/index/.portpasswd";
 
 use CGI;
 use Fcntl;

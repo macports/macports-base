@@ -40,13 +40,14 @@
 #####
 
 # The following tree should be accessible to the cgi.
-# cgi-bin/
-#     portsubmit.cgi
-#     portregister.cgi
-#     .portpasswd
 # ports/
+#     register.html
+#     cgi-bin/
+#         portsubmit.cgi
+#         portregister.cgi
 #     index/
 #         .last_transaction
+#         .portpasswd
 #         initialize.sql
 #         portindex-1.sql
 #         portindex-2.sql
@@ -62,17 +63,10 @@
 #         ...
 #
 
-my $htdocs;
-if ( -d "/Library/WebServer/Documents" ) {
-	$htdocs = "/Library/WebServer/Documents";
-} elsif ( -d "/usr/local/www/data" ) {
-	$htdocs = "/usr/local/www/data";
-} else {
-	die "unknown htdocs location.";
-}
-my $portfiles = "$htdocs/ports/files";
-my $portindex = "$htdocs/ports/index";
-my $portpasswd = "$htdocs/ports/index/.portpasswd";
+my $PREFIX     = "@@PREFIX@@";
+my $portfiles  = "$PREFIX/files";
+my $portindex  = "$PREFIX/index";
+my $portpasswd = "$PREFIX/index/.portpasswd";
 
 use CGI;
 use Fcntl;

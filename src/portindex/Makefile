@@ -1,28 +1,32 @@
-INSTALL = /usr/bin/install -c
-prefix = /Library/WebServer
-cgibin = $(prefix)/CGI-Executables
-htdocs = $(prefix)/Documents
-portindex  = $(htdocs)/ports/index
-portfiles  = $(htdocs)/ports/files
-srcdir = .
+INSTALL     = /usr/bin/install -c
+PREFIX     ?= /Library/WebServer/Documents/ports
+cgibin      = $(PREFIX)/cgi-bin
+portindex   = $(PREFIX)/index
+portfiles   = $(PREFIX)/files
+srcdir      = .
 
-all: portsubmit.cgi portregister.cgi
+all: portregister.cgi portsubmit.cgi initialize.sql register.html
 
-portsubmit.cgi: portsubmit.pl
-	cp portsubmit.pl portsubmit.cgi
+%.cgi: %.pl
+	@ echo $@
+	@ cat $< | sed "/@@PREFIX@@/s//$(subst /,\/,$(PREFIX))/" > $@
 
-portregister.cgi: portregister.pl
-	cp portregister.pl portregister.cgi
-
-install: portsubmit.cgi portregister.cgi initialize.sql
+install: all
+	mkdir -p $(PREFIX)
+	chown www:www $(PREFIX)
+	chmod 0775 $(PREFIX)
+	$(INSTALL) -m 644 register.html $(PREFIX)
+	mkdir -p $(cgibin)
+	chown www:www $(cgibin)
+	chmod 0775 $(cgibin)
 	$(INSTALL) -m 755 portsubmit.cgi $(cgibin)
 	$(INSTALL) -m 755 portregister.cgi $(cgibin)
 	mkdir -p $(portindex)
-	chgrp www $(portindex)
-	chmod g+w $(portindex)
+	chown www:www $(portindex)
+	chmod 0775 $(portindex)
 	mkdir -p $(portfiles)
-	chgrp www $(portfiles)
-	chmod g+w $(portfiles)
+	chown www:www $(portfiles)
+	chmod 0775 $(portfiles)
 	$(INSTALL) -m 644 initialize.sql $(portindex)
 
 clean:
