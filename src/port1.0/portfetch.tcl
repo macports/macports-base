@@ -58,7 +58,7 @@ default cvs.pre_args {"-d ${cvs.root}"}
 
 default fetch.cmd curl
 default fetch.dir {${distpath}}
-default fetch.args {"-o ${distfile}"}
+default fetch.args {"-o ${distfile}.TMP"}
 default fetch.post_args {"${site}${distfile}"}
 
 # Set distfiles
@@ -153,11 +153,11 @@ proc checkfiles {args} {
             }
         }
     }
-
+    
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
 	    if {![file exists $portpath/files/$file]} {
-        set distsite [getdisttag $file]
+		set distsite [getdisttag $file]
 		set file [getdistname $file]
 		lappend all_dist_files $file
 		if {$distsite != ""} {
@@ -170,17 +170,17 @@ proc checkfiles {args} {
 	    }
 	}
     }
-
+    
     foreach file $distfiles {
 	if {![file exists $portpath/files/$file]} {
-        set distsite [getdisttag $file]
-		set file [getdistname $file]
-		lappend all_dist_files $file
-		if {$distsite != ""} {
-		        lappend fetch_urls $distsite $file
-		} else {
-	            lappend fetch_urls master_sites $file
-		}
+	    set distsite [getdisttag $file]
+	    set file [getdistname $file]
+	    lappend all_dist_files $file
+	    if {$distsite != ""} {
+		lappend fetch_urls $distsite $file
+	    } else {
+		lappend fetch_urls master_sites $file
+	    }
 	}
     }
 }
@@ -243,12 +243,13 @@ proc fetchfiles {args} {
             }
 	    foreach site [set $url_var] {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
-		if ![catch {system "[command fetch]"} result] {
+		if {![catch {system "[command fetch]"} result] &&
+		    ![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
 		    set fetched 1
 		    break
 		} else {
 		    ui_error "fetch failed: $result"
-		    exec rm -f ${distpath}/${distfile}
+		    exec rm -f ${distpath}/${distfile}.TMP
 		}
 	    }
 	    if {![info exists fetched]} {
@@ -287,6 +288,6 @@ proc fetch_main {args} {
     if {"${fetch.type}" == "cvs"} {
         return [cvsfetch]
     } else {
-	    return [fetchfiles]
+	return [fetchfiles]
     }
 }
