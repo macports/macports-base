@@ -1038,9 +1038,9 @@ proc darwinports::selfupdate {args} {
 	}
 	ui_debug "DarwinPorts base dir: $dp_base_path"
 
-	# get owner of the darwinports system
-	set owner [file attributes [file join $prefix var/db/dports/sources/] -owner]
-	ui_debug "Setting owner: $owner"
+	# get user of the darwinports system
+	set user [file attributes [file join $prefix var/db/dports/sources/] -owner]
+	ui_debug "Setting user: $user"
 
 	# get darwinports version 
 	set dp_version_path [file join $dp_base_path dp_version]
@@ -1070,14 +1070,25 @@ proc darwinports::selfupdate {args} {
 		if {![file writable [file join $prefix bin/port] ]} {
 			return -code error "Error cannot write to $prefix - try using sudo"
 		}
-		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix && make && make install" } result] } {
+		# get installation user / group 
+		set owner root
+		set group admin
+		if {[file exists [file join $prefix bin/port] ]} {
+			# set owner
+			set owner [file attributes [file join $prefix bin/port] -owner]
+			# set group
+			set group [file attributes [file join $prefix bin/port] -group]
+		}
+		ui_debug "Setting owner: $owner group: $group"
+		# do the actual installation of new base
+		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
 	}
 
 	# set the darwinports system to the right owner 
-	ui_debug "Setting ownership to $owner"
-	if { [catch { exec chown -R $owner [file join $prefix var/db/dports/sources/] } result] } {
+	ui_debug "Setting ownership to $user"
+	if { [catch { exec chown -R $user [file join $prefix var/db/dports/sources/] } result] } {
 		return -code error "Couldn't change permissions: $result"
 	}
 
