@@ -266,7 +266,10 @@ proc _activate_file {srcfile dstfile} {
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
-		file link $dstfile $srcfile
+		# Try a hard link first and if that fails, a symlink
+		if {[catch {file link -hard $dstfile $srcfile}]} {
+			file link -symbolic $dstfile $srcfile
+		}
 	}
 }
 
