@@ -16,3 +16,6 @@ portinstalltype		image
 
 # Directory containing the X11 installation.
 x11prefix		/usr/X11R6
+
+# Set whether to automatically execute "clean" after "install" of ports
+portautoclean		yes
