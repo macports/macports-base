@@ -102,7 +102,7 @@ proc uninstall_main {args} {
 			}
 		    }
 		}
-		ui_info "$UI_PREFIX   Uninstall is removing $fname"
+		ui_info "$UI_PREFIX Uninstall is removing $fname"
 		if [file isdirectory $fname] {
 		    if [catch {exec rmdir $fname}] {
 			if ![tbool uninstall.force] {
