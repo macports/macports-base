@@ -46,7 +46,7 @@ default patch.cmd patch
 default patch.pre_args -p0
 
 proc patch_main {args} {
-    global UI_PREFIX patch.env
+    global UI_PREFIX
     
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles]} {
@@ -64,7 +64,6 @@ proc patch_main {args} {
 	return -code error [msgcat::mc "Patch files missing"]
     }
     cd [option worksrcpath]
-    append patch.env " POSIXLY_CORRECT=1"
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
 	switch -glob -- [file tail $patch] {
