@@ -172,6 +172,10 @@ proc destroot_finish {args} {
 	    ui_debug "No man pages found to compress."
 	}
     }
-    file delete "${destroot}/${prefix}/share/info/dir"
+
+	if [file exists "${destroot}${prefix}/share/info/dir"] {
+		ui_debug "Deleting stray info/dir file."
+	    file delete "${destroot}${prefix}/share/info/dir"
+	}
     return 0
 }
