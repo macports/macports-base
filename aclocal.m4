@@ -5,39 +5,39 @@ dnl explicitly. If not, search for it
 
 # OD_PATH_DPORTSDIR(DEFAULT_DPORTSDIR)
 #---------------------------------------
-AC_DEFUN([OD_PATH_DPORTSDIR],[
-	dnl For ease of reading, run after gcc has been found/configured
-	AC_REQUIRE([AC_PROG_CC])
+# AC_DEFUN([OD_PATH_DPORTSDIR],[
+# 	dnl For ease of reading, run after gcc has been found/configured
+# 	AC_REQUIRE([AC_PROG_CC])
 
-	AC_ARG_WITH(dports-dir, [AC_HELP_STRING([--with-dports-dir=DIR], [Specify alternate dports directory])], [ dportsdir="$withval" ] )
+# 	AC_ARG_WITH(dports-dir, [AC_HELP_STRING([--with-dports-dir=DIR], [Specify alternate dports directory])], [ dportsdir="$withval" ] )
 
 
-	AC_MSG_CHECKING([for dports tree])
+# 	AC_MSG_CHECKING([for dports tree])
 	
-	if test "x$dportsdir" != "x" ; then
-	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
-		:
-	  else
-		AC_MSG_ERROR([$dportsdir not a valid dports tree])
-	  fi
-	else
-		dnl If the user didn't give a path, look for default
-		if test "x$1" != "x" ; then
-		  if test -d "$1" -a -e "$1/PortIndex" ; then
-			dportsdir=$1
-		  fi
-		fi
-	fi
+# 	if test "x$dportsdir" != "x" ; then
+# 	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
+# 		:
+# 	  else
+# 		AC_MSG_ERROR([$dportsdir not a valid dports tree])
+# 	  fi
+# 	else
+# 		dnl If the user didn't give a path, look for default
+# 		if test "x$1" != "x" ; then
+# 		  if test -d "$1" -a -e "$1/PortIndex" ; then
+# 			dportsdir=$1
+# 		  fi
+# 		fi
+# 	fi
 
-	if test "x$dportsdir" != "x" ; then
-		AC_MSG_RESULT($dportsdir)
-		DPORTSDIR="$dportsdir"
-		AC_SUBST(DPORTSDIR)
-	else
-		AC_MSG_WARN([No dports tree found])
-	fi
+# 	if test "x$dportsdir" != "x" ; then
+# 		AC_MSG_RESULT($dportsdir)
+# 		DPORTSDIR="$dportsdir"
+# 		AC_SUBST(DPORTSDIR)
+# 	else
+# 		AC_MSG_WARN([No dports tree found])
+# 	fi
 
-        ])
+#         ])
 
 
 # OD_PATH_PORTCONFIGDIR(DEFAULT_PORTCONFIGDIR, PREFIX)
@@ -45,7 +45,7 @@ AC_DEFUN([OD_PATH_DPORTSDIR],[
 AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
 	dnl portconfigdir to $prefix/etc/ports
-	AC_REQUIRE([OD_PATH_DPORTSDIR])
+	dnl 	AC_REQUIRE([OD_PATH_DPORTSDIR])
 	
         AC_MSG_CHECKING([for ports config directory])
 
@@ -72,7 +72,7 @@ AC_DEFUN([OD_CHECK_INSTALLUSER],[
         AC_REQUIRE([OD_PATH_PORTCONFIGDIR])
 
 	AC_ARG_WITH(install-user, [AC_HELP_STRING([--with-install-user=USER], [Specify user ownership of installed files])], [ DSTUSR=$withval ] )
-
+	
 	AC_MSG_CHECKING([for install user])
 	if test "x$DSTUSR" = "x" ; then
 	   DSTUSR=root

@@ -19,7 +19,6 @@ OD_LIB_MD5
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-# OD_PATH_DPORTSDIR([/usr/dports])  # not implemented yet
 OD_PATH_PORTCONFIGDIR([/etc/ports], [$prefix])
 
 # Check for install ownership
