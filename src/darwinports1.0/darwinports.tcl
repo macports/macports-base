@@ -32,8 +32,8 @@ package require darwinports_dlist 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath master_site_local auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path portdbformat registry.format portinstalltype registry.installtype"
 	
     variable open_dports {}
 }
@@ -64,7 +64,7 @@ proc darwinports::ui_event {context message} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::portdbformat darwinports::registry.format darwinports::portinstalltype darwinports::registry.installtype
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -141,7 +141,7 @@ proc dportinit {args} {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
-    set registry.path [file join $portdbpath receipts]
+    set registry.path $portdbpath
     if {![file isdirectory ${registry.path}]} {
 	if {![file exists ${registry.path}]} {
 	    if {[catch {file mkdir ${registry.path}} result]} {
@@ -153,6 +153,23 @@ proc dportinit {args} {
 	return -code error "${darwinports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
     }
 
+	# Format for receipts, can currently be either "flat" or "sqlite"
+	if {[info exists darwinports::portdbformat]} {
+		if { $darwinports::portdbformat == "sqlite" } {
+			return -code error "SQLite is not yet supported for registry storage."
+		} 
+		set registry.format receipt_${darwinports::portdbformat}
+	} else {
+		set registry.format receipt_flat
+	}
+
+	# Installation type, whether to use port "images" or install "direct"
+	if {[info exists darwinports::portinstalltype]} {
+		set registry.installtype $darwinports::portinstalltype
+	} else {
+		set registry.installtype direct
+	}
+    
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
@@ -183,13 +200,14 @@ proc dportinit {args} {
 		# early, and after auto_path has been set.  Or maybe Pextlib
 		# should ship with darwinports1.0 API?
 		package require Pextlib 1.0
+		package require registry 1.0
     } else {
 		return -code error "Library directory '$libpath' must exist"
     }
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::portinterp_options auto_path
+    global darwinports::portinterp_options auto_path registry.installtype
 
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
@@ -202,15 +220,22 @@ proc darwinports::worker_init {workername portpath options variations} {
     # instantiate the UI call-back
     $workername alias ui_event darwinports::ui_event $workername
 
-	# xxx: find a better home for this registry cruft--like six feet under.
-	$workername alias registry_new dportregistry::new $workername
-	$workername alias registry_store dportregistry::store
-	$workername alias registry_delete dportregistry::delete
-	$workername alias registry_exists dportregistry::exists
-	$workername alias registry_close dportregistry::close
+	# New Registry/Receipts stuff
+	$workername alias registry_new registry::new_entry
+	$workername alias registry_open registry::open_entry
+	$workername alias registry_write registry::write_entry
+	$workername alias registry_prop_store registry::property_store
+	$workername alias registry_prop_retr registry::property_retrieve
+	$workername alias registry_props registry::entry_properties
+	$workername alias registry_delete registry::delete_entry
+	$workername alias registry_exists registry::entry_exists
+	$workername alias registry_activate portimage::activate
+	$workername alias registry_deactivate portimage::deactivate
+
 	$workername alias fileinfo_for_index dportregistry::fileinfo_for_index
 	$workername alias fileinfo_for_file dportregistry::fileinfo_for_file
 	$workername alias fileinfo_for_entry dportregistry::fileinfo_for_entry
+
 
     foreach opt $portinterp_options {
 	if {![info exists $opt]} {
@@ -229,6 +254,10 @@ proc darwinports::worker_init {workername portpath options variations} {
 
     foreach {var val} $variations {
         $workername eval set variations($var) $val
+    }
+
+    if { [info exists registry.installtype] } {
+	    $workername eval set installtype ${registry.installtype}
     }
 }
 
@@ -254,7 +283,6 @@ proc darwinports::fetch_port {url} {
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
         return -code error "Can't decipher portdir from $fetchfile"
     }
-
     return [file join $fetchdir $portdir]
 }
 
@@ -340,7 +368,6 @@ proc _dportsearchpath {depregex search_path} {
 	    }
 	}
     }
-
     return $found
 }
 
@@ -385,6 +412,7 @@ proc _libtest {dport} {
 		set depregex \^${depname}\\.so${depversion}\$
 	}
 
+	
 	return [_dportsearchpath $depregex $search_path]
 }
 
@@ -432,7 +460,7 @@ proc _dporttest {dport} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
-	if {$res != ""} {
+	if {$res != 0} {
 		ui_debug "Found Dependency: receipt: $res"
 		return 1
 	} else {
@@ -688,90 +716,6 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 namespace eval dportregistry {}
 
-proc dportregistry::new {workername portname {portversion 1.0}} {
-    global _registry_name darwinports::registry.path
-
-    file mkdir ${darwinports::registry.path}
-    set _registry_name [file join ${darwinports::registry.path} $portname-$portversion]
-    system "rm -f ${_registry_name}.tmp"
-    set rhandle [open ${_registry_name}.tmp w 0644]
-    puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
-	#interp share {} $rhandle $workername 
-    return $rhandle
-}
-
-proc dportregistry::exists {portname {portversion 0}} {
-    global darwinports::registry.path
-
-    # regex match case
-    if {$portversion == 0} {
-	set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
-	if {[string length $x]} {
-	    set matchfile [lindex $x 0]
-	} else {
-	    set matchfile ""
-	}
-    } else {
-	set matchfile [file join ${darwinports::registry.path} ${portname}-${portversion}]
-    }
-
-    # Might as well bail out early if no file to match
-    if {![string length $matchfile]} {
-	return ""
-    }
-
-    if {[file exists $matchfile]} {
-	return $matchfile
-    }
-    if {[file exists ${matchfile}.bz2]} {
-	return ${matchfile}.bz2
-    }
-    return ""
-}
-
-proc dportregistry::store {rhandle data} {
-    puts $rhandle $data
-}
-
-proc dportregistry::fetch {rhandle} {
-    return -1
-}
-
-proc dportregistry::traverse {func} {
-    return -1
-}
-
-proc dportregistry::close {rhandle} {
-    global _registry_name
-    global registry.nobzip
-
-    ::close $rhandle
-    system "mv ${_registry_name}.tmp ${_registry_name}"
-    if {[file exists ${_registry_name}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
-	system "/usr/bin/bzip2 -f ${_registry_name}"
-    }
-}
-
-proc dportregistry::delete {portname {portversion 0}} {
-    global darwinports::registry.path
-
-    # regex match case, as in exists
-    if {$portversion == 0} {
-		set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
-		if {[string length $x]} {
-		    exec rm -f [lindex $x 0]
-		}
-	} else {
-		# Remove the file (with or without .bz2 suffix)
-		set filename [file join ${darwinports::registry.path} ${portname}-${portversion}]
-		if { [file exists $filename] } {
-			exec rm -rf $filename
-		} elseif { [file exists ${filename}.bz2] } {
-			exec rm -rf ${filename}.bz2
-		}
-	}
-}
-
 proc dportregistry::fileinfo_for_file {fname} {
     if {![catch {file stat $fname statvar}]} {
 	if {[file isfile $fname]} {
@@ -810,24 +754,5 @@ proc dportregistry::fileinfo_for_index {flist} {
 	dportregistry::fileinfo_for_entry rval $dir $file
     }
     return $rval
-}
-
-proc dportregistry::listinstalled {args} {
-    global darwinports::registry.path
-
-    set receiptglob [glob -nocomplain ${darwinports::registry.path}/*]
-
-    if {$receiptglob == ""} {
-        puts "No ports installed."
-    } else {
-        puts "The following ports are installed:"
-        foreach receipt $receiptglob {
-            if {[file extension $receipt] == ".bz2"} {
-                puts "\t[file rootname [file tail $receipt]]"
-            } else {
-                puts "\t[file tail $receipt]"
-            }
-        }
-    }
 }
 
