@@ -141,7 +141,7 @@ char *ui_escape(const char *source)
 	return dest;
 }
 
-static int ui_info(Tcl_Interp *interp, char *mesg)
+int ui_info(Tcl_Interp *interp, char *mesg)
 {
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
@@ -669,6 +669,11 @@ int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	return TCL_OK;
 }
 
+int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	return doinstall(interp, objc, objv);
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -684,6 +689,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "nextuid", NextuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "installto", InstallCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
