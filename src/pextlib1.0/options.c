@@ -1,6 +1,6 @@
 /*
  * options.c
- * $Id: options.c,v 1.1.2.2 2004/05/29 08:07:13 pguyot Exp $
+ * $Id: options.c,v 1.1.2.3 2004/06/04 17:18:54 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -221,10 +221,11 @@ OptionSetCmd(
 	{
 		if (objc == 1)
 		{
-			/* Remove the variable. */
-			(void) Tcl_UnsetVar(
+			/* Give an empty content to the variable. */
+			(void) Tcl_SetVar(
 						interp,
 						Tcl_GetString(clientData),
+						"",
 						TCL_GLOBAL_ONLY);
 		} else {
 			int indexArg;

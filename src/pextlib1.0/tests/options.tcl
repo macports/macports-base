@@ -4,7 +4,7 @@
 
 proc main {pextlibname} {
 	load $pextlibname
-	global foo
+	global foo bar
 	
 	options foo
 	foo foo
@@ -30,6 +30,22 @@ proc main {pextlibname} {
 	foo-delete bar
 	if {[info exists foo]} {
 		puts {[info exists foo]}
+		exit 1
+	}
+
+	options bar
+	bar foo
+	if {${bar} != "foo"} {
+		puts {${bar} != "foo"}
+		exit 1
+	}	
+	bar
+	if {${bar} != ""} {
+		puts {${bar} != ""}
+		exit 1
+	}	
+	if {![info exists bar]} {
+		puts {![info exists bar]}
 		exit 1
 	}
 }
