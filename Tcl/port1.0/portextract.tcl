@@ -33,11 +33,7 @@ proc extract_main {args} {
     }
 
     ui_puts "Extracting for $distname"
-    if [file exists $workdir] {
-	file delete -force $portpath/$workdir
-    }
 
-    file mkdir $portpath/$workdir
     cd $portpath/$workdir
     foreach distfile ${extract.only} {
 	ui_puts "$distfile: " -nonewline

@@ -427,9 +427,12 @@ proc dlist_append_dependents {dependents dlist name} {
 proc read_statefile {dlist statusdict} {
     upvar $dlist uplist
     upvar $statusdict upstatusdict
-    global portpath
-    
-    set fd [open "$portpath/.darwinports.state" a+]
+    global portpath workdir
+
+    if ![file isdirectory $portpath/$workdir] {
+	file mkdir $portpath/$workdir
+    } 
+    set fd [open "$portpath/$workdir/.darwinports.state" a+]
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[dlist_has_item uplist $line]} {
