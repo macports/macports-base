@@ -17,8 +17,12 @@ AC_SUBST(REPLACEMENT_PROGS)
 # Check for md5 implementation
 OD_LIB_MD5
 
+# set default dports-directory
+DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
+
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
+OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
 OD_PATH_PORTCONFIGDIR([/etc/ports], [$prefix])
 
 # Check for install ownership

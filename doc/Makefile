@@ -20,10 +20,11 @@ install:
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
 	fi
-
+	
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
+		echo "file://${dportsdir}" >> ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${portconfigdir}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}/share/darwinports/resources/port1.0/install
