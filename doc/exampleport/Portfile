@@ -1,8 +1,8 @@
-# All ports must start with a RCS Id tag ($Id: Portfile,v 1.9 2003/03/17 07:12:14 landonf Exp $) and a PortSystem
+# All ports must start with a RCS Id tag and a PortSystem
 # declaration.  Make sure the RCS Id tag is commented out in your
 # Portfile (see existing Portfiles for an example).
-
-# $Id: Portfile,v 1.9 2003/03/17 07:12:14 landonf Exp $
+# RCS Id tag:
+# $Id: Portfile,v 1.10 2003/03/17 18:29:14 landonf Exp $
 
 # PortSystem <version>
 # where version is the version of the ports system your port relies upon.
