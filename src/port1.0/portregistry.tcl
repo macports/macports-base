@@ -227,13 +227,7 @@ proc registry_main {args} {
 	registry_store $rhandle [concat package-install ${package-install}]
     }
     if [info exists contents] {
-	# If it's a list, try and split it up.
-	if {[llength $contents] == 1} {
-	    set x [list contents [eval fileinfo_for_index $contents]]
-	} else {
-	    set x [list contents [fileinfo_for_index $contents]]
-	}
-	registry_store $rhandle $x
+	registry_store $rhandle [list contents [fileinfo_for_index $contents]]
     }
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
 	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
