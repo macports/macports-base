@@ -48,7 +48,7 @@ proc checkfiles {args} {
 }
 
 proc fetchfiles {args} {
-    global distpath all_dist_files master_sites UI_PREFIX ports_quiet ports_verbose
+    global distpath all_dist_files master_sites UI_PREFIX ports_verbose
 
     if {![file isdirectory $distpath]} {
 	file mkdir $distpath
@@ -59,12 +59,10 @@ proc fetchfiles {args} {
 	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
-		if [tbool ports_quiet] {
-			set verboseflag -s
-		} elseif [tbool ports_verbose] {
+		} if [tbool ports_verbose] {
 			set verboseflag -v
 		} else {
-			set verboseflag ""
+			set verboseflag "-s"
 		}
 		if ![catch {system curl ${verboseflag} -o ${distpath}/${distfile} ${site}${distfile} 2>&1} result] {
 		    set fetched 1
