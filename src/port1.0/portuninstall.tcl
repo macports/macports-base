@@ -37,7 +37,7 @@ register com.apple.uninstall provides uninstall
 register com.apple.uninstall requires main
 
 # define options
-options uninstall.force
+options uninstall.force uninstall.nochecksum
 
 set UI_PREFIX "---> "
 
@@ -45,7 +45,7 @@ proc uninstall_init {args} {
 }
 
 proc uninstall_main {args} {
-    global portname portversion uninstall.force UI_PREFIX
+    global portname portversion uninstall.force uninstall.nochecksum UI_PREFIX
 
     set rfile [registry_exists $portname $portversion]
     if [string length $rfile] {
@@ -57,12 +57,21 @@ proc uninstall_main {args} {
 	}
 	set entry [read $fd]
 	close $fd
-	set ix [lsearch -regexp $entry "contents \{\{"]
+	set ix [lsearch $entry contents]
 	if {$ix >= 0} {
-	    set contents [lindex $entry $ix]
+	    set contents [lindex $entry [incr ix]]
 	    set uninst_err 0
-	    foreach f [lindex $contents 1] {
+	    foreach f $contents {
 		set fname [lindex $f 0]
+		set md5 [lindex $f 5]
+		if {![string match [lindex $md5 3] NONE] && ![tbool uninstall.nochecksum]} {
+		    if ![catch {set sum [md5 $fname]}] {
+			if ![string match $md5 sum] {
+			    ui_info "$UI_PREFIX  Checksum does not match for $fname, not removing"
+			    continue
+			}
+		    }
+		}
 		ui_info "$UI_PREFIX   Uninstall is removing $fname"
 		if [file isdirectory $fname] {
 		    if [catch {exec rmdir $fname}] {

@@ -50,7 +50,9 @@ proc registry_new {portname {portversion 1.0}} {
 
     system "mkdir -p ${registry.path}"
     set _registry_name [file join ${registry.path} $portname-$portversion]
-    return [open $_registry_name w 0644]
+    set rhandle [open $_registry_name w 0644]
+    puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
+    return $rhandle
 }
 
 proc registry_exists {portname {portversion 1.0}} {
@@ -66,7 +68,6 @@ proc registry_exists {portname {portversion 1.0}} {
 }
 
 proc registry_store {rhandle data} {
-    puts $rhandle "\# Format: {{var value} {contents {filename uid gid mode size {md5}} ... }}"
     puts $rhandle $data
 }
 
@@ -179,25 +180,23 @@ proc registry_main {args} {
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
     ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
-    lappend data [list prefix $prefix]
-    lappend data [list categories $categories]
+    registry_store $rhandle [list prefix $prefix]
+    registry_store $rhandle [list categories $categories]
     if [info exists description] {
-	lappend data [list description $description]
+	registry_store $rhandle [concat description $description]
     }
     if [info exists depends_run] {
-	lappend data [list run_depends $depends_run]
+	registry_store $rhandle [list run_depends $depends_run]
     }
     if [info exists contents] {
-	set plist [fileinfo_for_index $contents]
-	lappend data [list contents $plist]
+	registry_store $rhandle [list contents [fileinfo_for_index $contents]]
     }
     if {[info proc pkg_install] == "pkg_install"} {
-	lappend data [list pkg_install [proc_disasm pkg_install]]
+	registry_store $rhandle [list pkg_install [proc_disasm pkg_install]]
     }
     if {[info proc pkg_deinstall] == "pkg_deinstall"} {
-	lappend data [list pkg_deinstall [proc_disasm pkg_deinstall]]
+	registry_store $rhandle [list pkg_deinstall [proc_disasm pkg_deinstall]]
     }
-    registry_store $rhandle $data
     registry_close $rhandle
     return 0
 }
