@@ -117,20 +117,23 @@ proc options_export {args} {
 # option_deprecate
 # Causes a warning to be printed when an option is set or accessed
 proc option_deprecate {option {newoption ""} } {
-    eval "proc warn_deprecated_$option \{option action args\} \{ \n\
-    	global portname $option $newoption \n\
-	if \{\"$newoption\" != \"\" \&\& \$action != \"read\" \} \{ \n\
-	    $newoption \[set $option\] \n\
-	\} else \{ \n\
-	    ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
-	    if \{ \"$newoption\" != \"\" && \$action == \"read\" \} \{ \n\
+    # If a new option is specified, default the option to {${newoption}}
+    # Display a warning
+    if {$newoption != ""} {
+    	eval "proc warn_deprecated_$option \{option action args\} \{ \n\
+	    global portname $option $newoption \n\
+	    if \{\$action != \"read\"\} \{ \n\
+	    	$newoption \[set \$option\] \n\
+	    \} else \{ \n\
+	        ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
 		$option \[set $newoption\] \n\
 	    \} \n\
-	\}
-    \}"
-    # If a new option is specified, default the option to {${newoption}}
-    if {$newoption != ""} {
-	eval "default $option {\$\{$newoption\}}"
+	\}"
+    } else {
+    	eval "proc warn_deprecated_$option \{option action args\} \{ \n\
+	    global portname $option $newoption \n\
+	    ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
+	\}"
     }
     option_proc $option warn_deprecated_$option
 }
