@@ -21,14 +21,12 @@ set UI_PREFIX "---> "
 
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip
-    if {[info exists extract_sufx]} {
-	return ${distname}.${extract_sufx}
-    } elseif {[tbool use_bzip2]} {
+    if {[tbool use_bzip2]} {
 	return ${distname}.tar.bz2
     } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
-	return ${distname}.tar.gz
+	return ${distname}.${extract_sufx}
     }
 }
 
