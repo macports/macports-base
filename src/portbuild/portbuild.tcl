@@ -18,7 +18,7 @@ proc fatal args {
 }
 
 # Main
-set target "all"
+set target "build"
 for {set i 0} {$i < $argc} {incr i} {
 	switch -regexp -- [lindex $argv $i] {
 		-d {

@@ -16,6 +16,7 @@ package require portextract 1.0
 package require portpatch 1.0
 package require portconfigure 1.0
 package require portbuild 1.0
+package require portinstall 1.0
 
 # System wide configuration
 if [info exists portconf] {
