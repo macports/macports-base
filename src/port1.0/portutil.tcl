@@ -1012,3 +1012,20 @@ proc addgroup {name args} {
 	ui_warn "The requested group was not created."
     }
 }
+
+# proc to calculate size of a directory
+# moved here from portpackage.tcl
+proc dirSize {dir} {
+    set size    0;
+    foreach file [readdir $dir] {
+	if {$file == "." || $file == ".." || [file type [file join $dir $file]] == "link" } {
+	    continue
+	}
+	if {[file isdirectory [file join $dir $file]]} {
+	    incr size [dirSize [file join $dir $file]]
+	} else {
+	    incr size [file size [file join $dir $file]];
+	}
+    }
+    return $size;
+}

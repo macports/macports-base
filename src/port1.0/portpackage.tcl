@@ -54,11 +54,17 @@ proc package_main {args} {
 }
 
 proc package_pkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage
+    global UI_PREFIX portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage portpath
 
     set resourcepath ${workpath}/pkg_resources
     # XXX: we need to support .lproj in resources.
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+
+    if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
+       	ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        return 0
+    }
+	
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
     write_PkgInfo ${pkgpath}/Contents/PkgInfo
     write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
@@ -79,21 +85,6 @@ proc package_pkg {portname portversion portrevision} {
     write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     return 0
-}
-
-proc dirSize {dir} {
-    set size    0;
-    foreach file [readdir $dir] {
-	if {$file == "." || $file == ".." || [file type [file join $dir $file]] == "link" } {
-	    continue
-	}
-	if {[file isdirectory [file join $dir $file]]} {
-	    incr size [dirSize [file join $dir $file]]
-	} else {
-	    incr size [file size [file join $dir $file]];
-	}
-    }
-    return $size;
 }
 
 proc write_PkgInfo {infofile} {

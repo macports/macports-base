@@ -4,7 +4,7 @@ SRCS= port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
 	portinstall.tcl portdepends.tcl portdestroot.tcl portuninstall.tcl  \
         portclean.tcl portpackage.tcl porttest.tcl portmpkg.tcl             \
-        portrpmpackage.tcl
+        portrpmpackage.tcl portdmg.tcl
 
 SUBDIR=		resources
 
