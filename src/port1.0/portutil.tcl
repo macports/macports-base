@@ -513,10 +513,10 @@ proc port_traverse {func {dir .}} {
 	    continue
 	}
 	if [file isdirectory $name] {
-	    port_traverse $func $name
+	    port_traverse $func "$name"
 	} else {
 	    if [string match $name Portfile] {
-		eval $func [file join $pwd $dir]
+		eval $func "[file join $pwd $dir]"
 	    }
 	}
     }
