@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <string.h>
 #include <dirent.h>
+#include <paths.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -110,7 +111,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	char *args[4];
 	char *cmdstring;
 	FILE *pdes;
-	int fdset[2];
+	int fdset[2], nullfd;
 	int ret;
 	pid_t pid;
 
@@ -132,6 +133,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		return TCL_ERROR;
 	if (pid == 0) {
 		close(fdset[0]);
+		if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+			return TCL_ERROR;
+		dup2(nullfd, STDIN_FILENO);
 		dup2(fdset[1], STDOUT_FILENO);
 		dup2(fdset[1], STDERR_FILENO);
 		/* XXX dropping the controlling terminal */
