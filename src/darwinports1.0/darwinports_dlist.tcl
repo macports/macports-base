@@ -132,8 +132,8 @@ proc ditem_key {ditem args} {
 #	key   - the key to append to
 #	value - the value to append to the key
 
-proc ditem_append {ditem key value} {
-	return [darwinports_dlist::ditem_append $ditem $key $value]
+proc ditem_append {ditem key args} {
+	eval "return \[darwinports_dlist::ditem_append $ditem $key $args\]"
 }
 
 # ditem_contains
@@ -142,8 +142,8 @@ proc ditem_append {ditem key value} {
 #	ditem - the dependency item to test
 #	key   - the key to examine
 #	value - optional value to search for in the key
-proc ditem_contains {ditem key {value}} {
-	eval "return [darwinports_dlist::ditem_contains $ditem $key $value]"
+proc ditem_contains {ditem key args} {
+	eval "return \[darwinports_dlist::ditem_contains $ditem $key $args\]"
 }
 
 # dlist_append_dependents
@@ -252,8 +252,8 @@ proc dlist_eval {dlist handler {selector "dlist_get_next"}} {
 			# $handler should return a unix status code, 0 for success.
 			# statusdict notation is 1 for success
 			if {[catch {$handler $ditem} result]} {
-				# debug puts the result?
-				set result 1
+				puts $result
+				return $dlist
 			}
 			# No news is good news at this point.
 			if {$result == {}} { set result 0 }
@@ -304,25 +304,25 @@ proc ditem_key {ditem args} {
 	return [lindex [array get $ditem $key] 1]
 }
 
-proc ditem_append {ditem key value} {
+proc ditem_append {ditem key args} {
 	variable $ditem
 	set x [lindex [array get $ditem $key] 1]
 	if {$x != {}} {
-		eval "lappend x $value"
+		eval "lappend x $args"
 	} else {
-		set x $value
+		set x $args
 	}
 	array set $ditem [list $key $x]
 	return $x
 }
 
-proc ditem_contains {ditem key {value}} {
+proc ditem_contains {ditem key args} {
 	variable $ditem
-	if {![info exists value]} {
-		return [info exists ${ditem}($key)]
+	if {[llength $args] == 0} {
+		eval "return \[info exists ${ditem}($key)\]"
 	} else {
 		set x [lindex [array get $ditem $key] 1]
-		if {[llength $x] > 0 && [lsearch -exact $x $value] != -1} {
+		if {[llength $x] > 0 && [lsearch -exact $x [lindex $args 0]] != -1} {
 			return 1
 		} else {
 			return 0

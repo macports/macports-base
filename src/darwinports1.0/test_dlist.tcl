@@ -34,6 +34,7 @@ if {[catch {ditem_append $ditem provides "bar"} value] || $value != {foo bar}} {
 }
 
 puts -nonewline "Checking ditem_contains... "
+set value2 ""
 if {[catch {ditem_contains $ditem provides "foo"} value] || $value != 1 ||
 	[catch {ditem_contains $ditem provides "zzz"} value2] || $value2 != 0} {
 	puts "failed: ${value}\n${value2}"
