@@ -1,4 +1,4 @@
-#!/usr/bin/tclsh
+#!/usr/bin/tclsh8.3
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
 

@@ -1,4 +1,4 @@
-#!/usr/bin/tclsh
+#!/usr/bin/tclsh8.3
 # Traverse through all ports running the supplied target.  If target is
 # "index" then just print some useful information about each port.
 
