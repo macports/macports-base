@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.14 2004/02/23 04:52:47 ssen Exp $
+# $Id: mirror_sites.tcl,v 1.15 2004/03/01 19:05:27 ssen Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -244,24 +244,24 @@ set portfetch::mirror_sites::sites(xcontrib) {
 }
 
 set portfetch::mirror_sites::sites(xfree) {
-    ftp://ftp.xfree86.org/pub/XFree86/source/
-    ftp://ftp.rge.com/pub/X/XFree86/source/
-    ftp://archive.progeny.com/XFree86/source/
-    ftp://ftp.mirrorcentral.com/pub/XFree86/source/
-    ftp://ftp.dti.ad.jp/pub/X/XFree86/XFree86/source/
-    ftp://gd.tuwien.Ac.at/hci/X11/XFree86/source/
-    ftp://ftp.fit.vutbr.cz/pub/XFree86/source/
-    ftp://ftp.free.fr/pub/XFree86/source/
-    ftp://mir1.ovh.net/ftp.xfree86.org/source/
-    ftp://ftp.lami.univ-evry.fr/XFree86/source/
-    ftp://ftp.cs.tu-berlin.de/pub/X/XFree86/source/
-    ftp://ftp.gwdg.de/pub/xfree86/XFree86/source/
-    http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.xfree86.org/XFree86/source/
-    ftp://ftp.rediris.es/mirror/XFree86/source/
-    ftp://ftp.esat.net/pub/X11/XFree86/source/
-    ftp://ftp.nl.uu.net/pub/XFree86/source/
-    ftp://sunsite.uio.no/pub/XFree86/source/
-    ftp://ftp.task.gda.pl/pub/XFree86/source/
-    ftp://ftp.physics.uvt.ro/pub/XFree86/source/
-    ftp://ftp.chg.ru/pub/XFree86/source/
+    ftp://ftp.rge.com/pub/X/XFree86/
+    ftp://archive.progeny.com/XFree86/
+    ftp://ftp.mirrorcentral.com/pub/XFree86/
+    ftp://ftp.dti.ad.jp/pub/X/XFree86/XFree86/
+    ftp://gd.tuwien.Ac.at/hci/X11/XFree86/
+    ftp://ftp.fit.vutbr.cz/pub/XFree86/
+    ftp://ftp.free.fr/pub/XFree86/
+    ftp://mir1.ovh.net/ftp.xfree86.org/
+    ftp://ftp.lami.univ-evry.fr/XFree86/
+    ftp://ftp.cs.tu-berlin.de/pub/X/XFree86/
+    ftp://ftp.gwdg.de/pub/xfree86/XFree86/
+    http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.xfree86.org/XFree86/
+    ftp://ftp.rediris.es/mirror/XFree86/
+    ftp://ftp.esat.net/pub/X11/XFree86/
+    ftp://ftp.nl.uu.net/pub/XFree86/
+    ftp://sunsite.uio.no/pub/XFree86/
+    ftp://ftp.task.gda.pl/pub/XFree86/
+    ftp://ftp.physics.uvt.ro/pub/XFree86/
+    ftp://ftp.chg.ru/pub/XFree86/
+    ftp://ftp.xfree86.org/pub/XFree86/
 }
