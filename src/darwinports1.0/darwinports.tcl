@@ -911,7 +911,6 @@ proc upgrade {pname dspec} {
 		return 1
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
-	ui_debug "$pname $version_in_tree exists in the ports tree"
 
 	# set version_installed
 	set ask no
@@ -955,10 +954,14 @@ proc upgrade {pname dspec} {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later
 		set num 0
+		set variant ""
+		# XXX version+variant
 		foreach i $ilist {
-			set version "[lindex $i 1]_[lindex $i 2]"
+			set variant [lindex $i 3]
+			set version "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
 			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
+				set version_in_tree "$version_in_tree[lindex $i 3]"
 				set num $i
 			}
 
@@ -979,6 +982,9 @@ proc upgrade {pname dspec} {
 			}
 		}
 	}
+
+	# out put version numbers
+	ui_debug "$pname $version_in_tree exists in the ports tree"
 	ui_debug "$pname $version_installed is installed"
 
 	# set the nodeps option  
@@ -1031,7 +1037,13 @@ proc upgrade {pname dspec} {
 	if {![info exists porturl]} {
 		set porturl file://./
 	}
-	if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+
+	set variant [list [string trimleft [string map {"+" " "} $variant]] ]
+	foreach v $variant {
+		set variants($v) yes
+	}
+	
+	if {[catch {set workername [dportopen $porturl [array get options] [array get variants] ]} result]} {
 		ui_error "Unable to open port: $result"
 		return 1
 	}
