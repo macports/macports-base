@@ -98,17 +98,27 @@ proc destroot_finish {args} {
 						if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
 							set found 1
 							system "cd ${manpath} && \
-								gunzip [file join ${mandir} ${gzfile}] && \
-								gzip -9v [file join ${mandir} ${manfile}]"
+								gunzip -f [file join ${mandir} ${gzfile}] && \
+								gzip -9vf [file join ${mandir} ${manfile}]"
 						} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
 							set found 1
 							system "cd ${manpath} && \
-								bunzip2 [file join ${mandir} ${bz2file}] && \
-								gzip -9v [file join ${mandir} ${manfile}]"
+								bunzip2 -f [file join ${mandir} ${bz2file}] && \
+								gzip -9vf [file join ${mandir} ${manfile}]"
 						} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
 							set found 1
 							system "cd ${manpath} && \
-								gzip -9v [file join ${mandir} ${manfile}]"
+								gzip -9vf [file join ${mandir} ${manfile}]"
+						}
+						set gzmanfile ${manfile}.gz
+						set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
+						if {[file exists ${gzmanfilepath}]} {
+							set desired 00644
+							set current [file attributes ${gzmanfilepath} -permissions]
+							if {$current != $desired} {
+								ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
+								file attributes ${gzmanfilepath} -permissions $desired
+							}
 						}
 					} elseif {[file type ${manfilepath}] == "link"} {
 						lappend manlinks [file join ${mandir} ${manfile}]
