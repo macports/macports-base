@@ -82,7 +82,10 @@ fi
 
 eval "prefix_expanded=$prefix"
 AC_SUBST(prefix_expanded)
+# do this twice, since there is a nested variable of
+# ${prefix} inside of ${sysconfdir}
 eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
+eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR_EXPANDED"
 AC_SUBST(PORTCONFIGDIR_EXPANDED)
 eval "localstatedir_expanded=$localstatedir"
 AC_SUBST(localstatedir_expanded)
@@ -95,5 +98,7 @@ dnl SC_CONFIG_MANPAGES
 
 # Output
 
-AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf])
+AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree
+			  doc/ports.conf
+   src/darwinports1.0/darwinports.tcl.out:src/darwinports1.0/darwinports.tcl])
 AC_OUTPUT
