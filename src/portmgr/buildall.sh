@@ -110,8 +110,8 @@ prepchroot() {
 # Undo the work of prepchroot
 teardownchroot() {
 	dir=$1
-	umount $dir/dev  || bomb "unable to umount devfs"
-	umount $dir/dev  || bomb "unable to umount fdesc"
+	umount $dir/dev  || (echo "unable to umount devfs"; STUCK_BASEDEV=1)
+	umount $dir/dev  || (echo "unable to umount fdesc"; STUCK_BASEDEV=1)
 	[ -z "$DISTDEV" ] || (hdiutil detach $DISTDEV >& /dev/null || bomb "unable to detach DISTDEV")
 	DISTDEV=""
 	if [ ! -z "$BASEDEV" ]; then
