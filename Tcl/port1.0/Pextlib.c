@@ -5,7 +5,9 @@
 #include <dirent.h>
 #include <sys/file.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <tcl.h>
+#include <unistd.h>
 
 #define BUFSIZ 1024
 
@@ -31,9 +33,12 @@ static int ui_info(Tcl_Interp *interp, char *mesg) {
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char buf[BUFSIZ];
+	char *args[4];
 	char *cmdstring, *p;
-	FILE *pipe;
-	int i, cmdlen, cmdlenavail;
+	FILE *pdes;
+	int fdset[2];
+	int i, cmdlen, cmdlenavail, ret;
+	pid_t pid;
 	cmdlen = cmdlenavail = BUFSIZ;
 	p = cmdstring = NULL;
 
@@ -94,23 +99,45 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		}
 	}
 
-	pipe = popen(cmdstring, "r");
+	if (pipe(fdset) == -1)
+		return TCL_ERROR;
+
+	/*
+	 * Fork a child to run the command, in a popen() like fashion -
+	 * popen() itself is not used because stderr is also desired.
+	 */
+	pid = fork();
+	if (pid == -1)
+		return TCL_ERROR;
+	if (pid == 0) {
+		close(fdset[0]);
+		dup2(fdset[1], STDOUT_FILENO);
+		dup2(fdset[1], STDERR_FILENO);
+		/* XXX ugly string constants */
+		args[0] = "sh";
+		args[1] = "-c";
+		args[2] = cmdstring;
+		args[3] = NULL;
+		execve("/bin/sh", args, NULL);
+	}
+	close(fdset[1]);
+	pdes = fdopen(fdset[0], "r");
 	if (p != NULL)
 		free(cmdstring);
 
-	while (fgets(buf, BUFSIZ, pipe) != NULL) {
+	/* read from simulated popen() pipe */
+	while (fgets(buf, BUFSIZ, pdes) != NULL) {
 		int ret = ui_info(interp, buf);
 		if (ret != TCL_OK)
 			return ret;
 		Tcl_AppendResult(interp, buf, NULL);
 	}
-
-	switch (pclose(pipe)) {
-		case 0:
-			return TCL_OK;
-		default:
-			return TCL_ERROR;
-	}
+	fclose(pdes);
+	wait(&ret);
+	if (ret == 0)
+		return TCL_OK;
+	else
+		return TCL_ERROR;
 }
 
 int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
