@@ -62,10 +62,8 @@ proc portchecksum::main {args} {
 		set checksum [md5 $distpath/$distfile]
 		set dchecksum [dmd5 $distfile]
 		if {$checksum == $dchecksum} {
-			puts "$dchecksum:$checksum"
 			puts "Checksum OK for $distfile"
 		} else {
-			puts "$checksum:$dchecksum"
 			puts "Checksum mismatch for $distfile"
 			return -1
 		}
