@@ -671,6 +671,8 @@ int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+	extern int doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+
 	return doinstall(interp, objc, objv);
 }
 

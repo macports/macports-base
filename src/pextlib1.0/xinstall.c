@@ -91,7 +91,7 @@ static int	install_dir(Tcl_Interp *interp, char *);
 static u_long	numeric_id(Tcl_Interp *interp, const char *, const char *, int *rval);
 static void	strip(const char *);
 static int	trymmap(int);
-static void	usage(Tcl_Interp *interp);
+static void	usage(Tcl_Interp *interp, char *n);
 
 extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
@@ -101,109 +101,133 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	struct stat from_sb, to_sb;
 	mode_t *set;
 	u_long fset;
-	int no_target, i, rval;
+	int no_target, rval;
 	u_int iflags;
-	char *flags;
+	char *flags, *name;
 	const char *group, *owner, *cp;
 	Tcl_Obj *to_name;
 
 	iflags = 0;
 	group = owner = NULL;
-	for (i = 1; i <= objc; i++) {
-		char ch = Tcl_GetString(objv[i])[0];
+	name = Tcl_GetString(objv[0]);
+	/* Adjust arguments */
+	++objv, --objc;
 
+	while (objc && (cp = Tcl_GetString(*objv)) && *cp == '-') {
+		char ch = *++cp;
+
+		if (!strchr("BbCcdfgMmopSsv", ch))
+			break;
 		switch(ch) {
 		case 'B':
-			if (i == objc) {
+			if (objc < 2) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-B");
 				return TCL_ERROR;
 			}
-			suffix = Tcl_GetString(objv[++i]);
+			suffix = Tcl_GetString(*(++objv));
+			objv++, objc -= 2;
 			/* FALLTHROUGH */
 		case 'b':
 			dobackup = 1;
+			objv++, objc--;
 			break;
 		case 'C':
 			docompare = 1;
+			objv++, objc--;
 			break;
 		case 'c':
 			/* For backwards compatibility. */
+			objv++, objc--;
 			break;
 		case 'd':
 			dodir = 1;
+			objv++, objc--;
 			break;
 		case 'f':
-			if (i == objc) {
+			if (objc < 2) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-f");
 				return TCL_ERROR;
 			}
-			flags = Tcl_GetString(objv[++i]);;
+			flags = Tcl_GetString(*(++objv));
 			if (strtofflags(&flags, &fset, NULL)) {
 				Tcl_SetResult(interp, "invalid flags for -f", TCL_STATIC);
 				return TCL_ERROR;
 			}
 			iflags |= SETFLAGS;
+			objv++, objc -= 2;
 			break;
 		case 'g':
-			if (i == objc) {
+			if (objc < 2) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-g");
 				return TCL_ERROR;
 			}
-			group = Tcl_GetString(objv[++i]);
+			group = Tcl_GetString(*(++objv));
+			objv++, objc -= 2;
 			break;
 		case 'M':
 			nommap = 1;
+			objv++, objc--;
 			break;
 		case 'm':
-			if (i == objc) {
+			if (!objc) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-m");
 				return TCL_ERROR;
 			}
-			if (!(set = setmode(Tcl_GetString(objv[++i])))) {
+			if (!(set = setmode(Tcl_GetString(*(++objv))))) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "invalid file mode: %s", Tcl_GetString(objv[i]));
+				snprintf(errmsg, sizeof errmsg, "invalid file mode: %s", Tcl_GetString(*objv));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
 			mode = getmode(set, 0);
 			free(set);
+			objv++, objc -= 2;
 			break;
 		case 'o':
-			if (i == objc) {
+			if (!objc) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-o");
 				return TCL_ERROR;
 			}
-			owner = Tcl_GetString(objv[++i]);
+			owner = Tcl_GetString(*(++objv));
+			objv++, objc -= 2;
 			break;
 		case 'p':
 			docompare = dopreserve = 1;
+			objv++, objc--;
 			break;
 		case 'S':
 			safecopy = 1;
+			objv++, objc--;
 			break;
 		case 's':
 			dostrip = 1;
+			objv++, objc--;
 			break;
 		case 'v':
 			verbose = 1;
+			objv++, objc--;
 			break;
 		case '?':
 		default:
-			usage(interp);
+			usage(interp, name);
 			return TCL_ERROR;
 		}
 	}
 
 	/* some options make no sense when creating directories */
 	if (dostrip && dodir) {
-		usage(interp);
+		usage(interp, name);
 		return TCL_ERROR;
 	}
 
 	/* must have at least two arguments, except when creating directories */
 	if (objc < 2 && !dodir) {
-		usage(interp);
+		usage(interp, name);
+		return TCL_ERROR;
+	}
+	else if (dodir && !objc) {
+		usage(interp, name);
 		return TCL_ERROR;
 	}
 	/* need to make a temp copy so we can compare stripped version */
@@ -262,7 +286,7 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	/* can't do file1 file2 directory/file */
 	if (objc != 2) {
-		usage(interp);
+		usage(interp, name);
 		return TCL_ERROR;
 	}
 
@@ -969,16 +993,16 @@ install_dir(Tcl_Interp *interp, char *path)
  *	copy usage message to Tcl result.
  */
 static void
-usage(Tcl_Interp *interp)
+usage(Tcl_Interp *interp, char *n)
 {
-	char errmsg[255];
+	char errmsg[500];
 
 	snprintf(errmsg, sizeof errmsg, 
-"usage: installto [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
+"usage: %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 file2\n"
-"       installto [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
+"       %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 ... fileN directory\n"
-"       installto -d [-v] [-g group] [-m mode] [-o owner] directory ...");
+"       %s -d [-v] [-g group] [-m mode] [-o owner] directory ...", n, n, n);
 	Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 }
 
