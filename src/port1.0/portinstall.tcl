@@ -35,39 +35,15 @@ package require portutil 1.0
 set com.apple.install [target_new com.apple.install install_main]
 target_runtype ${com.apple.install} always
 target_provides ${com.apple.install} install
-target_requires ${com.apple.install} main fetch extract checksum patch configure build 
+target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
 target_prerun ${com.apple.install} install_start
-target_postrun ${com.apple.install} install_registry
-
-# define options
-options install.target install.destroot build.target.install 
-commands install
-
-# Set defaults
-default install.dir {${build.dir}}
-default install.cmd {${build.cmd}}
-default install.pre_args {${install.target}}
-default install.target install
-default install.post_args {${install.destroot}}
-default install.destroot {DESTDIR=${destroot}}
 
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX prefix portname destroot portresourcepath os.platform
+    global UI_PREFIX portname
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
-	
-	# some things break with this, some things break without,
-	# probably should be an option portfiles can toggle.
-	#system "rm -Rf \"${destroot}\""
-
-	file mkdir "${destroot}"
-	if { ${os.platform} == "darwin" } {
-		system "cd \"${destroot}\" && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
-	}
-	file mkdir "${destroot}/${prefix}"
-	system "cd \"${destroot}/${prefix}\" && mtree -d -e -U -f ${portresourcepath}/install/prefix.mtree"
 }
 
 proc install_element {src_element dst_element} {
@@ -136,15 +112,7 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 }
 
 proc install_main {args} {
-    system "[command install]"
-    return 0
-}
-
-proc install_registry {args} {
     global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
-
-    # Prune empty directories in ${destroot}
-    catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir 2>/dev/null"}
 
     # Install ${destroot} contents into /
     directory_dig ${destroot} ${destroot}
@@ -194,4 +162,3 @@ proc proc_disasm {pname} {
     append p "} {" [info body $pname] "}"
     return $p
 }
-
