@@ -6,8 +6,8 @@ include ../../../Mk/dports.subdir.mk
 include ../../../Mk/dports.autoconf.mk
 
 install::
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${DESTDIR}${datadir}/darwinports/resources
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${datadir}/darwinports/resources
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 #	$(SILENT)set -x; for file in ${RSRCS}; do \
 #		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 #	done

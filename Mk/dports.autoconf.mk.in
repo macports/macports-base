@@ -30,6 +30,7 @@ TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@
 
 DSTUSR			= @DSTUSR@
 DSTGRP			= @DSTGRP@
+DSTMODE			= @DSTMODE@
 
 
 prefix			= @prefix@
