@@ -147,6 +147,17 @@ proc ditem_append {ditem key args} {
 	eval "return \[darwinports_dlist::ditem_append $ditem $key $args\]"
 }
 
+# ditem_append_unique
+# Appends the value to the given key of the dependency item if
+# they were not there yet.
+#	ditem - the dependency item to operate on
+#	key   - the key to append to
+#	value - the value to append to the key
+
+proc ditem_append_unique {ditem key args} {
+	eval "return \[darwinports_dlist::ditem_append_unique $ditem $key $args\]"
+}
+
 # ditem_contains
 # Tests whether the ditem key contains the specified value;
 # or if the value is omitted, tests whether the key exists.
@@ -333,6 +344,19 @@ proc ditem_append {ditem key args} {
 	set x [lindex [array get $ditem $key] 1]
 	if {$x != {}} {
 		eval "lappend x $args"
+	} else {
+		set x $args
+	}
+	array set $ditem [list $key $x]
+	return $x
+}
+
+proc ditem_append_unique {ditem key args} {
+	variable $ditem
+	set x [lindex [array get $ditem $key] 1]
+	if {$x != {}} {
+		eval "lappend x $args"
+		set x [lsort -unique $x]
 	} else {
 		set x $args
 	}

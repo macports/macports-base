@@ -353,9 +353,8 @@ proc _dportsearchpath {depregex search_path} {
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
-proc _libtest {dport} {
+proc _libtest {dport depspec} {
     global env tcl_platform
-    set depspec [ditem_key $dport depspec]
 	set depline [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix]
 	
@@ -390,9 +389,8 @@ proc _libtest {dport} {
 
 ### _bintest is private; subject to change without notice
 
-proc _bintest {dport} {
+proc _bintest {dport depspec} {
     global env
-    set depspec [ditem_key $dport depspec]
 	set depregex [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix] 
 	
@@ -405,9 +403,8 @@ proc _bintest {dport} {
 
 ### _pathtest is private; subject to change without notice
 
-proc _pathtest {dport} {
+proc _pathtest {dport depspec} {
     global env
-    set depspec [ditem_key $dport depspec]
 	set depregex [lindex [split $depspec :] 1]
 	set prefix [_dportkey $dport prefix] 
     
@@ -426,9 +423,29 @@ proc _pathtest {dport} {
 	return [_dportsearchpath $depregex $search_path]
 }
 
-### _dportest is private; may change without notice
+### _dportinstalled is private; may change without notice
 
-proc _dporttest {dport} {
+# Determine if a port is already *installed*, as in "in the registry".
+proc _dportinstalled {dport} {
+	# Check for the presense of the port in the registry
+	set workername [ditem_key $dport workername]
+	set res [$workername eval registry_exists \${portname} \${portversion}]
+	if {$res != ""} {
+		ui_debug "Found Dependency: receipt: $res"
+		return 1
+	} else {
+		return 0
+	}
+}
+
+### _dporispresent is private; may change without notice
+
+# Determine if some depspec is satisfied or if the given port is installed.
+# We actually start with the registry (faster?)
+#
+# dport		the port to test (to figure out if it's present)
+# depspec	the dependency test specification (path, bin, lib, etc.)
+proc _dportispresent {dport depspec} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
@@ -437,12 +454,11 @@ proc _dporttest {dport} {
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
-		set depspec [ditem_key $dport depspec]
 		set type [lindex [split $depspec :] 0]
 		switch $type {
-			lib { return [_libtest $dport] }
-			bin { return [_bintest $dport] }
-			path { return [_pathtest $dport] }
+			lib { return [_libtest $dport $depspec] }
+			bin { return [_bintest $dport $depspec] }
+			path { return [_pathtest $dport $depspec] }
 			default {return -code error "unknown depspec type: $type"}
 		}
 		return 0
@@ -497,7 +513,7 @@ proc dportexec {dport target} {
 		dlist_delete dlist $dport
 
 		# install them
-		set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+		set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
 		
 		if {$dlist != {}} {
 			set errstring "The following dependencies failed to build:"
@@ -649,23 +665,25 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 		set options [ditem_key $dport options]
 		set variations [ditem_key $dport variations]
-		
-		# XXX: This should use the depspec flavor of dportopen,
-		# but for now, simply set the key directly.
+
+		# Figure out the subport.	
 		set subport [dportopen $porturl $options $variations]
-		ditem_key $subport depspec $depspec
 
-		# Append the sub-port's provides to the port's requirements list.
-		ditem_append $dport requires "[ditem_key $subport provides]"
-
-		if {$recurseDeps != ""} {
-			# Skip the port if it's already in the accumulated list.
-			if {[lsearch $accDeps $portname] == -1} {
-				# Add it to the list
-				lappend accDeps $portname
+		# Is that dependency satisfied or this port installed?
+		# If not, add it to the list. Otherwise, don't.
+		if {![_dportispresent $subport $depspec]} {
+			# Append the sub-port's provides to the port's requirements list.
+			ditem_append_unique $dport requires "[ditem_key $subport provides]"
+	
+			if {$recurseDeps != ""} {
+				# Skip the port if it's already in the accumulated list.
+				if {[lsearch $accDeps $portname] == -1} {
+					# Add it to the list
+					lappend accDeps $portname
 				
-				# We'll recursively iterate on it.
-				lappend subPorts $subport
+					# We'll recursively iterate on it.
+					lappend subPorts $subport
+				}
 			}
 		}
 	}
