@@ -70,7 +70,11 @@ proc package_mpkg {portname portversion} {
 	set ports {}
 	foreach depspec $depends {
 		set depname [lindex [split $depspec :] 2]
-		lappend ports $depname
+
+		# nasty hack
+		if {$depname != "XFree86"} {
+			lappend ports $depname
+		}
 	}
 	set ports [lsort -unique $ports]
 
