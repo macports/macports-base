@@ -40,7 +40,7 @@ proc portchecksum::dmd5 {file} {
 }
 
 proc portchecksum::main {args} {
-	global distpath portpath portdir all_dist_files
+	global distpath portpath all_dist_files
 
 	# If no files have been downloaded there is nothing to checksum
 	if ![info exists all_dist_files] {
