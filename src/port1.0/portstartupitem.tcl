@@ -1,9 +1,10 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.6 2005/01/27 19:52:39 rshaw Exp $
+# $Id: portstartupitem.tcl,v 1.7 2005/02/19 17:05:59 rshaw Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
+# Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -85,12 +86,15 @@ proc startupitem_create_rcng {args} {
 
 proc startupitem_create_darwin {args} {
 	global prefix destroot portname os.platform
-	global startupitem.name startupitem.requires
+	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart
 
 	set scriptdir ${prefix}/etc/startup
 	if { ![exists startupitem.name] } {
 		set startupitem.name ${portname}
+	}
+	if { ![exists startupitem.init] } {
+		set startupitem.init [list]
 	}
 	if { ![exists startupitem.start] } {
 		set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
@@ -111,7 +115,8 @@ proc startupitem_create_darwin {args} {
 	puts ${item} "#!/bin/sh"
 	puts ${item} "#\n# DarwinPorts generated StartupItem\n#\n"
 	puts ${item} ". /etc/rc.common\n"
-	puts ${item} "StartService ()\n\{"
+	foreach line ${startupitem.init} { puts ${item} ${line} }
+	puts ${item} "\nStartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
 	foreach line ${startupitem.start} { puts ${item} "\t\t${line}" }

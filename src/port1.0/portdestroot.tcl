@@ -41,7 +41,7 @@ target_postrun ${com.apple.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
-options startupitem.create startupitem.requires
+options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type
 commands destroot
