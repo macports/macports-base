@@ -1185,7 +1185,6 @@ proc binportfile_test {this} {
 
 		set search_path [split $env(PATH) :]
 		
-		regsub {\.} $depregex {\.} depregex
 		set depregex \^$depregex\$
 
 		return [portfile_search_path $depregex $search_path]
