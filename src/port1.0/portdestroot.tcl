@@ -83,26 +83,28 @@ proc destroot_finish {args} {
 
 	# Compress all manpages with gzip (instead)
 	set manpath "${destroot}${prefix}/share/man"
-	if {[file type ${manpath}] == "directory"} {
+	if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
 		ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
 		set found 0
 		foreach mandir [readdir "${manpath}"] {
 			if {![regexp {^man(.)$} ${mandir} match manindex]} { continue }
 			set mandirpath [file join ${manpath} ${mandir}]
-			if {[file type ${mandirpath}] != "directory"} { continue }
-			ui_debug "Scanning ${mandir}"
-			foreach manfile [readdir ${mandirpath}] {
-				set manfilepath [file join ${mandirpath} ${manfile}]
-				if {[file type ${manfilepath}] != "file"} { continue }
-				if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
-					set found 1
-					system "cd ${manpath} && gunzip [file join ${mandir} ${gzfile}] && gzip -9v [file join ${mandir} ${manfile}]"
-				} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
-					set found 1
-					system "cd ${manpath} && bunzip2 [file join ${mandir} ${bz2file}] && gzip -9v [file join ${mandir} ${manfile}]"
-				} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
-					set found 1
-					system "cd ${manpath} && gzip -9v [file join ${mandir} ${manfile}]"
+			if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
+				ui_debug "Scanning ${mandir}"
+				foreach manfile [readdir ${mandirpath}] {
+					set manfilepath [file join ${mandirpath} ${manfile}]
+					if {[file isfile ${manfilepath}] && [file type ${manfilepath}] == "file"} {
+						if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+							set found 1
+							system "cd ${manpath} && gunzip [file join ${mandir} ${gzfile}] && gzip -9v [file join ${mandir} ${manfile}]"
+						} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+							set found 1
+							system "cd ${manpath} && bunzip2 [file join ${mandir} ${bz2file}] && gzip -9v [file join ${mandir} ${manfile}]"
+						} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+							set found 1
+							system "cd ${manpath} && gzip -9v [file join ${mandir} ${manfile}]"
+						}
+					}
 				}
 			}
 		}
