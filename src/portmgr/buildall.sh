@@ -20,8 +20,8 @@ mountchrootextras() {
 # Undo the work of mountchrootextras
 umountchrootextras() {
 	dir=$1
-	umount ${dir}/dev
-	umount ${dir}/dev
+	umount -f ${dir}/dev
+	umount -f ${dir}/dev
 }
 
 # Everything we need to create the base chroot disk image (populated from host)
@@ -36,11 +36,11 @@ mkchrootimage() {
 	DEV=""
 
 	# Add to this list as you find minimum dependencies DP really needs.
-	chrootfiles="bin sbin etc tmp var dev/null usr/include usr/libexec usr/sbin usr/bin usr/lib usr/share private/tmp private/etc private/var/at private/var/cron private/var/db private/var/empty private/var/log private/var/mail private/var/msgs private/var/named private/var/root private/var/run private/var/rwho private/var/spool private/var/tmp private/var/vm/app_profile Developer/Applications/Xcode.app Developer/Applications/Utilities Developer/Headers Developer/Makefiles Developer/Private Developer/Tools System/Library/Frameworks System/Library/CoreServices System/Library/PrivateFrameworks System/Library/OpenSSL System/Library/Perl System/Library/Java Library/Java"
+	chrootfiles="bin sbin etc tmp var dev/null usr private Developer System/Library Library/Java"
 
 	echo "Calculating chroot image size..."
-	# start with this size as padding for darwinports
-	sz=300000
+	# start with this size to account for other overhead
+	sz=2000000
 	for i in $chrootfiles; do
 		mysz=`cd /; du -sk $i |awk '{print $1}'`
 		sz=$(($sz + $mysz))
@@ -89,12 +89,12 @@ prepchroot() {
 	fi
 
 	dir=$1
-	DEV=""
+	DEV=""; DISTDEV=""
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
-	mountchrootextras $dir
 	if [ -f $DISTFILES ]; then
 		DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	fi
+	mountchrootextras $dir
 }
 
 # Undo the work of prepchroot
@@ -105,12 +105,11 @@ teardownchroot() {
 		return 1
 	fi
 	umountchrootextras $dir
-	if [ -f $DISTFILES ]; then
-		hdiutil detach $DISTDEV >& /dev/null
+	[ -z "$DISTDEV" ] || hdiutil detach $DISTDEV >& /dev/null
 	fi
 	hdiutil detach $DEV >& /dev/null
 	rm ${CHROOTBASE}.shadow
-	DEV=""
+	DEV=""; DISTDEV=""
 }
 
 # OK, here's where we kick it all off
