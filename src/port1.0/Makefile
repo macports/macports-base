@@ -2,7 +2,7 @@ INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/Tcl/port1.0
 TARGETSDIR=	${INSTALLDIR}/targets
 
 SRCS=		port.tcl portutil.tcl
-TARGETS=	portconfigure.tcl portmain.tcl portbuild.tcl portpatch.tcl portinstall.tcl portinstall.tcl portclean.tcl portpackage.tcl portdestroot.tcl portdeploy.tcl portdistfiles.tcl portdistcache.tcl portcurl.tcl portwget.tcl portcvs.tcl portmd5.tcl portgzip.tcl portbzip2.tcl portzip.tcl portconfigure.tcl portautoconf.tcl portautomake.tcl portxmkmf.tcl
+TARGETS=	portconfigure.tcl portmain.tcl portbuild.tcl portpatch.tcl portinstall.tcl portinstall.tcl portclean.tcl portpackage.tcl portdestroot.tcl portdeploy.tcl portdistfiles.tcl portdistcache.tcl portcurl.tcl portwget.tcl portcvs.tcl portmd5.tcl portgzip.tcl portbzip2.tcl portzip.tcl portconfigure.tcl portautoconf.tcl portautomake.tcl portxmkmf.tcl portdistclean.tcl
 
 SUBDIR=		resources
 
