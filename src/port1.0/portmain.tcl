@@ -79,12 +79,17 @@ default portepoch {$epoch}
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
 
+# We could just use gcc_select from Mac OS X a lot easier, but this has
+# to be cross-platform so we jump through hoops to detect all cases.
+if {[catch {set gcc_version [exec gcc -v 2>@stdout | awk "/^gcc version/{print \$3}"]} result]} { set gcc_version 0 }
+if {$gcc_version == 0 && [file exists /usr/bin/gcc2]} {set gcc_version 2}
+
 default os.platform {[string tolower $tcl_platform(os)]}
 default os.version {$tcl_platform(osVersion)}
 default os.arch {$os_arch}
 # Remove trailing "Endian"
 default os.endian {[string range $tcl_platform(byteOrder) 0 [expr [string length $tcl_platform(byteOrder)] - 7]]}
-
+default os.gcc_version {$gcc_version}
 
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
