@@ -16,7 +16,7 @@ globals portextract::options
 options portextract::options extract_only extract_command extract_before_args extract_after_args
 
 proc portextract::main {args} {
-	global portname portpath portdir workdir distname distpath distfiles
+	global portname portpath portdir workdir distname distpath distfiles use_bzip2
 
 	# Set up defaults
 	default portextract::options extract_only $distfiles
@@ -25,6 +25,7 @@ proc portextract::main {args} {
 	default portextract::options extract_after_args "| tar -xf -"
 
 	if [info exists use_bzip2] {
+	    puts "XXX using bzip2 man"
 		setval portextract::options extract_cmd bzip2
 	} elseif [info exists use_zip] {
 		setval portextract::options extract_cmd unzip
