@@ -8,7 +8,7 @@ INSTALLDIR= ${PREFIX}/share/darwinports/Tcl/pextlib1.0
 	./compile.sh ${CFLAGS} $< -o $@
 
 Pextlib.dylib: ${OBJS}
-	./link.sh ${SHLIB_NAME} ${OBJS}
+	@./link.sh ${SHLIB_NAME} ${OBJS}
 
 all: Pextlib.dylib
 
