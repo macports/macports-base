@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.10 2004/06/01 05:16:58 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.11 2004/06/01 05:51:55 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -120,7 +120,6 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		# Extract the version from the path.
 		if { $version == 0 } {
 			set theFileName [file tail $receipt_file]
-			puts $theFileName
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
@@ -226,6 +225,9 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 	interp create theConverterInterpreter
 	# Just ignore prefix.
 	interp eval theConverterInterpreter "proc prefix {args} {\n\
+	}"
+	# Also ignore run_depends.
+	interp eval theConverterInterpreter "proc run_depends {args} {\n\
 	}"
 	interp eval theConverterInterpreter "proc categories {args} {\n\
 		global theConvertedReceipt\n\
@@ -432,17 +434,20 @@ proc installed {{name ""} {version ""}} {
 	}
     set receiptglob [glob -nocomplain -types f ${query_path}]
     foreach receipt_file $receiptglob {
+		set theFileName [file tail $receipt_file]
+
     	# Remark: these regexes do not always work.
+   		set theName ""
     	if { $name == "" } {
-			regexp {^(.*)-(.*)$} [lindex [file split $receipt_file] end] match name version
+			regexp {^(.*)-(.*)$} $theFileName match theName version
     	} else {
-			regexp "^$name-(.*)\$" [lindex [file split $receipt_file] end] match version
+			regexp "^($name)-(.*)\$" $theFileName match theName version
 		}
 		
-		# Skip if the name is empty.
-		if {[string length $name]} {
+		# Skip if the name is empty, i.e. if it didn't match.
+		if {[string length $theName]} {
 			set plist [list]
-			lappend plist $name
+			lappend plist $theName
 			
 			# Remove .bz2 suffix, if present.
 			regexp {^(.*)\.bz2$} $version match version
