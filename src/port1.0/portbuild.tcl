@@ -62,6 +62,10 @@ proc build_getmaketype {args} {
 	pbx {
 	    return pbxbuild
 	}
+	default {
+	    ui_warning "Unknown make.type ${make.type}, using 'gnumake'"
+	    return gnumake
+	}
     }
 }
 
