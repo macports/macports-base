@@ -72,7 +72,7 @@ proc submit_main {args} {
     puts ""
     exec stty echo
     
-    set vars {portname portversion maintainers categories description long_description}
+    set vars {portname portversion maintainers categories description long_description master_sites}
 	eval "global $vars"
 	foreach var $vars {
 		if {![info exists $var]} { set $var {} }
@@ -92,8 +92,9 @@ proc submit_main {args} {
     append cmd "-F \"categories=[shell_escape $categories]\" "
     append cmd "-F \"description=[shell_escape $description]\" "
     append cmd "-F \"long_description=[shell_escape $long_description]\" "
+    append cmd "-F \"master_sites=[shell_escape $master_sites]\" "
 
-    puts $cmd
+    #puts $cmd
     if {[system $cmd] != ""} {
 	return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
     }
