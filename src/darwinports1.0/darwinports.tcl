@@ -693,9 +693,13 @@ proc dportsync {args} {
 	}
 }
 
-proc dportsearch {regexp} {
+proc dportsearch {regexp {case_sensitive "yes"}} {
     global darwinports::portdbpath darwinports::sources
     set matches [list]
+	set nocase ""
+	if {$case_sensitive != "yes"} {
+		set nocase "-nocase"
+	}
 
     # XXX This should not happen, but does with the tk port when searching for tcl.
     if {![info exists sources]} { return $matches }
@@ -710,7 +714,7 @@ proc dportsearch {regexp} {
 			}
 	        while {[gets $fd line] >= 0} {
 	            set name [lindex $line 0]
-	            if {[regexp -- $regexp $name] == 1} {
+	            if {[regexp $nocase -- $regexp $name] == 1} {
 	                gets $fd line
 	                array set portinfo $line
 	                if {[info exists portinfo(portarchive)]} {

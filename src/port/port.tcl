@@ -522,7 +522,7 @@ switch -- $action {
 			puts "You must specify a search pattern"
 			exit 1
 		}
-		if {[catch {set res [dportsearch $portname]} result]} {
+		if {[catch {set res [dportsearch $portname "no"]} result]} {
 			puts "port search failed: $result"
 			exit 1
 		}
