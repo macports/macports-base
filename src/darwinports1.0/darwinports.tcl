@@ -114,6 +114,7 @@ proc dportinit {args} {
         return -code error "$result"
     }
     while {[gets $fd line] >= 0} {
+        set line [string trimright $line]
         if {![regexp {[\ \t]*#.*|^$} $line]} {
             lappend sources $line
 	}
