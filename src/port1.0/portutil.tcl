@@ -1,6 +1,7 @@
 # et:ts=4
 # portutil.tcl
 #
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -1196,16 +1197,26 @@ proc PortGroup {group version} {
 # check if archive type is supported by current system
 # returns an error code if it is not
 proc archiveTypeIsSupported {type} {
+    global os.platform os.version
 	set errmsg ""
 	switch -regex $type {
 		cp(io|gz) {
-			set ditto "ditto"
-			if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
-				return 0
-			} else {
+			# don't use ditto on non-darwin OS's or on Jaguar
+			if {${os.platform} != "darwin" || \
+				(${os.platform} == "darwin" && [regexp {^6[.]} ${os.version}])} {
 				set cpio "cpio"
 				if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
 					return 0
+				}
+			} else {
+				set ditto "ditto"
+				if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
+					return 0
+				} else {
+					set cpio "cpio"
+					if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
+						return 0
+					}
 				}
 			}
 		}

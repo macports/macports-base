@@ -147,18 +147,14 @@ proc archive_command_setup {args} {
 	global archive.env archive.cmd
 	global archive.pre_args archive.args archive.post_args
 	global archive.type archive.path
+	global os.platform os.version
 
 	# Define appropriate archive command and options
 	switch -regex ${archive.type} {
 		cp(io|gz) {
-			set ditto "ditto"
-			if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
-				ui_debug "Using $ditto"
-				set archive.cmd "$ditto"
-				set archive.pre_args {-c -v -V --rsrc}
-				set archive.args ". ${archive.path}"
-			} else {
-				ui_debug $errmsg
+			# don't use ditto on non-darwin OS's or on Jaguar
+			if {${os.platform} != "darwin" || \
+				(${os.platform} == "darwin" && [regexp {^6[.]} ${os.version}])} {
 				set cpio "cpio"
 				if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
 					ui_debug "Using $cpio"
@@ -168,6 +164,26 @@ proc archive_command_setup {args} {
 				} else {
 					ui_debug $errmsg
 					return -code error "Neither '$ditto' or '$cpio' were found on this system!"
+				}
+			} else {
+				set ditto "ditto"
+				if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
+					ui_debug "Using $ditto"
+					set archive.cmd "$ditto"
+					set archive.pre_args {-c -v -V --rsrc}
+					set archive.args ". ${archive.path}"
+				} else {
+					ui_debug $errmsg
+					set cpio "cpio"
+					if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
+						ui_debug "Using $cpio"
+						set archive.cmd "find . -print | $cpio"
+						set archive.pre_args {-o -v -c -H cpio}
+						set archive.args "-O ${archive.path}"
+					} else {
+						ui_debug $errmsg
+						return -code error "Neither '$ditto' or '$cpio' were found on this system!"
+					}
 				}
 			}
 			if {[regexp {z$} ${archive.type}]} {

@@ -35,8 +35,9 @@ portarchivepath		@localstatedir_expanded@/db/dports/packages
 # first archive to match one of the specified types in order is used.
 #
 # Note: Only cpgz, cpio, and xar formats currently support resource
-# forks properly on MacOSX (Panther). The tar and tgz formats should
-# also support resource forks properly on MacOSX (Tiger).
+# forks properly on MacOSX (Panther), and only xar format currently
+# supports resource forks properly on MacOSX (Jaguar). The tar and tgz
+# formats should also support resource forks properly on MacOSX (Tiger).
 #
 # Supported types: cpgz (default), cpio, xar, tar, tgz
 portarchivetype		cpgz
