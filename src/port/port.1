@@ -42,8 +42,7 @@
 .Op Ar options ...
 .Op Ar variants ...
 .Nm
-.Op Fl vdqfona
-.Ar provides
+.Ic provides
 .Ar file
 .Sh DESCRIPTION
 .Nm
@@ -145,7 +144,7 @@ is performed, or when the
 target is called explicitly.
 .Pp
 Additionally, the
-.Ar provides
+.Ic provides
 command determines which port owns a given file.
 .Sh EXAMPLES
 Invoking
@@ -184,7 +183,6 @@ To upgrade all installed ports (the -n option could be used for speed)
 .Pp
 .Dl "port -a upgrade
 .Pp
-
 To reactivate a port previously deactivated (in image mode):
 .Pp
 .Dl "port activate vim
