@@ -5,6 +5,7 @@ package provide darwinports 1.0
 global ports_opts
 global bootstrap_options
 set bootstrap_options "sysportpath libpath"
+set portinterp_options "sysportpath portpath auto_path portconf"
 
 # XXX not portable
 proc ccextension {file} {
@@ -64,14 +65,19 @@ proc init {args} {
 
 # XXX incomplete. Waiting for kevin's dependancy related submissions
 proc build {portdir chain target} {
-    global targets portpath
+    global targets portpath portinterp_options
 
     if [file isdirectory $portdir] {
 	cd $portdir
 	set portpath [pwd]
-	# XXX These must execute at a global scope
-	uplevel #0 source Portfile
-	uplevel #0 eval_targets targets $chain $target
+	interp create bombus
+	bombus alias {} build bombus build
+	foreach opt $portinterp_options {
+		upvar #0 $opt upopt
+		bombus eval set $opt \"$upopt\"
+	}
+	bombus eval source Portfile
+	bombus eval eval_targets targets $chain $target
     } else {
 	return -code error "Portdir $portpath does not exist"
     }
