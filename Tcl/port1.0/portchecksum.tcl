@@ -44,16 +44,14 @@ proc portchecksum::dmd5 {file} {
 }
 
 proc portchecksum::main {args} {
-	global distdir all_dist_files
+	global distdir portdir all_dist_files
 
-	# There is the possibility that all_dist_files is not set to anything
+	# If no files have been downloaded there is nothing to checksum
 	if ![info exists all_dist_files] {
 		return 0
 	}
 
-	if ![isval portchecksum::options md5file] {
-		setval portchecksum::options md5file distinfo
-	}
+	default portchecksum::options md5file $portdir/distinfo
 
 	if ![file isfile [getval portchecksum::options md5file]] {
 		puts "No MD5 checksum file."
