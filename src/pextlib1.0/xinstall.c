@@ -104,7 +104,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	u_long fset;
 	int no_target, rval;
 	u_int iflags;
-	char *flags;
+	char *flags, *curdir;
 	const char *group, *owner, *cp;
 	Tcl_Obj *to_name;
 	int dodir = 0;
@@ -113,7 +113,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 	safecopy = docompare = dostrip = dobackup = dopreserve = nommap = verbose = 0;
 	iflags = 0;
-	group = owner = NULL;
+	group = owner = curdir = NULL;
 	funcname = Tcl_GetString(objv[0]);
 	/* Adjust arguments */
 	++objv, --objc;
@@ -121,7 +121,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	while (objc && (cp = Tcl_GetString(*objv)) && *cp == '-') {
 		char ch = *++cp;
 
-		if (!strchr("BbCcdfgMmopSsv", ch))
+		if (!strchr("BbCcdfgMmopSsvW", ch))
 			break;
 		switch(ch) {
 		case 'B':
@@ -214,6 +214,14 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			verbose = 1;
 			objv++, objc--;
 			break;
+		case 'W':
+			if (!objc) {
+				Tcl_WrongNumArgs(interp, 1, objv, "-W");
+				return TCL_ERROR;
+			}
+			curdir = Tcl_GetString(*(++objv));
+			objv++, objc -= 2;
+			break;
 		case '?':
 		default:
 			usage(interp, __LINE__);
@@ -247,6 +255,17 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	/* Start out hoping for the best */
 	rval = TCL_OK;
+
+	/* If curdir is set, chdir to it */
+	if (curdir) {
+		if (chdir(curdir)) {
+			char errmsg[255];
+
+			snprintf(errmsg, sizeof errmsg, "%s: Unable to chdir to %s, %s", funcname, curdir, strerror(errno));
+			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
+			return TCL_ERROR;
+		}
+	}
 
 	/* get group and owner id's */
 	if (group != NULL) {
