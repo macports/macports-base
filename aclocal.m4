@@ -113,6 +113,25 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 	AC_SUBST(DSTGRP)
 ])
 
+# OD_DIRECTORY_MODE
+#-------------------------------------------------
+AC_DEFUN([OD_DIRECTORY_MODE],[
+	dnl if with user specifies --with-directory-mode,
+	dnl use the specified permissions for ${prefix} directories
+	dnl otherwise use 0775
+        AC_REQUIRE([OD_PATH_PORTCONFIGDIR])
+
+	AC_ARG_WITH(directory-mode, [AC_HELP_STRING([--with-directory-mode=MODE], [Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
+	
+	AC_MSG_CHECKING([what permissions to use for installation directories])
+	if test "x$DSTMODE" = "x" ; then
+	   DSTMODE=0775
+	fi
+
+	AC_MSG_RESULT([$DSTMODE])
+	AC_SUBST(DSTMODE)
+])
+
 # OD_LIB_MD5
 #---------------------------------------
 # Check for an md5 implementation

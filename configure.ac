@@ -36,6 +36,7 @@ OD_PATH_PORTCONFIGDIR([$prefix])
 # Check for install ownership
 OD_CHECK_INSTALLUSER
 OD_CHECK_INSTALLGROUP
+OD_DIRECTORY_MODE
 
 # Check for standard header files.
 AC_HEADER_STDC
@@ -126,6 +127,7 @@ AC_CONFIG_FILES([
 	Makefile
 	Mk/dports.autoconf.mk
 	doc/prefix.mtree
+	doc/macosx.mtree
 	doc/ports.conf
 	src/darwinports1.0/darwinports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
