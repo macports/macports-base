@@ -31,6 +31,9 @@ proc dportinit {args} {
     if ![info exists sysportpath] {
 	return -code error "sysportpath must be set in /etc/ports.conf or in the PORTPATH env variable"
     }
+    if ![file isdirectory $sysportpath] {
+	return -code error "/etc/ports.conf or PORTPATH env variable must refer to a valid directory"
+    }
 	
     if ![info exists libpath] {
 	set libpath /usr/local/share/darwinports/Tcl
