@@ -41,6 +41,7 @@ options make.target.all make.target.install
 commands make
 # defaults
 default make.type bsd
+default make.dir {${workpath}/${worksrcdir}}
 default make.cmd make
 default make.pre_args {${make.target.current}}
 default make.target.all all
