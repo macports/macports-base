@@ -811,7 +811,7 @@ proc choose_variants {dlist variations} {
 
 proc variant_run {ditem} {
     set name [ditem_key $ditem name]
-    ui_debug "Executing $name provides [ditem_key $ditem provides]"
+    ui_debug "Executing variant $name provides [ditem_key $ditem provides]"
     
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
@@ -830,12 +830,24 @@ proc variant_run {ditem} {
 }
 
 proc eval_variants {variations target} {
-    global all_variants ports_force
+    global all_variants ports_force PortInfo
     set dlist $all_variants
     set result 0
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
-    
+	set portname $PortInfo(name)
+	
+	ui_debug "Provided variants: $PortInfo(variants)"
+	ui_debug "Requested variants: [array get upvariations]"
+	# Check to make sure the requested variations are available with this port,
+	# if one is not, warn the user and remove the variant from the array.
+	foreach key [array names upvariations *] {
+		if {[lsearch $PortInfo(variants) $key] == -1} {
+			ui_debug "Requested variant $key is not provided by port $portname."
+			array unset upvariations $key
+		}
+	}
+
     # now that we've selected variants, change all provides [a b c] to [a-b-c]
     # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
     #foreach obj $dlist {
@@ -844,12 +856,12 @@ proc eval_variants {variations target} {
     
     set newlist [list]
     foreach variant $chosen {
-        set newlist [dlist_append_dependents $dlist $variant $newlist]
+		set newlist [dlist_append_dependents $dlist $variant $newlist]
     }
     
     set dlist [dlist_eval $newlist "" variant_run]
     if {[llength $dlist] > 0} {
-	return 1
+		return 1
     }
     
     # Make sure the variations match those stored in the statefile.
@@ -864,7 +876,7 @@ proc eval_variants {variations target} {
 	set state_fd [open_statefile]
 	
 	if {[check_statefile_variants upvariations $state_fd]} {
-	    ui_error "Requested variants do not match original selection.\nPlease perform 'port clean' or specify the force option."
+	    ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
 	    set result 1
 	} else {
 	    # Write variations out to the statefile
