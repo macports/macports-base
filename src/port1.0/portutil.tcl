@@ -30,7 +30,6 @@
 #
 
 package provide portutil 1.0
-package require Pextlib 1.0
 package require darwinports_dlist 1.0
 package require msgcat
 
@@ -86,6 +85,46 @@ proc exists {name} {
     # the Portfile's interpreter and the target's interpreters.
     global $name
     return [info exists $name]
+}
+
+# options
+# Exports options in an array as externally callable procedures
+# Thus, "options name date" would create procedures named "name"
+# and "date" that set global variables "name" and "date", respectively
+# When an option is modified in any way, options::$option is called,
+# if it exists
+# Arguments: <list of options>
+proc options {args} {
+    foreach option $args {
+	eval "proc $option {args} \{ \n\
+	    global ${option} user_options \n\
+		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		     set ${option} \$args \n\
+		\} \n\
+	\}"
+	
+	eval "proc ${option}-delete {args} \{ \n\
+	    global ${option} user_options \n\
+		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		    foreach val \$args \{ \n\
+                       set ${option} \[ldelete \$\{$option\} \$val\] \n\
+		    \} \n\
+		    if \{\[string length \$\{${option}\}\] == 0\} \{ \n\
+			unset ${option} \n\
+		    \} \n\
+		\} \n\
+	\}"
+	eval "proc ${option}-append {args} \{ \n\
+	    global ${option} user_options \n\
+		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		    if \{\[info exists ${option}\]\} \{ \n\
+			set ${option} \[concat \$\{$option\} \$args\] \n\
+		    \} else \{ \n\
+			set ${option} \$args \n\
+		    \} \n\
+		\} \n\
+	\}"
+    }
 }
 
 proc options_export {args} {
