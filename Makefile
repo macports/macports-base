@@ -1,4 +1,4 @@
 # This is a BSD make file - please run it with bsdmake.
 
-SUBDIR= src
+SUBDIR= doc src
 .include <bsd.subdir.mk>
