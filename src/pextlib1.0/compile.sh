@@ -6,7 +6,7 @@
 
 case `uname -s` in
 	Darwin)
-		cc -c -DPIC -O -pipe $*
+		cc -c -DPIC -O -pipe -no-cpp-precomp $*
 	;;
 
 	FreeBSD)
