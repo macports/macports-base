@@ -1076,11 +1076,12 @@ proc portfile_run {this} {
     ui_debug "Building $portname"
     array set options [list]
     array set variations [list]
-    array set portinfo [dportmatch ^$portname\$]
-    if {[array size portinfo] == 0} {
+    set res [dportsearch ^$portname\$]
+    if {[llength $res] < 2} {
         ui_error "Dependency $portname not found"
         return -1
     }
+	array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
     
     set worker [dportopen $porturl options variations]
