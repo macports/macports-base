@@ -242,6 +242,9 @@ proc dportsync {args} {
 	if {[catch {file mkdir [file dirname $indexfile]} result]} {
             return -code error $result
         }
+	if {![file writable $source]} {
+	    return -code error "You do not have permission to write to [file dirname $indexfile]"
+	}
         exec curl -s -S -o $indexfile $source/PortIndex
     }
 }
