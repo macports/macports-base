@@ -12,7 +12,7 @@ case `uname -s` in
 		cc -c -fPIC -DPIC -I/usr/local/include/tcl8.3 -O -pipe $*
 	;;
 	NetBSD)
-		cc -c -fPIC -DPIC -I/usr/pkg/include/tcl -O -pipe $*
+		cc -c -fPIC -DPIC -I/usr/pkg/include -O -pipe $*
 	;;
 	Linux)
 		cc -c -fPIC -DPIC -I/usr/include/tcl8.3 -O -pipe $*
