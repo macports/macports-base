@@ -1,9 +1,15 @@
 #	$NetBSD: Makefile.in,v 1.8 2003/03/31 06:15:07 grant Exp $
 
+srcdir = @srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+
 PREFIX=		@prefix@
 INSTALL=	@INSTALL@
 
-mandir=		${PREFIX}/man
+mandir=		@mandir@
 mandircat8=	${mandir}/cat8
 
 all:	mtree
@@ -45,6 +51,6 @@ distclean: clean
 	rm -f Makefile config.h config.status config.log
 
 install:
-	${INSTALL} ${PROG} ${PREFIX}/bin
+	${INSTALL} ${PROG} ${bindir}
 	${INSTALL} -m 755 -d ${mandircat8}
 	${INSTALL} -m 444 ${PROG}.cat8 ${mandircat8}/${PROG}.0
