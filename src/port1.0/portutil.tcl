@@ -860,39 +860,45 @@ proc target_provides {ditem args} {
 	    ui_debug "$ident registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
 	} else {
 		eval "proc $target {args} \{ \n\
-			ditem_key $ditem procedure proc-${ident}-${target}
-			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
+			variable proc_index \n\
+			set proc_index \[llength \[ditem_key $ditem proc\]\] \n\
+			ditem_key $ditem procedure proc-${ident}-${target}-\${proc_index}
+			eval \"proc proc-${ident}-${target}-\${proc_index} \{name\} \{ \n\
+				if \{\\\[catch userproc-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
 			\}\" \n\
 			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
-			makeuserproc userproc-${ident}-${target} \$args \n\
+			makeuserproc userproc-${ident}-${target}-\${proc_index} \$args \n\
 		\}"
 	}
 	eval "proc pre-$target {args} \{ \n\
-			ditem_append $ditem pre proc-pre-${ident}-${target}
-			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
+			variable proc_index \n\
+			set proc_index \[llength \[ditem_key $ditem pre\]\] \n\
+			ditem_append $ditem pre proc-pre-${ident}-${target}-\${proc_index}
+			eval \"proc proc-pre-${ident}-${target}-\${proc_index} \{name\} \{ \n\
+				if \{\\\[catch userproc-pre-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
 			\}\" \n\
-			makeuserproc userproc-pre-${ident}-${target} \$args \n\
+			makeuserproc userproc-pre-${ident}-${target}-\${proc_index} \$args \n\
 		\}"
 	eval "proc post-$target {args} \{ \n\
-			ditem_append $ditem post proc-post-${ident}-${target}
-			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
+			variable proc_index \n\
+			set proc_index \[llength \[ditem_key $ditem post\]\] \n\
+			ditem_append $ditem post proc-post-${ident}-${target}-\${proc_index}
+			eval \"proc proc-post-${ident}-${target}-\${proc_index} \{name\} \{ \n\
+				if \{\\\[catch userproc-post-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
 				\} else \{ \n\
 					return 0 \n\
 				\} \n\
 			\}\" \n\
-			makeuserproc userproc-post-${ident}-${target} \$args \n\
+			makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args \n\
 		\}"
     }
     eval "ditem_append $ditem provides $args"
