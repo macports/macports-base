@@ -171,10 +171,15 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			return ret;
 	}
 	fclose(pdes);
-	wait(&ret);
-	if (ret == 0)
-		return TCL_OK;
-	else
+
+	if (wait(&ret) != pid)
+		return TCL_ERROR;
+	if (WIFEXITED(ret)) {
+		if (WEXITSTATUS(ret) == 0)
+			return TCL_OK;
+		else
+			return TCL_ERROR;
+	} else
 		return TCL_ERROR;
 }
 
