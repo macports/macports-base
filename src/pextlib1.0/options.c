@@ -1,6 +1,6 @@
 /*
  * options.c
- * $Id: options.c,v 1.1.2.1 2004/05/24 19:21:01 pguyot Exp $
+ * $Id: options.c,v 1.1.2.2 2004/05/29 08:07:13 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -131,6 +131,7 @@ OptionsCmd(
 		int objc,
 		Tcl_Obj* CONST objv[])
 {
+#pragma unused (clientData)
 	/* Iterate on every parameter. Treat them all as strings. */
 	int indexArg;
 	for (indexArg = 1; indexArg < objc; indexArg++) {
@@ -352,7 +353,7 @@ OptionDeleteCmd(
 						Tcl_GetString(clientData),
 						TCL_GLOBAL_ONLY);
 		}
-	} // if [!info exists $user_options($name)]
+	} /* if [!info exists $user_options($name)] */
 	
 	Tcl_SetResult(interp, "", TCL_STATIC);
 	return TCL_OK;

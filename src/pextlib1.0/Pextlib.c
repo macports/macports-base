@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.60.4.4 2004/05/24 22:11:59 pguyot Exp $
+ * $Id: Pextlib.c,v 1.60.4.5 2004/05/29 08:07:13 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -190,6 +190,7 @@ struct linebuf {
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *buf;
 	struct linebuf circbuf[CBUFSIZ];
 	size_t linelen;
@@ -352,6 +353,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
 	int operation = 0, fd, i, ret;
 	int errnoval = 0;
@@ -496,6 +498,7 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
  */
 int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	DIR *dirp;
 	struct dirent *dp;
 	Tcl_Obj *tcl_result;
@@ -530,6 +533,7 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *pattern, *string, *res;
 	int range[2];
 	extern char *strsed(char *str, char *pat, int *range);
@@ -555,6 +559,7 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
 
@@ -582,6 +587,7 @@ int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Channel channel;
 	char *template, *channelname;
 	int fd;
@@ -611,6 +617,7 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int ExistsuserCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Obj *tcl_result;
 	struct passwd *pwent;
 	char *user;
@@ -638,6 +645,7 @@ int ExistsuserCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 int ExistsgroupCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Obj *tcl_result;
 	struct group *grent;
 	char *group;
@@ -665,6 +673,7 @@ int ExistsgroupCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 int NextuidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData, objc, objv)
 	Tcl_Obj *tcl_result;
 	struct passwd *pwent;
 	int max;
@@ -682,6 +691,7 @@ int NextuidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData, objc, objv)
 	Tcl_Obj *tcl_result;
 	struct group *grent;
 	int max;
