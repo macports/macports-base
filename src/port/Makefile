@@ -1,4 +1,4 @@
-SHAREDIR=	/opt/local
+PREFIX?=	/opt/local
 MAN1=		port.1
 
 port.1.gz: port.1
@@ -10,11 +10,11 @@ clean:
 	rm -f port.1.gz
 
 mkdirs:
-	mkdir -p /opt/local/bin
-	mkdir -p ${SHAREDIR}/man/man1
+	mkdir -p ${PREFIX}/bin
+	mkdir -p ${PREFIX}/man/man1
 
 install: mkdirs
-	install -c -o root -g wheel -m 444 port.1.gz ${SHAREDIR}/man/man1
-	install -c -o root -g wheel -m 555 port.tcl /opt/local/bin/port
-	install -c -o root -g wheel -m 555 portall.tcl /opt/local/bin/portall
-	install -c -o root -g wheel -m 555 portindex.tcl /opt/local/bin/portindex
+	install -c -o root -g wheel -m 444 port.1.gz ${PREFIX}/man/man1
+	install -c -o root -g wheel -m 555 port.tcl ${PREFIX}/bin/port
+	install -c -o root -g wheel -m 555 portall.tcl ${PREFIX}/bin/portall
+	install -c -o root -g wheel -m 555 portindex.tcl ${PREFIX}/bin/portindex
