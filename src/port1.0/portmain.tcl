@@ -18,7 +18,7 @@ options portname portversion portrevision categories maintainers workdir worksrc
 # XXX Special case sysportpath. This variable is set by the bootstrap
 # and may not exist
 if [info exists sysportpath] {
-	default distpath $sysportpath/distfiles
+	default distpath "$sysportpath/distfiles"
 }
 
 default prefix /usr/local/
