@@ -103,12 +103,12 @@ proc makechroot {dir} {
 	if {[info exists env(MASTER_SITE_LOCAL)]} {
 		puts $f "set env(MASTER_SITE_LOCAL) $env(MASTER_SITE_LOCAL)"
 	}
-	puts $f [proc_disasm packageall]
-	puts $f {if {[catch {packageall} result]} { puts "Warning: packageall returned: $result" }}
+	puts $f [proc_disasm buildall]
+	puts $f {if {[catch {buildall} result]} { puts "Warning: buildall returned: $result" }}
 	close $f
 }
 
-proc packageall {} {
+proc buildall {} {
 	global REPORT REPDIR verbose
 
 	if {[file exists PortIndex]} {
@@ -129,15 +129,10 @@ proc packageall {} {
 		puts "Unable to open $REPORT - check permissions."
 		exit 4
 	}
-	if {[catch {exec port install rpm} result]} {
-		puts "Unable to install rpm port: $result"
-		exit 6
-	}
-	exec mkdir -p /Packages
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
-		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
+		if {[catch {exec port install $portname >& ${REPDIR}/${portname}.out}]} {
 			puts $repfile "$portname failure [exec env TZ=GMT date {+%Y%m%d %T}]"
 			flush $repfile
 		} else {
@@ -172,8 +167,8 @@ proc proc_disasm {pname} {
 set dochroot 1
 
 # Where you want the report summary to go.
-set REPDIR	"/tmp/packageresults"
-set REPORT	"${REPDIR}/package-report.txt"
+set REPDIR	"/tmp/buildresults"
+set REPORT	"${REPDIR}/build-report.txt"
 
 # Set to -v if you want verbose output, otherwise ""
 if {[info exists env(VERBOSE)]} {
@@ -191,5 +186,5 @@ if {$dochroot == 1} {
 	exec chroot ${loc} /doit.tcl
 } else {
 	puts "Report will be in $REPORT"
-	packageall
+	buildall
 }
