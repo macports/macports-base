@@ -1,0 +1,18 @@
+# This is a BSD make file - to be included by individual port files.
+
+.MAIN:	all
+
+.check:
+	@if [ ! -w . ]; then \
+		echo "To perform this operation, you must have write access to this port's directory:"; echo `pwd`; \
+		exit 1; \
+	fi
+
+all: .check
+	@portbuild
+
+install: all
+	@portbuild -t install
+
+clean: .check
+	@rm -rf work
