@@ -72,7 +72,7 @@ proc options {args} {
 	eval "proc ${option}-append {args} \{ \n\
 	    global ${option} user_options \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
-		    set $option \[concat $option \$args\] \n\
+		    set $option \[concat \$$option \$args\] \n\
 			if \{\[info commands options::${option}\] != \"\"\} \{ \n\
 			    options::${option} ${option} \n\
 			\} \n\
