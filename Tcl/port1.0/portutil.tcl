@@ -87,6 +87,16 @@ proc isval {array key} {
 	return [info exists uparray($key)]
 }
 
+proc getbool {array key} {
+	upvar $array uparray
+	if [info exists uparray($key)] {
+		if [[getval $array $key] == "yes"] {
+			return 1
+		}
+	}
+	return 0
+}
+
 proc getval {array key} {
 	upvar $array uparray
 	if {![info exists uparray($key)]} {
