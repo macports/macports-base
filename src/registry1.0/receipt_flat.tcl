@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.7 2004/05/31 20:58:40 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.8 2004/05/31 21:13:58 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -332,7 +332,7 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 proc property_store {ref property value} {
 	variable receipt_$ref
 	
-	array set receipt_[set ref] {$property $value}
+	array set receipt_[set ref] [list $property $value]
 
 	return 1
 }
