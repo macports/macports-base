@@ -281,7 +281,10 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 		return TCL_ERROR;
 	}
 
-	template = Tcl_GetString(objv[1]);
+	template = strdup(Tcl_GetString(objv[1]));
+	if (template == NULL)
+		return TCL_ERROR;
+
 	if ((fd = mkstemp(template)) < 0) {
 		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
 		return TCL_ERROR;
@@ -290,7 +293,8 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	channel = Tcl_MakeFileChannel((ClientData) fd, TCL_READABLE|TCL_WRITABLE);
 	Tcl_RegisterChannel(interp, channel);
 	channelname = Tcl_GetChannelName(channel);
-	Tcl_SetResult(interp, channelname, TCL_VOLATILE);
+	Tcl_AppendResult(interp, channelname, " ", template, NULL);
+	free(template);
 	return TCL_OK;
 }
 
