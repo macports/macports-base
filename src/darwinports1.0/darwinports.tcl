@@ -37,7 +37,7 @@ package require darwinports_index 1.0
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
     variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
 	
     variable open_dports {}
 }
@@ -309,7 +309,7 @@ proc dportinit {args} {
     }
 }
 
-proc darwinports::worker_init {workername portpath options variations} {
+proc darwinports::worker_init {workername portpath portbuildpath options variations} {
     global darwinports::portinterp_options auto_path registry.installtype
 
 	# Tell the sub interpreter about all the Tcl packages we already
@@ -475,7 +475,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ditem_key $dport variations $variations
 	ditem_key $dport refcnt 1
 
-    darwinports::worker_init $workername $portpath $options $variations
+    darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $porturl] $options $variations
     if {![file isfile Portfile]} {
         return -code error "Could not find Portfile in $portdir"
     }
@@ -804,6 +804,13 @@ proc darwinports::getsourcepath {url} {
 	regsub {://} $url {.} source_path
 	regsub -all {/} $source_path {_} source_path
 	return [file join $portdbpath sources $source_path]
+}
+
+proc darwinports::getportbuildpath {porturl} {
+	global darwinports::portdbpath
+	regsub {://} $porturl {.} port_path
+	regsub -all {/} $port_path {_} port_path
+	return [file join $portdbpath build $port_path]
 }
 
 proc darwinports::getindex {source} {

@@ -142,17 +142,21 @@ proc clean_dist {args} {
 }
 
 proc clean_work {args} {
-	global buildpath
+	global workpath worksymlink
 
-	set cleandir $buildpath
-
-	if {[file isdirectory ${cleandir}]} {
-		ui_debug "Removing directory: ${cleandir}"
-		if {[catch {exec rm -rf ${cleandir}} result]} {
+	if {[file isdirectory ${workpath}]} {
+		ui_debug "Removing directory: ${workpath}"
+		if {[catch {exec rm -rf ${workpath}} result]} {
 			ui_error "${result}"
 		}
 	} else {
 		ui_debug "No work directory found to remove."
+	}
+
+	# Clean symlink, if necessary
+	if {[file type $worksymlink] == "link"} {
+		ui_debug "Removing symlink: ${worksymlink}"
+		file delete -force -- ${worksymlink}
 	}
 
 	return 0

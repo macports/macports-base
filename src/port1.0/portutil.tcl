@@ -695,7 +695,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath portname portpath ports_ignore_older
+    global workpath worksymlink portname portpath ports_ignore_older
     
     if {![file isdirectory $workpath]} {
 	file mkdir $workpath
@@ -712,6 +712,11 @@ proc open_statefile {args} {
 	    exec rm -rf [file join $workpath]
 	    exec mkdir [file join $workpath]
 	}
+    }
+
+    # Create a symlink to the workpath for port authors 
+    if {![file isdirectory $worksymlink]} {
+	    exec ln -sf $workpath $worksymlink
     }
     
     set fd [open $statefile a+]
