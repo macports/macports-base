@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.6 2004/10/15 22:47:49 rshaw Exp $
+# $Id: receipt_flat.tcl,v 1.7 2005/03/02 13:44:06 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -522,7 +522,7 @@ proc open_file_map {args} {
 		# Tell the user.
 		ui_msg "Converting file map to new format (this may take a while)"
 
-		foreach f $old_file_map {
+		foreach f $old_filemap {
 			filemap set file_map [lindex $f 0] [lindex $f 1]
 		}
 		
