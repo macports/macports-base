@@ -14,13 +14,13 @@ globals portextract::options
 options portextract::options extract_only extract_command extract_before_args extract_after_args
 
 proc portextract::main {args} {
-	global portname workdir distfiles
+	global portname workdir distname distpath distfiles
 
 	# Set up defaults
 	default portextract::options extract_only $distfiles
 	default portextract::options extract_cmd gzip
 	default portextract::options extract_before_args -dc
-	default portextract::options extract_after_args "|tar -xf -"
+	default portextract::options extract_after_args "| tar -xf -"
 
 	if [info exists use_bzip2] {
 		setval portextract::options extract_cmd bzip2
@@ -31,14 +31,24 @@ proc portextract::main {args} {
 	}
 
 	set portdir [pwd]
-
+	puts "Extracting for $distname"
 	if [file exists $workdir] {
 		file delete -force $workdir
 	}
 
 	file mkdir $workdir
 	cd $workdir
+	foreach distfile [getval portextract::options extract_only] {
+		puts -nonewline "$distfile: "
+		flush stdout
+		set cmd "[getval portextract::options extract_cmd] [getval portextract::options extract_before_args] $distpath/$distfile [getval portextract::options extract_after_args]"
+		if [catch {system $cmd} result] {
+			puts $result
+			return -1
+		}
+		puts "done"
+	}
 
-	puts "Extracting port: $portname"
+	cd $portdir
 	return 0
 }
