@@ -30,47 +30,8 @@
  */
 
 /*
- * $Log: strsed.c,v $
- * Revision 1.10  2003/11/29 21:24:57  landonf
- * Add missing #ifdef's
+ * strsed.c,v $
  *
- * Revision 1.9  2003/06/21 21:45:21  ssen
- * Merge from ssen-platform-1
- *
- * Revision 1.8.6.1  2003/06/18 23:14:49  ssen
- * don't do extern char *strdup, since linux doesn't like that
- *
- * Revision 1.8  2002/10/04 07:12:21  jkh
- * Remove some gratuitous externs
- *
- * Revision 1.7  2002/08/31 06:30:25  jkh
- * Move from /usr/local into /opt/local
- *
- * Revision 1.6  2002/08/28 04:06:18  landonf
- * Dynamically allocate exp_regs
- *
- * Revision 1.5  2002/08/22 23:21:52  landonf
- * Fix compiler warnings, use regoff_t type
- *
- * Revision 1.4  2002/08/22 23:00:57  landonf
- * Remove unused variable 'i'
- *
- * Revision 1.3  2002/08/22 10:36:25  jkh
- * Make this work with Henry Spencer's new regex API
- *
- * Revision 1.2  2002/08/21 05:22:12  landonf
- * Merge in "bigmove" reorg branch. System now requires bsdmake && bsdmake install
- * and installs itself and its TCL libraries in /opt/local/share , /System/Library/Tcl/8.3, and /opt/local/bin
- *
- * Revision 1.1.2.1  2002/08/20 21:50:51  landonf
- * Move and seperate Tcl/port1.0
- *
- * Revision 1.1  2002/08/20 10:06:08  jkh
- * Add in-place string sed function, strsed
- *
- * Revision 2.4  90/04/19  20:08:03  jkh
- * Alpha checkin.
- * 
  * Revision 2.4  90/04/19  15:40:38  terry
  * Made it possible to use any delimiter. E.g. s/ex/on/ is the same as
  * s.ex.on.
