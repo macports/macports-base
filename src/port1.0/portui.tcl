@@ -91,7 +91,7 @@ proc ui_msg {str {nonl ""}} {
 
 # Output message unconditionally as an error message.
 proc ui_error {str} {
-    ui_puts Error: $str
+    ui_puts "Error: $str"
 }
 
 # Get a line of input from the user and store in str, returning the
