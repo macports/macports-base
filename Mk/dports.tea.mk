@@ -9,6 +9,8 @@ all:: ${SHLIB_NAME}
 clean::
 	rm -f ${OBJS} ${SHLIB_NAME}
 
+distclean:: clean
+
 install:: all
 	mkdir -p ${INSTALLDIR}
 	install -c -o "${DSTUSR}" -g "${DSTGRP}" -m 444 ${SHLIB_NAME} ${INSTALLDIR}

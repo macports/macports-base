@@ -1,6 +1,8 @@
 MAN7=		portfile.7 portstyle.7
 INSTALLDIR=	${DESTDIR}${PREFIX}
 
+include ../Mk/dports.mk
+
 prefix.mtree:
 	cat prefix.mtree.pre | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
 	sed -e "s/gname=GNAME/gname=${DSTGRP}/" > prefix.mtree
@@ -10,10 +12,12 @@ all: prefix.mtree
 clean:
 	rm -f prefix.mtree
 
+distclean: clean
+
 install:
 	mkdir -p ${DESTDIR}${ETCDIR}
 	mkdir -p ${INSTALLDIR}
-	
+
 	cat prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
 	@if [ ! -e ${DESTDIR}/${ETCDIR}/ports.conf ]; then \
 		set -x; \
@@ -30,5 +34,3 @@ install:
 	install -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/man/man7
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/man/man7
-
-include ../Mk/dports.mk

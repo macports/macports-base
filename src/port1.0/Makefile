@@ -8,9 +8,15 @@ SRCS= port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 
 SUBDIR=		resources
 
+include ../../Mk/dports.subdir.mk
+include ../../Mk/dports.autoconf.mk
+include ../../Mk/dports.mk
+
 all::
 
 clean::
+
+distclean:: clean
 
 install::
 	mkdir -p ${INSTALLDIR}
@@ -18,7 +24,3 @@ install::
 		install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
 	../pkg_mkindex.tcl ${INSTALLDIR}
-
-include ../../Mk/dports.subdir.mk
-include ../../Mk/dports.autoconf.mk
-include ../../Mk/dports.mk
