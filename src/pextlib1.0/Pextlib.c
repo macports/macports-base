@@ -414,6 +414,7 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	char *pattern, *string, *res;
 	int range[2];
 	extern char *strsed(char *str, char *pat, int *range);
+	TclObj *tcl_result;
 
 	if (objc != 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "string pattern");
@@ -427,13 +428,16 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		Tcl_SetResult(interp, "strsed failed", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	Tcl_SetResult(interp, res, (Tcl_FreeProc *)free);
+	tcl_result = Tcl_NewStringObj(res, -1);
+	Tcl_SetObjResult(interp, tcl_result);
+	free(res);
 	return TCL_OK;
 }
 
 int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *template, *sp;
+	TclObj *tcl_result;
 
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "template");
@@ -450,7 +454,9 @@ int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		return TCL_ERROR;
 	}
 
-	Tcl_SetResult(interp, sp, (Tcl_FreeProc *)free);
+	tcl_result = Tcl_NewStringObj(sp, -1);
+	Tcl_SetObjResult(interp, tcl_result);
+	free(sp);
 	return TCL_OK;
 }
 
