@@ -225,11 +225,33 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	return TCL_OK;
 }
 
+int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	char *pattern, *string, *res;
+	Tcl_Obj *tcl_result;
+
+	if (objc != 3) {
+		Tcl_WrongNumArgs(interp, 1, objv, "pattern string");
+		return TCL_ERROR;
+	}
+
+	pattern = Tcl_GetString(objv[1]);
+	string = Tcl_GetString(objv[2]);
+	res = strsed(string, pattern, 0);
+	if (!res) {
+		Tcl_SetResult(interp, "strsed failed", TCL_STATIC);
+		return TCL_ERROR;
+	}
+	Tcl_SetResult(interp, res, free);
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
