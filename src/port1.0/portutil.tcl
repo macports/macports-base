@@ -288,7 +288,7 @@ proc register {name mode args} {
                     register pre-$target$id target proc-pre-$target$id \n\
                     register pre-$target$id preflight $target \n\
                     proc proc-pre-$target$id \{name\} \{ \n\
-                        if \[catch userproc-$target$id result\] \{ \n\
+                        if \[catch userproc-pre-$target$id result\] \{ \n\
 							ui_info \$result \n\
 							return 1 \n\
 						\} else \{ \n\
@@ -300,7 +300,7 @@ proc register {name mode args} {
                     register post-$target$id target proc-post-$target$id \n\
                     register post-$target$id postflight $target \n\
                     proc proc-post-$target$id \{name\} \{ \n\
-                        if \[catch userproc-$target$id result\] \{ \n\
+                        if \[catch userproc-post-$target$id result\] \{ \n\
 							ui_info \$result \n\
 							return 1 \n\
 						\} else \{ \n\
