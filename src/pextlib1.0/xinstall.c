@@ -265,6 +265,13 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
+		else if (verbose) {
+			char msg[255];
+
+			snprintf(msg, sizeof msg, "%s: chdir(%s)\n",
+				 funcname, curdir);
+			ui_info(interp, msg);
+		}
 	}
 
 	/* get group and owner id's */
