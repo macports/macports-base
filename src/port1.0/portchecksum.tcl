@@ -97,22 +97,22 @@ proc fchecksums {checksums file} {
 	return [lrange $checksums $start $i]
 }
 
-# check_md5
+# calc_md5
 #
-# Check the md5 checksum for the given file.
-# Return 0 if the checksum is incorrect, 1 otherwise.
+# Calculate the md5 checksum for the given file.
+# Return the checksum.
 #
-proc check_md5 {file sum} {
-	return [string equal $sum [md5 file $file]]
+proc calc_md5 {file} {
+	return [md5 file $file]
 }
 
-# check_sha1
+# calc_sha1
 #
-# Check the sha1 checksum for the given file.
-# Return 0 if the checksum is incorrect, 1 otherwise.
+# Calculate the sha1 checksum for the given file.
+# Return the checksum.
 #
-proc check_sha1 {file sum} {
-	return [string equal $sum [sha1 file $file]]
+proc calc_sha1 {file} {
+	return [sha1 file $file]
 }
 
 # checksum_start
@@ -168,22 +168,20 @@ proc checksum_main {args} {
 		# check that there is at least one checksum for the distfile.
 		if {$portfile_checksums == -1} {
 			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-			ui_info "[format [msgcat::mc "Correct checksum: %s sha1 %s"] $distfile [sha1 file $fullpath]]"
+			ui_info "[format [msgcat::mc "Correct checksum: %s sha1 %s"] $distfile [calc_sha1 $fullpath]]"
 			set fail yes
 		} else {
 			# iterate on this list to check the actual values.
 			foreach {type sum} $portfile_checksums {
-				if {[check_$type $fullpath $sum]} {
+				set calculated_sum [calc_$type $fullpath]
+				if {[string equal $sum $calculated_sum]} {
 					ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
 				} else {
 					ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
-					ui_info "[format [msgcat::mc "Correct checksum: %s %s %s"] $distfile $type [sha1 file $fullpath]]"
+					ui_info "[format [msgcat::mc "Correct checksum: %s %s %s"] $distfile $type $calculated_sum]"
 					
 					# Raise the failure flag
 					set fail yes
-					
-					# Exit.
-					break
 				}
 			}
 		}
