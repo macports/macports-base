@@ -78,24 +78,32 @@ proc destroot_main {args} {
 proc destroot_finish {args} {
     global UI_PREFIX destroot prefix portname
 
-	# compress all manpages with gzip (instead)
-	set manpath "${destroot}${prefix}/share/man"
-	ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
-	foreach mandir [readdir "${manpath}"] {
-		if {![regexp {^man(.)$} ${mandir} match manindex]} { continue }
-		foreach manfile [readdir "${manpath}/${mandir}"] {
-			if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
-				system "cd ${manpath} && gunzip ${mandir}/${gzfile} && gzip -9v ${mandir}/${manfile}"
-			} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
-				system "cd ${manpath} && bunzip2 ${mandir}/${bz2file} && gzip -9v ${mandir}/${manfile}"
-			} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
-				system "cd ${manpath} && gzip -9v ${mandir}/${manfile}"
-			}
-		}
-	}
-
     # Prune empty directories in ${destroot}
     catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
+
+	# Compress all manpages with gzip (instead)
+	set manpath "${destroot}${prefix}/share/man"
+	if {[file isdirectory ${manpath}]} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
+		set found 0
+		foreach mandir [readdir "${manpath}"] {
+			if {![regexp {^man(.)$} ${mandir} match manindex]} { continue }
+			ui_debug "Scanning ${mandir}"
+			foreach manfile [readdir "${manpath}/${mandir}"] {
+				if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+					set found 1
+					system "cd ${manpath} && gunzip ${mandir}/${gzfile} && gzip -9v ${mandir}/${manfile}"
+				} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+					set found 1
+					system "cd ${manpath} && bunzip2 ${mandir}/${bz2file} && gzip -9v ${mandir}/${manfile}"
+				} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+					set found 1
+					system "cd ${manpath} && gzip -9v ${mandir}/${manfile}"
+				}
+			}
+		}
+		if {$found == 0} { ui_debug "No man pages found to compress." }
+	}
 
     file delete "${destroot}/${prefix}/share/info/dir"
     return 0
