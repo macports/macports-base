@@ -16,7 +16,7 @@ clean::
 test::
 
 distclean:: clean
-	rm -f darwinports_autoconf.tcl;
+	rm -f darwinports_autoconf.tcl darwinports_fastload.tcl;
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
