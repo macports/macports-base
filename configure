@@ -5022,7 +5022,8 @@ echo "${ECHO_T}$ac_cv_lib_X11_XOpenDisplay" >&6
 if test $ac_cv_lib_X11_XOpenDisplay = yes; then
 
 			# found the library. check for header
-			INCLUDES="-I/usr/X11R6/include $INCLUDES"
+			oldCPPFLAGS="$CPPFLAGS"
+			CPPFLAGS="-I/usr/X11R6/include $CPPFLAGS"
 
 for ac_header in X11/X.h
 do
@@ -5204,6 +5205,8 @@ echo "$as_me: error: libX11 was found, but X.h is missing." >&2;}
 fi
 
 done
+
+			CPPFLAGS="$oldCPPFLAGS"
 
 else
    { echo "$as_me:$LINENO: WARNING: libX11 was not found" >&5
