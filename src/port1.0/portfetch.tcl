@@ -208,7 +208,7 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd
+    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd os.name
 
     # Override curl in the case of FreeBSD
     if {${os.name} == "freebsd"} {
