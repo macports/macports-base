@@ -1,4 +1,4 @@
-SRCS=		darwinports.tcl
+SRCS=		darwinports.tcl darwinports_dlist.tcl
 
 all:
 

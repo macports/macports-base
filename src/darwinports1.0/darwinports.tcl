@@ -252,6 +252,11 @@ proc dportexec {workername target} {
 	if {[$workername eval eval_variants variations $target] != 0} {
 		return 1
 	}
+
+	set name [$workername eval return \$portname]
+	puts "xxx: $name depends: [dportdepends $name 1 1]"
+	
+	
 	
 	return [$workername eval eval_targets $target]
 }
@@ -330,4 +335,50 @@ proc dportinfo {workername} {
 
 proc dportclose {workername} {
     interp delete $workername
+}
+
+##### Private Depspec API #####
+# This API should be considered work in progress and subject to change without notice.
+##### "
+
+# dportdepends returns a list of port names which the given port depends on.
+# xxx: should return the depspec itself once we have better depspec processing.
+# - optionally includes the build dependencies in the list.
+# - optionally recurses through the dependencies, looking for dependencies
+#	of dependencies.
+
+proc dportdepends {portname includeBuildDeps recurseDeps} {
+	set result {}
+
+	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		ui_puts err "Internal error: port search failed: $error"
+		return
+	}
+
+	foreach {name array} $res {
+		array set portinfo $array
+		set depends {}
+		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+		if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} {
+			eval "lappend depends $portinfo(depends_build)"
+		}
+		foreach depspec $depends {
+			# grab the portname portion of the depspec
+			set dep [lindex [split $depspec :] 2]
+			
+			lappend result $dep
+			
+			if {$recurseDeps != ""} {
+				set rdeps [dportdepends $dep $includeBuildDeps $recurseDeps]
+				if {$rdeps == -1} {
+					return -1
+				} else {
+					eval "lappend result $rdeps"
+				}
+			}
+		}
+	}
+	
+	return $result
 }
