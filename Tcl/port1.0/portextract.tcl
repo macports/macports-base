@@ -16,7 +16,7 @@ globals portextract::options
 options portextract::options extract_only extract_command extract_before_args extract_after_args
 
 proc portextract::main {args} {
-	global portname portdir workdir distname distdir distfiles
+	global portname portpath portdir workdir distname distdir distfiles
 
 	# Set up defaults
 	default portextract::options extract_only $distfiles
@@ -29,12 +29,12 @@ proc portextract::main {args} {
 	} elseif [info exists use_zip] {
 		setval portextract::options extract_cmd unzip
 		setval portextract::options extract_before_args -q
-		setval portextract::options extract_after_args -d $workdir
+		setval portextract::options extract_after_args -d $portdir/$workdir
 	}
 
 	puts "Extracting for $distname"
 	if [file exists $workdir] {
-		file delete -force $workdir
+		file delete -force $portdir/$workdir
 	}
 
 	file mkdir $portdir/$workdir
@@ -42,7 +42,7 @@ proc portextract::main {args} {
 	foreach distfile [getval portextract::options extract_only] {
 		puts -nonewline "$distfile: "
 		flush stdout
-		set cmd "[getval portextract::options extract_cmd] [getval portextract::options extract_before_args] $distdir/$distfile [getval portextract::options extract_after_args]"
+		set cmd "[getval portextract::options extract_cmd] [getval portextract::options extract_before_args] $portpath/$distdir/$distfile [getval portextract::options extract_after_args]"
 		if [catch {system $cmd} result] {
 			puts $result
 			return -1
