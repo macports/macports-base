@@ -116,7 +116,8 @@ switch -- $action {
 		if {[info exists portname]} {
 			array set portinfo [dportmatch ^$portname\$]
 			set portdir $portinfo(portdir)
-		} else {
+		}
+		if ![info exists portdir] {
 			set portdir .
 		}
 		set workername [dportopen $portdir options variations]
