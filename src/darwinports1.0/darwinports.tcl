@@ -283,6 +283,7 @@ proc _dporttest {dport} {
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
 	if {$res != ""} {
+		ui_debug "Found Dependency: receipt: $res"
 		return 1
 	} else {
 		return 0
@@ -290,8 +291,13 @@ proc _dporttest {dport} {
 }
 
 proc _dportexec {target dport} {
+	# xxx: set the work path?
 	set workername [ditem_key $dport workername]
-	return [$workername eval eval_targets $target]
+	if {![catch {$workername eval eval_targets $target} result]} {
+		# xxx: clean after installing?
+		#$workername eval eval_targets clean
+	}
+	
 }
 
 # dportexec
