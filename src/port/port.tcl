@@ -190,7 +190,7 @@ switch -- $action {
         }
 
         # search for port
-        if {[catch {dportsearch ^$portname$} result]} {
+        if {[catch {dportsearch ^[escape_string $portname]$} result]} {
 	    puts "port search failed: $result"
 	    exit 1
         }
@@ -248,7 +248,7 @@ switch -- $action {
         }
 	
         # search for port
-        if {[catch {dportsearch ^$portname$} result]} {
+        if {[catch {dportsearch ^[escape_string $portname]$} result]} {
 	    puts "port search failed: $result"
 	    exit 1
         }
