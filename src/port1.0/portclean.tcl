@@ -142,11 +142,13 @@ proc clean_dist {args} {
 }
 
 proc clean_work {args} {
-	global workpath
+	global prefix portname portversion	
 
-	if {[file isdirectory ${workpath}]} {
-		ui_debug "Removing directory: ${workpath}"
-		if {[catch {exec rm -rf ${workpath}} result]} {
+	set cleandir [file join $prefix var/db/dports/builds ${portname}-${portversion} ]
+
+	if {[file isdirectory ${cleandir}]} {
+		ui_debug "Removing directory: ${cleandir}"
+		if {[catch {exec rm -rf ${cleandir}} result]} {
 			ui_error "${result}"
 		}
 	} else {
