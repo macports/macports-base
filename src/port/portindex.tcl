@@ -9,6 +9,8 @@ package require Pextlib
 # Globals
 set archive 0
 set depth 0
+set stats(total) 0
+set stats(failed) 0
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -97,9 +99,11 @@ proc port_traverse {func {dir .} {cwd ""}} {
 }
 
 proc pindex {portdir} {
-    global target fd directory archive outdir
+    global target fd directory archive outdir stats 
+    incr stats(total)
     if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
         puts "Failed to parse file $portdir/Portfile: $result"
+	incr stats(failed)
     } else {        
         array set portinfo [dportinfo $interp]
         dportclose $interp
@@ -191,3 +195,6 @@ puts "Creating software index in $outdir"
 set fd [open [file join $outdir PortIndex] w]
 port_traverse pindex $directory
 close $fd
+puts "\nTotal number of ports parsed:\t$stats(total)\
+      \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\t\
+      \nPorts failed:\t\t\t$stats(failed)\n"
