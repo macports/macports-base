@@ -54,7 +54,7 @@ bits: bits.o
 	$(COMPILE) -c $< -o $@
 
 clean:
-	rm -f ${OBJS} ${PROG} digest-types.h bits
+	rm -f ${OBJS} ${PROG} digest-types.h bits bits.o
 
 distclean: clean
 	rm -f Makefile config.h config.status config.log
