@@ -6,6 +6,7 @@ Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
      specific sites						landonf
 Implement the variants code					landonf kevinvv
+Allow depspecs in requires (targets & variants)			kevinvv
 Add an internal version of ports.conf for "hard defaults"	landonf
 Implement deinstall target					landonf
 Add code for de-registering a port				jkh
