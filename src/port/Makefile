@@ -11,13 +11,13 @@ include ../../Mk/dports.autoconf.mk
 all: ${SCRIPTS}
 
 portindex: portindex.tcl
-	${edit} $< > $@
+	${edit} portindex.tcl > $@
 
 portall: portall.tcl
-	${edit} $< > $@
+	${edit} portall.tcl > $@
 
 port: port.tcl
-	${edit} $< > $@
+	${edit} port.tcl > $@
 
 mkdirs:
 	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
