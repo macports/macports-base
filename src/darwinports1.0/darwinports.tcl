@@ -34,15 +34,20 @@ package require darwinportsui 1.0
 global ports_opts
 global bootstrap_options
 set bootstrap_options "sysportpath libpath auto_path"
-set portinterp_options "sysportpath portpath auto_path portconf"
+set portinterp_options "sysportpath portpath auto_path portconf portdefaultconf"
 set uniqid 0
 
 proc dportinit {args} {
-    global auto_path env bootstrap_options sysportpath portconf
+    global auto_path env bootstrap_options sysportpath portconf portdefaultconf
 
     if [file isfile /etc/ports.conf] {
 	set portconf /etc/ports.conf
-	set fd [open /etc/ports.conf r]
+    }
+    if [file isfile /etc/defaults/ports.conf] {
+    	set portdefaultconf /etc/defaults/ports.conf
+    }
+    foreach file [list $portdefaultconf $portconf] {
+	set fd [open $file r]
 	while {[gets $fd line] >= 0} {
 	    foreach option $bootstrap_options {
 		if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9/\]+$)" $line match val] == 1} {
