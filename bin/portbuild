@@ -31,4 +31,4 @@ if {$argc > 2} {
 }
 
 darwinports::init
-darwinports::build $portdir $target
+darwinports::build $portdir build $target

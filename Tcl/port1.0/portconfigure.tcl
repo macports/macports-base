@@ -2,8 +2,9 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-register target configure portconfigure::main 
-register requires main fetch extract checksum patch
+register com.apple.configure target build portconfigure::main
+register com.apple.configure provides configure
+register com.apple.configure requires main fetch extract checksum patch
 
 namespace eval portconfigure {
 	variable options

@@ -1,6 +1,6 @@
 # global port utility procedures
 package provide portutil 1.0
-package require Pextlib 1.0
+#package require Pextlib 1.0
 
 namespace eval portutil {
 	variable globals
@@ -12,45 +12,50 @@ namespace eval portutil {
 # register
 # Creates a target in the global target list using the internal dependancy
 #     functions
-# Arguments: target <target name> <procedure to execute>
-# Arguments: requires <target name> <list of target names>
-# Arguments: uses <target name> <list of target names>
-# Arguments: preflight <target name> <target name>
-# Arguments: postflight <target name> <target name>
-proc register {mode target args} {	
+# Arguments: <identifier> <mode> <args ...>
+# The following modes are supported:
+#	<identifier> target <chain> <procedure to execute>
+#	<identifier> provides <list of target names>
+#	<identifier> requires <list of target names>
+#	<identifier> uses <list of target names>
+#	<identifier> preflight <target name>
+#	<identifier> postflight <target name>
+proc register {identifier mode args} {	
 	if {[string equal target $mode]} {
-		if {[isval portutil::targets $target]} {
+		set chain [lindex $args 0]
+		set procedure [lindex $args 1]
+		if {[isval portutil::targets procedure,$chain,$identifier]} {
 			# XXX: remove puts
-			puts "Warning: target '$target' re-registered (new procedure: '$procedure')"
+			puts "Warning: target '$identifier' re-registered for chain $chain (new procedure: '$procedure')"
 		}
-		depend_list_add_item portutil::targets $target $args [list] [list]
-	} elseif {[string equal requires $mode] || [string equal uses $mode]} {
-		if {[isval portutil::targets name,$target]} {
+		depend_list_add_item portutil::targets $identifier $chain $procedure
+	} elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
+		if {[isval portutil::targets name,$identifier]} {
 			# XXX: violates data abstraction
-			eval "lappend portutil::targets($mode,$target) $args"
+			eval "lappend portutil::targets($mode,$identifier) $args"
 		} else {
 			# XXX: remove puts
-			puts "Warning: target '$target' not-registered in register $mode"
+			puts "Warning: target '$identifier' not-registered in register $mode"
 		}
 	} elseif {[string equal preflight $mode]} {
 		# preflight vulcan mind meld:
 		# "your requirements to my requirements; my provides to your requirements"
 		# XXX: violates data abstraction
-		eval "lappend portutil::targets(requires,$target) $portutil::targets(requires,$args)"
-		lappend portutil::targets(requires,$args) $target
+		lappend portutil::targets(provides,$identifier) pre-$args
+		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
+		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(requires,$ident)"
+		eval "lappend portutil::targets(requires,$args) $portutil::targets(provides,$identifier)"
 	} elseif {[string equal postflight $mode]} {
 		# postflight procedure:
 		# your provides to my requires; my provides to the requires of your children
 		# XXX: violates data abstraction
-		lappend portutil::targets(requires,$target) $args
-		foreach node [array names portutil::targets name,*] {
-			set name $portutil::targets($node)
-			if {[string equal $target $name]} { continue }
-			set requires $portutil::targets(requires,$name)
-			foreach val $requires {
-				if {[string equal $val $args]} {
-					lappend portutil::targets(requires,$name) $target
-				}
+		lappend portutil::targets(provides,$identifier) post-$args
+		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
+		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(provides,$ident)"
+		foreach name [join $portutil::targets(provides,$ident)] {
+			set matches [depend_list_get_matches portutil::targets requires name]
+			foreach match $matches {
+				lappend portutil::targets(requires,$match) post-$args
 			}
 		}
 	}
@@ -103,20 +108,35 @@ proc globals {array args} {
 # Creates a new node in the dependency list with the given name.
 # Optionally sets the list of hard and soft dependencies.
 # Caution: this will over-write an existing node of the same name.
-proc depend_list_add_item {nodes name procedure requires uses} {
+proc depend_list_add_item {nodes name chain procedure} {
 	upvar $nodes upnodes
 	set upnodes(name,$name) $name
-	set upnodes(procedure,$name) $procedure
-	set upnodes(requires,$name) $requires
-	set upnodes(uses,$name) $uses
+	set upnodes(procedure,$chain,$name) $procedure
+	if {![isval upnodes provides,$name]} {set upnodes(provides,$name) [list]}
+	if {![isval upnodes requires,$name]} {set upnodes(requires,$name) [list]}
+	if {![isval upnodes uses,$name]} {set upnodes(uses,$name) [list]}
 }
 
 proc depend_list_del_item {nodes name} {
 	upvar $nodes upnodes
-	unset upnodes(name,$name)
-	unset upnodes(procedure,$name)
-	unset upnodes(requires,$name)
-	unset upnodes(uses,$name)
+	array unset upnodes *,$name
+}
+
+# Return a list of identifiers of targets that provide the given name
+# (private)
+proc depend_list_get_matches {waitlist key value} {
+	upvar $waitlist upwaitlist
+	set result [list]
+	foreach ident [array names upwaitlist name,*] {
+		set name $upwaitlist($ident)
+		foreach val $upwaitlist($key,$name) {
+			if {[string equal $val $value] && 
+			   ![isval $result $name]} {
+				lappend result $name
+			}
+		}
+	}
+	return $result
 }
 
 # Count the unmet dependencies in the sublist
@@ -174,22 +194,23 @@ proc depend_list_get_next {waitlist statusdict} {
 			set nextitem $name
 		}
 	}
-		return $nextitem
-	}
+	return $nextitem
+}
 
 
 # Evaluate the dependency list, returning an ordered list suitable
 # for execution.
 # If <target> is specified, then only execute the critical path to
 # the target.
-proc eval_depend {nodes target} {
+proc eval_depend {nodes chain target} {
 	# waitlist - nodes waiting to be executed
 	upvar $nodes waitlist
 
 	if {[string length $target] > 0} {
-		if {[isval waitlist name,$target]} {
+		set matches [depend_list_get_matches waitlist provides $target]
+		if {[llength $matches] > 0} {
 			array set dependents [list]
-			append_dependents dependents waitlist $target
+			append_dependents dependents waitlist [lindex $matches 0]
 			array unset waitlist
 			array set waitlist [array get dependents]
 		# Special-case 'all'
@@ -205,31 +226,38 @@ proc eval_depend {nodes target} {
 		
 	# loop for as long as there are nodes in the waitlist.
 	while (1) {
-		set name [depend_list_get_next waitlist statusdict]
-		if {[isval waitlist procedure,$name]} {
+		set ident [depend_list_get_next waitlist statusdict]
+		if {[string length $ident] == 0} { break }
+		if {[isval waitlist procedure,$chain,$ident]} {
 			# XXX: remove puts
-			puts "DEBUG: Executing $name"
-			if {[$waitlist(procedure,$name) $waitlist(name,$name)] == 0} {
-				array set statusdict [list $name success]
+			puts "DEBUG: Executing $ident in chain $chain"
+			if {[$waitlist(procedure,$chain,$ident) $waitlist(name,$ident)] == 0} {
+				set result success
 			} else {
 				# XXX: remove puts
-				puts "Error in $name"
-				array set statusdict [list $name failure]
+				puts "Error in $ident in chain $chain"
+				set result failure
 			}
-			depend_list_del_item waitlist $name
+			foreach name $waitlist(provides,$ident) {
+				array set statusdict [list $name $result]
+			}
+			depend_list_del_item waitlist $ident
 		} else {
-			# somebody broke!
-			set names [array names waitlist name,*]
-			if { [llength $names] > 0} {
 			# XXX: remove puts
-			puts "Warning: the following targets did not execute: "
-			foreach name $names {
-				puts -nonewline "$waitlist($name) "
-			}
-			puts ""
-			}
-			break
+			puts "Warning: $ident does not support chain $chain" 
+			depend_list_del_item waitlist $ident
 		}
+	}
+
+	set names [array names waitlist name,*]
+	if { [llength $names] > 0} {
+		# somebody broke!
+		# XXX: remove puts
+		puts "Warning: the following targets did not execute: "
+		foreach name $names {
+			puts -nonewline "$waitlist($name) "
+		}
+		puts ""
 	}
 }
 
@@ -241,10 +269,10 @@ proc append_dependents {dependents itemlist name} {
 	
 	# Append item to the list, avoiding duplicates
 	if {![isval updependents name,$name]} {
-		set updependents(name,$name) $upitemlist(name,$name)
-		set updependents(procedure,$name) $upitemlist(procedure,$name)
-		set updependents(requires,$name) $upitemlist(requires,$name)
-		set updependents(uses,$name) $upitemlist(uses,$name)
+		set names [array names upitemlist *,$name]
+		foreach n $names {
+			set updependents($n) $upitemlist($n)
+		}
 	}
 	
 	# Recursively append any hard dependencies

@@ -2,8 +2,9 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-register target checksum portchecksum::main
-register requires checksum main fetch
+register com.apple.checksum target build portchecksum::main
+register com.apple.checksum provides checksum
+register com.apple.checksum requires main fetch
 
 namespace eval portchecksum {
 	variable options

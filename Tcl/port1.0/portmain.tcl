@@ -4,7 +4,9 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-register target main portmain::main
+register com.apple.main target build portmain::main
+register com.apple.main provides main
+
 namespace eval portmain {
 	variable options
 	variable targets

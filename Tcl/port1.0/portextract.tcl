@@ -2,8 +2,9 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register target extract portextract::main 
-register requires extract fetch checksum
+register com.apple.extract target build portextract::main 
+register com.apple.extract provides extract
+register com.apple.extract requires fetch checksum
 
 namespace eval portextract {
 	variable options

@@ -2,8 +2,9 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-register target patch portpatch::main 
-register requires patch main fetch checksum extract
+register com.apple.patch target build portpatch::main
+register com.apple.patch provides patch
+register com.apple.patch requires main fetch checksum extract
 
 namespace eval portpatch {
 	variable options

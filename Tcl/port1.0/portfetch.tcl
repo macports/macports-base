@@ -2,8 +2,9 @@
 package provide portfetch 1.0
 package require portutil 1.0
 
-register target fetch portfetch::main
-register requires fetch main
+register com.apple.fetch target build portfetch::main
+register com.apple.fetch provides fetch
+register com.apple.fetch requires main
 
 namespace eval portfetch {
 	variable options
