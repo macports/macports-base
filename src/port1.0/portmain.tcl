@@ -53,7 +53,7 @@ option_proc default_variants handle_default_variants
 default portresourcepath {[file join $portsharepath resources/port1.0]}
 default distpath {[file join $portdbpath distfiles]}
 default workdir work
-default workpath {[file join $portpath $workdir]}
+default workpath {[file join $prefix var/db/dports/builds ${portname}-${portversion} $workdir]}
 default prefix /opt/local
 default x11prefix /usr/X11R6
 default destdir destroot
