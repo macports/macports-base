@@ -32,7 +32,7 @@
 package provide portuninstall 1.0
 package require portutil 1.0
 
-register com.apple.uninstall target uninstall_main
+register com.apple.uninstall target uninstall_main always
 register com.apple.uninstall provides uninstall
 register com.apple.uninstall requires main
 
