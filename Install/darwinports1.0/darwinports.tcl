@@ -83,7 +83,7 @@ proc build {portdir chain target {options ""}} {
 	}
 
 	foreach opt $options {
-		if {[regexp {([A-Za-z_\.]+)=(.+)} $opt match key val] == 1} {
+		if {[regexp {([A-Za-z0-9_\.]+)=(.+)} $opt match key val] == 1} {
 			$workername eval set user_options($key) \"$val\"
 			$workername eval set $key \"$val\"
 		}
