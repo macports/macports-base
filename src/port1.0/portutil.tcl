@@ -597,6 +597,11 @@ proc eval_targets {dlist target} {
 	
     # Select the subset of targets under $target
     if {[string length $target] > 0} {
+		# XXX munge target. install really means registry, then install
+		# If more than one target ever needs this, make this a generic interface
+		if {[string equal $target "install"]} {
+			set target registry
+		}
         set matches [dlist_get_matches uplist provides $target]
         if {[llength $matches] > 0} {
             array set dependents [list]
