@@ -29,6 +29,8 @@
 
 #include <config.h>
 
+extern int xxx_so_this_isnt_empty;
+
 #if !HAVE_FGETLN
 #include <stdio.h>
 #include <stdlib.h>
