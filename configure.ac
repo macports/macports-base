@@ -34,7 +34,7 @@ INCLUDES="-I. $INCLUDES"
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol lockf flock])
+AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock])
 
 
 # Check for Tcl public headers
