@@ -43,7 +43,7 @@ proc patch_init {args} {
 }
 
 proc patch_main {args} {
-    global portname patchfiles distpath filedir workdir portpath UI_PREFIX
+    global portname patchfiles distpath filedir workdir worksrcdir portpath UI_PREFIX
 
     if ![info exists patchfiles] {
 	return 0
@@ -58,7 +58,7 @@ proc patch_main {args} {
     if ![info exists patchlist] {
 	return -code error "Patch files missing"
     }
-    cd $portpath/$workdir
+    cd $portpath/$workdir/${worksrcdir}
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX Applying $patch"
 	switch -glob -- [file tail $patch] {
