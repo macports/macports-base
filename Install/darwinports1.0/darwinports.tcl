@@ -35,7 +35,7 @@ namespace eval darwinports {
 		}
 
 		if [file isdirectory $libpath] {
-			if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib */*.tcl */*.so */*.dylib} result] {
+			if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib} result] {
 				return -1
 			} else {
 				lappend auto_path $libpath
