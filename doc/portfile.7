@@ -146,6 +146,14 @@ Path to source directory relative to ${workpath}
 .Sy Example:
 .Dl worksrcdir	${distname}-src-${version}
 
+.It Ic worksrcpath
+Full path to working sources (where port has unpacked itself)
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${workpath}/${worksrcdir}
+
 .It Ic filedir
 Path to port files relative to ${portpath}
 .br
