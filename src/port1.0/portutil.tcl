@@ -234,7 +234,10 @@ proc variant {args} {
     set obj [variant_new $name]
     $obj append provides $provides
     $obj append requires $requires
-    $obj set code $code
+
+	# make a user procedure named variant-blah-blah
+	# well will call this procedure during variant-run
+	makeuserproc $name \{$code\}
     lappend all_variants $obj
     
     # Export provided variant to PortInfo
@@ -379,7 +382,7 @@ proc include {fname} {
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
 proc makeuserproc {name body} {
-    regsub -- "^\{(.*?)" $body "\{ \n eval \"global \[info globals\]\" \n \\1" body
+    regsub -- "^\{(.*?)" $body "\{ \n foreach g \[info globals\] \{ \n global \$g \n \} \n \\1" body
     eval "proc $name {} $body"
 }
 
@@ -742,8 +745,8 @@ proc choose_variants {dlist variations} {
 proc variant_run {this} {
     set name [$this get name]
     ui_debug "Executing $name provides [$this get provides]"
-    makeuserproc ${name}-code "[$this get code]"
-    if ([catch ${name}-code result]) {
+    # execute proc with same name as variant.
+	if {[catch ${name} result]} {
 	ui_error "Error executing $name: $result"
 	return 1
     }
