@@ -15,13 +15,13 @@ install:
 	mkdir -p ${PREFIX}/man/man7
 	@if [ ! -e ${ETCDIR}/ports.conf ]; then \
 		set -x; \
-		install -o root -g wheel -m 644 ports.conf ${ETCDIR}; \
+		install -o root -g admin -m 644 ports.conf ${ETCDIR}; \
 	fi
 
 	@if [ ! -e ${ETCDIR}/sources.conf ]; then \
 		set -x; \
-		install -o root -g wheel -m 644 sources.conf ${ETCDIR}; \
+		install -o root -g admin -m 644 sources.conf ${ETCDIR}; \
 	fi
 
-	install -o root -g wheel -m 644 ports.conf.default /etc/defaults/ports.conf
-	install -o root -g wheel -m 444 portfile.7.gz ${PREFIX}/man/man7
+	install -o root -g admin -m 644 ports.conf.default /etc/defaults/ports.conf
+	install -o root -g admin -m 444 portfile.7.gz ${PREFIX}/man/man7
