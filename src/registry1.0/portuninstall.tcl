@@ -152,14 +152,14 @@ proc uninstall {portname {v ""}} {
 				}
 			}
 			lappend files $fname
-		}
 
-		# When using "image" type installation, be sure to add the image
-		# directory and it's parent to the list for proper cleanup
-		if {$installtype == "image"} {
-			set imagedir [registry::property_retrieve $ref imagedir]
-			lappend files $imagedir
-			lappend files [file dirname $imagedir]
+			# Split out the filename's subpaths and add them to the
+			# list as well.
+			set directory [file dirname $fname]
+			while { [lsearch -exact $files $directory] == -1 } { 
+				lappend files $directory
+				set directory [file dirname $directory]
+			}
 		}
 
 		# Sort the list in reverse order, removing duplicates.
