@@ -669,6 +669,17 @@ Arguments to pass to ${install.cmd}
 .Sy Example:
 .Dl build.args	-DPREFIX=${prefix}
 
+.It Ic install.destroot
+Arguments passed to ${install.cmd} in order to install correctly
+into the destroot.
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em DESTDIR=${destroot}
+.br
+.Sy Example:
+.Dl install.destroot	prefix=${destroot}${prefix}
 
 .It Ic build.target.install
 .br
