@@ -32,8 +32,8 @@ package require darwinports_dlist 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath master_site_local auto_path sources_conf prefix x11prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix x11prefix portsharepath registry.path"
+    variable bootstrap_options "portdbpath libpath binpath master_site_local auto_path sources_conf prefix"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
 	
     variable open_dports {}
 }
@@ -164,7 +164,7 @@ proc dportinit {args} {
 
     if {![info exists binpath]} {
 	global env
-	set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:${x11prefix}/bin"
+	set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
     } else {
 	global env
 	set env(PATH) "$binpath"
@@ -370,7 +370,7 @@ proc _libtest {dport} {
 	if {[info exists env(DYLD_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
-	lappend search_path /lib /usr/local/lib /lib /usr/lib ${x11prefix}/lib ${prefix}/lib
+	lappend search_path /lib /usr/local/lib /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
