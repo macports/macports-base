@@ -39,7 +39,7 @@ register com.apple.main target main main_init
 register com.apple.main provides main
 
 # define options
-options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath distpath
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath distpath
 
 # XXX Special case sysportpath. This variable is set by the bootstrap
 # and may not exist
