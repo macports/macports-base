@@ -3,17 +3,17 @@
 # Insert some license text here at some point soon.
 #
 
-package provide portmake 1.0
+package provide portbuild 1.0
 package require portutil 1.0
 
-register com.apple.make target build make_main
-register com.apple.make provides make
-register com.apple.make requires main fetch extract checksum patch configure
+register com.apple.build target build build_main 
+register com.apple.build provides build 
+register com.apple.build requires main fetch extract checksum patch configure
 
 # define options
 options make.cmd make.type make.target.all make.target.install
 
-proc make_main {args} {
+proc build_main {args} {
     global portname portpath workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.all
 
     default make.type bsd
