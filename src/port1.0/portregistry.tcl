@@ -29,12 +29,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portregister 1.0
+package provide portregistery 1.0
 package require portutil 1.0
 
-register com.apple.register target register_main register_init
-register com.apple.register provides register
-register com.apple.register requires main fetch extract checksum patch configure build install depends_run depends_lib
+register com.apple.registery target registery_main registery_init
+register com.apple.registery provides registery
+register com.apple.registery requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
 options contents description
@@ -129,16 +129,16 @@ proc proc_disasm {pname} {
     return $p
 }
 
-proc register_init {args} {
+proc registery_init {args} {
     return 0
 }
 
-proc register_main {args} {
+proc registery_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix UI_PREFIX
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
-    ui_msg "$UI_PREFIX Registering $portname"
+    ui_msg "$UI_PREFIX Adding $portname to registry [this may take a moment]"
     lappend data [list prefix $prefix]
     lappend data [list categories $categories]
     if [info exists description] {

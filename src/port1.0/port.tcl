@@ -40,7 +40,7 @@ package require portpatch 1.0
 package require portconfigure 1.0
 package require portbuild 1.0
 package require portinstall 1.0
-package require portregister 1.0
+package require portregistery 1.0
 package require portclean 1.0
 
 # System wide default configuration
