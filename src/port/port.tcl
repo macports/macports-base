@@ -119,9 +119,19 @@ switch -- $action {
 	}
 	foreach {name array} $res {
 	    array set portinfo $array
+	    set portfound 1
+	    if ![info exists portinfo(portname)] {
+		puts "Invalid port entry, missing portname"
+		continue
+	    }
+	    if ![info exists portinfo(description)] {
+		puts "Invalid port entry for $portinfo(portname), missing description"
+		continue
+	    }
 	    puts [format "%-15s\t%s" $portinfo(portname) $portinfo(description)]
+	    unset portinfo
 	}
-	if {[array size portinfo] == 0} {
+	if {![info exists portfound] || $portfound == 0} {
 	    puts "No match for $portname found"
 	    exit 1
 	}
