@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.4 2004/09/28 15:27:47 rshaw Exp $
+# $Id: receipt_flat.tcl,v 1.5 2004/09/28 15:48:41 wbb4 Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -613,12 +613,13 @@ proc register_bulk_files {files port} {
 		open_file_map
 	}
 
-	foreach file $files {
-		#if { [file type $file] == "link" } {
-		#	ui_debug "Adding link to file_map: $file for: $port"
-		#} else {
-		#	ui_debug "Adding file to file_map: $file for: $port"
-		#}
+	foreach f $files {
+		set file [lindex $f 0]
+		if { [file type $file] == "link" } {
+			ui_debug "Adding link to file_map: $file for: $port"
+		} else {
+			ui_debug "Adding file to file_map: $file for: $port"
+		}
 		filemap set file_map $file $port
 	}
 }
