@@ -22,6 +22,14 @@ proc portextract::main {args} {
 	default portextract::options extract_before_args -dc
 	default portextract::options extract_after_args "|tar -xf -"
 
+	if [info exists use_bzip2] {
+		setval portextract::options extract_cmd bzip2
+	} elseif [info exists use_zip] {
+		setval portextract::options extract_cmd unzip
+		setval portextract::options extract_before_args -q
+		setval portextract::options extract_after_args -d $workdir
+	}
+
 	set portdir [pwd]
 
 	if [file exists $workdir] {
