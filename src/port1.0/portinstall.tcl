@@ -47,9 +47,11 @@ default build.target.install install
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname build.target.install
+    global UI_PREFIX portname build.target.install destroot
 
-    ui_msg "$UI_PREFIX Installing $portname with target ${build.target.install}"
+    ui_msg "$UI_PREFIX Installing ${portname} into ${destroot} with target ${build.target.install}"
+	
+	file mkdir ${destroot}
 }
 
 proc install_main {args} {
