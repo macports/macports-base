@@ -1,4 +1,4 @@
-.\" portfile.7
+.\" portfite.7
 .\"
 .\" Copyright (c) 2002 Apple Computer, Inc.
 .\" All rights reserved.
@@ -27,7 +27,7 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd September 2, 2002
+.Dd August 17, 2003
 .Dt PORTFILE 7 "Apple Computer, Inc."
 .Os
 .Sh NAME
@@ -51,7 +51,6 @@ A
 .Nm
 author needs to be aware of the various standard targets, the options that they
 require, and the variables that both the targets and the port system provides.
-
 .Sh TARGETS
 .Tp
 .Ss MAIN OPTIONS
@@ -64,13 +63,11 @@ Install prefix
 .Em optional
 .Sy Default:
 .Em /opt/local
-
 .It Ic libpath
 Locate of ports-specific TCL libraries
 .br
 .Sy Type:
 .Em read-only
-
 .It Ic workdir
 Path to work directory relative to ${portpath}
 .br
@@ -78,7 +75,6 @@ Path to work directory relative to ${portpath}
 .Em read-only
 .Sy Default:
 .Em work
-
 .It Ic workpath
 Full path to work directory
 .br
@@ -86,7 +82,6 @@ Full path to work directory
 .Em read-only
 .Sy Default:
 .Em ${portpath}/${workdir}
-
 .It Ic name
 Full name of port
 .br
@@ -95,7 +90,6 @@ Full name of port
 .br
 .Sy Example:
 .Dl name	XFree86
-
 .It Ic version
 Upstream version of software
 .br
@@ -104,7 +98,6 @@ Upstream version of software
 .br
 .Sy Example:
 .Dl version	4.2.1
-
 .It Ic description
 One line description of the software and what it does
 .br
@@ -113,7 +106,6 @@ One line description of the software and what it does
 .br
 .Sy Example:
 .Dl description	"Dictionary Server Protocol (RFC2229) client"
-
 .It Ic long_description
 A verbose description of the software and what it does
 .br
@@ -122,7 +114,6 @@ A verbose description of the software and what it does
 .br
 .Sy Example:
 .Dl long_description	The GNU Image Manipulation Program (GIMP) is a powerful tool for the preparation and manipulation of digital images.  The GIMP provides the user with a wide variety of image manipulation, painting, processing, and rendering tools.
-
 .It Ic revision
 Local revision number of portfile.
 Increment for port revisions.
@@ -134,7 +125,6 @@ Increment for port revisions.
 .br
 .Sy Example:
 .Dl revision	1
-
 .It Ic categories
 Categories to which this port belongs
 .br
@@ -143,7 +133,6 @@ Categories to which this port belongs
 .br
 .Sy Example:
 .Dl categories	spelling textproc
-
 .It Ic maintainers
 E-mail address(es) of port maintainer(s)
 .br
@@ -152,7 +141,6 @@ E-mail address(es) of port maintainer(s)
 .br
 .Sy Example:
 .Dl maintainers	landonf@opendarwin.org kevin@opendarwin.org
-
 .It Ic platforms
 Declares which platforms are supported by the port
 .br
@@ -164,7 +152,6 @@ Declares which platforms are supported by the port
 .br
 .Sy Example:
 .Dl platforms	darwin
-
 .It Ic worksrcdir
 Path to source directory relative to ${workpath}
 .br
@@ -175,7 +162,6 @@ Path to source directory relative to ${workpath}
 .br
 .Sy Example:
 .Dl worksrcdir	${distname}-src-${version}
-
 .It Ic worksrcpath
 Full path to working sources (where port has unpacked itself)
 .br
@@ -183,7 +169,6 @@ Full path to working sources (where port has unpacked itself)
 .Em read-only
 .Sy Default:
 .Em ${workpath}/${worksrcdir}
-
 .It Ic filedir
 Path to port files relative to ${portpath}
 .br
@@ -191,7 +176,6 @@ Path to port files relative to ${portpath}
 .Em read-only
 .Sy Default:
 .Em files
-
 .It Ic distname
 Name of distibution file, minus extract suffix
 .br
@@ -202,7 +186,6 @@ Name of distibution file, minus extract suffix
 .br
 .Sy Example:
 .Dl distname	${name}-${version}-src
-
 .It Ic distpath 
 Location to store downloaded distfiles
 .br
@@ -210,20 +193,17 @@ Location to store downloaded distfiles
 .Em read-only
 .Sy Default:
 .Em ${sysportpath}/distfiles
-
 .It Ic os_arch
 Identifies hardware type (ie, "Power Macintosh")
 .br
 .Sy Type:
 .Em read-only
-
 .It Ic os_version
 Version number of operating system (ie "6.0")
 .br
 .Sy Type:
 .Em read-only
 .El
-
 .Ss DEPENDS OPTIONS
 Checking and building of dependencies
 .Bl -tag -width lc
@@ -235,7 +215,6 @@ List of dependencies to check before running fetch target
 .br
 .Sy Example:
 .Dl depends_fetch	bin:fetch:net/fetch bin:wget:wget
-
 .It Ic depends_build
 List of dependencies to check before build, destroot, install, and package targets
 .br
@@ -244,7 +223,6 @@ List of dependencies to check before build, destroot, install, and package targe
 .br
 .Sy Example:
 .Dl depends_build	bin:autoconf:autoconf
-
 .It Ic depends_run
 List of dependencies to check before destroot, install and package targets
 .br
@@ -253,7 +231,6 @@ List of dependencies to check before destroot, install and package targets
 .br
 .Sy Example:
 .Dl depends_run	bin:bash:bash
-
 .It Ic depends_extract
 List of dependencies to check before extract target
 .br
@@ -262,7 +239,6 @@ List of dependencies to check before extract target
 .br
 .Sy Example:
 .Dl depends_extract	bin:bzip2:bzip2
-
 .It Ic depends_lib
 List of dependencies to check before configure, build, destroot, install, and package targets
 .br
@@ -272,7 +248,6 @@ List of dependencies to check before configure, build, destroot, install, and pa
 .Sy Example:
 .Dl depends_lib	lib:libfetch.3:libfetch
 .El
-
 .Ss FETCH OPTIONS
 Fetch all distribution files and patches
 .Bl -tag -width lc
@@ -285,7 +260,6 @@ List of sites to fetch ${distfiles} from or a predefined mirror site list
 .Sy Example:
 .Dl master_sites	ftp://ftp.cdrom.com/pub/magic \
 			sourceforge
-
 .It Ic patch_sites 
 List of sites to fetch ${patchfiles} from or a predefined mirror site list
 .br
@@ -296,7 +270,6 @@ List of sites to fetch ${patchfiles} from or a predefined mirror site list
 .br
 .Sy Example:
 .Dl patch_sites	ftp://ftp.patchcityrepo.com/pub/magic/patches
-
 .It Ic master_sites.mirror_subdir
 Subdirectory to append to all mirror sites for any list specified in master_sites.
 .br
@@ -307,7 +280,6 @@ Subdirectory to append to all mirror sites for any list specified in master_site
 .br
 .Sy Example:
 .Dl master_sites.mirror_subdir      magic
-
 .It Ic patch_sites.mirror_subdir
 Subdirectory to append to all mirror sites for any list specified in patch_sites.
 .br
@@ -318,7 +290,6 @@ Subdirectory to append to all mirror sites for any list specified in patch_sites
 .br
 .Sy Example:
 .Dl patch_sites.mirror_subdir       magic
-
 .It Ic extract.sufx
 Suffix to append to ${distname}
 .br
@@ -329,7 +300,6 @@ Suffix to append to ${distname}
 .br
 .Sy Example:
 .Dl extract.sufx	.tgz
-
 .It Ic distfiles
 List of distribution files to fetch from ${master_sites}
 .br
@@ -340,7 +310,6 @@ List of distribution files to fetch from ${master_sites}
 .br
 .Sy Example:
 .Dl distfiles	magicsource.tar.gz cluebat.tar.bz2
-
 .It Ic patchfiles
 List of patches to fetch and apply
 .br
@@ -349,7 +318,6 @@ List of patches to fetch and apply
 .br
 .Sy Example:
 .Dl patchfiles	japanese-widechar-fix.diff japanese-localization.diff
-
 .It Ic use_zip
 Use zip.
 .br
@@ -366,7 +334,6 @@ Sets extract.post_args to: "-d $portpath/$workdir"
 .br
 .Sy Example:
 .Dl use_zip		yes
-
 .It Ic use_bzip2
 Use bzip2.
 .br
@@ -379,7 +346,6 @@ Sets extract.cmd to: bzip2
 .br
 .Sy Example:
 .Dl use_bzip2	yes
-
 .It Ic dist_subdir
 Create a sub-directory in ${distpath} to store all fetched files.
 .br
@@ -388,7 +354,6 @@ Create a sub-directory in ${distpath} to store all fetched files.
 .br
 .Sy Example:
 .Dl dist_subdir	vim${version}
-
 .El
 .Ss CHECKSUM OPTIONS
 Compare checksums of all fetched files
@@ -404,11 +369,9 @@ Currently, the only supported checksum type is md5
 .Dl checkums	dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \
 				magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
 .El
-
 .Ss EXTRACT OPTIONS
 Extract all compressed/archived files
 .Bl -tag -width lc
-
 .It Ic extract.only
 List of files to extract into ${workpath}
 .br
@@ -419,7 +382,6 @@ List of files to extract into ${workpath}
 .br
 .Sy Example:
 .Dl extract.only	worksrc-1.4.4.tar.gz
-
 .It Ic extract.cmd
 Command to perform extract
 .br
@@ -430,7 +392,6 @@ Command to perform extract
 .br
 .Sy Example:
 .Dl extract.cmd	bzip2
-
 .It Ic extract.pre_args
 Arguments added to extract command before a file name
 .br
@@ -441,7 +402,6 @@ Arguments added to extract command before a file name
 .br
 .Sy Example:
 .Dl extract.pre_args	-cd
-
 .It Ic extract.args
 Arguments to extract.cmd
 .br
@@ -449,7 +409,6 @@ Arguments to extract.cmd
 .Em read-only
 .Sy Default:
 .Em ${distpath}/${distfile}
-
 .It Ic extract.post_args
 Arguments added to extract command after a file name
 .br
@@ -460,17 +419,13 @@ Arguments added to extract command after a file name
 .br
 .Sy Example:
 .Dl extract.post_args	| tar -x -s@bladeenc-0.94.2/other_makefiles/BladeEnc..@@p -f -
-
 .El
-
 .Ss PATCH OPTIONS
 Apply all necessary patches to the extracted source
 No options defined for patch. Move patchfiles here?
-
 .Ss CONFIGURE OPTIONS
 Execute necessary configuration steps
 .Bl -tag -width lc
-
 .It Ic configure.pre_args
 Arguments added to configure command before ${configure.args}
 .br
@@ -479,7 +434,6 @@ Arguments added to configure command before ${configure.args}
 .br
 .Sy Example:
 .Dl configure.pre_args		--prefix=${prefix}/apache2
-
 .It Ic configure.args
 Arguments to pass to configure.
 .br
@@ -488,7 +442,6 @@ Arguments to pass to configure.
 .br
 .Sy Example:
 .Dl configure.args		--etcdir=${prefix}/etc
-
 .It Ic configure.dir
 Directory in which to run ${configure.cmd}
 .br
@@ -499,7 +452,6 @@ Directory in which to run ${configure.cmd}
 .br
 .Sy Example:
 .Dl configure.dir		src
-
 .It Ic configure.env
 Environmental variables to set during configure command
 .br
@@ -508,7 +460,6 @@ Environmental variables to set during configure command
 .br
 .Sy Example:
 .Dl configure.env       CFLAGS="-no-cpp-precomp"
-
 .It Ic use_automake
 If set to yes, use automake
 .br
@@ -517,7 +468,6 @@ If set to yes, use automake
 .br
 .Sy Example:
 .Dl use_automake	yes
-
 .It Ic automake.env
 Environmental variables to pass to automake
 .br
@@ -526,7 +476,6 @@ Environmental variables to pass to automake
 .br
 .Sy Example:
 .Dl automake.env	CFLAGS=-I${prefix}/include/gtk12
-
 .It Ic automake.args
 Arguments to pass to automake.
 .br
@@ -535,7 +484,6 @@ Arguments to pass to automake.
 .br
 .Sy Example:
 .Dl automake.args	--foreign
-
 .It Ic automake.dir
 Directory in which to run ${automake.cmd}
 .br
@@ -546,7 +494,6 @@ Directory in which to run ${automake.cmd}
 .br
 .Sy Example:
 .Dl automake.dir		src
-
 .It Ic use_autoconf
 If set to yes, run autoconf
 .br
@@ -555,7 +502,6 @@ If set to yes, run autoconf
 .br
 .Sy Example:
 .Dl use_autoconf	yes
-
 .It Ic autoconf.env
 Environmental variables to pass to autoconf
 .br
@@ -564,7 +510,6 @@ Environmental variables to pass to autoconf
 .br
 .Sy Example:
 .Dl autoconf.env	CFLAGS=I${prefix}/include/gtk12
-
 .It Ic autoconf.args
 Arguments to pass to autoconf
 .br
@@ -573,7 +518,6 @@ Arguments to pass to autoconf
 .br
 .Sy Example:
 .Dl autoconf.args	-l src/aclocaldir
-
 .It Ic autoconf.dir
 Directory in which to run ${autoconf.cmd}
 .br
@@ -584,14 +528,11 @@ Directory in which to run ${autoconf.cmd}
 .br
 .Sy Example:
 .Dl autoconf.dir	src
-
 .It Ic xmkmf
 Does nothing
-
 .It Ic libtool
 Does nothing
 .El
-
 .Ss BUILD OPTIONS
 Execute necessary build commands
 .Bl -tag -width lc
@@ -605,7 +546,6 @@ Make command to run relative to ${worksrcdir}
 .br
 .Sy Example:
 .Dl build.cmd	pbxbuild
-
 .It Ic build.type
 Defines which 'make' is required, either 'gnu' or 'bsd'
 Sets build.cmd to either 'gnumake' or 'bsdmake' accordingly
@@ -617,7 +557,6 @@ Sets build.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Example:
 .Dl build.type	bsd
-
 .It Ic build.pre_args
 Arguments to pass to ${build.cmd} before ${build.args}
 .br
@@ -625,7 +564,6 @@ Arguments to pass to ${build.cmd} before ${build.args}
 .Em read-only
 .Sy Default:
 .Em ${build.target}
-
 .It Ic build.args
 Arguments to pass to ${build.cmd}
 .br
@@ -634,7 +572,6 @@ Arguments to pass to ${build.cmd}
 .br
 .Sy Example:
 .Dl build.args	-DNOWARN
-
 .It Ic build.env
 Environmental variables to set during build command
 .br
@@ -643,12 +580,10 @@ Environmental variables to set during build command
 .br
 .Sy Example:
 .Dl build.env       CPPFLAGS="-no-cpp-precomp"
-
 .It Ic build.target.all
 .br
 .Sy Deprecated:
 .Dl Replaced by build.target
-
 .It Ic build.target
 Target passed to ${build.cmd} 
 .br
@@ -659,12 +594,9 @@ Target passed to ${build.cmd}
 .br
 .Sy Example:
 .Dl build.target all-src
-
 .El
-
 .Ss DESTROOT OPTIONS
 Execute necessary commands to install into temporary destination root ("destroot") staging area.
-
 .Bl -tag -width lc
 .It Ic destroot.cmd
 Install command to run relative to ${worksrcdir}
@@ -676,7 +608,6 @@ Install command to run relative to ${worksrcdir}
 .br
 .Sy Example:
 .Dl destroot.cmd	pbxbuild
-
 .It Ic destroot.type
 Defines which 'make' is required, either 'gnu' or 'bsd'
 Sets destroot.cmd to either 'gnumake' or 'bsdmake' accordingly
@@ -688,7 +619,6 @@ Sets destroot.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Example:
 .Dl destroot.type	gnu
-
 .It Ic destroot.pre_args
 Arguments to pass to ${destroot.cmd} before ${destroot.args}
 .br
@@ -696,8 +626,6 @@ Arguments to pass to ${destroot.cmd} before ${destroot.args}
 .Em read-only
 .Sy Default:
 .Em ${destroot.target}
-
-
 .It Ic destroot.args
 Arguments to pass to ${destroot.cmd}
 .br
@@ -706,7 +634,6 @@ Arguments to pass to ${destroot.cmd}
 .br
 .Sy Example:
 .Dl destroot.args	-DPREFIX=${prefix}
-
 .It Ic destroot.destdir
 Arguments passed to ${destroot.cmd} in order to install correctly
 into the destroot.
@@ -718,12 +645,10 @@ into the destroot.
 .br
 .Sy Example:
 .Dl destroot.destdir	prefix=${destroot}${prefix}
-
 .It Ic build.target.install
 .br
 .Sy Deprecated:
 .Dl Replaced by destroot.target
-
 .It Ic destroot.target
 Install target to pass to ${destroot.cmd}
 .br
@@ -734,9 +659,47 @@ Install target to pass to ${destroot.cmd}
 .br
 .Sy Example:
 .Dl destroot.target install-src
-
 .El
-
+.Ss TEST OPTIONS
+Execute commands to run test suites bundled with a port.
+.Bl -tag -width lc
+.It Ic test.run
+Enable running test suites bundled with a port
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl test.run     yes
+.It Ic test.cmd
+test command to run relative to ${worksrcdir}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${build.cmd}
+.br
+.Sy Example:
+.Dl test.cmd	checks.sh 
+.It Ic test.target
+Test target to pass to ${test.cmd}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em test 
+.br
+.Sy Example:
+.Dl test.target	checks
+.It Ic test.dir
+Directory in which to run ${test.cmd}
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl test.dir	${worksrcpath}/checks 
+.El
 .Sh AUTHORS
 .An "Landon Fuller <landonf@opendarwin.org>"
 .An "Kevin Van Vechten <kevin@opendarwin.org>"
