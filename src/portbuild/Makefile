@@ -1,10 +1,10 @@
 SHAREDIR=	/usr/local
 MAN1=		portbuild.1
 
-portbuild.1:
+portbuild.1.gz:
 	gzip -cn portbuild.1 > portbuild.1.gz
 
-all: portbuild.1
+all: portbuild.1.gz
 
 clean:
 	rm -f portbuild.1.gz
