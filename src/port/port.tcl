@@ -272,8 +272,7 @@ switch -- $action {
 	if {[info exists portname]} {
 		# Escape regex special characters
 		regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
-	    set res [dportsearch ^$search_string\$]
-	    if {[catch {set res [dportsearch ^[regex_escape $portname]\$]} result]} {
+	    if {[catch {set res [dportsearch ^$search_string\$]} result]} {
 	    	puts "port search failed: $result"
 		exit 1
 	    }
