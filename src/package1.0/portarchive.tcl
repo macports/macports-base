@@ -96,12 +96,18 @@ proc archive_init {args} {
 		set skipped 1
 	} else {
 		set count [llength [option portarchivetype]]
+		set unsupported 0
 		foreach archive.type [option portarchivetype] {
-			set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
-			set archive.path "[file join ${archive.destpath} ${archive.file}]"
-			if {[file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes")} {
-				ui_debug [format [msgcat::mc "[string toupper ${archive.type}] archive for %s %s_%s%s is up-to-date"] $portname $portversion $portrevision $portvariants]
-				set count [expr $count - 1]
+			if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
+				set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+				set archive.path "[file join ${archive.destpath} ${archive.file}]"
+				if {[file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes")} {
+					ui_debug [format [msgcat::mc "[string toupper ${archive.type}] archive for %s %s_%s%s is up-to-date"] $portname $portversion $portrevision $portvariants]
+					set count [expr $count - 1]
+				}
+			} else {
+				ui_debug "Skipping [string toupper ${archive.type}] archive: $errmsg"
+				set unsupported [expr $unsupported + 1]
 			}
 		}
 		if {$count == 0} {
@@ -110,6 +116,10 @@ proc archive_init {args} {
 			} else {
 				return -code error [format [msgcat::mc "Archive for %s %s_%s%s is already up-to-date"] $portname $portversion $portrevision $portvariants]
 			}
+		}
+		if {[llength [option portarchivetype]] == $unsupported} {
+			ui_debug "Skipping archive ($portname) since specified archive types not supported"
+			set skipped 1
 		}
 	}
 	# Skip archive target by setting state
@@ -300,26 +310,30 @@ proc archive_main {args} {
 	# Now create the archive(s)
 	# Loop through archive types
 	foreach archive.type [option portarchivetype] {
-		# Define archive file/path
-		set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
-		set archive.path "[file join ${archive.destpath} ${archive.file}]"
+		if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
+			# Define archive file/path
+			set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+			set archive.path "[file join ${archive.destpath} ${archive.file}]"
 
-		# If archive already up-to-date, skip it
-		if {!([file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes"))} {
-			# Setup archive command
-			archive_command_setup
+			# If archive already up-to-date, skip it
+			if {!([file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes"))} {
+				# Setup archive command
+				archive_command_setup
 
-			# Remove existing archive
-			if {[file exists ${archive.path}]} {
-				ui_info "$UI_PREFIX [format [msgcat::mc "Deleting previous %s"] ${archive.file}]"
-				file delete -force ${archive.path}
+				# Remove existing archive
+				if {[file exists ${archive.path}]} {
+					ui_info "$UI_PREFIX [format [msgcat::mc "Deleting previous %s"] ${archive.file}]"
+					file delete -force ${archive.path}
+				}
+
+				ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
+				system "[command archive]"
+				ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
+			} else {
+				ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s is up-to-date"] ${archive.file}]"
 			}
-
-			ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
-			system "[command archive]"
-			ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
-		} else {
-			ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s is up-to-date"] ${archive.file}]"
+#		} else {
+#			ui_debug "$errmsg"
 		}
 	}
 

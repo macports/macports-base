@@ -98,16 +98,24 @@ proc unarchive_init {args} {
 		set skipped 1
 	} else {
 		set found 0
+		set unsupported 0
 		foreach unarchive.type [option portarchivetype] {
-			set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${unarchive.type}"
-			set unarchive.path "[file join ${unarchive.srcpath} ${unarchive.file}]"
-			if {[file exist ${unarchive.path}]} {
-				set found 1
-				break
+			if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
+				set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${unarchive.type}"
+				set unarchive.path "[file join ${unarchive.srcpath} ${unarchive.file}]"
+				if {[file exist ${unarchive.path}]} {
+					set found 1
+					break
+				} else {
+					ui_debug "No [string toupper ${unarchive.type}] archive: ${unarchive.path}"
+				}
+			} else {
+				ui_debug "Skipping [string toupper ${unarchive.type}] archive: $errmsg"
+				set unsupported [expr $unsupported + 1]
 			}
 		}
 		if {$found == 1} {
-			ui_debug "Found archive ${unarchive.path}"
+			ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
 			if {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
 				ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
 				set skipped 1
@@ -115,9 +123,13 @@ proc unarchive_init {args} {
 			}
 		} else {
 			if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-				return -code error "Archive ${unarchive.file} not found, required when binary-only is set!"
+				return -code error "Archive for ${portname} ${portversion}_${portrevision}${portvariants} not found, required when binary-only is set!"
 			} else {
-				ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} not found"
+				if {[llength [option portarchivetype]] == $unsupported} {
+					ui_debug "Skipping unarchive ($portname) since specified archive types not supported"
+				} else {
+					ui_debug "Skipping unarchive ($portname) since no archive found"
+				}
 				set skipped 1
 			}
 		}
@@ -236,6 +248,51 @@ proc unarchive_command_setup {args} {
 		}
 	}
 
+	return 0
+}
+
+proc unarchive_main {args} {
+	global UI_PREFIX
+	global portname portversion portrevision portvariants
+	global unarchive.dir unarchive.file
+
+	# Setup unarchive command
+	unarchive_command_setup
+
+	# Create destination directory for unpacking
+	if {![file isdirectory ${unarchive.dir}]} {
+		file mkdir ${unarchive.dir}
+	}
+
+	# Unpack the archive
+	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
+	system "[command unarchive]"
+
+	return 0
+}
+
+proc unarchive_finish {args} {
+	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
+
+	# Reset state file with archive version
+    set statefile [file join $workpath .darwinports.${portname}.state]
+	file copy -force [file join $destpath "+STATE"] $statefile
+	exec touch $statefile
+
+    # Update the state from unpacked archive version
+    set target_state_fd [open_statefile]
+
+	# Archive unpacked, skip archive target
+	write_statefile target "com.apple.archive" $target_state_fd
+    
+	# Cleanup all control files when finished
+	set control_files [glob -nocomplain -types f [file join $destpath +*]]
+	foreach file $control_files {
+		ui_debug "Removing $file"
+		file delete -force $file
+	}
+
+	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
 	return 0
 }
 
