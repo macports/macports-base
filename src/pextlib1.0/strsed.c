@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.10  2003/11/29 21:24:57  landonf
+ * Add missing #ifdef's
+ *
  * Revision 1.9  2003/06/21 21:45:21  ssen
  * Merge from ssen-platform-1
  *
@@ -302,7 +305,9 @@ int *range;
      * If this is the first time we've been called, clear the memory slots.
      */
     if (first_time){
+#ifdef GNU_REGEX
 	register int i;
+#endif
 	mem_init();
 #ifdef GNU_REGEX
 	/* Zero the fake regs that we use if the regex is ".*" */
