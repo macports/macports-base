@@ -51,7 +51,7 @@ default extract.post_args {{| tar -xf -}}
 set UI_PREFIX "---> "
 
 proc extract_init {args} {
-    global extract.only extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip
+    global extract.only extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip portpath workdir
 
     if [info exists use_bzip2] {
 	set extract.cmd bzip2
