@@ -37,9 +37,8 @@ set portdir .
 # ui_options(ports_debug) - If set, output debugging messages.
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
-# ui_options(_ui_is_enabled) - If not set, go into "batch mode"
 
-# Accessor functions for system options
+# ui_options accessor
 proc ui_isset {val} {
     global ui_options
     if {[info exists ui_options($val)]} {
@@ -153,7 +152,7 @@ proc ui_display {filename} {
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vDq\] \[action\] \[-d portdir\] \[options\]"
+    puts "Usage: $argv0 \[-vdq\] \[action\] \[-D portdir\] \[options\]"
 }
 
 proc fatal args {
@@ -179,7 +178,7 @@ for {set i 0} {$i < $argc} {incr i} {
 		    set ui_options(ports_verbose) yes
 		} elseif {$c == "f"} {
 		    set options(ports_force) yes
-		} elseif {$c == "D"} {
+		} elseif {$c == "d"} {
 		    set ui_options(ports_debug) yes
 		    # debug infers verbose
 		    set ui_options(ports_verbose) yes
@@ -187,7 +186,7 @@ for {set i 0} {$i < $argc} {incr i} {
 		    set ui_options(ports_quiet) yes
 		    set ui_options(ports_verbose) no
 		    set ui_options(ports_debug) no
-		} elseif {$opt == "d"} {
+		} elseif {$opt == "D"} {
 		    incr i
 		    set porturl "file://[lindex $argv $i]"
 		} elseif {$opt == "u"} {
