@@ -12,7 +12,7 @@ all: .check
 	@portbuild
 
 install: all
-	@portbuild -t install
+	@portbuild install
 
 clean: .check
-	@portbuild -t clean
+	@portbuild clean
