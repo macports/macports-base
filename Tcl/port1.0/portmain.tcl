@@ -32,7 +32,9 @@ proc main {args} {
     if {[tbool no_worksubdir]} {
 	default worksrcdir ""
     } else {
-	default worksrcdir $distname
+	if {[info exists distname]} {
+		default worksrcdir $distname
+	}
     }
     return 0
 }
