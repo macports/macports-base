@@ -100,7 +100,7 @@ proc fileinfo_for_file {fname} {
     global registry.nochecksum
 
     if ![catch {file stat $fname statvar}] {
-	if ![tbool registry.nochecksum] {
+	if {![tbool registry.nochecksum] && ![file isdirectory $fname]} {
 	    set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 $fname" r]
 	    set line [read $pipe]
@@ -128,12 +128,12 @@ proc fileinfo_for_entry {rval dir entry} {
 	    set subpath [file join $path $name]
 	    if [file isdirectory $subpath] {
 		fileinfo_for_entry myrval $subpath ""
-		lappend myrval [fileinfo_for_file $subpath]
 	    } elseif [file readable $subpath] {
 		lappend myrval [fileinfo_for_file $subpath]
 	    }
 	}
-    } elseif [file readable $path] {
+    }
+    if [file readable $path] {
 	lappend myrval [fileinfo_for_file $path]
     }
     return $myrval
