@@ -154,7 +154,7 @@ proc unarchive_start {args} {
 			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set unarchive.cmd "$xar"
-				set unarchive.pre_args {-xf}
+				set unarchive.pre_args {-xpf}
 				set unarchive.args "${unarchive.path} ."
 			} else {
 				ui_debug $errmsg
