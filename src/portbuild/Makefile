@@ -5,7 +5,11 @@ all: all-man
 
 clean:
 
-install: maninstall
+mkdirs:
+	mkdir -p /usr/local/bin
+	mkdir -p ${SHAREDIR}/man
+
+install: mkdirs maninstall
 	${INSTALL} ${COPY} -o ${BINOWN} -g ${BINGRP} -m ${BINMODE} portbuild.tcl /usr/local/bin/portbuild
 
 .include <bsd.man.mk>
