@@ -28,11 +28,26 @@ proc portfetch::suffix {distname} {
 
 proc portfetch::checkfiles {args} {
 	global portpath distpath
+	lappend filelist [getval portfetch::options distfiles]
+	if {[isval portfetch::options patchfiles]} {
+		lappend filelist [getval portfetch::options patchfiles]
+	}
+	# Set all_dist_files to distfiles + patchfiles
+	foreach file $filelist {
+		if {![file exists files/$file]} {
+			appendval portfetch::options all_dist_files $file
+		}
+	}
+}
+
+proc portfetch::fetchfiles {args} {
+	global portpath distpath
 
 	if {![file isdirectory $distpath]} {
 		file mkdir $distpath
 	}
-	foreach distfile [getval portfetch::options distfiles] {
+
+	foreach distfile [getval portfetch::options all_dist_files] {
 		if {![file isfile $distpath/$distfile]} {
 			puts "$distfile doesn't seem to exist in $distpath"
 			foreach site [getval portfetch::options master_sites] {
@@ -57,12 +72,11 @@ proc portfetch::main {args} {
 	# Defaults
 	default portfetch::options distfiles [portfetch::suffix $distname]
 
-	# Set all_dist_files to distfiles + patchfiles
-	setval portfetch::options all_dist_files [getval portfetch::options distfiles]
-	if [isval portfetch::options patchfiles] {
-		appendval portfetch::options all_dist_files [getval portfetch::options patchfiles]
-	}
-
 	# Check for files, download if neccesary
-	return [portfetch::checkfiles]
+	portfetch::checkfiles
+	if ![isval portfetch::options all_dist_files] {
+		return 0
+	} else {
+		return [portfetch::fetchfiles]
+	}
 }

@@ -45,6 +45,12 @@ proc portchecksum::dmd5 {file} {
 
 proc portchecksum::main {args} {
 	global distpath all_dist_files
+
+	# There is the possibility that all_dist_files is not set to anything
+	if ![info exists all_dist_files] {
+		return 0
+	}
+
 	if ![isval portchecksum::options md5file] {
 		setval portchecksum::options md5file distinfo
 	}
