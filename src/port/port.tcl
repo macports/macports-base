@@ -56,12 +56,6 @@ for {set i 0} {$i < $argc} {incr i} {
 	if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
 		if {$opt == "-"} {
 			set separator 1
-		} elseif {$opt == "d"} {
-			incr i
-			set porturl "file://[lindex $argv $i]"
-		} elseif {$opt == "u"} {
-			incr i
-			set porturl [lindex $argv $i]
 		} else {
 			foreach c [split $opt {}] {
 				if {$c == "v"} {
@@ -72,6 +66,12 @@ for {set i 0} {$i < $argc} {incr i} {
 					set options(ports_quiet) yes
 					set options(ports_verbose) no
 					set options(ports_debug) no
+				} elseif {$opt == "d"} {
+					incr i
+					set porturl "file://[lindex $argv $i]"
+				} elseif {$opt == "u"} {
+					incr i
+					set porturl [lindex $argv $i]
 				} else {
 					print_usage; exit
 				}
