@@ -20,5 +20,6 @@ proc portmain::main {args} {
 	global portname
 	default portmain::options workdir work
 	default portmain::options filedir files
+	default portmain::portrevision 0
 	return 0
 }
