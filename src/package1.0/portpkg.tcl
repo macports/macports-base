@@ -29,13 +29,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portpackage 1.0
+package provide portpkg 1.0
 package require portutil 1.0
 
-set com.apple.package [target_new com.apple.package package_main]
-target_runtype ${com.apple.package} always
-target_provides ${com.apple.package} package
-target_requires ${com.apple.package} destroot
+set com.apple.pkg [target_new com.apple.pkg pkg_main]
+target_runtype ${com.apple.pkg} always
+target_provides ${com.apple.pkg} pkg
+target_requires ${com.apple.pkg} destroot
 
 # define options
 options package.type package.destpath
@@ -45,10 +45,10 @@ default package.destpath {${workpath}}
 
 set_ui_prefix
 
-proc package_main {args} {
+proc pkg_main {args} {
     global portname portversion portrevision package.type package.destpath UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating package for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${portname} ${portversion}]"
 
     return [package_pkg $portname $portversion $portrevision]
 }

@@ -1,11 +1,6 @@
-INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/port1.0
+INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/package1.0
 
-SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
-	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
-	portinstall.tcl portdepends.tcl portdestroot.tcl portuninstall.tcl  \
-        portclean.tcl porttest.tcl portsubmit.tcl
-
-SUBDIR=		resources
+SRCS=	portdmg.tcl portmpkg.tcl portpkg.tcl portrpmpackage.tcl
 
 include ../../Mk/dports.subdir.mk
 include ../../Mk/dports.autoconf.mk

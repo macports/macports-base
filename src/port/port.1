@@ -103,7 +103,8 @@ stages (besides "install") are:
 .Pp
 There are also targets for packaging ports:
 .Pp
-.Dl package
+.Dl pkg
+.Dl mpkg
 .Dl dmg
 .Dl rpmpackage
 .Pp
@@ -168,9 +169,9 @@ with the "extract" target on portdir "textproc/figlet" and extract.suffix set to
 .Pp
 .Dl "port extract -d textproc/figlet extract.suffix=.tgz"
 .Pp
-To package a port as an OS X package, use the "package" target:
+To package a port as an OS X package, use the "pkg" target:
 .Pp
-.Dl "port package gimp"
+.Dl "port pkg gimp"
 .Pp
 or use
 .Nm

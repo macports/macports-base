@@ -506,7 +506,7 @@ proc dportexec {dport target} {
 	set dlist {}
 	if {$target == "configure" || $target == "build"
 		|| $target == "destroot" || $target == "install"
-		|| $target == "package" || $target == "mpkg"
+		|| $target == "pkg" || $target == "mpkg"
 		|| $target == "rpmpackage" } {
 
 		if {[dportdepends $dport 1 1] != 0} {
