@@ -32,7 +32,7 @@ package require darwinports_dlist 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix"
     variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
 	
     variable open_dports {}
@@ -162,6 +162,11 @@ proc dportinit {args} {
 	set libpath "${prefix}/share/darwinports/Tcl"
     }
 
+    if {![info exists binpath]} {
+	global env
+	set env(PATH) "/sbin:/usr/sbin:/bin:/usr/bin:${prefix}/bin"
+    }
+
     if {[file isdirectory $libpath]} {
 		lappend auto_path $libpath
 		set darwinports::auto_path $auto_path
@@ -241,6 +246,7 @@ proc darwinports::fetch_port {url} {
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
         return -code error "Can't decipher portdir from $fetchfile"
     }
+
     return [file join $fetchdir $portdir]
 }
 
@@ -326,6 +332,7 @@ proc _dportsearchpath {depregex search_path} {
 	    }
 	}
     }
+
     return $found
 }
 
@@ -366,7 +373,6 @@ proc _libtest {dport} {
 		set depregex \^${depregex}\\.so\$
 	}
 
-	
 	return [_dportsearchpath $depregex $search_path]
 }
 
@@ -402,9 +408,9 @@ proc _pathtest {dport} {
 		# Prepend prefix if not an absolute path
 		set search_path "${prefix}/${search_path}"
 	}
-		
+
 	set depregex \^$depregex\$
-	
+
 	return [_dportsearchpath $depregex $search_path]
 }
 

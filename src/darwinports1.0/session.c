@@ -107,9 +107,6 @@ dp_session_t dp_session_open() {
     if (dp->sources_conf == NULL) {
         fprintf(stderr, "sources_conf must be set in /etc/ports/ports.conf or in your ~/.portsrc\n");
     }
-    
-    
-    
     return (dp_session_t)dp;
 }
 
