@@ -128,12 +128,6 @@ proc property_retrieve {ref property} {
 	return [${darwinports::registry.format}::property_retrieve $ref $property]
 }
 
-# Return all properties of the open registry entry
-proc entry_properties {ref} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::entry_properties $ref]
-}
-
 # If only one version of the port is installed, this process returns that
 # vERSION'S parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {

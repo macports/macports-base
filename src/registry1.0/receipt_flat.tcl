@@ -1,6 +1,8 @@
 # receipt_flat.tcl
+# $Id: receipt_flat.tcl,v 1.1.4.6 2004/05/31 10:06:51 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
+# Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -39,93 +41,238 @@ package require Pextlib 1.0
 ##
 namespace eval receipt_flat {
 
-# receipt_list will hold a reference to each "receipt" that is currently open
-variable receipt_list [list]
-variable file_map
-variable dep_map [list]
-namespace export receipt_list file_map
+# receipt_lastref is the last attributed index of receipts.
+variable receipt_lastref -1
 
-# Create a new entry and place it in the receipt_list
+##
+#
+# Create a new entry and return its reference number.
+# The reference number allows us to retrieve the receipt array.
 proc new_entry {} {
-	variable receipt_list
+	variable receipt_lastref
+	incr receipt_lastref
 
-	if { ![info exists receipt_list] } {
-		set receipt_list [list]
-	}
+	variable receipt_$receipt_lastref
+	array set receipt_$receipt_lastref {}
 
-	lappend receipt_list ""
-	
-	if { [llength $receipt_list] <= 1 } {
-		return 0
-	} else {
-		return [expr [llength $receipt_list] - 1]
-	}
-
+	return $receipt_lastref
 }
 
-# Open an existing entry and place it in the receipt_list
+##
+#
+# Get the path to the receipt in HEAD format.
+# Remark: this code doesn't work for some ports.
+# That's why we moved to the new path format in the first place.
+#
+# portname			the name of the port.
+# portversion		the version for this port, 0 if unknown.
+# return the path to the file or "" if the file couldn't be found.
+proc get_head_entry_receipt_path {portname portversion} {
+    global darwinports::registry.path
+
+    # regex match case
+    if {$portversion == 0} {
+	set x [glob -nocomplain [file join ${darwinports::registry.path} receipts ${portname}-*]]
+	if {[string length $x]} {
+	    set matchfile [lindex $x 0]
+	} else {
+	    set matchfile ""
+	}
+    } else {
+	set matchfile [file join ${darwinports::registry.path} receipts ${portname}-${portversion}]
+    }
+
+    # Might as well bail out early if no file to match
+    if {![string length $matchfile]} {
+		return ""
+    }
+
+    if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
+		return $matchfile
+    }
+    return ""
+}
+
+##
+#
+# Open an existing entry and return its reference number.
 proc open_entry {name {version 0} {revision 0} {variants ""}} {
 	global darwinports::registry.installtype
-	variable receipt_list
-	
-	if { ![info exists receipt_list] } {
-		set receipt_list [list]
-	}
+	global darwinports::registry.path
 
 	set receipt_path [file join ${darwinports::registry.path} receipts ${name}]
 
-	# If the receipt path ${name} doesn't exist, then a receipt doesn't.
+	# If the receipt path ${name} doesn't exist, then the receipt probably is
+	# in the old HEAD format.
 	if { ![file isdirectory $receipt_path] } {
-		return 0
-	}
-
-	# If version wasn't specified, find out the version number.  This will
-	# depend on which installtype mode we're in, "direct" or "image"	
-	if { $version == 0 } {
-		# xxx: If we're in image mode, we really should have had the 
-		# version given to us.  How should we handle this?
-		set x [glob -nocomplain [file join ${receipt_path} *]]
-		if { [string length $x] } {
-			set v [lindex [file split [lindex $x 0]] end]
-			regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} $v match version revision variants
-		} else {
-			return -code error "Registry error: ${name} not registered as installed."
+		set receipt_file [get_head_entry_receipt_path $name $version]
+		
+		if {![string length $receipt_file]} {
+			if { $version != 0 } {
+				return -code error "Registry error: ${name} ${version}_${revision}${variants} not registered as installed."
+			} else {
+				return -code error "Registry error: ${name} not registered as installed."
+			}
 		}
+		
+		# Extract the version from the path.
+		if { $version == 0 } {
+			regexp {$name-(.*)$} [lindex [file split $receipt_file] end] match version
+		}
+	} else {
+		# If version wasn't specified, find out the version number.  This will
+		# depend on which installtype mode we're in, "direct" or "image"	
+		if { $version == 0 } {
+			# xxx: If we're in image mode, we really should have had the 
+			# version given to us.  How should we handle this?
+			set x [glob -nocomplain [file join ${receipt_path} *]]
+			if { [string length $x] } {
+				set v [lindex [file split [lindex $x 0]] end]
+				regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} $v match version revision variants
+			} else {
+				return -code error "Registry error: ${name} not registered as installed."
+			}
+		}
+	
+		if { ![entry_exists $name $version $revision $variants] } {
+			return -code error "Registry error: ${name} ${version}_${revision}${variants} not registered as installed."
+		}
+	
+		set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	
+		set receipt_file [file join ${receipt_path} receipt]
 	}
-
-	if { ![entry_exists $name $version $revision $variants] } {
-		return -code error "Registry error: ${name} ${version}_${revision}${variants} not registered as installed."
-	}
-
-	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
-
-	set receipt_file [file join ${receipt_path} receipt]
 
 	if { [file exists ${receipt_file}.bz2] && [file exists /usr/bin/bzip2] } {
 		# xxx: Again, we shouldn't use absolute paths
-		set receipt_contents [exec /usr/bin/bzip2 -d -c ${receipt_file}.bz2]
-	} else {
+		set receipt_file ${receipt_file}.bz2
+		set receipt_contents [exec /usr/bin/bzip2 -d -c ${receipt_file}]
+	} elseif { [file exists ${receipt_file}] } {
 		set receipt_handle [open ${receipt_file} r]
 		set receipt_contents [read $receipt_handle]
 		close $receipt_handle
-	}
-
-	lappend receipt_list $receipt_contents	
-
-	if { [llength $receipt_list] <= 1 } {
-		return 0
 	} else {
-		return [expr [llength $receipt_list] - 1]
+		return -code error "Registry error: receipt for ${name} ${version}_${revision}${variants} seems to be compressed, but bzip2 couln't be found."
 	}
 
+	set ref [new_entry]
+	variable receipt_$ref
+
+	# Determine the format of the receipt.
+	if {[string match "# Format: var value ...*" $receipt_contents]} {
+		# This is old HEAD format.
+		# We convert it and we save it.
+		# tell the user
+		ui_msg "Converting receipt for $name-$version to new format"
+
+		convert_entry_from_HEAD $name $version $revision $variants $receipt_contents $ref
+		
+		# move the old receipt
+		set convertedDirPath [file join ${darwinports::registry.path} receipts_converted]
+		file mkdir $convertedDirPath
+		file rename $receipt_file $convertedDirPath
+	} elseif {[string match "# Version: *" $receipt_contents]} {
+		# This is new format
+		if {![string match "# Version: 1.0*" $receipt_contents]} {
+			return -code error "Registry error: receipt ${name} ${version}_${revision}${variants} is in an unknown format (version too new?)."
+		}
+
+		# Remove any line starting with #
+		while {[regexp "(^|\n)#.*\n(.*)$" $receipt_contents match foo receipt_contents]} {}
+		array set receipt_$ref $receipt_contents
+	} else {
+		# This is old Images format
+
+		# Iterate on the elements of $receipt_contents and add them to the list.
+		foreach pair $receipt_contents {
+			array set receipt_[set ref] $pair
+		}
+	}
+	
+	return $ref
 }
 
-# Write an entry from the receipt_list
+##
+#
+# Convert an entry from HEAD old format.
+# HEAD old format is a file in the key,value format with key and values being on the
+# same line separated with a space.
+# This typically is read with an options-like approach.
+# This conversion routine also appends the contents to the file map.
+#
+# name				the name of the port to convert.
+# version			the version of the port to convert.
+# revision			the revision of the port to convert (probably inaccurate).
+# variants			the variants of the port to convert (idem).
+# receipt_contents	the content of the old receipt file.
+# ref				reference of the target receipt array where the content must be put.
+proc convert_entry_from_HEAD {name version revision variants receipt_contents ref} {
+	variable receipt_$ref
+	
+	# First set default value for stuff that aren't in the receipt.
+	array set receipt_[set ref] {name $name}
+	array set receipt_[set ref] {version $version}
+	array set receipt_[set ref] {revision $revision}
+	array set receipt_[set ref] {variants $variants}
+	array set receipt_[set ref] {installtype direct}
+	array set receipt_[set ref] {receipt_f receipt_flat}
+	array set receipt_[set ref] {active 1}
+	
+	# Then start a new interpreter to read the content of the portfile.
+	interp create theConverterInterpreter
+	interp eval theConverterInterpreter "proc prefix {args} {\n\
+	}"
+	interp eval theConverterInterpreter "proc categories {args} {\n\
+		global theConvertedReceipt\n\
+		set theConvertedReceipt(categories) \$args\n\
+	}"
+	interp eval theConverterInterpreter "proc description {args} {\n\
+		global theConvertedReceipt\n\
+		set theConvertedReceipt(description) \$args\n\
+	}"
+	interp eval theConverterInterpreter "proc long_description {args} {\
+		global theConvertedReceipt\n\
+		set theConvertedReceipt(long_description) \$args\n\
+	}"
+	interp eval theConverterInterpreter "proc homepage {args} {\n\
+		global theConvertedReceipt\n\
+		set theConvertedReceipt(homepage) \$args\n\
+	}"
+	interp eval theConverterInterpreter "proc contents {args} {\n\
+		global theConvertedReceipt\n\
+		set theConvertedReceipt(contents) \$args\n\
+	}"
+	interp eval theConverterInterpreter "array set theConvertedReceipt {}"
+	interp eval theConverterInterpreter $receipt_contents
+	array set receipt_$ref [interp eval theConverterInterpreter "array get theConvertedReceipt"]
+	interp delete theConverterInterpreter
+	
+	# Append the contents list to the file map.
+	set contents [property_retrieve $ref contents]
+	foreach file $contents {
+		register_file [lindex $file 0] $name
+	}
+	
+	# Save the file_map afterwards
+	write_file_map
+	
+	# Save the entry to new format.
+	write_entry $ref $name $version $revision $variants
+}
+
+##
+#
+# Write the entry that was previously created.
+#
+# ref				the reference number of the entry.
+# name				the name of the port.
+# version			the version of the port.
+# variants			the variants of the port.
 proc write_entry {ref name version {revision 0} {variants ""}} {
 	global darwinports::registry.installtype
-	variable receipt_list
+	variable receipt_$ref
 
-	set receipt_contents [lindex $receipt_list $ref]
+	set receipt_contents [array get receipt_$ref]
 
 	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [file join ${receipt_path} receipt]
@@ -134,14 +281,8 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 		file mkdir ${receipt_path}
 	}
 
-	# Create the contents list entry
-	set contents [property_retrieve $ref contents]
-	set file_map [list]
-	foreach file $contents {
-		lappend file_map [list [lindex $file 0] $name ${version}_${revision}${variants}]
-	}
-
 	set receipt_handle [open ${receipt_file}.tmp w 0644]
+	puts $receipt_handle "# Version: 1.0"
 	puts $receipt_handle $receipt_contents
 	close $receipt_handle
 
@@ -164,7 +305,7 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 # Check to see if an entry exists
 proc entry_exists {name version {revision 0} {variants ""}} {
 	global darwinports::registry.path
-variable receipt_handle 
+	variable receipt_handle 
 	variable receipt_file 
 	variable receipt_path
 
@@ -180,35 +321,43 @@ variable receipt_handle
 	return 0
 }
 
-# Store a property to a receipt current in the receipt_list
+##
+#
+# Store a property to a receipt that was loaded in memory.
+# This replaces any property that had the same key previously in the receipt.
+#
+# ref			reference number for the receipt.
+# property		key for the property to store.
+# value			value for the property to store.
 proc property_store {ref property value} {
-	variable receipt_list
-
-	if { [info exists receipt_list] } {
-		set receipt_contents [lindex $receipt_list $ref]
-	} else {
-		set receipt_contents [list]
-	}
+	variable receipt_$ref
 	
-	_reclist_set receipt_contents $property $value
-	lset receipt_list $ref $receipt_contents
+	array set receipt_[set ref] {$property $value}
 
 	return 1
 }
 
-# Retrieve a property from a receipt currently in the receipt_list
+##
+#
+# Retrieve a property from a receipt that was loaded in memory.
+#
+# ref			reference number for the receipt.
+# property		key for the property to retrieve.
+#
 proc property_retrieve {ref property} {
-	variable receipt_list
+	variable receipt_$ref
 
-	set receipt_contents [lindex $receipt_list $ref]
-
-	return [_reclist_get receipt_contents $property]
+	set theCouple [array get receipt_[set ref] $property]
+	if {[llength theCouple] != 2} {
+		return 0
+	} else {
+		return [lindex theCouple 1]
+	}
 }
 
 # Delete an entry
 proc delete_entry {name version {revision 0} {variants ""}} {
 	global darwinports::registry.path
-	variable receipt_list
 
 	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	if { [file exists ${receipt_path}] } {
@@ -217,13 +366,6 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 	} else {
 		return 0
 	}
-}
-
-# Return all properties of an entry currently in the receipt_list
-proc entry_properties {ref} {
-	variable receipt_list
-	set receipt_contents [lindex $receipt_list $ref]
-	return $receipt_contents
 }
 
 # Return all installed ports
@@ -235,7 +377,6 @@ proc entry_properties {ref} {
 # like selecting on the version or selecting variants in any order.
 proc installed {{name ""} {version ""}} {
 	global darwinports::registry.path
-	variable receipt_path
 
 	set query_path [file join ${darwinports::registry.path} receipts]
 	
@@ -254,7 +395,7 @@ proc installed {{name ""} {version ""}} {
 		}
 	}
 
-	set x [glob -nocomplain -type d ${query_path}]
+	set x [glob -nocomplain -types d ${query_path}]
 	set rlist [list]
 	foreach p $x {
 		set plist [list]
@@ -265,6 +406,36 @@ proc installed {{name ""} {version ""}} {
 		lappend plist $variants
 		lappend rlist $plist
 	}
+
+	# append the ports in old HEAD format.
+	if { $name == "" } {
+		set query_path [file join ${darwinports::registry.path} receipts *]
+	} else {
+		set query_path [file join ${darwinports::registry.path} receipts ${name}-*]
+	}
+    set receiptglob [glob -nocomplain -types f ${query_path}]
+    foreach receipt_file $receiptglob {
+    	# Remark: these regexes do not always work.
+    	if { $name == "" } {
+			regexp {^(.*)-(.*)$} [lindex [file split $receipt_file] end] match name version
+    	} else {
+			regexp {^$name-(.*)$} [lindex [file split $receipt_file] end] match version
+		}
+		
+		# Skip if the name is empty.
+		if {[string length $name]} {
+			set plist [list]
+			lappend plist $name
+			
+			# Remove .bz2 suffix, if present.
+			regexp {^(.*)\.bz2$} $version match version
+			lappend plist $version
+			lappend plist 0
+			lappend plist ""
+			lappend rlist $plist
+		}
+	}
+
 	return $rlist
 }
 
@@ -300,14 +471,14 @@ proc open_file_map {args} {
 	}
 
 	# Open the map (new format)
-	filemap open file_map ${map_file}
+	filemap open file_map ${map_file}.db
 	
 	# Translate from old format.
 	if { [llength $old_filemap] > 0 } {
 		# Tell the user.
 		ui_msg "Converting file map to new format (this may take a while)"
 
-		foreach f $file_map {
+		foreach f $old_file_map {
 			filemap set file_map [lindex $f 0] [lindex $f 1]
 		}
 		
@@ -376,7 +547,7 @@ proc register_file {file port} {
 		open_file_map
 	}
 
-	filemap set $file $port
+	filemap set file_map $file $port
 }
 
 ##
@@ -392,7 +563,7 @@ proc unregister_file {file} {
 		open_file_map
 	}
 
-	filemap unset $file
+	filemap unset file_map $file
 }
 
 ##
@@ -510,49 +681,6 @@ proc write_dep_map {args} {
 
 	return 1
 }
-
-##
-# A simple keyed list effort... 
-# This should be considered private
-# xxx:There should be a better way to do this
-##
-
-# Add a key/value to the reglist
-proc _reclist_set {rlist key value} {
-	upvar $rlist r
-	for { set i 0 } { $i <= [llength $r] } { incr i } {
-		if { [lindex [lindex $r $i] 0] == $key } {
-			lset r $i [list $key $value]
-			return r
-		}
-	}
-	lappend r [list $key $value]
-	return r
-}
-
-# Get the value for key from a reglist
-proc _reclist_get {rlist key} {
-	upvar $rlist r
-	foreach k $r {	
-		if { [lindex $k 0] == $key } {
-			return [lindex $k 1]
-		}
-	}
-	return 0
-}
-
-# Delete a key/value from a reglist
-proc _reclist_del {rlist key} {
-	upvar $rlist r
-	set t [list]
-	foreach k $r {
-		if { [lindex $k 0] == $key] } {
-			lappend $t $k
-		}
-	}
-	set r $t
-}
-
 
 # End of receipt_flat namespace
 }

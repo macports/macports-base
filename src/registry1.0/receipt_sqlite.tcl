@@ -77,11 +77,6 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 	return -1
 }
 
-# Return all properties of an entry currently in the receipt_list
-proc entry_properties {ref} {
-	return -1
-}
-
 # Return all installed ports
 proc installed {{name ""} {version ""}} {
 	return -1

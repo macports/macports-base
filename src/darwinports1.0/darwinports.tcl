@@ -237,7 +237,6 @@ proc darwinports::worker_init {workername portpath options variations} {
 	$workername alias registry_write registry::write_entry
 	$workername alias registry_prop_store registry::property_store
 	$workername alias registry_prop_retr registry::property_retrieve
-	$workername alias registry_props registry::entry_properties
 	$workername alias registry_delete registry::delete_entry
 	$workername alias registry_exists registry::entry_exists
 	$workername alias registry_activate portimage::activate
