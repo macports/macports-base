@@ -1,3 +1,3 @@
-package require darwinports 1.0
+package require darwinports
 dportinit
-package require port 1.0
+package require port
