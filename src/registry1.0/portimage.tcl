@@ -318,13 +318,19 @@ proc _activate_contents {name imagefiles imagedir} {
 				}
 			}
 		}
-		# Split out the filename's directory and add it and the filename to
-		# the imagefile lsit
-		set directory [file dirname $file]
-		if { [lsearch -exact $imagefiles $directory] == -1 } { 
-			lappend files $directory
-		}
+		
+		# Add the filename to the imagefile list.
 		lappend files $file
+
+		# Split out the filename's subpaths and add them to the imagefile list
+		# as well.
+		# [PG] is this really necessary since we're also adding the subpaths
+		#      when deactivating?
+		set directory [file dirname $file]
+		while { [lsearch -exact $files $directory] == -1 } { 
+			lappend files $directory
+			set directory [file dirname $directory]
+		}
 	}
 	registry::write_file_map
 
@@ -342,17 +348,19 @@ proc _activate_contents {name imagefiles imagedir} {
 proc _deactivate_file {dstfile} {
 	if { [file isdirectory $dstfile] } {
 		if { [llength [readdir $dstfile]] < 2 } {
+			ui_debug "deactivating directory: $dstfile"
 			file delete $dstfile
+		} else {
+			ui_debug "$dstfile is not empty"
 		}
 	} else {
+		ui_debug "deactivating file: $dstfile"
 		file delete $dstfile
 	}
-
 }
 
 proc _deactivate_list {filelist} {
 	foreach file $filelist {
-		ui_debug "deactivating file: $file"
 		_deactivate_file $file
 	}
 }
@@ -364,24 +372,30 @@ proc _deactivate_contents {name imagefiles} {
 	
 	foreach file $imagefiles {
 		set port [registry::file_registered $file] 
-		if { [file exists $file] && ![file isdirectory $file] } {
-			# Split out the filename's directory and add it and the filename to
-			# the imagefile lsit
-			set directory [file dirname $file]
-			if { [lsearch -exact $imagefiles $directory] == -1 } { 
-				lappend files $directory
-			}
+		if { [file exists $file] } {
 			lappend files $file
+			
+			# Split out the filename's subpaths and add them to the image list as
+			# well.
+			set directory [file dirname $file]
+			while { [lsearch -exact $files $directory] == -1 } { 
+				lappend files $directory
+				set directory [file dirname $directory]
+			}
 		} else {
 			ui_debug "$file does not exist."
 		}
 	}
 
-	if { [catch {_deactivate_list $files} result] } {
+	# Sort the list in reverse order, removing duplicates.
+	# Since the list is sorted in reverse order, we're sure that directories
+	# are after their elements.
+	set theList [lsort -decreasing -unique $files]
+
+	# Remove all elements.
+	if { [catch {_deactivate_list $theList} result] } {
 		return -code error $result
 	}
-
-	#_deactivate_list $files
 }
 
 # End of portimage namespace
