@@ -291,7 +291,7 @@ Subdirectory to append to all mirror sites for any list specified in patch_sites
 .br
 .Sy Example:
 .Dl patch_sites.mirror_subdir       magic
-.It Ic extract.sufx
+.It Ic extract.suffix
 Suffix to append to ${distname}
 .br
 .Sy Type:
@@ -300,7 +300,7 @@ Suffix to append to ${distname}
 .Em .tar.gz
 .br
 .Sy Example:
-.Dl extract.sufx	.tgz
+.Dl extract.suffix	.tgz
 .It Ic distfiles
 List of distribution files to fetch from ${master_sites}
 .br
@@ -322,7 +322,7 @@ List of patches to fetch and apply
 .It Ic use_zip
 Use zip.
 .br
-Sets extract.sufx to: .zip
+Sets extract.suffix to: .zip
 .br
 Sets extract.cmd to: unzip
 .br
@@ -338,7 +338,7 @@ Sets extract.post_args to: "-d $portpath/$workdir"
 .It Ic use_bzip2
 Use bzip2.
 .br
-Sets extract.sufx to: .bzip2
+Sets extract.suffix to: .bzip2
 .br
 Sets extract.cmd to: bzip2
 .br

@@ -39,14 +39,14 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
 commands fetch
 
 # Defaults
-default extract.sufx .tar.gz
+default extract.suffix .tar.gz
 default fetch.type standard
 default cvs.cmd cvs
 default cvs.password ""
@@ -72,16 +72,16 @@ default distfiles {[suffix $distname]}
 # Option-executed procedures
 namespace eval options { }
 proc options::use_bzip2 {args} {
-    global use_bzip2 extract.sufx
+    global use_bzip2 extract.suffix
     if {[tbool use_bzip2]} {
-        set extract.sufx .tar.bz2
+        set extract.suffix .tar.bz2
     }
 }
 
 proc options::use_zip {args} {
-    global use_zip extract.sufx
+    global use_zip extract.suffix
     if {[tbool use_zip]} {
-        set extract.sufx .zip
+        set extract.suffix .zip
     }
 }
 
@@ -91,9 +91,9 @@ namespace eval portfetch { }
 
 set UI_PREFIX "---> "
 
-# Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.sufx options
+# Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.suffix options
 proc suffix {distname} {
-    global extract.sufx use_bzip2 use_zip fetch.type
+    global extract.suffix use_bzip2 use_zip fetch.type
     if {"${fetch.type}" == "cvs"} {
         return ""
     }
@@ -102,7 +102,7 @@ proc suffix {distname} {
     } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
-	return ${distname}${extract.sufx}
+	return ${distname}${extract.suffix}
     }
 }
 
