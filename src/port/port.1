@@ -35,18 +35,20 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op target
-.Op Fl d Ar portdir
-.Op options ...
+.Oo
+.Op Ar target
+.Op Ar portdir
+.Oc
+.Op Ar options ...
 .Sh DESCRIPTION
 .Nm
 is designed to read and execute the build instructions of a darwin port. If no portdir is specified, the current working directory is assumed. Port options are specified as key=value pairs and take precedence over individual port options and system-wide settings.
 .Sh EXAMPLES
 The following demonstrates invoking
 .Nm
-with the "extract" target and extract_sufx set to ".tgz"
+with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz"
 .Pp
-.Dl "port extract extract_sufx=.tgz"
+.Dl "port extract textproc/figlet extract_sufx=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std

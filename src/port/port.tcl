@@ -47,6 +47,7 @@ proc fatal args {
 
 # Main
 set target "build"
+set targeted 0
 for {set i 0} {$i < $argc} {incr i} {
 	switch -regexp -- [lindex $argv $i] {
 		{^-d$} {
@@ -58,8 +59,13 @@ for {set i 0} {$i < $argc} {incr i} {
 				lappend options [lindex $argv $i]
 			}
 		}
-		{^[A-Za-z0-9]+$} {
-			set target [lindex $argv $i]
+		{^[A-Za-z0-9\/\._\-]+$} {
+			if {$targeted == 0} {
+				set target [lindex $argv $i]
+				set targeted 1
+			} else {
+				set portdir [lindex $argv $i]
+			}
 		}
 		default { print_usage; exit }
 	}
