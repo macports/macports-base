@@ -108,7 +108,6 @@ proc depends_main {id} {
 		}
 	    }
 	}
-    }
     foreach path $search_path {
 	if {![file isdirectory $path]} {
 		continue
@@ -126,5 +125,6 @@ proc depends_main {id} {
     set worker [dportopen "$sysportpath/$portname" options variations]
     dportexec $worker install
     dportclose $worker
+    }
     return 0
 }
