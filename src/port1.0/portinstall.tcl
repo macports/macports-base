@@ -32,7 +32,7 @@
 package provide portinstall 1.0
 package require portutil 1.0
 
-register com.apple.install target install_main always
+register com.apple.install target install_main
 register com.apple.install provides install
 register com.apple.install requires main fetch extract checksum patch configure build depends_run depends_lib
 
