@@ -36,19 +36,11 @@ package require portutil 1.0
 # XXX registry is no longer a target
 
 # define options
-# XXX kludge to support contents lists AND destdir
-option_deprecate contents
-options contents registry.nochecksum registry.path registry.nobzip registry.contents_recurse
+options registry.nochecksum registry.path registry.nobzip
 
 default registry.path {[file join ${portdbpath} receipts]}
 
 set UI_PREFIX "---> "
-
-proc registry_start {args} {
-    global UI_PREFIX portname
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Adding %s to registry, this may take a moment..."] ${portname}]"
-}
 
 # For now, just write stuff to a file for debugging.
 
@@ -145,23 +137,10 @@ proc fileinfo_for_file {fname} {
 }
 
 proc fileinfo_for_entry {rval dir entry} {
-    global registry.contents_recurse UI_PREFIX
+    global UI_PREFIX
 
     upvar $rval myrval
     set path [file join $dir $entry]
-    if {[file isdirectory $path] && [tbool registry.contents_recurse]} {
-	foreach name [readdir $path] {
-	    if {[string match $name .] || [string match $name ..]} {
-		continue
-	    }
-	    set subpath [file join $path $name]
-	    if [file isdirectory $subpath] {
-		fileinfo_for_entry myrval $subpath ""
-	    } elseif [file readable $subpath] {
-		lappend myrval [fileinfo_for_file $subpath]
-	    }
-	}
-    }
     lappend myrval [fileinfo_for_file $path]
     return $myrval
 }
@@ -177,9 +156,6 @@ proc fileinfo_for_index {flist} {
 	} else {
 	    set fname [file join $prefix $file]
 	    set dir $prefix
-	}
-	if {[file isdirectory $fname] && [tbool registry.contents_recurse]} {
-	    ui_msg "$UI_PREFIX [format [msgcat::mc "Warning: Registry adding contents of directory %s"] $fname]"
 	}
 	fileinfo_for_entry rval $dir $file
     }

@@ -49,26 +49,16 @@ default install.dir {${build.dir}}
 default install.cmd {${build.cmd}}
 default install.pre_args {${install.target}}
 default install.target install
-option_deprecate build.target.install install.target
-
-# XXX nasty kludges to support contents lists AND destdir
-option_proc contents install_useContents
-
-proc install_useContents {option action args} {
-    global install_useContents
-    if {${action} == "set" || ${action} == "append"} {
-    	set install_useContents yes
-    }
-}
+default install.args {DESTDIR=${destroot}}
 
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname destpath
+    global UI_PREFIX portname destroot
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
-	file mkdir ${destpath}
+	file mkdir ${destroot}
 }
 
 proc install_element {src_element dst_element} {
@@ -130,21 +120,15 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 }
 
 proc install_main {args} {
-    global install_useContents destpath
     system "[command install]"
-    if {![tbool install_useContents]} {
-        directory_dig ${destpath} ${destpath}
-    }
     return 0
 }
 
 proc install_registry {args} {
-    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX contents install_useContents
-    if {![tbool install_useContents]} {
-        set _installPlist $installPlist
-    } else {
-        set _installPlist $contents
-    }
+    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
+
+    # Install ${destroot} contents into /
+    directory_dig ${destroot} ${destroot}
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
@@ -166,8 +150,8 @@ proc install_registry {args} {
     if [info exists package-install] {
 	registry_store $rhandle [concat package-install ${package-install}]
     }
-    if [info exists _installPlist] {
-	registry_store $rhandle [list contents [fileinfo_for_index $_installPlist]]
+    if [info exists installPlist] {
+	registry_store $rhandle [list contents [fileinfo_for_index $installPlist]]
     }
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
 	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
