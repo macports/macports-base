@@ -115,9 +115,17 @@ proc depends_main {id} {
 	foreach filename [readdir $path] {
 		if {[regexp $depregex $filename] == 1} {
 			ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
-			return 0
+			set found yes
+			break
 		}
 	}
+	if {[tbool found]} {
+	    break
+	}
+    }
+    if {[tbool found]} {
+	unset found
+	continue
     }
     ui_debug "Building $portname"
     array set options [list]
