@@ -7,6 +7,6 @@ include ../../../Mk/dports.autoconf.mk
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
-	$(SILENT)set -x; for file in ${RSRCS}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
-	done
+#	$(SILENT)set -x; for file in ${RSRCS}; do \
+#		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
+#	done
