@@ -6,8 +6,9 @@
 # Declare all the various shell functions which do the heavy lifting.
 # If you want to see the main body of this script, go to the end of the file.
 
-# What we want to call the [ultimately] read-only base chroot image
+# What we want to call the base chroot images
 CHROOTBASE=chrootbase.dmg
+DISTFILES=distfiles.dmg
 
 # Mount all the important bits a chroot build env needs.
 mountchrootextras() {
@@ -42,7 +43,7 @@ mkchrootimage() {
 
 	echo "Calculating chroot image size..."
 	# start with this size as padding for darwinports
-	sz=200000
+	sz=300000
 	for i in $chrootfiles; do
 		mysz=`cd /; du -sk $i |awk '{print $1}'`
 		sz=$(($sz + $mysz))
@@ -96,6 +97,10 @@ prepchroot() {
 	DEV=""
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	mountchrootextras $dir
+	if [ -f $DISTFILES ]; then
+		echo "Using distfiles cache image"
+		DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+	fi
 }
 
 # Undo the work of prepchroot
@@ -107,6 +112,9 @@ teardownchroot() {
 	fi
 	hdiutil detach $DEV >& /dev/null
 	rm ${CHROOTBASE}.shadow
+	if [ -f $DISTFILES ]; then
+		hdiutil detach $DISTDEV
+	fi
 	DEV=""
 }
 
