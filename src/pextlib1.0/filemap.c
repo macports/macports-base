@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.3 2004/07/04 06:51:27 ssen Exp $
+ * $Id: filemap.c,v 1.4 2004/12/13 15:24:41 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -99,6 +99,14 @@
 
 #include "filemap.h"
 #include "strcasecmp.h"
+
+/* Avoid a warning with Tcl < 8.4, even if Tcl_GetIndexFromObj's tablePtr
+probably isn't modified. */
+#if (TCL_MAJOR_VERSION > 8) || (TCL_MINOR_VERSION >= 4)
+typedef CONST char* tableEntryString;
+#else
+typedef char* tableEntryString;
+#endif
 
 /* ========================================================================= **
  * Definitions
@@ -1819,7 +1827,7 @@ FilemapCmd(
     	kFilemapUnset
     } EOption;
     
-	static const char* options[] = {
+	static tableEntryString options[] = {
 		"close", "exists", "get", "list", "open", "revert", "save", "set",
 		"unset", NULL
 	};

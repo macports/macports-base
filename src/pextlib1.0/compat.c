@@ -1,6 +1,6 @@
 /*
  * compat.c
- * $Id: compat.c,v 1.2 2004/11/05 11:59:13 pguyot Exp $
+ * $Id: compat.c,v 1.3 2004/12/13 15:24:41 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -51,6 +51,14 @@
 #include <tclDecls.h>
 
 #include "compat.h"
+
+/* Avoid a warning with Tcl < 8.4, even if Tcl_GetIndexFromObj's tablePtr
+probably isn't modified. */
+#if (TCL_MAJOR_VERSION > 8) || (TCL_MINOR_VERSION >= 4)
+typedef CONST char* tableEntryString;
+#else
+typedef char* tableEntryString;
+#endif
 
 /* ========================================================================= **
  * Definitions
@@ -184,7 +192,7 @@ CompatCmd(
     	kFilemapFileLinkHard
     } EAction;
     
-	static const char* actions[] = {
+	static tableEntryString actions[] = {
 		"filenormalize", "filelinkhard", NULL
 	};
 
