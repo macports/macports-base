@@ -350,8 +350,15 @@ proc _activate_contents {name imagefiles imagedir} {
 	}
 	registry::write_file_map
 
+	# Sort the list in forward order, removing duplicates.
+	# Since the list is sorted in forward order, we're sure that directories
+	# are before their elements.
+	# We don't have to do this as mentioned above, but it makes the
+	# debug output of activate make more sense.
+	set theList [lsort -increasing -unique $files]
+
 	# Activate it, and catch errors so we can roll-back
-	if { [catch {set files [_activate_list $files $imagedir] } result] } {
+	if { [catch {set files [_activate_list $theList $imagedir] } result] } {
 		ui_debug "Activation failed, rolling back."
 		_deactivate_contents $name $imagefiles
 		return -code error $result
