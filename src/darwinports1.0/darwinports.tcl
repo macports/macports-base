@@ -138,10 +138,15 @@ proc dportinit {args} {
     }
 
     if [file isdirectory $libpath] {
-	lappend auto_path $libpath
-	set darwinports::auto_path $auto_path
+		lappend auto_path $libpath
+		set darwinports::auto_path $auto_path
+
+		# XXX: not sure if this the best place, but it needs to happen
+		# early, and after auto_path has been set.  Or maybe Pextlib
+		# should ship with darwinports1.0 API?
+		package require Pextlib 1.0
     } else {
-	return -code error "Library directory '$libpath' must exist"
+		return -code error "Library directory '$libpath' must exist"
     }
 }
 
@@ -278,6 +283,102 @@ proc dportopen {porturl {options ""} {variations ""}} {
     return $dport
 }
 
+### _dportsearchpath is private; subject to change without notice
+
+proc _dportsearchpath {depregex search_path} {
+    set found 0
+    foreach path $search_path {
+	if {![file isdirectory $path]} {
+	    continue
+	}
+	foreach filename [readdir $path] {
+	    if {[regexp $depregex $filename] == 1} {
+		ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
+		set found 1
+		break
+	    }
+	}
+    }
+    return $found
+}
+
+### _libtest is private; subject to change without notice
+# XXX - Architecture specific
+# XXX - Rely on information from internal defines in cctools/dyld:
+# define DEFAULT_FALLBACK_FRAMEWORK_PATH
+# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
+# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
+# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
+
+proc _libtest {dport} {
+    global env
+    set depspec [ditem_key $dport depspec]
+	set depregex [lindex [split $depspec :] 1]
+	set prefix [_dportkey $dport prefix]
+	
+	if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
+	    lappend search_path $env(DYLD_FRAMEWORK_PATH)
+	} else {
+	    lappend search_path /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
+	}
+	if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
+	    lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
+	}
+	if {[info exists env(DYLD_LIBRARY_PATH)]} {
+	    lappend search_path $env(DYLD_LIBRARY_PATH)
+	} else {
+	    lappend search_path /lib /usr/local/lib /lib /usr/lib /op/local/lib /usr/X11R6/lib ${prefix}/lib
+	}
+	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
+	    lappend search_path $env(DYLD_LIBRARY_PATH)
+	}
+	regsub {\.} $depregex {\.} depregex
+	set depregex \^${depregex}\\.dylib\$
+	
+	return [_dportsearchpath $depregex $search_path]
+}
+
+### _bintest is private; subject to change without notice
+
+proc _bintest {dport} {
+    global env
+    set depspec [ditem_key $dport depspec]
+	set depregex [lindex [split $depspec :] 1]
+	set prefix [_dportkey $dport prefix] 
+	
+	set search_path [split $env(PATH) :]
+	
+	set depregex \^$depregex\$
+	
+	return [_dportsearchpath $depregex $search_path]
+}
+
+### _pathtest is private; subject to change without notice
+
+proc _pathtest {dport} {
+    global env
+    set depspec [ditem_key $dport depspec]
+	set depregex [lindex [split $depspec :] 1]
+	set prefix [_dportkey $dport prefix] 
+    
+	# separate directory from regex
+	set fullname $depregex
+
+	regexp {^(.*)/(.*?)$} "$fullname" match search_path depregex
+
+	if {[string index $search_path 0] != "/"} {
+		# Prepend prefix if not an absolute path
+		set search_path "${prefix}/${search_path}"
+	}
+		
+	set depregex \^$depregex\$
+	
+	return [_dportsearchpath $depregex $search_path]
+}
+
+### _dportest is private; may change without notice
+
 proc _dporttest {dport} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
@@ -286,9 +387,20 @@ proc _dporttest {dport} {
 		ui_debug "Found Dependency: receipt: $res"
 		return 1
 	} else {
+		# The receipt test failed, use one of the depspec regex mechanisms
+		set depspec [ditem_key $dport depspec]
+		set type [lindex [split $depspec :] 0]
+		switch $type {
+			lib { return [_libtest $dport] }
+			bin { return [_bintest $dport] }
+			path { return [_pathtest $dport] }
+			default {return -code error "unknown depspec type: $type"}
+		}
 		return 0
 	}
 }
+
+### _dportexec is private; may change without notice
 
 proc _dportexec {target dport} {
 	# xxx: set the work path?
@@ -440,6 +552,14 @@ proc dportclose {dport} {
 # This API should be considered work in progress and subject to change without notice.
 ##### "
 
+# _dportkey
+# - returns a variable from the port's interpreter
+
+proc _dportkey {dport key} {
+	set workername [ditem_key $dport workername]
+	return [$workername eval "return \$${key}"]
+}
+
 # dportdepends returns a list of dports which the given port depends on.
 # - optionally includes the build dependencies in the list.
 # - optionally recurses through the dependencies, looking for dependencies
@@ -460,7 +580,7 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 		
 		# Find the porturl
 		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
-			ui_puts err "Internal error: port search failed: $error"
+			ui_error "Internal error: port search failed: $error"
 			return 1
 		}
 		foreach {name array} $res {
@@ -479,7 +599,10 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 		set options [ditem_key $dport options]
 		set variations [ditem_key $dport variations]
 		
+		# XXX: This should use the depspec flavor of dportopen,
+		# but for now, simply set the key directly.
 		set subport [dportopen $porturl $options $variations]
+		ditem_key $subport depspec $depspec
 
 		# Append the sub-port's provides to the port's requirements list.
 		ditem_append $dport requires "[ditem_key $subport provides]"
