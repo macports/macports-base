@@ -82,7 +82,7 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	ui_msg "Warning: No checksums statement in Portfile.  File checksums are:"
+	ui_error "No checksums statement in Portfile.  File checksums are:"
 	foreach distfile $all_dist_files {
 	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
 	}
