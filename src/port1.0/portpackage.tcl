@@ -165,15 +165,30 @@ proc package_pkg {portname portversion entry} {
 	write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
 	write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $prefix
 	write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
-	system "cp ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff"
+	file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
 	system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
 	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
 	system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}.pax.gz"
 
-	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${pkgpath} ${destpath}
+	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${portname} ${pkgpath} ${destpath}
 
     return 0
+}
+
+proc dirSize {dir} {
+    set size    0;
+    foreach file [readdir $dir] {
+	if {$file == "." || $file == ".."} {
+	    continue
+	}
+	if {[file isdirectory [file join $dir $file]]} {
+	    incr size [dirSize [file join $dir $file]]
+	} else {
+	    incr size [file size [file join $dir $file]];
+	}
+    }
+    return $size;
 }
 
 proc write_PkgInfo {infofile} {
@@ -279,23 +294,29 @@ proc write_description_plist {infofile portname portversion description} {
 	close $infofd
 }
 
-proc write_sizes_file {sizesfile pkgpath destpath} {
-set numFiles 0
-set compressedSize 0
-set installedSize 0
-#	set numFiles `lsbom -s "${pkgpath}/Contents/Archive.bom" | wc -l`
-#	set compresedSize `du -k -s "$pkgpath" | awk '{print $1}'`
-#	incr compressedSize 3
-#	set infoSize `ls -s "${pkgpath}/Contents/Resources/${portname}.info" | awk '{print $1}'`
-#	set bomSize `ls -s "${pkgpath}/Contents/Archive.bom" | awk '{print $1}'`
-#	set installedSize `du -k -s "$destpath" | awk '{print $1}'`
-#	incr installedSize $infoSize
-#	incr installedSize $bomSize
-#	incr installedSize 3
+proc write_sizes_file {sizesfile portname pkgpath destpath} {
+    
+    if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
+	return -code error "Reading package bom failed: $result"
+    }
+    if {[catch {set compressedSize [expr [dirSize ${pkgpath}] / 1024]} result]} {
+	return -code error "Error determining compressed size: $result"
+    }
+    if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
+	return -code error "Error determining installed size: $result"
+    }
+    if {[catch {set infoSize [file size ${pkgpath}/Contents/Resources/${portname}.info]} result]} {
+	return -code error "Error determining info file size: $result"
+    }
+    if {[catch {set bomSize [file size ${pkgpath}/Contents/Archive.bom]} result]} {
+	return -code error "Error determining bom file size: $result"
+    }
+    incr installedSize $infoSize
+    incr installedSize $bomSize
 	
-	set fd [open ${sizesfile} w+]
-	puts $fd "NumFiles $numFiles
+    set fd [open ${sizesfile} w+]
+    puts $fd "NumFiles $numFiles
 InstalledSize $installedSize
 CompressedSize $compressedSize"
-	close $fd
+    close $fd
 }
