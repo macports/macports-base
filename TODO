@@ -26,4 +26,4 @@ October
 
 Formalize exception handling in portutil.tcl			kevinvv
 Finish depends_* hooks in portdepends.tcl			kevinvv
-implicit variant ${os.name}${os.version}			kevinvv
+implicit variant ${os.platform}${os.version}			kevinvv
