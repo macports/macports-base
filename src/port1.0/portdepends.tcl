@@ -51,22 +51,24 @@ proc handle_depends_options {option action args} {
     switch -regex $action {
 	set|append {
 	    foreach depspec $args {
-		if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9/\-\.$^\?\+\(\)\|\\]+):([-A-Za-z\./0-9]+)} "$depspec" match deppath depregex portname] == 1} {
-		    switch $deppath {
-			lib { set obj [libportfile_new $portname $depregex] }
-			bin { set obj [binportfile_new $portname $depregex] }
-			path { set obj [pathportfile_new $portname $depregex] }
-		    }
-		    if {[info exists obj]} {
-			$obj append provides $option portfile-$portname 
-			lappend targets $obj
-			foreach obj [depspec_get_matches $targets deplist $option] {
-			    $obj append requires portfile-$portname
+			if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9_/\-\.$^\?\+\(\)\|\\]+):([-A-Za-z\./0-9_]+)} "$depspec" match deppath depregex portname] == 1} {
+				switch $deppath {
+					lib { set obj [libportfile_new $portname $depregex] }
+					bin { set obj [binportfile_new $portname $depregex] }
+					path { set obj [pathportfile_new $portname $depregex] }
+				}
+				if {[info exists obj]} {
+					$obj append provides $option portfile-$portname 
+					lappend targets $obj
+					foreach obj [depspec_get_matches $targets deplist $option] {
+						$obj append requires portfile-$portname
+					}
+				} else {
+					ui_error "unknown depspec type: $deppath"
+				}
+			} else {
+				ui_error "invalid depspec: $depspec"
 			}
-		    } else {
-				ui_error "unknown depspec type: $deppath"
-			}
-		}
 	    }
 	}
 	delete {
