@@ -61,7 +61,7 @@ proc package_pkg {portname portversion} {
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
     write_PkgInfo ${pkgpath}/Contents/PkgInfo
-    write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description
+    write_info_file ${pkgpath}/Contents/Resources/${portname}-${portversion}.info $portname $portversion $description
     write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion
     write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
@@ -75,11 +75,11 @@ proc package_pkg {portname portversion} {
     write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
+    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}-${portversion}.bom"
     system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
-    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}.pax.gz"
+    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}-${portversion}.pax.gz"
 
-    write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${portname} ${pkgpath} ${destpath}
+    write_sizes_file ${pkgpath}/Contents/Resources/${portname}-${portversion}.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     return 0
 }
@@ -225,7 +225,7 @@ puts $fd "
     close $fd
 }
 
-proc write_sizes_file {sizesfile portname pkgpath destpath} {
+proc write_sizes_file {sizesfile portname portversion pkgpath destpath} {
     
     if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
 	return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
@@ -236,7 +236,7 @@ proc write_sizes_file {sizesfile portname pkgpath destpath} {
     if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
 	return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
     }
-    if {[catch {set infoSize [file size ${pkgpath}/Contents/Resources/${portname}.info]} result]} {
+    if {[catch {set infoSize [file size ${pkgpath}/Contents/Resources/${portname}-${portversion}.info]} result]} {
 	return -code error [format [msgcat::mc "Error determining info file size: %s"] $result]
     }
     if {[catch {set bomSize [file size ${pkgpath}/Contents/Archive.bom]} result]} {
