@@ -8,7 +8,7 @@ set bootstrap_options "sysportpath libpath auto_path"
 set portinterp_options "sysportpath portpath auto_path portconf"
 set uniqid 0
 
-proc init {args} {
+proc dportinit {args} {
     global auto_path env bootstrap_options sysportpath portconf
 
     if [file isfile /etc/ports.conf] {
@@ -43,7 +43,7 @@ proc init {args} {
     }
 }
 
-proc build {portdir chain target {options ""}} {
+proc dportbuild {portdir chain target {options ""}} {
     global targets portpath portinterp_options uniqid
 
     if [file isdirectory $portdir] {
@@ -51,7 +51,7 @@ proc build {portdir chain target {options ""}} {
 	set portpath [pwd]
 	set workername workername[incr uniqid]
 	interp create $workername
-	$workername alias build build
+	$workername alias dportbuild dportbuild
 
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt

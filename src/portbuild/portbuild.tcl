@@ -37,9 +37,9 @@ for {set i 0} {$i < $argc} {incr i} {
 		default { print_usage; exit }
 	}
 }
-init
+dportinit
 if [info exists options] {
-    build $portdir build $target $options
+    dportbuild $portdir build $target $options
 } else {
-    build $portdir build $target
+    dportbuild $portdir build $target
 }
