@@ -52,10 +52,11 @@ default cvs.cmd cvs
 default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.module {$distname}
-default cvs.tag HEAD
+default cvs.tag ""
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
-default cvs.pre_args {"-f -d ${cvs.root} co -r ${cvs.tag} ${cvs.module}"}
+default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
+default cvs.post_args {"${cvs.module}"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -262,27 +263,38 @@ proc checkfiles {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
-    global workpath cvs.password cvs.args cvs.cmd cvs.env cvs.root
-    cd $workpath
-    exec touch .cvspass
+    global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
+    global cvs.root cvs.tag cvs.password
+
+    set cvs.args "co ${cvs.args}"
+    if {[string length ${cvs.tag}]} {
+	set cvs.args "${cvs.args} -r ${cvs.tag}"
+    }
+
     if {[regexp ^:pserver: ${cvs.root}]} {
-	set saveargs ${cvs.args}
 	set savecmd ${cvs.cmd}
-	set cvs.args login
+	set saveenv ${cvs.env}
+	set saveargs ${cvs.args}
+	set savepost_args ${cvs.post_args}
 	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
-	# XXX cvs will request a password from the tty using getpass()
-	# unless there is no controling terminal
+	set cvs.env ""
+	set cvs.args login
+	set cvs.post_args ""
 	if {[catch {system -notty "[command cvs] 2>&1"} result]} {
 	    return -code error [msgcat::mc "CVS login failed"]
 	}
-	set cvs.args ${saveargs}
 	set cvs.cmd ${savecmd}
+	set cvs.env ${saveenv}
+	set cvs.args ${saveargs}
+	set cvs.post_args ${savepost_args}
     } else {
 	set env(CVS_RSH) ssh
     }
+
     if {[catch {system "[command cvs] 2>&1"} result]} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
+
     return 0
 }
 
