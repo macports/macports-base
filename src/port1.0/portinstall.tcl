@@ -47,12 +47,12 @@ default build.target.install install
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname build.target.install destroot
+    global UI_PREFIX portname build.target.install destdir
 
-    ui_msg "$UI_PREFIX Installing ${portname} into ${destroot} with target ${build.target.install}"
+    ui_msg "$UI_PREFIX Installing ${portname} into ${destdir} with target ${build.target.install}"
 	
-	file mkdir ${destroot}
-	system "mtree -U -f /etc/ports/prefix.mtree -d -e -p ${destroot} > /dev/null"
+	file mkdir ${destdir}
+	system "mtree -U -f /etc/ports/prefix.mtree -d -e -p ${destdir} > /dev/null"
 }
 
 proc install_main {args} {

@@ -53,7 +53,7 @@ default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
-default destroot {${workpath}/destroot}
+default destdir {${workpath}/destdir}
 default filedir files
 default revision 0
 default distname {${portname}-${portversion}}
