@@ -11,6 +11,7 @@ clean:
 install:
 	mkdir -p /etc/defaults
 	mkdir -p ${ETCDIR}
+	mkdir -p ${PREFIX}
 	mtree -U -f prefix.mtree -d -e -p ${PREFIX} > /dev/null
 	@if [ ! -e ${ETCDIR}/ports.conf ]; then \
 		set -x; \
