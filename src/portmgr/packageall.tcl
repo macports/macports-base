@@ -253,15 +253,6 @@ foreach {name array} $res {
 	if {[catch {system "rm -Rf /opt"} error]} {
 		puts stderr "Internal error: $error"
 	}
-	if {[catch {system "rm -Rf /usr/X11R6"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	if {[catch {system "rm -Rf /etc/X11"} error]} {
-		puts stderr "Internal error: $error"
-	}
-	if {[catch {system "rm -Rf /etc/fonts"} error]} {
-		puts stderr "Internal error: $error"
-	}
 	if {[catch {system "cd $env(HOME)/darwinports && make && make install"} error]} {
 		puts stderr "Internal error: $error"
 	}
