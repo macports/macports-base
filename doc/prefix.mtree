@@ -233,20 +233,18 @@
             ..
             zh_TW.Big5
             ..
-        ..
+	..
         skel
         ..
-        var
-            db
-                dports
-                    distfiles
-                    ..
-                    receipts
-                    ..
+    ..
+    var
+        db
+            dports
+                distfiles
+                ..
+                receipts
                 ..
             ..
-        ..
-        xml
         ..
     ..
 ..
