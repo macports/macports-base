@@ -181,6 +181,14 @@ proc darwinports::fetch_port {url} {
     return [file join $fetchdir $portdir]
 }
 
+proc darwinports::getprotocol {url} {
+    if {[regexp {(?x)([^:]+)://.+} $url match protocol] == 1} {
+        return ${protocol}
+    } else {
+        return -code error "Can't parse url $url"
+    }
+}
+
 proc darwinports::getportdir {url} {
     if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
         switch -regexp -- ${protocol} {
@@ -233,6 +241,10 @@ proc dportexec {workername target} {
 
 proc darwinports::getindex {source} {
     global darwinports::portdbpath
+    # Special case file:// sources
+    if {[darwinports::getprotocol $source] == "file"} {
+        return [file join [darwinports::getportdir $source] PortIndex]
+    }
     regsub {://} $source {.} source_dir
     regsub -all {/} $source_dir {_} source_dir
     return [file join $portdbpath sources $source_dir PortIndex]
@@ -241,6 +253,10 @@ proc darwinports::getindex {source} {
 proc dportsync {args} {
     global darwinports::sources darwinports::portdbpath
     foreach source $sources {
+        # Special case file:// sources
+        if {[darwinports::getprotocol $source] == "file"} {
+            continue
+        }
         set indexfile [darwinports::getindex $source]
 	if {[catch {file mkdir [file dirname $indexfile]} result]} {
             return -code error $result
