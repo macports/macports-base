@@ -37,7 +37,7 @@ register com.apple.configure provides configure
 register com.apple.configure requires main fetch extract checksum patch depends_build depends_lib
 
 # define options
-options configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
+options configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool
 
 set UI_PREFIX "---> "
 
@@ -46,10 +46,10 @@ proc configure_init {args} {
 }
 
 proc configure_main {args} {
-    global configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool portname portpath workdir worksrcdir prefix UI_PREFIX
+    global configure configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX
 
-    if [info exists configure.worksrcdir] {
-	set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
+    if [info exists configure.dir] {
+	set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.dir}
     } else {
 	set configpath ${portpath}/${workdir}/${worksrcdir}
     }
@@ -57,6 +57,20 @@ proc configure_main {args} {
     cd $configpath
     if [tbool automake] {
 	# XXX depend on automake
+    }
+    if [tbool autoconf] {
+	# XXX depend on autoconf
+	if [info exists autoconf.dir] {
+		cd [file join ${workpath} ${worksrcdir} ${autoconf.dir}]
+	} else {
+		cd ${configpath}
+	}
+
+	if [info exists autoconf.args] {
+	    system "autoconf ${autoconf.args}"
+	} else {
+	    system "autoconf"
+	}
     }
 
     ui_msg "$UI_PREFIX Running configure script"
