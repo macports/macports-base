@@ -54,7 +54,7 @@
 package require darwinports
 
 namespace eval dpkg {
-	variable configopts "pkgrepo architecture portlist portprefix dportsrc silentmode"
+	variable configopts "pkgrepo architecture portlist portprefix dportsrc silentmode initialports"
 
 	variable silentmode false
 	variable configfile "/etc/ports/dpkg.conf"
@@ -62,7 +62,9 @@ namespace eval dpkg {
 	variable portprefix "/usr/dports"
 	variable dportsrc "/usr/darwinports"
 	variable pkgrepo "/export/dpkg/"
-	variable architecture "[exec dpkg --print-installation-architecture]"
+	# architecture is set in main
+	variable architecture
+	variable initialports "dpkg apt"
 
 	variable aptpackagedir
 	variable packagedir
@@ -81,7 +83,7 @@ proc ui_puts {messageArray} {
 			return
 		}
 		info {
-			set str "INFO: $message(data)"
+			set str $message(data)
 		}
 		msg {
 			set str $message(data)
@@ -93,8 +95,11 @@ proc ui_puts {messageArray} {
 			set str "Warning: $message(data)"
 		}
 	}
-	if {[string length $logfd] > 0 } {
+	if {[info exists logfd] && [string length $logfd] > 0 } {
 		log_message $logfd $str
+	} else {
+		# If there's no log file, echo to stdout
+		puts $str
 	}
 }
 
@@ -150,9 +155,11 @@ proc escape_portname {portname} {
 proc print_usage {args} {
 	global argv0
 	puts "Usage: [file tail $argv0] \[-qa\] \[-f configfile\] \[-p portlist\]"
-	puts "	-q	Quiet mode (no warnings, only errors reported)"
-	puts "	-w	No warnings"
+	puts "	-q	Quiet mode (only errors reported)"
+	puts "	-w	No warnings (progress still reported)"
 	puts "	-a	Build all ports"
+	puts "	-b	Re-generate base install archive"
+	puts "	-i	Initialize Build System (Should only be run on a new build system)"
 }
 
 proc reset_tree {args} {
@@ -196,23 +203,23 @@ proc reset_tree {args} {
 proc main {argc argv} {
 	global dpkg::configfile dpkg::pkgrepo dpkg::architecture dpkg::portlistfile dpkg::portlist
 	global dpkg::portsArray dpkg::portprefix dpkg::silentmode dpkg::logfd dpkg::packagedir dpkg::aptpackagedir
-
-
-	# Check if portlistfile was set in the configuration file
-	if {![info exists portlistfile]} {
-		# The default portlist file
-		set portlistfile [file join $pkgrepo $architecture etc buildlist.txt]
-	}
-
-	set packagedir ${pkgrepo}/${architecture}/packages/
-	set aptpackagedir ${pkgrepo}/apt/dists/stable/main/binary-${architecture}/
+	global dpkg::initialports
 
 	# Read command line options
 	set buildall_flag false
 	set nowarn_flag false
+	set initialize_flag false
+
 	for {set i 0} {$i < $argc} {incr i} {
 		set arg [lindex $argv $i]
 		switch -- $arg {
+			-a {
+				set buildall_flag true
+			}
+			-b {
+				puts "Unsupported flag -b"
+				exit 1
+			}
 			-f {
 				incr i
 				set configfile [lindex $argv $i]
@@ -220,6 +227,9 @@ proc main {argc argv} {
 				if {![file readable $configfile]} {
 					return -code error "Configuration file \"$configfile\" is unreadable."
 				}
+			}
+			-i {
+				set initialize_flag true
 			}
 			-p {
 				incr i
@@ -231,9 +241,6 @@ proc main {argc argv} {
 			-q {
 				set silentmode true
 			}
-			-a {
-				set buildall_flag true
-			}
 			-w {
 				set nowarn_flag true
 			}
@@ -244,17 +251,41 @@ proc main {argc argv} {
 		}
 	}
 
-	# If the configuration files are absent, choose reasonable defaults
+	# Initialize System
+	dportinit
+
+	# If -i was specified, install base system and exit
+	if {$initialize_flag == "true"} {
+		initialize_system
+		exit 0
+	}
+
+	# We must have dpkg by now 
+	if {[catch {set_architecture} result]} {
+		puts "$result."
+		puts "Have you initialized the build system? Use the -i flag:"
+		print_usage
+		exit 1
+	}
+
+	set packagedir ${pkgrepo}/${architecture}/packages/
+	set aptpackagedir ${pkgrepo}/apt/dists/stable/main/binary-${architecture}/
+
+	# Read configuration files
 	if {[file readable $configfile]} {
 		readConfig $configfile
 	}
 
+	# If portlistfile has not been set, supply a reasonable default
+	if {![info exists portlistfile]} {
+		# The default portlist file
+		set portlistfile [file join $pkgrepo $architecture etc buildlist.txt]
+	}
+
+	# Read the port list
 	if {[file readable $portlistfile]} {
 		readPortList $portlistfile
 	}
-
-	# Initialize System
-	dportinit
 
 	# If no portlist file was specified, create a portlist that includes all ports
 	if {[llength $portlist] == 0 || "$buildall_flag" == "true"} {
@@ -263,14 +294,15 @@ proc main {argc argv} {
 			lappend portlist $name
 		}
 	} else {
-		# Port list was specified. Ensure that all the specified ports are available
+		# Port list was specified. Ensure that all the specified ports are available.
+		# Add ${initialports} to the list
+		set portlist [lsort -unique [concat $portlist $initialports]]
 		foreach port $portlist {
 			set searchstring [escape_portname $port]
 			set res [dportsearch "^${searchstring}\$"]
 			set fail false
 
 			if {[llength $res] < 2} {
-				puts 
 				ui_noisy_error "Port \"$port\" not found in index"
 				set fail true
 			}
@@ -470,6 +502,102 @@ proc main {argc argv} {
 	close_default_log
 
 	exit 0
+}
+
+proc set_architecture {args} {
+	set dpkg::architecture "[exec dpkg --print-installation-architecture]"
+}
+
+proc initialize_system {args} {
+	global dpkg::initialports dpkg::pkgrepo
+	global dpkg::architecture dpkg::portprefix
+
+	# Create standard directories
+	ui_msg "Creating ${pkgrepo} directory"
+	file mkdir ${pkgrepo}
+
+	set builddeps ""
+	set rundeps ""
+
+	foreach port $initialports {
+		set builddeps [concat $builddeps [get_dependencies $port true]]
+		set rundeps [concat $rundeps [get_dependencies $port false]]
+	}
+
+	set buildlist [lsort -unique $builddeps]
+
+	foreach port $builddeps {
+		if {[lsearch -exact $port $rundeps] == ""} {
+			lappend removelist $port
+		}
+	}
+
+	set options ""
+	set variations ""
+
+	foreach port $initialports {
+		if {[catch {do_portexec $port [array get options] [array get variants] install} result]} {
+			ui_noisy_error "Fatal error: $result"
+			exit 1
+		}
+	}
+
+	if {[info exists removelist]} {
+		ui_msg "Removing build dependencies ..."
+		foreach portlist $removelist {
+			set port [lindex $portlist 0]
+
+			ui_msg "Uninstalling $port."
+			if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+				ui_noisy_errorr "Fatal error: Uninstalling $port failed: $result"
+				exit 1
+			}
+		}
+		ui_msg "Done."
+	}
+			
+
+	if {[catch {set_architecture} result]} {
+		puts "Fatal error: $result."
+		exit 1
+	}
+
+	ui_msg "Creating [file join ${pkgrepo} ${architecture}] directory"
+	file mkdir [file join ${pkgrepo} ${architecture}]
+	file mkdir [file join ${pkgrepo} ${architecture} etc]
+
+	ui_msg "Generating pristine archive: [file join ${pkgrepo} ${architecture} root.tar.gz]"
+	if {[catch {system "tar -zcf \"[file join ${pkgrepo} ${architecture} root.tar.gz]\" \"${portprefix}\""} result]} {
+		ui_noisy_error "Fatal error: Archive creation failed: $result"
+		exit 1
+	}
+
+	ui_msg "Build system successfully initialized!"
+}
+
+proc do_portexec {port options variants target} {
+	set searchstring [escape_portname $port]
+	set res [dportsearch "^${searchstring}\$"]
+
+	if {[llength $res] < 2} {
+		return -code error "Port \"$port\" not found in index."
+	}
+
+	array set portinfo [lindex $res 1]
+
+	if {[catch {set workername [dportopen $portinfo(porturl) $options $variants yes]} result] || $result == 1} {
+		return -code error "Internal error: unable to open port: $result"
+		exit 1
+	}
+
+	if {[catch {set result [dportexec $workername install]} result] || $result == 1} {
+
+		# Close the port
+		dportclose $workername
+
+		# Return error
+		return -code error "Executing target $target on $portinfo(name) failed."
+	}
 }
 
 proc get_pkgpath {name version revision} {
