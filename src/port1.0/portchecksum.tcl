@@ -86,7 +86,7 @@ proc checksum_main {args} {
 	foreach distfile $all_dist_files {
 	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
 	}
-	return 0
+	return -1
     }
 
     # Optimization for the 2 argument case for checksums
