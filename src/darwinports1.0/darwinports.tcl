@@ -756,15 +756,12 @@ proc dportregistry::delete {portname {portversion 0}} {
 proc dportregistry::fileinfo_for_file {fname} {
     if {![catch {file stat $fname statvar}]} {
 	if {[file isfile $fname]} {
-	    set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-	    set pipe [open "|md5 \"$fname\"" r]
-	    set line [read $pipe]
-	    if {[regexp $md5regex $line match type filename sum] == 1} {
-		::close $pipe
-		set line [string trimright $line "\n"]
+	    if {[catch {md5 file $fname} md5sum] == 0} {
+		# Create a line that matches md5(1)'s output
+		# for backwards compatibility
+		set line "MD5 ($fname) = $md5sum"
 		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
 	    }
-	    ::close $pipe
 	} else {
 	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
 	}
