@@ -280,6 +280,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			return TCL_OK;
 		else {
 			/* Copy the contents of the circular buffer to errbuf */
+		  	Tcl_Obj* errorCode;
 			errbuf = Tcl_NewStringObj(NULL, 0);
 			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
 				if (circbuf[pos % CBUFSIZ].len == 0)
@@ -294,7 +295,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			}
 
 			/* set errorCode [list CHILDSTATUS <pid> <code>] */
-			Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
+			errorCode = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
