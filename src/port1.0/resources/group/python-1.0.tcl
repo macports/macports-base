@@ -1,7 +1,7 @@
 # et:ts=4
 # python-1.0.tcl
 #
-# $Id: python-1.0.tcl,v 1.1 2004/04/14 15:36:30 toby Exp $
+# $Id: python-1.0.tcl,v 1.2 2004/04/21 08:40:02 toby Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -32,13 +32,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-set python.bin python2.3
+set python.bin ${prefix}/bin/python2.3
 
 categories       python
 
 dist_subdir      python
 
-depends_lib      bin:${python.bin}:python23
+depends_lib      path:${python.bin}:python23
 
 use_configure    no
 
@@ -53,15 +53,17 @@ pre-destroot {
 }
 
 post-install	{
-	if [ file exists /Library/Python ] {
-		if { [ file readlink /Library/Python/2.3 ] ne "${prefix}/lib/python2.3/site-packages/" } {
-			ui_msg "############################################################"
-			ui_msg "# Please create a symlink at '/Library/Python/2.3' pointing"
-			ui_msg "# to ${prefix}/lib/python2.3/site-packages"
-			ui_msg "# for MacOS-X python to work with this package."
-			ui_msg "#"
-			ui_msg "# /Library/Python/2.3 -> ${prefix}/lib/python2.3/site-packages/"
-			ui_msg "#"
-		}
-	}
+#	if [ file exists /Library/Python ] {
+#		if { [ file type /Library/Python/2.3 eq "link" ] } {
+#			if { [ file readlink /Library/Python/2.3 ] ne "${prefix}/lib/python2.3/site-packages/" } {
+#				ui_msg "############################################################"
+#					ui_msg "# Please create a symlink at '/Library/Python/2.3' pointing"
+#					ui_msg "# to ${prefix}/lib/python2.3/site-packages"
+#					ui_msg "# for MacOS-X python to work with this package."
+#					ui_msg "#"
+#					ui_msg "# /Library/Python/2.3 -> ${prefix}/lib/python2.3/site-packages/"
+#					ui_msg "#"
+#			}
+#		}
+#	}
 }
