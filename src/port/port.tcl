@@ -134,7 +134,10 @@ switch -- $action {
 	default {
 		set target $action
 		if {[info exists portname]} {
-			array set portinfo [dportmatch ^$portname\$]
+			if {[catch {array set portinfo [dportmatch ^$portname\$]} result]} {
+				puts $result
+				exit 1
+			}
 			if {[array size portinfo] == 0} {
 				puts "Port $portname not found"
 				exit 1
