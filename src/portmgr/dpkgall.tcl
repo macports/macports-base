@@ -205,7 +205,7 @@ proc main {argc argv} {
 	}
 
 	set packagedir ${pkgrepo}/${architecture}/packages/
-	set aptpackagedir ${pkgrepo}/${architecture}/apt/
+	set aptpackagedir ${pkgrepo}/apt/dists/stable/main/binary-${architecture}/
 
 	# Read command line options
 	set buildall_flag false
@@ -274,6 +274,7 @@ proc main {argc argv} {
 				ui_noisy_error "Port \"$port\" not found in index"
 				set fail true
 			}
+			# Add all of the specified ports' dependencies to the portlist
 			set dependencies [get_dependencies $port false]
 			foreach dep $dependencies {
 				lappend portlist [lindex $dep 0]
@@ -452,6 +453,19 @@ proc main {argc argv} {
 	reset_tree
 	ui_silent "Done."
 
+	ui_silent "Building apt-get index ..."
+	if {[catch {system "cd ${pkgrepo}/apt && dpkg-scanpackages dists override >${aptpackagedir}/Packages"} error]} {
+		ui_noisy_error "Internal error: $error"
+		exit 1
+	}
+
+	if {[catch {system "cd ${aptpackagedir} && gzip Packages"} error]} {
+		ui_noisy_error "Internal error: $error"
+		exit 1
+	}
+	remove_override_file
+	ui_silent "Done."
+
 	ui_silent "Package run finished."
 	close_default_log
 
@@ -499,14 +513,22 @@ proc delete_failure_log {name} {
 }
 
 proc add_override {name priority section {maintainer ""}} {
-	global dpkg::aptpackagedir
+	global dpkg::aptpackagedir dpkg::pkgrepo
 	set output "${name}	${priority}	${section}"
 	if {${maintainer} != ""} {
 		append output " ${maintainer}"
 	}
-	set fd [open "${aptpackagedir}/override" a 0644]
+	set fd [open "${pkgrepo}/apt/override" a 0644]
 	puts $fd $output
 	close $fd
+}
+
+proc remove_override_file {args} {
+	global dpkg::aptpackagedir dpkg::pkgrepo
+	if {[catch {file delete -force ${pkgrepo}/apt/override} error]} {
+		ui_noisy_error "Internal error: $error"
+		exit 1
+	}
 }
 
 proc copy_pkg_to_apt {name version revision category} {
