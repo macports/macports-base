@@ -455,8 +455,10 @@ proc dportexec {dport target} {
 	# Before we build the port, we must build its dependencies.
 	# XXX: need a more general way of comparing against targets
 	set dlist {}
-	if {$target == "configure" || $target == "build" || $target == "install" ||
-		$target == "package" || $target == "mpkg" || $target == "rpmpackage" } {
+	if {$target == "configure" || $target == "build"
+		|| $target == "destroot" || $target == "install"
+		|| $target == "package" || $target == "mpkg"
+		|| $target == "rpmpackage" } {
 
 		if {[dportdepends $dport 1 1] != 0} {
 			return 1
