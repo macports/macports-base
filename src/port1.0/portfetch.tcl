@@ -78,12 +78,17 @@ proc suffix {distname} {
     }
 }
 
-proc getdistsite {name} {
+proc getdisttag {name} {
     if {[regexp {.+:([A-Za-z]+)} $name match tag]} {
         return $tag
     } else {
         return ""
     }
+}
+
+proc getdistname {name} {
+    regexp {(.+):[A-Za-z]+} $name match name
+    return $name
 }
 
 proc checkfiles {args} {
@@ -107,8 +112,9 @@ proc checkfiles {args} {
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
 	    if {![file exists $portpath/files/$file]} {
+        set distsite [getdisttag $file]
+		set file [getdistname $file]
 		lappend all_dist_files $file
-        set distsite [getdistsite $file]
 		if {$distsite != ""} {
 		    lappend fetch_urls $distsite $file
 		} elseif {[info exists patch_sites]} {
@@ -122,11 +128,12 @@ proc checkfiles {args} {
 
     foreach file $distfiles {
 	if {![file exists $portpath/files/$file]} {
-        set distsite [getdistsite $file]
+        set distsite [getdisttag $file]
+		set file [getdistname $file]
+		lappend all_dist_files $file
 		if {$distsite != ""} {
-		    lappend fetch_urls $distsite $file
+		        lappend fetch_urls $distsite $file
 		} else {
-	            lappend all_dist_files $file
 	            lappend fetch_urls master_sites $file
 		}
 	}
