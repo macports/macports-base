@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.1.2.1  2002/08/20 21:50:51  landonf
+ * Move and seperate Tcl/port1.0
+ *
  * Revision 1.1  2002/08/20 10:06:08  jkh
  * Add in-place string sed function, strsed
  *
