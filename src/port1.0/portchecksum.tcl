@@ -37,7 +37,10 @@ target_provides ${com.apple.checksum} checksum
 target_requires ${com.apple.checksum} main fetch
 target_prerun ${com.apple.checksum} checksum_start
 
+# Options
 options checksums
+
+# Defaults
 default checksums ""
 
 set_ui_prefix
@@ -97,20 +100,20 @@ proc checksum_main {args} {
 
 		# Check for missing checksum or a mismatch.
 		if {$dchecksum == -1} {
-			ui_info "[format [msgcat::mc "No checksum set for %s"] $distfile]"
+			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
+			ui_debug "[format [msgcat::mc "Checksum: %s %s %s"] ${distfile} md5 ${checksum}]"
 		} elseif {![string equal $checksum $dchecksum]} {
 			ui_info "[format [msgcat::mc "Checksum mismatch for %s"] $distfile]"
 		} else {
 			continue
 		}
 
-		# Print out the actual checksum, and raise the failure flag.
-		ui_info "[format [msgcat::mc "File checksum is: %s"] $checksum]"
+		# Raise the failure flag.
 		set fail yes
 	}
 
 	if {[tbool fail]} {
-		return -code error "[msgcat::mc "Checksum failure"]"
+		return -code error "[msgcat::mc "Unable to verify file checksums"]"
 	}
 
 	return 0
