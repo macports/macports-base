@@ -957,7 +957,7 @@ proc target_provides {this args} {
 	set origproc [$this get procedure]
 	set ident [$this get name]
 	if {[info commands $target] != ""} {
-	    ui_debug "[$this get name] attempted to register provides \'$target\' which is a pre-existing procedure. The target override procedure \'$target\' will not be provided"
+	    ui_debug "[$this get name] registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
 	} else {
 		eval "proc $target {args} \{ \n\
 			$this set procedure proc-${ident}-${target}
