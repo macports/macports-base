@@ -569,6 +569,22 @@ proc target_run {ditem} {
 			}
 			
 			# Something to close the registry entry may be called here, if it existed.
+		# 3rd case: the same port/version/revision/Variants is already active
+		# and user didn't mention -f
+		} elseif {$name == "com.apple.activate"
+			&& [registry_exists $portname $portversion $portrevision $portvariants]
+			&& !([info exists ports_force] && $ports_force == "yes")} {
+			
+			# Is port active?
+			set regref [registry_open $portname $portversion $portrevision $portvariants]
+			
+			if { [registry_prop_retr $regref active] != 0 } {
+				# Say we're skipping.
+				set skipped 1
+				
+				ui_debug "Skipping $name ($portname) since this port is already active"
+			}
+			
 		}
 			
 		# otherwise execute the task.
