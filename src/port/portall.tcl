@@ -61,24 +61,6 @@ proc ui_puts {messagelist} {
     puts $channel $str
 }
 
-proc port_traverse {func {dir .}} {
-    set pwd [pwd]
-    if {[catch {cd $dir} err]} {
-	ui_error $err
-	return
-    }
-    foreach name [readdir .] {
-	if {[file isdirectory $name]} {
-	    port_traverse $func $name
-	} else {
-	    if {[string match $name Portfile]} {
-		catch {eval $func {[file join $pwd $dir]}}
-	    }
-	}
-    }
-    cd $pwd
-}
-
 proc pindex {portdir} {
     global target options variations
 
@@ -116,9 +98,9 @@ if { $argc < 1 } {
 }
 
 if {[file isdirectory dports]} {
-    port_traverse pindex dports
+    dporttraverse pindex dports
 } elseif {[file isdirectory ../dports]} {
-    port_traverse pindex .
+    dporttraverse pindex .
 } else {
     puts "Please run me from the darwinports directory (dports/..)"
     return 1

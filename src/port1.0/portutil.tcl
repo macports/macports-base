@@ -774,27 +774,6 @@ proc check_statefile_variants {variations fd} {
     return $mismatch
 }
 
-# Traverse the ports collection hierarchy and call procedure func for
-# each directory containing a Portfile
-proc port_traverse {func {dir .}} {
-    set pwd [pwd]
-    if {[catch {cd $dir} err]} {
-	ui_error $err
-	return
-    }
-    foreach name [readdir .] {
-	if {[file isdirectory $name]} {
-	    port_traverse $func $name
-	} else {
-	    if {[string match $name Portfile]} {
-		catch {eval $func {[file join $pwd $dir]}}
-	    }
-	}
-    }
-    cd $pwd
-}
-
-
 ########### Port Variants ###########
 
 # Each variant which provides a subset of the requested variations

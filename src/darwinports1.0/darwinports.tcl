@@ -1,6 +1,7 @@
 # darwinports.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -352,6 +353,41 @@ proc dportopen {porturl {options ""} {variations ""}} {
     ditem_key $dport provides [$workername eval return \$portname]
 
     return $dport
+}
+
+# Traverse a directory with ports, calling a function on the path of ports
+# (at the second depth).
+# I.e. the structure of dir shall be:
+# category/port/
+# with a Portfile file in category/port/
+#
+# func:		function to call on every port directory (it is passed
+#			category/port/ as its parameter)
+# dir:		current directory
+# depth:	current depth (we start at 0)
+proc dporttraverse {func {dir .} {depth 0}} {
+	# Start with incrementing the depth for subdirectories.
+	# What we'll find with a depth of 1 is the category directories
+	# and with a depth of 2 is the port directories.
+	incr depth 1
+    foreach name [readdir $dir] {
+    	set pathToElement [file join $dir $name]
+    	if {$depth == 1} {
+	        if {[file isdirectory $pathToElement]} {
+	        	# Congratulation, it probably is a category directory.
+	            dporttraverse $func $pathToElement $depth
+	        }
+		}
+		if {$depth == 2} {
+			if {[file isdirectory $pathToElement]} {
+				# Congratulation, it probably is a port directory.
+				if {[file exists [file join $pathToElement "Portfile"]]} {
+					# Call the function.
+	                $func $pathToElement
+				}
+            }
+        }
+    }
 }
 
 ### _dportsearchpath is private; subject to change without notice
