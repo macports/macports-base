@@ -53,7 +53,7 @@ proc install_main {args} {
 	    set plist [fileinfo_for_index $contents]
 	    # For now, just write this to a file for debugging.
 	    if ![catch {set fout [open "$portpath/pkg-contents" w 0644]}] {
-		puts $fout "\# Format: {{filename uid gid mode size {md5}} ... }
+		puts $fout "\# Format: {{filename uid gid mode size {md5}} ... }"
 		puts $fout $plist
 		close $fout
 	    } else {
