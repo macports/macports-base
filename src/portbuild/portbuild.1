@@ -6,8 +6,8 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
+.Op target
 .Op Fl d Ar portdir
-.Op Fl t Ar target
 .Op options ...
 .Sh DESCRIPTION
 .Nm
@@ -17,7 +17,7 @@ The following demonstrates invoking
 .Nm
 with the "extract" target and extract_sufx set to ".tgz"
 .Pp
-.Dl "portbuild -t extract extract_sufx=.tgz"
+.Dl "portbuild extract extract_sufx=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std

@@ -8,7 +8,7 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-t <target>\] \[-d portdir\] \[options\]"
+    puts "Usage: $argv0 \[target\] \[-d portdir\] \[options\]"
 }
 
 proc fatal args {
@@ -21,18 +21,17 @@ proc fatal args {
 set target "build"
 for {set i 0} {$i < $argc} {incr i} {
 	switch -regexp -- [lindex $argv $i] {
-		-d {
+		{^-d$} {
 			incr i
 			set portdir [lindex $argv $i]
 		}
-		-t {
-			incr i
-			set target [lindex $argv $i]
-		}
-		{[A-Za-z0-9_\.]+=.+} {
+		{^[A-Za-z0-9_\.]+=.+$} {
 			if {[regexp {([A-Za-z0-9_\.]+)=(.+)} [lindex $argv $i] match key val] == 1} {
 				lappend options [lindex $argv $i]
 			}
+		}
+		{^[A-Za-z0-9]+$} {
+			set target [lindex $argv $i]
 		}
 		default { print_usage; exit }
 	}
