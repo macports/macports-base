@@ -49,7 +49,7 @@ proc install_start {args} {
     if {[string length [registry_exists $portname]] && ![tbool ports_force]} {
 	# Also check to see if it's this version or another
 	if {[string length [registry_exists $portname $portversion]]} {
-	    return -code error [format [msgcat::mc "Port %s already registered as installed."] $portname]
+	    ui_msg "$UI_PREFIX [format [msgcat::mc "Port %s already registered as installed."] $portname]"
 	} else {
 	    return -code error [format [msgcat::mc "Another version of Port %s is already registered as installed.  Please uninstall the port first."] $portname]
 	}

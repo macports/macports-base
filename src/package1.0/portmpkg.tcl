@@ -95,7 +95,7 @@ proc make_one_package {portname portversion mpkgpath} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources]]
+			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources] {} yes]
 			dportexec $worker pkg
 			dportclose $worker
 		}

@@ -377,7 +377,7 @@ foreach {name array} $res {
 
 	# Turn on verbose output for the build
 	set ui_options(ports_verbose) yes
-	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result] ||
+	if {[catch {set workername [dportopen $porturl [array get options] [array get variations] yes]} result] ||
 		$result == 1} {
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
