@@ -393,6 +393,12 @@ proc reinplace {pattern args}  {
 	    return -code error "reinplace failed"
 	}
 
+	if {[catch {file attributes $file -permissions +w} error]} {
+	    ui_error "reinplace: $error"
+	    file delete "$tmpfile"
+	    return -code error "reinplace failed"
+	}
+
 	if {[catch {exec cp $tmpfile $file} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
