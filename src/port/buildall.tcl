@@ -38,23 +38,23 @@ proc ui_puts {messagelist} {
             if {[ui_isset ports_debug]} {
 		close $channel
                 set channel [open "/tmp/portdebug.out" a+ 0664]
-                set str "${uniquestr}DEBUG: $message(data)"
+                set str "${uniquestr}DEBUG $message(data)"
             } else {
 		close $channel
                 return
             }
         }
         info {
-	    set str "${uniquestr}OUT: $message(data)"
+	    set str "${uniquestr}OUT $message(data)"
         }
         msg {
-	    set str "${uniquestr}OUT: $message(data)"
+	    set str "${uniquestr}OUT $message(data)"
         }
         error {
-            set str "${uniquestr}ERR: $message(data)"
+            set str "${uniquestr}ERR $message(data)"
         }
         warn {
-            set str "${uniquestr}WARN: $message(data)"
+            set str "${uniquestr}WARN $message(data)"
         }
     }
     puts $channel $str
@@ -103,7 +103,7 @@ array set variations [list]
 set target install
 # Set to something unique that can be grepped out of the output easily
 set uniquestr "_BLDA_"
-set env(UI_PREFIX) "${uniquestr}PHASE: "
+set env(UI_PREFIX) "${uniquestr}PHASE "
 
 if { $argc >= 1 } {
     for {set i 0} {$i < $argc} {incr i} {
