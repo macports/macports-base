@@ -35,13 +35,12 @@ package require portutil 1.0
 set com.apple.package [target_new com.apple.package package_main]
 ${com.apple.package} set runtype always
 ${com.apple.package} provides package
-${com.apple.package} requires registry
+${com.apple.package} requires install
 
 # define options
 options package.type package.destpath
 
 # Set defaults
-default package.type pkg
 default package.destpath {${workpath}}
 
 set UI_PREFIX "---> "
@@ -49,103 +48,15 @@ set UI_PREFIX "---> "
 proc package_main {args} {
     global portname portversion package.type package.destpath UI_PREFIX
 
-    set rfile [registry_exists $portname $portversion]
-    if ![string length $rfile] {
-	return -code error [format [msgcat::mc "Package %s-%s not installed on this system"] ${portname} ${portversion}]
-    }
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating %s format package for %s-%s"] ${package.type} ${portname} ${portversion}]"
-    if [regexp .bz2$ $rfile] {
-	set fd [open "|bunzip2 -c $rfile" r]
-    } else {
-	set fd [open $rfile r]
-    }
-    set entry [read $fd]
-    close $fd
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating package for %s-%s"] ${portname} ${portversion}]"
 
-    # Make sure the destination path exists.
-    system "mkdir -p ${package.destpath}"
-
-    # For now we only support pkg and tarball package types.
-    switch -exact -- ${package.type} {
-	pkg {
-	    return [package_pkg $portname $portversion $entry]
-	}
-	tarball {
-	    return [package_tarball $portname $portversion $entry]
-	}
-	default {
-	    return -code error [format [msgcat::mc "Unknown package type: %s"] ${package.type}]
-	}
-    }
+    return [package_pkg $portname $portversion]
 }
 
-# Make a tarball version of a package.  This is our "built-in" packaging
-# method.
-proc package_tarball {portname portversion entry} {
-    global portdbpath package.destpath
-
-    set rfile [registry_exists $portname $portversion]
-    set ix [lsearch $entry contents]
-    if {$ix >= 0} {
-	set contents [lindex $entry [incr ix]]
-	set plist [mkstemp /tmp/XXXXXXXX]
-	set pfile [lindex $plist 0]
-	foreach f $contents {
-	    set fname [lindex $f 0]
-	    puts $pfile $fname
-	}
-	puts $pfile $rfile
-	close $pfile
-
-	set ptarget ${package.destpath}/${portname}-${portversion}.tar.gz
-	if [catch {system "gnutar -T [lindex $plist 1] -czPpf ${ptarget}"} result] {
-	    ui_info [format [msgcat::mc "Package creation failed - Failed packing list left in %s"] [lindex $plist 1]]
-	    return -code error [format [msgcat::mc "Package creation failed - gnutar returned error status: %s"] $result]
-	}
-	exec rm [lindex $plist 1]
-    } else {
-	return -code error [format [msgcat::mc "Bad registry entry for %s-%s, no contents"] ${portname} ${portversion}]
-    }
-    return 0
-}
-
-proc package_pkg {portname portversion entry} {
+proc package_pkg {portname portversion} {
     global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage
 
     set resourcepath ${workpath}/pkg_resources
-    set rfile [registry_exists $portname $portversion]
-    set ix [lsearch $entry contents]
-    # If contents entry exists, transplant installed files into ${destpath}
-    # Otherwise, presume that they are already installed in ${destpath} path
-    if {$ix >= 0} {
-	set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
-	set pfile [lindex $plist 0]
-
-	set receipt_contents [lindex $entry [incr ix]]
-	foreach f $receipt_contents {
-	    set fname [lindex $f 0]
-	    puts $pfile $fname
-	}
-	close $pfile
-
-	if {![file isdirectory $destpath]} {
-	    if {[catch {file mkdir $destpath} result]} {
-		return -code error [format [msgcat::mc "Unable to create destination root path: %s"] $result]
-	    }
-	}
-
-	if [catch {system "gnutar -T [lindex $plist 1] -cPpf - | (cd ${destpath} && tar xvf -)"} return] {
-	    file delete [lindex $plist 1]
-	    return -code error [format [msgcat::mc "Package creation failed - gnutar returned error status: %s"] $result]
-	}
-	file delete [lindex $plist 1]
-    }
-    if {![file isdirectory $resourcepath]} {
-	if {[catch {file mkdir $resourcepath} result]} {
-	    return -code error [format [msgcat::mc "Unable to create package resource directory: %s"] $result]
-	}
-    }
-
     # XXX: we need to support .lproj in resources.
     set pkgpath ${package.destpath}/${portname}.pkg
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
@@ -161,7 +72,7 @@ proc package_pkg {portname portversion entry} {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_rtf ${pkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
     system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
@@ -285,27 +196,31 @@ proc write_description_plist {infofile portname portversion description} {
 	close $infofd
 }
 
-proc write_welcome_rtf {filename portname portversion long_description description homepage} {
+proc write_welcome_html {filename portname portversion long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description == ""} {
 	set long_description $description
     }
-    puts $fd \
-"{\\rtf1\\mac\\ansicpg10000\\cocoartf102
-{\\fonttbl\\f0\\fswiss\\fcharset77 Helvetica-Bold;\\f1\\fswiss\\fcharset77 Helvetica;}
-{\\colortbl;\\red255\\green255\\blue255;\\red1\\green1\\blue1;}
-\\vieww9000\\viewh9000\\viewkind0
-\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\ql\\qnatural
 
-\\f0\\b\\fs24 \\cf2 Welcome to the ${portname} for Mac OS X Installer\\
-\\
-\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\ql\\qnatural
-"
-    puts $fd "\\f1\\b0 \\cf2 ${long_description} \\\n\\"
+puts $fd "
+<html lang=\"en\">
+<head>
+	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
+	<title>Install ${portname}</title>
+</head>
+<body>
+<font face=\"Helvetica\"><b>Welcome to the ${portname} for Mac OS X Installer</b></font>
+<p>
+<font face=\"Helvetica\">${long_description}</font>
+<p>"
+
     if {$homepage != ""} {
-	puts $fd "${homepage} \\\n\\"
+	puts $fd "<font face=\"Helvetica\">${homepage}</font><p>"
     }
-    puts $fd "This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.\\\n}"
+
+    puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.</font>
+</body>
+</html>"
 
     close $fd
 }
