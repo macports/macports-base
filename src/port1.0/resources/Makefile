@@ -1,4 +1,4 @@
-SUBDIR=		package sitelists
+SUBDIR=		package fetch
 INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/
 RSRCS=
 

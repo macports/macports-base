@@ -1,11 +1,24 @@
-# master_sites.tcl
+# $Id: mirror_sites.tcl,v 1.1 2003/06/25 22:30:18 landonf Exp $
+# mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
 # Most of these are taken shamelessly from FreeBSD.
 #
-# It would be nice to keep this list sorted.
+# Please keep this list sorted.
 
-set _master_sites(gnome) {
+namespace eval portfetch::mirror_sites { }
+
+set portfetch::mirror_sites::sites(apache) {
+    http://www.apache.org/dist/
+    ftp://ftp.planetmirror.com/pub/apache/dist/
+    ftp://apache.mirrored.ca/
+    ftp://ftp.is.co.za/Apache/dist/
+    http://apache.planetmirror.com.au/dist/
+    ftp://ftp.leo.org/pub/comp/general/infosys/www/daemons/apache/dist/
+    ftp://ftp.infoscience.co.jp/pub/net/apache/dist/
+}
+
+set portfetch::mirror_sites::sites(gnome) {
     http://archive.progeny.com/GNOME/
     http://ftp.rpmfind.net/linux/gnome.org/
     ftp://ftp.mirror.ac.uk/sites/ftp.gnome.org/pub/GNOME/
@@ -21,7 +34,7 @@ set _master_sites(gnome) {
     ftp://ftp.cse.buffalo.edu/pub/Gnome/
 }
 
-set _master_sites(gnu) {
+set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.gnu.org/gnu/
     ftp://gatekeeper.dec.com/pub/GNU/
     ftp://ftp.uu.net/archive/systems/gnu/
@@ -40,7 +53,7 @@ set _master_sites(gnu) {
     ftp://ftp.chg.ru/pub/gnu/
 }
 
-set _master_sites(isc) {
+set portfetch::mirror_sites::sites(isc) {
     ftp://ftp.isc.org/isc/
     ftp://gd.tuwien.ac.at/infosys/servers/isc/
     ftp://ftp.ciril.fr/pub/isc/
@@ -70,7 +83,7 @@ set _master_sites(isc) {
     ftp://ftp.metu.edu.tr/pub/mirrors/ftp.isc.org/
 }
 
-set _master_sites(kde) {
+set portfetch::mirror_sites::sites(kde) {
     ftp://ftp.us.kde.org/pub/kde/
     ftp://ftp.kde.org/pub/kde/
     http://linux.dsi.internet2.edu/X11/kde/
@@ -82,8 +95,7 @@ set _master_sites(kde) {
     ftp://ftp.chg.ru/pub/X11/kde/
 }
 
-
-set _master_sites(perl_cpan) {
+set portfetch::mirror_sites::sites(perl_cpan) {
     http://www.cpan.dk/CPAN/modules/by-module/
     ftp://ftp.funet.fi/pub/languages/perl/CPAN/modules/by-module/
     ftp://ftp.cpan.org/pub/CPAN/modules/by-module/
@@ -107,7 +119,7 @@ set _master_sites(perl_cpan) {
     ftp://ftp.chg.ru/pub/lang/perl/CPAN/modules/by-module/
 }
 
-set _master_sites(ruby) {
+set portfetch::mirror_sites::sites(ruby) {
     ftp://xyz.lcs.mit.edu/pub/ruby/
     http://www.ibiblio.org/pub/languages/ruby/
     ftp://ftp.iij.ad.jp/pub/lang/ruby/
@@ -121,7 +133,7 @@ set _master_sites(ruby) {
     ftp://ftp.iDaemons.org/pub/mirror/ftp.ruby-lang.org/ruby/
 }
 
-set _master_sites(sourceforge) {
+set portfetch::mirror_sites::sites(sourceforge) {
     http://us.dl.sourceforge.net/
     http://eu.dl.sourceforge.net/
     ftp://us.dl.sourceforge.net/pub/sourceforge/
@@ -129,7 +141,7 @@ set _master_sites(sourceforge) {
     ftp://ftp.chg.ru/pub/sourceforge/
 }
 
-set _master_sites(sunsite) {
+set portfetch::mirror_sites::sites(sunsite) {
     http://www.ibiblio.org/pub/Linux/
     http://linux.dsi.internet2.edu/
     ftp://ftp.unicamp.br/pub/systems/Linux/
@@ -158,7 +170,7 @@ set _master_sites(sunsite) {
     ftp://ftp.chg.ru/pub/Linux/sunsite/
 }
 
-set _master_sites(tcltk) {
+set portfetch::mirror_sites::sites(tcltk) {
     ftp://ftp.scriptics.com/pub/tcl/
     ftp://sunsite.utk.edu/pub/tcl/
     ftp://ftp.funet.fi/pub/languages/tcl/tcl/
@@ -168,7 +180,7 @@ set _master_sites(tcltk) {
     ftp://sunsite.org.uk/Mirrors/ftp.scriptics.com/pub/tcl/
 }
 
-set _master_sites(xcontrib) {
+set portfetch::mirror_sites::sites(xcontrib) {
     ftp://crl.dec.com/pub/X11/contrib/
     ftp://ftp.net.ohio-state.edu/disk/d/X11/contrib/
     ftp://uiarchive.uiuc.edu/pub/ftp/ftp.x.org/contrib/
@@ -189,7 +201,7 @@ set _master_sites(xcontrib) {
     ftp://ftp.chg.ru/pub/X11/contrib/
 }
 
-set _master_sites(xfree) {
+set portfetch::mirror_sites::sites(xfree) {
     ftp://ftp.xfree86.org/pub/XFree86/source/
     ftp://ftp.rge.com/pub/X/XFree86/source/
     ftp://archive.progeny.com/XFree86/source/

@@ -39,7 +39,7 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.subdir master_sites.listfile master_sites.listpath
+options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
@@ -60,10 +60,10 @@ default fetch.cmd curl
 default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
 default fetch.pre_args ""
-default fetch.post_args {"${site}${distfile}"}
+default fetch.post_args {"${site}/${distfile}"}
 
-default master_sites.listfile {"master_sites.tcl"}
-default master_sites.listpath {"${portresourcepath}/sitelists/"}
+default mirror_sites.listfile {"mirror_sites.tcl"}
+default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -135,26 +135,26 @@ proc disttagclean {list} {
     return $val
 }
 
-# Expand all variable references in each site variable, passing back a new 
-# expanded list
-proc expand-site-vars {sites} {
-    set x [list]
-    foreach element $sites {
-        eval lappend x $element
-    }
-    return $x
-}
-
-# For a given master site type, e.g. "gnu" or "x11", check to see if there's a
+# For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
-proc master-sites-for {arg} {
-    global UI_PREFIX portresourcepath master_sites.listfile master_sites.listpath
-    include ${master_sites.listpath}${master_sites.listfile}
-    if ![info exists _master_sites($arg)] {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "No master sites on file for class %s"] $arg]"
+proc mirror_sites {mirrors tag subdir} {
+    global UI_PREFIX portresourcepath mirror_sites.listfile mirror_sites.listpath
+    include ${mirror_sites.listpath}${mirror_sites.listfile}
+    if ![info exists portfetch::mirror_sites::sites($mirrors)] {
+        ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}
     }
-    return [expand-site-vars $_master_sites($arg)]
+    
+    set ret [list]
+    foreach element $portfetch::mirror_sites::sites($mirrors) {
+    	if {"$tag" != ""} {
+	    eval append element "${subdir}/:${tag}"
+	} else {
+	    eval append element "${subdir}/"
+	}
+        eval lappend ret $element
+    }
+    return $ret
 }
 
 # Checks all files and their tags to assemble url lists for later fetching
@@ -164,7 +164,8 @@ proc master-sites-for {arg} {
 # sites
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	    master_sites master_sites.subdir filespath
+	master_sites filespath master_sites.mirror_subdir \
+        patch_sites.mirror_subdir
 
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
@@ -172,18 +173,27 @@ proc checkfiles {args} {
             continue
         }
         
-        # There should be a better way to get rid of the extra list created by 
-        # master-sites-for (the extra {}'s, one element in $uplist)
         set site_list [list]
         foreach site $uplist {
-            set site_list [concat $site_list $site]
+            if {[regexp {([a-zA-Z]+://.+)} $site match site] == 1} {
+                set site_list [concat $site_list $site]
+            } else {
+	    	set splitlist [split $site :]
+		if {[llength $splitlist] > 3 || [llength $splitlist] <1} {
+                    ui_error [format [msgcat::mc "Unable to process mirror sites for: %s, ignoring."] $site]
+		}
+		set mirrors "[lindex $splitlist 0]"
+		set subdir "[lindex $splitlist 1]"
+		set tag "[lindex $splitlist 2]"
+                if [info exists $list.mirror_subdir] {
+                    append subdir "/[set ${list}.mirror_subdir]"
+                }
+                set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir]]
+            }
         }
         
         foreach site $site_list {
-            if [info exists master_sites.subdir] {
-                eval append site ${master_sites.subdir}
-            }
-            if {[regexp {([a-zA-Z]+://.+/):([a-zA-z]+)} $site match site tag] == 1} {
+	    if {[regexp {([a-zA-Z]+://.+/):([a-zA-Z]+)} $site match site tag] == 1} {
                 lappend portfetch::$tag $site
             } else {
                 lappend portfetch::$list $site
