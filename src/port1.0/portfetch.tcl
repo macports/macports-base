@@ -11,7 +11,7 @@ register com.apple.fetch provides fetch
 register com.apple.fetch requires main depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2
+options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2 dist_subdir
 
 # Defaults
 default extract_sufx .tar.gz
