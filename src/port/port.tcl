@@ -149,7 +149,7 @@ proc ui_display {filename} {
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vdq\] \[action\] \[-D portdir\] \[options\]"
+    puts "Usage: $argv0 \[-vdqo\] \[action\] \[-D portdir\] \[options\]"
 }
 
 proc fatal args {
@@ -183,6 +183,8 @@ for {set i 0} {$i < $argc} {incr i} {
 		    set ui_options(ports_quiet) yes
 		    set ui_options(ports_verbose) no
 		    set ui_options(ports_debug) no
+		} elseif {$c == "o"} {
+		    set options(ports_ignore_older) yes
 		} elseif {$opt == "D"} {
 		    incr i
 		    set porturl "file://[lindex $argv $i]"
