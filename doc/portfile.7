@@ -1,0 +1,600 @@
+.\" portfile.7
+.\"
+.\" Copyright (c) 2002 Apple Computer, Inc.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Apple Computer, Inc. nor the names of its
+.\"    contributors may be used to endorse or promote products derived from
+.\"    this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd September 2, 2002
+.Dt PORTFILE 7 "Apple Computer, Inc."
+.Os
+.Sh NAME
+.Nm Portfile
+.Nd darwin ports description file reference
+.Sh DESCRIPTION
+A complete reference of all available
+.Nm
+variables and example syntax.
+.Nm Portfiles
+consist of valid TCL, allowing for simple key/value pair syntax as well as
+utiliziation of TCL's extensive functionality.
+.Pp
+The
+.Nm Darwin Ports System
+uses a target dependency system based on a
+depends/provides model, allowing for targets to be registered and
+executed in the correct order based on their individual requirements.
+.Pp
+A
+.Nm
+author needs to be aware of the various standard targets, the options that they
+require, and the variables that both the targets and the port system provides.
+
+.Sh TARGETS
+.Tp
+.Ss MAIN OPTIONS
+Neccesary standard options
+.Bl -tag -width lc
+.It Ic prefix
+Install prefix
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em /opt/local
+
+.It Ic sysportpath
+Location of software/ directory
+.br
+.Sy Type:
+.Em read-only
+
+.It Ic libpath
+Locate of ports-specific TCL libraries
+.br
+.Sy Type:
+.Em read-only
+
+.It Ic workdir
+Path to work directory relative to ${portpath}
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em work
+
+.It Ic workpath
+Full path to work directory
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${portpath}/${workdir}
+
+.It Ic portname
+Full name of port
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl portname	XFree86
+
+.It Ic portversion
+Upstream version of software
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl portversion	4.2.1
+
+.It Ic portrevision
+Local revision number of portfile.
+Increment for port revisions.
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em 0
+.br
+.Sy Example:
+.Dl portrevision	1
+
+.It Ic categories
+Categories to which this port belongs
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl categories	spelling textproc
+
+.It Ic maintainers
+E-mail address(es) of port maintainer(s)
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl maintainers	landonf@opendarwin.org kevin@opendarwin.org
+
+.It Ic worksrcdir
+Path to source directory relative to ${workpath}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${distname}
+.br
+.Sy Example:
+.Dl worksrcdir	${distname}-src-${portversion}
+
+.It Ic no_worksubdir
+If set to yes, ${worksrcdir} is ignored in favor of ${workpath}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl no_worksubdir	yes
+
+.It Ic filedir
+Path to port files relative to ${portpath}
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em files
+
+.It Ic distname
+Name of distibution file, minus extract suffix
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${portname}-${portversion})
+.br
+.Sy Example:
+.Dl distname	${portname}-${portversion}-src
+
+.It Ic distpath 
+Location to store downloaded distfiles
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${sysportpath}/distfiles
+
+.It Ic os_arch
+Identifies hardware type (ie, "Power Macintosh")
+.br
+.Sy Type:
+.Em read-only
+
+.It Ic os_version
+Version number of operating system (ie "6.0")
+.br
+.Sy Type:
+.Em read-only
+.El
+
+.Ss DEPENDS OPTIONS
+Checking and building of dependencies
+.Bl -tag -width lc
+.It Ic depends_fetch
+List of dependencies to check before running fetch target
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_fetch	bin:fetch:net/fetch bin:wget:www/wget
+
+.It Ic depends_build
+List of dependencies to check before build, install, and package targets
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_build	bin:autoconf:devel/autoconf
+
+.It Ic depends_run
+List of dependencies to check before install and package targets
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_run	bin:bash:shells/bash
+
+.It Ic depends_extract
+List of dependencies to check before extract target
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_extract	bin:bzip2:archivers/bzip2
+
+.It Ic depends_lib
+List of dependencies to check before configure, build, install, and package targets
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_lib	lib:libfetch.3:net/libfetch
+.El
+
+.Ss FETCH OPTIONS
+Fetch all distribution files and patches
+.Bl -tag -width lc
+.It Ic master_sites
+List of sites to fetch ${distfiles} from
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl master_sites	ftp://ftp.cdrom.com/pub/magic \
+			ftp://ftp.sourceforge.net/pub/projects/magic
+
+.It Ic patch_sites 
+List of sites to fetch ${patchfiles} from
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${master_sites}
+.br
+.Sy Example:
+.Dl patch_sites	ftp://ftp.patchcityrepo.com/pub/magic/patches
+
+.It Ic extract_sufx
+Suffix to append to ${distname}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em .tar.gz
+.br
+.Sy Example:
+.Dl extract_sufx	.tgz
+
+.It Ic distfiles
+List of distribution files to fetch from ${master_sites}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em [suffix ${distname}]
+.br
+.Sy Example:
+.Dl distfiles	magicsource.tar.gz cluebat.tar.bz2
+
+.It Ic patchfiles
+List of patches to fetch and apply
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl patchfiles	japanese-widechar-fix.diff japanese-localization.diff
+
+.It Ic extract_only
+Does nothing. Replaced by extract.only below.
+
+.It Ic use_zip
+Use zip.
+.br
+Sets extract_sufx to: .zip
+.br
+Sets extract.cmd to: unzip
+.br
+Sets extract.before_args to: -q
+.br
+Sets extract.after_args to: "-d $portpath/$workdir"
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_zip		yes
+
+.It Ic use_bzip2
+Use bzip2.
+.br
+Sets extract_sufx to: .bzip2
+.br
+Sets extract.cmd to: bzip2
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_bzip2	yes
+
+.It Ic dist_subdir
+Create a sub-directory in ${distpath} to store all fetched files.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl dist_subdir	vim${portversion}
+
+.El
+.Ss CHECKSUM OPTIONS
+Compare checksums of all fetched files
+.Bl -tag -width lc
+.It Ic checksums
+List of checksums in the format: <file name> <checksum type> <checksum>
+Currently, the only supported checksum type is md5
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl checkums	dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \
+				magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+.El
+
+.Ss EXTRACT OPTIONS
+Extract all compressed/archived files
+.Bl -tag -width lc
+.It Ic extract_opts
+Does nothing. Why is this here?
+
+.It Ic extract.only
+List of files to extract into ${workpath}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${distfiles}
+.br
+.Sy Example:
+.Dl extract.only	worksrc-1.4.4.tar.gz
+
+.It Ic extract.cmd
+Command to perform extract
+.br
+.Sy Type:
+.Em optional
+.Sy Default
+.Em gzip
+.br
+.Sy Example:
+.Dl extract.cmd	bzip2
+
+.It Ic extract.before_args
+Arguments added to extract command before a file name
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em -dc
+.br
+.Sy Example:
+.Dl extract.cmd	-cd
+
+.It Ic extract.after_args
+Arguments added to extract command after a file name
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em "| tar -xf -"
+.br
+.Sy Example:
+.Dl extract.after_args	| tar -x -s@bladeenc-0.94.2/other_makefiles/BladeEnc..@@p -f -
+
+.El
+
+.Ss PATCH OPTIONS
+Apply all necessary patches to the extracted source
+No options defined for patch. Move patchfiles here?
+
+.Ss CONFIGURE OPTIONS
+Execute necessary configuration steps
+.Bl -tag -width lc
+.It Ic configure.type
+Does nothing
+
+.It Ic configure.args (default not set properly to: "./configure --prefix=${prefix}
+Arguments to pass to configure. They are currently appended to "-prefix=${prefix}"
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em default not set properly to: ./configure --prefix=${prefix}
+.br
+.Sy Example:
+.Dl configure.args		--with-etc-dir=${prefix}/etc
+
+.It Ic configure.dir (default not set properly to: ${portpath}/${workdir}/${worksrcdir})
+Directory relative to ${worksrcdir} in which to run configure command
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em default not set properly to: ./configure --prefix=${prefix}
+.br
+.Sy Example:
+.Dl configure.dir		src
+
+.It Ic automake
+Does nothing
+
+.It Ic automake.env
+Does nothing
+
+.It Ic automake.args
+Does nothing
+
+.It Ic automake.dir
+Does nothing
+
+.It Ic autoconf
+If set to yes, run autoconf
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl autoconf	yes
+
+.It Ic autoconf.env
+Does nothing. Should allow one to set environment
+
+.It Ic autoconf.args
+Arguments to pass to autoconf
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl autoconf.args	-l src/aclocaldir
+
+.It Ic autoconf.dir
+Directory relative to ${worksrcdir} in which to run autoconf
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${configure.dir}
+.br
+.Sy Example:
+.Dl autoconf.dir	src
+
+.It Ic xmkmf
+Does nothing
+
+.It Ic libtool
+Does nothing
+.El
+
+.Ss BUILD OPTIONS
+Execute necessary build commands
+.Bl -tag -width lc
+.It Ic make.cmd
+Make command to run relative to ${worksrcdir}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em make
+.br
+.Sy Example:
+.Dl make.cmd	pbxbuild
+
+make.type
+Type of make required, either 'gnu' or 'bsd'
+Sets make.cmd to either 'gnumake' or 'bsdmake' accordingly
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em bsd
+.br
+.Sy Example:
+.Dl make.type	gnu
+
+.It Ic make.target.all
+Target to pass to make for building everything
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em all
+.br
+.Sy Example:
+.Dl make.target.install	all-src
+
+.It Ic make.target.install
+	DUPLICATE of install target option below
+	Ignore here
+.El
+
+.Ss INSTALL OPTIONS
+Execute necessary install commands
+.Bl -tag -width lc
+.It Ic make.cmd
+DUPLICATE of build option
+
+.It Ic make.type
+DUPLICATE of build option
+
+.Il Ic make.target.install
+Install target to pass to ${make.cmd}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em install
+.br
+.Sy Example:
+.Dl make.target.install	install-src
+
+.It Ic contents
+	DUPLICATE of registry option
+
+.It Ic description
+	DUPLICATE of registry option
+.El
+.Ss REGISTRY OPTIONS
+Register installed package contents
+.Bl -tag -width lc
+
+.It Ic contents
+List of files to be installed by the port
+Files are assumed to be relative to ${prefix} unless the first character is a '/'
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl contents		bin/ls man/man1/ls.1.gz
+
+.It Ic description
+One line description of the software and what it does
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl description	"Dictionary Server Protocol (RFC2229) client"
+.El
+
+.Sh AUTHORS
+.An "Landon Fuller <landonf@opendarwin.org>"
+.An "Kevin Van Vechten <kevin@opendarwin.org>"
+.An "Jordan K. Hubbard <jkh@opendarwin.org>"
