@@ -70,18 +70,20 @@ default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 default distfiles {[suffix $distname]}
 
 # Option-executed procedures
-namespace eval options { }
-proc options::use_bzip2 {args} {
-    global use_bzip2 extract.suffix
-    if {[tbool use_bzip2]} {
-        set extract.suffix .tar.bz2
-    }
-}
+option_proc use_bzip2 fix_extract_suffix
+option_proc use_zip fix_extract_suffix
 
-proc options::use_zip {args} {
-    global use_zip extract.suffix
-    if {[tbool use_zip]} {
-        set extract.suffix .zip
+proc fix_extract_suffix {option action args} {
+    global extract.suffix
+    if {[string equal ${action} "set"] && [tbool args]} {
+        switch $option {
+            use_bzip2 {
+                set extract.suffix .tar.bz2
+            }
+            use_zip {
+                set extract.suffix .zip
+            }
+        }
     }
 }
 
@@ -93,17 +95,11 @@ set UI_PREFIX "---> "
 
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.suffix options
 proc suffix {distname} {
-    global extract.suffix use_bzip2 use_zip fetch.type
+    global extract.suffix fetch.type
     if {"${fetch.type}" == "cvs"} {
         return ""
     }
-    if {[tbool use_bzip2]} {
-	return ${distname}.tar.bz2
-    } elseif {[tbool use_zip]} {
-	return ${distname}.zip
-    } else {
-	return ${distname}${extract.suffix}
-    }
+    return ${distname}${extract.suffix}
 }
 
 # Given a site url and the name of the distfile, assemble url and
