@@ -5163,9 +5163,43 @@ _ACEOF
 
 else
 
-				{ { echo "$as_me:$LINENO: error: libX11 was found, but X.h is missing." >&5
+				case $host_os in
+					darwin*)
+						echo "***************************************************"
+						if test -d /Library/Receipts/X11User.pkg ; then
+							if test -d /Library/Receipts/X11SDK.pkg ; then
+								cat <<EOF;
+It appears that you are running Mac OS X and have both the X11 and X11SDK
+packages installed. However, for some reason the headers in
+/usr/X11R6/include are not accessible. Please correct this and
+re-run ./configure
+EOF
+							else
+								cat <<EOF;
+It appears that you are running Mac OS X and have the X11 package
+installed, but do *not* have the X11SDK package installed. You can
+find this package on the Xcode Tools CD of your Mac OS X CD Installation
+Set, or on the Restore CDs/DVDs that came with your computer. Please
+install this package and re-run ./configure
+EOF
+							fi
+						else
+								cat <<EOF;
+It appears that you are running Mac OS X and have installed X11
+from a third party, without installing the associated X11 development
+headers. Please correct this and re-run ./configure
+EOF
+						fi
+						{ { echo "$as_me:$LINENO: error: Inconsistent X11 installation" >&5
+echo "$as_me: error: Inconsistent X11 installation" >&2;}
+   { (exit 1); exit 1; }; }
+						;;
+					*)
+						{ { echo "$as_me:$LINENO: error: libX11 was found, but X.h is missing." >&5
 echo "$as_me: error: libX11 was found, but X.h is missing." >&2;}
    { (exit 1); exit 1; }; }
+						;;
+				esac
 
 fi
 
