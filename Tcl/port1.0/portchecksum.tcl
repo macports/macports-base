@@ -6,10 +6,8 @@ register com.apple.checksum target build checksum_main
 register com.apple.checksum provides checksum
 register com.apple.checksum requires main fetch
 
-global checksum_opts
-
 # define options
-options checksum_opts checksums
+options checksums
 
 proc md5 {file} {
     global distpath
@@ -28,9 +26,9 @@ proc md5 {file} {
 }
 
 proc dmd5 {file} {
-    global checksum_opts
+    global checksums
 
-    foreach {name type sum} $checksum_opts(checksums) {
+    foreach {name type sum} $checksums {
 	if {$name == $file} {
 	    return $sum
 	}
@@ -39,14 +37,14 @@ proc dmd5 {file} {
 }
 
 proc checksum_main {args} {
-    global checksum_opts distpath portpath all_dist_files
+    global checksums distpath portpath all_dist_files
 
     # If no files have been downloaded there is nothing to checksum
     if ![info exists all_dist_files] {
 	return 0
     }
 
-    if ![info exists checksum_opts(checksums)] {
+    if ![info exists checksums] {
 	puts "No MD5 checksums."
 	return -1
     }
