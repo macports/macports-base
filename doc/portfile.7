@@ -362,15 +362,24 @@ Create a sub-directory in ${distpath} to store all fetched files.
 Compare checksums of all fetched files
 .Bl -tag -width lc
 .It Ic checksums
-List of checksums in the format: <file name> <checksum type> <checksum>
-Currently, the only supported checksum type is md5
+List of checksums in the format:
+.br
+<file name> <checksum type> <checksum> [<checksum type> <checksum>] ...
+.br
+Checksum type currently can be md5 or sha1
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl checkums	dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \
-				magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+.Dl checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c
+                magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+.br
+File name can be omitted if there is a single distfile.
+.br
+.Sy Example (ledit 1.11):
+.Dl checksums  md5 a2d38ba641682509c1e964ad699a9dd2
+                sha1 1fb6443b5fdf3c83787953f06282d256477c1288
 .El
 .Ss EXTRACT OPTIONS
 Extract all compressed/archived files
