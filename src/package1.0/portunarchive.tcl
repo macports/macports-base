@@ -107,6 +107,7 @@ proc unarchive_init {args} {
 	} elseif {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
 		ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
 		set skipped 1
+		ui_msg "Portfile changed since last archive; rebuilding archive."
 	}
 	# Skip unarchive target by setting state
 	if {$skipped == 1} {
