@@ -551,6 +551,7 @@ proc open_statefile {args} {
 			ui_msg "Portfile changed since last build; discarding previous state."
 			#file delete $statefile
 			exec rm -rf [file join $workpath]
+			exec mkdir [file join $workpath]
 		}
 	}
 	
