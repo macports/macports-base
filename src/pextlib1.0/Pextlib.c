@@ -14,7 +14,7 @@
 static int ui_info(Tcl_Interp *interp, char *mesg) {
 	const char ui_proc[] = "ui_info {";
 	char *script, *p;
-	int scriptlen, ret;
+	int scriptlen;
 
 	scriptlen = sizeof(ui_proc) + strlen(mesg);
 	script = malloc(scriptlen);
@@ -216,7 +216,7 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);
-	while (dp = readdir(dirp)) {
+	while ((dp = readdir(dirp))) {
 		Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
 	}
 	closedir(dirp);
@@ -228,7 +228,6 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *pattern, *string, *res;
-	Tcl_Obj *tcl_result;
 	int range[2];
 	extern char *strsed(char *str, char *pat, int *range);
 
