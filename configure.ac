@@ -1,13 +1,43 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/pextlib1.0/Pextlib.c)
-AC_PREFIX_DEFAULT(/opt/local)
+AC_PREREQ(2.52)
+AC_INIT([OpenDarwin DarwinPorts], [1.0], [darwinports@opendarwin.org], [darwinports])
+AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
+AC_CONFIG_HEADERS([src/pextlib1.0/config.h])
+AC_CANONICAL_SYSTEM
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+
+OD_PROG_MD5
+
+# Check for paths
+AC_PREFIX_DEFAULT(/opt/local)
+OD_PATH_DPORTSDIR([/usr/dports])
+OD_PATH_PORTCONFIGDIR([/etc/ports], [$prefix])
+
+# Check for install ownership
+OD_CHECK_INSTALLUSER
+OD_CHECK_INSTALLGROUP
 
 # Check for standard header files.
 AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_HEADER_SYS_WAIT
+AC_HEADER_STAT
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h])
+
+INCLUDES="-I. $INCLUDES"
+
+# Checks for library functions.
+AC_FUNC_CLOSEDIR_VOID
+AC_FUNC_FORK
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_FUNC_STRERROR_R
+AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol])
+
 
 # Check for Tcl public headers
 dnl XXX hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)
@@ -34,6 +64,7 @@ STLIB_LD=${TCL_STLIB_LD}
 SHLIB_CFLAGS=${TCL_SHLIB_CFLAGS}
 SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
+AC_SUBST(INCLUDES)
 AC_SUBST(CFLAGS_DEBUG)
 AC_SUBST(CFLAGS_OPTIMIZE)
 AC_SUBST(STLIB_LD)
@@ -48,4 +79,6 @@ dnl
 dnl SC_CONFIG_MANPAGES
 
 # Output
-AC_OUTPUT(Makefile Mk/dports.autoconf.mk)
+
+AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree])
+AC_OUTPUT
