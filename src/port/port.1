@@ -35,7 +35,7 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonasb
+.Op Fl vdqfonausb
 .Op Fl D Ar portdir
 .Ar target
 .Op Ar portname
@@ -74,6 +74,8 @@ quiet mode (suppress messages)
 dont follow dependencies in upgrade (only for upgrading)
 .It Fl a
 upgrade all installed ports (only for upgrading)
+.It Fl u
+uninstall non-active ports when upgrading and uninstalling
 .It Fl D
 specify
 .Ar portdir
@@ -164,6 +166,10 @@ To uninstall a port, invoke
 with the "uninstall" target:
 .Pp
 .Dl "port uninstall vim
+.Pp
+To uninstall all ports that are not activated 
+.Pp
+.Dl "port -u uninstall" 
 .Pp
 To clean up after the port was build:
 .Pp
