@@ -367,31 +367,22 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 #
 # func:		function to call on every port directory (it is passed
 #			category/port/ as its parameter)
-# dir:		current directory
-# depth:	current depth (we start at 0)
-proc dporttraverse {func {dir .} {depth 0}} {
-	# Start with incrementing the depth for subdirectories.
-	# What we'll find with a depth of 1 is the category directories
-	# and with a depth of 2 is the port directories.
-	incr depth 1
-    foreach name [readdir $dir] {
-    	set pathToElement [file join $dir $name]
-    	if {$depth == 1} {
-	        if {[file isdirectory $pathToElement]} {
-	        	# Congratulation, it probably is a category directory.
-	            dporttraverse $func $pathToElement $depth
-	        }
-		}
-		if {$depth == 2} {
-			if {[file isdirectory $pathToElement]} {
-				# Congratulation, it probably is a port directory.
-				if {[file exists [file join $pathToElement "Portfile"]]} {
+# root:		the directory with all the categories directories.
+proc dporttraverse {func {root .}} {
+    foreach category [readdir $root] {
+    	set pathToCategory [file join $root $category]
+        if {[file isdirectory $pathToCategory]} {
+        	# Iterate on port directories.
+			foreach port [readdir $pathToCategory] {
+				set pathToPort [file join $pathToCategory $port]
+				if {[file isdirectory $pathToPort] &&
+					[file exists [file join $pathToPort "Portfile"]]} {
 					# Call the function.
-	                $func $pathToElement
+					$func [file join $category $port]
 				}
-            }
+			}
         }
-    }
+	}
 }
 
 ### _dportsearchpath is private; subject to change without notice
