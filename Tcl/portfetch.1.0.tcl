@@ -42,8 +42,12 @@ proc portfetch::checkfiles {args} {
 			puts "Attempting to fetch from $site"
 			catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result
 			if {$result == 0} {
+				set fetched 1
 				break
 			}
+		}
+		if {![info exists fetched]} {
+			return -1
 		}
 	}
 	return 0
