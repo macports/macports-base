@@ -250,18 +250,16 @@ proc _activate_file {srcfile dstfile} {
 		file mkdir $dstfile
 
 		# fix attributes on the directory.
-		# It's ok if we cannot fix them (this typically happens when
-		# DP is not run as root).
 		set attributes [file attributes $srcfile]
 		for {set i 0} {$i < [llength $attributes]} {incr i} {
 			set opt [lindex $attributes $i]
 			incr i
 			set arg [lindex $attributes $i]
-			catch {file attributes $dstfile $opt $arg}
+			file attributes $dstfile $opt $arg
 		}
 
 		# set mtime on installed element
-		catch {exec touch -r $srcfile $dstfile}
+		exec touch -r $srcfile $dstfile
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
@@ -278,6 +276,7 @@ proc _activate_list {flist imagedir} {
 
 proc _activate_contents {name imagefiles imagedir} {
 	variable force
+	global darwinports::prefix
 
 	set files [list]
 	
@@ -328,8 +327,14 @@ proc _activate_contents {name imagefiles imagedir} {
 		# we don't need to have them sorted from root to subpaths. We do need,
 		# nevertheless, all sub paths to make sure we'll set the directory
 		# attributes properly for all directories.
+		# Finally, we skip substrings of ${prefix}
 		set directory [file dirname $file]
 		while { [lsearch -exact $files $directory] == -1 } { 
+			# Stop if $directory is a substring of ${prefix}
+			if {[string match "$directory*" ${darwinports::prefix}]} {
+				break
+			}
+			
 			lappend files $directory
 			set directory [file dirname $directory]
 		}
