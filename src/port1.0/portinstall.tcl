@@ -54,7 +54,7 @@ default install.destroot {DESTDIR=${destroot}}
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX prefix portname destroot portresourcepath
+    global UI_PREFIX prefix portname destroot portresourcepath os.platform
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
@@ -63,7 +63,9 @@ proc install_start {args} {
 	#system "rm -Rf \"${destroot}\""
 
 	file mkdir "${destroot}"
-	system "cd \"${destroot}\" && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
+	if { ${os.platform} == "darwin" } {
+		system "cd \"${destroot}\" && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
+	}
 	file mkdir "${destroot}/${prefix}"
 	system "cd \"${destroot}/${prefix}\" && mtree -d -e -U -f ${portresourcepath}/install/prefix.mtree"
 }

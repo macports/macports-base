@@ -7,7 +7,7 @@ $(SHLIB_NAME):: ${OBJS} config.h
 all:: ${SHLIB_NAME}
 
 clean::
-	rm -f ${OBJS} ${SHLIB_NAME}
+	rm -f ${OBJS} ${SHLIB_NAME} so_locations
 
 distclean:: clean
 	rm -f config.h

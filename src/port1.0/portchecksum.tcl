@@ -45,7 +45,7 @@ set UI_PREFIX "---> "
 proc md5 {file} {
     global distpath UI_PREFIX
 
-    set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+    set md5regex "^(MD5)\[ \]?\\((.+)\\)\[ \]?=\[ \](\[A-Za-z0-9\]+)\n$"
     if {[catch {set pipe [open "|md5 \"${file}\"" r]} result]} {
         return -code error "[format [msgcat::mc "Unable to parse checksum: %s"] $result]"
     }

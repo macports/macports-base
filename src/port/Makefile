@@ -1,10 +1,11 @@
 MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${prefix}
+TOPSRCDIR=	../..
 
 include ../../Mk/dports.autoconf.mk
 
 mkdirs:
-	cat ../../doc/prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
+	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 
 all:
 

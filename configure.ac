@@ -11,6 +11,9 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 OD_PROG_MD5
+OD_PROG_MTREE
+
+AC_SUBST(REPLACEMENT_PROGS)
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
@@ -99,5 +102,6 @@ dnl SC_CONFIG_MANPAGES
 # Output
 
 AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree
-		doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl])
+		doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl
+		src/programs/Makefile])
 AC_OUTPUT
