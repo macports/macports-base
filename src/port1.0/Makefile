@@ -21,6 +21,6 @@ distclean:: clean
 install::
 	mkdir -p ${INSTALLDIR}
 	@set -x; for file in ${SRCS}; do \
-		install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
 	../pkg_mkindex.tcl ${INSTALLDIR}

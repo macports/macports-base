@@ -9,5 +9,5 @@ include ../../../Mk/dports.mk
 install::
 	mkdir -p ${INSTALLDIR}
 	@set -x; for file in ${RSRCS}; do \
-		install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done

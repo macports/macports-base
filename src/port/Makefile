@@ -2,6 +2,7 @@ MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${PREFIX}
 
 include ../../Mk/dports.mk
+include ../../Mk/dports.autoconf.mk
 
 mkdirs:
 	cat ../../doc/prefix.mtree | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
@@ -15,7 +16,7 @@ clean:
 distclean: clean
 
 install: mkdirs
-	install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/man/man1
-	install -c -o ${DSTUSR} -g ${DSTGRP} -m 555 port.tcl ${INSTALLDIR}/bin/port
-	install -c -o ${DSTUSR} -g ${DSTGRP} -m 555 portall.tcl ${INSTALLDIR}/bin/portall
-	install -c -o ${DSTUSR} -g ${DSTGRP} -m 555 portindex.tcl ${INSTALLDIR}/bin/portindex
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/man/man1
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port.tcl ${INSTALLDIR}/bin/port
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portall.tcl ${INSTALLDIR}/bin/portall
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portindex.tcl ${INSTALLDIR}/bin/portindex
