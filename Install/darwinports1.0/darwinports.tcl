@@ -63,7 +63,6 @@ proc init {args} {
     }
 }
 
-# XXX incomplete. Waiting for kevin's dependancy related submissions
 proc build {portdir chain target} {
     global targets portpath portinterp_options
 
