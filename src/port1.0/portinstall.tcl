@@ -52,6 +52,7 @@ proc install_start {args} {
     ui_msg "$UI_PREFIX Installing ${portname} into ${destroot} with target ${build.target.install}"
 	
 	file mkdir ${destroot}
+	system "mtree -U -f /etc/ports/prefix.mtree -d -e -p ${destroot} > /dev/null"
 }
 
 proc install_main {args} {
