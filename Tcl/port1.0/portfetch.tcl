@@ -54,7 +54,6 @@ proc fetchfiles {args} {
 	    puts "$distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
 		puts "Attempting to fetch from $site"
-		puts "path: $distpath file: $distfile site: $site"
 		if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 		    set fetched 1
 		    break
