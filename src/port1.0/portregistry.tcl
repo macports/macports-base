@@ -59,14 +59,31 @@ proc registry_new {portname {portversion 1.0}} {
     return $rhandle
 }
 
-proc registry_exists {portname {portversion 1.0}} {
+proc registry_exists {portname {portversion 0}} {
     global registry.path
 
-    if [file exists [file join ${registry.path} $portname-$portversion]] {
-	return [file join ${registry.path} $portname-$portversion]
+    # regex match case
+    if {$portversion == 0} {
+	set x [glob -nocomplain [file join ${registry.path} ${portname}-*]]
+	if [string length $x] {
+	    set matchfile [lindex $x 0]
+	} else {
+	    set matchfile ""
+	}
+    } else {
+	set matchfile [file join ${registry.path} ${portname}-${portversion}]
     }
-    if [file exists [file join ${registry.path} $portname-$portversion].bz2] {
-	return [file join ${registry.path} $portname-$portversion].bz2
+
+    # Might as well bail out early if no file to match
+    if ![string length $matchfile] {
+	return ""
+    }
+
+    if [file exists $matchfile] {
+	return $matchfile
+    }
+    if [file exists ${matchfile}.bz2] {
+	return ${matchfile}.bz2
     }
     return ""
 }
