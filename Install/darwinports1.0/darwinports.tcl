@@ -59,15 +59,14 @@ proc init {args} {
     } else {
 	return -code error "Library directory '$libpath' must exist"
     }
-    return $sysportpath
 }
 
 # XXX incomplete. Waiting for kevin's dependancy related submissions
-proc build {portpath chain target} {
+proc build {portdir chain target} {
     global targets portpath
 
-    if [file isdirectory $portpath] {
-	cd $portpath
+    if [file isdirectory $portdir] {
+	cd $portdir
 	set portpath [pwd]
 	# XXX These must execute at a global scope
 	uplevel #0 source Portfile
