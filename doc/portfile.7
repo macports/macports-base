@@ -61,7 +61,7 @@ Neccesary standard options
 Install prefix
 .br
 .Sy Type:
-.Em read-only
+.Em optional
 .Sy Default:
 .Em /opt/local
 
@@ -306,9 +306,9 @@ Sets extract_sufx to: .zip
 .br
 Sets extract.cmd to: unzip
 .br
-Sets extract.before_args to: -q
+Sets extract.pre_args to: -q
 .br
-Sets extract.after_args to: "-d $portpath/$workdir"
+Sets extract.post_args to: "-d $portpath/$workdir"
 .br
 .Sy Type:
 .Em optional
@@ -357,8 +357,6 @@ Currently, the only supported checksum type is md5
 .Ss EXTRACT OPTIONS
 Extract all compressed/archived files
 .Bl -tag -width lc
-.It Ic extract_opts
-Does nothing. Why is this here?
 
 .It Ic extract.only
 List of files to extract into ${workpath}
@@ -382,7 +380,7 @@ Command to perform extract
 .Sy Example:
 .Dl extract.cmd	bzip2
 
-.It Ic extract.before_args
+.It Ic extract.pre_args
 Arguments added to extract command before a file name
 .br
 .Sy Type:
@@ -391,9 +389,17 @@ Arguments added to extract command before a file name
 .Em -dc
 .br
 .Sy Example:
-.Dl extract.cmd	-cd
+.Dl extract.pre_args	-cd
 
-.It Ic extract.after_args
+.It Ic extract.args
+Arguments to extract.cmd
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${distpath}/${distfile}
+
+.It Ic extract.post_args
 Arguments added to extract command after a file name
 .br
 .Sy Type:
@@ -402,7 +408,7 @@ Arguments added to extract command after a file name
 .Em "| tar -xf -"
 .br
 .Sy Example:
-.Dl extract.after_args	| tar -x -s@bladeenc-0.94.2/other_makefiles/BladeEnc..@@p -f -
+.Dl extract.post_args	| tar -x -s@bladeenc-0.94.2/other_makefiles/BladeEnc..@@p -f -
 
 .El
 
@@ -413,56 +419,91 @@ No options defined for patch. Move patchfiles here?
 .Ss CONFIGURE OPTIONS
 Execute necessary configuration steps
 .Bl -tag -width lc
-.It Ic configure.type
-Does nothing
 
-.It Ic configure.args (default not set properly to: "./configure --prefix=${prefix}
-Arguments to pass to configure. They are currently appended to "-prefix=${prefix}"
+.It Ic configure.pre_args
+Arguments added to configure command before ${configure.args}
 .br
 .Sy Type:
 .Em optional
-.Sy Default:
-.Em default not set properly to: ./configure --prefix=${prefix}
 .br
 .Sy Example:
-.Dl configure.args		--with-etc-dir=${prefix}/etc
+.Dl configure.pre_args		--prefix=${prefix}/apache2
 
-.It Ic configure.dir (default not set properly to: ${portpath}/${workdir}/${worksrcdir})
-Directory relative to ${worksrcdir} in which to run configure command
+.It Ic configure.args
+Arguments to pass to configure.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl configure.args		--etcdir=${prefix}/etc
+
+.It Ic configure.dir
+Directory in which to run ${configure.cmd}
 .br
 .Sy Type:
 .Em optional
 .Sy Default:
-.Em default not set properly to: ./configure --prefix=${prefix}
+.Em ${workpath}/${worksrcdir}
 .br
 .Sy Example:
 .Dl configure.dir		src
 
-.It Ic automake
-Does nothing
+.It Ic use_automake
+If set to yes, use automake
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_automake	yes
 
 .It Ic automake.env
-Does nothing
+Environmental variables to pass to automake
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl automake.env	CFLAGS=-I${prefix}/include/gtk12
 
 .It Ic automake.args
-Does nothing
+Arguments to pass to automake.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl automake.args	--foreign
 
 .It Ic automake.dir
-Does nothing
-
-.It Ic autoconf
-If set to yes, run autoconf
+Directory in which to run ${automake.cmd}
 .br
 .Sy Type:
 .Em optional
 .Sy Default:
-.Em no
+.Em ${workpath}/${worksrcdir}
 .br
 .Sy Example:
-.Dl autoconf	yes
+.Dl automake.dir		src
+
+.It Ic use_autoconf
+If set to yes, run autoconf
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl use_autoconf	yes
 
 .It Ic autoconf.env
-Does nothing. Should allow one to set environment
+Environmental variables to pass to autoconf
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl autoconf.env	CFLAGS=I${prefix}/include/gtk12
 
 .It Ic autoconf.args
 Arguments to pass to autoconf
@@ -474,12 +515,12 @@ Arguments to pass to autoconf
 .Dl autoconf.args	-l src/aclocaldir
 
 .It Ic autoconf.dir
-Directory relative to ${worksrcdir} in which to run autoconf
+Directory in which to run ${autoconf.cmd}
 .br
 .Sy Type:
 .Em optional
 .Sy Default:
-.Em ${configure.dir}
+.Em ${autoconf.dir}
 .br
 .Sy Example:
 .Dl autoconf.dir	src
@@ -516,6 +557,25 @@ Sets make.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Example:
 .Dl make.type	gnu
+
+.It Ic make.pre_args
+Arguments to pass to ${make.cmd} before ${make.args}
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${make.target.current}
+
+
+.It Ic make.args
+Arguments to pass to ${make.cmd}
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl make.args	-DNOWARN
+
 
 .It Ic make.target.all
 Target to pass to make for building everything

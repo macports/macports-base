@@ -37,8 +37,6 @@ register com.apple.extract init extract_init
 register com.apple.extract provides extract
 register com.apple.extract requires fetch checksum depends_extract
 
-global extract_opts
-
 # define options
 options extract.only
 commands extract

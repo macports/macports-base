@@ -50,7 +50,7 @@ set UI_PREFIX "---> "
 
 proc configure_main {args} {
     global [info globals]
-    global global configure configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX use_configure use_autoconf use_automake
+    global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX use_configure use_autoconf use_automake
 
     if [tbool use_automake] {
 	# XXX depend on automake
