@@ -41,6 +41,8 @@ target_postrun ${com.apple.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs
+options startupitem.create startupitem.requires
+options startupitem.name startupitem.start startupitem.stop startupitem.restart
 commands destroot
 
 # Set defaults
@@ -78,7 +80,12 @@ proc destroot_main {args} {
 }
 
 proc destroot_finish {args} {
-    global UI_PREFIX destroot prefix portname
+    global UI_PREFIX destroot prefix portname startupitem.create
+    # Create startup-scripts/items
+    if {[tbool startupitem.create]} {
+        package require portstartupitem 1.0
+        startupitem_create
+    }
 
     # Prune empty directories in ${destroot}
     set exclude_dirs [list]
