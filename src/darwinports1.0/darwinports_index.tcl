@@ -275,7 +275,9 @@ proc darwinports::index::search {portdbpath url attrslist} {
 #
 # Checks for a locally cached copy of the port, or downloads the port
 # from the specified URL.  The port is extracted into the current working
-# directory.
+# directory along with a .dports_source file containing the url of the
+# source the port came from.  (This can be later used as a default for
+# "port submit")
 #
 # The cached portfiles are in the same directory as the cached remote index.
 #
@@ -286,6 +288,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 proc darwinports::index::fetch_port {url} {
 	global darwinports::sources
 	
+	set portsource ""
 	set portname ""
 	set portversion ""
 	
@@ -296,6 +299,7 @@ proc darwinports::index::fetch_port {url} {
 	set fetchpath ""
 	foreach source $sources {
 		if {[regexp -- "^$source" $url] == 1} {
+			set portsource $source
 			set indexpath [darwinports::index::get_path $source]
 			
 			# Extract the relative portion of the url, 
@@ -349,11 +353,15 @@ proc darwinports::index::fetch_port {url} {
 				return -code error "Could not unpack port file: $result"
 			}
 			
+			set fd [open ".dports_source" w]
+			puts $fd "source: $portsource"
+			close $fd
+			
 			cd $oldcwd
 		} else {		
 			# We actually use http:// as the transport mechanism
-			set url [regsub -- {^dports} $url {http}]
-			if {[catch {exec curl -L -s -S -o $fetchfile $url} result ]} {
+			set http_url [regsub -- {^dports} $url {http}]
+			if {[catch {exec curl -L -s -S -o $fetchfile $http_url} result ]} {
 				return -code error "Could not download port from remote index: $result"
 			}
 		}

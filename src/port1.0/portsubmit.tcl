@@ -47,7 +47,7 @@ proc shell_escape {str} {
 }
 
 proc submit_main {args} {
-    global portname prefix UI_PREFIX workpath
+    global portname portversion prefix UI_PREFIX workpath
 
     # start with the Portfile, and add the files directory if it exists.
     # don't pick up any CVS directories, or .DS_Store turds
@@ -61,6 +61,22 @@ proc submit_main {args} {
     if {[system $cmd] != ""} {
 	return -code error [format [msgcat::mc "Failed to archive port : %s"] $portname]
     }
+
+	set portsource ""
+	if {![catch {set fd [open ".dports_source" r]}]} {
+		set line [gets $fd]
+		regexp -- {^source: (.*)$} $line unused portsource
+		close $fd
+	}
+	if {$portsource == ""} {
+		ui_msg "$UI_PREFIX Submitting $portname-$portversion"
+		puts -nonewline "URL: "
+		flush stdout
+		gets stdin portsource
+	}
+
+	ui_msg "$UI_PREFIX Submitting $portname-$portversion to $portsource"
+	set portsource [regsub -- {^dports} $portsource {http}]
 
     puts -nonewline "Username: "
     flush stdout
@@ -80,7 +96,7 @@ proc submit_main {args} {
 
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url http://dapple.opendarwin.org/cgi-bin/portsubmit.cgi "
+    append cmd "--url $portsource/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
