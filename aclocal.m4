@@ -51,10 +51,10 @@ AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 
 	if test "$2" != "NONE" ; then
 		dnl user gave --prefix
-		portconfigdir="\${sysconfdir}/ports"
+		portconfigdir='${sysconfdir}/ports'
 	else
 		dnl just use the default /etc/ports
-		portconfigdir="/etc/ports"
+		portconfigdir='/etc/ports'
 	fi
 
 
