@@ -9,6 +9,8 @@ INSTALLDIR= /usr/local/share/darwinports/Tcl/pextlib1.0
 Pextlib.dylib: ${OBJS}
 	${CC} -dynamiclib -o ${SHLIB_NAME} ${LDADD}
 
+all: Pextlib.dylib
+
 clean:
 	rm -f ${OBJS} ${SHLIB_NAME}
 
