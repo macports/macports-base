@@ -1,10 +1,9 @@
 #!/usr/bin/tclsh
 # portbuild
+package require darwinports
 
 # globals
 set invoice Portfile
-set portpath /private/Network/Servers/noether/homes/frodo/landonf/Documents/Code/appleports
-set libpath $portpath/Tcl
 
 # Standard procedures
 proc print_usage args {
@@ -25,14 +24,7 @@ if {$argc > 1} {
 	set invoice [lindex $argv 0]
 }
 
-if [file isdirectory $libpath] {
-	if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib */*.tcl */*.so */*.dylib} result] {
-		fatal Error updating $libpath index: $result
-	}
-	lappend auto_path $libpath
-} else {
-	fatal libpath ($libpath) is not a directory or does not exist
-}
+darwinports::init
 
 if [file isfile $invoice] {
 	source $invoice
