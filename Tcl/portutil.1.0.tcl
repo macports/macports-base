@@ -192,6 +192,15 @@ proc setval {array key val} {
 	}
 }
 
+proc appendval {array key val} {
+	upvar $array uparray
+	if {[isval $array $key]} {
+		setval $array $key [getval $array $key] $val
+	} else {
+		setval $array $key $val
+	}
+}
+
 proc isval {array key} {
 	upvar $array uparray
 	return [info exists uparray($key)]

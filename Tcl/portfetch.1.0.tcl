@@ -9,7 +9,7 @@ namespace eval portfetch {
 }
 
 # define globals: distname master_sites distfiles patchfiles dist_subdir
-globals portfetch::options distname master_sites extract_sufx distfiles patchfiles dist_subdir use_zip use_bzip2
+globals portfetch::options distname master_sites extract_sufx distfiles patchfiles dist_subdir use_zip use_bzip2 all_dist_files
 
 # define options: distname master_sites
 options portfetch::options distname master_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
@@ -27,34 +27,43 @@ proc portfetch::suffix {distname} {
 }
 
 proc portfetch::checkfiles {args} {
-	global portpath distname master_sites distpath
-
-	# Set distfile with proper suffix
-	set distfile [portfetch::suffix $distname]
+	global portpath master_sites distpath
 
 	if {![file isdirectory $distpath]} {
 		file mkdir $distpath
 	}
-
-	if {![file isfile $distpath/$distfile]} {
-		puts "$distfile doesn't seem to exist in $distpath"
-		foreach site $master_sites {
-			puts "Attempting to fetch from $site"
-			catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result
-			if {$result == 0} {
-				set fetched 1
-				break
+	foreach distfile [getval portfetch::options distfiles] {
+		if {![file isfile $distpath/$distfile]} {
+			puts "$distfile doesn't seem to exist in $distpath"
+			foreach site $master_sites {
+				puts "Attempting to fetch from $site"
+				catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result
+				if {$result == 0} {
+					set fetched 1
+					break
+				}
 			}
-		}
-		if {![info exists fetched]} {
-			return -1
+			if {![info exists fetched]} {
+				return -1
+			}
 		}
 	}
 	return 0
 }
 
 proc portfetch::main {args} {
-	global portname
+	global distname
+	# Set distfiles if not defined
+	if ![isval portfetch::options distfiles] {
+		setval portfetch::options distfiles [portfetch::suffix $distname]
+	}
+
+	# Set all_dist_files to distfiles + patchfiles
+	setval portfetch::options all_dist_files [getval portfetch::options distfiles]
+	if [isval portfetch::options patchfiles] {
+		appendval portfetch::options all_dist_files [getval portfetch::options patchfiles]
+	}
+
 	# Check for files, download if neccesary
 	return [portfetch::checkfiles]
 }
