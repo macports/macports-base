@@ -1408,6 +1408,31 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
+# Check user PATH for DP paths, and remove as necessary.
+
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	oldPATH=$PATH
+	newPATH=
+	as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+	for as_dir in $oldPATH
+	do
+		IFS=$as_save_IFS
+		if test "x$as_dir" != "x$prefix/bin" &&
+			test "x$as_dir" != "x$prefix/sbin"; then
+			if test -z "$newPATH"; then
+				newPATH=$as_dir
+			else
+				newPATH=$newPATH$PATH_SEPARATOR$as_dir
+			fi
+		fi
+	done
+	PATH=$newPATH; export PATH
+	prefix=$oldprefix
+
+
 # Checks for programs.
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -6681,11 +6706,12 @@ else
 	    if test x"${with_tclinclude}" != x ; then
 		ac_cv_c_tclh=${with_tclinclude}
 	    else
-		# Check in the includedir, if --prefix was specified
+		# Do NOT check in $includedir, we need to prevent automatic
+		# location of Tcl headers in $prefix/include unless explicitly
+		# specified with the --with-tclinclude option. But go ahead and
+		# check some other possible local system locations.
 
-		eval "temp_includedir=${includedir}"
 		for i in \
-			`ls -d ${temp_includedir} 2>/dev/null` \
 			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION} /usr/include/tcl${TCL_VERSION}; do
 		    if test -f "$i/tcl.h" ; then
 			ac_cv_c_tclh=$i

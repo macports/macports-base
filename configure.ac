@@ -5,6 +5,9 @@ AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
+# Check user PATH for DP paths, and remove as necessary.
+OD_PATH_SCAN
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL

@@ -2539,11 +2539,12 @@ AC_DEFUN(SC_PUBLIC_TCL_HEADERS, [
 	    if test x"${with_tclinclude}" != x ; then
 		ac_cv_c_tclh=${with_tclinclude}
 	    else
-		# Check in the includedir, if --prefix was specified
+		# Do NOT check in $includedir, we need to prevent automatic
+		# location of Tcl headers in $prefix/include unless explicitly
+		# specified with the --with-tclinclude option. But go ahead and
+		# check some other possible local system locations.
 
-		eval "temp_includedir=${includedir}"
 		for i in \
-			`ls -d ${temp_includedir} 2>/dev/null` \
 			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION} /usr/include/tcl${TCL_VERSION}; do
 		    if test -f "$i/tcl.h" ; then
 			ac_cv_c_tclh=$i

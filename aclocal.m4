@@ -400,3 +400,31 @@ AC_DEFUN([OD_COMPILER_ATTRIBUTE_UNUSED], [
 	AC_MSG_RESULT([])
 	
 ])
+
+dnl This macro ensures DP installation prefix bin/sbin paths are NOT in PATH
+dnl for configure to prevent potential problems when base/ code is updated
+dnl and ports are installed that would match needed items.
+AC_DEFUN([OD_PATH_SCAN],[
+	oldprefix=$prefix
+	if test "x$prefix" = "xNONE" ; then
+		prefix=$ac_default_prefix
+	fi
+	oldPATH=$PATH
+	newPATH=
+	as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+	for as_dir in $oldPATH
+	do
+		IFS=$as_save_IFS
+		if test "x$as_dir" != "x$prefix/bin" &&
+			test "x$as_dir" != "x$prefix/sbin"; then
+			if test -z "$newPATH"; then
+				newPATH=$as_dir
+			else
+				newPATH=$newPATH$PATH_SEPARATOR$as_dir
+			fi
+		fi
+	done
+	PATH=$newPATH; export PATH
+	prefix=$oldprefix
+])
+
