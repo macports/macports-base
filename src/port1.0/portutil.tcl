@@ -66,7 +66,7 @@ proc options {args} {
 	\}"
 	
 	eval "proc ${option}-delete {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    foreach val \$args \{ \n\
 			ldelete ${option} \$val \n\
@@ -82,7 +82,7 @@ proc options {args} {
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
-	    global ${option} user_options \n\
+	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    if \{\[info exists ${option}\]\} \{ \n\
 			set ${option} \[concat \$\{$option\} \$args\] \n\
