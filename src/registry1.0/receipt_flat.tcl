@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.7 2005/03/02 13:44:06 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.8 2005/03/02 14:52:40 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -489,17 +489,25 @@ proc installed {{name ""} {version ""}} {
 # open the file map and store a reference to it into variable file_map.
 # convert from the old format if required.
 #
-proc open_file_map {args} {
+proc open_file_map {{readonly 0}} {
 	global darwinports::registry.path
 	variable file_map
 
-	# Don't reopen it (it actually would deadlock us)
+	set receipt_path [file join ${darwinports::registry.path} receipts]
+	set map_file [file join ${receipt_path} file_map]
+
+	# Don't reopen it (it actually would deadlock us), unless it was open r/o.
+	# and we want it r/w.
 	if { [info exists file_map] } {
+		if { $readonly == 0 } {
+			if {[filemap isreadonly file_map]} {
+				filemap close file_map
+				filemap open file_map ${map_file}.db
+			}
+		}
 		return 0
 	}
 
-	set receipt_path [file join ${darwinports::registry.path} receipts]
-	set map_file [file join ${receipt_path} file_map]
 	set old_filemap [list]
 
 	if { ![file exists ${map_file}.db] } {
@@ -514,11 +522,11 @@ proc open_file_map {args} {
 		}
 	}
 
-	# Open the map (new format)
-	filemap open file_map ${map_file}.db
-	
-	# Translate from old format.
 	if { [llength $old_filemap] > 0 } {
+		# Translate from old format.
+		# Open the map (new format)
+		filemap open file_map ${map_file}.db
+		
 		# Tell the user.
 		ui_msg "Converting file map to new format (this may take a while)"
 
@@ -528,6 +536,15 @@ proc open_file_map {args} {
 		
 		# Save it afterwards.
 		filemap save file_map
+
+		# reopen it r/o if we wanted it r/o.
+	} else {
+		# open it directly
+		if { $readonly } {
+			filemap open file_map ${map_file}.db readonly
+		} else {
+			filemap open file_map ${map_file}.db
+		}
 	}
 }
 

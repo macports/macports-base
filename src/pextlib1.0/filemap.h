@@ -1,6 +1,6 @@
 /*
  * filemap.h
- * $Id: filemap.h,v 1.2 2004/07/01 17:43:20 wbb4 Exp $
+ * $Id: filemap.h,v 1.3 2005/03/02 14:52:40 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -45,10 +45,12 @@
  * List is a O(n) operation (the slow operation).
  *
  * The syntax is:
- * filemap open filemapVarName filemapPath
+ * filemap open filemapVarName filemapPath [readonly]
  *	open or create filemap database at filemapPath and put the handle to access
  *	it in variable filemapVarName.
- *	The database should be writable.
+ *	If permissions permit it, the database is open r/w (actually, the lock
+ *	is open r/w). Otherwise, or if readonly is specified, the database is open
+ *	read only.
  *
  * filemap close filemapVarName
  *	close and save filemap database.
@@ -60,12 +62,17 @@
  *	return the value associated with a given path in the database.
  *	return an error if the key is not in the database.
  *
+ * filemap isreadonly filemapVarName
+ *	determine if the filemap is read/only.
+ *
  * filemap list filemapVarName value
  *	return a list of all the keys that match with this value.
  *  comparison is case sensitive.
  *
  * filemap revert filemapVarName
- *	revert the filemap to the previous version saved on disk (without closing it)
+ *	revert the filemap to the previous version saved on disk (or reload it
+ *	if another process modified it, if the database was open read only of
+ *	course).
  *
  * filemap save filemapVarName
  *	save the filemap to disk (without closing it)
@@ -75,7 +82,6 @@
  *
  * filemap unset filemapVarName path
  *	remove a key,value pair from the database.
- *
  */
 int FilemapCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 

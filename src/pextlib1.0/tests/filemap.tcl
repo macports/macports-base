@@ -160,13 +160,45 @@ proc main {pextlibname} {
 		puts {[filemap exists testmap2 "/unsaved"]}
 		exit 1
 	}
-
+	
 	filemap close testmap2
 
-	file delete "/tmp/darwinports-pextlib-testmap"
+	# open it again, r/o
+	filemap open testmap3 "/tmp/darwinports-pextlib-testmap" readonly
+
+	# open it again, r/w
+	filemap open testmap4 "/tmp/darwinports-pextlib-testmap"
+	
+	# put a key (r/w copy)
+	filemap set testmap4 "/rw/foobar" "foobar"
+	
+	# save the r/w copy.
+	filemap save testmap4
+
+	# check the key is not there (r/o copy)
+	# (remark: the r/o copy uses the old version)
+	if {[filemap exists testmap3 "/rw/foobar"]} {
+		puts {[filemap exists testmap3 "/rw/foobar"]}
+		exit 1
+	}
+
+	# reload the r/o copy.
+	filemap revert testmap3
+
+	# check the key is here.
+	if {![filemap exists testmap3 "/rw/foobar"]} {
+		puts {![filemap exists testmap3 "/rw/foobar"]}
+		exit 1
+	}
+	
+	filemap close testmap4
+
+	filemap close testmap3
+
+	file delete -force "/tmp/darwinports-pextlib-testmap"
 
 	# delete the lock file as well.
-	file delete "/tmp/darwinports-pextlib-testmap.lock"
+	file delete -force "/tmp/darwinports-pextlib-testmap.lock"
 }
 
 main $argv

@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.5 2005/03/02 14:13:55 pguyot Exp $
+ * $Id: filemap.c,v 1.6 2005/03/02 14:52:40 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -164,7 +164,7 @@ typedef struct {
 typedef struct {
 	/** Ref count */
 	unsigned int fRefCount;
-	/** File descriptor */
+	/** Path to the database file. */
 	char	fFilemapPath[PATH_MAX];
 	/** File descriptor on lock. */
 	int 	fLockFD;
@@ -183,7 +183,8 @@ enum {
 	kKeyNotFound_Err			= -100002,
 	kUnknownNodeKind_Err		= -100003,
 	kNameTooLong_Err			= -100004,
-	kEOFWhileLoadingDB_Err		= -100005
+	kEOFWhileLoadingDB_Err		= -100005,
+	kUnknownOption_Err			= -100006
 };
 
 /* Constants relative to the storage format. */
@@ -219,6 +220,7 @@ SFilemapObject* GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName);
 int FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -1300,6 +1302,11 @@ SetResultFromErrorCode(Tcl_Interp* interp, int inErrorCode)
 			theResult = TCL_ERROR;
 			break;
 
+		case kUnknownOption_Err:
+			Tcl_SetResult(interp, "unknown option was passed to command", TCL_STATIC);
+			theResult = TCL_ERROR;
+			break;
+
 		case 0:
 			Tcl_SetResult(interp, "", TCL_STATIC);
 			theResult = TCL_OK;
@@ -1481,6 +1488,43 @@ FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 }
 
 /**
+ * filemap isreadonly subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+
+	do {
+		SFilemapObject* theFilemapObject;
+		
+		/*	first (second) parameter is the variable name */
+		if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 1, objv, "isreadonly filemapName");
+			theResult = TCL_ERROR;
+			break;
+		}
+	
+		/* retrieve the pointer to the variable */
+		theFilemapObject = GetObjectFromVarName(interp, objv[2]);
+		if (theFilemapObject == NULL)
+		{
+			theResult = TCL_ERROR;
+			break;
+		}
+		
+		/* Say if the database is readonly */
+	    Tcl_SetObjResult(interp, Tcl_NewBooleanObj(theFilemapObject->fIsReadOnly));
+    } while (0);
+    
+	return theResult;
+}
+
+/**
  * filemap list subcommand entry point.
  *
  * @param interp		current interpreter
@@ -1533,32 +1577,43 @@ int
 FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theErr = 0;
+	char isReadOnly = 0;
 
 	/*	first (second) parameter is the variable name,
-		second (third) parameter is the database path */
-	if (objc != 4) {
-		Tcl_WrongNumArgs(interp, 1, objv, "open filemapName path");
+		second (third) parameter is the database path,
+		third (fourth) optional parameter is readonly */
+	if ((objc != 4) && (objc != 5)) {
+		Tcl_WrongNumArgs(interp, 1, objv, "open filemapName path [readonly]");
 		return TCL_ERROR;
+	}
+	if (objc == 5)
+	{
+		if (strcmp(Tcl_GetString(objv[4]), "readonly") != 0)
+		{
+			return SetResultFromErrorCode(interp, kUnknownOption_Err);
+		}
+		
+		isReadOnly = 1;
 	}
 	
 	do {
 		const char* thePath;
 		Tcl_Obj* theObject;
 		SFilemapObject* theFilemapObject;
-		int theLockFD;
+		int theLockFD = -1;
 		struct flock theLock;
-		char isReadOnly = 0;
 		SNode* theRoot = NULL;
+		char theLockPath[PATH_MAX];
 	
 		thePath = Tcl_GetString(objv[3]);
 				
 		/* open the lock file */
-		{
-			char theLockPath[PATH_MAX];
-			theLockPath[sizeof(theLockPath) - 1] = 0;
-			(void) snprintf(
-				theLockPath, sizeof(theLockPath) - 1, "%s.lock", thePath);
+		theLockPath[sizeof(theLockPath) - 1] = 0;
+		(void) snprintf(
+			theLockPath, sizeof(theLockPath) - 1, "%s.lock", thePath);
 
+		if (isReadOnly == 0)
+		{
 			theLockFD = open(theLockPath, O_RDWR | O_CREAT, 0664);
 			if (theLockFD >= 0)
 			{
@@ -1577,28 +1632,33 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				if (theErr == EACCES)
 				{
 					theErr = 0;
-
-					/* try again without R/W */
-					isReadOnly = 1;
-					theLockFD = open(theLockPath, O_RDONLY, 0);
-					if (theLockFD < 0)
-					{
-						theErr = errno;
-						break;
-					}
-
-					theLock.l_type = F_RDLCK;
-					theLock.l_whence = SEEK_SET;
-					theLock.l_start = 0;
-					theLock.l_len = 0;
-					if (fcntl(theLockFD, F_SETLKW, &theLock) == -1)
-					{
-						theErr = errno;
-						break;
-					}
 				} else {
 					break;
 				}
+			}
+		}
+		
+		/* isReadOnly == 1 or opening it r/w failed because of an access
+		permission error */
+		if (theLockFD < 0)
+		{
+			/* try again without R/W */
+			isReadOnly = 1;
+			theLockFD = open(theLockPath, O_RDONLY | O_CREAT, 0664);
+			if (theLockFD < 0)
+			{
+				theErr = errno;
+				break;
+			}
+
+			theLock.l_type = F_RDLCK;
+			theLock.l_whence = SEEK_SET;
+			theLock.l_start = 0;
+			theLock.l_len = 0;
+			if (fcntl(theLockFD, F_SETLKW, &theLock) == -1)
+			{
+				theErr = errno;
+				break;
 			}
 		}
 		
@@ -1871,12 +1931,13 @@ FilemapCmd(
     	kFilemapRevert,
     	kFilemapSave,
     	kFilemapSet,
-    	kFilemapUnset
+    	kFilemapUnset,
+    	kFilemapIsReadOnly
     } EOption;
     
 	static tableEntryString options[] = {
 		"close", "exists", "get", "list", "open", "revert", "save", "set",
-		"unset", NULL
+		"unset", "isreadonly", NULL
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
@@ -1930,6 +1991,10 @@ FilemapCmd(
 			
 			case kFilemapUnset:
 				theResult = FilemapUnsetCmd(interp, objc, objv);
+				break;
+
+			case kFilemapIsReadOnly:
+				theResult = FilemapIsReadOnlyCmd(interp, objc, objv);
 				break;
 		}
 	}
