@@ -44,4 +44,4 @@ if { $argc < 1 } {
     set target [lindex $argv 0]
 }
 
-port_traverse pindex software
+port_traverse pindex dports
