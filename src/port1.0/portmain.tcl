@@ -59,7 +59,10 @@ default os_arch $tcl_platform(machine)
 default os_version $tcl_platform(osVersion)
 
 proc main_init {args} {
-    global worksrcdir dist_subdir distpath distname
+    global worksrcdir dist_subdir distpath distname portname portversion
+    if {[info exists portname] && [info exists portversion]} {
+	default distname ${portname}-${portversion}
+    }
     if {[tbool no_worksubdir]} {
 	default worksrcdir ""
     } else {
