@@ -3,20 +3,33 @@ package provide portconfigure 1.0
 package require portutil 1.0
 
 register target configure portconfigure::main 
-register requires configure main fetch extract checksum patch
+register requires main fetch extract checksum patch
 
 namespace eval portconfigure {
 	variable options
 }
 
 # define globals
-globals portconfigure::options
+globals portconfigure::options configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
 
 # define options
-options portconfigure::options configure configure_args gnu_configure xmkmf use_imake use_automake automake_env use_autoconf use_libtool
+options portconfigure::options configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
 
 proc portconfigure::main {args} {
-	global portname workdir
+	global portname portpath workdir
+
+	if [isval portconfigure::options configure.worksrcdir] {
+		set configpath ${pathpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
+	} else {
+		set configpath ${pathpath}/${workdir}/${worksrcdir}
+	}
+
+	cd $configpath
+	if [isval portconfigure::options automake] {
+		# XXX depend on automake
+		
+	}
+		
 
 	return 0
 }
