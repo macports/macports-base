@@ -458,11 +458,11 @@ proc dportexec {dport target} {
 		set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
 		
 		if {$dlist != {}} {
-			ui_error "The following dependencies failed to build:"
+			set errstring "The following dependencies failed to build:"
 			foreach ditem $dlist {
-				ui_error "[ditem_key $ditem provides]" nonl
+				append errstring " [ditem_key $ditem provides]"
 			}
-			ui_error ""
+			ui_error $errstring
 			return 1
 		}
 	}
