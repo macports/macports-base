@@ -16,7 +16,9 @@ namespace eval portutil {
 # Arguments: <array for export> <options (keys in array) to export>
 proc options {array args} {
 	foreach option $args {
-		eval proc $option {args} \{ setval $array $option {$args} \}
+		globalcreate $array $option
+#		trace variable ${array}(${option}) rwu globalval
+		eval proc $option {args} \{ set ${array}(${option}) {$args} \}
 	}
 }
 
@@ -24,8 +26,8 @@ proc options {array args} {
 # Checks if variable is set, if not, sets to supplied value
 proc default {array key val} {
 	upvar $array uparray
-	if {![isval $array $key]} {
-		setval $array $key $val
+	if {![info exists ${array}($key)]} {
+		set ${array}($key) $val
 	}
 }
 
@@ -33,89 +35,51 @@ proc default {array key val} {
 # Specifies which keys from an array should be exported as global variables.
 # Often used directly with options procedure
 proc globals {array args} {
-	foreach key $args {
-		if {[info exists portutil::globals($key)]} {
-			error "Re-exporting global $key"
-		}
-		set portutil::globals($key) $array
+	foreach option $args {
+		globalcreate $array $option
 	}
 }
 
 
 ########### Global Variable Manipulation Procedures ###########
 
-proc globalval {array key} {
+proc globalcheck {array key op} {
 	upvar $array uparray
-	global $key
-	set $key $uparray($key)
-	set portutil::globals($key) $array
-}
-
-proc unglobalval {key} {
-	global $key
-	if {[info exists $key]} {
-		unset $key
-	}
-	if {[info exists portutil::globals($key)]} {
-		unset portutil::globals($key)
-	}
-}
-
-########### Base Data Accessor Procedures ###########
-
-proc setval {array key val} {
-	upvar $array uparray
-	set uparray($key) $val
-	if {[info exists portutil::globals($key)]} {
-		if {$portutil::globals($key) == $array} {
-			globalval uparray $key
+	upvar #0 $key upkey
+	# XXX check if global variable has been unset
+	if [tbool portutil::globals $key] {
+		if ![info exists upkey] {
+			trace vdelete ${array}(${key}) rwu globalcheck
+			unset ${array}(${key})
+			return
 		}
 	}
-}
-
-proc appendval {array key val} {
-	upvar $array uparray
-	if {[isval $array $key]} {
-		setval $array $key "[getval $array $key] $val"
-	} else {
-		setval $array $key $val
+	switch $op {
+		w { set upkey $uparray($key) 
+			set portutil::globals($key) yes}
+		r { if {$upkey != $uparray($key)} { set uparray($key) $upkey } }
+		u { unset upkey
+			unset portutil::globals($key)}
 	}
 }
 
-proc isval {array key} {
-	upvar $array uparray
-	return [info exists uparray($key)]
+proc globalcreate {array key} {
+		if {[trace vinfo ${array}(${key})] != ""} {
+			error "Re-exporting global $key"
+		}
+		trace variable ${array}(${key}) rwu globalcheck
 }
 
-proc testbool {array key} {
+########### Misc Utility Functions ###########
+
+proc tbool {array key} {
 	upvar $array uparray
-	if [info exists uparray($key)] {
-		if {[getval $array $key] == "yes"} {
+	if {[info exists uparray($key)]} {
+		if {$uparray($key) == "yes"} {
 			return 1
 		}
 	}
 	return 0
-}
-
-proc getval {array key} {
-	upvar $array uparray
-	if {![info exists uparray($key)]} {
-		error "Undefined option $key in $array"
-	} else {
-		if {[info exists portutil::globals($key)]} {
-			upvar #0 $key upkey
-			setval $array $key $upkey
-		}
-		return $uparray($key)
-	}
-}
-
-proc delval {array key} {
-	upvar $array uparray
-	unset uparray($key)
-	if {[info exists portutil::globals($key)]} {
-		unglobalval $key
-	}
 }
 
 ########### External Dependancy Manipulation Procedures ###########
@@ -230,13 +194,13 @@ proc dlist_append_key {dlist name key args} {
 # Return true if the key exists for the item, false otherwise
 proc dlist_has_key {dlist name key} {
 	upvar $dlist uplist
-	return [isval uplist $key,$name]
+	return [info exists uplist($key,$name)]
 }
 
 # Retrieves the value of the key of an item in the dependency list
 proc dlist_get_key {dlist name key} {
 	upvar $dlist uplist
-	if {[isval uplist $key,$name]} {
+	if {[info exists uplist($key,$name)]} {
 		return $uplist($key,$name)
 	} else {
 		return ""
@@ -258,7 +222,7 @@ proc dlist_remove_item {dlist name} {
 # Tests if the item is present in the dependency list
 proc dlist_has_item {dlist name} {
 	upvar $dlist uplist
-	return [isval uplist name,$name]
+	return [info exists uplist(name,$name)]
 }
 
 
@@ -271,7 +235,7 @@ proc portutil::dlist_get_matches {dlist key value} {
 		set name $uplist($ident)
 		foreach val [dlist_get_key uplist $name $key] {
 			if {[string equal $val $value] && 
-			   ![isval $result $name]} {
+			   ![info exists ${result}($name)]} {
 				lappend result $name
 			}
 		}
@@ -284,7 +248,7 @@ proc portutil::dlist_count_unmet {names statusdict} {
 	upvar $statusdict upstatusdict
 	set unmet 0
 	foreach name $names {
-		if {![isval upstatusdict $name] ||
+		if {![info exists upstatusdict($name)] ||
 		    ![string equal $upstatusdict($name) success]} {
 			incr unmet
 		}
@@ -295,7 +259,7 @@ proc portutil::dlist_count_unmet {names statusdict} {
 # Returns true if any of the dependencies are pending in the dlist
 proc portutil::dlist_has_pending {dlist uses} {
 	foreach name $uses {
-		if {[isval $dlist name,$name]} { 
+		if {[info exists ${dlist}(name,$name)]} { 
 			return 1
 		}
 	}
@@ -422,7 +386,7 @@ proc portutil::dlist_append_dependents {dependents dlist name} {
 	upvar $dlist uplist
 	
 	# Append item to the list, avoiding duplicates
-	if {![isval updependents name,$name]} {
+	if {![info exists updependents(name,$name)]} {
 		set names [array names uplist *,$name]
 		foreach n $names {
 			set updependents($n) $uplist($n)
@@ -430,7 +394,7 @@ proc portutil::dlist_append_dependents {dependents dlist name} {
 	}
 	
 	# Recursively append any hard dependencies
-	if {[isval uplist requires,$name]} {
+	if {[info exists uplist(requires,$name)]} {
 		foreach dep $uplist(requires,$name) {
 			append_dependents updependents uplist $dep
 		}

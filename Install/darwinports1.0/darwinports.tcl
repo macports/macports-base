@@ -68,7 +68,7 @@ namespace eval darwinports {
 		# Bootstrap ports system and bring in darwinports packages
 		set sysportpath [darwinports::bootstrap]
 		# Register standard darwinports package options
-		globals darwinports::options sysportpath distpath portpath prefix
+		globals darwinports::options portpath
 		options darwinports::options distpath sysportpath prefix
 		# Register defaults
 		default darwinports::options sysportpath $sysportpath
@@ -82,7 +82,7 @@ namespace eval darwinports {
 	proc build {portpath chain target} {
 		if [file isdirectory $portpath] {
 			cd $portpath
-			setval darwinports::options portpath [pwd]
+			set darwinports::options(portpath) [pwd]
 			# XXX These must execute at a global scope
 			uplevel #0 source Portfile
 			uplevel #0 eval_targets portutil::targets $chain $target

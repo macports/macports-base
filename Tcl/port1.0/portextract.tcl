@@ -10,9 +10,6 @@ namespace eval portextract {
 	variable options
 }
 
-# define globals
-globals portextract::options extract.only extract.cmd extract.before_args extract.after_args
-
 # define options
 options portextract::options extract.only extract.cmd extract.before_args extract.after_args
 
@@ -27,11 +24,11 @@ proc portextract::main {args} {
 
 	if [info exists use_bzip2] {
 	    puts "XXX using bzip2 man"
-		setval portextract::options extract.cmd bzip2
+		set portextract::options(extract.cmd) bzip2
 	} elseif [info exists use_zip] {
-		setval portextract::options extract.cmd unzip
-		setval portextract::options extract.before_args -q
-		setval portextract::options extract.after_args -d $portpath/$workdir
+		set portextract::options(extract.cmd) unzip
+		set portextract::options(extract.before_args) -q
+		set portextract::options(extract.after_args) "-d $portpath/$workdir"
 	}
 
 	puts "Extracting for $distname"
@@ -41,10 +38,10 @@ proc portextract::main {args} {
 
 	file mkdir $portpath/$workdir
 	cd $portpath/$workdir
-	foreach distfile [getval portextract::options extract.only] {
+	foreach distfile $portextract::options(extract.only) {
 		puts -nonewline "$distfile: "
 		flush stdout
-		set cmd "[getval portextract::options extract.cmd] [getval portextract::options extract.before_args] $distpath/$distfile [getval portextract::options extract.after_args]"
+		set cmd "$portextract::options(extract.cmd) $portextract::options(extract.before_args) $distpath/$distfile $portextract::options(extract.after_args)"
 		if [catch {system $cmd} result] {
 			puts $result
 			return -1

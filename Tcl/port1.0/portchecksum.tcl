@@ -10,9 +10,6 @@ namespace eval portchecksum {
 	variable options
 }
 
-# define globals
-globals portchecksum::options checksums
-
 # define options
 options portchecksum::options checksums
 
@@ -32,7 +29,7 @@ proc portchecksum::md5 {file} {
 }
 
 proc portchecksum::dmd5 {file} {
-	foreach {name type sum} [getval portchecksum::options checksums] {
+	foreach {name type sum} $portchecksum::options(checksums) {
 		if {$name == $file} {
 			return $sum
 		}
@@ -48,7 +45,7 @@ proc portchecksum::main {args} {
 		return 0
 	}
 
-        if ![isval portchecksum::options checksums] {
+        if ![info exists portchecksum::options(checksums)] {
 		puts "No MD5 checksums."
 		return -1
 	}

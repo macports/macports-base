@@ -12,10 +12,7 @@ namespace eval portmain {
 	variable targets
 }
 
-# define globals: portname portversion categories maintainers
-globals portmain::options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname
-
-# define options: portname, portversion, categories, maintainers
+# define options
 options portmain::options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname
 
 proc portmain::main {args} {
@@ -23,10 +20,10 @@ proc portmain::main {args} {
 	default portmain::options workdir work
 	default portmain::options filedir files
 	default portmain::options portrevision 0
-	if [testbool portmain::options no_worksubdir] {
+	if {[tbool portmain::options no_worksubdir]} {
 		default portmain::options worksrcdir ""
 	} else {
-		default portmain::options worksrcdir [getval portmain::options distname]
+		default portmain::options worksrcdir $portmain::options(distname)
 	}
 	return 0
 }

@@ -10,18 +10,18 @@ namespace eval portfetch {
 	variable options
 }
 
-# define globals: distname master_sites distfiles patchfiles dist_subdir
-globals portfetch::options distfiles patchfiles dist_subdir all_dist_files use_zip use_bzip2
+# define globals: all_dist_files
+globals portfetch::options all_dist_files
 
 # define options: distname master_sites
 options portfetch::options master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
 
 proc portfetch::suffix {distname} {
-	if {[isval portfetch::options extract_sufx]} {
-		return ${distname}[getval portfetch::options extract_sufx]
-	} elseif {[isval portfetch::options use_bzip2]} {
+	if {[tbool portfetch::options extract_sufx]} {
+		return ${distname}.${portfetch::options(extract_sufx)}]
+	} elseif {[tbool portfetch::options use_bzip2]} {
 		return ${distname}.tar.bz2
-	} elseif {[isval portfetch::options use_zip]} {
+	} elseif {[tbool portfetch::options use_zip]} {
 		return ${distname}.zip
 	} else {
 		return ${distname}.tar.gz
@@ -30,14 +30,14 @@ proc portfetch::suffix {distname} {
 
 proc portfetch::checkfiles {args} {
 	global distdir
-	lappend filelist [getval portfetch::options distfiles]
-	if {[isval portfetch::options patchfiles]} {
-		lappend filelist [getval portfetch::options patchfiles]
+	lappend filelist $portfetch::options(distfiles)
+	if {[info exists portfetch::options(patchfiles)]} {
+		set filelist [concat $filelist $portfetch::options(patchfiles)]
 	}
 	# Set all_dist_files to distfiles + patchfiles
 	foreach file $filelist {
 		if {![file exists files/$file]} {
-			appendval portfetch::options all_dist_files $file
+			lappend portfetch::options(all_dist_files) $file
 		}
 	}
 }
@@ -49,10 +49,10 @@ proc portfetch::fetchfiles {args} {
 		file mkdir $distpath
 	}
 
-	foreach distfile [getval portfetch::options all_dist_files] {
+	foreach distfile $portfetch::options(all_dist_files) {
 		if {![file isfile $distpath/$distfile]} {
-			puts "$distfile doesn't seem to exist in $$distpath"
-			foreach site [getval portfetch::options master_sites] {
+			puts "$distfile doesn't seem to exist in $distpath"
+			foreach site $portfetch::options(master_sites) {
 				puts "Attempting to fetch from $site"
 				if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 					set fetched 1
@@ -76,7 +76,7 @@ proc portfetch::main {args} {
 
 	# Check for files, download if neccesary
 	portfetch::checkfiles
-	if ![isval portfetch::options all_dist_files] {
+	if ![info exists portfetch::options(all_dist_files)] {
 		return 0
 	} else {
 		return [portfetch::fetchfiles]
