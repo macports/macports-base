@@ -34,9 +34,11 @@ proc ui_puts {messagelist} {
     switch $message(priority) {
         debug {
             if {[ui_isset ports_debug]} {
+		close $channel
                 set channel [open "/tmp/portdebug.out" a+ 0664]
                 set str "DEBUG: $message(data)"
             } else {
+		close $channel
                 return
             }
         }
@@ -48,7 +50,6 @@ proc ui_puts {messagelist} {
         }
         error {
             set str "ERR: $message(data)"
-            set channel [open "/tmp/portbuild.out" w+ 0644]
         }
         warn {
             set str "WARN: $message(data)"
