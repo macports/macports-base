@@ -16,8 +16,12 @@ install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${DESTDIR}${portconfigdir}
 
 	cat prefix.mtree | $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
-	rm -f ${INSTALLDIR}/man
-	$(LN_S) share/man ${INSTALLDIR}/man
+	if test -L "${INSTALLDIR}/man" ; then \
+		rm -f "${INSTALLDIR}/man"; \
+	fi
+	if test ! -e "${INSTALLDIR}/man" ; then \
+		$(LN_S) share/man ${INSTALLDIR}/man; \
+	fi
 	$(SILENT)if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
