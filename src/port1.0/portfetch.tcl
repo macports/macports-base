@@ -195,6 +195,11 @@ proc checkfiles {args} {
 	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
     }
     
+    append patch_sites " ${fallback_mirror_site}"
+    if {[info exists env(PATCH_SITE_LOCAL)]} {
+	set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
+    }
+
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
         if {![info exists uplist]} {
