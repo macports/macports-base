@@ -39,7 +39,6 @@ proc main {args} {
 	}
     }
     if {[info exists distpath] && [info exists dist_subdir]} {
-	puts hello
 	set distpath ${distpath}/${dist_subdir}
     }
 
