@@ -211,6 +211,13 @@ proc dlist_get_next {dlist statusdict} {
 			continue
 		}
 		
+		# Skip the item if it provides something that's already been provided
+		set provides [ditem_key $ditem provides]
+		set unmet [dlist_count_unmet $dlist upstatus $provides]
+		if {$unmet < [llength $provides]} {
+			continue
+		}
+		
 		# We will favor the ditem with the fewest unmet soft dependencies
 		set unmet [dlist_count_unmet $dlist upstatus [ditem_key $ditem uses]]
 		
@@ -295,9 +302,9 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	}
 	
 	# Return the list of lusers
-	return $dlist
+	#return $dlist
+	return [array get statusdict]
 }
-
 
 ##### Private API #####
 # Anything below this point is subject to change without notice.
