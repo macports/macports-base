@@ -54,6 +54,19 @@ proc uninstall_main {args} {
 	}
 	set entry [read $fd]
 	close $fd
+
+	# First look to see if the port has registered an uninstall procedure
+	set ix [lsearch $entry pkg_uninstall]
+	if ${$ix >= 0} {
+	    set uninstall [lindex $entry [incr ix]]
+	    if ![catch {eval $uninstall} err] {
+		pkg_uninstall $portname $portversion
+	    } else {
+		ui_error "Could not evaluate pkg_uninstall procedure: $err"
+	    }
+	}
+
+	# Now look for a contents list
 	set ix [lsearch $entry contents]
 	if {$ix >= 0} {
 	    set contents [lindex $entry [incr ix]]
