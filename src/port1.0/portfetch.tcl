@@ -59,7 +59,7 @@ default cvs.pre_args {"-d ${cvs.root}"}
 default fetch.cmd curl
 default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
-default fetch.pre_args ""
+default fetch.pre_args "-f"
 default fetch.post_args {"${site}/${distfile}"}
 
 default mirror_sites.listfile {"mirror_sites.tcl"}
