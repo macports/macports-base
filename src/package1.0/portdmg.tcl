@@ -35,7 +35,7 @@ package require portutil 1.0
 set com.apple.dmg [target_new com.apple.dmg dmg_main]
 target_runtype ${com.apple.dmg} always
 target_provides ${com.apple.dmg} dmg 
-target_requires ${com.apple.dmg} package 
+target_requires ${com.apple.dmg} pkg
 
 set_ui_prefix
 
