@@ -8,7 +8,7 @@ all:
 
 clean:
 
-distclean: clean
+distclean:
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}

@@ -6,7 +6,7 @@ all:: Mk/dports.autoconf.mk
 
 clean::
 
-distclean:: clean
+distclean::
 	rm -f config.log config.status
 	rm -rf autom4te.cache
 	rm -f Makefile Mk/dports.autoconf.mk
