@@ -526,7 +526,7 @@ Does nothing
 .Ss BUILD OPTIONS
 Execute necessary build commands
 .Bl -tag -width lc
-.It Ic make.cmd
+.It Ic build.cmd
 Make command to run relative to ${worksrcdir}
 .br
 .Sy Type:
@@ -535,11 +535,11 @@ Make command to run relative to ${worksrcdir}
 .Em make
 .br
 .Sy Example:
-.Dl make.cmd	pbxbuild
+.Dl build.cmd	pbxbuild
 
-.It Ic make.type
+.It Ic build.type
 Type of make required, either 'gnu' or 'bsd'
-Sets make.cmd to either 'gnumake' or 'bsdmake' accordingly
+Sets build.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Type:
 .Em optional
@@ -547,28 +547,28 @@ Sets make.cmd to either 'gnumake' or 'bsdmake' accordingly
 .Em bsd
 .br
 .Sy Example:
-.Dl make.type	gnu
+.Dl build.type	gnu
 
-.It Ic make.pre_args
-Arguments to pass to ${make.cmd} before ${make.args}
+.It Ic build.pre_args
+Arguments to pass to ${build.cmd} before ${build.args}
 .br
 .Sy Type:
 .Em read-only
 .Sy Default:
-.Em ${make.target.current}
+.Em ${build.target.current}
 
 
-.It Ic make.args
-Arguments to pass to ${make.cmd}
+.It Ic build.args
+Arguments to pass to ${build.cmd}
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Example:
-.Dl make.args	-DNOWARN
+.Dl build.args	-DNOWARN
 
 
-.It Ic make.target.all
+.It Ic build.target.all
 Target to pass to make for building everything
 .br
 .Sy Type:
@@ -577,7 +577,7 @@ Target to pass to make for building everything
 .Em all
 .br
 .Sy Example:
-.Dl make.target.all all-src
+.Dl build.target.all all-src
 
 .El
 
@@ -585,8 +585,8 @@ Target to pass to make for building everything
 Execute necessary install commands
 .Bl -tag -width lc
 
-.It Ic make.target.install
-Install target to pass to ${make.cmd}
+.It Ic build.target.install
+Install target to pass to ${build.cmd}
 .br
 .Sy Type:
 .Em optional
@@ -594,7 +594,7 @@ Install target to pass to ${make.cmd}
 .Em install
 .br
 .Sy Example:
-.Dl make.target.install	install-src
+.Dl build.target.install	install-src
 
 .El
 .Ss REGISTRY OPTIONS

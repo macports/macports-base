@@ -38,14 +38,14 @@ register com.apple.install requires main fetch extract checksum patch configure 
 register com.apple.install deplist depends_run depends_lib
 
 # define options
-options make.target.install
+options build.target.install
 # Set defaults
-default make.target.install install
+default build.target.current install
 
 set UI_PREFIX "---> "
 
 proc install_main {args} {
-    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.target.install UI_PREFIX make.target.current
+    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
 
     if ![file exists $prefix] {
 	ui_msg "Warning: The directory $prefix does not exist, creating it."
@@ -54,8 +54,8 @@ proc install_main {args} {
 	    return -code error "Could not make directory for ${prefix}: $err"
 	}
     }
-    ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
-    set make.target.current ${make.target.install}
+    ui_msg "$UI_PREFIX Installing $portname with target ${build.target.install}"
+    set build.target.current ${build.target.install}
     if [catch {system "[command make]"}] {
 	ui_error "Installation failed."
 	return -code error "Installation failed."

@@ -38,23 +38,23 @@ register com.apple.build requires main fetch extract checksum patch configure
 register com.apple.build deplist depends_build depends_lib
 
 # define options
-options make.target.all
-commands make
+options build.target.all
+commands build
 # defaults
-default make.dir {${workpath}/${worksrcdir}}
-default make.cmd {[build_getmaketype]}
-default make.pre_args {${make.target.current}}
-default make.target.all all
+default build.dir {${workpath}/${worksrcdir}}
+default build.cmd {[build_getmaketype]}
+default build.pre_args {${build.target.current}}
+default build.target.all all
 
 set UI_PREFIX "---> "
 
 proc build_getmaketype {args} {
-    global make.type make.cmd os.name
+    global build.type build.cmd os.name
 
-    if ![info exists make.type] {
+    if ![info exists build.type] {
 	return make
     }
-    switch -exact -- ${make.type} {
+    switch -exact -- ${build.type} {
 	bsd {
 	    if {${os.name} == "darwin"} {
 		return bsdmake
@@ -73,17 +73,17 @@ proc build_getmaketype {args} {
 	    return pbxbuild
 	}
 	default {
-	    ui_warning "Unknown make.type ${make.type}, using 'gnumake'"
+	    ui_warning "Unknown build.type ${build.type}, using 'gnumake'"
 	    return gnumake
 	}
     }
 }
 
 proc build_main {args} {
-    global portname portpath workdir prefix make.type make.cmd make.env make.target.all make.target.current UI_PREFIX worksrcdir
+    global portname portpath workdir prefix build.type build.cmd build.env build.target.all build.target.current UI_PREFIX worksrcdir
 
-    ui_msg "$UI_PREFIX Building $portname with target ${make.target.all}"
-    set make.target.current ${make.target.all}
+    ui_msg "$UI_PREFIX Building $portname with target ${build.target.all}"
+    set build.target.current ${build.target.all}
     system "[command make]"
     return 0
 }
