@@ -42,13 +42,13 @@ set UI_PREFIX "--> "
 # They allow the user to instal multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
-# From there, the user can "activate" a port image.  This creates symlinks for
+# From there, the user can "activate" a port image.  This creates hardlinks for
 # all files in the image into the ${prefix}.  Directories are created.  
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
 # The conflicting port must be deactivated first.
 #
-# The user can also "deactivate" an active port.  This will remove all symlinks
+# The user can also "deactivate" an active port.  This will remove all {sym,hard}links
 # from ${prefix}, and if any directories are empty, remove them as well.  It 
 # will also remove all of the references of the files from the registry's 
 # file_map
@@ -56,7 +56,7 @@ set UI_PREFIX "--> "
 # Compacting and Uncompacting of port images to save space will be implemented
 # at some point.
 #
-# For the creating and removing of symlinks during activation and deactivation,
+# For the creating and removing of links during activation and deactivation,
 # code very similar to what is used in portinstall is used.
 #
 
@@ -263,7 +263,7 @@ proc _activate_file {srcfile dstfile} {
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
-		file link -symbolic $dstfile $srcfile
+		file link -hard $dstfile $srcfile
 	}
 }
 
@@ -323,7 +323,7 @@ proc _activate_contents {name imagefiles imagedir} {
 		
 		# Split out the filename's subpaths and add them to the imagefile list.
 		# We need directories first to make sure they will be there before
-		# symlinks. However, because file mkdir creates all parent directories,
+		# links. However, because file mkdir creates all parent directories,
 		# we don't need to have them sorted from root to subpaths. We do need,
 		# nevertheless, all sub paths to make sure we'll set the directory
 		# attributes properly for all directories.
