@@ -33,7 +33,7 @@ package require darwinportsui 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options uniqid 0
-    variable bootstrap_options "portdbpath libpath auto_path sources_conf"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
     variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
     variable uniqid 0
 }
@@ -105,7 +105,7 @@ proc dportinit {args} {
     }
     
     if ![info exists libpath] {
-	set libpath /opt/local/share/darwinports/Tcl
+	set libpath "${prefix}/share/darwinports/Tcl"
     }
 
     if [file isdirectory $libpath] {
