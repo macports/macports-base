@@ -73,7 +73,9 @@ proc build {portdir chain target} {
 	bombus alias {} build bombus build
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt
-		bombus eval set $opt \"$upopt\"
+		if [info exists upopt] {
+			bombus eval set $opt \"$upopt\"
+		}
 	}
 	bombus eval source Portfile
 	bombus eval eval_targets targets $chain $target
