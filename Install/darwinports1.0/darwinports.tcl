@@ -72,7 +72,7 @@ namespace eval darwinports {
 		options darwinports::options distpath sysportpath prefix
 		# Register defaults
 		default darwinports::options sysportpath $sysportpath
-		default darwinports::options prefix /usr/local/bin
+		default darwinports::options prefix /usr/local/
 		default darwinports::options distpath $sysportpath/distfiles
 
 		return
