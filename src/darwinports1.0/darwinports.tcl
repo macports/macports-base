@@ -253,11 +253,6 @@ proc dportexec {workername target} {
 		return 1
 	}
 
-	set name [$workername eval return \$portname]
-	puts "xxx: $name depends: [dportdepends $name 1 1]"
-	
-	
-	
 	return [$workername eval eval_targets $target]
 }
 
