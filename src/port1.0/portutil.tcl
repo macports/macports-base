@@ -237,7 +237,12 @@ proc register {name mode args} {
                 eval "proc $target {args} \{ \n\
                     register $ident target proc-$target$id \n\
                     proc proc-$target$id \{name\} \{ \n\
-                        return \[catch userproc-$target$id\] \n\
+                        if \[catch userproc-$target$id result\] \{ \n\
+							ui_info \$result \n\
+							return 1 \n\
+						\} else \{ \n\
+							return 0 \n\
+						\} \n\
                     \} \n\
                     eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
                     makeuserproc userproc-$target$id \$args \}"
@@ -245,14 +250,24 @@ proc register {name mode args} {
                     register pre-$target$id target proc-pre-$target$id \n\
                     register pre-$target$id preflight $target \n\
                     proc proc-pre-$target$id \{name\} \{ \n\
-                        return \[catch userproc-pre-$target$id\] \n\
+                        if \[catch userproc-$target$id result\] \{ \n\
+							ui_info \$result \n\
+							return 1 \n\
+						\} else \{ \n\
+							return 0 \n\
+						\} \n\
                     \} \n\
                     makeuserproc userproc-pre-$target$id \$args \}"
                 eval "proc post-$target {args} \{ \n\
                     register post-$target$id target proc-post-$target$id \n\
                     register post-$target$id postflight $target \n\
                     proc proc-post-$target$id \{name\} \{ \n\
-                        return \[catch userproc-post-$target$id\] \n\
+                        if \[catch userproc-$target$id result\] \{ \n\
+							ui_info \$result \n\
+							return 1 \n\
+						\} else \{ \n\
+							return 0 \n\
+						\} \n\
                     \} \n\
                     makeuserproc userproc-post-$target$id \$args \}"
             }
