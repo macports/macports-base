@@ -55,6 +55,5 @@ default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
 
 proc main {args} {
-
     return 0
 }
