@@ -303,9 +303,10 @@ proc dlist_get_next {dlist statusdict} {
 
 # Evaluate the dlist, invoking action on each name in the dlist as it
 # becomes eligible.
-proc dlist_evaluate {dlist action} {
+proc dlist_evaluate {dlist downstatusdict action} {
     # dlist - nodes waiting to be executed
     upvar $dlist uplist
+    upvar $downstatusdict statusdict
     
     # status - keys will be node names, values will be success or failure.
     array set statusdict [list]
@@ -335,7 +336,7 @@ proc dlist_evaluate {dlist action} {
     }
 }
 
-proc exec_target {chain dlist name} {
+proc exec_target {fd chain dlist name} {
 # XXX: Don't depend on entire dlist, this should really receive just one node.
     upvar $dlist uplist
     if {[dlist_has_key uplist $name procedure,$chain]} {
@@ -344,6 +345,8 @@ proc exec_target {chain dlist name} {
 	set result [$procedure $name $chain]
     if {$result == 0} {
 	    set result success
+        puts $fd $name
+        flush $fd
 	} else {
 	    ui_puts "$chain error: $name returned $result"
 	    set result failure
@@ -361,19 +364,27 @@ proc eval_targets {dlist chain target} {
 	
     # Select the subset of targets under $target
     if {[string length $target] > 0} {
-	set matches [dlist_get_matches uplist provides $target]
-	if {[llength $matches] > 0} {
-	    array set dependents [list]
-	    dlist_append_dependents dependents uplist [lindex $matches 0]
-	    array unset uplist
-	    array set uplist [array get dependents]
-	    # Special-case 'all'
-	} elseif {![string equal $target all]} {
-	    ui_puts "Warning: unknown target: $target"
-	    return
-	}
+        set matches [dlist_get_matches uplist provides $target]
+        if {[llength $matches] > 0} {
+            array set dependents [list]
+            dlist_append_dependents dependents uplist [lindex $matches 0]
+            array unset uplist
+            array set uplist [array get dependents]
+            # Special-case 'all'
+        } elseif {![string equal $target all]} {
+            ui_puts "Warning: unknown target: $target"
+            return
+        }
     }
-    dlist_evaluate uplist [list exec_target $chain]
+    
+    array set statusdict [list]
+    
+    # Restore the state from a previous run.
+    set fd [read_statefile uplist statusdict]
+    
+    dlist_evaluate uplist statusdict [list exec_target $fd $chain]
+    
+    close $fd
 }
 
 # select dependents of <name> from the <itemlist>
@@ -400,4 +411,27 @@ proc dlist_append_dependents {dependents dlist name} {
     }
     
     # XXX: add soft-dependencies?
+}
+
+# read_statefile
+# Read the lines from the file, and for each line
+# that exists in the dlist, make its provides successful
+# and remove it from the dlist.
+proc read_statefile {dlist statusdict} {
+    upvar $dlist uplist
+    upvar $statusdict upstatusdict
+    global portpath
+    
+    set fd [open "$portpath/.darwinports.state" a+]
+    seek $fd 0
+    while {[gets $fd line] >= 0} {
+        if {[dlist_has_item uplist $line]} {
+            foreach provide [dlist_get_key uplist $line provides] {
+                set upstatusdict($provide) success
+            }
+            dlist_remove_item uplist $line
+        }
+    }
+
+    return $fd
 }
