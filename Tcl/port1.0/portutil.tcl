@@ -60,21 +60,43 @@ proc register {name mode args} {
     dlist_add_item targets $name
 
     if {[string equal target $mode]} {
-	set chain [lindex $args 0]
-	set procedure [lindex $args 1]
-	if {[dlist_has_key targets $name procedure,$chain]} {
-	    # XXX: remove puts
-	    puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
-	}
-	dlist_set_key targets $name procedure,$chain $procedure
+        set chain [lindex $args 0]
+        set procedure [lindex $args 1]
+        if {[dlist_has_key targets $name procedure,$chain]} {
+            # XXX: remove puts
+            puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
+        }
+        dlist_set_key targets $name procedure,$chain $procedure
 	
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
-	if {[dlist_has_item targets $name]} {
-	    dlist_append_key targets $name $mode $args
-	} else {
-	    # XXX: remove puts
-	    puts "Warning: target '$name' not-registered in register $mode"
-	}
+        if {[dlist_has_item targets $name]} {
+            dlist_append_key targets $name $mode $args
+        } else {
+            # XXX: remove puts
+            puts "Warning: target '$name' not-registered in register $mode"
+        }
+        
+        if {[string equal provides $mode]} {
+            # If it's a provides, register the pre-/post- hooks for use in Portfile.
+            foreach target $args {
+                eval "proc pre-$target {args} \{ \n\
+                    register pre-$target target build proc-pre-$target \n\
+                    register pre-$target preflight $target \n\
+                    proc proc-pre-$target \{name chain\} \{ \n\
+                        userproc-pre-$target \n\
+                        return 0 \n\
+                    \} \n\
+                    eval \"proc userproc-pre-$target \{\} \$args\" \}"
+                eval "proc post-$target {args} \{ \n\
+                    register post-$target target build proc-post-$target \n\
+                    register post-$target postflight $target \n\
+                    proc proc-post-$target \{name chain\} \{ \n\
+                        userproc-post-$target \n\
+                        return 0 \n\
+                    \} \n\
+                    eval \"proc userproc-post-$target \{\} \$args\" \}"
+            }
+        }
 	
     } elseif {[string equal preflight $mode]} {
 	# preflight vulcan mind meld:
