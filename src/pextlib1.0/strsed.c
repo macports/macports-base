@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.7  2002/08/31 06:30:25  jkh
+ * Move from /usr/local into /opt/local
+ *
  * Revision 1.6  2002/08/28 04:06:18  landonf
  * Dynamically allocate exp_regs
  *
@@ -45,7 +48,7 @@
  *
  * Revision 1.2  2002/08/21 05:22:12  landonf
  * Merge in "bigmove" reorg branch. System now requires bsdmake && bsdmake install
- * and installs itself and its TCL libraries in /usr/local/share , /System/Library/Tcl/8.3, and /usr/local/bin
+ * and installs itself and its TCL libraries in /opt/local/share , /System/Library/Tcl/8.3, and /opt/local/bin
  *
  * Revision 1.1.2.1  2002/08/20 21:50:51  landonf
  * Move and seperate Tcl/port1.0

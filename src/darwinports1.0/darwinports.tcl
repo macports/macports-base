@@ -65,7 +65,7 @@ proc dportinit {args} {
     }
 	
     if ![info exists libpath] {
-	set libpath /usr/local/share/darwinports/Tcl
+	set libpath /opt/local/share/darwinports/Tcl
     }
 
     if [file isdirectory $libpath] {

@@ -1,7 +1,7 @@
 OBJS=		Pextlib.o strsed.o
 SHLIB_NAME=	Pextlib.dylib
 LDADD+=		-ltcl
-INSTALLDIR= /usr/local/share/darwinports/Tcl/pextlib1.0
+INSTALLDIR= /opt/local/share/darwinports/Tcl/pextlib1.0
 
 .c.o:
 	${CC} -DPIC -O -pipe ${CFLAGS} -c $< -o $@

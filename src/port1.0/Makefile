@@ -1,4 +1,4 @@
-INSTALLDIR=	/usr/local/share/darwinports/Tcl/port1.0
+INSTALLDIR=	/opt/local/share/darwinports/Tcl/port1.0
 SRCS=		port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl portinstall.tcl portregistry.tcl portdepends.tcl portinstall.tcl portregistry.tcl portdepends.tcl portclean.tcl
 
 all:
