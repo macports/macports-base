@@ -141,21 +141,31 @@ proc deactivate {name v} {
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s %s"] $name $v]"
 	
-	set ilist [_check_registry $name $v]
+	set ilist [registry::active $name]
+	if { [llength $ilist] > 1 } {
+		return -code error "Registry error: Please specify the name of the port."
+	} else {
+		set ilist [lindex $ilist 0]
+	}
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
-
+	set fqversion ${version}_${revision}${variants}
+	
+	if { $v != "" && ![string equal ${fqversion} $v] } {
+		return -code error "Active version of $name is not $v but ${fqversion}."
+	}
+	
 	set ref [registry::open_entry $name $version $revision $variants]
 
 	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} not installed as an image."
+		return -code error "Image error: ${name} ${fqversion} not installed as an image."
 	}
 	if { [registry::property_retrieve $ref active] != 1 } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} is not active."
+		return -code error "Image error: ${name} ${fqversion} is not active."
 	} 
 	if { [registry::property_retrieve $ref compact] != 0 } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} is compactd."
+		return -code error "Image error: ${name} ${fqversion} is compactd."
 	} 
 
 	set imagedir [registry::property_retrieve $ref imagedir]

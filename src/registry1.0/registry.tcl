@@ -129,7 +129,7 @@ proc property_retrieve {ref property} {
 }
 
 # If only one version of the port is installed, this process returns that
-# vERSION'S parts.  Otherwise, it lists the versions installed and exists.
+# version's parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {
 	global darwinports::registry.format
 
@@ -150,7 +150,11 @@ proc installed {{name ""} {version ""}} {
 		if { $name == "" } {
 			return -code error "Registry error: No ports registered as installed."
 		} else {
-			return -code error "Registry error: $name not registered as installed."
+			if { $version == "" } {
+				return -code error "Registry error: $name not registered as installed."
+			} else {
+				return -code error "Registry error: $name $version not registered as installed."
+			}
 		}
 	} else {
 		set name [lindex [lindex $ilist 0] 0]
@@ -160,6 +164,38 @@ proc installed {{name ""} {version ""}} {
 		set iref [open_entry $name $iversion $irevision $ivariants]
 		set iactive	[property_retrieve $iref active]
 		lappend rlist [list $name $iversion $irevision $ivariants $iactive]
+	}
+	return $rlist
+}
+
+# Return a list with the active version of a port (or the active versions of
+# all ports if name is "").
+proc active {{name ""}} {
+	global darwinports::registry.format
+
+	set ilist [${darwinports::registry.format}::installed $name]
+	set rlist [list]
+
+	if { [llength $ilist] > 0 } {
+		foreach installed $ilist {
+			set iname [lindex $installed 0]
+			set iversion [lindex $installed 1]
+			set irevision [lindex $installed 2]
+			set ivariants [lindex $installed 3]
+			set iref [open_entry $iname $iversion $irevision $ivariants]
+			set iactive	[property_retrieve $iref active]
+			if {$iactive} {
+				lappend rlist [list $iname $iversion $irevision $ivariants $iactive]
+			}
+		}
+	}
+	
+	if { [llength $rlist] < 1 } {
+		if { $name == "" } {
+			return -code error "Registry error: No ports registered as active."
+		} else {
+			return -code error "Registry error: $name not registered as installed & active."
+		}
 	}
 	return $rlist
 }
