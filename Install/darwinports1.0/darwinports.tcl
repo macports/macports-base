@@ -73,7 +73,7 @@ namespace eval darwinports {
 		# Register defaults
 		default darwinports::options portpath $portpath
 		default darwinports::options prefix /usr/local/bin
-		default darwinports::options distdir [file join $portpath distfiles]
+		default darwinports::options distdir distfiles
 
 		return
 	}
