@@ -75,7 +75,7 @@ for {set i 0} {$i < $argc} {incr i} {
 		}
 	
 	# if +xyz -xyz or after the separator
-	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.])+$} $arg match sign opt] == 1} {
+	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
 		set variations($opt) $sign
 	
 	# option=value
