@@ -112,15 +112,24 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 #---------------------------------------
 AC_DEFUN([OD_PROG_MD5],[
 
-	AC_PATH_PROG([MD5], [md5], ,  [ $PATH:/usr/bin:/bin ])
+	AC_PATH_PROG([MD5], [md5], ,  [ /usr/bin:/usr/sbin:/bin:/sbin ])
 
 	if test "x$MD5" = "x" ; then
 		AC_PATH_PROG([OPENSSL], [openssl],
 			[AC_MSG_ERROR([No suitable md5 program found])],
-			[ $PATH:/usr/local/openssl/bin:/usr/bin:/bin ])
+			[ /usr/bin:/bin ])
 
 		MD5="$OPENSSL md5"
 	fi
 
 	AC_SUBST(MD5)
+])
+
+# OD_PROG_MTREE
+#---------------------------------------
+AC_DEFUN([OD_PROG_MTREE],[
+
+	AC_PATH_PROG([MTREE], [mtree], ,  [ /usr/bin:/usr/sbin:/bin:/sbin ])
+
+	AC_SUBST(MTREE)
 ])
