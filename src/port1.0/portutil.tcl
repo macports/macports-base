@@ -303,29 +303,32 @@ proc makeuserproc {name body} {
 #     functions
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
-#	<identifier> target <procedure to execute> <init procedure> [run type]
+#	<identifier> target <procedure to execute> [<init procedure> [run type]]
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
-#	<identifier> preflight <target name>
-#	<identifier> postflight <target name>
+#	<provides> preflight <proc name>
+#	<provides> postflight <proc name>
 proc register {name mode args} {
     global targets target_uniqid
     dlist_add_item targets $name
 
     if {[string equal target $mode]} {
         set procedure [lindex $args 0]
-        set init [lindex $args 1]
         if {[dlist_has_key targets $name procedure]} {
             ui_debug "Warning: target '$name' re-registered (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure $procedure
-        dlist_set_key targets $name init $init
+		
+		if {[llength $args] >= 2} {
+			set init [lindex $args 1]
+			dlist_set_key targets $name init $init
+		}
 
-	# Set runtype {always,once} if available
-	if {[llength $args] == 3} {
-	    dlist_set_key targets $name runtype [lindex $args 2]
-	}
+		# Set runtype {always,once} if available
+		if {[llength $args] >= 3} {
+			dlist_set_key targets $name runtype [lindex $args 2]
+		}
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
@@ -343,84 +346,65 @@ proc register {name mode args} {
 		    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
 		    continue;
 		}
-                set id [incr target_uniqid]
                 set ident [lindex [dlist_get_matches targets provides $args] 0]
                 set origproc [dlist_get_key targets $ident procedure]
                 eval "proc $target {args} \{ \n\
-                    register $ident target proc-$target$id \n\
-                    proc proc-$target$id \{name\} \{ \n\
-                        if \[catch userproc-$target$id result\] \{ \n\
-							ui_info \$result \n\
+					global target_uniqid \n\
+					set id \[incr target_uniqid\] \n\
+                    register $ident target proc-$target\$id \n\
+                    eval \"proc proc-$target\$id \{name\} \{ \n\
+                        if \\\[catch userproc-$target\$id result\\\] \{ \n\
+							ui_info \\\{\\\$result\\\} \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
 						\} \n\
-                    \} \n\
+                    \}\" \n\
                     eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
-                    makeuserproc userproc-$target$id \$args \}"
+                    makeuserproc userproc-$target\$id \$args \}"
                 eval "proc pre-$target {args} \{ \n\
-                    register pre-$target$id target proc-pre-$target$id \n\
-                    register pre-$target$id preflight $target \n\
-                    proc proc-pre-$target$id \{name\} \{ \n\
-                        if \[catch userproc-pre-$target$id result\] \{ \n\
-							ui_info \$result \n\
+					global target_uniqid \n\
+					set id \[incr target_uniqid\] \n\
+                    register $target preflight pre-$target\$id \n\
+                    eval \"proc pre-$target\$id \{name\} \{ \n\
+                        if \\\[catch userproc-pre-$target\$id result\\\] \{ \n\
+							ui_info \\\{\\\$result\\\} \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
 						\} \n\
-                    \} \n\
-                    makeuserproc userproc-pre-$target$id \$args \}"
+                    \}\" \n\
+                    makeuserproc userproc-pre-$target\$id \$args \}"
                 eval "proc post-$target {args} \{ \n\
-                    register post-$target$id target proc-post-$target$id \n\
-                    register post-$target$id postflight $target \n\
-                    proc proc-post-$target$id \{name\} \{ \n\
-                        if \[catch userproc-post-$target$id result\] \{ \n\
-							ui_info \$result \n\
+					global target_uniqid \n\
+					set id \[incr target_uniqid\] \n\
+                    register $target postflight post-$target\$id \n\
+                    eval \"proc post-$target\$id \{name\} \{ \n\
+                        if \\\[catch userproc-post-$target\$id result\\\] \{ \n\
+							ui_info \\\{\\\$result\\\} \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
 						\} \n\
-                    \} \n\
-                    makeuserproc userproc-post-$target$id \$args \}"
+                    \}\" \n\
+                    makeuserproc userproc-post-$target\$id \$args \}"
             }
         }
 	
     } elseif {[string equal preflight $mode]} {
-	# preflight vulcan mind meld:
-	# "your requirements to my requirements; my provides to your requirements"
-	
-	dlist_append_key targets $name provides $name-pre-$args
-	# XXX: this only returns the first match, is this what we want?
-	set ident [lindex [dlist_get_matches targets provides $args] 0]
-	
-	dlist_append_key targets $name requires \
-	    [dlist_get_key targets $ident requires]
-	dlist_append_key targets $ident requires \
-	    [dlist_get_key targets $name provides]
-	
-    } elseif {[string equal postflight $mode]} {
-	# postflight procedure:
-	
-	dlist_append_key targets $name provides $name-post-$args
+		# Find target which provides the specified name, and add a preflight.
+		# XXX: this only returns the first match, is this what we want?
+		set ident [lindex [dlist_get_matches targets provides $name] 0]
+		dlist_append_key targets $ident pre $args
 		
-	set ident [lindex [dlist_get_matches targets provides $args] 0]
-
-	# your provides to my requires
-	dlist_append_key targets $name requires \
-	    [dlist_get_key targets $ident provides]
-	
-	# my provides to the requires of your children
-	foreach token [join [dlist_get_key targets $ident provides]] {
-	    set matches [dlist_get_matches targets requires $token]
-	    foreach match $matches {
-		# don't want to require ourself
-		if {![string equal $match $name]} {
-		    dlist_append_key targets $match requires $name-post-$args
-		}
-	    }
+    } elseif {[string equal postflight $mode]} {
+		# Find target which provides the specified name, and add a preflight.
+		# XXX: this only returns the first match, is this what we want?
+		set ident [lindex [dlist_get_matches targets provides $name] 0]
+		dlist_append_key targets $ident post $args
 	}
-    }
 }
+
 
 # unregister
 # Unregisters a target in the global target list
@@ -608,38 +592,55 @@ proc dlist_evaluate {dlist downstatusdict action} {
 proc exec_target {fd dlist name} {
 # XXX: Don't depend on entire dlist, this should really receive just one node.
     upvar $dlist uplist
-    if {[dlist_has_key uplist $name procedure] && [dlist_has_key uplist $name init]} {
-	set procedure [dlist_get_key uplist $name procedure]
-	set init [dlist_get_key uplist $name init]
-	if {"$init" != ""} {
-	    $init $name
-	}
-	if {[check_statefile $name $fd]} {
-	    set result 0
-	    ui_debug "Skipping completed $name"
-	} else {
-	    ui_debug "Executing $name"
-	    set result [$procedure $name]
-	}
-	if {$result == 0} {
-	    set result success
-	    if {[dlist_get_key uplist $name runtype] != "always"} {
-		write_statefile $name $fd
-	    }
-	} else {
-	    ui_error "Target error: $name returned $result"
-	    set result failure
-	}
+
+    if {[dlist_has_key uplist $name procedure]} {
+		set procedure [dlist_get_key uplist $name procedure]
+		set init [dlist_get_key uplist $name init]
+		if {"$init" != ""} {
+			$init $name
+		}
+				
+		if {[check_statefile $name $fd]} {
+			set result 0
+			ui_debug "Skipping completed $name"
+		} else {
+			foreach pre [dlist_get_key uplist $name pre] {
+				ui_debug "Executing $pre"
+				if {[$pre $name] != 0} { return failure }
+			}
+
+			ui_debug "Executing $name"
+			set result [$procedure $name]
+
+			foreach post [dlist_get_key uplist $name post] {
+				ui_debug "Executing $post"
+				if {[$post $name] != 0} { 
+					set result 1 
+					break
+				}
+			}
+		}
+		if {$result == 0} {
+			set result success
+			if {[dlist_get_key uplist $name runtype] != "always"} {
+			write_statefile $name $fd
+			}
+		} else {
+			ui_error "Target error: $name returned $result"
+			set result failure
+		}
+		
     } else {
-	ui_info "Warning: $name does not have a registered procedure"
-	set result failure
+		ui_info "Warning: $name does not have a registered procedure"
+		set result failure
     }
+	
     return $result
 }
 
 proc eval_targets {dlist target} {
     upvar $dlist uplist
-	
+
     # Select the subset of targets under $target
     if {[string length $target] > 0} {
 		# XXX munge target. install really means registry, then install
