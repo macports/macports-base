@@ -67,11 +67,6 @@ proc ui_puts {priority str nonl} {
     }
 }
 
-# These ui procedures should never be called during an index operation
-foreach proc {ui_gets ui_yesno ui_confirm ui_display} {
-	eval proc $proc \{args\} \{return -code error \"Interactive procedure '$proc' called during index\"\}
-}
-
 # Standard procedures
 proc print_usage args {
     global argv0

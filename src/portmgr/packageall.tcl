@@ -102,49 +102,6 @@ proc ui_puts {priority str {nonl ""}} {
     }
 }
 
-# Get a line of input from the user and store in str, returning the
-# number of bytes input.
-proc ui_gets {str} {
-    upvar $str in_string
-	set in_string ""
-}
-
-# Ask a boolean "yes/no" question of the user, using "promptstr" as
-# the prompt.  It should contain a trailing space and/or anything else
-# you want to precede the user's input string.  Returns 1 for "yes" or
-# 0 for "no".  This implementation also assumes an english yes/no or
-# y/n response, but that is not mandated by the spec.  If "defvalue"
-# is passed, it will be used as the default value if none is supplied
-# by the user.
-proc ui_yesno {promptstr {defvalue ""}} {
-	set mystr "y"
-	if {[string length $defvalue] > 0} {
-		set mystr $defvalue
-	}
-	if {[string compare -nocase -length 1 $mystr y] == 0} {
-		set rval 1
-	} elseif {[string compare -nocase -length 1 $mystr n] == 0} {
-		set rval 0
-	}
-	return $rval
-}
-
-# Put up a simple confirmation dialog, requesting nothing more than
-# the user's acknowledgement of the prompt string passed in
-# "promptstr".  There is no return value.
-proc ui_confirm {promptstr} {
-	ui_puts msg "$promptstr"
-}
-
-# Display the contents of a file, ideally in a manner which allows the
-# user to scroll through and read it comfortably (e.g. a license
-# text).  For the "simple UI" version of this, we simply punt this to
-# less(1) since rewriting a complete pager for the simple case would
-# be a waste of time.  It's expected in a more complex UI case, a
-# scrolling display widget of some type will be used.
-proc ui_display {filename} {
-}
-
 # Recursive bottom-up approach of building a list of dependencies.
 proc get_dependencies {portname includeBuildDeps} {
 	set result {}
