@@ -214,7 +214,7 @@ proc command {command} {
     
     set cmdstring ""
     if [info exists ${command}.dir] {
-	set cmdstring "cd [set ${command}.dir] &&"
+	set cmdstring "cd \"[set ${command}.dir]\" &&"
     }
     
     if [info exists ${command}.env] {

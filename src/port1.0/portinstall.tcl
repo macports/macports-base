@@ -63,7 +63,7 @@ proc install_start {args} {
 	#system "rm -Rf \"${destroot}\""
 
 	file mkdir "${destroot}"
-	system "cd ${destroot} && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
+	system "cd \"${destroot}\" && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
 	file mkdir "${destroot}/${prefix}"
 	system "cd \"${destroot}/${prefix}\" && mtree -d -e -U -f ${portresourcepath}/install/prefix.mtree"
 }
