@@ -187,20 +187,24 @@ proc uninstall {portname {v ""}} {
 }
 
 proc _uninstall_file {dstfile} {
-	if { [file type $dstfile] == "link" } {
-		ui_debug "uninstalling link: $dstfile"
-		file delete -- $dstfile
-	} elseif { [file isdirectory $dstfile] } {
-		# 0 item means empty.
-		if { [llength [readdir $dstfile]] == 0 } {
-			ui_debug "uninstalling directory: $dstfile"
+	if { ![catch {set type [file type $dstfile]}] } {
+		if { $type == "link" } {
+			ui_debug "uninstalling link: $dstfile"
 			file delete -- $dstfile
+		} elseif { [file isdirectory $dstfile] } {
+			# 0 item means empty.
+			if { [llength [readdir $dstfile]] == 0 } {
+				ui_debug "uninstalling directory: $dstfile"
+				file delete -- $dstfile
+			} else {
+				ui_debug "$dstfile is not empty"
+			}
 		} else {
-			ui_debug "$dstfile is not empty"
+			ui_debug "uninstalling file: $dstfile"
+			file delete -- $dstfile
 		}
 	} else {
-		ui_debug "uninstalling file: $dstfile"
-		file delete -- $dstfile
+		ui_debug "skip missing file: $dstfile"
 	}
 }
 
