@@ -281,7 +281,7 @@ proc cvsfetch {args} {
 	set saveenv ${cvs.env}
 	set saveargs ${cvs.args}
 	set savepost_args ${cvs.post_args}
-	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
+	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} $portutil::autoconf::cvs_path"
 	set cvs.env ""
 	set cvs.args login
 	set cvs.post_args ""
