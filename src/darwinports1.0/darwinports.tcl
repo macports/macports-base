@@ -35,7 +35,7 @@ namespace eval darwinports {
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
     variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
 	
-	variable open_dports {}
+    variable open_dports {}
 }
 
 # Provided UI instantiations
