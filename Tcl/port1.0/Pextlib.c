@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/file.h>
 #include <tcl.h>
 
@@ -42,10 +43,19 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			len = strlen(arg) + 1;
 
 			if (len > cmdlenavail) {
+				char *sptr;
 				cmdlen += cmdlenavail + len;
-				cmdstring = reallocf(cmdstring, cmdlen);
-				if (cmdstring == NULL)
+				/*
+				 * This is ugly because puma doesn't have
+				 * reallocf. Remove when we rev past puma
+				 * support
+				 */
+				sptr = cmdstring;
+				cmdstring = realloc(cmdstring, cmdlen);
+				if (cmdstring == NULL) {
+					free(sptr);
 					return TCL_ERROR;
+				}
 			}
 			/* Subtract 1 to not copy trailing \0 */
 			memcpy(p, arg, len - 1);
@@ -86,7 +96,6 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	int operation = 0, fd, i;
 	Tcl_Channel channel;
 	ClientData handle;
-	char buf[1024];
 
 	if (objc < 3 || objc > 4) {
 		Tcl_WrongNumArgs(interp, 1, objv, "channelId switches");
