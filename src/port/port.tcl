@@ -334,7 +334,7 @@ switch -- $action {
 			puts "Please specify a filename to check which port provides that file."
 			exit 1
 		}
-		set file [file normalize $portname]
+		set file [compat filenormalize $portname]
 		if {[file exists $file]} {
 			if {![file isdirectory $file]} {
 				set port [registry::file_registered $file] 
