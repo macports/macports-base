@@ -51,7 +51,7 @@ proc handle_depends_options {option action args} {
 	switch -regex $action {
 		set|append {
 			foreach depspec $args {
-				if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9\.$^\?\+\(\)\|\\]+):([A-Za-z\./0-9]+)} "$depspec" match deppath depregex portname] == 1} {
+				if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9\-\.$^\?\+\(\)\|\\]+):([A-Za-z\./0-9]+)} "$depspec" match deppath depregex portname] == 1} {
 					switch $deppath {
 						lib { set obj [libportfile_new $portname $depregex] }
 						bin { set obj [binportfile_new $portname $depregex] }
