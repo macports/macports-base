@@ -120,7 +120,6 @@ static pid_t pid;
 static void system_handler(int sig)
 {
         signaled = 1;
-	fprintf(stderr, "User Interrupt.\n");
 	killpg(pid, sig);
 }
 
