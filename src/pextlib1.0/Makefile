@@ -1,5 +1,5 @@
 OBJS=		Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
-		find.o
+		find.o vercomp.o
 SHLIB_NAME=	Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
 

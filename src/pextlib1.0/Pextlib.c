@@ -94,6 +94,7 @@
 #include "md5cmd.h"
 #include "find.h"
 #include "xinstall.h"
+#include "vercomp.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -696,6 +697,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
