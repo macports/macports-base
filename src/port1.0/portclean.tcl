@@ -142,9 +142,9 @@ proc clean_dist {args} {
 }
 
 proc clean_work {args} {
-	global prefix portname portversion	
+	global buildpath
 
-	set cleandir [file join $prefix var/db/dports/builds ${portname}-${portversion} ]
+	set cleandir $buildpath
 
 	if {[file isdirectory ${cleandir}]} {
 		ui_debug "Removing directory: ${cleandir}"
