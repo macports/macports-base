@@ -39,12 +39,12 @@ set com.apple.main [target_new com.apple.main main]
 target_provides ${com.apple.main} main
 
 # define options
-options prefix name version revision categories maintainers
+options prefix name version revision epoch categories maintainers
 options long_description description homepage
 options workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
 
 # Export options via PortInfo
-options_export name version revision categories maintainers platforms description long_description homepage
+options_export name version revision epoch categories maintainers platforms description long_description homepage
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
@@ -62,6 +62,7 @@ default destpath {${workpath}/${destdir}}
 default destroot {${destpath}}
 default filedir files
 default revision 0
+default epoch 0
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
 default filesdir {files}
@@ -72,6 +73,7 @@ default worksrcpath {[file join $workpath $worksrcdir]}
 default portname {$name}
 default portversion {$version}
 default portrevision {$revision}
+default portepoch {$epoch}
 
 # Platform Settings
 set os_arch $tcl_platform(machine)
