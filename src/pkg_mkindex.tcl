@@ -33,5 +33,5 @@ if {$argc < 1} {
 	exit
 }
 foreach dir $argv {
-	pkg_mkIndex $dir *.tcl *.dylib
+	pkg_mkIndex $dir *.tcl *.dylib *.so
 }
