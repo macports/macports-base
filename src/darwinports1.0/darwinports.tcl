@@ -164,7 +164,7 @@ proc dportinit {args} {
 
     if {![info exists binpath]} {
 	global env
-	set env(PATH) "/sbin:/usr/sbin:/bin:/usr/bin:${prefix}/bin"
+	set env(PATH) "/sbin:/usr/sbin:/bin:/usr/bin:${prefix}/bin:/usr/X11R6/bin"
     }
 
     if {[file isdirectory $libpath]} {
