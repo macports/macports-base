@@ -1,0 +1,49 @@
+# darwinports_fastload.tcl.in
+# $Id: darwinports_fastload.tcl.in,v 1.1 2004/10/14 20:13:38 pguyot Exp $
+#
+# Copyright (c) 2004 Paul Guyot, Darwinports Team.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
+
+# This script is here to fast load all the darwinports-related packages.
+# This avoids the very expensive globbing of Tcl' package mechanism.
+# Please note that this is not required and base/ should work even if some
+# packages are moved as long as their new location is in Tcl's package paths.
+
+set dir [file join "@TCL_PACKAGE_DIR@" darwinports1.0]
+catch {source [file join $dir pkgIndex.tcl]}
+
+# I could iterate on the directory, but the only way I know in Tcl involves a
+# native function we provide in pextlib.
+set dir [file join "@prefix_expanded@" share darwinports Tcl port1.0]
+catch {source [file join $dir pkgIndex.tcl]}
+set dir [file join "@prefix_expanded@" share darwinports Tcl package1.0]
+catch {source [file join $dir pkgIndex.tcl]}
+set dir [file join "@prefix_expanded@" share darwinports Tcl pextlib1.0]
+catch {source [file join $dir pkgIndex.tcl]}
+set dir [file join "@prefix_expanded@" share darwinports Tcl registry1.0]
+catch {source [file join $dir pkgIndex.tcl]}
