@@ -504,7 +504,7 @@ proc write_statefile {name fd} {
 # each directory containing a Portfile
 proc port_traverse {func {dir .}} {
     set pwd [pwd]
-    if [catch {cd $dir} err] {
+    if [catch {cd "$dir"} err] {
 	ui_error $err
 	return
     }
@@ -512,13 +512,13 @@ proc port_traverse {func {dir .}} {
 	if {[string match $name .] || [string match $name ..]} {
 	    continue
 	}
-	if [file isdirectory $name] {
+	if [file isdirectory "$name"] {
 	    port_traverse $func "$name"
 	} else {
 	    if [string match $name Portfile] {
-		eval $func "[file join $pwd $dir]"
+		eval $func [file join "$pwd" "$dir"]
 	    }
 	}
     }
-    cd $pwd
+    cd "$pwd"
 }
