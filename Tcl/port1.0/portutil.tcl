@@ -390,7 +390,7 @@ proc dlist_append_dependents {dependents dlist name} {
     # Recursively append any hard dependencies
     if {[info exists uplist(requires,$name)]} {
 	foreach dep $uplist(requires,$name) {
-	    append_dependents updependents uplist $dep
+	    dlist_append_dependents updependents uplist $dep
 	}
     }
     
