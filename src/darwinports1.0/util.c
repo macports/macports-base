@@ -99,3 +99,46 @@ const void* dp_array_get_index(dp_array_t a, int index) {
  * dp_hash_t
  *
  */
+struct hashtable {
+    Tcl_HashTable table;
+    int refcount;
+};
+
+dp_hash_t dp_hash_create() {
+    struct hashtable* hash = (struct hashtable*)malloc(sizeof(struct hashtable));
+    Tcl_InitHashTable(hash.table, TCL_STRING_KEYS);
+    hash.refcount = 1;
+    return (dp_hash_t)hash;
+}
+
+dp_hash_t dp_hash_retain(dp_hash_t h) {
+    struct hashtable* hash = (struct hashtable*)h;
+    ++hash.refcount;
+    return h;
+}
+
+void dp_hash_release(dp_hash_t h) {
+    struct hashtable* hash = (struct hashtable*)h;
+    --hash.refcount;
+    if (hash.refcount == 0) {
+        Tcl_DeleteHashTable(hash.table);
+        free(hash);
+    }
+}
+
+void dp_hash_set_value(dp_hash_t h, const void* key, const void* data) {
+    struct hashtable* hash = (struct hashtable*)h;
+    int created;
+    Tcl_HashEntry* entry = Tcl_CreateHashEntry(hash.table, key, &created);
+    Tcl_SetHashValue(entry, (ClientData)data);
+}
+
+const void* dp_hash_get_value(dp_hash_t h, const void* key) {
+    struct hashtable* hash = (struct hashtable*)h;
+    Tcl_HashEntry* entry = Tcl_FindHashEntry(hash.table, key);
+    if (entry != NULL) {
+        return (const void*)Tcl_GetHashValue(entry);
+    } else {
+        return NULL;
+    }
+}
