@@ -319,18 +319,20 @@ proc _activate_contents {name imagefiles imagedir} {
 			}
 		}
 		
-		# Add the filename to the imagefile list.
-		lappend files $file
-
-		# Split out the filename's subpaths and add them to the imagefile list
-		# as well.
-		# [PG] is this really necessary since we're also adding the subpaths
-		#      when deactivating?
+		# Split out the filename's subpaths and add them to the imagefile list.
+		# We need directories first to make sure they will be there before
+		# symlinks. However, because file mkdir creates all parent directories,
+		# we don't need to have them sorted from root to subpaths. We do need,
+		# nevertheless, all sub paths to make sure we'll set the directory
+		# attributes properly for all directories.
 		set directory [file dirname $file]
 		while { [lsearch -exact $files $directory] == -1 } { 
 			lappend files $directory
 			set directory [file dirname $directory]
 		}
+
+		# Also add the filename to the imagefile list.
+		lappend files $file
 	}
 	registry::write_file_map
 
@@ -347,7 +349,8 @@ proc _activate_contents {name imagefiles imagedir} {
 
 proc _deactivate_file {dstfile} {
 	if { [file isdirectory $dstfile] } {
-		if { [llength [readdir $dstfile]] < 2 } {
+		# 2 items means empty.
+		if { [llength [readdir $dstfile]] == 2 } {
 			ui_debug "deactivating directory: $dstfile"
 			file delete $dstfile
 		} else {
