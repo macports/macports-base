@@ -65,7 +65,7 @@ proc pindex {portdir} {
     puts $fd $output
 }
 
-if {[expr $argc > 3]} {
+if {[expr $argc > 4]} {
     print_usage
     exit 1
 }
