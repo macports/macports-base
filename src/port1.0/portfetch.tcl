@@ -39,6 +39,8 @@ register com.apple.fetch requires main depends_fetch
 
 # define options: distname master_sites
 options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
+# XXX we use the command framework to buy us some useful features,
+# but this is not a user-modifiable command
 commands cvs
 
 # Defaults
@@ -179,14 +181,16 @@ proc checkfiles {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
-    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module
+    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env
 	cd $workpath
 	set cvs.args login
-	if {[catch {system "echo ${cvs.password} | [command cvs] 2>&1"} result]} {
+	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
+	if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS login failed"
         return -1
     }
 	set cvs.args "co -r ${cvs.tag}"
+	set cvs.cmd cvs
 	set cvs.post_args "${cvs.module}"
 	if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS check out failed"
