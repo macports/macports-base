@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.1 2003/06/25 22:30:18 landonf Exp $
+# $Id: mirror_sites.tcl,v 1.2 2003/09/05 13:50:18 fkr Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -137,6 +137,7 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://us.dl.sourceforge.net/
     http://eu.dl.sourceforge.net/
     ftp://us.dl.sourceforge.net/pub/sourceforge/
+    http://osdn.dl.sourceforge.net/sourceforge/
     ftp://ftp.kddlabs.co.jp/sourceforge/
     ftp://ftp.chg.ru/pub/sourceforge/
 }
