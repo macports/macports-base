@@ -108,7 +108,7 @@ proc options {args} {
 	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    foreach val \$args \{ \n\
-			ldelete ${option} \$val \n\
+                       set ${option} \[ldelete \$\{$option\} \$val\] \n\
 		    \} \n\
 		    if \{\[string length \$\{${option}\}\] == 0\} \{ \n\
 			unset ${option} \n\
@@ -178,9 +178,6 @@ proc option_proc {option args} {
 proc option_proc_trace {optionName index op} {
     global option_procs
     upvar $optionName optionValue
-    if {![info exists option_procs($optionName)]} {
-	return
-    }
     switch $op {
 	w {
 	    foreach p $option_procs($optionName) {
@@ -420,11 +417,11 @@ proc tbool {key} {
 # ldelete
 # Deletes a value from the supplied list
 proc ldelete {list value} {
-    upvar $list uplist
-    set ix [lsearch -exact $uplist $value]
+    set ix [lsearch -exact $list $value]
     if {$ix >= 0} {
-	set uplist [lreplace $uplist $ix $ix]
+	return [lreplace $list $ix $ix]
     }
+    return $list
 }
 
 # reinplace
