@@ -7,7 +7,7 @@ package require darwinports
 dportinit
 package require Pextlib
 
-global target
+global target uniquestr
 
 # UI Instantiations - These custom versions go to a debugging log.
 #
@@ -29,6 +29,8 @@ proc ui_isset {val} {
 # UI Callback
 
 proc ui_puts {messagelist} {
+    global uniquestr
+
     set channel [open "/tmp/portbuild.out" w+ 0644]
     array set message $messagelist
     switch $message(priority) {
@@ -36,23 +38,23 @@ proc ui_puts {messagelist} {
             if {[ui_isset ports_debug]} {
 		close $channel
                 set channel [open "/tmp/portdebug.out" a+ 0664]
-                set str "DEBUG: $message(data)"
+                set str "${uniquestr}DEBUG: $message(data)"
             } else {
 		close $channel
                 return
             }
         }
         info {
-	    set str "OUT: $message(data)"
+	    set str "${uniquestr}OUT: $message(data)"
         }
         msg {
-	    set str "OUT: $message(data)"
+	    set str "${uniquestr}OUT: $message(data)"
         }
         error {
-            set str "ERR: $message(data)"
+            set str "${uniquestr}ERR: $message(data)"
         }
         warn {
-            set str "WARN: $message(data)"
+            set str "${uniquestr}WARN: $message(data)"
         }
     }
     puts $channel $str
@@ -99,6 +101,10 @@ array set options [list]
 array set variations [list]
 
 set target install
+# Set to something unique that can be grepped out of the output easily
+set uniquestr "_BLDA_"
+set env(UI_PREFIX) "${uniquestr}PHASE: "
+
 if { $argc >= 1 } {
     for {set i 0} {$i < $argc} {incr i} {
 	set arg [lindex $argv $i]
