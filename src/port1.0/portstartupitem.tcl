@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.5 2005/01/27 08:03:47 rshaw Exp $
+# $Id: portstartupitem.tcl,v 1.6 2005/01/27 19:52:39 rshaw Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -93,24 +93,16 @@ proc startupitem_create_darwin {args} {
 		set startupitem.name ${portname}
 	}
 	if { ![exists startupitem.start] } {
-		set startupitem.start "sh ${scriptdir}/${portname}.sh start"
-	} else {
-		set startupitem.start [join ${startupitem.start}]
+		set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
 	}
 	if { ![exists startupitem.stop] } {
-		set startupitem.stop  "sh ${scriptdir}/${portname}.sh stop"
-	} else {
-		set startupitem.stop [join ${startupitem.stop}]
+		set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
 	}
 	if { ![exists startupitem.restart] } {
-		set startupitem.restart "sh ${scriptdir}/${portname}.sh restart"
-	} else {
-		set startupitem.restart [join ${startupitem.restart}]
+		set startupitem.restart [list "sh ${scriptdir}/${portname}.sh restart"]
 	}
 	if { ![exists startupitem.requires] } {
-		set startupitem.requires "\"Disks\", \"NFS\""
-	} else {
-		set startupitem.requires [format {"%s"} [join ${startupitem.requires} {", "}]]
+		set startupitem.requires [list "Disks" "NFS"]
 	}
 	set itemname [string toupper ${startupitem.name}]
 	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
@@ -122,16 +114,16 @@ proc startupitem_create_darwin {args} {
 	puts ${item} "StartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
-	puts ${item} "\t\t${startupitem.start}"
+	foreach line ${startupitem.start} { puts ${item} "\t\t${line}" }
 	puts ${item} "\tfi\n\}\n"
 	puts ${item} "StopService ()\n\{"
 	puts ${item} "\t\tConsoleMessage \"Stopping ${startupitem.name}\""
-	puts ${item} "\t\t${startupitem.stop}"
+	foreach line ${startupitem.stop} { puts ${item} "\t\t${line}" }
 	puts ${item} "\}\n"
 	puts ${item} "RestartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Restarting ${startupitem.name}\""
-	puts ${item} "\t\t${startupitem.restart}"
+	foreach line ${startupitem.restart} { puts ${item} "\t\t${line}" }
 	puts ${item} "\tfi\n\}\n"
 	puts ${item} "RunService \"\$1\""
 	close ${item}
@@ -139,7 +131,9 @@ proc startupitem_create_darwin {args} {
 	puts ${para} "\{"
 	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
 	puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
-	puts ${para} "\tRequires\t= (${startupitem.requires});"
+	puts -nonewline ${para} "\tRequires\t= ("
+	puts -nonewline ${para} [format {"%s"} [join ${startupitem.requires} {", "}]]
+	puts ${para} ");"
 	puts ${para} "\tOrderPreference\t= \"None\";"
 	puts ${para} "\}"
 	close ${para}
