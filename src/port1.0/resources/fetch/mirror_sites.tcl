@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.26 2005/01/19 10:38:14 mww Exp $
+# $Id: mirror_sites.tcl,v 1.27 2005/02/03 14:29:43 toby Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -141,9 +141,9 @@ set portfetch::mirror_sites::sites(opendarwin) {
 }
 
 set portfetch::mirror_sites::sites(perl_cpan) {
-    http://www.cpan.dk/CPAN/modules/by-module/
     ftp://ftp.funet.fi/pub/languages/perl/CPAN/modules/by-module/
     ftp://ftp.cpan.org/pub/CPAN/modules/by-module/
+    http://www.cpan.dk/CPAN/modules/by-module/
     ftp://uiarchive.uiuc.edu/pub/ftp/cpan.cse.msu.edu/modules/by-module/
     ftp://ftp.kddlabs.co.jp/lang/perl/CPAN/modules/by-module/
     ftp://ftp.dti.ad.jp/pub/lang/CPAN/modules/by-module/
