@@ -737,8 +737,8 @@ proc eval_targets {dlist target} {
             array set uplist [array get dependents]
             # Special-case 'all'
         } elseif {![string equal $target all]} {
-            ui_info "Warning: unknown target: $target"
-            return
+            ui_error "unknown target: $target"
+            return 1
         }
     }
     
@@ -750,7 +750,7 @@ proc eval_targets {dlist target} {
     set ret [dlist_evaluate uplist statusdict [list exec_target $fd]]
 
     close $fd
-	return $ret
+    return $ret
 }
 
 # select dependents of <name> from the <itemlist>
