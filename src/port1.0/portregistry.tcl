@@ -37,7 +37,7 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description registry.nochecksum registry.path registry.nobzip
+options contents description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
 
 default registry.path /Library/Receipts/darwinports
 
@@ -118,9 +118,12 @@ proc fileinfo_for_file {fname} {
 }
 
 proc fileinfo_for_entry {rval dir entry} {
+    global registry.contents_recurse UI_PREFIX
+
     upvar $rval myrval
     set path [file join $dir $entry]
-    if [file isdirectory $path] {
+    if {[file isdirectory $path] && [tbool registry.contents_recurse] {
+	ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $path"
 	foreach name [readdir $path] {
 	    if {[string match $name .] || [string match $name ..]} {
 		continue
