@@ -115,7 +115,7 @@ proc options {args} {
 		    foreach val \$args \{ \n\
 			ldelete ${option} \$val \n\
 		    \} \n\
-		    if \{\[string length \$${option}\] == 0\} \{ \n\
+		    if \{\[string length \$\{${option}\}\] == 0\} \{ \n\
 			unset ${option} \n\
 		    \} \n\
 			if \{\[info exists option_procs($option)\]\} \{ \n\
