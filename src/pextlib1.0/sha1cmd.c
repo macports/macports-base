@@ -107,7 +107,8 @@ char *SHA1Data(const unsigned char *data, unsigned int len, char *buf)
 }
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
-#include <sha1.h>
+#include <sha.h>
+#define SHA1File(x, y) SHA1_File(x, y)
 #else
 #error libcrypto or libmd are required
 #endif

@@ -151,11 +151,14 @@ proc uninstall {portname {v ""}} {
 					}
 				}
 			}
-			lappend files $fname
+			# Normalize the file path to avoid removing the intermediate
+			# symlinks (remove the empty directories instead)
+			set theFile [compat filenormalize [lindex $f 0]]
+			lappend files $theFile
 
 			# Split out the filename's subpaths and add them to the
 			# list as well.
-			set directory [file dirname $fname]
+			set directory [file dirname $theFile]
 			while { [lsearch -exact $files $directory] == -1 } { 
 				lappend files $directory
 				set directory [file dirname $directory]

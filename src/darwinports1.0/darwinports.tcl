@@ -67,6 +67,12 @@ proc darwinports::ui_event {context message} {
     ui_puts [array get postmessage]
 }
 
+# Replace puts to catch errors (typically broken pipes when being piped to head)
+rename puts tcl::puts
+proc puts {args} {
+	catch "tcl::puts $args"
+}
+
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
 	global options
@@ -472,7 +478,11 @@ proc dporttraverse {func {root .}} {
 
 ### _dportsearchpath is private; subject to change without notice
 
-proc _dportsearchpath {depregex search_path} {
+# depregex -> regex on the filename to find.
+# search_path -> directories to search
+# executable -> whether we want to check that the file is executable by current
+#				user or not.
+proc _dportsearchpath {depregex search_path {executable 0}} {
     set found 0
     foreach path $search_path {
 	if {![file isdirectory $path]} {
@@ -485,7 +495,8 @@ proc _dportsearchpath {depregex search_path} {
 	}
 
 	foreach filename $filelist {
-	    if {[regexp $depregex $filename] == 1} {
+	    if {[regexp $depregex $filename] &&
+	    	(($executable == 0) || [file executable [file join $path $filename]])} {
 		ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 		set found 1
 		break
@@ -550,7 +561,7 @@ proc _bintest {dport depspec} {
 	
 	set depregex \^$depregex\$
 	
-	return [_dportsearchpath $depregex $search_path]
+	return [_dportsearchpath $depregex $search_path 1]
 }
 
 ### _pathtest is private; subject to change without notice
