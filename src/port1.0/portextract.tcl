@@ -81,8 +81,6 @@ proc extract_main {args} {
 	return 0
     }
 
-    ui_msg "$UI_PREFIX Extracting for $distname"
-
     foreach distfile ${extract.only} {
 	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
 	set extract.args "$distpath/$distfile"
