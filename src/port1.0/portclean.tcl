@@ -44,8 +44,6 @@ proc clean_init {args} {
 
 proc clean_main {args} {
     global portpath workdir
-    if {[ui_yesno "Delete ${portpath}/${workdir}? "]} {
-	system "rm -rf \"${portpath}/${workdir}\""
-    }
+    file delete -force [file join ${portpath} ${workdir}]
     return 0
 }
