@@ -167,9 +167,9 @@ proc package_pkg {portname portversion entry} {
 	write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
 	system "cp ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff"
 	system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-	system "cd ${pkgpath}/Contents/Resources/ && ln -s ../Archive.bom ${portname}.bom"
+	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
 	system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
-	system "cd ${pkgpath}/Contents/Resources/ && ln -s ../Archive.pax.gz ${portname}.pax.gz"
+	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}.pax.gz"
 
 	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${pkgpath} ${destpath}
 
