@@ -39,30 +39,32 @@ register com.apple.extract requires fetch checksum depends_extract
 global extract_opts
 
 # define options
-options extract_opts extract.only extract.cmd extract.before_args extract.after_args
+options extract.only
+commands extract
 
 # Set up defaults
 default extract.only {$distfiles}
+default extract.dir {${portpath}/${workdir}}
 default extract.cmd gzip
-default extract.before_args -dc
-default extract.after_args "| tar -xf -"
+default extract.pre_args -dc
+default extract.post_args "| tar -xf -"
 
 set UI_PREFIX "---> "
 
 proc extract_init {args} {
-    global extract.only extract.cmd extract.before_args extract.after_args distfiles use_bzip2 use_zip
+    global extract.only extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip
 
     if [info exists use_bzip2] {
 	set extract.cmd bzip2
     } elseif [info exists use_zip] {
 	set extract.cmd unzip
-	set extract.before_args -q
-	set extract.after_args "-d $portpath/$workdir"
+	set extract.pre_args -q
+	set extract.post_args "-d $portpath/$workdir"
     }
 }
 
 proc extract_main {args} {
-    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
+    global portname portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
 
     if {![info exists distfiles] && ![info exists extract.only]} {
 	# nothing to do
@@ -71,11 +73,10 @@ proc extract_main {args} {
 
     ui_msg "$UI_PREFIX Extracting for $distname"
 
-    cd $portpath/$workdir
     foreach distfile ${extract.only} {
 	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
-	set cmd "${extract.cmd} [join ${extract.before_args}] \"$distpath/$distfile\" [join ${extract.after_args}]"
-	if [catch {system "$cmd"} result] {
+	default extract.args \"$distpath/$distfile\"
+	if [catch {system "[command extract]"} result] {
 	    ui_error "$result"
 	    return -1
 	}

@@ -37,7 +37,11 @@ register com.apple.configure provides configure
 register com.apple.configure requires main fetch extract checksum patch depends_build depends_lib
 
 # define options
-options configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool
+commands configure automake autoconf xmkmf libtool
+# defaults
+default configure.pre_args {--prefix=${prefix}}
+default configure.cmd ./configure
+default use_configure yes
 
 set UI_PREFIX "---> "
 
@@ -46,7 +50,8 @@ proc configure_init {args} {
 }
 
 proc configure_main {args} {
-    global configure configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX
+    global [info globals]
+    global global configure configure.type configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname portpath workdir worksrcdir prefix workpath UI_PREFIX use_configure use_autoconf use_automake
 
     if [info exists configure.dir] {
 	set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.dir}
@@ -54,30 +59,20 @@ proc configure_main {args} {
 	set configpath ${portpath}/${workdir}/${worksrcdir}
     }
 
-    cd $configpath
-    if [tbool automake] {
+    if [tbool use_automake] {
 	# XXX depend on automake
+	system "[command automake]"
     }
-    if [tbool autoconf] {
+
+    if [tbool use_autoconf] {
 	# XXX depend on autoconf
-	if [info exists autoconf.dir] {
-		cd [file join ${workpath} ${worksrcdir} ${autoconf.dir}]
-	} else {
-		cd ${configpath}
-	}
-
-	if [info exists autoconf.args] {
-	    system "autoconf ${autoconf.args}"
-	} else {
-	    system "autoconf"
-	}
+	system "[command autoconf]"
     }
 
-    ui_msg "$UI_PREFIX Running configure script"
-    if [info exists configure.args] {
-	system "./configure --prefix=\"${prefix}\" ${configure.args}"
-    } else {
-	system "./configure --prefix=\"${prefix}\""
+    cd $configpath
+    if [tbool use_configure] {
+        ui_msg "$UI_PREFIX Running configure script"
+	system "[command configure]"
     }
     return 0
 }

@@ -37,17 +37,18 @@ register com.apple.build provides build
 register com.apple.build requires main fetch extract checksum patch configure depends_build depends_lib
 
 # define options
-options make.cmd make.type make.target.all make.target.install make.env
-
+options make.target.all make.target.install
+commands make
 # defaults
 default make.type bsd
 default make.cmd make
+default make.pre_args ${make.target.current}
 default make.target.all all
 
 set UI_PREFIX "---> "
 
 proc build_init {args} {
-    global make.type make.cmd make.target.all make.worksrcdir
+    global make.type make.cmd
 
     switch -exact -- ${make.type} {
 	bsd {
@@ -60,21 +61,10 @@ proc build_init {args} {
 }
 
 proc build_main {args} {
-    global portname portpath workdir prefix make.type make.cmd make.env make.target.all UI_PREFIX worksrcdir
+    global portname portpath workdir prefix make.type make.cmd make.env make.target.all make.target.current UI_PREFIX worksrcdir
 
-    if [info exists make.worksrcdir] {
-	set configpath ${portpath}/${workdir}/${worksrcdir}/${make.worksrcdir}
-    } else {
-	set configpath ${portpath}/${workdir}/${worksrcdir}
-    }
-
-    cd $configpath
-    lappend env_vars PREFIX=${prefix}
-    if [info exists make.env] {
-	lappend env_vars ${make.env}
-    }
-	
     ui_msg "$UI_PREFIX Building $portname with target ${make.target.all}"
-    system "env ${env_vars} ${make.cmd} ${make.target.all}"
+    set make.target.current ${make.target.all}
+    system "[command make]"
     return 0
 }

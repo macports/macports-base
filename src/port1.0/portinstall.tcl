@@ -47,17 +47,12 @@ proc install_init {args} {
 }
 
 proc install_main {args} {
-    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.install UI_PREFIX
-
-    if [info exists make.worksrcdir] {
-	set configpath ${portpath}/${workdir}/${worksrcdir}/${make.worksrcdir}
-    } else {
-	set configpath ${portpath}/${workdir}/${worksrcdir}
-    }
+    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.target.install UI_PREFIX make.target.current
 
     cd $configpath
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
-    if [catch {system "env PREFIX=${prefix} ${make.cmd} ${make.target.install}"}] {
+    set make.target.current ${make.target.install}
+    if [catch {system "[command make]"}] {
 	ui_error "Installation failed."
 	return -1
     }

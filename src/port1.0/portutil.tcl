@@ -40,9 +40,9 @@ set target_uniqid 0
 
 # options
 # Exports options in an array as externally callable procedures
-# Thus, "options myarray name date" would create procedures named "name"
-# and "date" that set the array items keyed by "name" and "date"
-# Arguments: <array for export> <options (keys in array) to export>
+# Thus, "options name date" would create procedures named "name"
+# and "date" that set global variables "array" and "date", respectively
+# Arguments: <list of options>
 proc options {args} {
     foreach option $args {
     	eval "proc $option {args} \{ \n\
@@ -80,38 +80,72 @@ proc options {args} {
     }
 }
 
+proc commands {args} {
+    foreach option $args {
+	options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.type ${option}.cmd
+    }
+}
+
+proc command {command} {
+    global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
+
+    set cmdstring ""
+    if [info exists ${command}.dir] {
+	upvar #0 ${command}.dir upstring
+	set cmdstring "cd $upstring &&"
+    }
+
+    if [info exists ${command}.env] {
+	upvar #0 ${command}.env upstring
+	set cmdstring "$cmdstring $upstring"
+    }
+
+    if [info exists ${command}.cmd] {
+	upvar #0 ${command}.cmd upstring
+	set cmdstring "$cmdstring $upstring"
+    } else {
+	lappend cmdstring ${command}
+	set cmdstring "$cmdstring $command"
+    }
+    foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
+	if [info exists $var] {
+	    upvar #0 ${var} upstring
+	    set cmdstring "$cmdstring $upstring"
+	}
+    }
+    return $cmdstring
+}
+
 # default
 proc default {option val} {
-    global $option option_defaults
-	if {[info exists option_defaults($option)]} {
+    global $option
+	if {[trace vinfo $option)] != ""} {
 		ui_debug "Re-registering default for $option"
 	} else {
 		# If option is already set and we did not set it
 		# do not reset the value
 		if {[info exists $option]} {
+#			ui_debug "Default for $option ignored; option was already set external to default procedure"
 			return
 		}
 	}
-	set option_defaults($option) $val
 	set $option $val
 	trace variable $option rwu default_check
 }
 
 proc default_check {optionName index op} {
-	global option_defaults $optionName
+	global $optionName
 	switch $op {
 		w {
-			unset option_defaults($optionName)
 			trace vdelete $optionName rwu default_check
 			return
 		}
 		r {
 			upvar $optionName option
-			uplevel #0 "set $optionName \[list $option_defaults($optionName)\]"
+			uplevel #0 "set $optionName $option" 
 			return
 		}
 		u {
-			unset option_defaults($optionName)
 			trace vdelete $optionName rwu default_check
 			return
 		}
