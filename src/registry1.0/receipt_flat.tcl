@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.2.2.3 2004/09/28 16:00:10 rshaw Exp $
+# $Id: receipt_flat.tcl,v 1.2.2.4 2004/10/15 22:48:17 rshaw Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -389,7 +389,20 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 
 	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	if { [file exists ${receipt_path}] } {
-		system "rm -rf ${receipt_path}"
+		# remove port receipt directory
+		ui_debug "deleting directory: ${receipt_path}"
+		file delete -force ${receipt_path}
+		# remove port receipt parent directory (if empty)
+		set receipt_dir [file join ${darwinports::registry.path} receipts ${name}]
+		if { [file isdirectory ${receipt_dir}] } {
+			# 0 item means empty.
+			if { [llength [readdir ${receipt_dir}]] == 0 } {
+				ui_debug "deleting directory: ${receipt_dir}"
+				file delete -force ${receipt_dir}
+			} else {
+				ui_debug "${receipt_dir} is not empty"
+			}
+		}
 		return 1
 	} else {
 		return 0
