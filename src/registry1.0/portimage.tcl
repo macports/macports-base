@@ -288,8 +288,11 @@ proc _activate_contents {name imagefiles imagedir} {
 	foreach file $imagefiles {
 		set srcfile ${imagedir}${file}
 
-		if { ![file exists $srcfile] } {
-			return -code error "Image error: Source file $srcfile does not appear to exist.  Unable to activate port $name."
+		# To be able to install links, we test if we can lstat the file to figure
+		# out if the source file exists (file exists will return false for symlinks on
+		# files that do not exist)
+		if { [catch {file lstat $srcfile dummystatvar}] } {
+			return -code error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port $name."
 		}
 
 		set port [registry::file_registered $file] 

@@ -729,8 +729,11 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 namespace eval dportregistry {}
 
 proc dportregistry::fileinfo_for_file {fname} {
-    if {![catch {file stat $fname statvar}]} {
-	if {[file isfile $fname]} {
+    # Add the link to the registry, not the actual file.
+    # (we won't store the md5 of the target of links since it's meaningless
+    # and $statvar(mode) tells us that links are links).
+    if {![catch {file lstat $fname statvar}]} {
+	if {[file isfile $fname] && [file type $fname] != "link"} {
 	    if {[catch {md5 file $fname} md5sum] == 0} {
 		# Create a line that matches md5(1)'s output
 		# for backwards compatibility
