@@ -56,10 +56,10 @@ proc options {args} {
 
 # default
 # Checks if variable is set, if not, sets to supplied value
-proc default {option args} {
+proc default {option val} {
     global $option
     if {![info exists $option]} {
-	set $option $args
+	set $option $val
     }
 }
 
