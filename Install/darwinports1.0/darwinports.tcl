@@ -69,19 +69,19 @@ proc build {portdir chain target args} {
     if [file isdirectory $portdir] {
 	cd $portdir
 	set portpath [pwd]
-	interp create bombus
-	bombus alias {} build bombus build
+	interp create workerbee
+	workerbee alias {} build workerbee build
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt
 		if [info exists upopt] {
-			bombus eval set $opt \"$upopt\"
+			workerbee eval set $opt \"$upopt\"
 		}
 	}
 	if {[llength $args] > 0} {
-		bombus eval set user_options $args
+		workerbee eval set user_options $args
 	}
-	bombus eval source Portfile
-	bombus eval eval_targets targets $chain $target
+	workerbee eval source Portfile
+	workerbee eval eval_targets targets $chain $target
     } else {
 	return -code error "Portdir $portpath does not exist"
     }
