@@ -95,6 +95,10 @@ proc register {name mode args} {
             # User-code exceptions are caught and returned as a result of the target.
             # Thus if the user code breaks, dependent targets will not execute.
             foreach target $args {
+		if {[info commands $target] != ""} {
+		    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
+		    continue;
+		}
                 set id [incr portutil::uniqid]
                 set ident [lindex [dlist_get_matches targets provides $args] 0]
                 set origproc [dlist_get_key targets $ident procedure]
