@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.24 2004/11/26 19:14:51 mww Exp $
+# $Id: mirror_sites.tcl,v 1.25 2004/12/15 15:23:39 rshaw Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -179,7 +179,6 @@ set portfetch::mirror_sites::sites(ruby) {
 }
 
 set portfetch::mirror_sites::sites(sourceforge) {
-    http://aleron.dl.sourceforge.net/
     http://umn.dl.sourceforge.net/
     http://voxel.dl.sourceforge.net/
     http://belnet.dl.sourceforge.net/
