@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.5  2002/08/22 23:21:52  landonf
+ * Fix compiler warnings, use regoff_t type
+ *
  * Revision 1.4  2002/08/22 23:00:57  landonf
  * Remove unused variable 'i'
  *
@@ -223,7 +226,7 @@ static struct {
 #endif
 #ifdef HS_REGEX
 #define NO_MATCH 0
-#define EMPTY_REGISTER ((char *)0)
+#define EMPTY_REGISTER ((regoff_t) 0)
 #endif
 
 char *
@@ -721,9 +724,9 @@ int *range;
 
 #ifdef HS_REGEX
                     if (exp_regs[0].rm_so != EMPTY_REGISTER){
-			register char *s;
+			register regoff_t s;
                         for (s = exp_regs[0].rm_so; s < exp_regs[0].rm_eo; s++){
-                            new_str[new_pos++] = translit ? map[*s] : *s;
+                            new_str[new_pos++] = translit ? map[s] : s;
                         }
 		    }
 #endif
