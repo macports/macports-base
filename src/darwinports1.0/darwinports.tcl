@@ -93,7 +93,7 @@ proc dportinit {args} {
 	    lappend conf_files $dports_conf_path/ports.conf
 	}
     }
-    if [info exists conf_files] {
+    if {[info exists conf_files]} {
 	foreach file $conf_files {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
@@ -114,42 +114,42 @@ proc dportinit {args} {
         return -code error "$result"
     }
     while {[gets $fd line] >= 0} {
-        if ![regexp {[\ \t]*#.*|^$} $line] {
+        if {![regexp {[\ \t]*#.*|^$} $line]} {
             lappend sources $line
 	}
     }
-    if ![info exists sources] {
-	if [file isdirectory dports] {
+    if {![info exists sources]} {
+	if {[file isdirectory dports]} {
 	    set sources "file://[pwd]/dports"
 	} else {
 	    return -code error "No sources defined in $sources_conf"
 	}
     }
 
-    if ![info exists portdbpath] {
+    if {![info exists portdbpath]} {
 	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
     }
-    if ![file isdirectory $portdbpath] {
-	if ![file exists $portdbpath] {
+    if {![file isdirectory $portdbpath]} {
+	if {![file exists $portdbpath]} {
 	    if {[catch {file mkdir $portdbpath} result]} {
 		return -code error "portdbpath $portdbpath does not exist and could not be created: $result"
 	    }
 	}
     }
-    if ![file isdirectory $portdbpath] {
+    if {![file isdirectory $portdbpath]} {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
     set portsharepath ${prefix}/share/darwinports
-    if ![file isdirectory $portsharepath] {
+    if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
     }
     
-    if ![info exists libpath] {
+    if {![info exists libpath]} {
 	set libpath "${prefix}/share/darwinports/Tcl"
     }
 
-    if [file isdirectory $libpath] {
+    if {[file isdirectory $libpath]} {
 		lappend auto_path $libpath
 		set darwinports::auto_path $auto_path
 
@@ -191,10 +191,10 @@ proc darwinports::worker_init {workername portpath options variations} {
 	$workername alias fileinfo_for_entry dportregistry::fileinfo_for_entry
 
     foreach opt $portinterp_options {
-	if ![info exists $opt] {
+	if {![info exists $opt]} {
 	    global darwinports::$opt
 	}
-        if [info exists $opt] {
+        if {[info exists $opt]} {
             $workername eval set system_options($opt) \"[set $opt]\"
             $workername eval set $opt \"[set $opt]\"
         } #"
@@ -290,7 +290,7 @@ proc dportopen {porturl {options ""} {variations ""}} {
 	ditem_key $dport refcnt 1
 
     darwinports::worker_init $workername $portpath $options $variations
-    if ![file isfile Portfile] {
+    if {![file isfile Portfile]} {
         return -code error "Could not find Portfile in $portdir"
     }
 
@@ -526,9 +526,9 @@ proc dportsearch {regexp} {
             if {[regexp -- $regexp $name] == 1} {
                 gets $fd line
                 array set portinfo $line
-                if [info exists portinfo(portarchive)] {
+                if {[info exists portinfo(portarchive)]} {
                     lappend line porturl ${source}/$portinfo(portarchive)
-                } elseif [info exists portinfo(portdir)] {
+                } elseif {[info exists portinfo(portdir)]} {
                     lappend line porturl ${source}/$portinfo(portdir)
                 }
                 lappend matches $name
@@ -657,7 +657,7 @@ proc dportregistry::exists {portname {portversion 0}} {
     # regex match case
     if {$portversion == 0} {
 	set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
-	if [string length $x] {
+	if {[string length $x]} {
 	    set matchfile [lindex $x 0]
 	} else {
 	    set matchfile ""
@@ -667,14 +667,14 @@ proc dportregistry::exists {portname {portversion 0}} {
     }
 
     # Might as well bail out early if no file to match
-    if ![string length $matchfile] {
+    if {![string length $matchfile]} {
 	return ""
     }
 
-    if [file exists $matchfile] {
+    if {[file exists $matchfile]} {
 	return $matchfile
     }
-    if [file exists ${matchfile}.bz2] {
+    if {[file exists ${matchfile}.bz2]} {
 	return ${matchfile}.bz2
     }
     return ""
@@ -712,7 +712,7 @@ proc dportregistry::delete {portname {portversion 1.0}} {
 }
 
 proc dportregistry::fileinfo_for_file {fname} {
-    if ![catch {file stat $fname statvar}] {
+    if {![catch {file stat $fname statvar}]} {
 	if {[file isfile $fname]} {
 	    set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 \"$fname\"" r]
@@ -742,7 +742,7 @@ proc dportregistry::fileinfo_for_index {flist} {
 
     set rval {}
     foreach file $flist {
-	if [string match /* $file] {
+	if {[string match /* $file]} {
 	    set fname $file
 	    set dir /
 	} else {

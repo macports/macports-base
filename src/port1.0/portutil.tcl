@@ -213,17 +213,17 @@ proc command {command} {
     global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
     
     set cmdstring ""
-    if [info exists ${command}.dir] {
+    if {[info exists ${command}.dir]} {
 	set cmdstring "cd \"[set ${command}.dir]\" &&"
     }
     
-    if [info exists ${command}.env] {
+    if {[info exists ${command}.env]} {
 	foreach string [set ${command}.env] {
 	    set cmdstring "$cmdstring $string"
 	}
     }
     
-    if [info exists ${command}.cmd] {
+    if {[info exists ${command}.cmd]} {
 	foreach string [set ${command}.cmd] {
 	    set cmdstring "$cmdstring $string"
 	}
@@ -231,7 +231,7 @@ proc command {command} {
 	set cmdstring "$cmdstring ${command}"
     }
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
-	if [info exists $var] {
+	if {[info exists $var]} {
 	    foreach string [set ${var}] {
 		set cmdstring "$cmdstring $string"
 	    }
@@ -408,11 +408,11 @@ proc reinplace {pattern args}  {
 proc filefindbypath {fname} {
     global distpath filedir workdir worksrcdir portpath
 
-    if [file readable $portpath/$fname] {
+    if {[file readable $portpath/$fname]} {
 	return $portpath/$fname
-    } elseif [file readable $portpath/$filedir/$fname] {
+    } elseif {[file readable $portpath/$filedir/$fname]} {
 	return $portpath/$filedir/$fname
-    } elseif [file readable $distpath/$fname] {
+    } elseif {[file readable $distpath/$fname]} {
 	return $distpath/$fname
     }
     return ""
@@ -422,7 +422,7 @@ proc filefindbypath {fname} {
 # Source a file, looking for it along a standard search path.
 proc include {fname} {
     set tgt [filefindbypath $fname]
-    if [string length $tgt] {
+    if {[string length $tgt]} {
 	uplevel "source $tgt"
     } else {
 	return -code error "Unable to find include file $fname"
@@ -547,7 +547,7 @@ proc eval_targets {target} {
 proc open_statefile {args} {
     global workpath portname portpath ports_ignore_older
     
-    if ![file isdirectory $workpath ] {
+    if {![file isdirectory $workpath]} {
 	file mkdir $workpath
     }
     # flock Portfile
@@ -565,7 +565,7 @@ proc open_statefile {args} {
 	}
 	
     set fd [open $statefile a+]
-    if [catch {flock $fd -exclusive -noblock} result] {
+    if {[catch {flock $fd -exclusive -noblock} result]} {
         if {"$result" == "EAGAIN"} {
             ui_msg "Waiting for lock on $statefile"
 	} elseif {"$result" == "EOPNOTSUPP"} {
@@ -637,7 +637,7 @@ proc check_statefile_variants {variations fd} {
 # each directory containing a Portfile
 proc port_traverse {func {dir .}} {
     set pwd [pwd]
-    if [catch {cd $dir} err] {
+    if {[catch {cd $dir} err]} {
 	ui_error $err
 	return
     }
@@ -645,10 +645,10 @@ proc port_traverse {func {dir .}} {
 	if {[string match $name .] || [string match $name ..]} {
 	    continue
 	}
-	if [file isdirectory $name] {
+	if {[file isdirectory $name]} {
 	    port_traverse $func $name
 	} else {
-	    if [string match $name Portfile] {
+	    if {[string match $name Portfile]} {
 		catch {eval $func {[file join $pwd $dir]}}
 	    }
 	}

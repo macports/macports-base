@@ -56,7 +56,7 @@ proc ui_puts {messagelist} {
     array set message $messagelist
     switch $message(priority) {
         debug {
-            if [ui_isset ports_debug] {
+            if {[ui_isset ports_debug]} {
                 set channel stderr
                 set str "DEBUG: $message(data)"
             } else {
@@ -64,13 +64,13 @@ proc ui_puts {messagelist} {
             }
         }
         info {
-            if ![ui_isset ports_verbose] {
+            if {![ui_isset ports_verbose]} {
                 return
             }
 	    set str $message(data)
         }
         msg {
-            if [ui_isset ports_quiet] {
+            if {[ui_isset ports_quiet]} {
                 return
             }
 	    set str $message(data)
@@ -147,7 +147,7 @@ for {set i 0} {$i < $argc} {incr i} {
 	
 	# action
     } elseif {[regexp {^([A-Za-z0-9/._\-^$\[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
-	if [info exists action] {
+	if {[info exists action]} {
 	    set portname $opt
 	} else {
 	    set action $opt
@@ -157,7 +157,7 @@ for {set i 0} {$i < $argc} {incr i} {
     }
 }
 
-if ![info exists action] {
+if {![info exists action]} {
     set action build
 }
 
@@ -173,7 +173,7 @@ if {[catch {dportinit} result]} {
 
 switch -- $action {
     search {
-	if ![info exists portname] {
+	if {![info exists portname]} {
 	    puts "You must specify a search pattern"
 	    exit 1
 	}
@@ -185,19 +185,19 @@ switch -- $action {
 	    array set portinfo $array
 
 	    # XXX is this the right place to verify an entry?
-	    if ![info exists portinfo(name)] {
+	    if {![info exists portinfo(name)]} {
 		puts "Invalid port entry, missing portname"
 		continue
 	    }
-	    if ![info exists portinfo(description)] {
+	    if {![info exists portinfo(description)]} {
 		puts "Invalid port entry for $portinfo(name), missing description"
 		continue
 	    }
-	    if ![info exists portinfo(version)] {
+	    if {![info exists portinfo(version)]} {
 		puts "Invalid port entry for $portinfo(name), missing version"
 		continue
 	    }
-	    if ![info exists portinfo(portdir)] {
+	    if {![info exists portinfo(portdir)]} {
 	        set output [format "%-20s\t%-8s\t%s" $portinfo(name) $portinfo(version) $portinfo(description)]
 	    } else {
 	        set output [format "%-8s\t%-14s\t%-8s\t%s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
@@ -233,7 +233,7 @@ switch -- $action {
 	    array set portinfo [lindex $res 1]
 	    set porturl $portinfo(porturl)
 	}
-	if ![info exists porturl] {
+	if {![info exists porturl]} {
 	    set porturl file://./
 	}
 	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {

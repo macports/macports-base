@@ -54,13 +54,13 @@ proc patch_main {args} {
     }
 
     foreach patch [option patchfiles] {
-	if [file exists [option filespath]/$patch] {
+	if {[file exists [option filespath]/$patch]} {
 	    lappend patchlist [option filespath]/$patch
-	} elseif [file exists [option distpath]/$patch] {
+	} elseif {[file exists [option distpath]/$patch]} {
 	    lappend patchlist [option distpath]/$patch
 	}
     }
-    if ![info exists patchlist] {
+    if {![info exists patchlist]} {
 	return -code error [msgcat::mc "Patch files missing"]
     }
     cd [option worksrcpath]

@@ -232,7 +232,7 @@ foreach {name array} $res {
 	array unset portinfo
 	array set portinfo $array
 
-	if ![info exists portinfo(porturl)] {
+	if {![info exists portinfo(porturl)]} {
 		puts stderr "Internal error: no porturl for $name"
 		continue
 	}

@@ -82,7 +82,7 @@ proc checksum_main {args} {
     global distpath all_dist_files UI_PREFIX
 
     # If no files have been downloaded there is nothing to checksum
-    if ![info exists all_dist_files] {
+    if {![info exists all_dist_files]} {
 	return 0
     }
 

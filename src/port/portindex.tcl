@@ -33,7 +33,7 @@ proc ui_puts {messagelist} {
     array set message $messagelist
     switch $message(priority) {
         debug {
-            if [ui_isset ports_debug] {
+            if {[ui_isset ports_debug]} {
                 set channel stderr
                 set str "DEBUG: $message(data)"
             } else {
@@ -41,13 +41,13 @@ proc ui_puts {messagelist} {
             }
         }
         info {
-            if ![ui_isset ports_verbose] {
+            if {![ui_isset ports_verbose]} {
                 return
             }
 	    set str $message(data)
         }
         msg {
-            if [ui_isset ports_quiet] {
+            if {[ui_isset ports_quiet]} {
                 return
             }
 	    set str $message(data)
@@ -75,7 +75,7 @@ proc print_usage args {
 proc port_traverse {func {dir .} {cwd ""}} {
     global depth
     set pwd [pwd]
-    if [catch {cd $dir} err] {
+    if {[catch {cd $dir} err]} {
 	    puts $err
 	    return
     }
@@ -88,7 +88,7 @@ proc port_traverse {func {dir .} {cwd ""}} {
             port_traverse $func $name [file join $cwd $name]			
             incr depth -1
         } else {
-            if [string match $name Portfile] {
+            if {[string match $name Portfile]} {
                 $func $cwd 
             }
         }
@@ -106,7 +106,7 @@ proc pindex {portdir} {
         set portinfo(portdir) $portdir
         puts "Adding port $portinfo(name)"
         if {$archive == "1"} {
-            if ![file isdirectory [file join $outdir [file dirname $portdir]]] {
+            if {![file isdirectory [file join $outdir [file dirname $portdir]]]} {
                 if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
                     puts "$result"
                     exit 1
@@ -172,7 +172,7 @@ if {[catch {cd $directory} result]} {
 }
 
 # Set output directory to full path
-if [info exists outdir] {
+if {[info exists outdir]} {
     if {[catch {file mkdir $outdir} result]} {
         puts "$result"
         exit 1

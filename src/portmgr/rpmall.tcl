@@ -61,7 +61,7 @@ proc ui_puts {messagelist} {
     array set message $messagelist
     switch $message(priority) {
         debug {
-            if [ui_isset ports_debug] {
+            if {[ui_isset ports_debug]} {
                 set str "DEBUG: $message(data)"
             } else {
                 return
@@ -69,7 +69,7 @@ proc ui_puts {messagelist} {
         }
         info {
 	    # put verbose stuff only to the log file
-            if ![ui_isset ports_verbose] {
+            if {![ui_isset ports_verbose]} {
                 return
             } else {
 	        if {[string length $channel] > 0} {
@@ -79,7 +79,7 @@ proc ui_puts {messagelist} {
 	    }
         }
         msg {
-            if [ui_isset ports_quiet] {
+            if {[ui_isset ports_quiet]} {
                 return
             }
 	    set str $message(data)
@@ -192,7 +192,7 @@ proc fatal args {
 array set options [list]
 array set variations [list]
 #	set ui_options(ports_verbose) yes
-if ![file exists /usr/bin/sw_vers] {
+if {![file exists /usr/bin/sw_vers]} {
 	set variations(puredarwin) "+"
 }
 
@@ -228,7 +228,7 @@ foreach {name array} $allpackages {
 	# this will prevent the repopulation of /opt from getting logged.
 	set ui_options(ports_verbose) no
 
-	if ![info exists portinfo(porturl)] {
+	if {![info exists portinfo(porturl)]} {
 		puts stderr "Internal error: no porturl for $name"
 		continue
 	}
@@ -361,35 +361,35 @@ foreach {name array} $allpackages {
 	set description ""
 	set category ""
 
-	if ![info exists portinfo(name)] {
+	if {![info exists portinfo(name)]} {
 		lappend lint_errors "missing name key"
 		set valid 0
 	} else {
 		set portname $portinfo(name)
 	}
 	
-	if ![info exists portinfo(description)] {
+	if {![info exists portinfo(description)]} {
 		lappend lint_errors "missing description key"
 		set valid 0
 	} else {
 		set description $portinfo(description)
 	}
 	
-	if ![info exists portinfo(version)] {
+	if {![info exists portinfo(version)]} {
 		lappend lint_errors "missing version key"
 		set valid 0
 	} else {
 		set portversion $portinfo(version)
 	}
 	
-	if ![info exists portinfo(categories)] {
+	if {![info exists portinfo(categories)]} {
 		lappend lint_errors "missing categories key"
 		set valid 0
 	} else {
 		set category [lindex $portinfo(categories) 0]
 	}
 	
-	if ![info exists portinfo(maintainers)] {
+	if {![info exists portinfo(maintainers)]} {
 		append lint_errors "missing maintainers key"
 		set valid 0
 		set maintainers kevin@opendarwin.org

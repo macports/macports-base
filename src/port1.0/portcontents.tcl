@@ -43,8 +43,8 @@ proc contents_main {args} {
     global portname portversion UI_PREFIX
 
     set rfile [registry_exists $portname $portversion]
-    if [string length $rfile] {
-	if [regexp .bz2$ $rfile] {
+    if {[string length $rfile]} {
+	if {[regexp .bz2$ $rfile]} {
 	    set fd [open "|bunzip2 -c $rfile" r]
 	} else {
 	    set fd [open $rfile r]

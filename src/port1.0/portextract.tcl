@@ -57,9 +57,9 @@ set UI_PREFIX "---> "
 proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
-    if [exists use_bzip2] {
+    if {[exists use_bzip2]} {
 		option extract.cmd bzip2
-    } elseif [exists use_zip] {
+    } elseif {[exists use_zip]} {
 		option extract.cmd unzip
 		option extract.pre_args -q
 		option extract.post_args "-d [option extract.dir]"
@@ -83,7 +83,7 @@ proc extract_main {args} {
     foreach distfile [option extract.only] {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
 	option extract.args "[option distpath]/$distfile"
-	if [catch {system "[command extract]"} result] {
+	if {[catch {system "[command extract]"} result]} {
 	    return -code error "$result"
 	}
 	ui_info [msgcat::mc "Done"]

@@ -73,7 +73,7 @@ proc install_element {src_element dst_element} {
 proc directory_dig {rootdir workdir {cwd ""}} {
     global installPlist
     set pwd [pwd]
-    if [catch {cd $workdir} err] {
+    if {[catch {cd $workdir} err]} {
 	puts $err
 	return
     }
@@ -122,22 +122,22 @@ proc install_main {args} {
 
     registry_store $rhandle [list prefix $prefix]
     registry_store $rhandle [list categories $categories]
-    if [info exists description] {
+    if {[info exists description]} {
 	registry_store $rhandle [concat description $description]
     }
-    if [info exists long_description] {
+    if {[info exists long_description]} {
 	registry_store $rhandle [concat long_description ${long_description}]
     }
-    if [info exists homepage] {
+    if {[info exists homepage]} {
 	registry_store $rhandle [concat homepage ${homepage}]
     }
-    if [info exists depends_run] {
+    if {[info exists depends_run]} {
 	registry_store $rhandle [list run_depends $depends_run]
     }
-    if [info exists package-install] {
+    if {[info exists package-install]} {
 	registry_store $rhandle [concat package-install ${package-install}]
     }
-    if [info exists installPlist] {
+    if {[info exists installPlist]} {
 	registry_store $rhandle [list contents [fileinfo_for_index $installPlist]]
     }
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
@@ -152,7 +152,7 @@ proc proc_disasm {pname} {
     append p $pname " {"
     set space ""
     foreach arg [info args $pname] {
-	if [info default $pname $arg value] {
+	if {[info default $pname $arg value]} {
 	    append p "$space{" [list $arg $value] "}"
 	} else {
 	    append p $space $arg

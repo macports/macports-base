@@ -31,7 +31,7 @@ proc ui_puts {messagelist} {
     array set message $messagelist
     switch $message(priority) {
         debug {
-            if [ui_isset ports_debug] {
+            if {[ui_isset ports_debug]} {
                 set channel stderr
                 set str "DEBUG: $message(data)"
             } else {
@@ -39,13 +39,13 @@ proc ui_puts {messagelist} {
             }
         }
         info {
-            if ![ui_isset ports_verbose] {
+            if {![ui_isset ports_verbose]} {
                 return
             }
 	    set str $message(data)
         }
         msg {
-            if [ui_isset ports_quiet] {
+            if {[ui_isset ports_quiet]} {
                 return
             }
 	    set str $message(data)
@@ -63,7 +63,7 @@ proc ui_puts {messagelist} {
 
 proc port_traverse {func {dir .}} {
     set pwd [pwd]
-    if [catch {cd $dir} err] {
+    if {[catch {cd $dir} err]} {
 	ui_error $err
 	return
     }
@@ -71,10 +71,10 @@ proc port_traverse {func {dir .}} {
 	if {[string match $name .] || [string match $name ..]} {
 	    continue
 	}
-	if [file isdirectory $name] {
+	if {[file isdirectory $name]} {
 	    port_traverse $func $name
 	} else {
-	    if [string match $name Portfile] {
+	    if {[string match $name Portfile]} {
 		catch {eval $func {[file join $pwd $dir]}}
 	    }
 	}
@@ -85,7 +85,7 @@ proc port_traverse {func {dir .}} {
 proc pindex {portdir} {
     global target options variations
 
-    if [catch {set interp [dportopen file://$portdir [array get options] [array get variations]]} err] {
+    if {[catch {set interp [dportopen file://$portdir [array get options] [array get variations]]} err]} {
 	puts "Error: Couldn't create interpreter for $portdir: $err"
 	return -1
     }
@@ -118,9 +118,9 @@ if { $argc < 1 } {
     }
 }
 
-if [file isdirectory dports] {
+if {[file isdirectory dports]} {
     port_traverse pindex dports
-} elseif [file isdirectory ../dports] {
+} elseif {[file isdirectory ../dports]} {
     port_traverse pindex .
 } else {
     puts "Please run me from the darwinports directory (dports/..)"

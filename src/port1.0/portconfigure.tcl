@@ -61,21 +61,21 @@ proc configure_main {args} {
     global [info globals]
     global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
 
-    if [tbool use_automake] {
+    if {[tbool use_automake]} {
 	# XXX depend on automake
 	if {[catch {system "[command automake]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
 	}
     }
 
-    if [tbool use_autoconf] {
+    if {[tbool use_autoconf]} {
 	# XXX depend on autoconf
 	if {[catch {system "[command autoconf]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
     }
 
-    if [tbool use_xmkmf] {
+    if {[tbool use_xmkmf]} {
 	# XXX depend on xmkmf
 	if {[catch {system "[command xmkmf]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
@@ -84,7 +84,7 @@ proc configure_main {args} {
 	    # X11 will already set things up so that "make Makefiles" always works.
 	    system "cd ${worksrcpath} && make Makefiles"
 	}
-    } elseif [tbool use_configure] {
+    } elseif {[tbool use_configure]} {
 	if {[catch {system "[command configure]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
 	}

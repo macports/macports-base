@@ -72,14 +72,14 @@ default distfiles {[suffix $distname]}
 namespace eval options { }
 proc options::use_bzip2 {args} {
     global use_bzip2 extract.sufx
-    if [tbool use_bzip2] {
+    if {[tbool use_bzip2]} {
         set extract.sufx .tar.bz2
     }
 }
 
 proc options::use_zip {args} {
     global use_zip extract.sufx
-    if [tbool use_zip] {
+    if {[tbool use_zip]} {
         set extract.sufx .zip
     }
 }
@@ -140,7 +140,7 @@ proc disttagclean {list} {
 proc mirror_sites {mirrors tag subdir} {
     global UI_PREFIX portresourcepath mirror_sites.listfile mirror_sites.listpath
     source ${mirror_sites.listpath}${mirror_sites.listfile}
-    if ![info exists portfetch::mirror_sites::sites($mirrors)] {
+    if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}
     }
@@ -169,7 +169,7 @@ proc checkfiles {args} {
 
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
-        if ![info exists uplist] {
+        if {![info exists uplist]} {
             continue
         }
         
@@ -185,7 +185,7 @@ proc checkfiles {args} {
 		set mirrors "[lindex $splitlist 0]"
 		set subdir "[lindex $splitlist 1]"
 		set tag "[lindex $splitlist 2]"
-                if [info exists $list.mirror_subdir] {
+                if {[info exists $list.mirror_subdir]} {
                     append subdir "/[set ${list}.mirror_subdir]"
                 }
                 set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir]]
@@ -271,7 +271,7 @@ proc fetchfiles {args} {
 	if {![file isfile $distpath/$distfile]} {
 	    ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
             global portfetch::$url_var
-            if ![info exists $url_var] {
+            if {![info exists $url_var]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
                 set url_var master_sites
 		global portfetch::$url_var

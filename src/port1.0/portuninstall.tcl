@@ -46,7 +46,7 @@ set UI_PREFIX "---> "
 proc uninstall_start {args} {
     global portname portversion UI_PREFIX
 
-    if [string length [registry_exists $portname $portversion]] {
+    if {[string length [registry_exists $portname $portversion]]} {
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s-%s"] $portname $portversion]"
     }
 }
@@ -55,13 +55,13 @@ proc uninstall_main {args} {
     global portname portversion uninstall.force uninstall.nochecksum ports_force UI_PREFIX
 
     # If global forcing is on, make it the same as a local force flag.
-    if [tbool ports_force] {
+    if {[tbool ports_force]} {
 	set uninstall.force "yes"
     }
 
     set rfile [registry_exists $portname $portversion]
-    if [string length $rfile] {
-	if [regexp .bz2$ $rfile] {
+    if {[string length $rfile]} {
+	if {[regexp .bz2$ $rfile]} {
 	    set fd [open "|bunzip2 -c $rfile" r]
 	} else {
 	    set fd [open $rfile r]
@@ -73,7 +73,7 @@ proc uninstall_main {args} {
 	set ix [lsearch $entry pkg_uninstall]
 	if {$ix >= 0} {
 	    set uninstall [lindex $entry [incr ix]]
-	    if ![catch {eval $uninstall} err] {
+	    if {![catch {eval $uninstall} err]} {
 		pkg_uninstall $portname $portversion
 	    } else {
 		ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
@@ -98,9 +98,9 @@ proc uninstall_main {args} {
 		}
 		set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
 		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
-		    if ![catch {set sum2 [md5 $fname]}] {
-			if ![string match $sum1 $sum2] {
-			    if ![tbool uninstall.force] {
+		    if {![catch {set sum2 [md5 $fname]}]} {
+			if {![string match $sum1 $sum2]} {
+			    if {![tbool uninstall.force]} {
 				ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, not removing"] $fname]"
 				set uninst_err 1
 				continue
@@ -111,15 +111,15 @@ proc uninstall_main {args} {
 		    }
 		}
 		ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s"] $fname]"
-		if [file isdirectory $fname] {
-		    if [catch {file delete -- $fname} result] {
+		if {[file isdirectory $fname]} {
+		    if {[catch {file delete -- $fname} result]} {
 			# A non-empty directory is not a fatal error
 			if {$result != "error deleting \"$fname\": directory not empty"} {
 			    ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove directory %s (not empty?)"] $fname]"
 			}
 		    }
 		} else {
-		    if [catch {file delete -- $fname}] {
+		    if {[catch {file delete -- $fname}]} {
 			ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove file %s"] $fname]"
 			set uninst_err 1
 		    }
