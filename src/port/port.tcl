@@ -29,7 +29,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 package require darwinports
-package require pkg
 
 # globals
 set portdir .

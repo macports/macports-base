@@ -504,6 +504,10 @@ proc dportexec {dport target} {
 	# Before we build the port, we must build its dependencies.
 	# XXX: need a more general way of comparing against targets
 	set dlist {}
+	if {$target == "package"} {
+		ui_warn "package target replaced by pkg target, please use the pkg target in the future."
+		set target "pkg"
+	}
 	if {$target == "configure" || $target == "build"
 		|| $target == "destroot" || $target == "install"
 		|| $target == "pkg" || $target == "mpkg"
