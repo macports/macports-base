@@ -35,7 +35,7 @@ package require portutil 1.0
 set com.apple.package [target_new com.apple.package package_main]
 target_runtype ${com.apple.package} always
 target_provides ${com.apple.package} package
-target_requires ${com.apple.package} install
+target_requires ${com.apple.package} destroot
 
 # define options
 options package.type package.destpath

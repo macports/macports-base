@@ -35,7 +35,7 @@ package require portutil 1.0
 set com.apple.rpmpackage [target_new com.apple.rpmpackage rpmpackage_main]
 target_runtype ${com.apple.rpmpackage} always
 target_provides ${com.apple.rpmpackage} rpmpackage
-target_requires ${com.apple.rpmpackage} install
+target_requires ${com.apple.rpmpackage} destroot
 
 options package.destpath
 
