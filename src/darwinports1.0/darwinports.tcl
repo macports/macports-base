@@ -1014,47 +1014,40 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 # selfupdate procedure
 proc darwinports::selfupdate {args} {
-	global darwinports::sources darwinports::prefix
+	global darwinports::prefix
+
+	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
+	if {[catch {dportsync} result]} {
+		return -code error "Couldnt sync dports tree: $result"
+	}
 
 	# XXX hardcode XXX set OpenDarwin rsync service 
 	# this should be set in /etc/ports/ports.conf
-	set rsync_server rsync.opendarwin.org/dpupdate/ 
+	set rsync_server rsync.opendarwin.org
+	set rsync_dir dpupdate/base/
 	set rsync_options "-rtzv --delete --delete-after"
 
-	set dports_path [string range $sources 7 end]
-	set dp_path [file join $dports_path ..]
-	set dp_base_path [file join $dports_path ../base]
+	set dp_base_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/]
+	if {![file exists $dp_base_path]} {
+		file mkdir $dp_base_path
+	}
+	ui_debug "DarwinPorts base dir: $dp_base_path"
 
 	# get owner of the darwinports system
-	set owner [file attributes [file join $dp_path base] -owner]
+	#set owner [file attributes [file join $dp_path base] -owner]
 
 	# get darwinports version 
-	set dp_version_path [file join $dp_path base/dp_version]
-	set fd [open $dp_version_path r]
-	gets $fd dp_version_old
-	ui_msg "DarwinPorts base version $dp_version_old installed"
-
-	set dp_path_cvs [file join $dp_path CVS/Root]
-
-	# Checking distribution type..
-	if { [file exists $dp_path_cvs] } { 
-		# CVS checkout
-		set fd [open $dp_path_cvs r]
-		gets $fd cvsroot
-		set anoncvsroot ":pserver:anonymous@cvs.opendarwin.org:/Volumes/src/cvs/od"
-
-		# Check is CVS is anonymous
-		if { [string equal $cvsroot $anoncvsroot] } {
-			ui_debug "Found anoncvs... using rsync to update"
-			system "cd $dp_path && /usr/bin/rsync $rsync_options rsync://$rsync_server ."
-		} else {
-			ui_debug "Using cvs to update"
-			system "cd $dp_path && cvs -z3 update -Pd"
-		}
+	set dp_version_path [file join $dp_base_path dp_version]
+	if { [file exists $dp_version_path]} {
+		set fd [open $dp_version_path r]
+		gets $fd dp_version_old
+		ui_msg "DarwinPorts base version $dp_version_old installed"
 	} else {
-		ui_debug "Updating using rsync"
-		system "cd $dp_path && /usr/bin/rsync $rsync_options rsync://$rsync_server ."
+		set dp_version_old 0
 	}
+
+	ui_debug "Updating using rsync"
+	system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path"
 
 	# get new darwinports version and write the old version back
 	set fd [open $dp_version_path r]
@@ -1074,10 +1067,10 @@ proc darwinports::selfupdate {args} {
 	}
 
 	# set the darwinports system to the right owner 
-	ui_debug "Setting ownership to $owner"
-	if { [catch { exec chown -R $owner $dp_path } result] } {
-		return -code error "Couldn't change permissions: $result"
-	}
+	#ui_debug "Setting ownership to $owner"
+	#if { [catch { exec chown -R $owner $dp_path } result] } {
+		#return -code error "Couldn't change permissions: $result"
+	#}
 
 	# set the right version
 	set fd [open $dp_version_path w]
