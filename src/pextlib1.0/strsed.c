@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.4  2002/08/22 23:00:57  landonf
+ * Remove unused variable 'i'
+ *
  * Revision 1.3  2002/08/22 10:36:25  jkh
  * Make this work with Henry Spencer's new regex API
  *
@@ -527,7 +530,6 @@ int *range;
      */
 
     if (from[0] == '.' && from[1] == '*' && from[2] == '\0'){
-	register int i; 
 	
 	match_all = 1;
 	
