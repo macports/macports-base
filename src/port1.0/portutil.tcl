@@ -796,6 +796,9 @@ proc open_statefile {args} {
     if [catch {flock $fd -exclusive -noblock} result] {
         if {"$result" == "EAGAIN"} {
             ui_puts "Waiting for lock on $statefile"
+	} elseif {"$result" == "ENOSUPP"} {
+	    # Locking not supported, just return
+	    return $fd
         } else {
             return -code error "$result obtaining lock on $statefile"
         }
