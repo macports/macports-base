@@ -87,25 +87,25 @@ Full path to work directory
 .Sy Default:
 .Em ${portpath}/${workdir}
 
-.It Ic portname
+.It Ic name
 Full name of port
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl portname	XFree86
+.Dl name	XFree86
 
-.It Ic portversion
+.It Ic version
 Upstream version of software
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl portversion	4.2.1
+.Dl version	4.2.1
 
-.It Ic portrevision
+.It Ic revision
 Local revision number of portfile.
 Increment for port revisions.
 .br
@@ -115,7 +115,7 @@ Increment for port revisions.
 .Em 0
 .br
 .Sy Example:
-.Dl portrevision	1
+.Dl revision	1
 
 .It Ic categories
 Categories to which this port belongs
@@ -144,7 +144,7 @@ Path to source directory relative to ${workpath}
 .Em ${distname}
 .br
 .Sy Example:
-.Dl worksrcdir	${distname}-src-${portversion}
+.Dl worksrcdir	${distname}-src-${version}
 
 .It Ic filedir
 Path to port files relative to ${portpath}
@@ -160,10 +160,10 @@ Name of distibution file, minus extract suffix
 .Sy Type:
 .Em optional
 .Sy Default:
-.Em ${portname}-${portversion})
+.Em ${name}-${version})
 .br
 .Sy Example:
-.Dl distname	${portname}-${portversion}-src
+.Dl distname	${name}-${version}-src
 
 .It Ic distpath 
 Location to store downloaded distfiles
@@ -327,7 +327,7 @@ Create a sub-directory in ${distpath} to store all fetched files.
 .Em optional
 .br
 .Sy Example:
-.Dl dist_subdir	vim${portversion}
+.Dl dist_subdir	vim${version}
 
 .El
 .Ss CHECKSUM OPTIONS
