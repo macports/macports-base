@@ -148,14 +148,17 @@ proc fileinfo_for_index {flist} {
 
     set rval {}
     foreach file $flist {
-	if {[file isdirectory $file] && [tbool registry.contents_recurse]} {
+	if [string match /* $file] {
+	    set fname $file
+	    set dir /
+	} else {
+	    set fname [file join $prefix $file]
+	    set dir $prefix
+	}
+	if {[file isdirectory $fname] && [tbool registry.contents_recurse]} {
 	    ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $file"
 	}
-	if [string match /* $file] {
-	    fileinfo_for_entry rval / $file
-	} else {
-	    fileinfo_for_entry rval $prefix $file
-	}
+	fileinfo_for_entry rval $dir $file
     }
     return $rval
 }
