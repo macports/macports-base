@@ -37,6 +37,7 @@
 .Nm
 .Op Fl vDq
 .Op Ar target
+.Op Ar portname
 .Op Fl d Ar portdir
 .Op Ar options ...
 .Op Ar variations ...
@@ -44,6 +45,8 @@
 .Nm
 is designed to read and execute the build instructions of a darwin port. If no 
 .Ar portdir
+or
+.Ar portname
 is specified, the current working directory is assumed.
 If no
 .Ar target
@@ -70,9 +73,15 @@ specify
 .Sh EXAMPLES
 The following demonstrates invoking
 .Nm
-with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz"
+with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz":
 .Pp
 .Dl "port extract -d textproc/figlet extract_sufx=.tgz"
+.Pp
+Invoking
+.Nm
+with the "install" target on the "vim" port:
+.Pp
+.Dl "port install vim
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std

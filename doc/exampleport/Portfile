@@ -44,7 +44,7 @@ checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
 #    depends_build:	installed at build time
 #
 #    These options accept a list of depspecs. Depspecs are ':' delimited three
-#    value lists of type:match:portdir. The following types are supported:
+#    value lists of type:match:portname. The following types are supported:
 #
 #	lib	- The lib type requires the match argument in the
 #		    format <libraryname>.<major version>
@@ -52,9 +52,9 @@ checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
 #		    executable name
 #	<path>  - If a full path is specified as the type, the math argument
 #		    must be a complete regexp.
-#	portdir must be a directory, relative to the base ports software tree,
-#	of a port to build and install if the depspec is not matched.
-depends_lib	lib:libfetch.3:net/libfetch
+#	portname must be the name of a valid port to build and install
+#	if the depspec is not matched.
+depends_lib	lib:libfetch.3:libfetch
 
 # The type of configuration script this port uses.
 #configure.type	gnu

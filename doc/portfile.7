@@ -65,12 +65,6 @@ Install prefix
 .Sy Default:
 .Em /opt/local
 
-.It Ic sysportpath
-Location of software/ directory
-.br
-.Sy Type:
-.Em read-only
-
 .It Ic libpath
 Locate of ports-specific TCL libraries
 .br
@@ -202,7 +196,7 @@ List of dependencies to check before running fetch target
 .Em optional
 .br
 .Sy Example:
-.Dl depends_fetch	bin:fetch:net/fetch bin:wget:www/wget
+.Dl depends_fetch	bin:fetch:net/fetch bin:wget:wget
 
 .It Ic depends_build
 List of dependencies to check before build, install, and package targets
@@ -211,7 +205,7 @@ List of dependencies to check before build, install, and package targets
 .Em optional
 .br
 .Sy Example:
-.Dl depends_build	bin:autoconf:devel/autoconf
+.Dl depends_build	bin:autoconf:autoconf
 
 .It Ic depends_run
 List of dependencies to check before install and package targets
@@ -220,7 +214,7 @@ List of dependencies to check before install and package targets
 .Em optional
 .br
 .Sy Example:
-.Dl depends_run	bin:bash:shells/bash
+.Dl depends_run	bin:bash:bash
 
 .It Ic depends_extract
 List of dependencies to check before extract target
@@ -229,7 +223,7 @@ List of dependencies to check before extract target
 .Em optional
 .br
 .Sy Example:
-.Dl depends_extract	bin:bzip2:archivers/bzip2
+.Dl depends_extract	bin:bzip2:bzip2
 
 .It Ic depends_lib
 List of dependencies to check before configure, build, install, and package targets
@@ -238,7 +232,7 @@ List of dependencies to check before configure, build, install, and package targ
 .Em optional
 .br
 .Sy Example:
-.Dl depends_lib	lib:libfetch.3:net/libfetch
+.Dl depends_lib	lib:libfetch.3:libfetch
 .El
 
 .Ss FETCH OPTIONS
@@ -295,9 +289,6 @@ List of patches to fetch and apply
 .br
 .Sy Example:
 .Dl patchfiles	japanese-widechar-fix.diff japanese-localization.diff
-
-.It Ic extract_only
-Does nothing. Replaced by extract.only below.
 
 .It Ic use_zip
 Use zip.
