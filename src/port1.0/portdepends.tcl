@@ -91,6 +91,6 @@ proc depends_main {id} {
 	}
     }
     ui_debug "Building $portname"
-    dportbuild $sysportpath/software/$portname install
+    dportbuild $sysportpath/$portname install
     return 0
 }
