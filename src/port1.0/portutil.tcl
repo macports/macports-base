@@ -32,6 +32,7 @@
 package provide portutil 1.0
 package require darwinports_dlist 1.0
 package require msgcat
+package require Pextlib 1.0
 
 global targets target_uniqid all_variants
 
