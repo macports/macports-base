@@ -83,7 +83,11 @@ proc dportinit {args} {
 	}
     }
     if ![info exists sources] {
-        return -code error "No sources defined in $sources_conf"
+	if [file isdirectory dports] {
+	    set sources "file://[pwd]/dports"
+	} else {
+	    return -code error "No sources defined in $sources_conf"
+	}
     }
 
     if ![info exists portdbpath] {
