@@ -121,7 +121,9 @@ proc depends_main {id} {
 	}
     }
     ui_debug "Building $portname"
-    set worker [dportopen "$sysportpath/$portname"]
+    array set options [list]
+    array set variations [list]
+    set worker [dportopen "$sysportpath/$portname" options variations]
     dportexec $worker install
     dportclose $worker
     return 0
