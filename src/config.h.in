@@ -172,6 +172,9 @@
 /* Define to 1 if strerror_r returns char *. */
 #undef STRERROR_R_CHAR_P
 
+/* Attribute to mark unused variables */
+#undef UNUSED
+
 /* Define to 1 if the X Window System is missing or not being used. */
 #undef X_DISPLAY_MISSING
 

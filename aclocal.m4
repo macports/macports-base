@@ -367,3 +367,17 @@ AC_DEFUN([OD_PROG_TCLSH],[
 
 	AC_SUBST(TCLSH)
 ])
+
+
+dnl This macro tests if the compiler supports GCC's
+dnl __attribute__ syntax for unused variables/parameters
+AC_DEFUN([OD_COMPILER_ATTRIBUTE_UNUSED], [
+	AC_MSG_CHECKING([how to mark unused variables])
+	AC_COMPILE_IFELSE(
+		[AC_LANG_SOURCE([[int a __attribute__ ((unused));]])],
+		[AC_DEFINE(UNUSED, [__attribute__((unused))], [Attribute to mark unused variables])],
+		[AC_DEFINE(UNUSED, [])])
+
+	AC_MSG_RESULT([])
+	
+])
