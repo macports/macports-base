@@ -6,6 +6,7 @@
 #include <tcl.h>
 
 #define BUFSIZ 1024
+static const char ui_proc[] = "ui_puts \"";
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -52,9 +53,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 				char *sptr;
 				cmdlen += cmdlenavail + len;
 				/*
-				 * This is ugly because puma doesn't have
-				 * reallocf. Remove when we rev past puma
-				 * support
+				 * puma does not have reallocf.
+				 * Change when we rev past puma
 				 */
 				sptr = cmdstring;
 				cmdstring = realloc(cmdstring, cmdlen);
@@ -82,9 +82,23 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		free(cmdstring);
 
 	while (fgets(buf, BUFSIZ, pipe) != NULL) {
-		/* XXX We need the output but this is not at all correct */
-		printf("%s", buf);
-		Tcl_AppendResult(interp, &buf, NULL);
+		char *script, *p;
+		int scriptlen, ret;
+
+		scriptlen = sizeof(ui_proc) + strlen(buf);
+		script = malloc(scriptlen);
+		if (script == NULL)
+			break;
+		else
+			p = script;
+
+		memcpy(script, ui_proc, sizeof(ui_proc));
+		strcat(script, buf);
+		p += scriptlen - 2;
+		*p = '"';
+		if ((ret = Tcl_EvalEx(interp, script, scriptlen - 1, 0)) != TCL_OK)
+			return ret;
+		Tcl_AppendResult(interp, buf, NULL);
 	}
 
 	switch (pclose(pipe)) {
