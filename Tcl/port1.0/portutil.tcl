@@ -61,7 +61,7 @@ proc makeuserproc {name body} {
 #     functions
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
-#	<identifier> target <chain> <procedure to execute>
+#	<identifier> target <chain> <procedure to execute> [run type]
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -78,6 +78,11 @@ proc register {name mode args} {
             ui_puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure,$chain $procedure
+
+	# Set runtype {always,once} if available
+	if {[llength $args] == 3} {
+	    dlist_set_key targets $name runtype [lindex $args 2]
+	}
 	
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
@@ -180,6 +185,7 @@ proc unregister {mode target} {
 # provides	- The list of tokens this item provides
 # requires	- The list of hard-dependency tokens
 # uses		- The list of soft-dependency tokens
+# runtype	- The runtype of the item {always,once}
 
 # Sets the key/value to an item in the dependency list
 proc dlist_set_key {dlist name key args} {
@@ -343,10 +349,12 @@ proc exec_target {fd chain dlist name} {
 	set procedure [dlist_get_key uplist $name procedure,$chain]
 	ui_puts "DEBUG: Executing $name in chain $chain"
 	set result [$procedure $name $chain]
-    if {$result == 0} {
+	if {$result == 0} {
 	    set result success
-        puts $fd $name
-        flush $fd
+	    if {[dlist_get_key uplist $name runtype] != "always"} {
+		puts $fd $name
+		flush $fd
+	    }
 	} else {
 	    ui_puts "$chain error: $name returned $result"
 	    set result failure
