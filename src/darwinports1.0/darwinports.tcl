@@ -938,7 +938,7 @@ proc upgrade {pname dspec} {
 				}
 			} else {
 				# port installed outside DP
-				ui_debug "$pname installed outside DP"
+				ui_debug "$pname installed outside the DarwinPorts system"
 			}
 
 		} else {
@@ -954,7 +954,6 @@ proc upgrade {pname dspec} {
 	} else {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later
-		# XXX BREAKS XXX
 		set num 0
 		foreach i $ilist {
 			set version "[lindex $i 1]_[lindex $i 2]"
@@ -992,8 +991,6 @@ proc upgrade {pname dspec} {
 	if {$nodeps eq "yes"} {
 		ui_debug "Not following dependencies"
 	} else {
-		# XXX optimize
-
 		# build depends is upgraded
 		if {[info exists portinfo(depends_build)]} {
 			foreach i $portinfo(depends_build) {
@@ -1049,7 +1046,7 @@ proc upgrade {pname dspec} {
 	if {[info exists options(port_uninstall_old)]} {
 		# uninstalll old
 		ui_debug "Uninstalling $pname $version_installed"
-		if {[catch {portimage::uninstall $pname $version_installed} result]} {
+		if {[catch {portuninstall::uninstall $pname $version_installed} result]} {
      		ui_error "Uninstall $pname $version_installed failed: $result"
        		return 1
     	}
