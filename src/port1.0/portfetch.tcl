@@ -59,7 +59,7 @@ proc fetchfiles {args} {
 	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
-		} if [tbool ports_verbose] {
+		if [tbool ports_verbose] {
 			set verboseflag -v
 		} else {
 			set verboseflag "-s"
