@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh
+#!@TCLSH@
 # port.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
