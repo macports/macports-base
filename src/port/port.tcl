@@ -384,7 +384,9 @@ switch -- $action {
 		}
 	}
 	selfupdate {
-		darwinports::selfupdate
+		if { [catch {darwinports::selfupdate} result ] } {
+			puts "Selfupdate failed: $result"
+		}
 	}
 	upgrade {
         if {[info exists options(port_upgrade_all)] } {

@@ -1021,8 +1021,7 @@ proc darwinports::selfupdate {args} {
 		return -code error "Couldnt sync dports tree: $result"
 	}
 
-	# XXX hardcode XXX set OpenDarwin rsync service 
-	# this should be set in /etc/ports/ports.conf
+	# XXX hardcode XXX this should be set in /etc/ports/ports.conf
 	set rsync_server rsync.opendarwin.org
 	set rsync_dir dpupdate/base/
 	set rsync_options "-rtzv --delete --delete-after"
@@ -1060,7 +1059,10 @@ proc darwinports::selfupdate {args} {
 	# check if we we need to rebuild base
 	if {$dp_version_new > $dp_version_old } {
 		ui_msg "Configuring, Building and Installing new DarwinPorts base"
-		# XXX fails if not enough permissions
+		# check if $prefix/bin/port is writable, if so we go !
+		if {![file writable [file join $prefix bin/port] ]} {
+			return -code error "Error cannot write to $prefix - try using sudo"
+		}
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
