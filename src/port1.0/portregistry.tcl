@@ -38,10 +38,11 @@ register com.apple.registry requires main fetch extract checksum patch configure
 
 # define options
 options contents description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
+
 # Export options via PortInfo
 options_export description
 
-default registry.path /Library/Receipts/darwinports
+default registry.path /opt/local/var/db/receipts
 
 set UI_PREFIX "---> "
 
