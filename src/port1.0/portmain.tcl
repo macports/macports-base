@@ -52,7 +52,7 @@ if [info exists portpath] {
     default workpath "$portpath/$workdir"
 }
 
-default prefix /usr/local/
+default prefix /usr/local
 default filedir files
 default portrevision 0
 default os_arch $tcl_platform(machine)
