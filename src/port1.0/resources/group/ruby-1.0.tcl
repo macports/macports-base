@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.3 2004/09/07 23:46:00 wbb4 Exp $
+# $Id: ruby-1.0.tcl,v 1.4 2004/12/07 00:55:31 rshaw Exp $
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.
@@ -59,7 +59,7 @@ set ruby.docs		{}
 set ruby.srcdir		""
 
 # ruby group setup procedure
-proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "raa"}} {
+proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 	global destroot prefix worksrcpath
 	global ruby.bin ruby.lib
 	global ruby.module ruby.project ruby.filename ruby.docs ruby.srcdir
