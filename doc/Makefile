@@ -1,16 +1,19 @@
 PREFIX?=	/opt/local
 ETCDIR=		/etc/ports
-MAN7=		portfile.7
+MAN7=		portfile.7 portstyle.7
 DSTUSR?=	root
 DSTGRP?=	wheel
+
+all: portfile.7.gz portstyle.7.gz
 
 portfile.7.gz: portfile.7
 	gzip -cn portfile.7 > portfile.7.gz
 
-all: portfile.7.gz
+portstyle.7.gz: portstyle.7
+	gzip -cn portstyle.7 > portstyle.7.gz
 
 clean:
-	rm -f portfile.7.gz
+	rm -f portfile.7.gz portstyle.7.gz
 install:
 	mkdir -p /etc/defaults
 	mkdir -p ${ETCDIR}
@@ -27,3 +30,4 @@ install:
 
 	install -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf.default /etc/defaults/ports.conf
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7.gz ${PREFIX}/man/man7
+	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7.gz ${PREFIX}/man/man7
