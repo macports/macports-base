@@ -134,7 +134,7 @@ set verbose	"-v"
 if {$dochroot == 1} {
 	makechroot chrootdir
 	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir/$REPORT"
-	exec chroot chrootdir chrootdir/doit.tcl
+	exec chroot chrootdir /doit.tcl
 } else {
 	puts "Report will be in $REPORT"
 	packageall
