@@ -201,6 +201,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
 			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
+			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
+			Tcl_AppendToObj(tcl_result, errbuf, -1);
 			Tcl_SetObjResult(interp, tcl_result);
 			return TCL_ERROR;
 		}
