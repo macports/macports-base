@@ -19,12 +19,12 @@ install:
 	mkdir -p ${INSTALLDIR}
 
 	cat prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
-	@if [ ! -e ${DESTDIR}/${ETCDIR}/ports.conf ]; then \
+	@if test ! -e ${DESTDIR}/${ETCDIR}/ports.conf ; then \
 		set -x; \
 		install -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${ETCDIR}; \
 	fi
 
-	@if [ ! -e ${DESTDIR}${ETCDIR}/sources.conf ]; then \
+	@if test ! -e ${DESTDIR}${ETCDIR}/sources.conf ; then \
 		set -x; \
 		install -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${ETCDIR}; \
 	fi
@@ -32,5 +32,6 @@ install:
 	mkdir -p ${INSTALLDIR}/share/darwinports/resources/port1.0/install
 	install -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
 	install -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
+	install -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}/man/man7
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/man/man7
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/man/man7
