@@ -34,7 +34,7 @@ package require portutil 1.0
 
 register com.apple.package target package_main package_init
 register com.apple.package provides package
-register com.apple.package requires install
+register com.apple.package requires registry
 
 # define options
 options package.type
@@ -98,7 +98,7 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set ptarget ${portname}-${portversion}.tar.gz
 	}
-	if [catch {exec gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget}} err] {
+	if [catch {exec gnutar -T [lindex $plist 1] -czPpvf ${ptarget}} err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
 	    exec rm [lindex $plist 1]
 	    return -1
