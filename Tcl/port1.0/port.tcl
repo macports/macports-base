@@ -21,7 +21,7 @@ if [info exists portconf] {
 # User overrides
 if [info exists user_options] {
 	foreach string $user_options {
-		if {[regexp {([A-Za-z]+)=([A-Za-z0-9\ ]+)} $string match key val] == 1} {
+		if {[regexp {([A-Za-z_\.]+)=([A-Za-z0-9\ ]+)} $string match key val] == 1} {
 			set $key $val
 		}
 	}
