@@ -29,6 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 package provide darwinports 1.0
+package require darwinportsui 1.0 
 
 global ports_opts
 global bootstrap_options
@@ -83,6 +84,25 @@ proc dportopen {portdir {options ""}} {
 	set workername workername[incr uniqid]
 	interp create $workername
 	$workername alias dportbuild dportbuild
+
+	# instantiate the UI functions
+	$workername alias ui_init ui_init
+	$workername alias ui_enable ui_enable
+	$workername alias ui_disble ui_disable
+	$workername alias ui_enabled ui_enabled
+	$workername alias ui_puts ui_puts
+	$workername alias ui_debug ui_debug
+	$workername alias ui_info ui_info
+	$workername alias ui_msg ui_msg
+	$workername alias ui_error ui_error
+	$workername alias ui_gets ui_gets
+	$workername alias ui_yesno ui_yesno
+	$workername alias ui_confirm ui_confirm
+	$workername alias ui_display ui_display
+
+	$workername alias ports_verbose ports_verbose
+	$workername alias ports_quiet ports_quiet
+	$workername alias ports_debug ports_debug
 
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt

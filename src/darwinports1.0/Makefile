@@ -1,5 +1,5 @@
 INSTALLDIR=	/System/Library/Tcl/8.3/darwinports1.0
-SRCS=		darwinports.tcl
+SRCS=		darwinports.tcl darwinportsui.tcl
 
 all:
 

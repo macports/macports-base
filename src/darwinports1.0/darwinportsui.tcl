@@ -1,5 +1,4 @@
-# ex:ts=4
-# portui.tcl
+# darwinportsui.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -28,21 +27,45 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-
-package provide portui 1.0
-package require portutil 1.0
+package provide darwinportsui 1.0 
 
 # Can be set to make the entire UI go into "batch mode"
 global _ui_is_enabled
 
-# If set, output debugging messages.
-options ports_debug
+# System options array.  Options we pay attention to are:
+# system_options(ports_debug) - If set, output debugging messages.
+# system_options(ports_verbose) - If set, output info messages (ui_info)
+# system_options(ports_quiet) - If set, don't output "standard messages"
+global system_options
 
-# If set, output informational messages (ui_info)
-options ports_verbose
+# Accessor functions for system options
+proc ports_debug {val} {
+    global system_options
 
-# If set, don't output "standard messages"
-options ports_quiet
+    set system_options(ports_debug) $val
+}
+
+proc ports_verbose {val} {
+    global system_options
+
+    set system_options(ports_verbose) $val
+}
+
+proc ports_quiet {val} {
+    global system_options
+
+    set system_options(ports_quiet) $val
+}
+
+proc isset {val} {
+    global system_options
+    if {[info exists $system_options($val)]} {
+	if {$system_options($val) == "yes"} {
+	    return 1
+	}
+    }
+    return 0
+}
 
 # do whatever interesting things need to be done to initialize the UI
 # environment.  Always called by convention though it does nothing
@@ -90,27 +113,27 @@ proc ui_puts {str {nonl ""}} {
 
 # Output debugging messages if the ports_debug variable is set.
 proc ui_debug {str} {
-    global ports_debug
+    global system_options
 
-    if [tbool ports_debug] {
+    if [isset ports_debug] {
 	puts stderr "DEBUG: $str"
     }
 }
 
 # Output message if ports_verbose is set.
 proc ui_info {str {nonl ""}} {
-    global ports_verbose
+    global system_options
 
-    if [tbool ports_verbose] {
+    if [isset ports_verbose] {
 	ui_puts "$str" $nonl
     }
 }
 
 # Output message unless ports_quiet is set.
 proc ui_msg {str {nonl ""}} {
-    global ports_quiet
+    global system_options
 
-    if ![tbool ports_quiet] {
+    if ![isset ports_quiet] {
 	ui_puts "$str" $nonl
     }
 }
