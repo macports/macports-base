@@ -192,6 +192,7 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 		# On darwin we can do some intelligent guessing
 		case $host_os in
 		    darwin*)
+		    	tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
 			for path in $tcl_autopath; do
 			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
@@ -205,15 +206,15 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 			    fi
 			done
 		    ;;
-		    *)
-			# Fudge a path from the first entry in the auto_path
-	        	tcl_pkgpath=`echo 'puts [[lindex \$auto_path 0]]' | $TCLSH`
-			if test -d "$tcl_pkgpath"; then
-			    ac_cv_c_tclpkgd="$tcl_pkgpath"
-			fi
-			# If the first entry does not exist, do nothing
-		    ;;
 		esac
+    		if test x"${ac_cv_c_tclpkgd}" = x ; then
+		    # Fudge a path from the first entry in the auto_path
+		    tcl_pkgpath=`echo 'puts [[lindex \$auto_path 0]]' | $TCLSH`
+		    if test -d "$tcl_pkgpath"; then
+			ac_cv_c_tclpkgd="$tcl_pkgpath"
+		    fi
+		    # If the first entry does not exist, do nothing
+		fi
 	    fi
 	])
     fi

@@ -4034,6 +4034,7 @@ else
 		# On darwin we can do some intelligent guessing
 		case $host_os in
 		    darwin*)
+		    	tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
 			for path in $tcl_autopath; do
 			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
@@ -4047,15 +4048,15 @@ else
 			    fi
 			done
 		    ;;
-		    *)
-			# Fudge a path from the first entry in the auto_path
-	        	tcl_pkgpath=`echo 'puts [lindex \$auto_path 0]' | $TCLSH`
-			if test -d "$tcl_pkgpath"; then
-			    ac_cv_c_tclpkgd="$tcl_pkgpath"
-			fi
-			# If the first entry does not exist, do nothing
-		    ;;
 		esac
+    		if test x"${ac_cv_c_tclpkgd}" = x ; then
+		    # Fudge a path from the first entry in the auto_path
+		    tcl_pkgpath=`echo 'puts [lindex \$auto_path 0]' | $TCLSH`
+		    if test -d "$tcl_pkgpath"; then
+			ac_cv_c_tclpkgd="$tcl_pkgpath"
+		    fi
+		    # If the first entry does not exist, do nothing
+		fi
 	    fi
 
 fi
@@ -4063,11 +4064,11 @@ fi
     fi
 
     if test x"${ac_cv_c_tclpkgd}" = x ; then
-	{ { echo "$as_me:4066: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&5
+	{ { echo "$as_me:4067: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&5
 echo "$as_me: error: Tcl package directory not found.  Please specify its location with --with-tclpackagedir" >&2;}
    { (exit 1); exit 1; }; }
     else
-	echo "$as_me:4070: result: ${ac_cv_c_tclpkgd}" >&5
+	echo "$as_me:4071: result: ${ac_cv_c_tclpkgd}" >&5
 echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
     fi
 
@@ -4079,7 +4080,7 @@ echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
 
 # Allows building of shared libraries
 
-    echo "$as_me:4082: checking how to build libraries" >&5
+    echo "$as_me:4083: checking how to build libraries" >&5
 echo $ECHO_N "checking how to build libraries... $ECHO_C" >&6
     # Check whether --enable-shared or --disable-shared was given.
 if test "${enable_shared+set}" = set; then
@@ -4097,11 +4098,11 @@ fi;
     fi
 
     if test "$tcl_ok" = "yes" ; then
-	echo "$as_me:4100: result: shared" >&5
+	echo "$as_me:4101: result: shared" >&5
 echo "${ECHO_T}shared" >&6
 	SHARED_BUILD=1
     else
-	echo "$as_me:4104: result: static" >&5
+	echo "$as_me:4105: result: static" >&5
 echo "${ECHO_T}static" >&6
 	SHARED_BUILD=0
 
@@ -4222,7 +4223,7 @@ DEFS=-DHAVE_CONFIG_H
 : ${CONFIG_STATUS=./config.status}
 ac_clean_files_save=$ac_clean_files
 ac_clean_files="$ac_clean_files $CONFIG_STATUS"
-{ echo "$as_me:4225: creating $CONFIG_STATUS" >&5
+{ echo "$as_me:4226: creating $CONFIG_STATUS" >&5
 echo "$as_me: creating $CONFIG_STATUS" >&6;}
 cat >$CONFIG_STATUS <<_ACEOF
 #! $SHELL
@@ -4395,7 +4396,7 @@ cat >>$CONFIG_STATUS <<\EOF
     echo "$ac_cs_version"; exit 0 ;;
   --he | --h)
     # Conflict between --help and --header
-    { { echo "$as_me:4398: error: ambiguous option: $1
+    { { echo "$as_me:4399: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: ambiguous option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4414,7 +4415,7 @@ Try \`$0 --help' for more information." >&2;}
     ac_need_defaults=false;;
 
   # This is an error.
-  -*) { { echo "$as_me:4417: error: unrecognized option: $1
+  -*) { { echo "$as_me:4418: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&5
 echo "$as_me: error: unrecognized option: $1
 Try \`$0 --help' for more information." >&2;}
@@ -4456,7 +4457,7 @@ do
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
-  *) { { echo "$as_me:4459: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:4460: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -4707,7 +4708,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4710: creating $ac_file" >&5
+    { echo "$as_me:4711: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4725,7 +4726,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4728: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4729: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4738,7 +4739,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4741: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4742: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4799,7 +4800,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:4802: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:4803: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -4810,7 +4811,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4813: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4814: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4823,7 +4824,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4826: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4827: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4940,7 +4941,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:4943: $ac_file is unchanged" >&5
+      { echo "$as_me:4944: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -5044,7 +5045,7 @@ if test "$no_recursion" != yes; then
     # parts of a large source tree are present.
     test -d $srcdir/$ac_subdir || continue
 
-    { echo "$as_me:5047: configuring in $ac_subdir" >&5
+    { echo "$as_me:5048: configuring in $ac_subdir" >&5
 echo "$as_me: configuring in $ac_subdir" >&6;}
     case $srcdir in
     .) ;;
@@ -5066,7 +5067,7 @@ done; }
 
        if test -d ./$ac_subdir; then :;
        else
-         { { echo "$as_me:5069: error: cannot create \`pwd\`/$ac_subdir" >&5
+         { { echo "$as_me:5070: error: cannot create \`pwd\`/$ac_subdir" >&5
 echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
        fi
@@ -5097,7 +5098,7 @@ echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
     elif test -f $ac_sub_srcdir/configure.in; then
       ac_sub_configure=$ac_configure
     else
-      { echo "$as_me:5100: WARNING: no configuration information is in $ac_subdir" >&5
+      { echo "$as_me:5101: WARNING: no configuration information is in $ac_subdir" >&5
 echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
       ac_sub_configure=
     fi
@@ -5111,12 +5112,12 @@ echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
         ac_sub_cache_file=$ac_dots$cache_file ;;
       esac
 
-      { echo "$as_me:5114: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
+      { echo "$as_me:5115: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
 echo "$as_me: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&6;}
       # The eval makes quoting arguments work.
       eval $ac_sub_configure $ac_sub_configure_args \
            --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir ||
-        { { echo "$as_me:5119: error: $ac_sub_configure failed for $ac_subdir" >&5
+        { { echo "$as_me:5120: error: $ac_sub_configure failed for $ac_subdir" >&5
 echo "$as_me: error: $ac_sub_configure failed for $ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
     fi
