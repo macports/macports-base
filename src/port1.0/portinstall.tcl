@@ -32,7 +32,7 @@
 package provide portinstall 1.0
 package require portutil 1.0
 
-register com.apple.install target install_main install_init
+register com.apple.install target install_main
 register com.apple.install provides install
 register com.apple.install requires main fetch extract checksum patch configure build depends_run depends_lib
 
@@ -42,9 +42,6 @@ options make.target.install
 default make.target.install install
 
 set UI_PREFIX "---> "
-
-proc install_init {args} {
-}
 
 proc install_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.target.install UI_PREFIX make.target.current

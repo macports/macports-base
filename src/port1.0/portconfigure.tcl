@@ -32,7 +32,7 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-register com.apple.configure target configure_main configure_init
+register com.apple.configure target configure_main
 register com.apple.configure provides configure
 register com.apple.configure requires main fetch extract checksum patch depends_build depends_lib
 
@@ -47,10 +47,6 @@ default automake.dir {${workpath}/${worksrcdir}}
 default use_configure yes
 
 set UI_PREFIX "---> "
-
-proc configure_init {args} {
-    return 0
-}
 
 proc configure_main {args} {
     global [info globals]

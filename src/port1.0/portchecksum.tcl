@@ -32,7 +32,7 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-register com.apple.checksum target checksum_main checksum_init
+register com.apple.checksum target checksum_main
 register com.apple.checksum provides checksum
 register com.apple.checksum requires main fetch
 
@@ -71,10 +71,6 @@ proc dmd5 {file} {
 	}
     }
     return -1
-}
-
-proc checksum_init {args} {
-    return 0
 }
 
 proc checksum_main {args} {

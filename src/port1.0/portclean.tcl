@@ -34,13 +34,9 @@
 package provide portclean 1.0
 package require portutil 1.0
 
-register com.apple.clean target clean_main clean_init always
+register com.apple.clean target clean_main always
 register com.apple.clean provides clean
 register com.apple.clean requires main
-
-proc clean_init {args} {
-    return 0
-}
 
 proc clean_main {args} {
     global portpath workdir

@@ -32,7 +32,7 @@
 package provide portregistry 1.0
 package require portutil 1.0
 
-register com.apple.registry target registry_main registry_init
+register com.apple.registry target registry_main
 register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
@@ -170,10 +170,6 @@ proc proc_disasm {pname} {
     }
     append p "} {" [info body $pname] "}"
     return $p
-}
-
-proc registry_init {args} {
-    return 0
 }
 
 proc registry_main {args} {

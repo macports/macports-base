@@ -32,7 +32,8 @@
 package provide portbuild 1.0
 package require portutil 1.0
 
-register com.apple.build target build_main build_init
+register com.apple.build target build_main
+register com.apple.build init build_init
 register com.apple.build provides build 
 register com.apple.build requires main fetch extract checksum patch configure depends_build depends_lib
 

@@ -32,7 +32,7 @@
 package provide portuninstall 1.0
 package require portutil 1.0
 
-register com.apple.uninstall target uninstall_main uninstall_init
+register com.apple.uninstall target uninstall_main
 register com.apple.uninstall provides uninstall
 register com.apple.uninstall requires main
 
@@ -40,9 +40,6 @@ register com.apple.uninstall requires main
 options uninstall.force uninstall.nochecksum
 
 set UI_PREFIX "---> "
-
-proc uninstall_init {args} {
-}
 
 proc uninstall_main {args} {
     global portname portversion uninstall.force uninstall.nochecksum UI_PREFIX

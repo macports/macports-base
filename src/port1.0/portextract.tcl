@@ -32,7 +32,8 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register com.apple.extract target extract_main extract_init
+register com.apple.extract target extract_main
+register com.apple.extract init extract_init
 register com.apple.extract provides extract
 register com.apple.extract requires fetch checksum depends_extract
 

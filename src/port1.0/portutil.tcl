@@ -303,7 +303,8 @@ proc makeuserproc {name body} {
 #     functions
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
-#	<identifier> target <procedure to execute> [<init procedure> [run type]]
+#	<identifier> target <procedure to execute> [run type]
+#	<identifier> init <procedure to execute>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -320,15 +321,16 @@ proc register {name mode args} {
         }
         dlist_set_key targets $name procedure $procedure
 		
-		if {[llength $args] >= 2} {
-			set init [lindex $args 1]
-			dlist_set_key targets $name init $init
-		}
-
-		# Set runtype {always,once} if available
-		if {[llength $args] >= 3} {
-			dlist_set_key targets $name runtype [lindex $args 2]
-		}
+	# Set runtype {always,once} if available
+	if {[llength $args] >= 2} {
+	    dlist_set_key targets $name runtype [lindex $args 1]
+	}
+    } elseif {[string equal init $mode]} {
+	set init [lindex $args 0]
+	if {[dlist_has_key targets $name init]} {
+	   ui_debug "Warning: target '$name' re-registered init procedure (new init procedure: '$init')"
+	}
+	dlist_set_key targets $name init $init
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
