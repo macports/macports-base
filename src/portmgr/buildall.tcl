@@ -14,7 +14,7 @@ set chrootfiles {
 	private/var/tmp private/var/vm/app_profile
 	Developer/Applications/Xcode.app Developer/Applications/Utilities
 	Developer/Headers Developer/Makefiles Developer/Private
-	Developer/Tools System/Library/Frameworks
+	Developer/Tools System/Library/Frameworks System/Library/CoreServices
 	System/Library/PrivateFrameworks System/Library/OpenSSL
 	System/Library/PHP System/Library/Perl
 }
