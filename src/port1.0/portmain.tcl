@@ -41,33 +41,23 @@ register com.apple.main provides main
 # define options
 options prefix portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath distpath
 
-# XXX Special case sysportpath. This variable is set by the bootstrap
-# and may not exist
-if [info exists sysportpath] {
-	default distpath "$sysportpath/distfiles"
-}
+default distpath {[file join $sysportpath distfiles]}
 default workdir work
-
-if [info exists portpath] {
-    default workpath "$portpath/$workdir"
-}
-
+default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
 default filedir files
 default portrevision 0
 default os_arch $tcl_platform(machine)
 default os_version $tcl_platform(osVersion)
+default distname {${portname}-${portversion}}
 
 proc main_init {args} {
-    global worksrcdir dist_subdir distpath distname portname portversion
-    if {[info exists portname] && [info exists portversion]} {
-	default distname ${portname}-${portversion}
-    }
+    global worksrcdir no_worksubdir
     if {[tbool no_worksubdir]} {
 	default worksrcdir ""
     } else {
 	if {[info exists distname]} {
-		default worksrcdir $distname
+		default worksrcdir {$distname}
 	}
     }
 }

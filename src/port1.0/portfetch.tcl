@@ -42,6 +42,10 @@ options master_sites patch_sites extract_sufx distfiles extract_only patchfiles 
 # Defaults
 default extract_sufx .tar.gz
 
+# Set distfiles
+default distfiles {[suffix $distname]}
+
+
 set UI_PREFIX "---> "
 
 proc suffix {distname} {
@@ -114,10 +118,7 @@ proc fetchfiles {args} {
 
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir
-    # Set distfiles
-    if [info exists distname] {
-	default distfiles [suffix $distname]
-    }
+
     if {[info exist distpath] && [info exists dist_subdir]} {
 	set distpath ${distpath}/${dist_subdir}
     }

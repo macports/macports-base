@@ -39,13 +39,15 @@ register com.apple.build requires main fetch extract checksum patch configure de
 # define options
 options make.cmd make.type make.target.all make.target.install
 
+# defaults
+default make.type bsd
+default make.cmd make
+default make.target.all all
+
 set UI_PREFIX "---> "
 
 proc build_init {args} {
     global make.type make.cmd make.target.all make.worksrcdir
-    default make.type bsd
-    default make.cmd make
-    default make.target.all all
 
     switch -exact -- ${make.type} {
 	bsd {

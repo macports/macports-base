@@ -41,15 +41,16 @@ global extract_opts
 # define options
 options extract_opts extract.only extract.cmd extract.before_args extract.after_args
 
+# Set up defaults
+default extract.only {$distfiles}
+default extract.cmd gzip
+default extract.before_args -dc
+default extract.after_args "| tar -xf -"
+
 set UI_PREFIX "---> "
 
 proc extract_init {args} {
     global extract.only extract.cmd extract.before_args extract.after_args distfiles use_bzip2 use_zip
-    # Set up defaults
-    default extract.only $distfiles
-    default extract.cmd gzip
-    default extract.before_args -dc
-    default extract.after_args "| tar -xf -"
 
     if [info exists use_bzip2] {
 	set extract.cmd bzip2

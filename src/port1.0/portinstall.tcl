@@ -38,12 +38,12 @@ register com.apple.install requires main fetch extract checksum patch configure 
 
 # define options
 options make.cmd make.type make.target.install contents description
+# Set defaults
+default make.target.install install
 
 set UI_PREFIX "---> "
 
 proc install_init {args} {
-    global make.target.install
-    default make.target.install install
 }
 
 proc install_main {args} {
