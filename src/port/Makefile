@@ -4,7 +4,7 @@ INSTALLDIR=	${DESTDIR}${prefix}
 include ../../Mk/dports.autoconf.mk
 
 mkdirs:
-	cat ../../doc/prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
+	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 
 all:
 

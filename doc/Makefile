@@ -14,7 +14,7 @@ install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${DESTDIR}${portconfigdir}
 
-	cat prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
+	cat prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 	$(SILENT)if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
