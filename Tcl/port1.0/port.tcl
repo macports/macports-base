@@ -13,3 +13,8 @@ package require portextract 1.0
 package require portpatch 1.0
 package require portconfigure 1.0
 package require portmake 1.0
+
+# System wide configuration
+if [info exists portconf] {
+	source $portconf
+}

@@ -13,9 +13,6 @@ package require portutil 1.0
 register com.apple.main target build main
 register com.apple.main provides main
 
-global main_opts
-global targets
-
 # XXX Special case sysportpath. This variable is set by the bootstrap
 # and may not exist
 if [info exists sysportpath] {
@@ -27,7 +24,7 @@ default filedir files
 default portrevision 0
 
 # define options
-options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname
+options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath
 
 proc main {args} {
     global worksrcdir main_opts portname distname

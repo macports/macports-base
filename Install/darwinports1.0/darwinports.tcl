@@ -20,9 +20,10 @@ proc ccextension {file} {
 }
     
 proc init {args} {
-    global auto_path env bootstrap_options sysportpath
+    global auto_path env bootstrap_options sysportpath portconf
 
     if [file isfile /etc/ports.conf] {
+	set portconf /etc/ports.conf
 	set fd [open /etc/ports.conf r]
 	while {[gets $fd line] >= 0} {
 	    foreach option $bootstrap_options {
