@@ -2507,6 +2507,7 @@ AC_DEFUN(SC_TCL_64BIT_FLAGS, [
 #
 # Requires:
 #	CYGPATH must be set
+#	TCL_VERSION must be set
 #
 # Results:
 #
@@ -2540,7 +2541,7 @@ AC_DEFUN(SC_PUBLIC_TCL_HEADERS, [
 		eval "temp_includedir=${includedir}"
 		for i in \
 			`ls -d ${temp_includedir} 2>/dev/null` \
-			/usr/local/include /usr/include ; do
+			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION}; do
 		    if test -f "$i/tcl.h" ; then
 			ac_cv_c_tclh=$i
 			break

@@ -189,29 +189,31 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 	    if test x"${with_tclpackagedir}" != x ; then
 		ac_cv_c_tclpkgd=${with_tclpackagedir}
 	    else
-	        tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
 		# On darwin we can do some intelligent guessing
-		if test "`uname -s`" = "Darwin" ; then
-		    for path in $tcl_autopath; do
-		        if test "$path" = "/Library/Tcl"; then
-			    ac_cv_c_tclpkgd="$path"
-			    break
-			fi
-		        if test "$path" = "/System/Library/Tcl"; then
-			    if test -d "$path"; then
+		case $host_os in
+		    darwin*)
+			for path in $tcl_autopath; do
+			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
 				break
 			    fi
+			    if test "$path" = "/System/Library/Tcl"; then
+				if test -d "$path"; then
+				    ac_cv_c_tclpkgd="$path"
+				    break
+			        fi
+			    fi
+			done
+		    ;;
+		    *)
+			# Fudge a path from the first entry in the auto_path
+	        	tcl_pkgpath=`echo 'puts [[lindex \$auto_path 0]]' | $TCLSH`
+			if test -d "$tcl_pkgpath"; then
+			    ac_cv_c_tclpkgd="$tcl_pkgpath"
 			fi
-		    done
-                else
-		    # Fudge a path from the first entry in the auto_path
-		    tcl_pkgpath=`echo $tcl_autopath | awk '{print \$1}'`
-		    if test -d "$path"; then
-		        ac_cv_tclpkgd="$path"
-		    fi
-		    # If the first entry does not exist, do nothing
-		fi
+			# If the first entry does not exist, do nothing
+		    ;;
+		esac
 	    fi
 	])
     fi
@@ -230,3 +232,27 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 
     AC_SUBST(TCL_PACKAGE_DIR)
 ])
+
+# OD_PROG_TCLSH
+#---------------------------------------
+AC_DEFUN([OD_PROG_TCLSH],[
+
+
+	case $host_os in
+		freebsd*)
+			# FreeBSD installs a dummy tclsh (annoying)
+			# Look for a real versioned tclsh first
+			AC_PATH_PROG([TCLSH], [tclsh${TCL_VERSION} tclsh])
+			;;
+		*)
+			# Otherwise, look for a non-versioned tclsh
+			AC_PATH_PROG([TCLSH], [tclsh tclsh${TCL_VERSION}])
+			;;
+	esac
+	if test "x$TCLSH" = "x" ; then
+		AC_MSG_ERROR([Could not find tclsh])
+	fi
+
+	AC_SUBST(TCLSH)
+])
+

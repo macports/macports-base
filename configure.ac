@@ -41,17 +41,17 @@ AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock])
 
+# Load tclConfig.sh
+SC_PATH_TCLCONFIG
+SC_LOAD_TCLCONFIG
+
 # Check for Tcl public headers
 dnl XXX hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)
 CYGPATH=echo
 SC_PUBLIC_TCL_HEADERS
 
-# Load tclConfig.sh
-SC_PATH_TCLCONFIG
-SC_LOAD_TCLCONFIG
-
 # Check for tclsh binary
-AC_PATH_PROG([TCLSH], [tclsh tclsh$TCL_VERSION])
+OD_PROG_TCLSH
 
 # Check for Tcl package path
 OD_TCL_PACKAGE_DIR
