@@ -322,7 +322,9 @@ proc dportexec {dport target} {
 	if {$target == "configure" || $target == "build" || $target == "install" ||
 		$target == "package" || $target == "mpkg"} {
 
-		dportdepends $dport 1 1
+		if {[dportdepends $dport 1 1] != 0} {
+			return 1
+		}
 		
 		# Select out the dependents along the critical path,
 		# but exclude this dport, we might not be installing it.
@@ -467,6 +469,11 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 				set porturl $portinfo(porturl)
 				break
 			}
+		}
+
+		if {![info exists porturl]} {
+			ui_error "Dependency '$portname' not found."
+			return 1
 		}
 
 		set options [ditem_key $dport options]
