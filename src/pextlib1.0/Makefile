@@ -3,6 +3,7 @@ LIB=		Pextlib
 SHLIB_NAME=	Pextlib.dylib
 NOPROFILE=	TRUE
 LDADD+=		-ltcl
+CLEANFILES=	pkgIndex.tcl
 INSTALLDIR= /usr/local/share/darwinports/Tcl/pextlib1.0
 
 install:
