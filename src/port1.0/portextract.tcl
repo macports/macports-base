@@ -43,6 +43,7 @@ commands extract
 
 # Set up defaults
 # XXX call out to code in portutil.tcl XXX
+# This cleans the distfiles list of all site tags
 default extract.only {[disttagclean $distfiles]}
 
 default extract.dir {${portpath}/${workdir}}
