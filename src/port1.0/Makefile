@@ -1,5 +1,7 @@
 PREFIX?=	/opt/local
 INSTALLDIR=	${PREFIX}/share/darwinports/Tcl/port1.0
+DSTUSR?=	root
+DSTGRP?=	wheel
 
 SRCS=		port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl portinstall.tcl portregistry.tcl portdepends.tcl portinstall.tcl portuninstall.tcl portregistry.tcl portdepends.tcl portclean.tcl portpackage.tcl
 
@@ -10,6 +12,6 @@ clean:
 install:
 	mkdir -p ${INSTALLDIR}
 	@set -x; for file in ${SRCS}; do \
-		install -c -o root -g wheel -m 444 $$file ${INSTALLDIR}; \
+		install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
 	../pkg_mkindex.tcl ${INSTALLDIR}

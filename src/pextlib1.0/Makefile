@@ -3,6 +3,8 @@ SHLIB_NAME=	Pextlib
 LDADD+=		-ltcl
 PREFIX?=	/opt/local
 INSTALLDIR= ${PREFIX}/share/darwinports/Tcl/pextlib1.0
+DSTUSR?=	root
+DSTGRP?=	wheel
 
 .c.o:
 	./compile.sh ${CFLAGS} $< -o $@
@@ -17,5 +19,5 @@ clean:
 
 install:
 	mkdir -p ${INSTALLDIR}
-	install -c -o root -g wheel -m 444 `./link.sh -n ${SHLIB_NAME}` ${INSTALLDIR}
+	install -c -o "${DSTUSR}" -g "${DSTGRP}" -m 444 `./link.sh -n ${SHLIB_NAME}` ${INSTALLDIR}
 	../pkg_mkindex.tcl ${INSTALLDIR}
