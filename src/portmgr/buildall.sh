@@ -38,7 +38,7 @@ mkchrootimage() {
 	DEV=""
 
 	# Add to this list as you find minimum dependencies DP really needs.
-	chrootfiles="bin sbin etc tmp var dev/null usr/include usr/libexec usr/sbin usr/bin usr/lib usr/share private/tmp private/etc private/var/at private/var/cron private/var/db private/var/empty private/var/log private/var/mail private/var/msgs private/var/named private/var/root private/var/run private/var/rwho private/var/spool private/var/tmp private/var/vm/app_profile Developer/Applications/Xcode.app Developer/Applications/Utilities Developer/Headers Developer/Makefiles Developer/Private Developer/Tools System/Library/Frameworks System/Library/CoreServices System/Library/PrivateFrameworks System/Library/OpenSSL"
+	chrootfiles="bin sbin etc tmp var dev/null usr/include usr/libexec usr/sbin usr/bin usr/lib usr/share private/tmp private/etc private/var/at private/var/cron private/var/db private/var/empty private/var/log private/var/mail private/var/msgs private/var/named private/var/root private/var/run private/var/rwho private/var/spool private/var/tmp private/var/vm/app_profile Developer/Applications/Xcode.app Developer/Applications/Utilities Developer/Headers Developer/Makefiles Developer/Private Developer/Tools System/Library/Frameworks System/Library/CoreServices System/Library/PrivateFrameworks System/Library/OpenSSL System/Library/Perl"
 
 	echo "Calculating chroot image size..."
 	# start with this size as padding for darwinports
