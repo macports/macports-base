@@ -110,11 +110,19 @@ switch -- $action {
 			array set portinfo $array
 			puts "$portinfo(portname) $portinfo(description)"
 		}
+		if {[array size portinfo] == 0} {
+			puts "No match for $portname found"
+			exit 1
+		}
 	}
 	default {
 		set target $action
 		if {[info exists portname]} {
 			array set portinfo [dportmatch ^$portname\$]
+			if {[array size portinfo] == 0} {
+				puts "Port $portname not found"
+				exit 1
+			}
 			set portdir $portinfo(portdir)
 		}
 		if ![info exists portdir] {
