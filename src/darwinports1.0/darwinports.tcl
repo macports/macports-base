@@ -243,8 +243,6 @@ proc darwinports::worker_init {workername portpath options variations} {
 	$workername alias registry_deactivate portimage::deactivate
 	$workername alias registry_register_deps registry::register_dependencies
 	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
-	$workername alias registry_fileinfo_for_file registry::fileinfo_for_file
-	$workername alias registry_fileinfo_for_entry registry::fileinfo_for_entry
 
 
     foreach opt $portinterp_options {

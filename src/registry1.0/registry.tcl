@@ -247,6 +247,19 @@ proc open_dep_map {args} {
 	return [${darwinports::registry.format}::open_dep_map $args]
 }
 
+##
+#
+# From a file name, return a list representing data currently known about the file.
+# This list is a 6-tuple of the form:
+# 0: file path
+# 1: uid
+# 2: gid
+# 3: mode
+# 4: size
+# 5: md5 checksum information
+#
+# fname		a path to a given file.
+# return a 6-tuple about this file.
 proc fileinfo_for_file {fname} {
     # Add the link to the registry, not the actual file.
     # (we won't store the md5 of the target of links since it's meaningless
@@ -266,28 +279,24 @@ proc fileinfo_for_file {fname} {
     return {}
 }
 
-proc fileinfo_for_entry {rval dir entry} {
-    upvar $rval myrval
-    set path [file join $dir $entry]
-    lappend myrval [fileinfo_for_file $path]
-    return $myrval
-}
-
+##
+#
+# From a list of files, return a list of information concerning these files.
+# The information is obtained through fileinfo_for_file.
+#
+# flist		the list of file to get information about.
+# return a list of 6-tuples described in fileinfo_for_file.
 proc fileinfo_for_index {flist} {
-    global prefix
+	global prefix
 
-    set rval {}
-    foreach file $flist {
-	if {[string match /* $file]} {
-	    set fname $file
-	    set dir /
-	} else {
-	    set fname [file join $prefix $file]
-	    set dir $prefix
+	set rval [list]
+	foreach file $flist {
+		if {[string index $file 0] != "/"} {
+			set file [file join $prefix $file]
+		}
+		lappend rval [fileinfo_for_file $file]
 	}
-	fileinfo_for_entry rval $dir $file
-    }
-    return $rval
+	return $rval
 }
 
 # List all ports this one depends on
