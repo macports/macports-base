@@ -503,6 +503,94 @@ switch -- $action {
         }
     }
 
+	outdated {
+		# If a port name was supplied, limit ourselves to that port, else check all installed ports
+		if { [info exists portname] } {
+			if { [catch {set ilist [registry::installed $portname]} result] } {
+				puts "port outdated failed: $result"
+				exit 1
+			}
+		} else {
+			if { [catch {set ilist [registry::installed]} result] } {
+				puts "port outdated failed: $result"
+				exit 1
+			}
+		}
+	
+		if { [llength $ilist] > 0 } {
+			puts "The following installed ports seem to be outdated:"
+		
+			foreach i $ilist { 
+
+				# Get information about the installed port
+				set portname			[lindex $i 0]
+				set installed_version	[lindex $i 1]
+				set installed_revision	[lindex $i 2]
+				set installed_compound	"${installed_version}_${installed_revision}"
+
+				set is_active			[lindex $i 4]
+				if { $is_active == 0 } {
+					continue
+				}
+
+				# Get info about the port from the index
+				# Escape regex special characters
+				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+				if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+					puts "port search failed: $result"
+					exit 1
+				}
+				if {[llength $res] < 2} {
+					if {[ui_isset ports_debug]} {
+						puts "$portname ($installed_compound is installed; the port was not found in the port index)"
+					}
+					continue
+				}
+				array set portinfo [lindex $res 1]
+				
+				# Get information about latest available version and revision
+				set latest_version $portinfo(version)
+				set latest_revision		0
+				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
+					set latest_revision	$portinfo(revision)
+				}
+				set latest_compound		"${latest_version}_${latest_revision}"
+				
+				# Compare versions for equality
+				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				if { $comp_result != 0 } {
+				
+					# Form a relation between the versions
+					set flag ""
+					if { $comp_result > 0 } {
+						set relation ">"
+						set flag "!"
+					} else {
+						set relation "<"
+					}
+					
+					# Emit information
+					if {$comp_result < 0 || [ui_isset ports_verbose]} {
+						puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound" $flag]
+					}
+					
+					# Even more verbose explanation (disabled at present)
+					if {false && [ui_isset ports_verbose]} {
+						puts "  installed: $installed_compound"
+						puts "  latest:    $latest_compound"
+						# Warning for ports that are predated
+						if { $result > 0 } {
+							puts "  (installed version is newer than port index version)"
+						}
+					}
+					
+				}
+			}
+		} else {
+			exit 1
+		}
+	}
+
 	contents {
 		# make sure a port was given on the command line
 		if {![info exists portname]} {
