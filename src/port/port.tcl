@@ -92,7 +92,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfonausbck\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfonausbck\] \[-D portdir\] target \[flags\] \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -130,9 +130,14 @@ array set options [list]
 array set variations [list]
 for {set i 0} {$i < $argc} {incr i} {
 	set arg [lindex $argv $i]
-	
+
+	# if --xyz after the action, but before any portname
+	if {[info exists action] && ![info exists portname] \
+			&& [regexp {^--([A-Za-z0-9]+)$} $arg match key] == 1} {
+		set options(ports_${action}_${key}) yes
+
 	# if -xyz before the separator
-	if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
+	} elseif {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
 	if {$opt == "-"} {
 		set separator 1
 	} else {
@@ -667,6 +672,11 @@ switch -- $action {
 		}
 		if {![info exists porturl]} {
 			set porturl file://./
+		}
+		# If version was specified, save it as a version glob for use
+		# in port actions (e.g. clean).
+		if {[info exists portversion]} {
+			set options(ports_version_glob) $portversion
 		}
 		if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
 			puts "Unable to open port: $result"

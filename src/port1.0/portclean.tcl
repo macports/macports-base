@@ -1,6 +1,7 @@
 # et:ts=4
 # portclean.tcl
 #
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -49,6 +50,157 @@ proc clean_start {args} {
 }
 
 proc clean_main {args} {
-    exec rm -rf [file join [option workpath]]
+    global UI_PREFIX
+	global ports_clean_dist ports_clean_work ports_clean_archive
+	global ports_clean_all
+
+	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
+		[info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option portname]]"
+		clean_dist
+	}
+	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
+		[info exists ports_clean_archive] && $ports_clean_archive == "yes"} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option portname]]"
+		clean_archive
+	}
+	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
+		[info exists ports_clean_work] && $ports_clean_work == "yes" || \
+		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes") && \
+		 !([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
+		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing workpath for %s"] [option portname]]"
+		 clean_work
+	}
+
     return 0
 }
+
+#
+# Remove the directory where the distfiles reside.
+# This is crude, but works.
+#
+proc clean_dist {args} {
+	global ports_force portname distpath dist_subdir distfiles
+
+	# remove known distfiles for sure (if they exist)
+	set count 0
+	foreach file $distfiles {
+		if {[info exist distpath] && [info exists dist_subdir]} {
+			set distfile [file join ${distpath} ${dist_subdir} ${file}]
+		} else {
+			set distfile [file join ${distpath} ${file}]
+		}
+		if {[file isfile $distfile]} {
+			ui_debug "Removing file: $distfile"
+			if {[catch {exec rm -f ${distfile}} result]} {
+				ui_error "${result}"
+			}
+			set count [expr $count + 1]
+		}
+	}
+	if {$count > 0} {
+		ui_info "$count distfile(s) removed."
+	} else {
+		ui_info "No distfiles found to remove."
+	}
+
+	# next remove dist_subdir if only needed for this port,
+	# or if user forces us to
+	set dirlist [list]
+	if {($dist_subdir != $portname)} {
+		if {[info exists dist_subdir]} {
+			if {!([info exists ports_force] && $ports_force == "yes")} {
+				ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join ${distpath} ${dist_subdir}]]
+			} else {
+				lappend dirlist $dist_subdir
+				lappend dirlist $portname
+			}
+		} else {
+			lappend dirlist $portname
+		}
+	} else {
+		lappend dirlist $portname
+	}
+	# loop through directories
+	set removed 0
+	foreach dir $dirlist {
+		set distdir [file join ${distpath} ${dir}]
+		if {[file isdirectory ${distdir}]} {
+			ui_debug "Removing directory: ${distdir}"
+			if {[catch {exec rm -rf ${distdir}} result]} {
+				ui_error "${result}"
+			}
+			set removed 1
+		}
+	}
+	if {!$removed} {
+		ui_info "No distfile directory found to remove."
+	}
+	return 0
+}
+
+proc clean_work {args} {
+	global workpath
+
+	if {[file isdirectory ${workpath}]} {
+		ui_debug "Removing directory: ${workpath}"
+		if {[catch {exec rm -rf ${workpath}} result]} {
+			ui_error "${result}"
+		}
+	} else {
+		ui_info "No work directory found to remove."
+	}
+
+	return 0
+}
+
+proc clean_archive {args} {
+	global workpath portarchivepath portname portversion ports_version_glob
+
+	# Define archive destination directory and target filename
+	if {![string equal ${portarchivepath} ${workpath}] && ![string equal ${portarchivepath} ""]} {
+		set archivepath [file join ${portarchivepath} [option os.platform] [option os.arch]]
+	}
+
+	if {[info exists ports_version_glob]} {
+		# Match all possible archive variatns that match the version
+		# glob specified by the user for this OS.
+		set fileglob "${portname}-[option ports_version_glob]*.[option os.arch].*"
+	} else {
+		# Match all possible archive variants for the current version on
+		# this OS. If you want to delete previous versions, use the
+		# version glob argument to clean.
+		#
+		# We do this because if we don't, then ports that match the
+		# first part of the name (e.g. trying to remove foo-*, it will
+		# pick up anything foo-bar-* as well, which is undesirable).
+		set fileglob "${portname}-${portversion}*.[option os.arch].*"
+	}
+
+	# Remove the archive files
+	set count 0
+	if {![catch {set archivelist [glob [file join ${archivepath} ${fileglob}]]} result]} {
+		foreach path $archivelist {
+			set file [file tail $path]
+			# Make sure file is truly a port archive file, and not
+			# and accidental match with some other file that might exist.
+			if {[regexp "^${portname}-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
+				if {[file isfile ${path}]} {
+					ui_debug "Removing archive: ${path}"
+					if {[catch {exec rm -f ${path}} result]} {
+						ui_error "${result}"
+					}
+					set count [expr $count + 1]
+				}
+			}
+		}
+	}
+	if {$count > 0} {
+		ui_info "$count archive(s) removed."
+	} else {
+		ui_info "No archives found to remove."
+	}
+
+	return 0
+}
+

@@ -104,8 +104,6 @@ The other targets are:
 .Dl activate
 .Dl upgrade
 .Dl clean
-.Dl distclean
-.Dl archiveclean
 .Dl search
 .Dl list
 .Dl contents
@@ -176,17 +174,33 @@ To uninstall all ports that are not activated
 .Pp
 .Dl "port -u uninstall" 
 .Pp
-To clean up after the port was build:
+To clean up working directory after the port was built:
 .Pp
 .Dl "port clean vim
 .Pp
+or:
+.Pp
+.Dl "port clean --work vim
+.Pp
 To remove a port's distfiles:
 .Pp
-.Dl "port distclean vim
+.Dl "port clean --dist vim
 .Pp
-To remove a port's archives:
+To remove a port's archives (any variant of current port version):
 .Pp
-.Dl "port archiveclean vim
+.Dl "port clean --archive vim
+.Pp
+To remove certain version(s) of a port's archives (version is any valid UNIX glob pattern):
+.Pp
+.Dl "port clean --archive vim 6.2.114
+.Pp
+or:
+.Pp
+.Dl "port clean --archive vim '6.*'
+.Pp
+To remove a port's distfiles, archives, and working directory:
+.Pp
+.Dl "port clean --all vim
 .Pp
 To deactivate a port (in image mode):
 .Pp
