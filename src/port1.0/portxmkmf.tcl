@@ -32,25 +32,35 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.xmkmf
+name			org.opendarwin.xmkmf
 #version		1.0
 maintainers		kevin@opendarwin.org
 description		Prepare sources for building using xmkmf
 requires		patch
-provides		prepare xmkmf
+provides		xmkmf
 
 commands xmkmf
-#default xmkmf.cmd xmkmf
-#default xmkmf.dir {[option worksrcpath]}
+
+proc set_defaults {args} {
+	# If this gets called then somebody said "use xmkmf"
+	global use_xmkmf
+	set use_xmkmf yes
+	
+	default xmkmf.cmd xmkmf
+	default xmkmf.dir {[option worksrcpath]}
+}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
-    global UI_PREFIX
+    global UI_PREFIX use_xmkmf
+
+	if {![info exists use_xmkmf] || $use_xmkmf != "yes"} {
+		# We were not called upon.
+		return 1
+	}
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
-
-	option xmkmf.dir [option worksrcpath]
 
 	if {[catch {system "[command xmkmf]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"

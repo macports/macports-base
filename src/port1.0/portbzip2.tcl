@@ -39,9 +39,13 @@ description		Extract files using bzip2(1)
 requires		checksum
 provides		extract bzip2
 
-# XXX: need a way to change defaults if "use" is issued.
-#default extract.sufx .tar.bz2
 #default extract.pre_args -dc
+
+proc set_defaults {args} {
+	# this is called when someone says "use bzip2"
+	default extract.cmd  bzip2
+	default extract.sufx .tar.bz2
+}
 
 set UI_PREFIX "---> "
 

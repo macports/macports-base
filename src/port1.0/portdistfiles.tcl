@@ -80,8 +80,6 @@ proc start {args} {
 
 proc main {args} {
 	global UI_PREFIX
-	puts "portdistfiles: [option distfiles]"
-	
 
 	# The distfiles builtes the list of distribution files then
 	# iterates through it.  It sets the 'distfile' option to the

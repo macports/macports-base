@@ -31,31 +31,27 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.configure
+name			org.opendarwin.configure
 #version		1.0
 maintainers		kevin@opendarwin.org
 description		Prepare sources for building using configure
+provides		configure
 requires		patch
-provides		prepare configure
+uses			autoconf automake
 
 # define options
 commands configure
 options configure.pre_args configure.cmd configure.dir
 
 # defaults
-#default configure.pre_args {--prefix=[option prefix]}
-#default configure.cmd ./configure
-#default configure.dir {[option worksrcpath]}
+default configure.pre_args {--prefix=[option prefix]}
+default configure.cmd ./configure
+default configure.dir {[option worksrcpath]}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
     global UI_PREFIX
-
-	# XXX: blah
-	option configure.pre_args {--prefix=[option prefix]}
-	option configure.cmd ./configure
-	option configure.dir {[option worksrcpath]}
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 

@@ -251,13 +251,13 @@ proc command {command} {
 proc default {ditem option val} {
     global $option option_defaults option_workers
     if {[info exists option_defaults($option)]} {
-	ui_debug "Re-registering default for $option"
+		ui_debug "Re-registering default for $option"
     } else {
-	# If option is already set and we did not set it
-	# do not reset the value
-	if {[info exists $option]} {
-	    return
-	}
+		# If option is already set and we did not set it
+		# do not reset the value
+		if {[info exists $option]} {
+			return
+		}
     }
     set option_defaults($option) $val
 	set option_workers($option) [ditem_key $ditem worker]
@@ -886,7 +886,12 @@ proc use {name} {
 			ui_debug "  suppressing [ditem_key $other name]"
 			dlist_delete targets $other
 		}
-	}	
+	}
+	# Call to the target to set defaults
+	set worker [ditem_key $target worker]
+	if {$worker != {}} {
+		catch {$worker eval "set_defaults"}
+	}
 }
 
 ##### variant class #####

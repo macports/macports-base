@@ -32,24 +32,39 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.autoconf
+name			org.opendarwin.autoconf
 #version		1.0
 maintainers		kevin@opendarwin.org
 description		Prepare sources for building using autoconf
 requires		patch
-provides		prepare autoconf
+provides		autoconf
 
 commands autoconf
-# XXX: default autoconf.dir {[option worksrcpath]}
+
+proc set_defaults {args} {
+	# If this gets called then somebody said "use autoconf"
+	global use_autoconf
+	set use_autoconf yes
+	
+	default autoconf.dir {[option worksrcpath]}
+}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
-    global UI_PREFIX
+    global UI_PREFIX use_autoconf
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+	if {![info exists use_autoconf] || $use_autoconf != "yes"} {
+		# We were not called upon.
+		return 1
+	}
 
-	option autoconf.dir [option worksrcpath]
+	#if {[glob -directory [option automake.dir] *.ac] == {}} {
+	#	# Don't appear to be any autoconf files.
+	#	return 1
+	#}
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s with autoconf"] [option portname]]"
 
 	if {[catch {system "[command autoconf]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"

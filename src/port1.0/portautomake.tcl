@@ -31,26 +31,40 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.automake
+name			org.opendarwin.automake
 #version		1.0
 maintainers		kevin@opendarwin.org
 description		Prepare sources for building using automake
 requires		patch
-provides		prepare automake
+provides		automake
+uses			autoconf
 
 commands automake
-# XXX: default automake.dir {[option worksrcpath]}
+
+proc set_defaults {args} {
+	# If this gets called then somebody said "use autoconf"
+	global use_automake
+	set use_automake yes
+	
+	default automake.dir {[option worksrcpath]}
+}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
-    global UI_PREFIX
+    global UI_PREFIX use_automake
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+	if {![info exists use_automake] || $use_automake != "yes"} {
+		# We were not called upon.
+		return 1
+	}
 
-	option automake.dir [option worksrcpath]
+	#if {[glob -directory [option automake.dir] *.am] == {}} {
+	#	# Don't appear to be any automake files.
+	#	return 1
+	#}
 
-	# XXX: should probably look for an automake file
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s with automake"] [option portname]]"
 
 	if {[catch {system "[command automake]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
