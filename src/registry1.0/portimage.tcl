@@ -275,7 +275,11 @@ proc _activate_file {srcfile dstfile} {
 
 proc _activate_list {flist imagedir} {
 	foreach file $flist {
-		ui_debug "activating file: $file"
+		if { [file isdirectory $file] } {
+			ui_debug "activating directory: $file"
+		} else {
+			ui_debug "activating file: $file"
+		}
 		_activate_file ${imagedir}${file} $file
 	}
 }
