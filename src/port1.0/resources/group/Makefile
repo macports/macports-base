@@ -1,6 +1,6 @@
 INSTALLDIR=	${DESTDIR}${prefix}/share/darwinports/resources/port1.0/group
 
-RSRCS=		
+RSRCS=		perl5-1.0.tcl
 
 include ../../../../Mk/dports.autoconf.mk
 
