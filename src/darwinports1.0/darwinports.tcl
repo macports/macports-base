@@ -162,7 +162,9 @@ proc darwinports::fetch_port {url} {
     exec curl -s -S -o [file join $fetchdir $fetchfile] $url
     cd $fetchdir
     exec tar -zxf $fetchfile
-    regexp {([A-Za-z]+).tgz} $fetchfile match portdir
+    if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
+        return -code error "Can't decipher portdir from $fetchfile"
+    }
     return [file join $fetchdir $portdir]
 }
 
