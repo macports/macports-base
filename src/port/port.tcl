@@ -198,6 +198,79 @@ if {[catch {dportinit} result]} {
 }
 
 switch -- $action {
+	info {
+		if {![info exists portname]} {
+			puts "You must specify a port"
+			exit 1
+		}
+	
+		# search for port
+		if {[catch {dportsearch ^$portname$} result]} {
+			puts "port search failed: $result"
+			exit 1
+		}
+	
+		if {$result == ""} {
+			puts "No port $portname found."
+		} else {
+			array set portinfo [lindex $result 1]
+
+			puts -nonewline "$portname $portinfo(version)"
+			if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
+				puts -nonewline ", Revision $portinfo(revision)" 
+			}
+			if {[info exists portinfo(variants)]} {
+				puts -nonewline " (Variants: "
+				for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
+					if {$i > 0} { puts -nonewline ", " }
+					puts -nonewline "[lindex $portinfo(variants) $i]"
+				}
+				puts -nonewline ")"
+			}
+			puts ""
+			if {[info exists portinfo(homepage)]} { 
+				puts "$portinfo(homepage)"
+			}
+	
+			puts "\n$portinfo(long_description)\n"
+
+			# find build dependencies
+			if {[info exists portinfo(depends_build)]} {
+				puts -nonewline "Build Dependencies: "
+				for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
+					if {$i > 0} { puts -nonewline ", " }
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] 2]"
+				}
+				set nodeps false
+				puts ""
+			}
+	
+			# find library dependencies
+			if {[info exists portinfo(depends_lib)]} {
+				puts -nonewline "Library Dependencies: "
+				for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
+					if {$i > 0} { puts -nonewline ", " }
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] 2]"
+				}
+				set nodeps false
+				puts ""
+			}
+	
+			# find runtime dependencies
+			if {[info exists portinfo(depends_run)]} {
+				puts -nonewline "Runtime Dependencies: "
+				for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
+					if {$i > 0} { puts -nonewline ", " }
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] 2]"
+				}
+				set nodeps false
+				puts ""
+			}
+			if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
+			if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
+
+		}
+	}
 	location {
 		if { ![info exists portname] } {
 			puts "To list the image location of an installed port please provide a portname."
