@@ -120,7 +120,7 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 
     # instantiate the UI functions
-    foreach proc {ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
+    foreach proc {ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
         $workername alias $proc $proc
     }
 
