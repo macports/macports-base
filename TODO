@@ -5,7 +5,10 @@ Task								Who
 Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
      specific sites						landonf
+Select all variants which are a subset of the requested options	kevinvv
+Allow variants to be overridden					kevinvv
 Allow depspecs in requires (targets & variants)			kevinvv
+Change run/build depends to add depspecs to target's requires	kevinvv
 Implement deinstall target					landonf
 Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
