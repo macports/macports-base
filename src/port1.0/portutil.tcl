@@ -382,18 +382,27 @@ proc reinplace {pattern args}  {
     }
 
     foreach file $args {
-	if {[catch {set tmpfile [mktemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+	if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 	    ui_error "reinplace: $error"
 	    return -code error "reinplace failed"
+	} else {
+	    # Extract the Tcl Channel number
+	    set tmpfd [lindex $tmpfile 0]
+	    # Set tmpfile to only the file name
+	    set tmpfile [lindex $tmpfile 1]
 	}
 
-	if {[catch {exec sed $pattern < $file > $tmpfile} error]} {
+	if {[catch {exec sed $pattern < $file >@ $tmpfd} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
 	    return -code error "reinplace failed"
 	}
 
-	if {[catch {file attributes $file -permissions +w} error]} {
+	close $tmpfd
+
+	set attributes [file attributes $file]
+	# We need to overwrite this file
+	if {[catch {file attributes $file -permissions u+w} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
 	    return -code error "reinplace failed"
@@ -404,6 +413,14 @@ proc reinplace {pattern args}  {
 	    file delete "$tmpfile"
 	    return -code error "reinplace failed"
 	}
+	
+	for {set i 0} {$i < [llength attributes]} {incr i} {
+	    set opt [lindex $attributes $i]
+	    incr i
+	    set arg [lindex $attributes $i]
+	    file attributes $file $opt $arg
+	}
+	
 	file delete "$tmpfile"
     }
     return
