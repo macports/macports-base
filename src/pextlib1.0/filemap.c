@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.1.2.2 2004/06/01 06:30:22 pguyot Exp $
+ * $Id: filemap.c,v 1.1.2.3 2004/06/01 06:33:56 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -1450,7 +1450,8 @@ FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		SFilemapObject* theFilemapObject;
 		Tcl_Obj* theList;
 		
-		/*	unique (second) parameter is the variable name */
+		/*	first (second) parameter is the variable name,
+			second (third) parameter is the value */
 		if (objc != 4) {
 			Tcl_WrongNumArgs(interp, 1, objv, "list filemapName value");
 			theResult = TCL_ERROR;
