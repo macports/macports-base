@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.19 2004/07/01 17:21:16 wbb4 Exp $
+# $Id: mirror_sites.tcl,v 1.20 2004/08/04 03:02:39 toby Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -45,7 +45,6 @@ set portfetch::mirror_sites::sites(freebsd) {
 }
 
 set portfetch::mirror_sites::sites(gnome) {
-    ftp://ftp.mirror.ac.uk/sites/ftp.gnome.org/pub/GNOME/
     http://ftp.linux.org.uk/mirrors/ftp.gnome.org/
     http://www.gtlib.cc.gatech.edu/pub/gnome/
     http://public.planetmirror.com/pub/gnome/
