@@ -122,7 +122,7 @@ proc clean_dist {args} {
 		lappend dirlist $portname
 	}
 	# loop through directories
-	set removed 0
+	set count 0
 	foreach dir $dirlist {
 		set distdir [file join ${distpath} ${dir}]
 		if {[file isdirectory ${distdir}]} {
@@ -130,10 +130,12 @@ proc clean_dist {args} {
 			if {[catch {exec rm -rf ${distdir}} result]} {
 				ui_error "${result}"
 			}
-			set removed 1
+			set count [expr $count + 1]
 		}
 	}
-	if {!$removed} {
+	if {$count > 0} {
+		ui_info "$count distfile directory(s) removed."
+	} else {
 		ui_info "No distfile directory found to remove."
 	}
 	return 0
@@ -147,6 +149,7 @@ proc clean_work {args} {
 		if {[catch {exec rm -rf ${workpath}} result]} {
 			ui_error "${result}"
 		}
+		ui_info "Work directory removed."
 	} else {
 		ui_info "No work directory found to remove."
 	}
