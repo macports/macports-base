@@ -959,6 +959,10 @@ proc upgrade {pname dspec} {
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
 
+	# the depflag tells us if we should follow deps (this is for stuff installed outside DP)
+	# if this is set (not 0) we dont follow the deps
+	set depflag 0
+
 	# set version_installed
 	set ask no
 	set ilist {}
@@ -985,6 +989,7 @@ proc upgrade {pname dspec} {
 			} else {
 				# port installed outside DP
 				ui_debug "$pname installed outside the DarwinPorts system"
+				set depflag 1
 			}
 
 		} else {
@@ -1039,8 +1044,9 @@ proc upgrade {pname dspec} {
 		set nodeps yes
 	}
 
-	if {$nodeps == "yes"} {
+	if {$nodeps == "yes" || $depflag == 1} {
 		ui_debug "Not following dependencies"
+		set depflag 0
 	} else {
 		# build depends is upgraded
 		if {[info exists portinfo(depends_build)]} {
