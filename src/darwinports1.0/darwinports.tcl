@@ -1125,7 +1125,7 @@ proc upgrade {pname dspec} {
 		# activate the latest installed version, cause installed of 
 		# the version in ports failed.
 		if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
-    		ui_error "Activating $pname $version_installed failed: $result"
+    		ui_error "Activating $pname $version_installed$oldvariant failed: $result"
 			return 1
 		}
 		return 1
@@ -1134,9 +1134,9 @@ proc upgrade {pname dspec} {
 	# uninstall old ports
 	if {[info exists options(port_uninstall_old)]} {
 		# uninstalll old
-		ui_debug "Uninstalling $pname $version_installed$variant"
-		if {[catch {portuninstall::uninstall $pname $version_installed$variant} result]} {
-     		ui_error "Uninstall $pname $version_installed$variant failed: $result"
+		ui_debug "Uninstalling $pname $version_installed$oldvariant"
+		if {[catch {portuninstall::uninstall $pname $version_installed$oldvariant} result]} {
+     		ui_error "Uninstall $pname $version_installed$oldvariant failed: $result"
        		return 1
     	}
 	}
