@@ -91,11 +91,7 @@ for {set i 0} {$i < $argc} {incr i} {
 	}
 }
 dportinit
-if [info exists options] {
-    set workername [dportopen $portdir options variations]
-} else {
-    set workername [dportopen $portdir]
-}
+set workername [dportopen $portdir options variations]
 set result [dportexec $workername $target]
 dportclose $workername
 return $result

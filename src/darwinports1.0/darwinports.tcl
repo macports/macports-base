@@ -87,11 +87,20 @@ proc dportinit {args} {
     }
 }
 
-proc dportopen {portdir options variations} {
+proc dportopen {portdir {options ""} {variations ""}} {
     global portpath portinterp_options uniqid
-    
-    upvar $options upoptions
-    upvar $variations upvariations
+
+    if {$options == ""} {
+	set upoptions ""
+    } else {
+	upvar $options upoptions
+    }
+
+    if {$variations == ""} {
+	set upvariations ""
+    } else {
+	upvar $variations upvariations
+    }
 
     if [file isdirectory $portdir] {
 	cd $portdir
