@@ -3,7 +3,7 @@ INSTALLDIR=	${PREFIX}/share/darwinports/resources/port1.0/package
 DSTUSR?=	root
 DSTGRP?=	wheel
 
-RSRCS=
+RSRCS=		background.tiff
 
 all:
 
