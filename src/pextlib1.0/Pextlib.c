@@ -496,7 +496,7 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	path = Tcl_GetString(objv[1]);
 	dirp = opendir(path);
 	if (!dirp) {
-		Tcl_SetResult(interp, "Directory not found", TCL_STATIC);
+		Tcl_SetResult(interp, "Cannot read directory", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);

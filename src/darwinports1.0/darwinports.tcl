@@ -332,7 +332,13 @@ proc _dportsearchpath {depregex search_path} {
 	if {![file isdirectory $path]} {
 	    continue
 	}
-	foreach filename [readdir $path] {
+
+	if {[catch {set filelist [readdir $path]} result]} {
+		return -code error "$result ($path)"
+		set filelist ""
+	}
+
+	foreach filename $filelist {
 	    if {[regexp $depregex $filename] == 1} {
 		ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 		set found 1
