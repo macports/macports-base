@@ -164,6 +164,9 @@ proc main {pextlibname} {
 	filemap close testmap2
 
 	file delete "/tmp/darwinports-pextlib-testmap"
+
+	# delete the lock file as well.
+	file delete "/tmp/darwinports-pextlib-testmap.lock"
 }
 
 main $argv

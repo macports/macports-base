@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.4 2004/12/13 15:24:41 pguyot Exp $
+ * $Id: filemap.c,v 1.5 2005/03/02 14:13:55 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -165,7 +165,9 @@ typedef struct {
 	/** Ref count */
 	unsigned int fRefCount;
 	/** File descriptor */
-	int fFilemapFD;
+	char	fFilemapPath[PATH_MAX];
+	/** File descriptor on lock. */
+	int 	fLockFD;
 	/** Root of the filemap */
 	SNode*	fRoot;
 	/** If the filemap is read only */
@@ -193,11 +195,11 @@ static const char kFilemapVersion[4] = { 0x0, 0x1, 0x0, 0x0 };
 /* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
-int Load(int inDatabaseFd, SNode** outTree);
+int Load(const char* inDatabasePath, SNode** outTree);
 int LoadNode(
 		char** const ioDatabaseBuffer,
 		SHeader** outNode, ssize_t* ioBytesLeft);
-int Save(int inDatabaseFd, SNode* inTree);
+int Save(const char* inDatabasePath, SNode* inTree);
 int SaveNode(int inDatabaseFd, SHeader* inNode);
 void Free(SNode** ioRoot);
 int Set(SNode** ioRoot, const char* inPath, const char* inValue);
@@ -245,31 +247,33 @@ Tcl_ObjType tclFilemapType = {
  * This function reads the whole file into a buffer, checks the header and then
  * calls LoadNode.
  *
- * @param inDatabaseFd	file descriptor of the open file (the cursor is reset)
- * @param outTree		on output, tree in memory
+ * @param inDatabasePath	path to the database file.
+ * @param outTree			on output, tree in memory
  */
 int
 Load(
-		int inDatabaseFd,
+		const char* inDatabasePath,
 		SNode** outTree)
 {
 	int theErr = 0;
 	char* theFileBuffer = NULL;
+	int theFD = -1;
 	
 	do {
 		struct stat theFileInfo;
 		char* theFileCursor;
 		ssize_t theFileSize;
 
-		/* reset the cursor */
-		if (lseek(inDatabaseFd, 0, SEEK_SET) < 0)
+		/* Open the file for reading, creating it if necessary. */
+		int theFD = open(inDatabasePath, O_RDONLY | O_CREAT, 0664);
+		if (theFD < 0)
 		{
 			theErr = errno;
 			break;
 		}
-		
+
 		/* if the file is empty (i.e. we just created it), just return an empty root */
-		if (fstat(inDatabaseFd, &theFileInfo) < 0)
+		if (fstat(theFD, &theFileInfo) < 0)
 		{
 			theErr = errno;
 			break;
@@ -297,7 +301,7 @@ Load(
 		theFileBuffer = (char*) ckalloc(theFileSize);
 		
 		/* read the whole file */
-		if (read(inDatabaseFd, theFileBuffer, theFileSize) != theFileSize)
+		if (read(theFD, theFileBuffer, theFileSize) != theFileSize)
 		{
 			theErr = errno;
 			break;
@@ -331,6 +335,12 @@ Load(
 	if (theFileBuffer)
 	{
 		ckfree(theFileBuffer);
+	}
+
+	/* close the file if required */
+	if (theFD >= 0)
+	{
+		(void) close(theFD);
 	}
 
 	return theErr;
@@ -501,28 +511,32 @@ LoadNode(
  */
 int
 Save(
-		int inDatabaseFd,
+		const char* inDatabasePath,
 		SNode* inTree)
 {
 	int theErr = 0;
+	int theFD = -1;
+	char theTempFilePath[PATH_MAX];
 	
 	do {
-		/* reset the cursor */
-		if (lseek(inDatabaseFd, 0, SEEK_SET) < 0)
-		{
-			theErr = errno;
-			break;
-		}
+		/* Create the temporary file */
+		theTempFilePath[sizeof(theTempFilePath) - 1] = 0;
+		(void) snprintf(
+			theTempFilePath,
+			sizeof(theTempFilePath) - 1,
+			"%s.w",
+			inDatabasePath);
 
-		/* Truncate the file to 0 */
-		if (ftruncate(inDatabaseFd, 0) < 0)
+		/* Create it. */
+		theFD = open(theTempFilePath, O_WRONLY | O_CREAT | O_TRUNC, 0664);
+		if (theFD < 0)
 		{
 			theErr = errno;
 			break;
 		}
 		
 		/* Write the signature */
-		if (write(inDatabaseFd, kFilemapSignature, sizeof(kFilemapSignature))
+		if (write(theFD, kFilemapSignature, sizeof(kFilemapSignature))
 				!= sizeof(kFilemapSignature))
 		{
 			theErr = errno;
@@ -530,7 +544,7 @@ Save(
 		}
 		
 		/* Write the version */
-		if (write(inDatabaseFd, kFilemapVersion, sizeof(kFilemapVersion))
+		if (write(theFD, kFilemapVersion, sizeof(kFilemapVersion))
 				!= sizeof(kFilemapVersion))
 		{
 			theErr = errno;
@@ -538,8 +552,29 @@ Save(
 		}
 		
 		/* then, write, recursively, the tree */
-		theErr = SaveNode(inDatabaseFd, (SHeader*) inTree);
+		theErr = SaveNode(theFD, (SHeader*) inTree);
+		if (theErr != 0)
+		{
+			break;
+		}
+		
+		/* Close the file */
+		(void) close(theFD);
+		theFD = -1;
+		
+		/* Atomically swap the temporary file with the new copy */
+		if (rename(theTempFilePath, inDatabasePath) < 0)
+		{
+			theErr = errno;
+			break;
+		}
 	} while (0);
+	
+	/* close the copy if required */
+	if (theFD >= 0)
+	{
+		(void) close(theFD);
+	}
 
 	return theErr;
 }
@@ -1137,12 +1172,12 @@ FreeFilemapInternalRep(Tcl_Obj* inObjPtr)
 	if ((--theObject->fRefCount) == 0)
 	{
 		SNode* theRoot = theObject->fRoot;
-		int theFD = theObject->fFilemapFD;
+		int theFD = theObject->fLockFD;
 		if (theFD >= 0)
 		{
 			/* close the file */
 			close(theFD);
-			theObject->fFilemapFD = -1;
+			theObject->fLockFD = -1;
 		}
 		
 		/* free it */
@@ -1345,7 +1380,7 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		
 		/* Save the filemap to file */
 		theErr = Save(
-					theFilemapObject->fFilemapFD,
+					theFilemapObject->fFilemapPath,
 					theFilemapObject->fRoot);
 		
 		/* Return any error. */
@@ -1510,58 +1545,65 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		const char* thePath;
 		Tcl_Obj* theObject;
 		SFilemapObject* theFilemapObject;
-		int theFD;
+		int theLockFD;
 		struct flock theLock;
 		char isReadOnly = 0;
 		SNode* theRoot = NULL;
 	
 		thePath = Tcl_GetString(objv[3]);
 				
-		/* open the file */
-		theFD = open(thePath, O_RDWR | O_CREAT, 0664);
-		if (theFD >= 0)
+		/* open the lock file */
 		{
-			/* Get a R/W lock on it (wait if required) */
-			theLock.l_type = F_WRLCK;
-			theLock.l_whence = SEEK_SET;
-			theLock.l_start = 0;
-			theLock.l_len = 0;
-			if (fcntl(theFD, F_SETLKW, &theLock) == -1)
-			{
-				theErr = errno;
-				break;
-			}
-		} else {
-			theErr = errno;
-			if (theErr == EACCES)
-			{
-				theErr = 0;
+			char theLockPath[PATH_MAX];
+			theLockPath[sizeof(theLockPath) - 1] = 0;
+			(void) snprintf(
+				theLockPath, sizeof(theLockPath) - 1, "%s.lock", thePath);
 
-				/* try again without R/W */
-				isReadOnly = 1;
-				theFD = open(thePath, O_RDONLY, 0);
-				if (theFD < 0)
-				{
-					theErr = errno;
-					break;
-				}
-
-				theLock.l_type = F_RDLCK;
+			theLockFD = open(theLockPath, O_RDWR | O_CREAT, 0664);
+			if (theLockFD >= 0)
+			{
+				/* Get a R/W lock on it (wait if required) */
+				theLock.l_type = F_WRLCK;
 				theLock.l_whence = SEEK_SET;
 				theLock.l_start = 0;
 				theLock.l_len = 0;
-				if (fcntl(theFD, F_SETLKW, &theLock) == -1)
+				if (fcntl(theLockFD, F_SETLKW, &theLock) == -1)
 				{
 					theErr = errno;
 					break;
 				}
 			} else {
-				break;
+				theErr = errno;
+				if (theErr == EACCES)
+				{
+					theErr = 0;
+
+					/* try again without R/W */
+					isReadOnly = 1;
+					theLockFD = open(theLockPath, O_RDONLY, 0);
+					if (theLockFD < 0)
+					{
+						theErr = errno;
+						break;
+					}
+
+					theLock.l_type = F_RDLCK;
+					theLock.l_whence = SEEK_SET;
+					theLock.l_start = 0;
+					theLock.l_len = 0;
+					if (fcntl(theLockFD, F_SETLKW, &theLock) == -1)
+					{
+						theErr = errno;
+						break;
+					}
+				} else {
+					break;
+				}
 			}
 		}
 		
 		/* load the map from the file */
-		theErr = Load(theFD, &theRoot);
+		theErr = Load(thePath, &theRoot);
 		if (theErr != 0)
 		{
 			if (theRoot)
@@ -1569,7 +1611,8 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				Free(&theRoot);
 			}
 			
-			close(theFD);
+			/* Close the lock */
+			(void) close(theLockFD);
 			break;
 		}
 		
@@ -1577,7 +1620,11 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theObject = Tcl_NewObj();
 		theFilemapObject = (SFilemapObject*) ckalloc(sizeof(SFilemapObject));
 		theFilemapObject->fRefCount = 1;
-		theFilemapObject->fFilemapFD = theFD;
+		(void) strncpy(
+			theFilemapObject->fFilemapPath,
+			thePath,
+			sizeof(theFilemapObject->fFilemapPath));
+		theFilemapObject->fLockFD = theLockFD;
 		theFilemapObject->fRoot = theRoot;
 		theFilemapObject->fIsReadOnly = isReadOnly;
 		theFilemapObject->fIsDirty = 0;
@@ -1631,7 +1678,7 @@ FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		Free(&theFilemapObject->fRoot);
 		
 		/* Reload the map from the file */
-		theErr = Load(theFilemapObject->fFilemapFD, &theFilemapObject->fRoot);
+		theErr = Load(theFilemapObject->fFilemapPath, &theFilemapObject->fRoot);
 		
 		/* The file tree is not dirty */
 		theFilemapObject->fIsDirty = 0;
@@ -1678,7 +1725,7 @@ FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		{
 			/* Save the filemap to file */
 			theErr = Save(
-					theFilemapObject->fFilemapFD,
+					theFilemapObject->fFilemapPath,
 					theFilemapObject->fRoot);
 		
 			/* The file tree is not dirty */
