@@ -6,7 +6,7 @@
 #include <tcl.h>
 
 #define BUFSIZ 1024
-static const char ui_proc[] = "ui_puts \"";
+static const char ui_proc[] = "ui_puts {";
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -95,7 +95,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		memcpy(script, ui_proc, sizeof(ui_proc));
 		strcat(script, buf);
 		p += scriptlen - 2;
-		*p = '"';
+		*p = '}';
 		if ((ret = Tcl_EvalEx(interp, script, scriptlen - 1, 0)) != TCL_OK)
 			return ret;
 		Tcl_AppendResult(interp, buf, NULL);
