@@ -37,6 +37,8 @@ target_runtype ${com.apple.rpmpackage} always
 target_provides ${com.apple.rpmpackage} rpmpackage
 target_requires ${com.apple.rpmpackage} install
 
+options package.destpath
+
 set UI_PREFIX "---> "
 
 proc rpmpackage_main {args} {
@@ -48,7 +50,18 @@ proc rpmpackage_main {args} {
 }
 
 proc rpmpackage_pkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch
+    global package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch
+
+    set rpmdestpath ""
+    if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
+        set pkgpath ${package.destpath}
+        system "mkdir -p ${pkgpath}/BUILD"
+        system "mkdir -p ${pkgpath}/RPMS"
+        system "mkdir -p ${pkgpath}/SOURCES"
+        system "mkdir -p ${pkgpath}/SPECS"
+        system "mkdir -p ${pkgpath}/SRPMS"
+        set rpmdestpath "--define '_topdir ${pkgpath}'"
+    }
 
     set specpath ${workpath}/${portname}.spec
     # long_description, description, or homepage may not exist
@@ -60,7 +73,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
         }
     }
     set category   [lindex [split $categories " "] 0]
-    set maintainer [join [split $maintainers " "] ", "]
+    set maintainer $maintainers
 
     set dependencies {}
     # get deplist
@@ -80,7 +93,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     system "cd '${destpath}' && find . ! -type d | grep -v /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./\"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     system "cd '${destpath}' && find . ! -type d | grep /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./%config \"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     write_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $category $maintainer $destpath $dependencies $epoch
-    system "DP_USERECEIPTS='${portdbpath}/receipts' rpm -bb -v ${specpath}"
+    system "DP_USERECEIPTS='${portdbpath}/receipts' rpm -bb -v ${rpmdestpath} ${specpath}"
 
     return 0
 }
