@@ -40,7 +40,6 @@
 #include <sys/wait.h>
 #include <tcl.h>
 #include <unistd.h>
-#include <signal.h>
 #ifdef __APPLE__
 #include <crt_externs.h>
 #endif
@@ -88,8 +87,7 @@ char * ui_escape(const char *source)
 	return dest;
 }
 
-static int ui_info(Tcl_Interp *interp, char *mesg)
-{
+static int ui_info(Tcl_Interp *interp, char *mesg) {
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
 	char *script, *string, *p;
@@ -114,15 +112,6 @@ static int ui_info(Tcl_Interp *interp, char *mesg)
 	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
 }
 
-static int signaled;
-static pid_t pid;
-
-static void system_handler(int sig)
-{
-        signaled = 1;
-	killpg(pid, sig);
-}
-
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char buf[BUFSIZ];
@@ -131,7 +120,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	FILE *pdes;
 	int fdset[2], nullfd;
 	int ret;
-	sig_t oldsig;
+	pid_t pid;
 #if defined(__APPLE__)
 	char **environ;
 	environ = *_NSGetEnviron();
@@ -150,10 +139,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	 * Fork a child to run the command, in a popen() like fashion -
 	 * popen() itself is not used because stderr is also desired.
 	 */
-	signaled = 0;
-	if ((oldsig = signal(SIGINT, system_handler)) == SIG_ERR)
-	  oldsig = SIG_DFL;
-
 	pid = fork();
 	if (pid == -1)
 		return TCL_ERROR;
@@ -167,7 +152,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		/* XXX dropping the controlling terminal */
 		if (setsid() == -1)
 			_exit(1);
-		setpgrp(0, getpid());
 		/* XXX ugly string constants */
 		args[0] = "sh";
 		args[1] = "-c";
@@ -182,16 +166,12 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	/* read from simulated popen() pipe */
 	while (fgets(buf, BUFSIZ, pdes) != NULL) {
 		int ret = ui_info(interp, buf);
-		if (ret != TCL_OK) {
-		        signal(SIGINT, oldsig);
-			fclose(pdes);
+		if (ret != TCL_OK)
 			return ret;
-		}
 	}
 	fclose(pdes);
 	wait(&ret);
-	signal(SIGINT, oldsig);
-	if (ret == 0 && !signaled)
+	if (ret == 0)
 		return TCL_OK;
 	else
 		return TCL_ERROR;
@@ -340,7 +320,6 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 	if ((fd = mkstemp(template)) < 0) {
 		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
-		free(template);
 		return TCL_ERROR;
 	}
 
