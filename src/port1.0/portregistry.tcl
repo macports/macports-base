@@ -104,7 +104,7 @@ proc fileinfo_for_file {fname} {
 
     if ![catch {file stat $fname statvar}] {
 	if {![tbool registry.nochecksum] && [file isfile $fname]} {
-	    set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	    set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 $fname" r]
 	    set line [read $pipe]
 	    if {[regexp $md5regex $line match type filename sum] == 1} {
