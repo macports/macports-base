@@ -27,7 +27,7 @@ proc checkfiles {args} {
 
     lappend filelist $distfiles
     if {[info exists patchfiles]} {
-	set filelist [concat $filelist patchfiles]
+	set filelist [concat $filelist $patchfiles]
     }
     # Set all_dist_files to distfiles + patchfiles
     foreach file $filelist {
@@ -49,6 +49,7 @@ proc fetchfiles {args} {
 	    puts "$distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
 		puts "Attempting to fetch from $site"
+		puts "path: $distpath file: $distfile site: $site"
 		if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 		    set fetched 1
 		    break
