@@ -1046,7 +1046,7 @@ proc upgrade {pname dspec} {
 	}
 
 	# uninstall old ports
-	if {[info exists portinfo(port_uninstall_old)]} {
+	if {[info exists options(port_uninstall_old)]} {
 		# uninstalll old
 		ui_debug "Uninstalling $pname $version_installed"
 		if {[catch {portimage::uninstall $pname $version_installed} result]} {
