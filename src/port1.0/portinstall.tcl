@@ -12,7 +12,7 @@ register com.apple.install provides install
 register com.apple.install requires main fetch extract checksum patch configure build depends_run depends_lib
 
 # define options
-options make.cmd make.type make.target.install contents
+options make.cmd make.type make.target.install contents description
 
 set UI_PREFIX "---> "
 
