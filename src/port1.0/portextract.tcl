@@ -18,7 +18,7 @@ options extract_opts extract.only extract.cmd extract.before_args extract.after_
 set UI_PREFIX "---> "
 
 proc extract_init {args} {
-    global extract.only extract.cmd extract.before_args extract.after_args distfiles
+    global extract.only extract.cmd extract.before_args extract.after_args distfiles use_bzip2 use_zip
     # Set up defaults
     default extract.only $distfiles
     default extract.cmd gzip
