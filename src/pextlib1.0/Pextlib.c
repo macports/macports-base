@@ -40,8 +40,15 @@
 #include <sys/wait.h>
 #include <tcl.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#include <crt_externs.h>
+#endif
 
 #define BUFSIZ 1024
+
+#if !defined(__APPLE__)
+extern char **environ;
+#endif
 
 char * ui_escape(const char *source)
 {
@@ -114,6 +121,10 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	int fdset[2], nullfd;
 	int ret;
 	pid_t pid;
+#if defined(__APPLE__)
+	char **environ;
+	environ = *_NSGetEnviron();
+#endif
 
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
@@ -146,7 +157,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		args[1] = "-c";
 		args[2] = cmdstring;
 		args[3] = NULL;
-		execve("/bin/sh", args, NULL);
+		execve("/bin/sh", args, environ);
 		_exit(1);
 	}
 	close(fdset[1]);
