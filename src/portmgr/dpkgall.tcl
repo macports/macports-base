@@ -57,7 +57,7 @@ namespace eval dpkg {
 	variable configopts "pkgrepo architecture portlist portprefix dportsrc silentmode"
 
 	variable silentmode false
-	variable configfile "/usr/dports/etc/ports/dpkg.conf"
+	variable configfile "/etc/ports/dpkg.conf"
 	variable portlist ""
 	variable portprefix "/usr/dports"
 	variable dportsrc "/usr/darwinports"
