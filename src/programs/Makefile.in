@@ -1,6 +1,0 @@
-SUBDIR=		@REPLACEMENT_PROGS@
-
-include ../../Mk/dports.subdir.mk
-
-distclean::
-	rm -f Makefile
