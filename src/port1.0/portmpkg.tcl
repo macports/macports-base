@@ -33,9 +33,9 @@ package provide portmpkg 1.0
 package require portutil 1.0
 
 set com.apple.mpkg [target_new com.apple.mpkg mpkg_main]
-${com.apple.mpkg} set runtype always
-${com.apple.mpkg} provides mpkg
-${com.apple.mpkg} requires package
+target_runtype ${com.apple.mpkg} always
+target_provides ${com.apple.mpkg} mpkg
+target_requires ${com.apple.mpkg} package
 
 # define options
 options package.type package.destpath

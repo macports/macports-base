@@ -33,10 +33,10 @@ package provide portuninstall 1.0
 package require portutil 1.0
 
 set com.apple.uninstall [target_new com.apple.uninstall uninstall_main]
-${com.apple.uninstall} set runtype always
-${com.apple.uninstall} provides uninstall
-${com.apple.uninstall} requires main
-${com.apple.uninstall} set prerun uninstall_start
+target_runtype ${com.apple.uninstall} always
+target_provides ${com.apple.uninstall} uninstall
+target_requires ${com.apple.uninstall} main
+target_prerun ${com.apple.uninstall} uninstall_start
 
 # define options
 options uninstall.force uninstall.nochecksum

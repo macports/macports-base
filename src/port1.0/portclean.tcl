@@ -35,19 +35,20 @@ package provide portclean 1.0
 package require portutil 1.0
 
 set com.apple.clean [target_new com.apple.clean clean_main]
-${com.apple.clean} set runtype always
-${com.apple.clean} provides clean
-${com.apple.clean} requires main
-${com.apple.clean} set prerun clean_start
+target_runtype ${com.apple.clean} always
+target_provides ${com.apple.clean} clean
+target_requires ${com.apple.clean} main
+target_prerun ${com.apple.clean} clean_start
+
+set UI_PREFIX "--->"
 
 proc clean_start {args} {
-    global UI_PREFIX portname
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
 }
 
 proc clean_main {args} {
-    global workpath
-    exec rm -rf [file join ${workpath}]
+    exec rm -rf [file join [option workpath]]
     return 0
 }

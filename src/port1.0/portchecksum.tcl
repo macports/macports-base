@@ -33,9 +33,9 @@ package provide portchecksum 1.0
 package require portutil 1.0
 
 set com.apple.checksum [target_new com.apple.checksum checksum_main]
-${com.apple.checksum} provides checksum
-${com.apple.checksum} requires main fetch
-${com.apple.checksum} set prerun checksum_start
+target_provides ${com.apple.checksum} checksum
+target_requires ${com.apple.checksum} main fetch
+target_prerun ${com.apple.checksum} checksum_start
 
 # define options
 options checksums
@@ -64,9 +64,7 @@ proc md5 {file} {
 }
 
 proc dmd5 {file} {
-    global checksums
-
-    foreach {name type sum} $checksums {
+    foreach {name type sum} [option checksums] {
 	if {$name == $file} {
 	    return $sum
 	}
@@ -81,14 +79,14 @@ proc checksum_start {args} {
 }
 
 proc checksum_main {args} {
-    global checksums distpath all_dist_files UI_PREFIX
+    global distpath all_dist_files UI_PREFIX
 
     # If no files have been downloaded there is nothing to checksum
     if ![info exists all_dist_files] {
 	return 0
     }
 
-    if ![info exists checksums] {
+    if {![exists checksums]} {
 	ui_error "[msgcat::mc "No checksums statement in Portfile.  File checksums are:"]"
 	foreach distfile $all_dist_files {
 	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
@@ -97,8 +95,8 @@ proc checksum_main {args} {
     }
 
     # Optimization for the 2 argument case for checksums
-    if {[llength $checksums] == 2 && [llength $all_dist_files] == 1} {
-	set checksums [linsert $checksums 0 $all_dist_files]
+    if {[llength [option checksums]] == 2 && [llength $all_dist_files] == 1} {
+	option checksums [linsert [option checksums] 0 $all_dist_files]
     }
 
     foreach distfile $all_dist_files {

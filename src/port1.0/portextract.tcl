@@ -33,11 +33,10 @@ package provide portextract 1.0
 package require portutil 1.0
 
 set com.apple.extract [target_new com.apple.extract extract_main]
-${com.apple.extract} set init extract_init
-${com.apple.extract} provides extract
-${com.apple.extract} requires fetch checksum
-${com.apple.extract} deplist depends_extract
-${com.apple.extract} set prerun extract_start
+target_init ${com.apple.extract} extract_init
+target_provides ${com.apple.extract} extract
+target_requires ${com.apple.extract} fetch checksum
+target_prerun ${com.apple.extract} extract_start
 
 # define options
 options extract.only
@@ -58,32 +57,32 @@ set UI_PREFIX "---> "
 proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
-    if [info exists use_bzip2] {
-	set extract.cmd bzip2
-    } elseif [info exists use_zip] {
-	set extract.cmd unzip
-	set extract.pre_args -q
-	set extract.post_args "-d ${extract.dir}"
+    if [exists use_bzip2] {
+		option extract.cmd bzip2
+    } elseif [exists use_zip] {
+		option extract.cmd unzip
+		option extract.pre_args -q
+		option extract.post_args "-d [option extract.dir]"
     }
 }
 
 proc extract_start {args} {
-    global UI_PREFIX portname
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
 proc extract_main {args} {
-    global portname distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args extract.args UI_PREFIX
+    global UI_PREFIX
 
-    if {![info exists distfiles] && ![info exists extract.only]} {
+    if {![exists distfiles] && ![exists extract.only]} {
 	# nothing to do
 	return 0
     }
 
-    foreach distfile ${extract.only} {
+    foreach distfile [option extract.only] {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
-	set extract.args "$distpath/$distfile"
+	option extract.args "[option distpath]/$distfile"
 	if [catch {system "[command extract]"} result] {
 	    return -code error "$result"
 	}

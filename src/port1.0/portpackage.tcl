@@ -33,9 +33,9 @@ package provide portpackage 1.0
 package require portutil 1.0
 
 set com.apple.package [target_new com.apple.package package_main]
-${com.apple.package} set runtype always
-${com.apple.package} provides package
-${com.apple.package} requires install
+target_runtype ${com.apple.package} always
+target_provides ${com.apple.package} package
+target_requires ${com.apple.package} install
 
 # define options
 options package.type package.destpath
@@ -76,7 +76,7 @@ proc package_pkg {portname portversion} {
     file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
     system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}-${portversion}.bom"
-    system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+    system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
     system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}-${portversion}.pax.gz"
 
     write_sizes_file ${pkgpath}/Contents/Resources/${portname}-${portversion}.sizes ${portname} ${portversion} ${pkgpath} ${destpath}

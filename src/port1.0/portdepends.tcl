@@ -36,43 +36,30 @@ package provide portdepends 1.0
 package require portutil 1.0
 
 # define options
-options depends_fetch depends_build depends_run depends_extract depends_lib
+options depends_build depends_run depends_lib
 # Export options via PortInfo
-options_export depends_lib depends_run
+options_export depends_build depends_lib depends_run
 
-option_proc depends_fetch handle_depends_options
-option_proc depends_build handle_depends_options
-option_proc depends_run handle_depends_options
-option_proc depends_extract handle_depends_options
-option_proc depends_lib handle_depends_options
+option_proc depends_build validate_depends_options
+option_proc depends_run validate_depends_options
+option_proc depends_lib validate_depends_options
 
-proc handle_depends_options {option action args} {
+proc validate_depends_options {option action args} {
     global targets
     switch -regex $action {
-	set|append {
+	set|append|delete {
 	    foreach depspec $args {
 			if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9_/\-\.$^\?\+\(\)\|\\]+):([-A-Za-z\./0-9_]+)} "$depspec" match deppath depregex portname] == 1} {
 				switch $deppath {
-					lib { set obj [libportfile_new $portname $depregex] }
-					bin { set obj [binportfile_new $portname $depregex] }
-					path { set obj [pathportfile_new $portname $depregex] }
-				}
-				if {[info exists obj]} {
-					$obj append provides $option portfile-$portname 
-					lappend targets $obj
-					foreach obj [depspec_get_matches $targets deplist $option] {
-						$obj append requires portfile-$portname
-					}
-				} else {
-					return -code error [format [msgcat::mc "unknown depspec type: %s"] $deppath]
+					lib {}
+					bin {}
+					path {}
+					default {return -code error [format [msgcat::mc "unknown depspec type: %s"] $deppath]}
 				}
 			} else {
 				return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec]
 			}
 	    }
-	}
-	delete {
-	    # xxx: need to delete requirement from each item in the deplist
 	}
     }
 }

@@ -33,9 +33,9 @@ package provide portcontents 1.0
 package require portutil 1.0
 
 set com.apple.contents [target_new com.apple.contents contents_main]
-${com.apple.contents} set runtype always
-${com.apple.contents} provides toc
-${com.apple.contents} requires main
+target_runtype ${com.apple.contents} always
+target_provides ${com.apple.contents} toc
+target_requires ${com.apple.contents} main
 
 set UI_PREFIX "---> "
 

@@ -33,9 +33,8 @@ package provide portpatch 1.0
 package require portutil 1.0
 
 set com.apple.patch [target_new com.apple.patch patch_main]
-${com.apple.patch} provides patch
-${com.apple.patch} requires main fetch checksum extract 
-${com.apple.patch} deplist depends_build depends_lib
+target_provides ${com.apple.patch} patch
+target_requires ${com.apple.patch} main fetch checksum extract 
 
 set UI_PREFIX "---> "
 
@@ -47,24 +46,24 @@ default patch.cmd patch
 default patch.pre_args -p0
 
 proc patch_main {args} {
-    global portname patchfiles distpath filespath workpath worksrcpath UI_PREFIX
+    global UI_PREFIX
 
     # First make sure that patchfiles exists and isn't stubbed out.
-    if ![info exists patchfiles] {
+    if {![exists patchfiles]} {
 	return 0
     }
 
-    foreach patch $patchfiles {
-	if [file exists $filespath/$patch] {
-	    lappend patchlist $filespath/$patch
-	} elseif [file exists $distpath/$patch] {
-	    lappend patchlist $distpath/$patch
+    foreach patch [option patchfiles] {
+	if [file exists [option filespath]/$patch] {
+	    lappend patchlist [option filespath]/$patch
+	} elseif [file exists [option distpath]/$patch] {
+	    lappend patchlist [option distpath]/$patch
 	}
     }
     if ![info exists patchlist] {
 	return -code error [msgcat::mc "Patch files missing"]
     }
-    cd ${worksrcpath}
+    cd [option worksrcpath]
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
 	switch -glob -- [file tail $patch] {

@@ -31,6 +31,7 @@
 
 package provide portutil 1.0
 package require Pextlib 1.0
+package require darwinports_dlist 1.0
 package require msgcat
 
 global targets target_uniqid all_variants
@@ -43,6 +44,37 @@ set all_variants [list]
 ########### External High Level Procedures ###########
 
 namespace eval options {
+}
+
+# option
+# This is an accessor for Portfile options.  Targets may use
+# this in the same style as the standard Tcl "set" procedure.
+#	name  - the name of the option to read or write
+#	value - an optional value to assign to the option
+
+proc option {name args} {
+	# XXX: right now we just transparently use globals
+	# eventually this will need to bridge the options between
+	# the Portfile's interpreter and the target's interpreters.
+	global $name
+	if {[llength $args] > 0} {
+		ui_debug "setting option $name to $args"
+		set $name [lindex $args 0]
+	}
+	return [set $name]
+}
+
+# exists
+# This is an accessor for Portfile options.  Targets may use
+# this procedure to test for the existence of a Portfile option.
+#	name - the name of the option to test for existence
+
+proc exists {name} {
+	# XXX: right now we just transparently use globals
+	# eventually this will need to bridge the options between
+	# the Portfile's interpreter and the target's interpreters.
+	global $name
+	return [info exists $name]
 }
 
 # options
@@ -252,7 +284,7 @@ proc variant {args} {
     set code [lindex $args end]
     set args [lrange $args 0 [expr $len - 2]]
     
-    set obj [variant_new "temp-variant"]
+    set ditem [variant_new "temp-variant"]
     
     # mode indicates what the arg is interpreted as.
 	# possible mode keywords are: requires, conflicts, provides
@@ -264,18 +296,18 @@ proc variant {args} {
 			provides { set mode "provides" }
 			requires { set mode "requires" }
 			conflicts { set mode "conflicts" }
-			default { $obj append $mode $arg }		
+			default { ditem_append $ditem $mode $arg }		
         }
     }
-    $obj set name "[join [$obj get provides] -]"
+    ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
 
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
-    makeuserproc "variant-[$obj get name]" \{$code\}
-    lappend all_variants $obj
+    makeuserproc "variant-[ditem_key $ditem name]" \{$code\}
+    lappend all_variants $ditem
     
     # Export provided variant to PortInfo
-    lappend PortInfo(variants) [$obj get provides]
+    lappend PortInfo(variants) [ditem_key $ditem provides]
 }
 
 # variant_isset name
@@ -399,145 +431,15 @@ proc makeuserproc {name body} {
 
 ########### Internal Dependancy Manipulation Procedures ###########
 
-# returns a depspec by name
-proc dlist_get_by_name {dlist name} {
-    set result ""
-    foreach d $dlist {
-	if {[$d get name] == $name} {
-	    set result $d
-	    break
-	}
-    }
-    return $result
-}
-
-# returns a list of depspecs that contain the given name in the given key
-proc depspec_get_matches {dlist key value} {
-    set result [list]
-    foreach d $dlist {
-	foreach val [$d get $key] {
-	    if {$val == $value} {
-		lappend result $d
-	    }
-	}
-    }
-    return $result
-}
-
-# Count the unmet dependencies in the dlist based on the statusdict
-proc dlist_count_unmet {dlist statusdict names} {
-    upvar $statusdict upstatusdict
-    set unmet 0
-    foreach name $names {
-	# Service was provided, check next.
-	if {[info exists upstatusdict($name)] && $upstatusdict($name) == 1} {
-	    continue
-	} else {
-	    incr unmet
-	}
-    }
-    return $unmet
-}
-
-# Returns true if any of the dependencies are pending in the dlist
-proc dlist_has_pending {dlist uses} {
-    foreach name $uses {
-	if {[llength [depspec_get_matches $dlist provides $name]] > 0} {
-	    return 1
-	}
-    }
-    return 0
-}
-
-# Get the name of the next eligible item from the dependency list
-proc generic_get_next {dlist statusdict} {
-    set nextitem ""
-    # arbitrary large number ~ INT_MAX
-    set minfailed 2000000000
-    upvar $statusdict upstatusdict
-    
-    foreach obj $dlist {		
-	# skip if unsatisfied hard dependencies
-	if {[dlist_count_unmet $dlist upstatusdict [$obj get requires]]} { continue }
-	
-	# favor item with fewest unment soft dependencies
-	set unmet [dlist_count_unmet $dlist upstatusdict [$obj get uses]]
-	
-	# delay items with unmet soft dependencies that can be filled
-	if {$unmet > 0 && [dlist_has_pending $dlist [$obj get uses]]} { continue }
-	
-	if {$unmet >= $minfailed} {
-	    # not better than our last pick
-	    continue
-	} else {
-	    # better than our last pick
-	    set minfailed $unmet
-	    set nextitem $obj
-	}
-    }
-    return $nextitem
-}
-
-
-# Evaluate the list of depspecs, running each as it becomes eligible.
-# dlist is a collection of depspec objects to be run
-# get_next_proc is used to determine the best item to run
-proc dlist_evaluate {dlist get_next_proc} {
-    global portname
-    
-    # status - keys will be node names, values will be {-1, 0, 1}.
-    array set statusdict [list]
-    
-    # XXX: Do we want to evaluate this dynamically instead of statically? 
-    foreach obj $dlist {
-	if {[$obj test] == 1} {
-	    foreach name [$obj get provides] {
-		set statusdict($name) 1
-	    }
-	    ldelete dlist $obj
-	}
-    }
-    
-    # loop for as long as there are nodes in the dlist.
-    while (1) {
-	set obj [$get_next_proc $dlist statusdict]
-	
-	if {$obj == ""} { 
-	    break
-	} else {
-	    catch {$obj run} result
-	    # depspec->run returns an error code, so 0 == success.
-	    # translate this to the statusdict notation where 1 == success.
-	    foreach name [$obj get provides] {
-		set statusdict($name) [expr $result == 0]
-	    }
-	    
-	    # Delete the item from the waiting list.
-	    ldelete dlist $obj
-	}
-    }
-    
-    if {[llength $dlist] > 0} {
-	# somebody broke!
-	ui_info "Warning: the following items did not execute (for $portname): "
-	foreach obj $dlist {
-	    ui_info "[$obj get name] " -nonewline
-	}
-	ui_info ""
-	return 1
-    }
-    return 0
-}
-
-proc target_run {this} {
+proc target_run {ditem} {
     global target_state_fd portname
     set result 0
-    set procedure [$this get procedure]
+    set procedure [ditem_key $ditem procedure]
     if {$procedure != ""} {
-	set name [$this get name]
+	set name [ditem_key $ditem name]
 	
-	if {[$this has init]} {
-	    set result [catch {[$this get init] $name} errstr]
+	if {[ditem_contains $ditem init]} {
+	    set result [catch {[ditem_key $ditem init] $name} errstr]
 	}
 	
 	if {[check_statefile target $name $target_state_fd] && $result == 0} {
@@ -545,12 +447,12 @@ proc target_run {this} {
 	    ui_debug "Skipping completed $name ($portname)"
 	} elseif {$result == 0} {
 	    # Execute pre-run procedure
-	    if {[$this has prerun]} {
-		set result [catch {[$this get prerun] $name} errstr]
+	    if {[ditem_contains $ditem prerun]} {
+		set result [catch {[ditem_key $ditem prerun] $name} errstr]
 	    }
 	    
 	    if {$result == 0} {
-		foreach pre [$this get pre] {
+		foreach pre [ditem_key $ditem pre] {
 		    ui_debug "Executing $pre"
 		    set result [catch {$pre $name} errstr]
 		    if {$result != 0} { break }
@@ -563,21 +465,21 @@ proc target_run {this} {
 	    }
 	    
 	    if {$result == 0} {
-		foreach post [$this get post] {
+		foreach post [ditem_key $ditem post] {
 		    ui_debug "Executing $post"
 		    set result [catch {$post $name} errstr]
 		    if {$result != 0} { break }
 		}
 	    }
 	    # Execute post-run procedure
-	    if {[$this has postrun] && $result == 0} {
-		set postrun [$this get postrun]
+	    if {[ditem_contains $ditem postrun] && $result == 0} {
+		set postrun [ditem_key $ditem postrun]
 		ui_debug "Executing $postrun"
 		set result [catch {$postrun $name} errstr]
 	    }
 	}
 	if {$result == 0} {
-	    if {[$this get runtype] != "always"} {
+	    if {[ditem_key $ditem runtype] != "always"} {
 		write_statefile target $name $target_state_fd
 	    }
 	} else {
@@ -594,45 +496,40 @@ proc target_run {this} {
 }
 
 proc eval_targets {target} {
-    global targets target_state_fd
+    global targets target_state_fd portname
     set dlist $targets
-    
-    # Select the subset of targets under $target
+	    
+	# Select the subset of targets under $target
     if {$target != ""} {
-        set matches [depspec_get_matches $dlist provides $target]
+        set matches [dlist_search $dlist provides $target]
+
         if {[llength $matches] > 0} {
-	    set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
-	    # Special-case 'all'
-        } elseif {$target != "all"} {
-            ui_info "unknown target: $target"
+			set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
+			# Special-case 'all'
+		} elseif {$target != "all"} {
+			ui_info "unknown target: $target"
             return 1
         }
     }
-    
+	
     # Restore the state from a previous run.
     set target_state_fd [open_statefile]
     
-    set ret [dlist_evaluate $dlist generic_get_next]
-    
-    close $target_state_fd
-    return $ret
-}
+    set dlist [dlist_eval $dlist "" target_run]
 
-# returns the names of dependents of <name> from the <itemlist>
-proc dlist_append_dependents {dlist obj result} {
-    
-    # Append the item to the list, avoiding duplicates
-    if {[lsearch $result $obj] == -1} {
-	lappend result $obj
-    }
-    
-    # Recursively append any hard dependencies
-    foreach dep [$obj get requires] {
-	foreach provider [depspec_get_matches $dlist provides $dep] {
-	    set result [dlist_append_dependents $dlist $provider $result]
-        }
-    }
-    # XXX: add soft-dependencies?
+    if {[llength $dlist] > 0} {
+		# somebody broke!
+		ui_info "Warning: the following items did not execute (for $portname): "
+		foreach ditem $dlist {
+			ui_info "[ditem_key $ditem name] " -nonewline
+		}
+		ui_info ""
+		set result 1
+	} else {
+		set result 0
+	}
+	
+    close $target_state_fd
     return $result
 }
 
@@ -758,12 +655,12 @@ proc choose_variants {dlist variations} {
     
     set selected [list]
     
-    foreach obj $dlist {
+    foreach ditem $dlist {
 	# Enumerate through the provides, tallying the pros and cons.
 	set pros 0
 	set cons 0
 	set ignored 0
-	foreach flavor [$obj get provides] {
+	foreach flavor [ditem_key $ditem provides] {
 	    if {[info exists upvariations($flavor)]} {
 		if {$upvariations($flavor) == "+"} {
 		    incr pros
@@ -778,18 +675,18 @@ proc choose_variants {dlist variations} {
 	if {$cons > 0} { continue }
 	
 	if {$pros > 0 && $ignored == 0} {
-	    lappend selected $obj
+	    lappend selected $ditem
 	}
     }
     return $selected
 }
 
-proc variant_run {this} {
-    set name [$this get name]
-    ui_debug "Executing $name provides [$this get provides]"
+proc variant_run {ditem} {
+    set name [ditem_key $ditem name]
+    ui_debug "Executing $name provides [ditem_key $ditem provides]"
 
 	# test for conflicting variants
-	foreach v [$this get conflicts] {
+	foreach v [ditem_key $ditem conflicts] {
 		if {[variant_isset $v]} {
 			ui_error "Variant $name conflicts with $v"
 			return 1
@@ -822,7 +719,7 @@ proc eval_variants {variations target} {
         set newlist [dlist_append_dependents $dlist $variant $newlist]
     }
     
-    dlist_evaluate $newlist generic_get_next
+    dlist_eval $newlist "" variant_run
 	
 	# Make sure the variations match those stored in the statefile.
 	# If they don't match, print an error indicating a 'port clean' 
@@ -851,154 +748,35 @@ proc eval_variants {variations target} {
 	return $result
 }
 
-##### DEPSPEC #####
-
-# Object-Oriented Depspecs
-#
-# Each depspec will have its data stored in an array
-# (indexed by field name) and its procedures will be
-# called via the dispatch procedure that is returned
-# from depspec_new.
-#
-# sample usage:
-# set obj [depspec_new]
-# $obj set name "hello"
-#
-
-# Depspec
-#	str name
-#	str provides[]
-#	str requires[]
-#	str uses[]
-
-global depspec_uniqid
-set depspec_uniqid 0
-
-# Depspec class definition.
-global depspec_vtbl
-set depspec_vtbl(test) depspec_test
-set depspec_vtbl(run) depspec_run
-set depspec_vtbl(get) depspec_get
-set depspec_vtbl(set) depspec_set
-set depspec_vtbl(has) depspec_has
-set depspec_vtbl(append) depspec_append
-
-# constructor for abstract depspec class
-proc depspec_new {name} {
-    global depspec_uniqid
-    set id [incr depspec_uniqid]
-    
-    # declare the array of data
-    set data dpspc_data_${id}
-    set disp dpspc_disp_${id}
-    
-    global $data 
-    set ${data}(name) $name
-    set ${data}(_vtbl) depspec_vtbl
-    
-    eval "proc $disp {method args} { \n \
-			global $data \n \
-			eval return \\\[depspec_dispatch $disp $data \$method \$args\\\] \n \
-		}"
-    
-    return $disp
-}
-
-proc depspec_get {this prop} {
-    set data [$this _data]
-    global $data
-    if {[eval info exists ${data}($prop)]} {
-	eval return $${data}($prop)
-    } else {
-	return ""
-    }
-}
-
-proc depspec_set {this prop args} {
-    set data [$this _data]
-    global $data
-    eval "set ${data}($prop) \"$args\""
-}
-
-proc depspec_has {this prop} {
-    set data [$this _data]
-    global $data
-    eval return \[info exists ${data}($prop)\]
-}
-
-proc depspec_append {this prop args} {
-    set data [$this _data]
-    global $data
-    set vals [join $args " "]
-    eval lappend ${data}($prop) $vals
-}
-
-# is the only proc to get direct access to the object's data
-# so the _data accessor has to be defined here.  all other
-# methods are looked up in the virtual function table,
-# and are called with {$this $args}.
-proc depspec_dispatch {this data method args} {
-    global $data
-    if {$method == "_data"} { return $data }
-    eval set vtbl $${data}(_vtbl)
-    global $vtbl
-    if {[info exists ${vtbl}($method)]} {
-	eval set function $${vtbl}($method)
-	eval "return \[$function $this $args\]"
-    } else {
-	ui_error "unknown method: $method"
-    }
-    return ""
-}
-
-proc depspec_test {this} {
-    return 0
-}
-
-proc depspec_run {this} {
-    return 0
-}
-
-##### target depspec subclass #####
-
 # Target class definition.
-global target_vtbl
-array set target_vtbl [array get depspec_vtbl]
-set target_vtbl(run) target_run
-set target_vtbl(provides) target_provides
-set target_vtbl(requires) target_requires
-set target_vtbl(uses) target_uses
-set target_vtbl(deplist) target_deplist
-set target_vtbl(prerun) target_prerun
-set target_vtbl(postrun) target_postrun
 
-# constructor for target depspec class
+# constructor for target object
 proc target_new {name procedure} {
     global targets
-    set obj [depspec_new $name]
+    set ditem [ditem_create]
+	
+	ditem_key $ditem name $name
+	ditem_key $ditem procedure $procedure
     
-    $obj set _vtbl target_vtbl
-    $obj set procedure $procedure
+    lappend targets $ditem
     
-    lappend targets $obj
-    
-    return $obj
+    return $ditem
 }
 
-proc target_provides {this args} {
+proc target_provides {ditem args} {
     global targets
     # Register the pre-/post- hooks for use in Portfile.
     # Portfile syntax: pre-fetch { puts "hello world" }
     # User-code exceptions are caught and returned as a result of the target.
     # Thus if the user code breaks, dependent targets will not execute.
     foreach target $args {
-	set origproc [$this get procedure]
-	set ident [$this get name]
+	set origproc [ditem_key $ditem procedure]
+	set ident [ditem_key $ditem name]
 	if {[info commands $target] != ""} {
-	    ui_debug "[$this get name] registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
+	    ui_debug "$ident registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
 	} else {
 		eval "proc $target {args} \{ \n\
-			$this set procedure proc-${ident}-${target}
+			ditem_key $ditem procedure proc-${ident}-${target}
 			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
@@ -1011,7 +789,7 @@ proc target_provides {this args} {
 		\}"
 	}
 	eval "proc pre-$target {args} \{ \n\
-			$this append pre proc-pre-${ident}-${target}
+			ditem_append $ditem pre proc-pre-${ident}-${target}
 			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
@@ -1022,7 +800,7 @@ proc target_provides {this args} {
 			makeuserproc userproc-pre-${ident}-${target} \$args \n\
 		\}"
 	eval "proc post-$target {args} \{ \n\
-			$this append post proc-post-${ident}-${target}
+			ditem_append $ditem post proc-post-${ident}-${target}
 			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
 					return -code error \\\$result \n\
@@ -1033,43 +811,44 @@ proc target_provides {this args} {
 			makeuserproc userproc-post-${ident}-${target} \$args \n\
 		\}"
     }
-    eval "depspec_append $this provides $args"
+    eval "ditem_append $ditem provides $args"
 }
 
-proc target_requires {this args} {
-    eval "depspec_append $this requires $args"
+proc target_requires {ditem args} {
+    eval "ditem_append $ditem requires $args"
 }
 
-proc target_uses {this args} {
-    eval "depspec_append $this uses $args"
+proc target_uses {ditem args} {
+    eval "ditem_append $ditem uses $args"
 }
 
-proc target_deplist {this args} {
-    eval "depspec_append $this deplist $args"
+proc target_deplist {ditem args} {
+    eval "ditem_append $ditem deplist $args"
 }
 
-proc target_prerun {this args} {
-    eval "depspec_append $this prerun $args"
+proc target_prerun {ditem args} {
+    eval "ditem_append $ditem prerun $args"
 }
 
-proc target_postrun {this args} {
-    eval "depspec_append $this postrun $args"
+proc target_postrun {ditem args} {
+    eval "ditem_append $ditem postrun $args"
 }
 
-##### variant depspec subclass #####
+proc target_runtype {ditem args} {
+	eval "ditem_append $ditem runtype $args"
+}
 
-# Variant class definition.
-global variant_vtbl
-array set variant_vtbl [array get depspec_vtbl]
-set variant_vtbl(run) variant_run
+proc target_init {ditem args} {
+    eval "ditem_append $ditem init $args"
+}
 
-# constructor for target depspec class
+##### variant class #####
+
+# constructor for variant objects
 proc variant_new {name} {
-    set obj [depspec_new $name]
-    
-    $obj set _vtbl variant_vtbl
-    
-    return $obj
+    set ditem [ditem_create]
+    ditem_key $ditem name $name
+    return $ditem
 }
 
 proc handle_default_variants {option action args} {
@@ -1090,34 +869,6 @@ proc handle_default_variants {option action args} {
     }
 }
 
-##### portfile depspec subclass #####
-global portfile_vtbl
-array set portfile_vtbl [array get depspec_vtbl]
-set portfile_vtbl(run) portfile_run
-set portfile_vtbl(test) portfile_test
-
-proc portfile_new {name} {
-    set obj [depspec_new $name]
-    
-    $obj set _vtbl portfile_vtbl
-    
-    return $obj
-}
-
-# portfile primitive that calls portexec_int with newworkpath == ${workpath}
-proc portexec {portname target} {
-	global workpath
-	portexec_int $portname $target $workpath
-}
-
-# build the specified portfile with default workpath
-proc portfile_run {this} {
-    set portname [$this get name]
-    if {![catch {portexec_int $portname install} result]} {
-		portexec_int $portname clean 
-    }
-    return $result
-}
 
 # builds the specified port (looked up in the index) to the specified target
 # doesn't yet support options or variants...
@@ -1156,16 +907,6 @@ proc portexec_int {portname target {newworkpath ""}} {
     return 0
 }
 
-proc portfile_test {this} {
-    set receipt [registry_exists [$this get name]]
-    if {$receipt != ""} {
-	ui_debug "Found Dependency: receipt: $receipt"
-	return 1
-    } else {
-	return 0
-    }
-}
-
 proc portfile_search_path {depregex search_path} {
     set found 0
     foreach path $search_path {
@@ -1183,22 +924,6 @@ proc portfile_search_path {depregex search_path} {
     return $found
 }
 
-
-
-##### lib portfile depspec subclass #####
-# Search registry, then library path for regex
-global libportfile_vtbl
-array set libportfile_vtbl [array get portfile_vtbl]
-set libportfile_vtbl(test) libportfile_test
-
-proc libportfile_new {name match} {
-    set obj [portfile_new $name]
-    
-    $obj set _vtbl libportfile_vtbl
-    $obj set depregex $match
-    
-    return $obj
-}
 
 # XXX - Architecture specific
 # XXX - Rely on information from internal defines in cctools/dyld:
@@ -1242,21 +967,6 @@ proc libportfile_test {this} {
     }
 }
 
-##### bin portfile depspec subclass #####
-# Search registry, then binary path for regex
-global binportfile_vtbl
-array set binportfile_vtbl [array get portfile_vtbl]
-set binportfile_vtbl(test) binportfile_test
-
-proc binportfile_new {name match} {
-    set obj [portfile_new $name]
-    
-    $obj set _vtbl binportfile_vtbl
-    $obj set depregex $match
-    
-    return $obj
-}
-
 proc binportfile_test {this} {
     global env prefix 
     
@@ -1274,21 +984,6 @@ proc binportfile_test {this} {
 	
 	return [portfile_search_path $depregex $search_path]
     }
-}
-
-##### path portfile depspec subclass #####
-# Search registry, then search specified absolute or
-# ${prefix} relative path for regex
-global pathportfile_vtbl
-array set pathportfile_vtbl [array get portfile_vtbl]
-set pathportfile_vtbl(test) pathportfile_test
-
-proc pathportfile_new {name match} {
-    set obj [portfile_new $name]
-    
-    $obj set _vtbl pathportfile_vtbl
-    $obj set depregex $match
-    return $obj
 }
 
 proc pathportfile_test {this} {

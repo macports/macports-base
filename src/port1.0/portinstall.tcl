@@ -33,12 +33,11 @@ package provide portinstall 1.0
 package require portutil 1.0
 
 set com.apple.install [target_new com.apple.install install_main]
-${com.apple.install} set runtype always
-${com.apple.install} provides install
-${com.apple.install} requires main fetch extract checksum patch configure build 
-${com.apple.install} deplist depends_run depends_lib
-${com.apple.install} set prerun install_start
-${com.apple.install} set postrun install_registry
+target_runtype ${com.apple.install} always
+target_provides ${com.apple.install} install
+target_requires ${com.apple.install} main fetch extract checksum patch configure build 
+target_prerun ${com.apple.install} install_start
+target_postrun ${com.apple.install} install_registry
 
 # define options
 options install.target install.destroot build.target.install 

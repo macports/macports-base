@@ -33,10 +33,9 @@ package provide portconfigure 1.0
 package require portutil 1.0
 
 set com.apple.configure [target_new com.apple.configure configure_main]
-${com.apple.configure} provides configure
-${com.apple.configure} requires main fetch extract checksum patch
-${com.apple.configure} deplist depends_build depends_lib
-${com.apple.configure} set prerun configure_start
+target_provides ${com.apple.configure} configure
+target_requires ${com.apple.configure} main fetch extract checksum patch
+target_prerun ${com.apple.configure} configure_start
 
 # define options
 commands configure automake autoconf xmkmf libtool
@@ -53,9 +52,9 @@ default use_configure yes
 set UI_PREFIX "---> "
 
 proc configure_start {args} {
-    global UI_PREFIX portname
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
 proc configure_main {args} {

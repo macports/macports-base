@@ -33,10 +33,9 @@ package provide portbuild 1.0
 package require portutil 1.0
 
 set com.apple.build [target_new com.apple.build build_main]
-${com.apple.build} provides build
-${com.apple.build} requires main fetch extract checksum patch configure
-${com.apple.build} deplist depends_build depends_lib
-${com.apple.build} set prerun build_start
+target_provides ${com.apple.build} build
+target_requires ${com.apple.build} main fetch extract checksum patch configure
+target_prerun ${com.apple.build} build_start
 
 # define options
 options build.target.all build.target
@@ -48,25 +47,22 @@ default build.pre_args {${build.target}}
 option_deprecate build.target.all build.target
 default build.target "all"
 
-
 set UI_PREFIX "---> "
 
 proc build_getmaketype {args} {
-    global build.type build.cmd os.platform
-
-    if ![info exists build.type] {
+    if {![exists build.type]} {
 	return make
     }
-    switch -exact -- ${build.type} {
+    switch -exact -- [option build.type] {
 	bsd {
-	    if {${os.platform} == "darwin"} {
+	    if {[option os.platform] == "darwin"} {
 		return bsdmake
 	    } else {
 		return make
 	    }
 	}
 	gnu {
-	    if {${os.platform} == "darwin"} {
+	    if {[option os.platform] == "darwin"} {
 		return gnumake
 	    } else {
 		return gmake
@@ -76,16 +72,16 @@ proc build_getmaketype {args} {
 	    return pbxbuild
 	}
 	default {
-	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] ${build.type}]"
+	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
 	    return gnumake
 	}
     }
 }
 
 proc build_start {args} {
-    global UI_PREFIX portname build.target
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] ${portname} ${build.target}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
 }
 
 proc build_main {args} {

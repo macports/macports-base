@@ -36,7 +36,7 @@ package provide portmain 1.0
 package require portutil 1.0
 
 set com.apple.main [target_new com.apple.main main]
-${com.apple.main} provides main
+target_provides ${com.apple.main} main
 
 # define options
 options prefix name version revision categories maintainers
