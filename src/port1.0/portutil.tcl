@@ -466,14 +466,16 @@ proc dlist_evaluate {dlist downstatusdict action} {
     }
     
     set names [array names uplist name,*]
-    if { [llength $names] > 0} {
-	# somebody broke!
-	ui_info "Warning: the following items did not execute: "
-	foreach name $names {
-	    ui_info "$uplist($name) " -nonewline
-	}
-	ui_info ""
+	if { [llength $names] > 0} {
+		# somebody broke!
+		ui_info "Warning: the following items did not execute: "
+		foreach name $names {
+			ui_info "$uplist($name) " -nonewline
+		}
+		ui_info ""
+		return 1
     }
+	return 0
 }
 
 proc exec_target {fd dlist name} {
@@ -531,9 +533,10 @@ proc eval_targets {dlist target} {
     # Restore the state from a previous run.
     set fd [open_statefile]
     
-    dlist_evaluate uplist statusdict [list exec_target $fd]
-    
+    set ret [dlist_evaluate uplist statusdict [list exec_target $fd]]
+
     close $fd
+	return $ret
 }
 
 # select dependents of <name> from the <itemlist>
