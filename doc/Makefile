@@ -8,7 +8,7 @@ all:
 clean:
 
 distclean: clean
-	rm -f prefix.mtree
+	rm -f prefix.mtree ports.conf
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
