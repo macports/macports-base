@@ -48,7 +48,7 @@ commands fetch
 # Defaults
 default extract.suffix .tar.gz
 default fetch.type standard
-default cvs.cmd cvs
+default cvs.cmd {$portutil::autoconf::cvs_path}
 default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.module {$distname}
@@ -62,7 +62,7 @@ default cvs.post_args {"${cvs.module}"}
 default distfiles {[suffix $distname]}
 default dist_subdir {${portname}}
 
-default fetch.cmd curl
+default fetch.cmd {$portutil::autoconf::curl_path}
 default fetch.dir {${distpath}}
 default fetch.pre_args {"-f -L -o ${distfile}.TMP"}
 default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}

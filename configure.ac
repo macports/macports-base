@@ -10,6 +10,8 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
+AC_PATH_PROG(CURL, [curl], [])
+AC_PATH_PROG(CVS, [cvs], [])
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
@@ -120,9 +122,15 @@ dnl SC_CONFIG_MANPAGES
 
 # Output
 
-AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree
-		doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl
-		src/darwinports1.0/darwinports_fastload.tcl
-		src/programs/Makefile])
+AC_CONFIG_FILES([
+	Makefile
+	Mk/dports.autoconf.mk
+	doc/prefix.mtree
+	doc/ports.conf
+	src/darwinports1.0/darwinports_autoconf.tcl
+	src/port1.0/port_autoconf.tcl
+	src/programs/Makefile
+	src/darwinports1.0/darwinports_fastload.tcl
+])
 
 AC_OUTPUT
