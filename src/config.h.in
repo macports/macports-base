@@ -1,4 +1,4 @@
-/* src/pextlib1.0/config.h.in.  Generated automatically from configure.ac by autoheader.  */
+/* src/config.h.in.  Generated automatically from configure.ac by autoheader.  */
 
 /* Define if the `closedir' function returns void instead of `int'. */
 #undef CLOSEDIR_VOID

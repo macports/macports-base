@@ -985,7 +985,7 @@ fi
 PATH_SEPARATOR="$ac_path_separator"
 rm -f conftest.sh
 
-ac_config_headers="$ac_config_headers src/pextlib1.0/config.h"
+ac_config_headers="$ac_config_headers src/config.h"
 
 ac_aux_dir=
 for ac_dir in $srcdir $srcdir/.. $srcdir/../..; do
@@ -2932,7 +2932,7 @@ EOF
 fi
 done
 
-INCLUDES="-I. $INCLUDES"
+INCLUDES="-I. -I.. $INCLUDES"
 
 # Checks for library functions.
 # On IRIX 5.3, sys/types and inttypes.h are conflicting.
@@ -4400,7 +4400,7 @@ do
   "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
-  "src/pextlib1.0/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/pextlib1.0/config.h" ;;
+  "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
   *) { { echo "$as_me:4404: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

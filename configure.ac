@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
 AC_INIT([OpenDarwin DarwinPorts], [1.0], [darwinports@opendarwin.org], [darwinports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
-AC_CONFIG_HEADERS([src/pextlib1.0/config.h])
+AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
 # Checks for programs.
@@ -33,7 +33,7 @@ AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h])
 
-INCLUDES="-I. $INCLUDES"
+INCLUDES="-I. -I.. $INCLUDES"
 
 # Checks for library functions.
 AC_FUNC_CLOSEDIR_VOID
