@@ -1,5 +1,5 @@
 # darwinports_fastload.tcl.in
-# $Id: darwinports_fastload.tcl.in,v 1.1 2004/10/14 20:13:38 pguyot Exp $
+# $Id: darwinports_fastload.tcl.in,v 1.1.2.1 2004/10/15 18:23:05 olegb Exp $
 #
 # Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # All rights reserved.
