@@ -236,7 +236,9 @@ proc dportsearch {regexp} {
     set matches [list]
 
     foreach source $sources {
-        set fd [open [darwinports::getindex $source] r]
+        if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+            return -code error "Can't open index file for source $source Have you synced your source indexes?"
+        }
         while {[gets $fd line] >= 0} {
             set name [lindex $line 0]
             if {[regexp -- $regexp $name] == 1} {
@@ -262,7 +264,9 @@ proc dportsearch {regexp} {
 proc dportmatch {regexp} {
     global darwinports::portdbpath darwinports::sources
     foreach source $sources {
-        set fd [open [darwinports::getindex $source] r]
+        if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+            return -code error "Can't open index file for source $source Have you synced your source indexes?"
+        }
         while {[gets $fd line] >= 0} {
             set name [lindex $line 0]
             if {[regexp -- $regexp $name] == 1} {
