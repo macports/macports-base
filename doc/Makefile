@@ -1,8 +1,4 @@
-PREFIX?=	/opt/local
-ETCDIR=		/etc/ports
 MAN7=		portfile.7 portstyle.7
-DSTUSR?=	root
-DSTGRP?=	wheel
 
 all:
 
@@ -26,3 +22,5 @@ install:
 	install -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf.default /etc/defaults/ports.conf
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${PREFIX}/man/man7
 	install -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${PREFIX}/man/man7
+
+include ../Mk/dports.mk
