@@ -92,6 +92,8 @@
 #include <tcl.h>
 
 #include "md5cmd.h"
+#include "find.h"
+#include "xinstall.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -675,20 +677,6 @@ int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	tcl_result = Tcl_NewIntObj(max + 1);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
-}
-
-int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	extern int xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-
-	return xinstall(interp, objc, objv);
-}
-
-int FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	extern int findfunc(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-
-	return findfunc(interp, objc, objv);
 }
 
 int Pextlib_Init(Tcl_Interp *interp)
