@@ -232,7 +232,10 @@ switch -- $action {
 				puts "$portinfo(homepage)"
 			}
 	
-			puts "\n$portinfo(long_description)\n"
+            if {[info exists portinfo(long_description)]} {
+                puts "\n$portinfo(long_description)\n"
+            }
+
 
 			# find build dependencies
 			if {[info exists portinfo(depends_build)]} {
