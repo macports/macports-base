@@ -5,17 +5,18 @@
 package require darwinports
 dportinit
 package require port
+ui_init
 
 global target
 
 proc pindex {portdir} {
     global target
 
-    set interp [dportopen $portdir]
+    set interp [dportopen $portdir "" ""]
     if {$target == "index"} {
 	ui_puts [$interp eval {format "%-10s\t%-10s\t%s" $portname $portversion $description}]
     } else {
-	dportbuild $interp $target
+	dportexec $interp $target
     }
     dportclose $interp
 }
@@ -31,4 +32,3 @@ if {[llength [array names env PORTPATH]] > 0} {
 }
 
 port_traverse pindex software
-
