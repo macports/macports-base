@@ -39,7 +39,7 @@ target_prerun ${com.apple.destroot} destroot_start
 target_postrun ${com.apple.destroot} destroot_finish
 
 # define options
-options destroot.target destroot.destdir destroot.clean
+options destroot.target destroot.destdir destroot.clean destroot.keepdirs
 commands destroot
 
 # Set defaults
@@ -50,6 +50,7 @@ default destroot.target install
 default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
 default destroot.clean no
+default destroot.keepdirs ""
 
 set_ui_prefix
 
@@ -79,7 +80,15 @@ proc destroot_finish {args} {
     global UI_PREFIX destroot prefix portname
 
     # Prune empty directories in ${destroot}
-    catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
+    set exclude_dirs [list]
+    set exclude_phrase ""
+    foreach path [option destroot.keepdirs] {
+    	lappend exclude_dirs "-path \"${path}\""
+    }
+    if { [llength ${exclude_dirs}] > 0 } {
+    	set exclude_phrase "! \\( [join ${exclude_dirs} " -or "] \\)"
+    }
+    catch {system "find \"${destroot}\" -depth -type d ${exclude_phrase} -exec rmdir -- \{\} \\; 2>/dev/null"}
 
 	# Compress all manpages with gzip (instead)
 	set manpath "${destroot}${prefix}/share/man"
@@ -161,7 +170,6 @@ proc destroot_finish {args} {
 			ui_debug "No man pages found to compress."
 		}
 	}
-
     file delete "${destroot}/${prefix}/share/info/dir"
     return 0
 }
