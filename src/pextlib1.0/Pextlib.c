@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.60.4.3 2004/05/24 19:21:01 pguyot Exp $
+ * $Id: Pextlib.c,v 1.60.4.4 2004/05/24 22:11:59 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -95,6 +95,9 @@
 
 #include "md5cmd.h"
 #include "options.h"
+#include "find.h"
+#include "xinstall.h"
+#include "vercomp.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -694,20 +697,6 @@ int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	return TCL_OK;
 }
 
-int InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	extern int xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-
-	return xinstall(interp, objc, objv);
-}
-
-int FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	extern int findfunc(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
-
-	return findfunc(interp, objc, objv);
-}
-
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -726,6 +715,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "options", OptionsCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;

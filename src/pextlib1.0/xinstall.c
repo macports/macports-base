@@ -136,7 +136,7 @@ static void	usage(Tcl_Interp *interp, int lineno);
 extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
 int
-xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	struct stat from_sb, to_sb;
 	mode_t *set;

@@ -60,7 +60,7 @@
 static int	do_find(Tcl_Interp *interp, char *dir, char *match, char *action);
 
 int
-findfunc(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *startdir;
 	char *match, *action;
