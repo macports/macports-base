@@ -1,4 +1,5 @@
 SHAREDIR=	/opt/local
+ETCDIR=		/etc/ports
 MAN7=		portfile.7
 
 portfile.7.gz: portfile.7
@@ -10,10 +11,11 @@ clean:
 	rm -f portfile.7.gz
 install:
 	mkdir -p /etc/defaults
+	mkdir -p ${ETCDIR}
 	mkdir -p ${SHAREDIR}/man/man7
-	@if [ ! -e /etc/ports.conf ]; then \
+	@if [ ! -e ${ETCDIR}/ports.conf ]; then \
 		set -x; \
-		install -o root -g wheel -m 644 ports.conf ${DESTDIR}/etc; \
+		install -o root -g wheel -m 644 ports.conf ${ETCDIR}; \
 	fi
 	install -o root -g wheel -m 644 ports.conf.default /etc/defaults/ports.conf
 	install -o root -g wheel -m 444 portfile.7.gz ${SHAREDIR}/man/man7

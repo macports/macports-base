@@ -53,9 +53,9 @@ proc dportinit {args} {
 	    lappend conf_files ${portconf}
 	}
     }
-    if {![info exists portconf] && [file isfile /etc/ports.conf]} {
-	set portconf /etc/ports.conf
-	lappend conf_files /etc/ports.conf
+    if {![info exists portconf] && [file isfile /etc/ports/ports.conf]} {
+	set portconf /etc/ports/ports.conf
+	lappend conf_files /etc/ports/ports.conf
     }
     if [info exists conf_files] {
 	foreach file $conf_files {
