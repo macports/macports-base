@@ -92,7 +92,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfonasb\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfonausb\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -155,6 +155,8 @@ for {set i 0} {$i < $argc} {incr i} {
 				set options(ports_nodeps) yes
 			} elseif {$c == "a"} {
 				set options(port_upgrade_all) yes
+			} elseif {$c == "u"} {
+				set options(port_uninstall_old) yes
 			} elseif {$c == "s"} {
 				set options(ports_source_only) yes
 			} elseif {$c == "b"} {
@@ -413,15 +415,42 @@ switch -- $action {
 		}
 	}
 	uninstall {
-		if { ![info exists portname] } {
-			puts "Please specify a port to uninstall"
-			exit 1
-		} elseif { ![info exists portversion] } {
-			set portversion ""
-		} 
-		if { [catch {portuninstall::uninstall $portname $portversion} result] } {
-			puts "port uninstall failed: $result"
-			exit 1
+		# if -u then uninstall all non-active ports
+		if {[info exists options(port_uninstall_old)]} {
+			if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "no ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+					exit 1
+                }
+            }
+			if { [llength ilist] > 0} {
+				foreach i $ilist {
+					# uninstall inactive port
+					if {[lindex $i 4] eq 0} {
+						set portname "[lindex $i 0]"
+						set portversion "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
+						ui_debug " uninstalling $portname $portversion"
+						if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+                        	puts "port uninstall failed: $result"
+							exit 1
+                        }
+					}
+				}
+			}
+		} else {
+			if { ![info exists portname] } {
+				puts "Please specify a port to uninstall"
+				exit 1
+			} elseif { ![info exists portversion] } {
+				set portversion ""
+			} 
+			if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+				puts "port uninstall failed: $result"
+				exit 1
+			}
 		}
 	}
 	installed {
