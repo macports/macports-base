@@ -42,7 +42,9 @@ options extract.only
 commands extract
 
 # Set up defaults
-default extract.only {$distfiles}
+# XXX call out to code in portutil.tcl XXX
+default extract.only {[disttagclean $distfiles]}
+
 default extract.dir {${portpath}/${workdir}}
 default extract.cmd gzip
 default extract.pre_args -dc
