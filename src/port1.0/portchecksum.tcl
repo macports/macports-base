@@ -42,27 +42,6 @@ options checksums
 
 set UI_PREFIX "---> "
 
-proc md5 {file} {
-    global distpath UI_PREFIX
-
-    set md5regex "^(MD5)\[ \]?\\((.+)\\)\[ \]?=\[ \](\[A-Za-z0-9\]+)\n$"
-    if {[catch {set pipe [open "|md5 \"${file}\"" r]} result]} {
-        return -code error "[format [msgcat::mc "Unable to parse checksum: %s"] $result]"
-    }
-    set line [read $pipe]
-    if {[regexp $md5regex $line match type filename sum] == 1} {
-	close $pipe
-	if {$filename == $file} {
-	    return $sum
-	} else {
-	    return -1
-	}
-    } else {
-	close $pipe
-	return -code error "[format [msgcat::mc "Unable to parse checksum: %s"] $line]"
-    }
-}
-
 proc dmd5 {file} {
     foreach {name type sum} [option checksums] {
 	if {$name == $file} {
@@ -89,7 +68,7 @@ proc checksum_main {args} {
     if {![exists checksums]} {
 	ui_error "[msgcat::mc "No checksums statement in Portfile.  File checksums are:"]"
 	foreach distfile $all_dist_files {
-	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
+	    ui_msg "$distfile md5 [md5 file $distpath/$distfile]"
 	}
 	return -code error "[msgcat::mc "No checksums statement in Portfile."]"
     }
@@ -100,7 +79,7 @@ proc checksum_main {args} {
     }
 
     foreach distfile $all_dist_files {
-	set checksum [md5 $distpath/$distfile]
+	set checksum [md5 file $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
 	    ui_warn "[format [msgcat::mc "No checksum recorded for %s"] $distfile]"
