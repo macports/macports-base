@@ -299,7 +299,11 @@ proc file_registered {file} {
 		open_file_map
 	}
 	foreach f $file_map {
-		if { $file == [lindex $f 0] } {
+		# Make a string insensitive comparison
+		# This would be nasty if
+		# - the FS was case sensitive
+		# - ports would take advantage of it
+		if { [string equal -nocase $file [lindex $f 0]] } {
 			return [lindex $f 1]
 		}
 	}
