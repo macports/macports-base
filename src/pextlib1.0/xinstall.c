@@ -62,6 +62,10 @@
 
 #include <tcl.h>
 
+#ifndef __unused
+#define __unused    /* no attribute */
+#endif
+
 /* Bootstrap aid - this doesn't exist in most older releases */
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *)-1)	/* from <sys/mman.h> */
