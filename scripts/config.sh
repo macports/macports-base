@@ -1,6 +1,6 @@
 #!/bin/sh
 args=`getopt c: $*`
-if [ $? != 0 ] || [ $# == 0 ]; then
+if [ $? -ne 0 ] || [ $# -eq 0 ]; then
 	echo "Usage: $0 [-c <tcl directory>] <action> <options>"
 	echo "Actions:"
 	echo "    compile <sources>"
@@ -21,7 +21,7 @@ for i; do
 	esac
 done
 
-if [ "$tclDir" == "" ]; then
+if [ "$tclDir" = "" ]; then
 	for i in /usr/lib/ /usr/local/lib /usr/pkg/lib /System/Library/Tcl/8.3
 	do
 		if [ -f $i/tclConfig.sh ]; then
@@ -36,7 +36,7 @@ else
 	fi
 fi
 
-if [ "$tclConfig" == "" ]; then
+if [ "$tclConfig" = "" ]; then
 	echo "Could not find tclConfig.sh"
 	exit 3
 fi
@@ -61,7 +61,7 @@ in
 	link)
 		libName=$1; shift; objFiles=$*
 		tclLd="$TCL_SHLIB_LD $tclLd $objFiles -o $libName$TCL_SHLIB_SUFFIX $TCL_LIB_SPEC"
-		tclLdClean=`echo $tclLd | sed s/\\\${[A-Za-z_]*}//g`
+		tclLdClean=`echo $tclLd | sed s/\\\${TCL_CC}/"$TCL_CC"/g | sed s/\\\${[A-Za-z_]*}//g`
 		echo "$tclLdClean"
 		$tclLdClean
 		exit 0;;
@@ -69,7 +69,7 @@ in
 		echo "$1$TCL_SHLIB_SUFFIX"
 		exit 0;;
 	installdir)
-		if [ `uname -s` == "Darwin" ]; then
+		if [ `uname -s` = "Darwin" ]; then
 			if [ -d /System/Library/Tcl/$TCL_VERSION ]; then
 				echo "/System/Library/Tcl/$TCL_VERSION/darwinports1.0"
 				exit 0
