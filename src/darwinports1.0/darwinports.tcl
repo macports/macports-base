@@ -619,7 +619,7 @@ proc dportexec {dport target} {
 		# install them
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
-		if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
+		if { [string equal ${darwinports::registry.installtype} "image"] } {
 			set result [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
 		} else {
 			set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
