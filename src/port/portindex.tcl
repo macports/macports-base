@@ -39,30 +39,33 @@ proc port_traverse {func {dir .} {cwd ""}} {
 
 proc pindex {portdir} {
     global target fd directory archive outdir
-    set interp [dportopen file://[file join $directory $portdir]]
-    array set portinfo [dportinfo $interp]
-    dportclose $interp
-    set portinfo(portdir) $portdir
-    puts "Adding port $portinfo(name)"
-    if {$archive == "1"} {
-        if ![file isdirectory [file join $outdir [file dirname $portdir]]] {
-            if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
-                puts "$result"
+    if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
+        puts "Failed to parse file $portdir/Portfile: $result"
+    } else {        
+        array set portinfo [dportinfo $interp]
+        dportclose $interp
+        set portinfo(portdir) $portdir
+        puts "Adding port $portinfo(name)"
+        if {$archive == "1"} {
+            if ![file isdirectory [file join $outdir [file dirname $portdir]]] {
+                if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
+                    puts "$result"
+                    exit 1
+                }
+            }
+            set portinfo(portarchive) [file join [file dirname $portdir] [file tail $portdir]].tgz
+            cd [file join $directory [file dirname $portinfo(portdir)]]
+            puts "Archiving port $portinfo(name) to [file join $outdir $portinfo(portarchive)]"
+            if {[catch {exec tar -cf - [file tail $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
+                puts "Failed to create port archive $portinfo(portarchive): $result"
                 exit 1
             }
         }
-        set portinfo(portarchive) [file join [file dirname $portdir] [file tail $portdir]].tgz
-        cd [file join $directory [file dirname $portinfo(portdir)]]
-        puts "Archiving port $portinfo(name) to [file join $outdir $portinfo(portarchive)]"
-        if {[catch {exec tar -cf - [file tail $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
-            puts "Failed to create port archive $portinfo(portarchive): $result"
-            exit 1
-        }
+        set output [array get portinfo]
+        set len [expr [string length $output] + 1]
+        puts $fd "$portinfo(name) $len"
+        puts $fd $output
     }
-    set output [array get portinfo]
-    set len [expr [string length $output] + 1]
-    puts $fd "$portinfo(name) $len"
-    puts $fd $output
 }
 
 if {[expr $argc > 4]} {
