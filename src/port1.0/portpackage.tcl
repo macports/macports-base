@@ -114,7 +114,7 @@ proc package_pkg {portname portversion entry} {
 		# XXX split contents list up if it contains one argument
 		# XXX this breaks contents lists that contain one filename, with spaces.
 		if {[llength $contents] == 1} {
-			set clist [eval return $contents]
+			set clist [eval concat $contents]
 		} else {
 			set clist $contents
 		}
@@ -160,8 +160,6 @@ proc package_pkg {portname portversion entry} {
 	system "cd ${pkgpath}/Contents/Resources/ && ln -s ../Archive.pax.gz ${portname}.pax.gz"
 
 	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${pkgpath} ${destpath}
-	
-#	system "package ${destpath} ${infofile} ${portresourcepath}/package/background.tiff -d ${package.destpath}"
 
     return 0
 }
