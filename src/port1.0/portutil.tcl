@@ -114,7 +114,7 @@ proc swdep_resolve {name chain} {
 	}
     }
     puts "Executing $portname"
-    build $sysportpath/software/$portname build make
+    build $sysportpath/software/$portname build build
     return 0
 }
 
