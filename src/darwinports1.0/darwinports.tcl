@@ -121,7 +121,7 @@ proc darwinports::worker_init {workername portpath options variations} {
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
 
-    foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
+    foreach proc {dportexec dportopen dportclose dportsearch} {
         $workername alias $proc $proc
     }
 
