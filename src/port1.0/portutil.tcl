@@ -656,36 +656,42 @@ proc choose_variant {variants variations} {
     upvar $variants upvariants 
     upvar $variations upvariations
 
-    foreach var [array names upvariations] {
-        if {$upvariations($var) == "+"} {
-            set upvariations($var) success
-        }
-    }
-
-    set nextitem ""
     # arbitrary large number ~ INT_MAX
-    set minfailed 2000000000
-    set mindelta 2000000000
+	set minignored 2000000000
+    set maxpros 0
+    set nextitem ""
     
     foreach n [array names upvariants name,*] {
-	set name $upvariants($n)
+		set name $upvariants($n)
 		
-	# favor the item which provides the greatest number of requested services
-        set provides [dlist_get_key upvariants $name provides]
-	set unmet [dlist_count_unmet $provides upvariations]
-
-        # delta = abs(total - unmet - met)
-        # Try to choose the item with a delta closest to zero.
-        set delta [expr abs([llength $provides] - $unmet - [array size upvariations])]
-        
-        #puts "DEBUG: $name unmet $unmet (minfailed $minfailed) delta $delta (mindelta $mindelta)"
-        if {($unmet < $minfailed) || ($unmet == $minfailed && $delta < $mindelta)} {
-            # better than our last pick
-            set mindelta $delta
-            set minfailed $unmet
-            set nextitem $name
-        }
-    }
+		# Enumerate through the provides, tallying the pros and cons.
+		set pros 0
+		set cons 0
+		set ignored 0
+		foreach flavor [dlist_get_key upvariants $name provides] {
+			if {[info exists upvariations($flavor)]} {
+				if {$upvariations($flavor) == "+"} {
+					incr pros
+				} elseif {$upvariations($flavor) == "-"} {
+					incr cons
+				}
+			} else {
+				incr ignored
+			}
+		}
+		
+		if {$cons > 0} { continue }
+		
+		if {$pros > $maxpros} {
+			# Provides more than any previous variant, choose it.
+			set maxpros $pros
+			set nextitem $name
+		} elseif {$pros == $maxpros && $ignored < $minignored} {
+			# Has less overkill than any previous variant, choose it.
+			set minignored $ignored
+			set nextitem $name
+		}
+	}
     return $nextitem
 }
 
