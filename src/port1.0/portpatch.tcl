@@ -52,8 +52,6 @@ proc patch_main {args} {
     # First make sure that patchfiles exists and isn't stubbed out.
     if ![info exists patchfiles] {
 	return 0
-    } elseif {[string length $patchfiles] == 0} {
-	return 0
     }
 
     foreach patch $patchfiles {

@@ -71,11 +71,14 @@ proc options {args} {
 		    foreach val \$args \{ \n\
 			ldelete ${option} \$val \n\
 		    \} \n\
-			 if \{\[info exists option_procs($option)\]\} \{ \n\
-				foreach p \$option_procs($option) \{ \n\
-					eval \"\$p $option delete \$args\" \n\
-				\} \n\
-			 \} \n\
+		    if \{\[string length \$${option}\] == 0\} \{ \n\
+			unset ${option} \n\
+		    \} \n\
+			if \{\[info exists option_procs($option)\]\} \{ \n\
+			    foreach p \$option_procs($option) \{ \n\
+				eval \"\$p $option delete \$args\" \n\
+			\} \n\
+		    \} \n\
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
