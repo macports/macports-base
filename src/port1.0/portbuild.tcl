@@ -41,7 +41,7 @@ register com.apple.build requires main fetch extract checksum patch configure de
 options make.target.all
 commands make
 # defaults
-default make.type bsd
+default make.type gnu
 default make.dir {${workpath}/${worksrcdir}}
 default make.cmd make
 default make.pre_args {${make.target.current}}
