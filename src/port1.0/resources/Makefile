@@ -1,4 +1,4 @@
-SUBDIR=		package fetch
+SUBDIR=		package fetch group
 INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/
 RSRCS=
 

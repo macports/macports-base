@@ -1122,3 +1122,16 @@ proc set_ui_prefix {} {
 		set UI_PREFIX "---> "
 	}
 }
+
+# Use a specified group/version.
+proc PortGroup {group version} {
+	global portresourcepath
+
+	set groupFile ${portresourcepath}/group/${group}-${version}.tcl
+
+	if {[file exists $groupFile]} {
+		uplevel "source $groupFile"
+	} else {
+		ui_warn "Group file could not be located."
+	}
+}
