@@ -305,6 +305,8 @@ proc makeuserproc {name body} {
 # The following modes are supported:
 #	<identifier> target <procedure to execute> [run type]
 #	<identifier> init <procedure to execute>
+#	<identifier> prerun <procedure to execute>
+#	<identifier> postrun <procedure to execute>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -328,9 +330,21 @@ proc register {name mode args} {
     } elseif {[string equal init $mode]} {
 	set init [lindex $args 0]
 	if {[dlist_has_key targets $name init]} {
-	   ui_debug "Warning: target '$name' re-registered init procedure (new init procedure: '$init')"
+	   ui_debug "Warning: target '$name' re-registered init procedure (new procedure: '$init')"
 	}
 	dlist_set_key targets $name init $init
+    } elseif {[string equal prerun $mode]} {
+	set prerun [lindex $args 0]
+	if {[dlist_has_key targets $name prerun]} {
+	   ui_debug "Warning: target '$name' re-registered pre-run procedure (new procedure: '$prerun')"
+	}
+	dlist_set_key targets $name prerun $prerun
+    } elseif {[string equal postrun $mode]} {
+	set postrun [lindex $args 0]
+	if {[dlist_has_key targets $name postrun]} {
+	   ui_debug "Warning: target '$name' re-registered post-run procedure (new procedure: '$postrun')"
+	}
+	dlist_set_key targets $name postrun $postrun
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
@@ -605,6 +619,11 @@ proc exec_target {fd dlist name} {
 			set result 0
 			ui_debug "Skipping completed $name"
 		} else {
+			# Execute pre-run procedure
+			if {[dlist_has_key uplist $name prerun]} {
+				[dlist_get_key uplist $name prerun] $name
+			}
+
 			foreach pre [dlist_get_key uplist $name pre] {
 				ui_debug "Executing $pre"
 				if {[$pre $name] != 0} { return failure }
@@ -619,6 +638,10 @@ proc exec_target {fd dlist name} {
 					set result 1 
 					break
 				}
+			}
+			# Execute post-run procedure
+			if {[dlist_has_key uplist $name postrun]} {
+				[dlist_get_key uplist $name postrun] $name
 			}
 		}
 		if {$result == 0} {
