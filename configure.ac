@@ -55,11 +55,6 @@ OD_LIB_MD5
 # Check for X11 and paraphernalia
 OD_CHECK_X11
 
-# Check for md5 implementation
-OD_LIB_MD5
-# Check for X11 and paraphernalia
-OD_CHECK_X11
-
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
