@@ -20,9 +20,9 @@ proc portconfigure::main {args} {
 	global portname portpath workdir worksrcdir prefix
 
 	if [isval portconfigure::options configure.worksrcdir] {
-		set configpath ${portpath}/${worksrcdir}/${configure.worksrcdir}
+		set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
 	} else {
-		set configpath ${portpath}/${worksrcdir}
+		set configpath ${portpath}/${workdir}/${worksrcdir}
 	}
 
 	cd $configpath
@@ -31,7 +31,11 @@ proc portconfigure::main {args} {
 	}
 
 	if [testbool portconfigure::options configure]  {
-		system "./configure --prefix=${prefix} [getval portconfigure::options configure.args]"
+		if [isval portconfigure::options configure.args] {
+			system "./configure --prefix=${prefix} [getval portconfigure::options configure.args]"
+		} else {
+			system "./configure --prefix=${prefix}"
+		}
 	}
 
 	return 0

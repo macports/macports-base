@@ -24,9 +24,9 @@ proc portmain::main {args} {
 	default portmain::options filedir files
 	default portmain::options portrevision 0
 	if [testbool portmain::options no_worksubdir] {
-		default portmain::options worksrcdir [getval portmain::options workdir]
+		default portmain::options worksrcdir ""
 	} else {
-		default portmain::options worksrcdir [getval portmain::options workdir]/[getval portmain::options distname]
+		default portmain::options worksrcdir [getval portmain::options distname]
 	}
 	return 0
 }
