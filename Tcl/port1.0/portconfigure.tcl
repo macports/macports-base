@@ -20,9 +20,9 @@ proc portconfigure::main {args} {
 	global portname portpath workdir
 
 	if [isval portconfigure::options configure.worksrcdir] {
-		set configpath ${pathpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
+		set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
 	} else {
-		set configpath ${pathpath}/${workdir}/${worksrcdir}
+		set configpath ${portpath}/${workdir}/${worksrcdir}
 	}
 
 	cd $configpath
