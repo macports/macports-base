@@ -4,6 +4,8 @@ MAN7=		portfile.7 portstyle.7
 DSTUSR?=	root
 DSTGRP?=	wheel
 
+all:
+
 install:
 	mkdir -p /etc/defaults
 	mkdir -p ${ETCDIR}
