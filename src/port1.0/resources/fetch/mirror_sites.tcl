@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.25 2004/12/15 15:23:39 rshaw Exp $
+# $Id: mirror_sites.tcl,v 1.26 2005/01/19 10:38:14 mww Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -292,4 +292,14 @@ set portfetch::mirror_sites::sites(openbsd) {
     ftp://ftp5.usa.openbsd.org/pub/OpenBSD/
     ftp://rt.fm/pub/OpenBSD/
     ftp://ftp.openbsd.md5.com.ar/pub/OpenBSD/
+}
+
+set portfetch::mirror_sites::sites(postgresql) {
+    ftp://ftp2.ch.postgresql.org/mirror/postgresql/
+    ftp://ftp3.us.postgresql.org/pub/postgresql/
+    ftp://ftp.postgresql.org/pub/
+    ftp://ftp.de.postgresql.org/mirror/postgresql/
+    ftp://ftp.fr.postgresql.org/
+    ftp://ftp.jp.postgresql.org/
+    ftp://ftp2.uk.postgresql.org/
 }
