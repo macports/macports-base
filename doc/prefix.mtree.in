@@ -19,7 +19,7 @@
     ..
     libexec
     ..
-    man type=link link=share/man
+#    man type=link link=share/man
     sbin
     ..
     share
