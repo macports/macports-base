@@ -38,12 +38,7 @@ namespace eval darwinports {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf darwinports::sources darwinports::sources_conf
-
-    if [file isfile /etc/defaults/ports.conf] {
-    	set portdefaultconf /etc/defaults/ports.conf
-	lappend conf_files /etc/defaults/ports.conf
-    }
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf
 
     if {[llength [array names env HOME]] > 0} {
 	set HOME [lindex [array get env HOME] 1]
@@ -115,7 +110,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
@@ -198,7 +193,7 @@ proc darwinports::getportdir {url} {
 }
 
 proc dportopen {porturl {options ""} {variations ""}} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
     set portdir [darwinports::getportdir $porturl]
     cd $portdir
     set portpath [pwd]
