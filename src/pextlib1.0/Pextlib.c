@@ -689,7 +689,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "nextuid", NextuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "installto", InstallCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "doinstall", InstallCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
