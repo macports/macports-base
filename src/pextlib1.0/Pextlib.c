@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.66 2004/07/04 06:51:27 ssen Exp $
+ * $Id: Pextlib.c,v 1.67 2004/09/09 23:56:09 toby Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -94,6 +94,7 @@
 #include <tcl.h>
 
 #include "md5cmd.h"
+#include "sha1cmd.h"
 #include "find.h"
 #include "filemap.h"
 #include "xinstall.h"
@@ -716,6 +717,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
