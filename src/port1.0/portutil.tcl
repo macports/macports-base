@@ -51,6 +51,23 @@ proc options {args} {
 		     set ${option} \$args \n\
 		\} \n\
 	\}"
+
+	eval "proc ${option}-delete {args} \{ \n\
+	    global ${option} user_options \n\
+		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		    upvar #0 ${option} uplist \n\
+		    foreach val \$args \{ \n\
+			ldelete uplist \$val \n\
+		    \} \n\
+		\} \n\
+	\}"
+	eval "proc ${option}-append {args} \{ \n\
+	    global ${option} user_options \n\
+		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		    upvar #0 ${option} uplist \n\
+		    set uplist \[concat \$uplist \$args\] \n\
+		\} \n\
+	\}"
     }
 }
 
@@ -106,6 +123,14 @@ proc tbool {key} {
 	}
     }
     return 0
+}
+
+proc ldelete {list value} {
+    upvar $list uplist
+    set ix [lsearch -exact $uplist $value]
+    if {$ix >= 0} {
+	set uplist [lreplace $uplist $ix $ix]
+    }
 }
 
 proc reinplace {oddpattern file}  {
