@@ -295,7 +295,7 @@ proc dportsearch {regexp} {
             }
         }
         close $fd
-	if {$match == 1} {
+	if {[info exists match] && $match == 1} {
 	    break
 	}
     }
