@@ -11,14 +11,13 @@ namespace eval portmain {
 }
 
 # define globals: portname portversion categories maintainers
-globals portmain::options portname portversion portrevision categories maintainers workdir worksrc
+globals portmain::options portname portversion portrevision categories maintainers workdir worksrc no_worksubdir
 
 # define options: portname, portversion, categories, maintainers
-options portmain::options portname portversion portrevision categories maintainers workdir worksrc
+options portmain::options portname portversion portrevision categories maintainers workdir worksrc no_worksubdir
 
 proc portmain::main {args} {
 	global portname
-	# puts "Building port: $portname"
-	# do nothing
+	default portmain::options workdir work
 	return 0
 }
