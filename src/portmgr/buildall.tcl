@@ -49,11 +49,24 @@ proc makechroot {dir} {
 		exit 5
 	}
 	puts "Creating chroot environment in $dir"
+	set savedir [exec pwd]
+	cd /
 	foreach idx $chrootfiles {
-		if {[catch {exec tar -cpf - -C / $idx | tar -xpf - -C $dir}]} {
-			puts "Warning: Unable to copy $idx into $dir"
+		if {[catch {file lstat $idx sbuf} result]} {
+			puts "Warning: Couldn't stat $idx: $result"
+			continue
+		}
+		if {$sbuf(type) != "file" && $sbuf(type) != "directory"} {
+			if {[catch {exec tar -cpf -  $idx | tar -xpf - -C $dir} result]} {
+				puts "Warning: Unable to tar $idx into $dir: $result"
+			}
+		} else {
+			if {[catch {exec ditto -rsrc $idx $dir/$idx} result]} {
+				puts "Warning: Unable to ditto $idx into $dir: $result"
+			}
 		}
 	}
+	cd $savedir
 	if {[file exists darwinports.tar.gz]} {
 		puts "Copying from local darwinports.tar.gz snapshot"
 		exec tar -xpzf darwinports.tar.gz -C $dir
@@ -172,9 +185,10 @@ if {[info exists env(VERBOSE)]} {
 ### Crank her up! ###
 
 if {$dochroot == 1} {
-	makechroot chrootdir
-	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir${REPORT}"
-	exec chroot chrootdir /doit.tcl
+	set loc "[exec pwd]/chrootdir"
+	makechroot $loc
+	puts "All set up, now chrooting to ${loc}. Report will be in ${loc}${REPORT}"
+	exec chroot ${loc} /doit.tcl
 } else {
 	puts "Report will be in $REPORT"
 	packageall
