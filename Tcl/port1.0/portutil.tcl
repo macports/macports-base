@@ -11,20 +11,18 @@ global globals targets
 # Thus, "options myarray name date" would create procedures named "name"
 # and "date" that set the array items keyed by "name" and "date"
 # Arguments: <array for export> <options (keys in array) to export>
-proc options {array args} {
+proc options {args} {
     foreach option $args {
-	globalcreate $array $option
-#		trace variable ${array}(${option}) rwu globalval
-	eval proc $option {args} \{ set ${array}(${option}) {$args} \}
+    	eval proc $option {args} \{ global ${option} \; set ${option} {$args} \}
     }
 }
 
 # default
 # Checks if variable is set, if not, sets to supplied value
-proc default {array key val} {
-    upvar $array uparray
-    if {![info exists ${array}($key)]} {
-	set ${array}($key) $val
+proc default {option args} {
+    global $option
+    if {![info exists $option]} {
+	set $option $args
     }
 }
 

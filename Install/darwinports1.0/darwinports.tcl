@@ -19,8 +19,8 @@ proc ccextension {file} {
     }
 }
     
-proc bootstrap {args} {
-    global auto_path env bootstrap_options ports_opts
+proc init {args} {
+    global auto_path env bootstrap_options sysportpath
 
     if [file isfile /etc/ports.conf] {
 	set fd [open /etc/ports.conf r]
@@ -59,32 +59,16 @@ proc bootstrap {args} {
     } else {
 	return -code error "Library directory '$libpath' must exist"
     }
-    package require portutil
     return $sysportpath
-}
-    
-proc init {args} {
-    global bootstrap_options ports_opts
-
-    # Bootstrap ports system and bring in darwinports packages
-    set sysportpath [bootstrap]
-    # Register standard darwinports package options
-    globals ports_opts portpath
-    options ports_opts distpath sysportpath prefix
-    # Register defaults
-    default ports_opts sysportpath $sysportpath
-    default ports_opts prefix /usr/local/
-    default ports_opts distpath $sysportpath/distfiles
-    return
 }
 
 # XXX incomplete. Waiting for kevin's dependancy related submissions
 proc build {portpath chain target} {
-    global targets
+    global targets portpath
 
     if [file isdirectory $portpath] {
 	cd $portpath
-	set ports_opts(portpath) [pwd]
+	set portpath [pwd]
 	# XXX These must execute at a global scope
 	uplevel #0 source Portfile
 	uplevel #0 eval_targets targets $chain $target

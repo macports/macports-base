@@ -6,19 +6,16 @@ register com.apple.fetch target build fetch_main
 register com.apple.fetch provides fetch
 register com.apple.fetch requires main
 
-global fetch_opts
-
 # define globals: all_dist_files
-globals fetch_opts all_dist_files
+#globals all_dist_files
 
 # define options: distname master_sites
-options fetch_opts master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
+options master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
 
 proc suffix {distname} {
-    variable fetch_opts
-
+    global extract_sufx use_bzip2 use_zip
     if {[tbool fetch_opts extract_sufx]} {
-	return ${distname}.${fetch_opts(extract_sufx)}
+	return ${distname}.${extract_sufx}
     } elseif {[tbool fetch_opts use_bzip2]} {
 	return ${distname}.tar.bz2
     } elseif {[tbool fetch_opts use_zip]} {
@@ -29,31 +26,31 @@ proc suffix {distname} {
 }
 
 proc checkfiles {args} {
-    global fetch_opts distdir
+    global distdir distfiles patchfiles all_dist_files
 
-    lappend filelist $fetch_opts(distfiles)
-    if {[info exists fetch_opts(patchfiles)]} {
-	set filelist [concat $filelist $fetch_opts(patchfiles)]
+    lappend filelist $distfiles
+    if {[info exists patchfiles]} {
+	set filelist [concat $filelist patchfiles]
     }
     # Set all_dist_files to distfiles + patchfiles
     foreach file $filelist {
 	if {![file exists files/$file]} {
-	    lappend fetch_opts(all_dist_files) $file
+	    lappend all_dist_files $file
 	}
     }
 }
 
 proc fetchfiles {args} {
-    global fetch_opts distpath
+    global distpath all_dist_files master_sites
 
     if {![file isdirectory $distpath]} {
 	file mkdir $distpath
     }
 
-    foreach distfile $fetch_opts(all_dist_files) {
+    foreach distfile $all_dist_files {
 	if {![file isfile $distpath/$distfile]} {
 	    puts "$distfile doesn't seem to exist in $distpath"
-	    foreach site $fetch_opts(master_sites) {
+	    foreach site $master_sites {
 		puts "Attempting to fetch from $site"
 		if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 		    set fetched 1
@@ -71,14 +68,14 @@ proc fetchfiles {args} {
 }
 
 proc fetch_main {args} {
-    global fetch_opts distname
+    global distname distpath all_dist_files
 
-    # Defaults
-    default fetch_opts distfiles [suffix $distname]
+    # Set distfiles
+    default distfiles [suffix $distname]
 
     # Check for files, download if neccesary
     checkfiles
-    if ![info exists fetch_opts(all_dist_files)] {
+    if ![info exists all_dist_files] {
 	return 0
     } else {
 	return [fetchfiles]
