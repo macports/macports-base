@@ -8,7 +8,7 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 [--target=<target>] \[invoice\]"
+    puts "Usage: $argv0 [-t <target>] [-d portdir] [options]"
 }
 
 proc fatal args {
@@ -20,15 +20,27 @@ proc fatal args {
 # Main
 # KVV kludged this up
 set target "all"
-if {$argc > 2} {
-    print_usage
-} elseif {$argc == 2} {
-    set target [lindex $argv 0]
-    if {[regsub -- "--target=" $target "" target] < 1} { print_usage }
-    set portdir [lindex $argv 1]
-} elseif {$argc == 1} {
-    set portdir [lindex $argv 0]
+for {set i 0} {$i < $argc} {incr i} {
+	switch -regexp -- [lindex $argv $i] {
+		-d {
+			incr i
+			set portdir [lindex $argv $i]
+		}
+		-t {
+			incr i
+			set target [lindex $argv $i]
+		}
+		{[A-Za-z]+=[A-Za-z0-9\ ]+} {
+			if {[regexp {([A-Za-z]+)=([A-Za-z0-9\ ]+)} [lindex $argv $i] match var val] == 1} {
+				lappend options [lindex $argv $i]
+			}
+		}
+		default { print_usage }
+	}
 }
-
 init
-build $portdir build $target
+if [info exists options] {
+    build $portdir build $target $options
+} else {
+    build $portdir build $target
+}

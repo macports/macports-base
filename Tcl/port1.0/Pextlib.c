@@ -15,6 +15,10 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	cmdlen = cmdlenavail = 1024;
 	p = cmdstring = NULL;
 
+	if(Tcl_PkgRequire(interp, "portui", "1.0", 0) == NULL) {
+		return TCL_ERROR;
+	}
+
 	resultPtr = Tcl_GetObjResult(interp);
 
 	if (objc < 2) {
@@ -153,6 +157,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
-	Tcl_PkgProvide(interp, "Pextlib", "1.0");
+	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
+		return TCL_ERROR;
 	return TCL_OK;
 }

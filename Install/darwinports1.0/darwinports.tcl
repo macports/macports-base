@@ -63,8 +63,8 @@ proc init {args} {
     }
 }
 
-proc build {portdir chain target} {
-    global targets portpath portinterp_options
+proc build {portdir chain target args} {
+    global targets portpath portinterp_options user_options
 
     if [file isdirectory $portdir] {
 	cd $portdir
@@ -76,6 +76,9 @@ proc build {portdir chain target} {
 		if [info exists upopt] {
 			bombus eval set $opt \"$upopt\"
 		}
+	}
+	if {[llength $args] > 0} {
+		bombus eval set user_options $args
 	}
 	bombus eval source Portfile
 	bombus eval eval_targets targets $chain $target
