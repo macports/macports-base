@@ -84,7 +84,7 @@ static gid_t gid;
 static uid_t uid;
 static const char *suffix = BACKUP_SUFFIX;
 static char *funcname;
-static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap, verbose;
+static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap;
 static mode_t mode;
 
 static int	copy(Tcl_Interp *interp, int, const char *, int, const char *, off_t);
@@ -115,7 +115,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	suffix = BACKUP_SUFFIX;
 	mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-	safecopy = docompare = dostrip = dobackup = dopreserve = nommap = verbose = 0;
+	safecopy = docompare = dostrip = dobackup = dopreserve = nommap = 0;
 	iflags = 0;
 	group = owner = curdir = NULL;
 	funcname = Tcl_GetString(objv[0]);
@@ -215,7 +215,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			objv++, objc--;
 			break;
 		case 'v':
-			verbose = 1;
+			/* provided only for compatibility with install(1) */
 			objv++, objc--;
 			break;
 		case 'W':
@@ -252,11 +252,6 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 	if (docompare && dostrip)
 		safecopy = 1;
 
-	/* If overall ports verbosity is turned on, enable this too */
-	cp = Tcl_GetVar2(interp, "ui_options", "ports_verbose", 0);
-	if (cp && !strcmp(cp, "yes"))
-		verbose = 1;
-
 	/* Start out hoping for the best */
 	rval = TCL_OK;
 
@@ -269,11 +264,10 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
-		else if (verbose) {
+		else {
 			char msg[255];
 
-			snprintf(msg, sizeof msg, "%s: chdir(%s)\n",
-				 funcname, curdir);
+			snprintf(msg, sizeof msg, "%s: chdir(%s)\n", funcname, curdir);
 			ui_info(interp, msg);
 		}
 	}
@@ -399,6 +393,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	int devnull, files_match, from_fd = 0, serrno, target;
 	int tempcopy, temp_fd, to_fd = 0;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
+	char msg[256];
 
 	files_match = 0;
 
@@ -501,12 +496,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-			if (verbose) {
-				char msg[255];
-
-				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
-				ui_info(interp, msg);
-			}
+			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
+			ui_info(interp, msg);
 		}
 		if (!devnull)
 			if (copy(interp, from_fd, from_name, to_fd,
@@ -601,12 +592,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
-			if (verbose) {
-				char msg[255];
-
-				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, to_name, backup);
-				ui_info(interp, msg);
-			}
+			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, to_name, backup);
+			ui_info(interp, msg);
 			if (rename(to_name, backup) < 0) {
 				char errmsg[255];
 
@@ -619,12 +606,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				return TCL_ERROR;
 			}
 		}
-		if (verbose) {
-			char msg[255];
-
-			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
-			ui_info(interp, msg);
-		}
+		snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
+		ui_info(interp, msg);
 		if (rename(tempfile, to_name) < 0) {
 			char errmsg[255];
 
@@ -837,6 +820,7 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 	char backup[MAXPATHLEN];
 	int saved_errno = 0;
 	int newfd;
+	char msg[256];
 
 	if (target) {
 		/*
@@ -858,12 +842,8 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 				return -1;
 			}
 			(void)snprintf(backup, MAXPATHLEN, "%s%s", path, suffix);
-			if (verbose) {
-				char msg[255];
-
-				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, path, backup);
-				ui_info(interp, msg);
-			}
+			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, path, backup);
+			ui_info(interp, msg);
 			if (rename(path, backup) < 0) {
 				char errmsg[255];
 
@@ -1018,7 +998,8 @@ install_dir(Tcl_Interp *interp, char *path)
 						 funcname, path, strerror(errno));
 					Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 					return TCL_ERROR;
-				} else if (verbose) {
+				}
+				else {
 					char msg[255];
 
 					*p = ch;
