@@ -1,5 +1,5 @@
 # ex:ts=4
-# port.tcl
+# portuninstall.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -28,30 +28,43 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portinstall 1.0
-package require portuninstall 1.0
-package require portregistry 1.0
-package require portclean 1.0
-package require portpackage 1.0
-package require portcontents 1.0
+package provide portcontents 1.0
+package require portutil 1.0
 
-# System wide default configuration
-if [info exists portdefaultconf] {
-	source $portdefaultconf
-}
+set com.apple.contents [target_new com.apple.contents contents_main]
+${com.apple.contents} set runtype always
+${com.apple.contents} provides contents
+${com.apple.contents} requires main
 
-# System wide user configuration
-if [info exists portconf] {
-    source $portconf
+set UI_PREFIX "---> "
+
+proc contents_main {args} {
+    global portname portversion UI_PREFIX
+
+    set rfile [registry_exists $portname $portversion]
+    if [string length $rfile] {
+	if [regexp .bz2$ $rfile] {
+	    set fd [open "|bunzip2 -c $rfile" r]
+	} else {
+	    set fd [open $rfile r]
+	}
+	set entry [read $fd]
+	close $fd
+
+	# look for a contents list
+	set ix [lsearch $entry contents]
+	if {$ix >= 0} {
+	    set contents [lindex $entry [incr ix]]
+	    set uninst_err 0
+	    ui_msg "Contents of ${portname}-${portversion}:"
+	    foreach f $contents {
+		ui_msg [lindex $f 0]
+	    }
+	} else {
+	    return -code error "No contents list for ${portname}-${portversion}"
+	}
+    } else {
+	return -code error "Contents listing failed - no registry entry"
+    }
 }
