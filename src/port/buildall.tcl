@@ -29,12 +29,12 @@ proc ui_isset {val} {
 # UI Callback
 
 proc ui_puts {messagelist} {
-    set channel [open "portbuild.out" w+ 0644]
+    set channel [open "/tmp/portbuild.out" w+ 0644]
     array set message $messagelist
     switch $message(priority) {
         debug {
             if {[ui_isset ports_debug]} {
-                set channel [open "portdebug.out" a+ 0664]
+                set channel [open "/tmp/portdebug.out" a+ 0664]
                 set str "DEBUG: $message(data)"
             } else {
                 return
@@ -48,7 +48,7 @@ proc ui_puts {messagelist} {
         }
         error {
             set str "ERR: $message(data)"
-            set channel [open "portbuild.out" w+ 0644]
+            set channel [open "/tmp/portbuild.out" w+ 0644]
         }
         warn {
             set str "WARN: $message(data)"
