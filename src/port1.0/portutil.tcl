@@ -107,7 +107,7 @@ proc options {args} {
 	
 	eval "proc ${option}-delete {args} \{ \n\
 	    global ${option} user_options option_procs \n\
-		\if \{!\[info exists user_options(${option})\]\} \{ \n\
+		\if \{!\[info exists user_options(${option})\]\ && \[info exists ${option}\]\} \{ \n\
 		    foreach val \$args \{ \n\
                        set ${option} \[ldelete \$\{$option\} \$val\] \n\
 		    \} \n\
