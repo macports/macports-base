@@ -33,8 +33,6 @@ INCLUDES="-I. $INCLUDES"
 # Checks for library functions.
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol])
 
