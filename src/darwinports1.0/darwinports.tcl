@@ -293,11 +293,14 @@ proc _dporttest {dport} {
 proc _dportexec {target dport} {
 	# xxx: set the work path?
 	set workername [ditem_key $dport workername]
-	if {![catch {$workername eval eval_targets $target} result]} {
+	if {![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# xxx: clean after installing?
 		#$workername eval eval_targets clean
+		return 0
+	} else {
+		# An error occurred.
+		return 1
 	}
-	
 }
 
 # dportexec
