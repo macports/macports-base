@@ -1,6 +1,6 @@
 /*
  * filemap.h
- * $Id: filemap.h,v 1.1.2.1 2004/05/30 21:22:05 pguyot Exp $
+ * $Id: filemap.h,v 1.1.2.2 2004/06/01 06:30:22 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -63,6 +63,9 @@
  * filemap list filemapVarName value
  *	return a list of all the keys that match with this value.
  *  comparison is case sensitive.
+ *
+ * filemap revert filemapVarName
+ *	revert the filemap to the previous version saved on disk (without closing it)
  *
  * filemap save filemapVarName
  *	save the filemap to disk (without closing it)

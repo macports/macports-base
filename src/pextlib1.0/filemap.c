@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.1.2.1 2004/05/30 21:22:05 pguyot Exp $
+ * $Id: filemap.c,v 1.1.2.2 2004/06/01 06:30:22 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -206,6 +206,7 @@ int FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -970,7 +971,7 @@ ListSubtree(
 		thePath[thePathLen - 1] = '/';
 		thePath[thePathLen] = '\0';
 
-		/* Iteration on the nodes */	
+		/* Iteration on the nodes */
 		for (indexSubnodes = 0; indexSubnodes < nbSubnodes; indexSubnodes++)
 		{
 			ListSubtree(*theSubnodeCursor, inValue, outList, thePath, thePathLen);
@@ -1127,10 +1128,7 @@ FreeFilemapInternalRep(Tcl_Obj* inObjPtr)
 		int theFD = theObject->fFilemapFD;
 		if (theFD >= 0)
 		{
-			/* save it */
-			(void) Save(theFD, theRoot);
-			
-			/* close it */
+			/* close the file */
 			close(theFD);
 			theObject->fFilemapFD = -1;
 		}
@@ -1254,7 +1252,7 @@ SetResultFromErrorCode(Tcl_Interp* interp, int inErrorCode)
 				"unexpected EOF while loading database (database is corrupted?)",
 				TCL_STATIC);
 			theResult = TCL_ERROR;
-			break;			
+			break;
 
 		case 0:
 			Tcl_SetResult(interp, "", TCL_STATIC);
@@ -1317,6 +1315,7 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 	do {
 		SFilemapObject* theFilemapObject;
+		int theErr;
 		
 		/*	unique (second) parameter is the variable name */
 		if (objc != 3) {
@@ -1333,13 +1332,19 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
+		/* Save the filemap to file */
+		theErr = Save(
+					theFilemapObject->fFilemapFD,
+					theFilemapObject->fRoot);
+		
+		/* Return any error. */
+		theResult = SetResultFromErrorCode(interp, theErr);
+		
 		/* Unset the variable name */
 		(void) Tcl_UnsetVar(
 					interp,
 					Tcl_GetString(objv[2]),
 					0);
-		
-		Tcl_SetResult(interp, "", TCL_STATIC);
     } while (0);
     
 	return theResult;
@@ -1445,8 +1450,7 @@ FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		SFilemapObject* theFilemapObject;
 		Tcl_Obj* theList;
 		
-		/*	first (second) parameter is the variable name,
-			second (third) parameter is the value */
+		/*	unique (second) parameter is the variable name */
 		if (objc != 4) {
 			Tcl_WrongNumArgs(interp, 1, objv, "list filemapName value");
 			theResult = TCL_ERROR;
@@ -1539,6 +1543,50 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	} while (0);
 	
 	return SetResultFromErrorCode(interp, theErr);
+}
+
+/**
+ * filemap revert subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+
+	do {
+		SFilemapObject* theFilemapObject;
+		int theErr;
+		
+		/*	unique (second) parameter is the variable name */
+		if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 1, objv, "revert filemapName");
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* retrieve the pointer to the variable */
+		theFilemapObject = GetObjectFromVarName(interp, objv[2]);
+		if (theFilemapObject == NULL)
+		{
+			theResult = TCL_ERROR;
+			break;
+		}
+		
+		/* Free the tree */
+		Free(&theFilemapObject->fRoot);
+		
+		/* Reload the map from the file */
+		theErr = Load(theFilemapObject->fFilemapFD, &theFilemapObject->fRoot);
+
+		/* return any error */	
+		theResult = SetResultFromErrorCode(interp, theErr);
+    } while (0);
+    
+	return theResult;
 }
 
 /**
@@ -1694,13 +1742,15 @@ FilemapCmd(
     	kFilemapGet,
     	kFilemapList,
     	kFilemapOpen,
+    	kFilemapRevert,
     	kFilemapSave,
     	kFilemapSet,
     	kFilemapUnset
     } EOption;
     
 	static const char* options[] = {
-		"close", "exists", "get", "list", "open", "save", "set", "unset", NULL
+		"close", "exists", "get", "list", "open", "revert", "save", "set",
+		"unset", NULL
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
@@ -1738,6 +1788,10 @@ FilemapCmd(
 			
 			case kFilemapOpen:
 				theResult = FilemapOpenCmd(interp, objc, objv);
+				break;
+			
+			case kFilemapRevert:
+				theResult = FilemapRevertCmd(interp, objc, objv);
 				break;
 			
 			case kFilemapSave:

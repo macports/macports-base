@@ -76,6 +76,15 @@ proc main {pextlibname} {
 		filemap set testmap "/many/bar-$index" "foo-$index"
 	}
 
+	# save again
+	filemap save testmap
+	
+	# add some value that won't be saved.
+	filemap set testmap "/unsaved" "unsaved"
+	
+	# revert the map.
+	filemap revert testmap
+
 	filemap close testmap
 
 	filemap open testmap2 "/tmp/darwinports-pextlib-testmap"
@@ -145,6 +154,11 @@ proc main {pextlibname} {
 			puts [filemap get testmap2 "/many/bar-$index"]
 			exit 1
 		}
+	}
+
+	if {[filemap exists testmap2 "/unsaved"]} {
+		puts {[filemap exists testmap2 "/unsaved"]}
+		exit 1
 	}
 
 	filemap close testmap2
