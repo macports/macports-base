@@ -23,7 +23,6 @@ proc portextract::main {args} {
 	default portextract::options extract.after_args "| tar -xf -"
 
 	if [info exists use_bzip2] {
-	    puts "XXX using bzip2 man"
 		set portextract::options(extract.cmd) bzip2
 	} elseif [info exists use_zip] {
 		set portextract::options(extract.cmd) unzip
