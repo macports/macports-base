@@ -109,7 +109,11 @@ switch -- $action {
 			puts "You must specify a search pattern"
 			exit 1
 		}
-		foreach {name array} [dportsearch $portname] {
+		if {[catch {set res [dportsearch $portname]} result]} {
+			puts "port search failed: $result"
+			exit 1
+		}
+		foreach {name array} $res {
 			array set portinfo $array
 			puts "$portinfo(portname) $portinfo(description)"
 		}
