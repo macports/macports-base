@@ -43,9 +43,5 @@ package require portdestroot 1.0
 package require portinstall 1.0
 package require portuninstall 1.0
 package require portclean 1.0
-package require portrpmpackage 1.0
-package require portpkg 1.0
-package require portmpkg 1.0
-package require portdmg 1.0
 package require porttest 1.0
 package require portsubmit 1.0
