@@ -100,8 +100,8 @@ EOF
 	/sbin/mount_devfs devfs ${dir}/dev
 	/sbin/mount_fdesc -o union fdesc ${dir}/dev
 	chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
-	umount ${dir}/dev
-	umount ${dir}/dev
+	umount -f ${dir}/dev
+	umount -f ${dir}/dev
 	hdiutil detach $BASEDEV >& /dev/null && BASEDEV=""
 }
 
@@ -158,7 +158,6 @@ else
 	fi
 fi
 
-rm -rf outputdir
 if [ -z "$TGTPORTS" ]; then
 	if [ -f PortIndex ]; then
 		PINDEX=PortIndex
