@@ -46,6 +46,24 @@ default extract_sufx .tar.gz
 # Set distfiles
 default distfiles {[suffix $distname]}
 
+namespace eval options { }
+proc options::use_bzip2 {args} {
+    global use_bzip2 extract_sufx
+    if [tbool use_bzip2] {
+        set extract_sufx .tar.bz2
+    }
+}
+
+proc options::use_zip {args} {
+    global use_zip extract_sufx
+    if [tbool use_zip] {
+        set extract_sufx .zip
+    }
+}
+
+# Name space for internal implementation variables
+
+namespace eval portfetch { }
 
 set UI_PREFIX "---> "
 
@@ -60,14 +78,37 @@ proc suffix {distname} {
     }
 }
 
+proc getdistsite {name} {
+    if {[regexp {.+:([A-Za-z]+)} $name match tag]} {
+        return $tag
+    } else {
+        return ""
+    }
+}
+
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	portpath
+	portpath master_sites
+
+    foreach list {master_sites patch_sites} {
+        upvar #0 $list uplist
+        foreach site $uplist {
+            if {[regexp {([a-zA-Z]+://.+/):([a-zA-z]+)} $site match site tag] == 1} {
+                lappend portfetch::$tag $site
+            } else {
+                lappend portfetch::$list $site
+            }
+        }
+    }
+
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
 	    if {![file exists $portpath/files/$file]} {
 		lappend all_dist_files $file
-		if {[info exists patch_sites]} {
+        set distsite [getdistsite $file]
+		if {$distsite != ""} {
+		    lappend fetch_urls $distsite $file
+		} elseif {[info exists patch_sites]} {
 		    lappend fetch_urls patch_sites $file
 		} else {
 		    lappend fetch_urls master_sites $file
@@ -78,8 +119,13 @@ proc checkfiles {args} {
 
     foreach file $distfiles {
 	if {![file exists $portpath/files/$file]} {
-	    lappend all_dist_files $file
-	    lappend fetch_urls master_sites $file
+        set distsite [getdistsite $file]
+		if {$distsite != ""} {
+		    lappend fetch_urls $distsite $file
+		} else {
+	            lappend all_dist_files $file
+	            lappend fetch_urls master_sites $file
+		}
 	}
     }
 }
@@ -88,20 +134,28 @@ proc fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls
 
     if {![file isdirectory $distpath]} {
-	file mkdir $distpath
+        if {[catch {file mkdir $distpath} result]} {
+	    ui_error "Unable to create distribution files path: $result"
+	    return 1
+	}
     }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
 	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
-	    upvar #0 $url_var sites 
-	    foreach site $sites {
+            global portfetch::$url_var
+            if ![info exists $url_var] {
+                ui_error "No defined site for tag: $url_var, using master_sites"
+                set url_var master_sites
+		global portfetch::$url_var
+            }
+	    foreach site [set $url_var] {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
 		if [tbool ports_verbose] {
 			set verboseflag -v
 		} else {
-			set verboseflag "-s"
+			set verboseflag "-s -S"
 		}
-		if ![catch {system "curl ${verboseflag} -o \"${distpath}/${distfile}\" \"${site}${distfile}\" 2>&1"} result] {
+		if ![catch {system "curl ${verboseflag} -o \"${distpath}/${distfile}\" \"${site}${distfile}\""} result] {
 		    set fetched 1
 		    break
 		}
