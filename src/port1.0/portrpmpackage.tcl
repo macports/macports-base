@@ -50,7 +50,7 @@ proc rpmpackage_main {args} {
 }
 
 proc rpmpackage_pkg {portname portversion portrevision} {
-    global package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch
+    global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
 
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -61,6 +61,16 @@ proc rpmpackage_pkg {portname portversion portrevision} {
         system "mkdir -p ${pkgpath}/SPECS"
         system "mkdir -p ${pkgpath}/SRPMS"
         set rpmdestpath "--define '_topdir ${pkgpath}'"
+    }
+
+    foreach dir { "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/darwinports/rpms/RPMS"} {
+        foreach arch {"ppc" "i386" "fat"} {
+            set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
+                ui_msg "$UI_PREFIX [format [msgcat::mc "RPM package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+                return 0
+            }
+        }
     }
 
     set specpath ${workpath}/${portname}.spec
