@@ -18,7 +18,6 @@ proc fatal args {
 }
 
 # Main
-# KVV kludged this up
 set target "all"
 for {set i 0} {$i < $argc} {incr i} {
 	switch -regexp -- [lindex $argv $i] {
