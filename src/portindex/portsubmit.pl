@@ -287,3 +287,4 @@ close($handle);
 #
 
 print "OK: $transaction\n";
+print "revision: $revision\n";

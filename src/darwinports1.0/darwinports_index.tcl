@@ -292,6 +292,7 @@ proc darwinports::index::fetch_port {url} {
 	set portsource ""
 	set portname ""
 	set portversion ""
+	set portrevision ""
 	
 	# Iterate through the sources, to see which one this port is coming from.
 	# If the port is not coming from a known source, return an error (for now).
@@ -311,6 +312,7 @@ proc darwinports::index::fetch_port {url} {
 			# XXX: crude hack to get port name and version, should realy come from opaque port handle.
 			set portname [lindex [file split $dir] 1]
 			set portversion [lindex [file split $dir] 2]
+			set portrevision [lindex [file split $dir] 3]
 
 			set fetchpath [file join $indexpath $dir]
 			break
@@ -356,6 +358,9 @@ proc darwinports::index::fetch_port {url} {
 			
 			set fd [open ".dports_source" w]
 			puts $fd "source: $portsource"
+			puts $fd "port: $portname"
+			puts $fd "version: $portversion"
+			puts $fd "revision: $portrevision"
 			close $fd
 			
 			cd $oldcwd

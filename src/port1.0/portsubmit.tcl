@@ -33,6 +33,7 @@ package provide portsubmit 1.0
 package require portutil 1.0
 
 set com.apple.submit [target_new com.apple.submit submit_main]
+target_runtype ${com.apple.submit} always
 target_provides ${com.apple.submit} submit 
 target_requires ${com.apple.submit} main
 
@@ -117,7 +118,18 @@ proc submit_main {args} {
 
 	set fd [open ${workpath}/.portsubmit.out r]
 	gets $fd line
-	if {![regexp -- {^OK:} $line]} {
+	if {[regexp -- {^OK: ([0-9]+)} $line unused transaction]} {
+		while {[gets $fd line] != -1} {
+			if {[regexp -- {^revision: ([0-9]+)} $line unused portrevision]} {
+				set fd2 [open ".dports_source" w]
+				puts $fd2 "source: [regsub -- {^http} $portsource {dports}]"
+				puts $fd2 "port: $portname"
+				puts $fd2 "version: $portversion"
+				puts $fd2 "revision: $portrevision"
+				close $fd2
+			}
+		}
+	} else {
 		return -code error $line
 	}
 	close $fd
