@@ -1,0 +1,27 @@
+.Dd August 24, 2002
+.Dt PORTBUILD 1
+.Os
+.Sh NAME
+.Nm portbuild
+.Nd build darwin ports
+.Sh SYNOPSIS
+.Nm
+.Op Fl d Ar portdir
+.Op Fl t Ar target
+.Op options ...
+.Sh DESCRIPTION
+.Nm
+is designed to evaluate and execute the instructions in a darwin port. If no portdir is specified, the current working directory is assumed. Port options are specified as <key>=<value> pairs and take precedence over port-specific and system-wide settings.
+.Sh EXAMPLES
+The following demonstrates invoking
+.Nm
+with the "extract" target and extract_sufx set to ".tgz"
+.Pp
+.Dl "portbuild -t extract extract_sufx=.tgz"
+.Pp
+.Sh DIAGNOSTICS
+.Ex -std
+.Sh AUTHORS
+.An "Landon Fuller <landonf@opendarwin.org>"
+.An "Kevin Van Vechten <kevin@opendarwin.org>"
+.An "Jordan K. Hubbard <jkh@opendarwin.org>"
