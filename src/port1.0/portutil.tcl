@@ -124,6 +124,7 @@ proc command {command} {
 	}
 	}
     }
+    ui_debug "Assembled command: '$cmdstring'"
     return $cmdstring
 }
 
