@@ -108,14 +108,18 @@ proc packageall {} {
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
-		puts $out "Trying ${portname}..."
+		puts -nonewline $out "Trying ${portname}..."
 		flush $out
 		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
 			puts $repfile "$portname failure"
 			flush $repfile
+			puts $out " failed."
+			flush $out
 		} else {
 			puts $repfile "$portname success"
 			flush $repfile
+			puts $out " succeeded."
+			flush $out
 			exec rm -f ${REPDIR}/${portname}.out
 		}
 	}
