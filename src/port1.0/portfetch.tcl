@@ -186,9 +186,12 @@ proc mirror_sites {mirrors tag subdir} {
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
 	master_sites filespath master_sites.mirror_subdir \
-        patch_sites.mirror_subdir fallback_mirror_site
+        patch_sites.mirror_subdir fallback_mirror_site env
     
     append master_sites " ${fallback_mirror_site}"
+    if {[info exists env(MASTER_SITE_LOCAL)]} {
+	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
+    }
     
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
@@ -311,7 +314,7 @@ proc fetchfiles {args} {
 		    set fetched 1
 		    break
 		} else {
-		    ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
+#		    ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
 		    exec rm -f ${distpath}/${distfile}.TMP
 		}
 	    }
