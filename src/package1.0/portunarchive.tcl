@@ -265,6 +265,7 @@ proc unarchive_finish {args} {
 	# Reset state file with archive version
     set statefile [file join $workpath .darwinports.${portname}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
+	exec touch $statefile
 
     # Update the state from unpacked archive version
     set target_state_fd [open_statefile]
