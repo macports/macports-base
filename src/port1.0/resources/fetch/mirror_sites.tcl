@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.17 2004/03/18 12:47:04 toby Exp $
+# $Id: mirror_sites.tcl,v 1.18 2004/03/21 10:11:16 toby Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -45,13 +45,10 @@ set portfetch::mirror_sites::sites(freebsd) {
 }
 
 set portfetch::mirror_sites::sites(gnome) {
-    ftp://ftp.gnome.org/pub/GNOME/
-    http://archive.progeny.com/GNOME/
-    http://ftp.rpmfind.net/linux/gnome.org/
     ftp://ftp.mirror.ac.uk/sites/ftp.gnome.org/pub/GNOME/
-    http://fr.rpmfind.net/linux/gnome.org/
     http://ftp.linux.org.uk/mirrors/ftp.gnome.org/
-    http://planetmirror.com/pub/GNOME/
+    http://www.gtlib.cc.gatech.edu/pub/gnome/
+    http://public.planetmirror.com/pub/gnome/
     ftp://ftp.dit.upm.es/linux/gnome/
     ftp://ftp.dataplus.se/pub/linux/gnome/
     ftp://ftp.chg.ru/pub/X11/gnome/
@@ -60,10 +57,10 @@ set portfetch::mirror_sites::sites(gnome) {
     ftp://ftp.belnet.be/mirror/ftp.gnome.org/
     ftp://ftp.no.gnome.org/pub/GNOME/
     ftp://www.t.ring.gr.jp/pub/X/gnome/
+    http://www.t.ring.gr.jp/archives/X/gnome/
     http://archive.progeny.com/GNOME/
     ftp://ftp.tuwien.ac.at/linux/gnome.org/
-    http://mirror.aarnet.edu.au/pub/GNOME/
-    ftp://ftp.cse.buffalo.edu/pub/Gnome/
+    http://ftp.gnome.org/pub/GNOME/
 }
 
 set portfetch::mirror_sites::sites(gnu) {
