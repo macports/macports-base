@@ -84,7 +84,9 @@ The other targets are:
 .Dl clean
 .Dl search
 .Dl list
-.Dl toc
+.Dl contents
+.Dl deps
+.Dl variants
 .Pp
 Besides the main targets
 .Nm
@@ -139,7 +141,19 @@ To look for a specific port, supply a search string:
 .Pp
 To list the files (table of contents) installed by a given port (in this case apr):
 .Pp
-.Dl "port toc apr"
+.Dl "port contents apr"
+.Pp
+To list a port's dependencies:
+.Pp
+.Dl "port deps exim"
+.Pp
+To list installed ports:
+.Pp
+.Dl "port installed"
+.Pp
+To list a port's variants:
+.Pp
+.Dl "port variants php"
 .Pp
 The following demonstrates invoking
 .Nm

@@ -64,7 +64,7 @@ proc darwinports::ui_event {context message} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::autoconf::dports_conf_path
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -141,6 +141,18 @@ proc dportinit {args} {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
+    set registry.path [file join $portdbpath receipts]
+    if {![file isdirectory ${registry.path}]} {
+	if {![file exists ${registry.path}]} {
+	    if {[catch {file mkdir ${registry.path}} result]} {
+		return -code error "portdbpath ${registry.path} does not exist and could not be created: $result"
+	    }
+	}
+    }
+    if {![file isdirectory ${darwinports::registry.path}]} {
+	return -code error "${darwinports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
+    }
+
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
@@ -178,10 +190,6 @@ proc darwinports::worker_init {workername portpath options variations} {
     $workername alias ui_event darwinports::ui_event $workername
 
 	# xxx: find a better home for this registry cruft--like six feet under.
-	global darwinports::portdbpath darwinports::registry.path
-	if {[info exists darwinports::portdbpath] && ![info exists darwinports::registry.path]} {
-		set darwinports::registry.path [file join ${darwinports::portdbpath} receipts]
-	}
 	$workername alias registry_new dportregistry::new $workername
 	$workername alias registry_store dportregistry::store
 	$workername alias registry_delete dportregistry::delete
@@ -753,5 +761,24 @@ proc dportregistry::fileinfo_for_index {flist} {
 	dportregistry::fileinfo_for_entry rval $dir $file
     }
     return $rval
+}
+
+proc dportregistry::listinstalled {args} {
+    global darwinports::registry.path
+
+    set receiptglob [glob -nocomplain ${darwinports::registry.path}/*]
+
+    if {$receiptglob == ""} {
+        puts "No ports installed."
+    } else {
+        puts "The following ports are installed:"
+        foreach receipt $receiptglob {
+            if {[file extension $receipt] == ".bz2"} {
+                puts "\t[file rootname [file tail $receipt]]"
+            } else {
+                puts "\t[file tail $receipt]"
+            }
+        }
+    }
 }
 

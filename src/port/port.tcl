@@ -172,6 +172,136 @@ if {[catch {dportinit} result]} {
 }
 
 switch -- $action {
+    deps {
+        set nodeps true
+
+        # make sure a port was given on the command line
+        if {![info exists portname]} {
+           puts "You must specify a port"
+	   exit 1
+        }
+
+        # search for port
+        if {[catch {dportsearch ^$portname$} result]} {
+           puts "port search failed: $result"
+	   exit 1
+        }
+
+        if {$result == ""} {
+            puts "No port $portname found."
+	    exit 1
+        }
+
+        array set portinfo [lindex $result 1]
+
+        # find build dependencies
+        if {[info exists portinfo(depends_build)]} {
+            puts "$portname has build dependencies on:"
+            foreach i $portinfo(depends_build) {
+                puts "\t[lindex [split [lindex $i 0] :] 2]"
+            }
+            set nodeps false
+        }
+
+        # find library dependencies
+        if {[info exists portinfo(depends_lib)]} {
+            puts "$portname has library dependencies on:"
+            foreach i $portinfo(depends_lib) {
+                puts "\t[lindex [split [lindex $i 0] :] 2]"
+            }
+            set nodeps false
+        }
+
+        # find runtime dependencies
+        if {[info exists portinfo(depends_run)]} {
+            puts "$portname has runtime dependencies on:"
+            foreach i $portinfo(depends_run) {
+                puts "\t[lindex [split [lindex $i 0] :] 2]"
+            }
+            set nodeps false
+        }
+
+        # no dependencies found
+        if {$nodeps == "true"} {
+            puts "$portname has no dependencies"
+        }
+    }
+    installed {
+        if {[catch {dportregistry::listinstalled} result]} {
+            puts "Port failed: $result"
+	    exit 1
+        }
+    }
+    variants {
+        # make sure a port was given on the command line
+        if {![info exists portname]} {
+           puts "You must specify a port"
+	   exit 1
+        }
+
+        # search for port
+        if {[catch {dportsearch ^$portname$} result]} {
+           puts "port search failed: $result"
+	   exit 1
+        }
+
+        if {$result == ""} {
+            puts "No port $portname found."
+        }
+
+        array set portinfo [lindex $result 1]
+
+        # if this fails the port doesn't have any variants
+        if {![info exists portinfo(variants)]} {
+            puts "$portname has no variants"
+        } else {
+        # print out all the variants
+            for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
+                puts "[lindex $portinfo(variants) $i]"
+            }
+        }
+    }
+    contents {
+        # make sure a port was given on the command line
+        if {![info exists portname]} {
+           puts "You must specify a port"
+	   exit 1
+        }
+
+        set rfile [dportregistry::exists $portname]
+        if {$rfile != ""} {
+            if {[file extension $rfile] == ".bz2"} {
+                set shortname [file rootname [file tail $rfile]]
+                set fd [open "|bzcat -q $rfile" r]
+            } else {
+                set shortname [file tail $rfile]
+                set fd [open $rfile r]
+            }
+            set entry [read $fd]
+            # kind of a corner case but I ran into it testing
+            if {[catch {close $fd} result]} {
+                puts "Port failed: $rfile may be corrupted"
+		exit 1
+            }
+
+            # look for a contents list
+            set ix [lsearch $entry contents]
+            if {$ix >= 0} {
+                set contents [lindex $entry [incr ix]]
+                set uninst_err 0
+                puts "Contents of $shortname"
+                foreach f $contents {
+                    puts "\t[lindex $f 0]"
+                }
+            } else {
+                puts "No contents list for $shortname"
+		exit 1
+            }
+        } else {
+            puts "Contents listing failed - no registry entry"
+	    exit 1
+        }
+    }
     search {
 	if {![info exists portname]} {
 	    puts "You must specify a search pattern"

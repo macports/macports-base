@@ -2,10 +2,9 @@ INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/port1.0
 
 SRCS= port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
-	portinstall.tcl portdepends.tcl portdestroot.tcl                    \
-	portinstall.tcl portuninstall.tcl                                   \
-	portdepends.tcl portclean.tcl portpackage.tcl portcontents.tcl	    \
-	porttest.tcl portmpkg.tcl portrpmpackage.tcl
+	portinstall.tcl portdepends.tcl portdestroot.tcl portuninstall.tcl  \
+        portclean.tcl portpackage.tcl porttest.tcl portmpkg.tcl             \
+        portrpmpackage.tcl
 
 SUBDIR=		resources
 
