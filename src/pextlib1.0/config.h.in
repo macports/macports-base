@@ -1,0 +1,119 @@
+/* src/pextlib1.0/config.h.in.  Generated automatically from configure.ac by autoheader.  */
+
+/* Define if the `closedir' function returns void instead of `int'. */
+#undef CLOSEDIR_VOID
+
+/* Define if you have the `bzero' function. */
+#undef HAVE_BZERO
+
+/* Define if you have the <crt_externs.h> header file. */
+#undef HAVE_CRT_EXTERNS_H
+
+/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRERROR_R
+
+/* Define if you have the <dirent.h> header file, and it defines `DIR'. */
+#undef HAVE_DIRENT_H
+
+/* Define if you have the `dup2' function. */
+#undef HAVE_DUP2
+
+/* Define if you have the `fork' function. */
+#undef HAVE_FORK
+
+/* Define if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define if you have the <paths.h> header file. */
+#undef HAVE_PATHS_H
+
+/* Define if you have the `regcomp' function. */
+#undef HAVE_REGCOMP
+
+/* Define if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define if you have the `strerror_r' function. */
+#undef HAVE_STRERROR_R
+
+/* Define if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define if you have the <sys/dir.h> header file, and it defines `DIR'. */
+#undef HAVE_SYS_DIR_H
+
+/* Define if you have the <sys/file.h> header file. */
+#undef HAVE_SYS_FILE_H
+
+/* Define if you have the <sys/ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_SYS_NDIR_H
+
+/* Define if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define if you have <sys/wait.h> that is POSIX.1 compatible. */
+#undef HAVE_SYS_WAIT_H
+
+/* Define if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the `vfork' function. */
+#undef HAVE_VFORK
+
+/* Define if you have the <vfork.h> header file. */
+#undef HAVE_VFORK_H
+
+/* Define if `fork' works. */
+#undef HAVE_WORKING_FORK
+
+/* Define to 1 if `strerror_r' returns a string. */
+#undef HAVE_WORKING_STRERROR_R
+
+/* Define if `vfork' works. */
+#undef HAVE_WORKING_VFORK
+
+/* Define to 1 if static build is requested */
+#undef STATIC_BUILD
+
+/* Define if the `S_IS*' macros in <sys/stat.h> do not work properly. */
+#undef STAT_MACROS_BROKEN
+
+/* Define if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
+
+/* Define as `fork' if `vfork' does not work. */
+#undef vfork
