@@ -130,7 +130,7 @@ proc options {args} {
 
 proc options_export {args} {
     foreach option $args {
-        eval "proc options::${option} \{args\} \{ \n\
+        eval "proc options::export-${option} \{args\} \{ \n\
 	    global ${option} PortInfo \n\
 	    if \{\[info exists ${option}\]\} \{ \n\
 		set PortInfo(${option}) \$${option} \n\
@@ -138,7 +138,7 @@ proc options_export {args} {
 		unset PortInfo(${option}) \n\
 	    \} \n\
         \}"
-	option_proc ${option} options::${option}
+	option_proc ${option} options::export-${option}
     }
 }
 
