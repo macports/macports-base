@@ -725,7 +725,8 @@ The key variant is used to begin the gnome variant as shown in the example.
 DarwinPorts allows for platform-specific conditional modification to be specified in a Portfile, much like variants, for handling differences between platforms and versions of the same platform.
 .Bl -tag -width lc
 .It Ic platform
-The platform key is used to begin the darwin platform definitions as shown in the example from the databases/db4 Portfile.
+The platform key is used to begin the darwin platform definitions as shown in the examples from the 
+databases/db4 and devel/libidl1 Portfiles respectively.
 .br
 .Sy Type:
 .Em optional
@@ -733,6 +734,11 @@ The platform key is used to begin the darwin platform definitions as shown in th
 .Sy Example:
 .Dl platform darwin 6 { configure.args-append   --enable-tcl \
                                 --with-tcl=/System/Library/Tcl/8.3 }
+.br
+.Sy Example:
+.Dl platform darwin powerpc { configure.args-append \
+                              --host=${os.arch}-apple-rhapsody${os.version} }
+.Dl platform darwin i386 { configure.args-append --host=i386-gnu-rhapsody${os.version} }
 .br
 The platform version is optional, and an optional architecture can be specified after the version.
 .El
