@@ -115,7 +115,9 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
 	set src_element [file join $rootdir $element]
 	# overwrites files but not directories
 	if {![file exists $dst_element] || ![file isdirectory $dst_element]} {
-		if {[file isdirectory $src_element]} {
+		if {[file type $src_element] == "link"} {
+			ui_debug "installing link: $dst_element"
+		} elseif {[file isdirectory $src_element]} {
 			ui_debug "installing directory: $dst_element"
 		} else {
 			ui_debug "installing file: $dst_element"

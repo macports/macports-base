@@ -231,7 +231,7 @@ proc _check_contents {name contents imagedir} {
 	#  we remove the file from the file_map, take ownership of it, and 
 	#  clobber it
 	foreach fe $contents {
-		if { ![file isdirectory [lindex $fe 0]] } {
+		if { ![file isdirectory [lindex $fe 0]] || [file type [lindex $fe 0]] == "link" } {
 			set srcfile [lindex $fe 0]
 			set file [string range [lindex $fe 0] [string length $imagedir] [string length [lindex $fe 0]]]
 
@@ -275,7 +275,9 @@ proc _activate_file {srcfile dstfile} {
 
 proc _activate_list {flist imagedir} {
 	foreach file $flist {
-		if { [file isdirectory $file] } {
+		if { [file type ${imagedir}${file}] == "link" } {
+			ui_debug "activating link: $file"
+		} elseif { [file isdirectory ${imagedir}${file}] } {
 			ui_debug "activating directory: $file"
 		} else {
 			ui_debug "activating file: $file"
@@ -360,17 +362,20 @@ proc _activate_contents {name imagefiles imagedir} {
 }
 
 proc _deactivate_file {dstfile} {
-	if { [file isdirectory $dstfile] } {
+	if { [file type $dstfile] == "link" } {
+		ui_debug "deactivating link: $dstfile"
+		file delete -- $dstfile
+	} elseif { [file isdirectory $dstfile] } {
 		# 0 item means empty.
 		if { [llength [readdir $dstfile]] == 0 } {
 			ui_debug "deactivating directory: $dstfile"
-			file delete $dstfile
+			file delete -- $dstfile
 		} else {
 			ui_debug "$dstfile is not empty"
 		}
 	} else {
 		ui_debug "deactivating file: $dstfile"
-		file delete $dstfile
+		file delete -- $dstfile
 	}
 }
 
@@ -387,7 +392,7 @@ proc _deactivate_contents {name imagefiles} {
 	
 	foreach file $imagefiles {
 		set port [registry::file_registered $file] 
-		if { [file exists $file] } {
+		if { [file exists $file] || [file type $file] == "link" } {
 			lappend files $file
 			
 			# Split out the filename's subpaths and add them to the image list as

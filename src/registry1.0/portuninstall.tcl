@@ -184,7 +184,10 @@ proc uninstall {portname {v ""}} {
 }
 
 proc _uninstall_file {dstfile} {
-	if { [file isdirectory $dstfile] } {
+	if { [file type $dstfile] == "link" } {
+		ui_debug "uninstalling link: $dstfile"
+		file delete -- $dstfile
+	} elseif { [file isdirectory $dstfile] } {
 		# 0 item means empty.
 		if { [llength [readdir $dstfile]] == 0 } {
 			ui_debug "uninstalling directory: $dstfile"
