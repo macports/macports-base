@@ -159,6 +159,10 @@ proc dportexec {workername target} {
     return [$workername eval eval_targets targets $target]
 }
 
+proc dportinfo {workername} {
+    return [$workername eval array get PortInfo]
+}
+
 proc dportclose {workername} {
     $workername eval {flock $portfd -unlock}
     $workername eval {close $portfd}

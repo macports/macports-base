@@ -40,7 +40,9 @@ register com.apple.main provides main
 
 # define options
 options prefix portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath distpath
-
+# Export options via PortInfo
+options_export portname portversion portrevision categories maintainers
+	
 default distpath {[file join $sysportpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}

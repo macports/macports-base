@@ -38,6 +38,9 @@ set target_uniqid 0
 
 ########### External High Level Procedures ###########
 
+namespace eval options {
+}
+
 # options
 # Exports options in an array as externally callable procedures
 # Thus, "options name date" would create procedures named "name"
@@ -77,6 +80,15 @@ proc options {args} {
 			\} \n\
 		\} \n\
 	\}"
+    }
+}
+
+proc options_export {args} {
+    foreach option $args {
+        eval "proc options::${option} {args} \{ \n\
+	    global ${option} PortInfo \n\
+		set PortInfo(${option}) \$${option}\n\
+        \}"
     }
 }
 
@@ -151,7 +163,7 @@ proc default_check {optionName index op} {
 
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 proc variant {args} {
-    global variants
+    global variants PortInfo
     upvar $args upargs
     
     set len [llength $args]
@@ -180,6 +192,8 @@ proc variant {args} {
     dlist_append_key variants $name provides $provides
     dlist_append_key variants $name requires $requires
     dlist_set_key variants $name procedure $code
+    # Export provided variant to PortInfo
+    lappend PortInfo(variants) $provides
 }
 
 ########### Misc Utility Functions ###########

@@ -52,6 +52,8 @@ register com.apple.depends.lib provides depends_lib
 
 # define options
 options depends_fetch depends_build depends_run depends_extract depends_lib
+# Export options via PortInfo
+options_export depends_lib depends_run
 
 proc depends_init {args} {
     return 0
