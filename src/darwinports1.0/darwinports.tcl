@@ -244,6 +244,7 @@ proc darwinports::worker_init {workername portpath options variations} {
 	$workername alias registry_register_deps registry::register_dependencies
 	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
 	$workername alias registry_bulk_register_files registry::register_bulk_files
+	$workername alias registry_installed registry::installed
 
     foreach opt $portinterp_options {
 	if {![info exists $opt]} {
@@ -548,12 +549,18 @@ proc _dportinstalled {dport} {
 proc _dportispresent {dport depspec} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
-	set res [$workername eval registry_exists \${portname} \${portversion}]
+	ui_debug "Searching for dependency: [ditem_key $dport provides]"
+	if {[catch {set reslist [$workername eval registry_installed \${portname}]} res]} {
+		set res 0
+	} else {
+		set res [llength $reslist]
+	}
 	if {$res != 0} {
 		ui_debug "Found Dependency: receipt exists for [ditem_key $dport provides]"
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
+		ui_debug "Didn't find receipt, going to depspec regex for: [ditem_key $dport provides]"
 		set type [lindex [split $depspec :] 0]
 		switch $type {
 			lib { return [_libtest $dport $depspec] }
