@@ -1,14 +1,14 @@
 OBJS=		Pextlib.o strsed.o
-SHLIB_NAME=	Pextlib.dylib
+SHLIB_NAME=	Pextlib
 LDADD+=		-ltcl
 PREFIX?=	/opt/local
 INSTALLDIR= ${PREFIX}/share/darwinports/Tcl/pextlib1.0
 
 .c.o:
-	${CC} -DPIC -O -pipe ${CFLAGS} -c $< -o $@
+	./compile.sh ${CFLAGS} $< -o $@
 
 Pextlib.dylib: ${OBJS}
-	${CC} -dynamiclib ${OBJS} -o ${SHLIB_NAME} ${LDADD}
+	./link.sh ${SHLIB_NAME} ${OBJS}
 
 all: Pextlib.dylib
 
