@@ -26,7 +26,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h])
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h])
 
 INCLUDES="-I. $INCLUDES"
 
