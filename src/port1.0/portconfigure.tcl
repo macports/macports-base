@@ -59,7 +59,7 @@ proc configure_start {args} {
 
 proc configure_main {args} {
     global [info globals]
-    global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
+    global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
 
     if {[tbool use_automake]} {
 	# XXX depend on automake
