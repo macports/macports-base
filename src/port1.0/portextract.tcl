@@ -64,6 +64,9 @@ proc extract_init {args} {
 		option extract.pre_args -q
 		option extract.post_args "-d [option extract.dir]"
     }
+    if {[string length [binaryInPath ${extract.cmd}]] == 0} {
+	return -code error "[format [msgcat::mc "This port requires '%s' to be extracted, which can not be found on this system."] [option extract.cmd]]"
+    }
 }
 
 proc extract_start {args} {

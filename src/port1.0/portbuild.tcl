@@ -69,16 +69,16 @@ proc build_getmaketype {args} {
 	    }
 	}
 	pbx {
-	    set pbxbuild_binary "/usr/bin/pbxbuild"
-	    set xcodebuild_binary "/usr/bin/xcodebuild"
+	    set pbxbuild_binary "pbxbuild"
+	    set xcodebuild_binary "xcodebuild"
 
 	    if {[option os.platform] != "darwin"} {
 		return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
 	    }
 
-	    if {[file executable $xcodebuild_binary]} {
+	    if {[set xcodebuild [binaryInPath $xcodebuild_binary]] != ""} {
 		return xcodebuild
-	    } elseif {[file executable $pbxbuild_binary]} {
+	    } elseif {[set pbxbuild [binaryInPath $pbxbuild_binary]] != ""} {
 		return pbxbuild
 	    } else {
 		return -code error "Neither pbxbuild nor xcodebuild were found on this system!"

@@ -1029,3 +1029,14 @@ proc dirSize {dir} {
     }
     return $size;
 }
+
+proc binaryInPath {binary} {
+    global env
+    foreach dir [split $env(PATH) :] { 
+	if {[file executable [file join $dir $binary]]} {
+	    return [file join $dir $binary]
+	}
+    }
+   
+    return "";
+}
