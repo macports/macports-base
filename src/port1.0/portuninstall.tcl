@@ -104,13 +104,10 @@ proc uninstall_main {args} {
 		}
 		ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s"] $fname]"
 		if [file isdirectory $fname] {
-		    if [catch {exec rmdir $fname}] {
-			if ![tbool uninstall.force] {
+		    if [catch {file delete -- $fname}] {
+			# A non-empty directory is not a fatal error
+			if {$result != "error deleting \"$fullPath\": directory not empty"} {
 			    ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove directory %s (not empty?)"] $fname]"
-			    set uninst_err 1
-			} else {
-			    # No, I INSIST!
-			    exec rm -rf $fname
 			}
 		    }
 		} else {
