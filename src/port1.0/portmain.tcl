@@ -41,7 +41,7 @@ target_provides ${com.apple.main} main
 # define options
 options prefix name version revision epoch categories maintainers
 options long_description description homepage
-options workdir worksrcdir filedir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
+options workdir worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage
