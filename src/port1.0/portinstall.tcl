@@ -42,6 +42,41 @@ options make.cmd make.type make.target.install contents description
 
 set UI_PREFIX "---> "
 
+proc fileinfo_for_file {fname} {
+    if ![catch {file stat $fname statvar}] {
+	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	set pipe [open "|md5 $fname" r]
+	set line [read $pipe]
+	if {[regexp $md5regex $line match type filename sum] == 1} {
+	    close $pipe
+	    return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	}
+	close $pipe
+    }
+    return {}
+}
+
+proc fileinfo_for_entry {rval dir entry} {
+    upvar $rval myrval
+    set path [file join $dir $entry]
+    if [file isdirectory $path] {
+	foreach name [readdir $path] {
+	    if {[string match $name .] || [string match $name ..]} {
+		continue
+	    }
+	    set subpath [file join $path $name]
+	    if [file isdirectory $subpath] {
+		fileinfo_for_entry myrval $subpath ""
+	    } elseif [file readable $subpath] {
+		lappend myrval [fileinfo_for_file $subpath]
+	    }
+	}
+    } elseif [file readable $path] {
+	lappend myrval [fileinfo_for_file $path]
+    }
+    return $myrval
+}
+
 proc fileinfo_for_index {flist} {
     global prefix
     set rval {}
@@ -51,16 +86,9 @@ proc fileinfo_for_index {flist} {
 	} else {
 	    set fentry [file join $prefix $file ]
 	}
-	if ![catch {file stat $fentry statvar}] {
-	    set md5regex "^(MD5)\[ \]\\(($fentry)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-	    set pipe [open "|md5 $fentry" r]
-	    set line [read $pipe]
-	    if {[regexp $md5regex $line match type filename sum] == 1} {
-		lappend rval [list $fentry $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	    }
-	}
+	fileinfo_for_entry rval / $fentry
     }
-    return [list $rval]
+    return $rval
 }
 
 proc proc_disasm {pname} {
