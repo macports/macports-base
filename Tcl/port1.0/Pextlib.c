@@ -5,14 +5,16 @@
 #include <sys/file.h>
 #include <tcl.h>
 
+#define BUFSIZ 1024
+
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Obj *resultPtr;
-	char buf[1024];
+	char buf[BUFSIZ];
 	char *cmdstring, *p;
 	FILE *pipe;
 	int i, cmdlen, cmdlenavail;
-	cmdlen = cmdlenavail = 1024;
+	cmdlen = cmdlenavail = BUFSIZ;
 	p = cmdstring = NULL;
 
 	if(Tcl_PkgRequire(interp, "portui", "1.0", 0) == NULL) {
@@ -79,7 +81,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	if (p != NULL)
 		free(cmdstring);
 
-	while (fgets(buf, 1024, pipe) != NULL) {
+	while (fgets(buf, BUFSIZ, pipe) != NULL) {
 		/* XXX We need the output but this is not at all correct */
 		printf("%s", buf);
 		Tcl_AppendToObj(resultPtr, (void *) &buf, strlen(buf));
