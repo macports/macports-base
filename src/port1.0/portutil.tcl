@@ -480,7 +480,7 @@ proc register {name mode args} {
 		# Find target which provides the specified name, and add a preflight.
 		# XXX: this only returns the first match, is this what we want?
 		set obj [lindex [depspec_get_matches $targets provides $name] 0]
-		$obj post $args
+		$obj append post $args
 	}
 }
 
