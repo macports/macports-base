@@ -1105,7 +1105,7 @@ proc upgrade {pname dspec} {
 	if {[info exists options(port_uninstall_old)]} {
 		# uninstalll old
 		ui_debug "Uninstalling $pname $version_installed"
-		if {[catch {portuninstall::uninstall $pname $version_installed} result]} {
+		if {[catch {portuninstall::uninstall $pname $version_installed$variant} result]} {
      		ui_error "Uninstall $pname $version_installed failed: $result"
        		return 1
     	}
