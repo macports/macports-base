@@ -158,6 +158,8 @@ else
 	fi
 fi
 
+mkdir -p outputdir/summary outputdir/Packages outputdir/logs/succeeded outputdir/logs/failed outputdir/tmp
+
 if [ -z "$TGTPORTS" ]; then
 	if [ -f PortIndex ]; then
 		PINDEX=PortIndex
@@ -168,13 +170,13 @@ if [ -z "$TGTPORTS" ]; then
 		echo "current directory or unpack a darwinports distribution to get it from"
 		exit 1
 	fi
-	mkdir -p outputdir/summary
 	TGTPORTS=outputdir/summary/portsrun
 	awk 'NF == 2 {print $1}' $PINDEX > $TGTPORTS
+else
+	echo "Using command-line provided target of $TGTPORTS"
 fi
 
 mkchrootbase $DIR
-mkdir -p outputdir/Packages outputdir/logs/succeeded outputdir/logs/failed outputdir/tmp
 # Hack to work around sticking volfs problem.
 STUCK_BASEDEV=0
 
