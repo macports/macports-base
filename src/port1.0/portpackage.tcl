@@ -159,7 +159,7 @@ proc package_pkg {portname portversion entry} {
 	}
 
 # XXX: we need to support .lproj in resources.
-	set pkgpath ${workpath}/${portname}.pkg
+	set pkgpath ${package.destpath}/${portname}.pkg
 	system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
 	write_PkgInfo ${pkgpath}/Contents/PkgInfo
 	write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
