@@ -29,7 +29,7 @@ for {set i 0} {$i < $argc} {incr i} {
 			incr i
 			set target [lindex $argv $i]
 		}
-		{[A-Za-z_\.]+=[A-Za-z0-9\ _\.]+} {
+		{[A-Za-z_\.]+=.+} {
 			if {[regexp {([A-Za-z_\.]+)=(.+)} [lindex $argv $i] match key val] == 1} {
 				lappend options [lindex $argv $i]
 			}
