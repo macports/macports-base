@@ -549,7 +549,8 @@ proc open_statefile {args} {
 		}
 		if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
 			ui_msg "Portfile changed since last build; discarding previous state."
-			file delete $statefile
+			#file delete $statefile
+			exec rm -rf [file join $workpath]
 		}
 	}
 	
