@@ -909,6 +909,11 @@ proc portexec_int {portname target {newworkpath ""}} {
     return 0
 }
 
+# portfile primitive that calls portexec_int with newworkpath == ${workpath}
+proc portexec {portname target} {
+    global workpath
+    return [portexec_int $portname $target $workpath]
+}
 
 proc adduser {name args} {
     global os.platform
