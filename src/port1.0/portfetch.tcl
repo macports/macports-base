@@ -139,7 +139,7 @@ proc disttagclean {list} {
 # sites
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	portpath master_sites
+	master_sites filespath
 
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
@@ -157,7 +157,7 @@ proc checkfiles {args} {
     
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
-	    if {![file exists $portpath/files/$file]} {
+	    if {![file exists $filespath/$file]} {
 		set distsite [getdisttag $file]
 		set file [getdistname $file]
 		lappend all_dist_files $file
@@ -173,7 +173,7 @@ proc checkfiles {args} {
     }
     
     foreach file $distfiles {
-	if {![file exists $portpath/files/$file]} {
+	if {![file exists $filespath/$file]} {
 	    set distsite [getdisttag $file]
 	    set file [getdistname $file]
 	    lappend all_dist_files $file

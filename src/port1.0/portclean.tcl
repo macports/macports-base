@@ -47,7 +47,7 @@ proc clean_start {args} {
 }
 
 proc clean_main {args} {
-    global portpath workdir
-    exec rm -rf [file join ${portpath} ${workdir}]
+    global workpath
+    exec rm -rf [file join ${workpath}]
     return 0
 }

@@ -42,12 +42,12 @@ set UI_PREFIX "---> "
 # Add command patch
 commands patch
 # Set up defaults
-default patch.dir {${workpath}/${worksrcdir}}
+default patch.dir {${worksrcpath}}
 default patch.cmd patch
 default patch.pre_args -p0
 
 proc patch_main {args} {
-    global portname patchfiles distpath filedir workdir worksrcdir portpath UI_PREFIX
+    global portname patchfiles distpath filespath workpath worksrcpath UI_PREFIX
 
     # First make sure that patchfiles exists and isn't stubbed out.
     if ![info exists patchfiles] {
@@ -55,8 +55,8 @@ proc patch_main {args} {
     }
 
     foreach patch $patchfiles {
-	if [file exists $portpath/$filedir/$patch] {
-	    lappend patchlist $portpath/$filedir/$patch
+	if [file exists $filespath/$patch] {
+	    lappend patchlist $filespath/$patch
 	} elseif [file exists $distpath/$patch] {
 	    lappend patchlist $distpath/$patch
 	}
@@ -64,7 +64,7 @@ proc patch_main {args} {
     if ![info exists patchlist] {
 	return -code error "Patch files missing"
     }
-    cd $portpath/$workdir/${worksrcdir}
+    cd ${worksrcpath}
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX Applying $patch"
 	switch -glob -- [file tail $patch] {

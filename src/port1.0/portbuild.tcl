@@ -87,7 +87,7 @@ proc build_start {args} {
 }
 
 proc build_main {args} {
-    global portname portpath workdir prefix build.type build.cmd build.env build.target.all build.target.current UI_PREFIX worksrcdir
+    global portname workdir prefix build.type build.cmd build.env build.target.all build.target.current UI_PREFIX worksrcdir
 
     set build.target.current ${build.target.all}
     system "[command build]"

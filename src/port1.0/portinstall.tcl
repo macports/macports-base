@@ -56,7 +56,7 @@ proc install_start {args} {
 }
 
 proc install_main {args} {
-    global portname portversion portpath categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
+    global portname portversion categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
 
     set build.target.current ${build.target.install}
     if [catch {system "[command build]"}] {

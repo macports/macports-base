@@ -48,7 +48,7 @@ commands extract
 # This cleans the distfiles list of all site tags
 default extract.only {[disttagclean $distfiles]}
 
-default extract.dir {${portpath}/${workdir}}
+default extract.dir {${workpath}}
 default extract.cmd gzip
 default extract.pre_args -dc
 default extract.post_args {{| tar -xf -}}
@@ -56,14 +56,14 @@ default extract.post_args {{| tar -xf -}}
 set UI_PREFIX "---> "
 
 proc extract_init {args} {
-    global extract.only extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip portpath workdir
+    global extract.only extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
     if [info exists use_bzip2] {
 	set extract.cmd bzip2
     } elseif [info exists use_zip] {
 	set extract.cmd unzip
 	set extract.pre_args -q
-	set extract.post_args "-d $portpath/$workdir"
+	set extract.post_args "-d $workpath"
     }
 }
 
@@ -74,7 +74,7 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global portname portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args extract.args UI_PREFIX
+    global portname distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args extract.args UI_PREFIX
 
     if {![info exists distfiles] && ![info exists extract.only]} {
 	# nothing to do
