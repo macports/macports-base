@@ -62,7 +62,8 @@ default fetch.args {"-o ${distfile}.TMP"}
 default fetch.pre_args "-f"
 default fetch.post_args {"${site}/${distfile}"}
 
-default mirror_sites.listfile {"${portresourcepath}/fetch/mirror_sites.tcl"}
+default mirror_sites.listfile {"mirror_sites.tcl"}
+default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -137,8 +138,8 @@ proc disttagclean {list} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX portresourcepath mirror_sites.listfile
-    source ${mirror_sites.listfile}
+    global UI_PREFIX portresourcepath mirror_sites.listfile mirror_sites.listpath
+    include ${mirror_sites.listpath}${mirror_sites.listfile}
     if ![info exists portfetch::mirror_sites::sites($mirrors)] {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}
