@@ -32,6 +32,7 @@
 #ifndef __OPTION_H__
 #define __OPTION_H__
 
+#include <sys/types.h>
 #include "util.h"
 
 /*
@@ -48,15 +49,40 @@
  *
  */
 
-typedef void* dp_options_t;
+typedef struct {
+    u_int32_t type;
+    u_int32_t size;
+    union { 
+        void*     ptr;
+        char*     string;
+        u_int64_t integer;
+    } data;
+} dp_desc_t;
 
-/* option types */
+void dp_desc_free(dp_desc_t d);
+    // uses free(3) on "array", "string", and "any" types
+    // also performs dp_desc_free() on elements of arrays
+void dp_desc_copy(dp_desc_t* dst, dp_desc_t* src);
+    // allocates any needed space with malloc(3)
+
+
+/* types */
 enum {
-    DP_OPTIONS_TYPE_STRING = 0x0001,
-    DP_OPTIONS_TYPE_ARRAY = 0x0002,
+    DP_TYPE_NULL = 0x0000,
+    DP_TYPE_DATA = 0x0001,	// binary data
+    DP_TYPE_UTF_8 = 0x0002,	// UTF-8 string
+    DP_TYPE_INT_64 = 0x0003,	// 64-bit integer
     
+    DP_TYPE_ARRAY = 0x0100	// array of descriptors
+};
+
+/* option flags */
+enum {
     DP_OPTIONS_FLAG_IMMUTABLE = 0x10000
 };
+
+typedef void* dp_options_t;
+
 
 /* result codes */
 enum {
@@ -82,30 +108,19 @@ dp_options_t dp_options_create();
 dp_options_t dp_options_retain(dp_options_t);
 void dp_options_release(dp_options_t);
 
-int dp_options_declare(dp_options_t o, char* name, int type, char* default_value);
-    // for string types, sets default to the value
-    // for array types, sets default to one element containing the value
+int dp_options_declare(dp_options_t o, char* name, int flags, dp_desc_t* default_value);
+    // will copy default_value internally
 
-int dp_options_set_value(dp_options_t o, char* name, char* value);
-    // for string types, sets to the value
-    // for array types, sets to one element containing the value
-int dp_options_append_value(dp_options_t o, char* name, char* value);
-    // for string types, concatinates value to the string
-    // for array types, appends an element containing the string
-int dp_options_delete_value(dp_options_t o, char* name, char* value);
-    // not applicable for string types
-    // for array types, deletes any element containing the value
+int dp_options_set_value(dp_options_t o, char* name, dp_desc_t* new_value);
+    // will copy new_value internally
 
-int dp_options_get_type(dp_options_t o, char* name, int *out_type);
-    // get the type of the options -- string or array, and its flags
-int dp_options_get_value(dp_options_t o, char* name, char** out_value);
-    // for string types, returns the string
-    // for array types, returns the array elements joined by a space.
-int dp_options_get_value_count(dp_options_t o, char* name, int *out_count);
-    // not applicable for string types
-    // for array types, returns the number of array elements
-int dp_options_get_value_index(dp_options_t o, char* name, int index, char** out_value);
-    // not applicable for string types
-    // for array types, returns the string of the element at the specified index
+int dp_options_get_value(dp_options_t o, char* name, dp_desc_t* out_value);
+    // free out_value with dp_desc_free();
+
+int dp_options_set_ex_attr(dp_options_t o, char* name, char* key, dp_desc_t* new_value);
+    // will copy new_value internally
+
+int dp_options_get_ex_attr(dp_options_t o, char* name, char* key, dp_desc_t* out_value);
+    // free out_value with dp_desc_free();
 
 #endif /* __OPTION_H__ */
