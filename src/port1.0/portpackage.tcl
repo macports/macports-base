@@ -70,7 +70,7 @@ proc package_main {args} {
 # Make a tarball version of a package.  This is our "built-in" packaging
 # method.
 proc package_tarball {portname portversion entry} {
-    global ports_verbose sysportpath
+    global ports_verbose portdbpath
 
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
@@ -89,7 +89,7 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set verbose ""
 	}
-	set pkgdir [file join $sysportpath packages]
+	set pkgdir [file join $portdbpath packages]
 	if [file isdirectory $pkgdir] {
 	    set ptarget $pkgdir/${portname}-${portversion}.tar.gz
 	} else {

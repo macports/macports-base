@@ -33,13 +33,16 @@ package require darwinportsui 1.0
 
 namespace eval darwinports {
 	namespace export bootstrap_options portinterp_options uniqid 0
-	variable bootstrap_options "sysportpath libpath auto_path"
-	variable portinterp_options "sysportpath portpath auto_path portconf portdefaultconf"
+	variable bootstrap_options "portdbpath libpath auto_path"
+	variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
 	variable uniqid 0
 }
 
+proc darwinports::get_sources {args} {
+}
+
 proc dportinit {args} {
-    global auto_path env darwinports::sysportpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf
 
     if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
@@ -70,11 +73,18 @@ proc dportinit {args} {
         }
     }
 
-    if ![info exists sysportpath] {
-	return -code error "sysportpath must be set in /etc/ports.conf or in your ~/.portsrc"
+    if ![info exists portdbpath] {
+	return -code error "portdbpath must be set in /etc/ports/ports.conf or in your ~/.portsrc"
     }
-    if ![file isdirectory $sysportpath] {
-	return -code error "/etc/ports.conf or ~/.portsrc must contain a valid sysportpath directive"
+    if ![file isdirectory $portdbpath] {
+	if ![file exists $portdbpath] {
+	    if {[catch {file mkdir $portdbpath} result]} {
+		return -code error "portdbpath $portdbpath does not exist and could not be created: $result"
+	    }
+	}
+    }
+    if ![file isdirectory $portdbpath] {
+	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 	
     if ![info exists libpath] {
@@ -89,7 +99,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::sysportpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
     if {$options == ""} {
         set upoptions ""
     } else {
@@ -144,7 +154,7 @@ proc darwinports::parse_url {url} {
 }
 
 proc dportopen {porturl {options ""} {variations ""}} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::sysportpath darwinports::portconf darwinports::portdefaultconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
 
     if {$options == ""} {
 	set upoptions ""
@@ -179,16 +189,16 @@ proc dportexec {workername target} {
 }
 
 proc dportsearch {regexp} {
-    global darwinports::sysportpath
+    global darwinports::portdbpath
     set matches [list]
 
-    set fd [open $sysportpath/PortIndex r]
+    set fd [open $portdbpath/PortIndex r]
     while {[gets $fd line] >= 0} {
         set name [lindex $line 0]
         if {[regexp -- $regexp $name] == 1} {
                 gets $fd line
                 array set portinfo $line
-		set portinfo(porturl) "file://${sysportpath}${portinfo(portdir)}"
+		set portinfo(porturl) "file://${portdbpath}${portinfo(portdir)}"
 		lappend matches $name
 		lappend matches $line
         } else {
@@ -201,14 +211,14 @@ proc dportsearch {regexp} {
 }
 
 proc dportmatch {regexp} {
-    global darwinports::sysportpath
-    set fd [open $sysportpath/PortIndex r]
+    global darwinports::portdbpath
+    set fd [open $portdbpath/PortIndex r]
     while {[gets $fd line] >= 0} {
     	set name [lindex $line 0]
 	if {[regexp -- $regexp $name] == 1} {
 		gets $fd line
 		array set portinfo $line
-		set portinfo(porturl) "file://${sysportpath}${portinfo(portdir)}"
+		set portinfo(porturl) "file://${portdbpath}${portinfo(portdir)}"
 		close $fd
 		return [array get portinfo]
 	} else {

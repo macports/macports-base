@@ -42,7 +42,7 @@ options contents description registry.nochecksum registry.path registry.nobzip r
 # Export options via PortInfo
 options_export description
 
-default registry.path /opt/local/var/db/receipts
+default registry.path {[file join ${portdbpath} receipts]}
 
 set UI_PREFIX "---> "
 

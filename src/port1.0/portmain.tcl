@@ -39,11 +39,11 @@ register com.apple.main target main
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname sysportpath libpath distpath
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath
 # Export options via PortInfo
 options_export portname portversion portrevision categories maintainers
 	
-default distpath {[file join $sysportpath distfiles]}
+default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
