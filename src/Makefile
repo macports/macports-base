@@ -6,4 +6,6 @@ all::
 distclean::
 	rm -f config.h
 
+test::
+
 include ../Mk/dports.subdir.mk

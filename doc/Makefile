@@ -8,6 +8,8 @@ all:
 
 clean:
 
+test:
+
 distclean: clean
 	rm -f prefix.mtree ports.conf
 

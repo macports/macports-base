@@ -13,6 +13,8 @@ all::
 
 clean::
 
+test::
+
 distclean:: clean
 	rm -f darwinports_autoconf.tcl;
 

@@ -9,6 +9,8 @@ clean:
 
 distclean:
 
+test:
+
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
 	$(SILENT)set -x; for file in ${RSRCS}; do \

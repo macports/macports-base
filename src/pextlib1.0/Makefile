@@ -6,3 +6,7 @@ INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
 include ../../Mk/dports.autoconf.mk
 include ../../Mk/dports.tea.mk
 
+.PHONY: test
+
+test:: ${SHLIB_NAME}
+	${TCLSH} tests/options.tcl ${SHLIB_NAME}
