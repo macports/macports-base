@@ -14,8 +14,13 @@ namespace eval darwinports {
 		set distpath $args
 	}
 
+	proc prefix {args} {
+		global prefix
+		set prefix $args
+	}
+
 	proc readconf {args} {
-		global portpath distpath
+		global portpath distpath prefix
 		if [file isfile /etc/ports.conf] {
 			source /etc/ports.conf
 		}
@@ -35,7 +40,7 @@ namespace eval darwinports {
 	}
 	
 	proc init {args} {
-		global portpath distpath libpath auto_path env
+		global portpath distpath prefix libpath auto_path env
 		# Defaults
 
 		set portpath /usr/darwinports
@@ -51,6 +56,10 @@ namespace eval darwinports {
 		}
 		if ![info exists libpath] {
 			set libpath $portpath/Tcl
+		}
+
+		if ![info exists prefix] {
+			set prefix /usr/local
 		}
 
 		if [file isdirectory $libpath] {
