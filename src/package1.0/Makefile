@@ -11,6 +11,8 @@ clean::
 
 distclean::
 
+test::
+
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${DESTDIR}${datadir}/darwinports
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${DESTDIR}${datadir}/darwinports/Tcl

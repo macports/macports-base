@@ -1,6 +1,7 @@
 #!@TCLSH@
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
+# $Id: portindex.tcl,v 1.24 2004/07/01 17:21:14 wbb4 Exp $
 
 package require darwinports
 dportinit
@@ -8,7 +9,6 @@ package require Pextlib
 
 # Globals
 set archive 0
-set depth 0
 set stats(total) 0
 set stats(failed) 0
 
@@ -72,30 +72,6 @@ proc print_usage args {
     puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
     puts "-d:\tOutput debugging information"
-}
-
-proc port_traverse {func {dir .} {cwd ""}} {
-    global depth
-    set pwd [pwd]
-    if {[catch {cd $dir} err]} {
-	    puts $err
-	    return
-    }
-    foreach name [readdir .] {
-        if {[string match $name "."] || [string match $name ".."]} {
-            continue
-        }
-        if {[file isdirectory $name] && $depth != 2} {
-            incr depth 1
-            port_traverse $func $name [file join $cwd $name]			
-            incr depth -1
-        } else {
-            if {[string match $name Portfile]} {
-                $func $cwd 
-            }
-        }
-    }
-    cd $pwd
 }
 
 proc pindex {portdir} {
@@ -193,7 +169,7 @@ if {[info exists outdir]} {
 
 puts "Creating software index in $outdir"
 set fd [open [file join $outdir PortIndex] w]
-port_traverse pindex $directory
+dporttraverse pindex $directory
 close $fd
 puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\t\

@@ -1,6 +1,6 @@
-# et:ts=4
-# port.tcl
+# receipt_sqlite.tcl
 #
+# Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -28,21 +28,65 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require dp_package 1.0
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portactivate 1.0
-package require portclean 1.0
-package require porttest 1.0
-package require portsubmit 1.0
+package provide receipt_sqlite 1.0
+
+package require darwinports 1.0
+
+##
+# Receipts Code supporting flat-files
+##
+namespace eval receipt_sqlite {
+
+# receipt_list will hold a reference to each "receipt" that is currently open
+variable receipt_list
+namespace export receipt_list
+
+# Create a new entry and place it in the receipt_list
+proc new_entry {} {
+	return -1
+}
+
+# Open an existing entry and place it in the receipt_list
+proc open_entry {name {version 0} {revision 0} {variants ""}} {
+	return -1
+}
+
+# Write an entry from the receipt_list
+proc write_entry {ref name version {revision 0} {variants ""}} {
+	return -1
+}
+
+# Check to see if an entry exists
+proc entry_exists {name version {revision 0} {variants ""}} {
+	return -1
+}
+
+# Store a property to a receipt current in the receipt_list
+proc property_store {ref property value} {
+	return -1
+}
+
+# Retrieve a property from a receipt currently in the receipt_list
+proc property_retrieve {ref property} {
+	return -1
+}
+
+# Delete an entry
+proc delete_entry {name version {revision 0} {variants ""}} {
+	return -1
+}
+
+# Return all installed ports
+proc installed {{name ""} {version ""}} {
+	return -1
+}
+
+# Return whether a file is registered to a port
+proc file_registered {file} {
+	return -1
+}
+
+# End of receipt_flat namespace
+}
+

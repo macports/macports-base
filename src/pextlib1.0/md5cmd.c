@@ -116,6 +116,7 @@ char *MD5Data(const unsigned char *data, unsigned int len, char *buf)
 
 int MD5Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *file, *action;
 	char buf[33];
 	const char usage_message[] = "Usage: md5 file ?file?";

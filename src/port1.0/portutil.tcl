@@ -525,8 +525,9 @@ proc makeuserproc {name body} {
 ########### Internal Dependancy Manipulation Procedures ###########
 
 proc target_run {ditem} {
-    global target_state_fd portname
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force
     set result 0
+    set skipped 0
     set procedure [ditem_key $ditem procedure]
     if {$procedure != ""} {
 	set name [ditem_key $ditem name]
@@ -535,44 +536,100 @@ proc target_run {ditem} {
 	    set result [catch {[ditem_key $ditem init] $name} errstr]
 	}
 	
-	if {[check_statefile target $name $target_state_fd] && $result == 0} {
-	    set result 0
-	    ui_debug "Skipping completed $name ($portname)"
-	} elseif {$result == 0} {
-	    # Execute pre-run procedure
-	    if {[ditem_contains $ditem prerun]} {
-		set result [catch {[ditem_key $ditem prerun] $name} errstr]
-	    }
-	    
-	    if {$result == 0} {
-		foreach pre [ditem_key $ditem pre] {
-		    ui_debug "Executing $pre"
-		    set result [catch {$pre $name} errstr]
-		    if {$result != 0} { break }
+	if { ![info exists portvariants] } {
+		set portvariants ""
+	}
+
+	if {$result == 0} {
+		# Skip the step if required and explain why through ui_debug.
+		# 1st case: the step was already done (as mentioned in the state file)
+		if {[check_statefile target $name $target_state_fd]} {
+		    ui_debug "Skipping completed $name ($portname)"
+		    set skipped 1
+		# 2nd case: the step is not to always be performed
+		# and this exact port/version/revision/variants is already installed
+		# and user didn't mention -f
+		# and portfile didn't change since installation.
+		} elseif {[ditem_key $ditem runtype] != "always"
+			&& [registry_exists $portname $portversion $portrevision $portvariants]
+			&& !([info exists ports_force] && $ports_force == "yes")} {
+						
+			# Did the Portfile change since installation?
+			set regref [registry_open $portname $portversion $portrevision $portvariants]
+			
+			set installdate [registry_prop_retr $regref date]
+			if { $installdate != 0
+				&& $installdate < [file mtime ${portpath}/Portfile]} {
+				ui_debug "Portfile changed since installation"
+			} else {
+				# Say we're skipping.
+				set skipped 1
+				
+				ui_debug "Skipping $name ($portname) since this port is already installed"
+			}
+			
+			# Something to close the registry entry may be called here, if it existed.
+		# 3rd case: the same port/version/revision/Variants is already active
+		# and user didn't mention -f
+		} elseif {$name == "com.apple.activate"
+			&& [registry_exists $portname $portversion $portrevision $portvariants]
+			&& !([info exists ports_force] && $ports_force == "yes")} {
+			
+			# Is port active?
+			set regref [registry_open $portname $portversion $portrevision $portvariants]
+			
+			if { [registry_prop_retr $regref active] != 0 } {
+				# Say we're skipping.
+				set skipped 1
+				
+				ui_debug "Skipping $name ($portname) since this port is already active"
+			}
+			
 		}
-	    }
-	    
-	    if {$result == 0} {
-		ui_debug "Executing $name ($portname)"
-		set result [catch {$procedure $name} errstr]
-	    }
-	    
-	    if {$result == 0} {
-		foreach post [ditem_key $ditem post] {
-		    ui_debug "Executing $post"
-		    set result [catch {$post $name} errstr]
-		    if {$result != 0} { break }
+			
+		# otherwise execute the task.
+		if {$skipped == 0} {
+			# Execute pre-run procedure
+			if {[ditem_contains $ditem prerun]} {
+			set result [catch {[ditem_key $ditem prerun] $name} errstr]
+			}
+			
+			if {$result == 0} {
+			foreach pre [ditem_key $ditem pre] {
+				ui_debug "Executing $pre"
+				set result [catch {$pre $name} errstr]
+				if {$result != 0} { break }
+			}
+			}
+			
+			if {$result == 0} {
+			ui_debug "Executing $name ($portname)"
+			set result [catch {$procedure $name} errstr]
+			}
+			
+			if {$result == 0} {
+			foreach post [ditem_key $ditem post] {
+				ui_debug "Executing $post"
+				set result [catch {$post $name} errstr]
+				if {$result != 0} { break }
+			}
+			}
+			# Execute post-run procedure
+			if {[ditem_contains $ditem postrun] && $result == 0} {
+			set postrun [ditem_key $ditem postrun]
+			ui_debug "Executing $postrun"
+			set result [catch {$postrun $name} errstr]
+			}
 		}
-	    }
-	    # Execute post-run procedure
-	    if {[ditem_contains $ditem postrun] && $result == 0} {
-		set postrun [ditem_key $ditem postrun]
-		ui_debug "Executing $postrun"
-		set result [catch {$postrun $name} errstr]
-	    }
 	}
 	if {$result == 0} {
-	    if {[ditem_key $ditem runtype] != "always"} {
+		# Only write to state file if:
+		# - we indeed performed this step.
+		# - this step is not to always be performed
+		# - this step must be written to file
+		if {$skipped == 0
+	    && [ditem_key $ditem runtype] != "always"
+	    && [ditem_key $ditem state] != "no"} {
 		write_statefile target $name $target_state_fd
 	    }
 	} else {
@@ -716,30 +773,6 @@ proc check_statefile_variants {variations fd} {
     
     return $mismatch
 }
-
-# Traverse the ports collection hierarchy and call procedure func for
-# each directory containing a Portfile
-proc port_traverse {func {dir .}} {
-    set pwd [pwd]
-    if {[catch {cd $dir} err]} {
-	ui_error $err
-	return
-    }
-    foreach name [readdir .] {
-	if {[string match $name .] || [string match $name ..]} {
-	    continue
-	}
-	if {[file isdirectory $name]} {
-	    port_traverse $func $name
-	} else {
-	    if {[string match $name Portfile]} {
-		catch {eval $func {[file join $pwd $dir]}}
-	    }
-	}
-    }
-    cd $pwd
-}
-
 
 ########### Port Variants ###########
 
@@ -942,6 +975,10 @@ proc target_runtype {ditem args} {
     eval "ditem_append $ditem runtype $args"
 }
 
+proc target_state {ditem args} {
+    eval "ditem_append $ditem state $args"
+}
+
 proc target_init {ditem args} {
     eval "ditem_append $ditem init $args"
 }
@@ -1088,7 +1125,7 @@ proc addgroup {name args} {
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
-	if {$file == "." || $file == ".." || [file type [file join $dir $file]] == "link" } {
+	if {[file type [file join $dir $file]] == "link" } {
 	    continue
 	}
 	if {[file isdirectory [file join $dir $file]]} {

@@ -1,7 +1,9 @@
 /*
  * Pextlib.c
+ * $Id: Pextlib.c,v 1.65 2004/07/01 17:21:12 wbb4 Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
+ * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,6 +95,7 @@
 
 #include "md5cmd.h"
 #include "find.h"
+#include "filemap.h"
 #include "xinstall.h"
 #include "vercomp.h"
 
@@ -187,6 +190,7 @@ struct linebuf {
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *buf;
 	struct linebuf circbuf[CBUFSIZ];
 	size_t linelen;
@@ -349,6 +353,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
 	int operation = 0, fd, i, ret;
 	int errnoval = 0;
@@ -484,8 +489,16 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	return TCL_OK;
 }
 
+/**
+ *
+ * Return the list of elements in a directory.
+ * Since 1.60.4.2, the list doesn't include . and ..
+ *
+ * Synopsis: readdir directory
+ */
 int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	DIR *dirp;
 	struct dirent *dp;
 	Tcl_Obj *tcl_result;
@@ -504,7 +517,13 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);
 	while ((dp = readdir(dirp))) {
-		Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+		/* Skip . and .. */
+		if ((dp->d_name[0] != '.') ||
+			((dp->d_name[1] != 0)	/* "." */
+				&&
+			((dp->d_name[1] != '.') || (dp->d_name[2] != 0)))) /* ".." */ {
+			Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+		}
 	}
 	closedir(dirp);
 	Tcl_SetObjResult(interp, tcl_result);
@@ -514,6 +533,7 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *pattern, *string, *res;
 	int range[2];
 	extern char *strsed(char *str, char *pat, int *range);
@@ -539,6 +559,7 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *template, *sp;
 	Tcl_Obj *tcl_result;
 
@@ -560,11 +581,13 @@ int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	tcl_result = Tcl_NewStringObj(sp, -1);
 	Tcl_SetObjResult(interp, tcl_result);
 	free(sp);
+	free(template);
 	return TCL_OK;
 }
 
 int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Channel channel;
 	char *template, *channelname;
 	int fd;
@@ -594,6 +617,7 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int ExistsuserCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Obj *tcl_result;
 	struct passwd *pwent;
 	char *user;
@@ -621,6 +645,7 @@ int ExistsuserCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *
 
 int ExistsgroupCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	Tcl_Obj *tcl_result;
 	struct group *grent;
 	char *group;
@@ -648,6 +673,7 @@ int ExistsgroupCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj 
 
 int NextuidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData, objc, objv)
 	Tcl_Obj *tcl_result;
 	struct passwd *pwent;
 	int max;
@@ -665,6 +691,7 @@ int NextuidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData, objc, objv)
 	Tcl_Obj *tcl_result;
 	struct group *grent;
 	int max;
@@ -697,6 +724,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;

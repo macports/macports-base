@@ -211,6 +211,20 @@ static struct {
 #define EMPTY_REGISTER ((regoff_t) 0)
 #endif
 
+/* ------------------------------------------------------------------------- **
+ * Prototypes
+ * ------------------------------------------------------------------------- */
+static char *mem();
+static void mem_init();
+static void mem_free();
+static char *build_map();
+static char nextch();
+static void mem_save();
+static int mem_find();
+
+/* ------------------------------------------------------------------------- **
+ * strsed
+ * ------------------------------------------------------------------------- */
 char *
 strsed(string, pattern, range)
 register char *string;
@@ -232,9 +246,6 @@ int *range;
 #endif
 
     char *backslash_eliminate();
-    static char *mem();
-    static void mem_init();
-    static void mem_free();
     
     char *from;
     char *new_str;
@@ -678,7 +689,6 @@ int *range;
                      */
 		    if (*(tmp + 2) == '{'){
 			/* A transliteration table. Build the map. */
-			static char *build_map();
 			if (!(tmp = build_map(tmp + 2, map))){
 			    RETURN(0);
 			}
@@ -799,7 +809,6 @@ int who;
      *
      */
 
-    static char *mem();
     char *new_str;
     int extra = 100;
     int seenlb = 0;
@@ -1099,13 +1108,13 @@ char *map;
     char *str;
     char *tmp;
     char c;
-    static char *mem();
-    static char nextch();
     int i = 0;
     int range_count = 0;
     int seenbs = 0;
     static char *last = 0;
     static int last_len;
+
+    out = 0;
 
     if (!s){
         return 0;
@@ -1212,7 +1221,7 @@ char *map;
      */
 
     while ((c = nextch((char *)0, 0))){
-        map[c] = nextch((char *)0, 1);
+        map[(int) c] = nextch((char *)0, 1);
     }
 
     return tmp;
@@ -1354,8 +1363,6 @@ int size;
      * not too clear. Seems to works fine though.
      */
     
-    static void mem_save();
-
     if (who < 0 || who >= MEM_SLOTS){
 	return 0;
     }
@@ -1391,7 +1398,6 @@ int size;
 	    mem_save(who);
 	}
 	else{
-	    static int mem_find();
 	    int x = mem_find(size);
 	    if (x != -1){
 		mem_slots[who].s = mem_slots[x].s;

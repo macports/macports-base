@@ -41,6 +41,10 @@
 .Op Ar portname
 .Op Ar options ...
 .Op Ar variants ...
+.Nm
+.Op Fl vdqfo
+.Ar provides
+.Ar file
 .Sh DESCRIPTION
 .Nm
 is designed to read and execute the build instructions of a darwin port. If no 
@@ -57,7 +61,8 @@ are specified as key=value pairs and take precedence over individual port option
 Port
 .Ar variants
 are specified as +name, which indicates the variant is desired, and -name, which indicates the 
-variant is not desired
+variant is not desired. In case of ambiguities, a port can be fully specified with the format
+.Ar version_revision+variants
 .Sh OPTIONS
 .Bl -tag -width -indent
 .It Fl v
@@ -81,6 +86,8 @@ knows several targets. The most important is the "install" target, which install
 The other targets are:
 .Pp
 .Dl uninstall
+.Dl deactivate
+.Dl activate
 .Dl clean
 .Dl search
 .Dl list
@@ -108,6 +115,9 @@ There are also targets for packaging ports:
 .Dl dmg
 .Dl rpmpackage
 .Pp
+Additionally, the
+.Ar provides
+command determines which port owns a given file.
 .Sh EXAMPLES
 Invoking
 .Nm
@@ -124,6 +134,18 @@ with the "uninstall" target:
 To clean up after the port was build:
 .Pp
 .Dl "port clean vim
+.Pp
+To deactivate a port (in image mode):
+.Pp
+.Dl "port deactivate vim
+.Pp
+To reactivate a port previously deactivated (in image mode):
+.Pp
+.Dl "port activate vim
+.Pp
+A port can be installed if another version/variant is installed but deactivated. To reactivate one of the installed version of a port previously deactivated (in image mode):
+.Pp
+.Dl "port activate vim 6.2.532_0+aqua
 .Pp
 To build and "install" vim into an intermediate destination root (or "destroot")
 .Pp

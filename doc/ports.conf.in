@@ -7,5 +7,12 @@ portdbpath		@localstatedir_expanded@/db/dports
 # Set the directory in which to install ports
 prefix			@prefix_expanded@
 
+# Type of storage to use for the port registry information, "flat" or "sqlite"
+# NOTE: sqlite not yet supported.
+portdbformat		flat
+
+# Type of installation to do for ports, "direct" or "image".  See documentation.
+portinstalltype		image
+
 # Directory containing the X11 installation.
 x11prefix		/usr/X11R6

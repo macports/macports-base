@@ -24,6 +24,8 @@ mkdirs:
 
 clean:
 	rm -f ${SCRIPTS}
+	
+test:
 
 distclean: clean
 

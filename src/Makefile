@@ -1,9 +1,11 @@
-TCLPKG=		darwinports1.0 port1.0 package1.0 pextlib1.0
+TCLPKG=		darwinports1.0 port1.0 package1.0 pextlib1.0 registry1.0
 SUBDIR=		${TCLPKG} port programs
 
 all::
 
 distclean::
 	rm -f config.h
+
+test::
 
 include ../Mk/dports.subdir.mk

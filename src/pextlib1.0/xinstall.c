@@ -131,13 +131,14 @@ static int	install_dir(Tcl_Interp *interp, char *);
 static u_long	numeric_id(Tcl_Interp *interp, const char *, const char *, int *rval);
 static void	strip(const char *);
 static int	trymmap(int);
-static void	usage(Tcl_Interp *interp, int lineno);
+static void	usage(Tcl_Interp *interp);
 
 extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
 int
 InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	struct stat from_sb, to_sb;
 	mode_t *set;
 	u_long fset;
@@ -265,24 +266,24 @@ InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 			break;
 		case '?':
 		default:
-			usage(interp, __LINE__);
+			usage(interp);
 			return TCL_ERROR;
 		}
 	}
 
 	/* some options make no sense when creating directories */
 	if (dostrip && dodir) {
-		usage(interp, __LINE__);
+		usage(interp);
 		return TCL_ERROR;
 	}
 
 	/* must have at least two arguments, except when creating directories */
 	if (objc < 2 && !dodir) {
-		usage(interp, __LINE__);
+		usage(interp);
 		return TCL_ERROR;
 	}
 	else if (dodir && !objc) {
-		usage(interp, __LINE__);
+		usage(interp);
 		return TCL_ERROR;
 	}
 	/* need to make a temp copy so we can compare stripped version */
@@ -354,7 +355,7 @@ InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST o
 
 	/* can't do file1 file2 directory/file */
 	if (objc != 2) {
-		usage(interp, __LINE__);
+		usage(interp);
 		return TCL_ERROR;
 	}
 
@@ -1046,7 +1047,6 @@ install_dir(Tcl_Interp *interp, char *path)
 				else {
 					char msg[255];
 
-					*p = ch;
 					snprintf(msg, sizeof msg, "%s: mkdir %s\n", funcname, path);
 					ui_info(interp, msg);
 				}
@@ -1063,9 +1063,9 @@ install_dir(Tcl_Interp *interp, char *path)
  		}
 
 	if ((gid != (gid_t)-1 || uid != (uid_t)-1) && chown(path, uid, gid))
-		/* Don't bother to warn */;
+		{ /* Don't bother to warn */ };
 	if (chmod(path, mode))
-		/* Don't bother to warn */;
+		{ /* Don't bother to warn */ };
 	return TCL_OK;
 }
 
@@ -1074,7 +1074,7 @@ install_dir(Tcl_Interp *interp, char *path)
  *	copy usage message to Tcl result.
  */
 static void
-usage(Tcl_Interp *interp, int lineno)
+usage(Tcl_Interp *interp)
 {
 	char errmsg[500];
 

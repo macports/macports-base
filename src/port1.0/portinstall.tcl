@@ -33,7 +33,7 @@ package provide portinstall 1.0
 package require portutil 1.0
 
 set com.apple.install [target_new com.apple.install install_main]
-target_runtype ${com.apple.install} always
+target_state ${com.apple.install} no
 target_provides ${com.apple.install} install
 target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
 target_prerun ${com.apple.install} install_start
@@ -41,21 +41,22 @@ target_prerun ${com.apple.install} install_start
 set_ui_prefix
 
 proc install_start {args} {
-    global UI_PREFIX portname portversion ports_force
+	global UI_PREFIX portname portversion portrevision variations os.platform os.arch portvariants
     
-    # Check to make sure this port is not already installed.  This is a 
-    # general check of the portname only, so previous versions will fail 
-    # as well.
-    if {[string length [registry_exists $portname]] && ![tbool ports_force]} {
-	# Also check to see if it's this version or another
-	if {[string length [registry_exists $portname $portversion]]} {
-	    ui_msg "$UI_PREFIX [format [msgcat::mc "Port %s already registered as installed."] $portname]"
-	} else {
-	    return -code error [format [msgcat::mc "Another version of Port %s is already registered as installed.  Please uninstall the port first."] $portname]
+	if { ![info exists portvariants] } {
+		set portvariants ""
 	}
-    } else {
-    	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
-    }
+
+	set vlist [lsort -ascii [array names variations]]
+
+ 	# Put together variants in the form +foo+bar for the registry
+	foreach v $vlist {
+		if { ![string equal $v ${os.platform}] && ![string equal $v ${os.arch}] } {
+			set portvariants "${portvariants}+${v}"
+		}
+	}
+
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
 }
 
 proc install_element {src_element dst_element} {
@@ -82,7 +83,7 @@ proc install_element {src_element dst_element} {
     }
 }
 
-proc directory_dig {rootdir workdir {cwd ""}} {
+proc directory_dig {rootdir workdir regref {cwd ""}} {
     global installPlist
     set pwd [pwd]
     if {[catch {cd $workdir} err]} {
@@ -91,9 +92,6 @@ proc directory_dig {rootdir workdir {cwd ""}} {
     }
     
     foreach name [readdir .] {
-	if {[string match $name "."] || [string match $name ".."]} {
-	    continue
-	}
 	set element [file join $cwd $name]
 	
 	# XXX jpm's cross-platform code to find file separator
@@ -108,6 +106,11 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 	    }
 	}
 	
+	if { [registry_prop_retr $regref installtype] == "image" } {
+		set imagedir [registry_prop_retr $regref imagedir]
+		set root [file join $root $imagedir]
+	}
+	
 	set dst_element [file join $root $element]
 	set src_element [file join $rootdir $element]
 	# overwrites files but not directories
@@ -117,45 +120,58 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 	    lappend installPlist $dst_element
 	}
 	if {[file isdirectory $name] && [file type $name] != "link"} {
-	    directory_dig $rootdir $name [file join $cwd $name]
+	    directory_dig $rootdir $name $regref [file join $cwd $name]
 	}
     }
     cd $pwd
 }
 
 proc install_main {args} {
-    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo
+
+	# Begin the registry entry
+   	set regref [registry_new $portname $portversion $portrevision $portvariants]
     
-    # Install ${destroot} contents into /
-    directory_dig ${destroot} ${destroot}
+  	# Install the files	
+	directory_dig ${destroot} ${destroot} ${regref}
     
-    # Package installed successfully, so now we must register it
-    set rhandle [registry_new $portname $portversion]
+	registry_prop_store $regref categories $categories
     
-    registry_store $rhandle [list prefix $prefix]
-    registry_store $rhandle [list categories $categories]
     if {[info exists description]} {
-	registry_store $rhandle [concat description $description]
+		registry_prop_store $regref description $description
     }
     if {[info exists long_description]} {
-	registry_store $rhandle [concat long_description ${long_description}]
+		registry_prop_store $regref long_description ${long_description}
     }
     if {[info exists homepage]} {
-	registry_store $rhandle [concat homepage ${homepage}]
+		registry_prop_store $regref homepage ${homepage}
     }
-    if {[info exists depends_run]} {
-	registry_store $rhandle [list run_depends $depends_run]
+	if {[info exists maintainers]} {
+		registry_prop_store $regref maintainers ${maintainers}
     }
-    if {[info exists package-install]} {
-	registry_store $rhandle [concat package-install ${package-install}]
+	if {[info exists depends_run]} {
+		registry_prop_store $regref depends_run $depends_run
+		registry_register_deps $depends_run $portname
     }
+	if {[info exists depends_lib]} {
+		registry_prop_store $regref depends_lib $depends_lib
+		registry_register_deps $depends_lib $portname
+	}
     if {[info exists installPlist]} {
-	registry_store $rhandle [list contents [fileinfo_for_index $installPlist]]
+		registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
+		if { [registry_prop_retr $regref installtype] != "image" } {
+			registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
+		}
+	}
+	if {[info exists package-install]} {
+		registry_prop_store $regref package-install ${package-install}
     }
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
+		registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
     }
-    registry_close $rhandle
+	
+	registry_write $regref 
+
     return 0
 }
 

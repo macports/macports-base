@@ -38,6 +38,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -62,6 +63,7 @@ static int do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *
 int
 FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#pragma unused (clientData)
 	char *startdir;
 	char *match, *action;
 	char *def_match = "expr 1";

@@ -1,6 +1,7 @@
 # darwinports.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -33,8 +34,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath master_site_local auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix portdbformat portinstalltype"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype"
 	
     variable open_dports {}
 }
@@ -65,7 +66,7 @@ proc darwinports::ui_event {context message} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -142,7 +143,7 @@ proc dportinit {args} {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
-    set registry.path [file join $portdbpath receipts]
+    set registry.path $portdbpath
     if {![file isdirectory ${registry.path}]} {
 	if {![file exists ${registry.path}]} {
 	    if {[catch {file mkdir ${registry.path}} result]} {
@@ -154,6 +155,23 @@ proc dportinit {args} {
 	return -code error "${darwinports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
     }
 
+	# Format for receipts, can currently be either "flat" or "sqlite"
+	if {[info exists portdbformat]} {
+		if { $portdbformat == "sqlite" } {
+			return -code error "SQLite is not yet supported for registry storage."
+		} 
+		set registry.format receipt_${portdbformat}
+	} else {
+		set registry.format receipt_flat
+	}
+
+	# Installation type, whether to use port "images" or install "direct"
+	if {[info exists portinstalltype]} {
+		set registry.installtype $portinstalltype
+	} else {
+		set registry.installtype image
+	}
+    
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
@@ -184,13 +202,23 @@ proc dportinit {args} {
 		# early, and after auto_path has been set.  Or maybe Pextlib
 		# should ship with darwinports1.0 API?
 		package require Pextlib 1.0
+		package require registry 1.0
     } else {
 		return -code error "Library directory '$libpath' must exist"
     }
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::portinterp_options auto_path
+    global darwinports::portinterp_options auto_path registry.installtype
+
+	# Tell the sub interpreter about all the Tcl packages we already
+	# know about so it won't glob for packages.
+	foreach pkgName [package names] {
+		foreach pkgVers [package versions $pkgName] {
+			set pkgLoadScript [package ifneeded $pkgName $pkgVers]
+			$workername eval "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
+		}
+	}
 
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
@@ -203,15 +231,19 @@ proc darwinports::worker_init {workername portpath options variations} {
     # instantiate the UI call-back
     $workername alias ui_event darwinports::ui_event $workername
 
-	# xxx: find a better home for this registry cruft--like six feet under.
-	$workername alias registry_new dportregistry::new $workername
-	$workername alias registry_store dportregistry::store
-	$workername alias registry_delete dportregistry::delete
-	$workername alias registry_exists dportregistry::exists
-	$workername alias registry_close dportregistry::close
-	$workername alias fileinfo_for_index dportregistry::fileinfo_for_index
-	$workername alias fileinfo_for_file dportregistry::fileinfo_for_file
-	$workername alias fileinfo_for_entry dportregistry::fileinfo_for_entry
+	# New Registry/Receipts stuff
+	$workername alias registry_new registry::new_entry
+	$workername alias registry_open registry::open_entry
+	$workername alias registry_write registry::write_entry
+	$workername alias registry_prop_store registry::property_store
+	$workername alias registry_prop_retr registry::property_retrieve
+	$workername alias registry_delete registry::delete_entry
+	$workername alias registry_exists registry::entry_exists
+	$workername alias registry_activate portimage::activate
+	$workername alias registry_deactivate portimage::deactivate
+	$workername alias registry_register_deps registry::register_dependencies
+	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
+	$workername alias registry_bulk_register_files registry::register_bulk_files
 
     foreach opt $portinterp_options {
 	if {![info exists $opt]} {
@@ -230,6 +262,10 @@ proc darwinports::worker_init {workername portpath options variations} {
 
     foreach {var val} $variations {
         $workername eval set variations($var) $val
+    }
+
+    if { [info exists registry.installtype] } {
+	    $workername eval set installtype ${registry.installtype}
     }
 }
 
@@ -255,7 +291,6 @@ proc darwinports::fetch_port {url} {
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
         return -code error "Can't decipher portdir from $fetchfile"
     }
-
     return [file join $fetchdir $portdir]
 }
 
@@ -341,6 +376,48 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
     return $dport
 }
 
+# Traverse a directory with ports, calling a function on the path of ports
+# (at the second depth).
+# I.e. the structure of dir shall be:
+# category/port/
+# with a Portfile file in category/port/
+#
+# func:		function to call on every port directory (it is passed
+#			category/port/ as its parameter)
+# root:		the directory with all the categories directories.
+proc dporttraverse {func {root .}} {
+	# Save the current directory
+	set pwd [pwd]
+	
+	# Join the root.
+	set pathToRoot [file join $pwd $root]
+
+	# Go to root because some callers expects us to be there.
+	cd $pathToRoot
+
+    foreach category [readdir $root] {
+    	set pathToCategory [file join $root $category]
+        if {[file isdirectory $pathToCategory]} {
+        	# Iterate on port directories.
+			foreach port [readdir $pathToCategory] {
+				set pathToPort [file join $pathToCategory $port]
+				if {[file isdirectory $pathToPort] &&
+					[file exists [file join $pathToPort "Portfile"]]} {
+					# Call the function.
+					$func [file join $category $port]
+					
+					# Restore the current directory because some
+					# functions changes it.
+					cd $pathToRoot
+				}
+			}
+        }
+	}
+	
+	# Restore the current directory.
+	cd $pwd
+}
+
 ### _dportsearchpath is private; subject to change without notice
 
 proc _dportsearchpath {depregex search_path} {
@@ -363,7 +440,6 @@ proc _dportsearchpath {depregex search_path} {
 	    }
 	}
     }
-
     return $found
 }
 
@@ -454,8 +530,8 @@ proc _dportinstalled {dport} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
-	if {$res != ""} {
-		ui_debug "Found Dependency: receipt: $res"
+	if {$res != 0} {
+		ui_debug "[ditem_key $dport provides] is installed"
 		return 1
 	} else {
 		return 0
@@ -473,8 +549,8 @@ proc _dportispresent {dport depspec} {
 	# Check for the presense of the port in the registry
 	set workername [ditem_key $dport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
-	if {$res != ""} {
-		ui_debug "Found Dependency: receipt: $res"
+	if {$res != 0} {
+		ui_debug "Found Dependency: receipt exists for [ditem_key $dport provides]"
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
@@ -509,7 +585,7 @@ proc _dportexec {target dport} {
 # Execute the specified target of the given dport.
 
 proc dportexec {dport target} {
-    global darwinports::portinterp_options
+    global darwinports::portinterp_options darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
 
@@ -541,7 +617,13 @@ proc dportexec {dport target} {
 		dlist_delete dlist $dport
 
 		# install them
-		set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
+		# xxx: as with below, this is ugly.  and deps need to be fixed to
+		# understand Port Images before this can get prettier
+		if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
+			set result [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
+		} else {
+			set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
+		}
 		
 		if {$result != {}} {
 			set errstring "The following dependencies failed to build:"
@@ -551,11 +633,17 @@ proc dportexec {dport target} {
 			ui_error $errstring
 			return 1
 		}
-                
-                # Close the dependencies, we're done installing them
-                foreach ditem $dlist {
-                    dportclose $ditem
-                }
+		
+		# Close the dependencies, we're done installing them.
+		foreach ditem $dlist {
+			dportclose $ditem
+		}
+	}
+
+	# If we're doing image installs, then we should activate after install
+	# xxx: This isn't pretty
+	if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
+		set target activate
 	}
 	
 	# Build this port with the specified target
@@ -594,7 +682,7 @@ proc dportsync {args} {
 			}
 			exec curl -L -s -S -o $indexfile $source/PortIndex
 		}
-    }
+	}
 }
 
 proc dportsearch {regexp} {
@@ -607,28 +695,28 @@ proc dportsearch {regexp} {
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
-        if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
-            return -code error "Can't open index file for source $source. Have you synced your source indexes?"
-        }
-        while {[gets $fd line] >= 0} {
-            set name [lindex $line 0]
-            if {[regexp -- $regexp $name] == 1} {
-                gets $fd line
-                array set portinfo $line
-                if {[info exists portinfo(portarchive)]} {
-                    lappend line porturl ${source}/$portinfo(portarchive)
-                } elseif {[info exists portinfo(portdir)]} {
-                    lappend line porturl ${source}/$portinfo(portdir)
-                }
-                lappend matches $name
-                lappend matches $line
-            } else {
-                set len [lindex $line 1]
-                seek $fd $len current
-            }
-        }
-        close $fd
-        }
+        	if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+        	    return -code error "Can't open index file for source $source. Have you synced your source indexes?"
+			}
+	        while {[gets $fd line] >= 0} {
+	            set name [lindex $line 0]
+	            if {[regexp -- $regexp $name] == 1} {
+	                gets $fd line
+	                array set portinfo $line
+	                if {[info exists portinfo(portarchive)]} {
+	                    lappend line porturl ${source}/$portinfo(portarchive)
+	                } elseif {[info exists portinfo(portdir)]} {
+	                    lappend line porturl ${source}/$portinfo(portdir)
+	                }
+	                lappend matches $name
+	                lappend matches $line
+	            } else {
+	                set len [lindex $line 1]
+	                seek $fd $len current
+	            }
+	        }
+	        close $fd
+		}
     }
 
     return $matches
@@ -739,152 +827,3 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	
 	return 0
 }
-
-# Snarfed from portregistry.tcl
-# For now, just write stuff to a file for debugging.
-
-namespace eval dportregistry {}
-
-proc dportregistry::new {workername portname {portversion 1.0}} {
-    global _registry_name darwinports::registry.path
-
-    file mkdir ${darwinports::registry.path}
-    set _registry_name [file join ${darwinports::registry.path} $portname-$portversion]
-    system "rm -f ${_registry_name}.tmp"
-    set rhandle [open ${_registry_name}.tmp w 0644]
-    puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
-	#interp share {} $rhandle $workername 
-    return $rhandle
-}
-
-proc dportregistry::exists {portname {portversion 0}} {
-    global darwinports::registry.path
-
-    # regex match case
-    if {$portversion == 0} {
-	set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
-	if {[string length $x]} {
-	    set matchfile [lindex $x 0]
-	} else {
-	    set matchfile ""
-	}
-    } else {
-	set matchfile [file join ${darwinports::registry.path} ${portname}-${portversion}]
-    }
-
-    # Might as well bail out early if no file to match
-    if {![string length $matchfile]} {
-	return ""
-    }
-
-    if {[file exists $matchfile]} {
-	return $matchfile
-    }
-    if {[file exists ${matchfile}.bz2]} {
-	return ${matchfile}.bz2
-    }
-    return ""
-}
-
-proc dportregistry::store {rhandle data} {
-    puts $rhandle $data
-}
-
-proc dportregistry::fetch {rhandle} {
-    return -1
-}
-
-proc dportregistry::traverse {func} {
-    return -1
-}
-
-proc dportregistry::close {rhandle} {
-    global _registry_name
-    global registry.nobzip
-
-    ::close $rhandle
-    system "mv ${_registry_name}.tmp ${_registry_name}"
-    if {[file exists ${_registry_name}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
-	system "/usr/bin/bzip2 -f ${_registry_name}"
-    }
-}
-
-proc dportregistry::delete {portname {portversion 0}} {
-    global darwinports::registry.path
-
-    # regex match case, as in exists
-    if {$portversion == 0} {
-		set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
-		if {[string length $x]} {
-		    exec rm -f [lindex $x 0]
-		}
-	} else {
-		# Remove the file (with or without .bz2 suffix)
-		set filename [file join ${darwinports::registry.path} ${portname}-${portversion}]
-		if { [file exists $filename] } {
-			exec rm -rf $filename
-		} elseif { [file exists ${filename}.bz2] } {
-			exec rm -rf ${filename}.bz2
-		}
-	}
-}
-
-proc dportregistry::fileinfo_for_file {fname} {
-    if {![catch {file stat $fname statvar}]} {
-	if {[file isfile $fname]} {
-	    if {[catch {md5 file $fname} md5sum] == 0} {
-		# Create a line that matches md5(1)'s output
-		# for backwards compatibility
-		set line "MD5 ($fname) = $md5sum"
-		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	    }
-	} else {
-	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
-	}
-    }
-    return {}
-}
-
-proc dportregistry::fileinfo_for_entry {rval dir entry} {
-    upvar $rval myrval
-    set path [file join $dir $entry]
-    lappend myrval [dportregistry::fileinfo_for_file $path]
-    return $myrval
-}
-
-proc dportregistry::fileinfo_for_index {flist} {
-    global prefix
-
-    set rval {}
-    foreach file $flist {
-	if {[string match /* $file]} {
-	    set fname $file
-	    set dir /
-	} else {
-	    set fname [file join $prefix $file]
-	    set dir $prefix
-	}
-	dportregistry::fileinfo_for_entry rval $dir $file
-    }
-    return $rval
-}
-
-proc dportregistry::listinstalled {args} {
-    global darwinports::registry.path
-
-    set receiptglob [glob -nocomplain ${darwinports::registry.path}/*]
-
-    if {$receiptglob == ""} {
-        puts "No ports installed."
-    } else {
-        puts "The following ports are installed:"
-        foreach receipt $receiptglob {
-            if {[file extension $receipt] == ".bz2"} {
-                puts "\t[file rootname [file tail $receipt]]"
-            } else {
-                puts "\t[file tail $receipt]"
-            }
-        }
-    }
-}
-
