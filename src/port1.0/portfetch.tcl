@@ -54,7 +54,8 @@ default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
-default cvs.pre_args {"-f -d ${cvs.root}"}
+default cvs.pre_args {"-f -d ${cvs.root} co -r ${cvs.tag} ${cvs.module}"}
+default cvs.args ""
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -62,8 +63,7 @@ default dist_subdir {${portname}}
 
 default fetch.cmd curl
 default fetch.dir {${distpath}}
-default fetch.args {"-o ${distfile}.TMP"}
-default fetch.pre_args {"-f -L"}
+default fetch.pre_args {"-f -L -o ${distfile}.TMP"}
 default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}
 
 default fallback_mirror_site "opendarwin"
@@ -262,10 +262,12 @@ proc checkfiles {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
-    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env cvs.root
+    global workpath cvs.password cvs.args cvs.cmd cvs.env cvs.root
     cd $workpath
     exec touch .cvspass
     if {[regexp ^:pserver: ${cvs.root}]} {
+	set saveargs ${cvs.args}
+	set savecmd ${cvs.cmd}
 	set cvs.args login
 	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
 	# XXX cvs will request a password from the tty using getpass()
@@ -273,12 +275,11 @@ proc cvsfetch {args} {
 	if {[catch {system -notty "[command cvs] 2>&1"} result]} {
 	    return -code error [msgcat::mc "CVS login failed"]
 	}
+	set cvs.args ${saveargs}
+	set cvs.cmd ${savecmd}
     } else {
 	set env(CVS_RSH) ssh
     }
-    set cvs.args "co -r ${cvs.tag}"
-    set cvs.cmd cvs
-    set cvs.post_args "${cvs.module}"
     if {[catch {system "[command cvs] 2>&1"} result]} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
