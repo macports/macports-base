@@ -64,9 +64,9 @@ proc uninstall_main {args} {
 		set fname [lindex $f 0]
 		ui_info "$UI_PREFIX   Uninstall is removing $fname"
 		if [file isdirectory $fname] {
-		    system "rmdir $fname"
+		    exec rmdir $fname
 		} else {
-		    system "rm $fname"
+		    exec rm $fname
 		}
 	    }
 	    registry_delete $portname $portversion

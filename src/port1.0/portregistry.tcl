@@ -37,7 +37,7 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description registry.nochecksum registry.path
+options contents description registry.nochecksum registry.path registry.nobzip
 
 default registry.path /Library/Receipts/darwinports
 
@@ -80,11 +80,11 @@ proc registry_traverse {func} {
 
 proc registry_close {rhandle} {
     global _registry_name
+    global registry.nobzip
 
     close $rhandle
-    if {[file exists $_registry_name] && [file exists /usr/bin/bzip2]} {
-	system "rm -f ${_registry_name}.bz2"
-	system "/usr/bin/bzip2 $_registry_name"
+    if {[file exists $_registry_name] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
+	system "/usr/bin/bzip2 -f $_registry_name"
     }
 }
 
@@ -92,8 +92,8 @@ proc registry_delete {portname {portversion 1.0}} {
     global registry.path
 
     # Try both versions, just to be sure.
-    system "rm -f [file join ${registry.path} $portname-$portversion]"
-    system "rm -f [file join ${registry.path} $portname-$portversion].bz2"
+    exec rm -f [file join ${registry.path} $portname-$portversion]
+    exec rm -f [file join ${registry.path} $portname-$portversion].bz2
 }
 
 proc fileinfo_for_file {fname} {
@@ -128,7 +128,7 @@ proc fileinfo_for_entry {rval dir entry} {
 	    set subpath [file join $path $name]
 	    if [file isdirectory $subpath] {
 		fileinfo_for_entry myrval $subpath ""
-		fileinfo_for_file $subpath
+		lappend myrval [fileinfo_for_file $subpath]
 	    } elseif [file readable $subpath] {
 		lappend myrval [fileinfo_for_file $subpath]
 	    }
