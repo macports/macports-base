@@ -333,9 +333,9 @@ proc reinplace {oddpattern file}  {
 	return -code error "reinplace failed"
     }
 	
-	set eof [file size "$tmpfile"]
-	puts "$tmpfile $eof"
-	ftruncate $input $eof 
+    set eof [file size "$tmpfile"]
+    puts "$tmpfile $eof"
+    ftruncate $input $eof 
 
     close $output
     close $input
