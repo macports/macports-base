@@ -12,11 +12,11 @@
 #define BUFSIZ 1024
 
 static int ui_info(Tcl_Interp *interp, char *mesg) {
-	const char ui_proc[] = "ui_info {";
+	const char ui_proc[] = "eval [list ui_info {";
 	char *script, *p;
 	int scriptlen;
 
-	scriptlen = sizeof(ui_proc) + strlen(mesg);
+	scriptlen = sizeof(ui_proc) + strlen(mesg) + 3;
 	script = malloc(scriptlen);
 	if (script == NULL)
 		return TCL_ERROR;
@@ -25,8 +25,7 @@ static int ui_info(Tcl_Interp *interp, char *mesg) {
 
 	memcpy(script, ui_proc, sizeof(ui_proc));
 	strcat(script, mesg);
-	p += scriptlen - 2;
-	*p = '}';
+	strcat(script, "}]");
 	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
 }
 
