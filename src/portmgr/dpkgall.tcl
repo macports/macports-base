@@ -506,6 +506,10 @@ proc main {argc argv} {
 		# Into the apt repository you go!
 		copy_pkg_to_apt $portinfo(name) $portinfo(version) $portinfo(revision) [lindex $portinfo(categories) 0]
 
+		ui_silent "Resetting /usr/dports ..."
+		reset_tree
+		ui_silent "Done."
+
 		# Close the log
 		close $logfd
 
@@ -514,10 +518,6 @@ proc main {argc argv} {
 
 		# Close the port
 		dportclose $workername
-
-		ui_silent "Resetting /usr/dports ..."
-		reset_tree
-		ui_silent "Done."
 	}
 
 	open_default_log
@@ -555,12 +555,6 @@ proc main {argc argv} {
 
 		system "cd \"${rootdir}\" && tar cf \"[file join ${workdir} clientinstall.tar.gz]\" ."
 		file delete -force ${rootdir}
-	}
-
-	ui_msg "Generating pristine archive: [file join ${pkgrepo} ${architecture} root.tar.gz]"
-	if {[catch {system "tar -zcf \"[file join ${pkgrepo} ${architecture} root.tar.gz]\" \"${portprefix}\""} result]} {
-		ui_noisy_error "Fatal error: Archive creation failed: $result"
-		exit 1
 	}
 
 	ui_silent "Building apt-get index ..."
