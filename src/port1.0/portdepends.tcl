@@ -69,7 +69,7 @@ proc depends_main {id} {
 	return 0
     }
     set name depends_$name
-    global $name env sysportpath
+    global $name env
     if {![info exists $name]} {
 	return 0
     }
@@ -128,7 +128,12 @@ proc depends_main {id} {
     ui_debug "Building $portname"
     array set options [list]
     array set variations [list]
-    set worker [dportopen "$sysportpath/$portname" options variations]
+    array set portinfo [dportmatch ^$portname\$]
+    if {[array size portinfo] == 0} {
+        ui_error "Dependency $portname not found"
+    }
+    set porturl $portinfo(porturl)
+    set worker [dportopen $porturl options variations]
     dportexec $worker install
     dportclose $worker
     }

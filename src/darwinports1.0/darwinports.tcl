@@ -38,11 +38,8 @@ namespace eval darwinports {
 	variable uniqid 0
 }
 
-proc darwinports::get_sources {args} {
-}
-
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf darwinports::sources
 
     if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
@@ -56,6 +53,19 @@ proc dportinit {args} {
 	    lappend conf_files ${portconf}
 	}
     }
+
+    if {[catch {set fd [open /etc/ports/sources.conf r]} result]} {
+        return -code error "$result"
+    }
+    while {[gets $fd line] >= 0} {
+        if ![regexp {[\ \t]*#.+} $line] {
+            lappend sources $line
+	}
+    }
+    if ![info exists sources] {
+        return -code error "No sources defined in /etc/ports/sources.conf"
+    }
+
     if {![info exists portconf] && [file isfile /etc/ports/ports.conf]} {
 	set portconf /etc/ports/ports.conf
 	lappend conf_files /etc/ports/ports.conf
@@ -112,7 +122,7 @@ proc darwinports::worker_init {workername portpath options variations} {
 	upvar $variations upvariations
     }
 
-    foreach proc {dportexec dportopen dportclose} {
+    foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
 		$workername alias $proc $proc
     }
 
@@ -142,10 +152,25 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 }
 
-proc darwinports::parse_url {url} {
+proc darwinports::fetch_port {url} {
+    global darwinports::portdbpath
+    set fetchdir [file join $portdbpath portdirs]
+    set fetchfile [file tail $url]
+    if {[catch {file mkdir $fetchdir} result]} {
+        return -code error $result
+    }
+    exec curl -s -S -o [file join $fetchdir $fetchfile] $url
+    cd $fetchdir
+    exec tar -zxf $fetchfile
+    regexp {([A-Za-z]+).tgz} $fetchfile match portdir
+    return [file join $fetchdir $portdir]
+}
+
+proc darwinports::getportdir {url} {
     if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
-        switch -exact -- ${protocol} {
-            file { return $string}
+        switch -regexp -- ${protocol} {
+            {^file$} { return $string}
+	    {http|ftp} { return [darwinports::fetch_port $url] }
             default { return -code error "Unsupported protocol $protocol" }
         }
     } else {
@@ -167,7 +192,7 @@ proc dportopen {porturl {options ""} {variations ""}} {
     } else {
 	upvar $variations upvariations
     }
-    set portdir [darwinports::parse_url $porturl]
+    set portdir [darwinports::getportdir $porturl]
     cd $portdir
     set portpath [pwd]
     set workername workername[incr uniqid]
@@ -188,45 +213,75 @@ proc dportexec {workername target} {
     return [$workername eval eval_targets targets $target]
 }
 
-proc dportsearch {regexp} {
+proc darwinports::getindex {source} {
     global darwinports::portdbpath
+    regsub {://} $source {.} source_dir
+    regsub -all {/} $source_dir {_} source_dir
+    return [file join $portdbpath sources $source_dir PortIndex]
+}
+
+proc dportsync {args} {
+    global darwinports::sources darwinports::portdbpath
+    foreach source $sources {
+        set indexfile [darwinports::getindex $source]
+	if {[catch {file mkdir [file dirname $indexfile]} result]} {
+            return -code error $result
+        }
+        exec curl -s -S -o $indexfile $source/PortIndex
+    }
+}
+
+proc dportsearch {regexp} {
+    global darwinports::portdbpath darwinports::sources
     set matches [list]
 
-    set fd [open $portdbpath/PortIndex r]
-    while {[gets $fd line] >= 0} {
-        set name [lindex $line 0]
-        if {[regexp -- $regexp $name] == 1} {
+    foreach source $sources {
+        set fd [open [darwinports::getindex $source] r]
+        while {[gets $fd line] >= 0} {
+            set name [lindex $line 0]
+            if {[regexp -- $regexp $name] == 1} {
                 gets $fd line
                 array set portinfo $line
-		set portinfo(porturl) "file://${portdbpath}${portinfo(portdir)}"
-		lappend matches $name
-		lappend matches $line
-        } else {
+                if [info exists portinfo(portarchive)] {
+                	set portinfo(porturl) ${source}/$portinfo(portarchive)
+                } elseif [info exists portinfo(portdir)] {
+                    set portinfo(porturl) ${source}/$portinfo(portdir)
+                }
+                lappend matches $name
+                lappend matches $line
+            } else {
                 set len [lindex $line 1]
                 seek $fd $len current
+            }
         }
+        close $fd
     }
-    close $fd
     return $matches
 }
 
 proc dportmatch {regexp} {
-    global darwinports::portdbpath
-    set fd [open $portdbpath/PortIndex r]
-    while {[gets $fd line] >= 0} {
-    	set name [lindex $line 0]
-	if {[regexp -- $regexp $name] == 1} {
-		gets $fd line
-		array set portinfo $line
-		set portinfo(porturl) "file://${portdbpath}${portinfo(portdir)}"
-		close $fd
-		return [array get portinfo]
-	} else {
-		set len [lindex $line 1]
-		seek $fd $len current
-	}
+    global darwinports::portdbpath darwinports::sources
+    foreach source $sources {
+        set fd [open [darwinports::getindex $source] r]
+        while {[gets $fd line] >= 0} {
+            set name [lindex $line 0]
+            if {[regexp -- $regexp $name] == 1} {
+                gets $fd line
+                array set portinfo $line
+                if [info exists portinfo(portarchive)] {
+                	set portinfo(porturl) ${source}/$portinfo(portarchive)
+                } elseif [info exists portinfo(portdir)] {
+                    set portinfo(porturl) ${source}/$portinfo(portdir)
+                }
+                close $fd
+                return [array get portinfo]
+            } else {
+                set len [lindex $line 1]
+                seek $fd $len current
+            }
+        }
+        close $fd
     }
-    close $fd
 }
 
 proc dportinfo {workername} {

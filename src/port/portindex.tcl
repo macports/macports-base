@@ -52,9 +52,9 @@ proc pindex {portdir} {
             }
         }
         set portinfo(portarchive) [file join [file dirname $portdir] [file tail $portdir]].tgz
-        cd $directory
+        cd [file join $directory [file dirname $portinfo(portdir)]]
         puts "Archiving port $portinfo(portname) to [file join $outdir $portinfo(portarchive)]"
-        if {[catch {exec tar -cf - [file join $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
+        if {[catch {exec tar -cf - [file tail $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
             puts "Failed to create port archive $portinfo(portarchive): $result"
             exit 1
         }

@@ -118,6 +118,9 @@ switch -- $action {
 			exit 1
 		}
 	}
+	sync {
+		dportsync
+	}
 	default {
 		set target $action
 		if {[info exists portname]} {
