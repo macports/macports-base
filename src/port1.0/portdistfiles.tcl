@@ -125,8 +125,8 @@ proc main {args} {
 			# Make the distfile globally visible.
 			option distfile $distfile
 			
-			# Selects the download, checksum, and extract targets.
-			# extracts the distfile into the work directory.
+			# Selects the download and checksum targets.
+			# checksums the patch file.
 			# Don't keep state.
 			eval_targets checksum 0
 		}

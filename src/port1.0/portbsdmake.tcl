@@ -1,5 +1,5 @@
-# eti:ts=4
-# portbuild.tcl
+# et:ts=4
+# portbsdmake.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -29,66 +29,53 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-return
-#
-#
-# OBSOLETE
-#
-#
 PortTarget 1.0
 
-name		org.opendarwin.build
-requires	configure
-provides	build
+name			org.opendarwin.bsdmake
+version			1.0
+maintainers		kevin@opendarwin.org
+description		Builds sources using bsdmake
+requires		configure
+provides		bsdmake
 
 # define options
 options build.target.all build.target
 commands build
 # defaults
 default build.dir {[option workpath]/[option worksrcdir]}
-default build.cmd {[build_getmaketype]}
 default build.pre_args {[option build.target]}
 option_deprecate build.target.all build.target
 default build.target "all"
 
+
+
+proc set_defaults {args} {
+	# If this gets called then somebody said "use bsdmake"
+	global use_bsdmake
+	set use_bsdmake yes
+
+	if {[option os.platform] == "darwin"} {
+		default build.cmd {bsdmake}
+	} else {
+		default build.cmd {make}
+	}
+}
+
 set UI_PREFIX "---> "
 
-proc build_getmaketype {args} {
-    if {![exists build.type]} {
-	return make
-    }
-    switch -exact -- [option build.type] {
-	bsd {
-	    if {[option os.platform] == "darwin"} {
-		return bsdmake
-	    } else {
-		return make
-	    }
-	}
-	gnu {
-	    if {[option os.platform] == "darwin"} {
-		return gnumake
-	    } else {
-		return gmake
-	    }
-	}
-	pbx {
-	    return pbxbuild
-	}
-	default {
-	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
-	    return gnumake
-	}
-    }
-}
-
-proc start {args} {
-    global UI_PREFIX
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
-}
-
 proc main {args} {
-    system "[command build]"
+    global UI_PREFIX use_bsdmake
+
+	if {![info exists use_bsdmake] || $use_bsdmake != "yes"} {
+		# We were not called upon.
+		return 1
+	}
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with bsdmake"] [option portname]]"
+
+	if {[catch {system "[command build]"} result]} {
+	    return -code error "[format [msgcat::mc "%s failure: %s"] bsdmake $result]"
+	}
+	
     return 0
 }

@@ -94,6 +94,7 @@ proc portinit {} {
 		
 		# Target API
 		$worker alias name tname $ditem
+		$worker alias version noop
 		$worker alias maintainers noop
 		$worker alias description noop
 		$worker alias requires target_requires $ditem
