@@ -12,7 +12,7 @@ set archive 0
 proc print_usage args {
     global argv0
     puts "Usage: $argv0 \[-a\] \[-o output directory\] \[directory\]"
-    puts "-a:\tArchive port directories (for remote sites)"
+    puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
 }
 
@@ -88,6 +88,13 @@ for {set i 0} {$i < $argc} {incr i} {
 	default { set directory $arg }
     }
 }
+
+if {$archive == 1 && ![info exists outdir]} {
+   puts "You must specify an output directory with -o when using the -a option"
+   print_usage
+   exit 1
+}
+
 if {![info exists directory]} {
     set directory .
 }
