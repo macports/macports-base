@@ -89,7 +89,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfon\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfona\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -150,6 +150,8 @@ for {set i 0} {$i < $argc} {incr i} {
 				set options(ports_ignore_older) yes
 			} elseif {$c == "n"} {
 				set options(ports_nodeps) yes
+			} elseif {$c == "a"} {
+				set options(port_upgrade_all) yes
 			} elseif {$opt == "D"} {
 				incr i
 				set porturl "file://[lindex $argv $i]"
@@ -272,13 +274,33 @@ switch -- $action {
 		}
 	}
 	upgrade {
-        if { ![info exists portname] } {
-			puts "Please specify a port to upgrade."
-			exit 1
-		}
+        if {[info exists options(port_upgrade_all)] } {
+            # upgrade all installed ports!!!
+            if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "no ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+            if { [llength $ilist] > 0 } {
+                foreach i $ilist {
+                    set iname [lindex $i 0]
+                    upgrade $iname "lib:XXX:$iname"
+                }
+            }
+        } else {
+            # upgrade a specific port
+            if { ![info exists portname] } {
+                puts "Please specify a port to upgrade."
+                exit 1
+            }
 
-		upgrade $portname "lib:XXX:$portname"
-	}
+            upgrade $portname "lib:XXX:$portname"
+        }
+    }
 
 	compact {
 		if { ![info exists portname] } {
@@ -317,40 +339,46 @@ switch -- $action {
 		}
 	}
 	installed {
-		if { [info exists portname] } {
-			if { [catch {set ilist [registry::installed $portname]} result] } {
-				puts "port installed failed: $result"
-				exit 1
-			}
-		} else {
-			if { [catch {set ilist [registry::installed]} result] } {
-				if {$result eq "Registry error: No ports registered as installed."} {
-					puts "No ports installed!"
-					exit 1
-				} else {
-					puts "port installed failed: $result"
-					exit 1
-				}
-			}
-		}
-		if { [llength $ilist] > 0 } {
-			puts "The following ports are currently installed:"
-			foreach i $ilist { 
-				set iname [lindex $i 0]
-				set iversion [lindex $i 1]
-				set irevision [lindex $i 2]
-				set ivariants [lindex $i 3]
-				set iactive [lindex $i 4]
-				if { $iactive == 0 } {
-					puts "	$iname ${iversion}_${irevision}${ivariants}"
-				} elseif { $iactive == 1 } {
-					puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
-				}
-			}
-		} else {
-			exit 1
-		}
-	}
+        if { [info exists portname] } {
+            if { [catch {set ilist [registry::installed $portname]} result] } {
+                if {$result eq "Registry error: $portname not registered as installed."} {
+                    puts "Port $portname not installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+        } else {
+            if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "No ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+        }
+        if { [llength $ilist] > 0 } {
+            puts "The following ports are currently installed:"
+            foreach i $ilist {
+                set iname [lindex $i 0]
+                set iversion [lindex $i 1]
+                set irevision [lindex $i 2]
+                set ivariants [lindex $i 3]
+                set iactive [lindex $i 4]
+                if { $iactive == 0 } {
+                    puts "  $iname ${iversion}_${irevision}${ivariants}"
+                } elseif { $iactive == 1 } {
+                    puts "  $iname ${iversion}_${irevision}${ivariants} (active)"
+                }
+            }
+        } else {
+            exit 1
+        }
+    }
+
 	contents {
 		# make sure a port was given on the command line
 		if {![info exists portname]} {
