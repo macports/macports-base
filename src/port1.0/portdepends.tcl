@@ -135,8 +135,14 @@ proc depends_main {id} {
     }
     set porturl $portinfo(porturl)
     set worker [dportopen $porturl options variations]
-    dportexec $worker install
-    dportclose $worker
+	if {[catch {dportexec $worker install} result]} {
+		ui_error "Build of $portname failed: $result"
+		dportclose $worker
+		return -1
+	}
+	if {[catch {dportexec $worker clean} result]} {
+		ui_error "Clean of $portname failed: $result"
     }
+    dportclose $worker
     return 0
 }
