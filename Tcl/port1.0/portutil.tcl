@@ -89,7 +89,6 @@ proc register {name mode args} {
                 set id [incr portutil::uniqid]
                 set ident [lindex [dlist_get_matches targets provides $args] 0]
                 set origproc [dlist_get_key targets $ident procedure,build]
-        puts "origproc = $origproc"
                 eval "proc $target {args} \{ \n\
                     register $ident target build proc-$target$id \n\
                     proc proc-$target$id \{name chain\} \{ \n\
