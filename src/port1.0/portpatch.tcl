@@ -53,6 +53,8 @@ proc patch_main {args} {
 	return 0
     }
     
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
+
     foreach patch [option patchfiles] {
 	if {[file exists [option filespath]/$patch]} {
 	    lappend patchlist [option filespath]/$patch
