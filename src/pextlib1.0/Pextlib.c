@@ -12,24 +12,25 @@
 #define BUFSIZ 1024
 
 static int ui_info(Tcl_Interp *interp, char *mesg) {
-	const char ui_proc[] = "eval [list ui_info {";
-	const char ui_proc_end[] = "}]";
+	const char ui_proc[] = "ui_info [list ";
+	const char proc_end[] = "]";
 	char *script, *p;
 	int scriptlen, len;
 
-	scriptlen = sizeof(ui_proc) + strlen(mesg) + strlen(ui_proc_end) + 1;
+	/* Nuke the trailing newline, if any */
+	len = strlen(mesg);
+	if (mesg[len - 1] == '\n')
+	  mesg[--len] = '\0';
+	scriptlen = sizeof(ui_proc) + len + sizeof(proc_end);
 	script = malloc(scriptlen);
 	if (script == NULL)
 		return TCL_ERROR;
 	else
 		p = script;
-	len = strlen(mesg);
-	if (mesg[len - 1] == '\n')
-	  mesg[len - 1] = '\0';
 	memcpy(script, ui_proc, sizeof(ui_proc));
-	strcat(script, mesg);
-	strcat(script, ui_proc_end);
-	return (Tcl_EvalEx(interp, script, scriptlen - 2, 0));
+	memcpy(script + sizeof(ui_proc), mesg, len);
+	memcpy(script + sizeof(ui_proc) + len, proc_end, sizeof(proc_end));
+	return (Tcl_EvalEx(interp, script, scriptlen, 0));
 }
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
