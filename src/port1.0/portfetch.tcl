@@ -37,6 +37,7 @@ ${com.apple.fetch} set init fetch_init
 ${com.apple.fetch} provides fetch
 ${com.apple.fetch} requires main
 ${com.apple.fetch} deplist depends_fetch
+${com.apple.fetch} set prerun fetch_start
 
 # define options: distname master_sites
 options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
@@ -272,6 +273,12 @@ proc fetch_init {args} {
     if {"${fetch.type}" == "standard"} {
         checkfiles
     }
+}
+
+proc fetch_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Fetching $portname"
 }
 
 # Main fetch routine

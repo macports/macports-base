@@ -38,6 +38,13 @@ set com.apple.clean [target_new com.apple.clean clean_main]
 ${com.apple.clean} set runtype always
 ${com.apple.clean} provides clean
 ${com.apple.clean} requires main
+${com.apple.clean} set prerun clean_start
+
+proc clean_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Cleaning $portname"
+}
 
 proc clean_main {args} {
     global portpath workdir

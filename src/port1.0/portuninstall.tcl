@@ -36,11 +36,20 @@ set com.apple.uninstall [target_new com.apple.uninstall uninstall_main]
 ${com.apple.uninstall} set runtype always
 ${com.apple.uninstall} provides uninstall
 ${com.apple.uninstall} requires main
+${com.apple.uninstall} set prerun uninstall_start
 
 # define options
 options uninstall.force uninstall.nochecksum
 
 set UI_PREFIX "---> "
+
+proc uninstall_start {args} {
+    global portname portversion UI_PREFIX
+
+    if [string length [registry_exists $portname $portversion]] {
+	ui_msg "$UI_PREFIX Uninstalling $portname-$portversion"
+    }
+}
 
 proc uninstall_main {args} {
     global portname portversion uninstall.force uninstall.nochecksum ports_force UI_PREFIX
@@ -52,7 +61,6 @@ proc uninstall_main {args} {
 
     set rfile [registry_exists $portname $portversion]
     if [string length $rfile] {
-	ui_msg "$UI_PREFIX Uninstalling $portname-$portversion"
 	if [regexp .bz2$ $rfile] {
 	    set fd [open "|bunzip2 -c $rfile" r]
 	} else {

@@ -36,6 +36,7 @@ set com.apple.install [target_new com.apple.install install_main]
 ${com.apple.install} provides install
 ${com.apple.install} requires main fetch extract checksum patch configure build 
 ${com.apple.install} deplist depends_run depends_lib
+${com.apple.install} set prerun install_start
 
 # define options
 options build.target.install
@@ -43,6 +44,12 @@ options build.target.install
 default build.target.install install
 
 set UI_PREFIX "---> "
+
+proc install_start {args} {
+    global UI_PREFIX portname build.target.install
+
+    ui_msg "$UI_PREFIX Installing $portname with target ${build.target.install}"
+}
 
 proc install_main {args} {
     global portname portversion portpath categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
@@ -54,7 +61,7 @@ proc install_main {args} {
 	    return -code error "Could not make directory for ${prefix}: $err"
 	}
     }
-    ui_msg "$UI_PREFIX Installing $portname with target ${build.target.install}"
+
     set build.target.current ${build.target.install}
     if [catch {system "[command build]"}] {
 	ui_error "Installation failed."

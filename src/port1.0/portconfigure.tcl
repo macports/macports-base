@@ -36,6 +36,7 @@ set com.apple.configure [target_new com.apple.configure configure_main]
 ${com.apple.configure} provides configure
 ${com.apple.configure} requires main fetch extract checksum patch
 ${com.apple.configure} deplist depends_build depends_lib
+${com.apple.configure} set prerun configure_start
 
 # define options
 commands configure automake autoconf xmkmf libtool
@@ -50,6 +51,12 @@ default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 set UI_PREFIX "---> "
+
+proc configure_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Configuring $portname"
+}
 
 proc configure_main {args} {
     global [info globals]
@@ -82,7 +89,6 @@ proc configure_main {args} {
 	    system "cd ${worksrcpath} && make Makefiles"
 	}
     } elseif [tbool use_configure] {
-        ui_msg "$UI_PREFIX Running configure script"
 	if {[catch {system "[command configure]"} result]} {
 	    ui_error "configure target failed: $result"
 	    return -code error "configure target failed: $result"

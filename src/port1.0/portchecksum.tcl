@@ -35,6 +35,7 @@ package require portutil 1.0
 set com.apple.checksum [target_new com.apple.checksum checksum_main]
 ${com.apple.checksum} provides checksum
 ${com.apple.checksum} requires main fetch
+${com.apple.checksum} set prerun checksum_start
 
 # define options
 options checksums
@@ -71,6 +72,12 @@ proc dmd5 {file} {
 	}
     }
     return -1
+}
+
+proc checksum_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Checksumming $portname"
 }
 
 proc checksum_main {args} {

@@ -36,6 +36,7 @@ set com.apple.registry [target_new com.apple.registry registry_main]
 ${com.apple.registry} provides registry
 ${com.apple.registry} requires main fetch extract checksum patch configure build install 
 ${com.apple.registry} deplist depends_run depends_lib
+${com.apple.registry} set prerun registry_start
 
 # define options
 options contents long_description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
@@ -46,6 +47,12 @@ options_export description long_description
 default registry.path {[file join ${portdbpath} receipts]}
 
 set UI_PREFIX "---> "
+
+proc registry_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
+}
 
 # For now, just write stuff to a file for debugging.
 
@@ -204,7 +211,6 @@ proc registry_main {args} {
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
-    ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
 
     registry_store $rhandle [list prefix $prefix]
     registry_store $rhandle [list categories $categories]

@@ -37,6 +37,7 @@ ${com.apple.extract} set init extract_init
 ${com.apple.extract} provides extract
 ${com.apple.extract} requires fetch checksum
 ${com.apple.extract} deplist depends_extract
+${com.apple.extract} set prerun extract_start
 
 # define options
 options extract.only
@@ -64,6 +65,12 @@ proc extract_init {args} {
 	set extract.pre_args -q
 	set extract.post_args "-d $portpath/$workdir"
     }
+}
+
+proc extract_start {args} {
+    global UI_PREFIX portname
+
+    ui_msg "$UI_PREFIX Extracting $portname"
 }
 
 proc extract_main {args} {

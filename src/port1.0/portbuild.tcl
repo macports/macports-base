@@ -36,6 +36,7 @@ set com.apple.build [target_new com.apple.build build_main]
 ${com.apple.build} provides build
 ${com.apple.build} requires main fetch extract checksum patch configure
 ${com.apple.build} deplist depends_build depends_lib
+${com.apple.build} set prerun build_start
 
 # define options
 options build.target.all
@@ -79,10 +80,15 @@ proc build_getmaketype {args} {
     }
 }
 
+proc build_start {args} {
+    global UI_PREFIX portname build.target.all
+
+    ui_msg "$UI_PREFIX Building $portname with target ${build.target.all}"
+}
+
 proc build_main {args} {
     global portname portpath workdir prefix build.type build.cmd build.env build.target.all build.target.current UI_PREFIX worksrcdir
 
-    ui_msg "$UI_PREFIX Building $portname with target ${build.target.all}"
     set build.target.current ${build.target.all}
     system "[command build]"
     return 0
