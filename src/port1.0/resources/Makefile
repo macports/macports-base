@@ -1,4 +1,4 @@
-SUBDIR=		package
+SUBDIR=		package sitelists
 
 INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/
 

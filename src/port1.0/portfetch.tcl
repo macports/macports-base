@@ -39,7 +39,7 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
+options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.subdir master_sites.listfile master_sites.listpath
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
@@ -61,6 +61,9 @@ default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
 default fetch.pre_args ""
 default fetch.post_args {"${site}${distfile}"}
+
+default master_sites.listfile {"master_sites.tcl"}
+default master_sites.listpath {"${portresourcepath}/sitelists/"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -132,6 +135,28 @@ proc disttagclean {list} {
     return $val
 }
 
+# Expand all variable references in each site variable, passing back a new 
+# expanded list
+proc expand-site-vars {sites} {
+    set x [list]
+    foreach element $sites {
+        eval lappend x $element
+    }
+    return $x
+}
+
+# For a given master site type, e.g. "gnu" or "x11", check to see if there's a
+# pre-registered set of sites, and if so, return them.
+proc master-sites-for {arg} {
+    global UI_PREFIX portresourcepath master_sites.listfile master_sites.listpath
+    include ${master_sites.listpath}${master_sites.listfile}
+    if ![info exists _master_sites($arg)] {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "No master sites on file for class %s"] $arg]"
+        return {}
+    }
+    return [expand-site-vars $_master_sites($arg)]
+}
+
 # Checks all files and their tags to assemble url lists for later fetching
 # sites tags create variables in the portfetch:: namespace containing all sites
 # within that tag distfiles are added in $site $distfile format, where $site is
@@ -139,14 +164,25 @@ proc disttagclean {list} {
 # sites
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	master_sites filespath
+	    master_sites master_sites.subdir filespath
 
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
         if ![info exists uplist] {
             continue
         }
+        
+        # There should be a better way to get rid of the extra list created by 
+        # master-sites-for (the extra {}'s, one element in $uplist)
+        set site_list [list]
         foreach site $uplist {
+            set site_list [concat $site_list $site]
+        }
+        
+        foreach site $site_list {
+            if [info exists master_sites.subdir] {
+                eval append site ${master_sites.subdir}
+            }
             if {[regexp {([a-zA-Z]+://.+/):([a-zA-z]+)} $site match site tag] == 1} {
                 lappend portfetch::$tag $site
             } else {
@@ -154,7 +190,7 @@ proc checkfiles {args} {
             }
         }
     }
-    
+   
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
 	    if {![file exists $filespath/$file]} {
