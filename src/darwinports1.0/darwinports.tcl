@@ -74,7 +74,7 @@ proc puts {args} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade
 	global options
 
     # first look at PORTSRC for testing/debugging
@@ -940,7 +940,7 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 }
 
 # upgrade procedure
-proc upgrade {pname dspec} {
+proc darwinports::upgrade {pname dspec} {
 	# globals
 	global options variations
 
