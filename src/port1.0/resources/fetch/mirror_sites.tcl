@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.5 2003/11/03 17:48:55 fkr Exp $
+# $Id: mirror_sites.tcl,v 1.6 2004/01/05 11:59:20 fkr Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -20,6 +20,7 @@ set portfetch::mirror_sites::sites(apache) {
     http://apache.planetmirror.com.au/dist/
     ftp://ftp.leo.org/pub/comp/general/infosys/www/daemons/apache/dist/
     ftp://ftp.infoscience.co.jp/pub/net/apache/dist/
+    http://archive.apache.org/dist/httpd/old/
 }
 
 set portfetch::mirror_sites::sites(gnome) {
