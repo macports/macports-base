@@ -383,6 +383,9 @@ switch -- $action {
 			exit 1
 		}
 	}
+	selfupdate {
+		darwinports::selfupdate
+	}
 	upgrade {
         if {[info exists options(port_upgrade_all)] } {
             # upgrade all installed ports!!!
