@@ -55,6 +55,7 @@ default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
+default x11prefix /usr/X11R6
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable

@@ -1374,7 +1374,3 @@ proc addgroup {name args} {
 	ui_warn "The requested group was not created."
     }
 }
-
-proc x11prefix {args} {
-    prefix /usr/X11R6
-}
