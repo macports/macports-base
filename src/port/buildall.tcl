@@ -1,132 +1,137 @@
-#!@TCLSH@
-# Traverse through all ports and try to build/install each one.
-# should be run in a chroot tree unless you don't mind permuting the host
-# system.
+#!/usr/bin/tclsh
+# Traverse through all ports and try to build/install each one in a chroot
+# tree.
 
-package require darwinports
-dportinit
-package require Pextlib
-
-global target uniquestr
-
-# UI Instantiations - These custom versions go to a debugging log.
-#
-# ui_options(ports_debug) - If set, output debugging messages.
-# ui_options(ports_verbose) - If set, output info messages (ui_info)
-# ui_options(ports_quiet) - If set, don't output "standard messages"
-
-# ui_options accessor
-proc ui_isset {val} {
-    global ui_options
-    if {[info exists ui_options($val)]} {
-	if {$ui_options($val) == "yes"} {
-	    return 1
-	}
-    }
-    return 0
+# Not all of these may be necessary.  Prune (or add to) as actual experience
+# subsequently dictates.
+set chrootfiles {
+	bin sbin private etc tmp dev/null usr/include usr/libexec
+	usr/sbin usr/lib usr/share var/at var/automount var/cron
+	var/db var/empty var/log var/mail var/msgs var/named var/root
+	var/run var/rwho var/spool var/tmp var/vm/app_profile
+	Developer/Applications/Xcode.app Developer/Applications/Utilities
+	Developer/Headers Developer/Makefiles Developer/Private
+	Developer/Tools System/Library/Frameworks System/Library/OpenSSL
+	System/Library/PHP System/Library/Perl
 }
 
-# UI Callback
+proc makechroot {dir} {
+	global chrootfiles verbose
 
-proc ui_puts {messagelist} {
-    global uniquestr
-
-    set channel [open "/tmp/portbuild.out" a+ 0644]
-    array set message $messagelist
-    switch $message(priority) {
-        debug {
-            if {[ui_isset ports_debug]} {
-		close $channel
-                set channel [open "/tmp/portdebug.out" a+ 0664]
-                set str "${uniquestr}DEBUG $message(data)"
-            } else {
-		close $channel
-                return
-            }
-        }
-        info {
-	    set str "${uniquestr}OUT $message(data)"
-        }
-        msg {
-	    set str "${uniquestr}OUT $message(data)"
-        }
-        error {
-            set str "${uniquestr}ERR $message(data)"
-        }
-        warn {
-            set str "${uniquestr}WARN $message(data)"
-        }
-    }
-    puts $channel $str
-    close $channel
-}
-
-proc port_traverse {func {dir .}} {
-    set pwd [pwd]
-    if {[catch {cd $dir} err]} {
-	ui_error $err
-	return
-    }
-    foreach name [readdir .] {
-	if {[string match $name .] || [string match $name ..]} {
-	    continue
+	if {![file exists $dir]} {
+		exec mkdir -p $dir
+	} elseif {![file isdirectory $dir]} {
+		puts "$dir must be a directory"
+		exit 5
 	}
-	if {[file isdirectory $name]} {
-	    port_traverse $func $name
+	puts "Creating chroot environment in $dir"
+	if {[catch {exec tar -cpf - -C / $chrootfiles | tar ${verbose} -xpf - -C $dir >& /dev/stdout}]} {
+		puts "Unable to tar files into $dir"
+		exit 6
+	}
+	if {[file exists darwinports.tar.gz]} {
+		puts "copying from local darwinports snapshot"
+		exec tar ${verbose} -xpzf darwinports.tar.gz -C $dir >& /dev/stdout
 	} else {
-	    if {[string match $name Portfile]} {
-		catch {eval $func {[file join $pwd $dir]}}
-	    }
+		puts "Attempting to grab cvs snapshot of darwinports"
+		if {![catch {exec curl -O http://darwinports.opendarwin.org/darwinports-nightly-cvs-snapshot.tar.gz}]} {
+			exec tar ${verbose} -xpzf darwinports-nightly-cvs-snapshot.tar.gz -C $dir >& /dev/stdout
+		} else {
+			puts "Unable to find darwinports anywhere.  I give up"
+			exit 7
+		}
 	}
-    }
-    cd $pwd
+	exec mkdir -p $dir/.vol
+	exec /sbin/mount_devfs devfs ${dir}/dev
+	exec /sbin/mount_fdesc -o union fdesc ${dir}/dev
+	exec /sbin/mount_volfs ${dir}/.vol
+	set f [open $dir/doit.tcl w 0755]
+	puts $f "#!/usr/bin/tclsh"
+	puts $f [proc_disasm packageall]
+	puts $f "cd darwinports"
+	puts $f "exec make all install"
+	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
+	puts $f packageall
+	close $f
 }
 
-proc pindex {portdir} {
-    global target options variations
+proc packageall {} {
+	global REPORT REPDIR verbose
 
-    if {[catch {set interp [dportopen file://$portdir [array get options] [array get variations]]} err]} {
-	puts "Error: Couldn't create interpreter for $portdir: $err"
-	return -1
-    }
-    array set portinfo [dportinfo $interp]
-    dportexec $interp $target
-    dportclose $interp
-}
-
-# Main
-
-# zero-out the options array
-array set options [list]
-array set variations [list]
-
-set target install
-# Set to something unique that can be grepped out of the output easily
-set uniquestr "_BLDA_"
-set env(UI_PREFIX) "${uniquestr}PHASE "
-
-if { $argc >= 1 } {
-    for {set i 0} {$i < $argc} {incr i} {
-	set arg [lindex $argv $i]
-
-	if {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
-	    # option=value
-	    set options($key) \"$val\"
-	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
-	    # if +xyz -xyz or after the separator
-	    set variations($opt) $sign
+	if {[file exists PortIndex]} {
+		set PI PortIndex
+	} elseif {[file exists dports/PortIndex]} {
+		set PI dports/PortIndex
 	} else {
-	    puts "Invalid argument: $arg"
-	    return 1
+		puts "Unable to find PortIndex.  Please run me from darwinports dir"
+		exit 2
 	}
-    }
+
+	if {[catch {set pifile [open $PI r]}]} {
+		puts "Unable to open $PI - check permissions."
+		exit 3
+	}
+	if {[catch {set repfile [open $REPORT w]}]} {
+		puts "Unable to open $REPORT - check permissions."
+		exit 4
+	}
+	exec mkdir -p /Packages
+	exec mkdir -p ${REPDIR}
+	if {[catch {exec port ${verbose} install rpm >& /dev/stdout }]} {
+		puts "Unable to install rpm port - cannot continue"
+		exit 6
+	}
+	while {[gets $pifile line] != -1} {
+		if {[llength $line] != 2} continue
+		set portname [lindex $line 0]
+		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
+			puts $repfile "$portname failure"
+			flush $repfile
+		} else {
+			puts $repfile "$portname success"
+			flush $repfile
+			exec rm -f ${REPDIR}/${portname}.out
+		}
+	}
+	close $pifile
+	close $repfile
 }
 
-if {[file isdirectory dports]} {
-    port_traverse pindex dports
-} elseif {[file isdirectory ../dports]} {
-    port_traverse pindex .
+proc proc_disasm {pname} {
+    set p "proc "
+    append p $pname " {"
+    set space ""
+    foreach arg [info args $pname] {
+        if {[info default $pname $arg value]} {
+            append p "$space{" [list $arg $value] "}"
+        } else {
+            append p $space $arg
+        }
+        set space " "
+    }
+    append p "} {" [info body $pname] "}"
+    return $p
+}
+
+### General option frobs ####
+
+# set dochroot to 1 if you want to do this in a chroot dir.
+set dochroot 0
+
+# Where you want the report summary to go.
+set REPDIR	"/tmp/packageresults"
+set REPORT	"${REPDIR}/package-report.txt"
+
+# Set to -v if you want verbose output, otherwise ""
+set verbose	"-v"
+
+### Crank her up! ###
+
+if {$dochroot == 1} {
+	makechroot chrootdir
+	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir/$REPORT"
+	exec chroot chrootdir/doit.tcl
 } else {
-    puts "Please run me from the darwinports directory (dports/..)"
-    return 1
+	puts "Report will be in $REPORT"
+	packageall
 }
