@@ -28,7 +28,7 @@
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
 .Dd August 24, 2002
-.Dt PORTBUILD 1 "Apple Computer, Inc."
+.Dt PORT 1 "Apple Computer, Inc."
 .Os
 .Sh NAME
 .Nm port
@@ -36,11 +36,11 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl vdqfo
-.Op Ar target
-.Op Ar portname
 .Op Fl D Ar portdir
+.Ar target
+.Op Ar portname
 .Op Ar options ...
-.Op Ar variations ...
+.Op Ar variants ...
 .Sh DESCRIPTION
 .Nm
 is designed to read and execute the build instructions of a darwin port. If no 
@@ -50,14 +50,14 @@ or
 is specified, the current working directory is assumed.
 If no
 .Ar target
-is specified, "build" is assumed.
+is specified, the usage is displayed.
 Port 
 .Ar options 
 are specified as key=value pairs and take precedence over individual port options and system-wide settings.
 Port
-.Ar variations
-are specified as +name, which indicates the variation is desired, and -name, which indicates the 
-variation is not desired
+.Ar variants
+are specified as +name, which indicates the variant is desired, and -name, which indicates the 
+variant is not desired
 .Sh OPTIONS
 .Bl -tag -width -indent
 .It Fl v

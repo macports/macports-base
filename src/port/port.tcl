@@ -89,7 +89,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vdqof\] \[action\] \[-D portdir\] \[options\]"
+    puts "Usage: [file tail $argv0] \[-vdqfo\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -158,7 +158,8 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 
 if {![info exists action]} {
-    set action build
+    print_usage
+    exit
 }
 
 if {$action == "list"} {
