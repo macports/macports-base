@@ -379,7 +379,7 @@ AC_DEFUN(SC_ENABLE_SHARED, [
     else
 	AC_MSG_RESULT([static])
 	SHARED_BUILD=0
-	AC_DEFINE(STATIC_BUILD)
+	AC_DEFINE([STATIC_BUILD], [1], [Define to 1 if static build is requested])
     fi
 ])
 
