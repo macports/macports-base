@@ -277,17 +277,17 @@ List of dependencies to check before configure, build, install, and package targ
 Fetch all distribution files and patches
 .Bl -tag -width lc
 .It Ic master_sites
-List of sites to fetch ${distfiles} from
+List of sites to fetch ${distfiles} from or a predefined mirror site list
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
 .Dl master_sites	ftp://ftp.cdrom.com/pub/magic \
-			ftp://ftp.sourceforge.net/pub/projects/magic
+			sourceforge
 
 .It Ic patch_sites 
-List of sites to fetch ${patchfiles} from
+List of sites to fetch ${patchfiles} from or a predefined mirror site list
 .br
 .Sy Type:
 .Em optional
@@ -296,6 +296,24 @@ List of sites to fetch ${patchfiles} from
 .br
 .Sy Example:
 .Dl patch_sites	ftp://ftp.patchcityrepo.com/pub/magic/patches
+
+.It Ic master_sites.mirror_subdir
+Subdirectory to append to all mirror sites for any list specified in master_sites.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl master_sites.mirror_subdir      magic
+
+.It Ic patch_sites.mirror_subdir
+Subdirectory to append to all mirror sites for any list specified in patch_sites.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl patch_sites.mirror_subdir       magic
 
 .It Ic extract.sufx
 Suffix to append to ${distname}
