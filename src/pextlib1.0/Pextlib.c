@@ -43,6 +43,10 @@
 #include <string.h>
 #endif
 
+#if HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
 #if HAVE_DIRENT_H
 #include <dirent.h>
 #endif
@@ -71,6 +75,10 @@
 
 #if HAVE_SYS_FCNTL_H
 #include <sys/fcntl.h>
+#endif
+
+#if HAVE_FCNTL_H
+#include <fcntl.h>
 #endif
 
 #if HAVE_SYS_WAIT_H

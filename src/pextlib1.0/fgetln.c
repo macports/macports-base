@@ -33,6 +33,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if HAVE_STRING_H
+#include <string.h>
+#endif
+
 #define BUFCHUNKS	BUFSIZ
 
 char *

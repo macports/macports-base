@@ -39,7 +39,10 @@
  * Author: Jordan K. Hubbard
  */
 
+#if HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
+#endif
+
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
@@ -48,7 +51,11 @@
 #include <sys/wait.h>
 
 #include <ctype.h>
+
+#if HAVE_ERR_H
 #include <err.h>
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <grp.h>
@@ -73,8 +80,21 @@
 #define _PATH_DEVNULL	"/dev/null"
 #endif
 
+#ifndef S_ISTXT
+#ifdef S_ISVTX
+#define S_ISTXT S_ISVTX
+#else
+#error "Not sure how to set S_ISTXT"
+#endif
+#endif
+
 #ifndef ALLPERMS
 #define ALLPERMS (S_ISUID|S_ISGID|S_ISTXT|S_IRWXU|S_IRWXG|S_IRWXO)
+#endif
+
+#if !HAVE_SETMODE
+void * setmode(const char *mode_str); 
+mode_t getmode(const void *set, mode_t mode);
 #endif
 
 /* Bootstrap aid - this doesn't exist in most older releases */
@@ -164,6 +184,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			objv++, objc--;
 			break;
 		case 'f':
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
 			if (objc < 2) {
 				Tcl_WrongNumArgs(interp, 1, objv, "-f");
 				return TCL_ERROR;
@@ -175,6 +196,7 @@ xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			}
 			iflags |= SETFLAGS;
 			objv++, objc -= 2;
+#endif
 			break;
 		case 'g':
 			if (objc < 2) {
