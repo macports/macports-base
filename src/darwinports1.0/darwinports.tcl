@@ -435,7 +435,11 @@ proc dporttraverse {func {root .}} {
 
 ### _dportsearchpath is private; subject to change without notice
 
-proc _dportsearchpath {depregex search_path} {
+# depregex -> regex on the filename to find.
+# search_path -> directories to search
+# executable -> whether we want to check that the file is executable by current
+#				user or not.
+proc _dportsearchpath {depregex search_path {executable 0}} {
     set found 0
     foreach path $search_path {
 	if {![file isdirectory $path]} {
@@ -448,7 +452,8 @@ proc _dportsearchpath {depregex search_path} {
 	}
 
 	foreach filename $filelist {
-	    if {[regexp $depregex $filename] == 1} {
+	    if {[regexp $depregex $filename] &&
+	    	(($executable == 0) || [file executable [file join $path $filename]])} {
 		ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 		set found 1
 		break
@@ -513,7 +518,7 @@ proc _bintest {dport depspec} {
 	
 	set depregex \^$depregex\$
 	
-	return [_dportsearchpath $depregex $search_path]
+	return [_dportsearchpath $depregex $search_path 1]
 }
 
 ### _pathtest is private; subject to change without notice
