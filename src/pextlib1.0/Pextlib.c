@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.73 2005/01/21 09:14:53 landonf Exp $
+ * $Id: Pextlib.c,v 1.74 2005/01/22 01:58:44 jkh Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -346,6 +346,151 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 			/* set result */
 			tcl_result = Tcl_NewStringObj("shell command \"", -1);
+			Tcl_AppendToObj(tcl_result, cmdstring, -1);
+			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
+			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
+			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
+			Tcl_AppendObjToObj(tcl_result, errbuf);
+			Tcl_SetObjResult(interp, tcl_result);
+			return TCL_ERROR;
+		}
+	} else
+		return TCL_ERROR;
+}
+
+int SudoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	char *buf;
+	struct linebuf circbuf[CBUFSIZ];
+	size_t linelen;
+	char *args[4];
+	char *cmdstring, *passwd;
+	FILE *pdes;
+	int fdset[2];
+	int fline, pos, ret;
+	pid_t pid;
+	Tcl_Obj *errbuf;
+	Tcl_Obj *tcl_result;
+
+	if (objc != 3) {
+		Tcl_WrongNumArgs(interp, 1, objv, "password command");
+		return TCL_ERROR;
+	}
+	passwd = Tcl_GetString(objv[1]);
+	cmdstring = Tcl_GetString(objv[2]);
+
+	if (pipe(fdset) == -1)
+		return TCL_ERROR;
+
+	/*
+	 * Fork a child to run the command, in a popen() like fashion -
+	 * popen() itself is not used because stderr is also desired.
+	 */
+	pid = fork();
+	if (pid == -1)
+		return TCL_ERROR;
+	if (pid == 0) {
+		dup2(fdset[0], STDIN_FILENO);
+		dup2(fdset[1], STDOUT_FILENO);
+		dup2(fdset[1], STDERR_FILENO);
+		args[0] = "sudo";
+		args[1] = "-S";
+		args[2] = cmdstring;
+		args[3] = NULL;
+		execve("/usr/bin/sudo", args, environ);
+		/* Now throw away the privs we just acquired */
+		args[1] = "-k";
+		args[2] = NULL;
+		execve("/usr/bin/sudo", args, environ);
+		_exit(1);
+	} else {
+		write(fdset[1], passwd, strlen(passwd));
+		write(fdset[1], "\n", 1);
+		close(fdset[1]);
+	}
+	pdes = fdopen(fdset[0], "r");
+
+	/* read from simulated popen() pipe */
+	pos = 0;
+	bzero(circbuf, sizeof(circbuf));
+	while ((buf = fgetln(pdes, &linelen)) != NULL) {
+		char *sbuf;
+		int slen;
+
+		/*
+		 * Allocate enough space to insert a terminating
+		 * '\0' if the line is not terminated with a '\n'
+		 */
+		if (buf[linelen - 1] == '\n')
+			slen = linelen;
+		else
+			slen = linelen + 1;
+
+		if (circbuf[pos].len == 0)
+			sbuf = malloc(slen);
+		else {
+			sbuf = realloc(circbuf[pos].line, slen);
+		}
+
+		if (sbuf == NULL) {
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len != 0)
+					free(circbuf[pos % CBUFSIZ].line);
+			}
+			return TCL_ERROR;
+		}
+
+		memcpy(sbuf, buf, linelen);
+		/* terminate line with '\0',replacing '\n' if it exists */
+		sbuf[slen - 1] = '\0';
+
+		circbuf[pos].line = sbuf;
+		circbuf[pos].len = slen;
+
+		if (pos++ == CBUFSIZ - 1)
+			pos = 0;
+		ret = ui_info(interp, sbuf);
+		if (ret != TCL_OK) {
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len != 0)
+					free(circbuf[pos % CBUFSIZ].line);
+			}
+			return ret;
+		}
+	}
+	fclose(pdes);
+
+	if (wait(&ret) != pid)
+		return TCL_ERROR;
+	if (WIFEXITED(ret)) {
+		if (WEXITSTATUS(ret) == 0)
+			return TCL_OK;
+		else {
+			/* Copy the contents of the circular buffer to errbuf */
+		  	Tcl_Obj* errorCode;
+			errbuf = Tcl_NewStringObj(NULL, 0);
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len == 0)
+				continue; /* skip empty lines */
+
+				/* Append line, minus trailing NULL */
+				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
+						circbuf[pos % CBUFSIZ].len - 1);
+
+				/* Re-add previously stripped newline */
+				Tcl_AppendToObj(errbuf, "\n", 1);
+				free(circbuf[pos % CBUFSIZ].line);
+			}
+
+			/* set errorCode [list CHILDSTATUS <pid> <code>] */
+			errorCode = Tcl_NewListObj(0, NULL);
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+			Tcl_SetObjErrorCode(interp, errorCode);
+
+			/* set result */
+			tcl_result = Tcl_NewStringObj("sudo command \"", -1);
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
 			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
@@ -778,6 +923,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
 #ifdef CFOUNDATION_ENABLE
 	Tcl_CreateObjCommand(interp, "macreceipts", MacSWReceiptCmd, NULL, NULL);
 #endif
