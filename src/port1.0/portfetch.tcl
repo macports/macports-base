@@ -12,7 +12,7 @@ register com.apple.fetch requires main
 register com.apple.fetch swdep build depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
+options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2
 
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip
