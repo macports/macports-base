@@ -82,11 +82,10 @@ proc fileinfo_for_index {flist} {
     set rval {}
     foreach file $flist {
 	if [string match /* $file] {
-	    set fentry $file
+	    fileinfo_for_entry / $file
 	} else {
-	    set fentry [file join $prefix $file ]
+	    fileinfo_for_entry $prefix $file
 	}
-	fileinfo_for_entry rval / $fentry
     }
     return $rval
 }
