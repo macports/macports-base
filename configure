@@ -2393,7 +2393,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="/usr/bin:/usr/sbin:/bin"
+as_dummy="/usr/bin:/usr/sbin:/bin:/sbin"
 for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
@@ -2447,7 +2447,7 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="/usr/bin:/bin:/sbin"
+as_dummy="/usr/bin:/usr/sbin:/bin:/sbin"
 for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
