@@ -76,7 +76,7 @@ honor state files older than Portfile
 .El
 .Sh TARGETS
 .Nm
-knows several targets. The most important is the "install" target, which installs the supplied port.
+knows several targets. The most important is the "install" target, which installs the supplied port to its final destination on the system.
 .Pp
 The other targets are:
 .Pp
@@ -96,6 +96,7 @@ stages (besides "install") are:
 .Dl patch
 .Dl configure
 .Dl build
+.Dl destroot
 .Pp
 .Sh EXAMPLES
 Invoking
@@ -113,6 +114,14 @@ with the "uninstall" target:
 To clean up after the port was build:
 .Pp
 .Dl "port clean vim
+.Pp
+To build and "install" vim into an intermediate destination root (or "destroot")
+.Pp
+.Dl "port destroot vim"
+.Pp
+This can be useful during development of a new port, for testing, or for
+creating an "installation" of a port which can be subsequently packaged
+or copied elsewhere without having to modify the host system.
 .Pp
 Using
 .Nm

@@ -237,7 +237,7 @@ List of dependencies to check before running fetch target
 .Dl depends_fetch	bin:fetch:net/fetch bin:wget:wget
 
 .It Ic depends_build
-List of dependencies to check before build, install, and package targets
+List of dependencies to check before build, destroot, install, and package targets
 .br
 .Sy Type:
 .Em optional
@@ -246,7 +246,7 @@ List of dependencies to check before build, install, and package targets
 .Dl depends_build	bin:autoconf:autoconf
 
 .It Ic depends_run
-List of dependencies to check before install and package targets
+List of dependencies to check before destroot, install and package targets
 .br
 .Sy Type:
 .Em optional
@@ -264,7 +264,7 @@ List of dependencies to check before extract target
 .Dl depends_extract	bin:bzip2:bzip2
 
 .It Ic depends_lib
-List of dependencies to check before configure, build, install, and package targets
+List of dependencies to check before configure, build, destroot, install, and package targets
 .br
 .Sy Type:
 .Em optional
@@ -646,11 +646,11 @@ Target passed to ${build.cmd}
 
 .El
 
-.Ss INSTALL OPTIONS
-Execute necessary install commands
+.Ss DESTROOT OPTIONS
+Execute necessary commands to install into temporary destination root ("destroot") staging area.
 
 .Bl -tag -width lc
-.It Ic install.cmd
+.It Ic destroot.cmd
 Install command to run relative to ${worksrcdir}
 .br
 .Sy Type:
@@ -659,11 +659,11 @@ Install command to run relative to ${worksrcdir}
 .Em ${build.cmd}
 .br
 .Sy Example:
-.Dl install.cmd	pbxbuild
+.Dl destroot.cmd	pbxbuild
 
-.It Ic install.type
+.It Ic destroot.type
 Defines which 'make' is required, either 'gnu' or 'bsd'
-Sets install.cmd to either 'gnumake' or 'bsdmake' accordingly
+Sets destroot.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Type:
 .Em optional
@@ -671,28 +671,28 @@ Sets install.cmd to either 'gnumake' or 'bsdmake' accordingly
 .Em ${build.type}
 .br
 .Sy Example:
-.Dl install.type	gnu
+.Dl destroot.type	gnu
 
-.It Ic install.pre_args
-Arguments to pass to ${install.cmd} before ${install.args}
+.It Ic destroot.pre_args
+Arguments to pass to ${destroot.cmd} before ${destroot.args}
 .br
 .Sy Type:
 .Em read-only
 .Sy Default:
-.Em ${install.target}
+.Em ${destroot.target}
 
 
-.It Ic install.args
-Arguments to pass to ${install.cmd}
+.It Ic destroot.args
+Arguments to pass to ${destroot.cmd}
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Example:
-.Dl build.args	-DPREFIX=${prefix}
+.Dl destroot.args	-DPREFIX=${prefix}
 
-.It Ic install.destroot
-Arguments passed to ${install.cmd} in order to install correctly
+.It Ic destroot.destdir
+Arguments passed to ${destroot.cmd} in order to install correctly
 into the destroot.
 .br
 .Sy Type:
@@ -701,15 +701,15 @@ into the destroot.
 .Em DESTDIR=${destroot}
 .br
 .Sy Example:
-.Dl install.destroot	prefix=${destroot}${prefix}
+.Dl destroot.destdir	prefix=${destroot}${prefix}
 
 .It Ic build.target.install
 .br
 .Sy Deprecated:
-.Dl Replaced by install.target
+.Dl Replaced by destroot.target
 
-.It Ic install.target
-Install target to pass to ${install.cmd}
+.It Ic destroot.target
+Install target to pass to ${destroot.cmd}
 .br
 .Sy Type:
 .Em optional
@@ -717,7 +717,7 @@ Install target to pass to ${install.cmd}
 .Em install
 .br
 .Sy Example:
-.Dl install.target install-src
+.Dl destroot.target install-src
 
 .El
 
