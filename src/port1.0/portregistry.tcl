@@ -29,12 +29,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portregistery 1.0
+package provide portregistry 1.0
 package require portutil 1.0
 
-register com.apple.registery target registery_main registery_init
-register com.apple.registery provides registery
-register com.apple.registery requires main fetch extract checksum patch configure build install depends_run depends_lib
+register com.apple.registry target registry_main registry_init
+register com.apple.registry provides registry
+register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
 options contents description
@@ -129,11 +129,11 @@ proc proc_disasm {pname} {
     return $p
 }
 
-proc registery_init {args} {
+proc registry_init {args} {
     return 0
 }
 
-proc registery_main {args} {
+proc registry_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix UI_PREFIX
 
     # Package installed successfully, so now we must register it
