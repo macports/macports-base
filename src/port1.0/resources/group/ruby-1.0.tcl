@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.4 2004/12/07 00:55:31 rshaw Exp $
+# $Id: ruby-1.0.tcl,v 1.5 2004/12/12 21:32:12 rshaw Exp $
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.
@@ -177,8 +177,14 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			build.target		setup
 
 			pre-destroot {
-				reinplace "s|^prefix=${prefix}|prefix=${destroot}${prefix}|g" \
-					${worksrcpath}/config.save
+				if {[file isfile ${worksrcpath}/config.save]} {
+					reinplace "s|^prefix=${prefix}|prefix=${destroot}${prefix}|g" \
+						${worksrcpath}/config.save
+				}
+				if {[file isfile ${worksrcpath}/.config]} {
+					reinplace "s|^prefix=${prefix}|prefix=${destroot}${prefix}|g" \
+						${worksrcpath}/.config
+				}
 			}
 			destroot.cmd		${ruby.bin} -rvendor-specific install.rb
 			destroot.target		install
@@ -192,8 +198,14 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			build.target		setup
 
 			pre-destroot {
-				reinplace "s|${prefix}|${destroot}${prefix}|g" \
-					${worksrcpath}/config.save
+				if {[file isfile ${worksrcpath}/config.save]} {
+					reinplace "s|${prefix}|${destroot}${prefix}|g" \
+						${worksrcpath}/config.save
+				}
+				if {[file isfile ${worksrcpath}/.config]} {
+					reinplace "s|${prefix}|${destroot}${prefix}|g" \
+						${worksrcpath}/.config
+				}
 			}
 			destroot.cmd		${ruby.bin} -rvendor-specific setup.rb
 			destroot.target		install
@@ -215,6 +227,10 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 				if {[file isfile ${worksrcpath}/config.save]} {
 					reinplace "s|${prefix}|${destroot}${prefix}|g" \
 						${worksrcpath}/config.save
+				}
+				if {[file isfile ${worksrcpath}/.config]} {
+					reinplace "s|${prefix}|${destroot}${prefix}|g" \
+						${worksrcpath}/.config
 				}
 			}
 			destroot.args		RUBY="${ruby.bin} -rvendor-specific"
