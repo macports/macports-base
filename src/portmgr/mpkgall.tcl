@@ -42,6 +42,10 @@ proc copy_package_if_available {portname basepath destpath} {
 
 	set dependencies {}
 
+	# XXX: don't overwrite Apple X11
+	# XXX: probably should exclude KDE here too
+	if {$portname == "XFree86"} { return {} }
+	
 	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
 		puts stderr "Internal error: port search failed: $error"
 		return
@@ -201,7 +205,6 @@ foreach {name array} $res {
 	# Begin quote from portmpkg.tcl
 	#
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-    write_info_file ${mpkgpath}/Contents/Resources/${portname}-${portversion}.info $portname $portversion $description
     mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $prefix $dependencies
     write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
@@ -212,7 +215,7 @@ foreach {name array} $res {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- /opt/local/share/darwinports/resources/port1.0/package/background.tiff \
 			${mpkgpath}/Contents/Resources/background.tiff
 	#
