@@ -1,3 +1,6 @@
+# Where to find the sources list.
+sources_conf		/etc/ports/sources.conf
+
 # Where to store ports specific database files
 portdbpath		/opt/local/var/db/dports
 

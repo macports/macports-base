@@ -33,13 +33,13 @@ package require darwinportsui 1.0
 
 namespace eval darwinports {
 	namespace export bootstrap_options portinterp_options uniqid 0
-	variable bootstrap_options "portdbpath libpath auto_path"
+	variable bootstrap_options "portdbpath libpath auto_path sources_conf"
 	variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
 	variable uniqid 0
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf darwinports::sources
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf darwinports::sources darwinports::sources_conf
 
     if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
@@ -54,18 +54,6 @@ proc dportinit {args} {
 	}
     }
 
-    if {[catch {set fd [open /etc/ports/sources.conf r]} result]} {
-        return -code error "$result"
-    }
-    while {[gets $fd line] >= 0} {
-        if ![regexp {[\ \t]*#.+} $line] {
-            lappend sources $line
-	}
-    }
-    if ![info exists sources] {
-        return -code error "No sources defined in /etc/ports/sources.conf"
-    }
-
     if {![info exists portconf] && [file isfile /etc/ports/ports.conf]} {
 	set portconf /etc/ports/ports.conf
 	lappend conf_files /etc/ports/ports.conf
@@ -75,12 +63,27 @@ proc dportinit {args} {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9/\]+$)" $line match val] == 1} {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9\./\]+$)" $line match val] == 1} {
 			set $option $val
 		    }
 		}
 	    }
         }
+    }
+
+    if {![info exists sources_conf]} {
+        return -code error "sources_conf must be set in /etc/ports/ports.conf or in your .portsrc"
+    }
+    if {[catch {set fd [open $sources_conf r]} result]} {
+        return -code error "$result"
+    }
+    while {[gets $fd line] >= 0} {
+        if ![regexp {[\ \t]*#.+} $line] {
+            lappend sources $line
+	}
+    }
+    if ![info exists sources] {
+        return -code error "No sources defined in $sources_conf"
     }
 
     if ![info exists portdbpath] {

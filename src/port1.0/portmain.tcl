@@ -39,7 +39,7 @@ register com.apple.main target main
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf
 # Export options via PortInfo
 options_export portname portversion portrevision categories maintainers
 	
