@@ -280,7 +280,7 @@ proc _activate_file {srcfile dstfile} {
 		# Try a hard link first and if that fails, a symlink
 		if {[catch {compat filelinkhard $dstfile $srcfile}]} {
 			ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-			file link -symbolic $dstfile $srcfile
+			compat filelinksymbolic $dstfile $srcfile
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * compat.c
- * $Id: compat.c,v 1.3 2004/12/13 15:24:41 pguyot Exp $
+ * $Id: compat.c,v 1.4 2004/12/13 17:58:05 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -118,6 +118,46 @@ CompatFileLinkHard(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 }
 
 /**
+ * compat filelinksymbolic subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+CompatFileLinkSymbolic(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+
+	do {
+		char* theSrcPath;
+		char* theDstPath;
+		
+		/* we only have two parameters. */
+		if (objc != 4) {
+			Tcl_WrongNumArgs(interp, 1, objv, "filelinksymbolic dstpath srcpath");
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* retrieve the parameters */
+		theDstPath = Tcl_GetString(objv[2]);
+		theSrcPath = Tcl_GetString(objv[3]);
+		
+		/* perform the symbolic link */
+		if (symlink(theSrcPath, theDstPath) < 0)
+		{
+			/* some error occurred. Report it. */
+			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+    } while (0);
+    
+	return theResult;
+}
+
+/**
  * compat filenormalize subcommand entry point.
  *
  * @param interp		current interpreter
@@ -188,38 +228,43 @@ CompatCmd(
 		Tcl_Obj* CONST objv[])
 {
     typedef enum {
-    	kFilemapFileNormalize,
-    	kFilemapFileLinkHard
-    } EAction;
+    	kCompatFileNormalize,
+    	kCompatFileLinkHard,
+    	kCompatFileLinkSymbolic
+    } EOption;
     
-	static tableEntryString actions[] = {
-		"filenormalize", "filelinkhard", NULL
+	static tableEntryString options[] = {
+		"filenormalize", "filelinkhard", "filelinksymbolic", NULL
 	};
 
 	int theResult = TCL_OK;
-	EAction theActionIndex;
+	EOption theOptionIndex;
 
 	if (objc < 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "action ?arg ...?");
+		Tcl_WrongNumArgs(interp, 1, objv, "option ?arg ...?");
 		return TCL_ERROR;
 	}
 
 	theResult = Tcl_GetIndexFromObj(
 				interp,
 				objv[1],
-				actions,
-				"action",
+				options,
+				"option",
 				0,
-				(int*) &theActionIndex);
+				(int*) &theOptionIndex);
 	if (theResult == TCL_OK) {
-		switch (theActionIndex)
+		switch (theOptionIndex)
 		{
-			case kFilemapFileNormalize:
+			case kCompatFileNormalize:
 				theResult = CompatFileNormalize(interp, objc, objv);
 				break;
 
-			case kFilemapFileLinkHard:
+			case kCompatFileLinkHard:
 				theResult = CompatFileLinkHard(interp, objc, objv);
+				break;
+
+			case kCompatFileLinkSymbolic:
+				theResult = CompatFileLinkSymbolic(interp, objc, objv);
 				break;
 		}
 	}
