@@ -2,6 +2,7 @@ Things left to do in Darwinports
 
 Task								Who
 ----								---
+Make error messages more meaningful to naive users		landonf/kevinvv
 Create index magic						landonf
 Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
