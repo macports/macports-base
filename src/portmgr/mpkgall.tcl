@@ -110,7 +110,14 @@ package require Pextlib
 package require portmpkg 1.0
 package require portpackage 1.0
 
-if {[catch {set res [dportsearch .*]} result]} {
+# If no arguments were given, default to all ports.
+if {[llength $argv] == 0} {
+        lappend argv ".*"
+}
+
+foreach pname $argv {
+
+if {[catch {set res [dportsearch "^${pname}\$"]} result]} {
 	puts "port search failed: $result"
 	exit 1
 }
@@ -186,6 +193,7 @@ foreach {name array} $res {
 		}
 		continue
 	} else {
+		set result [lsort -uniq $result]
 		eval "lappend dependencies $result"
 	}
 	
@@ -211,3 +219,6 @@ foreach {name array} $res {
 	# End quote from portmpkg.tcl
 	#
 }
+
+}
+# end foreach pname
