@@ -43,7 +43,7 @@ execution: "eval_targets".
 
     The port TCL package is loaded by every Portfile with the following line
 at the start of the Portfile:
-	package require port <version required>
+	PortSystem <version required>
     The version should be set to the version of the port API required to build
 your port. Currently the only version supplied is 1.0.
 
