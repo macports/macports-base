@@ -40,9 +40,9 @@ options depends_build depends_run depends_lib
 # Export options via PortInfo
 options_export depends_build depends_lib depends_run
 
-#option_proc depends_build validate_depends_options
-#option_proc depends_run validate_depends_options
-#option_proc depends_lib validate_depends_options
+option_proc depends_build validate_depends_options
+option_proc depends_run validate_depends_options
+option_proc depends_lib validate_depends_options
 
 proc validate_depends_options {option action args} {
     global targets
@@ -54,7 +54,6 @@ proc validate_depends_options {option action args} {
 					lib {}
 					bin {}
 					path {}
-					cpan {}
 					default {return -code error [format [msgcat::mc "unknown depspec type: %s"] $deppath]}
 				}
 			} else {
