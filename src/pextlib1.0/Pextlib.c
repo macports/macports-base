@@ -83,6 +83,8 @@
 
 #include <tcl.h>
 
+#include "md5.h"
+
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
 #define environ (*_NSGetEnviron())
@@ -679,6 +681,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "existsgroup", ExistsgroupCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "nextuid", NextuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
