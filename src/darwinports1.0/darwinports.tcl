@@ -179,7 +179,8 @@ proc dportsearch {regexp} {
                 gets $fd line
                 array set portinfo $line
 		set portinfo(portdir) [file join $sysportpath $portinfo(portdir)]
-		lappend matches "$name $line"
+		lappend matches $name
+		lappend matches $line
         } else {
                 set len [lindex $line 1]
                 seek $fd $len current

@@ -36,7 +36,7 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vDq\] \[target\] \[-d portdir\] \[options\]"
+    puts "Usage: $argv0 \[-vDq\] \[action\] \[-d portdir\] \[options\]"
 }
 
 proc fatal args {
@@ -81,12 +81,12 @@ for {set i 0} {$i < $argc} {incr i} {
 	} elseif {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
 		set options($key) \"$val\"
 	
-	# target
-	} elseif {[regexp {^([A-Za-z0-9\/\._\-]+)$} $arg match opt] == 1} {
-		if [info exists target] {
+	# action
+	} elseif {[regexp {^([A-Za-z0-9/._\-^$\[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
+		if [info exists action] {
 			set portname $opt
 		} else {
-			set target $opt
+			set action $opt
 		}
 
 	} else {
@@ -94,18 +94,34 @@ for {set i 0} {$i < $argc} {incr i} {
 	}
 }
 
-if ![info exists target] {
-	set target build
+if ![info exists action] {
+	set action build
 }
 
 dportinit
-if {[info exists portname]} {
-	array set portinfo [dportmatch ^$portname\$]
-	set portdir $portinfo(portdir)
-} else {
-	set portdir .
+
+switch -- $action {
+	search {
+		if ![info exists portname] {
+			puts "You must specify a search pattern"
+			exit 1
+		}
+		foreach {name array} [dportsearch $portname] {
+			array set portinfo $array
+			puts "$portinfo(portname) $portinfo(description)"
+		}
+	}
+	default {
+		set target $action
+		if {[info exists portname]} {
+			array set portinfo [dportmatch ^$portname\$]
+			set portdir $portinfo(portdir)
+		} else {
+			set portdir .
+		}
+		set workername [dportopen $portdir options variations]
+		set result [dportexec $workername $target]
+		dportclose $workername
+		exit $result
+	}
 }
-set workername [dportopen $portdir options variations]
-set result [dportexec $workername $target]
-dportclose $workername
-return $result
