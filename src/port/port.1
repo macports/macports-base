@@ -71,17 +71,23 @@ specify
 .Ar portdir
 .El
 .Sh EXAMPLES
-The following demonstrates invoking
-.Nm
-with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz":
-.Pp
-.Dl "port extract -d textproc/figlet extract_sufx=.tgz"
-.Pp
 Invoking
 .Nm
 with the "install" target on the "vim" port:
 .Pp
 .Dl "port install vim
+.Pp
+Using
+.Nm
+to list all available ports:
+.Pp
+.Dl "port search .+
+.Pp
+The following demonstrates invoking
+.Nm
+with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz":
+.Pp
+.Dl "port extract -d textproc/figlet extract_sufx=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std
