@@ -16,7 +16,7 @@ globals portextract::options extract.only extract.cmd extract.before_args extrac
 options portextract::options extract.only extract.cmd extract.before_args extract.after_args
 
 proc portextract::main {args} {
-	global portname portpath portdir workdir distname distpath distfiles use_bzip2
+	global portname portpath portpath workdir distname distpath distfiles use_bzip2
 
 	# Set up defaults
 	default portextract::options extract.only $distfiles
@@ -30,16 +30,16 @@ proc portextract::main {args} {
 	} elseif [info exists use_zip] {
 		setval portextract::options extract.cmd unzip
 		setval portextract::options extract.before_args -q
-		setval portextract::options extract.after_args -d $portdir/$workdir
+		setval portextract::options extract.after_args -d $portpath/$workdir
 	}
 
 	puts "Extracting for $distname"
 	if [file exists $workdir] {
-		file delete -force $portdir/$workdir
+		file delete -force $portpath/$workdir
 	}
 
-	file mkdir $portdir/$workdir
-	cd $portdir/$workdir
+	file mkdir $portpath/$workdir
+	cd $portpath/$workdir
 	foreach distfile [getval portextract::options extract.only] {
 		puts -nonewline "$distfile: "
 		flush stdout
