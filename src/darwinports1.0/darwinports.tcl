@@ -83,3 +83,7 @@ proc dportbuild {workername target} {
 
     return [$workername eval eval_targets targets $target]
 }
+
+proc dportclose {workername} {
+    interp delete $workername
+}

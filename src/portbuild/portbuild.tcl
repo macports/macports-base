@@ -42,4 +42,6 @@ if [info exists options] {
 } else {
     set workername [dportopen $portdir]
 }
-return [dportbuild $workername $target]
+set result [dportbuild $workername $target]
+dportclose $workername
+return $result
