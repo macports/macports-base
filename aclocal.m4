@@ -153,7 +153,8 @@ AC_DEFUN([OD_CHECK_X11], [
 	# Check for libX11
 	AC_CHECK_LIB([X11], [XOpenDisplay],[
 			# found the library. check for header
-			INCLUDES="-I/usr/X11R6/include $INCLUDES"
+			oldCPPFLAGS="$CPPFLAGS"
+			CPPFLAGS="-I/usr/X11R6/include $CPPFLAGS"
 			AC_CHECK_HEADERS([X11/X.h], ,[
 				case $host_os in
 					darwin*)
@@ -188,7 +189,9 @@ EOF
 						AC_MSG_ERROR([libX11 was found, but X.h is missing.])
 						;;
 				esac					
-				])],
+				])
+			CPPFLAGS="$oldCPPFLAGS"
+			],
 			[ AC_MSG_WARN([libX11 was not found])
 		], [-L/usr/X11R6/lib]
 	)
