@@ -116,11 +116,6 @@ proc unarchive_init {args} {
 		}
 		if {$found == 1} {
 			ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
-			if {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
-				ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
-				set skipped 1
-				ui_msg "Portfile changed since last archive; rebuilding archive."
-			}
 		} else {
 			if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
 				return -code error "Archive for ${portname} ${portversion}_${portrevision}${portvariants} not found, required when binary-only is set!"
@@ -144,8 +139,9 @@ proc unarchive_init {args} {
 
 proc unarchive_start {args} {
 	global UI_PREFIX portname portversion portrevision portvariants
+	global unarchive.type
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
 
 	return 0
 }
@@ -154,47 +150,65 @@ proc unarchive_command_setup {args} {
 	global unarchive.env unarchive.cmd
 	global unarchive.pre_args unarchive.args unarchive.post_args
 	global unarchive.type unarchive.path
-	global os.platform os.version
+	global os.platform os.version env
 
 	# Define appropriate unarchive command and options
+	set unarchive.env {}
+	set unarchive.cmd {}
+	set unarchive.pre_args {}
+	set unarchive.args {}
+	set unarchive.post_args {}
 	switch -regex ${unarchive.type} {
 		cp(io|gz) {
-			# don't use ditto on non-darwin OS's or on Jaguar
-			if {${os.platform} != "darwin" || \
-				(${os.platform} == "darwin" && [regexp {^6[.]} ${os.version}])} {
-				set cpio "cpio"
-				if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
-					ui_debug "Using $cpio"
-					set unarchive.cmd "$cpio"
-					set unarchive.pre_args {-i -v -c -H cpio}
-					set unarchive.args "-I ${unarchive.path}"
+			set pax "pax"
+			if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
+				ui_debug "Using $pax"
+				set unarchive.cmd "$pax"
+				if {[info exists env(USER)] && $env(USER) == "root"} {
+					set unarchive.pre_args {-r -v -p e}
 				} else {
-					ui_debug $errmsg
-					return -code error "No '$cpio' was found on this system!"
+					set unarchive.pre_args {-r -v -p p}
 				}
-			} else {
-				set ditto "ditto"
-				if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
-					ui_debug "Using $ditto"
-					set unarchive.cmd "$ditto"
-					set unarchive.pre_args {-x -v -V --rsrc}
-					set unarchive.args "${unarchive.path} ."
-				} else {
-					ui_debug $errmsg
-					set cpio "cpio"
-					if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
-						ui_debug "Using $cpio"
-						set unarchive.cmd "$cpio"
-						set unarchive.pre_args {-i -v -c -H cpio}
-						set unarchive.args "-I ${unarchive.path}"
+				if {[regexp {z$} ${unarchive.type}]} {
+					set unarchive.args {.}
+					set gzip "gzip"
+					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+						ui_debug "Using $gzip"
+						set unarchive.env "$gzip -d -c ${unarchive.path} |"
 					} else {
 						ui_debug $errmsg
-						return -code error "Neither '$ditto' or '$cpio' were found on this system!"
+						return -code error "No '$gzip' was found on this system!"
 					}
+				} else {
+					set unarchive.args "-f ${unarchive.path} ."
 				}
+			} else {
+				ui_debug $errmsg
+				return -code error "No '$pax' was found on this system!"
 			}
-			if {[regexp {z$} ${unarchive.type}]} {
-				set unarchive.pre_args "${unarchive.pre_args} -z"
+		}
+		t(ar|gz) {
+			set tar "tar"
+			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+				ui_debug "Using $tar"
+				set unarchive.cmd "$tar"
+				set unarchive.pre_args {-xvpf}
+				if {[regexp {z$} ${unarchive.type}]} {
+					set unarchive.args {-}
+					set gzip "gzip"
+					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+						ui_debug "Using $gzip"
+						set unarchive.env "$gzip -d -c ${unarchive.path} |"
+					} else {
+						ui_debug $errmsg
+						return -code error "No '$gzip' was found on this system!"
+					}
+				} else {
+					set unarchive.args "${unarchive.path}"
+				}
+			} else {
+				ui_debug $errmsg
+				return -code error "No '$tar' was found on this system!"
 			}
 		}
 		xar {
@@ -209,54 +223,20 @@ proc unarchive_command_setup {args} {
 				return -code error "No '$xar' was found on this system!"
 			}
 		}
-		t(ar|gz) {
-			set gnutar "gnutar"
-			if {[catch {set gnutar [binaryInPath $gnutar]} errmsg] == 0} {
-				ui_debug "Using $gnutar"
-				set unarchive.cmd "$gnutar"
-				if {[regexp {z$} ${unarchive.type}]} {
-					set unarchive.pre_args {-zxvf}
+		zip {
+			set unzip "unzip"
+			if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
+				ui_debug "Using $unzip"
+				set unarchive.cmd "$unzip"
+				if {[info exists env(USER)] && $env(USER) == "root"} {
+					set unarchive.pre_args {-oX}
 				} else {
-					set unarchive.pre_args {-xvf}
+					set unarchive.pre_args {-o}
 				}
-				set unarchive.args "${unarchive.path} ."
+				set unarchive.args "${unarchive.path} -d ."
 			} else {
 				ui_debug $errmsg
-				set gtar "gtar"
-				if {[catch {set gtar [binaryInPath $gtar]} errmsg] == 0} {
-					ui_debug "Using $gtar"
-					set unarchive.cmd "$gtar"
-					if {[regexp {z$} ${unarchive.type}]} {
-						set unarchive.pre_args {-zxvf}
-					} else {
-						set unarchive.pre_args {-xvf}
-					}
-					set unarchive.args "${unarchive.path} ."
-				} else {
-					ui_debug $errmsg
-					set tar "tar"
-					if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
-						ui_debug "Using $tar"
-						set unarchive.cmd "$tar"
-						set unarchive.pre_args {-xvf}
-						if {[regexp {z$} ${unarchive.type}]} {
-							set unarchive.args {-}
-							set gzip "gzip"
-							if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
-								ui_debug "Using $gzip"
-								set unarchive.env "$gzip -d -c ${unarchive.path} |"
-							} else {
-								ui_debug $errmsg
-								return -code error "No '$gzip' was found on this system!"
-							}
-						} else {
-							set unarchive.args "${unarchive.path}"
-						}
-					} else {
-						ui_debug $errmsg
-						return -code error "None of '$gnutar', '$gtar', or '$tar' were found on this system!"
-					}
-				}
+				return -code error "No '$unzip' was found on this system!"
 			}
 		}
 		default {
