@@ -27,8 +27,12 @@ namespace eval darwinports {
 
 		set portpath /usr/darwinports
 		darwinports::readconf
-		set distpath $portpath/distfiles
-		set libpath ${portpath}/Tcl
+		if ![info exists distpath] {
+			set distpath $portpath/distfiles
+		}
+		if ![info exists libpath] {
+			set libpath $portpath/Tcl
+		}
 
 		if [file isdirectory $libpath] {
 			if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib */*.tcl */*.so */*.dylib} result] {
