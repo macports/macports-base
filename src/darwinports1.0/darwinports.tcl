@@ -117,18 +117,6 @@ proc dportinit {args} {
 
 proc darwinports::worker_init {workername portpath options variations} {
     global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
-    if {$options == ""} {
-        set upoptions ""
-    } else {
-	upvar $options upoptions
-    }
-
-    if {$variations == ""} {
-	set upvariations ""
-    } else {
-	upvar $variations upvariations
-    }
-
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
@@ -139,12 +127,12 @@ proc darwinports::worker_init {workername portpath options variations} {
 
     # instantiate the UI functions
     foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
-																	    $workername alias $proc $proc
-																	}
+        $workername alias $proc $proc
+    }
 
     foreach proc {ports_verbose ports_quiet ports_debug ports_force} {
-							  $workername alias $proc $proc
-						      }
+        $workername alias $proc $proc
+    }
 
     foreach opt $portinterp_options {
         if [info exists $opt] {
@@ -153,13 +141,13 @@ proc darwinports::worker_init {workername portpath options variations} {
         }
     }
 
-    foreach opt [array names upoptions] {
-        $workername eval set user_options($opt) $upoptions($opt)
-        $workername eval set $opt $upoptions($opt)
+    foreach {opt val} $options {
+        $workername eval set user_options($opt) $val
+        $workername eval set $opt $val
     }
 
-    foreach var [array names upvariations] {
-        $workername eval set variations($var) $upvariations($var)
+    foreach {var val} $variations {
+        $workername eval set variations($var) $val
     }
 }
 
@@ -216,24 +204,12 @@ proc darwinports::getportdir {url} {
 
 proc dportopen {porturl {options ""} {variations ""}} {
     global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::portdefaultconf auto_path
-
-    if {$options == ""} {
-	set upoptions ""
-    } else {
-	upvar $options upoptions
-    }
-
-    if {$variations == ""} {
-	set upvariations ""
-    } else {
-	upvar $variations upvariations
-    }
     set portdir [darwinports::getportdir $porturl]
     cd $portdir
     set portpath [pwd]
     set workername workername[incr uniqid]
     interp create $workername
-    darwinports::worker_init $workername $portpath upoptions upvariations
+    darwinports::worker_init $workername $portpath $options $variations
     if ![file isfile Portfile] {
         return -code error "Could not find Portfile in $portdir"
     }

@@ -166,7 +166,7 @@ switch -- $action {
 	if ![info exists porturl] {
 	    set porturl file://./
 	}
-	if {[catch {set workername [dportopen $porturl options variations]} result]} {
+	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
 	    puts "Unable to open port: $result"
 	    exit 1
 	}

@@ -1081,7 +1081,7 @@ proc portexec {portname target} {
 # on the source, etc, of another
 proc portexec_int {portname target {newworkpath ""}} {
     ui_debug "Executing $target ($portname)"
-    array set variations [list]
+    set variations [list]
     if {$newworkpath == ""} {
         array set options [list]
     } else {
@@ -1095,19 +1095,12 @@ proc portexec_int {portname target {newworkpath ""}} {
     }
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
-    set worker [dportopen $porturl options variations]
-    if {[catch {dportexec $worker clean} result] || $result != 0} {
-	ui_error "Clean of $portname failed: $result"
-	dportclose $worker
-	return -1
+    set worker [dportopen $porturl [array get options] $variations]
+    if {[catch {dportexec $worker $target} result] || $result != 0} {
+        ui_error "Execution $portname $target failed: $result"
+        dportclose $worker
+        return -1
     }
-	if {$target != "clean"} {
-		if {[catch {dportexec $worker $target} result] || $result != 0} {
-		ui_error "Execution $portname $target failed: $result"
-		dportclose $worker
-		return -1
-		}
-	}
     dportclose $worker
     
     return 0
