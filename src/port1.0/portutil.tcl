@@ -473,3 +473,26 @@ proc write_statefile {name fd} {
     puts $fd $name
     flush $fd
 }
+
+# Traverse the ports collection hierarchy and call procedure func for
+# each directory containing a Portfile
+proc port_traverse {func {dir .}} {
+    set pwd [pwd]
+    if [catch {cd $dir} err] {
+	ui_error $err
+	return
+    }
+    foreach name [readdir .] {
+	if {[string match $name .] || [string match $name ..]} {
+	    continue
+	}
+	if [file isdirectory $name] {
+	    port_traverse $func $name
+	} else {
+	    if [string match $name Portfile] {
+		eval $func [file join $pwd $dir]
+	    }
+	}
+    }
+    cd $pwd
+}
