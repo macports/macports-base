@@ -92,7 +92,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfonausb\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfonausbck\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -161,6 +161,10 @@ for {set i 0} {$i < $argc} {incr i} {
 				set options(ports_source_only) yes
 			} elseif {$c == "b"} {
 				set options(ports_binary_only) yes
+			} elseif {$c == "c"} {
+				set options(ports_autoclean) yes
+			} elseif {$c == "k"} {
+				set options(ports_autoclean) no
 			} elseif {$opt == "D"} {
 				incr i
 				set porturl "file://[lindex $argv $i]"
