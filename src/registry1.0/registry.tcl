@@ -56,6 +56,9 @@ proc new_entry {name version {revision 0} {variants ""}} {
 		property_store $ref version $version
 		property_store $ref revision $revision
 		property_store $ref variants $variants
+		# Trick to have a portable GMT-POSIX epoch-based time.
+		# (because we'll compare this with a file mtime).
+		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
 		property_store $ref installtype ${darwinports::registry.installtype}
 		property_store $ref receipt_f ${darwinports::registry.format}
 		if { ${darwinports::registry.installtype} == "image" } {

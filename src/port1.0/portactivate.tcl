@@ -36,6 +36,7 @@ package require portutil 1.0
 
 set com.apple.activate [target_new com.apple.activate activate_main]
 target_runtype ${com.apple.activate} always
+target_state ${com.apple.activate} no
 target_provides ${com.apple.activate} activate
 target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
 target_prerun ${com.apple.activate} activate_start
