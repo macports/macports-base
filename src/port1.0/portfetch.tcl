@@ -48,7 +48,7 @@ proc checkfiles {args} {
 }
 
 proc fetchfiles {args} {
-    global distpath all_dist_files master_sites UI_PREFIX ports_quiet
+    global distpath all_dist_files master_sites UI_PREFIX ports_quiet ports_verbose
 
     if {![file isdirectory $distpath]} {
 	file mkdir $distpath
