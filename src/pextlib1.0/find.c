@@ -4,12 +4,28 @@
  * Author: Jordan K. Hubbard
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
+
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+
+#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#include <sys/syslimits.h>
+#endif
+
+#if HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#if HAVE_LIMITS_H
+#include <limits.h>
+#endif
 
 #include <tcl.h>
 
