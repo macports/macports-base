@@ -930,6 +930,10 @@ set depspec_uniqid 0
 global depspec_vtbl
 set depspec_vtbl(test) depspec_test
 set depspec_vtbl(run) depspec_run
+set depspec_vtbl(get) depspec_get
+set depspec_vtbl(set) depspec_set
+set depspec_vtbl(has) depspec_has
+set depspec_vtbl(append) depspec_append
 
 # constructor for abstract depspec class
 proc depspec_new {name} {
@@ -952,44 +956,50 @@ proc depspec_new {name} {
     return $disp
 }
 
-# is the only proc to get access to the object's data
-# so the get/set routines are defined here.  this lets
-# the virtual members get a real "this" object.
+proc depspec_get {this prop} {
+	set data [$this _data]
+	global $data
+	if {[eval info exists ${data}($prop)]} {
+		eval return $${data}($prop)
+	} else {
+		return ""
+	}
+}
+
+proc depspec_set {this prop args} {
+	set data [$this _data]
+	global $data
+	eval set ${data}($prop) $args
+}
+
+proc depspec_has {this prop} {
+	set data [$this _data]
+	global $data
+	eval return \[info exists ${data}($prop)\]
+}
+
+proc depspec_append {this prop args} {
+	set data [$this _data]
+	global $data
+	set vals [join $args " "]
+	eval lappend ${data}($prop) $vals
+}
+
+# is the only proc to get direct access to the object's data
+# so the _data accessor has to be defined here.  all other
+# methods are looked up in the virtual function table,
+# and are called with {$this $args}.
 proc depspec_dispatch {this data method args} {
     global $data
-    switch $method {
-	get {
-	    set prop [lindex $args 0]
-	    if {[eval info exists ${data}($prop)]} {
-		eval return $${data}($prop)
-	    } else {
-		return ""
-	    }
-	}
-	set {
-	    set prop [lindex $args 0]
-	    eval "set ${data}($prop) [lrange $args 1 end]"
-	}
-	has {
-	    set prop [lindex $args 0]
-	    return [info exists ${data}($prop)]
-	}
-	append {
-	    set prop [lindex $args 0]
-	    set vals [join [lrange $args 1 end] " "]
-	    eval "lappend ${data}($prop) $vals"
-	}
-	default {
-	    eval set vtbl $${data}(_vtbl)
-	    global $vtbl
-	    if {[info exists ${vtbl}($method)]} {
+	if {$method == "_data"} { return $data }
+	eval set vtbl $${data}(_vtbl)
+	global $vtbl
+	if {[info exists ${vtbl}($method)]} {
 		eval set function $${vtbl}($method)
 		eval "return \[$function $this $args\]"
-	    } else {
+	} else {
 		ui_error "unknown method: $method"
-	    }
 	}
-    }
     return ""
 }
 
