@@ -339,6 +339,7 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 	if ((fd = mkstemp(template)) < 0) {
 		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
+		free(template);
 		return TCL_ERROR;
 	}
 
