@@ -1016,7 +1016,8 @@ proc upgrade {pname dspec} {
 		}
 	}
 
-	if { [rpm-vercomp $version_installed $version_in_tree] <= 0 } {
+	# if { [rpm-vercomp $version_installed $version_in_tree] <= 0 } { }
+	if { [rpm-vercomp $version_in_tree $version_installed] <= 0 } {
 		ui_debug "No need to upgrade!"
 		return 0
 	}
