@@ -107,7 +107,7 @@ proc ui_gets {str} {
 proc ui_yesno {promptstr {defvalue ""}} {
     set satisfaction no
     while {$satisfaction == "no"} {
-	ui_puts $promptstr -nonewline
+	ui_puts msg $promptstr -nonewline
 	if {[ui_gets mystr] == 0} {
 	    if {[string length $defvalue] > 0} {
 		set mystr $defvalue
@@ -130,7 +130,7 @@ proc ui_yesno {promptstr {defvalue ""}} {
 # the user's acknowledgement of the prompt string passed in
 # "promptstr".  There is no return value.
 proc ui_confirm {promptstr} {
-    ui_puts "$promptstr" -nonewline
+    ui_puts msg "$promptstr" -nonewline
     ui_gets garbagestr
 }
 
