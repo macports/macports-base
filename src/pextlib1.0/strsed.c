@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.3  2002/08/22 10:36:25  jkh
+ * Make this work with Henry Spencer's new regex API
+ *
  * Revision 1.2  2002/08/21 05:22:12  landonf
  * Merge in "bigmove" reorg branch. System now requires bsdmake && bsdmake install
  * and installs itself and its TCL libraries in /usr/local/share , /System/Library/Tcl/8.3, and /usr/local/bin
@@ -148,7 +151,8 @@
 #endif
 
 #ifdef HS_REGEX
-#include <regexp.h>
+#include <sys/types.h>
+#include <regex.h>
 #endif
 
 #define BYTEWIDTH     8
@@ -238,8 +242,8 @@ int *range;
 #endif
 
 #ifdef HS_REGEX
-    static regexp empty_exp;
-    static regexp *exp;
+    static regmatch_t exp_regs[100];
+    static regex_t exp;
 #endif
 
     char *backslash_eliminate();
@@ -289,11 +293,9 @@ int *range;
 #ifdef HS_REGEX
 	/* We use first_time again if we are GNU_REGEX, and reset it later. */
 	first_time = 0;
-	
-	/* Zero the fake regexp that we use if the regex is ".*" */
-	for (i = 0; i < NSUBEXP; i++){
-	    empty_exp.startp[i] = empty_exp.endp[i] = EMPTY_REGISTER;
-	} 
+
+	for (i = 0; i < 100; i++)
+		exp_regs[i].rm_so = exp_regs[i].rm_eo = 0;
 #endif
     }
 
@@ -540,9 +542,6 @@ int *range;
 #ifdef GNU_REGEX
 	regs = empty_regs;
 #endif
-#ifdef HS_REGEX
-	exp = &empty_exp;
-#endif
     }
 
 
@@ -586,7 +585,7 @@ int *range;
 #endif
 
 #ifdef HS_REGEX
-	if ((exp = regcomp(from)) == (regexp *)0){
+	if (regcomp(&exp, from, 0) != 0){
 	    RETURN(0);
 	}
 #endif
@@ -604,17 +603,13 @@ int *range;
 	    regs.start[0] = 0;
 	    regs.end[0] = str_len;
 #endif
-#ifdef HS_REGEX
-	    exp->startp[0] = str;
-	    exp->endp[0] = str + str_len;
-#endif
 	}
 	else{
 #ifdef GNU_REGEX
 	    match = re_search(&re_comp_buf, str, str_len, 0, str_len, &regs);
 #endif
 #ifdef HS_REGEX
-	    match = regexec(exp, str);
+	    match = regexec(&exp, str, strlen(str), exp_regs, 0) ? NO_MATCH : 1;
 #endif
 	}
 
@@ -628,8 +623,8 @@ int *range;
 	    range[1] = match == NO_MATCH ? -1 : regs.end[0];
 #endif
 #ifdef HS_REGEX
-	    range[0] = match == NO_MATCH ? -1 : (int)(exp->startp[0] - str);
-	    range[1] = match == NO_MATCH ? -1 : (int)(exp->endp[0] - str);
+	    range[0] = match == NO_MATCH ? -1 : exp_regs[0].rm_so;
+	    range[1] = match == NO_MATCH ? -1 : exp_regs[0].rm_eo;
 #endif
             RETURN(str);
         }
@@ -645,8 +640,8 @@ int *range;
 	    range[1] = regs.end[0];
 #endif
 #ifdef HS_REGEX
-	    range[0] = (int)(exp->startp[0] - str);
-	    range[1] = (int)(exp->endp[0] - str);
+	    range[0] = exp_regs[0].rm_so;
+	    range[1] = exp_regs[0].rm_eo;
 #endif
 	    }
 	    
@@ -660,7 +655,7 @@ int *range;
 	    need = regs.start[0];
 #endif
 #ifdef HS_REGEX
-	    need = (int)(exp->startp[0] - str);
+	    need = exp_regs[0].rm_so;
 #endif
 
 	    if (need > 0){
@@ -687,7 +682,7 @@ int *range;
                     need = regs.end[reg] - regs.start[reg];
 #endif
 #ifdef HS_REGEX
-                    need = (int)(exp->endp[reg] - exp->startp[reg]);
+                    need = exp_regs[reg].rm_eo - exp_regs[reg].rm_so;
 #endif
 
                     /*
@@ -723,9 +718,9 @@ int *range;
 #endif
 
 #ifdef HS_REGEX
-                    if (exp->startp[reg] != EMPTY_REGISTER){
+                    if (exp_regs[0].rm_so != EMPTY_REGISTER){
 			register char *s;
-                        for (s = exp->startp[reg]; s < exp->endp[reg]; s++){
+                        for (s = exp_regs[0].rm_so; s < exp_regs[0].rm_eo; s++){
                             new_str[new_pos++] = translit ? map[*s] : *s;
                         }
 		    }
@@ -747,8 +742,8 @@ int *range;
             str_len -= regs.end[0];
 #endif
 #ifdef HS_REGEX
-            str = exp->endp[0];
-            str_len -= (int)(exp->endp[0] - exp->startp[0]);
+            str += exp_regs[0].rm_eo;
+            str_len -= (int)(exp_regs[0].rm_eo - exp_regs[0].rm_so);
 #endif
         }
     } while (global && match != NO_MATCH && *str);
