@@ -251,6 +251,7 @@ switch -- $action {
 			if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
 				puts -nonewline ", Revision $portinfo(revision)" 
 			}
+			puts -nonewline ", $portinfo(portdir)" 
 			if {[info exists portinfo(variants)]} {
 				puts -nonewline " (Variants: "
 				for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
