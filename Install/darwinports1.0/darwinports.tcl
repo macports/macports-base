@@ -19,10 +19,12 @@ proc ccextension {file} {
 	exec cc -dynamiclib $file -o $objfile -ltcl
     }
 }
-    
+
 proc init {args} {
     global auto_path env bootstrap_options sysportpath portconf
 
+    # initialize the UI
+    ui_init
     if [file isfile /etc/ports.conf] {
 	set portconf /etc/ports.conf
 	set fd [open /etc/ports.conf r]
@@ -39,7 +41,7 @@ proc init {args} {
     if {[llength [array names env PORTPATH]] > 0} {
 	set sysportpath [lindex [array get env PORTPATH] 1]
     }
-	
+
     if ![info exists sysportpath] {
 	return -code error "sysportpath must be set in /etc/ports.conf or in the PORTPATH env variable"
     }
