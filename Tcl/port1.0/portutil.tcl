@@ -93,7 +93,7 @@ proc swdep_resolve {name chain} {
 		}
 		bin {
 		    # XXX broken
-		    lappend search_path [split $env(PATH) :]
+		    set search_path [split $env(PATH) :]
 		}
 		default {
 		    set search_path $deppath
@@ -107,7 +107,7 @@ proc swdep_resolve {name chain} {
 	}
 	foreach filename [readdir $path] {
 		if {[regexp $depregex $filename] == 1} {
-			puts "GOLDEN: $path $filename $depregex"
+			ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 			return 0
 		}
 	}
