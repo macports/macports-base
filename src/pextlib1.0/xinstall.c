@@ -66,6 +66,14 @@
 #define __unused    /* no attribute */
 #endif
 
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL	"/dev/null"
+#endif
+
+#ifndef ALLPERMS
+#define ALLPERMS (S_ISUID|S_ISGID|S_ISTXT|S_IRWXU|S_IRWXG|S_IRWXO)
+#endif
+
 /* Bootstrap aid - this doesn't exist in most older releases */
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *)-1)	/* from <sys/mman.h> */
@@ -579,8 +587,10 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	 */
 	if (tempcopy && !files_match) {
 		/* Try to turn off the immutable bits. */
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
 		if (to_sb.st_flags & NOCHANGEBITS)
 			(void)chflags(to_name, to_sb.st_flags & ~NOCHANGEBITS);
+#endif
 		if (dobackup) {
 			if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s", to_name,
 					     suffix) != strlen(to_name) + strlen(suffix)) {
@@ -662,9 +672,11 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	if ((gid != (gid_t)-1 && gid != to_sb.st_gid) ||
 	    (uid != (uid_t)-1 && uid != to_sb.st_uid) ||
 	    (mode != (to_sb.st_mode & ALLPERMS))) {
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
 		/* Try to turn off the immutable bits. */
 		if (to_sb.st_flags & NOCHANGEBITS)
 			(void)fchflags(to_fd, to_sb.st_flags & ~NOCHANGEBITS);
+#endif
 	}
 
 	if ((gid != (gid_t)-1 && gid != to_sb.st_gid) ||
@@ -701,6 +713,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	 * trying to turn off UF_NODUMP.  If we're trying to set real flags,
 	 * then warn if the the fs doesn't support it, otherwise fail.
 	 */
+#if defined(UF_NODUMP)
 	if (!devnull && (flags & SETFLAGS ||
 	    (from_sb.st_flags & ~UF_NODUMP) != to_sb.st_flags) &&
 	    fchflags(to_fd,
@@ -719,7 +732,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			}
 		}
 	}
-
+#endif
 	(void)close(to_fd);
 	if (!devnull)
 		(void)close(from_fd);
@@ -828,8 +841,10 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 		 * off the append/immutable bits -- if we fail, go ahead,
 		 * it might work.
 		 */
+#if defined(UF_IMMUTABLE) && defined(SF_IMMUTABLE)
 		if (sbp->st_flags & NOCHANGEBITS)
 			(void)chflags(path, sbp->st_flags & ~NOCHANGEBITS);
+#endif
 
 		if (dobackup) {
 			if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s",
