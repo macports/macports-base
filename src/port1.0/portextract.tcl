@@ -6,7 +6,7 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register com.apple.extract target extract_main 
+register com.apple.extract target extract_main extract_init
 register com.apple.extract provides extract
 register com.apple.extract requires fetch checksum depends_extract
 
@@ -17,14 +17,8 @@ options extract_opts extract.only extract.cmd extract.before_args extract.after_
 
 set UI_PREFIX "---> "
 
-proc extract_main {args} {
-    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
-
-    if {![info exists distfiles] && ![info exists extract.only]} {
-	# nothing to do
-	return 0
-    }
-
+proc extract_init {args} {
+    global extract.only extract.cmd extract.before_args extract.after_args distfiles
     # Set up defaults
     default extract.only $distfiles
     default extract.cmd gzip
@@ -37,6 +31,15 @@ proc extract_main {args} {
 	set extract.cmd unzip
 	set extract.before_args -q
 	set extract.after_args "-d $portpath/$workdir"
+    }
+}
+
+proc extract_main {args} {
+    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
+
+    if {![info exists distfiles] && ![info exists extract.only]} {
+	# nothing to do
+	return 0
     }
 
     ui_msg "$UI_PREFIX Extracting for $distname"
@@ -53,4 +56,3 @@ proc extract_main {args} {
     }
     return 0
 }
-

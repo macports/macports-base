@@ -6,11 +6,15 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-register com.apple.patch target patch_main
+register com.apple.patch target patch_main patch_init
 register com.apple.patch provides patch
 register com.apple.patch requires main fetch checksum extract depends_build depends_lib
 
 set UI_PREFIX "---> "
+
+proc patch_init {args} {
+    return 0
+}
 
 proc patch_main {args} {
     global portname patchfiles distpath filedir workdir portpath UI_PREFIX

@@ -9,23 +9,27 @@
 package provide portdepends 1.0
 package require portutil 1.0
 
-register com.apple.depends.fetch target depends_main always
+register com.apple.depends.fetch target depends_main depends_init always
 register com.apple.depends.fetch provides depends_fetch
 
-register com.apple.depends.build target depends_main always
+register com.apple.depends.build target depends_main depends_init always
 register com.apple.depends.build provides depends_build
 
-register com.apple.depends.run target depends_main always
+register com.apple.depends.run target depends_main depends_init always
 register com.apple.depends.run provides depends_run
 
-register com.apple.depends.extract target depends_main always
+register com.apple.depends.extract target depends_main depends_init always
 register com.apple.depends.extract provides depends_extract
 
-register com.apple.depends.lib target depends_main always
+register com.apple.depends.lib target depends_main depends_init always
 register com.apple.depends.lib provides depends_lib
 
 # define options
 options depends_fetch depends_build depends_run depends_extract depends_lib
+
+proc depends_init {args} {
+    return 0
+}
 
 # depends_resolve
 # XXX - Architecture specific

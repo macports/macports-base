@@ -6,7 +6,7 @@
 package provide portfetch 1.0
 package require portutil 1.0
 
-register com.apple.fetch target fetch_main
+register com.apple.fetch target fetch_main fetch_init
 register com.apple.fetch provides fetch
 register com.apple.fetch requires main depends_fetch
 
@@ -76,16 +76,22 @@ proc fetchfiles {args} {
     return 0
 }
 
-proc fetch_main {args} {
-    global distname distpath all_dist_files
-
+proc fetch_init {args} {
+    global distfiles distname distpath all_dist_files distsubdir
     # Set distfiles
     if [info exists distname] {
 	default distfiles [suffix $distname]
     }
+    if {[info exist distpath] && [info exists distsubdir]} {
+	set distpath ${distpath}/${distsubdir}
+    }
+    checkfiles
+}
+
+proc fetch_main {args} {
+    global distname distpath all_dist_files
 
     # Check for files, download if neccesary
-    checkfiles
     if ![info exists all_dist_files] {
 	return 0
     } else {

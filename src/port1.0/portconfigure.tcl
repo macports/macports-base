@@ -6,7 +6,7 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-register com.apple.configure target configure_main
+register com.apple.configure target configure_main configure_init
 register com.apple.configure provides configure
 register com.apple.configure requires main fetch extract checksum patch depends_build depends_lib
 
@@ -14,6 +14,10 @@ register com.apple.configure requires main fetch extract checksum patch depends_
 options configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
 
 set UI_PREFIX "---> "
+
+proc configure_init {args} {
+    return 0
+}
 
 proc configure_main {args} {
     global configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool portname portpath workdir worksrcdir prefix UI_PREFIX

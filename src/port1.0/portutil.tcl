@@ -61,7 +61,7 @@ proc makeuserproc {name body} {
 #     functions
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
-#	<identifier> target <procedure to execute> [run type]
+#	<identifier> target <procedure to execute> <init procedure> [run type]
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -73,14 +73,16 @@ proc register {name mode args} {
 
     if {[string equal target $mode]} {
         set procedure [lindex $args 0]
+        set init [lindex $args 1]
         if {[dlist_has_key targets $name procedure]} {
             ui_info "Warning: target '$name' re-registered (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure $procedure
+        dlist_set_key targets $name init $init
 
 	# Set runtype {always,once} if available
-	if {[llength $args] == 2} {
-	    dlist_set_key targets $name runtype [lindex $args 1]
+	if {[llength $args] == 3} {
+	    dlist_set_key targets $name runtype [lindex $args 2]
 	}
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
@@ -347,8 +349,10 @@ proc dlist_evaluate {dlist downstatusdict action fd} {
 proc exec_target {fd dlist name} {
 # XXX: Don't depend on entire dlist, this should really receive just one node.
     upvar $dlist uplist
-    if {[dlist_has_key uplist $name procedure]} {
+    if {[dlist_has_key uplist $name procedure] && [dlist_has_key uplist $name init]} {
 	set procedure [dlist_get_key uplist $name procedure]
+	set init [dlist_get_key uplist $name init]
+	$init $name
 	if {[check_statefile $name $fd]} {
 	    set result 0
 	    ui_debug "Skipping completed $name"

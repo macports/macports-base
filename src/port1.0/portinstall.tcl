@@ -7,7 +7,7 @@ package provide portinstall 1.0
 package require portutil 1.0
 package require portregistry 1.0
 
-register com.apple.install target install_main
+register com.apple.install target install_main install_init
 register com.apple.install provides install
 register com.apple.install requires main fetch extract checksum patch configure build depends_run depends_lib
 
@@ -41,11 +41,13 @@ proc proc_disasm {pname} {
     return [list proc $pname [list [info args $pname]] [info body $pname]]
 }
 
+proc install_init {args} {
+    global make.target.install
+    default make.target.install install
+}
+
 proc install_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.install UI_PREFIX
-
-    default make.type bsd
-    default make.cmd make
 
     if [info exists make.worksrcdir] {
 	set configpath ${portpath}/${workdir}/${worksrcdir}/${make.worksrcdir}
@@ -54,10 +56,6 @@ proc install_main {args} {
     }
 
     cd $configpath
-    if {${make.type} == "bsd"} {
-	set make.cmd bsdmake
-    }
-    default make.target.install install
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
     if ![catch {system "${make.cmd} ${make.target.install}"}] {
 	# it installed successfully, so now we must register it
@@ -90,4 +88,3 @@ proc install_main {args} {
     }
     return 0
 }
-
