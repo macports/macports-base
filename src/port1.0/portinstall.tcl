@@ -71,14 +71,20 @@ proc install_start {args} {
 }
 
 proc install_element {src_element dst_element} {
-    file copy -force $src_element $dst_element
-    set attributes [file attributes $src_element]	
-    for {set i 0} {$i < [llength $attributes]} {incr i} {
-	set opt [lindex $attributes $i]
-	incr i
-	set arg [lindex $attributes $i]
-	file attributes $dst_element $opt $arg
-    }
+	# don't recursively copy directories
+	if {[file isdirectory $src_element]} {
+		file mkdir $dst_element
+	} else {
+		file copy -force $src_element $dst_element
+	}
+
+	set attributes [file attributes $src_element]	
+	for {set i 0} {$i < [llength $attributes]} {incr i} {
+		set opt [lindex $attributes $i]
+		incr i
+		set arg [lindex $attributes $i]
+		file attributes $dst_element $opt $arg
+	}
 }
 
 proc directory_dig {rootdir workdir {cwd ""}} {
