@@ -149,6 +149,10 @@ proc fetchfiles {args} {
 	    return 1
 	}
     }
+    if {![file writable $distpath]} {
+        ui_error "$distpath must be writable"
+        return 1
+    }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
 	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
