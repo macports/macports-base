@@ -35,14 +35,14 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfon
+.Op Fl vdqfona
 .Op Fl D Ar portdir
 .Ar target
 .Op Ar portname
 .Op Ar options ...
 .Op Ar variants ...
 .Nm
-.Op Fl vdqfon
+.Op Fl vdqfona
 .Ar provides
 .Ar file
 .Sh DESCRIPTION
@@ -72,7 +72,9 @@ debug mode (generate debugging messages)
 .It Fl q
 quiet mode (suppress messages)
 .It Fl n
-dont follow dependancies in upgrade (only for upgrading)
+dont follow dependencies in upgrade (only for upgrading)
+.It Fl a
+upgrade all installed ports (only for upgrading)
 .It Fl D
 specify
 .Ar portdir
@@ -173,6 +175,10 @@ To deactivate a port (in image mode):
 To upgrade a port (deactivating the older version and activating a newer)
 .Pp
 .Dl "port upgrade vim
+.Pp
+To upgrade all installed ports (the -n option could be used for speed)
+.Pp
+.Dl "port -a upgrade
 .Pp
 
 To reactivate a port previously deactivated (in image mode):
