@@ -16,6 +16,21 @@ register com.apple.install swdep depends_run depends_lib
 
 set UI_PREFIX "---> "
 
+proc fileinfo_for_index {flist} {
+    set rval {}
+    foreach fentry $flist {
+	if ![catch {file stat $fentry statvar}] {
+	    set md5regex "^(MD5)\[ \]\\(($fentry)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	    set pipe [open "|md5 $fentry" r]
+	    set line [read $pipe]
+	    if {[regexp $md5regex $line match type filename sum] == 1} {
+		lappend rval [list $fentry $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	    }
+	}
+    }
+    return $rval
+}
+
 proc install_main {args} {
 
     return 0
