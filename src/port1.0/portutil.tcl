@@ -216,6 +216,33 @@ proc variant {args} {
     lappend PortInfo(variants) $provides
 }
 
+# variant_isset name
+# Returns 1 if variant name selected, otherwise 0
+proc variant_isset {name} {
+    global variations
+
+    if {[info exists variations($name)] && $variations($name) == "+"} {
+	return 1
+    }
+    return 0
+}
+
+# variant_set name
+# Sets variant to run for current portfile
+proc variant_set {name} {
+    global variations
+
+    set variations($name) +
+}
+
+# variant_unset name
+# Clear variant for current portfile
+proc variant_unset {name} {
+    global variations
+
+    set variations($name) -
+}
+
 ########### Misc Utility Functions ###########
 
 # tbool (testbool)
