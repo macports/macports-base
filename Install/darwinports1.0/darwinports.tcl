@@ -20,6 +20,19 @@ namespace eval darwinports {
 			source /etc/ports.conf
 		}
 	}
+
+	# XXX not portable
+	proc ccextension {file} {
+		if {[regexp {([A-Za-z]+).c} [file tail $file] match name] == 1} {
+			set objfile [file dirname $file]/$name.dylib
+			if {[file exists $objfile]} {
+				if {[file mtime $file] <= [file mtime $objfile]} {
+					return
+				}
+			}
+			exec cc -dynamiclib $file -o $objfile -ltcl
+		}
+	}
 	
 	proc init {args} {
 		global portpath distpath libpath auto_path env
@@ -41,10 +54,14 @@ namespace eval darwinports {
 		}
 
 		if [file isdirectory $libpath] {
-			if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib} result] {
-				return -1
-			} else {
-				lappend auto_path $libpath
+			lappend auto_path $libpath
+			foreach dir [glob -nocomplain -directory $libpath -types d *] {
+				if [file isdirectory $dir] {
+					foreach srcfile [glob -nocomplain -directory $dir -types f *.c] {
+						ccextension $srcfile
+					}
+					catch {pkg_mkIndex $dir *.tcl *.so *.dylib} result
+				}
 			}
 		} else {
 			return -1
@@ -52,4 +69,3 @@ namespace eval darwinports {
 		return 0
 	}
 }
-
