@@ -352,6 +352,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	}
 
 	set portdir [darwinports::getportdir $porturl $portdir]
+	ui_debug "Changing to port directory: $portdir"
 	cd $portdir
 	set portpath [pwd]
 	set workername [interp create]
