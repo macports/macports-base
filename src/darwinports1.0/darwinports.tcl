@@ -526,16 +526,21 @@ proc dportexec {dport target} {
 		dlist_delete dlist $dport
 
 		# install them
-		set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
+		set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
 		
-		if {$dlist != {}} {
+		if {$result != {}} {
 			set errstring "The following dependencies failed to build:"
-			foreach ditem $dlist {
+			foreach ditem $result {
 				append errstring " [ditem_key $ditem provides]"
 			}
 			ui_error $errstring
 			return 1
 		}
+                
+                # Close the dependencies, we're done installing them
+                foreach ditem $dlist {
+                    dportclose $ditem
+                }
 	}
 	
 	# Build this port with the specified target
