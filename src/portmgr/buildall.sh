@@ -115,7 +115,7 @@ prepchroot() {
 	dir=$1
 	if [ $STUCK_BASEDEV = 0 ]; then
 		rm -f ${CHROOTBASE}.shadow
-		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -shadow -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		mkdir -p $dir/.vol
 	fi
  	DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir/opt/local/var/db/dports -union -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
@@ -200,7 +200,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
 	echo "if port -k -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
-	echo 'umount /.vol || (echo "unable to umount volfs"; exit 1)' >> $DIR/bootstrap.sh
+	echo 'umount -f /.vol || (echo "unable to umount volfs"; exit 1)' >> $DIR/bootstrap.sh
 	echo "exit 0" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
 	chroot $DIR /bootstrap.sh || bomb "bootstrap script in chroot returned failure status"
