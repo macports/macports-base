@@ -48,7 +48,7 @@ fgetln(FILE *fp, size_t *len)
 		bufsize = BUFCHUNKS;
 		buf = (char *)malloc(bufsize);
 		if (buf == NULL)
-			err(1, "Unable to allocate buffer for fgetln()");
+		  return NULL;
 	}
 
 	*buf = '\0';
@@ -60,8 +60,7 @@ fgetln(FILE *fp, size_t *len)
 		if (bufsize < buflen + l) {
 			bufsize += BUFCHUNKS;
 			if ((buf = (char *)realloc(buf, bufsize)) == NULL)
-				err(1, "Unable to allocate %ld bytes of memory",
-				    (long)bufsize);
+			  return NULL;
 		}
 		strcpy(buf + buflen, p);
 		buflen += l;
