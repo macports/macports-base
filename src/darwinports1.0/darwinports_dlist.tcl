@@ -164,17 +164,19 @@ proc ditem_contains {ditem key args} {
 #	result - used for recursing, pass empty initially.
 
 proc dlist_append_dependents {dlist ditem result} {
-	# Append the root item to the list if it's not there.
+	# Only append things if the root item is not in the list.
+	# (otherwise, it means we already did this sub-graph)
 	if {[lsearch $result $ditem] == -1} {
 		lappend result $ditem
-	}
-	# Recursively append any hard dependencies.
-	foreach token [ditem_key $ditem requires] {
-		foreach provider [dlist_search $dlist provides $token] {
-			set result [dlist_append_dependents $dlist $provider $result]
+
+		# Recursively append any hard dependencies.
+		foreach token [ditem_key $ditem requires] {
+			foreach provider [dlist_search $dlist provides $token] {
+				set result [dlist_append_dependents $dlist $provider $result]
+			}
 		}
+		# XXX: add soft-dependencies?
 	}
-	# XXX: add soft-dependencies?
 	return $result
 }
 

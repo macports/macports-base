@@ -608,12 +608,13 @@ proc _dportkey {dport key} {
 	return [$workername eval "return \$${key}"]
 }
 
-# dportdepends returns a list of dports which the given port depends on.
+# dportdepends builds the list of dports which the given port depends on.
+# This list is added to $dport.
 # - optionally includes the build dependencies in the list.
 # - optionally recurses through the dependencies, looking for dependencies
 #	of dependencies.
 
-proc dportdepends {dport includeBuildDeps recurseDeps} {
+proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	array set portinfo [dportinfo $dport]
 	set depends {}
 	if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
@@ -622,6 +623,8 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 		eval "lappend depends $portinfo(depends_build)"
 	}
 
+	set subPorts {}
+	
 	foreach depspec $depends {
 		# grab the portname portion of the depspec
 		set portname [lindex [split $depspec :] 2]
@@ -656,7 +659,21 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 		ditem_append $dport requires "[ditem_key $subport provides]"
 
 		if {$recurseDeps != ""} {
-			set res [dportdepends $subport $includeBuildDeps $recurseDeps]
+			# Skip the port if it's already in the accumulated list.
+			if {[lsearch $accDeps $portname] == -1} {
+				# Add it to the list
+				lappend accDeps $portname
+				
+				# We'll recursively iterate on it.
+				lappend subPorts $subport
+			}
+		}
+	}
+
+	# Loop on the subports.
+	if {$recurseDeps != ""} {
+		foreach subport $subPorts {
+			set res [dportdepends $subport $includeBuildDeps $recurseDeps $accDeps]
 			if {$res != 0} {
 				return $res
 			}
