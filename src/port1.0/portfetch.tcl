@@ -61,7 +61,7 @@ proc fetchfiles {args} {
 		} else {
 			set verboseflag "-s"
 		}
-		if ![catch {system curl ${verboseflag} -o ${distpath}/${distfile} ${site}${distfile} 2>&1} result] {
+		if ![catch {system "curl ${verboseflag} -o ${distpath}/${distfile} ${site}${distfile} 2>&1"} result] {
 		    set fetched 1
 		    break
 		}

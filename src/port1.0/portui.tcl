@@ -155,6 +155,6 @@ proc ui_display {filename} {
     if {![ui_enabled]} {return}
 
     if [file exists $filename] {
-	system /usr/bin/less $filename
+	system "/usr/bin/less $filename"
     }
 }

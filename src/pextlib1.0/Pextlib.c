@@ -77,70 +77,21 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 {
 	char buf[BUFSIZ];
 	char *args[4];
-	char *cmdstring, *p;
+	char *cmdstring;
 	FILE *pdes;
 	int fdset[2];
-	int i, cmdlen, cmdlenavail, ret;
+	int ret;
 	pid_t pid;
-	cmdlen = cmdlenavail = BUFSIZ;
-	p = cmdstring = NULL;
 
 	if(Tcl_PkgRequire(interp, "portui", "1.0", 0) == NULL) {
 		return TCL_ERROR;
 	}
 
-	if (objc < 2) {
+	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
 		return TCL_ERROR;
-	} else if (objc == 2) {
-		cmdstring = Tcl_GetString(objv[1]);
-	} else if (objc > 2) {
-		cmdstring = malloc(cmdlen);
-		if (cmdstring == NULL)
-			return TCL_ERROR;
-		p = cmdstring;
-		/*
-		 * Rather than realloc for every iteration
-		 * through the argument vector, malloc a
-		 * sizable chunk of memory first.
-		 * If we extend beyond what is available,
-		 * then realloc
-		 */
-		for (i = 1; i < objc; i++) {
-			char *arg;
-			int len;
-
-			arg = Tcl_GetString(objv[i]);
-			/* Add 1 for trailing \0 or ' ' */
-			len = strlen(arg) + 1;
-
-			if (len > cmdlenavail) {
-				char *sptr;
-				cmdlen += cmdlenavail + len;
-				/*
-				 * puma does not have reallocf.
-				 * Change when we rev past puma
-				 */
-				sptr = cmdstring;
-				cmdstring = realloc(cmdstring, cmdlen);
-				if (cmdstring == NULL) {
-					free(sptr);
-					return TCL_ERROR;
-				}
-			}
-			/* Subtract 1 to not copy trailing \0 */
-			memcpy(p, arg, len - 1);
-			p += len;
-
-			if (i == objc - 1) {
-				*(p - 1) = '\0';
-			} else {
-				*(p - 1) = ' ';
-			}
-			cmdlenavail -= len;
-			cmdlen += len;
-		}
 	}
+	cmdstring = Tcl_GetString(objv[1]);
 
 	if (pipe(fdset) == -1)
 		return TCL_ERROR;
@@ -165,8 +116,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	}
 	close(fdset[1]);
 	pdes = fdopen(fdset[0], "r");
-	if (p != NULL)
-		free(cmdstring);
 
 	/* read from simulated popen() pipe */
 	while (fgets(buf, BUFSIZ, pdes) != NULL) {
