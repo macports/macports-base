@@ -46,7 +46,7 @@ proc globals {array args} {
 proc globalcheck {array key op} {
 	upvar $array uparray
 	upvar #0 $key upkey
-	# XXX check if global variable has been unset
+
 	if [tbool portutil::globals $key] {
 		if ![info exists upkey] {
 			trace vdelete ${array}(${key}) rwu globalcheck
