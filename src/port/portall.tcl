@@ -30,8 +30,9 @@ proc port_traverse {func {dir .}} {
 }
 
 proc pindex {portdir} {
-    global target
-    if [catch {set interp [dportopen file://$portdir]} err] {
+    global target options variations
+
+    if [catch {set interp [dportopen file://$portdir options variations]} err] {
 	puts "Error: Couldn't create interpreter for $portdir: $err"
 	return -1
     }
@@ -41,10 +42,28 @@ proc pindex {portdir} {
     dportclose $interp
 }
 
+# Main
+
+# zero-out the options array
+array set options [list]
+array set variations [list]
+
 if { $argc < 1 } {
     set target build
 } else {
-    set target [lindex $argv 0]
+    for {set i 0} {$i < $argc} {incr i} {
+	set arg [lindex $argv $i]
+
+	if {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
+	    # option=value
+	    set options($key) \"$val\"
+	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
+	    # if +xyz -xyz or after the separator
+	    set variations($opt) $sign
+	} else {
+	    set target $arg
+	}
+    }
 }
 
 port_traverse pindex dports
