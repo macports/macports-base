@@ -1072,6 +1072,14 @@ proc portexec {portname target} {
 	portexec_int $portname $target $workpath
 }
 
+# build the specified portfile with default workpath
+proc portfile_run {this} {
+    set portname [$this get name]
+	if {[portexec_int $portname install] == 0} {
+		portexec_int $portname clean
+    }
+}
+
 # builds the specified port (looked up in the index) to the specified target
 # doesn't yet support options or variants...
 # newworkpath defines the port's workpath - useful for when one port relies
@@ -1089,7 +1097,7 @@ proc portexec_int {portname target {newworkpath ""}} {
 
     set res [dportsearch ^$search_string\$]
     if {[llength $res] < 2} {
-        ui_error "Portfile $portname not found"
+        ui_error "Dependency $portname not found"
         return -1
     }
 
@@ -1104,14 +1112,6 @@ proc portexec_int {portname target {newworkpath ""}} {
     dportclose $worker
     
     return 0
-}
-
-# build the specified portfile
-proc portfile_run {this} {
-    set portname [$this get name]
-	if {[portexec $portname install] == 0} {
-		portexec $portname clean
-    }
 }
 
 proc portfile_test {this} {
