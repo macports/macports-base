@@ -43,6 +43,17 @@ set all_variants [list]
 
 ########### External High Level Procedures ###########
 
+
+# UI Instantiations
+foreach priority "debug info msg error warn" {
+    eval "proc ui_$priority {str} \{ \n\
+	set message(priority) $priority \n\
+	set message(data) \$str \n\
+	ui_event \[array get message\] \n\
+    \}"
+}
+
+
 namespace eval options {
 }
 
@@ -519,15 +530,15 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
 		# somebody broke!
-		ui_info "Warning: the following items did not execute (for $portname): "
+		set errstring "Warning: the following items did not execute (for $portname): "
 		foreach ditem $dlist {
-			ui_info "[ditem_key $ditem name] " -nonewline
+			lappend errstring [ditem_key $ditem name]
 		}
-		ui_info ""
+		ui_info $errstring
 		set result 1
-	} else {
+    } else {
 		set result 0
-	}
+    }
 	
     close $target_state_fd
     return $result

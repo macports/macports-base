@@ -24,17 +24,16 @@ proc ui_isset {val} {
     return 0
 }
 
-# Output string "str"
-# If you don't want newlines to be output, you must pass "-nonewline"
-# as the second argument.
+# UI Callback
 
-proc ui_puts {priority str nonl} {
+proc ui_puts {messagelist} {
     set channel stdout
-    switch $priority {
+    array set message $messagelist
+    switch $message(priority) {
         debug {
             if [ui_isset ports_debug] {
                 set channel stderr
-                set str "DEBUG: $str"
+                set str "DEBUG: $message(data)"
             } else {
                 return
             }
@@ -43,26 +42,23 @@ proc ui_puts {priority str nonl} {
             if ![ui_isset ports_verbose] {
                 return
             }
+	    set str $message(data)
         }
         msg {
             if [ui_isset ports_quiet] {
                 return
             }
+	    set str $message(data)
         }
         error {
-            set str "Error: $str"
+            set str "Error: $message(data)"
             set channel stderr
         }
         warn {
-            set str "Warning: $str"
+            set str "Warning: $message(data)"
         }
     }
-    if {$nonl == "-nonewline"} {
-	puts -nonewline $channel "$str"
-	flush $channel 
-    } else {
-	puts "$str"
-    }
+    puts $channel $str
 }
 
 proc port_traverse {func {dir .}} {

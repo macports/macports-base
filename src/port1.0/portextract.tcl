@@ -81,7 +81,7 @@ proc extract_main {args} {
     }
 
     foreach distfile [option extract.only] {
-	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
+	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
 	option extract.args "[option distpath]/$distfile"
 	if [catch {system "[command extract]"} result] {
 	    return -code error "$result"

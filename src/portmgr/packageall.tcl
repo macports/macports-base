@@ -50,56 +50,61 @@ proc ui_isset {val} {
     return 0
 }
 
-# Output string "str"
-# If you don't want newlines to be output, you must pass "-nonewline"
-# as the second argument.
+# UI Callback 
 
-proc ui_puts {priority str {nonl ""}} {
-	global logfd
+proc ui_puts {messagelist} {
+    global logfd
     set channel $logfd
-    switch $priority {
+    array set message $messagelist
+    switch $message(priority) {
         debug {
             if [ui_isset ports_debug] {
-                set str "DEBUG: $str"
+                set str "DEBUG: $message(data)"
             } else {
                 return
             }
         }
         info {
-			# put verbose stuff only to the log file
+	    # put verbose stuff only to the log file
             if ![ui_isset ports_verbose] {
                 return
             } else {
-				set priority "log"
-			}
+	        if {[string length $channel] > 0} {
+		    log_message $channel $message(data)
+		}
+		return
+	    }
         }
         msg {
             if [ui_isset ports_quiet] {
                 return
             }
+	    set str $message(data)
         }
         error {
-            set str "Error: $str"
+            set str "Error: $message(data)"
         }
         warn {
-            set str "Warning: $str"
+            set str "Warning: $message(data)"
         }
     }
-    if {$nonl == "-nonewline"} {
-		if {[string length $channel] > 0 } {
-			seek $channel 0 end
-			puts -nonewline $channel "$str"
-			flush $channel 
-		}
-		if {$priority != "log"} { puts -nonewline stderr "$str" }
-    } else {
-		if {[string length $channel] > 0 } {
-			seek $channel 0 end
-			puts $channel "$str"
-			flush $channel 
-		}
-		if {$priority != "log"} { puts stderr "$str" }
+    if {[string length $channel] > 0 } {
+	log_message $channel $str
     }
+    puts stderr $str
+}
+
+proc pkg_ui_log {message} {
+    global logfd
+    if {[string length $logfd] > 0 } {
+	log_message $logfd $str
+    }
+}
+
+proc log_message {channel message} {
+    seek $channel 0 end
+    puts $channel $message
+    flush $channel
 }
 
 # Recursive bottom-up approach of building a list of dependencies.
@@ -107,7 +112,7 @@ proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 	
 	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
-		ui_puts err "Internal error: port search failed: $error"
+		ui_error "Internal error: port search failed: $error"
 		return {}
 	}
 	foreach {name array} $res {
@@ -115,7 +120,7 @@ proc get_dependencies {portname includeBuildDeps} {
 		if {![info exists portinfo(name)] ||
 			![info exists portinfo(version)] || 
 			![info exists portinfo(categories)]} {
-			ui_puts err "Internal error: $name missing some portinfo keys"
+			ui_error "Internal error: $name missing some portinfo keys"
 			continue
 		}
 		
@@ -155,14 +160,14 @@ proc install_binary_if_available {dep basepath} {
 	
 	set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
 	if {[file readable $pkgpath]} {
-		ui_puts msg "installing binary: $pkgpath"
+		ui_msg "installing binary: $pkgpath"
 		if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
-			ui_puts err "Internal error: $error"
+			ui_error "Internal error: $error"
 		}
 		# Touch the receipt
 		# xxx: use some variable to describe this path
 		if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
-			ui_puts err "Internal error: $error"
+			ui_error "Internal error: $error"
 		}
 	}
 }
@@ -243,7 +248,7 @@ foreach {name array} $res {
 	# - keep distfiles outside /opt so we don't have to keep fetching them.
 	# - send out an email to the maintainer if any errors occurred.
 
-	ui_puts msg "removing /opt"
+	ui_msg "removing /opt"
 	#unset ui_options(ports_verbose)
 	if {[catch {system "rm -Rf /opt"} error]} {
 		puts stderr "Internal error: $error"
@@ -328,29 +333,29 @@ foreach {name array} $res {
 		set maintainers $portinfo(maintainers)
 	}
 	
-	ui_puts log "To: [join $maintainers {, }]"
-	ui_puts log "From: donotreply@opendarwin.org"
-	ui_puts log "Subject: DarwinPorts $portinfo(name)-$portinfo(version) build failure"
-	ui_puts log ""
-	ui_puts log "The following is a transcript produced by the DarwinPorts automated build       "
-	ui_puts log "system.  You are receiving this email because you are listed as a maintainer    "
-	ui_puts log "of this port, which has failed the automated packaging process.  Please update  "
-	ui_puts log "the port as soon as possible."
-	ui_puts log ""
-	ui_puts log ""
-	ui_puts log "Thank you,"
-	ui_puts log "The DarwinPorts Team"
-	ui_puts log ""
-	ui_puts log "================================================================================"
-	ui_puts log ""
+	pkg_ui_log "To: [join $maintainers {, }]"
+	pkg_ui_log "From: donotreply@opendarwin.org"
+	pkg_ui_log "Subject: DarwinPorts $portinfo(name)-$portinfo(version) build failure"
+	pkg_ui_log ""
+	pkg_ui_log "The following is a transcript produced by the DarwinPorts automated build       "
+	pkg_ui_log "system.  You are receiving this email because you are listed as a maintainer    "
+	pkg_ui_log "of this port, which has failed the automated packaging process.  Please update  "
+	pkg_ui_log "the port as soon as possible."
+	pkg_ui_log ""
+	pkg_ui_log ""
+	pkg_ui_log "Thank you,"
+	pkg_ui_log "The DarwinPorts Team"
+	pkg_ui_log ""
+	pkg_ui_log "================================================================================"
+	pkg_ui_log ""
 
 	if {!$valid} {
 		foreach error $lint_errors {
-			ui_puts error $error
+			ui_error $error
 		}
 	}
 
-	ui_puts msg "packaging ${category}/${portname}-${portversion}"
+	ui_msg "packaging ${category}/${portname}-${portversion}"
 
 	# Install binary dependencies if we can, to speed things up.
 	#set depends {}
@@ -374,12 +379,12 @@ foreach {name array} $res {
 	set ui_options(ports_verbose) yes
 	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result] ||
 		$result == 1} {
-	    ui_puts error "Internal error: unable to open port: $result"
+	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}	
 	if {[catch {set result [dportexec $workername package]} result] ||
 		$result == 1} {
-	    ui_puts error "port package failed: $result"
+	    ui_error "port package failed: $result"
 		dportclose $workername
 	    continue
 	}

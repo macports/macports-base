@@ -41,28 +41,26 @@ namespace eval darwinports {
 # Provided UI instantiations
 # For standard messages, the following priorities are defined
 #     debug, info, msg, warn, error
-# Clients of the library are expected to provide ui_puts with the following prototype:
-#     proc ui_puts {priority string nonl}
+# Clients of the library are expected to provide ui_puts with the following prototype.
+#     proc ui_puts {message}
+# message is a tcl list of array element pairs, defined as such:
+#     version   - ui protocol version
+#     priority  - message priority
+#     data      - message data
 # ui_puts should handle the above defined priorities
 
-proc ui_debug {str {nonl ""}} {
-    ui_puts debug "$str" $nonl
+foreach priority "debug info msg error warn" {
+    eval "proc ui_$priority {str} \{ \n\
+	set message(priority) $priority \n\
+	set message(data) \$str \n\
+	ui_puts \[array get message\] \n\
+    \}"
 }
 
-proc ui_info {str {nonl ""}} {
-    ui_puts info "$str" $nonl
-}
-
-proc ui_msg {str {nonl ""}} {
-    ui_puts msg "$str" $nonl
-}
-
-proc ui_error {str {nonl ""}} {
-    ui_puts error "$str" $nonl
-}
-
-proc ui_warn {str {nonl ""}} {
-    ui_puts warn "$str" $nonl
+proc darwinports::ui_event {context message} {
+    array set postmessage $message
+    set postmessage(context) $context
+    ui_puts [array get postmessage]
 }
 
 proc dportinit {args} {
@@ -160,10 +158,8 @@ proc darwinports::worker_init {workername portpath options variations} {
         $workername alias $proc $proc
     }
 
-    # instantiate the UI functions
-    foreach proc {ui_debug ui_info ui_warn ui_msg ui_error} {
-        $workername alias $proc $proc
-    }
+    # instantiate the UI call-back
+    $workername alias ui_event darwinports::ui_event $workername
 
 	# xxx: find a better home for this registry cruft--like six feet under.
 	global darwinports::portdbpath darwinports::registry.path
