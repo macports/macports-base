@@ -1084,8 +1084,11 @@ proc portexec_int {portname target {newworkpath ""}} {
     } else {
         set options(workpath) ${newworkpath}
     }
-	
-    set res [dportsearch ^$portname\$]
+
+	# Escape regex special characters
+	regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+
+    set res [dportsearch ^$search_string\$]
     if {[llength $res] < 2} {
         ui_error "Portfile $portname not found"
         return -1

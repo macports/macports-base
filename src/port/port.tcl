@@ -152,7 +152,9 @@ switch -- $action {
     default {
 	set target $action
 	if {[info exists portname]} {
-	    if {[catch {set res [dportsearch ^$portname\$]} result]} {
+	    # Escape regex special characters
+	    regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+	    if {[catch {set res [dportsearch ^$search_string\$]} result]} {
 		puts $result
 		exit 1
 	    }
