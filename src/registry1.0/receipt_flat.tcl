@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.6 2004/05/31 10:06:51 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.7 2004/05/31 20:58:40 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -348,10 +348,10 @@ proc property_retrieve {ref property} {
 	variable receipt_$ref
 
 	set theCouple [array get receipt_[set ref] $property]
-	if {[llength theCouple] != 2} {
+	if {[llength $theCouple] != 2} {
 		return 0
 	} else {
-		return [lindex theCouple 1]
+		return [lindex $theCouple 1]
 	}
 }
 
