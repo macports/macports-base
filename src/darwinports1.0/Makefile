@@ -1,4 +1,3 @@
-INSTALLDIR=	/System/Library/Tcl/8.3/darwinports1.0
 SRCS=		darwinports.tcl darwinportsui.tcl
 
 all:
@@ -6,8 +5,8 @@ all:
 clean:
 
 install:
-	mkdir -p ${INSTALLDIR}
+	@mkdir -p `./tcldir.sh`
 	@set -x; for file in ${SRCS}; do \
-		install -c -o root -g wheel -m 444 $$file ${INSTALLDIR}; \
+		install -c -o root -g wheel -m 444 $$file `./tcldir.sh`; \
 	done
-	../pkg_mkindex.tcl ${INSTALLDIR}
+	@../pkg_mkindex.tcl `./tcldir.sh`
