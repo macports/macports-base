@@ -102,7 +102,8 @@ proc makechroot {dir} {
 	puts $f {if {[catch {exec ./configure} result]} { puts "Warning: darwinports configure returned: $result" }}
 	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
 	puts $f "cd .."
-	puts $f "sed -e 's;portautoclean.*yes;portautoclean no;' < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf"
+	puts $f {exec sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new}
+	puts $f {exec mv /etc/ports/ports.conf.new /etc/ports/ports.conf}
 	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
 	if {[info exists env(MASTER_SITE_LOCAL)]} {
 		puts $f "set env(MASTER_SITE_LOCAL) $env(MASTER_SITE_LOCAL)"
