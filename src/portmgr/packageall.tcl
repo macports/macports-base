@@ -97,7 +97,7 @@ proc ui_puts {messagelist} {
 proc pkg_ui_log {message} {
     global logfd
     if {[string length $logfd] > 0 } {
-	log_message $logfd $str
+	log_message $logfd $message
     }
 }
 
