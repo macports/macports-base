@@ -45,6 +45,8 @@ namespace eval options {
 # Exports options in an array as externally callable procedures
 # Thus, "options name date" would create procedures named "name"
 # and "date" that set global variables "name" and "date", respectively
+# When an option is modified in any way, options::$option is called,
+# if it exists
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
@@ -90,12 +92,18 @@ proc options_export {args} {
     }
 }
 
+# commands
+# Accepts a list of arguments, of which several options are created
+# and used to form a standard set of command options.
 proc commands {args} {
     foreach option $args {
 	options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.type ${option}.cmd
     }
 }
 
+# command
+# Given a command name, command assembled a string
+# composed of the command options.
 proc command {command} {
     global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
 
@@ -129,6 +137,9 @@ proc command {command} {
 }
 
 # default
+# Sets a variable to the supplied default if it does not exist,
+# and adds a variable trace. The variable traces allows for delayed
+# variable and command expansion in the variable's default value.
 proc default {option val} {
     global $option option_defaults
 	if {[info exists option_defaults($option)]} {
@@ -145,6 +156,9 @@ proc default {option val} {
 	trace variable $option rwu default_check
 }
 
+# default_check
+# trace handler to provide delayed variable & command expansion
+# for default variable values
 proc default_check {optionName index op} {
 	global option_defaults $optionName
 	switch $op {
@@ -167,6 +181,7 @@ proc default_check {optionName index op} {
 }
 
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
+# Portfile level procedure to provide support for declaring variants
 proc variant {args} {
     global variants PortInfo
     upvar $args upargs
@@ -203,6 +218,9 @@ proc variant {args} {
 
 ########### Misc Utility Functions ###########
 
+# tbool (testbool)
+# If the variable exists in the calling procedure's namespace
+# and is set to "yes", return 1. Otherwise, return 0
 proc tbool {key} {
     upvar $key $key
     if {[info exists $key]} {
@@ -213,6 +231,8 @@ proc tbool {key} {
     return 0
 }
 
+# ldelete
+# Deletes a value from the supplied list
 proc ldelete {list value} {
     upvar $list uplist
     set ix [lsearch -exact $uplist $value]
@@ -221,6 +241,8 @@ proc ldelete {list value} {
     }
 }
 
+# reinplace
+# Provides "sed in place" functionality
 proc reinplace {oddpattern file}  {
     set backpattern [strsed $oddpattern {g/\//\\\\\//}]
     set pattern [strsed $backpattern {g/\|/\//}]
@@ -264,6 +286,8 @@ proc reinplace {oddpattern file}  {
     return
 }
 
+# filefindbypath
+# Provides searching of the standard path for included files
 proc filefindbypath {fname} {
     global distpath filedir workdir worksrcdir portpath
 
@@ -283,6 +307,7 @@ proc filefindbypath {fname} {
     return ""
 }
 
+# include
 # Source a file, looking for it along a standard search path.
 proc include {fname} {
     set tgt [filefindbypath $fname]
