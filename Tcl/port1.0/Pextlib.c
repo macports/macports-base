@@ -12,6 +12,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	FILE *pipe;
 	int i, cmdlen, cmdlenavail;
 	cmdlen = cmdlenavail = 1024;
+	p = cmdstring = NULL;
 
 	resultPtr = Tcl_GetObjResult(interp);
 
@@ -61,7 +62,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	}
 
 	pipe = popen(cmdstring, "r");
-	free(cmdstring);
+	if (p != NULL)
+		free(cmdstring);
+
 	while (fgets(buf, 1024, pipe) != NULL) {
 		/* XXX We need the output but this is not at all correct */
 		printf("%s", buf);
