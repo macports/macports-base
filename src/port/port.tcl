@@ -221,9 +221,15 @@ if {[catch {dportinit} result]} {
 
 switch -- $action {
 	info {
+		# if no port name given on command line, default to current
+		# directory base name (if Portfile exists)
 		if {![info exists portname]} {
-			puts "You must specify a port"
-			exit 1
+			if {[file exists Portfile]} {
+				set portname [file tail [pwd]]
+			} else {
+				puts "You must specify a port or be in a port directory"
+				exit 1
+			}
 		}
 	
 		# search for port
@@ -621,10 +627,15 @@ switch -- $action {
 	deps {
 		set nodeps true
 
-		# make sure a port was given on the command line
+		# if no port name given on command line, default to current
+		# directory base name (if Portfile exists)
 		if {![info exists portname]} {
-			puts "You must specify a port"
-			exit 1
+			if {[file exists Portfile]} {
+				set portname [file tail [pwd]]
+			} else {
+				puts "You must specify a port or be in a port directory"
+				exit 1
+			}
 		}
 
 		# search for port
@@ -673,10 +684,15 @@ switch -- $action {
 		}
 	}
 	variants {
-		# make sure a port was given on the command line
+		# if no port name given on command line, default to current
+		# directory base name (if Portfile exists)
 		if {![info exists portname]} {
-			puts "You must specify a port"
-			exit 1
+			if {[file exists Portfile]} {
+				set portname [file tail [pwd]]
+			} else {
+				puts "You must specify a port or be in a port directory"
+				exit 1
+			}
 		}
 	
 		# search for port
