@@ -32,7 +32,7 @@ proc suffix {distname} {
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files
 
-    lappend filelist $distfiles
+    set filelist $distfiles
     if {[info exists patchfiles]} {
 	set filelist [concat $filelist $patchfiles]
     }
