@@ -81,10 +81,6 @@ proc install_element {src_element dst_element} {
 	set arg [lindex $attributes $i]
 	file attributes $dst_element $opt $arg
     }
-
-    file attributes $dst_element -group [file attributes $src_element -group]
-    file attributes $dst_element -owner [file attributes $src_element -owner]
-    file attributes $dst_element -permissions [file attributes $src_element -permissions]
 }
 
 proc directory_dig {rootdir workdir {cwd ""}} {
