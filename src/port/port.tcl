@@ -161,6 +161,13 @@ proc fatal args {
     exit
 }
 
+# Escape regex special characters
+proc regex_escape {string} {
+    puts $string
+    regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $string "\\\\&" escaped
+    return $escaped
+}
+
 # Main
 set separator 0
 array set options [list]
@@ -270,8 +277,9 @@ switch -- $action {
     default {
 	set target $action
 	if {[info exists portname]} {
-	    if {[catch {set res [dportsearch ^$portname\$]} result]} {
-		puts $result
+	    set res [dportsearch ^[regex_escape $portname]\$]
+	    if {[catch {set res [dportsearch ^[regex_escape $portname]\$]} result]} {
+	    	puts "port search failed: $result"
 		exit 1
 	    }
 	    if {[llength $res] < 2} {
