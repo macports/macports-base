@@ -17,5 +17,5 @@ clean:
 
 install:
 	mkdir -p ${INSTALLDIR}
-	install -c -o root -g admin -m 444 ${SHLIB_NAME} ${INSTALLDIR}
+	install -c -o root -g wheel -m 444 ${SHLIB_NAME} ${INSTALLDIR}
 	../pkg_mkindex.tcl ${INSTALLDIR}
