@@ -93,7 +93,11 @@ proc build_getmaketype {args} {
 proc build_start {args} {
     global UI_PREFIX
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
+    if {[string length [option build.target]]} {
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
+    } else {
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
+    }
 }
 
 proc build_main {args} {
