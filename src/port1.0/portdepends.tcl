@@ -144,5 +144,6 @@ proc depends_main {id} {
 		ui_error "Clean of $portname failed: $result"
     }
     dportclose $worker
+	}
     return 0
 }
