@@ -48,19 +48,21 @@ set UI_PREFIX "---> "
 proc registry_new {portname {portversion 1.0}} {
     global _registry_name registry.path
 
-    system "mkdir -p $registry.path"
-    set _registry_name [file join $registry.path $portname-$portversion]
+    system "mkdir -p ${registry.path}"
+    set _registry_name [file join ${registry.path} $portname-$portversion]
     return [open $_registry_name w 0644]
 }
 
 proc registry_exists {portname {portversion 1.0}} {
     global registry.path
-    if [info exists [file join $registry.path $portname-$portversion]] {
-	return [file join $registry.path $portname-$portversion]
+
+    if [file exists [file join ${registry.path} $portname-$portversion]] {
+	return [file join ${registry.path} $portname-$portversion]
     }
-    if [info exists [file join $registry.path $portname-$portversion].bz2] {
-	return [file join $registry.path $portname-$portversion].bz2
+    if [file exists [file join ${registry.path} $portname-$portversion].bz2] {
+	return [file join ${registry.path} $portname-$portversion].bz2
     }
+    puts "could not find [file join ${registry.path} $portname-$portversion]"
     return ""
 }
 
@@ -91,8 +93,8 @@ proc registry_delete {portname {portversion 1.0}} {
     global registry.path
 
     # Try both versions, just to be sure.
-    system "rm -f [file join $registry.path $portname-$portversion]"
-    system "rm -f [file join $registry.path $portname-$portversion].bz2"
+    system "rm -f [file join ${registry.path} $portname-$portversion]"
+    system "rm -f [file join ${registry.path} $portname-$portversion].bz2"
 }
 
 proc fileinfo_for_file {fname} {
