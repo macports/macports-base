@@ -1,6 +1,5 @@
-# This is a BSD make file - please run it with bsdmake.
-
 SUBDIR= doc src
+
 all:
 	@for subdir in $(SUBDIR); do\
 		echo making $@ in $$subdir; \
