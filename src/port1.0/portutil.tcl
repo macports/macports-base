@@ -1106,8 +1106,8 @@ proc portexec_int {portname target {newworkpath ""}} {
 # build the specified portfile
 proc portfile_run {this} {
     set portname [$this get name]
-	if {[portexec $portname install] == 0} {
-		portexec $portname clean
+	if {[portexec_int $portname install] == 0} {
+		portexec_int $portname clean
     }
 }
 
