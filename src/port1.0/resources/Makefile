@@ -1,9 +1,6 @@
 SUBDIR=		package
 
-PREFIX?=	/opt/local
 INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/resources/port1.0/
-DSTUSR?=	root
-DSTGRP?=	admin
 
 RSRCS=
 
@@ -14,3 +11,4 @@ install::
 	done
 
 include ../../../Mk/dports.subdir.mk
+include ../../../Mk/dports.mk

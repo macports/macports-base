@@ -1,7 +1,4 @@
-PREFIX?=	/opt/local
 INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/resources/port1.0/package
-DSTUSR?=	root
-DSTGRP?=	admin
 
 RSRCS=		background.tiff
 
@@ -14,3 +11,5 @@ install:
 	@set -x; for file in ${RSRCS}; do \
 		install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
+
+include ../../../../Mk/dports.mk
