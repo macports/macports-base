@@ -6,8 +6,8 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register com.apple.extract target build extract_main 
-register com.apple.extract swdep build depends_lib
+register com.apple.extract target extract_main 
+register com.apple.extract swdep depends_lib
 register com.apple.extract provides extract
 register com.apple.extract requires fetch checksum
 

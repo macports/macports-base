@@ -6,10 +6,10 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-register com.apple.patch target build patch_main
+register com.apple.patch target patch_main
 register com.apple.patch provides patch
 register com.apple.patch requires main fetch checksum extract
-register com.apple.patch swdep build depends_build
+register com.apple.patch swdep depends_build
 
 set UI_PREFIX "---> "
 

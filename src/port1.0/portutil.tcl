@@ -64,7 +64,7 @@ proc makeuserproc {name body} {
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
-proc swdep_resolve {name chain} {
+proc swdep_resolve {name} {
     global $name env sysportpath
     if {![info exists $name]} {
 	return 0
@@ -115,7 +115,7 @@ proc swdep_resolve {name chain} {
 	}
     }
     ui_debug "Building $portname"
-    dportbuild $sysportpath/software/$portname build build
+    dportbuild $sysportpath/software/$portname build
     return 0
 }
 
@@ -125,8 +125,8 @@ proc swdep_resolve {name chain} {
 #     functions
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
-#	<identifier> target <chain> <procedure to execute> [run type]
-#	<identifier> swdep <chain> <list of dependency option names>
+#	<identifier> target <procedure to execute> [run type]
+#	<identifier> swdep <list of dependency option names>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -137,22 +137,20 @@ proc register {name mode args} {
     dlist_add_item targets $name
 
     if {[string equal target $mode]} {
-        set chain [lindex $args 0]
-        set procedure [lindex $args 1]
-        if {[dlist_has_key targets $name procedure,$chain]} {
-            ui_info "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
+        set procedure [lindex $args 0]
+        if {[dlist_has_key targets $name procedure]} {
+            ui_info "Warning: target '$name' re-registered (new procedure: '$procedure')"
         }
-        dlist_set_key targets $name procedure,$chain $procedure
+        dlist_set_key targets $name procedure $procedure
 
 	# Set runtype {always,once} if available
 	if {[llength $args] == 3} {
 	    dlist_set_key targets $name runtype [lindex $args 2]
 	}
     } elseif {[string equal swdep $mode]} {
-	set chain [lindex $args 0]
-	foreach depname [lrange $args 1 end] {
-	    if {![dlist_has_key targets $depname procedure,$chain]} {
-		register $depname target $chain swdep_resolve
+	foreach depname $args {
+	    if {![dlist_has_key targets $depname procedure]} {
+		register $depname target swdep_resolve
 		register $depname provides $depname
 		options $depname
    	    }
@@ -173,25 +171,25 @@ proc register {name mode args} {
             foreach target $args {
                 set id [incr portutil::uniqid]
                 set ident [lindex [dlist_get_matches targets provides $args] 0]
-                set origproc [dlist_get_key targets $ident procedure,build]
+                set origproc [dlist_get_key targets $ident procedure]
                 eval "proc $target {args} \{ \n\
-                    register $ident target build proc-$target$id \n\
-                    proc proc-$target$id \{name chain\} \{ \n\
+                    register $ident target proc-$target$id \n\
+                    proc proc-$target$id \{name\} \{ \n\
                         return \[catch userproc-$target$id\] \n\
                     \} \n\
-                    eval \"proc do-$target \{\} \{ $origproc $target build \}\" \n\
+                    eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
                     makeuserproc userproc-$target$id \$args \}"
                 eval "proc pre-$target {args} \{ \n\
-                    register pre-$target$id target build proc-pre-$target$id \n\
+                    register pre-$target$id target proc-pre-$target$id \n\
                     register pre-$target$id preflight $target \n\
-                    proc proc-pre-$target$id \{name chain\} \{ \n\
+                    proc proc-pre-$target$id \{name\} \{ \n\
                         return \[catch userproc-pre-$target$id\] \n\
                     \} \n\
                     makeuserproc userproc-pre-$target$id \$args \}"
                 eval "proc post-$target {args} \{ \n\
-                    register post-$target$id target build proc-post-$target$id \n\
+                    register post-$target$id target proc-post-$target$id \n\
                     register post-$target$id postflight $target \n\
-                    proc proc-post-$target$id \{name chain\} \{ \n\
+                    proc proc-post-$target$id \{name\} \{ \n\
                         return \[catch userproc-post-$target$id\] \n\
                     \} \n\
                     makeuserproc userproc-pre-$target$id \$args \}"
@@ -416,13 +414,13 @@ proc dlist_evaluate {dlist downstatusdict action} {
     }
 }
 
-proc exec_target {fd chain dlist name} {
+proc exec_target {fd dlist name} {
 # XXX: Don't depend on entire dlist, this should really receive just one node.
     upvar $dlist uplist
-    if {[dlist_has_key uplist $name procedure,$chain]} {
-	set procedure [dlist_get_key uplist $name procedure,$chain]
-	ui_debug "Executing $name in chain $chain"
-	set result [$procedure $name $chain]
+    if {[dlist_has_key uplist $name procedure]} {
+	set procedure [dlist_get_key uplist $name procedure]
+	ui_debug "Executing $name"
+	set result [$procedure $name]
 	if {$result == 0} {
 	    set result success
 	    if {[dlist_get_key uplist $name runtype] != "always"} {
@@ -430,17 +428,17 @@ proc exec_target {fd chain dlist name} {
 		flush $fd
 	    }
 	} else {
-	    ui_error "$chain error: $name returned $result"
+	    ui_error "Target error: $name returned $result"
 	    set result failure
 	}
     } else {
-	ui_info "Warning: $name does not support chain $chain"
+	ui_info "Warning: $name does not have a registered procedure"
 	set result failure
     }
     return $result
 }
 
-proc eval_targets {dlist chain target} {
+proc eval_targets {dlist target} {
     upvar $dlist uplist
 	
     # Select the subset of targets under $target
@@ -463,7 +461,7 @@ proc eval_targets {dlist chain target} {
     # Restore the state from a previous run.
     set fd [read_statefile uplist statusdict]
     
-    dlist_evaluate uplist statusdict [list exec_target $fd $chain]
+    dlist_evaluate uplist statusdict [list exec_target $fd]
     
     close $fd
 }

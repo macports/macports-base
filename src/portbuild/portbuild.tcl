@@ -39,7 +39,7 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 dportinit
 if [info exists options] {
-    dportbuild $portdir build $target $options
+    dportbuild $portdir $target $options
 } else {
-    dportbuild $portdir build $target
+    dportbuild $portdir $target
 }

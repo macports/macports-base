@@ -6,10 +6,10 @@
 package provide portfetch 1.0
 package require portutil 1.0
 
-register com.apple.fetch target build fetch_main
+register com.apple.fetch target fetch_main
 register com.apple.fetch provides fetch
 register com.apple.fetch requires main
-register com.apple.fetch swdep build depends_fetch
+register com.apple.fetch swdep depends_fetch
 
 # define options: distname master_sites
 options master_sites patch_sites extract_sufx distfiles extract_only patchfiles use_zip use_bzip2

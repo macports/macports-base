@@ -9,7 +9,7 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-register com.apple.main target build main always
+register com.apple.main target main always
 register com.apple.main provides main
 
 # define options

@@ -6,10 +6,10 @@
 package provide portbuild 1.0
 package require portutil 1.0
 
-register com.apple.build target build build_main 
+register com.apple.build target build_main 
 register com.apple.build provides build 
 register com.apple.build requires main fetch extract checksum patch configure
-register com.apple.build swdep build depends_build
+register com.apple.build swdep depends_build
 
 # define options
 options make.cmd make.type make.target.all make.target.install
