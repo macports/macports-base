@@ -46,9 +46,13 @@ options portname portversion portrevision categories maintainers workdir worksrc
 if [info exists sysportpath] {
 	default distpath "$sysportpath/distfiles"
 }
+default workdir work
+
+if [info exists portpath] {
+    default workpath [join $portpath $workdir]
+}
 
 default prefix /usr/local/
-default workdir work
 default filedir files
 default portrevision 0
 default os_arch $tcl_platform(machine)
