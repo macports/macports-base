@@ -29,30 +29,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
+
+#if HAVE_STRING_H
 #include <string.h>
+#endif
+
+#if HAVE_DIRENT_H
 #include <dirent.h>
+#endif
+
+#if HAVE_LIMITS_H
 #include <limits.h>
+#endif
+
+#if HAVE_PATHS_H
 #include <paths.h>
+#else
+#ifndef _PATH_DEVNULL
+#define _PATH_DEVNULL "/dev/null"
+#endif
+#endif
+
 #include <pwd.h>
+
+#if HAVE_SYS_FILE_H
 #include <sys/file.h>
+#endif
+
+#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+
+#if HAVE_SYS_WAIT_H
 #include <sys/wait.h>
-#include <tcl.h>
+#endif
+
+#if HAVE_UNISTD_H
 #include <unistd.h>
-#ifdef __APPLE__
+#endif
+
+#include <tcl.h>
+
+#if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#else
+extern char **environ;
+#endif
+
+#if !HAVE_BZERO
+#if HAVE_MEMSET
+#define bzero(b, len) (void)memset(b, 0x00, len)
+#endif
 #endif
 
 #define CBUFSIZ 30
-
-#if !defined(__APPLE__)
-extern char **environ;
-#endif
 
 char *ui_escape(const char *source)
 {
@@ -137,11 +177,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pid_t pid;
 	Tcl_Obj *errbuf;
 	Tcl_Obj *tcl_result;
-
-#if defined(__APPLE__)
-	char **environ;
-	environ = *_NSGetEnviron();
-#endif
 
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
@@ -443,7 +478,7 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 	channel = Tcl_MakeFileChannel((ClientData) fd, TCL_READABLE|TCL_WRITABLE);
 	Tcl_RegisterChannel(interp, channel);
-	channelname = Tcl_GetChannelName(channel);
+	channelname = (char *)Tcl_GetChannelName(channel);
 	Tcl_AppendResult(interp, channelname, " ", template, NULL);
 	free(template);
 	return TCL_OK;
