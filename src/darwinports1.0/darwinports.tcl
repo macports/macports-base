@@ -413,7 +413,6 @@ proc _libtest {dport} {
 		set depregex \^${depname}\\.so${depversion}\$
 	}
 
-	
 	return [_dportsearchpath $depregex $search_path]
 }
 
