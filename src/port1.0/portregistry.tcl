@@ -65,7 +65,6 @@ proc registry_close {rhandle} {
     close $rhandle
 }
 
-# Beginning of utility routines.
 proc fileinfo_for_file {fname} {
     if ![catch {file stat $fname statvar}] {
 	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
@@ -139,7 +138,7 @@ proc registry_main {args} {
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
-    ui_msg "$UI_PREFIX Adding $portname to registry (this may take a moment)..."
+    ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
     lappend data [list prefix $prefix]
     lappend data [list categories $categories]
     if [info exists description] {
