@@ -31,10 +31,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
+#include <grp.h>
 #include <string.h>
 #include <dirent.h>
+#include <limits.h>
 #include <paths.h>
+#include <pwd.h>
 #include <sys/file.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -363,6 +367,94 @@ int MkstempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	return TCL_OK;
 }
 
+int ExistsuserCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj *tcl_result;
+	struct passwd *pwent;
+	char *user;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "user");
+		return TCL_ERROR;
+	}
+
+	user = strdup(Tcl_GetString(objv[1]));
+	if (isdigit(*(user)))
+		pwent = getpwuid(strtol(user, 0, 0));
+	else
+		pwent = getpwnam(user);
+	free(user);
+
+	if (pwent == NULL)
+		tcl_result = Tcl_NewIntObj(0);
+	else
+		tcl_result = Tcl_NewIntObj(pwent->pw_uid);
+
+	Tcl_SetObjResult(interp, tcl_result);
+	return TCL_OK;
+}
+
+int ExistsgroupCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj *tcl_result;
+	struct group *grent;
+	char *group;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "groupname");
+		return TCL_ERROR;
+	}
+
+	group = strdup(Tcl_GetString(objv[1]));
+	if (isdigit(*(group)))
+		grent = getgrgid(strtol(group, 0, 0));
+	else
+		grent = getgrnam(group);
+	free(group);
+
+	if (grent == NULL)
+		tcl_result = Tcl_NewIntObj(0);
+	else
+		tcl_result = Tcl_NewIntObj(grent->gr_gid);
+
+	Tcl_SetObjResult(interp, tcl_result);
+	return TCL_OK;
+}
+
+int NextuidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj *tcl_result;
+	struct passwd *pwent;
+	int max;
+
+	max = 0;
+
+	while ((pwent = getpwent()) != NULL)
+		if ((int)pwent->pw_uid > max)
+			max = (int)pwent->pw_uid;
+	
+	tcl_result = Tcl_NewIntObj(max + 1);
+	Tcl_SetObjResult(interp, tcl_result);
+	return TCL_OK;
+}
+
+int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj *tcl_result;
+	struct group *grent;
+	int max;
+
+	max = 0;
+
+	while ((grent = getgrent()) != NULL)
+		if ((int)grent->gr_gid > max)
+			max = (int)grent->gr_gid;
+	
+	tcl_result = Tcl_NewIntObj(max + 1);
+	Tcl_SetObjResult(interp, tcl_result);
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
@@ -371,6 +463,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mktemp", MktempCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "existsuser", ExistsuserCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "existsgroup", ExistsgroupCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "nextuid", NextuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;

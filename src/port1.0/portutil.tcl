@@ -1156,3 +1156,69 @@ proc binportfile_test {this} {
 	return [portfile_search_path $depregex $search_path]
     }
 }
+
+proc adduser {name args} {
+    global os.platform
+    set passwd {\*}
+    set uid [nextuid]
+    set gid [nextgid]
+    set realname ${name}
+    set home /dev/null
+    set shell /dev/null
+
+    foreach arg $args {
+	if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
+	    regsub -all " " ${val} "\\ " val
+	    set $key $val
+	}
+    }
+
+    if {[existsuser ${name}] != 0 || [existsuser ${uid}] != 0} {
+	return
+    }
+
+    if {${os.platform} == "darwin"} {
+	system "niutil -create . /users/${name}"
+	system "niutil -createprop . /users/${name} name ${name}"
+	system "niutil -createprop . /users/${name} passwd ${passwd}"
+	system "niutil -createprop . /users/${name} uid ${uid}"
+	system "niutil -createprop . /users/${name} gid ${gid}"
+	system "niutil -createprop . /users/${name} realname ${realname}"
+	system "niutil -createprop . /users/${name} home ${home}"
+	system "niutil -createprop . /users/${name} shell ${shell}"
+    } else {
+	# XXX adduser is only available for darwin, add more support here
+	ui_warning "WARNING: adduser is not implemented on ${os.platform}."
+	ui_warning "The requested user was not created."
+    }
+}
+
+proc addgroup {name args} {
+    global os.platform
+    set gid [nextgid]
+    set passwd {\*}
+    set users ""
+
+    foreach arg $args {
+	if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
+	    regsub -all " " ${val} "\\ " val
+	    set $key $val
+	}
+    }
+
+    if {[existsgroup ${name}] != 0 || [existsgroup ${gid}] != 0} {
+	return
+    }
+
+    if {${os.platform} == "darwin"} {
+	system "niutil -create . /groups/${name}"
+	system "niutil -createprop . /groups/${name} name ${name}"
+	system "niutil -createprop . /groups/${name} gid ${gid}"
+	system "niutil -createprop . /groups/${name} passwd ${passwd}"
+	system "niutil -createprop . /groups/${name} users ${users}"
+    } else {
+	# XXX addgroup is only available for darwin, add more support here
+	ui_warning "WARNING: addgroup is not implemented on ${os.platform}."
+	ui_warning "The requested group was not created."
+    }
+}
