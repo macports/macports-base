@@ -80,6 +80,10 @@
 #define _PATH_DEVNULL	"/dev/null"
 #endif
 
+#ifndef MAXBSIZE
+#define MAXBSIZE 65536
+#endif
+
 #ifndef S_ISTXT
 #ifdef S_ISVTX
 #define S_ISTXT S_ISVTX
