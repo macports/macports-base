@@ -101,11 +101,6 @@ proc options {args} {
 	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\
-			 if \{\[info exists option_procs($option)\]\} \{ \n\
-				foreach p \$option_procs($option) \{ \n\
-					eval \"\$p $option set \$args\" \n\
-				\} \n\
-			 \} \n\
 		\} \n\
 	\}"
 	
@@ -118,11 +113,6 @@ proc options {args} {
 		    if \{\[string length \$\{${option}\}\] == 0\} \{ \n\
 			unset ${option} \n\
 		    \} \n\
-			if \{\[info exists option_procs($option)\]\} \{ \n\
-			    foreach p \$option_procs($option) \{ \n\
-				eval \"\$p $option delete \$args\" \n\
-			\} \n\
-		    \} \n\
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
@@ -132,11 +122,6 @@ proc options {args} {
 			set ${option} \[concat \$\{$option\} \$args\] \n\
 		    \} else \{ \n\
 			set ${option} \$args \n\
-		    \} \n\
-		    if \{\[info exists option_procs($option)\]\} \{ \n\
-			foreach p \$option_procs($option) \{ \n\
-			    eval \"\$p $option append \$args\" \n\
-			\} \n\
 		    \} \n\
 		\} \n\
 	\}"
@@ -185,15 +170,33 @@ proc option_proc {option args} {
     global option_procs $option
     eval "lappend option_procs($option) $args"
     # Add a read trace to the variable, as the option procedures have no access to reads
-    trace variable $option r option_proc_trace
+    trace variable $option rwu option_proc_trace
 }
 
 # option_proc_trace
 # trace handler for option reads. Calls option procedures with correct arguments.
 proc option_proc_trace {optionName index op} {
     global option_procs
-    foreach p $option_procs($optionName) {
-	eval "$p $optionName read"
+    switch $op {
+	w {
+	    foreach p $option_procs($optionName) {
+		eval "$p $optionName set"
+	    }
+	    return
+	}
+	r {
+	    foreach p $option_procs($optionName) {
+		eval "$p $optionName read"
+	    }
+	    return
+	}
+	u {
+	    foreach p $option_procs($optionName) {
+		eval "$p $optionName delete"
+	    	trace vdelete $optionName rwu $p
+	    }
+	    return
+	}
     }
 }
 
