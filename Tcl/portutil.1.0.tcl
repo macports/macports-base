@@ -38,6 +38,15 @@ proc options {array args} {
 	}
 }
 
+# default
+# Checks if variable is set, if not, sets to supplied value
+proc default {array key val} {
+	upvar $array uparray
+	if {![isval $array $key]} {
+		setval $array $key $val
+	}
+}
+
 # globals
 # Specifies which keys from an array should be exported as global variables.
 # Often used directly with options procedure
