@@ -24,7 +24,7 @@ master_sites	http://www.opendarwin.org/~eric/
 distname	${portname}-${portversion}
 
 # (Optional) Explicitly set suffix (default: .tar.gz)
-#extract_sufx	.tar.bz2
+#extract.sufx	.tar.bz2
 
 # (Optional) Use bzip2 instead of gzip for uncompressing distribution file
 #use_bzip2	yes
@@ -32,7 +32,7 @@ distname	${portname}-${portversion}
 # List of checksums for files to be fetched
 # <file name> <checksum type> <checksum>
 # Currently the only supported checksum type is md5
-checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
+checksums	${distname}${extract.sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
 
 # Any patches which should be applied after extracting this port.  These
 # should go in the files/ subdirectory of the port.

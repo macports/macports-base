@@ -259,7 +259,7 @@ List of sites to fetch ${patchfiles} from
 .Sy Example:
 .Dl patch_sites	ftp://ftp.patchcityrepo.com/pub/magic/patches
 
-.It Ic extract_sufx
+.It Ic extract.sufx
 Suffix to append to ${distname}
 .br
 .Sy Type:
@@ -268,7 +268,7 @@ Suffix to append to ${distname}
 .Em .tar.gz
 .br
 .Sy Example:
-.Dl extract_sufx	.tgz
+.Dl extract.sufx	.tgz
 
 .It Ic distfiles
 List of distribution files to fetch from ${master_sites}
@@ -293,7 +293,7 @@ List of patches to fetch and apply
 .It Ic use_zip
 Use zip.
 .br
-Sets extract_sufx to: .zip
+Sets extract.sufx to: .zip
 .br
 Sets extract.cmd to: unzip
 .br
@@ -310,7 +310,7 @@ Sets extract.post_args to: "-d $portpath/$workdir"
 .It Ic use_bzip2
 Use bzip2.
 .br
-Sets extract_sufx to: .bzip2
+Sets extract.sufx to: .bzip2
 .br
 Sets extract.cmd to: bzip2
 .br

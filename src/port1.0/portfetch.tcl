@@ -39,14 +39,14 @@ register com.apple.fetch requires main
 register com.apple.fetch deplist depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
+options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
 commands fetch
 
 # Defaults
-default extract_sufx .tar.gz
+default extract.sufx .tar.gz
 default fetch.type standard
 default cvs.cmd cvs
 default cvs.password ""
@@ -67,16 +67,16 @@ default distfiles {[suffix $distname]}
 # Option-executed procedures
 namespace eval options { }
 proc options::use_bzip2 {args} {
-    global use_bzip2 extract_sufx
+    global use_bzip2 extract.sufx
     if [tbool use_bzip2] {
-        set extract_sufx .tar.bz2
+        set extract.sufx .tar.bz2
     }
 }
 
 proc options::use_zip {args} {
-    global use_zip extract_sufx
+    global use_zip extract.sufx
     if [tbool use_zip] {
-        set extract_sufx .zip
+        set extract.sufx .zip
     }
 }
 
@@ -86,9 +86,9 @@ namespace eval portfetch { }
 
 set UI_PREFIX "---> "
 
-# Given a distname, return a suffix based on the use_zip / use_bzip2 / extract_sufx options
+# Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.sufx options
 proc suffix {distname} {
-    global extract_sufx use_bzip2 use_zip fetch.type
+    global extract.sufx use_bzip2 use_zip fetch.type
 	if {"${fetch.type}" == "cvs"} {
         return ""
     }
@@ -97,7 +97,7 @@ proc suffix {distname} {
     } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
-	return ${distname}${extract_sufx}
+	return ${distname}${extract.sufx}
     }
 }
 
