@@ -150,7 +150,10 @@ proc ui_display {filename} {
 # speed up the testing, since we won't have to recompile dependencies
 # which have already been compiled.
 
-proc install_binary_if_available {portname basepath} {
+proc install_binary_if_available {portname basepath args} {
+	if {[llength $args] > 0} {
+		set already_installed [lindex $args 0]
+	}
 
 	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
 		ui_puts err "Internal error: port search failed: $error"
@@ -163,27 +166,32 @@ proc install_binary_if_available {portname basepath} {
 		
 		set portversion $portinfo(version)
 		set category [lindex $portinfo(categories) 0]
-		
+				
+		set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
+		if {[lsearch -exact $already_installed $pkgpath] == -1} {
+			if {[file readable $pkgpath]} {
+				ui_puts msg "installing binary: $pkgpath"
+				if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
+					ui_puts err "Internal error: $error"
+				}
+				# Touch the receipt
+				# xxx: use some variable to describe this path
+				if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
+					ui_puts err "Internal error: $error"
+				}
+				lappend already_installed $pkgpath
+			}
+		} else {
+			ui_puts "skipping binary (already installed): $pkgpath"
+		}
+
 		set depends {}
 		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
 		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
 		if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
 		foreach depspec $depends {
 			set dep [lindex [split $depspec :] 2]
-			install_binary_if_available $dep $basepath
-		}
-		
-		set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
-		if {[file readable $pkgpath]} {
-			ui_puts msg "installing binary: $pkgpath"
-			if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
-				ui_puts err "Internal error: $error"
-			}
-			# Touch the receipt
-			# xxx: use some variable to describe this path
-			if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
-				ui_puts err "Internal error: $error"
-			}
+			install_binary_if_available $dep $basepath $already_installed
 		}
 	}
 }
