@@ -6,9 +6,9 @@ PREFIX=/System/Library/Tcl/8.3/${PACKAGE_DIR}/
 all: install
 
 pkg_index:
-	${.CURDIR}/pkg_mkindex.tcl ${.CURDIR}/${PACKAGE_NAME}${PACKAGE_VERSION}
+	./pkg_mkindex.tcl ${PACKAGE_NAME}${PACKAGE_VERSION}
 
 install: pkg_index
 	mkdir -p ${PREFIX}
-	install ${.CURDIR}/${PACKAGE_DIR}/${PACKAGE_NAME}.tcl ${PREFIX}
-	install ${.CURDIR}/${PACKAGE_DIR}/pkgIndex.tcl ${PREFIX}
+	install ${PACKAGE_DIR}/${PACKAGE_NAME}.tcl ${PREFIX}
+	install ${PACKAGE_DIR}/pkgIndex.tcl ${PREFIX}
