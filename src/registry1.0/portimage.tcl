@@ -33,6 +33,7 @@ package provide portimage 1.0
 
 package require registry 1.0
 package require darwinports 1.0
+package require Pextlib 1.0
 
 set UI_PREFIX "--> "
 
@@ -42,7 +43,7 @@ set UI_PREFIX "--> "
 # They allow the user to instal multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
-# From there, the user can "activate" a port image.  This creates hardlinks for
+# From there, the user can "activate" a port image.  This creates {sym,hard}links for
 # all files in the image into the ${prefix}.  Directories are created.  
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
@@ -267,7 +268,8 @@ proc _activate_file {srcfile dstfile} {
 		file copy -force $srcfile $dstfile
 	} else {
 		# Try a hard link first and if that fails, a symlink
-		if {[catch {file link -hard $dstfile $srcfile}]} {
+		if {[catch {compat filelinkhard $dstfile $srcfile}]} {
+			ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
 			file link -symbolic $dstfile $srcfile
 		}
 	}
@@ -400,11 +402,20 @@ proc _deactivate_contents {name imagefiles} {
 	foreach file $imagefiles {
 		set port [registry::file_registered $file]
 		if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
-			lappend files $file
+			# Normalize the file path to avoid removing the intermediate
+			# symlinks (remove the empty directories instead)
+			# Remark: paths in the registry may be not normalized.
+			# This is not really a problem and it is in fact preferable.
+			# Indeed, if I change the activate code to include normalized paths
+			# instead of the paths we currently have, users' registry won't
+			# match and activate will say that some file exists but doesn't
+			# belong to any port.
+			set theFile [compat filenormalize $file]
+			lappend files $theFile
 			
 			# Split out the filename's subpaths and add them to the image list as
 			# well.
-			set directory [file dirname $file]
+			set directory [file dirname $theFile]
 			while { [lsearch -exact $files $directory] == -1 } { 
 				lappend files $directory
 				set directory [file dirname $directory]
