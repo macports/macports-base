@@ -161,6 +161,11 @@ if ![info exists action] {
     set action build
 }
 
+if {$action == "list"} {
+    set action search
+    set portname .+
+}
+
 if {[catch {dportinit} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
