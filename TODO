@@ -2,7 +2,7 @@ Things left to do in Darwinports
 
 Task								Who
 ----								---
-Add descriptions and contents lists to all ports		eric
+Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
      specific sites						landonf
 Implement the variants code					landonf kevinvv
