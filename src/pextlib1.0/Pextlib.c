@@ -134,7 +134,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	if (pid == 0) {
 		close(fdset[0]);
 		if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			return TCL_ERROR;
+			_exit(1);
 		dup2(nullfd, STDIN_FILENO);
 		dup2(fdset[1], STDOUT_FILENO);
 		dup2(fdset[1], STDERR_FILENO);
@@ -147,6 +147,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		args[2] = cmdstring;
 		args[3] = NULL;
 		execve("/bin/sh", args, NULL);
+		_exit(1);
 	}
 	close(fdset[1]);
 	pdes = fdopen(fdset[0], "r");
