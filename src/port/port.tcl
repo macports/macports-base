@@ -60,6 +60,8 @@ for {set i 0} {$i < $argc} {incr i} {
 	    foreach c [split $opt {}] {
 		if {$c == "v"} {
 		    set options(ports_verbose) yes
+		} elseif {$c == "f"} {
+		    set options(ports_force) yes
 		} elseif {$c == "D"} {
 		    set options(ports_debug) yes
 		} elseif {$c == "q"} {

@@ -138,7 +138,7 @@ proc darwinports::worker_init {workername portpath options variations} {
 																	    $workername alias $proc $proc
 																	}
 
-    foreach proc {ports_verbose ports_quiet ports_debug} {
+    foreach proc {ports_verbose ports_quiet ports_debug ports_force} {
 							  $workername alias $proc $proc
 						      }
 
@@ -257,6 +257,13 @@ proc darwinports::getindex {source} {
     regsub {://} $source {.} source_dir
     regsub -all {/} $source_dir {_} source_dir
     return [file join $portdbpath sources $source_dir PortIndex]
+}
+
+# Provide the notion of "forcing" an action.
+proc ports_force {val} {
+    global system_options
+
+    set system_options(ports_force) $val
 }
 
 proc dportsync {args} {

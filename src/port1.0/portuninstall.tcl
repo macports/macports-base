@@ -43,7 +43,12 @@ options uninstall.force uninstall.nochecksum
 set UI_PREFIX "---> "
 
 proc uninstall_main {args} {
-    global portname portversion uninstall.force uninstall.nochecksum UI_PREFIX
+    global portname portversion uninstall.force uninstall.nochecksum ports_force UI_PREFIX
+
+    # If global forcing is on, make it the same as a local force flag.
+    if [tbool ports_force] {
+	set uninstall.force "yes"
+    }
 
     set rfile [registry_exists $portname $portversion]
     if [string length $rfile] {
@@ -79,17 +84,26 @@ proc uninstall_main {args} {
 		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
 		    if ![catch {set sum2 [md5 $fname]}] {
 			if ![string match $sum1 $sum2] {
-			    ui_info "$UI_PREFIX  Original checksum does not match for $fname, not removing"
-			    set uninst_err 1
-			    continue
+			    if ![tbool uninstall.force] {
+				ui_info "$UI_PREFIX  Original checksum does not match for $fname, not removing"
+				set uninst_err 1
+				continue
+			    } else {
+				ui_info "$UI_PREFIX  Original checksum does not match for $fname, removing anyway [force in effect]"
+			    }
 			}
 		    }
 		}
 		ui_info "$UI_PREFIX   Uninstall is removing $fname"
 		if [file isdirectory $fname] {
 		    if [catch {exec rmdir $fname}] {
-			ui_info "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
-			set uninst_err 1
+			if ![tbool uninstall.force] {
+			    ui_info "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
+			    set uninst_err 1
+			} else {
+			    # No, I INSIST!
+			    exec rm -rf $fname
+			}
 		    }
 		} else {
 		    if [catch {exec rm $fname}] {
@@ -98,13 +112,13 @@ proc uninstall_main {args} {
 		    }
 		}
 	    }
-	    if {!$uninst_err} {
+	    if {!$uninst_err || [tbool uninstall.force]} {
 		registry_delete $portname $portversion
 		return 0
 	    }
 	} else {
-	    return -code error "Uninstall failed"
+	    return -code error "Uninstall failed: Port has no contents entry"
 	}
     }
-    return -code error "Uninstall failed"
+    return -code error "Uninstall failed: Port not registered as installed"
 }
