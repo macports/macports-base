@@ -130,42 +130,59 @@ proc delval {array key} {
 #	<identifier> uses <list of target names>
 #	<identifier> preflight <target name>
 #	<identifier> postflight <target name>
-proc register {identifier mode args} {	
+proc register {name mode args} {
+
+	dlist_add_item portutil::targets $name
+
 	if {[string equal target $mode]} {
 		set chain [lindex $args 0]
 		set procedure [lindex $args 1]
-		if {[isval portutil::targets procedure,$chain,$identifier]} {
+		if {[dlist_has_key portutil::targets $name procedure,$chain]} {
 			# XXX: remove puts
-			puts "Warning: target '$identifier' re-registered for chain $chain (new procedure: '$procedure')"
+			puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
 		}
-		depend_list_add_item portutil::targets $identifier $chain $procedure
+		dlist_set_key portutil::targets $name procedure,$chain $procedure
+		
 	} elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
-		if {[isval portutil::targets name,$identifier]} {
-			# XXX: violates data abstraction
-			eval "lappend portutil::targets($mode,$identifier) $args"
+		if {[dlist_has_item portutil::targets $name]} {
+			dlist_append_key portutil::targets $name $mode $args
 		} else {
 			# XXX: remove puts
-			puts "Warning: target '$identifier' not-registered in register $mode"
+			puts "Warning: target '$name' not-registered in register $mode"
 		}
+
 	} elseif {[string equal preflight $mode]} {
 		# preflight vulcan mind meld:
 		# "your requirements to my requirements; my provides to your requirements"
-		# XXX: violates data abstraction
-		lappend portutil::targets(provides,$identifier) $identifier-pre-$args
-		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
-		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(requires,$ident)"
-		eval "lappend portutil::targets(requires,$args) $portutil::targets(provides,$identifier)"
+
+		dlist_append_key portutil::targets $name provides $name-pre-$args
+		# XXX: this only returns the first match, is this what we want?
+		set ident [lindex [portutil::dlist_get_matches portutil::targets provides $args] 0]
+
+		dlist_append_key portutil::targets $name requires \
+			[dlist_get_key portutil::targets $ident requires]
+		dlist_append_key portutil::targets $ident requires \
+			[dlist_get_key portutil::targets $name provides]
+
 	} elseif {[string equal postflight $mode]} {
 		# postflight procedure:
-		# your provides to my requires; my provides to the requires of your children
-		# XXX: violates data abstraction
-		lappend portutil::targets(provides,$identifier) $identifier-post-$args
-		set ident [lindex [depend_list_get_matches portutil::targets provides $args] 0]
-		eval "lappend portutil::targets(requires,$identifier) $portutil::targets(provides,$ident)"
-		foreach name [join $portutil::targets(provides,$ident)] {
-			set matches [depend_list_get_matches portutil::targets requires name]
+
+		dlist_append_key portutil::targets $name provides $name-post-$args
+		
+		set ident [lindex [portutil::dlist_get_matches portutil::targets provides $args] 0]
+
+		# your provides to my requires
+		dlist_append_key portutil::targets $name requires \
+			[dlist_get_key portutil::targets $ident provides]
+			
+		# my provides to the requires of your children
+		foreach token [join [dlist_get_key portutil::targets $ident provides]] {
+			set matches [portutil::dlist_get_matches portutil::targets requires $token]
 			foreach match $matches {
-				lappend portutil::targets(requires,$match) $ident-post-$args
+				# don't want to require ourself
+				if {![string equal $match $name]} {
+					dlist_append_key portutil::targets $match requires $name-post-$args
+				}
 			}
 		}
 	}
@@ -175,39 +192,84 @@ proc register {identifier mode args} {
 # Unregisters a target in the global target list
 # Arguments: target <target name>
 proc unregister {mode target} {
-	if {[string equal target $mode]} {
-		depend_list_del_item portutil::targets portutil::targets $target
-	}
 }
 
 ########### Internal Dependancy Manipulation Procedures ###########
 
-# depend_list_add
-# Creates a new node in the dependency list with the given name.
-# Optionally sets the list of hard and soft dependencies.
-# Caution: this will over-write an existing node of the same name.
-proc depend_list_add_item {nodes name chain procedure} {
-	upvar $nodes upnodes
-	set upnodes(name,$name) $name
-	set upnodes(procedure,$chain,$name) $procedure
-	if {![isval upnodes provides,$name]} {set upnodes(provides,$name) [list]}
-	if {![isval upnodes requires,$name]} {set upnodes(requires,$name) [list]}
-	if {![isval upnodes uses,$name]} {set upnodes(uses,$name) [list]}
+# Dependency List (dlist)
+# The dependency list is really just one big array.  (I would have
+# liked to make this nested arrays, but that's not feasible in Tcl,
+# thus we'll use the $fieldname,$groupname syntax to mimic structures.
+#
+# Dependency lists may contain private data, via the 
+# dlist_*_key APIs.  However, it must be recognized that the
+# following keys are reserved for use by the evaluation engine.
+# (Don't fret, you want these keys anyway, honest.)  These keys also
+# have predefined accessor APIs to remind you of their significance.
+#
+# Reserved keys: 
+# name		- The unique identifier of the item.  No Commas!
+# provides	- The list of tokens this item provides
+# requires	- The list of hard-dependency tokens
+# uses		- The list of soft-dependency tokens
+
+# Sets the key/value to an item in the dependency list
+proc dlist_set_key {dlist name key args} {
+	upvar $dlist uplist
+	# might be keen to validate $name here.
+	eval "set uplist($key,$name) $args"
 }
 
-proc depend_list_del_item {nodes name} {
-	upvar $nodes upnodes
-	array unset upnodes *,$name
+# Appends the value to the list stored at the key of the item
+proc dlist_append_key {dlist name key args} {
+	upvar $dlist uplist
+	if {![dlist_has_key uplist $name $key]} { set uplist($key,$name) [list] }
+	eval "lappend uplist($key,$name) [join $args]"
 }
 
-# Return a list of identifiers of targets that provide the given name
-# (private)
-proc depend_list_get_matches {waitlist key value} {
-	upvar $waitlist upwaitlist
+# Return true if the key exists for the item, false otherwise
+proc dlist_has_key {dlist name key} {
+	upvar $dlist uplist
+	return [isval uplist $key,$name]
+}
+
+# Retrieves the value of the key of an item in the dependency list
+proc dlist_get_key {dlist name key} {
+	upvar $dlist uplist
+	if {[isval uplist $key,$name]} {
+		return $uplist($key,$name)
+	} else {
+		return ""
+	}
+}
+
+# Adds a colorless odorless item to the dependency list
+proc dlist_add_item {dlist name} {
+	upvar $dlist uplist
+	set uplist(name,$name) $name
+}
+
+# Deletes all keys of the specified item
+proc dlist_remove_item {dlist name} {
+	upvar $dlist uplist
+	array unset uplist *,$name
+}
+
+# Tests if the item is present in the dependency list
+proc dlist_has_item {dlist name} {
+	upvar $dlist uplist
+	return [isval uplist name,$name]
+}
+
+
+
+# Return a list of names of items that provide the given name
+proc portutil::dlist_get_matches {dlist key value} {
+	upvar $dlist uplist
 	set result [list]
-	foreach ident [array names upwaitlist name,*] {
-		set name $upwaitlist($ident)
-		foreach val $upwaitlist($key,$name) {
+	foreach ident [array names uplist name,*] {
+		set name $uplist($ident)
+		foreach val [dlist_get_key uplist $name $key] {
 			if {[string equal $val $value] && 
 			   ![isval $result $name]} {
 				lappend result $name
@@ -217,9 +279,8 @@ proc depend_list_get_matches {waitlist key value} {
 	return $result
 }
 
-# Count the unmet dependencies in the sublist
-# (private)
-proc depend_list_count_unmet {names statusdict} {
+# Count the unmet dependencies in the dlist based on the statusdict
+proc portutil::dlist_count_unmet {names statusdict} {
 	upvar $statusdict upstatusdict
 	set unmet 0
 	foreach name $names {
@@ -231,37 +292,35 @@ proc depend_list_count_unmet {names statusdict} {
 	return $unmet
 }
 
-# Returns true of any of the dependencies are pending in the waitlist
-# (private)
-proc depend_list_has_pending {waitlist uses} {
+# Returns true if any of the dependencies are pending in the dlist
+proc portutil::dlist_has_pending {dlist uses} {
 	foreach name $uses {
-		if {[isval $waitlist name,$name]} { 
+		if {[isval $dlist name,$name]} { 
 			return 1
 		}
 	}
 	return 0
 }
 
-# Get the next item from the depend list
-# (private)
-proc depend_list_get_next {waitlist statusdict} {
+# Get the name of the next eligible item from the dependency list
+proc portutil::dlist_get_next {dlist statusdict} {
 	set nextitem ""
 	# arbitrary large number ~ INT_MAX
 	set minfailed 2000000000
-	upvar $waitlist upwaitlist
+	upvar $dlist uplist
 	upvar $statusdict upstatusdict
 
-	foreach n [array names upwaitlist name,*] {
-		set name $upwaitlist($n)
+	foreach n [array names uplist name,*] {
+		set name $uplist($n)
 
 		# skip if unsatisfied hard dependencies
-		if {[depend_list_count_unmet $upwaitlist(requires,$name) upstatusdict]} { continue }
+		if {[portutil::dlist_count_unmet [dlist_get_key uplist $name requires] upstatusdict]} { continue }
 
 		# favor item with fewest unment soft dependencies
-		set unmet [depend_list_count_unmet $upwaitlist(uses,$name) upstatusdict]
+		set unmet [portutil::dlist_count_unmet [dlist_get_key uplist $name uses] upstatusdict]
 
 		# delay items with unmet soft dependencies that can be filled
-		if {$unmet > 0 && [depend_list_has_pending waitlist $upwaitlist(uses,$name)]} { continue }
+		if {$unmet > 0 && [portutil::dlist_has_pending dlist [dlist_get_key uplist $name uses]]} { continue }
 
 		if {$unmet >= $minfailed} {
 			# not better than our last pick
@@ -276,77 +335,75 @@ proc depend_list_get_next {waitlist statusdict} {
 }
 
 
-# Evaluate the dependency list, returning an ordered list suitable
-# for execution.
-# If <target> is specified, then only execute the critical path to
-# the target.
-proc eval_depend {action nodes} {
-	# waitlist - nodes waiting to be executed
-	upvar $nodes waitlist
+# Evaluate the dlist, invoking action on each name in the dlist as it
+# becomes eligible.
+proc dlist_evaluate {dlist action} {
+	# dlist - nodes waiting to be executed
+	upvar $dlist uplist
 
 	# status - keys will be node names, values will be success or failure.
 	array set statusdict [list]
 		
-	# loop for as long as there are nodes in the waitlist.
+	# loop for as long as there are nodes in the dlist.
 	while (1) {
-		set ident [depend_list_get_next waitlist statusdict]
-		if {[string length $ident] == 0} { 
+		set name [portutil::dlist_get_next uplist statusdict]
+		if {[string length $name] == 0} { 
 			break
 		} else {
-			set result [eval $action waitlist $ident]
-			foreach name $waitlist(provides,$ident) {
-				array set statusdict [list $name $result]
+			set result [eval $action uplist $name]
+			foreach token $uplist(provides,$name) {
+				array set statusdict [list $token $result]
 			}
-			depend_list_del_item waitlist $ident
+			dlist_remove_item uplist $name
 		}
 	}
 
-	set names [array names waitlist name,*]
+	set names [array names uplist name,*]
 	if { [llength $names] > 0} {
 		# somebody broke!
 		# XXX: remove puts
-		puts "Warning: the following targets did not execute: "
+		puts "Warning: the following items did not execute: "
 		foreach name $names {
-			puts -nonewline "$waitlist($name) "
+			puts -nonewline "$uplist($name) "
 		}
 		puts ""
 	}
 }
 
 
-proc portutil::exec_target {chain waitlist ident} {
-# XXX: Don't depend on entire waitlist, this should really receive just one node.
-	upvar $waitlist upwaitlist
-	if {[isval upwaitlist procedure,$chain,$ident]} {
+proc portutil::exec_target {chain dlist name} {
+# XXX: Don't depend on entire dlist, this should really receive just one node.
+	upvar $dlist uplist
+	if {[dlist_has_key uplist $name procedure,$chain]} {
+		set procedure [dlist_get_key uplist $name procedure,$chain]
 		# XXX: remove puts
-		puts "DEBUG: Executing $ident in chain $chain"
-		if {[$upwaitlist(procedure,$chain,$ident) $upwaitlist(name,$ident) $chain] == 0} {
+		puts "DEBUG: Executing $name in chain $chain"
+		if {[$procedure $name $chain] == 0} {
 			set result success
 		} else {
 			# XXX: remove puts
-			puts "Error in $ident in chain $chain"
+			puts "Error in $name in chain $chain"
 			set result failure
 		}
-		depend_list_del_item waitlist $ident
 	} else {
 		# XXX: remove puts
-		puts "Warning: $ident does not support chain $chain" 
-		depend_list_del_item waitlist $ident
+		puts "Warning: $name does not support chain $chain"
+		set result failure
 	}
 	return $result
 }
 
-proc eval_targets {nodes chain target} {
-	upvar $nodes waitlist
+proc eval_targets {dlist chain target} {
+	upvar $dlist uplist
 	
 	# Select the subset of targets under $target
 	if {[string length $target] > 0} {
-		set matches [depend_list_get_matches waitlist provides $target]
+		set matches [portutil::dlist_get_matches uplist provides $target]
 		if {[llength $matches] > 0} {
 			array set dependents [list]
-			append_dependents dependents waitlist [lindex $matches 0]
-			array unset waitlist
-			array set waitlist [array get dependents]
+			portutil::dlist_append_dependents dependents uplist [lindex $matches 0]
+			array unset uplist
+			array set uplist [array get dependents]
 		# Special-case 'all'
 		} elseif {![string equal $target all]} {
 			# XXX: remove puts
@@ -354,28 +411,28 @@ proc eval_targets {nodes chain target} {
 			return
 		}
 	}
-	
-	eval_depend [list portutil::exec_target $chain] waitlist
+
+	dlist_evaluate uplist [list portutil::exec_target $chain]
 }
 
 # select dependents of <name> from the <itemlist>
 # adding them to <dependents>
-proc append_dependents {dependents itemlist name} {
+proc portutil::dlist_append_dependents {dependents dlist name} {
 	upvar $dependents updependents
-	upvar $itemlist upitemlist
+	upvar $dlist uplist
 	
 	# Append item to the list, avoiding duplicates
 	if {![isval updependents name,$name]} {
-		set names [array names upitemlist *,$name]
+		set names [array names uplist *,$name]
 		foreach n $names {
-			set updependents($n) $upitemlist($n)
+			set updependents($n) $uplist($n)
 		}
 	}
 	
 	# Recursively append any hard dependencies
-	if {[isval upitemlist requires,$name]} {
-		foreach dep $upitemlist(requires,$name) {
-			append_dependents updependents upitemlist $dep
+	if {[isval uplist requires,$name]} {
+		foreach dep $uplist(requires,$name) {
+			append_dependents updependents uplist $dep
 		}
 	}
 	
