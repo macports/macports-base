@@ -32,10 +32,10 @@ package provide darwinports 1.0
 package require darwinportsui 1.0 
 
 namespace eval darwinports {
-	namespace export bootstrap_options portinterp_options uniqid 0
-	variable bootstrap_options "portdbpath libpath auto_path sources_conf"
-	variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
-	variable uniqid 0
+    namespace export bootstrap_options portinterp_options uniqid 0
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf"
+    variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
+    variable uniqid 0
 }
 
 proc dportinit {args} {
@@ -99,7 +99,7 @@ proc dportinit {args} {
     if ![file isdirectory $portdbpath] {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
-	
+    
     if ![info exists libpath] {
 	set libpath /opt/local/share/darwinports/Tcl
     }
@@ -130,17 +130,17 @@ proc darwinports::worker_init {workername portpath options variations} {
 			package require port \$version \}"
 
     foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
-	$workername alias $proc $proc
-    }
+									  $workername alias $proc $proc
+								      }
 
     # instantiate the UI functions
     foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
-        $workername alias $proc $proc
-    }
+																	    $workername alias $proc $proc
+																	}
 
     foreach proc {ports_verbose ports_quiet ports_debug} {
-        $workername alias $proc $proc
-    }
+							  $workername alias $proc $proc
+						      }
 
     foreach opt $portinterp_options {
         if [info exists $opt] {
@@ -328,7 +328,7 @@ proc dportmatch {regexp} {
                 gets $fd line
                 array set portinfo $line
                 if [info exists portinfo(portarchive)] {
-                	set portinfo(porturl) ${source}/$portinfo(portarchive)
+		    set portinfo(porturl) ${source}/$portinfo(portarchive)
                 } elseif [info exists portinfo(portdir)] {
                     set portinfo(porturl) ${source}/$portinfo(portdir)
                 }

@@ -15,7 +15,7 @@ Pextlib.dylib: ${OBJS}
 all: Pextlib.dylib
 
 clean:
-	rm -f ${OBJS} ${SHLIB_NAME}
+	rm -f ${OBJS} `./link.sh -n ${SHLIB_NAME}`
 
 install:
 	mkdir -p ${INSTALLDIR}
