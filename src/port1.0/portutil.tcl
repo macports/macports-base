@@ -49,6 +49,9 @@ proc options {args} {
 	    global ${option} user_options \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\
+			 if \{\[info commands options::${option}\] != \"\"\} \{ \n\
+			     options::${option} ${option} \n\
+			 \} \n\
 		\} \n\
 	\}"
 
@@ -57,8 +60,11 @@ proc options {args} {
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    upvar #0 ${option} uplist \n\
 		    foreach val \$args \{ \n\
-			ldelete uplist \$val \n\
-		    \} \n\
+				ldelete uplist \$val \n\
+				if \{\[info commands options::${option}\] != \"\"\} \{ \n\
+				    options::${option} ${option} \n\
+				\} \n\
+			\} \n\
 		\} \n\
 	\}"
 	eval "proc ${option}-append {args} \{ \n\
@@ -66,6 +72,9 @@ proc options {args} {
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		    upvar #0 ${option} uplist \n\
 		    set uplist \[concat \$uplist \$args\] \n\
+			if \{\[info commands options::${option}\] != \"\"\} \{ \n\
+			    options::${option} ${option} \n\
+			\} \n\
 		\} \n\
 	\}"
     }
