@@ -575,14 +575,14 @@ switch -- $action {
 					}
 					
 					# Even more verbose explanation (disabled at present)
-					if {false && [ui_isset ports_verbose]} {
-						puts "  installed: $installed_compound"
-						puts "  latest:    $latest_compound"
-						# Warning for ports that are predated
-						if { $result > 0 } {
-							puts "  (installed version is newer than port index version)"
-						}
-					}
+#					if {[ui_isset ports_verbose]} {
+#						puts "  installed: $installed_compound"
+#						puts "  latest:    $latest_compound"
+#						# Warning for ports that are predated
+#						if { $result > 0 } {
+#							puts "  (installed version is newer than port index version)"
+#						}
+#					}
 					
 				}
 			}
