@@ -60,7 +60,7 @@ proc makechroot {dir} {
 	puts $f "#!/usr/bin/tclsh"
 	puts $f "set REPDIR $REPDIR"
 	puts $f "set REPORT $REPORT"
-	puts $f "rm -rf /etc/ports"
+	puts $f "exec rm -rf /etc/ports"
 	puts $f "cd darwinports"
 	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
 	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
