@@ -11,10 +11,10 @@ namespace eval portfetch {
 }
 
 # define globals: distname master_sites distfiles patchfiles dist_subdir
-globals portfetch::options distname distfiles patchfiles dist_subdir all_dist_files use_zip use_bzip2
+globals portfetch::options distfiles patchfiles dist_subdir all_dist_files use_zip use_bzip2
 
 # define options: distname master_sites
-options portfetch::options distname master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
+options portfetch::options master_sites patch_sites extract_sufx distfiles extract_only patchfiles dist_subdir use_zip use_bzip2
 
 proc portfetch::suffix {distname} {
 	if {[isval portfetch::options extract_sufx]} {

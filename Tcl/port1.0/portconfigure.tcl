@@ -17,20 +17,22 @@ globals portconfigure::options configure configure.type configure.args configure
 options portconfigure::options configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
 
 proc portconfigure::main {args} {
-	global portname portpath workdir
+	global portname portpath workdir worksrcdir prefix
 
 	if [isval portconfigure::options configure.worksrcdir] {
-		set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
+		set configpath ${portpath}/${worksrcdir}/${configure.worksrcdir}
 	} else {
-		set configpath ${portpath}/${workdir}/${worksrcdir}
+		set configpath ${portpath}/${worksrcdir}
 	}
 
 	cd $configpath
-	if [isval portconfigure::options automake] {
+	if [testbool portconfigure::options automake] {
 		# XXX depend on automake
-		
 	}
-		
+
+	if [testbool portconfigure::options configure]  {
+		system "./configure --prefix=${prefix} [getval portconfigure::options configure.args]"
+	}
 
 	return 0
 }
