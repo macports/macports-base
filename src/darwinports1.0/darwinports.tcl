@@ -463,11 +463,11 @@ proc dporttraverse {func {root .}} {
 	# Go to root because some callers expects us to be there.
 	cd $pathToRoot
 
-    foreach category [readdir $root] {
+    foreach category [lsort -increasing -unique [readdir $root]] {
     	set pathToCategory [file join $root $category]
         if {[file isdirectory $pathToCategory]} {
         	# Iterate on port directories.
-			foreach port [readdir $pathToCategory] {
+			foreach port [lsort -increasing -unique [readdir $pathToCategory]] {
 				set pathToPort [file join $pathToCategory $port]
 				if {[file isdirectory $pathToPort] &&
 					[file exists [file join $pathToPort "Portfile"]]} {
