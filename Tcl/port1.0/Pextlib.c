@@ -10,7 +10,6 @@ static const char ui_proc[] = "ui_puts {";
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *resultPtr;
 	char buf[BUFSIZ];
 	char *cmdstring, *p;
 	FILE *pipe;
@@ -21,8 +20,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	if(Tcl_PkgRequire(interp, "portui", "1.0", 0) == NULL) {
 		return TCL_ERROR;
 	}
-
-	resultPtr = Tcl_GetObjResult(interp);
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
@@ -111,8 +108,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 
 int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *resultPtr;
-	const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\"";
+	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\"";
 	int operation = 0, fd, i;
 	Tcl_Channel channel;
 	ClientData handle;
@@ -122,13 +118,11 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 		return TCL_ERROR;
 	}
 
-	resultPtr = Tcl_GetObjResult(interp);
-
     	if ((channel = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), NULL)) == NULL)
 		return TCL_ERROR;
 
 	if (Tcl_GetChannelHandle(channel, TCL_READABLE|TCL_WRITABLE, &handle) != TCL_OK) {
-		Tcl_SetStringObj(resultPtr, "error getting channel handle", -1);
+		Tcl_SetResult(interp, "error getting channel handle", TCL_STATIC);
 		return TCL_ERROR;
 	}
 	fd = (int) handle;
@@ -137,25 +131,25 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 		char *arg = Tcl_GetString(objv[i]);
 		if (!strcmp(arg, "-shared")) {
 			if (operation & LOCK_EX || operation & LOCK_UN) {
-				Tcl_SetStringObj(resultPtr, (void *) &errorstr, -1);
+				Tcl_SetResult(interp, (void *) &errorstr, TCL_STATIC);
 				return TCL_ERROR;
 			}
 			operation |= LOCK_SH;
 		} else if (!strcmp(arg, "-exclusive")) {
 			if (operation & LOCK_SH || operation & LOCK_UN) {
-				Tcl_SetStringObj(resultPtr, (void *) &errorstr, -1);
+				Tcl_SetResult(interp, (void *) &errorstr, TCL_STATIC);
 				return TCL_ERROR;
 			}
 			operation |= LOCK_EX;
 		} else if (!strcmp(arg, "-unlock")) {
 			if (operation & LOCK_SH || operation & LOCK_EX) {
-				Tcl_SetStringObj(resultPtr, (void *) &errorstr, -1);
+				Tcl_SetResult(interp, (void *) &errorstr, TCL_STATIC);
 				return TCL_ERROR;
 			}
 			operation |= LOCK_UN;
 		} else if (!strcmp(arg, "-noblock")) {
 			if (operation & LOCK_UN) {
-				Tcl_SetStringObj(resultPtr, "-noblock can not be used with -unlock", -1);
+				Tcl_SetResult(interp, "-noblock can not be used with -unlock", TCL_STATIC);
 				return TCL_ERROR;
 			}
 			operation |= LOCK_NB;
@@ -163,7 +157,7 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	}
 	if (flock(fd, operation) != 0)
 	{
-		Tcl_SetStringObj(resultPtr, (void *) strerror(errno), -1);
+		Tcl_SetResult(interp, (void *) strerror(errno), TCL_STATIC);
 		return TCL_ERROR;
 	}
 	return TCL_OK;
