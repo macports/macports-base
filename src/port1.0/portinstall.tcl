@@ -39,9 +39,11 @@ ${com.apple.install} deplist depends_run depends_lib
 ${com.apple.install} set prerun install_start
 
 # define options
-options build.target.install
+options build.target.install no_mtree mtree.file
+
 # Set defaults
 default build.target.install install
+default mtree.file /etc/ports/prefix.mtree
 
 set UI_PREFIX "---> "
 
@@ -52,14 +54,11 @@ proc install_start {args} {
 }
 
 proc install_main {args} {
-    global portname portversion portpath categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
+    global portname portversion portpath categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current no_mtree mtree.file 
 
-    if ![file exists $prefix] {
-	ui_msg "Warning: The directory $prefix does not exist, creating it."
-	if [catch {exec mkdir -p $prefix} err] {
-	    ui_error "Could not make directory for ${prefix}: $err"
-	    return -code error "Could not make directory for ${prefix}: $err"
-	}
+    # At some point this may popular $destdir instead
+    if {![tbool no_mtree] && [file exists ${mtree.file}]} {
+	system "mtree -U -f ${mtree.file} -d -e -p $prefix > /dev/null"
     }
 
     set build.target.current ${build.target.install}

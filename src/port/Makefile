@@ -12,8 +12,7 @@ clean:
 	rm -f port.1.gz
 
 mkdirs:
-	mkdir -p ${PREFIX}/bin
-	mkdir -p ${PREFIX}/man/man1
+	mtree -U -f ../../doc/prefix.mtree -d -e -p ${PREFIX} > /dev/null
 
 install: mkdirs
 	install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1.gz ${PREFIX}/man/man1
