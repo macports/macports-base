@@ -39,9 +39,9 @@ register com.apple.main target main
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms
+options prefix name version revision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms
 # Export options via PortInfo
-options_export portname portversion portrevision categories maintainers platforms 
+options_export name version revision categories maintainers platforms 
 
 # Remove trailing "Endian"
 
@@ -57,6 +57,10 @@ default filesdir {files}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
 
+# Compatibility namespace
+default portname {$name}
+default portversion {$version}
+default portrevision {$revision}
 
 # Platform Settings
 set os_arch $tcl_platform(machine)
