@@ -16,3 +16,16 @@ portinstalltype		image
 
 # Directory containing the X11 installation.
 x11prefix		/usr/X11R6
+
+# Create and use binary archive packages for installation/reinstallation ease
+portarchivemode		no
+
+# Type of binary archive packages to create when using archive mode
+#
+# Note: Only cpgz, cpio, and xar formats currently support resource
+# forks properly on MacOSX (Panther). The tar and tgz formats should
+# also support resource forks properly on MacOSX (Tiger).
+#
+# Supported types: cpgz (default), cpio, xar, tar, tgz
+portarchivetype		cpgz
+

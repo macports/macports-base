@@ -2,6 +2,7 @@
 # portinstall.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,7 +36,11 @@ package require portutil 1.0
 set com.apple.install [target_new com.apple.install install_main]
 target_state ${com.apple.install} no
 target_provides ${com.apple.install} install
-target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
+if {[option portarchivemode] == "yes"} {
+	target_requires ${com.apple.install} main unarchive fetch extract checksum patch configure build destroot archive
+} else {
+	target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
+}
 target_prerun ${com.apple.install} install_start
 
 set_ui_prefix

@@ -1,7 +1,7 @@
 INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/package1.0
 
 SRCS=	package.tcl portdmg.tcl portmpkg.tcl portpkg.tcl portrpmpackage.tcl \
-	portdpkg.tcl
+	portdpkg.tcl portunarchive.tcl portarchive.tcl
 
 include ../../Mk/dports.autoconf.mk
 

@@ -89,7 +89,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfo\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfon\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -148,6 +148,8 @@ for {set i 0} {$i < $argc} {incr i} {
 				set ui_options(ports_debug) no
 			} elseif {$c == "o"} {
 				set options(ports_ignore_older) yes
+			} elseif {$c == "n"} {
+				set options(ports_nodeps) yes
 			} elseif {$opt == "D"} {
 				incr i
 				set porturl "file://[lindex $argv $i]"
@@ -269,6 +271,15 @@ switch -- $action {
 			exit 1
 		}
 	}
+	upgrade {
+        if { ![info exists portname] } {
+			puts "Please specify a port to upgrade."
+			exit 1
+		}
+
+		upgrade $portname "lib:XXX:$portname"
+	}
+
 	compact {
 		if { ![info exists portname] } {
 			puts "Please specify a port to compact."
@@ -313,8 +324,13 @@ switch -- $action {
 			}
 		} else {
 			if { [catch {set ilist [registry::installed]} result] } {
-				puts "port installed failed: $result"
-				exit 1
+				if {$result eq "Registry error: No ports registered as installed."} {
+					puts "No ports installed!"
+					exit 1
+				} else {
+					puts "port installed failed: $result"
+					exit 1
+				}
 			}
 		}
 		if { [llength $ilist] > 0 } {

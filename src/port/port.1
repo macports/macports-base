@@ -35,14 +35,14 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfo
+.Op Fl vdqfon
 .Op Fl D Ar portdir
 .Ar target
 .Op Ar portname
 .Op Ar options ...
 .Op Ar variants ...
 .Nm
-.Op Fl vdqfo
+.Op Fl vdqfon
 .Ar provides
 .Ar file
 .Sh DESCRIPTION
@@ -71,6 +71,8 @@ verbose mode (generate verbose messages)
 debug mode (generate debugging messages)
 .It Fl q
 quiet mode (suppress messages)
+.It Fl n
+dont follow dependancies in upgrade (only for upgrading)
 .It Fl D
 specify
 .Ar portdir
@@ -88,6 +90,7 @@ The other targets are:
 .Dl uninstall
 .Dl deactivate
 .Dl activate
+.Dl upgrade
 .Dl clean
 .Dl distclean
 .Dl search
@@ -116,6 +119,25 @@ There are also targets for packaging ports:
 .Dl dmg
 .Dl rpmpackage
 .Pp
+If enabled, binary archives can be created/used to allow installation from pre-built binaries rather than source:
+.Pp
+.Dl unarchive
+.Dl archive
+.Pp
+When archive mode is enabled, the
+.Ar unarchive
+command is called automatically, prior to
+.Ar fetch
+, to check for an
+existing binary archive to unpack. If found, it is unpacked and all
+stages up to
+.Ar install
+are then skipped.  In addition, binary archives will be created automatically whenever an
+.Ar install
+is performed, or when the
+.Ar archive
+target is called explicitly.
+.Pp
 Additionally, the
 .Ar provides
 command determines which port owns a given file.
@@ -125,6 +147,10 @@ Invoking
 with the "install" target on the "vim" port:
 .Pp
 .Dl "port install vim
+.Pp
+To manually create a binary archive, use the "archive" target (also done automatically prior to "install"):
+.Pp
+.Dl "port archive vim"
 .Pp
 To uninstall a port, invoke
 .Nm
@@ -144,6 +170,11 @@ To deactivate a port (in image mode):
 .Pp
 .Dl "port deactivate vim
 .Pp
+To upgrade a port (deactivating the older version and activating a newer)
+.Pp
+.Dl "port upgrade vim
+.Pp
+
 To reactivate a port previously deactivated (in image mode):
 .Pp
 .Dl "port activate vim

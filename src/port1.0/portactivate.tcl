@@ -2,6 +2,7 @@
 # portactivate.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,7 +39,11 @@ set com.apple.activate [target_new com.apple.activate activate_main]
 target_runtype ${com.apple.activate} always
 target_state ${com.apple.activate} no
 target_provides ${com.apple.activate} activate
-target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
+if {[option portarchivemode] == "yes"} {
+	target_requires ${com.apple.activate} main unarchive fetch extract checksum patch configure build destroot archive install
+} else {
+	target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
+}
 target_prerun ${com.apple.activate} activate_start
 
 set_ui_prefix
