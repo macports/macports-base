@@ -352,7 +352,9 @@ proc exec_target {fd dlist name} {
     if {[dlist_has_key uplist $name procedure] && [dlist_has_key uplist $name init]} {
 	set procedure [dlist_get_key uplist $name procedure]
 	set init [dlist_get_key uplist $name init]
-	$init $name
+	if {[$init != ""]} {
+	    $init $name
+	}
 	if {[check_statefile $name $fd]} {
 	    set result 0
 	    ui_debug "Skipping completed $name"
