@@ -83,9 +83,8 @@ proc destroot_finish {args} {
     set exclude_dirs [list]
     set exclude_phrase ""
     foreach path [option destroot.keepdirs] {
-	puts "adding turd file to ${path}."
-	file mkdir -p ${path}
-	system "touch ${path}/.turd_${portname}"
+	xinstall -m 0755 -d ${path}
+	xinstall -c -m 0644 /dev/null ${path}/.turd_${portname}
     	lappend exclude_dirs "-path \"${path}\""
     }
     if { [llength ${exclude_dirs}] > 0 } {
