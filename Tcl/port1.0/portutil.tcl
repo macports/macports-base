@@ -55,6 +55,7 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
+# swdep_resolve
 # XXX - Architecture specific
 # XXX - Rely on information from internal defines in cctools/dyld:
 # define DEFAULT_FALLBACK_FRAMEWORK_PATH
@@ -91,6 +92,7 @@ proc swdep_resolve {name chain} {
 		    }
 		}
 		bin {
+		    # XXX broken
 		    lappend search_path $env(PATH)
 		}
 		default {
@@ -100,9 +102,15 @@ proc swdep_resolve {name chain} {
 	}
     }
     foreach path $search_path {
-	ui_debug "Now checking path: $path regex: $depregex"
+	# XXX XXX XXX XXX Broken XXX XXX XXX XXX
+	# Always executes. need to fix regex path checking
 	if {![file isdirectory $path]} {
-	    continue
+		continue
+	}
+	if {![file isfile $path/$depregex]} {
+		global sysportpath
+		build $sysportpath/software/$portname build make
+		return 0
 	}
     }
     return 0
