@@ -182,7 +182,7 @@ proc register {name mode args} {
                     proc proc-post-$target$id \{name\} \{ \n\
                         return \[catch userproc-post-$target$id\] \n\
                     \} \n\
-                    makeuserproc userproc-pre-$target$id \$args \}"
+                    makeuserproc userproc-post-$target$id \$args \}"
             }
         }
 	
