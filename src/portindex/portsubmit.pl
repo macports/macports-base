@@ -72,26 +72,40 @@ use Fcntl;
 use Digest::MD5 qw(md5_hex);
 my $cgi = new CGI;
 
+sub validate_param() {
+        my ($regex, $str) = @_;
+        $str = "" if !$str;
+        $str =~ s/$regex//g; 
+        # The following are escaped even if they are permitted
+        # by the above regex, since they will choke the SQL.
+        $str =~ s/\\/\\\\/g;
+        $str =~ s/'/\\'/g;
+        $str =~ s/"/\\"/g;
+        return $str;
+}
+
 #
 # These are the variables expected from the CGI client.
 #
 
-my $name = $cgi->param('name');
-$name =~ s/[^A-Za-z0-9_.-]//g;
-my $version = $cgi->param('version');
-$version =~ s/[^A-Za-z0-9_.-]//g;
-my $md5 = $cgi->param('md5');
-$md5 =~ s/[^A-Fa-f0-9]//g;
-my $submitted_by = $cgi->param('submitted_by');
-$submitted_by =~ s/[^A-Za-z0-9.!@#$%^&*_+=-]//g;
-my $password = md5_hex($cgi->param('password'));
-my $comment = $cgi->param('comment');
-$comment =~ s/[^A-Za-z0-9 '",.!@#$%^&*_+=-]//g; #'
-$comment =~ s/'/\\'/g;
-$comment =~ s/"/\\"/g;
-my @maintainers = split(':', $cgi->param('maintainers'));
-my @categories = split(':', $cgi->param('categories'));
+my $name         = &validate_param(qr[^A-Za-z0-9_.-], $cgi->param('name'));
+my $version      = &validate_param(qr[^A-Za-z0-9_.-], $cgi->param('version'));
+my $md5          = &validate_param(qr[^A-Fa-f0-9], $cgi->param('md5'));
+my $submitted_by = &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=-],
+		   $cgi->param('submitted_by'));
+my $password     = $cgi->param('password') ? md5_hex($cgi->param('password')) :
+		   "";
+my $comment      = &validate_param(qr[^A-Za-z0-9 '",.!@#$%^&*_+=-],
+                   $cgi->param('comment'));
+my $description  = &validate_param(qr[^A-Za-z0-9 '",.!@#$%^&*_+=-],
+                   $cgi->param('description'));
+my $long_description = &validate_param(qr[^A-Za-z0-9 '",.!@#$%^&*_+=-],
+                   $cgi->param('long_description'));
 
+my @maintainers  = split(' ', &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=-],
+		   $cgi->param('maintainers')));
+my @categories   = split(' ', &validate_param(qr[^A-Za-z0-9_.-],
+		   $cgi->param('categories')));
 
 #
 # The atomic_serial subroutine atomically (from the
@@ -166,7 +180,12 @@ print $cgi->header('text/plain');
 
 # Verify the submitter / password.
 my $authenticated = 0;
-sysopen(PASSWD, "$portpasswd", O_RDONLY) or die "Unable to open $portpasswd: $!";
+$! = 0;
+sysopen(PASSWD, "$portpasswd", O_RDONLY);
+if ($! != 0) {
+    print "ERROR: Unable to open $portpasswd: $!\n";
+    die "ERROR: Unable to open $portpasswd: $!";
+}
 while (<PASSWD>) {
     my ($email, $hash) = split(':', $_);
     if ($email eq $submitted_by) {
@@ -210,10 +229,22 @@ chdir("$revision");
 # Copy the attachment to the destination
 #
 
-$filename = $cgi->param('attachment');
-sysopen(ATTACHMENT, "$filename", O_WRONLY|O_CREAT|O_EXLOCK) or die "Unable to open $filename: $!";
-while (<$filename>) {
+$attachparam = $cgi->param('attachment');
+if (!$attachparam) {
+	print "ERROR: Portfile attachment is missing.\n";
+	die "ERROR: Portfile attachment is missing";
+}
+# basename
+sysopen(ATTACHMENT, "Portfile.tar.gz", O_RDWR|O_CREAT|O_EXLOCK|O_TRUNC) or die "Unable to open Portfile.tar.gz: $!";
+binmode(ATTACHMENT);
+while (<$attachparam>) {
     print ATTACHMENT;
+}
+seek(ATTACHMENT,0,0);
+my $md5tmp = Digest::MD5->new->addfile(ATTACHMENT)->hexdigest();
+if ($md5tmp ne $md5) {
+	print "ERROR: Portfile attachment checksum failed.  Expected $md5 but got $md5tmp\n";
+	die "ERROR: Portfile attachment checksum failed.  Expected $md5 but got $md5tmp\n";
 }
 close(ATTACHMENT);
 

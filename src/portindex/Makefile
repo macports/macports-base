@@ -18,7 +18,11 @@ install: portsubmit.cgi portregister.cgi initialize.sql
 	$(INSTALL) -m 755 portsubmit.cgi $(cgibin)
 	$(INSTALL) -m 755 portregister.cgi $(cgibin)
 	mkdir -p $(portindex)
+	chgrp www $(portindex)
+	chmod g+w $(portindex)
 	mkdir -p $(portfiles)
+	chgrp www $(portfiles)
+	chmod g+w $(portfiles)
 	$(INSTALL) -m 644 initialize.sql $(portindex)
 
 clean:
