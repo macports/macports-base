@@ -5,7 +5,6 @@ Task								Who
 Add contents lists to all ports					eric
 Add abstraction to support fetching specific files from
      specific sites						landonf
-Implement variant negation 					kevinvv
 Allow depspecs in requires (targets & variants)			kevinvv
 Implement deinstall target					landonf
 Add code for de-registering a port				jkh
