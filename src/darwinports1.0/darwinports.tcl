@@ -238,16 +238,21 @@ proc dportinit {args} {
     }
 
     if {![info exists binpath]} {
-	global env
 	set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
     } else {
-	global env
 	set env(PATH) "$binpath"
     }
 
     if {[info exists master_site_local] && ![info exists env(MASTER_SITE_LOCAL)]} {
-	global env
 	set env(MASTER_SITE_LOCAL) "$master_site_local"
+    }
+
+	# Prebinding. useful with MacOS X's ld, harmless elsewhere.
+	# With both variables, prebiding will always succeed but we might need
+	# to redo it.
+    if {![info exists env(LD_PREBIND)] && ![info exists env(LD_PREBIND_ALLOW_OVERLAP)]} {
+	set env(LD_PREBIND) "1"
+	set env(LD_PREBIND_ALLOW_OVERLAP) "1"
     }
 
     if {[file isdirectory $libpath]} {
