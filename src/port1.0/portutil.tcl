@@ -32,11 +32,9 @@
 package provide portutil 1.0
 package require Pextlib 1.0
 
-global targets
+global targets target_uniqid variants
 
-namespace eval portutil {
-    variable uniqid 0
-}
+set target_uniqid 0
 
 ########### External High Level Procedures ###########
 
@@ -63,6 +61,39 @@ proc default {option args} {
     if {![info exists $option]} {
 	set $option $args
     }
+}
+
+# variant <provides> [<provides> ...] [requires <requires> [<requires>]]
+proc variant {args} {
+    global variants
+    upvar $args upargs
+    
+    set len [llength $args]
+    set code [lindex $args end]
+    set args [lrange $args 0 [expr $len - 2]]
+    
+    set provides [list]
+    set requires [list]
+    
+    # halfway through the list we'll hit 'requires' which tells us
+    # to switch into processing required flavors/depspecs.
+    set after_requires 0
+    foreach arg $args {
+        if ([string equal $arg requires]) { 
+            set after_requires 1
+            continue
+        }
+        if ($after_requires) {
+            lappend requires $arg
+        } else {
+            lappend provides $arg
+        }
+    }
+    set name "variant-[join $provides -]"
+    dlist_add_item variants $name
+    dlist_append_key variants $name provides $provides
+    dlist_append_key variants $name requires $requires
+    dlist_set_key variants $name procedure $code
 }
 
 ########### Misc Utility Functions ###########
@@ -142,7 +173,7 @@ proc makeuserproc {name body} {
 #	<identifier> preflight <target name>
 #	<identifier> postflight <target name>
 proc register {name mode args} {
-    global targets
+    global targets target_uniqid
     dlist_add_item targets $name
 
     if {[string equal target $mode]} {
@@ -175,7 +206,7 @@ proc register {name mode args} {
 		    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
 		    continue;
 		}
-                set id [incr portutil::uniqid]
+                set id [incr target_uniqid]
                 set ident [lindex [dlist_get_matches targets provides $args] 0]
                 set origproc [dlist_get_key targets $ident procedure]
                 eval "proc $target {args} \{ \n\
@@ -387,7 +418,7 @@ proc dlist_get_next {dlist statusdict} {
 
 # Evaluate the dlist, invoking action on each name in the dlist as it
 # becomes eligible.
-proc dlist_evaluate {dlist downstatusdict action fd} {
+proc dlist_evaluate {dlist downstatusdict action} {
     # dlist - nodes waiting to be executed
     upvar $dlist uplist
     upvar $downstatusdict statusdict
@@ -475,7 +506,7 @@ proc eval_targets {dlist target} {
     # Restore the state from a previous run.
     set fd [open_statefile]
     
-    dlist_evaluate uplist statusdict [list exec_target $fd] $fd
+    dlist_evaluate uplist statusdict [list exec_target $fd]
     
     close $fd
 }
@@ -565,3 +596,75 @@ proc port_traverse {func {dir .}} {
     }
     cd $pwd
 }
+
+
+########### Port Variants ###########
+
+proc choose_variant {variants args} {
+    upvar $variants upvariants 
+
+    array set statusdict [list]
+    foreach arg $args {
+        array set statusdict [list $arg success]
+    }
+
+    set nextitem ""
+    # arbitrary large number ~ INT_MAX
+    set minfailed 2000000000
+    set mindelta 2000000000
+    
+    foreach n [array names upvariants name,*] {
+	set name $upvariants($n)
+		
+	# favor the item which provides the greatest number of requested services
+        set provides [dlist_get_key upvariants $name provides]
+	set unmet [dlist_count_unmet $provides statusdict]
+
+        # delta = abs(total - unmet - met)
+        # Try to choose the item with a delta closest to zero.
+        set delta [expr abs([llength $provides] - $unmet - [array size statusdict])]
+        
+        #puts "DEBUG: $name unmet $unmet (minfailed $minfailed) delta $delta (mindelta $mindelta)"
+        if {($unmet < $minfailed) || ($unmet == $minfailed && $delta < $mindelta)} {
+            # better than our last pick
+            set mindelta $delta
+            set minfailed $unmet
+            set nextitem $name
+        }
+    }
+    return $nextitem
+}
+
+proc exec_variant {dlist name} {
+# XXX: Don't depend on entire dlist, this should really receive just one node.
+    upvar $dlist uplist
+    ui_debug "Executing $name"
+    makeuserproc $name-code "\{[dlist_get_key uplist $name procedure]\}"
+    $name-code
+    return success
+}
+
+proc eval_variants {dlist variant} {
+    upvar $dlist uplist
+
+    ui_debug "Chose $variant"
+
+    # now that we've picked a variant, change all provides [a b c] to [a-b-c]
+    # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
+    foreach n [array names uplist provides,*] {
+        array set uplist [list $n [join $uplist($n) -]]
+    }
+	
+    # Select the subset of variants under $variant
+    if {[string length $variant] > 0} {
+        array set dependents [list]
+        dlist_append_dependents dependents uplist $variant
+        array unset uplist
+        array set uplist [array get dependents]
+    }
+    
+    array set statusdict [list]
+        
+    dlist_evaluate uplist statusdict [list exec_variant]
+}
+
