@@ -2290,7 +2290,7 @@ else
 		    fi
                 else
 		    for i in /usr/lib /usr/pkg/lib /usr/local/lib; do
-			if  -d "$i/tcl$TCL_VERSION" ; then
+			if test -d "$i/tcl$TCL_VERSION" ; then
 			    ac_cv_c_tclpkgd="$i/tcl$TCL_VERSION/"
                         fi
 		    done
