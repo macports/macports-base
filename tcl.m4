@@ -2603,8 +2603,8 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 		ac_cv_c_tclpkgd=${with_tclpackagedir}
 	    else
 		if test "`uname -s`" = "Darwin" ; then
-		    if test -d "/System/Library/Tcl/$TCL_VERSION"; then
-			ac_cv_c_tclpkgd="/System/Library/Tcl/$TCL_VERSION/"
+		    if test -d "/System/Library/Tcl/"; then
+			ac_cv_c_tclpkgd="/System/Library/Tcl/"
 		    fi
                 else
 		    for i in /usr/lib /usr/pkg/lib /usr/local/lib; do
