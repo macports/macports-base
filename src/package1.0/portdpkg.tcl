@@ -48,7 +48,7 @@ options package.destpath
 set_ui_prefix
 
 proc com.apple.dpkg::main {args} {
-	global UI_PREFIX destpath os.arch
+	global UI_PREFIX destpath os.arch os.platform
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option portname] [option portversion]]"
 
@@ -122,6 +122,12 @@ proc com.apple.dpkg::main {args} {
 	switch -regex ${os.arch} {
 		i[3-9]86 { set pkg_arch "i386" }
 		default { set pkg_arch ${os.arch} }
+	}
+
+	# On systems other than Linux, the Architecture must contain
+	# the operating system name
+	if {${os.platform} != "linux"} {
+		set pkg_arch "${os.platform}-${pkg_arch}"
 	}
 
 	puts $controlfd "Package: [option portname]"
