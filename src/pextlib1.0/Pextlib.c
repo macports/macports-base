@@ -229,16 +229,17 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 {
 	char *pattern, *string, *res;
 	Tcl_Obj *tcl_result;
-	extern char *strsed(char *str, char *pat, int range);
+	int range[2];
+	extern char *strsed(char *str, char *pat, int *range);
 
 	if (objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "pattern string");
+		Tcl_WrongNumArgs(interp, 1, objv, "string pattern");
 		return TCL_ERROR;
 	}
 
-	pattern = Tcl_GetString(objv[1]);
-	string = Tcl_GetString(objv[2]);
-	res = strsed(string, pattern, 0);
+	string = Tcl_GetString(objv[1]);
+	pattern = Tcl_GetString(objv[2]);
+	res = strsed(string, pattern, range);
 	if (!res) {
 		Tcl_SetResult(interp, "strsed failed", TCL_STATIC);
 		return TCL_ERROR;
