@@ -133,7 +133,7 @@ proc options_export {args} {
         eval "proc options::export-${option} \{args\} \{ \n\
 	    global ${option} PortInfo \n\
 	    if \{\[info exists ${option}\]\} \{ \n\
-		set PortInfo(${option}) \$${option} \n\
+		set PortInfo(${option}) \$\{${option}\} \n\
 	    \} else \{ \n\
 		unset PortInfo(${option}) \n\
 	    \} \n\

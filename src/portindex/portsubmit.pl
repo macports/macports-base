@@ -62,7 +62,14 @@
 #         ...
 #
 
-my $htdocs = "/Library/WebServer/Documents";
+my $htdocs;
+if ( -d "/Library/WebServer/Documents" ) {
+	$htdocs = "/Library/WebServer/Documents";
+} elsif ( -d "/usr/local/www/data" ) {
+	$htdocs = "/usr/local/www/data";
+} else {
+	die "unknown htdocs location.";
+}
 my $portfiles = "$htdocs/ports/files";
 my $portindex = "$htdocs/ports/index";
 my $portpasswd = "$htdocs/ports/index/.portpasswd";
@@ -106,6 +113,9 @@ my @maintainers  = split(' ', &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=-],
 		   $cgi->param('maintainers')));
 my @categories   = split(' ', &validate_param(qr[^A-Za-z0-9_.-],
 		   $cgi->param('categories')));
+
+my @master_sites  = split(' ', &validate_param(qr[^A-Za-z0-9.!@#$%^&*_+=:/-],
+		   $cgi->param('master_sites')));
 
 #
 # The atomic_serial subroutine atomically (from the
@@ -260,14 +270,20 @@ print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','
 print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','commit_log','$comment');\n";
 foreach my $maintainer (@maintainers) {
     chomp($maintainer);
-    $maintainer =~ s/[^A-Za-z0-9.!@#$%^&*_+=-]//g;
-    print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','maintainer','$maintainer');\n";
+    print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','maintainers','$maintainer');\n";
 }
 foreach my $category (@categories) {
     chomp($category);
-    $category =~ s/[^A-Za-z0-9_.-]//g;
-    print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','category','$category');\n";
+    print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','categories','$category');\n";
 }
+print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','description','$description');\n";
+print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','long_description','$long_description');\n";
+print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','Portfile_md5','$md5');\n";
+foreach my $master_site (@master_sites) {
+    chomp($master_site);
+    print $handle "INSERT INTO keywords (pid,keyword,value) VALUES ('$transaction','master_sites','$master_site');\n";
+}
+
 print $handle "-- END TRANSACTION #$transaction\n";
 
 close($handle);

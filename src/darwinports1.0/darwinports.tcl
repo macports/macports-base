@@ -29,6 +29,7 @@
 #
 package provide darwinports 1.0
 package require darwinports_dlist 1.0
+package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
@@ -298,6 +299,7 @@ proc darwinports::getportdir {url} {
     if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
         switch -regexp -- ${protocol} {
             {^file$} { return $string}
+        {dports} { return [darwinports::index::fetch_port $url] }
 	    {http|ftp} { return [darwinports::fetch_port $url] }
             default { return -code error "Unsupported protocol $protocol" }
         }
@@ -554,18 +556,23 @@ proc dportexec {dport target} {
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
 		if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
-			set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
+			set result [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
 		} else {
-			set dlist [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
+			set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
 		}
 		
-		if {$dlist != {}} {
+		if {$result != {}} {
 			set errstring "The following dependencies failed to build:"
-			foreach ditem $dlist {
+			foreach ditem $result {
 				append errstring " [ditem_key $ditem provides]"
 			}
 			ui_error $errstring
 			return 1
+		}
+		
+		# Close the dependencies, we're done installing them.
+		foreach ditem $dlist {
+			dportclose $ditem
 		}
 	}
 
@@ -599,15 +606,18 @@ proc dportsync {args} {
         # Special case file:// sources
         if {[darwinports::getprotocol $source] == "file"} {
             continue
-        }
-        set indexfile [darwinports::getindex $source]
-	if {[catch {file mkdir [file dirname $indexfile]} result]} {
-            return -code error $result
-        }
-	if {![file writable [file dirname $indexfile]]} {
-	    return -code error "You do not have permission to write to [file dirname $indexfile]"
-	}
-	exec curl -L -s -S -o $indexfile $source/PortIndex
+        } elseif {[darwinports::getprotocol $source] == "dports"} {
+			darwinports::index::sync $darwinports::portdbpath $source
+        } else {
+        	set indexfile [darwinports::getindex $source]
+			if {[catch {file mkdir [file dirname $indexfile]} result]} {
+            	return -code error $result
+        	}
+			if {![file writable [file dirname $indexfile]]} {
+	    		return -code error "You do not have permission to write to [file dirname $indexfile]"
+			}
+			exec curl -L -s -S -o $indexfile $source/PortIndex
+		}
     }
 }
 
@@ -616,6 +626,15 @@ proc dportsearch {regexp} {
     set matches [list]
 
     foreach source $sources {
+    	if {[darwinports::getprotocol $source] == "dports"} {
+    		# Strip out ^$ for compatability. (We don't use regexes anymore)
+		set name $regexp
+    		regsub -- {^\^} $name {} name
+    		regsub -- {\$$} $name {} name
+    		array set attrs [list name $name]
+			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
+			eval lappend matches $res
+		} else {
         if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
             return -code error "Can't open index file for source $source. Have you synced your source indexes?"
         }

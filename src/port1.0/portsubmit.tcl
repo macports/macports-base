@@ -47,7 +47,7 @@ proc shell_escape {str} {
 }
 
 proc submit_main {args} {
-    global portname prefix UI_PREFIX workpath
+    global portname portversion prefix UI_PREFIX workpath
 
     # start with the Portfile, and add the files directory if it exists.
     # don't pick up any CVS directories, or .DS_Store turds
@@ -62,6 +62,22 @@ proc submit_main {args} {
 	return -code error [format [msgcat::mc "Failed to archive port : %s"] $portname]
     }
 
+	set portsource ""
+	if {![catch {set fd [open ".dports_source" r]}]} {
+		set line [gets $fd]
+		regexp -- {^source: (.*)$} $line unused portsource
+		close $fd
+	}
+	if {$portsource == ""} {
+		ui_msg "$UI_PREFIX Submitting $portname-$portversion"
+		puts -nonewline "URL: "
+		flush stdout
+		gets stdin portsource
+	}
+
+	ui_msg "$UI_PREFIX Submitting $portname-$portversion to $portsource"
+	set portsource [regsub -- {^dports} $portsource {http}]
+
     puts -nonewline "Username: "
     flush stdout
     gets stdin username
@@ -72,11 +88,15 @@ proc submit_main {args} {
     puts ""
     exec stty echo
     
-    global portname portversion maintainers categories description \
-	long_description
+    set vars {portname portversion maintainers categories description long_description master_sites}
+	eval "global $vars"
+	foreach var $vars {
+		if {![info exists $var]} { set $var {} }
+	}
+
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url http://localhost/cgi-bin/portsubmit.cgi "
+    append cmd "--url $portsource/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
@@ -88,8 +108,9 @@ proc submit_main {args} {
     append cmd "-F \"categories=[shell_escape $categories]\" "
     append cmd "-F \"description=[shell_escape $description]\" "
     append cmd "-F \"long_description=[shell_escape $long_description]\" "
+    append cmd "-F \"master_sites=[shell_escape $master_sites]\" "
 
-    puts $cmd
+    #puts $cmd
     if {[system $cmd] != ""} {
 	return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
     }
