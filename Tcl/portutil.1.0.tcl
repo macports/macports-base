@@ -157,7 +157,7 @@ proc unglobalval {key} {
 
 proc push {list value} {
 	upvar $list stack
-	lappend stack $value
+	lappend list $value
 }
 
 proc pop {list} {
