@@ -60,17 +60,26 @@ proc uninstall_main {args} {
 	set ix [lsearch -regexp $entry "contents \{\{"]
 	if {$ix >= 0} {
 	    set contents [lindex $entry $ix]
+	    set uninst_err 0
 	    foreach f [lindex $contents 1] {
 		set fname [lindex $f 0]
 		ui_info "$UI_PREFIX   Uninstall is removing $fname"
 		if [file isdirectory $fname] {
-		    exec rmdir $fname
+		    if [catch {exec rmdir $fname}] {
+			ui_msg "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
+			set uninst_err 1
+		    }
 		} else {
-		    exec rm $fname
+		    if [catch {exec rm $fname}] {
+			ui_msg "$UI_PREFIX  Uninstall unable to remove file $fname"
+			set uninst_err 1
+		    }
 		}
 	    }
-	    registry_delete $portname $portversion
-	    return 0
+	    if {!$uninst_err} {
+		registry_delete $portname $portversion
+		return 0
+	    }
 	} else {
 	    return -1
 	}
