@@ -42,19 +42,23 @@ proc dportinit {args} {
 
     if [file isfile /etc/ports.conf] {
 	set portconf /etc/ports.conf
+	lappend conf_files /etc/ports.conf
     }
-    if [file isfile /etc/defaults/ports.conf] {
+    if [file isfile /opt/local/etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
+	lappend conf_files /etc/defaults/ports.conf
     }
-    foreach file [list $portdefaultconf $portconf] {
-	set fd [open $file r]
-	while {[gets $fd line] >= 0} {
-	    foreach option $bootstrap_options {
-		if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9/\]+$)" $line match val] == 1} {
-		    set $option $val
+    if [info exists conf_files] {
+	foreach file [list $portdefaultconf $portconf] {
+	    set fd [open $file r]
+	    while {[gets $fd line] >= 0} {
+		foreach option $bootstrap_options {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9/\]+$)" $line match val] == 1} {
+			set $option $val
+		    }
 		}
 	    }
-	}
+        }
     }
 
     # Prefer the PORTPATH environment variable
