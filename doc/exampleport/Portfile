@@ -1,32 +1,42 @@
-# All ports must start with package require port <version>,
+# All ports must start with package require port <version>
 # where version is the version of the ports system your port relies upon.
 package require port 1.0
 
-# Port name
+# The name of the port
 portname	fetch
 
-# Port version
+# Its version information
 portversion	4.6.2-RELEASE
 
-# Categories
+# Categories and identifying keywords
 categories	net
 
-# Maintainers
+# Email address(es) of the port's Maintainer(s)
 maintainers	eric@opendarwin.org
 
-# Master download sites
+# A short description of this port
+description	"A utility for fetching files by URL"
+
+# Master download sites for port's distribution file(s)
 master_sites	http://www.opendarwin.org/~eric/
 
-# Name of the distribution file, minus extract suffix
+# Name of the distribution file, minus extract suffix (see below)
 distname	${portname}-${portversion}
 
-# (Optional) Explicitly set suffix
-extract_sufx	.tar.gz
+# (Optional) Explicitly set suffix (default: .tar.gz)
+#extract_sufx	.tar.bz2
+
+# (Optional) Use bzip2 instead of gzip for uncompressing distribution file
+#use_bzip2	yes
 
 # List of checksums for files to be fetched
 # <file name> <checksum type> <checksum>
 # Currently the only supported checksum type is md5
 checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
+
+# Any patches which should be applied after extracting this port.  These
+# should go in the files/ subdirectory of the port.
+#patchfiles	patch-Makefiles patch-configure
 
 # Dependencies are defined by three settings:
 #    depends_lib:	installed at build time and at install time
@@ -46,8 +56,15 @@ checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
 #	of a port to build and install if the depspec is not matched.
 depends_lib	lib:libfetch.3:net/libfetch
 
+# The type of configuration script this port uses.
+#configure.type	gnu
+
+# The directory name of the subdirectory of work/ where this port extracts
+#worksrcdir	fetch
+
 # Contents is a space delimited list of all files installed by the port.
 # If you do not specify a full path, the path is assumed to be relative to
 # ${prefix}
 contents	bin/fetch \
 		man/man1/fetch.1
+
