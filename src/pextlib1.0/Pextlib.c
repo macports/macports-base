@@ -414,7 +414,7 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	char *pattern, *string, *res;
 	int range[2];
 	extern char *strsed(char *str, char *pat, int *range);
-	TclObj *tcl_result;
+	Tcl_Obj *tcl_result;
 
 	if (objc != 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "string pattern");
@@ -437,7 +437,7 @@ int StrsedCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *template, *sp;
-	TclObj *tcl_result;
+	Tcl_Obj *tcl_result;
 
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "template");
