@@ -38,14 +38,14 @@ register com.apple.fetch provides fetch
 register com.apple.fetch requires main depends_fetch
 
 # define options: distname master_sites
-options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.pass cvs.tag
+options master_sites patch_sites extract_sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
 commands cvs
 
 # Defaults
 default extract_sufx .tar.gz
 default fetch.type standard
 default cvs.cmd cvs
-default cvs.pass ""
+default cvs.password ""
 default cvs.module {$distname}
 default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
@@ -178,10 +178,10 @@ proc checkfiles {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
-    global workpath cvs.pass cvs.args cvs.post_args cvs.tag cvs.module
+    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module
 	cd $workpath
 	set cvs.args login
-	if {[catch {system "echo ${cvs.pass} | [command cvs] 2>&1"} result]} {
+	if {[catch {system "echo ${cvs.password} | [command cvs] 2>&1"} result]} {
         ui_error "CVS login failed"
         return -1
     }
