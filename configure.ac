@@ -26,7 +26,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h])
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h])
 
 INCLUDES="-I. $INCLUDES"
 
@@ -34,7 +34,7 @@ INCLUDES="-I. $INCLUDES"
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol])
+AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol lockf flock])
 
 
 # Check for Tcl public headers
