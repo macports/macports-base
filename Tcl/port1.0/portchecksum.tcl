@@ -37,10 +37,6 @@ proc portchecksum::dmd5 {file} {
 				close $fd
 				return $sum
 			}
-		} else {
-			# XXX Handle this error beter
-			puts "md5sum failed!"
-			return -1
 		}
 	}
 	close $fd
@@ -61,6 +57,10 @@ proc portchecksum::main {args} {
 	foreach distfile $all_dist_files {
 		set checksum [md5 $distpath/$distfile]
 		set dchecksum [dmd5 $distfile]
+		if {$dchecksum == -1} {
+			puts "No checksum recorded for $distfile"
+			return -1
+		}
 		if {$checksum == $dchecksum} {
 			puts "Checksum OK for $distfile"
 		} else {
