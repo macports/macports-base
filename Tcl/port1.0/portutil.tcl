@@ -347,7 +347,7 @@ proc exec_target {fd chain dlist name} {
     upvar $dlist uplist
     if {[dlist_has_key uplist $name procedure,$chain]} {
 	set procedure [dlist_get_key uplist $name procedure,$chain]
-	ui_puts "DEBUG: Executing $name in chain $chain"
+	ui_debug "Executing $name in chain $chain"
 	set result [$procedure $name $chain]
 	if {$result == 0} {
 	    set result success

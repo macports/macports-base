@@ -6,7 +6,7 @@
 #include <tcl.h>
 
 #define BUFSIZ 1024
-static const char ui_proc[] = "ui_puts {";
+static const char ui_proc[] = "ui_info {";
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

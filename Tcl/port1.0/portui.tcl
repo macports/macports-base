@@ -9,10 +9,10 @@ package provide portui 1.0
 global _ui_is_enabled
 
 # If set, output debugging messages.
-global ports_debug
+options ports_debug
 
 # If set, output informational messages (ui_info)
-global ports_verbose
+options ports_verbose
 
 # do whatever interesting things need to be done to initialize the UI
 # environment.  Always called by convention though it does nothing
