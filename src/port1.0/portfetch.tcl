@@ -53,7 +53,7 @@ default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag HEAD
-default cvs.env {CVS_PASSFILE=${worksrcpath}/.cvspass}
+default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-f -d ${cvs.root}"}
 
 default fetch.cmd curl
@@ -258,9 +258,10 @@ proc checkfiles {args} {
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
-    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env
+    global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env cvs.root
     cd $workpath
-    if {[regexp ^:pserver: cvs.root]} {
+    exec touch .cvspass
+    if {[regexp ^:pserver: ${cvs.root}]} {
 	set cvs.args login
 	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
 	# XXX cvs will request a password from the tty using getpass()
