@@ -954,13 +954,12 @@ proc target_provides {this args} {
     # User-code exceptions are caught and returned as a result of the target.
     # Thus if the user code breaks, dependent targets will not execute.
     foreach target $args {
-	if {[info commands $target] != ""} {
-	    ui_error "$name attempted to register provide \'$target\' which is a pre-existing procedure. Ignoring register."
-	    continue;
-	}
 	set origproc [$this get procedure]
 	set ident [$this get name]
-	eval "proc $target {args} \{ \n\
+	if {[info commands $target] != ""} {
+	    ui_debug "[$this get name] attempted to register provides \'$target\' which is a pre-existing procedure. The target override procedure \'$target\' will not be provided"
+	} else {
+		eval "proc $target {args} \{ \n\
 			$this set procedure proc-${ident}-${target}
 			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
 				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
@@ -973,6 +972,7 @@ proc target_provides {this args} {
 			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
 			makeuserproc userproc-${ident}-${target} \$args \n\
 		\}"
+	}
 	eval "proc pre-$target {args} \{ \n\
 			$this append pre proc-pre-${ident}-${target}
 			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\

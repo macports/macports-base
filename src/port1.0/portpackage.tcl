@@ -34,7 +34,7 @@ package require portutil 1.0
 
 set com.apple.package [target_new com.apple.package package_main]
 ${com.apple.package} set runtype always
-${com.apple.package} provides packager
+${com.apple.package} provides package
 ${com.apple.package} requires registry
 
 # define options
