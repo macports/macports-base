@@ -16,8 +16,10 @@ options make.cmd make.type make.target.install contents
 set UI_PREFIX "---> "
 
 proc fileinfo_for_index {flist} {
+    global prefix
     set rval {}
-    foreach fentry $flist {
+    foreach file $flist {
+	set fentry [file join ${prefix} ${file}]
 	if ![catch {file stat $fentry statvar}] {
 	    set md5regex "^(MD5)\[ \]\\(($fentry)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	    set pipe [open "|md5 $fentry" r]
