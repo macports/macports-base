@@ -5,6 +5,15 @@
 #include <dirent.h>
 #include <sys/file.h>
 #include <sys/types.h>
+#include <sys/param.h>
+#include <sys/wait.h>
+#include <sys/socket.h>
+#include <signal.h>
+#include <unistd.h>
+#include <paths.h>
+
+#include <crt_externs.h>
+
 #include <tcl.h>
 
 #define BUFSIZ 1024
@@ -28,11 +37,113 @@ static int ui_info(Tcl_Interp *interp, char *mesg) {
 	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
 }
 
+#define environ *(_NSGetEnviron())
+static struct pid {
+	struct pid *next;
+	FILE *fp;
+	pid_t pid;
+} *pidlist;
+
+FILE *
+dup2popen (command, type) /*stderr and stdout together in the output*/
+	const char * command, *type;
+{
+        struct pid *cur;
+        FILE *iop;
+        int pdes[2], pid, twoway;
+        char *argv[4];
+        struct pid *p;
+
+        if (strchr(type, '+')) {
+                twoway = 1;
+                type = "r+";
+                if (socketpair(AF_UNIX, SOCK_STREAM, 0, pdes) < 0)
+                        return (NULL);
+        } else  {
+                twoway = 0;
+                if ((*type != 'r' && *type != 'w') || type[1])
+                        return (NULL);
+        }
+        if (pipe(pdes) < 0)
+                return (NULL);
+
+        if ((cur = malloc(sizeof(struct pid))) == NULL) {
+                (void)close(pdes[0]);
+                (void)close(pdes[1]);
+                return (NULL);
+        }
+
+        argv[0] = "sh";
+        argv[1] = "-c";
+        argv[2] = (char *)command;
+        argv[3] = NULL;
+
+        switch (pid = vfork()) {
+        case -1:                        /* Error. */
+                (void)close(pdes[0]);
+                (void)close(pdes[1]);
+                free(cur);
+                return (NULL);
+                /* NOTREACHED */
+        case 0:                         /* Child. */
+                if (*type == 'r') {
+                        /*
+                         * The _dup2() to STDIN_FILENO is repeated to avoid
+                         * writing to pdes[1], which might corrupt the
+                         * parent's copy.  This isn't good enough in
+                         * general, since the _exit() is no return, so
+                         * the compiler is free to corrupt all the local
+                         * variables.
+                         */
+                        (void)close(pdes[0]);
+                        if (pdes[1] != STDOUT_FILENO) {
+                                (void)dup2(pdes[1], STDOUT_FILENO);
+                                (void)close(pdes[1]);
+                                if (twoway) 
+                                        (void)dup2(STDOUT_FILENO, STDIN_FILENO);
+                        } else if (twoway && (pdes[1] != STDIN_FILENO)) 
+                                (void)dup2(pdes[1], STDIN_FILENO);
+                } else {
+                        if (pdes[0] != STDIN_FILENO) {
+                                (void)dup2(pdes[0], STDIN_FILENO);
+                                (void)close(pdes[0]);
+                        }
+                        (void)close(pdes[1]);
+                        }
+                for (p = pidlist; p; p = p->next) {
+                        (void)close(fileno(p->fp));
+                }
+		(void)dup2(STDOUT_FILENO,STDERR_FILENO);
+                execve(_PATH_BSHELL, argv, environ);
+                _exit(127);
+                /* NOTREACHED */
+        }
+
+        /* Parent; assume fdopen can't fail. */
+        if (*type == 'r') {
+                iop = fdopen(pdes[0], type);
+                (void)close(pdes[1]);
+        } else {
+                iop = fdopen(pdes[1], type);
+                (void)close(pdes[0]);
+        }
+
+        /* Link into list of file descriptors. */
+        cur->fp = iop;
+        cur->pid =  pid;
+        cur->next = pidlist;
+        pidlist = cur;
+
+        return (iop);
+}
+
+
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char buf[BUFSIZ];
 	char *cmdstring, *p;
 	FILE *pipe;
+	
 	int i, cmdlen, cmdlenavail;
 	cmdlen = cmdlenavail = BUFSIZ;
 	p = cmdstring = NULL;
@@ -94,7 +205,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		}
 	}
 
-	pipe = popen(cmdstring, "r");
+	/*pipe = popen(cmdstring, "r");*/
+	pipe = dup2popen(cmdstring, "r");
+	/*Gutted the popen code...*/
 	if (p != NULL)
 		free(cmdstring);
 
