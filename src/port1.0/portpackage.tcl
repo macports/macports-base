@@ -73,7 +73,7 @@ proc package_main {args} {
 # Make a tarball version of a package.  This is our "built-in" packaging
 # method.
 proc package_tarball {portname portversion entry} {
-    global ports_verbose
+    global ports_verbose sysportpath
 
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
@@ -92,7 +92,12 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set verbose ""
 	}
-	if [catch {exec gnutar -T [lindex $plist 1] -czPp${verbose}f ${portname}-${portversion}.tar.gz} err] {
+	if [file isdirectory [file join $sysportpath packages]] {
+	    set ptarget [file join $sysportpath packages]/${portname}-${portversion}.tar.gz
+	} else {
+	    set ptarget ${portname}-${portversion}.tar.gz
+	}
+	if [catch {exec gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget} err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
 	    exec rm [lindex $plist 1]
 	    return -1
