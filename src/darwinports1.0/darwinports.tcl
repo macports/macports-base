@@ -689,6 +689,8 @@ proc dportsearch {regexp} {
     global darwinports::portdbpath darwinports::sources
     set matches [list]
 
+    # XXX This should not happen, but does with the tk port when searching for tcl.
+    if {![info exists sources]} { return $matches }
     foreach source $sources {
     	if {[darwinports::getprotocol $source] == "dports"} {
     		array set attrs [list name $regexp]
