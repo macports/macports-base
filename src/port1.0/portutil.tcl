@@ -522,7 +522,7 @@ proc eval_targets {target} {
 			set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
 			# Special-case 'all'
 		} elseif {$target != "all"} {
-			ui_info "unknown target: $target"
+			ui_error "unknown target: $target"
             return 1
         }
     }
