@@ -46,6 +46,15 @@ proc tbool {key} {
     return 0
 }
 
+# makeuserproc
+# This procedure re-writes the user-defined custom target to include
+# all the globals in its scope.  This is undeniably ugly, but I haven't
+# thought of any other way to do this.
+proc makeuserproc {name body} {
+    regsub -- "^\{(.*)" $body "\{ \n foreach g \[info globals\] \{ \n global \$g \n \} \n \\1 " body
+    eval "proc $name {} $body"
+}
+
 ########### External Dependancy Manipulation Procedures ###########
 # register
 # Creates a target in the global target list using the internal dependancy
@@ -92,21 +101,21 @@ proc register {name mode args} {
                         return \[catch userproc-$target$id\] \n\
                     \} \n\
                     eval \"proc do-$target \{\} \{ $origproc $target build \}\" \n\
-                    eval \"proc userproc-$target$id \{\} \$args\" \}"
+                    makeuserproc userproc-$target$id \$args \}"
                 eval "proc pre-$target {args} \{ \n\
                     register pre-$target$id target build proc-pre-$target$id \n\
                     register pre-$target$id preflight $target \n\
                     proc proc-pre-$target$id \{name chain\} \{ \n\
                         return \[catch userproc-pre-$target$id\] \n\
                     \} \n\
-                    eval \"proc userproc-pre-$target$id \{\} \$args\" \}"
+                    makeuserproc userproc-pre-$target$id \$args \}"
                 eval "proc post-$target {args} \{ \n\
                     register post-$target$id target build proc-post-$target$id \n\
                     register post-$target$id postflight $target \n\
                     proc proc-post-$target$id \{name chain\} \{ \n\
                         return \[catch userproc-post-$target$id\] \n\
                     \} \n\
-                    eval \"proc userproc-post-$target$id \{\} \$args\" \}"
+                    makeuserproc userproc-pre-$target$id \$args \}"
             }
         }
 	
