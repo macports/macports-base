@@ -34,7 +34,7 @@ package require portutil 1.0
 
 set com.apple.contents [target_new com.apple.contents contents_main]
 ${com.apple.contents} set runtype always
-${com.apple.contents} provides contents
+${com.apple.contents} provides toc
 ${com.apple.contents} requires main
 
 set UI_PREFIX "---> "
