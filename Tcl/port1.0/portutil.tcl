@@ -78,21 +78,22 @@ proc register {name mode args} {
         
         if {[string equal provides $mode]} {
             # If it's a provides, register the pre-/post- hooks for use in Portfile.
+            # Portfile syntax: pre-fetch { puts "hello world" }
+            # User-code exceptions are caught and returned as a result of the target.
+            # Thus if the user code breaks, dependent targets will not execute.
             foreach target $args {
                 eval "proc pre-$target {args} \{ \n\
                     register pre-$target target build proc-pre-$target \n\
                     register pre-$target preflight $target \n\
                     proc proc-pre-$target \{name chain\} \{ \n\
-                        userproc-pre-$target \n\
-                        return 0 \n\
+                        return \[catch userproc-pre-$target\] \n\
                     \} \n\
                     eval \"proc userproc-pre-$target \{\} \$args\" \}"
                 eval "proc post-$target {args} \{ \n\
                     register post-$target target build proc-post-$target \n\
                     register post-$target postflight $target \n\
                     proc proc-post-$target \{name chain\} \{ \n\
-                        userproc-post-$target \n\
-                        return 0 \n\
+                        return \[catch userproc-post-$target\] \n\
                     \} \n\
                     eval \"proc userproc-post-$target \{\} \$args\" \}"
             }
