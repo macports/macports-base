@@ -10,27 +10,27 @@ namespace eval portextract {
 }
 
 # define globals
-globals portextract::options
+globals portextract::options extract.only extract.cmd extract.before_args extract.after_args
 
 # define options
-options portextract::options extract_only extract_command extract_before_args extract_after_args
+options portextract::options extract.only extract.cmd extract.before_args extract.after_args
 
 proc portextract::main {args} {
 	global portname portpath portdir workdir distname distpath distfiles use_bzip2
 
 	# Set up defaults
-	default portextract::options extract_only $distfiles
-	default portextract::options extract_cmd gzip
-	default portextract::options extract_before_args -dc
-	default portextract::options extract_after_args "| tar -xf -"
+	default portextract::options extract.only $distfiles
+	default portextract::options extract.cmd gzip
+	default portextract::options extract.before_args -dc
+	default portextract::options extract.after_args "| tar -xf -"
 
 	if [info exists use_bzip2] {
 	    puts "XXX using bzip2 man"
-		setval portextract::options extract_cmd bzip2
+		setval portextract::options extract.cmd bzip2
 	} elseif [info exists use_zip] {
-		setval portextract::options extract_cmd unzip
-		setval portextract::options extract_before_args -q
-		setval portextract::options extract_after_args -d $portdir/$workdir
+		setval portextract::options extract.cmd unzip
+		setval portextract::options extract.before_args -q
+		setval portextract::options extract.after_args -d $portdir/$workdir
 	}
 
 	puts "Extracting for $distname"
@@ -40,10 +40,10 @@ proc portextract::main {args} {
 
 	file mkdir $portdir/$workdir
 	cd $portdir/$workdir
-	foreach distfile [getval portextract::options extract_only] {
+	foreach distfile [getval portextract::options extract.only] {
 		puts -nonewline "$distfile: "
 		flush stdout
-		set cmd "[getval portextract::options extract_cmd] [getval portextract::options extract_before_args] $distpath/$distfile [getval portextract::options extract_after_args]"
+		set cmd "[getval portextract::options extract.cmd] [getval portextract::options extract.before_args] $distpath/$distfile [getval portextract::options extract.after_args]"
 		if [catch {system $cmd} result] {
 			puts $result
 			return -1
