@@ -98,7 +98,7 @@ proc checkfiles {args} {
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
         if ![info exists uplist] {
-            break
+            continue
         }
         foreach site $uplist {
             if {[regexp {([a-zA-Z]+://.+/):([a-zA-z]+)} $site match site tag] == 1} {
