@@ -53,7 +53,6 @@ default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag HEAD
-default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-f -d ${cvs.root}"}
 
 default fetch.cmd curl
