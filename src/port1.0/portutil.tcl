@@ -504,7 +504,7 @@ proc target_run {this} {
 	    set result [catch {[$this get init] $name} errstr]
 	}
 	
-	if {[check_statefile $name $target_state_fd]} {
+	if {[check_statefile target $name $target_state_fd]} {
 	    set result 0
 	    ui_debug "Skipping completed $name ($portname)"
 	} else {
@@ -542,7 +542,7 @@ proc target_run {this} {
 	}
 	if {$result == 0} {
 	    if {[$this get runtype] != "always"} {
-		write_statefile $name $target_state_fd
+		write_statefile target $name $target_state_fd
 	    }
 	} else {
 	    ui_error "Target error: $name returned: $errstr"
@@ -634,28 +634,57 @@ proc open_statefile {args} {
 }
 
 # check_statefile
-# Check completed state of target $name
-proc check_statefile {name fd} {
+# Check completed/selected state of target/variant $name
+proc check_statefile {class name fd} {
     global portpath workdir
     
     seek $fd 0
     while {[gets $fd line] >= 0} {
-	if {[string equal $line $name]} {
-	    return 1
-	}
+		if {$line == "$class: $name"} {
+			return 1
+		}
     }
     return 0
 }
 
 # write_statefile
 # Set target $name completed in the state file
-proc write_statefile {name fd} {
-    if {[check_statefile $name $fd]} {
-	return 0
+proc write_statefile {class name fd} {
+    if {[check_statefile $class $name $fd]} {
+		return 0
     }
     seek $fd 0 end
-    puts $fd $name
+    puts $fd "$class: $name"
     flush $fd
+}
+
+# check_statefile_variants
+# Check that recorded selection of variants match the current selection
+proc check_statefile_variants {variations fd} {
+	upvar $variations upvariations
+	
+    seek $fd 0
+    while {[gets $fd line] >= 0} {
+		if {[regexp "variant: (.*)" $line match name]} {
+			set oldvariations([string range $name 1 end]) [string range $name 0 0]
+		}
+    }
+
+	set mismatch 0
+	if {[array size oldvariations] > 0} {
+		if {[array size oldvariations] != [array size upvariations]} {
+			set mismatch 1
+		} else {
+			foreach key [array names upvariations *] {
+				if {$upvariations($key) != $oldvariations($key)} {
+					set mismatch 1
+					break
+				}
+			}
+		}
+	}
+
+	return $mismatch
 }
 
 # Traverse the ports collection hierarchy and call procedure func for
@@ -737,9 +766,10 @@ proc variant_run {this} {
     return 0
 }
 
-proc eval_variants {variations} {
+proc eval_variants {variations target} {
     global all_variants
     set dlist $all_variants
+	set result 0
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
     
@@ -755,6 +785,30 @@ proc eval_variants {variations} {
     }
     
     dlist_evaluate $newlist generic_get_next
+	
+	# Make sure the variations match those stored in the statefile.
+	# If they don't match, print an error indicating a 'port clean' 
+	# should be performed.  Skip this test if the statefile is empty.
+	# Also skip this test if performing a clean so we don't shoot
+	# ourselves in the foot.
+
+	if {$target != "clean"} {
+		set state_fd [open_statefile]
+	
+		if {[check_statefile_variants upvariations $state_fd]} {
+			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean'."
+			set result 1
+		} else {
+			# Write variations out to the statefile
+			foreach key [array names upvariations *] {
+				write_statefile variant $upvariations($key)$key $state_fd
+			}
+		}
+		
+		close $state_fd
+	}
+	
+	return $result
 }
 
 ##### DEPSPEC #####
