@@ -176,7 +176,7 @@ proc dportinit {args} {
     
 	# Archive mode, whether to create/use binary archive packages
 	if {![info exists portarchivemode]} {
-		set darwinports::portarchivemode "no"
+		set darwinports::portarchivemode "yes"
 		global darwinports::portarchivemode
 	}
 
