@@ -131,6 +131,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	FILE *pdes;
 	int fdset[2], nullfd;
 	int ret;
+	sig_t oldsig;
 #if defined(__APPLE__)
 	char **environ;
 	environ = *_NSGetEnviron();
