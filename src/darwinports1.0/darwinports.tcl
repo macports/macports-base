@@ -37,6 +37,33 @@ namespace eval darwinports {
     variable uniqid 0
 }
 
+# Provided UI instantiations
+# For standard messages, the following priorities are defined
+#     debug, info, msg, warn, error
+# Clients of the library are expected to provide ui_puts with the following prototype:
+#     proc ui_puts {priority string nonl}
+# ui_puts should handle the above defined priorities
+
+proc ui_debug {str {nonl ""}} {
+    ui_puts debug "$str" $nonl
+}
+
+proc ui_info {str {nonl ""}} {
+    ui_puts info "$str" $nonl
+}
+
+proc ui_msg {str {nonl ""}} {
+    ui_puts msg "$str" $nonl
+}
+
+proc ui_error {str {nonl ""}} {
+    ui_puts error "$str" $nonl
+}
+
+proc ui_warn {str {nonl ""}} {
+    ui_puts warn "$str" $nonl
+}
+
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf
 
@@ -120,7 +147,7 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 
     # instantiate the UI functions
-    foreach proc {ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
+    foreach proc {ui_debug ui_info ui_warn ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
         $workername alias $proc $proc
     }
 

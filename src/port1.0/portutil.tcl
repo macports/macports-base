@@ -1305,8 +1305,8 @@ proc adduser {name args} {
 	system "niutil -createprop . /users/${name} shell ${shell}"
     } else {
 	# XXX adduser is only available for darwin, add more support here
-	ui_warning "WARNING: adduser is not implemented on ${os.platform}."
-	ui_warning "The requested user was not created."
+	ui_warn "WARNING: adduser is not implemented on ${os.platform}."
+	ui_warn "The requested user was not created."
     }
 }
 
@@ -1335,7 +1335,7 @@ proc addgroup {name args} {
 	system "niutil -createprop . /groups/${name} users ${users}"
     } else {
 	# XXX addgroup is only available for darwin, add more support here
-	ui_warning "WARNING: addgroup is not implemented on ${os.platform}."
-	ui_warning "The requested group was not created."
+	ui_warn "WARNING: addgroup is not implemented on ${os.platform}."
+	ui_warn "The requested group was not created."
     }
 }

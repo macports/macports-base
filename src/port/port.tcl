@@ -53,44 +53,41 @@ proc ui_isset {val} {
 # If you don't want newlines to be output, you must pass "-nonewline"
 # as the second argument.
 
-proc ui_puts {str {nonl ""}} {
+proc ui_puts {priority str nonl} {
+    set channel stdout
+    switch $priority {
+        debug {
+            if [ui_isset ports_debug] {
+                set channel stderr
+                set str "DEBUG: $str"
+            } else {
+                return
+            }
+        }
+        info {
+            if ![ui_isset ports_verbose] {
+                return
+            }
+        }
+        msg {
+            if [ui_isset ports_quiet] {
+                return
+            }
+        }
+        error {
+            set str "Error: $str"
+            set channel stderr
+        }
+        warn {
+            set str "Warning: $str"
+        }
+    }
     if {$nonl == "-nonewline"} {
-	puts -nonewline stdout "$str"
-	flush stdout
+	puts -nonewline $channel "$str"
+	flush $channel 
     } else {
 	puts "$str"
     }
-}
-
-# Output debugging messages if the ports_debug variable is set.
-proc ui_debug {str} {
-    global ui_options
-
-    if [ui_isset ports_debug] {
-	puts stderr "DEBUG: $str"
-    }
-}
-
-# Output message if ports_verbose is set.
-proc ui_info {str {nonl ""}} {
-    global ui_options
-    if [ui_isset ports_verbose] {
-	ui_puts "$str" $nonl
-    }
-}
-
-# Output message unless ports_quiet is set.
-proc ui_msg {str {nonl ""}} {
-    global ui_options
-
-    if ![ui_isset ports_quiet] {
-	ui_puts "$str" $nonl
-    }
-}
-
-# Output message unconditionally as an error message.
-proc ui_error {str} {
-    ui_puts "Error: $str"
 }
 
 # Get a line of input from the user and store in str, returning the
