@@ -5,10 +5,13 @@
 # Not all of these may be necessary.  Prune (or add to) as actual experience
 # subsequently dictates.
 set chrootfiles {
-	bin sbin private etc tmp dev/null usr/include usr/libexec
-	usr/sbin usr/lib usr/share var/at var/automount var/cron
-	var/db var/empty var/log var/mail var/msgs var/named var/root
-	var/run var/rwho var/spool var/tmp var/vm/app_profile
+	bin sbin etc tmp var dev/null usr/include usr/libexec
+	usr/sbin usr/lib usr/share private/tmp private/etc
+	private/var/at private/var/automount private/var/cron
+	private/var/db private/var/empty private/var/log private/var/mail
+	private/var/msgs private/var/named private/var/root
+	private/var/run private/var/rwho private/var/spool
+	private/var/tmp private/var/vm/app_profile
 	Developer/Applications/Xcode.app Developer/Applications/Utilities
 	Developer/Headers Developer/Makefiles Developer/Private
 	Developer/Tools System/Library/Frameworks System/Library/OpenSSL
@@ -131,7 +134,7 @@ set verbose	"-v"
 if {$dochroot == 1} {
 	makechroot chrootdir
 	puts "All set up, now chrooting to ./chrootdir. Report will be in chrootdir/$REPORT"
-	exec chroot chrootdir/doit.tcl
+	exec chroot chrootdir chrootdir/doit.tcl
 } else {
 	puts "Report will be in $REPORT"
 	packageall
