@@ -12,21 +12,20 @@ global extract_opts
 options extract_opts extract.only extract.cmd extract.before_args extract.after_args
 
 proc extract_main {args} {
-    global extract_opts
-    global portname portpath portpath workdir distname distpath distfiles use_bzip2
+    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args
 
     # Set up defaults
-    default extract_opts extract.only $distfiles
-    default extract_opts extract.cmd gzip
-    default extract_opts extract.before_args -dc
-    default extract_opts extract.after_args "| tar -xf -"
+    default extract.only $distfiles
+    default extract.cmd gzip
+    default extract.before_args -dc
+    default extract.after_args "| tar -xf -"
 
     if [info exists use_bzip2] {
-	set extract_opts(extract.cmd) bzip2
+	set extract.cmd bzip2
     } elseif [info exists use_zip] {
-	set extract_opts(extract.cmd) unzip
-	set extract_opts(extract.before_args) -q
-	set extract_opts(extract.after_args) "-d $portpath/$workdir"
+	set extract.cmd unzip
+	set extract.before_args -q
+	set extract.after_args "-d $portpath/$workdir"
     }
 
     puts "Extracting for $distname"
@@ -36,10 +35,10 @@ proc extract_main {args} {
 
     file mkdir $portpath/$workdir
     cd $portpath/$workdir
-    foreach distfile $extract_opts(extract.only) {
+    foreach distfile ${extract.only} {
 	puts -nonewline "$distfile: "
 	flush stdout
-	set cmd "$extract_opts(extract.cmd) $extract_opts(extract.before_args) $distpath/$distfile $extract_opts(extract.after_args)"
+	set cmd "${extract.cmd} ${extract.before_args} $distpath/$distfile ${extract.after_args}"
 	if [catch {system $cmd} result] {
 	    puts $result
 	    return -1
