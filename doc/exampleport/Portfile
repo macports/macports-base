@@ -61,10 +61,3 @@ depends_lib	lib:libfetch.3:libfetch
 
 # The directory name of the subdirectory of work/ where this port extracts
 #worksrcdir	fetch
-
-# Contents is a space delimited list of all files installed by the port.
-# If you do not specify a full path, the path is assumed to be relative to
-# ${prefix}
-contents	bin/fetch \
-		man/man1/fetch.1
-
