@@ -119,7 +119,7 @@ switch -- $action {
 	}
 	foreach {name array} $res {
 	    array set portinfo $array
-	    set portfound 1
+	    # XXX is this the right place to verify an entry?
 	    if ![info exists portinfo(portname)] {
 		puts "Invalid port entry, missing portname"
 		continue
@@ -128,7 +128,12 @@ switch -- $action {
 		puts "Invalid port entry for $portinfo(portname), missing description"
 		continue
 	    }
-	    puts [format "%-15s\t%s" $portinfo(portname) $portinfo(description)]
+	    if ![info exists portinfo(portversion)] {
+		puts "Invalid port entry for $portinfo(portname), missing portversion"
+		continue
+	    }
+	    set portfound 1
+	    puts [format "%-15s\t%-8s\t%s" $portinfo(portname) $portinfo(portversion) $portinfo(description)]
 	    unset portinfo
 	}
 	if {![info exists portfound] || $portfound == 0} {
