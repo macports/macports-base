@@ -341,10 +341,11 @@ proc exec_target {chain dlist name} {
     if {[dlist_has_key uplist $name procedure,$chain]} {
 	set procedure [dlist_get_key uplist $name procedure,$chain]
 	ui_puts "DEBUG: Executing $name in chain $chain"
-	if {[$procedure $name $chain] == 0} {
+	set result [$procedure $name $chain]
+    if {$result == 0} {
 	    set result success
 	} else {
-	    ui_puts "Error in $name in chain $chain"
+	    ui_puts "$chain error: $name returned $result"
 	    set result failure
 	}
     } else {
