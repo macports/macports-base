@@ -55,13 +55,13 @@ set UI_PREFIX "---> "
 
 proc destroot_start {args} {
     global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
-
+    
     if { ${destroot.clean} == "yes" } {
 	system "rm -Rf \"${destroot}\""
     }
-
+    
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
 	system "cd \"${destroot}\" && mtree -e -U -f ${portresourcepath}/install/macosx.mtree"
@@ -77,7 +77,7 @@ proc destroot_main {args} {
 
 proc destroot_finish {args} {
     global destroot
-
+    
     # Prune empty directories in ${destroot}
     catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir 2>/dev/null"}
     return 0

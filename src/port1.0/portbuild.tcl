@@ -70,11 +70,11 @@ proc build_getmaketype {args} {
 	pbx {
 	    set pbxbuild "pbxbuild"
 	    set xcodebuild "xcodebuild"
-
+	    
 	    if {[option os.platform] != "darwin"} {
 		return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
 	    }
-	
+	    
 	    if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
 		return $xcodebuild
 	    } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
@@ -92,7 +92,7 @@ proc build_getmaketype {args} {
 
 proc build_start {args} {
     global UI_PREFIX
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
 }
 

@@ -53,18 +53,18 @@ proc dmd5 {file} {
 
 proc checksum_start {args} {
     global UI_PREFIX portname
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum for %s"] $portname]"
 }
 
 proc checksum_main {args} {
     global distpath all_dist_files UI_PREFIX
-
+    
     # If no files have been downloaded there is nothing to checksum
     if {![info exists all_dist_files]} {
 	return 0
     }
-
+    
     if {![exists checksums]} {
 	ui_error "[msgcat::mc "No checksums statement in Portfile.  File checksums are:"]"
 	foreach distfile $all_dist_files {
@@ -72,12 +72,12 @@ proc checksum_main {args} {
 	}
 	return -code error "[msgcat::mc "No checksums statement in Portfile."]"
     }
-
+    
     # Optimization for the 2 argument case for checksums
     if {[llength [option checksums]] == 2 && [llength $all_dist_files] == 1} {
 	option checksums [linsert [option checksums] 0 $all_dist_files]
     }
-
+    
     foreach distfile $all_dist_files {
 	set checksum [md5 file $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]

@@ -42,30 +42,30 @@ set UI_PREFIX "---> "
 
 proc install_start {args} {
     global UI_PREFIX portname portversion
-
-	# Check to make sure this port is not already installed.  This is a 
-	# general check of the portname only, so previous versions will fail 
-	# as well.
-	if {[string length [registry_exists $portname]]} {
-		# Also check to see if it's this version or another
-		if {[string length [registry_exists $portname $portversion]]} {
-			return -code error [format [msgcat::mc "Port %s already registered as installed."] $portname]
-		} else {
-			return -code error [format [msgcat::mc "Another version of Port %s is already registered as installed.  Please uninstall the port first."] $portname]
-		}
+    
+    # Check to make sure this port is not already installed.  This is a 
+    # general check of the portname only, so previous versions will fail 
+    # as well.
+    if {[string length [registry_exists $portname]]} {
+	# Also check to see if it's this version or another
+	if {[string length [registry_exists $portname $portversion]]} {
+	    return -code error [format [msgcat::mc "Port %s already registered as installed."] $portname]
 	} else {
-    	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
+	    return -code error [format [msgcat::mc "Another version of Port %s is already registered as installed.  Please uninstall the port first."] $portname]
 	}
+    } else {
+    	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
+    }
 }
 
 proc install_element {src_element dst_element} {
-# don't recursively copy directories
+    # don't recursively copy directories
     if {[file isdirectory $src_element] && [file type $src_element] != "link"} {
 	file mkdir $dst_element
     } else {
 	file copy -force $src_element $dst_element
     }
-
+    
     # if the file is a symlink, do not try to set file attributes
     # if the destination file is an existing directory,
     # do not overwrite its file attributes
@@ -89,13 +89,13 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 	puts $err
 	return
     }
-
+    
     foreach name [readdir .] {
 	if {[string match $name "."] || [string match $name ".."]} {
 	    continue
 	}
 	set element [file join $cwd $name]
-
+	
 	# XXX jpm's cross-platform code to find file separator
 	# replace with [file seperator] with tcl 8.4
 	if {![info exists root]} {
@@ -107,7 +107,7 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 		set root "\\"		
 	    }
 	}
-
+	
 	set dst_element [file join $root $element]
 	set src_element [file join $rootdir $element]
 	# overwrites files but not directories
@@ -125,13 +125,13 @@ proc directory_dig {rootdir workdir {cwd ""}} {
 
 proc install_main {args} {
     global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
-
+    
     # Install ${destroot} contents into /
     directory_dig ${destroot} ${destroot}
-
+    
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
-
+    
     registry_store $rhandle [list prefix $prefix]
     registry_store $rhandle [list categories $categories]
     if {[info exists description]} {

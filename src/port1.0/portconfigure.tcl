@@ -53,28 +53,28 @@ set UI_PREFIX "---> "
 
 proc configure_start {args} {
     global UI_PREFIX
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
 proc configure_main {args} {
     global [info globals]
     global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
-
+    
     if {[tbool use_automake]} {
 	# XXX depend on automake
 	if {[catch {system "[command automake]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
 	}
     }
-
+    
     if {[tbool use_autoconf]} {
 	# XXX depend on autoconf
 	if {[catch {system "[command autoconf]"} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
     }
-
+    
     if {[tbool use_xmkmf]} {
 	# XXX depend on xmkmf
 	if {[catch {system "[command xmkmf]"} result]} {

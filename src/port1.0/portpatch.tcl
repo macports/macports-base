@@ -47,12 +47,12 @@ default patch.pre_args -p0
 
 proc patch_main {args} {
     global UI_PREFIX
-
+    
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles]} {
 	return 0
     }
-
+    
     foreach patch [option patchfiles] {
 	if {[file exists [option filespath]/$patch]} {
 	    lappend patchlist [option filespath]/$patch

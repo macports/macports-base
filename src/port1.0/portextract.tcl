@@ -56,7 +56,7 @@ set UI_PREFIX "---> "
 
 proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
-
+    
     if {[tbool use_bzip2]} {
 	option extract.cmd [binaryInPath "bzip2"]
     } elseif {[tbool use_zip]} {
@@ -68,18 +68,18 @@ proc extract_init {args} {
 
 proc extract_start {args} {
     global UI_PREFIX
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
 proc extract_main {args} {
     global UI_PREFIX
-
+    
     if {![exists distfiles] && ![exists extract.only]} {
 	# nothing to do
 	return 0
     }
-
+    
     foreach distfile [option extract.only] {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
 	option extract.args "[option distpath]/$distfile"

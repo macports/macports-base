@@ -155,7 +155,7 @@ proc mirror_sites {mirrors tag subdir} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}
     }
-
+    
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
 	
@@ -163,14 +163,14 @@ proc mirror_sites {mirrors tag subdir} {
 	# have been assigned in mirror_sites.tcl
 	set splitlist [split $element :]
 	if {[llength $splitlist] > 1} {
-		set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
-		set mirror_tag "[lindex $splitlist 2]"
+	    set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
+	    set mirror_tag "[lindex $splitlist 2]"
 	}
-
+	
 	if {$subdir == "" && $mirror_tag != "nosubdir"} {
 	    set subdir ${portname}
 	}
-
+	
 	if {"$tag" != ""} {
 	    eval append element "${subdir}:${tag}"
 	} else {
@@ -178,7 +178,7 @@ proc mirror_sites {mirrors tag subdir} {
 	}
         eval lappend ret $element
     }
-
+    
     return $ret
 }
 
@@ -191,9 +191,9 @@ proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
 	master_sites filespath master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site
-
+    
     append master_sites " ${fallback_mirror_site}"
-
+    
     foreach list {master_sites patch_sites} {
         upvar #0 $list uplist
         if {![info exists uplist]} {
@@ -227,7 +227,7 @@ proc checkfiles {args} {
             }
         }
     }
-   
+    
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
 	    if {![file exists $filespath/$file]} {
@@ -285,7 +285,7 @@ proc cvsfetch {args} {
 proc fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd os.platform fetch.pre_args
     global distfile site
-
+    
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
 	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
@@ -327,7 +327,7 @@ proc fetchfiles {args} {
 # Initialize fetch target, calling checkfiles if neccesary
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type
-
+    
     if {[info exist distpath] && [info exists dist_subdir]} {
 	set distpath ${distpath}/${dist_subdir}
     }
@@ -338,7 +338,7 @@ proc fetch_init {args} {
 
 proc fetch_start {args} {
     global UI_PREFIX portname
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
 }
 
@@ -348,7 +348,7 @@ proc fetch_start {args} {
 # or call the standard fetchfiles procedure
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
-
+    
     # Check for files, download if neccesary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
         return 0

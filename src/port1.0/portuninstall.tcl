@@ -45,7 +45,7 @@ set UI_PREFIX "---> "
 
 proc uninstall_start {args} {
     global portname portversion UI_PREFIX
-
+    
     if {[string length [registry_exists $portname]]} {
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s"] $portname]"
     }
@@ -53,12 +53,12 @@ proc uninstall_start {args} {
 
 proc uninstall_main {args} {
     global portname portversion uninstall.force uninstall.nochecksum ports_force UI_PREFIX
-
+    
     # If global forcing is on, make it the same as a local force flag.
     if {[tbool ports_force]} {
 	set uninstall.force "yes"
     }
-
+    
     set rfile [registry_exists $portname]
     if {[string length $rfile]} {
 	if {[regexp .bz2$ $rfile]} {
@@ -68,7 +68,7 @@ proc uninstall_main {args} {
 	}
 	set entry [read $fd]
 	close $fd
-
+	
 	# First look to see if the port has registered an uninstall procedure
 	set ix [lsearch $entry pkg_uninstall]
 	if {$ix >= 0} {
@@ -79,7 +79,7 @@ proc uninstall_main {args} {
 		ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
 	    }
 	}
-
+	
 	# Now look for a contents list
 	set ix [lsearch $entry contents]
 	if {$ix >= 0} {
@@ -89,12 +89,12 @@ proc uninstall_main {args} {
 		set fname [lindex $f 0]
 		set md5index [lsearch -regex [lrange $f 1 end] MD5]
 		if {$md5index != -1} {
-			set sumx [lindex $f [expr $md5index + 1]]
+		    set sumx [lindex $f [expr $md5index + 1]]
 		} else {
-			# XXX There is no MD5 listed, set sumx to an empty
-			# list, causing the next conditional to return a
-			# checksum error
-			set sumx {}
+		    # XXX There is no MD5 listed, set sumx to an empty
+		    # list, causing the next conditional to return a
+		    # checksum error
+		    set sumx {}
 		}
 		set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
 		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
@@ -126,8 +126,8 @@ proc uninstall_main {args} {
 		}
 	    }
 	    if {!$uninst_err || [tbool uninstall.force]} {
-			registry_delete $portname
-			return 0
+		registry_delete $portname
+		return 0
 	    }
 	} else {
 	    return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]

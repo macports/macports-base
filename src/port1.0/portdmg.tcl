@@ -41,30 +41,30 @@ set UI_PREFIX "---> "
 
 proc dmg_main {args} {
     global portname portversion portrevision package.destpath UI_PREFIX
-
+    
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${portname} ${portversion}]"
-
+    
     return [package_dmg $portname $portversion $portrevision]
 }
 
 proc package_dmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath
-
+    
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"
     } else {
 	set imagename "${portname}-${portversion}"
     }
-
+    
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
     set final_image ${package.destpath}/${imagename}.dmg
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
-
+    
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
 	return 0
     }
-
+    
     # size for .dmg
     set size [dirSize ${pkgpath}]
     if {[expr ($size < 4194304)]} {
@@ -74,7 +74,7 @@ proc package_dmg {portname portversion portrevision} {
 	# this should later be replaced with hdiutil create -srcfolder
         set blocks [expr ($size/512) + ((($size/512)*3)/100)]
     }
-
+    
     if {[system "hdiutil create -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
@@ -92,6 +92,6 @@ proc package_dmg {portname portversion portrevision} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     system "rm -f ${tmp_image}"
-
+    
     return 0
 }
