@@ -130,7 +130,7 @@ proc darwinports::worker_init {workername portpath options variations} {
 			package require port \$version \}"
 
     foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
-		$workername alias $proc $proc
+	$workername alias $proc $proc
     }
 
     # instantiate the UI functions
@@ -266,7 +266,7 @@ proc dportsearch {regexp} {
                 gets $fd line
                 array set portinfo $line
                 if [info exists portinfo(portarchive)] {
-                	set portinfo(porturl) ${source}/$portinfo(portarchive)
+		    set portinfo(porturl) ${source}/$portinfo(portarchive)
                 } elseif [info exists portinfo(portdir)] {
                     set portinfo(porturl) ${source}/$portinfo(portdir)
                 }

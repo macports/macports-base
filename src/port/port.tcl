@@ -50,115 +50,114 @@ set separator 0
 array set options [list]
 array set variations [list]
 for {set i 0} {$i < $argc} {incr i} {
-	set arg [lindex $argv $i]
+    set arg [lindex $argv $i]
 	
-	# if -xyz before the separator
-	if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
-		if {$opt == "-"} {
-			set separator 1
+    # if -xyz before the separator
+    if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
+	if {$opt == "-"} {
+	    set separator 1
+	} else {
+	    foreach c [split $opt {}] {
+		if {$c == "v"} {
+		    set options(ports_verbose) yes
+		} elseif {$c == "D"} {
+		    set options(ports_debug) yes
+		} elseif {$c == "q"} {
+		    set options(ports_quiet) yes
+		    set options(ports_verbose) no
+		    set options(ports_debug) no
+		} elseif {$opt == "d"} {
+		    incr i
+		    set porturl "file://[lindex $argv $i]"
+		} elseif {$opt == "u"} {
+		    incr i
+		    set porturl [lindex $argv $i]
 		} else {
-			foreach c [split $opt {}] {
-				if {$c == "v"} {
-					set options(ports_verbose) yes
-				} elseif {$c == "D"} {
-					set options(ports_debug) yes
-				} elseif {$c == "q"} {
-					set options(ports_quiet) yes
-					set options(ports_verbose) no
-					set options(ports_debug) no
-				} elseif {$opt == "d"} {
-					incr i
-					set porturl "file://[lindex $argv $i]"
-				} elseif {$opt == "u"} {
-					incr i
-					set porturl [lindex $argv $i]
-				} else {
-					print_usage; exit
-				}
-			}
+		    print_usage; exit
 		}
+	    }
+	}
 	
 	# if +xyz -xyz or after the separator
-	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
-		set variations($opt) $sign
+    } elseif {[regexp {^([-+])([-A-Za-z0-9_+\.]+)$} $arg match sign opt] == 1} {
+	set variations($opt) $sign
 	
 	# option=value
-	} elseif {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
-		set options($key) \"$val\"
+    } elseif {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
+	set options($key) \"$val\"
 	
 	# action
-	} elseif {[regexp {^([A-Za-z0-9/._\-^$\[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
-		if [info exists action] {
-			set portname $opt
-		} else {
-			set action $opt
-		}
-
+    } elseif {[regexp {^([A-Za-z0-9/._\-^$\[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
+	if [info exists action] {
+	    set portname $opt
 	} else {
-		print_usage; exit
+	    set action $opt
 	}
+    } else {
+	print_usage; exit
+    }
 }
 
 if ![info exists action] {
-	set action build
+    set action build
 }
 
 if {[catch {dportinit} result]} {
-	puts "Failed to initialize ports system, $result"
-	exit 1
+    puts "Failed to initialize ports system, $result"
+    exit 1
 }
 
 switch -- $action {
-	search {
-		if ![info exists portname] {
-			puts "You must specify a search pattern"
-			exit 1
-		}
-		if {[catch {set res [dportsearch $portname]} result]} {
-			puts "port search failed: $result"
-			exit 1
-		}
-		foreach {name array} $res {
-			array set portinfo $array
-			puts "$portinfo(portname) $portinfo(description)"
-		}
-		if {[array size portinfo] == 0} {
-			puts "No match for $portname found"
-			exit 1
-		}
+    search {
+	if ![info exists portname] {
+	    puts "You must specify a search pattern"
+	    exit 1
 	}
-	sync {
-		if {[catch {dportsync} result]} {
-			puts "port sync failed: $result"
-			exit 1
-		}
+	if {[catch {set res [dportsearch $portname]} result]} {
+	    puts "port search failed: $result"
+	    exit 1
 	}
-	default {
-		set target $action
-		if {[info exists portname]} {
-			if {[catch {array set portinfo [dportmatch ^$portname\$]} result]} {
-				puts $result
-				exit 1
-			}
-			if {[array size portinfo] == 0} {
-				puts "Port $portname not found"
-				exit 1
-			}
-			set porturl $portinfo(porturl)
-		}
-		if ![info exists porturl] {
-			set porturl file://./
-		}
-		if {[catch {set workername [dportopen $porturl options variations]} result]} {
-			puts "Unable to open port: $result"
-			exit 1
-		}
-		if {[catch {set result [dportexec $workername $target]} result]} {
-			puts "Unable to execute port: $result"
-			exit 1
-		}
-		
-		dportclose $workername
-		exit $result
+	foreach {name array} $res {
+	    array set portinfo $array
+	    puts [format "%-15s\t%s" $portinfo(portname) $portinfo(description)]
 	}
+	if {[array size portinfo] == 0} {
+	    puts "No match for $portname found"
+	    exit 1
+	}
+    }
+    sync {
+	if {[catch {dportsync} result]} {
+	    puts "port sync failed: $result"
+	    exit 1
+	}
+    }
+    default {
+	set target $action
+	if {[info exists portname]} {
+	    if {[catch {array set portinfo [dportmatch ^$portname\$]} result]} {
+		puts $result
+		exit 1
+	    }
+	    if {[array size portinfo] == 0} {
+		puts "Port $portname not found"
+		exit 1
+	    }
+	    set porturl $portinfo(porturl)
+	}
+	if ![info exists porturl] {
+	    set porturl file://./
+	}
+	if {[catch {set workername [dportopen $porturl options variations]} result]} {
+	    puts "Unable to open port: $result"
+	    exit 1
+	}
+	if {[catch {set result [dportexec $workername $target]} result]} {
+	    puts "Unable to execute port: $result"
+	    exit 1
+	}
+
+	dportclose $workername
+	exit $result
+    }
 }
