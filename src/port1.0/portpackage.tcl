@@ -97,7 +97,7 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set ptarget ${portname}-${portversion}.tar.gz
 	}
-	if [catch {exec gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget} err] {
+	if [catch {exec gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget}} err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
 	    exec rm [lindex $plist 1]
 	    return -1
