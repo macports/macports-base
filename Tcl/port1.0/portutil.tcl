@@ -41,7 +41,7 @@ proc globals {array args} {
 
 proc globalcheck {array key op} {
     upvar $array uparray
-    upvar #0 $key upkey
+    upvar \#0 $key upkey
     global globals
 
     if [tbool globals $key] {
