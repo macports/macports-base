@@ -119,59 +119,62 @@ proc package_pkg {portname portversion entry} {
     set resourcepath ${workpath}/pkg_resources
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
+    # If contents entry exists, transplant installed files into ${destpath}
+    # Otherwise, presume that they are already installed in ${destpath} path
     if {$ix >= 0} {
-		set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
-		set pfile [lindex $plist 0]
-		# XXX hack that allows contents list to be grouped by braces
-		# XXX split contents list up if it contains one argument
-		# XXX this breaks contents lists that contain one filename, with spaces.
-		if {[llength $contents] == 1} {
-			set clist [eval concat $contents]
-		} else {
-			set clist $contents
-		}
-	
-		foreach f $clist {
-			set fname [lindex $f 0]
-			puts $pfile $fname
-		}
-		close $pfile
-	
-		if {![file isdirectory $destpath]} {
-			if {[catch {file mkdir $destpath} result]} {
-			ui_error "Unable to create destination root path: $result"
-			return -code error "Unable to create destination root path: $result"
-			}
-		}
-	
-		if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
-			ui_error "Package creation failed - gnutar returned error status: $return"
-			file delete [lindex $plist 1]
-			return -code error "Package creation failed - gnutar returned error status: $return"
-		}
-		file delete [lindex $plist 1]
+	set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
+	set pfile [lindex $plist 0]
+
+	foreach f $contents {
+	    set fname [lindex $f 0]
+	    puts $pfile $fname
 	}
-	if {![file isdirectory $resourcepath]} {
-	    if {[catch {file mkdir $resourcepath} result]} {
-		ui_error "Unable to create package resource directory: $result"
-		return -code error "Unable to create package resource directory: $result"
+	close $pfile
+
+	if {![file isdirectory $destpath]} {
+	    if {[catch {file mkdir $destpath} result]} {
+		ui_error "Unable to create destination root path: $result"
+		return -code error "Unable to create destination root path: $result"
 	    }
 	}
 
-# XXX: we need to support .lproj in resources.
-	set pkgpath ${package.destpath}/${portname}.pkg
-	system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
-	write_PkgInfo ${pkgpath}/Contents/PkgInfo
-	write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
-	write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $prefix
-	write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
-	file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
-	system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
-	system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
-	system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}.pax.gz"
+	if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
+	    ui_error "Package creation failed - gnutar returned error status: $return"
+	    file delete [lindex $plist 1]
+	    return -code error "Package creation failed - gnutar returned error status: $return"
+	}
+	file delete [lindex $plist 1]
+    }
+    if {![file isdirectory $resourcepath]} {
+	if {[catch {file mkdir $resourcepath} result]} {
+	    ui_error "Unable to create package resource directory: $result"
+	    return -code error "Unable to create package resource directory: $result"
+	}
+    }
 
-	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${portname} ${pkgpath} ${destpath}
+    # XXX: we need to support .lproj in resources.
+    set pkgpath ${package.destpath}/${portname}.pkg
+    system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
+    write_PkgInfo ${pkgpath}/Contents/PkgInfo
+    write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
+    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $prefix
+    write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+    # long_description, description, or homepage may not exist
+    foreach variable {long_description description homepage} {
+	if {![info exists $variable]} {
+	    set pkg_$variable ""
+	} else {
+	    set pkg_$variable [set $variable]
+	}
+    }
+    write_welcome_rtf ${pkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
+    system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
+    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
+    system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}.pax.gz"
+
+    write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${portname} ${pkgpath} ${destpath}
 
     return 0
 }
@@ -292,6 +295,36 @@ proc write_description_plist {infofile portname portversion description} {
 </dict>
 </plist>"
 	close $infofd
+}
+
+proc write_welcome_rtf {filename portname portversion long_description description homepage} {
+    set fd [open ${filename} w+]
+    if {$long_description == ""} {
+	set long_description $description
+    }
+    puts $fd \
+"{\\rtf1\\mac\\ansicpg10000\\cocoartf102
+{\\fonttbl\\f0\\fswiss\\fcharset77 Helvetica-Bold;\\f1\\fswiss\\fcharset77 Helvetica;}
+{\\colortbl;\\red255\\green255\\blue255;\\red1\\green1\\blue1;}
+\\vieww9000\\viewh9000\\viewkind0
+\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\ql\\qnatural
+
+\\f0\\b\\fs24 \\cf2 Welcome to the ${portname} for Mac OS X Installer\\
+\\
+\\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\ql\\qnatural
+"
+puts -nonewline $fd "\\f1\\b0 \\cf2 "
+    puts $fd "${portname} ${portversion}\\"
+    if {$homepage != ""} {
+	puts $fd "${homepage} \\\n\\"
+    }
+    puts $fd \
+"${long_description} \\
+\\
+This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.\\
+}"
+
+    close $fd
 }
 
 proc write_sizes_file {sizesfile portname pkgpath destpath} {
