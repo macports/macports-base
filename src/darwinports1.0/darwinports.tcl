@@ -584,9 +584,10 @@ proc dportsearch {regexp} {
     foreach source $sources {
     	if {[darwinports::getprotocol $source] == "dports"} {
     		# Strip out ^$ for compatability. (We don't use regexes anymore)
-    		regsub -- {^\^} $regexp {} regexp
-    		regsub -- {\$$} $regexp {} regexp
-    		array set attrs [list name $regexp]
+		set name $regexp
+    		regsub -- {^\^} $name {} name
+    		regsub -- {\$$} $name {} name
+    		array set attrs [list name $name]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
