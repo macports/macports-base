@@ -32,7 +32,7 @@
 package provide portpackage 1.0
 package require portutil 1.0
 
-register com.apple.package target package_main
+register com.apple.package target package_main always
 register com.apple.package provides packager
 register com.apple.package requires registry
 
