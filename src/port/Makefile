@@ -8,6 +8,8 @@ mkdirs:
 
 all:
 
+clean:
+
 install: mkdirs
 	install -c -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${PREFIX}/man/man1
 	install -c -o ${DSTUSR} -g ${DSTGRP} -m 555 port.tcl ${PREFIX}/bin/port

@@ -6,6 +6,8 @@ DSTGRP?=	wheel
 
 all:
 
+clean:
+
 install:
 	mkdir -p /etc/defaults
 	mkdir -p ${ETCDIR}
