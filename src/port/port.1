@@ -35,20 +35,44 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Oo
-.Ar target
-.Op Ar portdir
-.Oc
+.Op Fl vDq
+.Op Ar target
+.Op Fl d Ar portdir
 .Op Ar options ...
+.Op Ar variations ...
 .Sh DESCRIPTION
 .Nm
-is designed to read and execute the build instructions of a darwin port. If no portdir is specified, the current working directory is assumed. Port options are specified as key=value pairs and take precedence over individual port options and system-wide settings.
+is designed to read and execute the build instructions of a darwin port. If no 
+.Ar portdir
+is specified, the current working directory is assumed.
+If no
+.Ar target
+is specified, "build" is assumed.
+Port 
+.Ar options 
+are specified as key=value pairs and take precedence over individual port options and system-wide settings.
+Port
+.Ar variations
+are specified as +name, which indicates the variation is desired, and -name, which indicates the 
+variation is not desired
+.Sh OPTIONS
+.Bl -tag -width -indent
+.It Fl v
+verbose mode (generate verbose messages)
+.It Fl D
+debug mode (generate debugging messages)
+.It Fl q
+quiet mode (suppress messages)
+.It Fl d
+specify
+.Ar portdir
+.El
 .Sh EXAMPLES
 The following demonstrates invoking
 .Nm
 with the "extract" target on portdir "textproc/figlet" and extract_sufx set to ".tgz"
 .Pp
-.Dl "port extract textproc/figlet extract_sufx=.tgz"
+.Dl "port extract -d textproc/figlet extract_sufx=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std

@@ -51,8 +51,18 @@ proc ports_verbose {val} {
 
 proc ports_quiet {val} {
     global system_options
+    
+    if {$val == "yes"} { 
+	set notval no
+    } elseif {$val == "no"} {
+	set notval yes
+    } else {
+	set notval ""
+    }
 
     set system_options(ports_quiet) $val
+    set system_options(ports_debug) $notval
+    set system_options(ports_verbose) $notval
 }
 
 proc isset {val} {

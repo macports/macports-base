@@ -628,12 +628,14 @@ proc port_traverse {func {dir .}} {
 
 ########### Port Variants ###########
 
-proc choose_variant {variants args} {
+proc choose_variant {variants variations} {
     upvar $variants upvariants 
+    upvar $variations upvariations
 
-    array set statusdict [list]
-    foreach arg $args {
-        array set statusdict [list $arg success]
+    foreach var [array names upvariations] {
+        if {$upvariations($var) == "+"} {
+            set upvariations($var) success
+        }
     }
 
     set nextitem ""
@@ -646,11 +648,11 @@ proc choose_variant {variants args} {
 		
 	# favor the item which provides the greatest number of requested services
         set provides [dlist_get_key upvariants $name provides]
-	set unmet [dlist_count_unmet $provides statusdict]
+	set unmet [dlist_count_unmet $provides upvariations]
 
         # delta = abs(total - unmet - met)
         # Try to choose the item with a delta closest to zero.
-        set delta [expr abs([llength $provides] - $unmet - [array size statusdict])]
+        set delta [expr abs([llength $provides] - $unmet - [array size upvariations])]
         
         #puts "DEBUG: $name unmet $unmet (minfailed $minfailed) delta $delta (mindelta $mindelta)"
         if {($unmet < $minfailed) || ($unmet == $minfailed && $delta < $mindelta)} {

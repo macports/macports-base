@@ -36,7 +36,7 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[target\] \[-d portdir\] \[options\]"
+    puts "Usage: $argv0 \[-vDq\] \[target\] \[-d portdir\] \[options\]"
 }
 
 proc fatal args {
@@ -47,32 +47,52 @@ proc fatal args {
 
 # Main
 set target "build"
-set targeted 0
+set separator 0
+array set options [list]
+array set variations [list]
 for {set i 0} {$i < $argc} {incr i} {
-	switch -regexp -- [lindex $argv $i] {
-		{^-d$} {
+	set arg [lindex $argv $i]
+	
+	# if -xyz before the separator
+	if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
+		if {$opt == "-"} {
+			set separator 1
+		} elseif {$opt == "d"} {
 			incr i
 			set portdir [lindex $argv $i]
-		}
-		{^[A-Za-z0-9_\.]+=.+$} {
-			if {[regexp {([A-Za-z0-9_\.]+)=(.+)} [lindex $argv $i] match key val] == 1} {
-				lappend options [lindex $argv $i]
+		} else {
+			foreach c [split $opt {}] {
+				if {$c == "v"} {
+					ports_verbose yes
+				} elseif {$c == "D"} {
+					ports_debug yes
+				} elseif {$c == "q"} {
+					ports_quiet yes
+				} else {
+					print_usage; exit
+				}
 			}
 		}
-		{^[A-Za-z0-9\/\._\-]+$} {
-			if {$targeted == 0} {
-				set target [lindex $argv $i]
-				set targeted 1
-			} else {
-				set portdir [lindex $argv $i]
-			}
-		}
-		default { print_usage; exit }
+	
+	# if +xyz -xyz or after the separator
+	} elseif {[regexp {^([-+])([-A-Za-z0-9_+\.])+$} $arg match sign opt] == 1} {
+		set variations($opt) $sign
+	
+	# option=value
+	} elseif {[regexp {([A-Za-z0-9_\.]+)=(.*)} $arg match key val] == 1} {
+		set options($key) \"$val\"
+	
+	# target
+	} elseif {[regexp {^([A-Za-z0-9\/\._\-]+)$} $arg match opt] == 1} {
+		set target $opt
+
+	} else {
+		print_usage; exit
 	}
 }
 dportinit
 if [info exists options] {
-    set workername [dportopen $portdir $options]
+    set workername [dportopen $portdir options variations]
 } else {
     set workername [dportopen $portdir]
 }

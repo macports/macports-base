@@ -75,8 +75,11 @@ proc dportinit {args} {
     }
 }
 
-proc dportopen {portdir {options ""}} {
+proc dportopen {portdir options variations} {
     global portpath portinterp_options uniqid
+    
+    upvar $options upoptions
+    upvar $variations upvariations
 
     if [file isdirectory $portdir] {
 	cd $portdir
@@ -112,12 +115,15 @@ proc dportopen {portdir {options ""}} {
 		}
 	}
 
-	foreach opt $options {
-		if {[regexp {([A-Za-z0-9_\.]+)=(.+)} $opt match key val] == 1} {
-			$workername eval set user_options($key) \"$val\"
-			$workername eval set $key \"$val\"
-		}
+	foreach opt [array names upoptions] {
+		$workername eval set user_options($opt) $upoptions($opt)
+		$workername eval set $opt $upoptions($opt)
 	}
+	
+	foreach var [array names upvariations] {
+		$workername eval set variations($var) $upvariations($var)
+	}
+	
 	$workername eval source Portfile
 	$workername eval {flock [open Portfile r] -exclusive}
     } else {
@@ -132,10 +138,8 @@ proc dportopen {portdir {options ""}} {
 proc dportexec {workername target} {
     global targets variants portpath portinterp_options uniqid variations
 
-    # XXX: don't set variations here, they should come from portbuild somehow
-    set variations [list whizbang super]
-    if {[llength $variations] > 0} {
-        set variant [$workername eval choose_variant variants $variations]
+    if {[array size variations] > 0} {
+        set variant [$workername eval choose_variant variants variations]
         if {[string length $variant] > 0} {
             $workername eval eval_variants variants $variant
         }
