@@ -139,8 +139,8 @@ proc install_main {args} {
 proc install_registry {args} {
     global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
 
-	# Prune empty directories in ${destroot}
-	catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir"}
+    # Prune empty directories in ${destroot}
+    catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir 2>/dev/null"}
 
     # Install ${destroot} contents into /
     directory_dig ${destroot} ${destroot}
