@@ -32,12 +32,12 @@
 package provide portutil 1.0
 package require Pextlib 1.0
 
-global targets target_uniqid variants
+global targets target_uniqid all_variants
 
 set targets [list]
 set target_uniqid 0
 
-set variants [list]
+set all_variants [list]
 
 ########### External High Level Procedures ###########
 
@@ -206,7 +206,7 @@ proc default_check {optionName index op} {
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
-    global variants PortInfo
+    global all_variants PortInfo
     upvar $args upargs
     
     set len [llength $args]
@@ -235,7 +235,7 @@ proc variant {args} {
     $obj append provides $provides
     $obj append requires $requires
     $obj set code $code
-    lappend variants $obj
+    lappend all_variants $obj
     
     # Export provided variant to PortInfo
     lappend PortInfo(variants) $provides
@@ -379,7 +379,7 @@ proc include {fname} {
 # all the globals in its scope.  This is undeniably ugly, but I haven't
 # thought of any other way to do this.
 proc makeuserproc {name body} {
-    regsub -- "^\{(.*)" $body "\{ \n foreach g \[info globals\] \{ \n global \$g \n \} \n \\1 " body
+    regsub -- "^\{(.*?)" $body "\{ \n eval \"global \[info globals\]\" \n \\1" body
     eval "proc $name {} $body"
 }
 
@@ -742,8 +742,8 @@ proc choose_variants {dlist variations} {
 proc variant_run {this} {
     set name [$this get name]
     ui_debug "Executing $name provides [$this get provides]"
-    makeuserproc $name-code "\{[$this get code]\}"
-    if ([catch $name-code result]) {
+    makeuserproc ${name}-code "[$this get code]"
+    if ([catch ${name}-code result]) {
 	ui_error "Error executing $name: $result"
 	return 1
     }
@@ -751,8 +751,8 @@ proc variant_run {this} {
 }
 
 proc eval_variants {variations} {
-    global variants
-    set dlist $variants
+    global all_variants
+    set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
     
@@ -994,7 +994,25 @@ proc variant_new {name} {
     return $obj
 }
 
-
+options variants.default
+option_proc variants.default handle_variants.default
+proc handle_variants.default {option action args} {
+	global variations
+    switch -regex $action {
+		set|append {
+			foreach v $args {
+				if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+					if {![info exists variations($variant)]} {
+						set variations($variant) $val
+					}
+				}
+			}
+		}
+		delete {
+			# xxx
+		}
+    }
+}
 
 ##### portfile depspec subclass #####
 global portfile_vtbl
