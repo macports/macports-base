@@ -51,7 +51,7 @@ set UI_PREFIX "---> "
 proc registry_new {portname {portversion 1.0}} {
     global _registry_name registry.path
 
-    system "mkdir -p ${registry.path}"
+    file mkdir -p ${registry.path}
     set _registry_name [file join ${registry.path} $portname-$portversion]
     set rhandle [open $_registry_name w 0644]
     puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
