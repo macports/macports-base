@@ -2,7 +2,7 @@
 package provide portutil 1.0
 package require Pextlib 1.0
 
-global globals targets
+global targets
 
 ########### External High Level Procedures ###########
 
@@ -24,45 +24,6 @@ proc default {option args} {
     if {![info exists $option]} {
 	set $option $args
     }
-}
-
-# globals
-# Specifies which keys from an array should be exported as global variables.
-# Often used directly with options procedure
-proc globals {array args} {
-    foreach option $args {
-	globalcreate $array $option
-    }
-}
-
-########### Global Variable Manipulation Procedures ###########
-
-proc globalcheck {array key op} {
-    upvar $array uparray
-    upvar \#0 $key upkey
-    global globals
-
-    if [tbool globals $key] {
-	if ![info exists upkey] {
-	    trace vdelete ${array}(${key}) rwu globalcheck
-	    unset ${array}(${key})
-	    return
-	}
-    }
-    switch $op {
-	w { set upkey $uparray($key) 
-	    set globals($key) yes}
-	r { if {$upkey != $uparray($key)} { set uparray($key) $upkey } }
-	u { unset upkey
-	    unset globals($key)}
-    }
-}
-
-proc globalcreate {array key} {
-    if {[trace vinfo ${array}(${key})] != ""} {
-	error "Re-exporting global $key"
-    }
-    trace variable ${array}(${key}) rwu globalcheck
 }
 
 ########### Misc Utility Functions ###########
