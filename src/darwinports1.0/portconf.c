@@ -37,11 +37,17 @@
 
 #include <tcl.h>
 
-static int set_session_option(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+#ifdef __GNUC__
+#define UNUSED __attribute__ ((unused))
+#else
+#define UNUSED
+#endif
+
+static int set_session_option(ClientData clientData UNUSED, Tcl_Interp *interp UNUSED, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED) {
     return TCL_OK;
 }
 
-void parse_port_conf(dp_session_t dp, char* path) {
+void parse_port_conf(dp_session_t dp UNUSED, char* path) {
     int fd = open(path, O_RDONLY, 0);
     if (fd != -1) {
         Tcl_Interp* interp = Tcl_CreateInterp();
@@ -52,6 +58,6 @@ void parse_port_conf(dp_session_t dp, char* path) {
             Tcl_CreateObjCommand(interp, *option, &set_session_option, NULL, NULL);
             ++option;
         }
-        // XXX: parse config file
+        /* XXX: parse config file */
     }
 }

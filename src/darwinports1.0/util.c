@@ -70,7 +70,7 @@ void dp_array_release(dp_array_t a) {
 
 void dp_array_append(dp_array_t a, const void* data) {
     Tcl_Obj* array = (Tcl_Obj*)a;
-    Tcl_Obj* obj = Tcl_NewByteArrayObj((char*)&data, sizeof(void*));
+    Tcl_Obj* obj = Tcl_NewByteArrayObj((unsigned char*)&data, sizeof(void*));
     Tcl_ListObjAppendElement(_util_interp, array, obj);
 }
 

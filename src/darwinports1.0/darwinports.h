@@ -43,7 +43,7 @@ void dp_array_release(dp_array_t a);
 void dp_array_append(dp_array_t a, const void* data);
 int dp_array_get_count(dp_array_t a);
 const void* dp_array_get_index(dp_array_t a, int index);
-// something for delete
+/* something for delete */
 
 dp_session_t dp_session_open();
 int dp_session_sync_index();

@@ -62,7 +62,7 @@ struct session {
 dp_session_t dp_session_open() {
     struct session* dp = (struct session*)malloc(sizeof(struct session));
     char* path;
-    //dp_array_t conf_files = dp_array_create();
+    /* dp_array_t conf_files = dp_array_create(); */
     
     dp->portconf = NULL;
     
@@ -70,7 +70,7 @@ dp_session_t dp_session_open() {
     path = getenv("PORTSRC");
     if (path != NULL && access(path, R_OK) == 0) {
         dp->portconf = strdup(path);
-        //dp_array_append(conf_files, dp->portconf);
+        /* dp_array_append(conf_files, dp->portconf); */
     }
 
     /* then look in ~/.portsrc */
@@ -81,26 +81,26 @@ dp_session_t dp_session_open() {
             snprintf(path, sizeof(path), "%s/.portsrc", home);
             if (access(path, R_OK) == 0) {
                 dp->portconf = strdup(path);
-                //dp_array_append(conf_files, dp->portconf);
+                /* dp_array_append(conf_files, dp->portconf); */
             }
         }
     }
 
     /* finally /etc/ports/ports.conf, or whatever path was configured */
     if (dp->portconf == NULL) {
-        // XXX: honor autoconf setting ($dports_conf_path)
+      /* XXX: honor autoconf setting ($dports_conf_path) */
         char* path = "/etc/ports/ports.conf";
         if (access(path, R_OK) == 0) {
             dp->portconf = strdup(path);
-            //dp_array_append(conf_files, dp->portconf);
+            /* dp_array_append(conf_files, dp->portconf); */
         }
     }
     
-    // foreach conf_files
+    /* foreach conf_files */
     {
         int fd = open(dp->portconf, O_RDONLY, 0);
         if (fd != -1) {
-            // XXX: parse config file
+	  /* XXX: parse config file */
         }
     }
     

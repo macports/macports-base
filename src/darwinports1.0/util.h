@@ -40,6 +40,6 @@ void dp_hash_release(dp_hash_t h);
 void dp_hash_set_value(dp_hash_t h, const void* key, const void* data);
 int dp_hash_get_count(dp_hash_t h);
 const void* dp_hash_get_value(dp_hash_t h, const void* key);
-// something for delete
+/* something for delete */
 
 #endif /* __UTIL_H__ */
