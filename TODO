@@ -9,5 +9,6 @@ Implement deinstall target					landonf
 Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
 Write man page for all targets / options			landonf
+Add reinplace TCL command					landonf
 Return an error on execution failure in darwinports
     sub-interpreter						landonf
