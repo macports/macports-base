@@ -46,7 +46,7 @@ mkchrootimage() {
 		sz=$(($sz + $mysz))
 	done
 	echo "Creating bootstrap disk image of ${sz}K bytes"
-	hdiutil create -size ${sz}k -fs UFS ${CHROOTBASE} > /dev/null
+	hdiutil create -size ${sz}k -fs HFSX ${CHROOTBASE} > /dev/null
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	echo "Image attached as $DEV"
 	echo "Copying chroot files into bootstrap disk image"
@@ -83,31 +83,20 @@ EOF
 
 # Do whatever needs to be done to prep the chroot for actual package building
 prepchroot() {
-	if [ $# -lt 1 ]; then
-		echo "Usage: prepchroot chrootdir"
-		return 1
-	fi
-
 	dir=$1
 	DEV=""; DISTDEV=""
 	DEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	if [ -f $DISTFILES ]; then
 		DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	fi
-	mountchrootextras $dir
 }
 
 # Undo the work of prepchroot
 teardownchroot() {
 	dir=$1
-	if [ -z "$DEV" ]; then
-		echo "chrootdir not prepped"
-		return 1
-	fi
-	umountchrootextras $dir
 	[ -z "$DISTDEV" ] || hdiutil detach $DISTDEV >& /dev/null
-	hdiutil detach $DEV >& /dev/null
-	rm ${CHROOTBASE}.shadow
+	[ -z "$DEV" ] || hdiutil detach $DEV >& /dev/null
+	rm -f ${CHROOTBASE}.shadow
 	DEV=""; DISTDEV=""
 }
 
@@ -146,8 +135,7 @@ else
 	mkchrootimage $DIR
 fi
 
-mkdir -p outputdir/Packages
-mkdir -p outputdir/logs
+mkdir -p outputdir/Packages outputdir/logs/succeeded outputdir/logs/failed
 
 echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
 for pkg in `cat $TGTPORTS`; do
@@ -155,19 +143,28 @@ for pkg in `cat $TGTPORTS`; do
 	prepchroot $DIR
 	echo "#!/bin/sh" > $DIR/bootstrap.sh
 	echo 'export PATH=$PATH:/opt/local/bin' >> $DIR/bootstrap.sh
+	echo "mkdir -p /.vol" >> $DIR/bootstrap.sh
+	echo "/sbin/mount_volfs /.vol" >> $DIR/bootstrap.sh
+	echo "/sbin/mount_devfs devfs /dev" >> $DIR/bootstrap.sh
+        echo "/sbin/mount_fdesc -o union fdesc /dev" >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
+	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
 	echo "if port -v mpkg $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
+	echo "umount /.vol" >> $DIR/bootstrap.sh
+	echo "umount /dev" >> $DIR/bootstrap.sh
+	echo "umount -f /dev" >> $DIR/bootstrap.sh
+	echo "exit 0" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
 	chroot $DIR /bootstrap.sh
 	if [ ! -f $DIR/tmp/success ]; then
 		echo $pkg >> outputdir/summary/portsfailed
-		msg="failed"
+		type="failed"
 	else
 		echo $pkg >> outputdir/summary/portspackaged
 		mv $DIR/Package/*.mpkg outputdir/Packages/
-		msg="succeeded"
+		type="succeeded"
 	fi
-	mv $DIR/tmp/$pkg.log outputdir/logs
+	mv $DIR/tmp/$pkg.log outputdir/logs/$type
 	teardownchroot $DIR
-	echo "Finished packaging run for $pkg ($msg)"
+	echo "Finished packaging run for $pkg ($type)"
 done
