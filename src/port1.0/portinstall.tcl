@@ -71,8 +71,6 @@ proc install_start {args} {
 }
 
 proc install_element {src_element dst_element} {
-    global debug
-
     file copy -force $src_element $dst_element
     set attributes [file attributes $src_element]	
     for {set i 0} {$i < [llength $attributes]} {incr i} {
