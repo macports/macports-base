@@ -1,6 +1,12 @@
-# global port routines
+#-*- mode: Fundamental; tab-width: 4; -*-
+# ex:ts=4
+#
+# Insert some license text here at some point soon.
+#
+
 # the 'main' target is provided by this package
 # main is a magic target and should not be replaced
+
 package provide portmain 1.0
 package require portutil 1.0
 

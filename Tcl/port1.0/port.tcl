@@ -1,3 +1,8 @@
+#-*- mode: Fundamental; tab-width: 4; -*-
+# ex:ts=4
+#
+# Insert some license text here at some point soon.
+#
 # standard package load
 package provide port 1.0
 

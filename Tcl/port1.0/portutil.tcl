@@ -1,4 +1,9 @@
-# global port utility procedures
+#-*- mode: Fundamental; tab-width: 4; -*-
+# ex:ts=4
+#
+# Insert some license text here at some point soon.
+#
+
 package provide portutil 1.0
 package require Pextlib 1.0
 

@@ -1,4 +1,9 @@
-# global port routines
+#-*- mode: Fundamental; tab-width: 4; -*-
+# ex:ts=4
+#
+# Insert some license text here at some point soon.
+#
+
 package provide portpatch 1.0
 package require portutil 1.0
 
