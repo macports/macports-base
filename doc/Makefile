@@ -1,4 +1,4 @@
-MAN7=		portfile.7 portstyle.7
+MAN7=		portfile.7 portstyle.7 porthier.7
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
@@ -32,3 +32,4 @@ install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/man/man7
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 porthier.7 ${INSTALLDIR}/man/man7
