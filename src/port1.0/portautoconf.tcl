@@ -1,6 +1,7 @@
 # et:ts=4
-# portconfigure.tcl
+# portautoconf.tcl
 #
+# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -31,36 +32,27 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.configure
+name			org.opendarwin.prepare.autoconf
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Prepare sources for building using configure
+description		Prepare sources for building using autoconf
 requires		patch
-provides		prepare configure
+provides		prepare autoconf
 
-# define options
-commands configure
-options configure.pre_args configure.cmd configure.dir
-
-# defaults
-#default configure.pre_args {--prefix=[option prefix]}
-#default configure.cmd ./configure
-#default configure.dir {[option worksrcpath]}
+commands autoconf
+# XXX: default autoconf.dir {[option worksrcpath]}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
     global UI_PREFIX
 
-	# XXX: blah
-	option configure.pre_args {--prefix=[option prefix]}
-	option configure.cmd ./configure
-	option configure.dir {[option worksrcpath]}
-
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 
-	if {[catch {system "[command configure]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
+	option autoconf.dir [option worksrcpath]
+
+	if {[catch {system "[command autoconf]"} result]} {
+	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
 
     return 0

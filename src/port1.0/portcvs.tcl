@@ -1,5 +1,5 @@
 # et:ts=4
-# portgzip.tcl
+# portcvs.tcl
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -32,46 +32,58 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.extract.gzip
+name			org.opendarwin.download.cvs
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Extract files using gzip(1)
-requires		checksum
-provides		extract gzip
-
-default extract.pre_args -dc
+description		Download files using cvs(1)
+runtype			always
+provides		download cvs
+#uses			distcache
 
 set UI_PREFIX "---> "
 
+#default cvs.cmd cvs
+#default cvs.password ""
+#default cvs.dir {[option workpath]}
+#default cvs.module {[option distname]}
+#default cvs.tag HEAD
+#default cvs.env {CVS_PASSFILE=[option workpath]/.cvspass}
+#default cvs.pre_args {"-d [option cvs.root]"}
+
+
 proc main {args} {
-    global UI_PREFIX
+	global UI_PREFIX
+	
+	# The distpath should have already been set up by the distfiles target
+	# We will be called with a valid list of master_sites, but only one
+	# file in the distfile, as the distfiles target has set up.
+	# It is our duty to attempt to use wget(1) to download this file from
+	# one of the master sites into the distpath.
 
-    if {![exists distfile]} {
-		# nothing to do
-		return 0
-    }
-	
-	set distfile [option distfile]
-	if {![string match *.gz $distfile] &&
-		![string match *.gzip $distfile] &&
-		![string match *.tgz $distfile]} {
-		ui_debug "skipping non-gzip file: ${distfile}"
-		# not one of our files
-		return 0
-	}
-	
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
-	
 	set distpath [option distpath]
-	set dir [option extract.dir]
-	set postargs [option extract.post_args]
+	set master_sites [option master_sites]
+	set distfile [option distfile]
 	
-	ui_debug "cd \"${dir}\" && gzip -dc \"${distpath}/${distfile}\" ${postargs}"
-	if [catch {system "cd \"${dir}\" && gzip -dc \"${distpath}/${distfile}\" ${postargs}"} result] {
-		return -code error "$result"
+	# XXX: needs to be implemented
+	return 1
+	
+	# We should probably operate on urls of cvs://CVSROOT ?
+	# then we can check out various modules from various roots?
+	
+	foreach site $master_sites {
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to checkout %s from %s"] $distfile $site]"
+		global workpath cvs.password cvs.args cvs.post_args cvs.tag cvs.module cvs.cmd cvs.env
+		cd [option workpath]
+		set cvs.args login
+		set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
+		if {[catch {system "[command cvs] 2>&1"} result]} {
+			return -code error [msgcat::mc "CVS login failed"]
+		}
+		set cvs.args "co -r ${cvs.tag}"
+		set cvs.cmd cvs
+		set cvs.post_args "${cvs.module}"
+		if {[catch {system "[command cvs] 2>&1"} result]} {
+			return -code error [msgcat::mc "CVS check out failed"]
+		}
 	}
-
-	ui_msg [msgcat::mc "Done"]
-
-    return 0
 }

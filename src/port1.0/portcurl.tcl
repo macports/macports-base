@@ -62,7 +62,7 @@ proc main {args} {
 			# success
 			# remove the temporary file
 			exec rm -f "${distpath}/${distfile}.TMP"
-			break
+			return 0
 		} else {
 			# an error occurred
 			# some errors we fail silently, others we print a message, this is really up to
@@ -101,7 +101,12 @@ proc main {args} {
 				47 { set err [format [msgcat::mc "Too many redirects: %s"] "${url}"] }
 				default { set err [format [msgcat::mc "An error occurred (%s): %s"] [lindex $errorCode 2] "${url}"] }
 			}
-			return -code error $err
 		}
+	}
+	
+	if {[info exists err]} {
+		return -code error $err
+	} else {
+		return 1
 	}
 }

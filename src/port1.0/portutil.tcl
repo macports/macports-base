@@ -525,13 +525,15 @@ proc eval_targets {target {keepstate "1"}} {
 	# Select the subset of targets under $target
     if {$target != ""} {
         set matches [dlist_search $dlist provides $target]
-
+		
         if {[llength $matches] > 0} {
-			set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
-			# XXX: handle matches > 1
-			# Special-case 'all'
-		} elseif {$target != "all"} {
-			ui_info "unknown target: $target"
+			set origdlist $dlist
+			set dlist {}
+			foreach match $matches {
+				eval "lappend dlist [dlist_append_dependents $origdlist $match [list]]"
+			}
+		} else {
+			ui_error "unknown target: $target"
             return 1
         }
     }
@@ -548,7 +550,7 @@ proc eval_targets {target {keepstate "1"}} {
     array set statusdict [dlist_eval $dlist "" [list target_run $target_state_fd] canfail]
 
 	# Make sure we got to the destination target
-	if {$statusdict($target) != 1} {
+	if {![info exists statusdict($target)] || $statusdict($target) != 1} {
 		# somebody broke!
 		ui_info "Warning: the following items did not execute (for $portname): "
 		foreach ditem $dlist {

@@ -1,6 +1,7 @@
 # et:ts=4
 # port.tcl
 #
+# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -30,22 +31,6 @@
 #
 # standard package load
 package provide port 1.0
-
-#package require portmain 1.0
-#package require portdepends 1.0
-#package require portfetch 1.0
-#package require portchecksum 1.0
-#package require portextract 1.0
-#package require portpatch 1.0
-#package require portconfigure 1.0
-#package require portbuild 1.0
-#package require portinstall 1.0
-#package require portuninstall 1.0
-#package require portregistry 1.0
-#package require portclean 1.0
-#package require portpackage 1.0
-#package require portcontents 1.0
-#package require portmpkg 1.0
 
 ##### Port API #####
 
@@ -82,24 +67,10 @@ proc porthooks {ditem} {
 	
 			eval "proc pre-${target} \{args\} \{ \n\
 				set new_target \[make_custom_target pre-${target} \{$requires\} \{$uses\} \"$runtype\" \$args\] \n\
-				#global targets \n\
-				#set dlist \[dlist_search \$targets provides ${target}\] \n\
-				#foreach ditem \$dlist \{ \n\
-				#	if \{\$ditem == \$new_target\} \{ continue \}
-				#	ui_debug \"making \[ditem_key \$ditem name\] require pre-${target}\" \n\
-				#	ditem_append \$ditem requires pre-${target} \n\
-				#\} \n\
 			\}"
 	
 			eval "proc post-${target} \{args\} \{ \n\
 				set new_target \[make_custom_target post-${target} $target \{$uses\} \"$runtype\" \$args\] \n\
-				#global targets \n\
-				#set dlist \[dlist_search \$targets requires ${target}\] \n\
-				#foreach ditem \$dlist \{ \n\
-				#	if \{\$ditem == \$new_target\} \{ continue \}
-				#	ui_debug \"making \[ditem_key \$ditem name\] require post-${target}\" \n\
-				#	ditem_append \$ditem requires post-${target} \n\
-				#\} \n\
 			\}"
 		}
 	}
@@ -108,8 +79,11 @@ proc porthooks {ditem} {
 proc noop {args} {}
 
 proc portinit {} {
-	foreach target_file {portmain.tcl portbuild.tcl portpatch.tcl portconfigure.tcl portinstall.tcl portclean.tcl portpackage.tcl portdestroot.tcl portdeploy.tcl portdistfiles.tcl portdistcache.tcl portcurl.tcl portwget.tcl portmd5.tcl portgzip.tcl} {
-#	ui_debug "loading $target_file"
+	global targetpath
+	set target_files [glob -directory $targetpath "*.tcl"]
+	foreach target_file $target_files {
+		#ui_debug "loading $target_file"
+		
 		set ditem [target_new $target_file main]
 		set worker [interp create]
 		ditem_key $ditem worker $worker

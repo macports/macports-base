@@ -1,6 +1,7 @@
 # et:ts=4
-# portconfigure.tcl
+# portbzip2.tcl
 #
+# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -31,37 +32,48 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.configure
+name			org.opendarwin.extract.bzip2
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Prepare sources for building using configure
-requires		patch
-provides		prepare configure
+description		Extract files using bzip2(1)
+requires		checksum
+provides		extract bzip2
 
-# define options
-commands configure
-options configure.pre_args configure.cmd configure.dir
-
-# defaults
-#default configure.pre_args {--prefix=[option prefix]}
-#default configure.cmd ./configure
-#default configure.dir {[option worksrcpath]}
+# XXX: need a way to change defaults if "use" is issued.
+#default extract.sufx .tar.bz2
+#default extract.pre_args -dc
 
 set UI_PREFIX "---> "
 
 proc main {args} {
     global UI_PREFIX
 
-	# XXX: blah
-	option configure.pre_args {--prefix=[option prefix]}
-	option configure.cmd ./configure
-	option configure.dir {[option worksrcpath]}
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
-
-	if {[catch {system "[command configure]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
+    if {![exists distfile]} {
+		# nothing to do
+		return 0
+    }
+	
+	set distfile [option distfile]
+	if {![string match *.bz2 $distfile] &&
+		![string match *.bzip2 $distfile] &&
+		![string match *.tbz2 $distfile]} {
+		ui_debug "skipping non-bzip2 file: ${distfile}"
+		# not one of our files
+		return 1
 	}
+	
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
+	
+	set distpath [option distpath]
+	set dir [option extract.dir]
+	set postargs [option extract.post_args]
+	
+	ui_debug "cd \"${dir}\" && bzip2 -dc \"${distpath}/${distfile}\" ${postargs}"
+	if [catch {system "cd \"${dir}\" && bzip2 -dc \"${distpath}/${distfile}\" ${postargs}"} result] {
+		return -code error "$result"
+	}
+
+	ui_msg [msgcat::mc "Done"]
 
     return 0
 }

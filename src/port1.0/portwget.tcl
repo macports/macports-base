@@ -62,7 +62,7 @@ proc main {args} {
 			# success
 			# remove the temporary file
 			exec rm -f "${distpath}/${distfile}.TMP"
-			break
+			return 0
 		} else {
 			# an error occurred
 			# some errors we fail silently, others we print a message, this is really up to
@@ -72,9 +72,9 @@ proc main {args} {
 			switch -exact [lindex $errorCode 2] {
 				1 { 
 					# tcsh, zsh return 1 if wget(1) isn't found
-					# luckily for us, no wget(1) and an error from wget(1)
-					# mean just about the same thing
-					return 1
+					# unfortunately for us, no wget(1) and an error from wget(1)
+					# mean different things, and we'll spin a little while...
+					continue
 				}
 				127 {
 					# bash returns 127 if curl(1) isn't found
@@ -82,7 +82,12 @@ proc main {args} {
 				}
 				default { set err [format [msgcat::mc "An error occurred: %s"] "${url}"] }
 			}
-			return -code error $err
 		}
+	}
+
+	if {[info exists err]} {
+		return -code error $err
+	} else {
+		return 1
 	}
 }

@@ -1,5 +1,5 @@
 # et:ts=4
-# portconfigure.tcl
+# portautomake.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -31,37 +31,30 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.configure
+name			org.opendarwin.prepare.automake
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Prepare sources for building using configure
+description		Prepare sources for building using automake
 requires		patch
-provides		prepare configure
+provides		prepare automake
 
-# define options
-commands configure
-options configure.pre_args configure.cmd configure.dir
-
-# defaults
-#default configure.pre_args {--prefix=[option prefix]}
-#default configure.cmd ./configure
-#default configure.dir {[option worksrcpath]}
+commands automake
+# XXX: default automake.dir {[option worksrcpath]}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
     global UI_PREFIX
 
-	# XXX: blah
-	option configure.pre_args {--prefix=[option prefix]}
-	option configure.cmd ./configure
-	option configure.dir {[option worksrcpath]}
-
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 
-	if {[catch {system "[command configure]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
-	}
+	option automake.dir [option worksrcpath]
 
+	# XXX: should probably look for an automake file
+
+	if {[catch {system "[command automake]"} result]} {
+	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
+	}
+	
     return 0
 }

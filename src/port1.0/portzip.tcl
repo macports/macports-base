@@ -1,6 +1,7 @@
 # et:ts=4
-# portconfigure.tcl
+# portzip.tcl
 #
+# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -31,37 +32,53 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.prepare.configure
+name			org.opendarwin.extract.zip
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Prepare sources for building using configure
-requires		patch
-provides		prepare configure
+description		Extract files using bzip2(1)
+requires		checksum
+provides		extract zip
 
-# define options
-commands configure
-options configure.pre_args configure.cmd configure.dir
+# XXX: need a way to change defaults if "use" is issued.
+#default extract.sufx .zip
+#		option extract.cmd unzip
+#		option extract.pre_args -q
+#		option extract.post_args "-d [option extract.dir]"
 
-# defaults
-#default configure.pre_args {--prefix=[option prefix]}
-#default configure.cmd ./configure
-#default configure.dir {[option worksrcpath]}
 
 set UI_PREFIX "---> "
 
 proc main {args} {
     global UI_PREFIX
 
-	# XXX: blah
-	option configure.pre_args {--prefix=[option prefix]}
-	option configure.cmd ./configure
-	option configure.dir {[option worksrcpath]}
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
-
-	if {[catch {system "[command configure]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
+    if {![exists distfile]} {
+		# nothing to do
+		return 0
+    }
+	
+	set distfile [option distfile]
+	if {![string match *.zip $distfile]} {
+		ui_debug "skipping non-zip file: ${distfile}"
+		# not one of our files
+		return 1
 	}
+	
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile] ... " -nonewline
+	
+	set distpath [option distpath]
+	set dir [option extract.dir]
+	set preargs [option extract.pre_args]
+	set postargs [option extract.post_args]
+	# XXX: fix this up when we have better default handling for "use"
+	set preargs -q
+	set postargs "-d ${dir}"
+	
+	ui_debug "cd \"${dir}\" && unzip ${preargs} \"${distpath}/${distfile}\" ${postargs}"
+	if [catch {system "cd \"${dir}\" && unzip ${preargs} \"${distpath}/${distfile}\" ${postargs}"} result] {
+		return -code error "$result"
+	}
+
+	ui_msg [msgcat::mc "Done"]
 
     return 0
 }
