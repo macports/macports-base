@@ -37,10 +37,10 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
+options contents long-description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
 
 # Export options via PortInfo
-options_export description
+options_export description long-description
 
 default registry.path {[file join ${portdbpath} receipts]}
 
