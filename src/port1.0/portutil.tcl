@@ -1069,6 +1069,7 @@ proc portfile_search_path {depregex search_path} {
 
 
 ##### lib portfile depspec subclass #####
+# Search registry, then library path for regex
 global libportfile_vtbl
 array set libportfile_vtbl [array get portfile_vtbl]
 set libportfile_vtbl(test) libportfile_test
@@ -1125,6 +1126,7 @@ proc libportfile_test {this} {
 }
 
 ##### bin portfile depspec subclass #####
+# Search registry, then binary path for regex
 global binportfile_vtbl
 array set binportfile_vtbl [array get portfile_vtbl]
 set binportfile_vtbl(test) binportfile_test
@@ -1151,6 +1153,46 @@ proc binportfile_test {this} {
 	
 	set search_path [split $env(PATH) :]
 	
+	set depregex \^$depregex\$
+	
+	return [portfile_search_path $depregex $search_path]
+    }
+}
+
+##### path portfile depspec subclass #####
+# Search registry, then search specified absolute or
+# ${prefix} relative path for regex
+global pathportfile_vtbl
+array set pathportfile_vtbl [array get portfile_vtbl]
+set pathportfile_vtbl(test) pathportfile_test
+
+proc pathportfile_new {name match} {
+    set obj [portfile_new $name]
+    
+    $obj set _vtbl pathportfile_vtbl
+    $obj set depregex $match
+    return $obj
+}
+
+proc pathportfile_test {this} {
+    global env prefix 
+    
+    # Check the registry first
+    set result [portfile_test $this]
+    if {$result == 1} {
+	return $result
+    } else {
+	# Not in the registry, check the path.
+	# separate directory from regex
+	set fullname [$this get depregex]
+
+	regexp {^(.*)/(.*?)$} "$fullname" match search_path depregex
+
+	if {[string index $search_path 0] != "/"} {
+		# Prepend prefix if not an absolute path
+		set search_path "${prefix}/${search_path}"
+	}
+		
 	set depregex \^$depregex\$
 	
 	return [portfile_search_path $depregex $search_path]
