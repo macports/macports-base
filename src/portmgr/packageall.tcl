@@ -170,7 +170,7 @@ proc install_binary_if_available {portname basepath args} {
 		set category [lindex $portinfo(categories) 0]
 				
 		set pkgpath ${basepath}/${category}/${portname}-${portversion}.pkg
-		
+
 		if {[lsearch -exact $already_installed $pkgpath] == -1} {
 			if {[file readable $pkgpath]} {
 				ui_puts msg "installing binary: $pkgpath"
@@ -191,13 +191,15 @@ proc install_binary_if_available {portname basepath args} {
 			if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
 			foreach depspec $depends {
 				set dep [lindex [split $depspec :] 2]
-				install_binary_if_available $dep $basepath $already_installed
+				set x [install_binary_if_available $dep $basepath $already_installed]
+				eval "lappend already_installed $x"
 			}
 
 		} else {
 			ui_puts "skipping binary (already installed): $pkgpath"
 		}
 	}
+	return $already_installed
 }
 
 
