@@ -4,10 +4,10 @@ LDADD+=		-ltcl
 INSTALLDIR= /usr/local/share/darwinports/Tcl/pextlib1.0
 
 .c.o:
-	${CC} ${CFLAGS} -c $< -o $@
+	${CC} -DPIC -O -pipe ${CFLAGS} -c $< -o $@
 
 Pextlib.dylib: ${OBJS}
-	${CC} -dynamiclib -o ${SHLIB_NAME} ${LDADD}
+	${CC} -dynamiclib ${OBJS} -o ${SHLIB_NAME} ${LDADD}
 
 all: Pextlib.dylib
 
