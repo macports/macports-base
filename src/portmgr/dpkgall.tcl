@@ -149,6 +149,7 @@ proc print_usage {args} {
 	puts "Usage: [file tail $argv0] \[-qa\] \[-f configfile\] \[-p portlist\]"
 	puts "	-q	Quiet mode (no warnings!)"
 	puts "	-a	Build all ports"
+	puts "  -w	Force - no warnings"
 }
 
 proc reset_tree {args} {
@@ -199,6 +200,7 @@ proc main {argc argv} {
 
 	# Read command line options
 	set buildall_flag false
+	set nowarn_flag false
 	for {set i 0} {$i < $argc} {incr i} {
 		set arg [lindex $argv $i]
 		switch -- $arg {
@@ -206,7 +208,7 @@ proc main {argc argv} {
 				incr i
 				set configfile [lindex $argv $i]
 
-				if {![file readable $file]} {
+				if {![file readable $configfile]} {
 					return -code error "Configuration file \"$configfile\" is unreadable."
 				}
 			}
@@ -222,6 +224,9 @@ proc main {argc argv} {
 			}
 			-a {
 				set buildall_flag true
+			}
+			-w {
+				set nowarn_flag true
 			}
 			default {
 				print_usage
@@ -260,11 +265,18 @@ proc main {argc argv} {
 				ui_noisy_error "Port \"$port\" not found in index"
 				set fail true
 			}
+			set dependencies [get_dependencies $port false]
+			foreach dep $dependencies {
+				lappend portlist [lindex $dep 0]
+			}
 		}
 		if {"$fail" == "true"} {
 			exit 1
 		}
 	}
+
+	# Clean out duplicates
+	set portlist [lsort -unique $portlist]
 
 	# Ensure that the log directory exists, and open up
 	# the default debug log
@@ -288,7 +300,7 @@ proc main {argc argv} {
 	set variations [list]
 
 
-	if {"$silentmode" != "true"} {
+	if {"$silentmode" != "true" && "$nowarn_flag" != "true"} {
 		puts "WARNING: The full contents of ${portprefix}, /usr/X11R6, and /etc/X11 will be deleted by this script. If you do not want this, control-C NOW."
 		exec sleep 10
 	}
