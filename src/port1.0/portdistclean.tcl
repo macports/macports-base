@@ -55,16 +55,36 @@ proc distclean_start {args} {
 # This is crude, but works.
 #
 proc distclean_main {args} {
-	global distpath portname dist_subdir ports_force
+	global ports_force portname distpath dist_subdir distfiles
 
-	if {($dist_subdir != $portname) && !([info exists ports_force] && $ports_force == "yes")} {
-		ui_error "Distfiles sub-directory '${dist_subdir}' may be used for other ports, use the -f flag to force removal"
-		return 1 
+	# remove known distfiles for sure (if they exist)
+	foreach file $distfiles {
+		if {[info exist distpath] && [info exists dist_subdir]} {
+			set distfile [file join ${distpath} ${dist_subdir} ${file}]
+		} else {
+			set distfile [file join ${distpath} ${file}]
+		}
+		if {[file isfile $distfile]} {
+			ui_debug "Removing file: $distfile"
+			file delete $distfile
+		}
 	}
-	foreach dir "$dist_subdir $portname" {
-		set distdir [file join $distpath $dir]
-		if {[file isdirectory $distdir]} {
-			ui_debug "Removing directory: $distdir"
+
+	# next remove dist_subdir if only needed for this port,
+	# or if user forces us to
+	set dirlist [list]
+	if {[info exists dist_subdir]} {
+		if {($dist_subdir != $portname) && !([info exists ports_force] && $ports_force == "yes")} {
+			ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join ${distpath} ${dist_subdir}]]
+			return 1 
+		}
+		lappend dirlist $dist_subdir
+	}
+	lappend dirlist $portname
+	foreach dir $dirlist {
+		set distdir [file join ${distpath} ${dir}]
+		if {[file isdirectory ${distdir}]} {
+			ui_debug "Removing directory: ${distdir}"
 			file delete -force $distdir
 		}
 	}
