@@ -597,9 +597,8 @@ proc exec_target {fd dlist name} {
 
     if {[dlist_has_key uplist $name procedure]} {
 		set procedure [dlist_get_key uplist $name procedure]
-		set init [dlist_get_key uplist $name init]
-		if {"$init" != ""} {
-			$init $name
+		if {[dlist_has_key uplist $name init]} {
+			[dlist_get_key uplist $name init] $name
 		}
 				
 		if {[check_statefile $name $fd]} {
