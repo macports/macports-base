@@ -37,6 +37,7 @@ ${com.apple.install} provides install
 ${com.apple.install} requires main fetch extract checksum patch configure build 
 ${com.apple.install} deplist depends_run depends_lib
 ${com.apple.install} set prerun install_start
+${com.apple.install} set postrun install_registry
 
 # define options
 options install.target build.target.install
@@ -49,6 +50,16 @@ default install.pre_args {${install.target}}
 default install.target install
 option_deprecate build.target.install install.target
 
+# XXX nasty kludges to support contents lists AND destdir
+option_proc contents install_useContents
+
+proc install_useContents {option action args} {
+    global install_useContents
+    if {${action} == "set" || ${action} == "append"} {
+    	set install_useContents yes
+    }
+}
+
 set UI_PREFIX "---> "
 
 proc install_start {args} {
@@ -59,7 +70,107 @@ proc install_start {args} {
 	file mkdir ${destpath}
 }
 
+proc install_element {src_element dst_element} {
+    global debug
+
+    file copy -force $src_element $dst_element
+    set attributes [file attributes $src_element]	
+    for {set i 0} {$i < [llength $attributes]} {incr i} {
+	set opt [lindex $attributes $i]
+	incr i
+	set arg [lindex $attributes $i]
+	file attributes $dst_element $opt $arg
+    }
+
+    file attributes $dst_element -group [file attributes $src_element -group]
+    file attributes $dst_element -owner [file attributes $src_element -owner]
+    file attributes $dst_element -permissions [file attributes $src_element -permissions]
+}
+
+proc directory_dig {rootdir workdir {cwd ""}} {
+    global installPlist
+    set pwd [pwd]
+    if [catch {cd $workdir} err] {
+	puts $err
+	return
+    }
+
+    foreach name [readdir .] {
+	if {[string match $name "."] || [string match $name ".."]} {
+	    continue
+	}
+	set element [file join $cwd $name]
+
+	# XXX jpm's cross-platform code to find file separator
+	# replace with [file seperator] with tcl 8.4
+	if {![info exists root]} {
+	    if {[string match [file tail "/monkey"] "monkey"]} {
+		set root "/"
+	    } elseif {[string match [file tail ":monkey"] "monkey"]} {
+		set root ":" 
+	    } else {
+		set root "\\"		
+	    }
+	}
+
+	set dst_element [file join $root $element]
+	set src_element [file join $rootdir $element]
+	# overwrites files but not directories
+	if {![file exists $dst_element] || ![file isdirectory $dst_element]} {
+	    ui_debug "installing file: $dst_element"
+	    install_element $src_element $dst_element
+	    lappend installPlist $dst_element
+	}
+	if {[file isdirectory $name] && [file type $name] != "link"} {
+	    directory_dig $rootdir $name [file join $cwd $name]
+	}
+    }
+    cd $pwd
+}
+
 proc install_main {args} {
+    global install_useContents destpath
     system "[command install]"
+    if {![tbool install_useContents]} {
+        directory_dig ${destpath} ${destpath}
+    }
+    return 0
+}
+
+proc install_registry {args} {
+    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX contents install_useContents
+    if {![tbool install_useContents]} {
+        set _installPlist $installPlist
+    } else {
+        set _installPlist $contents
+    }
+
+    # Package installed successfully, so now we must register it
+    set rhandle [registry_new $portname $portversion]
+
+    registry_store $rhandle [list prefix $prefix]
+    registry_store $rhandle [list categories $categories]
+    if [info exists description] {
+	registry_store $rhandle [concat description $description]
+    }
+    if [info exists long_description] {
+	registry_store $rhandle [concat long_description ${long_description}]
+    }
+    if [info exists homepage] {
+	registry_store $rhandle [concat homepage ${homepage}]
+    }
+    if [info exists depends_run] {
+	registry_store $rhandle [list run_depends $depends_run]
+    }
+    if [info exists package-install] {
+	registry_store $rhandle [concat package-install ${package-install}]
+    }
+    if [info exists _installPlist] {
+	registry_store $rhandle [list contents [fileinfo_for_index $_installPlist]]
+    }
+    if {[info proc pkg_uninstall] == "pkg_uninstall"} {
+	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
+    }
+    registry_close $rhandle
     return 0
 }

@@ -32,17 +32,13 @@
 package provide portregistry 1.0
 package require portutil 1.0
 
-set com.apple.registry [target_new com.apple.registry registry_main]
-${com.apple.registry} provides registry
-${com.apple.registry} requires main fetch extract checksum patch configure build install 
-${com.apple.registry} deplist depends_run depends_lib
-${com.apple.registry} set prerun registry_start
+# XXX During transition period maintain registry procedures in portregistry.tcl
+# XXX registry is no longer a target
 
 # define options
-options contents long_description description homepage registry.nochecksum registry.path registry.nobzip registry.contents_recurse
-
-# Export options via PortInfo
-options_export description long_description homepage
+# XXX kludge to support contents lists AND destdir
+option_deprecate contents
+options contents registry.nochecksum registry.path registry.nobzip registry.contents_recurse
 
 default registry.path {[file join ${portdbpath} receipts]}
 
@@ -206,35 +202,4 @@ proc proc_disasm {pname} {
     return $p
 }
 
-proc registry_main {args} {
-    global portname portversion portpath categories description long_description homepage depends_run contents package-install uninstall workdir worksrcdir prefix UI_PREFIX
 
-    # Package installed successfully, so now we must register it
-    set rhandle [registry_new $portname $portversion]
-
-    registry_store $rhandle [list prefix $prefix]
-    registry_store $rhandle [list categories $categories]
-    if [info exists description] {
-	registry_store $rhandle [concat description $description]
-    }
-    if [info exists long_description] {
-	registry_store $rhandle [concat long_description ${long_description}]
-    }
-    if [info exists homepage] {
-	registry_store $rhandle [concat homepage ${homepage}]
-    }
-    if [info exists depends_run] {
-	registry_store $rhandle [list run_depends $depends_run]
-    }
-    if [info exists package-install] {
-	registry_store $rhandle [concat package-install ${package-install}]
-    }
-    if [info exists contents] {
-	registry_store $rhandle [list contents [fileinfo_for_index $contents]]
-    }
-    if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
-    }
-    registry_close $rhandle
-    return 0
-}

@@ -123,7 +123,7 @@ proc option_deprecate {option {newoption ""} } {
     	eval "proc warn_deprecated_$option \{option action args\} \{ \n\
 	    global portname $option $newoption \n\
 	    if \{\$action != \"read\"\} \{ \n\
-	    	$newoption \[set \$option\] \n\
+	    	$newoption \$$option \n\
 	    \} else \{ \n\
 	        ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
 		$option \[set $newoption\] \n\
@@ -599,11 +599,6 @@ proc eval_targets {target} {
     
     # Select the subset of targets under $target
     if {$target != ""} {
-	# XXX munge target. install really means registry, then install
-	# If more than one target ever needs this, make this a generic interface
-	if {$target == "install"} {
-	    set target registry
-	}
         set matches [depspec_get_matches $dlist provides $target]
         if {[llength $matches] > 0} {
 	    set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
