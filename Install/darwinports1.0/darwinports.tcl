@@ -86,8 +86,9 @@ proc build {portdir chain target {options ""}} {
 			workerbee eval set $key \"$val\"
 		}
 	}
-
 	workerbee eval source Portfile
+	workerbee eval {set lockfd [open Portfile r]}
+	workerbee eval flock \$lockfd -exclusive
 	workerbee eval eval_targets targets $chain $target
     } else {
 	return -code error "Portdir $portpath does not exist"
