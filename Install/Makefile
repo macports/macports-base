@@ -5,7 +5,7 @@ PREFIX=/System/Library/Tcl/8.3/${PACKAGE_DIR}/
 
 all: install
 
-pkg_index:
+pkg_index: pkg_mkindex.tcl
 	./pkg_mkindex.tcl ${PACKAGE_NAME}${PACKAGE_VERSION}
 
 install: pkg_index
