@@ -4,7 +4,7 @@ package provide darwinports 1.0
 
 namespace eval darwinports {
 	variable options
-	variable bootstrap_options "portpath libpath"
+	variable bootstrap_options "sysportpath libpath"
 
 	# XXX not portable
 	proc ccextension {file} {
@@ -36,15 +36,15 @@ namespace eval darwinports {
 
 		# Prefer the PORTPATH environment variable
 		if {[llength [array names env PORTPATH]] > 0} {
-			set portpath [lindex [array get env PORTPATH] 1]
+			set sysportpath [lindex [array get env PORTPATH] 1]
 		}
 
-		if ![info exists portpath] {
-			return -code error "portpath must be set in /etc/ports.conf or in the PORTPATH env variable"
+		if ![info exists sysportpath] {
+			return -code error "sysportpath must be set in /etc/ports.conf or in the PORTPATH env variable"
 		}
 
 		if ![info exists libpath] {
-			set libpath [file join $portpath Tcl]
+			set libpath [file join $sysportpath Tcl]
 		}
 		
 		if [file isdirectory $libpath] {
@@ -61,33 +61,33 @@ namespace eval darwinports {
 			return -code error "Library directory '$libpath' must exist"
 		}
 		package require portutil
-		return $portpath
+		return $sysportpath
 	}
 
 	proc init {args} {
 		# Bootstrap ports system and bring in darwinports packages
-		set portpath [darwinports::bootstrap]
+		set sysportpath [darwinports::bootstrap]
 		# Register standard darwinports package options
-		globals darwinports::options portpath distdir portdir prefix
-		options darwinports::options portpath distdir portdir prefix
+		globals darwinports::options sysportpath distpath portpath prefix
+		options darwinports::options distpath sysportpath prefix
 		# Register defaults
-		default darwinports::options portpath $portpath
+		default darwinports::options sysportpath $sysportpath
 		default darwinports::options prefix /usr/local/bin
-		default darwinports::options distdir distfiles
+		default darwinports::options distpath $sysportpath/distfiles
 
 		return
 	}
 
 # XXX incomplete. Waiting for kevin's dependancy related submissions
-	proc build {portdir target} {
-		if [file isdirectory $portdir] {
-			cd $portdir
-			setval darwinports::options portdir [pwd]
+	proc build {portpath target} {
+		if [file isdirectory $portpath] {
+			cd $portpath
+			setval darwinports::options portpath [pwd]
 			# XXX These must execute at a global scope
 			uplevel #0 source Portfile
 			uplevel #0 eval_depend portutil::targets $target
 		} else {
-			return -code error "Portdir $portdir does not exist"
+			return -code error "Portdir $portpath does not exist"
 		}
 	}
 }

@@ -16,7 +16,7 @@ globals portchecksum::options md5file
 options portchecksum::options md5file
 
 proc portchecksum::md5 {file} {
-	global distdir
+	global distpath
 	set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	set pipe [open "|md5 ${file}" r]
 	set line [read $pipe]
@@ -46,7 +46,7 @@ proc portchecksum::dmd5 {file} {
 }
 
 proc portchecksum::main {args} {
-	global distdir portpath portdir all_dist_files
+	global distpath portpath portdir all_dist_files
 
 	# If no files have been downloaded there is nothing to checksum
 	if ![info exists all_dist_files] {
@@ -61,7 +61,7 @@ proc portchecksum::main {args} {
 	}
 
 	foreach distfile $all_dist_files {
-		set checksum [md5 $portpath/$distdir/$distfile]
+		set checksum [md5 $distpath/$distfile]
 		set dchecksum [dmd5 $distfile]
 		if {$dchecksum == -1} {
 			puts "No checksum recorded for $distfile"

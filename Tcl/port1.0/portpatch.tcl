@@ -10,23 +10,23 @@ namespace eval portpatch {
 }
 
 proc portpatch::main {args} {
-	global portname patchfiles distdir filesdir workdir portdir portpath
+	global portname patchfiles distpath filedir workdir portpath
 
 	if ![info exists patchfiles] {
 		return 0
 	}
 	foreach patch $patchfiles {
-		if [file exists $portdir/$filesdir/$patch] {
-			lappend patchlist $portdir/$filesdir/$patch
-		} elseif [file exists $portpath/$distdir/$patch] {
-			lappend patchlist $portpath/$distdir/$patch
+		if [file exists $portpath/$filedir/$patch] {
+			lappend patchlist $portpath/$filedir/$patch
+		} elseif [file exists $distpath/$patch] {
+			lappend patchlist $distpath/$patch
 		}
 	}
 	if ![info exists patchlist] {
 		return -code error "Patch files missing"
 	}
 
-	cd $portdir/$workdir
+	cd $portpath/$workdir
 	foreach patch $patchlist {
 		switch -glob -- [file tail $patch] {
 			*.Z -
