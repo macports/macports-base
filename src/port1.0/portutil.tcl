@@ -148,7 +148,7 @@ proc default_check {optionName index op} {
 		}
 		r {
 			upvar $optionName option
-			uplevel #0 "set $optionName \[list $option_defaults($optionName)\]"
+			uplevel #0 set $optionName $option_defaults($optionName)
 			return
 		}
 		u {

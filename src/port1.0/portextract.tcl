@@ -48,7 +48,7 @@ default extract.only {$distfiles}
 default extract.dir {${portpath}/${workdir}}
 default extract.cmd gzip
 default extract.pre_args -dc
-default extract.post_args "| tar -xf -"
+default extract.post_args {{| tar -xf -}}
 
 set UI_PREFIX "---> "
 
@@ -65,7 +65,7 @@ proc extract_init {args} {
 }
 
 proc extract_main {args} {
-    global portname portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
+    global portname portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args extract.args UI_PREFIX
 
     if {![info exists distfiles] && ![info exists extract.only]} {
 	# nothing to do
@@ -76,7 +76,7 @@ proc extract_main {args} {
 
     foreach distfile ${extract.only} {
 	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
-	default extract.args \"$distpath/$distfile\"
+	set extract.args "$distpath/$distfile"
 	if [catch {system "[command extract]"} result] {
 	    ui_error "$result"
 	    return -1
