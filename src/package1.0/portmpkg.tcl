@@ -1,5 +1,5 @@
 # et:ts=4
-# portpackage.tcl
+# portmpkg.tcl
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

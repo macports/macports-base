@@ -1084,7 +1084,7 @@ proc addgroup {name args} {
 }
 
 # proc to calculate size of a directory
-# moved here from portpackage.tcl
+# moved here from portpkg.tcl
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
