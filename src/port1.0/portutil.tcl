@@ -311,7 +311,7 @@ proc dlist_get_next {dlist statusdict} {
 
 # Evaluate the dlist, invoking action on each name in the dlist as it
 # becomes eligible.
-proc dlist_evaluate {dlist downstatusdict action} {
+proc dlist_evaluate {dlist downstatusdict action fd} {
     # dlist - nodes waiting to be executed
     upvar $dlist uplist
     upvar $downstatusdict statusdict
@@ -349,13 +349,17 @@ proc exec_target {fd dlist name} {
     upvar $dlist uplist
     if {[dlist_has_key uplist $name procedure]} {
 	set procedure [dlist_get_key uplist $name procedure]
-	ui_debug "Executing $name"
-	set result [$procedure $name]
+	if {[check_statefile $name $fd]} {
+	    set result 0
+	    ui_debug "Skipping completed $name"
+	} else {
+	    ui_debug "Executing $name"
+	    set result [$procedure $name]
+	}
 	if {$result == 0} {
 	    set result success
 	    if {[dlist_get_key uplist $name runtype] != "always"} {
-		puts $fd $name
-		flush $fd
+		write_statefile $name $fd
 	    }
 	} else {
 	    ui_error "Target error: $name returned $result"
@@ -389,9 +393,9 @@ proc eval_targets {dlist target} {
     array set statusdict [list]
     
     # Restore the state from a previous run.
-    set fd [read_statefile uplist statusdict]
+    set fd [open_statefile]
     
-    dlist_evaluate uplist statusdict [list exec_target $fd]
+    dlist_evaluate uplist statusdict [list exec_target $fd] $fd
     
     close $fd
 }
@@ -422,28 +426,36 @@ proc dlist_append_dependents {dependents dlist name} {
     # XXX: add soft-dependencies?
 }
 
-# read_statefile
-# Read the lines from the file, and for each line
-# that exists in the dlist, make its provides successful
-# and remove it from the dlist.
-proc read_statefile {dlist statusdict} {
-    upvar $dlist uplist
-    upvar $statusdict upstatusdict
+# open_statefile
+# open file to store name of completed targets
+proc open_statefile {args} {
     global portpath workdir
 
     if ![file isdirectory $portpath/$workdir] {
 	file mkdir $portpath/$workdir
-    } 
+    }
     set fd [open "$portpath/$workdir/.darwinports.state" a+]
+    return $fd
+}
+
+# check_statefile
+# Check completed state of target $name
+proc check_statefile {name fd} {
+    global portpath workdir
+
     seek $fd 0
     while {[gets $fd line] >= 0} {
-        if {[dlist_has_item uplist $line]} {
-            foreach provide [dlist_get_key uplist $line provides] {
-                set upstatusdict($provide) success
-            }
-            dlist_remove_item uplist $line
-        }
+	if {[string equal $line $name]} {
+	    return 1
+	}
     }
+    return 0
+}
 
-    return $fd
+# write_statefile
+# Set target $name completed in the state file
+proc write_statefile {name fd} {
+    seek $fd 0 end
+    puts $fd $name
+    flush $fd
 }
