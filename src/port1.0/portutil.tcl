@@ -480,12 +480,12 @@ proc reinplace {pattern args}  {
 # filefindbypath
 # Provides searching of the standard path for included files
 proc filefindbypath {fname} {
-    global distpath filedir workdir worksrcdir portpath
+    global distpath filesdir workdir worksrcdir portpath
 
     if {[file readable $portpath/$fname]} {
 	return $portpath/$fname
-    } elseif {[file readable $portpath/$filedir/$fname]} {
-	return $portpath/$filedir/$fname
+    } elseif {[file readable $portpath/$filesdir/$fname]} {
+	return $portpath/$filesdir/$fname
     } elseif {[file readable $distpath/$fname]} {
 	return $distpath/$fname
     }

@@ -41,7 +41,7 @@ target_provides ${com.apple.main} main
 # define options
 options prefix name version revision epoch categories maintainers
 options long_description description homepage
-options workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
+options workdir worksrcdir filedir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage
@@ -60,12 +60,11 @@ default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
 default destroot {${destpath}}
-default filedir files
+default filesdir files
 default revision 0
 default epoch 0
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
-default filesdir {files}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
 
@@ -88,6 +87,9 @@ default os.endian {[string range $tcl_platform(byteOrder) 0 [expr [string length
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
+
+# deprecate options here
+option_deprecate filedir filesdir
 
 proc main {args} {
     return 0
