@@ -165,6 +165,9 @@ proc dportinit {args} {
     if {![info exists binpath]} {
 	global env
 	set env(PATH) "/sbin:/usr/sbin:/bin:/usr/bin:${prefix}/bin:/usr/X11R6/bin"
+    } else {
+	global env
+	set env(PATH) "$binpath"
     }
 
     if {[info exists master_site_local] && ![info exists env(MASTER_SITE_LOCAL)]} {
