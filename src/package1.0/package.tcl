@@ -35,3 +35,4 @@ package require portrpmpackage 1.0
 package require portpkg 1.0
 package require portmpkg 1.0
 package require portdmg 1.0
+package require portdpkg 1.0
