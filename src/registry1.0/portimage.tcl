@@ -33,6 +33,7 @@ package provide portimage 1.0
 
 package require registry 1.0
 package require darwinports 1.0
+package require portutil 1.0
 
 set_ui_prefix
 
