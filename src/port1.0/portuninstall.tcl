@@ -73,7 +73,8 @@ proc uninstall_main {args} {
 	    set uninst_err 0
 	    foreach f $contents {
 		set fname [lindex $f 0]
-		set sum1 [lindex [lindex $f 5] 3]
+		set sumx [lindex $f [lsearch -regex $f MD5]]
+		set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
 		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
 		    if ![catch {set sum2 [md5 $fname]}] {
 			if ![string match $sum1 $sum2] {
@@ -86,12 +87,12 @@ proc uninstall_main {args} {
 		ui_info "$UI_PREFIX   Uninstall is removing $fname"
 		if [file isdirectory $fname] {
 		    if [catch {exec rmdir $fname}] {
-			ui_msg "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
+			ui_info "$UI_PREFIX  Uninstall unable to remove directory $fname (not empty?)"
 			set uninst_err 1
 		    }
 		} else {
 		    if [catch {exec rm $fname}] {
-			ui_msg "$UI_PREFIX  Uninstall unable to remove file $fname"
+			ui_info "$UI_PREFIX  Uninstall unable to remove file $fname"
 			set uninst_err 1
 		    }
 		}
