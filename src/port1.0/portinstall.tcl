@@ -49,7 +49,7 @@ set UI_PREFIX "---> "
 proc install_start {args} {
     global UI_PREFIX portname build.target.install destpath
 
-    ui_msg "$UI_PREFIX Installing ${portname} into ${destpath} with target ${build.target.install}"
+    ui_msg "$UI_PREFIX Installing ${portname} with target ${build.target.install}"
 	
 	file mkdir ${destpath}
 }
