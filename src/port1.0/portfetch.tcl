@@ -46,6 +46,7 @@ default extract_sufx .tar.gz
 default fetch.type standard
 default cvs.cmd cvs
 default cvs.password ""
+default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
