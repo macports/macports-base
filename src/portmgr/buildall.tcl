@@ -1,6 +1,26 @@
 #!/usr/bin/tclsh
 # Traverse through all ports and try to build/install each one in a chroot
 # tree.
+#
+# Author: Jordan K. Hubbard
+# Date:   2004/01/26
+#
+# NOTES:
+#
+# This is a simplified version of some of the other scripts you see in
+# this directory.  It is completely stand-alone and does not require any
+# other scripts to run.  If you have a copy of darwinports you specifically
+# wish to use, name it darwinports.tar.gz and put it in the current working
+# directory before running this script.  Otherwise, the script will fetch
+# the last cvs snapshot from darwinports.opendarwin.org.  The chroot directory
+# it creates will be called "chrootdir" and populated from your host system
+# (so if you're running Jaguar, it will be a Jaguar chroot, likewise Panther
+# or any other release of Mac OS X).  If you have a local URL you wish to
+# use for fetching distfiles, set the environment variable MASTER_SITE_LOCAL
+# to this URL and it will be propagated into the chroot.
+#
+# This script ONLY works on Mac OS X!  Not standalone Darwin, not FreeBSD,
+# just Mac OS X.
 
 # Not all of these may be necessary.  Prune (or add to) as actual experience
 # subsequently dictates.
@@ -35,8 +55,11 @@ proc makechroot {dir} {
 		}
 	}
 	if {[file exists darwinports.tar.gz]} {
-		puts "copying from local darwinports snapshot"
+		puts "Copying from local darwinports.tar.gz snapshot"
 		exec tar -xpzf darwinports.tar.gz -C $dir
+	} elseif {[file exists darwinports-nightly-cvs-snapshot.tar.gz]} {
+		puts "Copying from last darwinports cvs snapshot."
+		exec tar -xpzf darwinports-nightly-cvs-snapshot.tar.gz -C $dir
 	} else {
 		puts "Attempting to grab cvs snapshot of darwinports"
 		if {![catch {exec curl -O http://darwinports.opendarwin.org/darwinports-nightly-cvs-snapshot.tar.gz}]} {
@@ -74,58 +97,44 @@ proc makechroot {dir} {
 
 proc packageall {} {
 	global REPORT REPDIR verbose
-	if {[catch {set out [open /dev/stdout w]}]} {
-		set out stdout
-	}
 
 	if {[file exists PortIndex]} {
 		set PI PortIndex
 	} elseif {[file exists dports/PortIndex]} {
 		set PI dports/PortIndex
 	} else {
-		puts $out "Unable to find PortIndex.  Please run me from darwinports dir"
+		puts "Unable to find PortIndex.  Please run me from darwinports dir"
 		exit 2
 	}
 
 	if {[catch {set pifile [open $PI r]}]} {
-		puts $out "Unable to open $PI - check permissions."
+		puts "Unable to open $PI - check permissions."
 		exit 3
 	}
 	exec mkdir -p ${REPDIR}
 	if {[catch {set repfile [open $REPORT w]}]} {
-		puts $out "Unable to open $REPORT - check permissions."
+		puts "Unable to open $REPORT - check permissions."
 		exit 4
 	}
-	puts $out "Doing initial installation of RPM bits.."
-	flush $out
 	if {[catch {exec port install rpm} result]} {
-		puts $out "Unable to install rpm port: $result"
+		puts "Unable to install rpm port: $result"
 		exit 6
 	}
 	exec mkdir -p /Packages
-	puts $out "Beginning packaging run.."
-	flush $out
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
-		puts -nonewline $out "Trying ${portname}..."
-		flush $out
 		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
-			puts $repfile "$portname failure"
+			puts $repfile "$portname failure [exec env TZ=GMT date {+%Y%m%d %T}]"
 			flush $repfile
-			puts $out " failed."
-			flush $out
 		} else {
-			puts $repfile "$portname success"
+			puts $repfile "$portname success [exec env TZ=GMT date {+%Y%m%d %T}]"
 			flush $repfile
-			puts $out " succeeded."
-			flush $out
 			exec rm -f ${REPDIR}/${portname}.out
 		}
 	}
 	close $pifile
 	close $repfile
-	if {"$out" != "stdout"} close $out
 }
 
 proc proc_disasm {pname} {
