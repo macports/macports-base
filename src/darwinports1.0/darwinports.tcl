@@ -122,6 +122,10 @@ proc darwinports::worker_init {workername portpath options variations} {
 	upvar $variations upvariations
     }
 
+    # Create package require abstraction procedure
+    $workername eval "proc PortSystem \{version\} \{ \n\
+			package require port \$version \}"
+
     foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
 		$workername alias $proc $proc
     }
