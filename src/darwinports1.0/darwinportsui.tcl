@@ -29,13 +29,11 @@
 #
 package provide darwinportsui 1.0 
 
-# Can be set to make the entire UI go into "batch mode"
-global _ui_is_enabled
-
 # System options array.  Options we pay attention to are:
 # system_options(ports_debug) - If set, output debugging messages.
 # system_options(ports_verbose) - If set, output info messages (ui_info)
 # system_options(ports_quiet) - If set, don't output "standard messages"
+# system_options(_ui_is_enabled) - If not set, go into "batch mode"
 global system_options
 
 # Accessor functions for system options
@@ -79,21 +77,21 @@ proc ui_init {} {
 # the UI entirely on or entirely off, for ports that are being built
 # in "batch mode".
 proc ui_enable {} {
-    global _ui_is_enabled
-    set _ui_is_enabled yes
+    global system_options
+    set system_options(_ui_is_enabled) yes
 }
 
 # Disable the UI.  All routines essentially go quiet and return default
 # values.
 proc ui_disable {} {
-    global _ui_is_enabled
-    set _ui_is_enabled no
+    global system_options
+    set system_options(_ui_is_enabled) no
 }
 
 # Returns 1 if the UI is enabled or 0 if not.
 proc ui_enabled {} {
-    global _ui_is_enabled
-    return [string compare $_ui_is_enabled "no"]
+    global system_options
+    return [isset _ui_is_enabled]
 }
 
 # Output string "str" on whatever the "output device" is, depending on
