@@ -4264,6 +4264,7 @@ s,@TCL_PACKAGE_DIR@,$TCL_PACKAGE_DIR,;t t
 s,@INCLUDES@,$INCLUDES,;t t
 s,@CFLAGS_DEBUG@,$CFLAGS_DEBUG,;t t
 s,@CFLAGS_OPTIMIZE@,$CFLAGS_OPTIMIZE,;t t
+s,@TCL_DEFS@,$TCL_DEFS,;t t
 s,@STLIB_LD@,$STLIB_LD,;t t
 s,@SHLIB_LD@,$SHLIB_LD,;t t
 s,@SHLIB_CFLAGS@,$SHLIB_CFLAGS,;t t
@@ -4386,7 +4387,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4389: creating $ac_file" >&5
+    { echo "$as_me:4390: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4404,7 +4405,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4407: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4408: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4417,7 +4418,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4420: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4421: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4478,7 +4479,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:4481: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:4482: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -4489,7 +4490,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4492: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4493: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4502,7 +4503,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4505: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4506: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4619,7 +4620,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:4622: $ac_file is unchanged" >&5
+      { echo "$as_me:4623: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
