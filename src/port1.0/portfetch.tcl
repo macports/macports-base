@@ -185,7 +185,7 @@ proc checkfiles {args} {
         
         set site_list [list]
         foreach site $uplist {
-            if {[regexp {([a-zA-Z]+://.+)} $site match site] == 1} {
+            if {[regexp {([a-zA-Z]+://.+)} $site match site]} {
                 set site_list [concat $site_list $site]
             } else {
 	    	set splitlist [split $site :]
@@ -203,7 +203,7 @@ proc checkfiles {args} {
         }
         
         foreach site $site_list {
-	    if {[regexp {([a-zA-Z]+://.+/):([a-zA-Z]+)} $site match site tag] == 1} {
+	    if {[regexp {([a-zA-Z]+://.+/):([a-zA-Z]+)} $site match site tag]} {
                 lappend portfetch::$tag $site
             } else {
                 lappend portfetch::$list $site

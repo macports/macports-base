@@ -49,7 +49,7 @@ proc validate_depends_options {option action args} {
     switch -regex $action {
 	set|append|delete {
 	    foreach depspec $args {
-			if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9_/\-\.$^\?\+\(\)\|\\]+):([-A-Za-z\./0-9_]+)} "$depspec" match deppath depregex portname] == 1} {
+			if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9_/\-\.$^\?\+\(\)\|\\]+):([-A-Za-z\./0-9_]+)} "$depspec" match deppath depregex portname]} {
 				switch $deppath {
 					lib {}
 					bin {}
