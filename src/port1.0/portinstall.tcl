@@ -92,9 +92,6 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
     }
     
     foreach name [readdir .] {
-	if {[string match $name "."] || [string match $name ".."]} {
-	    continue
-	}
 	set element [file join $cwd $name]
 	
 	# XXX jpm's cross-platform code to find file separator

@@ -349,8 +349,8 @@ proc _activate_contents {name imagefiles imagedir} {
 
 proc _deactivate_file {dstfile} {
 	if { [file isdirectory $dstfile] } {
-		# 2 items means empty.
-		if { [llength [readdir $dstfile]] == 2 } {
+		# 0 item means empty.
+		if { [llength [readdir $dstfile]] == 0 } {
 			ui_debug "deactivating directory: $dstfile"
 			file delete $dstfile
 		} else {

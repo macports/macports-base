@@ -783,9 +783,6 @@ proc port_traverse {func {dir .}} {
 	return
     }
     foreach name [readdir .] {
-	if {[string match $name .] || [string match $name ..]} {
-	    continue
-	}
 	if {[file isdirectory $name]} {
 	    port_traverse $func $name
 	} else {
@@ -1149,7 +1146,7 @@ proc addgroup {name args} {
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
-	if {$file == "." || $file == ".." || [file type [file join $dir $file]] == "link" } {
+	if {[file type [file join $dir $file]] == "link" } {
 	    continue
 	}
 	if {[file isdirectory [file join $dir $file]]} {

@@ -82,9 +82,6 @@ proc port_traverse {func {dir .} {cwd ""}} {
 	    return
     }
     foreach name [readdir .] {
-        if {[string match $name "."] || [string match $name ".."]} {
-            continue
-        }
         if {[file isdirectory $name] && $depth != 2} {
             incr depth 1
             port_traverse $func $name [file join $cwd $name]			

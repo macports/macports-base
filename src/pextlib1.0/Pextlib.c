@@ -1,7 +1,9 @@
 /*
  * Pextlib.c
+ * $Id: Pextlib.c,v 1.60.4.2 2004/05/23 15:43:27 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
+ * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -481,6 +483,13 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	return TCL_OK;
 }
 
+/**
+ *
+ * Return the list of elements in a directory.
+ * Since 1.60.4.2, the list doesn't include . and ..
+ *
+ * Synopsis: readdir directory
+ */
 int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	DIR *dirp;
@@ -501,7 +510,13 @@ int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);
 	while ((dp = readdir(dirp))) {
-		Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+		/* Skip . and .. */
+		if ((dp->d_name[0] != '.') ||
+			((dp->d_name[1] != 0)	/* "." */
+				&&
+			((dp->d_name[1] != '.') || (dp->d_name[2] != 0)))) /* ".." */ {
+			Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+		}
 	}
 	closedir(dirp);
 	Tcl_SetObjResult(interp, tcl_result);
