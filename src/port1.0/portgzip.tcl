@@ -53,7 +53,8 @@ proc main {args} {
 	
 	set distfile [option distfile]
 	if {![string match *.gz $distfile] &&
-		![string match *.gzip $distfile]} {
+		![string match *.gzip $distfile] &&
+		![string match *.tgz $distfile]} {
 		ui_debug "skipping non-gzip file: ${distfile}"
 		# not one of our files
 		return 0

@@ -444,8 +444,8 @@ proc makeuserproc {name body} {
 
 ########### Internal Dependancy Manipulation Procedures ###########
 
-proc target_run {ditem} {
-    global target_state_fd portname
+proc target_run {target_state_fd ditem} {
+    global portname
     set result 0
     set procedure [ditem_key $ditem procedure]
     if {$procedure != ""} {
@@ -459,7 +459,8 @@ proc target_run {ditem} {
 	    set result [catch {interp eval $worker "init $name"} errstr]
 	}
 	
-	if {[check_statefile target $name $target_state_fd] && $result == 0} {
+	if {$target_state_fd != "" &&
+		[check_statefile target $name $target_state_fd] && $result == 0} {
 	    set result 0
 	    ui_debug "Skipping completed $name ($portname)"
 	} elseif {$result == 0} {
@@ -482,6 +483,7 @@ proc target_run {ditem} {
 			ui_debug "Executing $name ($portname)"
 			set procedure [ditem_key $ditem procedure]
 			set result [catch {interp eval $worker "$procedure $name"} errstr]
+			if {$result == 0 && $errstr != "0" && $errstr != ""} { set result $errstr }
 	    }
 	    
 	    #if {$result == 0} {
@@ -500,8 +502,8 @@ proc target_run {ditem} {
 	    }
 	}
 	if {$result == 0} {
-	    if {[ditem_key $ditem runtype] != "always"} {
-		write_statefile target $name $target_state_fd
+	    if {$target_state_fd != "" && [ditem_key $ditem runtype] != "always"} {
+			write_statefile target $name $target_state_fd
 	    }
 	} else {
 	    ui_error "Target $name returned: $errstr"
@@ -517,7 +519,7 @@ proc target_run {ditem} {
 }
 
 proc eval_targets {target {keepstate "1"}} {
-    global targets target_state_fd portname
+    global targets portname
     set dlist $targets
 	    
 	# Select the subset of targets under $target
@@ -537,11 +539,16 @@ proc eval_targets {target {keepstate "1"}} {
 	# XXX: this should not use a global, we need to be re-entrant.
 	
     # Restore the state from a previous run.
-    if {$keepstate} { set target_state_fd [open_statefile] }
+    if {$keepstate} { 
+		set target_state_fd [open_statefile]
+	} else {
+		set target_state_fd ""
+	}
 
-    set dlist [dlist_eval $dlist "" target_run]
+    array set statusdict [dlist_eval $dlist "" [list target_run $target_state_fd] canfail]
 
-    if {[llength $dlist] > 0} {
+	# Make sure we got to the destination target
+	if {$statusdict($target) != 1} {
 		# somebody broke!
 		ui_info "Warning: the following items did not execute (for $portname): "
 		foreach ditem $dlist {

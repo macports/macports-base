@@ -1,6 +1,7 @@
 # et:ts=4
-# portpatch.tcl
+# portdistcache.tcl
 #
+# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -31,49 +32,30 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.patch
+name			org.opendarwin.download.cache
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Apply patches to the distribution sources.
-requires		distfiles
-provides		patch
+description		Looks for a downloaded file in the cache
+runtype			always
+provides		download distcache
 
 set UI_PREFIX "---> "
 
-# Add command patch
-commands patch
-# Set up defaults
-default patch.dir {[option worksrcpath]}
-default patch.cmd patch
-default patch.pre_args -p0
-
 proc main {args} {
-    global UI_PREFIX
+	global UI_PREFIX
+	
+	# It is our duty to check for a cached copy of the distfile
+	# in the distpath.
 
-    # First make sure that patchfiles exists and isn't stubbed out.
-    if {![exists patchfiles]} {
-	return 0
-    }
-
-    foreach patch [option patchfiles] {
-	if [file exists [option filespath]/$patch] {
-	    lappend patchlist [option filespath]/$patch
-	} elseif [file exists [option distpath]/$patch] {
-	    lappend patchlist [option distpath]/$patch
+	set distpath [option distpath]
+	set distfile [option distfile]
+	
+	if {[file isfile [file join ${distpath} ${distfile}]]} {
+		# file already exists
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Found %s in distfile cache."] $distfile]"
+		return 0
+	} else {
+		# file does not exist, fail
+		return 1
 	}
-    }
-    if ![info exists patchlist] {
-	return -code error [msgcat::mc "Patch files missing"]
-    }
-    cd [option worksrcpath]
-    foreach patch $patchlist {
-	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
-	switch -glob -- [file tail $patch] {
-	    *.Z -
-	    *.gz {system "gzcat \"$patch\" | ([command patch])"}
-	    *.bz2 {system "bzcat \"$patch\" | ([command patch])"}
-	    default {system "[command patch] < \"$patch\""}
-	}
-    }
-    return 0
 }

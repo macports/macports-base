@@ -1,5 +1,5 @@
 # et:ts=4
-# portcurl.tcl
+# portwget.tcl
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -32,12 +32,12 @@
 
 PortTarget 1.0
 
-name			org.opendarwin.download.curl
+name			org.opendarwin.download.wget
 #version		1.0
 maintainers		kevin@opendarwin.org
-description		Download files using curl(1)
+description		Download files using wget(1)
 runtype			always
-provides		download curl
+provides		download wget
 uses			distcache
 
 set UI_PREFIX "---> "
@@ -48,7 +48,7 @@ proc main {args} {
 	# The distpath should have already been set up by the distfiles target
 	# We will be called with a valid list of master_sites, but only one
 	# file in the distfile, as the distfiles target has set up.
-	# It is our duty to attempt to use curl(1) to download this file from
+	# It is our duty to attempt to use wget(1) to download this file from
 	# one of the master sites into the distpath.
 
 	set distpath [option distpath]
@@ -56,8 +56,8 @@ proc main {args} {
 	set distfile [option distfile]
 	
 	foreach site $master_sites {
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
-		if {![catch {system "curl -o \"${distpath}/${distfile}.TMP\" \"${site}${distfile}\""} result] &&
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to download %s from %s"] $distfile $site]"
+		if {![catch {system "wget -O \"${distpath}/${distfile}.TMP\" \"${site}${distfile}\""} result] &&
 			![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
 			# success
 			# remove the temporary file
@@ -71,9 +71,8 @@ proc main {args} {
 			global errorCode
 			switch -exact [lindex $errorCode 2] {
 				1 { 
-					#set err [msgcat::mc "curl(1) has no support for this protocol."]
-					# tcsh, zsh return 1 if curl(1) isn't found
-					# luckily for us, no curl(1) and no protocol support from curl(1)
+					# tcsh, zsh return 1 if wget(1) isn't found
+					# luckily for us, no wget(1) and an error from wget(1)
 					# mean just about the same thing
 					return 1
 				}
@@ -81,25 +80,7 @@ proc main {args} {
 					# bash returns 127 if curl(1) isn't found
 					return 1
 				}
-				2 { set err [msgcat::mc "curl(1) not found / failed to initialize."] }
-				3 { set err [format [msgcat::mc "malformatted URL: %s"] "${site}${distfile}"] }
-				4 { set err [format [msgcat::mc "malformatted username in URL: %s"] "${url}"] }
-				5 { set err [msgcat::mc "The given proxy host could not be resolved."] }
-				6 { set err [format [msgcat::mc "Unknown host: %s"] "${url}"] }
-				7 { set err [format [msgcat::mc "Failed to connect to host: %s"] "${url}"] }
-				8 { set err [format [msgcat::mc "Unrecognized reply from FTP server: %s"] "${url}"] }
-				9 { set err [format [msgcat::mc "FTP access denied: %s"] "${url}"] }
-				10 { set err [format [msgcat::mc "FTP user/password incorrect: %s"] "${url}"] }
-				17 { set err [format [msgcat::mc "FTP could not use binary transfer: %s"] "${url}"] }
-				18 { set err [format [msgcat::mc "Only part of the file was transferred: %s"] "${url}"] }
-				19 { set err [format [msgcat::mc "FTP could not retrieve file: %s"] "${url}"] }
-				22 { set err [format [msgcat::mc "HTTP page was not found: %s"] "${url}"] }
-				23 { set err [format [msgcat::mc "Curl could not write data to local filesystem: %s"] "${distpath}/${distfile}.TMP"] }
-				28 { set err [format [msgcat::mc "Operation timed out: %s"] "${url}"] }
-				35 { set err [format [msgcat::mc "SSL handshaking failed: %s"] "${url}"] }
-				36 { set err [format [msgcat::mc "FTP could not resume download: %s"] "${url}"] }
-				47 { set err [format [msgcat::mc "Too many redirects: %s"] "${url}"] }
-				default { set err [format [msgcat::mc "An error occurred (%s): %s"] [lindex $errorCode 2] "${url}"] }
+				default { set err [format [msgcat::mc "An error occurred: %s"] "${url}"] }
 			}
 			return -code error $err
 		}
