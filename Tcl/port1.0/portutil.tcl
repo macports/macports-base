@@ -21,7 +21,7 @@ namespace eval portutil {
 # Arguments: <array for export> <options (keys in array) to export>
 proc options {args} {
     foreach option $args {
-    	eval proc $option {args} \{ global ${option} \; set ${option} {$args} \}
+    	eval proc $option {args} \{ global ${option} user_options\; \if \{!\[info exists user_options(${option})\]\} \{ set ${option} {$args} \} \}
     }
 }
 

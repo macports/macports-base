@@ -18,14 +18,6 @@ package require portui 1.0
 if [info exists portconf] {
     source $portconf
 }
-# User overrides
-if [info exists user_options] {
-	foreach string $user_options {
-		if {[regexp {([A-Za-z_\.]+)=([A-Za-z0-9\ ]+)} $string match key val] == 1} {
-			set $key $val
-		}
-	}
-}
 
 # Initialize the UI abstraction API
 ui_init

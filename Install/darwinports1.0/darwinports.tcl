@@ -4,7 +4,7 @@ package provide darwinports 1.0
 
 global ports_opts
 global bootstrap_options
-set bootstrap_options "sysportpath libpath"
+set bootstrap_options "sysportpath libpath auto_path"
 set portinterp_options "sysportpath portpath auto_path portconf"
 
 # XXX not portable
@@ -63,23 +63,30 @@ proc init {args} {
     }
 }
 
-proc build {portdir chain target args} {
-    global targets portpath portinterp_options user_options
+proc build {portdir chain target {options ""}} {
+    global targets portpath portinterp_options
 
     if [file isdirectory $portdir] {
 	cd $portdir
 	set portpath [pwd]
 	interp create workerbee
 	workerbee alias {} build workerbee build
+
 	foreach opt $portinterp_options {
 		upvar #0 $opt upopt
 		if [info exists upopt] {
+			workerbee eval set system_options($opt) \"$upopt\"
 			workerbee eval set $opt \"$upopt\"
 		}
 	}
-	if {[llength $args] > 0} {
-		workerbee eval set user_options $args
+
+	foreach opt $options {
+		if {[regexp {([A-Za-z]+)=([A-Za-z0-9\ ]+)} $opt match key val] == 1} {
+			workerbee eval set user_options($key) \"$val\"
+			workerbee eval set $key \"$val\"
+		}
 	}
+
 	workerbee eval source Portfile
 	workerbee eval eval_targets targets $chain $target
     } else {
