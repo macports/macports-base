@@ -1,7 +1,7 @@
 PREFIX?=	/opt/local
 INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/resources/port1.0/package
 DSTUSR?=	root
-DSTGRP?=	wheel
+DSTGRP?=	admin
 
 RSRCS=		background.tiff
 

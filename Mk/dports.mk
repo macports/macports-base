@@ -1,4 +1,4 @@
 PREFIX?=        /opt/local
 DSTUSR?=        root
-DSTGRP?=        wheel
+DSTGRP?=        admin
 ETCDIR=		/etc/ports

@@ -2,8 +2,8 @@ MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${PREFIX}
 
 mkdirs:
-	cat ../../doc/prefix.mtree | sed -e "s/uname=root/uname=${DSTUSR}/" | \
-	sed -e "s/gname=admin/gname=${DSTGRP}/" | \
+	cat ../../doc/prefix.mtree | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
+	sed -e "s/gname=GNAME/gname=${DSTGRP}/" | \
 	mtree -U -d -e -p ${INSTALLDIR} > /dev/null
 
 all:

@@ -3,7 +3,7 @@ SUBDIR=		package
 PREFIX?=	/opt/local
 INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/resources/port1.0/
 DSTUSR?=	root
-DSTGRP?=	wheel
+DSTGRP?=	admin
 
 RSRCS=
 
