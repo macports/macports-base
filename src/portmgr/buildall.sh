@@ -31,7 +31,7 @@ mkchrootbase() {
 		mkdir -p $dir
 
 		# Add to this list as you find minimum dependencies DP really needs.
-		chrootfiles="bin sbin etc tmp var private dev/null usr Developer System/Library Library/Java"
+		chrootfiles="bin sbin etc tmp var private dev/null usr Developer System/Library Library"
 
 		echo "Calculating chroot base image size..."
 		# start with this size to account for other overhead
@@ -42,7 +42,7 @@ mkchrootbase() {
 		done
 		echo "Creating bootstrap disk image of ${sz}K bytes"
 		hdiutil create -size ${sz}k -fs ${FSTYPE} -volname base ${CHROOTBASE} > /dev/null
-		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		echo "Image attached as $BASEDEV"
 		echo "Copying chroot files into bootstrap disk image"
 		for i in $chrootfiles; do
@@ -68,7 +68,7 @@ mkchrootbase() {
 	else
 		echo "Creating dports cache of size ${DPORTSCACHE_SIZE}"
 		hdiutil create -size ${DPORTSCACHE_SIZE} -fs ${FSTYPE} -volname distfiles ${DPORTSCACHE} > /dev/null
-		DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		mkdir -p $dir/distfiles
 		mkdir -p $dir/receipts
 		mkdir -p $dir/software
@@ -105,10 +105,10 @@ prepchroot() {
 	dir=$1
 	if [ $STUCK_BASEDEV = 0 ]; then
 		rm -f ${CHROOTBASE}.shadow
-		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		mkdir -p $dir/.vol
 	fi
- 	DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir/opt/local/var/db/dports -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+ 	DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir/opt/local/var/db/dports -union -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	/sbin/mount_devfs devfs $dir/dev || bomb "unable to mount devfs"
 	/sbin/mount_fdesc -o union fdesc $dir/dev || bomb "unable to mount fdesc"
 }
