@@ -442,7 +442,7 @@ proc dportexec {dport target} {
 	# XXX: need a more general way of comparing against targets
 	set dlist {}
 	if {$target == "configure" || $target == "build" || $target == "install" ||
-		$target == "package" || $target == "mpkg"} {
+		$target == "package" || $target == "mpkg" || $target == "rpmpackage" } {
 
 		if {[dportdepends $dport 1 1] != 0} {
 			return 1
