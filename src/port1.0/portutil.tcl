@@ -1,4 +1,4 @@
-# ex:ts=4
+# et:ts=4
 # portutil.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -53,7 +53,7 @@ namespace eval options {
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
-    	eval "proc $option {args} \{ \n\
+	eval "proc $option {args} \{ \n\
 	    global ${option} user_options option_procs \n\
 		\if \{!\[info exists user_options(${option})\]\} \{ \n\
 		     set ${option} \$args \n\

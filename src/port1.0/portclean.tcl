@@ -1,4 +1,4 @@
-# ex:ts=4
+# et:ts=4
 # portclean.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.

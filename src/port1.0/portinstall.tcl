@@ -1,4 +1,4 @@
-# ex:ts=4
+# et:ts=4
 # portinstall.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.

@@ -1,4 +1,4 @@
-# ex:ts=4
+# eti:ts=4
 # portbuild.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
