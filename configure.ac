@@ -107,8 +107,6 @@ dnl SC_CONFIG_MANPAGES
 
 AC_CONFIG_FILES([Makefile Mk/dports.autoconf.mk doc/prefix.mtree
 		doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl
-		src/programs/Makefile src/port/port:src/port/port.tcl
-		src/port/portall:src/port/portall.tcl
-		src/port/portindex:src/port/portindex.tcl])
+		src/programs/Makefile])
 
 AC_OUTPUT

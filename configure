@@ -4086,7 +4086,7 @@ prefix=$oldprefix
 
 # Output
 
-ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl src/programs/Makefile src/port/port:src/port/port.tcl src/port/portall:src/port/portall.tcl src/port/portindex:src/port/portindex.tcl"
+ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl src/programs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -4400,11 +4400,8 @@ do
   "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
-  "src/port/port" ) CONFIG_FILES="$CONFIG_FILES src/port/port:src/port/port.tcl" ;;
-  "src/port/portall" ) CONFIG_FILES="$CONFIG_FILES src/port/portall:src/port/portall.tcl" ;;
-  "src/port/portindex" ) CONFIG_FILES="$CONFIG_FILES src/port/portindex:src/port/portindex.tcl" ;;
   "src/pextlib1.0/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/pextlib1.0/config.h" ;;
-  *) { { echo "$as_me:4407: error: invalid argument: $ac_config_target" >&5
+  *) { { echo "$as_me:4404: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
   esac
@@ -4655,7 +4652,7 @@ done; }
   esac
 
   if test x"$ac_file" != x-; then
-    { echo "$as_me:4658: creating $ac_file" >&5
+    { echo "$as_me:4655: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
     rm -f "$ac_file"
   fi
@@ -4673,7 +4670,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4676: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4673: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4686,7 +4683,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4689: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4686: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4747,7 +4744,7 @@ for ac_file in : $CONFIG_HEADERS; do test "x$ac_file" = x: && continue
   * )   ac_file_in=$ac_file.in ;;
   esac
 
-  test x"$ac_file" != x- && { echo "$as_me:4750: creating $ac_file" >&5
+  test x"$ac_file" != x- && { echo "$as_me:4747: creating $ac_file" >&5
 echo "$as_me: creating $ac_file" >&6;}
 
   # First look for the input files in the build tree, otherwise in the
@@ -4758,7 +4755,7 @@ echo "$as_me: creating $ac_file" >&6;}
       -) echo $tmp/stdin ;;
       [\\/$]*)
          # Absolute (can't be DOS-style, as IFS=:)
-         test -f "$f" || { { echo "$as_me:4761: error: cannot find input file: $f" >&5
+         test -f "$f" || { { echo "$as_me:4758: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          echo $f;;
@@ -4771,7 +4768,7 @@ echo "$as_me: error: cannot find input file: $f" >&2;}
            echo $srcdir/$f
          else
            # /dev/null tree
-           { { echo "$as_me:4774: error: cannot find input file: $f" >&5
+           { { echo "$as_me:4771: error: cannot find input file: $f" >&5
 echo "$as_me: error: cannot find input file: $f" >&2;}
    { (exit 1); exit 1; }; }
          fi;;
@@ -4888,7 +4885,7 @@ cat >>$CONFIG_STATUS <<\EOF
   rm -f $tmp/in
   if test x"$ac_file" != x-; then
     if cmp -s $ac_file $tmp/config.h 2>/dev/null; then
-      { echo "$as_me:4891: $ac_file is unchanged" >&5
+      { echo "$as_me:4888: $ac_file is unchanged" >&5
 echo "$as_me: $ac_file is unchanged" >&6;}
     else
       ac_dir=`$as_expr X"$ac_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
@@ -4992,7 +4989,7 @@ if test "$no_recursion" != yes; then
     # parts of a large source tree are present.
     test -d $srcdir/$ac_subdir || continue
 
-    { echo "$as_me:4995: configuring in $ac_subdir" >&5
+    { echo "$as_me:4992: configuring in $ac_subdir" >&5
 echo "$as_me: configuring in $ac_subdir" >&6;}
     case $srcdir in
     .) ;;
@@ -5014,7 +5011,7 @@ done; }
 
        if test -d ./$ac_subdir; then :;
        else
-         { { echo "$as_me:5017: error: cannot create \`pwd\`/$ac_subdir" >&5
+         { { echo "$as_me:5014: error: cannot create \`pwd\`/$ac_subdir" >&5
 echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
        fi
@@ -5045,7 +5042,7 @@ echo "$as_me: error: cannot create \`pwd\`/$ac_subdir" >&2;}
     elif test -f $ac_sub_srcdir/configure.in; then
       ac_sub_configure=$ac_configure
     else
-      { echo "$as_me:5048: WARNING: no configuration information is in $ac_subdir" >&5
+      { echo "$as_me:5045: WARNING: no configuration information is in $ac_subdir" >&5
 echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
       ac_sub_configure=
     fi
@@ -5059,12 +5056,12 @@ echo "$as_me: WARNING: no configuration information is in $ac_subdir" >&2;}
         ac_sub_cache_file=$ac_dots$cache_file ;;
       esac
 
-      { echo "$as_me:5062: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
+      { echo "$as_me:5059: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&5
 echo "$as_me: running $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir" >&6;}
       # The eval makes quoting arguments work.
       eval $ac_sub_configure $ac_sub_configure_args \
            --cache-file=$ac_sub_cache_file --srcdir=$ac_sub_srcdir ||
-        { { echo "$as_me:5067: error: $ac_sub_configure failed for $ac_subdir" >&5
+        { { echo "$as_me:5064: error: $ac_sub_configure failed for $ac_subdir" >&5
 echo "$as_me: error: $ac_sub_configure failed for $ac_subdir" >&2;}
    { (exit 1); exit 1; }; }
     fi
