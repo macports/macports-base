@@ -284,7 +284,7 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd os.platform fetch.pre_args
+    global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd fetch.pre_args
     global distfile site
     
     if {![file isdirectory $distpath]} {
