@@ -8,7 +8,14 @@ namespace eval portpatch {
 }
 
 proc portpatch::main {args} {
-	global portname
-	puts "Patching port: $portname"
+	global portname patchfiles
+
+	if ![info exists patchfiles] {
+		return 0
+	}
+
+	foreach patch $patchfiles {
+		puts $patch
+	}
 	return 0
 }
