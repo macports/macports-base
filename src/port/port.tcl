@@ -244,10 +244,6 @@ switch -- $action {
 		puts "Invalid port entry, missing portname"
 		continue
 	    }
-	    if ![info exists portinfo(portdir)] {
-		puts "Invalid port entry, missing portdir"
-		continue
-	    }
 	    if ![info exists portinfo(description)] {
 		puts "Invalid port entry for $portinfo(name), missing description"
 		continue
@@ -256,8 +252,13 @@ switch -- $action {
 		puts "Invalid port entry for $portinfo(name), missing version"
 		continue
 	    }
+	    if ![info exists portinfo(portdir)] {
+		set displayname $portinfo(name)
+	    } else {
+		set displayname $portinfo(portdir)
+	    }
 	    set portfound 1
-	    puts [format "%-20s\t%-8s\t%s" $portinfo(portdir) $portinfo(version) $portinfo(description)]
+	    puts [format "%-20s\t%-8s\t%s" $displayname $portinfo(version) $portinfo(description)]
 	    unset portinfo
 	}
 	if {![info exists portfound] || $portfound == 0} {
