@@ -39,7 +39,7 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
@@ -56,6 +56,10 @@ default cvs.tag HEAD
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-f -d ${cvs.root}"}
 
+# Set distfiles
+default distfiles {[suffix $distname]}
+default dist_subdir {${portname}}
+
 default fetch.cmd curl
 default fetch.dir {${distpath}}
 default fetch.args {"-o ${distfile}.TMP"}
@@ -65,9 +69,6 @@ default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}
 default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
-
-# Set distfiles
-default distfiles {[suffix $distname]}
 
 # Option-executed procedures
 option_proc use_bzip2 fix_extract_suffix
