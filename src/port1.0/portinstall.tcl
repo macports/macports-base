@@ -41,9 +41,21 @@ target_prerun ${com.apple.install} install_start
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname
+    global UI_PREFIX portname portversion
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
+	# Check to make sure this port is not already installed.  This is a 
+	# general check of the portname only, so previous versions will fail 
+	# as well.
+	if {[string length [registry_exists $portname]]} {
+		# Also check to see if it's this version or another
+		if {[string length [registry_exists $portname $portversion]]} {
+			return -code error [format [msgcat::mc "Port %s already registered as installed."] $portname]
+		} else {
+			return -code error [format [msgcat::mc "Another version of Port %s is already registered as installed.  Please uninstall the port first."] $portname]
+		}
+	} else {
+    	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
+	}
 }
 
 proc install_element {src_element dst_element} {

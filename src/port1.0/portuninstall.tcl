@@ -46,8 +46,8 @@ set UI_PREFIX "---> "
 proc uninstall_start {args} {
     global portname portversion UI_PREFIX
 
-    if {[string length [registry_exists $portname $portversion]]} {
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s-%s"] $portname $portversion]"
+    if {[string length [registry_exists $portname]]} {
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s"] $portname]"
     }
 }
 
@@ -59,7 +59,7 @@ proc uninstall_main {args} {
 	set uninstall.force "yes"
     }
 
-    set rfile [registry_exists $portname $portversion]
+    set rfile [registry_exists $portname]
     if {[string length $rfile]} {
 	if {[regexp .bz2$ $rfile]} {
 	    set fd [open "|bunzip2 -c $rfile" r]
@@ -126,12 +126,18 @@ proc uninstall_main {args} {
 		}
 	    }
 	    if {!$uninst_err || [tbool uninstall.force]} {
-		registry_delete $portname $portversion
+		if {[regexp .bz2$ $rfile]} {
+			regsub {.bz2$} $rfile {} r_file
+			set r_version [lindex [split $r_file -] 1]
+		} else {
+			set r_version [lindex [split $rfile -] 1]
+		}
+		registry_delete $portname $r_version
 		return 0
 	    }
 	} else {
 	    return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
 	}
     }
-    return -code error [msgcat::mc "Uninstall failed: Port not registered as installed"]
+    return -code error [format [msgcat::mc "Uninstall failed: Port %s not registered as installed"] $portname]
 }

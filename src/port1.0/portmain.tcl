@@ -85,7 +85,6 @@ default os.arch {$os_arch}
 # Remove trailing "Endian"
 default os.endian {[string range $tcl_platform(byteOrder) 0 [expr [string length $tcl_platform(byteOrder)] - 7]]}
 
-
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
