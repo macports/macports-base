@@ -31,7 +31,7 @@ proc ui_isset {val} {
 proc ui_puts {messagelist} {
     global uniquestr
 
-    set channel [open "/tmp/portbuild.out" w+ 0644]
+    set channel [open "/tmp/portbuild.out" a+ 0644]
     array set message $messagelist
     switch $message(priority) {
         debug {
