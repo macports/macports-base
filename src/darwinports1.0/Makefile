@@ -24,8 +24,8 @@ install::
 
 	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
 
-#	XXX Prior installations of dports on Darwin installed darwinports1.0 
-#	in a version-specific Tcl path
+	# XXX Prior installations of dports on Darwin installed darwinports1.0 
+	# in a version-specific Tcl path
 
 	$(SILENT) echo "/System/Library/Tcl" | grep "^/System/Library/Tcl" >/dev/null; \
 	    if test $$? -eq 0; then \
