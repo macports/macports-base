@@ -6,10 +6,8 @@ register com.apple.patch target build patch_main
 register com.apple.patch provides patch
 register com.apple.patch requires main fetch checksum extract
 
-global patch_opts
-
 proc patch_main {args} {
-    global patch_opts portname patchfiles distpath filedir workdir portpath
+    global portname patchfiles distpath filedir workdir portpath
 
     if ![info exists patchfiles] {
 	return 0
