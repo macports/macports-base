@@ -251,12 +251,13 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		int slen;
 
 		/*
-		 * Allocate enough space to hold buf, minus terminating '\n'
+		 * Allocate enough space to insert a terminating
+		 * '\0' if the line is not terminated with a '\n'
 		 */
 		if (buf[linelen - 1] == '\n')
-			slen = linelen - 1;
-		else
 			slen = linelen;
+		else
+			slen = linelen + 1;
 
 		if (circbuf[pos].len == 0)
 			sbuf = malloc(slen);
@@ -273,6 +274,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		}
 
 		memcpy(sbuf, buf, linelen);
+		/* terminate line with '\0',replacing '\n' if it exists */
+		sbuf[slen - 1] = '\0';
 
 		circbuf[pos].line = sbuf;
 		circbuf[pos].len = slen;
@@ -301,10 +304,11 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			errbuf = Tcl_NewStringObj(NULL, 0);
 			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
 				if (circbuf[pos % CBUFSIZ].len == 0)
-					continue; /* skip empty lines */
+				continue; /* skip empty lines */
 
+				/* Append line, minus trailing NULL */
 				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
-						circbuf[pos % CBUFSIZ].len);
+						circbuf[pos % CBUFSIZ].len - 1);
 
 				/* Re-add previously stripped newline */
 				Tcl_AppendToObj(errbuf, "\n", 1);
@@ -323,7 +327,7 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
 			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_AppendToObj(tcl_result, "\nCommand output:\n", -1);
+			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
 			Tcl_AppendObjToObj(tcl_result, errbuf);
 			Tcl_SetObjResult(interp, tcl_result);
 			return TCL_ERROR;
