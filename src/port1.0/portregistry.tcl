@@ -37,7 +37,7 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description
+options contents description register.nochecksum
 
 set UI_PREFIX "---> "
 
@@ -66,16 +66,22 @@ proc registry_close {rhandle} {
 }
 
 proc fileinfo_for_file {fname} {
+    global register.nochecksum
+
     if ![catch {file stat $fname statvar}] {
-	set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-	set pipe [open "|md5 $fname" r]
-	set line [read $pipe]
-	if {[regexp $md5regex $line match type filename sum] == 1} {
+	if ![info exists register.nochecksum] {
+	    set md5regex "^(MD5)\[ \]\\(($fname)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	    set pipe [open "|md5 $fname" r]
+	    set line [read $pipe]
+	    if {[regexp $md5regex $line match type filename sum] == 1} {
+		close $pipe
+		set line [string trimright $line "\n"]
+		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	    }
 	    close $pipe
-	    set line [string trimright $line "\n"]
-	    return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	} else {
+	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
 	}
-	close $pipe
     }
     return {}
 }
