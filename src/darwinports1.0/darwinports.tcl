@@ -1044,6 +1044,16 @@ proc upgrade {pname dspec} {
 		ui_error "Unable to exec port: $result"
 		return 1
 	}
+
+	# uninstall old ports
+	if {[info exists portinfo(port_uninstall_old)]} {
+		# uninstalll old
+		ui_debug "Uninstalling $pname $version_installed"
+		if {[catch {portimage::uninstall $pname $version_installed} result]} {
+     		ui_error "Uninstall $pname $version_installed failed: $result"
+       		return 1
+    	}
+	}
 	
 	# close the port handle
 	dportclose $workername
