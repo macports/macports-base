@@ -77,13 +77,13 @@ proc fetchfiles {args} {
 }
 
 proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files distsubdir
+    global distfiles distname distpath all_dist_files dist_subdir
     # Set distfiles
     if [info exists distname] {
 	default distfiles [suffix $distname]
     }
-    if {[info exist distpath] && [info exists distsubdir]} {
-	set distpath ${distpath}/${distsubdir}
+    if {[info exist distpath] && [info exists dist_subdir]} {
+	set distpath ${distpath}/${dist_subdir}
     }
     checkfiles
 }
