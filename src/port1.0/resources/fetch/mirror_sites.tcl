@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.11 2004/01/14 17:26:31 fkr Exp $
+# $Id: mirror_sites.tcl,v 1.12 2004/01/14 18:08:52 fkr Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -11,7 +11,6 @@
 # Please keep this list sorted.
 
 namespace eval portfetch::mirror_sites { }
-B
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
