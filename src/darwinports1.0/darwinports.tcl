@@ -85,7 +85,8 @@ proc dportinit {args} {
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
 		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9\./\]+$)" $line match val] == 1} {
-			set $option $val
+			set darwinports::$option $val
+			global darwinports::$option
 		    }
 		}
 	    }
@@ -136,14 +137,15 @@ proc dportinit {args} {
 
     if [file isdirectory $libpath] {
 	lappend auto_path $libpath
+	set darwinports::auto_path $auto_path
     } else {
 	return -code error "Library directory '$libpath' must exist"
     }
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path \
-	darwinports::portsharepath darwinports::prefix
+    global darwinports::uniqid darwinports::portinterp_options auto_path
+
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
@@ -158,6 +160,9 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 
     foreach opt $portinterp_options {
+	if ![info exists $opt] {
+	    global darwinports::$opt
+	}
         if [info exists $opt] {
             $workername eval set system_options($opt) \"[set $opt]\"
             $workername eval set $opt \"[set $opt]\"
@@ -260,13 +265,6 @@ proc darwinports::getindex {source} {
     regsub {://} $source {.} source_dir
     regsub -all {/} $source_dir {_} source_dir
     return [file join $portdbpath sources $source_dir PortIndex]
-}
-
-# Provide the notion of "forcing" an action.
-proc ports_force {val} {
-    global system_options
-
-    set system_options(ports_force) $val
 }
 
 proc dportsync {args} {
