@@ -45,3 +45,4 @@ package require portregistry 1.0
 package require portclean 1.0
 package require portpackage 1.0
 package require portcontents 1.0
+package require portmpkg 1.0

@@ -229,7 +229,9 @@ proc write_info_plist {infofile portname portversion destination} {
 	set vers [split $portversion "."]
 	set major [lindex $vers 0]
 	set minor [lindex $vers 1]
-	
+	if {$major == ""} {set major "0"}
+	if {$minor == ""} {set minor "0"}
+		
 	if {[string index $destination end] != "/"} {
 		append destination /
 	}
@@ -253,7 +255,7 @@ proc write_info_plist {infofile portname portversion destination} {
 	<key>IFMinorVersion</key>
 	<integer>${minor}</integer>
 	<key>IFPkgFlagAllowBackRev</key>
-	<false/>
+	<true/>
 	<key>IFPkgFlagAuthorizationAction</key>
 	<string>RootAuthorization</string>
 	<key>IFPkgFlagDefaultLocation</key>
