@@ -375,27 +375,31 @@ proc ldelete {list value} {
 
 # reinplace
 # Provides "sed in place" functionality
-proc reinplace {oddpattern file}  {
-    set backpattern [strsed $oddpattern {g/\//\\\\\//}]
-    set pattern [strsed $backpattern {g/\|/\//}]
-
-    if {[catch {set tmpfile [mktemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
-	ui_error "reinplace: $error"
-	return -code error "reinplace failed"
+proc reinplace {pattern args}  {
+    if {$args == ""} {
+    	ui_error "reinplace: no value given for parameter \"file\""
+	return -code error "no value given for parameter \"file\" to \"reinplace\"" 
     }
 
-    if {[catch {exec sed $pattern < $file > $tmpfile} error]} {
-	ui_error "reinplace: $error"
+    foreach file $args {
+	if {[catch {set tmpfile [mktemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+	    ui_error "reinplace: $error"
+	    return -code error "reinplace failed"
+	}
+
+	if {[catch {exec sed $pattern < $file > $tmpfile} error]} {
+	    ui_error "reinplace: $error"
+	    file delete "$tmpfile"
+	    return -code error "reinplace failed"
+	}
+
+	if {[catch {exec cp $tmpfile $file} error]} {
+	    ui_error "reinplace: $error"
+	    file delete "$tmpfile"
+	    return -code error "reinplace failed"
+	}
 	file delete "$tmpfile"
-	return -code error "reinplace failed"
     }
-
-    if {[catch {exec cp $tmpfile $file} error]} {
-	ui_error "reinplace: $error"
-	file delete "$tmpfile"
-	return -code error "reinplace failed"
-    }
-    file delete "$tmpfile"
     return
 }
 
