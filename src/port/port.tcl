@@ -177,14 +177,14 @@ switch -- $action {
 
         # make sure a port was given on the command line
         if {![info exists portname]} {
-           puts "You must specify a port"
-	   exit 1
+	    puts "You must specify a port"
+	    exit 1
         }
 
         # search for port
         if {[catch {dportsearch ^$portname$} result]} {
-           puts "port search failed: $result"
-	   exit 1
+	    puts "port search failed: $result"
+	    exit 1
         }
 
         if {$result == ""} {
@@ -235,27 +235,27 @@ switch -- $action {
     variants {
         # make sure a port was given on the command line
         if {![info exists portname]} {
-           puts "You must specify a port"
-	   exit 1
+	    puts "You must specify a port"
+	    exit 1
         }
-
+	
         # search for port
         if {[catch {dportsearch ^$portname$} result]} {
-           puts "port search failed: $result"
-	   exit 1
+	    puts "port search failed: $result"
+	    exit 1
         }
-
+	
         if {$result == ""} {
             puts "No port $portname found."
         }
-
+	
         array set portinfo [lindex $result 1]
-
+	
         # if this fails the port doesn't have any variants
         if {![info exists portinfo(variants)]} {
             puts "$portname has no variants"
         } else {
-        # print out all the variants
+	    # print out all the variants
             for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
                 puts "[lindex $portinfo(variants) $i]"
             }
@@ -264,10 +264,10 @@ switch -- $action {
     contents {
         # make sure a port was given on the command line
         if {![info exists portname]} {
-           puts "You must specify a port"
-	   exit 1
+	    puts "You must specify a port"
+	    exit 1
         }
-
+	
         set rfile [dportregistry::exists $portname]
         if {$rfile != ""} {
             if {[file extension $rfile] == ".bz2"} {
@@ -277,25 +277,27 @@ switch -- $action {
                 set shortname [file tail $rfile]
                 set fd [open $rfile r]
             }
-            set entry [read $fd]
+	    
+            while {-1 < [gets $fd line]} {
+                set match [regexp {^contents \{(.*)\}$} $line dummy contents]
+                if {$match == 1} {
+		    puts "Contents of $shortname"
+		    foreach f $contents {
+			puts "\t[lindex $f 0]"
+		    }
+                    break
+                }
+            }
+	    
+            if {$match == 0} {
+                puts "No contents list for $shortname"
+		exit 1
+            }
+	    
             # kind of a corner case but I ran into it testing
             if {[catch {close $fd} result]} {
                 puts "Port failed: $rfile may be corrupted"
-		exit 1
-            }
-
-            # look for a contents list
-            set ix [lsearch $entry contents]
-            if {$ix >= 0} {
-                set contents [lindex $entry [incr ix]]
-                set uninst_err 0
-                puts "Contents of $shortname"
-                foreach f $contents {
-                    puts "\t[lindex $f 0]"
-                }
-            } else {
-                puts "No contents list for $shortname"
-		exit 1
+                exit 1
             }
         } else {
             puts "Contents listing failed - no registry entry"
@@ -313,7 +315,7 @@ switch -- $action {
 	}
 	foreach {name array} $res {
 	    array set portinfo $array
-
+	    
 	    # XXX is this the right place to verify an entry?
 	    if {![info exists portinfo(name)]} {
 		puts "Invalid port entry, missing portname"
@@ -350,8 +352,8 @@ switch -- $action {
     default {
 	set target $action
 	if {[info exists portname]} {
-		# Escape regex special characters
-		regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+	    # Escape regex special characters
+	    regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
 	    if {[catch {set res [dportsearch ^$search_string\$]} result]} {
 	    	puts "port search failed: $result"
 		exit 1
@@ -374,7 +376,7 @@ switch -- $action {
 	    puts "Unable to execute port: $result"
 	    exit 1
 	}
-
+	
 	dportclose $workername
 	exit $result
     }
