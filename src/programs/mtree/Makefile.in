@@ -12,6 +12,9 @@ INSTALL=	@INSTALL@
 mandir=		@mandir@
 mandircat8=	${mandir}/cat8
 
+CANONICAL_HOST = @CANONICAL_HOST@
+
+
 all:	mtree
 
 PROG=	mtree
@@ -29,7 +32,7 @@ CC=		@CC@
 CCLD=		$(CC)
 LIBS=		@LIBS@
 CPPFLAGS=	@CPPFLAGS@
-DEFS=		@DEFS@ -I. -I@srcdir@ -DNO_MD5 -DNO_RMD160 -DNO_SHA1
+DEFS=		@DEFS@ -I. -I@srcdir@ -DNO_MD5 -DNO_RMD160 -DNO_SHA1 -DHOST=\"$(CANONICAL_HOST)\"
 CFLAGS=		@CFLAGS@
 LDFLAGS=	@LDFLAGS@
 
@@ -38,8 +41,14 @@ COMPILE=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)
 
 all: ${PROG}
 
-${PROG}: ${OBJS}
+${PROG}: digest-types.h ${OBJS}
 	${LINK} ${OBJS} ${LIBS}
+
+digest-types.h: bits
+	./bits digest-types.h
+
+bits: bits.o
+	$(LINK) bits.o $(LIBS)
 
 .c.o:
 	$(COMPILE) -c $< -o $@

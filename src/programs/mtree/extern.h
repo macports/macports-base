@@ -59,6 +59,8 @@
 #include <netdb.h>
 #endif
 
+#include <digest-types.h>
+
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN 256
 #endif
