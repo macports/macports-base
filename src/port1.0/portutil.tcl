@@ -806,7 +806,10 @@ proc eval_variants {variations target} {
         set newlist [dlist_append_dependents $dlist $variant $newlist]
     }
     
-    dlist_eval $newlist "" variant_run
+    set dlist [dlist_eval $newlist "" variant_run]
+    if {[llength $dlist] > 0} {
+	return 1
+    }
     
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean' 
