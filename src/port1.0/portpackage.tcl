@@ -90,8 +90,8 @@ proc package_tarball {portname portversion entry} {
 	} else {
 	    set verbose ""
 	}
-	if [file isdirectory $package.dir] {
-	    set ptarget $package.dir/${portname}-${portversion}.tar.gz
+	if [file isdirectory ${package.dir}] {
+	    set ptarget ${package.dir}/${portname}-${portversion}.tar.gz
 	} else {
 	    set ptarget ${portname}-${portversion}.tar.gz
 	}
