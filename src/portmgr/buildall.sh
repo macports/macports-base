@@ -105,11 +105,11 @@ teardownchroot() {
 		return 1
 	fi
 	umountchrootextras $dir
-	hdiutil detach $DEV >& /dev/null
-	rm ${CHROOTBASE}.shadow
 	if [ -f $DISTFILES ]; then
 		hdiutil detach $DISTDEV >& /dev/null
 	fi
+	hdiutil detach $DEV >& /dev/null
+	rm ${CHROOTBASE}.shadow
 	DEV=""
 }
 
