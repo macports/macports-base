@@ -46,7 +46,7 @@ proc pindex {portdir} {
     puts "Adding port $portinfo(portname)"
     if {$archive == "1"} {
         if ![file isdirectory [file join $outdir [file dirname $portdir]]] {
-            if {[catch {file mkdir -p [file join $outdir [file dirname $portdir]]} result]} {
+            if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
                 puts "$result"
                 exit 1
             }
