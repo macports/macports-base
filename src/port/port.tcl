@@ -149,7 +149,7 @@ proc ui_display {filename} {
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vdqo\] \[action\] \[-D portdir\] \[options\]"
+    puts "Usage: $argv0 \[-vdqof\] \[action\] \[-D portdir\] \[options\]"
 }
 
 proc fatal args {

@@ -536,7 +536,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath portname portpath
+    global workpath portname portpath ports_ignore_older
     
     if ![file isdirectory $workpath ] {
 	file mkdir $workpath
@@ -547,7 +547,7 @@ proc open_statefile {args} {
 		if {![file writable $statefile]} {
 			return -code error "$statefile is not writable - check permission on port directory"
 		}
-		if {[file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+		if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
 			ui_msg "Portfile changed since last build; discarding previous state."
 			file delete $statefile
 		}

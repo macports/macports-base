@@ -35,7 +35,7 @@
 .Nd build darwin ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqo
+.Op Fl vdqfo
 .Op Ar target
 .Op Ar portname
 .Op Fl D Ar portdir
@@ -69,6 +69,8 @@ quiet mode (suppress messages)
 .It Fl D
 specify
 .Ar portdir
+.It Fl f
+force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
 .El
