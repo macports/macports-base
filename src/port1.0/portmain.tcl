@@ -49,7 +49,7 @@ if [info exists sysportpath] {
 default workdir work
 
 if [info exists portpath] {
-    default workpath [join $portpath $workdir]
+    default workpath "$portpath/$workdir"
 }
 
 default prefix /usr/local/
