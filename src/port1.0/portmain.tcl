@@ -48,7 +48,7 @@ options_export name version revision categories maintainers platforms
 option_proc default_variants handle_default_variants
 
 # Hard coded version number for resource location
-default portresourcepath {[file join $prefix share/darwinports/resources/port1.0]}
+default portresourcepath {[file join $portsharepath resources/port1.0]}
 default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}

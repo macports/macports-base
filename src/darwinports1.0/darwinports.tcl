@@ -33,7 +33,7 @@ package provide darwinports 1.0
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options uniqid 0
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath"
     variable uniqid 0
 }
 
@@ -65,7 +65,7 @@ proc ui_warn {str {nonl ""}} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
 
     if {[llength [array names env HOME]] > 0} {
 	set HOME [lindex [array get env HOME] 1]
@@ -124,6 +124,11 @@ proc dportinit {args} {
     if ![file isdirectory $portdbpath] {
 	return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
+
+    set portsharepath ${prefix}/share/darwinports
+    if ![file isdirectory $portsharepath] {
+	return -code error "Data files directory '$portsharepath' must exist"
+    }
     
     if ![info exists libpath] {
 	set libpath "${prefix}/share/darwinports/Tcl"
@@ -137,7 +142,8 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
+    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path \
+	darwinports::portsharepath darwinports::prefix
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
