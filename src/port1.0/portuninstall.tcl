@@ -1,5 +1,5 @@
 # ex:ts=4
-# port.tcl
+# portuninstall.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -28,28 +28,42 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portinstall 1.0
-package require portuninstall 1.0
-package require portregistry 1.0
-package require portclean 1.0
+package provide portuninstall 1.0
+package require portutil 1.0
 
-# System wide default configuration
-if [info exists portdefaultconf] {
-	source $portdefaultconf
+register com.apple.uninstall target uninstall_main install_uninit
+register com.apple.uninstall provides uninstall
+register com.apple.uninstall requires main
+
+# define options
+options uninstall.force
+
+set UI_PREFIX "---> "
+
+proc uninstall_init {args} {
 }
 
-# System wide user configuration
-if [info exists portconf] {
-    source $portconf
+proc uninstall_main {args} {
+    global portname portversion uninstall.force UI_PREFIX
+
+    set rfile [registry_exists $portname $portversion]
+    if [string length $rfile] {
+	ui_msg "$UI_PREFIX Uninstalling $portname-$portversion"
+	if [regexp .bz2$ $rfile] {
+	    set fd [open "|bunzip2 -c $rfile" r]
+	} else {
+	    set fd [open $rfile r]
+	}
+	set entry [read $fd]
+	close $fd
+	set ix [lsearch -exact $entry contents]
+	if {$ix >= 0} {
+	    set contents [lindex $ix $entry]
+	    puts $contents
+	} else {
+	    return -1
+	}
+    }
+    return -1
 }

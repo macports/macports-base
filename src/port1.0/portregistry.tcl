@@ -37,15 +37,31 @@ register com.apple.registry provides registry
 register com.apple.registry requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options
-options contents description register.nochecksum
+options contents description registery.nochecksum registry.path
+
+default registry.path /Library/Receipts/darwinports
 
 set UI_PREFIX "---> "
 
 # For now, just write stuff to a file for debugging.
 
 proc registry_new {portname {portversion 1.0}} {
-    exec mkdir -p /Library/Receipts/darwinports
-    return [open "/Library/Receipts/darwinports/$portname-$portversion" w 0644]
+    global _registry_name registry.path
+
+    system "mkdir -p $registry.path"
+    set _registry_name [file join $registry.path $portname-$portversion]
+    return [open $_registry_name w 0644]
+}
+
+proc registry_exists {portname {portversion 1.0}} {
+    global registry.path
+    if [info exists [file join $registry.path $portname-$portversion]] {
+	return [file join $registry.path $portname-$portversion]
+    }
+    if [info exists [file join $registry.path $portname}-$portversion].bz2 {
+	return [file join $registry.path $portname-$portversion].bz2
+    }
+    return ""
 }
 
 proc registry_store {rhandle data} {
@@ -62,7 +78,21 @@ proc registry_traverse {func} {
 }
 
 proc registry_close {rhandle} {
+    global _registry_name
+
     close $rhandle
+    if {[file exists $_registry_name] && [file exists /usr/bin/bzip2]} {
+	system "rm -f ${_registry_name}.bz2"
+	system "/usr/bin/bzip2 $_registry_name"
+    }
+}
+
+proc registry_delete {portname {portversion 1.0}} {
+    global registry.path
+
+    # Try both versions, just to be sure.
+    system "rm -f [file join $registry.path $portname-$portversion]"
+    system "rm -f [file join $registry.path $portname-$portversion].bz2"
 }
 
 proc fileinfo_for_file {fname} {
