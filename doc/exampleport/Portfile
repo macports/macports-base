@@ -1,0 +1,53 @@
+# All ports must start with package require port <version>,
+# where version is the version of the ports system your port relies upon.
+package require port 1.0
+
+# Port name
+portname	fetch
+
+# Port version
+portversion	4.6.2-RELEASE
+
+# Categories
+categories	net
+
+# Maintainers
+maintainers	eric@opendarwin.org
+
+# Master download sites
+master_sites	http://www.opendarwin.org/~eric/
+
+# Name of the distribution file, minus extract suffix
+distname	${portname}-${portversion}
+
+# (Optional) Explicitly set suffix
+extract_sufx	.tar.gz
+
+# List of checksums for files to be fetched
+# <file name> <checksum type> <checksum>
+# Currently the only supported checksum type is md5
+checksums	${distname}${extract_sufx} md5 45627db03b6cf89b8dabae6d815dcd9b
+
+# Dependencies are defined by three settings:
+#    depends_lib:	installed at build time and at install time
+#    depends_run:	installed at install time
+#    depends_build:	installed at build time
+#
+#    These options accept a list of depspecs. Depspecs are ':' delimited three
+#    value lists of type:match:portdir. The following types are supported:
+#
+#	lib	- The lib type requires the match argument in the
+#		    format <libraryname>.<major version>
+#	bin	- The bin type requires the match argument to be the full
+#		    executable name
+#	<path>  - If a full path is specified as the type, the math argument
+#		    must be a complete regexp.
+#	portdir must be a directory, relative to the base ports software tree,
+#	of a port to build and install if the depspec is not matched.
+depends_lib	lib:libfetch.3:net/libfetch
+
+# Contents is a space delimited list of all files installed by the port.
+# If you do not specify a full path, the path is assumed to be relative to
+# ${prefix}
+contents	bin/fetch \
+		man/man1/fetch.1
