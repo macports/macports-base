@@ -288,12 +288,16 @@ proc dportsearch {regexp} {
                 }
                 lappend matches $name
                 lappend matches $line
+		set match 1
             } else {
                 set len [lindex $line 1]
                 seek $fd $len current
             }
         }
         close $fd
+	if {$match == 1} {
+	    break
+	}
     }
     return $matches
 }
