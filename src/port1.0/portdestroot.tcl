@@ -152,7 +152,7 @@ proc destroot_finish {args} {
 						# repoint the link
 						ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
 						file delete $manlinkpath
-						system "ln -s ${manlinksrc}.gz $manlinkpath"
+						system "ln -s \"${manlinksrc}.gz\" \"$manlinkpath\""
 					}
 					cd $pwd
 				}
