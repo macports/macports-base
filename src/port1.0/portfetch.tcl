@@ -80,7 +80,9 @@ proc fetch_main {args} {
     global distname distpath all_dist_files
 
     # Set distfiles
-    default distfiles [suffix $distname]
+    if [info exists distname] {
+	default distfiles [suffix $distname]
+    }
 
     # Check for files, download if neccesary
     checkfiles
