@@ -92,6 +92,8 @@ proc dportopen {portdir options variations} {
 	set workername workername[incr uniqid]
 	interp create $workername
 	$workername alias dportexec dportexec
+	$workername alias dportopen dportopen
+	$workername alias dportclose dportclose
 
 	# instantiate the UI functions
 	$workername alias ui_init ui_init
