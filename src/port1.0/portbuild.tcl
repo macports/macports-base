@@ -38,13 +38,12 @@ target_requires ${com.apple.build} main fetch extract checksum patch configure
 target_prerun ${com.apple.build} build_start
 
 # define options
-options build.target.all build.target
+options build.target
 commands build
 # defaults
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[build_getmaketype]}
 default build.pre_args {${build.target}}
-option_deprecate build.target.all build.target
 default build.target "all"
 
 set UI_PREFIX "---> "
