@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.60.4.2 2004/05/23 15:43:27 pguyot Exp $
+ * $Id: Pextlib.c,v 1.60.4.3 2004/05/24 19:21:01 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -94,6 +94,7 @@
 #include <tcl.h>
 
 #include "md5cmd.h"
+#include "options.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -572,6 +573,7 @@ int MktempCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	tcl_result = Tcl_NewStringObj(sp, -1);
 	Tcl_SetObjResult(interp, tcl_result);
 	free(sp);
+	free(template);
 	return TCL_OK;
 }
 
@@ -723,6 +725,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "options", OptionsCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
