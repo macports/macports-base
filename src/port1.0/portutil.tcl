@@ -90,13 +90,14 @@ proc swdep_resolve {name chain} {
 		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
 		    }
+		    set depregex \^$depregex\.+\.dylib\$
 		}
 		bin {
-		    # XXX broken
 		    set search_path [split $env(PATH) :]
+		    set depregex \^$depregex\$
 		}
 		default {
-		    set search_path $deppath
+		    set search_path [split $deppath :]
 		}
 	    }
 	}
