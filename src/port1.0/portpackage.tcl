@@ -313,16 +313,11 @@ proc write_welcome_rtf {filename portname portversion long_description descripti
 \\
 \\pard\\tx560\\tx1120\\tx1680\\tx2240\\tx2800\\tx3360\\tx3920\\tx4480\\tx5040\\tx5600\\tx6160\\tx6720\\ql\\qnatural
 "
-puts -nonewline $fd "\\f1\\b0 \\cf2 "
-    puts $fd "${portname} ${portversion}\\"
+    puts $fd "\\f1\\b0 \\cf2 ${long_description} \\\n\\"
     if {$homepage != ""} {
 	puts $fd "${homepage} \\\n\\"
     }
-    puts $fd \
-"${long_description} \\
-\\
-This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.\\
-}"
+    puts $fd "This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.\\\n}"
 
     close $fd
 }
