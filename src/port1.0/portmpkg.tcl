@@ -131,7 +131,6 @@ proc package_mpkg {portname portversion} {
     }
     write_welcome_rtf ${mpkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${mpkgpath}/Contents/Resources/background.tiff
-    system "cd ${mpkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}.bom"
 
 	return 0
 }
