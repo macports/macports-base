@@ -155,7 +155,39 @@ AC_DEFUN([OD_CHECK_X11], [
 			# found the library. check for header
 			INCLUDES="-I/usr/X11R6/include $INCLUDES"
 			AC_CHECK_HEADERS([X11/X.h], ,[
-				AC_MSG_ERROR([libX11 was found, but X.h is missing.])
+				case $host_os in
+					darwin*)
+						echo "***************************************************"
+						if test -d /Library/Receipts/X11User.pkg ; then
+							if test -d /Library/Receipts/X11SDK.pkg ; then
+								cat <<EOF;
+It appears that you are running Mac OS X and have both the X11 and X11SDK
+packages installed. However, for some reason the headers in
+/usr/X11R6/include are not accessible. Please correct this and
+re-run ./configure
+EOF
+							else
+								cat <<EOF;
+It appears that you are running Mac OS X and have the X11 package
+installed, but do *not* have the X11SDK package installed. You can
+find this package on the Xcode Tools CD of you Mac OS X CD Installation
+Set, or on the Restore CDs/DVDs that came with your computer. Please
+install this package and re-run ./configure
+EOF
+							fi
+						else
+								cat <<EOF;
+It appears that you are running Mac OS X and have installed X11
+from a third party, without installing the associated X11 development
+headers. Please correct this and re-run ./configure
+EOF
+						fi
+						AC_MSG_ERROR([Inconsistent X11 installation])
+						;;
+					*)
+						AC_MSG_ERROR([libX11 was found, but X.h is missing.])
+						;;
+				esac					
 				])],
 			[ AC_MSG_WARN([libX11 was not found])
 		], [-L/usr/X11R6/lib]
