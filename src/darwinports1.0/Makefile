@@ -22,7 +22,7 @@ install::
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
 	done
 
-	$(SILENT) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
 
 #	XXX Prior installations of dports on Darwin installed darwinports1.0 
 #	in a version-specific Tcl path

@@ -14,4 +14,4 @@ distclean:: clean
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m 775 ${INSTALLDIR}
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
-	$(SILENT)../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
