@@ -114,10 +114,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	int ret;
 	pid_t pid;
 
-	if(Tcl_PkgRequire(interp, "portui", "1.0", 0) == NULL) {
-		return TCL_ERROR;
-	}
-
 	if (objc != 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "command");
 		return TCL_ERROR;
