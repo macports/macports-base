@@ -8,6 +8,7 @@ if [ "$1" = "-n" ]; then
 	case `uname -s` in
 		Darwin) echo $2.dylib ;;
 		FreeBSD) echo $2.so ;;
+		Linux) echo $2.so ;;
 	esac
 	exit 0
 fi
@@ -21,5 +22,8 @@ case `uname -s` in
 
 	FreeBSD)
 		cc -shared $* -o ${LIB}.so -L/usr/local/lib -ltcl83
+	;;
+	Linux)
+		cc -shared $* -o ${LIB}.so -L/usr/lib/ -ltcl8.3
 	;;
 esac

@@ -12,4 +12,7 @@ case `uname -s` in
 	FreeBSD)
 		cc -c -fPIC -DPIC -I/usr/local/include/tcl8.3 -O -pipe $*
 	;;
+	Linux)
+		cc -c -fPIC -DPIC -I/usr/include/tcl8.3 -O -pipe $*
+	;;
 esac
