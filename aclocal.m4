@@ -34,7 +34,7 @@ AC_DEFUN([OD_PATH_DPORTSDIR],[
 		DPORTSDIR="$dportsdir"
 		AC_SUBST(DPORTSDIR)
 	else
-		AC_MSG_ERROR([No dports tree found])
+		AC_MSG_WARN([No dports tree found])
 	fi
 
         ])
