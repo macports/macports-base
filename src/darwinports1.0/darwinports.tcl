@@ -497,7 +497,7 @@ proc _dportexec {target dport} {
 # Execute the specified target of the given dport.
 
 proc dportexec {dport target} {
-    global darwinports::portinterp_options
+    global darwinports::portinterp_options darwinports::portinstalltype
 
 	set workername [ditem_key $dport workername]
 
@@ -525,7 +525,13 @@ proc dportexec {dport target} {
 		dlist_delete dlist $dport
 
 		# install them
-		set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+		# xxx: as with below, this is ugly.  and deps need to be fixed to
+		# understand Port Images before this can get prettier
+		if { [string equal $darwinports::portinstalltype "image"] && [string equal $target "install"] } {
+			set dlist [dlist_eval $dlist _dporttest [list _dportexec "activate"]]
+		} else {
+			set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+		}
 		
 		if {$dlist != {}} {
 			set errstring "The following dependencies failed to build:"
@@ -535,6 +541,12 @@ proc dportexec {dport target} {
 			ui_error $errstring
 			return 1
 		}
+	}
+
+	# If we're doing image installs, then we should activate after install
+	# xxx: This isn't pretty
+	if { [string equal $darwinports::portinstalltype "image"] && [string equal $target "install"] } {
+		set target activate
 	}
 	
 	# Build this port with the specified target

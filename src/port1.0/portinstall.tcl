@@ -53,8 +53,8 @@ proc install_start {args} {
 	foreach v $vlist {
 		if { ![string equal $v ${os.platform}] && ![string equal $v ${os.arch}] } {
 			set portvariants "${portvariants}+${v}"
-    }
-}
+		}
+	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
 }
@@ -167,8 +167,6 @@ proc install_main {args} {
 
 	registry_write $regref 
 
-	registry_activate $portname ${portversion}_${portrevision}${portvariants}
-	
     return 0
 }
 

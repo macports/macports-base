@@ -1,7 +1,7 @@
 # et:ts=4
-# port.tcl
+# portactivate.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,40 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portclean 1.0
-package require portpackage 1.0
-package require portrpmpackage 1.0
-package require portmpkg 1.0
-package require portdmg 1.0
-package require porttest 1.0
-package require portactivate 1.0
+# the 'activate' target is provided by this package
+
+package provide portactivate 1.0
+package require portutil 1.0
+
+set com.apple.activate [target_new com.apple.activate activate_main]
+target_runtype ${com.apple.activate} always
+target_provides ${com.apple.activate} activate
+target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
+target_prerun ${com.apple.activate} activate_start
+
+set_ui_prefix
+
+proc activate_start {args} {
+	global UI_PREFIX portname portversion portrevision variations os.platform os.arch portvariants
+    
+	if { ![info exists portvariants] } {
+		set portvariants ""
+	}
+
+	set vlist [lsort -ascii [array names variations]]
+
+ 	# Put together variants in the form +foo+bar for the registry
+	foreach v $vlist {
+		if { ![string equal $v ${os.platform}] && ![string equal $v ${os.arch}] } {
+			set portvariants "${portvariants}+${v}"
+		}
+	}
+
+}
+
+proc activate_main {args} {
+	global portname portversion portrevision portvariants
+	registry_activate $portname ${portversion}_${portrevision}${portvariants}
+    return 0
+}
