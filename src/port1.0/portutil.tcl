@@ -90,7 +90,8 @@ proc swdep_resolve {name chain} {
 		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
 		    }
-		    set depregex \^$depregex\.+\.dylib\$
+		    regsub {\.} $depregex {\.} depregex
+		    set depregex \^$depregex.*\\.dylib\$
 		}
 		bin {
 		    set search_path [split $env(PATH) :]
@@ -107,7 +108,6 @@ proc swdep_resolve {name chain} {
 		continue
 	}
 	foreach filename [readdir $path] {
-		ui_debug "Checking dependency $filename $depregex"
 		if {[regexp $depregex $filename] == 1} {
 			ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
 			return 0
