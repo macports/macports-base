@@ -1,6 +1,6 @@
-# All ports must start with package require port <version>
+# All ports must start with PortSystem <version>
 # where version is the version of the ports system your port relies upon.
-package require port 1.0
+PortSystem 1.0
 
 # The name of the port
 portname	fetch
