@@ -34,7 +34,7 @@ package provide portimage 1.0
 package require registry 1.0
 package require darwinports 1.0
 
-set UI_PREFIX "--> "
+set_ui_prefix
 
 #
 # Port Images are basically just installations of the destroot of a port into
