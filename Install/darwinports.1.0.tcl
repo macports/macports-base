@@ -22,12 +22,12 @@ namespace eval darwinports {
 	}
 	
 	proc init {args} {
-		global portpath distpath libpath
+		global portpath distpath libpath auto_path
 		# Defaults
 
 		set portpath /usr/darwinports
-		set distpath $portpath/distfiles
 		darwinports::readconf
+		set distpath $portpath/distfiles
 		set libpath ${portpath}/Tcl
 
 		if [file isdirectory $libpath] {
