@@ -31,7 +31,7 @@ proc portchecksum::md5 {file} {
 }
 
 proc portchecksum::dmd5 {file} {
-	foreach {name sum} [getval portchecksum::options checksums] {
+	foreach {name type sum} [getval portchecksum::options checksums] {
 		if {$name == $file} {
 			return $sum
 		}
