@@ -53,7 +53,8 @@ proc registry_new {portname {portversion 1.0}} {
 
     file mkdir ${registry.path}
     set _registry_name [file join ${registry.path} $portname-$portversion]
-    set rhandle [open $_registry_name w 0644]
+    system "rm -f ${_registry_name}.tmp"
+    set rhandle [open ${_registry_name}.tmp w 0644]
     puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
     return $rhandle
 }
@@ -87,8 +88,9 @@ proc registry_close {rhandle} {
     global registry.nobzip
 
     close $rhandle
-    if {[file exists $_registry_name] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
-	system "/usr/bin/bzip2 -f $_registry_name"
+    system "mv ${_registry_name}.tmp ${_registry_name}"
+    if {[file exists ${_registry_name}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
+	system "/usr/bin/bzip2 -f ${_registry_name}"
     }
 }
 
@@ -96,8 +98,8 @@ proc registry_delete {portname {portversion 1.0}} {
     global registry.path
 
     # Try both versions, just to be sure.
-    exec rm -f [file join ${registry.path} $portname-$portversion]
-    exec rm -f [file join ${registry.path} $portname-$portversion].bz2
+    exec rm -f [file join ${registry.path} ${portname}-${portversion}]
+    exec rm -f [file join ${registry.path} ${portname}-${portversion}].bz2
 }
 
 proc fileinfo_for_file {fname} {
