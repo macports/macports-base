@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.16 2004/03/08 06:25:10 toby Exp $
+# $Id: mirror_sites.tcl,v 1.17 2004/03/18 12:47:04 toby Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -11,6 +11,13 @@
 # Please keep this list sorted.
 
 namespace eval portfetch::mirror_sites { }
+
+set portfetch::mirror_sites::sites(afterstep) {
+	ftp://ftp.afterstep.org/
+	ftp://ftp.kddlabs.co.jp/X11/AfterStep/
+	ftp://ftp.dti.ad.jp/pub/X/AfterStep/
+	ftp://ftp.chg.ru/pub/X11/windowmanagers/afterstep/
+}
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
