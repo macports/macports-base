@@ -55,6 +55,62 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
+# XXX - Architecture specific
+# XXX - Rely on information from internal defines in cctools/dyld:
+# define DEFAULT_FALLBACK_FRAMEWORK_PATH
+# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
+# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
+# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
+
+proc swdep_resolve {name chain} {
+    global $name env
+    puts "I am resolving dependencies one day at a time!"
+    puts "Depname: $name"
+    puts "Chain: $chain"
+    if {![info exists $name]} {
+	return 0
+    }
+    upvar #0 $name upname
+    foreach depspec $upname {
+	if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9\.$^\?\+\(\)\|\\]+):([A-Za-z\./0-9]+)} "$depspec" match deppath depregex portname] == 1} {
+	    switch -exact -- $deppath {
+		lib {
+		    if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
+			lappend search_path $env(DYLD_FRAMEWORK_PATH)
+		    } else {
+			lappend search_path /Library/Frameworks /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
+		    }
+		    if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
+			lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
+		    }
+		    if {[info exists env(DYLD_LIBRARY_PATH)]} {
+			lappend search_path $env(DYLD_LIBRARY_PATH)
+		    } else {
+			lappend search_path /lib /usr/local/lib /lib /usr/lib
+		    }
+		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
+			lappend search_path $env(DYLD_LIBRARY_PATH)
+		    }
+		}
+		bin {
+		    lappend search_path $env(PATH)
+		}
+		default {
+		    set search_path $deppath
+		}
+	    }
+	}
+    }
+    foreach path $search_path {
+	puts "Now checking: $path"
+	if {![file isdirectory $path]} {
+	    continue
+	}
+    }
+    return 0
+}
+
 ########### External Dependancy Manipulation Procedures ###########
 # register
 # Creates a target in the global target list using the internal dependancy
@@ -62,6 +118,7 @@ proc makeuserproc {name body} {
 # Arguments: <identifier> <mode> <args ...>
 # The following modes are supported:
 #	<identifier> target <chain> <procedure to execute> [run type]
+#	<identifier> swdep <chain> <dependency option name>
 #	<identifier> provides <list of target names>
 #	<identifier> requires <list of target names>
 #	<identifier> uses <list of target names>
@@ -83,7 +140,15 @@ proc register {name mode args} {
 	if {[llength $args] == 3} {
 	    dlist_set_key targets $name runtype [lindex $args 2]
 	}
-	
+    } elseif {[string equal swdep $mode]} {
+	set chain [lindex $args 0]
+	set depname [lindex $args 1]
+	if {![dlist_has_key targets $depname procedure,$chain]} {
+	    register $depname target $chain swdep_resolve
+	    register $depname provides $depname
+	    options $depname
+	}
+	register $name requires $depname
     } elseif {[string equal requires $mode] || [string equal uses $mode] || [string equal provides $mode]} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
