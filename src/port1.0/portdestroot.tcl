@@ -81,7 +81,7 @@ proc destroot_finish {args} {
 	# compress all manpages with gzip (instead)
 	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.gz | wc -l` -gt 0 \] ; then gunzip man?/*.gz; fi"
 	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.bz2 | wc -l` -gt 0 \] ; then bunzip2 man?/*.bz2; fi"
-	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.\[0-9\]* | wc -l` -gt 0 \] ; then gzip -9 man?/*.\[0-9\]*; fi"
+	system "cd ${destroot}/${prefix}/share/man && if \[ `ls man?/*.\[0-9a-z\] | wc -l` -gt 0 \] ; then gzip -9 man?/*.\[0-9a-z\]; fi"
 
     # Prune empty directories in ${destroot}
     catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
