@@ -60,7 +60,13 @@ mkchrootimage() {
 	if [ -f darwinports.tar.gz ]; then
 		echo "Found darwinports.tar.gz - copying into chroot"
 		tar -xpzf darwinports.tar.gz -C $dir
-		cat > $dir/bootstrap.sh << EOF
+	elif [ -d darwinports ]; then
+		pax -rw darwinports $dir
+	else
+		echo "no darwinports.tar.gz or darwinports directory found - please fix this and try again."
+		return 1
+	fi
+	cat > $dir/bootstrap.sh << EOF
 #!/bin/sh
 cd darwinports/base
 ./configure
@@ -71,13 +77,10 @@ umount /.vol
 umount /dev
 umount /dev
 EOF
-		chmod 755 $dir/bootstrap.sh
-		echo "Bootstrapping darwinports in chroot"
-		mountchrootextras $dir
-		chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
-	else
-		echo "no darwinports.tar.gz bootstrap found - please create one and try again."
-	fi
+	chmod 755 $dir/bootstrap.sh
+	echo "Bootstrapping darwinports in chroot"
+	mountchrootextras $dir
+	chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
 	[ -z "$DEV" ] || hdiutil detach $DEV >& /dev/null
 	DEV=""
 }
@@ -108,22 +111,31 @@ teardownchroot() {
 }
 
 # OK, here's where we kick it all off
+TGTPORTS=""
 if [ $# -lt 1 ]; then
-	DIR=chrootdir
+	echo "Usage: $0 chrootdir [targetportsfile]"
+	exit 1
 else
 	DIR=$1
+	shift
+	if [ $# -gt 0 ]; then
+		TGTPORTS=$1
+	fi
 fi
 
-if [ -f PortIndex ]; then
-	PINDEX=PortIndex
-elif [ -f dports/PortIndex ]; then
-	PINDEX=dports/PortIndex
-elif [ -f darwinports/dports/PortIndex ]; then
-	PINDEX=darwinports/dports/PortIndex
-else
-	echo "I need a PortIndex file to work from - please put one in the"
-	echo "current directory or cd to a checked-out darwinports dir"
-	return 1
+if [ -z "$TGTPORTS" ]; then
+	if [ -f PortIndex ]; then
+		PINDEX=PortIndex
+	elif [ -f darwinports/dports/PortIndex ]; then
+		PINDEX=darwinports/dports/PortIndex
+	else
+		echo "I need a PortIndex file to work from - please put one in the"
+		echo "current directory or unpack a darwinports distribution to get it from"
+		exit 1
+	fi
+	mkdir -p outputdir/summary
+	TGTPORTS=outputdir/summary/portsrun
+	awk 'NF == 2 {print $1}' $PINDEX > $TGTPORTS
 fi
 
 if [ -f $CHROOTBASE ]; then
@@ -134,10 +146,9 @@ fi
 
 mkdir -p outputdir/Packages
 mkdir -p outputdir/logs
-mkdir -p outputdir/summary
-awk 'NF == 2 {print $1}' $PINDEX > outputdir/summary/portsrun
-echo "Starting packaging run for `wc -l outputdir/summary/portsrun | awk '{print $1}'` ports."
-for pkg in `cat outputdir/summary/portsrun`; do
+
+echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
+for pkg in `cat $TGTPORTS` do
 	echo "Starting packaging run for $pkg"
 	prepchroot $DIR
 	echo "#!/bin/sh" > $DIR/bootstrap.sh
