@@ -31,6 +31,9 @@
 
 /*
  * $Log: strsed.c,v $
+ * Revision 1.8.6.1  2003/06/18 23:14:49  ssen
+ * don't do extern char *strdup, since linux doesn't like that
+ *
  * Revision 1.8  2002/10/04 07:12:21  jkh
  * Remove some gratuitous externs
  *
@@ -247,7 +250,6 @@ register char *string;
 register char *pattern;
 int *range;
 {
-    extern char *strdup();
 
 #ifdef GNU_REGEX
     extern char *re_compile_pattern();
