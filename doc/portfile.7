@@ -114,6 +114,15 @@ One line description of the software and what it does
 .Sy Example:
 .Dl description	"Dictionary Server Protocol (RFC2229) client"
 
+.It Ic long_description
+A verbose description of the software and what it does
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl long_description	The GNU Image Manipulation Program (GIMP) is a powerful tool for the preparation and manipulation of digital images.  The GIMP provides the user with a wide variety of image manipulation, painting, processing, and rendering tools.
+
 .It Ic revision
 Local revision number of portfile.
 Increment for port revisions.
@@ -143,6 +152,18 @@ E-mail address(es) of port maintainer(s)
 .br
 .Sy Example:
 .Dl maintainers	landonf@opendarwin.org kevin@opendarwin.org
+
+.It Ic platforms
+Declares which platforms are supported by the port
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Values:
+.Em darwin freebsd
+.br
+.Sy Example:
+.Dl platforms	darwin
 
 .It Ic worksrcdir
 Path to source directory relative to ${workpath}
