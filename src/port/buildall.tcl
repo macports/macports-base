@@ -7,10 +7,10 @@
 set chrootfiles {
 	bin sbin etc tmp var dev/null usr/include usr/libexec
 	usr/sbin usr/lib usr/share private/tmp private/etc
-	private/var/at private/var/automount private/var/cron
-	private/var/db private/var/empty private/var/log private/var/mail
-	private/var/msgs private/var/named private/var/root
-	private/var/run private/var/rwho private/var/spool
+	private/var/at private/var/cron private/var/db private/var/empty
+	private/var/log private/var/mail private/var/msgs
+	private/var/named private/var/root private/var/run
+	private/var/rwho private/var/spool
 	private/var/tmp private/var/vm/app_profile
 	Developer/Applications/Xcode.app Developer/Applications/Utilities
 	Developer/Headers Developer/Makefiles Developer/Private
@@ -120,14 +120,18 @@ proc proc_disasm {pname} {
 ### General option frobs ####
 
 # set dochroot to 1 if you want to do this in a chroot dir.
-set dochroot 0
+set dochroot 1
 
 # Where you want the report summary to go.
 set REPDIR	"/tmp/packageresults"
 set REPORT	"${REPDIR}/package-report.txt"
 
 # Set to -v if you want verbose output, otherwise ""
-set verbose	"-v"
+if {[info exists env(VERBOSE)]} {
+	set verbose	"-v"
+} else {
+	set verbose ""
+}
 
 ### Crank her up! ###
 
