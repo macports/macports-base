@@ -40,7 +40,7 @@ set chrootfiles {
 }
 
 proc makechroot {dir} {
-	global env chrootfiles verbose REPORT REPDIR
+	global env chrootfiles verbose REPORT REPDIR PKGDIR
 
 	if {![file exists $dir]} {
 		exec mkdir -p $dir
@@ -96,6 +96,7 @@ proc makechroot {dir} {
 	puts $f "#!/usr/bin/tclsh"
 	puts $f "set REPDIR $REPDIR"
 	puts $f "set REPORT $REPORT"
+	puts $f "set PKGDIR $PKGDIR"
 	puts $f "exec rm -rf /etc/ports"
 	puts $f "cd darwinports"
 	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
@@ -109,7 +110,7 @@ proc makechroot {dir} {
 }
 
 proc buildall {} {
-	global REPORT REPDIR verbose
+	global REPORT REPDIR PKGDIR verbose
 
 	if {[file exists PortIndex]} {
 		set PI PortIndex
@@ -125,6 +126,7 @@ proc buildall {} {
 		exit 3
 	}
 	exec mkdir -p ${REPDIR}
+	exec mkdir -p ${PKGDIR}
 	if {[catch {set repfile [open $REPORT w]}]} {
 		puts "Unable to open $REPORT - check permissions."
 		exit 4
@@ -132,7 +134,7 @@ proc buildall {} {
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
-		if {[catch {exec port install $portname >& ${REPDIR}/${portname}.out}]} {
+		if {[catch {exec port mpkg $portname package.destpath=${PKGDIR} >& ${REPDIR}/${portname}.out}]} {
 			puts $repfile "$portname failure [exec env TZ=GMT date {+%Y%m%d %T}]"
 			flush $repfile
 		} else {
@@ -166,9 +168,10 @@ proc proc_disasm {pname} {
 # set dochroot to 1 if you want to do this in a chroot dir.
 set dochroot 1
 
-# Where you want the report summary to go.
+# Where you want various things to go
 set REPDIR	"/tmp/buildresults"
 set REPORT	"${REPDIR}/build-report.txt"
+set PKGDIR	"/Packages"
 
 # Set to -v if you want verbose output, otherwise ""
 if {[info exists env(VERBOSE)]} {
