@@ -4,6 +4,14 @@
 # Real simple for now, just come up with compilation flags for Darwin
 # or for FreeBSD.  Could obviously be extended later for other OSen.
 
+if [ "$1" = "-n" ]; then
+	case `uname -s` in
+		Darwin) echo $2.dylib ;;
+		FreeBSD) echo $2.so ;;
+	esac
+	exit 0
+fi
+
 LIB=$1; shift
 
 case `uname -s` in
