@@ -352,7 +352,6 @@ proc exec_target {fd chain dlist name} {
 	    set result failure
 	}
     } else {
-	# XXX: remove puts
 	ui_puts "Warning: $name does not support chain $chain"
 	set result failure
     }
