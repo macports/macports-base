@@ -34,6 +34,7 @@ package require portutil 1.0
 
 register com.apple.register target register_main register_init
 register com.apple.register provides register
+register com.apple.register postflight post-install
 register com.apple.register requires main fetch extract checksum patch configure build install depends_run depends_lib
 
 # define options

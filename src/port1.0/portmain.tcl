@@ -56,9 +56,7 @@ proc main_init {args} {
     if {[tbool no_worksubdir]} {
 	default worksrcdir ""
     } else {
-	if {[info exists distname]} {
 		default worksrcdir {$distname}
-	}
     }
 }
 
