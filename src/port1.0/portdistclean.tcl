@@ -1,7 +1,9 @@
 # et:ts=4
-# port.tcl
+# portdistclean.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2004 Ole Guldberg Jensen, The DarwinPorts Team.
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,22 +30,44 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require dp_package 1.0
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portactivate 1.0
-package require portdistclean 1.0
-package require portclean 1.0
-package require porttest 1.0
-package require portsubmit 1.0
+# the 'distclean' target is provided by this package
+
+package provide portdistclean 1.0
+package require portutil 1.0
+
+set com.apple.distclean [target_new com.apple.distclean distclean_main]
+target_runtype ${com.apple.distclean} always
+target_provides ${com.apple.distclean} distclean
+target_requires ${com.apple.distclean} main
+target_prerun ${com.apple.distclean} distclean_start
+
+set_ui_prefix
+
+proc distclean_start {args} {
+    global UI_PREFIX
+    
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option portname]]"
+}
+
+#
+# Remove the directory where the distfiles reside.
+# This is crude, but works.
+#
+proc distclean_main {args} {
+	global distpath portname dist_subdir ports_force
+
+	if {($dist_subdir != $portname) && !([info exists ports_force] && $ports_force == "yes")} {
+		ui_error "Distfiles sub-directory '${dist_subdir}' may be used for other ports, use the -f flag to force removal"
+		return 1 
+	}
+	foreach dir "$dist_subdir $portname" {
+		set distdir [file join $distpath $dir]
+		if {[file isdirectory $distdir]} {
+			ui_debug "Removing directory: $distdir"
+			file delete -force $distdir
+		}
+	}
+	return 0
+}
+
