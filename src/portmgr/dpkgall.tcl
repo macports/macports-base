@@ -53,9 +53,11 @@
 
 package require darwinports
 
+# Configuration Namespace
 namespace eval dpkg {
-	variable configopts "pkgrepo architecture portlist portprefix dportsrc silentmode initialports"
+	variable configopts "pkgrepo architecture portlistfile portprefix dportsrc silentmode initialports"
 
+	# Preferences
 	variable silentmode false
 	variable configfile "/etc/ports/dpkg.conf"
 	variable portlist ""
@@ -65,16 +67,23 @@ namespace eval dpkg {
 	# architecture is set in main
 	variable architecture
 	variable initialports "dpkg apt"
-
 	variable aptpackagedir
 	variable packagedir
-
 	# portlistfile defaults to ${pkgrepo}/${architecture}/etc/buildlist.txt (set in main)
 	variable portlistfile
+	# baselistfile defaults to ${pkgrepo}/${architecture}/etc/baselist.txt (set in main)
+	variable baselistfile
 
+	# Non-user modifiable.
+	# Ports required for building. Format:
+	# <binary> <portname> <binary> <portname> ...
+	variable requiredports "dpkg dpkg apt-get apt"
+
+	# Current log file descriptor
 	variable logfd
 }
 
+# DarwinPorts UI Event Callbacks
 proc ui_puts {messageArray} {
 	global dpkg::logfd
 	array set message $messageArray
@@ -126,6 +135,7 @@ proc log_message {channel message} {
 	flush $channel
 }
 
+# Read in configuration file
 proc readConfig {file} {
 	global dpkg::configopts
 
@@ -139,19 +149,25 @@ proc readConfig {file} {
 	}
 }
 
+# Read a list of newline seperated port names from $file
 proc readPortList {file} {
-	global dpkg::portlist
 	set fd [open $file r]
+	set portlist ""
+
 	while {[gets $fd line] >= 0} {
 		lappend portlist $line
 	}
+
+	return $portlist
 }
 
-proc escape_portname {portname} {
+# Escape all regex characters in a portname
+proc regex_escape_portname {portname} {
 	regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" escaped_string
 	return $escaped_string
 }
 
+# Print usage string
 proc print_usage {args} {
 	global argv0
 	puts "Usage: [file tail $argv0] \[-qa\] \[-f configfile\] \[-p portlist\]"
@@ -162,6 +178,7 @@ proc print_usage {args} {
 	puts "	-i	Initialize Build System (Should only be run on a new build system)"
 }
 
+# Delete and restore the build system
 proc reset_tree {args} {
 	global dpkg::portprefix dpkg::pkgrepo dpkg::architecture
 
@@ -201,13 +218,17 @@ proc reset_tree {args} {
 }
 
 proc main {argc argv} {
-	global dpkg::configfile dpkg::pkgrepo dpkg::architecture dpkg::portlistfile dpkg::portlist
+	global dpkg::configfile dpkg::pkgrepo dpkg::architecture dpkg::portlistfile
 	global dpkg::portsArray dpkg::portprefix dpkg::silentmode dpkg::logfd dpkg::packagedir dpkg::aptpackagedir
-	global dpkg::initialports
+	global dpkg::requiredports dpkg::baselistfile
+
+	# First time through, we reset the tree
+	set firstrun_flag true
 
 	# Read command line options
 	set buildall_flag false
 	set nowarn_flag false
+	set basegen_flag false
 	set initialize_flag false
 
 	for {set i 0} {$i < $argc} {incr i} {
@@ -217,8 +238,7 @@ proc main {argc argv} {
 				set buildall_flag true
 			}
 			-b {
-				puts "Unsupported flag -b"
-				exit 1
+				set basegen_flag true
 			}
 			-f {
 				incr i
@@ -282,9 +302,23 @@ proc main {argc argv} {
 		set portlistfile [file join $pkgrepo $architecture etc buildlist.txt]
 	}
 
+	# If baselistfile has not been set, supply a reasonable default
+	if {![info exists baselistfile]} {
+		# The default baselist file
+		set baselistfile [file join $pkgrepo $architecture etc baselist.txt]
+	}
+
 	# Read the port list
 	if {[file readable $portlistfile]} {
-		readPortList $portlistfile
+		set portlist [readPortList $portlistfile]
+	} else {
+		set portlist ""
+	}
+
+	if {[file readable $baselistfile]} {
+		set baselist [readPortList $baselistfile]
+	} else {
+		set baselist ""
 	}
 
 	# If no portlist file was specified, create a portlist that includes all ports
@@ -295,17 +329,16 @@ proc main {argc argv} {
 		}
 	} else {
 		# Port list was specified. Ensure that all the specified ports are available.
-		# Add ${initialports} to the list
-		set portlist [lsort -unique [concat $portlist $initialports]]
+		# Add ${baselist} and get_required_ports to the list
+		set portlist [lsort -unique [concat $portlist $baselist [get_required_ports]]]
 		foreach port $portlist {
-			set searchstring [escape_portname $port]
-			set res [dportsearch "^${searchstring}\$"]
 			set fail false
 
-			if {[llength $res] < 2} {
-				ui_noisy_error "Port \"$port\" not found in index"
+			if {[catch {set res [get_portinfo $port]} result]} {
+				ui_noisy_error "Error: $result"
 				set fail true
 			}
+
 			# Add all of the specified ports' dependencies to the portlist
 			set dependencies [get_dependencies $port false]
 			foreach dep $dependencies {
@@ -362,8 +395,7 @@ proc main {argc argv} {
 		# Open the default debug log write/append
 		open_default_log
 
-		set searchstring [escape_portname $port]
-		if {[catch {set res [dportsearch "^${searchstring}\$"]} error]} {
+		if {[catch {set res [get_portinfo $port]} error]} {
 			ui_noisy_error "Internal error: port search failed: $error"
 			exit 1
 		}
@@ -405,7 +437,12 @@ proc main {argc argv} {
 		}
 
 		# We're going to actually build the package, reset the tree
-		reset_tree
+		# if this is our first time through. The tree is always reset
+		# at the end of a packaging run, too.
+		if {$firstrun_flag == true} {
+			reset_tree
+			set firstrun_flag false
+		}
 
 		ui_silent "Building $portinfo(name) ..."
 
@@ -477,13 +514,54 @@ proc main {argc argv} {
 
 		# Close the port
 		dportclose $workername
+
+		ui_silent "Resetting /usr/dports ..."
+		reset_tree
+		ui_silent "Done."
 	}
 
 	open_default_log
 
-	ui_silent "Resetting /usr/dports ..."
-	reset_tree
-	ui_silent "Done."
+	# If required, rebuild the clientinstall.tgz
+	if {$basegen_flag == true} {
+		# dpkg is always required
+		set pkglist [lsort -unique [concat dpkg $baselist [get_required_ports]]]
+		set workdir [file join ${pkgrepo} ${architecture}]
+		set rootdir [file join $workdir clientroot]
+		set rootfile [file join $workdir client-root.tar.gz]
+		file mkdir ${rootdir}
+
+		# dpkg is required
+		array set portinfo [lindex [get_portinfo dpkg] 1]
+		set pkgfile [get_pkgpath $portinfo(name) $portinfo(version) $portinfo(revision)]
+		system "cd \"${rootdir}\" && ar x \"${pkgfile}\" data.tar.gz"
+		system "cd \"${rootdir}\" && tar xvf data.tar.gz; rm data.tar.gz"
+
+		foreach port $pkglist {
+			set dependencies [get_dependencies $port false]
+			foreach dep $dependencies {
+				lappend newpkglist [lindex $dep 0]
+			}
+		}
+
+		if {[info exists newpkglist]} {		
+			set pkglist [lsort -unique [concat $newpkglist $pkglist]]
+		}
+
+		foreach port $pkglist {
+			array set portinfo [lindex [get_portinfo $port] 1]
+			system "dpkg --root \"${rootdir}\" --force-depends -i \"[get_pkgpath $portinfo(name) $portinfo(version) $portinfo(revision)]\""
+		}
+
+		system "cd \"${rootdir}\" && tar cf \"[file join ${workdir} clientinstall.tar.gz]\" ."
+		file delete -force ${rootdir}
+	}
+
+	ui_msg "Generating pristine archive: [file join ${pkgrepo} ${architecture} root.tar.gz]"
+	if {[catch {system "tar -zcf \"[file join ${pkgrepo} ${architecture} root.tar.gz]\" \"${portprefix}\""} result]} {
+		ui_noisy_error "Fatal error: Archive creation failed: $result"
+		exit 1
+	}
 
 	ui_silent "Building apt-get index ..."
 	if {[catch {system "cd ${pkgrepo}/apt && dpkg-scanpackages dists override >${aptpackagedir}/Packages"} error]} {
@@ -504,10 +582,39 @@ proc main {argc argv} {
 	exit 0
 }
 
+# Return ports listed in $dpkg::requiredports that are not
+# installed
+proc get_required_ports {args} {
+	global dpkg::requiredports
+	set reqlist ""
+
+	foreach {binary port} $requiredports {
+		if {[find_binary $binary] == ""} {
+			lappend reqlist $port
+		}
+	}
+	return $reqlist
+}
+
+# Given a binary name, searches PATH
+proc find_binary {binary} {
+	global env
+	set path [split $env(PATH) :]
+	foreach dir $path {
+		set file [file join $dir $binary]
+		if {[file exists $file]} {
+			return $file
+		}
+	}
+	return ""
+}
+
+# Set the architecture global
 proc set_architecture {args} {
 	set dpkg::architecture "[exec dpkg --print-installation-architecture]"
 }
 
+# Initialize a new build system
 proc initialize_system {args} {
 	global dpkg::initialports dpkg::pkgrepo
 	global dpkg::architecture dpkg::portprefix
@@ -519,7 +626,7 @@ proc initialize_system {args} {
 	set builddeps ""
 	set rundeps ""
 
-	foreach port $initialports {
+	foreach port [get_required_ports] {
 		set builddeps [concat $builddeps [get_dependencies $port true]]
 		set rundeps [concat $rundeps [get_dependencies $port false]]
 	}
@@ -527,7 +634,7 @@ proc initialize_system {args} {
 	set buildlist [lsort -unique $builddeps]
 
 	foreach port $builddeps {
-		if {[lsearch -exact $port $rundeps] == ""} {
+		if {[lsearch -exact $port $rundeps] >= 0 } {
 			lappend removelist $port
 		}
 	}
@@ -535,7 +642,7 @@ proc initialize_system {args} {
 	set options ""
 	set variations ""
 
-	foreach port $initialports {
+	foreach port [get_required_ports] {
 		if {[catch {do_portexec $port [array get options] [array get variants] install} result]} {
 			ui_noisy_error "Fatal error: $result"
 			exit 1
@@ -575,15 +682,10 @@ proc initialize_system {args} {
 	ui_msg "Build system successfully initialized!"
 }
 
+# Execute a target on a port (by port name)
 proc do_portexec {port options variants target} {
-	set searchstring [escape_portname $port]
-	set res [dportsearch "^${searchstring}\$"]
 
-	if {[llength $res] < 2} {
-		return -code error "Port \"$port\" not found in index."
-	}
-
-	array set portinfo [lindex $res 1]
+	array set portinfo [lindex [get_portinfo $port] 1]
 
 	if {[catch {set workername [dportopen $portinfo(porturl) $options $variants yes]} result] || $result == 1} {
 		return -code error "Internal error: unable to open port: $result"
@@ -600,6 +702,18 @@ proc do_portexec {port options variants target} {
 	}
 }
 
+proc get_portinfo {port} {
+	set searchstring [regex_escape_portname $port]
+	set res [dportsearch "^${searchstring}\$"]
+
+	if {[llength $res] < 2} {
+		return -code error "Port \"$port\" not found in index."
+	}
+
+	return $res
+}
+
+# Given name, version, and revision, returns the path to a package file
 proc get_pkgpath {name version revision} {
 	global dpkg::pkgrepo dpkg::architecture
 	global dpkg::packagedir
@@ -612,6 +726,7 @@ proc get_pkgpath {name version revision} {
 	return ${packagedir}/${name}_${version}${revision}_${architecture}.deb
 }
 
+# Opens the default log file and sets dpkg::logfd
 proc open_default_log {{mode a}} {
 	global dpkg::pkgrepo dpkg::architecture dpkg::logfd
 	# Ensure that the log directory exists, and open up
@@ -620,11 +735,13 @@ proc open_default_log {{mode a}} {
 	set logfd [open ${pkgrepo}/${architecture}/log/debug.log ${mode} 0644]
 }
 
+# Closes the current logfile
 proc close_default_log {args} {
 	global dpkg::logfd
 	close $logfd
 }
 
+# Copies a port log file to the failure directory
 proc copy_failure_log {name} {
 	global dpkg::pkgrepo dpkg::architecture
 	# Copy the log to the failure log directory
@@ -632,6 +749,7 @@ proc copy_failure_log {name} {
 	file copy -force ${pkgrepo}/${architecture}/log/build/${name}/build.log ${pkgrepo}/${architecture}/log/failure/${name}/
 }
 
+# Deletes a port's failure log
 proc delete_failure_log {name} {
 	global dpkg::pkgrepo dpkg::architecture
 	if {[catch {system "rm -Rf ${pkgrepo}/${architecture}/log/failure/${name}"} error]} {
@@ -640,6 +758,7 @@ proc delete_failure_log {name} {
 	}
 }
 
+# Add an override entry to the apt override file
 proc add_override {name priority section {maintainer ""}} {
 	global dpkg::aptpackagedir dpkg::pkgrepo
 	set output "${name}	${priority}	${section}"
@@ -651,6 +770,7 @@ proc add_override {name priority section {maintainer ""}} {
 	close $fd
 }
 
+# Deletes the apt override file
 proc remove_override_file {args} {
 	global dpkg::aptpackagedir dpkg::pkgrepo
 	if {[catch {file delete -force ${pkgrepo}/apt/override} error]} {
@@ -659,6 +779,7 @@ proc remove_override_file {args} {
 	}
 }
 
+# Copies a given package to the apt repository
 proc copy_pkg_to_apt {name version revision category} {
 	global dpkg::aptpackagedir
 
@@ -676,11 +797,7 @@ proc get_dependencies {portname {includeBuildDeps "true"}} {
 proc get_dependencies_recurse {portname includeBuildDeps} {
 	set result {}
 	
-	set searchstring [escape_portname $portname]
-	if {[catch {set res [dportsearch "^$searchstring\$"]} error]} {
-		ui_error "Internal error: port search failed: $error"
-		return {}
-	}
+	set res [get_portinfo $portname]
 
 	foreach {name array} $res {
 		array set portinfo $array
