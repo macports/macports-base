@@ -1,4 +1,4 @@
-#!/usr/bin/tclsh8.3
+#!/usr/bin/env tclsh8.3
 # port.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
