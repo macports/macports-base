@@ -459,6 +459,9 @@ proc check_statefile {name fd} {
 # write_statefile
 # Set target $name completed in the state file
 proc write_statefile {name fd} {
+    if {[check_statefile $name $fd]} {
+	return 0
+    }
     seek $fd 0 end
     puts $fd $name
     flush $fd
