@@ -29,12 +29,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 package provide darwinports 1.0
+package require darwinports_dlist 1.0
 
 namespace eval darwinports {
-    namespace export bootstrap_options portinterp_options uniqid 0
+    namespace export bootstrap_options portinterp_options open_dports
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
     variable portinterp_options "portdbpath portpath auto_path prefix portsharepath"
-    variable uniqid 0
+	
+	variable open_dports {}
 }
 
 # Provided UI instantiations
@@ -65,7 +67,7 @@ proc ui_warn {str {nonl ""}} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
 
     if {[llength [array names env HOME]] > 0} {
 	set HOME [lindex [array get env HOME] 1]
@@ -144,7 +146,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath options variations} {
-    global darwinports::uniqid darwinports::portinterp_options auto_path
+    global darwinports::portinterp_options auto_path
 
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
@@ -166,7 +168,7 @@ proc darwinports::worker_init {workername portpath options variations} {
         if [info exists $opt] {
             $workername eval set system_options($opt) \"[set $opt]\"
             $workername eval set $opt \"[set $opt]\"
-        }
+        } #"
     }
 
     foreach {opt val} $options {
@@ -230,30 +232,102 @@ proc darwinports::getportdir {url} {
     }
 }
 
+# dportopen
+# Opens a DarwinPorts portfile specified by a URL.  The portfile is
+# opened with the given list of options and variations.  The result
+# of this function should be treated as an opaque handle to a
+# DarwinPorts Portfile.
+
 proc dportopen {porturl {options ""} {variations ""}} {
-    global darwinports::uniqid darwinports::portinterp_options darwinports::portdbpath darwinports::portconf auto_path
-    set portdir [darwinports::getportdir $porturl]
-    cd $portdir
-    set portpath [pwd]
-    set workername workername[incr uniqid]
-    interp create $workername
+    global darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
+
+	# Look for an already-open DPort with the same URL.
+	# XXX: should compare options and variations here too.
+	# if found, return the existing reference and bump the refcount.
+	set dport [dlist_search $darwinports::open_dports porturl $porturl]
+	if {$dport != {}} {
+		set refcnt [ditem_key $dport refcnt]
+		incr refcnt
+		ditem_key $dport refcnt $refcnt
+		return $dport
+	}
+
+	set portdir [darwinports::getportdir $porturl]
+	cd $portdir
+	set portpath [pwd]
+	set workername [interp create]
+
+	set dport [ditem_create]
+	lappend darwinports::open_dports $dport
+	ditem_key $dport porturl $porturl
+	ditem_key $dport portpath $portpath
+	ditem_key $dport workername $workername
+	ditem_key $dport options $options
+	ditem_key $dport variations $variations
+	ditem_key $dport refcnt 1
+
     darwinports::worker_init $workername $portpath $options $variations
     if ![file isfile Portfile] {
         return -code error "Could not find Portfile in $portdir"
     }
-    $workername eval source Portfile
 
-    return $workername
+    $workername eval source Portfile
+	
+	ditem_key $dport provides [$workername eval return \$portname]
+
+    return $dport
 }
 
-proc dportexec {workername target} {
-    global darwinports::portinterp_options darwinports::uniqid
+proc _dporttest {dport} {
+	# Check for the presense of the port in the registry
+	set workername [ditem_key $dport workername]
+	set res [$workername eval registry_exists \${portname} \${portversion}]
+	if {$res != ""} {
+		return 1
+	} else {
+		return 0
+	}
+}
 
+proc _dportexec {target dport} {
+	set workername [ditem_key $dport workername]
+	return [$workername eval eval_targets $target]
+}
+
+# dportexec
+# Execute the specified target of the given dport.
+
+proc dportexec {dport target} {
+    global darwinports::portinterp_options
+
+	set workername [ditem_key $dport workername]
+
+	# XXX: move this into dportopen?
 	if {[$workername eval eval_variants variations $target] != 0} {
 		return 1
 	}
+	
+	# Before we build the port, we must build its dependencies.
+	# XXX: need a more general way of comparing against targets
+	set dlist {}
+	if {$target == "configure" || $target == "build" || $target == "install" ||
+		$target == "package" || $target == "mpkg"} {
 
-	return [$workername eval eval_targets $target]
+		dportdepends $dport 1 1
+		
+		# Select out the dependents along the critical path
+		set dlist [dlist_append_dependents $darwinports::open_dports $dport {}]
+		
+		# install them
+		set dlist [dlist_eval $darwinports::open_dports _dporttest [list _dportexec "install"]]
+	}
+
+	if {$dlist != {}} {
+		ui_error "$target terminated due to an error while installing a dependency."
+	} else {
+		return [$workername eval eval_targets $target]
+	}
+	return 0
 }
 
 proc darwinports::getindex {source} {
@@ -324,56 +398,73 @@ proc dportsearch {regexp} {
     return $matches
 }
 
-proc dportinfo {workername} {
+proc dportinfo {dport} {
+	set workername [ditem_key $dport workername]
     return [$workername eval array get PortInfo]
 }
 
-proc dportclose {workername} {
-    interp delete $workername
+proc dportclose {dport} {
+	global darwinports::open_dports
+	set refcnt [ditem_key $dport refcnt]
+	incr refcnt -1
+	ditem_key $dport refcnt $refcnt
+	if {$refcnt == 0} {
+		dlist_delete darwinports::open_dports $dport
+		set workername [ditem_key $dport workername]
+		interp delete $workername
+	}
 }
 
 ##### Private Depspec API #####
 # This API should be considered work in progress and subject to change without notice.
 ##### "
 
-# dportdepends returns a list of port names which the given port depends on.
-# xxx: should return the depspec itself once we have better depspec processing.
+# dportdepends returns a list of dports which the given port depends on.
 # - optionally includes the build dependencies in the list.
 # - optionally recurses through the dependencies, looking for dependencies
 #	of dependencies.
 
-proc dportdepends {portname includeBuildDeps recurseDeps} {
-	set result {}
-
-	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
-		ui_puts err "Internal error: port search failed: $error"
-		return
+proc dportdepends {dport includeBuildDeps recurseDeps} {
+	array set portinfo [dportinfo $dport]
+	set depends {}
+	if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+	if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+	if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} {
+		eval "lappend depends $portinfo(depends_build)"
 	}
 
-	foreach {name array} $res {
-		array set portinfo $array
-		set depends {}
-		if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-		if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} {
-			eval "lappend depends $portinfo(depends_build)"
+	foreach depspec $depends {
+		# grab the portname portion of the depspec
+		set portname [lindex [split $depspec :] 2]
+		
+		# Find the porturl
+		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+			ui_puts err "Internal error: port search failed: $error"
+			return 1
 		}
-		foreach depspec $depends {
-			# grab the portname portion of the depspec
-			set dep [lindex [split $depspec :] 2]
-			
-			lappend result $dep
-			
-			if {$recurseDeps != ""} {
-				set rdeps [dportdepends $dep $includeBuildDeps $recurseDeps]
-				if {$rdeps == -1} {
-					return -1
-				} else {
-					eval "lappend result $rdeps"
-				}
+		foreach {name array} $res {
+			array set portinfo $array
+			if {[info exists portinfo(porturl)]} {
+				set porturl $portinfo(porturl)
+				break
+			}
+		}
+
+		set options [ditem_key $dport options]
+		set variations [ditem_key $dport variations]
+		
+		set subport [dportopen $porturl $options $variations]
+
+		# Append the sub-port's provides to the port's requirements list.
+		ditem_append $dport requires "[ditem_key $subport provides]"
+
+		if {$recurseDeps != ""} {
+			set res [dportdepends $subport $includeBuildDeps $recurseDeps]
+			if {$res != 0} {
+				return $res
 			}
 		}
 	}
 	
-	return $result
+	return 0
 }

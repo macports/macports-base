@@ -68,6 +68,18 @@ proc dlist_search {dlist key value} {
 	return $result
 }
 
+# dlist_delete
+# Deletes the specified ditem from the dlist.
+#	dlist - the list to search
+#	ditem - the item to delete
+proc dlist_delete {dlist ditem} {
+    upvar $dlist uplist
+    set ix [lsearch -exact $uplist $ditem]
+    if {$ix >= 0} {
+		set uplist [lreplace $uplist $ix $ix]
+    }
+}
+
 # dlist_has_pending
 # Returns true if the dlist contains ditems
 # which will provide one of the specified names,
@@ -224,21 +236,27 @@ proc dlist_get_next {dlist statusdict} {
 # dlist_eval will exit with a list of the remaining ditems,
 # or {} if all ditems were evaluated.
 #	dlist    - the dependency list to evaluate
+#	testcond - test condition to populate the status dictionary
+#	           should return {-1, 0, 1}
 #	handler  - the handler to invoke on each ditem
+#	canfail  - If 1, then progress will not stop when a failure
+#	           occures; if 0, then dlist_eval will return on the
+#	           first failure
 #	selector - the selector for determining eligibility
 
-proc dlist_eval {dlist handler {selector "dlist_get_next"}} {
+proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"}} {
 	array set statusdict [list]
 	
 	# Do a pre-run seeing if any items automagically
 	# can evaluate to true.
-	foreach ditem $dlist {
-		#if test ditem
-		if {0} {
-			foreach token [dlist_key $ditem provides] {
-				set statusdict($name) 1
+	if {$testcond != ""} {
+		foreach ditem $dlist {
+			if {[eval "expr \[\$testcond \$ditem\] == 1"]} {
+				foreach token [ditem_key $ditem provides] {
+					set statusdict($token) 1
+				}
+				dlist_delete dlist $ditem
 			}
-			ldelete dlist $ditem
 		}
 	}
 	
@@ -251,7 +269,7 @@ proc dlist_eval {dlist handler {selector "dlist_get_next"}} {
 		} else {
 			# $handler should return a unix status code, 0 for success.
 			# statusdict notation is 1 for success
-			if {[catch {$handler $ditem} result]} {
+			if {[catch {eval "$handler $ditem"} result]} {
 				puts $result
 				return $dlist
 			}
@@ -262,8 +280,13 @@ proc dlist_eval {dlist handler {selector "dlist_get_next"}} {
 				set statusdict($token) [expr $result == 0]
 			}
 			
+			# Abort if we're not allowed to fail
+			if {$canfail == 0 && $result != 0} {
+				return $dlist
+			}
+			
 			# Delete the ditem from the waiting list.
-			darwinports_dlist::ldelete dlist $ditem
+			dlist_delete dlist $ditem
 		}
 	}
 	
@@ -328,14 +351,6 @@ proc ditem_contains {ditem key args} {
 			return 0
 		}
 	}
-}
-
-proc ldelete {list value} {
-    upvar $list uplist
-    set ix [lsearch -exact $uplist $value]
-    if {$ix >= 0} {
-	set uplist [lreplace $uplist $ix $ix]
-    }
 }
 
 # End of darwinports_dlist namespace
