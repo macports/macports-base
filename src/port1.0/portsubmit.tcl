@@ -72,11 +72,15 @@ proc submit_main {args} {
     puts ""
     exec stty echo
     
-    global portname portversion maintainers categories description \
-	long_description
+    set vars {portname portversion maintainers categories description long_description}
+	eval "global $vars"
+	foreach var $vars {
+		if {![info exists $var]} { set $var {} }
+	}
+
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url http://localhost/cgi-bin/portsubmit.cgi "
+    append cmd "--url http://dapple.opendarwin.org/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
