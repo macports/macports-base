@@ -3,6 +3,11 @@
 # Please see the file src/etc/mtree/README before making changes to this file.
 #
 
+/set type=dir uname=root gname=wheel mode=0755
+.
+    usr
+    ..
+..
 /set type=dir uname=root gname=admin mode=0775
 .
     Applications

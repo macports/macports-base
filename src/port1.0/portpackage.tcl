@@ -46,14 +46,14 @@ default package.destpath {${workpath}}
 set UI_PREFIX "---> "
 
 proc package_main {args} {
-    global portname portversion package.type package.destpath UI_PREFIX
+    global portname portversion portrevision package.type package.destpath UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating package for %s-%s"] ${portname} ${portversion}]"
 
-    return [package_pkg $portname $portversion]
+    return [package_pkg $portname $portversion $portrevision]
 }
 
-proc package_pkg {portname portversion} {
+proc package_pkg {portname portversion portrevision} {
     global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage
 
     set resourcepath ${workpath}/pkg_resources
@@ -61,8 +61,7 @@ proc package_pkg {portname portversion} {
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
     write_PkgInfo ${pkgpath}/Contents/PkgInfo
-    write_info_file ${pkgpath}/Contents/Resources/${portname}-${portversion}.info $portname $portversion $description
-    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion
+    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
     write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
@@ -75,11 +74,9 @@ proc package_pkg {portname portversion} {
     write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.bom ${portname}-${portversion}.bom"
     system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
-    system "cd ${pkgpath}/Contents/Resources/ && ln -fs ../Archive.pax.gz ${portname}-${portversion}.pax.gz"
 
-    write_sizes_file ${pkgpath}/Contents/Resources/${portname}-${portversion}.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+    write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     return 0
 }
@@ -105,6 +102,7 @@ proc write_PkgInfo {infofile} {
 	close $infofd
 }
 
+# XXX: deprecated
 proc write_info_file {infofile portname portversion description} {
 	set infofd [open ${infofile} w+]
 	puts $infofd "Title ${portname}
@@ -126,13 +124,8 @@ RootVolumeOnly NO"
 	close $infofd
 }
 
-proc write_info_plist {infofile portname portversion} {
-	set vers [split $portversion "."]
-	set major [lindex $vers 0]
-	set minor [lindex $vers 1]
-	if {$major == ""} {set major "0"}
-	if {$minor == ""} {set minor "0"}
-		
+proc write_info_plist {infofile portname portversion portrevision} {
+
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -148,9 +141,9 @@ proc write_info_plist {infofile portname portversion} {
 	<key>CFBundleShortVersionString</key>
 	<string>${portversion}</string>
 	<key>IFMajorVersion</key>
-	<integer>${major}</integer>
+	<integer>${portrevision}</integer>
 	<key>IFMinorVersion</key>
-	<integer>${minor}</integer>
+	<integer>0</integer>
 	<key>IFPkgFlagAllowBackRev</key>
 	<true/>
 	<key>IFPkgFlagAuthorizationAction</key>
@@ -236,8 +229,8 @@ proc write_sizes_file {sizesfile portname portversion pkgpath destpath} {
     if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
 	return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
     }
-    if {[catch {set infoSize [file size ${pkgpath}/Contents/Resources/${portname}-${portversion}.info]} result]} {
-	return -code error [format [msgcat::mc "Error determining info file size: %s"] $result]
+    if {[catch {set infoSize [file size ${pkgpath}/Contents/Info.plist]} result]} {
+       return -code error [format [msgcat::mc "Error determining plist file size: %s"] $result]
     }
     if {[catch {set bomSize [file size ${pkgpath}/Contents/Archive.bom]} result]} {
 	return -code error [format [msgcat::mc "Error determining bom file size: %s"] $result]
