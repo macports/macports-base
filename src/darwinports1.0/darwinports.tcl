@@ -166,6 +166,9 @@ proc darwinports::fetch_port {url} {
     if {[catch {file mkdir $fetchdir} result]} {
         return -code error $result
     }
+    if {![file writable $fetchdir]} {
+    	return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
+    }
     if {[catch {exec curl -s -S -o [file join $fetchdir $fetchfile] $url} resule]} {
 	return -code error "Port remote fetch failed: $result"
     }
