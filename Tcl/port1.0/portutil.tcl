@@ -93,7 +93,7 @@ proc swdep_resolve {name chain} {
 		}
 		bin {
 		    # XXX broken
-		    lappend search_path $env(PATH)
+		    lappend search_path [split $env(PATH) :]
 		}
 		default {
 		    set search_path $deppath
@@ -112,6 +112,7 @@ proc swdep_resolve {name chain} {
 		}
 	}
     }
+    puts "Executing $portname"
     build $sysportpath/software/$portname build make
     return 0
 }
