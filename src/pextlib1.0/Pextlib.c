@@ -96,6 +96,10 @@ extern char **environ;
 #endif
 #endif
 
+#if !HAVE_FGETLN
+char *fgetln(FILE *stream, size_t *len);
+#endif
+
 #define CBUFSIZ 30
 
 char *ui_escape(const char *source)
