@@ -36,10 +36,15 @@ mkchrootbase() {
 		echo "Calculating chroot base image size..."
 		# start with this size to account for other overhead
 		sz=${BASE_PADDING}
-		for i in $chrootfiles; do
-			mysz=`cd /; du -sk $i |awk '{print $1}'`
-			sz=$(($sz + $mysz))
-		done
+		if [ "`uname -r|tr -d .`" -ge 800 ]; then
+			# hack-around for Tiger
+			sz=$((sz + 4000000))
+		else
+			for i in $chrootfiles; do
+				mysz=`cd /; du -sk $i |awk '{print $1}'`
+				sz=$(($sz + $mysz))
+			done
+		fi
 		echo "Creating bootstrap disk image of ${sz}K bytes"
 		hdiutil create -size ${sz}k -fs ${FSTYPE} -volname base ${CHROOTBASE} > /dev/null
 		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
