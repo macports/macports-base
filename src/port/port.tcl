@@ -257,7 +257,7 @@ switch -- $action {
 		continue
 	    }
 	    set portfound 1
-	    puts [format "%-15s\t%-8s\t%s" $portinfo(portdir) $portinfo(version) $portinfo(description)]
+	    puts [format "%-20s\t%-8s\t%s" $portinfo(portdir) $portinfo(version) $portinfo(description)]
 	    unset portinfo
 	}
 	if {![info exists portfound] || $portfound == 0} {
