@@ -115,7 +115,11 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
 	set src_element [file join $rootdir $element]
 	# overwrites files but not directories
 	if {![file exists $dst_element] || ![file isdirectory $dst_element]} {
-	    ui_debug "installing file: $dst_element"
+		if {[file isdirectory $src_element]} {
+			ui_debug "installing directory: $dst_element"
+		} else {
+			ui_debug "installing file: $dst_element"
+		}
 	    install_element $src_element $dst_element
 	    lappend installPlist $dst_element
 	}
