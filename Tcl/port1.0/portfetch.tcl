@@ -2,7 +2,9 @@
 package provide portfetch 1.0
 package require portutil 1.0
 
-register_target fetch portfetch::main main
+register target fetch portfetch::main
+register requires fetch main
+
 namespace eval portfetch {
 	variable options
 	variable internal

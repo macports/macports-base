@@ -9,23 +9,33 @@ namespace eval portutil {
 
 ########### External High Level Procedures ###########
 
-# register_target
+# register
 # Creates a target in the global target list using the internal dependancy
 #     functions
-# Arguments: <target name> <procedure to execute> <dependency list>
-proc register_target {target procedure args} {
-	if {[is_depend portutil::targets $target]} {
-		puts "Warning: target '$target' re-registered (new procedure: '$procedure')"
-	}
-	if {[llength $args] == 0} {
-		add_depend portutil::targets $target $procedure
+# Arguments: target <target name> <procedure to execute>
+# Arguments: requires <list of target names>
+# Arguments: uses <list of target names>
+proc register {mode target args} {	
+	if {[string equal target $mode]} {
+		if {[isval portutil::targets $target]} {
+			# XXX: remove puts
+			puts "Warning: target '$target' re-registered (new procedure: '$procedure')"
+		}
+		depend_list_add_item portutil::targets $target $args [list] [list]
 	} else {
-		eval "add_depend portutil::targets $target $procedure $args"
+		# requires or uses or whatever ;-)
+		if {[isval portutil::targets name,$target]} {
+			# XXX: violates data abstraction
+			eval "lappend portutil::targets($mode,$target) $args"
+		} else {
+			# XXX: remove puts
+			puts "Warning: target '$target' not-registered in register $mode"
+		}
 	}
 }
 
 proc deregister_target {target} {
-		del_depend portutil::targets $target
+	depend_list_del_item portutil::targets portutil::targets $target
 }
 
 # options
@@ -62,90 +72,123 @@ proc globals {array args} {
 
 ########### Dependancy Manipulation Procedures ###########
 
-# add dependancy
-# Will overwrite entries for the same target
-# Expects arguments: array, target, procedure, depends (optional)
-proc add_depend {array target procedure args} {
-	upvar $array uparray
-	if {![isval uparray procedure,$target]} {
-		lappend uparray(targets) $target
-	}
-	setval uparray procedure,$target $procedure
-	if {[llength $args] > 0} {
-		setval uparray depends,$target $args
-	}
+# depend_list_add
+# Creates a new node in the dependency list with the given name.
+# Optionally sets the list of hard and soft dependencies.
+# Caution: this will over-write an existing node of the same name.
+proc depend_list_add_item {nodes name procedure requires uses} {
+	upvar $nodes upnodes
+	set upnodes(name,$name) $name
+	set upnodes(procedure,$name) $procedure
+	set upnodes(requires,$name) $requires
+	set upnodes(uses,$name) $uses
 }
 
-# del dependancy
-proc del_depend {array target} {
-	upvar $array uparray
-	set uparray(targets) [ldelete uparray(targets) $target]
-	delval uparray procedure,$target
-	if {[isval uparray depends,$target]} {
-		delval uparray depends,$target
-	}
+proc depend_list_del_item {nodes name} {
+	upvar $nodes upnodes
+	unset upnodes(name,$name)
+	unset upnodes(procedure,$name)
+	unset upnodes(requires,$name)
+	unset upnodes(uses,$name)
 }
 
-proc is_depend {array target} {
-	upvar $array uparray
-	return [isval uparray procedure,$target]
-}
-
-
-# XXX Well, it works. Could be faster.
-proc eval_depend {array} {
-	upvar $array uparray
-	set list $uparray(targets)
-	set slist $uparray(targets)
-	set i 0
-	set j [llength $list]
-	while {$i < $j} {
-		set target [lindex $slist $i]
-		if {[isval uparray depends,$target]} {
-			set depends [getval uparray depends,$target]
-			set k [llength $depends]
-			set l 0
-			while {$l < $k} {
-				set depend [lindex $depends $l]
-				if {[lsearch -exact $list $depend] == -1} {
-					puts "Missing dependancy '$depend'"
-					return -1
-				}
-				set curloc [lsearch -exact $list $target]
-				set newloc [lsearch -exact $list $depend]
-				if {$curloc < $newloc} {
-					set list [lreplace $list $curloc $curloc]
-					set list [linsert $list $newloc $target]
-				}
-				incr l
-			}
-		} else {
-			set curloc [lsearch -exact $list $target]
-			set list [lreplace $list $curloc $curloc]
-			set list [linsert $list 0 $target]
+# Count the unmet dependencies in the sublist
+# (private)
+proc depend_list_count_unmet {names statusdict} {
+	upvar $statusdict upstatusdict
+	set unmet 0
+	foreach name $names {
+		if {![isval upstatusdict $name] ||
+		    ![string equal $upstatusdict($name) success]} {
+			incr unmet
 		}
-		incr i
 	}
-	set uparray(targets) $list
-	foreach target $uparray(targets) {
-		if {[info exists uparray(depends,$target)]} {
-			foreach depend $uparray(depends,$target) {
-				if {[info exists finished]} {
-					if {[lsearch $finished $depend] == -1} {
-						puts "Cyclic dependencies between '$target' and dependancy '$depend'"
-						return -1
-					}
-				}
-			}
-		}
-		if {[$uparray(procedure,$target) $target] == 0} {
-			lappend finished $target
-		} else {
-			puts "Error in target '$target'"
-			return -1
+	return $unmet
+}
+
+# Returns true of any of the dependencies are pending in the waitlist
+# (private)
+proc depend_list_has_pending {waitlist uses} {
+	foreach name $uses {
+		if {[isval $waitlist name,$name]} { 
+			return 1
 		}
 	}
 	return 0
+}
+
+# Get the next item from the depend list
+# (private)
+proc depend_list_get_next {waitlist statusdict} {
+	set nextitem ""
+	# arbitrary large number ~ INT_MAX
+	set minfailed 2000000000
+	upvar $waitlist upwaitlist
+	upvar $statusdict upstatusdict
+
+	foreach n [array names upwaitlist name,*] {
+		set name $upwaitlist($n)
+
+		# skip if unsatisfied hard dependencies
+		if {[depend_list_count_unmet $upwaitlist(requires,$name) upstatusdict]} { continue }
+
+		# favor item with fewest unment soft dependencies
+		set unmet [depend_list_count_unmet $upwaitlist(uses,$name) upstatusdict]
+
+		# delay items with unmet soft dependencies that can be filled
+		if {$unmet > 0 && [depend_list_has_pending waitlist $upwaitlist(uses,$name)]} { continue }
+
+		if {$unmet >= $minfailed} {
+			# not better than our last pick
+			continue
+		} else {
+			# better than our last pick
+			set minfailed $unmet
+			set nextitem $name
+		}
+	}
+	return $nextitem
+}
+
+
+# Evaluate the dependency list, returning an ordered list suitable
+# for execution.
+proc eval_depend {nodes} {
+	# waitlist - nodes waiting to be executed
+	upvar $nodes waitlist
+
+	# status - keys will be node names, values will be success or failure.
+	array set statusdict [list]
+		
+	# loop for as long as there are nodes in the waitlist.
+	while (1) {
+		set name [depend_list_get_next waitlist statusdict]
+		if {[isval waitlist procedure,$name]} {
+			# XXX: remove puts
+			puts "DEBUG: Executing $name"
+			if {[$waitlist(procedure,$name) $waitlist(name,$name)] == 0} {
+				array set statusdict [list $name success]
+			} else {
+				# XXX: remove puts
+				puts "Error in $name"
+				array set statusdict [list $name failure]
+			}
+			array unset waitlist name,$name
+			array unset waitlist procedure,$name
+			array unset waitlist requires,$name
+			array unset waitlist uses,$name
+		} else {
+			# somebody broke!
+			# XXX: remove puts
+			puts "Warning: the following targets did not execute: "
+			foreach name [array names waitlist name,*] {
+				puts -nonewline "$waitlist($name) "
+			}
+			puts ""
+			break
+		}
+	}
+	
 }
 
 ########### Global Variable Manipulation Procedures ###########

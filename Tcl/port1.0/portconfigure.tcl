@@ -2,7 +2,9 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-register_target configure portconfigure::main main fetch extract checksum patch
+register target configure portconfigure::main 
+register requires configure main fetch extract checksum patch
+
 namespace eval portconfigure {
 	variable options
 }

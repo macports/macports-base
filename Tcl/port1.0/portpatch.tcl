@@ -2,7 +2,9 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-register_target patch portpatch::main main fetch checksum extract
+register target patch portpatch::main 
+register requires patch main fetch checksum extract
+
 namespace eval portpatch {
 	variable options
 }

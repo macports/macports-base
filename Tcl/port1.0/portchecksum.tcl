@@ -2,7 +2,9 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-register_target checksum portchecksum::main main fetch
+register target checksum portchecksum::main
+register requires checksum main fetch
+
 namespace eval portchecksum {
 	variable options
 }

@@ -4,7 +4,7 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-register_target main portmain::main
+register target main portmain::main
 namespace eval portmain {
 	variable options
 	variable targets

@@ -2,7 +2,9 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-register_target extract portextract::main main fetch checksum
+register target extract portextract::main 
+register requires extract fetch checksum
+
 namespace eval portextract {
 	variable options
 }
