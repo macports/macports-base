@@ -18,6 +18,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pipe = popen(Tcl_GetString(objv[1]), "r");
 	resultPtr = Tcl_GetObjResult(interp);
 	while (fgets(buf, 1024, pipe) != NULL) {
+		/* XXX We need the output but this is not at all correct */
+		printf("%s", buf);
 		Tcl_AppendToObj(resultPtr, (void *) &buf, strlen(buf));
 	}
 	switch (pclose(pipe)) {
