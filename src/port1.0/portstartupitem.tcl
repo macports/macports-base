@@ -1,9 +1,9 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.7 2005/02/19 17:05:59 rshaw Exp $
+# $Id: portstartupitem.tcl,v 1.8 2005/03/24 10:34:49 mww Exp $
 #
-# Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
+# Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
 # All rights reserved.
 #
@@ -103,7 +103,7 @@ proc startupitem_create_darwin {args} {
 		set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
 	}
 	if { ![exists startupitem.restart] } {
-		set startupitem.restart [list "sh ${scriptdir}/${portname}.sh restart"]
+		set startupitem.restart [list "StopService; StartService"]
 	}
 	if { ![exists startupitem.requires] } {
 		set startupitem.requires [list "Disks" "NFS"]
