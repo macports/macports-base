@@ -154,6 +154,7 @@ proc unarchive_command_setup {args} {
 	global unarchive.env unarchive.cmd
 	global unarchive.pre_args unarchive.args unarchive.post_args
 	global unarchive.type unarchive.path
+	global os.platform os.version
 
 	# Define appropriate unarchive command and options
 	switch -regex ${unarchive.type} {
