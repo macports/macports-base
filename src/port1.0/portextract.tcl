@@ -58,14 +58,11 @@ proc extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
     if {[exists use_bzip2]} {
-		option extract.cmd bzip2
+	option extract.cmd [binaryInPath "bzip2"]
     } elseif {[exists use_zip]} {
-		option extract.cmd unzip
-		option extract.pre_args -q
-		option extract.post_args "-d [option extract.dir]"
-    }
-    if {[string length [binaryInPath ${extract.cmd}]] == 0} {
-	return -code error "[format [msgcat::mc "This port requires '%s' to be extracted, which can not be found on this system."] [option extract.cmd]]"
+	option extract.cmd [binaryInPath "unzip"]
+	option extract.pre_args -q
+	option extract.post_args "-d [option extract.dir]"
     }
 }
 

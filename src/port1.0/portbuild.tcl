@@ -69,20 +69,18 @@ proc build_getmaketype {args} {
 	    }
 	}
 	pbx {
-	    set pbxbuild_binary "pbxbuild"
-	    set xcodebuild_binary "xcodebuild"
+	    set pbxbuild "pbxbuild"
+	    set xcodebuild "xcodebuild"
 
 	    if {[option os.platform] != "darwin"} {
 		return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
 	    }
-
-	    if {[set xcodebuild [binaryInPath $xcodebuild_binary]] != ""} {
-		return xcodebuild
-	    } elseif {[set pbxbuild [binaryInPath $pbxbuild_binary]] != ""} {
-		return pbxbuild
-	    } else {
-		return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
-	    }
+	
+ 	    if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {return $xcodebuild} 
+ 	    elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {return $pbxbuild}
+ 	    else {
+  		return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
+  	    }
 	}
 	default {
 	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"

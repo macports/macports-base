@@ -1040,3 +1040,14 @@ proc binaryInPath {binary} {
    
     return "";
 }
+
+proc binaryInPath {binary} {
+    global env
+    foreach dir [split $env(PATH) :] { 
+	if {[file executable [file join $dir $binary]]} {
+	    return [file join $dir $binary]
+	}
+    }
+   
+    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
+}
