@@ -20,7 +20,7 @@ set chrootfiles {
 }
 
 proc makechroot {dir} {
-	global chrootfiles verbose REPORT REPDIR
+	global env chrootfiles verbose REPORT REPDIR
 
 	if {![file exists $dir]} {
 		exec mkdir -p $dir
@@ -60,59 +60,68 @@ proc makechroot {dir} {
 	puts $f "#!/usr/bin/tclsh"
 	puts $f "set REPDIR $REPDIR"
 	puts $f "set REPORT $REPORT"
-	puts $f [proc_disasm packageall]
+	puts $f "rm -rf /etc/ports"
 	puts $f "cd darwinports"
 	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
 	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
+	if {[info exists env(MASTER_SITE_LOCAL)]} {
+		puts $f "set env(MASTER_SITE_LOCAL) $env(MASTER_SITE_LOCAL)"
+	}
+	puts $f [proc_disasm packageall]
 	puts $f {if {[catch {packageall} result]} { puts "Warning: packageall returned: $result" }}
 	close $f
 }
 
 proc packageall {} {
 	global REPORT REPDIR verbose
+	if {[catch {set out [open /dev/stdout w]}]} {
+		set out stdout
+	}
 
 	if {[file exists PortIndex]} {
 		set PI PortIndex
 	} elseif {[file exists dports/PortIndex]} {
 		set PI dports/PortIndex
 	} else {
-		puts "Unable to find PortIndex.  Please run me from darwinports dir"
+		puts $out "Unable to find PortIndex.  Please run me from darwinports dir"
 		exit 2
 	}
 
 	if {[catch {set pifile [open $PI r]}]} {
-		puts "Unable to open $PI - check permissions."
+		puts $out "Unable to open $PI - check permissions."
 		exit 3
 	}
 	exec mkdir -p ${REPDIR}
 	if {[catch {set repfile [open $REPORT w]}]} {
-		puts "Unable to open $REPORT - check permissions."
+		puts $out "Unable to open $REPORT - check permissions."
 		exit 4
 	}
-	puts "Doing initial installation of RPM bits.."
+	puts $out "Doing initial installation of RPM bits.."
+	flush $out
 	if {[catch {exec port install rpm} result]} {
-		puts "Unable to install rpm port: $result"
+		puts $out "Unable to install rpm port: $result"
 		exit 6
 	}
 	exec mkdir -p /Packages
-	puts "Beginning packaging run.."
+	puts $out "Beginning packaging run.."
+	flush $out
 	while {[gets $pifile line] != -1} {
 		if {[llength $line] != 2} continue
 		set portname [lindex $line 0]
-		puts "Trying ${portname}..."
+		puts $out "Trying ${portname}..."
+		flush $out
 		if {[catch {exec port rpmpackage package.destpath=/Packages $portname >& ${REPDIR}/${portname}.out}]} {
 			puts $repfile "$portname failure"
-			puts "Failing ${portname}..."
 			flush $repfile
 		} else {
 			puts $repfile "$portname success"
-			puts "Succeeding ${portname}..."
 			flush $repfile
 			exec rm -f ${REPDIR}/${portname}.out
 		}
 	}
 	close $pifile
 	close $repfile
+	if {"$out" != "stdout"} close $out
 }
 
 proc proc_disasm {pname} {
