@@ -7,8 +7,6 @@ Make error messages more meaningful to naive users		landonf/kevinvv
 Create index magic						landonf
 Add contents lists to all ports					eric
 Add cvs fetch support						landonf
-Add abstraction to support fetching specific files from
-     specific sites						landonf
 Allow variants to be overridden					kevinvv
 Allow depspecs in requires (targets & variants)			kevinvv
 Change run/build depends to add depspecs to target's requires	kevinvv
