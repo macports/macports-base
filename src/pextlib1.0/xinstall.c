@@ -1075,12 +1075,12 @@ usage(Tcl_Interp *interp, int lineno)
 	char errmsg[500];
 
 	snprintf(errmsg, sizeof errmsg, 
-"%s usage (#%d): %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
+"%s usage: %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 file2\n"
 "       %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 ... fileN directory\n"
 "       %s -d [-v] [-g group] [-m mode] [-o owner] directory ...",
-		funcname, lineno, funcname, funcname, funcname);
+		funcname, funcname, funcname, funcname);
 	Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 }
 
