@@ -57,7 +57,7 @@
 
 #include <tcl.h>
 
-static int	do_find(Tcl_Interp *interp, char *dir, char *match, char *action);
+static int do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action);
 
 int
 FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -66,10 +66,15 @@ FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 	char *match, *action;
 	char *def_match = "expr 1";
 	char *def_action = "puts \"$filename\"";
+	int depth = 0;
 
 	/* Adjust arguments */
 	++objv, --objc;
 
+	if (objc && !strcmp(Tcl_GetString(*objv), "-depth")) {
+		depth = 1;
+		++objv, --objc;
+	}
 	if (!objc)
 		startdir = ".";
 	else {
@@ -92,11 +97,11 @@ FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv
 		Tcl_WrongNumArgs(interp, 1, objv, "[dir] [match] [action]");
 		return TCL_ERROR;
 	}
-	return do_find(interp, startdir, match, action);
+	return do_find(interp, depth, startdir, match, action);
 }
 
 static int
-do_find(Tcl_Interp *interp, char *dir, char *match, char *action)
+do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
 {
 	DIR *dirp;
 	struct dirent *dp;
@@ -124,32 +129,35 @@ do_find(Tcl_Interp *interp, char *dir, char *match, char *action)
 		/* No permission? */
 		if (stat(tmp_path, &sb) != 0)
 			continue;
-		/* Handle directories specially */
-		if (sb.st_mode & S_IFDIR) {
-			if (do_find(interp, tmp_path, match, action) != TCL_OK)
+		/* Handle directories specially.  If depth, do it now */
+		if (depth && sb.st_mode & S_IFDIR) {
+			if (do_find(interp, depth, tmp_path, match, action) != TCL_OK)
 				return TCL_ERROR;
 		}
-		else {
-			Tcl_SetVar(interp, "filename", tmp_path, TCL_GLOBAL_ONLY);
-			if (Tcl_EvalEx(interp, match, mlen, TCL_EVAL_GLOBAL) == TCL_OK) {
-				result = Tcl_GetObjResult(interp);
-				if (Tcl_GetIntFromObj(interp, result, &val) != TCL_OK) {
-					rval = TCL_ERROR;
-					break;
-				}
-				if (!val)
-					continue;
-				else {	/* match */
-					if (Tcl_EvalEx(interp, action, alen, TCL_EVAL_GLOBAL) != TCL_OK) {
-						rval = TCL_ERROR;
-						break;
-					}
-				}
-			}
-			else {
+		Tcl_SetVar(interp, "filename", tmp_path, TCL_GLOBAL_ONLY);
+		if (Tcl_EvalEx(interp, match, mlen, TCL_EVAL_GLOBAL) == TCL_OK) {
+			result = Tcl_GetObjResult(interp);
+			if (Tcl_GetIntFromObj(interp, result, &val) != TCL_OK) {
 				rval = TCL_ERROR;
 				break;
 			}
+			if (!val)
+				continue;
+			else {	/* match */
+				if (Tcl_EvalEx(interp, action, alen, TCL_EVAL_GLOBAL) != TCL_OK) {
+					rval = TCL_ERROR;
+					break;
+				}
+			}
+		}
+		else {
+			rval = TCL_ERROR;
+			break;
+		}
+		/* Handle directories specially.  If !depth, do it now */
+		if (!depth && sb.st_mode & S_IFDIR) {
+			if (do_find(interp, depth, tmp_path, match, action) != TCL_OK)
+				return TCL_ERROR;
 		}
 	}
 	(void)closedir(dirp);
