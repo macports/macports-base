@@ -103,6 +103,9 @@ proc getdistname {name} {
 }
 
 proc disttagclean {list} {
+    if {"$list" == ""} {
+        return $list
+    }
     foreach name $list {
         lappend val [getdistname $name]
     }
