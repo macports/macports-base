@@ -49,7 +49,7 @@ default install.dir {${build.dir}}
 default install.cmd {${build.cmd}}
 default install.pre_args {${install.target}}
 default install.target install
-default install.args {DESTDIR=${destroot}}
+default install.post_args {DESTDIR=${destroot}}
 
 set UI_PREFIX "---> "
 
