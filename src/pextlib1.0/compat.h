@@ -1,6 +1,6 @@
 /*
  * compat.h
- * $Id: compat.h,v 1.1 2004/11/05 11:40:55 pguyot Exp $
+ * $Id: compat.h,v 1.2 2004/11/05 11:59:13 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -43,6 +43,11 @@
  *	Normalize path just like file normalize does.
  *  Fixes a problem with Tcl installations affected by bug #953284. (this is
  *	the case with 10.3's Tcl)
+ *
+ * compat filelinkhard dstpath srcpath
+ *	Creates a hard linke just like file link -hard does.
+ *  Fixes a problem with Tcl installations that do not understand -hard
+ *  (typically 10.2's Tcl).
  */
 int CompatCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 

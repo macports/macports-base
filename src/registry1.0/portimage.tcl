@@ -43,7 +43,7 @@ set UI_PREFIX "--> "
 # They allow the user to instal multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
-# From there, the user can "activate" a port image.  This creates hardlinks for
+# From there, the user can "activate" a port image.  This creates {sym,hard}links for
 # all files in the image into the ${prefix}.  Directories are created.  
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
@@ -268,7 +268,8 @@ proc _activate_file {srcfile dstfile} {
 		file copy -force $srcfile $dstfile
 	} else {
 		# Try a hard link first and if that fails, a symlink
-		if {[catch {file link -hard $dstfile $srcfile}]} {
+		if {[catch {compat filelinkhard $dstfile $srcfile}]} {
+			ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
 			file link -symbolic $dstfile $srcfile
 		}
 	}

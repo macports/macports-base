@@ -1,6 +1,6 @@
 /*
  * compat.c
- * $Id: compat.c,v 1.1 2004/11/05 11:40:55 pguyot Exp $
+ * $Id: compat.c,v 1.2 2004/11/05 11:59:13 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -37,6 +37,7 @@
 #include <sys/param.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
 
 #if HAVE_LIBGEN_H
 #include <libgen.h>
@@ -66,6 +67,47 @@ int CompatFileNormalize(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
  * ========================================================================= */
 #pragma mark -
 #pragma mark Entry points
+
+
+/**
+ * compat filelinkhard subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+CompatFileLinkHard(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+
+	do {
+		char* theSrcPath;
+		char* theDstPath;
+		
+		/* we only have two parameters. */
+		if (objc != 4) {
+			Tcl_WrongNumArgs(interp, 1, objv, "filelinkhard dstpath srcpath");
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* retrieve the parameters */
+		theDstPath = Tcl_GetString(objv[2]);
+		theSrcPath = Tcl_GetString(objv[3]);
+		
+		/* perform the hard link */
+		if (link(theSrcPath, theDstPath) < 0)
+		{
+			/* some error occurred. Report it. */
+			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+    } while (0);
+    
+	return theResult;
+}
 
 /**
  * compat filenormalize subcommand entry point.
@@ -138,11 +180,12 @@ CompatCmd(
 		Tcl_Obj* CONST objv[])
 {
     typedef enum {
-    	kFilemapFileNormalize
+    	kFilemapFileNormalize,
+    	kFilemapFileLinkHard
     } EAction;
     
 	static const char* actions[] = {
-		"filenormalize", NULL
+		"filenormalize", "filelinkhard", NULL
 	};
 
 	int theResult = TCL_OK;
@@ -165,6 +208,10 @@ CompatCmd(
 		{
 			case kFilemapFileNormalize:
 				theResult = CompatFileNormalize(interp, objc, objv);
+				break;
+
+			case kFilemapFileLinkHard:
+				theResult = CompatFileLinkHard(interp, objc, objv);
 				break;
 		}
 	}
