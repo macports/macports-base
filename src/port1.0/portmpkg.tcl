@@ -59,62 +59,82 @@ proc mpkg_main {args} {
     }
 }
 
-proc package_mpkg {portname portversion} {
-    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath long_description homepage depends_run depends_lib
-
-	# get the union of depends_run and depends_lib, ignore everything but the portfile.
-	set depends {}
-	if {[info exists depends_run]} {eval "lappend depends $depends_run"}
-	if {[info exists depends_lib]} {eval "lappend depends $depends_lib"}
-	set ports {}
-	foreach depspec $depends {
-		set depname [lindex [split $depspec :] 2]
-
-		# nasty hack
-		if {$depname != "XFree86"} {
-			lappend ports $depname
-		}
+proc make_dependency_list {portname} {
+	set result {}
+	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		ui_error "port search failed: $error"
+		return 1
 	}
-	set ports [lsort -unique $ports]
+	foreach {name array} $res {
+		array set portinfo $array
 
-	set pkgpath ${package.destpath}/${portname}.pkg
-	set mpkgpath ${package.destpath}/${portname}.mpkg
+		if {[info exists portinfo(depends_run)] || [info exists portinfo(depends_lib)]} {
+			# get the union of depends_run and depends_lib
+			# xxx: only examines the portfile component of the depspec
+			set depends {}
+			if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+			if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+
+			foreach depspec $depends {
+				set dep [lindex [split $depspec :] 2]
+	
+				# xxx: nasty hack
+				if {$dep != "XFree86"} {
+					eval "lappend result [make_dependency_list $dep]"
+				}
+			}
+		}
+		lappend result $portinfo(name)/$portinfo(version)
+		unset portinfo
+	}
+	ui_debug "dependencies for ${portname}: $result"
+	return $result
+}
+
+proc make_one_package {portname portversion mpkgpath} {
+	global prefix package.destpath 
+	if {[catch {set res [dportsearch "^$portname\$"]} result]} {
+		ui_error "port search failed: $result"
+		return 1
+	}
+	foreach {name array} $res {
+		array set portinfo $array
+		
+		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
+			# only the prefix gets passed to the worker.
+			ui_debug "building dependency package: $portname"
+			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources package.type pkg]]
+			dportexec $worker package
+		}
+		
+		unset portinfo
+	}
+}
+
+proc package_mpkg {portname portversion} {
+    global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage depends_run depends_lib
+
+	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
+	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
 
-	if {[llength $ports] > 0} {
-		set dependencies {}
-		
-		# Create mpkgs for each of our dependencies inside our resources directory.
-		foreach port $ports {
-			if {[catch {set res [dportsearch "^$port\$"]} result]} {
-				ui_error "port search failed: $result"
-				return 1
-			}
-			foreach {name array} $res {
-				array set portinfo $array
-				
-				if [info exists portinfo(porturl)] {
-					# only the prefix gets passed to the worker.
-					set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources]]
-					if {[info exists portinfo(depends_run)] || [info exists portinfo(depends_lib)]} {
-						dportexec $worker mpkg
-						lappend dependencies ${portinfo(name)}.mpkg
-						# Remove intermediate .pkg, since the .pkg will have been copied into the .mpkg resources directory.
-						system "rm -R ${mpkgpath}/Contents/Resources/${portinfo(name)}.pkg"
-					} else {
-						dportexec $worker package
-						lappend dependencies ${portinfo(name)}.pkg
-					}
-				}
-				
-				unset portinfo
-			}
+	set dependencies {}
+	# get deplist
+	set deps [make_dependency_list $portname]
+	set deps [lsort -unique $deps]
+	foreach dep $deps {
+		set name [lindex [split $dep /] 0]
+		set vers [lindex [split $dep /] 1]
+		# don't re-package ourself
+		if {$name != $portname} {
+			make_one_package $name $vers $mpkgpath
+			lappend dependencies ${name}-${vers}.pkg
 		}
 	}
 	
 	# copy our own pkg into the mpkg
 	system "cp -RPp ${pkgpath} ${mpkgpath}/Contents/Resources/"
-	lappend dependencies ${portname}.pkg
+	lappend dependencies ${portname}-${portversion}.pkg
 	
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
     write_info_file ${mpkgpath}/Contents/Resources/${portname}.info $portname $portversion $description
@@ -128,7 +148,7 @@ proc package_mpkg {portname portversion} {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_rtf ${mpkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${mpkgpath}/Contents/Resources/background.tiff
 
 	return 0
