@@ -87,7 +87,15 @@ proc uninstall_main {args} {
 	    set uninst_err 0
 	    foreach f $contents {
 		set fname [lindex $f 0]
-		set sumx [lindex $f [lsearch -regex $f MD5]]
+		set md5index [lsearch -regex [lrange $f 1 end] MD5]
+		if {$md5index != -1} {
+			set sumx [lindex $f [expr $md5index + 1]]
+		} else {
+			# XXX There is no MD5 listed, set sumx to an empty
+			# list, causing the next conditional to return a
+			# checksum error
+			set sumx {}
+		}
 		set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
 		if {![string match $sum1 NONE] && ![tbool uninstall.nochecksum]} {
 		    if ![catch {set sum2 [md5 $fname]}] {
