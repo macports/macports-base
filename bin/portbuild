@@ -1,0 +1,42 @@
+#!/usr/bin/tclsh
+# portbuild
+
+# globals
+set invoice Portfile
+set portpath /private/Network/Servers/noether/homes/frodo/landonf/Documents/Code/appleports
+set libpath $portpath/Tcl
+
+# Standard procedures
+proc print_usage args {
+	global argv0
+	puts "Usage: $argv0 \[invoice\]"
+}
+
+proc fatal args {
+	global argv0
+	puts stderr "$argv0: $args"
+	exit
+}
+
+# Main
+if {$argc > 1} {
+	print_usage
+} elseif {$argc == 1} {
+	set invoice [lindex $argv 0]
+}
+
+if [file isdirectory $libpath] {
+	if [catch {pkg_mkIndex $libpath *.tcl *.so *.dylib */*.tcl */*.so */*.dylib} result] {
+		fatal Error updating $libpath index: $result
+	}
+	lappend auto_path $libpath
+} else {
+	fatal libpath ($libpath) is not a directory or does not exist
+}
+
+if [file isfile $invoice] {
+	source $invoice
+} else {
+	fatal invoice file '$invoice' is not a file or does not exist
+}
+eval_depend portutil::targets
