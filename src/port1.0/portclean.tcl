@@ -40,6 +40,6 @@ register com.apple.clean requires main
 
 proc clean_main {args} {
     global portpath workdir
-    file delete -force [file join ${portpath} ${workdir}]
+    exec rm -rf [file join ${portpath} ${workdir}]
     return 0
 }
