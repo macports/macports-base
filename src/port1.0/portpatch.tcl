@@ -9,6 +9,7 @@ package require portutil 1.0
 register com.apple.patch target build patch_main
 register com.apple.patch provides patch
 register com.apple.patch requires main fetch checksum extract
+register com.apple.patch swdep build depends_build
 
 proc patch_main {args} {
     global portname patchfiles distpath filedir workdir portpath

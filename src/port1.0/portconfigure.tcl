@@ -9,6 +9,7 @@ package require portutil 1.0
 register com.apple.configure target build configure_main
 register com.apple.configure provides configure
 register com.apple.configure requires main fetch extract checksum patch
+register com.apple.configure swdep build depends_build
 
 # define options
 options configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
