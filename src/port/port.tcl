@@ -65,11 +65,13 @@ for {set i 0} {$i < $argc} {incr i} {
 		} else {
 			foreach c [split $opt {}] {
 				if {$c == "v"} {
-					ports_verbose yes
+					set options(ports_verbose) yes
 				} elseif {$c == "D"} {
-					ports_debug yes
+					set options(ports_debug) yes
 				} elseif {$c == "q"} {
-					ports_quiet yes
+					set options(ports_quiet) yes
+					set options(ports_verbose) no
+					set options(ports_debug) no
 				} else {
 					print_usage; exit
 				}
