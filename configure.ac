@@ -56,6 +56,9 @@ AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp])
 
+# Check for CoreFoundation
+OD_COREFOUNDATION
+
 # Check for md5 implementation
 OD_LIB_MD5
 # Check for X11 and paraphernalia
