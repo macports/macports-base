@@ -29,20 +29,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "darwinports.h"
 
 #include <tcl.h>
 
-static set_session_option() {
-
+static int set_session_option(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+    return TCL_OK;
 }
 
-void parse_port_conf(struct session s, char* path) {
-    int fd = open(dp->portconf, O_RDONLY, 0);
+void parse_port_conf(dp_session_t dp, char* path) {
+    int fd = open(path, O_RDONLY, 0);
     if (fd != -1) {
-        Tcl_Interp* interp = Tcl_NewInterp();
+        Tcl_Interp* interp = Tcl_CreateInterp();
         char* bootstrap_options[] = {"portdbpath", "libpath", "auto_path", "sources_conf", "prefix", NULL};
-        char* option = bootstrap_options;
+        char** option = bootstrap_options;
         while (*option != NULL) {
             Tcl_CreateObjCommand(interp, *option, &set_session_option, NULL, NULL);
             ++option;

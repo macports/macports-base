@@ -33,8 +33,11 @@
 #include <config.h>
 #endif
 
+#include <sys/param.h>
+
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "darwinports.h"
@@ -46,14 +49,13 @@
  * dp_session_t
  *
  */
-typedef session {
+struct session {
     char* portdbpath;
     char* portconf;
     char* sources_conf;
     dp_array_t sources;
     char* portsharepath;
     char* registry_path;
-    
 };
 
 dp_session_t dp_session_open() {

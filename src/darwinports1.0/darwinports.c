@@ -33,6 +33,8 @@
 #include <config.h>
 #endif
 
+#include <tcl.h>
+
 int darwinports_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
