@@ -114,7 +114,7 @@ proc package_tarball {portname portversion entry} {
 }
 
 proc package_pkg {portname portversion entry} {
-    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath long_description homepage
+    global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage
 
     set resourcepath ${workpath}/pkg_resources
     set rfile [registry_exists $portname $portversion]
@@ -125,7 +125,8 @@ proc package_pkg {portname portversion entry} {
 	set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
 	set pfile [lindex $plist 0]
 
-	foreach f $contents {
+	set receipt_contents [lindex $entry [incr ix]]
+	foreach f $receipt_contents {
 	    set fname [lindex $f 0]
 	    puts $pfile $fname
 	}
@@ -138,7 +139,7 @@ proc package_pkg {portname portversion entry} {
 	    }
 	}
 
-	if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
+	if [catch {system "gnutar -T [lindex $plist 1] -cPpf - | (cd ${destpath} && tar xvf -)"} return] {
 	    ui_error "Package creation failed - gnutar returned error status: $return"
 	    file delete [lindex $plist 1]
 	    return -code error "Package creation failed - gnutar returned error status: $return"
@@ -156,8 +157,8 @@ proc package_pkg {portname portversion entry} {
     set pkgpath ${package.destpath}/${portname}.pkg
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
     write_PkgInfo ${pkgpath}/Contents/PkgInfo
-    write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
-    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $prefix
+    write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description
+    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion
     write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
@@ -200,16 +201,12 @@ proc write_PkgInfo {infofile} {
 	close $infofd
 }
 
-proc write_info_file {infofile portname portversion description destination} {
-	if {[string index $destination end] != "/"} {
-		append destination /
-	}
-
+proc write_info_file {infofile portname portversion description} {
 	set infofd [open ${infofile} w+]
 	puts $infofd "Title ${portname}
 Version ${portversion}
 Description ${description}
-DefaultLocation ${destination}
+DefaultLocation /
 DeleteWarning
 
 ### Package Flags
@@ -225,17 +222,13 @@ RootVolumeOnly NO"
 	close $infofd
 }
 
-proc write_info_plist {infofile portname portversion destination} {
+proc write_info_plist {infofile portname portversion} {
 	set vers [split $portversion "."]
 	set major [lindex $vers 0]
 	set minor [lindex $vers 1]
 	if {$major == ""} {set major "0"}
 	if {$minor == ""} {set minor "0"}
 		
-	if {[string index $destination end] != "/"} {
-		append destination /
-	}
-
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -259,7 +252,7 @@ proc write_info_plist {infofile portname portversion destination} {
 	<key>IFPkgFlagAuthorizationAction</key>
 	<string>RootAuthorization</string>
 	<key>IFPkgFlagDefaultLocation</key>
-	<string>${destination}</string>
+	<string>/</string>
 	<key>IFPkgFlagInstallFat</key>
 	<false/>
 	<key>IFPkgFlagIsRequired</key>

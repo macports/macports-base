@@ -118,7 +118,7 @@ proc package_mpkg {portname portversion} {
 	lappend dependencies ${portname}.pkg
 	
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
-    write_info_file ${mpkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
+    write_info_file ${mpkgpath}/Contents/Resources/${portname}.info $portname $portversion $description
     mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $prefix $dependencies
     write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
