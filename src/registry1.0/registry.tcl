@@ -217,7 +217,7 @@ proc register_bulk_files {files port} {
 	return $r
 }
 
-proc unregister_file {file port} {
+proc unregister_file {file} {
 	global darwinports::registry.format
 	return [${darwinports::registry.format}::unregister_file $file]
 }
