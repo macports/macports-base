@@ -48,7 +48,7 @@ default destroot.cmd {${build.cmd}}
 default destroot.pre_args {${destroot.target}}
 default destroot.target install
 default destroot.post_args {${destroot.vars}}
-default destroot.vars {DESTDIR=${destroot}}
+default destroot.destdir {DESTDIR=${destroot}}
 default destroot.clean no
 
 set UI_PREFIX "---> "
