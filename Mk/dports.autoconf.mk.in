@@ -1,10 +1,11 @@
-SHELL			= /bin/sh
+SHELL			= @SHELL@
 top_srcdir		= @top_srcdir@
 srcdir			= @srcdir@
 VPATH			= @srcdir@
 
 CC			= @CC@
-CFLAGS			= @CFLAGS@ @TCL_INCLUDES@
+CFLAGS			= @CFLAGS@ $(CPPFLAGS)
+CPPFLAGS		= @CPPFLAGS@ @DEFS@ @INCLUDES@ @TCL_INCLUDES@
 SHLIB_CFLAGS		= @SHLIB_CFLAGS@
 CFLAGS_DEBUG		= @CFLAGS_DEBUG@
 CFLAGS_OPTIMIZE		= @CFLAGS_OPTIMIZE@
@@ -17,8 +18,13 @@ TCL_STUB_LIB_SPEC	= @TCL_STUB_LIB_SPEC@
 
 LIBS			= @LIBS@
 INSTALL			= @INSTALL@
+MD5			= @MD5@
 
 TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@
+
+DSTUSR			= @DSTUSR@
+DSTGRP			= @DSTGRP@
+
 
 prefix			= @prefix@
 sysconfdir		= @sysconfdir@
@@ -26,4 +32,10 @@ exec_prefix		= @exec_prefix@
 bindir			= @bindir@
 datadir			= @datadir@
 libdir			= @libdir@
+localstatedir		= @localstatedir@
 infodir			= @infodir@
+
+portconfigdir		= @PORTCONFIGDIR@
+dportsdir		= @DPORTSDIR@
+
+SILENT			= @
