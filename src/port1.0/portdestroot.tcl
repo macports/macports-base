@@ -76,9 +76,11 @@ proc destroot_main {args} {
 }
 
 proc destroot_finish {args} {
-    global destroot
+    global destroot prefix
     
     # Prune empty directories in ${destroot}
     catch {system "find \"${destroot}\" -depth -type d -exec rmdir -- \{\} \\; 2>/dev/null"}
+
+    file delete "${destroot}/${prefix}/share/info/dir"
     return 0
 }
