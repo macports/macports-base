@@ -190,6 +190,7 @@ proc uncompact {name v} {
 }
 
 proc _check_registry {name v} {
+	global UI_PREFIX
 
 	set ilist [registry::installed $name $v]
 	if { [string equal $v ""] } {
