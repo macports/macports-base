@@ -177,10 +177,11 @@ proc option_proc {option args} {
 # trace handler for option reads. Calls option procedures with correct arguments.
 proc option_proc_trace {optionName index op} {
     global option_procs
+	upvar $optionName optionValue
     switch $op {
 	w {
 	    foreach p $option_procs($optionName) {
-		eval "$p $optionName set"
+		eval "$p $optionName set ${optionValue}" 
 	    }
 	    return
 	}
