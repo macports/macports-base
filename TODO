@@ -2,28 +2,13 @@ Things left to do in Darwinports
 
 Task								Who
 ----								---
-August
+December
 
-Document implicit (default) portfile rules			landonf
-Make error messages more meaningful to naive users		landonf/kevinvv
-Add contents lists to all ports					eric
 Allow variants to be overridden					kevinvv
-Allow depspecs in requires (targets & variants)			kevinvv
-Change run/build depends to add depspecs to target's requires	kevinvv
-Write man page for all targets / options			landonf
 Abstract use_* variables to tie into the dependency system	landonf
 autogen default /etc/ports.conf file complete with sysportpath  kevinvv
-
-September
-
-Add Seat belts and elimination of some of the more gratuitous
- Tcl backtraces which only obscure the problem being reported	landonf
-Make sure indices work everywhere they should			landonf
-Generate RPMs as a package format				landonf
-Lots more ports before launch day!				*
-
-October
-
+Generate binary packages					landonf
 Formalize exception handling in portutil.tcl			kevinvv
 Finish depends_* hooks in portdepends.tcl			kevinvv
-implicit variant ${os.platform}${os.version}			kevinvv
+
+Lots more ports before launch day!				*
