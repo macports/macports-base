@@ -62,7 +62,6 @@ proc registry_exists {portname {portversion 1.0}} {
     if [file exists [file join ${registry.path} $portname-$portversion].bz2] {
 	return [file join ${registry.path} $portname-$portversion].bz2
     }
-    puts "could not find [file join ${registry.path} $portname-$portversion]"
     return ""
 }
 

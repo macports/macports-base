@@ -57,10 +57,13 @@ proc uninstall_main {args} {
 	}
 	set entry [read $fd]
 	close $fd
-	set ix [lsearch -exact $entry contents]
+	set ix [lsearch -regexp $entry "contents {{"]
 	if {$ix >= 0} {
-	    set contents [lindex $ix $entry]
-	    puts $contents
+	    set contents [lindex $entry $ix]
+	    foreach f [lindex $contents 1] {
+		puts "deleting [lindex $f 1]"
+	    }
+	    return 0
 	} else {
 	    return -1
 	}
