@@ -721,7 +721,7 @@ proc dportsearch {regexp} {
 	                lappend matches $line
 	            } else {
 	                set len [lindex $line 1]
-	                seek $fd $len current
+					catch {seek $fd $len current}
 	            }
 	        }
 	        close $fd
