@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.9 2005/03/02 14:56:50 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.10 2005/03/02 15:07:11 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -546,6 +546,8 @@ proc open_file_map {{readonly 0}} {
 			filemap open file_map ${map_file}.db
 		}
 	}
+	
+	return 0
 }
 
 ##
@@ -559,9 +561,7 @@ proc open_file_map {{readonly 0}} {
 proc file_registered {file} {
 	variable file_map
 
-	if { ![info exists file_map] } {
-		open_file_map
-	}
+	open_file_map 1
 
 	if {[filemap exists file_map $file]} {
 		return [filemap get file_map $file]
@@ -583,9 +583,7 @@ proc port_registered {name} {
 	# Trust the file map first.
 	variable file_map
 
-	if { ![info exists file_map] } {
-		open_file_map
-	}
+	open_file_map 1
 
 	set files [filemap list file_map $name]
 
@@ -617,9 +615,7 @@ proc port_registered {name} {
 proc register_file {file port} {
 	variable file_map
 
-	if { ![info exists file_map] } {
-		open_file_map
-	}
+	open_file_map
 
 	if { [file type $file] == "link" } {
 		ui_debug "Adding link to file_map: $file for: $port"
@@ -639,9 +635,7 @@ proc register_file {file port} {
 proc register_bulk_files {files port} {
 	variable file_map
 
-	if { ![info exists file_map] } {
-		open_file_map
-	}
+	open_file_map
 
 	foreach f $files {
 		set file [lindex $f 0]
@@ -663,9 +657,7 @@ proc register_bulk_files {files port} {
 proc unregister_file {file} {
 	variable file_map
 
-	if { ![info exists file_map] } {
-		open_file_map
-	}
+	open_file_map
 
 	ui_debug "Removing entry from file_map: $file"
 	filemap unset file_map $file
@@ -681,6 +673,7 @@ proc write_file_map {args} {
 	variable file_map
 
 	if { [info exists file_map] } {
+		open_file_map
 		filemap save file_map
 	}
 
