@@ -4,6 +4,7 @@
 #
 
 package provide portui 1.0
+package require portutil 1.0
 
 # Can be set to make the entire UI go into "batch mode"
 global _ui_is_enabled
@@ -62,7 +63,7 @@ proc ui_puts {str {nonl ""}} {
 proc ui_debug {str} {
     global ports_debug
 
-    if [info exists ports_debug] {
+    if [tbool ports_debug] {
 	puts stderr "DEBUG: $str"
     }
 }
@@ -72,7 +73,7 @@ proc ui_debug {str} {
 proc ui_info {str} {
     global ports_verbose
 
-    if [info exists ports_verbose] {
+    if [tbool ports_verbose] {
 	ui_puts $str
     }
 }
