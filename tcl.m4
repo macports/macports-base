@@ -113,6 +113,8 @@ AC_DEFUN(SC_PATH_TCLCONFIG, [
 			`ls -d /System/Library/Tcl/8.3 2>/dev/null` \
 			`ls -d /usr/local/lib/tcl8.4 2>/dev/null` \
 			`ls -d /usr/local/lib/tcl8.3 2>/dev/null` \
+			`ls -d /usr/lib/tcl8.4 2>/dev/null` \
+			`ls -d /usr/lib/tcl8.3 2>/dev/null` \
 			; do
 		    if test -f "$i/tclConfig.sh" ; then
 			ac_cv_c_tclconfig=`(cd $i; pwd)`
@@ -2542,7 +2544,7 @@ AC_DEFUN(SC_PUBLIC_TCL_HEADERS, [
 		eval "temp_includedir=${includedir}"
 		for i in \
 			`ls -d ${temp_includedir} 2>/dev/null` \
-			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION}; do
+			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION} /usr/include/tcl${TCL_VERSION}; do
 		    if test -f "$i/tcl.h" ; then
 			ac_cv_c_tclh=$i
 			break
