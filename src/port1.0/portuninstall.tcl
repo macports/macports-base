@@ -88,8 +88,8 @@ proc uninstall_main {args} {
 		return 0
 	    }
 	} else {
-	    return -1
+	    return -code error "Uninstall failed"
 	}
     }
-    return -1
+    return -code error "Uninstall failed"
 }

@@ -625,12 +625,13 @@ proc dlist_evaluate {dlist get_next_proc} {
 
 proc target_run {this} {
 	global target_state_fd
+	set result 0
 	set procedure [$this get procedure]
     if {$procedure != ""} {
 		set name [$this get name]
 	
 		if {[$this has init]} {
-			[$this get init] $name
+			set result [catch {[$this get init] $name}]
 		}
 				
 		if {[check_statefile $name $target_state_fd]} {
@@ -639,33 +640,37 @@ proc target_run {this} {
 		} else {
 			# Execute pre-run procedure
 			if {[$this has prerun]} {
-				[$this get prerun] $name
+				set result [catch {[$this get prerun] $name}]
 			}
 
-			foreach pre [$this get pre] {
-				ui_debug "Executing $pre"
-				if {[$pre $name] != 0} { return failure }
+			if {$result == 0} {
+				foreach pre [$this get pre] {
+					ui_debug "Executing $pre"
+					set result [catch {$pre $name}]
+					if {$result != 0} { break }
+				}
 			}
 
-			ui_debug "Executing $name"
-			set result [$procedure $name]
-
-			foreach post [$this get post] {
-				ui_debug "Executing $post"
-				if {[$post $name] != 0} { 
-					set result 1 
-					break
+			if {$result == 0} {
+				ui_debug "Executing $name"
+				set result [catch {$procedure $name}]
+			}
+			
+			if {$result == 0} {
+				foreach post [$this get post] {
+					ui_debug "Executing $post"
+					set result [catch {$post $name}]
+					if {$result != 0} { break }
 				}
 			}
 			# Execute post-run procedure
-			if {[$this has postrun]} {
+			if {$result == 0 && [$this has postrun]} {
 				set postrun [$this get postrun]
 				ui_debug "Executing $postrun"
-				$postrun $name
+				set result [catch {$postrun $name}]
 			}
 		}
 		if {$result == 0} {
-			set result 0
 			if {[$this get runtype] != "always"} {
 				write_statefile $name $target_state_fd
 			}

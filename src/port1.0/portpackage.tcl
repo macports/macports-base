@@ -50,7 +50,7 @@ proc package_main {args} {
     set rfile [registry_exists $portname $portversion]
     if ![string length $rfile] {
 	ui_error "Package ${portname}-${portversion} not installed on this system"
-	return -1
+	return -code error "Package ${portname}-${portversion} not installed on this system"
     }
     ui_msg "$UI_PREFIX Creating ${package.type} package for ${portname}-${portversion}"
     if [regexp .bz2$ $rfile] {
@@ -98,12 +98,12 @@ proc package_tarball {portname portversion entry} {
 	if [catch {system "gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget}"} err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
 	    ui_info "Failed packing list left in [lindex $plist 1]"
-	    return -1
+	    return -code error "Package creation failed - gnutar returned error status: $err"
 	}
 	exec rm [lindex $plist 1]
     } else {
 	ui_error "Bad registry entry for ${portname}-${portversion}, no contents"
-	return -1
+	return -code error "Bad registry entry for ${portname}-${portversion}, no contents"
     }
     return 0
 }

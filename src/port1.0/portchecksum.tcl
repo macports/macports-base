@@ -86,7 +86,7 @@ proc checksum_main {args} {
 	foreach distfile $all_dist_files {
 	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
 	}
-	return -1
+	return -code error "No checksums statement in Portfile."
     }
 
     # Optimization for the 2 argument case for checksums
@@ -99,13 +99,13 @@ proc checksum_main {args} {
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
 	    ui_error "No checksum recorded for $distfile"
-	    return -1
+	    return -code error "No checksum recorded for $distfile"
 	}
 	if {$checksum == $dchecksum} {
 	    ui_msg "$UI_PREFIX Checksum OK for $distfile"
 	} else {
 	    ui_error "Checksum mismatch for $distfile"
-	    return -1
+	    return -code error "Checksum mismatch for $distfile"
 	}
     }
     return 0

@@ -56,7 +56,7 @@ proc configure_main {args} {
 	# XXX depend on automake
 	if {[catch {system "[command automake]"} result]} {
 	    ui_error "configure target failed: $result"
-	    return -1
+	    return -code error "configure target failed: $result"
 	}
     }
 
@@ -64,7 +64,7 @@ proc configure_main {args} {
 	# XXX depend on autoconf
 	if {[catch {system "[command autoconf]"} result]} {
 	    ui_error "configure target failed: $result"
-	    return -1
+	    return -code error "configure target failed: $result"
 	}
     }
 
@@ -72,7 +72,7 @@ proc configure_main {args} {
         ui_msg "$UI_PREFIX Running configure script"
 	if {[catch {system "[command configure]"} result]} {
 	    ui_error "configure target failed: $result"
-	    return -1
+	    return -code error "configure target failed: $result"
 	}
     }
     return 0

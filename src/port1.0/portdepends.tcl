@@ -132,14 +132,14 @@ proc depends_main {id} {
     array set portinfo [dportmatch ^$portname\$]
     if {[array size portinfo] == 0} {
         ui_error "Dependency $portname not found"
-        return -1
+        return -code error "Dependency $portname not found"
     }
     set porturl $portinfo(porturl)
     set worker [dportopen $porturl options variations]
 	if {[catch {dportexec $worker install} result]} {
 		ui_error "Build of $portname failed: $result"
 		dportclose $worker
-		return -1
+        return -code error "Build of $portname failed: $result"
 	}
 	if {[catch {dportexec $worker clean} result]} {
 		ui_error "Clean of $portname failed: $result"

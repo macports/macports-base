@@ -50,14 +50,14 @@ proc install_main {args} {
 	ui_msg "Warning: The directory $prefix does not exist, creating it."
 	if [catch {exec mkdir -p $prefix} err] {
 	    ui_error "Could not make directory for ${prefix}: $err"
-	    return -1
+	    return -code error "Could not make directory for ${prefix}: $err"
 	}
     }
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
     set make.target.current ${make.target.install}
     if [catch {system "[command make]"}] {
 	ui_error "Installation failed."
-	return -1
+	return -code error "Installation failed."
     }
     return 0
 }

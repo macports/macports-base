@@ -187,14 +187,14 @@ proc cvsfetch {args} {
 	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} cvs"
 	if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS login failed"
-        return -1
+        return -code error "CVS login failed"
     }
 	set cvs.args "co -r ${cvs.tag}"
 	set cvs.cmd cvs
 	set cvs.post_args "${cvs.module}"
 	if {[catch {system "[command cvs] 2>&1"} result]} {
         ui_error "CVS check out failed"
-        return -1
+        return -code error "CVS check out failed"
     }
 	return 0
 }
@@ -207,12 +207,12 @@ proc fetchfiles {args} {
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
 	    ui_error "Unable to create distribution files path: $result"
-	    return -1
+	    return -code error "Unable to create distribution files path: $result"
 	}
     }
     if {![file writable $distpath]} {
         ui_error "$distpath must be writable"
-        return -1
+        return -code error "$distpath must be writable"
     }
     foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
@@ -239,7 +239,7 @@ proc fetchfiles {args} {
 		}
 	    }
 	    if {![info exists fetched]} {
-		return -1
+		return -code error "curl(1) fetch failed."
 	    } else {
 		unset fetched
 	    }

@@ -80,7 +80,7 @@ proc extract_main {args} {
 	set extract.args "$distpath/$distfile"
 	if [catch {system "[command extract]"} result] {
 	    ui_error "$result"
-	    return -1
+	    return -code error "$result"
 	}
 	ui_info "Done"
     }
