@@ -29,21 +29,19 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portbuild 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.build [target_new com.apple.build build_main]
-target_provides ${com.apple.build} build
-target_requires ${com.apple.build} main fetch extract checksum patch configure
-target_prerun ${com.apple.build} build_start
+name		org.opendarwin.build
+requires	configure
+provides	build
 
 # define options
 options build.target.all build.target
 commands build
 # defaults
-default build.dir {${workpath}/${worksrcdir}}
+default build.dir {[option workpath]/[option worksrcdir]}
 default build.cmd {[build_getmaketype]}
-default build.pre_args {${build.target}}
+default build.pre_args {[option build.target]}
 option_deprecate build.target.all build.target
 default build.target "all"
 
@@ -78,13 +76,13 @@ proc build_getmaketype {args} {
     }
 }
 
-proc build_start {args} {
+proc start {args} {
     global UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
 }
 
-proc build_main {args} {
+proc main {args} {
     system "[command build]"
     return 0
 }

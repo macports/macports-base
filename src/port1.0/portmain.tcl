@@ -32,46 +32,48 @@
 # the 'main' target is provided by this package
 # main is a magic target and should not be replaced
 
-package provide portmain 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.main [target_new com.apple.main main]
-target_provides ${com.apple.main} main
+name		org.opendarwin.main
+provides	main
+runtype		always
 
 # define options
 options prefix name version revision categories maintainers
 options long_description description homepage
 options workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants
+options depends_lib depends_run depends_build
 
 # Export options via PortInfo
 options_export name version revision categories maintainers platforms description long_description homepage
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
+options_export depends_build depends_lib depends_run
 
 # Hard coded version number for resource location
-default portresourcepath {[file join $portsharepath resources/port1.0]}
-default distpath {[file join $portdbpath distfiles]}
+default portresourcepath {[file join [option portsharepath] resources/port1.0]}
+default distpath {[file join [option portdbpath] distfiles]}
 default workdir work
-default workpath {[file join $portpath $workdir]}
+default workpath {[file join [option portpath] [option workdir]]}
 default prefix /opt/local
 default x11prefix /usr/X11R6
 default destdir destroot
-default destpath {${workpath}/${destdir}}
+default destpath {[option workpath]/[option destdir]}
 # destroot is provided as a clearer name for the "destpath" variable
-default destroot {${destpath}}
+default destroot {[option destpath]}
 default filedir files
 default revision 0
-default distname {${portname}-${portversion}}
-default worksrcdir {$distname}
+default distname {[option portname]-[option portversion]}
+default worksrcdir {[option distname]}
 default filesdir {files}
-default filespath {[file join $portpath $filesdir]}
-default worksrcpath {[file join $workpath $worksrcdir]}
+default filespath {[file join [option portpath] [option filesdir]]}
+default worksrcpath {[file join [option workpath] [option worksrcdir]]}
 
 # Compatibility namespace
-default portname {$name}
-default portversion {$version}
-default portrevision {$revision}
+default portname {[option name]}
+default portversion {[option version]}
+default portrevision {[option revision]}
 
 # Platform Settings
 set os_arch $tcl_platform(machine)
@@ -85,8 +87,8 @@ default os.endian {[string range $tcl_platform(byteOrder) 0 [expr [string length
 
 
 # Select implicit variants
-if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
-if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
+if {[info exists os.platform] && ![info exists variations([option os.platform])]} { variant_set [option os.platform]}
+if {[info exists os.arch] && ![info exists variations([option os.arch])]} { variant_set [option os.arch] }
 
 proc main {args} {
     return 0

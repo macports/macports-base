@@ -169,13 +169,17 @@ proc dlist_append_dependents {dlist ditem result} {
 	if {[lsearch $result $ditem] == -1} {
 		lappend result $ditem
 	}
-	# Recursively append any hard dependencies.
-	foreach token [ditem_key $ditem requires] {
+	# Recursively append any hard or soft dependencies.
+	set antecedents [ditem_key $ditem requires]
+	eval "lappend antecedents [ditem_key $ditem uses]"
+	foreach token $antecedents {
 		foreach provider [dlist_search $dlist provides $token] {
-			set result [dlist_append_dependents $dlist $provider $result]
+			if {[lsearch $result $provider] == -1} {
+				set result [dlist_append_dependents $dlist $provider $result]
+			}
 		}
 	}
-	# XXX: add soft-dependencies?
+	
 	return $result
 }
 
@@ -263,8 +267,8 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 	# Loop for as long as there are ditems in the dlist.
 	while {1} {
 		set ditem [$selector $dlist statusdict]
-		
-		if {$ditem == {}} {
+
+		if {[llength $ditem] == 0} {
 			break
 		} else {
 			# $handler should return a unix status code, 0 for success.

@@ -29,23 +29,22 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portpatch 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.patch [target_new com.apple.patch patch_main]
-target_provides ${com.apple.patch} patch
-target_requires ${com.apple.patch} main fetch checksum extract 
+name		org.opendarwin.patch
+requires	extract
+provides	patch
 
 set UI_PREFIX "---> "
 
 # Add command patch
 commands patch
 # Set up defaults
-default patch.dir {${worksrcpath}}
+default patch.dir {[option worksrcpath]}
 default patch.cmd patch
 default patch.pre_args -p0
 
-proc patch_main {args} {
+proc main {args} {
     global UI_PREFIX
 
     # First make sure that patchfiles exists and isn't stubbed out.

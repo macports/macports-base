@@ -29,14 +29,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portextract 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.extract [target_new com.apple.extract extract_main]
-target_init ${com.apple.extract} extract_init
-target_provides ${com.apple.extract} extract
-target_requires ${com.apple.extract} fetch checksum
-target_prerun ${com.apple.extract} extract_start
+name		org.opendarwin.extract
+requires	checksum
+provides	extract
 
 # define options
 options extract.only
@@ -45,16 +42,16 @@ commands extract
 # Set up defaults
 # XXX call out to code in portutil.tcl XXX
 # This cleans the distfiles list of all site tags
-default extract.only {[disttagclean $distfiles]}
+#default extract.only {[disttagclean [option distfiles]]}
 
-default extract.dir {${workpath}}
+default extract.dir {[option workpath]}
 default extract.cmd gzip
 default extract.pre_args -dc
 default extract.post_args {{| tar -xf -}}
 
 set UI_PREFIX "---> "
 
-proc extract_init {args} {
+proc init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
 
     if [exists use_bzip2] {
@@ -66,13 +63,13 @@ proc extract_init {args} {
     }
 }
 
-proc extract_start {args} {
+proc start {args} {
     global UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
-proc extract_main {args} {
+proc main {args} {
     global UI_PREFIX
 
     if {![exists distfiles] && ![exists extract.only]} {

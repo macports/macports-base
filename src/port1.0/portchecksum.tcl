@@ -29,13 +29,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portchecksum 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.checksum [target_new com.apple.checksum checksum_main]
-target_provides ${com.apple.checksum} checksum
-target_requires ${com.apple.checksum} main fetch
-target_prerun ${com.apple.checksum} checksum_start
+name		org.opendarwin.checksum
+requires	fetch
+provides	checksum
 
 # define options
 options checksums
@@ -43,7 +41,7 @@ options checksums
 set UI_PREFIX "---> "
 
 proc md5 {file} {
-    global distpath UI_PREFIX
+    global UI_PREFIX
 
     set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
     if {[catch {set pipe [open "|md5 \"${file}\"" r]} result]} {
@@ -72,24 +70,26 @@ proc dmd5 {file} {
     return -1
 }
 
-proc checksum_start {args} {
-    global UI_PREFIX portname
+proc start {args} {
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum for %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum for %s"] [option portname]]"
 }
 
-proc checksum_main {args} {
-    global distpath all_dist_files UI_PREFIX
+proc main {args} {
+    global UI_PREFIX
+
+	set all_dist_files [option all_dist_files]
 
     # If no files have been downloaded there is nothing to checksum
-    if ![info exists all_dist_files] {
-	return 0
+    if {![exists all_dist_files]} {
+		return 0
     }
 
     if {![exists checksums]} {
 	ui_error "[msgcat::mc "No checksums statement in Portfile.  File checksums are:"]"
 	foreach distfile $all_dist_files {
-	    ui_msg "$distfile md5 [md5 $distpath/$distfile]"
+	    ui_msg "$distfile md5 [md5 [option distpath]/$distfile]"
 	}
 	return -code error "[msgcat::mc "No checksums statement in Portfile."]"
     }
@@ -100,7 +100,7 @@ proc checksum_main {args} {
     }
 
     foreach distfile $all_dist_files {
-	set checksum [md5 $distpath/$distfile]
+	set checksum [md5 [option distpath]/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
 	    ui_warn "[format [msgcat::mc "No checksum recorded for %s"] $distfile]"
@@ -108,5 +108,8 @@ proc checksum_main {args} {
 	    return -code error "[format [msgcat::mc "Checksum mismatch for %s"] $distfile]"
 	}
     }
+	
+	option all_dist_files $all_dist_files
+	
     return 0
 }

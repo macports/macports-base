@@ -29,34 +29,38 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portpackage 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.package [target_new com.apple.package package_main]
-target_runtype ${com.apple.package} always
-target_provides ${com.apple.package} package
-target_requires ${com.apple.package} install
+name		org.opendarwin.package
+runtype		always
+requires	install
+provides	package
 
 # define options
 options package.type package.destpath
 
 # Set defaults
-default package.destpath {${workpath}}
+default package.destpath {[option workpath]}
 
 set UI_PREFIX "---> "
 
-proc package_main {args} {
-    global portname portversion package.type package.destpath UI_PREFIX
+proc main {args} {
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating package for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating package for %s-%s"] [option portname] [option portversion]]"
 
-    return [package_pkg $portname $portversion]
+    return [package_pkg [option portname] [option portversion]]
 }
 
 proc package_pkg {portname portversion} {
-    global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage
+	set workpath [option workpath]
+	set prefix [option prefix]
+	set description [option description]
+	set destpath [option destpath]
+	set portresourcepath [option portresourcepath]
+	set package.destpath [option package.destpath]
 
-    set resourcepath ${workpath}/pkg_resources
+    set resourcepath $workpath/pkg_resources
     # XXX: we need to support .lproj in resources.
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
     system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
@@ -66,10 +70,10 @@ proc package_pkg {portname portversion} {
     write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
-	if {![info exists $variable]} {
+	if {![exists $variable]} {
 	    set pkg_$variable ""
 	} else {
-	    set pkg_$variable [set $variable]
+	    set pkg_$variable [option $variable]
 	}
     }
     write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage

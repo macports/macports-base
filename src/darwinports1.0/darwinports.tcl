@@ -33,8 +33,8 @@ package require darwinports_dlist 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
+    variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix targetpath"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath targetpath registry.path"
 	
 	variable open_dports {}
 }
@@ -67,7 +67,7 @@ proc ui_warn {str {nonl ""}} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::targetpath
 
     if {[llength [array names env HOME]] > 0} {
 	set HOME [lindex [array get env HOME] 1]
@@ -154,8 +154,12 @@ proc darwinports::worker_init {workername portpath options variations} {
     global darwinports::portinterp_options auto_path
 
     # Create package require abstraction procedure
-    $workername eval "proc PortSystem \{version\} \{ \n\
-			package require port \$version \}"
+    $workername eval {
+		proc PortSystem {version} {
+			package require port $version
+			portinit
+		}
+	}
 
     foreach proc {dportexec dportopen dportclose dportsearch} {
         $workername alias $proc $proc
@@ -442,11 +446,13 @@ proc dportexec {dport target} {
 		return 1
 	}
 	
+	# XXX: hack to placate the masses who expect install to mean other things
+	if {$target == "install"} { set target "deploy" }
 	# Before we build the port, we must build its dependencies.
 	# XXX: need a more general way of comparing against targets
 	set dlist {}
 	if {$target == "configure" || $target == "build" || $target == "install" ||
-		$target == "package" || $target == "mpkg"} {
+		$target == "package" || $target == "mpkg" || $target == "deploy"} {
 
 		if {[dportdepends $dport 1 1] != 0} {
 			return 1
@@ -459,7 +465,7 @@ proc dportexec {dport target} {
 		dlist_delete dlist $dport
 
 		# install them
-		set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+		set dlist [dlist_eval $dlist _dporttest [list _dportexec "deploy"]]
 		
 		if {$dlist != {}} {
 			ui_error "The following dependencies failed to build:"

@@ -31,24 +31,22 @@
 
 # the 'clean' target is provided by this package
 
-package provide portclean 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.clean [target_new com.apple.clean clean_main]
-target_runtype ${com.apple.clean} always
-target_provides ${com.apple.clean} clean
-target_requires ${com.apple.clean} main
-target_prerun ${com.apple.clean} clean_start
+name		org.opendarwin.clean
+runtype		always
+requires	main
+provides	clean
 
 set UI_PREFIX "--->"
 
-proc clean_start {args} {
+proc start {args} {
     global UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
 }
 
-proc clean_main {args} {
+proc main {args} {
     exec rm -rf [file join [option workpath]]
     return 0
 }

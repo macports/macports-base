@@ -29,14 +29,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portfetch 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.fetch [target_new com.apple.fetch fetch_main]
-target_init ${com.apple.fetch} fetch_init
-target_provides ${com.apple.fetch} fetch
-target_requires ${com.apple.fetch} main
-target_prerun ${com.apple.fetch} fetch_start
+name		org.opendarwin.fetch
+requires	main
+provides	fetch
 
 # define options: distname master_sites
 options master_sites patch_sites extract.sufx distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag
@@ -50,34 +47,37 @@ default extract.sufx .tar.gz
 default fetch.type standard
 default cvs.cmd cvs
 default cvs.password ""
-default cvs.dir {${workpath}}
-default cvs.module {$distname}
+default cvs.dir {[option workpath]}
+default cvs.module {[option distname]}
 default cvs.tag HEAD
-default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
-default cvs.pre_args {"-d ${cvs.root}"}
+default cvs.env {CVS_PASSFILE=[option workpath]/.cvspass}
+default cvs.pre_args {"-d [option cvs.root]"}
 
 default fetch.cmd curl
 default fetch.dir {${distpath}}
-default fetch.args {"-o ${distfile}.TMP"}
+default fetch.args {"-o [option distfile].TMP"}
 default fetch.pre_args ""
 default fetch.post_args {"${site}${distfile}"}
 
 # Set distfiles
-default distfiles {[suffix $distname]}
+default distfiles {[suffix [option distname]]}
+
+default extract.only {[disttagclean [option distfiles]]}
+
 
 # Option-executed procedures
 namespace eval options { }
 proc options::use_bzip2 {args} {
-    global use_bzip2 extract.sufx
+    global use_bzip2
     if [tbool use_bzip2] {
-        set extract.sufx .tar.bz2
+        option extract.sufx .tar.bz2
     }
 }
 
 proc options::use_zip {args} {
-    global use_zip extract.sufx
+    global use_zip
     if [tbool use_zip] {
-        set extract.sufx .zip
+        option extract.sufx .zip
     }
 }
 
@@ -89,8 +89,8 @@ set UI_PREFIX "---> "
 
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.sufx options
 proc suffix {distname} {
-    global extract.sufx use_bzip2 use_zip fetch.type
-    if {"${fetch.type}" == "cvs"} {
+    global use_bzip2 use_zip
+    if {"[option fetch.type]" == "cvs"} {
         return ""
     }
     if {[tbool use_bzip2]} {
@@ -98,7 +98,7 @@ proc suffix {distname} {
     } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
-	return ${distname}${extract.sufx}
+	return ${distname}[option extract.sufx]
     }
 }
 
@@ -132,21 +132,27 @@ proc disttagclean {list} {
     return $val
 }
 
+# Append a file to the all_dist_files option
+proc append_dist_file {file} {
+	if {[exists all_dist_files]} {
+		set x [option all_dist_files]
+	} else {
+		set x {}
+	}
+	lappend x $file
+	option all_dist_files $x
+}
+
 # Checks all files and their tags to assemble url lists for later fetching
 # sites tags create variables in the portfetch:: namespace containing all sites
 # within that tag distfiles are added in $site $distfile format, where $site is
 # the name of a variable in the portfetch:: namespace containing a list of fetch
 # sites
 proc checkfiles {args} {
-    global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	master_sites filespath
+    global fetch_urls
 
-    foreach list {master_sites patch_sites} {
-        upvar #0 $list uplist
-        if ![info exists uplist] {
-            continue
-        }
-        foreach site $uplist {
+    foreach site_list {master_sites patch_sites} {
+        foreach site [options $site_list] {
             if {[regexp {([a-zA-Z]+://.+/):([a-zA-z]+)} $site match site tag] == 1} {
                 lappend portfetch::$tag $site
             } else {
@@ -155,15 +161,17 @@ proc checkfiles {args} {
         }
     }
     
-    if {[info exists patchfiles]} {
-	foreach file $patchfiles {
-	    if {![file exists $filespath/$file]} {
-		set distsite [getdisttag $file]
-		set file [getdistname $file]
-		lappend all_dist_files $file
+    if {[exists patchfiles]} {
+	foreach file [option patchfiles] {
+	    if {![file exists [option filespath]/$file]} {
+			set distsite [getdisttag $file]
+			set file [getdistname $file]
+			
+			append_dist_file $file
+			
 		if {$distsite != ""} {
 		    lappend fetch_urls $distsite $file
-		} elseif {[info exists patch_sites]} {
+		} elseif {[exists patch_sites]} {
 		    lappend fetch_urls patch_sites $file
 		} else {
 		    lappend fetch_urls master_sites $file
@@ -172,17 +180,19 @@ proc checkfiles {args} {
 	}
     }
     
-    foreach file $distfiles {
-	if {![file exists $filespath/$file]} {
-	    set distsite [getdisttag $file]
-	    set file [getdistname $file]
-	    lappend all_dist_files $file
-	    if {$distsite != ""} {
-		lappend fetch_urls $distsite $file
-	    } else {
-		lappend fetch_urls master_sites $file
-	    }
-	}
+    foreach file [option distfiles] {
+		if {![file exists [option filespath]/$file]} {
+			set distsite [getdisttag $file]
+			set file [getdistname $file]
+	
+			append_dist_file $file
+			
+			if {$distsite != ""} {
+				lappend fetch_urls $distsite $file
+			} else {
+				lappend fetch_urls master_sites $file
+			}
+		}
     }
 }
 
@@ -208,24 +218,24 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd os.platform fetch.pre_args
+    global distpath UI_PREFIX fetch_urls fetch.cmd fetch.pre_args
     global distfile site
 
     # Override curl in the case of FreeBSD
-    if {${os.platform} == "freebsd"} {
+    if {[option os.platform] == "freebsd"} {
 	set fetch.cmd "fetch"
     }
 
-    if {![file isdirectory $distpath]} {
-        if {[catch {file mkdir $distpath} result]} {
+    if {![file isdirectory [option distpath]]} {
+        if {[catch {file mkdir [option distpath]} result]} {
 	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
 	}
     }
-    if {![file writable $distpath]} {
-        return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+    if {![file writable [option distpath]]} {
+        return -code error [format [msgcat::mc "%s must be writable"] [option distpath]]
     }
     foreach {url_var distfile} $fetch_urls {
-	if {![file isfile $distpath/$distfile]} {
+	if {![file isfile [option distpath]/$distfile]} {
 	    ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
             global portfetch::$url_var
             if ![info exists $url_var] {
@@ -240,7 +250,7 @@ proc fetchfiles {args} {
 		    set fetched 1
 		    break
 		} else {
-		    exec rm -f ${distpath}/${distfile}.TMP
+		    exec rm -f [option distpath]/${distfile}.TMP
 		    ui_error "[msgcat::mc "Unable to fetch:"]: $result"
 		}
 	    }
@@ -255,37 +265,33 @@ proc fetchfiles {args} {
 }
 
 # Initialize fetch target, calling checkfiles if neccesary
-proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir fetch.type
-
-    if {[info exist distpath] && [info exists dist_subdir]} {
-	set distpath ${distpath}/${dist_subdir}
+proc init {args} {
+    if {[exists distpath] && [exists dist_subdir]} {
+		option distpath "[option distpath]/[option dist_subdir]"
     }
-    if {"${fetch.type}" == "standard"} {
+    if {"[option fetch.type]" == "standard"} {
         checkfiles
     }
 }
 
-proc fetch_start {args} {
-    global UI_PREFIX portname
+proc start {args} {
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] [option portname]]"
 }
 
 # Main fetch routine
 # If all_dist_files is not populated and $fetch.type == standard, then
 # there are no files to download. Otherwise, either do a cvs checkout
 # or call the standard fetchfiles procedure
-proc fetch_main {args} {
-    global distname distpath all_dist_files fetch.type
-
+proc main {args} {
     # Check for files, download if neccesary
-    if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+    if {![exists all_dist_files] && "[option fetch.type]" == "standard"} {
         return 0
     }
-    if {"${fetch.type}" == "cvs"} {
+    if {"[option fetch.type]" == "cvs"} {
         return [cvsfetch]
     } else {
-	return [fetchfiles]
+		return [fetchfiles]
     }
 }

@@ -1,7 +1,8 @@
 # et:ts=4
 # portutil.tcl
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002-2003 Kevin Van Vechten <kevin@opendarwin.org>
+# Copyright (c) 2002-2003 Apple Computer, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -52,16 +53,29 @@ namespace eval options {
 #	name  - the name of the option to read or write
 #	value - an optional value to assign to the option
 
-proc option {name args} {
+proc option {_optionName_ args} {
 	# XXX: right now we just transparently use globals
 	# eventually this will need to bridge the options between
 	# the Portfile's interpreter and the target's interpreters.
-	global $name
+	global option_defaults option_workers
+	global ${_optionName_}
 	if {[llength $args] > 0} {
-		ui_debug "setting option $name to $args"
-		set $name [lindex $args 0]
+		ui_debug "setting option ${_optionName_} to $args"
+		set ${_optionName_} [lindex $args 0]
 	}
-	return [set $name]
+	global option_defaults
+	if {[info exists option_defaults(${_optionName_})]} {
+		#ui_debug "reading default value for ${_optionName_} \[option\]"
+		set code [catch {$option_workers(${_optionName_}) eval "return $option_defaults(${_optionName_})"} result]
+		if {$code != 0 && $code != 2} {
+			ui_error "Error evaluation option ${_optionName_} \{$option_defaults(${_optionName_})\}: $result"
+			return
+		}
+		#ui_debug "$option_defaults(${_optionName_}) -> $result"
+		return $result
+	} else {
+		return [set ${_optionName_}]
+	}
 }
 
 # exists
@@ -202,26 +216,26 @@ proc command {command} {
     global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
     
     set cmdstring ""
-    if [info exists ${command}.dir] {
-	set cmdstring "cd [set ${command}.dir] &&"
+    if [exists ${command}.dir] {
+	set cmdstring "cd [option ${command}.dir] &&"
     }
     
-    if [info exists ${command}.env] {
-	foreach string [set ${command}.env] {
+    if [exists ${command}.env] {
+	foreach string [option ${command}.env] {
 	    set cmdstring "$cmdstring $string"
 	}
     }
     
-    if [info exists ${command}.cmd] {
-	foreach string [set ${command}.cmd] {
+    if [exists ${command}.cmd] {
+	foreach string [option ${command}.cmd] {
 	    set cmdstring "$cmdstring $string"
 	}
     } else {
 	set cmdstring "$cmdstring ${command}"
     }
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
-	if [info exists $var] {
-	    foreach string [set ${var}] {
+	if [exists $var] {
+	    foreach string [option ${var}] {
 		set cmdstring "$cmdstring $string"
 	    }
 	}
@@ -234,8 +248,8 @@ proc command {command} {
 # Sets a variable to the supplied default if it does not exist,
 # and adds a variable trace. The variable traces allows for delayed
 # variable and command expansion in the variable's default value.
-proc default {option val} {
-    global $option option_defaults
+proc default {ditem option val} {
+    global $option option_defaults option_workers
     if {[info exists option_defaults($option)]} {
 	ui_debug "Re-registering default for $option"
     } else {
@@ -246,14 +260,15 @@ proc default {option val} {
 	}
     }
     set option_defaults($option) $val
+	set option_workers($option) [ditem_key $ditem worker]
     set $option $val
-    trace variable $option rwu default_check
+    trace variable $option rwu [list default_check $ditem]
 }
 
 # default_check
 # trace handler to provide delayed variable & command expansion
 # for default variable values
-proc default_check {optionName index op} {
+proc default_check {ditem optionName index op} {
     global option_defaults $optionName
     switch $op {
 	w {
@@ -262,9 +277,7 @@ proc default_check {optionName index op} {
 	    return
 	}
 	r {
-	    upvar $optionName option
-	    uplevel #0 set $optionName $option_defaults($optionName)
-	    return
+		set $optionName [option $optionName]
 	}
 	u {
 	    unset option_defaults($optionName)
@@ -344,8 +357,8 @@ proc variant_unset {name} {
 # and is set to "yes", return 1. Otherwise, return 0
 proc tbool {key} {
     upvar $key $key
-    if {[info exists $key]} {
-	if {[string equal -nocase [set $key] "yes"]} {
+    if {[exists $key]} {
+	if {[string equal -nocase [option $key] "yes"]} {
 	    return 1
 	}
     }
@@ -437,45 +450,53 @@ proc target_run {ditem} {
     set procedure [ditem_key $ditem procedure]
     if {$procedure != ""} {
 	set name [ditem_key $ditem name]
+	set worker [ditem_key $ditem worker]
 	
-	if {[ditem_contains $ditem init]} {
-	    set result [catch {[ditem_key $ditem init] $name} errstr]
+	# If the target has an init procedure, execute it.
+	if {$worker != {} &&
+		[interp eval $worker {return [info commands init]}] != {}} {
+		#ui_debug "Initializing $name ($portname)"
+	    set result [catch {interp eval $worker "init $name"} errstr]
 	}
 	
 	if {[check_statefile target $name $target_state_fd] && $result == 0} {
 	    set result 0
 	    ui_debug "Skipping completed $name ($portname)"
 	} elseif {$result == 0} {
-	    # Execute pre-run procedure
-	    if {[ditem_contains $ditem prerun]} {
-		set result [catch {[ditem_key $ditem prerun] $name} errstr]
+	    # Execute pre-run procedure if it exists
+	    if {$worker != {} &&
+			[interp eval $worker {return [info commands start]}] != {}} {
+			#ui_debug "Starting $name ($portname)"
+			set result [catch {interp eval $worker "start $name"} errstr]
 	    }
+
+	    #if {$result == 0} {
+		#foreach pre [ditem_key $ditem pre] {
+		#    ui_debug "Executing $pre"
+		#    set result [catch {interp eval $worker "$pre $name"} errstr]
+		#    if {$result != 0} { break }
+		#}
+	    #}
 	    
 	    if {$result == 0} {
-		foreach pre [ditem_key $ditem pre] {
-		    ui_debug "Executing $pre"
-		    set result [catch {$pre $name} errstr]
-		    if {$result != 0} { break }
-		}
+			ui_debug "Executing $name ($portname)"
+			set procedure [ditem_key $ditem procedure]
+			set result [catch {interp eval $worker "$procedure $name"} errstr]
 	    }
 	    
-	    if {$result == 0} {
-		ui_debug "Executing $name ($portname)"
-		set result [catch {$procedure $name} errstr]
-	    }
+	    #if {$result == 0} {
+		#foreach post [ditem_key $ditem post] {
+		#    ui_debug "Executing $post"
+		#    set result [catch {interp eval $worker $post $name} errstr]
+		#    if {$result != 0} { break }
+		#}
+	    #}
 	    
-	    if {$result == 0} {
-		foreach post [ditem_key $ditem post] {
-		    ui_debug "Executing $post"
-		    set result [catch {$post $name} errstr]
-		    if {$result != 0} { break }
-		}
-	    }
-	    # Execute post-run procedure
-	    if {[ditem_contains $ditem postrun] && $result == 0} {
-		set postrun [ditem_key $ditem postrun]
-		ui_debug "Executing $postrun"
-		set result [catch {$postrun $name} errstr]
+		# Execute post-run procedure
+	    if {$worker != {} &&
+			[interp eval $worker {return [info commands finish]}] != {} && $result == 0} {
+		#ui_debug "Finishing $name ($portname)"
+		set result [catch {interp eval $worker finish $name} errstr]
 	    }
 	}
 	if {$result == 0} {
@@ -514,7 +535,7 @@ proc eval_targets {target} {
 	
     # Restore the state from a previous run.
     set target_state_fd [open_statefile]
-    
+
     set dlist [dlist_eval $dlist "" target_run]
 
     if {[llength $dlist] > 0} {
@@ -537,7 +558,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath portname portpath ports_ignore_older
-    
+
     if ![file isdirectory $workpath ] {
 	file mkdir $workpath
     }
@@ -765,59 +786,48 @@ proc target_new {name procedure} {
     return $ditem
 }
 
+proc make_custom_target {name requires uses runtype args} {
+	set tname "custom-${name}" 
+ui_debug "creating target $tname requires $requires"	
+	set ditem [target_new $tname $tname]
+	# custom targets simply run in the Portfile's interpreter
+	ditem_key $ditem worker {}
+	ditem_key $ditem procedure $tname
+	# we provide our customized name, and the name of what we're replacing
+	ditem_key $ditem provides [list $name $tname]
+	ditem_key $ditem requires $requires
+	ditem_key $ditem uses $uses
+	if {$runtype != ""} { ditem_key $ditem runtype $runtype }
+
+	if {[llength $args] == 0} { set args {{}} }
+	eval "makeuserproc userproc-${tname} $args"
+	eval "proc $tname \{args\} \{ \n\
+		if \{\[catch userproc-${tname} result\]\} \{ \n\
+			return -code error \$result \n\
+		\} else \{ \n\
+			return 0 \n\
+		\} \n\
+	\}"
+	
+	# Use this custom procedure, and none other
+	use $tname
+	return $ditem
+}
+
 proc target_provides {ditem args} {
-    global targets
-    # Register the pre-/post- hooks for use in Portfile.
-    # Portfile syntax: pre-fetch { puts "hello world" }
-    # User-code exceptions are caught and returned as a result of the target.
-    # Thus if the user code breaks, dependent targets will not execute.
-    foreach target $args {
-	set origproc [ditem_key $ditem procedure]
-	set ident [ditem_key $ditem name]
-	if {[info commands $target] != ""} {
-	    ui_debug "$ident registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
-	} else {
-		eval "proc $target {args} \{ \n\
-			ditem_key $ditem procedure proc-${ident}-${target}
-			eval \"proc proc-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-${ident}-${target} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
-			makeuserproc userproc-${ident}-${target} \$args \n\
-		\}"
-	}
-	eval "proc pre-$target {args} \{ \n\
-			ditem_append $ditem pre proc-pre-${ident}-${target}
-			eval \"proc proc-pre-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-pre-${ident}-${target} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			makeuserproc userproc-pre-${ident}-${target} \$args \n\
-		\}"
-	eval "proc post-$target {args} \{ \n\
-			ditem_append $ditem post proc-post-${ident}-${target}
-			eval \"proc proc-post-${ident}-${target} \{name\} \{ \n\
-				if \{\\\[catch userproc-post-${ident}-${target} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			makeuserproc userproc-post-${ident}-${target} \$args \n\
-		\}"
-    }
     eval "ditem_append $ditem provides $args"
+	# We run after each pre-hook
+	foreach token $args {
+		eval "ditem_append $ditem uses pre-${token}"
+	}
 }
 
 proc target_requires {ditem args} {
     eval "ditem_append $ditem requires $args"
+	# We run after each post-hook
+	foreach token $args {
+		eval "ditem_append $ditem uses post-${token}"
+	}
 }
 
 proc target_uses {ditem args} {
@@ -842,6 +852,29 @@ proc target_runtype {ditem args} {
 
 proc target_init {ditem args} {
     eval "ditem_append $ditem init $args"
+}
+
+# use
+# Specifies that a specific target should be used instead of
+# any alternative target with the same name.  The target with
+# the given name is found, and all targets whose provides list
+# intersect with it will be disabled.
+#	name - the name of the target to use
+proc use {name} {
+    global targets
+	ui_debug "use $name:"
+	# Find the target which provides the name
+	set target [dlist_search $targets provides $name]
+	# Disable everything that provides the same services.
+	foreach token [ditem_key $target provides] {
+		if {$token == $name} { continue }
+		set intersections [dlist_search $targets provides $token]
+		foreach other $intersections {
+			if {$other == $target} { continue }
+			ui_debug "  suppressing [ditem_key $other name]"
+			dlist_delete targets $other
+		}
+	}	
 }
 
 ##### variant class #####

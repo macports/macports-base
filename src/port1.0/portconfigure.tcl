@@ -29,24 +29,24 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portconfigure 1.0
-package require portutil 1.0
+PortTarget 1.0
 
-set com.apple.configure [target_new com.apple.configure configure_main]
-target_provides ${com.apple.configure} configure
-target_requires ${com.apple.configure} main fetch extract checksum patch
-target_prerun ${com.apple.configure} configure_start
+name		org.opendarwin.configure
+requires	patch
+provides	configure
+# XXX: prerun should be made implicit
+prerun		configure_start
 
 # define options
 commands configure automake autoconf xmkmf libtool
 # defaults
-default configure.pre_args {--prefix=${prefix}}
+default configure.pre_args {--prefix=[option prefix]}
 default configure.cmd ./configure
-default configure.dir {${worksrcpath}}
-default autoconf.dir {${worksrcpath}}
-default automake.dir {${worksrcpath}}
+default configure.dir {[option worksrcpath]}
+default autoconf.dir {[option worksrcpath]}
+default automake.dir {[option worksrcpath]}
 default xmkmf.cmd xmkmf
-default xmkmf.dir {${worksrcpath}}
+default xmkmf.dir {[option worksrcpath]}
 default use_configure yes
 
 set UI_PREFIX "---> "
@@ -57,7 +57,7 @@ proc configure_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
-proc configure_main {args} {
+proc main {args} {
     global [info globals]
     global global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
 
@@ -82,7 +82,7 @@ proc configure_main {args} {
 	} else {
 	    # XXX should probably use make command abstraction but we know that
 	    # X11 will already set things up so that "make Makefiles" always works.
-	    system "cd ${worksrcpath} && make Makefiles"
+	    system "cd [option worksrcpath] && make Makefiles"
 	}
     } elseif [tbool use_configure] {
 	if {[catch {system "[command configure]"} result]} {
