@@ -165,12 +165,7 @@ proc dportopen {portdir options variations} {
 proc dportexec {workername target} {
     global targets variants portpath portinterp_options uniqid variations
 
-    if {[array size variations] > 0} {
-        set variant [$workername eval choose_variant variants variations]
-        if {[string length $variant] > 0} {
-            $workername eval eval_variants variants $variant
-        }
-    }
+	$workername eval eval_variants variants variations
     return [$workername eval eval_targets targets $target]
 }
 

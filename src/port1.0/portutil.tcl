@@ -749,14 +749,13 @@ proc port_traverse {func {dir .}} {
 
 ########### Port Variants ###########
 
-proc choose_variant {variants variations} {
+# Each variant which provides a subset of the requested variations
+# will be chosen.  Returns a list of the selected variants.
+proc choose_variants {variants variations} {
     upvar $variants upvariants 
     upvar $variations upvariations
 
-    # arbitrary large number ~ INT_MAX
-	set minignored 2000000000
-    set maxpros 0
-    set nextitem ""
+    set selected [list]
     
     foreach n [array names upvariants name,*] {
 		set name $upvariants($n)
@@ -779,17 +778,11 @@ proc choose_variant {variants variations} {
 		
 		if {$cons > 0} { continue }
 		
-		if {$pros > $maxpros} {
-			# Provides more than any previous variant, choose it.
-			set maxpros $pros
-			set nextitem $name
-		} elseif {$pros == $maxpros && $ignored < $minignored} {
-			# Has less overkill than any previous variant, choose it.
-			set minignored $ignored
-			set nextitem $name
+		if {$pros > 0 && $ignored == 0} {
+			lappend selected $name
 		}
 	}
-    return $nextitem
+    return $selected
 }
 
 proc exec_variant {dlist name} {
@@ -801,24 +794,24 @@ proc exec_variant {dlist name} {
     return success
 }
 
-proc eval_variants {dlist variant} {
+proc eval_variants {dlist variations} {
     upvar $dlist uplist
+	upvar $variations upvariations
 
-    ui_debug "Chose $variant"
+	set chosen [choose_variants uplist upvariations]
 
-    # now that we've picked a variant, change all provides [a b c] to [a-b-c]
+    # now that we've selected variants, change all provides [a b c] to [a-b-c]
     # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
     foreach n [array names uplist provides,*] {
         array set uplist [list $n [join $uplist($n) -]]
     }
 	
-    # Select the subset of variants under $variant
-    if {[string length $variant] > 0} {
-        array set dependents [list]
+	array set dependents [list]
+    foreach variant $chosen {
         dlist_append_dependents dependents uplist $variant
-        array unset uplist
-        array set uplist [array get dependents]
     }
+	array unset uplist
+	array set uplist [array get dependents]
     
     array set statusdict [list]
         
