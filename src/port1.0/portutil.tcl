@@ -470,7 +470,7 @@ proc dlist_evaluate {dlist get_next_proc} {
 	if {$obj == ""} { 
 	    break
 	} else {
-	    set result [$obj run]
+	    catch {$obj run} result
 	    # depspec->run returns an error code, so 0 == success.
 	    # translate this to the statusdict notation where 1 == success.
 	    foreach name [$obj get provides] {
@@ -1076,9 +1076,10 @@ proc portexec {portname target} {
 # build the specified portfile with default workpath
 proc portfile_run {this} {
     set portname [$this get name]
-	if {[portexec_int $portname install] == 0} {
-		portexec_int $portname clean
+    if {![catch {portexec_int $portname install} result]} {
+		portexec_int $portname clean 
     }
+    return $result
 }
 
 # builds the specified port (looked up in the index) to the specified target
