@@ -40,7 +40,7 @@ AC_DEFUN([OD_PATH_DPORTSDIR],[
         ])
 
 
-# OD_PATH_DPORTSDIR(DEFAULT_PORTCONFIGDIR, PREFIX)
+# OD_PATH_PORTCONFIGDIR(DEFAULT_PORTCONFIGDIR, PREFIX)
 #---------------------------------------
 AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
