@@ -98,7 +98,8 @@ proc makechroot {dir} {
 	puts $f "set REPORT $REPORT"
 	puts $f "set PKGDIR $PKGDIR"
 	puts $f "exec rm -rf /etc/ports"
-	puts $f "cd darwinports"
+	puts $f "cd darwinports/base"
+	puts $f {if {[catch {exec ./configure} result]} { puts "Warning: darwinports configure returned: $result" }}
 	puts $f {if {[catch {exec make all install} result]} { puts "Warning: darwinports make returned: $result" }}
 	puts $f {set env(PATH) "$env(PATH):/opt/local/bin"}
 	if {[info exists env(MASTER_SITE_LOCAL)]} {
