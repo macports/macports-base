@@ -1,5 +1,5 @@
 SRCS=		darwinports.tcl darwinports_dlist.tcl
-INSTALLDIR=	${DESTDIR}`../../scripts/config.sh installdir`
+INSTALLDIR=	${TCL_PACKAGE_DIR}/darwinports1.0
 
 all:
 
@@ -13,3 +13,4 @@ install:
 	@../pkg_mkindex.tcl ${INSTALLDIR}
 
 include ../../Mk/dports.mk
+include ../../Mk/dports.autoconf.mk

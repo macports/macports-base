@@ -1,0 +1,8 @@
+SUBDIR= doc src
+
+all:: Mk/dports.autoconf.mk
+
+clean::
+	rm -f config.log config.status
+
+include Mk/dports.subdir.mk

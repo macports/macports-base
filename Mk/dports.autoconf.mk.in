@@ -1,0 +1,29 @@
+SHELL			= /bin/sh
+top_srcdir		= @top_srcdir@
+srcdir			= @srcdir@
+VPATH			= @srcdir@
+
+CC			= @CC@
+CFLAGS			= @CFLAGS@ @TCL_INCLUDES@
+SHLIB_CFLAGS		= @SHLIB_CFLAGS@
+CFLAGS_DEBUG		= @CFLAGS_DEBUG@
+CFLAGS_OPTIMIZE		= @CFLAGS_OPTIMIZE@
+
+SHLIB_LD		= @SHLIB_LD@
+LDFLAGS			= @LDFLAGS@
+SHLIB_LDFLAGS		= @LDFLAGS@
+SHLIB_SUFFIX		= @SHLIB_SUFFIX@
+TCL_STUB_LIB_SPEC	= @TCL_STUB_LIB_SPEC@
+
+LIBS			= @LIBS@
+INSTALL			= @INSTALL@
+
+TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@
+
+prefix			= @prefix@
+sysconfdir		= @sysconfdir@
+exec_prefix		= @exec_prefix@
+bindir			= @bindir@
+datadir			= @datadir@
+libdir			= @libdir@
+infodir			= @infodir@

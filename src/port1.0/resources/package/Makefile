@@ -1,4 +1,4 @@
-INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/resources/port1.0/package
+INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/package
 
 RSRCS=		background.tiff
 
@@ -13,3 +13,4 @@ install:
 	done
 
 include ../../../../Mk/dports.mk
+include ../../../../Mk/dports.autoconf.mk
