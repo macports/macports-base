@@ -247,19 +247,22 @@ proc _check_contents {name contents imagedir} {
 proc _activate_file {srcfile dstfile} {
 	# Don't recursively copy directories
 	if { [file isdirectory $srcfile] && [file type $srcfile] != "link" } {
-		file mkdir $dstfile
-
-		# fix attributes on the directory.
-		set attributes [file attributes $srcfile]
-		for {set i 0} {$i < [llength $attributes]} {incr i} {
-			set opt [lindex $attributes $i]
-			incr i
-			set arg [lindex $attributes $i]
-			file attributes $dstfile $opt $arg
+		# Don't do anything if the directory already exists.
+		if { ![file isdirectory $dstfile] } {
+			file mkdir $dstfile
+	
+			# fix attributes on the directory.
+			set attributes [file attributes $srcfile]
+			for {set i 0} {$i < [llength $attributes]} {incr i} {
+				set opt [lindex $attributes $i]
+				incr i
+				set arg [lindex $attributes $i]
+				file attributes $dstfile $opt $arg
+			}
+	
+			# set mtime on installed element
+			exec touch -r $srcfile $dstfile
 		}
-
-		# set mtime on installed element
-		exec touch -r $srcfile $dstfile
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
@@ -327,14 +330,8 @@ proc _activate_contents {name imagefiles imagedir} {
 		# we don't need to have them sorted from root to subpaths. We do need,
 		# nevertheless, all sub paths to make sure we'll set the directory
 		# attributes properly for all directories.
-		# Finally, we skip substrings of ${prefix}
 		set directory [file dirname $file]
 		while { [lsearch -exact $files $directory] == -1 } { 
-			# Stop if $directory is a substring of ${prefix}
-			if {[string match "$directory*" ${darwinports::prefix}]} {
-				break
-			}
-			
 			lappend files $directory
 			set directory [file dirname $directory]
 		}
