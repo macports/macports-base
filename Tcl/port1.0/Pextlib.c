@@ -2,11 +2,31 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <dirent.h>
 #include <sys/file.h>
+#include <sys/types.h>
 #include <tcl.h>
 
 #define BUFSIZ 1024
-static const char ui_proc[] = "ui_info {";
+
+static int ui_info(Tcl_Interp *interp, char *mesg) {
+	const char ui_proc[] = "ui_info {";
+	char *script, *p;
+	int scriptlen, ret;
+
+	scriptlen = sizeof(ui_proc) + strlen(mesg);
+	script = malloc(scriptlen);
+	if (script == NULL)
+		return TCL_ERROR;
+	else
+		p = script;
+
+	memcpy(script, ui_proc, sizeof(ui_proc));
+	strcat(script, mesg);
+	p += scriptlen - 2;
+	*p = '}';
+	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
+}
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -79,21 +99,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 		free(cmdstring);
 
 	while (fgets(buf, BUFSIZ, pipe) != NULL) {
-		char *script, *p;
-		int scriptlen, ret;
-
-		scriptlen = sizeof(ui_proc) + strlen(buf);
-		script = malloc(scriptlen);
-		if (script == NULL)
-			break;
-		else
-			p = script;
-
-		memcpy(script, ui_proc, sizeof(ui_proc));
-		strcat(script, buf);
-		p += scriptlen - 2;
-		*p = '}';
-		if ((ret = Tcl_EvalEx(interp, script, scriptlen - 1, 0)) != TCL_OK)
+		int ret = ui_info(interp, buf);
+		if (ret != TCL_OK)
 			return ret;
 		Tcl_AppendResult(interp, buf, NULL);
 	}
@@ -163,10 +170,39 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
 	return TCL_OK;
 }
 
+int ReaddirCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	DIR *dirp;
+	struct dirent *dp;
+	Tcl_Obj *tcl_result;
+	char *path;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "directory");
+		return TCL_ERROR;
+	}
+
+	path = Tcl_GetString(objv[1]);
+	dirp = opendir(path);
+	if (!dirp) {
+		Tcl_SetResult(interp, "Directory not found", TCL_STATIC);
+		return TCL_ERROR;
+	}
+	tcl_result = Tcl_NewListObj(0, NULL);
+	while (dp = readdir(dirp)) {
+		Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+	}
+	closedir(dirp);
+	Tcl_SetObjResult(interp, tcl_result);
+	
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
