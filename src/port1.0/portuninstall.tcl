@@ -69,6 +69,7 @@ proc uninstall_main {args} {
 		    system "rm $fname"
 		}
 	    }
+	    registry_delete $portname $portversion
 	    return 0
 	} else {
 	    return -1
