@@ -267,9 +267,9 @@ proc tbool {key} {
 # Deletes a value from the supplied list
 proc ldelete {list value} {
     upvar $list uplist
-    set ix [lsearch -exact uplist $value]
+    set ix [lsearch -exact $uplist $value]
     if {$ix >= 0} {
-	set uplist [lreplace uplist $ix $ix]
+	set uplist [lreplace $uplist $ix $ix]
     }
 }
 
