@@ -1111,8 +1111,8 @@ proc upgrade {pname dspec} {
 	if {[catch {set result [dportexec $workername install]} result]} {
 		ui_error "Unable to exec port: $result"
 
-		# activate the newest not b0rked version
-		# activate the latest installed version
+		# activate the latest installed version, cause installed of 
+		# the version in ports failed.
 		if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
     		ui_error "Activating $pname $version_installed failed: $result"
 			return 1
