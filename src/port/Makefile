@@ -1,5 +1,5 @@
 MAN1=		port.1
-INSTALLDIR=	${DESTROOT}${PREFIX}
+INSTALLDIR=	${DESTDIR}${PREFIX}
 
 mkdirs:
 	mtree -U -f ../../doc/prefix.mtree -d -e -p ${INSTALLDIR} > /dev/null

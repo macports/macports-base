@@ -1,7 +1,7 @@
 OBJS=		CFLib.o
 SHLIB_NAME=	CFLib
 LDADD+=		-ltcl
-INSTALLDIR= ${DESTROOT}${PREFIX}/share/darwinports/Tcl/cflib1.0
+INSTALLDIR= ${DESTDIR}${PREFIX}/share/darwinports/Tcl/cflib1.0
 
 .c.o:
 	./compile.sh ${CFLAGS} $< -o $@

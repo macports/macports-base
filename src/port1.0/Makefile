@@ -1,5 +1,5 @@
 PREFIX?=	/opt/local
-INSTALLDIR=	${DESTROOT}${PREFIX}/share/darwinports/Tcl/port1.0
+INSTALLDIR=	${DESTDIR}${PREFIX}/share/darwinports/Tcl/port1.0
 DSTUSR?=	root
 DSTGRP?=	wheel
 

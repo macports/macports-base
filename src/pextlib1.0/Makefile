@@ -1,7 +1,7 @@
 OBJS=		Pextlib.o strsed.o
 SHLIB_NAME=	Pextlib
 LDADD+=		-ltcl
-INSTALLDIR= ${DESTROOT}${PREFIX}/share/darwinports/Tcl/pextlib1.0
+INSTALLDIR= ${DESTDIR}${PREFIX}/share/darwinports/Tcl/pextlib1.0
 
 .c.o:
 	./compile.sh ${CFLAGS} $< -o $@
