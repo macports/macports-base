@@ -652,7 +652,7 @@ proc target_run {this} {
 		set name [$this get name]
 	
 		if {[$this has init]} {
-			set result [catch {[$this get init] $name}]
+			set result [catch {[$this get init] $name} errstr]
 		}
 				
 		if {[check_statefile $name $target_state_fd]} {
@@ -661,26 +661,26 @@ proc target_run {this} {
 		} else {
 			# Execute pre-run procedure
 			if {[$this has prerun]} {
-				set result [catch {[$this get prerun] $name}]
+				set result [catch {[$this get prerun] $name} errstr]
 			}
 
 			if {$result == 0} {
 				foreach pre [$this get pre] {
 					ui_debug "Executing $pre"
-					set result [catch {$pre $name}]
+					set result [catch {$pre $name} errstr]
 					if {$result != 0} { break }
 				}
 			}
 
 			if {$result == 0} {
 				ui_debug "Executing $name ($portname)"
-				set result [catch {$procedure $name}]
+				set result [catch {$procedure $name} errstr]
 			}
 			
 			if {$result == 0} {
 				foreach post [$this get post] {
 					ui_debug "Executing $post"
-					set result [catch {$post $name}]
+					set result [catch {$post $name} errstr]
 					if {$result != 0} { break }
 				}
 			}
@@ -688,7 +688,7 @@ proc target_run {this} {
 			if {[$this has postrun] && $result == 0} {
 				set postrun [$this get postrun]
 				ui_debug "Executing $postrun"
-				set result [catch {$postrun $name}]
+				set result [catch {$postrun $name} errstr]
 			}
 		}
 		if {$result == 0} {
@@ -696,7 +696,7 @@ proc target_run {this} {
 				write_statefile $name $target_state_fd
 			}
 		} else {
-			ui_error "Target error: $name returned $result"
+			ui_error "Target error: $name returned $errstr"
 			set result 1
 		}
 		
