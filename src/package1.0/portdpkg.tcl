@@ -105,7 +105,14 @@ proc com.apple.dpkg::main {args} {
 	set pkg_category [lindex [option categories] 0]
 
 	# Format the long description. Add a homepage if possible.
-	set pkg_long_description " [option long_description]\n"
+	if {[exists long_description]} {
+		set pkg_long_description " [option long_description]\n"
+	} elseif {[exists description]} {
+		set pkg_long_description " [option description]\n"
+	} else {
+		set pkg_long_description " [option portname]\n"
+	}
+
 	if {[exists homepage]} {
 		append pkg_long_description " .\n"
 		append pkg_long_description " [option homepage]\n"
