@@ -36,12 +36,12 @@ set portdir .
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-vDq\] \[action\] \[-d portdir\] \[options\]"
+    puts "Usage: [exec basename $argv0] \[-vDq\] \[action\] \[-d portdir\] \[options\]"
 }
 
 proc fatal args {
     global argv0
-    puts stderr "$argv0: $args"
+    puts stderr "[exec basename $argv0]: $args"
     exit
 }
 

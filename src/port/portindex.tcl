@@ -12,7 +12,7 @@ set depth 0
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-a\] \[-o output directory\] \[directory\]"
+    puts "Usage: [exec basename $argv0] \[-a\] \[-o output directory\] \[directory\]"
     puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
 }
