@@ -12,12 +12,12 @@ DISTFILES=distfiles.dmg
 FSTYPE=HFSX
 
 # Some conservative (and large) defaults.
-BASE_PADDING=2000000
+BASE_PADDING=4000000
 DISTFILES_SIZE=8192M
 
 # deal with fatal errors
 bomb() {
-	echo "Fatal error: $*"
+	echo "Error: $*"
 	echo "BASEDEV=${BASEDEV} DISTDEV=${DISTDEV}"
 	exit 1
 }
@@ -97,11 +97,12 @@ EOF
 # Set up the base chroot image
 prepchroot() {
 	dir=$1
-	BASEDEV=""; DISTDEV=""
-	rm -f ${CHROOTBASE}.shadow
-	BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+	if [ $STUCK_BASEDEV = 0 ]; then
+		rm -f ${CHROOTBASE}.shadow
+		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -readonly -shadow 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+		mkdir -p $dir/.vol
+	fi
  	DISTDEV=`hdiutil attach ${DISTFILES} -mountpoint $dir/opt/local/var/db/dports/distfiles -union 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
-	mkdir -p $dir/.vol
 	/sbin/mount_devfs devfs $dir/dev || bomb "unable to mount devfs"
 	/sbin/mount_fdesc -o union fdesc $dir/dev || bomb "unable to mount fdesc"
 }
@@ -112,8 +113,16 @@ teardownchroot() {
 	umount $dir/dev  || bomb "unable to umount devfs"
 	umount $dir/dev  || bomb "unable to umount fdesc"
 	[ -z "$DISTDEV" ] || (hdiutil detach $DISTDEV >& /dev/null || bomb "unable to detach DISTDEV")
-	[ -z "$BASEDEV" ] || (hdiutil detach $BASEDEV >& /dev/null || bomb "unable to detach BASEDEV")
-	DISTDEV=""; BASEDEV=""
+	DISTDEV=""
+	if [ ! -z "$BASEDEV" ]; then
+		if hdiutil detach $BASEDEV >& /dev/null; then
+			STUCK_BASEDEV=0
+			BASEDEV=""
+		else
+			echo "Warning: Unable to detach BASEDEV ($BASEDEV)"
+			STUCK_BASEDEV=1
+		fi
+	fi
 }
 
 # main:  This is where we start the show.
@@ -156,6 +165,8 @@ fi
 
 mkchrootbase $DIR
 mkdir -p outputdir/Packages outputdir/logs/succeeded outputdir/logs/failed outputdir/tmp
+# Hack to work around sticking volfs problem.
+STUCK_BASEDEV=0
 
 echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
 for pkg in `cat $TGTPORTS`; do
@@ -163,7 +174,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo "Starting packaging run for $pkg"
 	echo "#!/bin/sh" > $DIR/bootstrap.sh
 	echo 'export PATH=$PATH:/opt/local/bin' >> $DIR/bootstrap.sh
-	echo '/sbin/mount_volfs /.vol || (echo "unable to mount volfs"; exit 1)' >> $DIR/bootstrap.sh
+	echo '/sbin/mount_volfs /.vol' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
 	echo "if port -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
