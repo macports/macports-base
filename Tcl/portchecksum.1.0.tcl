@@ -15,27 +15,32 @@ options portchecksum::options md5file
 
 proc portchecksum::md5 {file} {
 	global distpath
+	set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
 	set pipe [open "|md5 ${file}" r]
-	set output [read $pipe]\n
-	if {[llength $output] != 4} {
-		# XXX clean this up, report errors better?
-		puts "md5sum failed"
+	set line [read $pipe]
+	if {[regexp $md5regex $line match type filename sum] == 1} {
+		return $sum
+	} else {
+		# XXX Handle this error beter
+		puts $line
+		puts "md5sum failed!"
 		return -1
 	}
-	return [lindex $output 3]
 }
 
 proc portchecksum::dmd5 {file} {
 	set fd [open [getval portchecksum::options md5file] r]
+	set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+$)"
 	while {[gets $fd line] >= 0} {
-		if {[llength $line] != 4} {
-			# XXX clean this up
-			puts "failing checkmd5"
-		}
-
-		if {[lindex $line 1] == "($file)"} {
-			close $fd
-			return [lindex $line 3]
+		if {[regexp $md5regex $line match type filename sum] == 1} {
+			if {$filename == $file} {
+				close $fd
+				return $sum
+			}
+		} else {
+			# XXX Handle this error beter
+			puts "md5sum failed!"
+			return -1
 		}
 	}
 	close $fd
@@ -57,8 +62,10 @@ proc portchecksum::main {args} {
 		set checksum [md5 $distpath/$distfile]
 		set dchecksum [dmd5 $distfile]
 		if {$checksum == $dchecksum} {
+			puts "$dchecksum:$checksum"
 			puts "Checksum OK for $distfile"
 		} else {
+			puts "$checksum:$dchecksum"
 			puts "Checksum mismatch for $distfile"
 			return -1
 		}
