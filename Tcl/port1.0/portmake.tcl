@@ -27,7 +27,7 @@ proc make_main {args} {
 
     cd $configpath
     if {${make.type} == "bsd"} {
-	default make.cmd bsdmake
+	set make.cmd bsdmake
     }
     default make.target.all all
     system "${make.cmd} ${make.target.all}"
