@@ -45,7 +45,7 @@ default build.target.install install
 set UI_PREFIX "---> "
 
 proc install_main {args} {
-    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
+    global portname portversion portpath categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
 
     if ![file exists $prefix] {
 	ui_msg "Warning: The directory $prefix does not exist, creating it."

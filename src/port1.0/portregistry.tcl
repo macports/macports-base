@@ -38,10 +38,10 @@ register com.apple.registry requires main fetch extract checksum patch configure
 register com.apple.registry deplist depends_run depends_lib
 
 # define options
-options contents long-description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
+options contents long_description description registry.nochecksum registry.path registry.nobzip registry.contents_recurse
 
 # Export options via PortInfo
-options_export description long-description
+options_export description long_description
 
 default registry.path {[file join ${portdbpath} receipts]}
 
@@ -200,18 +200,25 @@ proc proc_disasm {pname} {
 }
 
 proc registry_main {args} {
-    global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix UI_PREFIX
+    global portname portversion portpath categories description long_description depends_run contents package-install uninstall workdir worksrcdir prefix UI_PREFIX
 
     # Package installed successfully, so now we must register it
     set rhandle [registry_new $portname $portversion]
     ui_msg "$UI_PREFIX Adding $portname to registry, this may take a moment..."
+
     registry_store $rhandle [list prefix $prefix]
     registry_store $rhandle [list categories $categories]
     if [info exists description] {
 	registry_store $rhandle [concat description $description]
     }
+    if [info exists long_description] {
+	registry_store $rhandle [concat long_description ${long_description}]
+    }
     if [info exists depends_run] {
 	registry_store $rhandle [list run_depends $depends_run]
+    }
+    if [info exists package-install] {
+	registry_store $rhandle [concat package-install ${package-install}]
     }
     if [info exists contents] {
 	# If it's a list, try and split it up.
@@ -222,11 +229,8 @@ proc registry_main {args} {
 	}
 	registry_store $rhandle $x
     }
-    if {[info proc pkg_install] == "pkg_install"} {
-	registry_store $rhandle [list pkg_install [proc_disasm pkg_install]]
-    }
-    if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-	registry_store $rhandle [list pkg_uninstall [proc_disasm pkg_uninstall]]
+    if {[info proc uninstall] == "uninstall"} {
+	registry_store $rhandle [list uninstall [proc_disasm uninstall]]
     }
     registry_close $rhandle
     return 0
