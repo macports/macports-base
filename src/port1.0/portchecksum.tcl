@@ -55,7 +55,7 @@ set checksum_types_count [llength $checksum_types]
 # fchecksums
 #
 # Considering the list of checksums, returns only the checksums for the given
-# file. This functionr returns -1 if no checksum can be found for the file.
+# file. This function returns -1 if no checksum can be found for the file.
 # The checksum types are checked.
 #
 # Remark #1: the format of the list prevents us from having a file name equal to
@@ -168,6 +168,8 @@ proc checksum_main {args} {
 		# check that there is at least one checksum for the distfile.
 		if {$portfile_checksums == -1} {
 			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
+			ui_info "[format [msgcat::mc "Correct checksum: %s sha1 %s"] $distfile [sha1 file $fullpath]]"
+			set fail yes
 		} else {
 			# iterate on this list to check the actual values.
 			foreach {type sum} $portfile_checksums {
