@@ -350,6 +350,7 @@ proc _dportsearchpath {depregex search_path} {
 # define DEFAULT_FALLBACK_FRAMEWORK_PATH
 # /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
 # define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+#   -- Since /usr/local is bad, using /lib:/usr/lib only.
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
@@ -369,7 +370,7 @@ proc _libtest {dport depspec} {
 	if {[info exists env(DYLD_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
-	lappend search_path /lib /usr/local/lib /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
+	lappend search_path /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 	    lappend search_path $env(DYLD_LIBRARY_PATH)
 	}
