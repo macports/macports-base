@@ -37,14 +37,15 @@ proc portfetch::checkfiles {args} {
 			puts "$distfile doesn't seem to exist in $distpath"
 			foreach site $master_sites {
 				puts "Attempting to fetch from $site"
-				catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result
-				if {$result == 0} {
+				if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 					set fetched 1
 					break
 				}
 			}
 			if {![info exists fetched]} {
 				return -1
+			} else {
+				unset fetched
 			}
 		}
 	}
