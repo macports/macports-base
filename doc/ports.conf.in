@@ -40,3 +40,9 @@ portarchivepath		@localstatedir_expanded@/db/dports/packages
 # Supported types: tgz (default), tar, xar, zip, cpgz , cpio
 portarchivetype		tgz
 
+# Rsync server to use
+rsync_server		rsync.opendarwin.org
+# Rsync directory
+rsync_dir			dpupdate/base/
+# Rsync options
+rsync_options		"-rtzv --delete --delete-after"

@@ -74,7 +74,7 @@ proc puts {args} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
 	global options variations
 
     # first look at PORTSRC for testing/debugging
@@ -251,6 +251,17 @@ proc dportinit {args} {
 	# comma separators indicates to use multiple archive formats
 	# (reading and writing)
 	set darwinports::portarchivetype [split $portarchivetype {:,}]
+
+	# Set rync options
+	if {![info exists rsync_server]} {
+		set darwinports::rsync_server rsync.opendarwin.org
+	}
+	if {![info exists rsync_dir]} {
+		set darwinports::rsync_dir dpupdate/base/
+	}
+	if {![info exists rsync_options]} {
+		set rsync_options "-rtzv --delete --delete-after"
+	}
 
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
@@ -1014,17 +1025,12 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 # selfupdate procedure
 proc darwinports::selfupdate {args} {
-	global darwinports::prefix
+	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
 
 	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
 	if {[catch {dportsync} result]} {
 		return -code error "Couldnt sync dports tree: $result"
 	}
-
-	# XXX hardcode XXX this should be set in /etc/ports/ports.conf
-	set rsync_server rsync.opendarwin.org
-	set rsync_dir dpupdate/base/
-	set rsync_options "-rtzv --delete --delete-after"
 
 	set dp_base_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/]
 	if {![file exists $dp_base_path]} {
