@@ -1,7 +1,7 @@
 .c.o:
 	${CC} -c -DUSE_TCL_STUBS ${CFLAGS} ${TCL_DEFS} ${SHLIB_CFLAGS} $< -o $@
 
-$(SHLIB_NAME):: ${OBJS}
+$(SHLIB_NAME):: ${OBJS} config.h
 	${SHLIB_LD} ${OBJS} -o ${SHLIB_NAME} ${TCL_STUB_LIB_SPEC} ${LIBS}
 
 all:: ${SHLIB_NAME}
