@@ -1,6 +1,6 @@
 /*
  * compat.c
- * $Id: compat.c,v 1.4 2004/12/13 17:58:05 pguyot Exp $
+ * $Id: compat.c,v 1.5 2005/02/01 07:39:17 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -171,6 +171,7 @@ CompatFileNormalize(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 	do {
 		char* thePath;
+		char tmpPath[PATH_MAX];
 		char* theBaseName;
 		char theNormalizedPath[PATH_MAX];
 		int pathlength;
@@ -186,8 +187,13 @@ CompatFileNormalize(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* retrieve the parameter */
 		thePath = Tcl_GetString(objv[2]);
 		
+		/* Some implementations of dirname(3) modify the memory
+			referenced by its argument, so we make a copy of thePath
+			just in case. */
+		(void) strncpy(tmpPath, (const char*) thePath, sizeof(tmpPath));
+
 		/* normalize the dir name */
-		(void) realpath(dirname(thePath), theNormalizedPath);
+		(void) realpath(dirname(tmpPath), theNormalizedPath);
 		
 		/* append the base name */
 		pathlength = strlen(theNormalizedPath);
