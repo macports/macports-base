@@ -1,5 +1,6 @@
 MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${prefix}
+TOPSRCDIR=	../..
 
 include ../../Mk/dports.autoconf.mk
 

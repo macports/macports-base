@@ -1,5 +1,6 @@
 MAN7=		portfile.7 portstyle.7
 INSTALLDIR=	${DESTDIR}${prefix}
+TOPSRCDIR=	..
 
 include ../Mk/dports.autoconf.mk
 
