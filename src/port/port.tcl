@@ -33,6 +33,123 @@ package require darwinports
 # globals
 set portdir .
 
+# UI Instantiations
+# ui_options(ports_debug) - If set, output debugging messages.
+# ui_options(ports_verbose) - If set, output info messages (ui_info)
+# ui_options(ports_quiet) - If set, don't output "standard messages"
+# ui_options(_ui_is_enabled) - If not set, go into "batch mode"
+
+# Accessor functions for system options
+proc ui_isset {val} {
+    global ui_options
+    if {[info exists ui_options($val)]} {
+	if {$ui_options($val) == "yes"} {
+	    return 1
+	}
+    }
+    return 0
+}
+
+# Output string "str"
+# If you don't want newlines to be output, you must pass "-nonewline"
+# as the second argument.
+
+proc ui_puts {str {nonl ""}} {
+    if {$nonl == "-nonewline"} {
+	puts -nonewline stdout "$str"
+	flush stdout
+    } else {
+	puts "$str"
+    }
+}
+
+# Output debugging messages if the ports_debug variable is set.
+proc ui_debug {str} {
+    global ui_options
+
+    if [ui_isset ports_debug] {
+	puts stderr "DEBUG: $str"
+    }
+}
+
+# Output message if ports_verbose is set.
+proc ui_info {str {nonl ""}} {
+    global ui_options
+    if [ui_isset ports_verbose] {
+	ui_puts "$str" $nonl
+    }
+}
+
+# Output message unless ports_quiet is set.
+proc ui_msg {str {nonl ""}} {
+    global ui_options
+
+    if ![ui_isset ports_quiet] {
+	ui_puts "$str" $nonl
+    }
+}
+
+# Output message unconditionally as an error message.
+proc ui_error {str} {
+    ui_puts "Error: $str"
+}
+
+# Get a line of input from the user and store in str, returning the
+# number of bytes input.
+proc ui_gets {str} {
+    upvar $str in_string
+    gets stdin in_string
+}
+
+# Ask a boolean "yes/no" question of the user, using "promptstr" as
+# the prompt.  It should contain a trailing space and/or anything else
+# you want to precede the user's input string.  Returns 1 for "yes" or
+# 0 for "no".  This implementation also assumes an english yes/no or
+# y/n response, but that is not mandated by the spec.  If "defvalue"
+# is passed, it will be used as the default value if none is supplied
+# by the user.
+proc ui_yesno {promptstr {defvalue ""}} {
+    set satisfaction no
+    while {$satisfaction == "no"} {
+	ui_puts $promptstr -nonewline
+	if {[ui_gets mystr] == 0} {
+	    if {[string length $defvalue] > 0} {
+		set mystr $defvalue
+	    } else {
+		continue
+	    }
+	}
+	if {[string compare -nocase -length 1 $mystr y] == 0} {
+	    set rval 1
+	    set satisfaction yes
+	} elseif {[string compare -nocase -length 1 $mystr n] == 0} {
+	    set rval 0
+	    set satisfaction yes
+	}
+    }
+    return $rval
+}
+
+# Put up a simple confirmation dialog, requesting nothing more than
+# the user's acknowledgement of the prompt string passed in
+# "promptstr".  There is no return value.
+proc ui_confirm {promptstr} {
+    ui_puts "$promptstr" -nonewline
+    ui_gets garbagestr
+}
+
+# Display the contents of a file, ideally in a manner which allows the
+# user to scroll through and read it comfortably (e.g. a license
+# text).  For the "simple UI" version of this, we simply punt this to
+# less(1) since rewriting a complete pager for the simple case would
+# be a waste of time.  It's expected in a more complex UI case, a
+# scrolling display widget of some type will be used.
+proc ui_display {filename} {
+    if [file exists $filename] {
+	system "/usr/bin/less $filename"
+    }
+}
+
 # Standard procedures
 proc print_usage args {
     global argv0
@@ -59,15 +176,17 @@ for {set i 0} {$i < $argc} {incr i} {
 	} else {
 	    foreach c [split $opt {}] {
 		if {$c == "v"} {
-		    set options(ports_verbose) yes
+		    set ui_options(ports_verbose) yes
 		} elseif {$c == "f"} {
 		    set options(ports_force) yes
 		} elseif {$c == "D"} {
-		    set options(ports_debug) yes
+		    set ui_options(ports_debug) yes
+		    # debug infers verbose
+		    set ui_options(ports_verbose) yes
 		} elseif {$c == "q"} {
-		    set options(ports_quiet) yes
-		    set options(ports_verbose) no
-		    set options(ports_debug) no
+		    set ui_options(ports_quiet) yes
+		    set ui_options(ports_verbose) no
+		    set ui_options(ports_debug) no
 		} elseif {$opt == "d"} {
 		    incr i
 		    set porturl "file://[lindex $argv $i]"

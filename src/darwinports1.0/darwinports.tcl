@@ -29,12 +29,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 package provide darwinports 1.0
-package require darwinportsui 1.0 
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options uniqid 0
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path portconf portdefaultconf"
+    variable portinterp_options "portdbpath portpath auto_path prefix"
     variable uniqid 0
 }
 
@@ -126,11 +125,7 @@ proc darwinports::worker_init {workername portpath options variations} {
     }
 
     # instantiate the UI functions
-    foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
-        $workername alias $proc $proc
-    }
-
-    foreach proc {ports_verbose ports_quiet ports_debug ports_force} {
+    foreach proc {ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
         $workername alias $proc $proc
     }
 
@@ -214,9 +209,6 @@ proc dportopen {porturl {options ""} {variations ""}} {
         return -code error "Could not find Portfile in $portdir"
     }
     $workername eval source Portfile
-
-    # initialize the UI for the new port
-    $workername eval ui_init
 
     return $workername
 }
