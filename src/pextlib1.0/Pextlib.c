@@ -11,26 +11,72 @@
 
 #define BUFSIZ 1024
 
+char * ui_escape(const char *source)
+{
+	char *d, *dest;
+	const char *s;
+	int slen, dlen;
+
+	s = source;
+	slen = dlen = strlen(source) * 2 + 1;
+	d = dest = malloc(dlen);
+	if (dest == NULL) {
+		return NULL;
+	}
+	while(*s != '\0') {
+		switch(*s) {
+			case '\\':
+				if (*(s + 1) != '\n' && *(s + 1) != '\0') {
+					*d = *s;
+					d++;
+					s++;
+					break;
+				}
+			case '}':
+			case '{':
+				*d = '\\';
+				d++;
+				*d = *s;
+				d++;
+				s++;
+				break;
+			case '\n':
+				s++;
+				break;
+			default:
+				*d = *s;
+				d++;
+				s++;
+				break;
+		}
+	}
+	*d = '\0';
+	return dest;
+}
+
 static int ui_info(Tcl_Interp *interp, char *mesg) {
-	const char ui_proc[] = "ui_info [list ";
-	const char proc_end[] = "]";
-	char *script, *p;
+	const char ui_proc_start[] = "ui_info {";
+	const char ui_proc_end[] = "}";
+	char *script, *string, *p;
 	int scriptlen, len;
 
-	/* Nuke the trailing newline, if any */
-	len = strlen(mesg);
-	if (mesg[len - 1] == '\n')
-	  mesg[--len] = '\0';
-	scriptlen = sizeof(ui_proc) + len + sizeof(proc_end);
+	string = ui_escape(mesg);
+	if (string == NULL)
+		return TCL_ERROR;
+
+	len = strlen(string);
+	scriptlen = sizeof(ui_proc_start) + len + sizeof(ui_proc_end) - 1;
 	script = malloc(scriptlen);
 	if (script == NULL)
 		return TCL_ERROR;
 	else
 		p = script;
-	memcpy(script, ui_proc, sizeof(ui_proc));
-	memcpy(script + sizeof(ui_proc), mesg, len);
-	memcpy(script + sizeof(ui_proc) + len, proc_end, sizeof(proc_end));
-	return (Tcl_EvalEx(interp, script, scriptlen, 0));
+
+	memcpy(script, ui_proc_start, sizeof(ui_proc_start));
+	strcat(script, string);
+	strcat(script, ui_proc_end);
+	free(string);
+	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
 }
 
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
