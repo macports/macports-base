@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.3
+#!/usr/bin/env tclsh
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
 

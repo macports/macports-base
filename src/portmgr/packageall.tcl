@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.3
+#!/usr/bin/env tclsh
 # packageall.tcl
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

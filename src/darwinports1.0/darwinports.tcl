@@ -1,4 +1,3 @@
-#!/usr/bin/env tclsh8.3
 # darwinports.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.

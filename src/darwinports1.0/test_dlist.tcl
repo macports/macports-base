@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.3
+#!/usr/bin/env tclsh
 # darwinports1.0/test_dlist.tcl
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

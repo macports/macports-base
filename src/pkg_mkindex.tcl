@@ -1,4 +1,4 @@
-#!/usr/bin/env tclsh8.3
+#!/usr/bin/env tclsh
 # pkg_mkindex.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
