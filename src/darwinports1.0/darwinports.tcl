@@ -102,7 +102,7 @@ proc dportinit {args} {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:\./-\]+$)" $line match val] == 1} {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:,\./-\]+$)" $line match val] == 1} {
 			set darwinports::$option $val
 			global darwinports::$option
 		    }
@@ -204,6 +204,10 @@ proc dportinit {args} {
 		set darwinports::portarchivetype "cpgz"
 		global darwinports::portarchivetype
 	}
+	# Convert archive type to a list for multi-archive support, colon or
+	# comma separators indicates to use multiple archive formats
+	# (reading and writing)
+	set darwinports::portarchivetype [split $portarchivetype {:,}]
 
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {

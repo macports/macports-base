@@ -49,6 +49,7 @@ default archive.args {}
 default archive.post_args {}
 
 default archive.destpath {${portarchivepath}}
+default archive.type {}
 default archive.file {}
 default archive.path {}
 
@@ -59,7 +60,7 @@ proc archive_init {args} {
 	global variations package.destpath workpath portpath
 	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants
-	global archive.destpath archive.file archive.path
+	global archive.destpath archive.type archive.file archive.path
 
 	# Check mode in case archive called directly by user
 	if {[option portarchivemode] != "yes"} {
@@ -82,8 +83,6 @@ proc archive_init {args} {
 	if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
 		set archive.destpath [file join ${archive.destpath} [option os.platform] [option os.arch]]
 	}
-	set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].[option portarchivetype]"
-	set archive.path "[file join ${archive.destpath} ${archive.file}]"
 
 	# Determine if archive should be skipped
 	set skipped 0
@@ -95,10 +94,23 @@ proc archive_init {args} {
 	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
 		ui_debug "Skipping archive ($portname) since source-only is set"
 		set skipped 1
-	} elseif {[file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes")} {
-		#ui_msg "$UI_PREFIX [format [msgcat::mc "Archive for %s %s_%s%s is already up-to-date"] $portname $portversion $portrevision $portvariants]"
-		#set skipped 1
-		return -code error [format [msgcat::mc "Archive for %s %s_%s%s is already up-to-date"] $portname $portversion $portrevision $portvariants]
+	} else {
+		set count [llength [option portarchivetype]]
+		foreach archive.type [option portarchivetype] {
+			set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+			set archive.path "[file join ${archive.destpath} ${archive.file}]"
+			if {[file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes")} {
+				ui_debug [format [msgcat::mc "[string toupper ${archive.type}] archive for %s %s_%s%s is up-to-date"] $portname $portversion $portrevision $portvariants]
+				set count [expr $count - 1]
+			}
+		}
+		if {$count == 0} {
+			if {[llength [option portarchivetype]] > 1} {
+				return -code error [format [msgcat::mc "Archives for %s %s_%s%s are already up-to-date"] $portname $portversion $portrevision $portvariants]
+			} else {
+				return -code error [format [msgcat::mc "Archive for %s %s_%s%s is already up-to-date"] $portname $portversion $portrevision $portvariants]
+			}
+		}
 	}
 	# Skip archive target by setting state
 	if {$skipped == 1} {
@@ -110,14 +122,24 @@ proc archive_init {args} {
 
 proc archive_start {args} {
 	global UI_PREFIX
-	global portname portversion portrevision portvariants portpath
-	global archive.env archive.cmd archive.pre_args archive.args archive.post_args
-	global archive.path
+	global portname portversion portrevision portvariants
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	if {[llength [option portarchivetype]] > 1} {
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging archives for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	} else {
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	}
+
+	return 0
+}
+
+proc archive_command_setup {args} {
+	global archive.env archive.cmd
+	global archive.pre_args archive.args archive.post_args
+	global archive.type archive.path
 
 	# Define appropriate archive command and options
-	switch -regex [option portarchivetype] {
+	switch -regex ${archive.type} {
 		cp(io|gz) {
 			set ditto "ditto"
 			if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
@@ -138,7 +160,7 @@ proc archive_start {args} {
 					return -code error "Neither '$ditto' or '$cpio' were found on this system!"
 				}
 			}
-			if {[regexp {z$} [option portarchivetype]]} {
+			if {[regexp {z$} ${archive.type}]} {
 				set archive.pre_args "${archive.pre_args} -z"
 			}
 		}
@@ -147,7 +169,7 @@ proc archive_start {args} {
 			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set archive.cmd "$xar"
-				set archive.pre_args {-cf}
+				set archive.pre_args {-cvf}
 				set archive.args "${archive.path} ."
 			} else {
 				ui_debug $errmsg
@@ -159,7 +181,7 @@ proc archive_start {args} {
 			if {[catch {set gnutar [binaryInPath $gnutar]} errmsg] == 0} {
 				ui_debug "Using $gnutar"
 				set archive.cmd "$gnutar"
-				if {[regexp {z$} [option portarchivetype]]} {
+				if {[regexp {z$} ${archive.type}]} {
 					set archive.pre_args {-zcvf}
 				} else {
 					set archive.pre_args {-cvf}
@@ -171,7 +193,7 @@ proc archive_start {args} {
 				if {[catch {set gtar [binaryInPath $gtar]} errmsg] == 0} {
 					ui_debug "Using $gtar"
 					set archive.cmd "$gtar"
-					if {[regexp {z$} [option portarchivetype]]} {
+					if {[regexp {z$} ${archive.type}]} {
 						set archive.pre_args {-zcvf}
 					} else {
 						set archive.pre_args {-cvf}
@@ -184,7 +206,7 @@ proc archive_start {args} {
 						ui_debug "Using $tar"
 						set archive.cmd "$tar"
 						set archive.pre_args {-cvf}
-						if {[regexp {z$} [option portarchivetype]]} {
+						if {[regexp {z$} ${archive.type}]} {
 							set gzip "gzip"
 							if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 								ui_debug "Using $gzip"
@@ -205,7 +227,7 @@ proc archive_start {args} {
 			}
 		}
 		default {
-			return -code error "Invalid port archive type '[option portarchivetype]' specified!"
+			return -code error "Invalid port archive type '${archive.type}' specified!"
 		}
 	}
 
@@ -214,15 +236,9 @@ proc archive_start {args} {
 
 proc archive_main {args} {
 	global UI_PREFIX
-	global workpath destpath
+	global workpath destpath portpath ports_force
 	global portname portversion portrevision portvariants
-	global archive.destpath archive.path archive.file
-
-	# Remove existing archive
-	if {[file exists ${archive.path}]} {
-		ui_info "$UI_PREFIX [format [msgcat::mc "Deleting previous %s"] ${archive.file}]"
-		file delete -force ${archive.path}
-	}
+	global archive.destpath archive.type archive.file archive.path
 
 	# Create archive destination path (if needed)
 	if {![file isdirectory ${archive.destpath}]} {
@@ -281,15 +297,39 @@ proc archive_main {args} {
 	}
 	close $fd
 
-	# Now create the archive
-	ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
-    system "[command archive]"
+	# Now create the archive(s)
+	# Loop through archive types
+	foreach archive.type [option portarchivetype] {
+		# Define archive file/path
+		set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+		set archive.path "[file join ${archive.destpath} ${archive.file}]"
+
+		# If archive already up-to-date, skip it
+		if {!([file readable ${archive.path}] && ([file mtime ${archive.path}] >= [file mtime [file join $portpath Portfile]]) && !([info exists ports_force] && $ports_force == "yes"))} {
+			# Setup archive command
+			archive_command_setup
+
+			# Remove existing archive
+			if {[file exists ${archive.path}]} {
+				ui_info "$UI_PREFIX [format [msgcat::mc "Deleting previous %s"] ${archive.file}]"
+				file delete -force ${archive.path}
+			}
+
+			ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
+			system "[command archive]"
+			ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
+		} else {
+			ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s is up-to-date"] ${archive.file}]"
+		}
+	}
+
     return 0
 }
 
 proc archive_finish {args} {
 	global UI_PREFIX
-	global destpath archive.file
+	global portname portversion portrevision portvariants
+	global destpath
 
 	# Cleanup all control files when finished
 	set control_files [glob -nocomplain -types f [file join $destpath +*]]
@@ -298,7 +338,11 @@ proc archive_finish {args} {
 		file delete -force $file
 	}
 
-	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
+	if {[llength [option portarchivetype]] > 1} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Archives for %s %s_%s%s packaged"] $portname $portversion $portrevision $portvariants]"
+	} else {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Archive for %s %s_%s%s packaged"] $portname $portversion $portrevision $portvariants]"
+	}
 	return 0
 }
 

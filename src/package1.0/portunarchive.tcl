@@ -49,6 +49,7 @@ default unarchive.args {}
 default unarchive.post_args {}
 
 default unarchive.srcpath {${portarchivepath}}
+default unarchive.type {}
 default unarchive.file {}
 default unarchive.path {}
 
@@ -58,7 +59,7 @@ proc unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
 	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants portpath
-	global unarchive.srcpath unarchive.file unarchive.path
+	global unarchive.srcpath unarchive.type unarchive.file unarchive.path
 
 	# Check mode in case archive called directly by user
 	if {[option portarchivemode] != "yes"} {
@@ -81,8 +82,6 @@ proc unarchive_init {args} {
 	if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
 		set unarchive.srcpath [file join ${unarchive.srcpath} [option os.platform] [option os.arch]]
 	}
-	set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].[option portarchivetype]"
-	set unarchive.path "[file join ${unarchive.srcpath} ${unarchive.file}]"
 
 	# Determine if unarchive should be skipped
 	set skipped 0
@@ -97,17 +96,31 @@ proc unarchive_init {args} {
 	} elseif {[info exists ports_force] && $ports_force == "yes"} {
 		ui_debug "Skipping unarchive ($portname) since force is set"
 		set skipped 1
-	} elseif {![file exist ${unarchive.path}]} {
-		if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-			return -code error "Archive ${unarchive.file} not found, required when binary-only is set!"
-		} else {
-			ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} not found"
-			set skipped 1
+	} else {
+		set found 0
+		foreach unarchive.type [option portarchivetype] {
+			set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${unarchive.type}"
+			set unarchive.path "[file join ${unarchive.srcpath} ${unarchive.file}]"
+			if {[file exist ${unarchive.path}]} {
+				set found 1
+				break
+			}
 		}
-	} elseif {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
-		ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
-		set skipped 1
-		ui_msg "Portfile changed since last archive; rebuilding archive."
+		if {$found == 1} {
+			ui_debug "Found archive ${unarchive.path}"
+			if {[file mtime ${unarchive.path}] < [file mtime [file join $portpath Portfile]]} {
+				ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} is out-of-date"
+				set skipped 1
+				ui_msg "Portfile changed since last archive; rebuilding archive."
+			}
+		} else {
+			if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
+				return -code error "Archive ${unarchive.file} not found, required when binary-only is set!"
+			} else {
+				ui_debug "Skipping unarchive ($portname) since archive ${unarchive.file} not found"
+				set skipped 1
+			}
+		}
 	}
 	# Skip unarchive target by setting state
 	if {$skipped == 1} {
@@ -119,13 +132,19 @@ proc unarchive_init {args} {
 
 proc unarchive_start {args} {
 	global UI_PREFIX portname portversion portrevision portvariants
-	global unarchive.env unarchive.cmd unarchive.pre_args unarchive.args unarchive.post_args
-	global unarchive.path
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
 
+	return 0
+}
+
+proc unarchive_command_setup {args} {
+	global unarchive.env unarchive.cmd
+	global unarchive.pre_args unarchive.args unarchive.post_args
+	global unarchive.type unarchive.path
+
 	# Define appropriate unarchive command and options
-	switch -regex [option portarchivetype] {
+	switch -regex ${unarchive.type} {
 		cp(io|gz) {
 			set ditto "ditto"
 			if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
@@ -146,7 +165,7 @@ proc unarchive_start {args} {
 					return -code error "Neither '$ditto' or '$cpio' were found on this system!"
 				}
 			}
-			if {[regexp {z$} [option portarchivetype]]} {
+			if {[regexp {z$} ${unarchive.type}]} {
 				set unarchive.pre_args "${unarchive.pre_args} -z"
 			}
 		}
@@ -155,7 +174,7 @@ proc unarchive_start {args} {
 			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set unarchive.cmd "$xar"
-				set unarchive.pre_args {-xpf}
+				set unarchive.pre_args {-xvpf}
 				set unarchive.args "${unarchive.path} ."
 			} else {
 				ui_debug $errmsg
@@ -167,7 +186,7 @@ proc unarchive_start {args} {
 			if {[catch {set gnutar [binaryInPath $gnutar]} errmsg] == 0} {
 				ui_debug "Using $gnutar"
 				set unarchive.cmd "$gnutar"
-				if {[regexp {z$} [option portarchivetype]]} {
+				if {[regexp {z$} ${unarchive.type}]} {
 					set unarchive.pre_args {-zxvf}
 				} else {
 					set unarchive.pre_args {-xvf}
@@ -179,7 +198,7 @@ proc unarchive_start {args} {
 				if {[catch {set gtar [binaryInPath $gtar]} errmsg] == 0} {
 					ui_debug "Using $gtar"
 					set unarchive.cmd "$gtar"
-					if {[regexp {z$} [option portarchivetype]]} {
+					if {[regexp {z$} ${unarchive.type}]} {
 						set unarchive.pre_args {-zxvf}
 					} else {
 						set unarchive.pre_args {-xvf}
@@ -192,7 +211,7 @@ proc unarchive_start {args} {
 						ui_debug "Using $tar"
 						set unarchive.cmd "$tar"
 						set unarchive.pre_args {-xvf}
-						if {[regexp {z$} [option portarchivetype]]} {
+						if {[regexp {z$} ${unarchive.type}]} {
 							set unarchive.args {-}
 							set gzip "gzip"
 							if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
@@ -213,7 +232,7 @@ proc unarchive_start {args} {
 			}
 		}
 		default {
-			return -code error "Invalid port archive type '[option portarchivetype]' specified!"
+			return -code error "Invalid port archive type '${unarchive.type}' specified!"
 		}
 	}
 
@@ -224,6 +243,9 @@ proc unarchive_main {args} {
 	global UI_PREFIX
 	global portname portversion portrevision portvariants
 	global unarchive.dir unarchive.file
+
+	# Setup unarchive command
+	unarchive_command_setup
 
 	# Create destination directory for unpacking
 	if {![file isdirectory ${unarchive.dir}]} {
