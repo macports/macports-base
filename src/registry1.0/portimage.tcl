@@ -304,7 +304,7 @@ proc _activate_contents {name imagefiles imagedir} {
 		set port [registry::file_registered $file] 
 
 		if { $port != 0  && $force != 1 && $port != $name } {
-			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first."
+			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use the -f flag to force the activation."
 		} elseif { [file exists $file] && $force != 1 } {
 			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
 		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
