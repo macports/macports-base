@@ -34,7 +34,7 @@ package require portutil 1.0
 
 register com.apple.package target package_main package_init
 register com.apple.package provides package
-register com.apple.package requires main
+register com.apple.package requires install
 
 # define options
 options package.type
