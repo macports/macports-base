@@ -3,6 +3,7 @@ Things left to do in Darwinports
 Task								Who
 ----								---
 Add contents lists to all ports					eric
+Clean up darwinports -> ports API				landonf
 Add abstraction to support fetching specific files from
      specific sites						landonf
 Implement the variants code					landonf kevinvv
@@ -13,6 +14,4 @@ Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
 Write man page for all targets / options			landonf
 Support for pbxbuild						landonf
-Return an error on execution failure in darwinports
-    sub-interpreter						landonf
 Abstract use_* variables to tie into the dependency system	landonf
