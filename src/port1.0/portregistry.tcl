@@ -129,10 +129,10 @@ proc proc_disasm {pname} {
     return $p
 }
 
-proc register_init {} {
+proc register_init {args} {
 }
 
-proc register_main {} {
+proc register_main {args} {
     global portname portversion portpath categories description depends_run contents pkg_install pkg_deinstall workdir worksrcdir prefix UI_PREFIX
 
     # Package installed successfully, so now we must register it
