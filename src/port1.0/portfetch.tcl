@@ -148,7 +148,7 @@ proc disttagclean {list} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX portresourcepath mirror_sites.listfile mirror_sites.listpath
+    global UI_PREFIX portname portresourcepath mirror_sites.listfile mirror_sites.listpath
     source ${mirror_sites.listpath}${mirror_sites.listfile}
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
@@ -157,6 +157,10 @@ proc mirror_sites {mirrors tag subdir} {
     
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
+	if {"$subdir" == ""} {
+	    set subdir ${portname}
+	}
+
     	if {"$tag" != ""} {
 	    eval append element "${subdir}:${tag}"
 	} else {

@@ -252,7 +252,8 @@ List of dependencies to check before configure, build, destroot, install, and pa
 Fetch all distribution files and patches
 .Bl -tag -width lc
 .It Ic master_sites
-List of sites to fetch ${distfiles} from or a predefined mirror site list
+List of sites to fetch ${distfiles} from or a predefined mirror site list. If set to a predefined mirror site,
+without a subdirectory being defined, the portname is used as the name of the subdirectory.
 .br
 .Sy Type:
 .Em required
