@@ -1,4 +1,4 @@
-# $Id: perl5-1.0.tcl,v 1.1 2004/03/31 09:06:50 toby Exp $
+# $Id: perl5-1.0.tcl,v 1.2 2004/03/31 16:08:16 toby Exp $
 # perl5-1.0.tcl
 # 
 # Group file for 'perl5' group.
@@ -55,7 +55,7 @@ proc perl5.setup {module vers {cpandir ""}} {
 	distname			${perl5.module}-${vers}
 	dist_subdir			perl5
 
-	depends_build		bin:${perl5.bin}:perl5.8
+	depends_build		path:${perl5.bin}:perl5.8
 
 	configure.cmd		${perl5.bin}
 	configure.pre_args	Makefile.PL
