@@ -134,8 +134,8 @@ proc darwinports::worker_init {workername portpath options variations} {
 			package require port \$version \}"
 
     foreach proc {dportexec dportopen dportclose dportsearch dportmatch} {
-									  $workername alias $proc $proc
-								      }
+        $workername alias $proc $proc
+    }
 
     # instantiate the UI functions
     foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
