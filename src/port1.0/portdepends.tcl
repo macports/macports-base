@@ -65,6 +65,7 @@ options_export depends_lib depends_run
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
 proc depends_main {id} {
+    global prefix
     if {[regexp .*\..*\.depends\.(.*) $id match name] != 1} {
 	return 0
     }
@@ -89,7 +90,7 @@ proc depends_main {id} {
 		    if {[info exists env(DYLD_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
 		    } else {
-			lappend search_path /lib /usr/local/lib /lib /usr/lib /opt/local/lib /usr/X11R6/lib
+			lappend search_path /lib /usr/local/lib /lib /usr/lib /op/local/lib /usr/X11R6/lib ${prefix}/lib
 		    }
 		    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
 			lappend search_path $env(DYLD_LIBRARY_PATH)
