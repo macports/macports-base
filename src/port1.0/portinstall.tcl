@@ -77,7 +77,9 @@ proc install_element {src_element dst_element} {
     }
 
     # if the file is a symlink, do not try to set file attributes
-    if {[file type $src_element] != "link"} {
+    # if the destination file is an existing directory,
+    # do not overwrite its file attributes
+    if {[file type $src_element] != "link" || [file isdirectory $dst_element]} {
 	set attributes [file attributes $src_element]	
 	for {set i 0} {$i < [llength $attributes]} {incr i} {
 	    set opt [lindex $attributes $i]
