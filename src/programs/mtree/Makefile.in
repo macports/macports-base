@@ -49,6 +49,6 @@ distclean: clean
 	rm -f Makefile config.h config.status config.log
 
 install:
-	${INSTALL} ${PROG} ${PREFIX}/sbin
+	${INSTALL} ${PROG} ${PREFIX}/bin
 	${INSTALL} -m 755 -d ${mandircat8}
 	${INSTALL} -m 444 ${PROG}.cat8 ${mandircat8}/${PROG}.0
