@@ -1,4 +1,3 @@
-# verbatim sources
 SRCS=		darwinports.tcl darwinports_dlist.tcl darwinports_autoconf.tcl
 
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/darwinports1.0
@@ -11,7 +10,6 @@ all:
 clean:
 
 distclean: clean
-	$(SILENT) set -x; \
 	rm -f darwinports_autoconf.tcl;
 
 install:
@@ -19,10 +17,6 @@ install:
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
-	done
-
-	$(SILENT) set -x; for file in ${SRCSOUT}; do \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file.out ${INSTALLDIR}/$$file; \
 	done
 
 	$(SILENT) ../pkg_mkindex.tcl ${INSTALLDIR}
