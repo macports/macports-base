@@ -55,11 +55,14 @@ default install.destroot {DESTDIR=${destroot}}
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname destroot
+    global UI_PREFIX prefix portname destroot portresourcepath
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
-	file mkdir ${destroot}
+	file mkdir "${destroot}"
+	system "cd ${destroot} && mtree -d -e -U -f ${portresourcepath}/install/macosx.mtree"
+	file mkdir "${destroot}/${prefix}"
+	system "cd \"${destroot}/${prefix}\" && mtree -d -e -U -f ${portresourcepath}/install/prefix.mtree"
 }
 
 proc install_element {src_element dst_element} {
@@ -130,6 +133,9 @@ proc install_main {args} {
 
 proc install_registry {args} {
     global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir prefix UI_PREFIX destroot
+
+	# Prune empty directories in ${destroot}
+	catch {system "find \"${destroot}\" -depth -type d -print | xargs rmdir"}
 
     # Install ${destroot} contents into /
     directory_dig ${destroot} ${destroot}
