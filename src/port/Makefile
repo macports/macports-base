@@ -4,7 +4,8 @@ TOPSRCDIR=	../..
 SCRIPTS=	portindex portall port
 
 edit = sed \
-	-e 's,@TCLSH\@,$(TCLSH),g'
+	-e 's,@TCLSH\@,$(TCLSH),g' \
+	-e 's,@TCL_PACKAGE_DIR\@,$(TCL_PACKAGE_DIR),g'
 
 include ../../Mk/dports.autoconf.mk
 

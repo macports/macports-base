@@ -2,6 +2,8 @@
 # Traverse through all ports running the supplied target.  If target is
 # "index" then just print some useful information about each port.
 
+catch {source
+	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
 dportinit
 package require Pextlib

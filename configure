@@ -8458,7 +8458,7 @@ prefix=$oldprefix
 
 # Output
 
-                                                            ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl src/programs/Makefile"
+                                                                      ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl src/darwinports1.0/darwinports_fastload.tcl src/programs/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -8990,6 +8990,7 @@ do
   "doc/prefix.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
   "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
+  "src/darwinports1.0/darwinports_fastload.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_fastload.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
   "src/config.h" ) CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5

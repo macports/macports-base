@@ -1,8 +1,10 @@
 #!@TCLSH@
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.24 2004/07/01 17:21:14 wbb4 Exp $
+# $Id: portindex.tcl,v 1.25 2004/10/14 20:13:39 pguyot Exp $
 
+catch {source
+	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
 dportinit
 package require Pextlib
