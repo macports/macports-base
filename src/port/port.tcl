@@ -374,7 +374,7 @@ switch -- $action {
         if {[info exists options(port_upgrade_all)] } {
             # upgrade all installed ports!!!
             if { [catch {set ilist [registry::installed]} result] } {
-                if {$result eq "Registry error: No ports registered as installed."} {
+                if {$result == "Registry error: No ports registered as installed."} {
                     puts "no ports installed!"
                     exit 1
                 } else {
@@ -427,7 +427,7 @@ switch -- $action {
 		# if -u then uninstall all non-active ports
 		if {[info exists options(port_uninstall_old)]} {
 			if { [catch {set ilist [registry::installed]} result] } {
-                if {$result eq "Registry error: No ports registered as installed."} {
+                if {$result == "Registry error: No ports registered as installed."} {
                     puts "no ports installed!"
                     exit 1
                 } else {
@@ -438,7 +438,7 @@ switch -- $action {
 			if { [llength ilist] > 0} {
 				foreach i $ilist {
 					# uninstall inactive port
-					if {[lindex $i 4] eq 0} {
+					if {[lindex $i 4] == 0} {
 						set portname "[lindex $i 0]"
 						set portversion "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
 						ui_debug " uninstalling $portname $portversion"
@@ -465,7 +465,7 @@ switch -- $action {
 	installed {
         if { [info exists portname] } {
             if { [catch {set ilist [registry::installed $portname]} result] } {
-                if {$result eq "Registry error: $portname not registered as installed."} {
+                if {$result == "Registry error: $portname not registered as installed."} {
                     puts "Port $portname not installed!"
                     exit 1
                 } else {
@@ -475,7 +475,7 @@ switch -- $action {
             }
         } else {
             if { [catch {set ilist [registry::installed]} result] } {
-                if {$result eq "Registry error: No ports registered as installed."} {
+                if {$result == "Registry error: No ports registered as installed."} {
                     puts "No ports installed!"
                     exit 1
                 } else {

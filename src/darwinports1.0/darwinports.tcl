@@ -963,7 +963,7 @@ proc upgrade {pname dspec} {
 	set ask no
 	set ilist {}
 	if { [catch {set ilist [registry::installed $pname ""]} result] } {
-		if {$result eq "Registry error: $pname not registered as installed." } {
+		if {$result == "Registry error: $pname not registered as installed." } {
 			ui_debug "$pname is *not* installed by DarwinPorts"
 			# open porthandle    
 			set porturl $portinfo(porturl)
@@ -994,7 +994,7 @@ proc upgrade {pname dspec} {
 	}
 	set anyactive 0
 	set version_installed 0
-	if {$ilist eq ""} {
+	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
 		set version_installed $version_in_tree
 	} else {
@@ -1039,7 +1039,7 @@ proc upgrade {pname dspec} {
 		set nodeps yes
 	}
 
-	if {$nodeps eq "yes"} {
+	if {$nodeps == "yes"} {
 		ui_debug "Not following dependencies"
 	} else {
 		# build depends is upgraded
@@ -1093,7 +1093,7 @@ proc upgrade {pname dspec} {
 	}
 	ui_debug "available variants are : $avariants"
 	foreach v $variant {
-		if {[lsearch $avariants $v] eq -1} {
+		if {[lsearch $avariants $v] == -1} {
 		} else {
 			ui_debug "variant $v is present in $pname $version_in_tree"
 			set variations($v) "+"

@@ -1,7 +1,7 @@
 # et:ts=4
 # python-1.0.tcl
 #
-# $Id: python-1.0.tcl,v 1.5 2004/10/11 18:33:23 fkr Exp $
+# $Id: python-1.0.tcl,v 1.6 2004/12/12 01:12:28 landonf Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -54,7 +54,7 @@ pre-destroot {
 
 post-install	{
 #	if [ file exists /Library/Python ] {
-#		if { [ file type /Library/Python/2.3 eq "link" ] } {
+#		if { [ file type /Library/Python/2.3 == "link" ] } {
 #			if { [ file readlink /Library/Python/2.3 ] ne "${prefix}/lib/python2.3/site-packages/" } {
 #				ui_msg "############################################################"
 #					ui_msg "# Please create a symlink at '/Library/Python/2.3' pointing"
