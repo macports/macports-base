@@ -229,8 +229,8 @@ proc registry_main {args} {
 	}
 	registry_store $rhandle $x
     }
-    if {[info proc uninstall] == "uninstall"} {
-	registry_store $rhandle [list uninstall [proc_disasm uninstall]]
+    if {[info proc pkg_uninstall] == "pkg_uninstall"} {
+	registry_store $rhandle [list uninstall [proc_disasm pkg_uninstall]]
     }
     registry_close $rhandle
     return 0
