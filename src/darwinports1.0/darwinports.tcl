@@ -46,8 +46,8 @@ proc dportinit {args} {
     }
 }
 
-proc dportbuild {portdir target {options ""}} {
-    global targets portpath portinterp_options uniqid
+proc dportopen {portdir {options ""}} {
+    global portpath portinterp_options uniqid
 
     if [file isdirectory $portdir] {
 	cd $portdir
@@ -72,8 +72,14 @@ proc dportbuild {portdir target {options ""}} {
 	}
 	$workername eval source Portfile
 	$workername eval {flock [open Portfile r] -exclusive}
-	$workername eval eval_targets targets $target
     } else {
 	return -code error "Portdir $portdir does not exist"
     }
+    return $workername
+}
+
+proc dportbuild {workername target} {
+    global targets portpath portinterp_options uniqid
+
+    return [$workername eval eval_targets targets $target]
 }

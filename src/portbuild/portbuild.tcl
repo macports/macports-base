@@ -38,7 +38,8 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 dportinit
 if [info exists options] {
-    dportbuild $portdir $target $options
+    set workername [dportopen $portdir $options]
 } else {
-    dportbuild $portdir $target
+    set workername [dportopen $portdir]
 }
+return [dportbuild $workername $target]
