@@ -66,4 +66,9 @@ if { $argc < 1 } {
     }
 }
 
+if ![file isdirectory dports] {
+    puts "Please run me from the darwinports directory (dports/..)"
+    return 1
+}
+
 port_traverse pindex dports
