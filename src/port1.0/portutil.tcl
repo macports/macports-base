@@ -354,7 +354,7 @@ proc register {name mode args} {
                     register $ident target proc-$target\$id \n\
                     eval \"proc proc-$target\$id \{name\} \{ \n\
                         if \\\[catch userproc-$target\$id result\\\] \{ \n\
-							ui_info \\\{\\\$result\\\} \n\
+							ui_info \\\$result \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
@@ -368,7 +368,7 @@ proc register {name mode args} {
                     register $target preflight pre-$target\$id \n\
                     eval \"proc pre-$target\$id \{name\} \{ \n\
                         if \\\[catch userproc-pre-$target\$id result\\\] \{ \n\
-							ui_info \\\{\\\$result\\\} \n\
+							ui_info \\\$result \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
@@ -381,7 +381,7 @@ proc register {name mode args} {
                     register $target postflight post-$target\$id \n\
                     eval \"proc post-$target\$id \{name\} \{ \n\
                         if \\\[catch userproc-post-$target\$id result\\\] \{ \n\
-							ui_info \\\{\\\$result\\\} \n\
+							ui_info \\\$result \n\
 							return 1 \n\
 						\} else \{ \n\
 							return 0 \n\
