@@ -247,7 +247,7 @@ switch -- $action {
 			}
 			array set portinfo [lindex $result 1]
 
-			puts -nonewline "$portname $portinfo(version)"
+			puts -nonewline "$portinfo(name) $portinfo(version)"
 			if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
 				puts -nonewline ", Revision $portinfo(revision)" 
 			}
