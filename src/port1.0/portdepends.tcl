@@ -64,7 +64,7 @@ proc handle_depends_options {option action args} {
 						$obj append requires portfile-$portname
 					}
 				} else {
-					return -code error [format [msgcat::mc ["unknown depspec type: %s"] $deppath]
+					return -code error [format [msgcat::mc "unknown depspec type: %s"] $deppath]
 				}
 			} else {
 				return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec]
