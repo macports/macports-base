@@ -1,5 +1,5 @@
 PREFIX?=	/opt/local
-INSTALLDIR=	${PREFIX}/share/darwinports/resources/port1.0/package
+INSTALLDIR=	${DESTROOT}${PREFIX}/share/darwinports/resources/port1.0/package
 DSTUSR?=	root
 DSTGRP?=	wheel
 
