@@ -1,4 +1,6 @@
-#!@TCLSH@
+#!/bin/sh
+#\
+exec @TCLSH@ "$0" "$@"
 # port.tcl
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>

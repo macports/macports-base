@@ -1,7 +1,10 @@
-#!@TCLSH@
+#!/bin/sh
+#\
+exec @TCLSH@ "$0" "$@"
+
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.27 2005/02/17 17:08:54 pguyot Exp $
+# $Id: portindex.tcl,v 1.28 2005/03/29 09:00:42 olegb Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
