@@ -1,7 +1,7 @@
 # et:ts=4
 # python24-1.0.tcl
 #
-# $Id: python24-1.0.tcl,v 1.1 2004/12/27 14:58:35 mww Exp $
+# $Id: python24-1.0.tcl,v 1.2 2005/01/13 20:39:14 mww Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -33,6 +33,8 @@
 #
 
 set python.bin	${prefix}/bin/python2.4
+set python.lib	${prefix}/lib/libpython2.4.dylib
+set python.pkgd	${prefix}/lib/python2.4/site-packages
 
 categories		python
 
