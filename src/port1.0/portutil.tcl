@@ -324,13 +324,18 @@ proc reinplace {oddpattern file}  {
     seek $output 0
     seek $input 0
 
-    if {[catch {exec cat <@$output >@$input 2>/dev/null} error]} {
+	# copy from strsed output back into the input
+    if {[catch {fcopy $output $input} error]} {
 	ui_error "reinplace: $error"
 	close $output
 	close $input
 	file delete "$tmpfile"
 	return -code error "reinplace failed"
     }
+	
+	set eof [file size "$tmpfile"]
+	puts "$tmpfile $eof"
+	ftruncate $input $eof 
 
     close $output
     close $input
