@@ -8,7 +8,6 @@ Add abstraction to support fetching specific files from
 Allow variants to be overridden					kevinvv
 Allow depspecs in requires (targets & variants)			kevinvv
 Change run/build depends to add depspecs to target's requires	kevinvv
-Implement deinstall target					landonf
 Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
 Write man page for all targets / options			landonf
