@@ -64,6 +64,8 @@ default fetch.post_args {"${site}/${distfile}"}
 
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
+default master_sites.mirror_subdir {"${portname}"}
+default patch_sites.mirror_subdir {"${portname}"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -164,7 +166,7 @@ proc mirror_sites {mirrors tag subdir} {
 # sites
 proc checkfiles {args} {
     global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	master_sites filespath master_sites.mirror_subdir \
+	master_sites filespath master_sites.mirror_subdir portname \
         patch_sites.mirror_subdir
 
     foreach list {master_sites patch_sites} {
