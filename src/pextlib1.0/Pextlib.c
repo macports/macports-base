@@ -40,6 +40,7 @@
 #include <sys/wait.h>
 #include <tcl.h>
 #include <unistd.h>
+#include <signal.h>
 #ifdef __APPLE__
 #include <crt_externs.h>
 #endif
@@ -87,7 +88,8 @@ char * ui_escape(const char *source)
 	return dest;
 }
 
-static int ui_info(Tcl_Interp *interp, char *mesg) {
+static int ui_info(Tcl_Interp *interp, char *mesg)
+{
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
 	char *script, *string, *p;
@@ -112,6 +114,15 @@ static int ui_info(Tcl_Interp *interp, char *mesg) {
 	return (Tcl_EvalEx(interp, script, scriptlen - 1, 0));
 }
 
+static int signaled;
+static pid_t pid;
+
+static void system_handler(int sig)
+{
+        signaled = 1;
+	kill(pid, sig);
+}
+
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char buf[BUFSIZ];
@@ -120,7 +131,6 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	FILE *pdes;
 	int fdset[2], nullfd;
 	int ret;
-	pid_t pid;
 #if defined(__APPLE__)
 	char **environ;
 	environ = *_NSGetEnviron();
@@ -139,6 +149,9 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	 * Fork a child to run the command, in a popen() like fashion -
 	 * popen() itself is not used because stderr is also desired.
 	 */
+	signaled = 0;
+	signal(SIGINT, system_handler);
+
 	pid = fork();
 	if (pid == -1)
 		return TCL_ERROR;
@@ -164,14 +177,18 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	pdes = fdopen(fdset[0], "r");
 
 	/* read from simulated popen() pipe */
-	while (fgets(buf, BUFSIZ, pdes) != NULL) {
+	while (fgets(buf, BUFSIZ, pdes) != NULL && !signaled) {
 		int ret = ui_info(interp, buf);
-		if (ret != TCL_OK)
+		if (ret != TCL_OK) {
+		        signal(SIGINT, SIG_DFL);
+			fclose(pdes);
 			return ret;
+		}
 	}
 	fclose(pdes);
 	wait(&ret);
-	if (ret == 0)
+	signal(SIGINT, SIG_DFL);
+	if (ret == 0 && !signaled)
 		return TCL_OK;
 	else
 		return TCL_ERROR;

@@ -228,6 +228,9 @@ proc fetchfiles {args} {
 		if ![catch {system "curl ${verboseflag} -o \"${distpath}/${distfile}\" \"${site}${distfile}\""} result] {
 		    set fetched 1
 		    break
+		} else {
+		    ui_error "curl(1) fetch failed."
+		    exec rm -f ${distpath}/${distfile}
 		}
 	    }
 	    if {![info exists fetched]} {
