@@ -1,7 +1,7 @@
 # et:ts=4
 # zope-1.0.tcl
 #
-# $Id: zope-1.0.tcl,v 1.5 2004/09/24 20:33:59 rshaw Exp $
+# $Id: zope-1.0.tcl,v 1.6 2005/03/11 18:54:15 rshaw Exp $
 # 
 # Group file for 'zope' group.
 #
@@ -53,13 +53,8 @@ options zope.need_subdir
 default zope.need_subdir yes
 option_proc zope.need_subdir zope.fix_extract_dir
 
-options zope.need_cvsdir
-default zope.need_cvsdir yes
-option_proc zope.need_cvsdir zope.fix_cvs_dir
-
-# Zope group default for extract.dir & cvs.dir is different
+# Zope group default for extract.dir
 default extract.dir {${worksrcpath}}
-default cvs.dir {${worksrcpath}}
 
 # define this empty initially, it is set by zope.setup arguments
 set zope.product ""
@@ -183,68 +178,6 @@ proc zope.setup {product vers {products {}} {extensions {}}} {
 	}
 }
 
-# define these empty initially, they are set by zope.setup_cvs arguments
-set zope.cvsroot	""
-set zope.cvsmodule	""
-set zope.cvsdefault	""
-
-# Zope group CVS variant setup procedure
-proc zope.setup_cvs {cvsroot {module ""}} {
-	global version distname workpath worksrcpath
-	global zope.product
-	global zope.cvsroot zope.cvsmodule zope.cvsdefault zope.need_cvsdir
-
-	switch -glob ${cvsroot} {
-		zope {
-			set zope.cvsroot :pserver:anonymous@cvs.zope.org:/cvs-repository
-			set zope.cvsdefault Products/${zope.product}
-		}
-		collective {
-			set zope.cvsroot :pserver:anonymous@cvs.sourceforge.net:/cvsroot/collective
-			set zope.cvsdefault ${zope.product}
-		}
-		sourceforge {
-			set project [string tolower ${zope.product}]
-			set zope.cvsroot :pserver:anonymous@cvs.sourceforge.net:/cvsroot/${project}
-			set zope.cvsdefault ${zope.product}
-		}
-		sourceforge:* {
-			set project [lindex [split ${cvsroot} {:}] 1]
-			set zope.cvsroot :pserver:anonymous@cvs.sourceforge.net:/cvsroot/${project}
-			set zope.cvsdefault ${zope.product}
-		}
-		default {
-			set zope.cvsroot :pserver:${cvsroot}
-			set zope.cvsdefault ${zope.product}
-		}
-	}
-	if {[string length ${module}] == 0} {
-		set zope.cvsmodule ${zope.cvsdefault}
-	} else {
-		set zope.cvsmodule ${module}
-	}
-
-	version		[clock format [clock seconds] -format %Y%m%d]
-	distname	${zope.product}-${version}
-
-	fetch.type	cvs
-	cvs.root	${zope.cvsroot}
-	cvs.module	${zope.cvsmodule}
-
-	if {[tbool zope.need_cvsdir]} {
-		cvs.args	-d ${zope.product}
-		cvs.dir		${worksrcpath}
-	} else {
-		cvs.args	-d ${distname}
-	}
-	pre-fetch {
-		if {[tbool zope.need_cvsdir]} {
-			ui_debug "mkdir: ${worksrcpath}"
-			file mkdir ${worksrcpath}
-		}
-	}
-}
-
 # Zope group option procedures
 proc zope.fix_extract_dir {option action args} {
 	global workpath worksrcpath
@@ -257,15 +190,3 @@ proc zope.fix_extract_dir {option action args} {
 	}
 }
 
-proc zope.fix_cvs_dir {option action args} {
-	global workpath worksrcpath distname zope.product
-	if {[string equal ${action} "set"]} {
-		if {[tbool args]} {
-			cvs.args	-d ${zope.product}
-			cvs.dir		${worksrcpath}
-		} else {
-			cvs.args	-d ${distname}
-			cvs.dir		${workpath}
-		}
-	}
-}
