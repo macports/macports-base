@@ -30,31 +30,41 @@ proc suffix {distname} {
 }
 
 proc checkfiles {args} {
-    global distdir distfiles patchfiles all_dist_files
-
-    set filelist $distfiles
+    global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
+	portpath
     if {[info exists patchfiles]} {
-	set filelist [concat $filelist $patchfiles]
+	foreach file $patchfiles {
+	    if {![file exists $portpath/files/$file]} {
+		lappend all_dist_files $file
+		if {[info exists patch_sites]} {
+		    lappend fetch_urls patch_sites $file
+		} else {
+		    lappend fetch_urls master_sites $file
+		}
+	    }
+	}
     }
-    # Set all_dist_files to distfiles + patchfiles
-    foreach file $filelist {
-	if {![file exists files/$file]} {
+
+    foreach file $distfiles {
+	if {![file exists $portpath/files/$file]} {
 	    lappend all_dist_files $file
+	    lappend fetch_urls master_sites $file
 	}
     }
 }
 
 proc fetchfiles {args} {
-    global distpath all_dist_files master_sites UI_PREFIX ports_verbose
+    global distpath all_dist_files UI_PREFIX ports_verbose \
+	fetch_urls
 
     if {![file isdirectory $distpath]} {
 	file mkdir $distpath
     }
-
-    foreach distfile $all_dist_files {
+    foreach {url_var distfile} $fetch_urls {
 	if {![file isfile $distpath/$distfile]} {
 	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
-	    foreach site $master_sites {
+	    upvar #0 $url_var sites 
+	    foreach site $sites {
 		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
 		if [tbool ports_verbose] {
 			set verboseflag -v
