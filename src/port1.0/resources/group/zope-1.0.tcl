@@ -1,7 +1,7 @@
 # et:ts=4
 # zope-1.0.tcl
 #
-# $Id: zope-1.0.tcl,v 1.4 2004/09/07 23:46:00 wbb4 Exp $
+# $Id: zope-1.0.tcl,v 1.5 2004/09/24 20:33:59 rshaw Exp $
 # 
 # Group file for 'zope' group.
 #
@@ -108,9 +108,6 @@ proc zope.setup {product vers {products {}} {extensions {}}} {
 			file mkdir ${worksrcpath}
 		}
 	}
-	post-extract {
-		file copy -force ${zope.home}/bin/compilezpy.py ${workpath}
-	}
 
 	post-patch {
 		foreach item [glob ${worksrcpath}/*] {
@@ -125,12 +122,13 @@ proc zope.setup {product vers {products {}} {extensions {}}} {
 		system "find ${worksrcpath} -name '*.py\[co\]' | xargs rm"
 		system "find ${worksrcpath} -type d -name CVS | xargs rm -rf"
 		system "find ${worksrcpath} -name '.#*' | xargs rm"
-		reinplace "s|^.*sys.stdout|#&|" ${workpath}/compilezpy.py
 	}
 
 	use_configure	no
 
 	pre-build {
+		file copy -force ${zope.home}/bin/compilezpy.py ${workpath}
+		reinplace "s|^.*sys.stdout|#&|" ${workpath}/compilezpy.py
 		system "find ${worksrcpath} -name '*.py\[co\]' | xargs rm"
 	}
 	build {
