@@ -1,13 +1,10 @@
 MAN1=		port.1
-INSTALLDIR=	${DESTDIR}${PREFIX}
+INSTALLDIR=	${DESTDIR}${prefix}
 
-include ../../Mk/dports.mk
 include ../../Mk/dports.autoconf.mk
 
 mkdirs:
-	cat ../../doc/prefix.mtree | sed -e "s/uname=UNAME/uname=${DSTUSR}/" | \
-	sed -e "s/gname=GNAME/gname=${DSTGRP}/" | \
-	mtree -U -d -e -p ${INSTALLDIR} > /dev/null
+	cat ../../doc/prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
 
 all:
 

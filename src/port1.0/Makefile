@@ -10,7 +10,6 @@ SUBDIR=		resources
 
 include ../../Mk/dports.subdir.mk
 include ../../Mk/dports.autoconf.mk
-include ../../Mk/dports.mk
 
 all::
 
@@ -19,8 +18,8 @@ clean::
 distclean:: clean
 
 install::
-	mkdir -p ${INSTALLDIR}
-	@set -x; for file in ${SRCS}; do \
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
+	$(SILENT)set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
-	../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT)../pkg_mkindex.tcl ${INSTALLDIR}

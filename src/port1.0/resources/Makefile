@@ -4,10 +4,9 @@ RSRCS=
 
 include ../../../Mk/dports.subdir.mk
 include ../../../Mk/dports.autoconf.mk
-include ../../../Mk/dports.mk
 
 install::
-	mkdir -p ${INSTALLDIR}
-	@set -x; for file in ${RSRCS}; do \
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} ${INSTALLDIR}
+	$(SILENT)set -x; for file in ${RSRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
