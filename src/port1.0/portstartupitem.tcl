@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.2 2005/01/20 02:17:42 landonf Exp $
+# $Id: portstartupitem.tcl,v 1.3 2005/01/27 05:44:47 rshaw Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -108,10 +108,10 @@ proc startupitem_create_darwin {args} {
 	set itemname [string toupper ${startupitem.name}]
 	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
 	file mkdir ${destroot}${itemdir}
-	set item [open "${destroot}${itemdir}/${startupitem.name}" a]
+	set item [open "${destroot}${itemdir}/${startupitem.name}" w 0755]
 	puts ${item} "#!/bin/sh"
 	puts ${item} "#\n# DarwinPorts generated StartupItem\n#\n"
-	puts ${item} ". ${prefix}/etc/rc.common\n"
+	puts ${item} ". /etc/rc.common\n"
 	puts ${item} "StartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
@@ -128,7 +128,7 @@ proc startupitem_create_darwin {args} {
 	puts ${item} "\tfi\n\}\n"
 	puts ${item} "RunService \"\$1\""
 	close ${item}
-	set para [open "${destroot}${itemdir}/StartupParameters.plist" a]
+	set para [open "${destroot}${itemdir}/StartupParameters.plist" w 0644]
 	puts ${para} "\{"
 	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
 	puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
