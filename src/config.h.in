@@ -41,6 +41,9 @@
 /* Define if you have the `crypto' library (-lcrypto). */
 #undef HAVE_LIBCRYPTO
 
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
+
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
