@@ -48,7 +48,6 @@
 #include <crt_externs.h>
 #endif
 
-#define BUFSIZ 1024
 #define CBUFSIZ 30
 
 #if !defined(__APPLE__)
@@ -120,18 +119,25 @@ static int ui_info(Tcl_Interp *interp, char *mesg)
 	return rval;
 }
 
+struct linebuf {
+	size_t len;
+	char *line;
+};
+
 int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	char buf[BUFSIZ];
-	char circbuf[CBUFSIZ][BUFSIZ];
-	char errbuf[CBUFSIZ * BUFSIZ];
+	char *buf;
+	struct linebuf circbuf[CBUFSIZ];
+	size_t linelen;
 	char *args[4];
 	char *cmdstring;
 	FILE *pdes;
 	int fdset[2], nullfd;
 	int fline, pos, ret;
 	pid_t pid;
+	Tcl_Obj *errbuf;
 	Tcl_Obj *tcl_result;
+
 #if defined(__APPLE__)
 	char **environ;
 	environ = *_NSGetEnviron();
@@ -177,19 +183,61 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	/* read from simulated popen() pipe */
 	pos = 0;
 	bzero(circbuf, sizeof(circbuf));
-	while (fgets(buf, BUFSIZ, pdes) != NULL) {
-		memcpy(circbuf[pos], buf, BUFSIZ);
-		if (pos++ == CBUFSIZ)
+	while ((buf = fgetln(pdes, &linelen)) != NULL) {
+		char *sbuf;
+		int slen;
+
+		/*
+		 * Allocate enough space to insert a terminating
+		 * '\0' if the line is not terminated with a '\n'
+		 */
+		if (buf[linelen - 1] == '\n')
+			slen = linelen;
+		else
+			slen = linelen + 1;
+
+		if (circbuf[pos].len == 0)
+			sbuf = malloc(slen);
+		else {
+			sbuf = realloc(circbuf[pos].line, slen);
+		}
+
+		if (sbuf == NULL) {
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len != 0)
+					free(circbuf[pos % CBUFSIZ].line);
+			}
+			return TCL_ERROR;
+		}
+
+		memcpy(sbuf, buf, linelen);
+		/* terminate line with '\0',replacing '\n' if it exists */
+		sbuf[slen - 1] = '\0';
+
+		circbuf[pos].line = sbuf;
+		circbuf[pos].len = slen;
+
+		if (pos++ == CBUFSIZ - 1)
 			pos = 0;
-		ret = ui_info(interp, buf);
-		if (ret != TCL_OK)
+		ret = ui_info(interp, sbuf);
+		if (ret != TCL_OK) {
+			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+				if (circbuf[pos % CBUFSIZ].len != 0)
+					free(circbuf[pos % CBUFSIZ].line);
+			}
 			return ret;
+		}
 	}
 	fclose(pdes);
 
-	bzero(errbuf, sizeof(errbuf));
-	for (fline = pos; pos < fline + CBUFSIZ; pos++)
-		strcat(errbuf, circbuf[pos % CBUFSIZ]);
+	/* Copy the contents of the circular buffer to errbuf */
+	errbuf = Tcl_NewStringObj(NULL, 0);
+	for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+		if (circbuf[pos % CBUFSIZ].len == 0)
+			break;
+		Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line, circbuf[pos % CBUFSIZ].len);
+		free(circbuf[pos % CBUFSIZ].line);
+	}
 
 	if (wait(&ret) != pid)
 		return TCL_ERROR;
@@ -204,12 +252,13 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
 			Tcl_SetObjErrorCode(interp, errorCode);
 
+			/* set result */
 			tcl_result = Tcl_NewStringObj("shell command \"", -1);
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
 			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
 			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
-			Tcl_AppendToObj(tcl_result, errbuf, -1);
+			Tcl_AppendObjToObj(tcl_result, errbuf);
 			Tcl_SetObjResult(interp, tcl_result);
 			return TCL_ERROR;
 		}
