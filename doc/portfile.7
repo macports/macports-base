@@ -701,6 +701,19 @@ Directory in which to run ${test.cmd}
 .Sy Example:
 .Dl test.dir	${worksrcpath}/checks 
 .El
+.Ss VARIANT OPTIONS
+DarwinPorts allows for conditional modification to be specified in a Portfile, allowing for handling of software's build-time settings.
+.Bl -tag -width lc
+.It Ic variant 
+The key variant is used to begin the gnome variant as shown in the example.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl variant gnome {	configure.args-append	--with-gnome \
+				depends_lib-append		lib:gnome-session:gnome-session }
+.El
 .Sh AUTHORS
 .An "Landon Fuller <landonf@opendarwin.org>"
 .An "Kevin Van Vechten <kevin@opendarwin.org>"
