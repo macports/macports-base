@@ -346,12 +346,16 @@ switch -- $action {
 
 		set files [registry::port_registered $portname]
 		if { $files != 0 } {
-			puts "Port $portname contains:"
-			foreach file $files {
-				puts "  $file"
+			if { [llength $files] > 0 } {
+				puts "Port $portname contains:"
+				foreach file $files {
+					puts "  $file"
+				}
+			} else {
+				puts "Port $portname does not contain any file or is not active."
 			}
 		} else {
-			puts "Port $portname is not installed, or there is no $portname port active."
+			puts "Port $portname is not installed."
 		}
 	}
 	deps {

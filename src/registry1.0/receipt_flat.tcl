@@ -1,5 +1,5 @@
 # receipt_flat.tcl
-# $Id: receipt_flat.tcl,v 1.1.4.11 2004/06/01 05:51:55 pguyot Exp $
+# $Id: receipt_flat.tcl,v 1.1.4.12 2004/06/02 17:36:19 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
@@ -247,31 +247,40 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 	}"
 	# contents already is a list.
 	interp eval theConverterInterpreter "proc contents {args} {\n\
-		global theConvertedReceipt\n\
-		array set theConvertedReceipt \[list contents \[lindex \$args 0\]\]\n\
+		variable contents\n\
+		set contents \[lindex \$args 0\]\n\
 	}"
 	interp eval theConverterInterpreter "array set theConvertedReceipt {}"
+	interp eval theConverterInterpreter "variable contents"
 	interp eval theConverterInterpreter $receipt_contents
 	array set receipt_$ref [interp eval theConverterInterpreter "array get theConvertedReceipt"]
+	set contents [interp eval theConverterInterpreter "set contents"]
 	interp delete theConverterInterpreter
 
 	# Append the contents list to the file map (only the files).
-	set contents [property_retrieve $ref contents]
+	set theActualContents [list]
 	foreach file $contents {
-		set theFilePath [lindex $file 0]
-		if {[file isfile $theFilePath]} {
-			set previousPort [file_registered $theFilePath]
-			if {$previousPort != 0} {
-				ui_warn "Conflict detected for file $theFilePath between $previousPort and $name."
+		if {[llength $file]} {
+			set theFilePath [lindex $file 0]
+			if {[file isfile $theFilePath]} {
+				set previousPort [file_registered $theFilePath]
+				if {$previousPort != 0} {
+					ui_warn "Conflict detected for file $theFilePath between $previousPort and $name."
+				}
+				if {[catch {register_file $theFilePath $name}]} {
+					ui_warn "An error occurred while adding $theFilePath to the file_map database."
+				}
+			} elseif {![file exists $theFilePath]} {
+				ui_warn "Port $name refers to $theFilePath which doesn't exist."
 			}
-			if {[catch {register_file $theFilePath $name}]} {
-				ui_warn "An error occurred while adding $theFilePath to the file_map database."
-			}
-		} elseif {![file exists $theFilePath]} {
-			ui_warn "Port $name refers to $theFilePath which doesn't exist."
+			lappend theActualContents $file
+		} else {
+			ui_warn "Port $name contents list includes an empty element."
 		}
 	}
 	
+	property_store $ref contents $theActualContents
+
 	# Save the file_map afterwards
 	write_file_map
 	
@@ -533,7 +542,7 @@ proc file_registered {file} {
 
 ##
 # determine if a port is registered in the file map, and if it is,
-# get its files.
+# get its installed (activated) files.
 # convert the port if required.
 # open the file map if required.
 #
@@ -561,14 +570,8 @@ proc port_registered {name} {
 			
 			set files [filemap list file_map $name]
 			
-			if { [llength $files] > 0 } {
-				return $files
-			} else {
-				puts "port really has no file"
-				return 0
-			}
+			return $files
 		} else {
-			puts "port doesn't exist"
 			return 0
 		}
 	}
