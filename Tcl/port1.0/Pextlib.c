@@ -47,7 +47,7 @@ int FlockCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST
     	if ((channel = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), NULL)) == NULL)
 		return TCL_ERROR;
 
-	if (Tcl_GetChannelHandle(channel, TCL_READABLE, &handle) != TCL_OK) {
+	if (Tcl_GetChannelHandle(channel, TCL_READABLE|TCL_WRITABLE, &handle) != TCL_OK) {
 		Tcl_SetStringObj(resultPtr, "error getting channel handle", -1);
 		return TCL_ERROR;
 	}
