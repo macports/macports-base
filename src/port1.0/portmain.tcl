@@ -36,11 +36,10 @@ package provide portmain 1.0
 package require portutil 1.0
 
 register com.apple.main target main
-register com.apple.main init main_init
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname sysportpath libpath distpath
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname sysportpath libpath distpath
 # Export options via PortInfo
 options_export portname portversion portrevision categories maintainers
 	
@@ -53,15 +52,7 @@ default portrevision 0
 default os_arch $tcl_platform(machine)
 default os_version $tcl_platform(osVersion)
 default distname {${portname}-${portversion}}
-
-proc main_init {args} {
-    global worksrcdir no_worksubdir
-    if {[tbool no_worksubdir]} {
-	default worksrcdir ""
-    } else {
-		default worksrcdir {$distname}
-    }
-}
+default worksrcdir {$distname}
 
 proc main {args} {
 
