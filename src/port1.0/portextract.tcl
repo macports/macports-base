@@ -16,8 +16,10 @@ global extract_opts
 # define options
 options extract_opts extract.only extract.cmd extract.before_args extract.after_args
 
+set UI_PREFIX "---> "
+
 proc extract_main {args} {
-    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args
+    global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args UI_PREFIX
 
     if {![info exists distfiles] && ![info exists extract.only]} {
 	# nothing to do
@@ -38,18 +40,17 @@ proc extract_main {args} {
 	set extract.after_args "-d $portpath/$workdir"
     }
 
-    ui_puts "Extracting for $distname"
+    ui_msg "$UI_PREFIX Extracting for $distname"
 
     cd $portpath/$workdir
     foreach distfile ${extract.only} {
-	ui_puts "$distfile: " -nonewline
-	flush stdout
+	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
 	set cmd "${extract.cmd} [join ${extract.before_args}] $distpath/$distfile [join ${extract.after_args}]"
 	if [catch {system $cmd} result] {
-	    ui_puts $result
+	    ui_error "$UI_PREFIX $result"
 	    return -1
 	}
-	ui_puts "done"
+	ui_info "Done"
     }
     return 0
 }

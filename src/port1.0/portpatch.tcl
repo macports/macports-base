@@ -11,8 +11,10 @@ register com.apple.patch provides patch
 register com.apple.patch requires main fetch checksum extract
 register com.apple.patch swdep build depends_build
 
+set UI_PREFIX "---> "
+
 proc patch_main {args} {
-    global portname patchfiles distpath filedir workdir portpath
+    global portname patchfiles distpath filedir workdir portpath UI_PREFIX
 
     if ![info exists patchfiles] {
 	return 0
@@ -29,6 +31,7 @@ proc patch_main {args} {
     }
     cd $portpath/$workdir
     foreach patch $patchlist {
+	ui_info "$UI_PREFIX Applying $patch"
 	switch -glob -- [file tail $patch] {
 	    *.Z -
 	    *.gz {system "gzcat $patch | patch -p0"}

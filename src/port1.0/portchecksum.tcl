@@ -13,8 +13,10 @@ register com.apple.checksum requires main fetch
 # define options
 options checksums
 
+set UI_PREFIX "---> "
+
 proc md5 {file} {
-    global distpath
+    global distpath UI_PREFIX
 
     set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
     set pipe [open "|md5 ${file}" r]
@@ -23,8 +25,7 @@ proc md5 {file} {
 	return $sum
     } else {
 	# XXX Handle this error beter
-	ui_puts $line
-	ui_puts "md5sum failed!"
+	ui_error "$UI_PREFIX $line - md5sum failed!"
 	return -1
     }
 }
@@ -41,7 +42,7 @@ proc dmd5 {file} {
 }
 
 proc checksum_main {args} {
-    global checksums distpath portpath all_dist_files
+    global checksums distpath portpath all_dist_files UI_PREFIX
 
     # If no files have been downloaded there is nothing to checksum
     if ![info exists all_dist_files] {
@@ -49,7 +50,7 @@ proc checksum_main {args} {
     }
 
     if ![info exists checksums] {
-	ui_puts "No MD5 checksums."
+	ui_error "$UI_PREFIX No MD5 checksums."
 	return -1
     }
 
@@ -57,13 +58,13 @@ proc checksum_main {args} {
 	set checksum [md5 $distpath/$distfile]
 	set dchecksum [dmd5 $distfile]
 	if {$dchecksum == -1} {
-	    ui_puts "No checksum recorded for $distfile"
+	    ui_error "$UI_PREFIX No checksum recorded for $distfile"
 	    return -1
 	}
 	if {$checksum == $dchecksum} {
-	    ui_puts "Checksum OK for $distfile"
+	    ui_msg "$UI_PREFIX Checksum OK for $distfile"
 	} else {
-	    ui_puts "Checksum mismatch for $distfile"
+	    ui_error "$UI_PREFIX Checksum mismatch for $distfile"
 	    return -1
 	}
     }

@@ -14,8 +14,10 @@ register com.apple.build swdep build depends_build
 # define options
 options make.cmd make.type make.target.all make.target.install
 
+set UI_PREFIX "---> "
+
 proc build_main {args} {
-    global portname portpath workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.all
+    global portname portpath workdir worksrcdir prefix make.type make.cmd make.worksrcdir make.target.all UI_PREFIX
 
     default make.type bsd
     default make.cmd make
@@ -31,6 +33,7 @@ proc build_main {args} {
 	set make.cmd bsdmake
     }
     default make.target.all all
+    ui_msg "$UI_PREFIX Building $portname with target ${make.target.all}"
     system "${make.cmd} ${make.target.all}"
     return 0
 }

@@ -17,6 +17,8 @@ options master_sites patch_sites extract_sufx distfiles extract_only patchfiles 
 # Defaults
 default extract_sufx tar.gz
 
+set UI_PREFIX "---> "
+
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip
     if {[info exists extract_sufx]} {
@@ -46,7 +48,7 @@ proc checkfiles {args} {
 }
 
 proc fetchfiles {args} {
-    global distpath all_dist_files master_sites
+    global distpath all_dist_files master_sites UI_PREFIX
 
     if {![file isdirectory $distpath]} {
 	file mkdir $distpath
@@ -54,9 +56,9 @@ proc fetchfiles {args} {
 
     foreach distfile $all_dist_files {
 	if {![file isfile $distpath/$distfile]} {
-	    ui_puts "$distfile doesn't seem to exist in $distpath"
+	    ui_info "$UI_PREFIX $distfile doesn't seem to exist in $distpath"
 	    foreach site $master_sites {
-		ui_puts "Attempting to fetch from $site"
+		ui_msg "$UI_PREFIX Attempting to fetch $distfile from $site"
 		if ![catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result] {
 		    set fetched 1
 		    break

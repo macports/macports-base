@@ -139,7 +139,7 @@ proc register {name mode args} {
         set chain [lindex $args 0]
         set procedure [lindex $args 1]
         if {[dlist_has_key targets $name procedure,$chain]} {
-            ui_puts "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
+            ui_info "Warning: target '$name' re-registered for chain $chain (new procedure: '$procedure')"
         }
         dlist_set_key targets $name procedure,$chain $procedure
 
@@ -160,7 +160,7 @@ proc register {name mode args} {
         if {[dlist_has_item targets $name]} {
             dlist_append_key targets $name $mode $args
         } else {
-            ui_puts "Warning: target '$name' not-registered in register $mode"
+            ui_info "Warning: target '$name' not-registered in register $mode"
         }
         
         if {[string equal provides $mode]} {
@@ -406,11 +406,11 @@ proc dlist_evaluate {dlist downstatusdict action} {
     set names [array names uplist name,*]
     if { [llength $names] > 0} {
 	# somebody broke!
-	ui_puts "Warning: the following items did not execute: "
+	ui_info "Warning: the following items did not execute: "
 	foreach name $names {
-	    ui_puts "$uplist($name) " -nonewline
+	    ui_info "$uplist($name) " -nonewline
 	}
-	ui_puts ""
+	ui_info ""
     }
 }
 
@@ -428,11 +428,11 @@ proc exec_target {fd chain dlist name} {
 		flush $fd
 	    }
 	} else {
-	    ui_puts "$chain error: $name returned $result"
+	    ui_error "$chain error: $name returned $result"
 	    set result failure
 	}
     } else {
-	ui_puts "Warning: $name does not support chain $chain"
+	ui_info "Warning: $name does not support chain $chain"
 	set result failure
     }
     return $result
@@ -451,7 +451,7 @@ proc eval_targets {dlist chain target} {
             array set uplist [array get dependents]
             # Special-case 'all'
         } elseif {![string equal $target all]} {
-            ui_puts "Warning: unknown target: $target"
+            ui_info "Warning: unknown target: $target"
             return
         }
     }

@@ -14,8 +14,10 @@ register com.apple.configure swdep build depends_build
 # define options
 options configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool
 
+set UI_PREFIX "---> "
+
 proc configure_main {args} {
-    global configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool portname portpath workdir worksrcdir prefix
+    global configure configure.type configure.args configure.worksrcdir automake automake.env automake.args autoconf autoconf.env autoconf.args xmkmf libtool portname portpath workdir worksrcdir prefix UI_PREFIX
 
     if [info exists configure.worksrcdir] {
 	set configpath ${portpath}/${workdir}/${worksrcdir}/${configure.worksrcdir}
@@ -28,6 +30,7 @@ proc configure_main {args} {
 	# XXX depend on automake
     }
 
+    ui_msg "$UI_PREFIX Running configure script"
     if [info exists configure.args] {
 	system "./configure --prefix=${prefix} ${configure.args}"
     } else {

@@ -15,6 +15,9 @@ options ports_debug
 # If set, output informational messages (ui_info)
 options ports_verbose
 
+# If set, don't output "standard messages"
+options ports_quiet
+
 # do whatever interesting things need to be done to initialize the UI
 # environment.  Always called by convention though it does nothing
 # much in the "minimal UI" implementation (though it should always
@@ -69,13 +72,26 @@ proc ui_debug {str} {
 }
 
 # Output message if ports_verbose is set.
-# Output debugging messages if the ports_debug variable is set.
-proc ui_info {str} {
+proc ui_info {str {nonl ""}} {
     global ports_verbose
 
     if [tbool ports_verbose] {
-	ui_puts $str
+	ui_puts $str $nonl
     }
+}
+
+# Output message unless ports_quiet is set.
+proc ui_msg {str {nonl ""}} {
+    global ports_quiet
+
+    if ![tbool ports_quiet] {
+	ui_puts $str $nonl
+    }
+}
+
+# Output message unconditionally as an error message.
+proc ui_error {str} {
+    ui_puts Error: $str
 }
 
 # Get a line of input from the user and store in str, returning the
