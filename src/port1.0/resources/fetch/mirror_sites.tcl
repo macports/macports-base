@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.12 2004/01/14 18:08:52 fkr Exp $
+# $Id: mirror_sites.tcl,v 1.13 2004/01/18 08:35:09 jkh Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -109,7 +109,18 @@ set portfetch::mirror_sites::sites(isc) {
 }
 
 set portfetch::mirror_sites::sites(kde) {
+    http://ftp.rutgers.edu/pub/kde/
+    http://mirrors.midco.net/pub/kde/
+    http://kde.oregonstate.edu/pub/kde/
+    http://csociety-ftp.ecn.purdue.edu/pub/kde/
+    http://ftp.gtlib.cc.gatech.edu/pub/kde/
+    ftp://ftp.rutgers.edu/pub/kde/
+    ftp://ftp.gtlib.cc.gatech.edu/pub/kde/
     ftp://ftp.us.kde.org/pub/kde/
+    ftp://ftp.oregonstate.edu/pub/kde/
+    ftp://mirrors.midco.net/pub/kde/
+    ftp://kde.us.themoes.org/pub/kde/
+    ftp://mirror.xmission.com/kde/
     ftp://ftp.kde.org/pub/kde/
     http://linux.dsi.internet2.edu/X11/kde/
     ftp://ftp.tuniv.szczecin.pl/pub/kde/
