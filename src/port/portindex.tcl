@@ -29,7 +29,7 @@ proc port_traverse {func {dir .} {cwd ""}} {
 
 proc pindex {portdir} {
     global target fd directory
-    set interp [dportopen [file join $directory $portdir]]
+    set interp [dportopen file://[file join $directory $portdir]]
     array set portinfo [dportinfo $interp]
     dportclose $interp
     set portinfo(portdir) $portdir

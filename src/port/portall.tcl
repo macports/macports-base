@@ -31,7 +31,7 @@ proc port_traverse {func {dir .}} {
 
 proc pindex {portdir} {
     global target
-    set interp [dportopen $portdir]
+    set interp [dportopen file://$portdir]
     array set portinfo [dportinfo $interp]
     puts "Doing $target for port: $portinfo(portname)"
     dportexec $interp $target
