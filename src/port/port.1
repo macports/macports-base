@@ -75,6 +75,12 @@ quiet mode (suppress messages)
 autoclean mode (execute clean after install)
 .It Fl k
 keep mode (don't autoclean after install)
+.It Fl n
+dont follow dependencies in upgrade (only for upgrading)
+.It Fl a
+upgrade all installed ports (only for upgrading)
+.It Fl u
+uninstall non-active ports when upgrading and uninstalling
 .It Fl D
 specify
 .Ar portdir
@@ -82,6 +88,10 @@ specify
 force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
+.It Fl s
+source-only mode (only build and install from source, ignores all binary archives, does not create/recreate binary archives) (only applies when archive mode is enabled)
+.It Fl b
+binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
 .El
 .Sh TARGETS
 .Nm
@@ -92,14 +102,16 @@ The other targets are:
 .Dl uninstall
 .Dl deactivate
 .Dl activate
+.Dl installed
+.Dl outdated
+.Dl upgrade
 .Dl clean
-.Dl distclean
 .Dl search
 .Dl list
 .Dl contents
 .Dl deps
 .Dl variants
-.Dl info 
+.Dl info
 .Pp
 Besides the main targets
 .Nm
@@ -121,6 +133,25 @@ There are also targets for packaging ports:
 .Dl dmg
 .Dl rpmpackage
 .Pp
+If enabled, binary archives can be created/used to allow installation from pre-built binaries rather than source:
+.Pp
+.Dl unarchive
+.Dl archive
+.Pp
+When archive mode is enabled, the
+.Ar unarchive
+command is called automatically, prior to
+.Ar fetch
+, to check for an
+existing binary archive to unpack. If found, it is unpacked and all
+stages up to
+.Ar install
+are then skipped.  In addition, binary archives will be created automatically whenever an
+.Ar install
+is performed, or when the
+.Ar archive
+target is called explicitly.
+.Pp
 Additionally, the
 .Ic provides
 command determines which port owns a given file.
@@ -131,23 +162,63 @@ with the "install" target on the "vim" port:
 .Pp
 .Dl "port install vim
 .Pp
+To manually create a binary archive, use the "archive" target (also done automatically prior to "install"):
+.Pp
+.Dl "port archive vim"
+.Pp
 To uninstall a port, invoke
 .Nm
 with the "uninstall" target:
 .Pp
 .Dl "port uninstall vim
 .Pp
-To clean up after the port was build:
+To uninstall all ports that are not activated 
+.Pp
+.Dl "port -u uninstall" 
+.Pp
+To clean up working directory after the port was built:
 .Pp
 .Dl "port clean vim
 .Pp
+or:
+.Pp
+.Dl "port clean --work vim
+.Pp
 To remove a port's distfiles:
 .Pp
-.Dl "port distclean vim
+.Dl "port clean --dist vim
+.Pp
+To remove a port's archives (any variant of current port version):
+.Pp
+.Dl "port clean --archive vim
+.Pp
+To remove certain version(s) of a port's archives (version is any valid UNIX glob pattern):
+.Pp
+.Dl "port clean --archive vim 6.2.114
+.Pp
+or:
+.Pp
+.Dl "port clean --archive vim '6.*'
+.Pp
+To remove a port's distfiles, archives, and working directory:
+.Pp
+.Dl "port clean --all vim
 .Pp
 To deactivate a port (in image mode):
 .Pp
 .Dl "port deactivate vim
+.Pp
+To list out of date ports:
+.Pp
+.Dl "port outdated"
+.Pp
+To upgrade a port (deactivating the older version and activating a newer)
+.Pp
+.Dl "port upgrade vim
+.Pp
+To upgrade all installed ports
+.Pp
+.Dl "port -a upgrade
 .Pp
 To reactivate a port previously deactivated (in image mode):
 .Pp
@@ -196,7 +267,7 @@ To list a port's variants:
 .Dl "port variants php"
 .Pp
 To view all of a port's metadata:
-.Pp
+.Pp 
 .Dl "port info vim"
 .Pp
 The following demonstrates invoking
@@ -225,3 +296,5 @@ To build an RPM from a port, use the "rpmpackage" target instead:
 .An Landon Fuller Aq landonf@opendarwin.org
 .An Kevin Van Vechten Aq kevin@opendarwin.org
 .An Jordan K. Hubbard Aq jkh@opendarwin.org
+.An Ole Guldberg Jensen Aq olegb@opendarwin.org
+.An Robert Shaw Aq rshaw@opendarwin.org

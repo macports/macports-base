@@ -43,7 +43,6 @@ package require portbuild 1.0
 package require portdestroot 1.0
 package require portinstall 1.0
 package require portactivate 1.0
-package require portdistclean 1.0
 package require portclean 1.0
 package require porttest 1.0
 package require portsubmit 1.0

@@ -2,6 +2,8 @@
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 Paul Guyot, Darwinports Team.
+# Copyright (c) 2004 Ole Guldberg Jensen <olegb@opendarwin.org>.
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,8 +36,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portautoclean"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portautoclean"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean"
 	
     variable open_dports {}
 }
@@ -107,7 +109,7 @@ proc dportinit {args} {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:\./-\]+$)" $line match val] == 1} {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:,\./-\]+$)" $line match val] == 1} {
 			set darwinports::$option $val
 			global darwinports::$option
 		    }
@@ -190,6 +192,41 @@ proc dportinit {args} {
 			set darwinports::portautoclean $options(ports_autoclean)
 		}
 	}
+
+	# Archive mode, whether to create/use binary archive packages
+	if {![info exists portarchivemode]} {
+		set darwinports::portarchivemode "yes"
+		global darwinports::portarchivemode
+	}
+
+	# Archive path, where to store/retrieve binary archive packages
+	if {![info exists portarchivepath]} {
+		set darwinports::portarchivepath [file join $portdbpath packages]
+		global darwinports::portarchivepath
+	}
+	if {$portarchivemode == "yes"} {
+		if {![file isdirectory $portarchivepath]} {
+			if {![file exists $portarchivepath]} {
+				if {[catch {file mkdir $portarchivepath} result]} {
+					return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
+				}
+			}
+		}
+		if {![file isdirectory $portarchivepath]} {
+			return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
+		}
+	}
+
+	# Archive type, what type of binary archive to use (CPIO, gzipped
+	# CPIO, XAR, etc.)
+	if {![info exists portarchivetype]} {
+		set darwinports::portarchivetype "cpgz"
+		global darwinports::portarchivetype
+	}
+	# Convert archive type to a list for multi-archive support, colon or
+	# comma separators indicates to use multiple archive formats
+	# (reading and writing)
+	set darwinports::portarchivetype [split $portarchivetype {:,}]
 
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
@@ -644,6 +681,7 @@ proc dportexec {dport target} {
 	}
 	if {$target == "configure" || $target == "build"
 		|| $target == "destroot" || $target == "install"
+		|| $target == "archive"
 		|| $target == "pkg" || $target == "mpkg"
 		|| $target == "rpmpackage" || $target == "dpkg" } {
 
@@ -894,4 +932,196 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	}
 	
 	return 0
+}
+
+# upgrade procedure
+proc upgrade {pname dspec} {
+	# globals
+	global options variations
+
+	# check if the port is in tree
+	if {[catch {dportsearch ^$pname$} result]} {
+		ui_error "port search failed: $result"
+		return 1
+	}
+	# argh! port doesnt exist!
+	if {$result == ""} {
+		ui_error "No port $pname found."
+		return 1
+	}
+	# fill array with information
+	array set portinfo [lindex $result 1]
+
+	# set version_in_tree
+	if {![info exists portinfo(version)]} {
+		ui_error "Invalid port entry for $portinfo(name), missing version"
+		return 1
+	}
+	set version_in_tree "$portinfo(version)_$portinfo(revision)"
+
+	# set version_installed
+	set ask no
+	set ilist {}
+	if { [catch {set ilist [registry::installed $pname ""]} result] } {
+		if {$result eq "Registry error: $pname not registered as installed." } {
+			ui_debug "$pname is *not* installed by DarwinPorts"
+			# open porthandle    
+			set porturl $portinfo(porturl)
+		    if {![info exists porturl]} {
+		        set porturl file://./    
+			}    
+			if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+			        ui_error "Unable to open port: $result"        
+					return 1
+		    }
+
+			if {![_dportispresent $workername $dspec ] } {
+				# port in not installed
+				# install it!
+				if {[catch {set result [dportexec $workername install]} result]} {
+					ui_error "Unable to exec port: $result"
+					return 1
+				}
+			} else {
+				# port installed outside DP
+				ui_debug "$pname installed outside the DarwinPorts system"
+			}
+
+		} else {
+			ui_error "Checking installed version failed: $result"
+			exit 1
+		}
+	}
+	set anyactive 0
+	set version_installed 0
+	if {$ilist eq ""} {
+		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
+		set version_installed $version_in_tree
+	} else {
+		# a port could be installed but not activated
+		# so, deactivate all and save newest for activation later
+		set num 0
+		set variant ""
+		foreach i $ilist {
+			set variant [lindex $i 3]
+			set version "[lindex $i 1]_[lindex $i 2]"
+			if { [rpm-vercomp $version $version_installed] > 0} {
+				set version_installed $version
+				set num $i
+			}
+
+			set isactive [lindex $i 4]
+			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
+				# deactivate version_installed
+    			if {[catch {portimage::deactivate $pname $version} result]} {
+    	    		ui_error "Deactivating $pname $version_installed failed: $result"
+    	    		return 1
+    			}
+			}
+		}
+		if { [lindex $num 4] == 0} {
+			# activate the latest installed version
+			if {[catch {portimage::activate $pname $version_installed$variant} result]} {
+    			ui_error "Deactivating $pname $version_installed failed: $result"
+				return 1
+			}
+		}
+	}
+
+	# out put version numbers
+	ui_debug "$pname $version_in_tree exists in the ports tree"
+	ui_debug "$pname $version_installed is installed"
+
+	# set the nodeps option  
+	if {![info exists options(ports_nodeps)]} {
+		set nodeps no
+	} else {	
+		set nodeps yes
+	}
+
+	if {$nodeps eq "yes"} {
+		ui_debug "Not following dependencies"
+	} else {
+		# build depends is upgraded
+		if {[info exists portinfo(depends_build)]} {
+			foreach i $portinfo(depends_build) {
+				set d [lindex [split $i :] 2]
+				upgrade $d $i
+			}
+		}
+		# library depends is upgraded
+		if {[info exists portinfo(depends_lib)]} {
+			foreach i $portinfo(depends_lib) {
+				set d [lindex [split $i :] 2]
+				upgrade $d $i
+			}
+		}
+		# runtime depends is upgraded
+		if {[info exists portinfo(depends_run)]} {
+			foreach i $portinfo(depends_run) {
+				set d [lindex [split $i :] 2]
+				upgrade $d $i
+			}
+		}
+	}
+
+	# check installed version against version in ports
+	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 } {
+		ui_debug "No need to upgrade! $pname $version_installed >= $pname $version_in_tree"
+		return 0
+	}
+
+	# deactivate version_installed
+	if {[catch {portimage::deactivate $pname $version_installed$variant} result]} {
+		ui_error "Deactivating $pname $version_installed failed: $result"
+		return 1
+	}
+
+	# open porthandle
+	set porturl $portinfo(porturl)
+	if {![info exists porturl]} {
+		set porturl file://./
+	}
+
+	# check if the variants is present in $version_in_tree
+	set variant [split $variant +]
+	ui_debug "variants to install $variant"
+	if {[info exists portinfo(variants)]} {
+		set avariants $portinfo(variants)
+	} else {
+		set avariants {}
+	}
+	ui_debug "available variants are : $avariants"
+	foreach v $variant {
+		if {[lsearch $avariants $v] eq -1} {
+		} else {
+			ui_debug "variant $v is present in $pname $version_in_tree"
+			set variations($v) "+"
+		}
+	}
+	ui_debug "new portvariants: [array get variations]"
+	
+	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
+		ui_error "Unable to open port: $result"
+		return 1
+	}
+
+	# install version_in_tree
+	if {[catch {set result [dportexec $workername install]} result]} {
+		ui_error "Unable to exec port: $result"
+		return 1
+	}
+
+	# uninstall old ports
+	if {[info exists options(port_uninstall_old)]} {
+		# uninstalll old
+		ui_debug "Uninstalling $pname $version_installed$variant"
+		if {[catch {portuninstall::uninstall $pname $version_installed$variant} result]} {
+     		ui_error "Uninstall $pname $version_installed$variant failed: $result"
+       		return 1
+    	}
+	}
+	
+	# close the port handle
+	dportclose $workername
 }

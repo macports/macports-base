@@ -1,6 +1,7 @@
 #!@TCLSH@
 # port.tcl
 #
+# Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -91,7 +92,7 @@ proc ui_puts {messagelist} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfock\] \[-D portdir\] target \[portname\] \[options\] \[variants\]"
+	puts "Usage: [file tail $argv0] \[-vdqfonausbck\] \[-D portdir\] target \[flags\] \[portname\] \[options\] \[variants\]"
 }
 
 proc fatal args {
@@ -129,9 +130,14 @@ array set options [list]
 array set variations [list]
 for {set i 0} {$i < $argc} {incr i} {
 	set arg [lindex $argv $i]
-	
+
+	# if --xyz after the action, but before any portname
+	if {[info exists action] && ![info exists portname] \
+			&& [regexp {^--([A-Za-z0-9]+)$} $arg match key] == 1} {
+		set options(ports_${action}_${key}) yes
+
 	# if -xyz before the separator
-	if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
+	} elseif {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
 	if {$opt == "-"} {
 		set separator 1
 	} else {
@@ -150,6 +156,16 @@ for {set i 0} {$i < $argc} {incr i} {
 				set ui_options(ports_debug) no
 			} elseif {$c == "o"} {
 				set options(ports_ignore_older) yes
+			} elseif {$c == "n"} {
+				set options(ports_nodeps) yes
+			} elseif {$c == "a"} {
+				set options(port_upgrade_all) yes
+			} elseif {$c == "u"} {
+				set options(port_uninstall_old) yes
+			} elseif {$c == "s"} {
+				set options(ports_source_only) yes
+			} elseif {$c == "b"} {
+				set options(ports_binary_only) yes
 			} elseif {$c == "c"} {
 				set options(ports_autoclean) yes
 			} elseif {$c == "k"} {
@@ -242,10 +258,9 @@ switch -- $action {
 				puts "$portinfo(homepage)"
 			}
 	
-            if {[info exists portinfo(long_description)]} {
-                puts "\n$portinfo(long_description)\n"
-            }
-
+			if {[info exists portinfo(long_description)]} {
+				puts "\n$portinfo(long_description)\n"
+			}
 
 			# find build dependencies
 			if {[info exists portinfo(depends_build)]} {
@@ -355,6 +370,35 @@ switch -- $action {
 			exit 1
 		}
 	}
+	upgrade {
+        if {[info exists options(port_upgrade_all)] } {
+            # upgrade all installed ports!!!
+            if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "no ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+            if { [llength $ilist] > 0 } {
+                foreach i $ilist {
+                    set iname [lindex $i 0]
+                    upgrade $iname "lib:XXX:$iname"
+                }
+            }
+        } else {
+            # upgrade a specific port
+            if { ![info exists portname] } {
+                puts "Please specify a port to upgrade."
+                exit 1
+            }
+
+            upgrade $portname "lib:XXX:$portname"
+        }
+    }
+
 	compact {
 		if { ![info exists portname] } {
 			puts "Please specify a port to compact."
@@ -380,47 +424,173 @@ switch -- $action {
 		}
 	}
 	uninstall {
-		if { ![info exists portname] } {
-			puts "Please specify a port to uninstall"
-			exit 1
-		} elseif { ![info exists portversion] } {
-			set portversion ""
-		} 
-		if { [catch {portuninstall::uninstall $portname $portversion} result] } {
-			puts "port uninstall failed: $result"
-			exit 1
+		# if -u then uninstall all non-active ports
+		if {[info exists options(port_uninstall_old)]} {
+			if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "no ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+					exit 1
+                }
+            }
+			if { [llength ilist] > 0} {
+				foreach i $ilist {
+					# uninstall inactive port
+					if {[lindex $i 4] eq 0} {
+						set portname "[lindex $i 0]"
+						set portversion "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
+						ui_debug " uninstalling $portname $portversion"
+						if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+                        	puts "port uninstall failed: $result"
+							exit 1
+                        }
+					}
+				}
+			}
+		} else {
+			if { ![info exists portname] } {
+				puts "Please specify a port to uninstall"
+				exit 1
+			} elseif { ![info exists portversion] } {
+				set portversion ""
+			} 
+			if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+				puts "port uninstall failed: $result"
+				exit 1
+			}
 		}
 	}
 	installed {
+        if { [info exists portname] } {
+            if { [catch {set ilist [registry::installed $portname]} result] } {
+                if {$result eq "Registry error: $portname not registered as installed."} {
+                    puts "Port $portname not installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+        } else {
+            if { [catch {set ilist [registry::installed]} result] } {
+                if {$result eq "Registry error: No ports registered as installed."} {
+                    puts "No ports installed!"
+                    exit 1
+                } else {
+                    puts "port installed failed: $result"
+                    exit 1
+                }
+            }
+        }
+        if { [llength $ilist] > 0 } {
+            puts "The following ports are currently installed:"
+            foreach i $ilist {
+                set iname [lindex $i 0]
+                set iversion [lindex $i 1]
+                set irevision [lindex $i 2]
+                set ivariants [lindex $i 3]
+                set iactive [lindex $i 4]
+                if { $iactive == 0 } {
+                    puts "  $iname ${iversion}_${irevision}${ivariants}"
+                } elseif { $iactive == 1 } {
+                    puts "  $iname ${iversion}_${irevision}${ivariants} (active)"
+                }
+            }
+        } else {
+            exit 1
+        }
+    }
+
+	outdated {
+		# If a port name was supplied, limit ourselves to that port, else check all installed ports
 		if { [info exists portname] } {
 			if { [catch {set ilist [registry::installed $portname]} result] } {
-				puts "port installed failed: $result"
+				puts "port outdated failed: $result"
 				exit 1
 			}
 		} else {
 			if { [catch {set ilist [registry::installed]} result] } {
-				puts "port installed failed: $result"
+				puts "port outdated failed: $result"
 				exit 1
 			}
 		}
+	
 		if { [llength $ilist] > 0 } {
-			puts "The following ports are currently installed:"
+			puts "The following installed ports seem to be outdated:"
+		
 			foreach i $ilist { 
-				set iname [lindex $i 0]
-				set iversion [lindex $i 1]
-				set irevision [lindex $i 2]
-				set ivariants [lindex $i 3]
-				set iactive [lindex $i 4]
-				if { $iactive == 0 } {
-					puts "	$iname ${iversion}_${irevision}${ivariants}"
-				} elseif { $iactive == 1 } {
-					puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
+
+				# Get information about the installed port
+				set portname			[lindex $i 0]
+				set installed_version	[lindex $i 1]
+				set installed_revision	[lindex $i 2]
+				set installed_compound	"${installed_version}_${installed_revision}"
+
+				set is_active			[lindex $i 4]
+				if { $is_active == 0 } {
+					continue
+				}
+
+				# Get info about the port from the index
+				# Escape regex special characters
+				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+				if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+					puts "port search failed: $result"
+					exit 1
+				}
+				if {[llength $res] < 2} {
+					if {[ui_isset ports_debug]} {
+						puts "$portname ($installed_compound is installed; the port was not found in the port index)"
+					}
+					continue
+				}
+				array set portinfo [lindex $res 1]
+				
+				# Get information about latest available version and revision
+				set latest_version $portinfo(version)
+				set latest_revision		0
+				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
+					set latest_revision	$portinfo(revision)
+				}
+				set latest_compound		"${latest_version}_${latest_revision}"
+				
+				# Compare versions for equality
+				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				if { $comp_result != 0 } {
+				
+					# Form a relation between the versions
+					set flag ""
+					if { $comp_result > 0 } {
+						set relation ">"
+						set flag "!"
+					} else {
+						set relation "<"
+					}
+					
+					# Emit information
+					if {$comp_result < 0 || [ui_isset ports_verbose]} {
+						puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound" $flag]
+					}
+					
+					# Even more verbose explanation (disabled at present)
+					if {false && [ui_isset ports_verbose]} {
+						puts "  installed: $installed_compound"
+						puts "  latest:    $latest_compound"
+						# Warning for ports that are predated
+						if { $result > 0 } {
+							puts "  (installed version is newer than port index version)"
+						}
+					}
+					
 				}
 			}
 		} else {
 			exit 1
 		}
 	}
+
 	contents {
 		# make sure a port was given on the command line
 		if {![info exists portname]} {
@@ -590,6 +760,11 @@ switch -- $action {
 		}
 		if {![info exists porturl]} {
 			set porturl file://./
+		}
+		# If version was specified, save it as a version glob for use
+		# in port actions (e.g. clean).
+		if {[info exists portversion]} {
+			set options(ports_version_glob) $portversion
 		}
 		if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
 			puts "Unable to open port: $result"

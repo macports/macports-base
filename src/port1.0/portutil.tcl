@@ -1192,3 +1192,56 @@ proc PortGroup {group version} {
 		ui_warn "Group file could not be located."
 	}
 }
+
+# check if archive type is supported by current system
+# returns an error code if it is not
+proc archiveTypeIsSupported {type} {
+	set errmsg ""
+	switch -regex $type {
+		cp(io|gz) {
+			set ditto "ditto"
+			if {[catch {set ditto [binaryInPath $ditto]} errmsg] == 0} {
+				return 0
+			} else {
+				set cpio "cpio"
+				if {[catch {set cpio [binaryInPath $cpio]} errmsg] == 0} {
+					return 0
+				}
+			}
+		}
+		xar {
+			set xar "xar"
+			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+				return 0
+			}
+		}
+		t(ar|gz) {
+			set gnutar "gnutar"
+			if {[catch {set gnutar [binaryInPath $gnutar]} errmsg] == 0} {
+				return 0
+			} else {
+				set gtar "gtar"
+				if {[catch {set gtar [binaryInPath $gtar]} errmsg] == 0} {
+					return 0
+				} else {
+					set tar "tar"
+					if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+						if {[regexp {z$} $type]} {
+							set gzip "gzip"
+							if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+								return 0
+							}
+						} else {
+							return 0
+						}
+					}
+				}
+			}
+		}
+		default {
+			return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
+		}
+	}
+	return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
+}
+
