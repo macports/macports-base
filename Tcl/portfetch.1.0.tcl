@@ -54,10 +54,8 @@ proc portfetch::checkfiles {args} {
 
 proc portfetch::main {args} {
 	global distname
-	# Set distfiles if not defined
-	if ![isval portfetch::options distfiles] {
-		setval portfetch::options distfiles [portfetch::suffix $distname]
-	}
+	# Defaults
+	default portfetch::options distfiles [portfetch::suffix $distname]
 
 	# Set all_dist_files to distfiles + patchfiles
 	setval portfetch::options all_dist_files [getval portfetch::options distfiles]
