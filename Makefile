@@ -1,5 +1,9 @@
 SUBDIR= doc src
 
+.PHONY : all
+.PHONY : clean
+.PHONY : install
+
 all:
 	@for subdir in $(SUBDIR); do\
 		echo making $@ in $$subdir; \
