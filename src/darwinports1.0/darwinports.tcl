@@ -1027,15 +1027,6 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 proc darwinports::selfupdate {args} {
 	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
 
-	if { [file exists [file join $prefix var/db/dports/.globallock] ] } {
-		# we could also alter rsync_options to not include --delete
-		ui_msg "Please wait for other port process to finish and then run selfupdate"
-		return 0
-	} else {
-		# add lock for ourselves
-	}
-		
-
 	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
 	if {[catch {dportsync} result]} {
 		return -code error "Couldnt sync dports tree: $result"
