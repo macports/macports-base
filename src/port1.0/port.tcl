@@ -31,10 +31,6 @@
 # standard package load
 package provide port 1.0
 
-# Initialize the UI abstraction API
-package require portui 1.0
-ui_init
-
 package require portmain 1.0
 package require portdepends 1.0
 package require portfetch 1.0

@@ -123,6 +123,9 @@ proc dportopen {portdir {options ""}} {
     } else {
 	return -code error "Portdir $portdir does not exist"
     }
+    # Finally, initialize the UI for the new port
+    $workername eval ui_init
+
     return $workername
 }
 
