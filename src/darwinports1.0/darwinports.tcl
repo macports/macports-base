@@ -315,18 +315,28 @@ proc dportexec {dport target} {
 
 		dportdepends $dport 1 1
 		
-		# Select out the dependents along the critical path
+		# Select out the dependents along the critical path,
+		# but exclude this dport, we might not be installing it.
 		set dlist [dlist_append_dependents $darwinports::open_dports $dport {}]
 		
-		# install them
-		set dlist [dlist_eval $darwinports::open_dports _dporttest [list _dportexec "install"]]
-	}
+		dlist_delete dlist $dport
 
-	if {$dlist != {}} {
-		ui_error "$target terminated due to an error while installing a dependency."
-	} else {
-		return [$workername eval eval_targets $target]
+		# install them
+		set dlist [dlist_eval $dlist _dporttest [list _dportexec "install"]]
+		
+		if {$dlist != {}} {
+			ui_error "The following dependencies failed to build:"
+			foreach ditem $dlist {
+				ui_error "[ditem_key $ditem provides]" nonl
+			}
+			ui_error ""
+			return 1
+		}
 	}
+	
+	# Build this port with the specified target
+	return [$workername eval eval_targets $target]
+	
 	return 0
 }
 
