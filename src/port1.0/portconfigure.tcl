@@ -54,17 +54,26 @@ proc configure_main {args} {
 
     if [tbool use_automake] {
 	# XXX depend on automake
-	system "[command automake]"
+	if {[catch {system "[command automake]"} result]} {
+	    ui_error "configure target failed: $result"
+	    return -1
+	}
     }
 
     if [tbool use_autoconf] {
 	# XXX depend on autoconf
-	system "[command autoconf]"
+	if {[catch {system "[command autoconf]"} result]} {
+	    ui_error "configure target failed: $result"
+	    return -1
+	}
     }
 
     if [tbool use_configure] {
         ui_msg "$UI_PREFIX Running configure script"
-	system "[command configure]"
+	if {[catch {system "[command configure]"} result]} {
+	    ui_error "configure target failed: $result"
+	    return -1
+	}
     }
     return 0
 }
