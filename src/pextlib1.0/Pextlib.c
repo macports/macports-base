@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.71 2005/01/20 03:38:46 landonf Exp $
+ * $Id: Pextlib.c,v 1.72 2005/01/20 08:39:44 landonf Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -729,7 +729,7 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 
 	oldmode = umask(newmode);
 
-	tcl_mask = malloc(stringlen); /* 4 digits & \0 */
+	tcl_mask = malloc(stringlen); /* 3 digits & \0 */
 	if (!tcl_mask) {
 		return TCL_ERROR;
 	}
