@@ -49,21 +49,21 @@ default build.target.all all
 set UI_PREFIX "---> "
 
 proc build_getmaketype {args} {
-    global build.type build.cmd os.name
+    global build.type build.cmd os.platform
 
     if ![info exists build.type] {
 	return make
     }
     switch -exact -- ${build.type} {
 	bsd {
-	    if {${os.name} == "darwin"} {
+	    if {${os.platform} == "darwin"} {
 		return bsdmake
 	    } else {
 		return make
 	    }
 	}
 	gnu {
-	    if {${os.name} == "darwin"} {
+	    if {${os.platform} == "darwin"} {
 		return gnumake
 	    } else {
 		return gmake

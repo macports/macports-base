@@ -209,16 +209,16 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd os.name fetch.pre_args
+    global distpath all_dist_files UI_PREFIX ports_verbose fetch_urls fetch.cmd os.platform fetch.pre_args
     global distfile site
 
     # Override curl in the case of FreeBSD
-    if {${os.name} == "freebsd"} {
+    if {${os.platform} == "freebsd"} {
 	set fetch.cmd "fetch"
     }
     if [tbool ports_verbose] {
 	set fetch.pre_args -v
-    } elseif {${os.name} == "darwin" } {
+    } elseif {${os.platform} == "darwin" } {
 	set fetch.pre_args "-s -S"
     }
 

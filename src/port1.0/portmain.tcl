@@ -39,20 +39,11 @@ register com.apple.main target main
 register com.apple.main provides main
 
 # define options
-options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.name os.version os.arch os.endian platforms
+options prefix portname portversion portrevision categories maintainers workdir worksrcdir filedir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms
 # Export options via PortInfo
 options_export portname portversion portrevision categories maintainers platforms 
 
-global os_name os_arch os_endian
-
-set os_name [string tolower $tcl_platform(os)]
-
-set os_arch $tcl_platform(machine)
-if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-
-set os_endian $tcl_platform(byteOrder)
 # Remove trailing "Endian"
-set os_endian [string range $os_endian 0 [expr [string length $os_endian] - 7]]
 
 default distpath {[file join $portdbpath distfiles]}
 default workdir work
@@ -60,20 +51,27 @@ default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
 default filedir files
 default portrevision 0
-default os.name {$os_name}
-default os.version {$tcl_platform(osVersion)}
-default os.arch {$os_arch}
-default os.endian {$os_endian}
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
 default filesdir {files}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
 
+
+# Platform Settings
+set os_arch $tcl_platform(machine)
+if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+
+set os_endian $tcl_platform(byteOrder)
+default os.platform {[string tolower $tcl_platform(os)]}
+default os.version {$tcl_platform(osVersion)}
+default os.arch {$os_arch}
+default os.endian {[string range $os_endian 0 [expr [string length $os_endian] - 7]]}
+
+
 # Select implicit variants
-global variations
-if {![info exists variations($os_name)]} { variant_set $os_name }
-if {![info exists variations($os_arch)]} { variant_set $os_arch }
+if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
+if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
 
 proc main {args} {
     return 0
