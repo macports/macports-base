@@ -211,6 +211,15 @@ proc dportinit {args} {
 proc darwinports::worker_init {workername portpath options variations} {
     global darwinports::portinterp_options auto_path registry.installtype
 
+	# Tell the sub interpreter about all the Tcl packages we already
+	# know about so it won't glob for packages.
+	foreach pkgName [package names] {
+		foreach pkgVers [package versions $pkgName] {
+			set pkgLoadScript [package ifneeded $pkgName $pkgVers]
+			$workername eval "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
+		}
+	}
+
     # Create package require abstraction procedure
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
