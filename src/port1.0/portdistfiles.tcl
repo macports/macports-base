@@ -117,19 +117,21 @@ proc main {args} {
 	# XXX: patch files dont' get extracted, only checksummed
 	
 	# Hoodwink the fetch targets into using patchsites instead of master_sites.
-	set orig_master_sites [option master_sites]
-	option master_sites [option patch_sites]
-	
-	foreach distfile [option patchfiles] {
-		# Make the distfile globally visible.
-		option distfile $distfile
+	if {[exists patch_sites]} {
+		set orig_master_sites [option master_sites]
+		option master_sites [option patch_sites]
 		
-		# Selects the download, checksum, and extract targets.
-		# extracts the distfile into the work directory.
-		# Don't keep state.
-		eval_targets checksum 0
+		foreach distfile [option patchfiles] {
+			# Make the distfile globally visible.
+			option distfile $distfile
+			
+			# Selects the download, checksum, and extract targets.
+			# extracts the distfile into the work directory.
+			# Don't keep state.
+			eval_targets checksum 0
+		}
+		
+		# Restore the master sites.
+		option master_sites $orig_master_sites
 	}
-	
-	# Restore the master sites.
-	option master_sites $orig_master_sites
 }
