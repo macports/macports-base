@@ -11,11 +11,11 @@ options master_sites patch_sites extract_sufx distfiles extract_only patchfiles 
 
 proc suffix {distname} {
     global extract_sufx use_bzip2 use_zip
-    if {[tbool fetch_opts extract_sufx]} {
+    if {[tbool extract_sufx]} {
 	return ${distname}.${extract_sufx}
-    } elseif {[tbool fetch_opts use_bzip2]} {
+    } elseif {[tbool use_bzip2]} {
 	return ${distname}.tar.bz2
-    } elseif {[tbool fetch_opts use_zip]} {
+    } elseif {[tbool use_zip]} {
 	return ${distname}.zip
     } else {
 	return ${distname}.tar.gz

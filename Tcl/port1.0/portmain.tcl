@@ -24,12 +24,12 @@ default portrevision 0
 options portname portversion portrevision categories maintainers workdir worksrcdir no_worksubdir filedir distname
 
 proc main {args} {
-    global main_opts portname distname
+    global worksrcdir main_opts portname distname
 
-    if {[tbool opts no_worksubdir]} {
-	default opts worksrcdir ""
+    if {[tbool no_worksubdir]} {
+	default worksrcdir ""
     } else {
-	default opts worksrcdir distname
+	default worksrcdir $distname
     }
     return 0
 }

@@ -28,10 +28,10 @@ proc default {option args} {
 
 ########### Misc Utility Functions ###########
 
-proc tbool {array key} {
-    upvar $array uparray
-    if {[info exists uparray($key)]} {
-	if {$uparray($key) == "yes"} {
+proc tbool {key} {
+    upvar $key upkey
+    if {[info exists upkey]} {
+	if {$upkey == "yes"} {
 	    return 1
 	}
     }
