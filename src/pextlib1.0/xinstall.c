@@ -39,6 +39,10 @@
  * Author: Jordan K. Hubbard
  */
 
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #if HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
 #endif
@@ -67,10 +71,6 @@
 #include <unistd.h>
 
 #include <tcl.h>
-
-#ifndef __unused
-#define __unused    /* no attribute */
-#endif
 
 #if HAVE_PATHS_H
 #include <paths.h>
@@ -136,9 +136,8 @@ static void	usage(Tcl_Interp *interp);
 extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
 int
-InstallCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-#pragma unused (clientData)
 	struct stat from_sb, to_sb;
 	mode_t *set;
 	u_long fset;
@@ -774,8 +773,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
  *	compare two files; non-zero means files differ
  */
 static int
-compare(int from_fd, const char *from_name __unused, size_t from_len,
-	int to_fd, const char *to_name __unused, size_t to_len)
+compare(int from_fd, const char *from_name UNUSED, size_t from_len,
+	int to_fd, const char *to_name UNUSED, size_t to_len)
 {
 	char *p, *q;
 	int rv;

@@ -37,12 +37,6 @@
 
 #include <tcl.h>
 
-#ifdef __GNUC__
-#define UNUSED __attribute__ ((unused))
-#else
-#define UNUSED
-#endif
-
 static int set_session_option(ClientData clientData UNUSED, Tcl_Interp *interp UNUSED, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED) {
     return TCL_OK;
 }

@@ -61,9 +61,8 @@
 static int do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action);
 
 int
-FindCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-#pragma unused (clientData)
 	char *startdir;
 	char *match, *action;
 	char *def_match = "expr 1";

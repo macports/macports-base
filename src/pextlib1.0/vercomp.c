@@ -159,9 +159,8 @@ static int rpm_vercomp (const char *versionA, const char *versionB) {
 		return -1;
 }
 
-int RPMVercompCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int RPMVercompCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-#pragma unused (clientData)
 	Tcl_Obj *tcl_result;
 	const char *versionA, *versionB;
 	int rval;

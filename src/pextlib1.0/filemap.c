@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.2 2004/07/01 17:43:20 wbb4 Exp $
+ * $Id: filemap.c,v 1.3 2004/07/04 06:51:27 ssen Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -1187,9 +1187,8 @@ UpdateStringOfFilemap(Tcl_Obj* inObjPtr)
  * @param inObjPtr	pointer to the object.
  */
 int
-SetFilemapFromAny(Tcl_Interp* inInterp, Tcl_Obj* inObjPtr)
+SetFilemapFromAny(Tcl_Interp* inInterp, Tcl_Obj* inObjPtr UNUSED)
 {
-#pragma unused (inObjPtr)
 	if (inInterp != NULL) {
 		Tcl_SetObjResult(inInterp,
 			Tcl_NewStringObj("Conversions to filemaps are not supported", -1));
@@ -1803,12 +1802,11 @@ FilemapUnsetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
  */
 int
 FilemapCmd(
-		ClientData clientData,
+		ClientData clientData UNUSED,
 		Tcl_Interp* interp,
 		int objc, 
 		Tcl_Obj* CONST objv[])
 {
-#pragma unused (clientData)
     typedef enum {
     	kFilemapClose,
     	kFilemapExists,

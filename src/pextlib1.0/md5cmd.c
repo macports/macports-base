@@ -114,9 +114,8 @@ char *MD5Data(const unsigned char *data, unsigned int len, char *buf)
 #error libcrypto or libmd are required
 #endif
 
-int MD5Cmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int MD5Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-#pragma unused (clientData)
 	char *file, *action;
 	char buf[33];
 	const char usage_message[] = "Usage: md5 file ?file?";
