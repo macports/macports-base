@@ -59,7 +59,7 @@ proc ports_quiet {val} {
 
 proc isset {val} {
     global system_options
-    if {[info exists $system_options($val)]} {
+    if {[info exists system_options($val)]} {
 	if {$system_options($val) == "yes"} {
 	    return 1
 	}
