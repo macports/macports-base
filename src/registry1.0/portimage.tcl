@@ -266,7 +266,7 @@ proc _activate_file {srcfile dstfile} {
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
 	} else {
-		file link -hard $dstfile $srcfile
+		file link $dstfile $srcfile
 	}
 }
 
