@@ -123,7 +123,10 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
 			ui_debug "installing file: $dst_element"
 		}
 	    install_element $src_element $dst_element
-	    lappend installPlist $dst_element
+		# only track files/links for registry, not directories
+		if {[file type $dst_element] != "directory"} {
+			lappend installPlist $dst_element
+		}
 	}
 	if {[file isdirectory $name] && [file type $name] != "link"} {
 	    directory_dig $rootdir $name $regref [file join $cwd $name]

@@ -391,8 +391,8 @@ proc _deactivate_contents {name imagefiles} {
 	set files [list]
 	
 	foreach file $imagefiles {
-		set port [registry::file_registered $file] 
-		if { [file exists $file] || [file type $file] == "link" } {
+		set port [registry::file_registered $file]
+		if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
 			lappend files $file
 			
 			# Split out the filename's subpaths and add them to the image list as
