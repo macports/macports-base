@@ -125,6 +125,7 @@ proc uninstall {portname {v ""}} {
 	set contents [registry::property_retrieve $ref contents]
 	if { $contents != "" } {
 		set uninst_err 0
+		set files [list]
 		foreach f $contents {
 			set fname [lindex $f 0]
 			set md5index [lsearch -regex [lrange $f 1 end] MD5]
@@ -150,21 +151,27 @@ proc uninstall {portname {v ""}} {
 					}
 				}
 			}
-			ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s"] $fname]"
-			if {[file isdirectory $fname]} {
-				if {[catch {file delete -- $fname} result]} {
-					# A non-empty directory is not a fatal error
-					if {$result != "error deleting \"$fname\": directory not empty"} {
-						ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove directory %s (not empty?)"] $fname]"
-					}
-				}
-			} else {
-				if {[catch {file delete -- $fname}]} {
-					ui_info "$UI_PREFIX  [format [msgcat::mc "Uninstall unable to remove file %s"] $fname]"
-					set uninst_err 1
-				}
-			}
+			lappend files $fname
 		}
+
+		# When using "image" type installation, be sure to add the image
+		# directory and it's parent to the list for proper cleanup
+		if {$installtype == "image"} {
+			set imagedir [registry::property_retrieve $ref imagedir]
+			lappend files $imagedir
+			lappend files [file dirname $imagedir]
+		}
+
+		# Sort the list in reverse order, removing duplicates.
+		# Since the list is sorted in reverse order, we're sure that directories
+		# are after their elements.
+		set theList [lsort -decreasing -unique $files]
+
+		# Remove all elements.
+		if { [catch {_uninstall_list $theList} result] } {
+			return -code error $result
+		}
+
 		if {!$uninst_err || [info exists uninstall.force] && [string equal -nocase $uninstall.force "yes"] } {
 			ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
 			registry::delete_entry $ref
@@ -173,6 +180,27 @@ proc uninstall {portname {v ""}} {
 	
 	} else {
 		return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
+	}
+}
+
+proc _uninstall_file {dstfile} {
+	if { [file isdirectory $dstfile] } {
+		# 0 item means empty.
+		if { [llength [readdir $dstfile]] == 0 } {
+			ui_debug "uninstalling directory: $dstfile"
+			file delete -- $dstfile
+		} else {
+			ui_debug "$dstfile is not empty"
+		}
+	} else {
+		ui_debug "uninstalling file: $dstfile"
+		file delete -- $dstfile
+	}
+}
+
+proc _uninstall_list {filelist} {
+	foreach file $filelist {
+		_uninstall_file $file
 	}
 }
 
