@@ -71,7 +71,7 @@ proc package_main {args} {
 # Make a tarball version of a package.  This is our "built-in" packaging
 # method.
 proc package_tarball {portname portversion entry} {
-    global ports_verbose portdbpath
+    global ports_verbose portdbpath package.dir
 
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
