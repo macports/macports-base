@@ -57,11 +57,17 @@ is specified, the usage is displayed.
 Port 
 .Ar options 
 are specified as key=value pairs and take precedence over individual port options and system-wide settings.
+.Pp
 Port
 .Ar variants
-are specified as +name, which indicates the variant is desired, and -name, which indicates the 
-variant is not desired. In case of ambiguities, a port can be fully specified with the format
+are specified as +name, which indicates the variant is desired, and -name, which indicates the variant is not desired. In case of ambiguities, a port can be fully specified with the format
 .Ar version_revision+variants
+.Pp
+Installed ports can be activated or deactivated without being uninstalled. A port can be installed if another version/variant is installed but deactivated.
+.Pp
+The
+.Ic provides
+command determines which port owns a given file.
 .Sh OPTIONS
 .Bl -tag -width -indent
 .It Fl v
@@ -93,202 +99,135 @@ source-only mode (only build and install from source, ignores all binary archive
 .It Fl b
 binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
 .El
-.Sh TARGETS
+.Sh USER TARGETS
 .Nm
-knows several targets. The most important is the "install" target, which installs the supplied port to its final destination on the system.
+knows several targets. The ones commonly used by users of DarwinPorts are:
+.Ss install
+Install and activate
+.Ar portname .
+.Ss uninstall
+Deactivate and uninstall
+.Ar portname .
+To uninstall all installed but inactive ports, specify
+.Fl u .
+For example:
 .Pp
-The other targets are:
+.Dl "port uninstall vim
+.Dl "port -u uninstall
+.Ss installed
+List all installed ports.
+.Ss outdated
+List the installed ports that need upgrading.
+.Ss upgrade
+Upgrade the installed
+.Ar portname .
+To upgrade all ports, specify
+.Fl a .
+For example:
 .Pp
-.Dl uninstall
-.Dl deactivate
-.Dl activate
-.Dl installed
-.Dl outdated
-.Dl upgrade
-.Dl clean
-.Dl search
-.Dl list
-.Dl contents
-.Dl deps
-.Dl variants
-.Dl info
+.Dl "port upgrade vim
+.Dl "port -a upgrade
+.Ss clean
+Clean the files used for building
+.Ar portname .
+To just remove the work files, specify
+.Fl -work .
+To remove the distribution files (tarballs, etc), specify
+.Fl -dist .
+To remove any archives, specify
+.Fl -archive .
+To remove the work files, distribution files, and archives, specify
+.Fl -all .
+For example:
 .Pp
-Besides the main targets
-.Nm
-takes each single stage of the port building process as a possible target. These
-stages (besides "install") are:
+.Dl "port clean --dist vim
+.Dl "port clean --archive vim
+.Ss list
+List all available ports.
+.Ss search
+Search for an available port whose name matches a regular expression.
 .Pp
-.Dl fetch
-.Dl extract
-.Dl patch
-.Dl configure
-.Dl build
-.Dl destroot
-.Dl test
+.Dl "post search vim
 .Pp
-There are also targets for packaging ports:
-.Pp
-.Dl pkg
-.Dl mpkg
-.Dl dmg
-.Dl rpmpackage
-.Pp
-If enabled, binary archives can be created/used to allow installation from pre-built binaries rather than source:
-.Pp
-.Dl unarchive
-.Dl archive
-.Pp
-When archive mode is enabled, the
-.Ar unarchive
-command is called automatically, prior to
-.Ar fetch
-, to check for an
-existing binary archive to unpack. If found, it is unpacked and all
-stages up to
+.Ss contents
+Lists the files installed by
+.Ar portname .
+.Ss deps
+Lists the other ports that are required for building and running
+.Ar portname .
+.Ss variants
+Lists the build variants available for the
+.Ar portname .
+.Ss info
+Displays the meta-information about an available
+.Ar portname .
+.Sh DEVELOPER TARGETS
+The targets that are often used by Port developers are intended to provide access to the different phases of a Port's build:
+.Ss unarchive
+Unarchive the port from a pre-built binary. When archive mode is enabled, this command is called automatically, prior to
+.Ar fetch ,
+to check for an existing binary archive to unpack. If found, it is unpacked and all stages up to
 .Ar install
-are then skipped.  In addition, binary archives will be created automatically whenever an
+are then skipped.
+.Ss fetch
+Fetches the distribution files required to build
+.Ar portname .
+.Ss extract
+Extracts the distribution files for
+.Ar portname .
+.Ss patch
+Applies any required patches to 
+.Ar portname's
+extracted distribution files.
+.Ss configure
+Runs any configure process for
+.Ar portname .
+.Ss build
+Build
+.Ar portname .
+.Ss destroot
+Installs
+.Ar portname
+to a temporary directory.
+.Ss test
+Tests
+.Ar portname .
+.Ss archive
+Archive the port for a later
+.Ar unarchive .
+When archive mode is enabled, binary archives will be created automatically whenever an
 .Ar install
 is performed, or when the
 .Ar archive
 target is called explicitly.
+.Ss activate
+Activate the installed
+.Ar portname .
+.Ss deactivate
+Deactivate the installed
+.Ar portname .
+.Sh PACKAGING TARGETS
+There are also targets for producing installable packages of ports:
 .Pp
-Additionally, the
-.Ic provides
-command determines which port owns a given file.
-.Sh EXAMPLES
-Invoking
-.Nm
-with the "install" target on the "vim" port:
-.Pp
-.Dl "port install vim
-.Pp
-To manually create a binary archive, use the "archive" target (also done automatically prior to "install"):
-.Pp
-.Dl "port archive vim"
-.Pp
-To uninstall a port, invoke
-.Nm
-with the "uninstall" target:
-.Pp
-.Dl "port uninstall vim
-.Pp
-To uninstall all ports that are not activated 
-.Pp
-.Dl "port -u uninstall" 
-.Pp
-To clean up working directory after the port was built:
-.Pp
-.Dl "port clean vim
-.Pp
-or:
-.Pp
-.Dl "port clean --work vim
-.Pp
-To remove a port's distfiles:
-.Pp
-.Dl "port clean --dist vim
-.Pp
-To remove a port's archives (any variant of current port version):
-.Pp
-.Dl "port clean --archive vim
-.Pp
-To remove certain version(s) of a port's archives (version is any valid UNIX glob pattern):
-.Pp
-.Dl "port clean --archive vim 6.2.114
-.Pp
-or:
-.Pp
-.Dl "port clean --archive vim '6.*'
-.Pp
-To remove a port's distfiles, archives, and working directory:
-.Pp
-.Dl "port clean --all vim
-.Pp
-To deactivate a port (in image mode):
-.Pp
-.Dl "port deactivate vim
-.Pp
-To list out of date ports:
-.Pp
-.Dl "port outdated"
-.Pp
-To upgrade a port (deactivating the older version and activating a newer)
-.Pp
-.Dl "port upgrade vim
-.Pp
-To upgrade all installed ports
-.Pp
-.Dl "port -a upgrade
-.Pp
-To reactivate a port previously deactivated (in image mode):
-.Pp
-.Dl "port activate vim
-.Pp
-A port can be installed if another version/variant is installed but deactivated. To reactivate one of the installed version of a port previously deactivated (in image mode):
-.Pp
-.Dl "port activate vim 6.2.532_0+aqua
-.Pp
-To build and "install" vim into an intermediate destination root (or "destroot")
-.Pp
-.Dl "port destroot vim"
-.Pp
-This can be useful during development of a new port, for testing, or for
-creating an "installation" of a port which can be subsequently packaged
-or copied elsewhere without having to modify the host system.
-.Pp
-Using
-.Nm
-to list all available ports:
-.Pp
-.Dl "port search .+ 
-.Pp
-or: 
-.Pp
-.Dl "port list
-.Pp
-To look for a specific port, supply a search string:
-.Pp
-.Dl "port search vim
-.Pp
-To list the files (table of contents) installed by a given port (in this case apr):
-.Pp
-.Dl "port contents apr"
-.Pp
-To list a port's dependencies:
-.Pp
-.Dl "port deps exim"
-.Pp
-To list installed ports:
-.Pp
-.Dl "port installed"
-.Pp
-To list a port's variants:
-.Pp
-.Dl "port variants php"
-.Pp
-To view all of a port's metadata:
-.Pp 
-.Dl "port info vim"
-.Pp
+.Ss pkg
+Creates an OS X installer package of
+.Ar portname.
+.Ss mpkg
+Creates an OS X installer metapackage of 
+.Ar portname
+and its dependencies.
+.Ss dmg
+Creates an internet-enabled disk image containing an OS X package of
+.Ar portname .
+.Ss rpmpackage
+Creates an RPM package of
+.Ar portname .
+.Sh EXAMPLE
 The following demonstrates invoking
 .Nm
 with the "extract" target on portdir "textproc/figlet" and extract.suffix set to ".tgz":
 .Pp
 .Dl "port extract -d textproc/figlet extract.suffix=.tgz"
-.Pp
-To package a port as an OS X package, use the "pkg" target:
-.Pp
-.Dl "port pkg gimp"
-.Pp
-or use
-.Nm
-with the 'dmg' target to create an internet-enabled disk image containing an OS X package:
-.Pp
-.Dl "port dmg gimp"
-.Pp
-To build an RPM from a port, use the "rpmpackage" target instead:
-.Pp
-.Dl "port rpmpackage gimp"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std
