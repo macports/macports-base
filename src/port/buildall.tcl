@@ -90,7 +90,7 @@ proc packageall {} {
 		exit 4
 	}
 	puts "Doing initial installation of RPM bits.."
-	if {[catch {exec port ${verbose} install rpm} result]} {
+	if {[catch {exec port install rpm} result]} {
 		puts "Unable to install rpm port: $result"
 		exit 6
 	}
