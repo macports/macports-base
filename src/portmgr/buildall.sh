@@ -113,7 +113,7 @@ teardownchroot() {
 	hdiutil detach $DEV >& /dev/null
 	rm ${CHROOTBASE}.shadow
 	if [ -f $DISTFILES ]; then
-		hdiutil detach $DISTDEV
+		hdiutil detach $DISTDEV >& /dev/null
 	fi
 	DEV=""
 }
