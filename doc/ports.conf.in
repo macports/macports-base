@@ -18,7 +18,7 @@ portinstalltype		image
 x11prefix		/usr/X11R6
 
 # Create and use binary archive packages for installation/reinstallation ease
-portarchivemode		no
+portarchivemode		yes
 
 # Type of binary archive packages to create when using archive mode
 #
