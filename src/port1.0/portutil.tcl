@@ -178,6 +178,9 @@ proc option_proc {option args} {
 proc option_proc_trace {optionName index op} {
     global option_procs
     upvar $optionName optionValue
+    if {![info exists option_procs($optionName)]} {
+	return
+    }
     switch $op {
 	w {
 	    foreach p $option_procs($optionName) {
