@@ -37,6 +37,7 @@
 #	curl
 #	tar
 #	gzip
+#	unzip
 #	dports tree
 #
 # A tar file containing full /${portprefix} directory tree, stored in:
@@ -175,6 +176,7 @@ proc print_usage {args} {
 	puts "	-w	No warnings (progress still reported)"
 	puts "	-a	Build all ports"
 	puts "	-b	Re-generate base install archive"
+	puts "	-p	Attempt to build ports that do not advertise support for the build platform"
 	puts "	-i	Initialize Build System (Should only be run on a new build system)"
 }
 
@@ -220,13 +222,14 @@ proc reset_tree {args} {
 proc main {argc argv} {
 	global dpkg::configfile dpkg::pkgrepo dpkg::architecture dpkg::portlistfile
 	global dpkg::portsArray dpkg::portprefix dpkg::silentmode dpkg::logfd dpkg::packagedir dpkg::aptpackagedir
-	global dpkg::requiredports dpkg::baselistfile
+	global dpkg::requiredports dpkg::baselistfile tcl_platform
 
 	# First time through, we reset the tree
 	set firstrun_flag true
 
 	# Read command line options
 	set buildall_flag false
+	set anyplatform_flag false
 	set nowarn_flag false
 	set basegen_flag false
 	set initialize_flag false
@@ -264,6 +267,9 @@ proc main {argc argv} {
 			-w {
 				set nowarn_flag true
 			}
+			-p {
+				set anyplatform_flag true
+			}
 			default {
 				print_usage
 				exit 1
@@ -287,6 +293,9 @@ proc main {argc argv} {
 		print_usage
 		exit 1
 	}
+
+	# Set the platform
+	set platformString [string tolower $tcl_platform(os)]
 
 	set packagedir ${pkgrepo}/${architecture}/packages/
 	set aptpackagedir ${pkgrepo}/apt/dists/stable/main/binary-${architecture}/
@@ -413,6 +422,15 @@ proc main {argc argv} {
 			continue
 		}
 
+		# Skip un-supported ports
+		if {[info exists portinfo(platforms)] && ${anyplatform_flag} != "true"} {
+			if {[lsearch $portinfo(platforms) $platformString] == -1} {
+				ui_silent "Skipping unsupported port $portinfo(name) (platform: $platformString supported: $portinfo(platforms))"
+				continue
+			}
+		}
+
+
 		# Add apt override line. dpkg is special cased and marked 'required'
 		# TODO: add the ability to specify the "required" priority for specific
 		# ports in a config file.
@@ -497,6 +515,10 @@ proc main {argc argv} {
 
 			# Close the port
 			dportclose $workername
+
+			ui_silent "Resetting /usr/dports ..."
+			reset_tree
+			ui_silent "Done."
 
 			continue
 		}
@@ -717,7 +739,7 @@ proc get_pkgpath {name version revision} {
 		set revision "-${revision}"
 	}
 
-	return ${packagedir}/${name}_${version}${revision}_${architecture}.deb
+	return [string tolower ${packagedir}/${name}_${version}${revision}_${architecture}.deb]
 }
 
 # Opens the default log file and sets dpkg::logfd
