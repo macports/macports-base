@@ -293,10 +293,6 @@ proc dportsearch {regexp} {
     return $matches
 }
 
-proc dportmatch {regexp} {
-	return -code error "dportmatch has been deprecated, use dportsearch instead."
-}
-
 proc dportinfo {workername} {
     return [$workername eval array get PortInfo]
 }
