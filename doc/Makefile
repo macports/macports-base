@@ -10,6 +10,6 @@ clean:
 	rm -f portfile.7.gz
 install:
 	mkdir -p /etc/defaults
-	mkdir -p ${SHAREDIR}/man/man1
+	mkdir -p ${SHAREDIR}/man/man7
 	install -o root -g wheel -m 644 ports.conf /etc/defaults/ports.conf
 	install -c -o root -g wheel -m 444 portfile.7.gz ${SHAREDIR}/man/man7
