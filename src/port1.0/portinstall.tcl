@@ -84,6 +84,8 @@ proc install_element {src_element dst_element} {
 	    incr i
 	    set arg [lindex $attributes $i]
 	    file attributes $dst_element $opt $arg
+	    # set mtime on installed element
+	    exec touch -r $src_element $dst_element
 	}
     }
 }
