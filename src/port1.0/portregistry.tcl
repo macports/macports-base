@@ -58,7 +58,7 @@ proc registry_exists {portname {portversion 1.0}} {
     if [info exists [file join $registry.path $portname-$portversion]] {
 	return [file join $registry.path $portname-$portversion]
     }
-    if [info exists [file join $registry.path $portname}-$portversion].bz2 {
+    if [info exists [file join $registry.path $portname-$portversion].bz2] {
 	return [file join $registry.path $portname-$portversion].bz2
     }
     return ""
