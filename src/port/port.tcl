@@ -213,6 +213,10 @@ switch -- $action {
 		if {$result == ""} {
 			puts "No port $portname found."
 		} else {
+			set found [expr [llength $result] / 2]
+			if {$found > 1} {
+				ui_warn "Found $found port $portname definitions, displaying first one."
+			}
 			array set portinfo [lindex $result 1]
 
 			puts -nonewline "$portname $portinfo(version)"

@@ -719,10 +719,16 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 	                gets $fd line
 	                array set portinfo $line
 	                if {[info exists portinfo(portarchive)]} {
-	                    lappend line porturl ${source}/$portinfo(portarchive)
+	                    set porturl ${source}/$portinfo(portarchive)
 	                } elseif {[info exists portinfo(portdir)]} {
-	                    lappend line porturl ${source}/$portinfo(portdir)
+	                    set porturl ${source}/$portinfo(portdir)
 	                }
+					if {[info exists porturl]} {
+	                    lappend line porturl $porturl
+						ui_debug "Found port in $porturl"
+					} else {
+						ui_debug "Found port info: $line"
+					}
 	                lappend matches $name
 	                lappend matches $line
 	            } else {
