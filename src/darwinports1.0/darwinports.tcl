@@ -65,6 +65,12 @@ proc darwinports::ui_event {context message} {
     ui_puts [array get postmessage]
 }
 
+# Replace puts to catch errors (typically broken pipes when being piped to head)
+rename puts tcl::puts
+proc puts {args} {
+	catch "tcl::puts $args"
+}
+
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype
 	global options
