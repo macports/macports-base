@@ -19,6 +19,11 @@ options extract_opts extract.only extract.cmd extract.before_args extract.after_
 proc extract_main {args} {
     global portname portpath portpath workdir distname distpath distfiles use_bzip2 extract.only extract.cmd extract.before_args extract.after_args
 
+    if {![info exists distfiles] && ![info exists extract.only]} {
+	# nothing to do
+	return 0
+    }
+
     # Set up defaults
     default extract.only $distfiles
     default extract.cmd gzip
