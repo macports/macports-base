@@ -82,9 +82,9 @@ proc fileinfo_for_index {flist} {
     set rval {}
     foreach file $flist {
 	if [string match /* $file] {
-	    fileinfo_for_entry / $file
+	    fileinfo_for_entry rval / $file
 	} else {
-	    fileinfo_for_entry $prefix $file
+	    fileinfo_for_entry rval $prefix $file
 	}
     }
     return $rval
