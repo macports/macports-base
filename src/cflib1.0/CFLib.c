@@ -1345,6 +1345,9 @@ int Cflib_Init(Tcl_Interp *interp)
 		}
 	};
 
+	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
+		return TCL_ERROR;
+
 	for (i = 0; sig[i].name != NULL; ++i) {
 		Tcl_CreateObjCommand(interp, sig[i].name, tclCFFunc, &sig[i], NULL);
 	}

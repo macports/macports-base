@@ -539,6 +539,8 @@ int NextgidCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 
 int Pextlib_Init(Tcl_Interp *interp)
 {
+	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
+		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "flock", FlockCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readdir", ReaddirCmd, NULL, NULL);

@@ -54,13 +54,13 @@ in
 			echo "Can not find tcl includes"
 			exit 3
 		fi
-		tclCc="$TCL_CC -c $TCL_CFLAGS_OPTIMIZE $tclInc $*"
+		tclCc="$TCL_CC -c $TCL_CFLAGS_OPTIMIZE -DUSE_TCL_STUBS $tclInc $*"
 		echo "$tclCc"
 		$tclCc
 		break;;
 	link)
 		libName=$1; shift; objFiles=$*
-		tclLd="$TCL_SHLIB_LD $tclLd $objFiles -o $libName$TCL_SHLIB_SUFFIX $TCL_LIB_SPEC"
+		tclLd="$TCL_SHLIB_LD $tclLd $objFiles -o $libName$TCL_SHLIB_SUFFIX $TCL_STUB_LIB_SPEC"
 		tclLdClean=`echo $tclLd | sed s/\\\${TCL_CC}/"$TCL_CC"/g | sed s/\\\${[A-Za-z_]*}//g`
 		echo "$tclLdClean"
 		$tclLdClean
