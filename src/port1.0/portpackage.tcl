@@ -33,7 +33,7 @@ package provide portpackage 1.0
 package require portutil 1.0
 
 register com.apple.package target package_main package_init
-register com.apple.package provides package
+register com.apple.package provides packaging
 register com.apple.package requires registry
 
 # define options
@@ -100,7 +100,7 @@ proc package_tarball {portname portversion entry} {
 	}
 	if [catch {system "gnutar -T [lindex $plist 1] -czPp${verbose}f ${ptarget}}" err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
-	    exec rm [lindex $plist 1]
+	    ui_info "Failed packing list left in [lindex $plist 1]"
 	    return -1
 	}
 	exec rm [lindex $plist 1]
