@@ -51,7 +51,7 @@ array set options [list]
 array set variations [list]
 for {set i 0} {$i < $argc} {incr i} {
     set arg [lindex $argv $i]
-	
+    
     # if -xyz before the separator
     if {$separator == 0 && [regexp {^-([-A-Za-z0-9]+)$} $arg match opt] == 1} {
 	if {$opt == "-"} {

@@ -94,10 +94,10 @@ if {![info exists directory]} {
 
 # cd to input directory 
 if {[catch {cd $directory} result]} {
-   puts "$result"
-   exit 1
+    puts "$result"
+    exit 1
 } else {
-   set directory [pwd]
+    set directory [pwd]
 }
 
 # Set output directory to full path
