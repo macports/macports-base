@@ -90,7 +90,6 @@ cd darwinports/base
 ./configure
 make all install
 make clean
-sed -e "s;portautoclean.*yes;portautoclean no;" < /etc/ports/ports.conf > /etc/ports/ports.conf.new && mv /etc/ports/ports.conf.new /etc/ports/ports.conf
 EOF
 	if [ "$PKGTYPE" = "dpkg" ]; then
 	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh
@@ -192,7 +191,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo '/sbin/mount_volfs /.vol' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
-	echo "if port -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
+	echo "if port -k -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
 	echo 'umount /.vol || (echo "unable to umount volfs"; exit 1)' >> $DIR/bootstrap.sh
 	echo "exit 0" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
