@@ -185,7 +185,7 @@ proc darwinports::fetch_port {url} {
     	return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
     if {${tcl_platform(os)} == "Darwin"} {
-	if {[catch {exec curl -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
+	if {[catch {exec curl -L -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
 	    return -code error "Port remote fetch failed: $result"
 	}
     } else {
@@ -285,7 +285,7 @@ proc dportsync {args} {
 	    return -code error "You do not have permission to write to [file dirname $indexfile]"
 	}
 	if {${tcl_platform(os)} == "Darwin"} {
-	    exec curl -s -S -o $indexfile $source/PortIndex
+	    exec curl -L -s -S -o $indexfile $source/PortIndex
 	} else {
 	    exec fetch -q -o $indexfile $source/PortIndex
 	}
