@@ -73,7 +73,7 @@ proc extract_main {args} {
     cd $portpath/$workdir
     foreach distfile ${extract.only} {
 	ui_info "$UI_PREFIX Extracting $distfile ... " -nonewline
-	set cmd "${extract.cmd} [join ${extract.before_args}] $distpath/$distfile [join ${extract.after_args}]"
+	set cmd "${extract.cmd} [join ${extract.before_args}] \"$distpath/$distfile\" [join ${extract.after_args}]"
 	if [catch {system "$cmd"} result] {
 	    ui_error "$result"
 	    return -1

@@ -63,9 +63,9 @@ proc patch_main {args} {
 	ui_info "$UI_PREFIX Applying $patch"
 	switch -glob -- [file tail $patch] {
 	    *.Z -
-	    *.gz {system "gzcat $patch | patch -p0"}
-	    *.bz2 {system "bzcat $patch | patch -p0"}
-	    default {system "patch -p0 < $patch"}
+	    *.gz {system "gzcat \"$patch\" | patch -p0"}
+	    *.bz2 {system "bzcat \"$patch\" | patch -p0"}
+	    default {system "patch -p0 < \"$patch\""}
 	}
     }
     return 0

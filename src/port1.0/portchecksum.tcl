@@ -45,7 +45,7 @@ proc md5 {file} {
     global distpath UI_PREFIX
 
     set md5regex "^(MD5)\[ \]\\(($file)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
-    set pipe [open "|md5 ${file}" r]
+    set pipe [open "|md5 \"${file}\"" r]
     set line [read $pipe]
     if {[regexp $md5regex $line match type filename sum] == 1} {
 	return $sum

@@ -61,9 +61,9 @@ proc configure_main {args} {
 
     ui_msg "$UI_PREFIX Running configure script"
     if [info exists configure.args] {
-	system "./configure --prefix=${prefix} ${configure.args}"
+	system "./configure --prefix=\"${prefix}\" ${configure.args}"
     } else {
-	system "./configure --prefix=${prefix}"
+	system "./configure --prefix=\"${prefix}\""
     }
     return 0
 }
