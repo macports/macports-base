@@ -60,9 +60,9 @@ proc sql_escape {str} {
     if {$use_db != ""} {
         return [msyqlescape $str]
     } else {
-        regsub -all -- {'} $str {\\'} $str
-        regsub -all -- {"} $str {\\"} $str
-        regsub -all -- {\n} $str {\\n} $str
+        regsub -all -- {'} $str {\\'} str
+        regsub -all -- {"} $str {\\"} str
+        regsub -all -- {\n} $str {\\n} str
         return $str
     }
 }
