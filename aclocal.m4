@@ -142,6 +142,26 @@ AC_DEFUN([OD_LIB_MD5],[
 	AC_SUBST([MD5_LIBS])
 ])
 
+dnl This macro checks for X11 presence. If the libraries are
+dnl present, so must the headers be. If nothing is present,
+dnl print a warning
+
+# OD_CHECK_X11
+# ---------------------
+AC_DEFUN([OD_CHECK_X11], [
+
+	# Check for libX11
+	AC_CHECK_LIB([X11], [XOpenDisplay],[
+			# found the library. check for header
+			INCLUDES="-I/usr/X11R6/include $INCLUDES"
+			AC_CHECK_HEADERS([X11/X.h], ,[
+				AC_MSG_ERROR([libX11 was found, but X.h is missing.])
+				])],
+			[ AC_MSG_WARN([libX11 was not found])
+		], [-L/usr/X11R6/lib]
+	)
+])
+
 # OD_PROG_MTREE
 #---------------------------------------
 AC_DEFUN([OD_PROG_MTREE],[
@@ -261,4 +281,3 @@ AC_DEFUN([OD_PROG_TCLSH],[
 
 	AC_SUBST(TCLSH)
 ])
-

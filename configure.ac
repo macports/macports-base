@@ -14,9 +14,6 @@ OD_PROG_MTREE
 
 AC_SUBST(REPLACEMENT_PROGS)
 
-# Check for md5 implementation
-OD_LIB_MD5
-
 # set default dports-directory
 DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 
@@ -43,6 +40,11 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode])
+
+# Check for md5 implementation
+OD_LIB_MD5
+# Check for X11 and paraphernalia
+OD_CHECK_X11
 
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG
