@@ -117,7 +117,7 @@ AC_DEFUN([OD_PROG_MD5],[
 	if test "x$MD5" = "x" ; then
 		AC_PATH_PROG([OPENSSL], [openssl],
 			[AC_MSG_ERROR([No suitable md5 program found])],
-			[ /usr/bin:/bin ])
+			[ /usr/bin:/usr/sbin:/bin:/sbin ])
 
 		MD5="$OPENSSL md5"
 	fi
