@@ -31,14 +31,14 @@ mkchrootbase() {
 		mkdir -p $dir
 
 		# Add to this list as you find minimum dependencies DP really needs.
-		chrootfiles="bin sbin etc tmp var private dev/null usr Developer System/Library Library"
+		chrootfiles="bin sbin etc tmp var/log var/spool var/run var/tmp var/db private dev/null usr Developer System/Library Library"
 
 		echo "Calculating chroot base image size..."
 		# start with this size to account for other overhead
 		sz=${BASE_PADDING}
 		if [ "`uname -r|tr -d .`" -ge 800 ]; then
 			# hack-around for Tiger
-			sz=$((sz + 4000000))
+			sz=$((sz + 8000000))
 		else
 			for i in $chrootfiles; do
 				mysz=`cd /; du -sk $i |awk '{print $1}'`
@@ -131,7 +131,7 @@ teardownchroot() {
 	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV >& /dev/null || bomb "unable to detach DPORTSDEV")
 	DPORTSDEV=""
 	if [ ! -z "$BASEDEV" ]; then
-		if hdiutil detach $BASEDEV >& /dev/null; then
+		if hdiutil detach $BASEDEV -force >& /dev/null; then
 			STUCK_BASEDEV=0
 			BASEDEV=""
 		else
