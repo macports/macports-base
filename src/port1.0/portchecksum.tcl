@@ -168,7 +168,7 @@ proc checksum_main {args} {
 		# check that there is at least one checksum for the distfile.
 		if {$portfile_checksums == -1} {
 			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-			ui_info "[format [msgcat::mc "Correct checksum: %s sha1 %s"] $distfile [calc_sha1 $fullpath]]"
+			ui_info "[format [msgcat::mc "Correct checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
 			set fail yes
 		} else {
 			# iterate on this list to check the actual values.
