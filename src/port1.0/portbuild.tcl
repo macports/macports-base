@@ -76,9 +76,11 @@ proc build_getmaketype {args} {
 		return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
 	    }
 	
- 	    if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {return $xcodebuild} 
- 	    elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {return $pbxbuild}
- 	    else {
+	    if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
+		return $xcodebuild
+	    } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
+		return $pbxbuild
+	    } else {
   		return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
   	    }
 	}
