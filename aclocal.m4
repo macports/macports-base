@@ -14,7 +14,7 @@ AC_DEFUN([OD_PATH_DPORTSDIR],[
 
 	AC_MSG_CHECKING([for dports tree])
 	
-	if test -n "$dportsdir" ; then
+	if test "x$dportsdir" != "x" ; then
 	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
 		:
 	  else
@@ -22,14 +22,14 @@ AC_DEFUN([OD_PATH_DPORTSDIR],[
 	  fi
 	else
 		dnl If the user didn't give a path, look for default
-		if test -n "$1" ; then
+		if test "x$1" != "x" ; then
 		  if test -d "$1" -a -e "$1/PortIndex" ; then
 			dportsdir=$1
 		  fi
 		fi
 	fi
 
-	if test -n "$dportsdir" ; then
+	if test "x$dportsdir" != "x" ; then
 		AC_MSG_RESULT($dportsdir)
 		DPORTSDIR="$dportsdir"
 		AC_SUBST(DPORTSDIR)
