@@ -150,7 +150,8 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	 * popen() itself is not used because stderr is also desired.
 	 */
 	signaled = 0;
-	signal(SIGINT, system_handler);
+	if ((oldsig = signal(SIGINT, system_handler)) == SIG_ERR)
+	  oldsig = SIG_DFL;
 
 	pid = fork();
 	if (pid == -1)
@@ -180,14 +181,14 @@ int SystemCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONS
 	while (fgets(buf, BUFSIZ, pdes) != NULL && !signaled) {
 		int ret = ui_info(interp, buf);
 		if (ret != TCL_OK) {
-		        signal(SIGINT, SIG_DFL);
+		        signal(SIGINT, oldsig);
 			fclose(pdes);
 			return ret;
 		}
 	}
 	fclose(pdes);
 	wait(&ret);
-	signal(SIGINT, SIG_DFL);
+	signal(SIGINT, oldsig);
 	if (ret == 0 && !signaled)
 		return TCL_OK;
 	else
