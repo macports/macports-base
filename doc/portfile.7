@@ -546,16 +546,16 @@ Make command to run relative to ${worksrcdir}
 .Dl build.cmd	pbxbuild
 
 .It Ic build.type
-Type of make required, either 'gnu' or 'bsd'
+Defines which 'make' is required, either 'gnu' or 'bsd'
 Sets build.cmd to either 'gnumake' or 'bsdmake' accordingly
 .br
 .Sy Type:
 .Em optional
 .Sy Default:
-.Em bsd
+.Em gnu
 .br
 .Sy Example:
-.Dl build.type	gnu
+.Dl build.type	bsd
 
 .It Ic build.pre_args
 Arguments to pass to ${build.cmd} before ${build.args}
@@ -563,7 +563,7 @@ Arguments to pass to ${build.cmd} before ${build.args}
 .Sy Type:
 .Em read-only
 .Sy Default:
-.Em ${build.target.current}
+.Em ${build.target}
 
 
 .It Ic build.args
@@ -577,7 +577,12 @@ Arguments to pass to ${build.cmd}
 
 
 .It Ic build.target.all
-Target to pass to make for building everything
+.br
+.Sy Deprecated:
+.Dl Replaced by build.target
+
+.It Ic build.target
+Target passed to ${build.cmd} 
 .br
 .Sy Type:
 .Em optional
@@ -585,16 +590,63 @@ Target to pass to make for building everything
 .Em all
 .br
 .Sy Example:
-.Dl build.target.all all-src
+.Dl build.target all-src
 
 .El
 
 .Ss INSTALL OPTIONS
 Execute necessary install commands
+
 .Bl -tag -width lc
+.It Ic install.cmd
+Install command to run relative to ${worksrcdir}
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${build.cmd}
+.br
+.Sy Example:
+.Dl install.cmd	pbxbuild
+
+.It Ic install.type
+Defines which 'make' is required, either 'gnu' or 'bsd'
+Sets install.cmd to either 'gnumake' or 'bsdmake' accordingly
+.br
+.Sy Type:
+.Em optional
+.Sy Default:
+.Em ${build.type}
+.br
+.Sy Example:
+.Dl install.type	gnu
+
+.It Ic install.pre_args
+Arguments to pass to ${install.cmd} before ${install.args}
+.br
+.Sy Type:
+.Em read-only
+.Sy Default:
+.Em ${install.target}
+
+
+.It Ic install.args
+Arguments to pass to ${install.cmd}
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl build.args	-DPREFIX=${prefix}
+
 
 .It Ic build.target.install
-Install target to pass to ${build.cmd}
+.br
+.Sy Deprecated:
+.Dl Replaced by install.target
+
+.It Ic install.target
+Install target to pass to ${install.cmd}
 .br
 .Sy Type:
 .Em optional
@@ -602,9 +654,10 @@ Install target to pass to ${build.cmd}
 .Em install
 .br
 .Sy Example:
-.Dl build.target.install	install-src
+.Dl install.target install-src
 
 .El
+
 .Ss REGISTRY OPTIONS
 Register installed package contents
 .Bl -tag -width lc

@@ -114,9 +114,41 @@ proc options_export {args} {
     }
 }
 
+# option_deprecate
+# Causes a warning to be printed when an option is set or accessed
+proc option_deprecate {option {newoption ""} } {
+    eval "proc warn_deprecated_$option \{option action args\} \{ \n\
+    	global portname $option $newoption \n\
+	if \{\"$newoption\" != \"\" \&\& \$action != \"read\" \} \{ \n\
+	    $newoption \[set $option\] \n\
+	\} else \{ \n\
+	    ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
+	    if \{ \"$newoption\" != \"\" && \$action == \"read\" \} \{ \n\
+		$option \[set $newoption\] \n\
+	    \} \n\
+	\}
+    \}"
+    # If a new option is specified, default the option to {${newoption}}
+    if {$newoption != ""} {
+	eval "default $option {\$\{$newoption\}}"
+    }
+    option_proc $option warn_deprecated_$option
+}
+
 proc option_proc {option args} {
-    global option_procs
+    global option_procs $option
     eval "lappend option_procs($option) $args"
+    # Add a read trace to the variable, as the option procedures have no access to reads
+    trace variable $option r option_proc_trace
+}
+
+# option_proc_trace
+# trace handler for option reads. Calls option procedures with correct arguments.
+proc option_proc_trace {optionName index op} {
+    global option_procs
+    foreach p $option_procs($optionName) {
+	eval "$p $optionName read"
+    }
 }
 
 # commands

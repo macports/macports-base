@@ -53,8 +53,6 @@ default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
-# XXX destdir is depricated in favor of destpath, but is provided
-# for backwards compatibility
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 default filedir files

@@ -39,13 +39,15 @@ ${com.apple.build} deplist depends_build depends_lib
 ${com.apple.build} set prerun build_start
 
 # define options
-options build.target.all
+options build.target.all build.target
 commands build
 # defaults
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[build_getmaketype]}
-default build.pre_args {${build.target.current}}
-default build.target.all all
+default build.pre_args {${build.target}}
+option_deprecate build.target.all build.target
+default build.target "all"
+
 
 set UI_PREFIX "---> "
 
@@ -81,15 +83,12 @@ proc build_getmaketype {args} {
 }
 
 proc build_start {args} {
-    global UI_PREFIX portname build.target.all
+    global UI_PREFIX portname build.target
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] ${portname} ${build.target.all}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] ${portname} ${build.target}]"
 }
 
 proc build_main {args} {
-    global portname workdir prefix build.type build.cmd build.env build.target.all build.target.current UI_PREFIX worksrcdir
-
-    set build.target.current ${build.target.all}
     system "[command build]"
     return 0
 }

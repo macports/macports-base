@@ -39,15 +39,20 @@ ${com.apple.install} deplist depends_run depends_lib
 ${com.apple.install} set prerun install_start
 
 # define options
-options build.target.install
+options install.target build.target.install
+commands install
 
 # Set defaults
-default build.target.install install
+default install.dir {${build.dir}}
+default install.cmd {${build.cmd}}
+default install.pre_args {${install.target}}
+default install.target install
+option_deprecate build.target.install install.target
 
 set UI_PREFIX "---> "
 
 proc install_start {args} {
-    global UI_PREFIX portname build.target.install destpath
+    global UI_PREFIX portname destpath
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s"] ${portname}]"
 	
@@ -55,11 +60,6 @@ proc install_start {args} {
 }
 
 proc install_main {args} {
-    global portname portversion categories description depends_run contents workdir worksrcdir prefix build.type build.cmd build.target.install UI_PREFIX build.target.current
-
-    set build.target.current ${build.target.install}
-    if [catch {system "[command build]"}] {
-	return -code error [msgcat::mc "Installation failed"]
-    }
+    system "[command install]"
     return 0
 }
