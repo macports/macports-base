@@ -53,6 +53,9 @@ default os_arch $tcl_platform(machine)
 default os_version $tcl_platform(osVersion)
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
+default filesdir {files}
+default filespath {[file join $portpath $filesdir]}
+default worksrcpath {[file join $workpath $worksrcdir]}
 
 proc main {args} {
     return 0
