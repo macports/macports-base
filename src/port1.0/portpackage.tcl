@@ -102,7 +102,7 @@ proc package_tarball {portname portversion entry} {
 }
 
 proc package_pkg {portname portversion entry} {
-    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath
+    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath long_description
 
     set resourcepath ${workpath}/pkg_resources
     set rfile [registry_exists $portname $portversion]
@@ -146,13 +146,43 @@ proc package_pkg {portname portversion entry} {
 	    }
 	}
 
-	set infofile ${workpath}/${portname}.info
-	set infofd [open ${infofile} w+]
+# XXX: we need to support .lproj in resources.
+	set pkgpath ${workpath}/${portname}-${portversion}.pkg
+	system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
+	write_PkgInfo ${pkgpath}/Contents/PkgInfo
+	write_info_file ${pkgpath}/Contents/Resources/${portname}.info $portname $portversion $description $prefix
+	write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $prefix
+	write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+	system "cp ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff"
+	system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
+	system "cd ${pkgpath}/Contents/Resources/ && ln -s ../Archive.bom ${portname}.bom"
+	system "cd ${destpath} && pax -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+	system "cd ${pkgpath}/Contents/Resources/ && ln -s ../Archive.pax.gz ${portname}.pax.gz"
 
+	write_sizes_file ${pkgpath}/Contents/Resources/${portname}.sizes ${pkgpath} ${destpath}
+	
+#	system "package ${destpath} ${infofile} ${portresourcepath}/package/background.tiff -d ${package.destpath}"
+
+    }
+    return 0
+}
+
+proc write_PkgInfo {infofile} {
+	set infofd [open ${infofile} w+]
+	puts $infofd "pmkrpkg1"
+	close $infofd
+}
+
+proc write_info_file {infofile portname portversion description destination} {
+	if {[string index $destination end] != "/"} {
+		append destination /
+	}
+
+	set infofd [open ${infofile} w+]
 	puts $infofd "Title ${portname}
 Version ${portversion}
 Description ${description}
-DefaultLocation ${prefix}
+DefaultLocation ${destination}
 DeleteWarning
 
 ### Package Flags
@@ -166,8 +196,97 @@ OverwritePermissions NO
 InstallFat NO
 RootVolumeOnly NO"
 	close $infofd
-	system "package ${destpath} ${infofile} ${portresourcepath}/package/background.tiff -d ${package.destpath}"
+}
 
-    }
-    return 0
+proc write_info_plist {infofile portname portversion destination} {
+	set vers [split $portversion "."]
+	set major [lindex $vers 0]
+	set minor [lindex $vers 1]
+	
+	if {[string index $destination end] != "/"} {
+		append destination /
+	}
+
+	set infofd [open ${infofile} w+]
+	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+}
+	puts $infofd "<dict>
+	<key>CFBundleGetInfoString</key>
+	<string>${portname} ${portversion}</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.opendarwin.darwinports.${portname}</string>
+	<key>CFBundleName</key>
+	<string>${portname}</string>
+	<key>CFBundleShortVersionString</key>
+	<string>${portversion}</string>
+	<key>IFMajorVersion</key>
+	<integer>${major}</integer>
+	<key>IFMinorVersion</key>
+	<integer>${minor}</integer>
+	<key>IFPkgFlagAllowBackRev</key>
+	<false/>
+	<key>IFPkgFlagAuthorizationAction</key>
+	<string>RootAuthorization</string>
+	<key>IFPkgFlagDefaultLocation</key>
+	<string>${destination}</string>
+	<key>IFPkgFlagInstallFat</key>
+	<false/>
+	<key>IFPkgFlagIsRequired</key>
+	<false/>
+	<key>IFPkgFlagRelocatable</key>
+	<false/>
+	<key>IFPkgFlagRestartAction</key>
+	<string>NoRestart</string>
+	<key>IFPkgFlagRootVolumeOnly</key>
+	<false/>
+	<key>IFPkgFlagUpdateInstalledLanguages</key>
+	<false/>
+	<key>IFPkgFormatVersion</key>
+	<real>0.10000000149011612</real>
+</dict>
+</plist>"
+	close $infofd
+}
+
+proc write_description_plist {infofile portname portversion description} {
+	set infofd [open ${infofile} w+]
+	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+}
+	puts $infofd "<dict>
+	<key>IFPkgDescriptionDeleteWarning</key>
+	<string></string>
+	<key>IFPkgDescriptionDescription</key>
+	<string>${description}</string>
+	<key>IFPkgDescriptionTitle</key>
+	<string>${portname}</string>
+	<key>IFPkgDescriptionVersion</key>
+	<string>${portversion}</string>
+</dict>
+</plist>"
+	close $infofd
+}
+
+proc write_sizes_file {sizesfile pkgpath destpath} {
+set numFiles 0
+set compressedSize 0
+set installedSize 0
+#	set numFiles `lsbom -s "${pkgpath}/Contents/Archive.bom" | wc -l`
+#	set compresedSize `du -k -s "$pkgpath" | awk '{print $1}'`
+#	incr compressedSize 3
+#	set infoSize `ls -s "${pkgpath}/Contents/Resources/${portname}.info" | awk '{print $1}'`
+#	set bomSize `ls -s "${pkgpath}/Contents/Archive.bom" | awk '{print $1}'`
+#	set installedSize `du -k -s "$destpath" | awk '{print $1}'`
+#	incr installedSize $infoSize
+#	incr installedSize $bomSize
+#	incr installedSize 3
+	
+	set fd [open ${sizesfile} w+]
+	puts $fd "NumFiles $numFiles
+InstalledSize $installedSize
+CompressedSize $compressedSize"
+	close $fd
 }
