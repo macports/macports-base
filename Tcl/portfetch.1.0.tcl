@@ -27,23 +27,20 @@ proc portfetch::suffix {distname} {
 }
 
 proc portfetch::checkfiles {args} {
-	global portpath distname master_sites
-
-	# XXX This doesn't really belong here
-	set distdir $portpath/distfiles/
+	global portpath distname master_sites distpath
 
 	# Set distfile with proper suffix
 	set distfile [portfetch::suffix $distname]
 
-	if {![file isdirectory $distdir]} {
-		file mkdir $distdir
+	if {![file isdirectory $distpath]} {
+		file mkdir $distpath
 	}
 
-	if {![file isfile $distdir/$distfile]} {
-		puts "$distfile doesn't seem to exist in $distdir"
+	if {![file isfile $distpath/$distfile]} {
+		puts "$distfile doesn't seem to exist in $distpath"
 		foreach site $master_sites {
 			puts "Attempting to fetch from $site"
-			catch {exec curl -o ${distdir}/${distfile} ${site}${distfile} >&@ stdout} result
+			catch {exec curl -o ${distpath}/${distfile} ${site}${distfile} >&@ stdout} result
 			if {$result == 0} {
 				break
 			}
