@@ -639,16 +639,23 @@ proc dlist_append_dependents {dlist obj result} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath portname
+    global workpath portname portpath
     
     if ![file isdirectory $workpath ] {
 	file mkdir $workpath
     }
     # flock Portfile
     set statefile [file join $workpath .darwinports.${portname}.state]
-    if {[file exists $statefile] && ![file writable $statefile]} {
-	return -code error "$statefile is not writable - check permission on port directory"
-    }
+    if {[file exists $statefile]} {
+		if {![file writable $statefile]} {
+			return -code error "$statefile is not writable - check permission on port directory"
+		}
+		if {[file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+			ui_msg "Portfile changed since last build; discarding previous state."
+			file delete $statefile
+		}
+	}
+	
     set fd [open $statefile a+]
     if [catch {flock $fd -exclusive -noblock} result] {
         if {"$result" == "EAGAIN"} {
@@ -668,7 +675,7 @@ proc open_statefile {args} {
 # Check completed/selected state of target/variant $name
 proc check_statefile {class name fd} {
     global portpath workdir
-    
+    	
     seek $fd 0
     while {[gets $fd line] >= 0} {
 		if {$line == "$class: $name"} {
