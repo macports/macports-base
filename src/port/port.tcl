@@ -100,7 +100,8 @@ if ![info exists target] {
 
 dportinit
 if {[info exists portname]} {
-	set portdir [dportsearch ^$portname\$]
+	array set portinfo [dportmatch ^$portname\$]
+	set portdir $portinfo(portdir)
 } else {
 	set portdir .
 }

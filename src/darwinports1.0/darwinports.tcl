@@ -170,22 +170,43 @@ proc dportexec {workername target} {
 
 proc dportsearch {regexp} {
     global sysportpath
+    set matches [list]
+
     set fd [open $sysportpath/PortIndex r]
     while {[gets $fd line] >= 0} {
         set name [lindex $line 0]
         if {[regexp -- $regexp $name] == 1} {
                 gets $fd line
                 array set portinfo $line
-		close $fd
-                return [file join $sysportpath $portinfo(portdir)]
+		set portinfo(portdir) [file join $sysportpath $portinfo(portdir)]
+		lappend matches "$name $line"
         } else {
                 set len [lindex $line 1]
                 seek $fd $len current
         }
     }
     close $fd
+    return $matches
 }
 
+proc dportmatch {regexp} {
+    global sysportpath
+    set fd [open $sysportpath/PortIndex r]
+    while {[gets $fd line] >= 0} {
+    	set name [lindex $line 0]
+	if {[regexp -- $regexp $name] == 1} {
+		gets $fd line
+		array set portinfo $line
+		set portinfo(portdir) [file join $sysportpath $portinfo(portdir)]
+		close $fd
+		return [array get portinfo]
+	} else {
+		set len [lindex $line 1]
+		seek $fd $len current
+	}
+    }
+    close $fd
+}
 
 proc dportinfo {workername} {
     return [$workername eval array get PortInfo]
