@@ -58,7 +58,10 @@ for {set i 0} {$i < $argc} {incr i} {
 			set separator 1
 		} elseif {$opt == "d"} {
 			incr i
-			set portdir [lindex $argv $i]
+			set porturl "file://[lindex $argv $i]"
+		} elseif {$opt == "u"} {
+			incr i
+			set porturl [lindex $argv $i]
 		} else {
 			foreach c [split $opt {}] {
 				if {$c == "v"} {
@@ -123,12 +126,12 @@ switch -- $action {
 				puts "Port $portname not found"
 				exit 1
 			}
-			set portdir $portinfo(portdir)
+			set porturl $portinfo(porturl)
 		}
-		if ![info exists portdir] {
-			set portdir .
+		if ![info exists porturl] {
+			set porturl file://./
 		}
-		set workername [dportopen $portdir options variations]
+		set workername [dportopen $porturl options variations]
 		set result [dportexec $workername $target]
 		dportclose $workername
 		exit $result

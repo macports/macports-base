@@ -88,7 +88,62 @@ proc dportinit {args} {
     }
 }
 
-proc dportopen {portdir {options ""} {variations ""}} {
+proc darwinports::worker_init {workername portpath options variations} {
+    global darwinports::uniqid darwinports::portinterp_options darwinports::sysportpath darwinports::portconf darwinports::portdefaultconf auto_path
+    if {$options == ""} {
+        set upoptions ""
+    } else {
+	upvar $options upoptions
+    }
+
+    if {$variations == ""} {
+	set upvariations ""
+    } else {
+	upvar $variations upvariations
+    }
+
+    foreach proc {dportexec dportopen dportclose} {
+		$workername alias $proc $proc
+    }
+
+    # instantiate the UI functions
+    foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
+        $workername alias $proc $proc
+    }
+
+    foreach proc {ports_verbose ports_quiet ports_debug} {
+        $workername alias $proc $proc
+    }
+
+    foreach opt $portinterp_options {
+        if [info exists $opt] {
+            $workername eval set system_options($opt) \"[set $opt]\"
+            $workername eval set $opt \"[set $opt]\"
+        }
+    }
+
+    foreach opt [array names upoptions] {
+        $workername eval set user_options($opt) $upoptions($opt)
+        $workername eval set $opt $upoptions($opt)
+    }
+
+    foreach var [array names upvariations] {
+        $workername eval set variations($var) $upvariations($var)
+    }
+}
+
+proc darwinports::parse_url {url} {
+    if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
+        switch -exact -- ${protocol} {
+            file { return $string}
+            default { return -code error "Unsupported protocol $protocol" }
+        }
+    } else {
+        return -code error "Can't parse url $url"
+    }
+}
+
+proc dportopen {porturl {options ""} {variations ""}} {
     global darwinports::uniqid darwinports::portinterp_options darwinports::sysportpath darwinports::portconf darwinports::portdefaultconf auto_path
 
     if {$options == ""} {
@@ -102,48 +157,16 @@ proc dportopen {portdir {options ""} {variations ""}} {
     } else {
 	upvar $variations upvariations
     }
+    set portdir [darwinports::parse_url $porturl]
+    cd $portdir
+    set portpath [pwd]
+    set workername workername[incr uniqid]
+    interp create $workername
+    darwinports::worker_init $workername $portpath upoptions upvariations
+    $workername eval source Portfile
 
-    if [file isdirectory $portdir] {
-	cd $portdir
-	set portpath [pwd]
-	set workername workername[incr uniqid]
-	interp create $workername
-	foreach proc {dportexec dportopen dportclose} {
-		$workername alias $proc $proc
-	}
-
-	# instantiate the UI functions
-	foreach proc {ui_init ui_enable ui_disable ui_enabled ui_puts ui_debug ui_info ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
-		$workername alias $proc $proc
-	}
-
-	foreach proc {ports_verbose ports_quiet ports_debug} {
-		$workername alias $proc $proc
-	}
-
-	foreach opt $portinterp_options {
-		if [info exists $opt] {
-			$workername eval set system_options($opt) \"[set $opt]\"
-			$workername eval set $opt \"[set $opt]\"
-		}
-	}
-
-	foreach opt [array names upoptions] {
-		$workername eval set user_options($opt) $upoptions($opt)
-		$workername eval set $opt $upoptions($opt)
-	}
-	
-	foreach var [array names upvariations] {
-		$workername eval set variations($var) $upvariations($var)
-	}
-	
-	$workername eval source Portfile
-
-        # initialize the UI for the new port
-	$workername eval ui_init
-    } else {
-	return -code error "Portdir $portdir does not exist"
-    }
+    # initialize the UI for the new port
+    $workername eval ui_init
 
     return $workername
 }
@@ -165,7 +188,7 @@ proc dportsearch {regexp} {
         if {[regexp -- $regexp $name] == 1} {
                 gets $fd line
                 array set portinfo $line
-		set portinfo(portdir) [file join $sysportpath $portinfo(portdir)]
+		set portinfo(porturl) "file://${sysportpath}${portinfo(portdir)}"
 		lappend matches $name
 		lappend matches $line
         } else {
@@ -185,7 +208,7 @@ proc dportmatch {regexp} {
 	if {[regexp -- $regexp $name] == 1} {
 		gets $fd line
 		array set portinfo $line
-		set portinfo(portdir) [file join $sysportpath $portinfo(portdir)]
+		set portinfo(porturl) "file://${sysportpath}${portinfo(portdir)}"
 		close $fd
 		return [array get portinfo]
 	} else {
