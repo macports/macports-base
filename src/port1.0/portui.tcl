@@ -53,12 +53,12 @@ proc ui_enabled {} {
 
 proc ui_puts {str {nonl ""}} {
     if ![ui_enabled] return
-
+    subst -nocommands -novariables $str
     if {$nonl == "-nonewline"} {
-	puts -nonewline stdout "$str"
+	puts -nonewline stdout [subst -nocommands -novariables $str]
 	flush stdout
     } else {
-	puts "$str"
+	puts [subst -nocommands -novariables $str]
     }
 }
 
