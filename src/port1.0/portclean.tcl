@@ -99,9 +99,9 @@ proc clean_dist {args} {
 		}
 	}
 	if {$count > 0} {
-		ui_info "$count distfile(s) removed."
+		ui_debug "$count distfile(s) removed."
 	} else {
-		ui_info "No distfiles found to remove."
+		ui_debug "No distfiles found to remove."
 	}
 
 	# next remove dist_subdir if only needed for this port,
@@ -134,9 +134,9 @@ proc clean_dist {args} {
 		}
 	}
 	if {$count > 0} {
-		ui_info "$count distfile directory(s) removed."
+		ui_debug "$count distfile directory(s) removed."
 	} else {
-		ui_info "No distfile directory found to remove."
+		ui_debug "No distfile directory found to remove."
 	}
 	return 0
 }
@@ -149,9 +149,8 @@ proc clean_work {args} {
 		if {[catch {exec rm -rf ${workpath}} result]} {
 			ui_error "${result}"
 		}
-		ui_info "Work directory removed."
 	} else {
-		ui_info "No work directory found to remove."
+		ui_debug "No work directory found to remove."
 	}
 
 	return 0
@@ -199,9 +198,9 @@ proc clean_archive {args} {
 		}
 	}
 	if {$count > 0} {
-		ui_info "$count archive(s) removed."
+		ui_debug "$count archive(s) removed."
 	} else {
-		ui_info "No archives found to remove."
+		ui_debug "No archives found to remove."
 	}
 
 	return 0
