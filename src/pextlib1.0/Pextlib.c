@@ -26,12 +26,6 @@ char * ui_escape(const char *source)
 	while(*s != '\0') {
 		switch(*s) {
 			case '\\':
-				if (*(s + 1) != '\n' && *(s + 1) != '\0') {
-					*d = *s;
-					d++;
-					s++;
-					break;
-				}
 			case '}':
 			case '{':
 				*d = '\\';
@@ -55,8 +49,8 @@ char * ui_escape(const char *source)
 }
 
 static int ui_info(Tcl_Interp *interp, char *mesg) {
-	const char ui_proc_start[] = "ui_info {";
-	const char ui_proc_end[] = "}";
+	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
+	const char ui_proc_end[] = "}]";
 	char *script, *string, *p;
 	int scriptlen, len;
 
