@@ -112,7 +112,7 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 #---------------------------------------
 AC_DEFUN([OD_PROG_MD5],[
 
-	AC_PATH_PROG([MD5], [md5], ,  [/usr/bin:/usr/sbin:/bin])
+	AC_PATH_PROG([MD5], [md5], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
 
 	if test "x$MD5" = "x" ; then
 		AC_CONFIG_SUBDIRS([src/programs/md5])
@@ -127,7 +127,7 @@ AC_DEFUN([OD_PROG_MD5],[
 #---------------------------------------
 AC_DEFUN([OD_PROG_MTREE],[
 
-	AC_PATH_PROG([MTREE], [mtree], ,  [/usr/bin:/bin:/sbin])
+	AC_PATH_PROG([MTREE], [mtree], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
 
 	if test "x$MTREE" = "x" ; then
 		AC_CONFIG_SUBDIRS([src/programs/mtree])
