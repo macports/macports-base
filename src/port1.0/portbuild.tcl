@@ -33,7 +33,6 @@ package provide portbuild 1.0
 package require portutil 1.0
 
 register com.apple.build target build_main
-register com.apple.build init build_init
 register com.apple.build provides build 
 register com.apple.build requires main fetch extract checksum patch configure depends_build depends_lib
 
@@ -41,23 +40,24 @@ register com.apple.build requires main fetch extract checksum patch configure de
 options make.target.all
 commands make
 # defaults
-default make.type gnu
 default make.dir {${workpath}/${worksrcdir}}
-default make.cmd make
+default make.cmd {[build_getmaketype]}
 default make.pre_args {${make.target.current}}
 default make.target.all all
 
 set UI_PREFIX "---> "
 
-proc build_init {args} {
+proc build_getmaketype {args} {
     global make.type make.cmd
-
+    if ![info exists make.type] {
+	return gnumake
+    }
     switch -exact -- ${make.type} {
 	bsd {
-	    set make.cmd bsdmake
+	    return bsdmake
 	}
 	gnu {
-	    set make.cmd gnumake
+	    return gnumake
 	}
     }
 }
