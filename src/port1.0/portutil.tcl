@@ -516,7 +516,7 @@ proc target_run {ditem} {
     return $result
 }
 
-proc eval_targets {target} {
+proc eval_targets {target {keepstate "1"}} {
     global targets target_state_fd portname
     set dlist $targets
 	    
@@ -526,6 +526,7 @@ proc eval_targets {target} {
 
         if {[llength $matches] > 0} {
 			set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
+			# XXX: handle matches > 1
 			# Special-case 'all'
 		} elseif {$target != "all"} {
 			ui_info "unknown target: $target"
@@ -533,8 +534,10 @@ proc eval_targets {target} {
         }
     }
 	
+	# XXX: this should not use a global, we need to be re-entrant.
+	
     # Restore the state from a previous run.
-    set target_state_fd [open_statefile]
+    if {$keepstate} { set target_state_fd [open_statefile] }
 
     set dlist [dlist_eval $dlist "" target_run]
 
@@ -550,7 +553,7 @@ proc eval_targets {target} {
 		set result 0
 	}
 	
-    close $target_state_fd
+    if {$keepstate} { close $target_state_fd }
     return $result
 }
 

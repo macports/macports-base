@@ -108,7 +108,7 @@ proc porthooks {ditem} {
 proc noop {args} {}
 
 proc portinit {} {
-	foreach target_file {portmain.tcl portfetch.tcl portchecksum.tcl portextract.tcl portbuild.tcl portpatch.tcl portconfigure.tcl portinstall.tcl portclean.tcl portpackage.tcl portdestroot.tcl portdeploy.tcl} {
+	foreach target_file {portmain.tcl portbuild.tcl portpatch.tcl portconfigure.tcl portinstall.tcl portclean.tcl portpackage.tcl portdestroot.tcl portdeploy.tcl portdistfiles.tcl portcurl.tcl portmd5.tcl portgzip.tcl} {
 #	ui_debug "loading $target_file"
 		set ditem [target_new $target_file main]
 		set worker [interp create]
@@ -151,6 +151,9 @@ proc portinit {} {
 		$worker alias tbool tbool
 		$worker alias system system
 		$worker alias readdir readdir
+		
+		# XXX: this should have a better name
+		$worker alias eval_targets eval_targets
 		
 		$worker alias registry_new registry_new
 		$worker alias registry_store registry_store
