@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.13 2004/01/18 08:35:09 jkh Exp $
+# $Id: mirror_sites.tcl,v 1.14 2004/02/23 04:52:47 ssen Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -225,9 +225,7 @@ set portfetch::mirror_sites::sites(tcltk) {
 }
 
 set portfetch::mirror_sites::sites(xcontrib) {
-    ftp://crl.dec.com/pub/X11/contrib/
-    ftp://ftp.net.ohio-state.edu/disk/d/X11/contrib/
-    ftp://uiarchive.uiuc.edu/pub/ftp/ftp.x.org/contrib/
+    ftp://ftp.net.ohio-state.edu/pub/X11/contrib/
     ftp://ftp.gwdg.de/pub/x11/x.org/contrib/
     ftp://ftp.duke.edu/pub/X11/contrib/
     ftp://ftp.x.org/contrib/
@@ -237,7 +235,7 @@ set portfetch::mirror_sites::sites(xcontrib) {
     ftp://mirror.xmission.com/X/contrib/
     ftp://ftp2.x.org/contrib/
     ftp://sunsite.tus.ac.jp/pub/archives/X11/contrib/
-    ftp://ftp.is.co.za/x/contrib/
+    ftp://gd.tuwien.ac.at/hci/x.org/contrib/
     ftp://ftp.sunet.se/pub/X11/contrib/
     ftp://ftp.mirror.ac.uk/sites/ftp.x.org/contrib/
     ftp://ftp.dl.ac.uk/src/X/contrib/
