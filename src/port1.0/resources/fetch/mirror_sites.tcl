@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.22 2004/10/21 15:43:57 toby Exp $
+# $Id: mirror_sites.tcl,v 1.23 2004/11/26 18:58:42 mww Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -189,6 +189,8 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://ovh.dl.sourceforge.net/
     http://puzzle.dl.sourceforge.net/
     http://mesh.dl.sourceforge.net/
+	http://internap.dl.sourceforge.net/
+	http://jaist.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sunsite) {
