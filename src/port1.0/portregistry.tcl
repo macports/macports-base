@@ -122,7 +122,7 @@ proc fileinfo_for_entry {rval dir entry} {
 
     upvar $rval myrval
     set path [file join $dir $entry]
-    if {[file isdirectory $path] && [tbool registry.contents_recurse] {
+    if {[file isdirectory $path] && [tbool registry.contents_recurse]} {
 	ui_msg "$UI_PREFIX Warning: Registry adding contents of directory $path"
 	foreach name [readdir $path] {
 	    if {[string match $name .] || [string match $name ..]} {
