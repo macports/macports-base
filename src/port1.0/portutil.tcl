@@ -408,18 +408,12 @@ proc reinplace {pattern args}  {
 proc filefindbypath {fname} {
     global distpath filedir workdir worksrcdir portpath
 
-    if [file readable $fname] {
-	return $fname
-    } elseif [file readable $portpath/$fname] {
+    if [file readable $portpath/$fname] {
 	return $portpath/$fname
     } elseif [file readable $portpath/$filedir/$fname] {
 	return $portpath/$filedir/$fname
     } elseif [file readable $distpath/$fname] {
 	return $distpath/$fname
-    } elseif [file readable $portpath/$workdir/$worksrcdir/$fname] {
-	return $portpath/$workdir/$worksrcdir/$fname
-    } elseif [file readable [file join /etc $fname]] {
-	return [file join /etc $fname]
     }
     return ""
 }
