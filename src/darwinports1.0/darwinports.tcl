@@ -916,7 +916,7 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 # upgrade procedure
 proc upgrade {pname dspec} {
 	# globals
-	global options
+	global options variations
 
 	# check if the port is in tree
 	if {[catch {dportsearch ^$pname$} result]} {
@@ -981,13 +981,11 @@ proc upgrade {pname dspec} {
 		# so, deactivate all and save newest for activation later
 		set num 0
 		set variant ""
-		# XXX version+variant
 		foreach i $ilist {
 			set variant [lindex $i 3]
-			set version "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
+			set version "[lindex $i 1]_[lindex $i 2]"
 			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
-				set version_in_tree "$version_in_tree[lindex $i 3]"
 				set num $i
 			}
 
@@ -1002,7 +1000,7 @@ proc upgrade {pname dspec} {
 		}
 		if { [lindex $num 4] == 0} {
 			# activate the latest installed version
-			if {[catch {portimage::activate $pname $version_installed} result]} {
+			if {[catch {portimage::activate $pname $version_installed$variant} result]} {
     			ui_error "Deactivating $pname $version_installed failed: $result"
 				return 1
 			}
@@ -1053,7 +1051,7 @@ proc upgrade {pname dspec} {
 	}
 
 	# deactivate version_installed
-	if {[catch {portimage::deactivate $pname $version_installed} result]} {
+	if {[catch {portimage::deactivate $pname $version_installed$variant} result]} {
 		ui_error "Deactivating $pname $version_installed failed: $result"
 		return 1
 	}
@@ -1064,12 +1062,25 @@ proc upgrade {pname dspec} {
 		set porturl file://./
 	}
 
-	set variant [list [string trimleft [string map {"+" " "} $variant]] ]
-	foreach v $variant {
-		set variants($v) yes
+	# check if the variants is present in $version_in_tree
+	set variant [split $variant +]
+	ui_debug "variants to install $variant"
+	if {[info exists portinfo(variants)]} {
+		set avariants $portinfo(variants)
+	} else {
+		set avariants {}
 	}
+	ui_debug "available variants are : $avariants"
+	foreach v $variant {
+		if {[lsearch $avariants $v] eq -1} {
+		} else {
+			ui_debug "variant $v is present in $pname $version_in_tree"
+			set variations($v) "+"
+		}
+	}
+	ui_debug "new portvariants: [array get variations]"
 	
-	if {[catch {set workername [dportopen $porturl [array get options] [array get variants] ]} result]} {
+	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
 		ui_error "Unable to open port: $result"
 		return 1
 	}
