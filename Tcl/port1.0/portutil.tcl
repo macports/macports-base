@@ -9,6 +9,10 @@ package require Pextlib 1.0
 
 global targets
 
+namespace eval portutil {
+    variable uniqid 0
+}
+
 ########### External High Level Procedures ###########
 
 # options
@@ -82,20 +86,31 @@ proc register {name mode args} {
             # User-code exceptions are caught and returned as a result of the target.
             # Thus if the user code breaks, dependent targets will not execute.
             foreach target $args {
+                set id [incr portutil::uniqid]
+                set ident [lindex [dlist_get_matches targets provides $args] 0]
+                set origproc [dlist_get_key targets $ident procedure,build]
+        puts "origproc = $origproc"
+                eval "proc $target {args} \{ \n\
+                    register $ident target build proc-$target$id \n\
+                    proc proc-$target$id \{name chain\} \{ \n\
+                        return \[catch userproc-$target$id\] \n\
+                    \} \n\
+                    eval \"proc do-$target \{\} \{ $origproc $target build \}\" \n\
+                    eval \"proc userproc-$target$id \{\} \$args\" \}"
                 eval "proc pre-$target {args} \{ \n\
-                    register pre-$target target build proc-pre-$target \n\
-                    register pre-$target preflight $target \n\
-                    proc proc-pre-$target \{name chain\} \{ \n\
-                        return \[catch userproc-pre-$target\] \n\
+                    register pre-$target$id target build proc-pre-$target$id \n\
+                    register pre-$target$id preflight $target \n\
+                    proc proc-pre-$target$id \{name chain\} \{ \n\
+                        return \[catch userproc-pre-$target$id\] \n\
                     \} \n\
-                    eval \"proc userproc-pre-$target \{\} \$args\" \}"
+                    eval \"proc userproc-pre-$target$id \{\} \$args\" \}"
                 eval "proc post-$target {args} \{ \n\
-                    register post-$target target build proc-post-$target \n\
-                    register post-$target postflight $target \n\
-                    proc proc-post-$target \{name chain\} \{ \n\
-                        return \[catch userproc-post-$target\] \n\
+                    register post-$target$id target build proc-post-$target$id \n\
+                    register post-$target$id postflight $target \n\
+                    proc proc-post-$target$id \{name chain\} \{ \n\
+                        return \[catch userproc-post-$target$id\] \n\
                     \} \n\
-                    eval \"proc userproc-post-$target \{\} \$args\" \}"
+                    eval \"proc userproc-post-$target$id \{\} \$args\" \}"
             }
         }
 	
