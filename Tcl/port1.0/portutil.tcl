@@ -65,7 +65,7 @@ proc makeuserproc {name body} {
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
 proc swdep_resolve {name chain} {
-    global $name env
+    global $name env sysportpath
     if {![info exists $name]} {
 	return 0
     }
@@ -102,17 +102,17 @@ proc swdep_resolve {name chain} {
 	}
     }
     foreach path $search_path {
-	# XXX XXX XXX XXX Broken XXX XXX XXX XXX
-	# Always executes. need to fix regex path checking
 	if {![file isdirectory $path]} {
 		continue
 	}
-	if {![file isfile $path/$depregex]} {
-		global sysportpath
-		build $sysportpath/software/$portname build make
-		return 0
+	foreach filename [readdir $path] {
+		if {[regexp $depregex $filename] == 1} {
+			puts "GOLDEN: $path $filename $depregex"
+			return 0
+		}
 	}
     }
+    build $sysportpath/software/$portname build make
     return 0
 }
 
