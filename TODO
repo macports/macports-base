@@ -3,12 +3,10 @@ Things left to do in Darwinports
 Task								Who
 ----								---
 Add contents lists to all ports					eric
-Clean up darwinports -> ports API				landonf
 Add abstraction to support fetching specific files from
      specific sites						landonf
 Implement variant negation 					kevinvv
 Allow depspecs in requires (targets & variants)			kevinvv
-Add an internal version of ports.conf for "hard defaults"	landonf
 Implement deinstall target					landonf
 Add code for de-registering a port				jkh
 Do Ellen Feiss icon collection port				eric
