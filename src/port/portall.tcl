@@ -4,20 +4,37 @@
 
 package require darwinports
 dportinit
-package require port
-ui_init
+package require Pextlib
 
 global target
 
+proc port_traverse {func {dir .}} {
+    set pwd [pwd]
+    if [catch {cd $dir} err] {
+	ui_error $err
+	return
+    }
+    foreach name [readdir .] {
+	if {[string match $name .] || [string match $name ..]} {
+	    continue
+	}
+	if [file isdirectory $name] {
+	    port_traverse $func $name
+	} else {
+	    if [string match $name Portfile] {
+		catch {eval $func {[file join $pwd $dir]}}
+	    }
+	}
+    }
+    cd $pwd
+}
+
 proc pindex {portdir} {
     global target
-
-    set interp [dportopen $portdir "" ""]
-    if {$target == "index"} {
-	ui_puts [$interp eval {format "%-10s\t%-10s\t%s" $portname $portversion $description}]
-    } else {
-	dportexec $interp $target
-    }
+    set interp [dportopen $portdir]
+    array set portinfo [dportinfo $interp]
+    puts "Building port: $portinfo(portname)"
+    dportexec $interp $target
     dportclose $interp
 }
 
@@ -25,10 +42,6 @@ if { $argc < 1 } {
     set target build
 } else {
     set target [lindex $argv 0]
-}
-
-if {[llength [array names env PORTPATH]] > 0} {
-    cd [lindex [array get env PORTPATH] 1]
 }
 
 port_traverse pindex software
