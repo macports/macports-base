@@ -25,9 +25,10 @@ proc makechroot {dir} {
 		exit 5
 	}
 	puts "Creating chroot environment in $dir"
-	if {[catch {exec tar -cpf - -C / $chrootfiles | tar ${verbose} -xpf - -C $dir >& /dev/stdout}]} {
-		puts "Unable to tar files into $dir"
-		exit 6
+	foreach idx $chrootfiles {
+		if {[catch {exec tar -cpf - -C / $idx | tar ${verbose} -xpf - -C $dir >& /dev/stdout}]} {
+			puts "Warning: Unable to copy $idx into $dir"
+		}
 	}
 	if {[file exists darwinports.tar.gz]} {
 		puts "copying from local darwinports snapshot"
