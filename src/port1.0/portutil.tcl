@@ -253,6 +253,8 @@ proc default {option val} {
     global $option option_defaults
     if {[info exists option_defaults($option)]} {
 	ui_debug "Re-registering default for $option"
+	# remove the old trace
+	trace vdelete $option rwu default_check
     } else {
 	# If option is already set and we did not set it
 	# do not reset the value
