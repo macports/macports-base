@@ -291,7 +291,7 @@ proc dportopen {porturl {options ""} {variations ""}} {
 
     $workername eval source Portfile
 	
-	ditem_key $dport provides [$workername eval return \$portname]
+    ditem_key $dport provides [$workername eval return \$portname]
 
     return $dport
 }
