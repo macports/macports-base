@@ -105,17 +105,23 @@ proc command {command} {
     }
 
     if [info exists ${command}.env] {
-	set cmdstring "$cmdstring [set ${command}.env]"
+	foreach string [set ${command}.env] {
+		set cmdstring "$cmdstring $string"
+	}
     }
 
     if [info exists ${command}.cmd] {
-	set cmdstring "$cmdstring [set ${command}.cmd]"
+	foreach string [set ${command}.cmd] {
+		set cmdstring "$cmdstring $string"
+	}
     } else {
 	set cmdstring "$cmdstring ${command}"
     }
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
 	if [info exists $var] {
-	    set cmdstring "$cmdstring [set $var]"
+	foreach string [set ${var}] {
+		set cmdstring "$cmdstring $string"
+	}
 	}
     }
     return $cmdstring
