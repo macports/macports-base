@@ -2,19 +2,19 @@
 .PHONY : clean
 .PHONY : install
 
-all:
+all::
 	@for subdir in $(SUBDIR); do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
 		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
 	done
 
-clean:
+clean::
 	@for subdir in $(SUBDIR); do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
 		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
 	done
 
-install:
+install::
 	@for subdir in $(SUBDIR); do\
 		echo ===\> making $@ in ${DIRPRFX}$$subdir; \
 		( cd $$subdir && $(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ $@) || exit 1; \
