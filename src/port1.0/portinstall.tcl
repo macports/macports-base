@@ -83,7 +83,7 @@ proc install_main {args} {
 
     cd $configpath
     ui_msg "$UI_PREFIX Installing $portname with target ${make.target.install}"
-    if ![catch {system "${make.cmd} ${make.target.install}"}] {
+    if ![catch {system "env PREFIX=${prefix} ${make.cmd} ${make.target.install}"}] {
 	# it installed successfully, so now we must register it
 	set rhandle [registry_new $portname $portversion]
 	ui_msg "$UI_PREFIX Registering $portname"

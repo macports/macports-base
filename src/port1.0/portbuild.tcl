@@ -69,6 +69,6 @@ proc build_main {args} {
     cd $configpath
 	
     ui_msg "$UI_PREFIX Building $portname with target ${make.target.all}"
-    system "${make.cmd} ${make.target.all}"
+    system "env PREFIX=${prefix} ${make.cmd} ${make.target.all}"
     return 0
 }
