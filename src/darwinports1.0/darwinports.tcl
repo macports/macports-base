@@ -40,16 +40,24 @@ set uniqid 0
 proc dportinit {args} {
     global auto_path env bootstrap_options sysportpath portconf portdefaultconf
 
-    if [file isfile /etc/ports.conf] {
-	set portconf /etc/ports.conf
-	lappend conf_files /etc/ports.conf
-    }
     if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
 	lappend conf_files /etc/defaults/ports.conf
     }
+
+    if {[llength [array names env HOME]] > 0} {
+	set HOME [lindex [array get env HOME] 1]
+	if [file isfile [file join ${HOME} .portsrc]] {
+	    set portconf [file join ${HOME} .portsrc]
+	    lappend conf_files ${portconf}
+	}
+    }
+    if {![info exists portconf] && [file isfile /etc/ports.conf]} {
+	set portconf /etc/ports.conf
+	lappend conf_files /etc/ports.conf
+    }
     if [info exists conf_files] {
-	foreach file [list $portdefaultconf $portconf] {
+	foreach file $conf_files {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
@@ -61,16 +69,11 @@ proc dportinit {args} {
         }
     }
 
-    # Prefer the PORTPATH environment variable
-    if {[llength [array names env PORTPATH]] > 0} {
-	set sysportpath [lindex [array get env PORTPATH] 1]
-    }
-
     if ![info exists sysportpath] {
-	return -code error "sysportpath must be set in /etc/ports.conf or in the PORTPATH env variable"
+	return -code error "sysportpath must be set in /etc/ports.conf or in your ~/.portsrc"
     }
     if ![file isdirectory $sysportpath] {
-	return -code error "/etc/ports.conf or PORTPATH env variable must refer to a valid directory"
+	return -code error "/etc/ports.conf or ~/.portsrc must contain a valid sysportpath directive"
     }
 	
     if ![info exists libpath] {
