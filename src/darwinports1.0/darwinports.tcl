@@ -200,6 +200,9 @@ proc dportopen {porturl {options ""} {variations ""}} {
     set workername workername[incr uniqid]
     interp create $workername
     darwinports::worker_init $workername $portpath upoptions upvariations
+    if ![file isfile Portfile] {
+        return -code error "Could not find Portfile in $portdir"
+    }
     $workername eval source Portfile
 
     # initialize the UI for the new port

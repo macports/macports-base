@@ -119,7 +119,10 @@ switch -- $action {
 		}
 	}
 	sync {
-		dportsync
+		if {[catch {dportsync} result]} {
+			puts "port sync failed: $result"
+			exit 1
+		}
 	}
 	default {
 		set target $action
@@ -134,8 +137,15 @@ switch -- $action {
 		if ![info exists porturl] {
 			set porturl file://./
 		}
-		set workername [dportopen $porturl options variations]
-		set result [dportexec $workername $target]
+		if {[catch {set workername [dportopen $porturl options variations]} result]} {
+			puts "Unable to open port: $result"
+			exit 1
+		}
+		if {[catch {set result [dportexec $workername $target]} result]} {
+			puts "Unable to execute port: $result"
+			exit 1
+		}
+		
 		dportclose $workername
 		exit $result
 	}
