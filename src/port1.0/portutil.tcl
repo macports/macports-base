@@ -324,7 +324,7 @@ proc reinplace {oddpattern file}  {
     seek $output 0
     seek $input 0
 
-	# copy from strsed output back into the input
+    # copy from strsed output back into the input
     if {[catch {fcopy $output $input} error]} {
 	ui_error "reinplace: $error"
 	close $output
@@ -334,7 +334,6 @@ proc reinplace {oddpattern file}  {
     }
 	
     set eof [file size "$tmpfile"]
-    puts "$tmpfile $eof"
     ftruncate $input $eof 
 
     close $output
