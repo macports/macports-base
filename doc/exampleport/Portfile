@@ -3,10 +3,10 @@
 PortSystem 1.0
 
 # The name of the port
-portname	fetch
+name		fetch
 
 # Its version information
-portversion	4.6.2-RELEASE
+version		4.6.2-RELEASE
 
 # Categories and identifying keywords
 categories	net
