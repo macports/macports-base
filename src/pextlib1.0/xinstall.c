@@ -78,9 +78,10 @@ static struct passwd *pp;
 static struct group *gp;
 static gid_t gid;
 static uid_t uid;
-static int dobackup, docompare, dodir, dopreserve, dostrip, nommap, safecopy, verbose;
-static mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 static const char *suffix = BACKUP_SUFFIX;
+static char *funcname;
+static int safecopy, docompare, dostrip, dobackup, dopreserve, nommap, verbose;
+static mode_t mode;
 
 static int	copy(Tcl_Interp *interp, int, const char *, int, const char *, off_t);
 static int	compare(int, const char *, size_t, int, const char *, size_t);
@@ -91,25 +92,29 @@ static int	install_dir(Tcl_Interp *interp, char *);
 static u_long	numeric_id(Tcl_Interp *interp, const char *, const char *, int *rval);
 static void	strip(const char *);
 static int	trymmap(int);
-static void	usage(Tcl_Interp *interp, char *n);
+static void	usage(Tcl_Interp *interp, int lineno);
 
 extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
 int
-doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+xinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	struct stat from_sb, to_sb;
 	mode_t *set;
 	u_long fset;
 	int no_target, rval;
 	u_int iflags;
-	char *flags, *name;
+	char *flags;
 	const char *group, *owner, *cp;
 	Tcl_Obj *to_name;
+	int dodir = 0;
 
+	suffix = BACKUP_SUFFIX;
+	mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+	safecopy = docompare = dostrip = dobackup = dopreserve = nommap = verbose = 0;
 	iflags = 0;
 	group = owner = NULL;
-	name = Tcl_GetString(objv[0]);
+	funcname = Tcl_GetString(objv[0]);
 	/* Adjust arguments */
 	++objv, --objc;
 
@@ -176,7 +181,8 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			if (!(set = setmode(Tcl_GetString(*(++objv))))) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "invalid file mode: %s", Tcl_GetString(*objv));
+				snprintf(errmsg, sizeof errmsg, "%s: Invalid file mode: %s",
+					 funcname, Tcl_GetString(*objv));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -210,24 +216,24 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 			break;
 		case '?':
 		default:
-			usage(interp, name);
+			usage(interp, __LINE__);
 			return TCL_ERROR;
 		}
 	}
 
 	/* some options make no sense when creating directories */
 	if (dostrip && dodir) {
-		usage(interp, name);
+		usage(interp, __LINE__);
 		return TCL_ERROR;
 	}
 
 	/* must have at least two arguments, except when creating directories */
 	if (objc < 2 && !dodir) {
-		usage(interp, name);
+		usage(interp, __LINE__);
 		return TCL_ERROR;
 	}
 	else if (dodir && !objc) {
-		usage(interp, name);
+		usage(interp, __LINE__);
 		return TCL_ERROR;
 	}
 	/* need to make a temp copy so we can compare stripped version */
@@ -266,7 +272,7 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return rval;
 
 	if (dodir) {
-		for (; *objv != NULL; ++objv) {
+		for (; objc; ++objv, --objc) {
 			rval = install_dir(interp, Tcl_GetString(*objv));
 			if (rval != TCL_OK)
 				return rval;
@@ -274,7 +280,8 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		return rval;
 	}
 
-	no_target = stat(Tcl_GetString(to_name = objv[objc - 1]), &to_sb);
+	to_name = objv[objc - 1];
+	no_target = stat(Tcl_GetString(to_name), &to_sb);
 	if (!no_target && S_ISDIR(to_sb.st_mode)) {
 		for (; *objv != to_name; ++objv) {
 			rval = install(interp, Tcl_GetString(*objv), Tcl_GetString(to_name), fset, iflags | DIRECTORY);
@@ -286,7 +293,7 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 
 	/* can't do file1 file2 directory/file */
 	if (objc != 2) {
-		usage(interp, name);
+		usage(interp, __LINE__);
 		return TCL_ERROR;
 	}
 
@@ -294,14 +301,16 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		if (stat(Tcl_GetString(*objv), &from_sb)) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "cannot stat: %s, %s", Tcl_GetString(*objv), strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Cannot stat: %s, %s",
+				 funcname, Tcl_GetString(*objv), strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
 		if (!S_ISREG(to_sb.st_mode)) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "Inappropriate file type: %s", Tcl_GetString(to_name));
+			snprintf(errmsg, sizeof errmsg, "%s: Inappropriate file type: %s",
+				 funcname, Tcl_GetString(to_name));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -309,8 +318,8 @@ doinstall(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 		    to_sb.st_ino == from_sb.st_ino) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, 
-				 "%s and %s are the same file", Tcl_GetString(*objv), Tcl_GetString(to_name));
+			snprintf(errmsg, sizeof errmsg, "%s: %s and %s are the same file",
+				 funcname, Tcl_GetString(*objv), Tcl_GetString(to_name));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -334,14 +343,14 @@ numeric_id(Tcl_Interp *interp, const char *name, const char *type, int *rval)
 	if (errno) {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "Bad uid: %s", name);
+		snprintf(errmsg, sizeof errmsg, "%s: Bad uid: %s", funcname, name);
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		*rval = TCL_ERROR;
 	}
 	if (*ep != '\0') {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "unknown %s %s", type, name);
+		snprintf(errmsg, sizeof errmsg, "%s: Unknown %s %s", funcname, type, name);
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		*rval = TCL_ERROR;
 	}
@@ -357,8 +366,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 {
 	struct stat from_sb, temp_sb, to_sb;
 	struct timeval tvb[2];
-	int devnull, files_match, from_fd, serrno, target;
-	int tempcopy, temp_fd, to_fd;
+	int devnull, files_match, from_fd = 0, serrno, target;
+	int tempcopy, temp_fd, to_fd = 0;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
 
 	files_match = 0;
@@ -368,14 +377,16 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if (stat(from_name, &from_sb)) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "can't stat: %s, %s", from_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Cannot stat: %s, %s",
+				 funcname, from_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
 		if (!S_ISREG(from_sb.st_mode)) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "inappropriate file type: %s", from_name);
+			snprintf(errmsg, sizeof errmsg, "%s: Inappropriate file type: %s",
+				 funcname, from_name);
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			errno = EFTYPE;
 			return TCL_ERROR;
@@ -383,8 +394,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		/* Build the target path. */
 		if (flags & DIRECTORY) {
 			(void)snprintf(pathbuf, sizeof(pathbuf), "%s/%s",
-			    to_name,
-			    (p = strrchr(from_name, '/')) ? ++p : from_name);
+				       to_name, (p = strrchr(from_name, '/')) ? ++p : from_name);
 			to_name = pathbuf;
 		}
 		devnull = 0;
@@ -398,7 +408,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	if (target && !S_ISREG(to_sb.st_mode)) {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "%s: Can only install to regular files", to_name);
+		snprintf(errmsg, sizeof errmsg, "%s: Can only install to regular files, not to %s",
+			 funcname, to_name);
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		errno = EFTYPE;
 		return TCL_ERROR;
@@ -410,7 +421,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	if (!devnull && (from_fd = open(from_name, O_RDONLY, 0)) < 0) {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "Unable to open: %s, %s", from_name, strerror(errno));
+		snprintf(errmsg, sizeof errmsg, "%s: Unable to open: %s, %s",
+			 funcname, from_name, strerror(errno));
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		return TCL_ERROR;
 	}
@@ -420,7 +432,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if ((to_fd = open(to_name, O_RDONLY, 0)) < 0) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "Unable to open: %s, %s", to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Unable to open: %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -444,7 +457,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			if (to_fd < 0) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "unable to open temporary file for: %s, %s", to_name, strerror(errno));
+				snprintf(errmsg, sizeof errmsg, "%s: Unable to open temporary file for: %s, %s",
+					 funcname, to_name, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -452,14 +466,15 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			if ((to_fd = create_newfile(interp, to_name, target, &to_sb)) < 0) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "unable to create new file for: %s, %s", to_name, strerror(errno));
+				snprintf(errmsg, sizeof errmsg, "%s: Unable to create new file for: %s, %s",
+					 funcname, to_name, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
 			if (verbose) {
 				char msg[255];
 
-				snprintf(msg, sizeof msg, "install: %s -> %s\n", from_name, to_name);
+				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
 				ui_info(interp, msg);
 			}
 		}
@@ -481,7 +496,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if (to_fd < 0) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "error stripping %s, %s", to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Error stripping %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -497,7 +513,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if ((to_fd = open(to_name, O_RDONLY, 0)) < 0) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "cannot open strip target %s, %s", to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Cannot open strip target %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -508,7 +525,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			serrno = errno;
 			(void)unlink(tempfile);
 			errno = serrno;
-			snprintf(errmsg, sizeof errmsg, "can't stat %s, %s", tempfile, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Cannot stat %s, %s",
+				 funcname, tempfile, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -544,18 +562,19 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			(void)chflags(to_name, to_sb.st_flags & ~NOCHANGEBITS);
 		if (dobackup) {
 			if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s", to_name,
-			    suffix) != strlen(to_name) + strlen(suffix)) {
+					     suffix) != strlen(to_name) + strlen(suffix)) {
 				char errmsg[255];
 
 				unlink(tempfile);
-				snprintf(errmsg, sizeof errmsg, "%s: backup filename too long", to_name);
+				snprintf(errmsg, sizeof errmsg, "%s: Backup filename %s too long",
+					 funcname, to_name);
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
 			if (verbose) {
 				char msg[255];
 
-				snprintf(msg, sizeof msg, "install: %s -> %s\n", to_name, backup);
+				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, to_name, backup);
 				ui_info(interp, msg);
 			}
 			if (rename(to_name, backup) < 0) {
@@ -564,8 +583,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				serrno = errno;
 				unlink(tempfile);
 				errno = serrno;
-				snprintf(errmsg, sizeof errmsg,	"rename: %s to %s, %s",
-					 to_name, backup, strerror(errno));
+				snprintf(errmsg, sizeof errmsg,	"%s: Rename: %s to %s, %s",
+					 funcname, to_name, backup, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -573,7 +592,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if (verbose) {
 			char msg[255];
 
-			snprintf(msg, sizeof msg, "install: %s -> %s\n", from_name, to_name);
+			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
 			ui_info(interp, msg);
 		}
 		if (rename(tempfile, to_name) < 0) {
@@ -582,8 +601,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			serrno = errno;
 			unlink(tempfile);
 			errno = serrno;
-			snprintf(errmsg, sizeof errmsg,
-				 "rename: %s to %s, %s", tempfile, to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Rename: %s to %s, %s",
+				 funcname, tempfile, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -593,7 +612,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		if ((to_fd = open(to_name, O_RDONLY, 0)) < 0) {
 			char errmsg[255];
 
-			snprintf(errmsg, sizeof errmsg, "can't open %s, %s", to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Cannot open %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -616,7 +636,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 		serrno = errno;
 		(void)unlink(to_name);
 		errno = serrno;
-		snprintf(errmsg, sizeof errmsg, "can't stat %s, %s", to_name, strerror(errno));
+		snprintf(errmsg, sizeof errmsg, "%s: Cannot stat %s, %s",
+			 funcname, to_name, strerror(errno));
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		return TCL_ERROR;
 	}
@@ -641,8 +662,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			serrno = errno;
 			(void)unlink(to_name);
 			errno = serrno;
-			snprintf(errmsg, sizeof errmsg, "chown/chgrp %s, %s",
-				 to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: chown/chgrp %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -654,7 +675,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			serrno = errno;
 			(void)unlink(to_name);
 			errno = serrno;
-			snprintf(errmsg, sizeof errmsg, "chmod %s, %s", to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: chmod %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -677,8 +699,8 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 				serrno = errno;
 				(void)unlink(to_name);
 				errno = serrno;
-				snprintf(errmsg, sizeof errmsg, "chflags %s, %s",
-					 to_name, strerror(errno));
+				snprintf(errmsg, sizeof errmsg, "%s: chflags %s, %s",
+					 funcname, to_name, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -797,10 +819,11 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 
 		if (dobackup) {
 			if ((size_t)snprintf(backup, MAXPATHLEN, "%s%s",
-			    path, suffix) != strlen(path) + strlen(suffix)) {
+					     path, suffix) != strlen(path) + strlen(suffix)) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "%s: backup filename too long", path);
+				snprintf(errmsg, sizeof errmsg, "%s: Backup filename %s too long",
+					 funcname, path);
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return -1;
 			}
@@ -808,14 +831,14 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 			if (verbose) {
 				char msg[255];
 
-				snprintf(msg, sizeof msg, "install: %s -> %s\n", path, backup);
+				snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, path, backup);
 				ui_info(interp, msg);
 			}
 			if (rename(path, backup) < 0) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg,
-					 "rename: %s to %s, %s", path, backup, strerror(errno));
+				snprintf(errmsg, sizeof errmsg, "%s: Rename: %s to %s, %s",
+					 funcname, path, backup, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return -1;
 			}
@@ -824,7 +847,7 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 				saved_errno = errno;
 	}
 
-	newfd = open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
+	newfd = open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR, mode);
 	if (newfd < 0 && saved_errno != 0)
 		errno = saved_errno;
 	return newfd;
@@ -847,14 +870,14 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
 	if (lseek(from_fd, (off_t)0, SEEK_SET) == (off_t)-1) {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "lseek %s, %s", from_name, strerror(errno));
+		snprintf(errmsg, sizeof errmsg, "%s: lseek %s, %s", funcname, from_name, strerror(errno));
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		return TCL_ERROR;
 	}
 	if (lseek(to_fd, (off_t)0, SEEK_SET) == (off_t)-1) {
 		char errmsg[255];
 
-		snprintf(errmsg, sizeof errmsg, "lseek %s, %s", to_name, strerror(errno));
+		snprintf(errmsg, sizeof errmsg, "%s: lseek %s, %s", funcname, to_name, strerror(errno));
 		Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 		return TCL_ERROR;
 	}
@@ -873,8 +896,8 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
 			serrno = errno;
 			(void)unlink(to_name);
 			errno = nw > 0 ? EIO : serrno;
-			snprintf(errmsg, sizeof errmsg, "write error on %s, %s",
-				 to_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Write error on %s, %s",
+				 funcname, to_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -888,8 +911,8 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
 				serrno = errno;
 				(void)unlink(to_name);
 				errno = nw > 0 ? EIO : serrno;
-				snprintf(errmsg, sizeof errmsg, "write error on %s, %s",
-					 to_name, strerror(errno));
+				snprintf(errmsg, sizeof errmsg, "%s: Write error on %s, %s",
+					 funcname, to_name, strerror(errno));
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -899,8 +922,8 @@ copy(Tcl_Interp *interp, int from_fd, const char *from_name, int to_fd, const ch
 			serrno = errno;
 			(void)unlink(to_name);
 			errno = serrno;
-			snprintf(errmsg, sizeof errmsg, "error on %s, %s",
-				 from_name, strerror(errno));
+			snprintf(errmsg, sizeof errmsg, "%s: Error on %s, %s",
+				 funcname, from_name, strerror(errno));
 			Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 			return TCL_ERROR;
 		}
@@ -960,20 +983,23 @@ install_dir(Tcl_Interp *interp, char *path)
 				if (errno != ENOENT || mkdir(path, 0755) < 0) {
 					char errmsg[255];
 
-					snprintf(errmsg, sizeof errmsg, "mkdir %s, %s",
-						 path, strerror(errno));
+					*p = ch;
+					snprintf(errmsg, sizeof errmsg, "%s: mkdir %s, %s",
+						 funcname, path, strerror(errno));
 					Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 					return TCL_ERROR;
 				} else if (verbose) {
 					char msg[255];
 
-					snprintf(msg, sizeof msg, "install: mkdir %s\n", path);
+					*p = ch;
+					snprintf(msg, sizeof msg, "%s: mkdir %s\n", funcname, path);
 					ui_info(interp, msg);
 				}
 			} else if (!S_ISDIR(sb.st_mode)) {
 				char errmsg[255];
 
-				snprintf(errmsg, sizeof errmsg, "%s exists but is not a directory", path);
+				snprintf(errmsg, sizeof errmsg, "%s: directory target %s exists and is not a directory",
+					 funcname, path);
 				Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 				return TCL_ERROR;
 			}
@@ -993,16 +1019,17 @@ install_dir(Tcl_Interp *interp, char *path)
  *	copy usage message to Tcl result.
  */
 static void
-usage(Tcl_Interp *interp, char *n)
+usage(Tcl_Interp *interp, int lineno)
 {
 	char errmsg[500];
 
 	snprintf(errmsg, sizeof errmsg, 
-"usage: %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
+"%s usage (#%d): %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 file2\n"
 "       %s [-bCcpSsv] [-B suffix] [-f flags] [-g group] [-m mode]\n"
 "               [-o owner] file1 ... fileN directory\n"
-"       %s -d [-v] [-g group] [-m mode] [-o owner] directory ...", n, n, n);
+"       %s -d [-v] [-g group] [-m mode] [-o owner] directory ...",
+		funcname, lineno, funcname, funcname, funcname);
 	Tcl_SetResult(interp, errmsg, TCL_VOLATILE);
 }
 
