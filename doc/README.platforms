@@ -1,0 +1,58 @@
+DarwinPorts can be used on platforms other than Mac OS X 10.2 and 10.3,
+but requires bootstrapping of various requirements.
+
+Currently, DarwinPorts has been verified to work on Solaris 8 & 9
+(Sparc). We will be assuming that you are installing into PREFIX=/opt/local,
+although any path can be used. Further, we are assuming a sh-based shell
+
+Solaris:
+Vendor cc(1)
+
+0)
+PREFIX=/opt/local
+export PREFIX
+INSTALL REQUIREMENTS
+1) Tcl. Use the Portfile as a template
+gzip -c -d ../tcl8.4.5-src.tar.gz | tar xf -
+cd tcl8.4.5
+cd unix
+./configure --prefix=$PREFIX --mandir=$PREFIX/share/man
+make
+make install
+cd $PREFIX/bin
+ln -s tclsh8.4 tclsh
+$ echo puts foo | tclsh
+foo
+
+2) OpenSSL
+gzip -c -d ../openssl-0.9.7c.tar.gz | tar xf -
+cd openssl-0.9.7c
+./config --prefix=$PREFIX --openssldir=$PREFIX/etc/openssl no-asm no-krb5 shared
+make
+make install
+
+3) Curl
+gzip -c -d ../curl-7.10.8.tar.gz | tar xf -
+cd curl-7.10.8
+./configure --prefix=$PREFIX --mandir=$PREFIX/share/man --with-ssl=$PREFIX
+make
+make install
+curl --version
+
+4) GNU fileutils
+gzip -c -d ../fileutils-4.1.tar.gz | tar xf -
+cd fileutils-4.1
+./configure --prefix=$PREFIX --mandir=$PREFIX/share/man
+make
+make install
+
+4) md5
+cat > $PREFIX/bin/md5 <<EOF
+#!/bin/sh
+openssl md5 "$@" | sed 's/MD5(\(.*\))= /MD5 (\1) = /'
+EOF
+
+5) darwinports
+./configure --prefix=$PREFIX --with-dports-dir=/afs/sipb.mit.edu/user/ssen/opt/dports --with-install-user=ssen --with-install-group=mit --with-tcl=$PREFIX/lib --with-tclinclude=$PREFIX/include CPPFLAGS="-I$PREFIX/include" LDFLAGS="-L$PREFIX/lib -R$PREFIX/lib"
+make
+make install
