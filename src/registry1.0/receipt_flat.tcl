@@ -226,6 +226,12 @@ proc entry_properties {ref} {
 }
 
 # Return all installed ports
+#
+# If version is "", return all ports of that version.
+# Otherwise, return only ports that exactly match this version.
+# What we call version here is version_revision+variants.
+# Note: at some point we need to change these APIs and support something
+# like selecting on the version or selecting variants in any order.
 proc installed {{name ""} {version ""}} {
 	global darwinports::registry.path
 	variable receipt_path
@@ -237,10 +243,11 @@ proc installed {{name ""} {version ""}} {
 		if { $version == "" } {
 			set query_path [file join ${query_path} *]
 		}
+		# [PG] Huh?
 	} else {
 		set query_path [file join ${query_path} ${name}]
 		if { $version != "" } {
-			set query_path [file join ${query_path} ${version}*]
+			set query_path [file join ${query_path} ${version}]
 		} else {
 			set query_path [file join ${query_path} *]
 		}
