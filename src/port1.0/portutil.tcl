@@ -70,7 +70,7 @@ proc default {option args} {
 proc tbool {key} {
     upvar $key upkey
     if {[info exists upkey]} {
-	if {$upkey == "yes"} {
+	if {[string equal -nocase $upkey "yes"]} {
 	    return 1
 	}
     }
