@@ -2,7 +2,6 @@
 # port.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,37 +27,6 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-#
-#
-# port1.0 is built around the notion of state and the notion of operation.
-# operations are transitions between states, although one operation can lead
-# to various transitions depending on the original state (however, for a given
-# state, an operation, if successful, only leads to one state).
-#
-# There actually are two different set of states, dependent but not as if they
-# were part of a single state machine.
-#
-# The first set of states is the work set of states. The states are the
-# following:
-# - cleaned
-# - fetched
-# - extracted
-# - patched
-# - configured
-# - built
-# - destrooted
-#
-# The state is written in the state file in the work directory. If this file
-# doesn't exist or if the work directory doesn't exist, the port is known to be
-# in the cleaned state.
-#
-# The second set of states is the registry set of states. The states are the
-# following:
-# - uninstalled
-# - installed
-# - activated
-#
-# Operations require that the port is in a given 
 #
 # standard package load
 package provide port 1.0
