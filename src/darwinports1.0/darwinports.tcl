@@ -173,8 +173,12 @@ proc darwinports::worker_init {workername portpath options variations} {
 	}
 	$workername alias registry_new dportregistry::new $workername
 	$workername alias registry_store dportregistry::store
+	$workername alias registry_delete dportregistry::delete
+	$workername alias registry_exists dportregistry::exists
 	$workername alias registry_close dportregistry::close
 	$workername alias fileinfo_for_index dportregistry::fileinfo_for_index
+	$workername alias fileinfo_for_file dportregistry::fileinfo_for_file
+	$workername alias fileinfo_for_entry dportregistry::fileinfo_for_entry
 
     foreach opt $portinterp_options {
 	if ![info exists $opt] {
