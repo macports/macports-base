@@ -98,6 +98,29 @@ proc fatal args {
     exit
 }
 
+proc registry_installed {portname {portversion ""}} {
+	set ilist [registry::installed $portname $portversion]
+	if { [llength $ilist] > 1 } {
+		puts "The following versons of $portname are currently installed:"
+		foreach i $ilist { 
+			set iname [lindex $i 0]
+			set iversion [lindex $i 1]
+			set irevision [lindex $i 2]
+			set ivariants [lindex $i 3]
+			set iactive [lindex $i 4]
+			if { $iactive == 0 } {
+				puts "	$iname ${iversion}_${irevision}${ivariants}"
+			} elseif { $iactive == 1 } {
+				puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
+			}
+		}
+		return -code error "Registry error: Please specify the full version as recorded in the port registry."
+	} else {
+		return [lindex $ilist 0]
+	}
+}	
+
+
 # Main
 set separator 0
 array set options [list]
@@ -147,8 +170,10 @@ for {set i 0} {$i < $argc} {incr i} {
 	
 	# action
     } elseif {[regexp {^([A-Za-z0-9/._\-^$ \[\[?\(\)\\|\+\*]+)$} $arg match opt] == 1} {
-	if {[info exists action]} {
+	if {[info exists action] && ![info exists portname]} {
 	    set portname $opt
+    	} elseif { [info exists action] && [info exists portname] } {
+		set portversion $opt
 	} else {
 	    set action $opt
 	}
@@ -173,6 +198,162 @@ if {[catch {dportinit} result]} {
 }
 
 switch -- $action {
+	location {
+		if { ![info exists portname] } {
+			puts "To list the image location of an installed port please provide a portname."
+			exit 1
+		} elseif { ![info exists portversion] } {
+			set portversion "" 
+        }
+	
+		if { [catch {set ilist [registry_installed $portname $portversion]} result] } {
+			puts "port location failed: $result"
+			exit 1
+		} else {
+			set version [lindex $ilist 1]
+			set revision [lindex $ilist 2]
+			set	variants [lindex $ilist 3]
+        }
+	   
+		set ref [registry::open_entry $portname $version $revision $variants]
+		if { [string equal [registry::property_retrieve $ref installtype] "image"] } {
+			set imagedir [registry::property_retrieve $ref imagedir]
+			puts "Port $portname ${version}_${revision}${variants} is installed as an image in:"
+			puts $imagedir
+        } else {
+			puts "Port $portname is not installed as an image."
+			exit 1
+		}
+	}
+	provides {
+		# In this case, portname is going to be used for the filename... since
+		# that is the first argument we expect... perhaps ther eis a better way
+		# to do this?
+		if { ![info exists portname] } {
+			puts "Please specify a filename to check which port provides that file."
+			exit 1
+		}
+		set file $portname
+		if { [file exists $file] && ![file isdirectory $file] } {
+			set port [registry::file_registered $file] 
+			if { $port != 0 } {
+				puts "$file is provided by: $port"
+			} else {
+				puts "$file is not provided by a DarwinPorts port."
+			}
+		} else {
+			puts "$file does not exist or is a directory."
+		}
+	}
+    activate {
+	    if { ![info exists portname] } {
+		    puts "Please specify a port to activate."
+		    exit 1
+		} elseif { ![info exists portversion] } {
+		    set portversion ""
+	    } 
+	    if { [catch {portimage::activate $portname $portversion} result] } {
+		    puts "port activate failed: $result"
+		    exit 1
+	    }
+    }
+    deactivate {
+	    if { ![info exists portname] } {
+		    puts "Please specify a port to deactivate."
+		    exit 1
+	    } elseif { ![info exists portversion] } {
+		    set portversion ""
+	    } 
+		if { [catch {portimage::deactivate $portname $portversion} result] } {
+		    puts "port deactivate failed: $result"
+		    exit 1
+	    }
+    }
+    compact {
+	    if { ![info exists portname] } {
+		    puts "Please specify a port to compact."
+		    exit 1
+	    } elseif { ![info exists portversion] } {
+		    set portversion ""
+	    } 
+		if { [catch {portimage::compact $portname $portversion} result] } {
+		    puts "port compact failed: $result"
+		    exit 1
+	    }
+    }
+    uncompact {
+	    if { ![info exists portname] } {
+		    puts "Please specify a port to compact."
+		    exit 1
+	    } elseif { ![info exists portversion] } {
+		    set portversion ""
+	    } 
+		if { [catch {portimage::uncompact $portname $portversion} result] } {
+		    puts "port uncompact failed: $result"
+		    exit 1
+	    }
+    }
+    uninstall {
+	    if { ![info exists portname] } {
+		    puts "Please specify a port to uninstall"
+		    exit 1
+	    } elseif { ![info exists portversion] } {
+		    set portversion ""
+	    } 
+	    if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+		    puts "port uninstall failed: $result"
+		    exit 1
+	    }
+    }
+    installed {
+		if { [info exists portname] } {
+			if { [catch {set ilist [registry::installed $portname]} result] } {
+				puts "port installed failed: $result"
+				exit 1
+			}
+		} else {
+			if { [catch {set ilist [registry::installed]} result] } {
+				puts "port installed failed: $result"
+				exit 1
+			}
+		}
+		if { [llength $ilist] > 0 } {
+			puts "The following ports are currently installed:"
+			foreach i $ilist { 
+				set iname [lindex $i 0]
+				set iversion [lindex $i 1]
+				set irevision [lindex $i 2]
+				set ivariants [lindex $i 3]
+				set iactive [lindex $i 4]
+				if { $iactive == 0 } {
+					puts "	$iname ${iversion}_${irevision}${ivariants}"
+				} elseif { $iactive == 1 } {
+					puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
+				}
+			}
+        } else {
+	    exit 1
+        }
+    }
+    contents {
+        # make sure a port was given on the command line
+        if {![info exists portname]} {
+			puts "Please specify a port"
+	    exit 1
+		} elseif { ![info exists portversion] } {
+			set portversion "" 
+        }
+
+		set files [registry::port_registered $portname]
+		if { $files != 0 } {
+			puts "Port $portname contains:"
+			foreach file $files {
+				puts "  $file"
+			}
+		} else {
+			puts "Port $portname is not installed, or there is no $portname port active."
+		}
+    }
     deps {
         set nodeps true
 
@@ -227,12 +408,6 @@ switch -- $action {
             puts "$portname has no dependencies"
         }
     }
-    installed {
-        if {[catch {dportregistry::listinstalled} result]} {
-            puts "Port failed: $result"
-	    exit 1
-        }
-    }
     variants {
         # make sure a port was given on the command line
         if {![info exists portname]} {
@@ -260,49 +435,6 @@ switch -- $action {
             for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
                 puts "[lindex $portinfo(variants) $i]"
             }
-        }
-    }
-    contents {
-        # make sure a port was given on the command line
-        if {![info exists portname]} {
-	    puts "You must specify a port"
-	    exit 1
-        }
-	
-        set rfile [dportregistry::exists $portname]
-        if {$rfile != ""} {
-            if {[file extension $rfile] == ".bz2"} {
-                set shortname [file rootname [file tail $rfile]]
-                set fd [open "|bzcat -q $rfile" r]
-            } else {
-                set shortname [file tail $rfile]
-                set fd [open $rfile r]
-            }
-	    
-            while {-1 < [gets $fd line]} {
-                set match [regexp {^contents \{(.*)\}$} $line dummy contents]
-                if {$match == 1} {
-		    puts "Contents of $shortname"
-		    foreach f $contents {
-			puts "\t[lindex $f 0]"
-		    }
-                    break
-                }
-            }
-	    
-            if {$match == 0} {
-                puts "No contents list for $shortname"
-		exit 1
-            }
-	    
-            # kind of a corner case but I ran into it testing
-            if {[catch {close $fd} result]} {
-                puts "Port failed: $rfile may be corrupted"
-                exit 1
-            }
-        } else {
-            puts "Contents listing failed - no registry entry"
-	    exit 1
         }
     }
     search {
