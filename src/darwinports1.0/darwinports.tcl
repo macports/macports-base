@@ -34,7 +34,7 @@ package require darwinports_dlist 1.0
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
     variable bootstrap_options "portdbpath libpath auto_path sources_conf prefix"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath"
+    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path"
 	
 	variable open_dports {}
 }
@@ -165,6 +165,16 @@ proc darwinports::worker_init {workername portpath options variations} {
     foreach proc {ui_debug ui_info ui_warn ui_msg ui_error ui_gets ui_yesno ui_confirm ui_display} {
         $workername alias $proc $proc
     }
+
+	# xxx: find a better home for this registry cruft--like six feet under.
+	global darwinports::portdbpath darwinports::registry.path
+	if {[info exists darwinports::portdbpath] && ![info exists darwinports::registry.path]} {
+		set darwinports::registry.path [file join ${darwinports::portdbpath} receipts]
+	}
+	$workername alias registry_new dportregistry::new $workername
+	$workername alias registry_store dportregistry::store
+	$workername alias registry_close dportregistry::close
+	$workername alias fileinfo_for_index dportregistry::fileinfo_for_index
 
     foreach opt $portinterp_options {
 	if ![info exists $opt] {
@@ -617,3 +627,125 @@ proc dportdepends {dport includeBuildDeps recurseDeps} {
 	
 	return 0
 }
+
+# Snarfed from portregistry.tcl
+# For now, just write stuff to a file for debugging.
+
+namespace eval dportregistry {}
+
+proc dportregistry::new {workername portname {portversion 1.0}} {
+    global _registry_name darwinports::registry.path
+
+    file mkdir ${darwinports::registry.path}
+    set _registry_name [file join ${darwinports::registry.path} $portname-$portversion]
+    system "rm -f ${_registry_name}.tmp"
+    set rhandle [open ${_registry_name}.tmp w 0644]
+    puts $rhandle "\# Format: var value ... {contents {filename uid gid mode size {md5}} ... }"
+	#interp share {} $rhandle $workername 
+    return $rhandle
+}
+
+proc dportregistry::exists {portname {portversion 0}} {
+    global darwinports::registry.path
+
+    # regex match case
+    if {$portversion == 0} {
+	set x [glob -nocomplain [file join ${darwinports::registry.path} ${portname}-*]]
+	if [string length $x] {
+	    set matchfile [lindex $x 0]
+	} else {
+	    set matchfile ""
+	}
+    } else {
+	set matchfile [file join ${darwinports::registry.path} ${portname}-${portversion}]
+    }
+
+    # Might as well bail out early if no file to match
+    if ![string length $matchfile] {
+	return ""
+    }
+
+    if [file exists $matchfile] {
+	return $matchfile
+    }
+    if [file exists ${matchfile}.bz2] {
+	return ${matchfile}.bz2
+    }
+    return ""
+}
+
+proc dportregistry::store {rhandle data} {
+puts "xxx: $rhandle $data"
+    puts $rhandle $data
+}
+
+proc dportregistry::fetch {rhandle} {
+    return -1
+}
+
+proc dportregistry::traverse {func} {
+    return -1
+}
+
+proc dportregistry::close {rhandle} {
+    global _registry_name
+    global registry.nobzip
+
+    ::close $rhandle
+    system "mv ${_registry_name}.tmp ${_registry_name}"
+    if {[file exists ${_registry_name}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip]} {
+	system "/usr/bin/bzip2 -f ${_registry_name}"
+    }
+}
+
+proc dportregistry::delete {portname {portversion 1.0}} {
+    global darwinports::registry.path
+
+    # Try both versions, just to be sure.
+    exec rm -f [file join ${darwinports::registry.path} ${portname}-${portversion}]
+    exec rm -f [file join ${darwinports::registry.path} ${portname}-${portversion}].bz2
+}
+
+proc dportregistry::fileinfo_for_file {fname} {
+    if ![catch {file stat $fname statvar}] {
+	if {[file isfile $fname]} {
+	    set md5regex "^(MD5)\[ \]\\((.+)\\)\[ \]=\[ \](\[A-Za-z0-9\]+)\n$"
+	    set pipe [open "|md5 \"$fname\"" r]
+	    set line [read $pipe]
+	    if {[regexp $md5regex $line match type filename sum] == 1} {
+		::close $pipe
+		set line [string trimright $line "\n"]
+		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
+	    }
+	    ::close $pipe
+	} else {
+	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
+	}
+    }
+    return {}
+}
+
+proc dportregistry::fileinfo_for_entry {rval dir entry} {
+    upvar $rval myrval
+    set path [file join $dir $entry]
+    lappend myrval [dportregistry::fileinfo_for_file $path]
+    return $myrval
+}
+
+proc dportregistry::fileinfo_for_index {flist} {
+    global prefix
+
+    set rval {}
+    foreach file $flist {
+	if [string match /* $file] {
+	    set fname $file
+	    set dir /
+	} else {
+	    set fname [file join $prefix $file]
+	    set dir $prefix
+	}
+	dportregistry::fileinfo_for_entry rval $dir $file
+    }
+    return $rval
+}
+

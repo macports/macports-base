@@ -41,7 +41,6 @@ package require portconfigure 1.0
 package require portbuild 1.0
 package require portinstall 1.0
 package require portuninstall 1.0
-package require portregistry 1.0
 package require portclean 1.0
 package require portpackage 1.0
 package require portcontents 1.0

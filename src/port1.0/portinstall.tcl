@@ -172,3 +172,20 @@ proc install_registry {args} {
     registry_close $rhandle
     return 0
 }
+
+proc proc_disasm {pname} {
+    set p "proc "
+    append p $pname " {"
+    set space ""
+    foreach arg [info args $pname] {
+	if [info default $pname $arg value] {
+	    append p "$space{" [list $arg $value] "}"
+	} else {
+	    append p $space $arg
+	}
+	set space " "
+    }
+    append p "} {" [info body $pname] "}"
+    return $p
+}
+
