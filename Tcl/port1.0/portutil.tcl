@@ -378,20 +378,22 @@ proc eval_targets {dlist chain target} {
 proc dlist_append_dependents {dependents dlist name} {
     upvar $dependents updependents
     upvar $dlist uplist
-	
+
     # Append item to the list, avoiding duplicates
     if {![info exists updependents(name,$name)]} {
 	set names [array names uplist *,$name]
-	foreach n $names {
-	    set updependents($n) $uplist($n)
-	}
+        foreach n $names {
+            set updependents($n) $uplist($n)
+        }
     }
     
     # Recursively append any hard dependencies
     if {[info exists uplist(requires,$name)]} {
-	foreach dep $uplist(requires,$name) {
-	    dlist_append_dependents updependents uplist $dep
-	}
+        foreach dep $uplist(requires,$name) {
+            foreach provide [dlist_get_matches uplist provides $dep] {
+                dlist_append_dependents updependents uplist $provide
+            }
+        }
     }
     
     # XXX: add soft-dependencies?
