@@ -38,11 +38,11 @@ ${com.apple.package} provides package
 ${com.apple.package} requires registry
 
 # define options
-options package.type package.dir
+options package.type package.destpath
 
 # Set defaults
 default package.type tarball
-default package.dir ""
+default package.destpath {${workpath}}
 
 set UI_PREFIX "---> "
 
@@ -66,13 +66,13 @@ proc package_main {args} {
     # For now the only package type we support is "tarball" but move that
     # into another routine anyway so that this is abstract enough.
 
-    return [package_tarball $portname $portversion $entry]
+    return [package_pkg $portname $portversion $entry]
 }
 
 # Make a tarball version of a package.  This is our "built-in" packaging
 # method.
 proc package_tarball {portname portversion entry} {
-    global portdbpath package.dir
+    global portdbpath package.destpath
 
     set rfile [registry_exists $portname $portversion]
     set ix [lsearch $entry contents]
@@ -87,11 +87,7 @@ proc package_tarball {portname portversion entry} {
 	puts $pfile $rfile
 	close $pfile
 
-	if [file isdirectory ${package.dir}] {
-	    set ptarget ${package.dir}/${portname}-${portversion}.tar.gz
-	} else {
-	    set ptarget ${portname}-${portversion}.tar.gz
-	}
+	set ptarget ${package.destpath}/${portname}-${portversion}.tar.gz
 	if [catch {system "gnutar -T [lindex $plist 1] -czPpf ${ptarget}"} err] {
 	    ui_error "Package creation failed - gnutar returned error status: $err"
 	    ui_info "Failed packing list left in [lindex $plist 1]"
@@ -101,6 +97,77 @@ proc package_tarball {portname portversion entry} {
     } else {
 	ui_error "Bad registry entry for ${portname}-${portversion}, no contents"
 	return -code error "Bad registry entry for ${portname}-${portversion}, no contents"
+    }
+    return 0
+}
+
+proc package_pkg {portname portversion entry} {
+    global portdbpath destpath workpath contents prefix portresourcepath description package.destpath
+
+    set resourcepath ${workpath}/pkg_resources
+    set rfile [registry_exists $portname $portversion]
+    set ix [lsearch $entry contents]
+    if {$ix >= 0} {
+	set plist [mkstemp ${workpath}/.${portname}.plist.XXXXXXXXX]
+	set pfile [lindex $plist 0]
+	# XXX hack that allows contents list to be grouped by braces
+	# XXX split contents list up if it contains one argument
+	# XXX this breaks contents lists that contain one filename, with spaces.
+	if {[llength $contents] == 1} {
+	    set clist [eval return $contents]
+	} else {
+	    set clist $contents
+	}
+
+	foreach f $clist {
+	    set fname [lindex $f 0]
+	    puts $pfile $fname
+	}
+	close $pfile
+
+	if {![file isdirectory $destpath]} {
+	    if {[catch {file mkdir $destpath} result]} {
+		ui_error "Unable to create destination root path: $result"
+		return -code error "Unable to create destination root path: $result"
+	    }
+	}
+
+	if [catch {system "(cd ${prefix} && gnutar -T [lindex $plist 1] -cPpf -) | (cd ${destpath} && tar xvf -)"} return] {
+	    ui_error "Package creation failed - gnutar returned error status: $return"
+	    file delete [lindex $plist 1]
+	    return -code error "Package creation failed - gnutar returned error status: $return"
+	}
+	file delete [lindex $plist 1]
+
+	if {![file isdirectory $resourcepath]} {
+	    if {[catch {file mkdir $resourcepath} result]} {
+		ui_error "Unable to create package resource directory: $result"
+		return -code error "Unable to create package resource directory: $result"
+	    }
+	}
+
+	set infofile ${workpath}/${portname}.info
+	set infofd [open ${infofile} w+]
+
+	puts $infofd "Title ${portname}
+Version ${portversion}
+Description ${description}
+DefaultLocation ${prefix}
+DeleteWarning
+
+### Package Flags
+
+NeedsAuthorization YES
+Required NO
+Relocatable NO
+RequiresReboot NO
+UseUserMask YES
+OverwritePermissions NO
+InstallFat NO
+RootVolumeOnly NO"
+	close $infofd
+	system "package ${destpath} ${infofile} ${portresourcepath}/package/background.tiff -d ${package.destpath}"
+
     }
     return 0
 }

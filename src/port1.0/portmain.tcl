@@ -47,11 +47,16 @@ options_export name version revision categories maintainers platforms
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 
+# Hard coded version number for resource location
+default portresourcepath {[file join $prefix share/darwinports/resources/port1.0]}
 default distpath {[file join $portdbpath distfiles]}
 default workdir work
 default workpath {[file join $portpath $workdir]}
 default prefix /opt/local
-default destdir {${workpath}/destdir}
+# XXX destdir is depricated in favor of destpath, but is provided
+# for backwards compatibility
+default destdir destroot
+default destpath {${workpath}/${destdir}}
 default filedir files
 default revision 0
 default distname {${portname}-${portversion}}
