@@ -17,6 +17,10 @@ maintainers	eric@opendarwin.org
 # A short description of this port
 description	"A utility for fetching files by URL"
 
+# A long description, with more details
+long_description "fetch is a utility to fetch files by their URL, \
+                  fetch originally comes from FreeBSD."
+
 # Master download sites for port's distribution file(s)
 master_sites	http://www.opendarwin.org/~eric/
 
