@@ -31,14 +31,15 @@
 package provide darwinports 1.0
 package require darwinportsui 1.0 
 
-global ports_opts
-global bootstrap_options
-set bootstrap_options "sysportpath libpath auto_path"
-set portinterp_options "sysportpath portpath auto_path portconf portdefaultconf"
-set uniqid 0
+namespace eval darwinports {
+	namespace export bootstrap_options portinterp_options uniqid 0
+	variable bootstrap_options "sysportpath libpath auto_path"
+	variable portinterp_options "sysportpath portpath auto_path portconf portdefaultconf"
+	variable uniqid 0
+}
 
 proc dportinit {args} {
-    global auto_path env bootstrap_options sysportpath portconf portdefaultconf
+    global auto_path env darwinports::sysportpath darwinports::bootstrap_options darwinports::uniqid darwinports::portinterp_options darwinports::portconf darwinports::portdefaultconf
 
     if [file isfile /etc/defaults/ports.conf] {
     	set portdefaultconf /etc/defaults/ports.conf
@@ -88,7 +89,7 @@ proc dportinit {args} {
 }
 
 proc dportopen {portdir {options ""} {variations ""}} {
-    global portpath portinterp_options uniqid
+    global darwinports::uniqid darwinports::portinterp_options darwinports::sysportpath darwinports::portconf darwinports::portdefaultconf auto_path
 
     if {$options == ""} {
 	set upoptions ""
@@ -121,10 +122,9 @@ proc dportopen {portdir {options ""} {variations ""}} {
 	}
 
 	foreach opt $portinterp_options {
-		upvar #0 $opt upopt
-		if [info exists upopt] {
-			$workername eval set system_options($opt) \"$upopt\"
-			$workername eval set $opt \"$upopt\"
+		if [info exists $opt] {
+			$workername eval set system_options($opt) \"[set $opt]\"
+			$workername eval set $opt \"[set $opt]\"
 		}
 	}
 
@@ -149,14 +149,14 @@ proc dportopen {portdir {options ""} {variations ""}} {
 }
 
 proc dportexec {workername target} {
-    global targets variants portpath portinterp_options uniqid variations
+    global darwinports::portinterp_options darwinports::uniqid
 
     $workername eval eval_variants variants variations
     return [$workername eval eval_targets targets $target]
 }
 
 proc dportsearch {regexp} {
-    global sysportpath
+    global darwinports::sysportpath
     set matches [list]
 
     set fd [open $sysportpath/PortIndex r]
@@ -178,7 +178,7 @@ proc dportsearch {regexp} {
 }
 
 proc dportmatch {regexp} {
-    global sysportpath
+    global darwinports::sysportpath
     set fd [open $sysportpath/PortIndex r]
     while {[gets $fd line] >= 0} {
     	set name [lindex $line 0]
