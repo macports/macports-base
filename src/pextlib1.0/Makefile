@@ -12,7 +12,4 @@ install:
 	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} ${SHLIB_NAME} ${INSTALLDIR}
 	${INSTALL} ${COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} pkgIndex.tcl  ${INSTALLDIR}
 
-afterclean:
-	rm -f pkgIndex.tcl
-
 .include <bsd.lib.mk>
