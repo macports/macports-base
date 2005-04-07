@@ -312,7 +312,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP CFOUNDATION_LIBS MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -4711,94 +4711,6 @@ fi
 done
 
 
-# Check for CoreFoundation
-
-	CFOUNDATION_LIBS="-framework CoreFoundation"
-
-	echo "$as_me:$LINENO: checking for CoreFoundation" >&5
-echo $ECHO_N "checking for CoreFoundation... $ECHO_C" >&6
-
-	if test "${od_cv_cfoundation+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-
-
-		ac_save_LIBS="$LIBS"
-
-		LIBS="$CFOUNDATION_LIBS $LIBS"
-
-		cat >conftest.$ac_ext <<_ACEOF
-
-			#line $LINENO "configure"
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-					#include <CoreFoundation/CoreFoundation.h>
-
-int
-main ()
-{
-
-					CFURLRef url = CFURLCreateWithFileSystemPath(NULL, CFSTR("/testing"), kCFURLPOSIXPathStyle, 1);
-					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
-
-  ;
-  return 0;
-}
-
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
-  (eval $ac_link) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } &&
-         { ac_try='test -s conftest$ac_exeext'
-  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
-  (eval $ac_try) 2>&5
-  ac_status=$?
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); }; }; then
-
-				od_cv_cfoundation="yes"
-
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-
-				od_cv_cfoundation="no"
-
-
-fi
-rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
-
-		LIBS="$ac_save_LIBS"
-
-
-fi
-
-
-	echo "$as_me:$LINENO: result: ${od_cv_cfoundation}" >&5
-echo "${ECHO_T}${od_cv_cfoundation}" >&6
-
-	if test x"${od_cv_cfoundation}" = "xyes"; then
-
-cat >>confdefs.h <<\_ACEOF
-#define CFOUNDATION_ENABLE
-_ACEOF
-
-	else
-		CHECK_DIRS=""
-	fi
-
-
-
-
-
 # Check for md5 implementation
 
 
@@ -7743,7 +7655,6 @@ s,@DSTGRP@,$DSTGRP,;t t
 s,@DSTMODE@,$DSTMODE,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
-s,@CFOUNDATION_LIBS@,$CFOUNDATION_LIBS,;t t
 s,@MD5_LIBS@,$MD5_LIBS,;t t
 s,@X_CFLAGS@,$X_CFLAGS,;t t
 s,@X_PRE_LIBS@,$X_PRE_LIBS,;t t
