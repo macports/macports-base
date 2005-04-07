@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.74 2005/01/22 01:58:44 jkh Exp $
+ * $Id: Pextlib.c,v 1.75 2005/04/07 03:07:25 landonf Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -105,7 +105,6 @@
 #include "xinstall.h"
 #include "vercomp.h"
 #include "compat.h"
-#include "MacSWReceipt.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -924,9 +923,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
-#ifdef CFOUNDATION_ENABLE
-	Tcl_CreateObjCommand(interp, "macreceipts", MacSWReceiptCmd, NULL, NULL);
-#endif
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
