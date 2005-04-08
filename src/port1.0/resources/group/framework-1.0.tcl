@@ -1,7 +1,7 @@
 # et:ts=4
 # framework-1.0.tcl
 #
-# $Id: framework-1.0.tcl,v 1.1 2005/04/08 13:58:13 mww Exp $
+# $Id: framework-1.0.tcl,v 1.2 2005/04/08 14:49:46 mww Exp $
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.
@@ -53,10 +53,10 @@ proc framework.setup {fname fversion} {
 		--localstatedir=${prefix}/var
 
 	post-destroot {
-		cd ${destroot}${f_framework}/Versions
-		file link Current ${f_version}
-		cd ${destroot}${f_framework}
-		file link Headers Versions/Current/Headers
-		file link Libraries Versions/Current/Libraries
+		system "cd ${destroot}${f_framework}/Versions && \
+			ln -s ${f_version} Current"
+		system "cd ${destroot}${f_framework} && \
+			ln -s Versions/Current/Headers Headers && \
+			ln -s Versions/Current/Libraries Libraries"
 	}
 }
