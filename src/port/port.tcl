@@ -787,7 +787,7 @@ switch -- $action {
 			set porturl $portinfo(porturl)
 		}
 		if {![info exists porturl]} {
-			set porturl file://./
+			set porturl file://[pwd]
 		}
 		# If version was specified, save it as a version glob for use
 		# in port actions (e.g. clean).
