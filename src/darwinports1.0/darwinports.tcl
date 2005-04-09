@@ -1058,7 +1058,7 @@ proc darwinports::upgrade {pname dspec} {
 
 			set isactive [lindex $i 4]
 			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
-				# deactivate version_installed
+				# deactivate version
     			if {[catch {portimage::deactivate $pname $version} result]} {
     	    		ui_error "Deactivating $pname $version_installed failed: $result"
     	    		return 1
@@ -1118,12 +1118,6 @@ proc darwinports::upgrade {pname dspec} {
 		return 0
 	}
 
-	# deactivate version_installed
-	if {[catch {portimage::deactivate $pname $version_installed$variant} result]} {
-		ui_error "Deactivating $pname $version_installed failed: $result"
-		return 1
-	}
-
 	# open porthandle
 	set porturl $portinfo(porturl)
 	if {![info exists porturl]} {
@@ -1155,15 +1149,15 @@ proc darwinports::upgrade {pname dspec} {
 	}
 
 	# install version_in_tree
-	if {[catch {set result [dportexec $workername install]} result]} {
+	if {[catch {set result [dportexec $workername destroot]} result]} {
 		ui_error "Unable to exec port: $result"
 
 		# activate the latest installed version, cause installed of 
 		# the version in ports failed.
-		if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
-    		ui_error "Activating $pname $version_installed$oldvariant failed: $result"
-			return 1
-		}
+		#if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
+    		#ui_error "Activating $pname $version_installed$oldvariant failed: $result"
+			#return 1
+		#}
 		return 1
 	}
 
@@ -1175,6 +1169,17 @@ proc darwinports::upgrade {pname dspec} {
      		ui_error "Uninstall $pname $version_installed$oldvariant failed: $result"
        		return 1
     	}
+	} else {
+		# XXX deactivate version_installed
+		if {[catch {portimage::deactivate $pname $version_installed$oldvariant} result]} {
+			ui_error "Deactivating $pname $version_installed failed: $result"
+			return 1
+		}
+	}
+
+	if {[catch {set result [dportexec $workername install]} result]} {
+		ui_error "Couldn't activate $pname $version_in_tree$oldvariant: $result"
+		return 1
 	}
 	
 	# close the port handle
