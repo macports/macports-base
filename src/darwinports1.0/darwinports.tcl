@@ -1149,15 +1149,8 @@ proc darwinports::upgrade {pname dspec} {
 	}
 
 	# install version_in_tree
-	if {[catch {set result [dportexec $workername destroot]} result]} {
-		ui_error "Unable to exec port: $result"
-
-		# activate the latest installed version, cause installed of 
-		# the version in ports failed.
-		#if {[catch {portimage::activate $pname $version_installed$oldvariant} result]} {
-    		#ui_error "Activating $pname $version_installed$oldvariant failed: $result"
-			#return 1
-		#}
+	if {[catch {set result [dportexec $workername destroot]} result] || $result != 0} {
+		ui_error "Unable to upgrade port: $result"
 		return 1
 	}
 
