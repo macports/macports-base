@@ -1131,13 +1131,13 @@ proc darwinports::upgrade {pname dspec} {
 		return 1
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
+	set epoch_in_tree "$portinfo(epoch)"
 
 	# the depflag tells us if we should follow deps (this is for stuff installed outside DP)
 	# if this is set (not 0) we dont follow the deps
 	set depflag 0
 
 	# set version_installed
-	set ask no
 	set ilist {}
 	if { [catch {set ilist [registry::installed $pname ""]} result] } {
 		if {$result == "Registry error: $pname not registered as installed." } {
