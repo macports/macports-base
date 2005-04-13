@@ -989,6 +989,9 @@ proc darwinports::upgrade {pname dspec} {
 	# globals
 	global options variations
 
+	# set to no-zero is epoch overrides version
+	set epoch_override 0
+
 	# check if the port is in tree
 	if {[catch {dportsearch ^$pname$} result]} {
 		ui_error "port search failed: $result"
@@ -1008,13 +1011,13 @@ proc darwinports::upgrade {pname dspec} {
 		return 1
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
+	set epoch_in_tree "$portinfo(epoch)"
 
 	# the depflag tells us if we should follow deps (this is for stuff installed outside DP)
 	# if this is set (not 0) we dont follow the deps
 	set depflag 0
 
 	# set version_installed
-	set ask no
 	set ilist {}
 	if { [catch {set ilist [registry::installed $pname ""]} result] } {
 		if {$result == "Registry error: $pname not registered as installed." } {
@@ -1049,6 +1052,7 @@ proc darwinports::upgrade {pname dspec} {
 	}
 	set anyactive 0
 	set version_installed 0
+	set epoch_installed 0
 	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
 		set version_installed $version_in_tree
@@ -1062,6 +1066,7 @@ proc darwinports::upgrade {pname dspec} {
 			set version "[lindex $i 1]_[lindex $i 2]"
 			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
+				set epoch_installed [registry::property_retrieve [registry::open_entry $pname [lindex $i 1] [lindex $i 2] $variant] epoch]
 				set num $i
 			}
 
@@ -1084,6 +1089,7 @@ proc darwinports::upgrade {pname dspec} {
 	}
 
 	# out put version numbers
+	ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
 	ui_debug "$pname $version_in_tree exists in the ports tree"
 	ui_debug "$pname $version_installed is installed"
 
@@ -1124,7 +1130,12 @@ proc darwinports::upgrade {pname dspec} {
 	# check installed version against version in ports
 	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 } {
 		ui_debug "No need to upgrade! $pname $version_installed >= $pname $version_in_tree"
-		return 0
+		if { $epoch_installed >= $epoch_in_tree } {
+			return 0
+		} else {
+			ui_debug "epoch override ... upgrading!"
+			set epoch_override 1
+		}
 	}
 
 	# open porthandle
@@ -1164,7 +1175,7 @@ proc darwinports::upgrade {pname dspec} {
 	}
 
 	# uninstall old ports
-	if {[info exists options(port_uninstall_old)]} {
+	if {[info exists options(port_uninstall_old)] || $epoch_override == 1} {
 		# uninstalll old
 		ui_debug "Uninstalling $pname $version_installed$oldvariant"
 		if {[catch {portuninstall::uninstall $pname $version_installed$oldvariant} result]} {

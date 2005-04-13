@@ -42,7 +42,7 @@ namespace eval registry {
 
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
-proc new_entry {name version {revision 0} {variants ""}} {
+proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 	global darwinports::registry.path darwinports::registry.format darwinports::registry.installtype darwinports::prefix
 
 	
@@ -56,6 +56,7 @@ proc new_entry {name version {revision 0} {variants ""}} {
 		property_store $ref version $version
 		property_store $ref revision $revision
 		property_store $ref variants $variants
+		property_store $ref epoch $epoch
 		# Trick to have a portable GMT-POSIX epoch-based time.
 		# (because we'll compare this with a file mtime).
 		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
@@ -89,6 +90,7 @@ proc write_entry {ref} {
 	set version [property_retrieve $ref version]
 	set revision [property_retrieve $ref revision]
 	set variants [property_retrieve $ref variants]
+	set epoch [property_retrieve $ref epoch]
 	set contents [property_retrieve $ref contents]
 
 	${darwinports::registry.format}::write_entry $ref $name $version $revision $variants
