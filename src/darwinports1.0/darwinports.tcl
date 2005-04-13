@@ -621,6 +621,14 @@ proc _pathtest {dport depspec} {
 	return [_dportsearchpath $depregex $search_path]
 }
 
+### _porttest is private; subject to change without notice
+
+proc _porttest {dport depspec} {
+	# We don't actually look for the port, but just return false
+	# in order to let the dportdepends handle the dependency
+	return 0
+}
+
 ### _dportinstalled is private; may change without notice
 
 # Determine if a port is already *installed*, as in "in the registry".
@@ -636,7 +644,7 @@ proc _dportinstalled {dport} {
 	}
 }
 
-### _dporispresent is private; may change without notice
+### _dportispresent is private; may change without notice
 
 # Determine if some depspec is satisfied or if the given port is installed.
 # We actually start with the registry (faster?)
@@ -663,6 +671,7 @@ proc _dportispresent {dport depspec} {
 			lib { return [_libtest $dport $depspec] }
 			bin { return [_bintest $dport $depspec] }
 			path { return [_pathtest $dport $depspec] }
+			port { return [_porttest $dport $depspec] }
 			default {return -code error "unknown depspec type: $type"}
 		}
 		return 0
