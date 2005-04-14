@@ -257,7 +257,7 @@ proc dportinit {args} {
 		set darwinports::rsync_server rsync.opendarwin.org
 	}
 	if {![info exists rsync_dir]} {
-		set darwinports::rsync_dir dpupdate/base/
+		set darwinports::rsync_dir dpupdate1/base/
 	}
 	if {![info exists rsync_options]} {
 		set rsync_options "-rtzv --delete --delete-after"
