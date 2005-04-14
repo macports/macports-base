@@ -1,0 +1,52 @@
+NOTES ON INSTALLATION AND USAGE OF THE DARWINPORTS SYSTEM, RELEASE 1
+
+The DarwinPorts system, is installed by running:
+
+	./configure && make && sudo make install
+
+To use the installed DarwinPorts system you should have /opt/local/bin
+in your PATH environment variable.
+
+If you are using a bourne shell (Panther and Tiger by default uses
+bash) add the following line to your ~./profile file. If the file
+does not exist create it.
+
+	export PATH=/opt/local/bin:$PATH
+
+If you are using a (t)csh shell (Jaguar) put the following line in
+your ~/.cshrc file. If the file does not exist, create it. Your
+changes will not take effect unit you have opened a new shell.
+
+	set path=(/opt/local/bin $path)
+
+To get the Portfiles for The DarwinPorts System base run:
+
+	port sync
+
+If you want to update the Portfiles and base run:
+
+	sudo port selfupdate
+
+QUICK START
+
+To search for a port:
+
+	port search vi
+
+To install a port:
+
+	sudo port install <portname>
+
+Please read the manual page for port:
+
+	man port
+
+There are also manual pages for porthier, portstyle and portfile.
+
+There is also the online DarwinPorts Guide at:
+
+	http://darwinports.opendarwin.org/guide
+
+And the DarwinPorts mailing list:
+
+	http://opendarwin.org/mailman/listinfo/darwinports
