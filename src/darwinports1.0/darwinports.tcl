@@ -36,8 +36,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir"
 	
     variable open_dports {}
 }
@@ -255,12 +255,15 @@ proc dportinit {args} {
 	# Set rync options
 	if {![info exists rsync_server]} {
 		set darwinports::rsync_server rsync.opendarwin.org
+		global darwinports::rsync_server
 	}
 	if {![info exists rsync_dir]} {
 		set darwinports::rsync_dir dpupdate1/base/
+		global darwinports::rsync_dir
 	}
 	if {![info exists rsync_options]} {
 		set rsync_options "-rtzv --delete --delete-after"
+		global darwinports::rsync_options
 	}
 
     set portsharepath ${prefix}/share/darwinports
