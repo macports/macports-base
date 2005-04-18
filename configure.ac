@@ -16,6 +16,9 @@ AC_PROG_LN_S
 AC_PATH_PROG(CURL, [curl], [])
 AC_PATH_PROG(CVS, [cvs], [])
 
+AC_SUBST(TAR_CMD)
+OD_TAR_NO_SAME_OWNER
+
 # Quiche eaters options.
 if test x$GCC = xyes; then
 	CFLAGS_QUICHEEATERS='-W -Wall -pedantic'

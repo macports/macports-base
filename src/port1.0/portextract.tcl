@@ -50,7 +50,7 @@ default extract.only {[disttagclean $distfiles]}
 default extract.dir {${workpath}}
 default extract.cmd gzip
 default extract.pre_args -dc
-default extract.post_args {{| tar --no-same-owner -xf -}}
+default extract.post_args {"| ${portutil::autoconf::tar_command} -xf -"}
 
 set_ui_prefix
 
