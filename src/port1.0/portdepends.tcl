@@ -44,22 +44,14 @@ option_proc depends_lib validate_depends_options
 proc validate_depends_options {option action args} {
     global targets
     switch -regex $action {
-	set|append|delete {
-	    foreach depspec $args {
-		if {[regexp {([A-Za-z\./0-9]+):([A-Za-z0-9_/\-\.$^\?\+\(\)\|\\]*):([-A-Za-z\./0-9_]+)} "$depspec" match deppath depregex portname]} {
-			switch -regex $deppath {
-			lib|bin|path {
-				if {[string length $depregex] == 0} {
-					return -code error [format [msgcat::mc "invalid depspec: %s (missing regex component)"] $depspec]
+		set|append|delete {
+			foreach depspec $args {
+				switch -regex $depspec {
+					(lib|bin|path):([-A-Za-z0-9_/.$^?+()|\\\\]+):([-A-Za-z./0-9_]+) {}
+					(port):?:([-A-Za-z./0-9_]+) {}
+					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
 				}
 			}
-			port {}
-			default {return -code error [format [msgcat::mc "unknown depspec type: %s"] $deppath]}
-		    }
-		} else {
-		    return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec]
 		}
-	    }
-	}
     }
 }
