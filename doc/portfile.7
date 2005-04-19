@@ -32,117 +32,119 @@
 .Os
 .Sh NAME
 .Nm Portfile
-.Nd darwin ports description file reference
+.Nd Darwinports description file reference
 .Sh DESCRIPTION
 A complete reference of all available
 .Nm
 variables and example syntax.
 .Nm Portfiles
-consist of valid TCL, allowing for simple key/value pair syntax as well as
-utiliziation of TCL's extensive functionality.
+consist of valid TCL, allowing for simple key/value pair syntax as well
+as utilization of TCL's extensive functionality.
+.Nm Portfiles
+are encoded in UTF-8.
 .Pp
 The
-.Nm Darwin Ports System
+.Nm Darwinports System
 uses a target dependency system based on a
 depends/provides model, allowing for targets to be registered and
 executed in the correct order based on their individual requirements.
 .Pp
 A
 .Nm
-author needs to be aware of the various standard targets, the options that they
-require, and the variables that both the targets and the port system provides.
-.Sh TARGETS
-.Tp
-.Ss MAIN OPTIONS
-Neccesary standard options
+author needs to be aware of the various standard targets, the options
+that they require, and the variables that both the targets and the port
+system provides.
+.Sh MAIN VARIABLES
+All ports are required to set certain variables.
 .Bl -tag -width lc
-.It Ic prefix
-Install prefix
+.It Ic name
+Full name of port.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl name XFree86
+.It Ic version
+Upstream version of software.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl version 4.2.1
+.It Ic epoch
+If a port's version numbering changes such that a newer version looks
+older than the previous version, the
+.Ic epoch
+should be increased. Often the
+.Ic epoch
+is formatted like a date.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
-.Em /opt/local
-.It Ic libpath
-Locate of ports-specific TCL libraries
-.br
-.Sy Type:
-.Em read-only
-.It Ic workdir
-Path to work directory relative to ${portpath}
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em work
-.It Ic workpath
-Full path to work directory
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${portpath}/${workdir}
-.It Ic name
-Full name of port
-.br
-.Sy Type:
-.Em required
+.Em 0
 .br
 .Sy Example:
-.Dl name	XFree86
-.It Ic version
-Upstream version of software
-.br
-.Sy Type:
-.Em required
-.br
-.Sy Example:
-.Dl version	4.2.1
+.Dl epoch 20041231
 .It Ic description
-One line description of the software and what it does
+One line description of the software and what it does.
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl description	"Dictionary Server Protocol (RFC2229) client"
+.Dl description \*qDictionary Server Protocol (RFC2229) client\*q
 .It Ic long_description
-A verbose description of the software and what it does
+A verbose description of the software and what it does.
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl long_description	The GNU Image Manipulation Program (GIMP) is a powerful tool for the preparation and manipulation of digital images.  The GIMP provides the user with a wide variety of image manipulation, painting, processing, and rendering tools.
+.Bd -literal -offset indent -compact
+long_description The GNU Image Manipulation Program \e\
+
+    (GIMP) is a powerful tool for the preparation and \e\
+
+    manipulation of digital images. The GIMP provides \e\
+
+    the user with a wide variety of image manipulation, \e\
+
+    painting, processing, and rendering tools.
+.Ed
 .It Ic revision
 Local revision number of portfile.
 Increment for port revisions.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em 0
 .br
 .Sy Example:
-.Dl revision	1
+.Dl revision 1
 .It Ic categories
-Categories to which this port belongs
+Categories to which this port belongs.
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl categories	spelling textproc
+.Dl categories spelling textproc
 .It Ic maintainers
-E-mail address(es) of port maintainer(s)
+E-mail address(es) of port maintainer(s).
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl maintainers	landonf@opendarwin.org kevin@opendarwin.org
+.Dl maintainers landonf@opendarwin.org kevin@opendarwin.org
 .It Ic platforms
-Declares which platforms are supported by the port
+Declares which platforms are supported by the port.
 .br
 .Sy Type:
 .Em required
@@ -151,174 +153,382 @@ Declares which platforms are supported by the port
 .Em darwin freebsd
 .br
 .Sy Example:
-.Dl platforms	darwin
+.Dl platforms darwin
 .It Ic worksrcdir
-Path to source directory relative to ${workpath}
+Path to source directory relative to
+.Ic workpath .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em ${distname}
 .br
 .Sy Example:
-.Dl worksrcdir	${distname}-src-${version}
-.It Ic worksrcpath
-Full path to working sources (where port has unpacked itself)
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${workpath}/${worksrcdir}
-.It Ic filesdir
-Path to port files relative to ${portpath}
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em files
+.Dl worksrcdir ${distname}-src-${version}
 .It Ic distname
-Name of distibution file, minus extract suffix
+Name of distribution file, without the
+.Cm extract.suffix .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
-.Em ${name}-${version})
+.Em ${name}-${version}
 .br
 .Sy Example:
-.Dl distname	${name}-${version}-src
-.It Ic distpath 
-Location to store downloaded distfiles
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${sysportpath}/distfiles/${portname}/
-.It Ic os.arch
-Identifies hardware type (ie, "powerpc")
-.br
-.Sy Type:
-.Em read-only
-.It Ic os.version
-Version number of operating system (ie "6.0")
-.br
-.Sy Type:
-.Em read-only
-.El
-.Ss DEPENDS OPTIONS
-Checking and building of dependencies
-.Bl -tag -width lc
-.It Ic depends_fetch
-List of dependencies to check before running fetch target
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl depends_fetch	bin:fetch:net/fetch bin:wget:wget
-.It Ic depends_build
-List of dependencies to check before build, destroot, install, and package targets
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl depends_build	bin:autoconf:autoconf
-.It Ic depends_run
-List of dependencies to check before destroot, install and package targets
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl depends_run	bin:bash:bash
-.It Ic depends_extract
-List of dependencies to check before extract target
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl depends_extract	bin:bzip2:bzip2
-.It Ic depends_lib
-List of dependencies to check before configure, build, destroot, install, and package targets
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl depends_lib	lib:libfetch.3:libfetch
-.El
-.Ss FETCH OPTIONS
-Fetch all distribution files and patches
-.Bl -tag -width lc
+.Dl distname ${name}-${version}-src
 .It Ic master_sites
-List of sites to fetch ${distfiles} from or a predefined mirror site list. If set to a predefined mirror site,
-without a subdirectory being defined, the portname is used as the name of the subdirectory.
+List of sites to fetch
+.Ic distfiles
+from or a predefined mirror site
+list. If set to a predefined mirror site, without a subdirectory being
+defined, the portname is used as the name of the subdirectory.
 .br
 .Sy Type:
 .Em required
 .br
 .Sy Example:
-.Dl master_sites	ftp://ftp.cdrom.com/pub/magic \
-			sourceforge
-.It Ic patch_sites 
-List of sites to fetch ${patchfiles} from or a predefined mirror site list
+.Bd -literal -offset indent -compact
+master_sites ftp://ftp.cdrom.com/pub/magic \e\
+
+    sourceforge
+.Ed
+.It Xo
+.Ic checksums Ar filename Ar type Ar checksum
+.Op Ar filename Ar type checksum ...
+.Xc
+List of checksums for the
+.Ic distfiles .
+The checksum
+.Ar type
+can currently can be md5 or sha1. The
+.Ar filename
+can be omitted if there is only one distfile.
 .br
 .Sy Type:
-.Em optional
-.Sy Default:
-.Em ${master_sites}
+.Em required
 .br
 .Sy Example:
-.Dl patch_sites	ftp://ftp.patchcityrepo.com/pub/magic/patches
-.It Ic master_sites.mirror_subdir
-Subdirectory to append to all mirror sites for any list specified in master_sites.
+.Bd -literal -offset indent -compact
+checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c
+    magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+.Ed
+.br
+.Sy Example (ledit 1.11):
+.Bd -literal -offset indent -compact
+checksums md5 a2d38ba641682509c1e964ad699a9dd2
+    sha1 1fb6443b5fdf3c83787953f06282d256477c1288
+.Ed
+.It Ic use_automake
+If set to yes, run the
+.Cm automake
+target to build any
+.Pa Makefile.in
+files for use by
+.Pa configure .
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl use_automake yes
+.It Ic use_autoconf
+If set to yes, run the
+.Cm autoconf
+target to build any
+.Pa configure
+script required.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl use_autoconf yes
+.It Ic use_configure
+If set to yes, run the
+.Cm configure
+target to configure the build.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.Sy Example:
+.Dl use_configure no
+.El
+.Sh TARGET HOOKS
+A number of hooks are available for customizing many of the standard
+targets that
+.Xr port 1
+executes. The targets supporting these hooks are
+.Cm fetch ,
+.Cm automake ,
+.Cm autoconf ,
+.Cm configure ,
+.Cm build ,
+.Cm destroot ,
+and
+.Cm test .
+The hooks are:
+.Bl -tag -width lc
+.It Va target Ns Ic .dir
+Directory in which to run the
+.Va target .
+.br
+.Sy Example:
+.Dl automake.dir src
+.It Va target Ns Ic .env
+Change the environment the
+.Va target
+is run in. This is often overridden.
+.br
+.Sy Example:
+.Dl configure.env CFLAGS=-O
+.It Va target Ns Ic .pre_args
+Additional arguments passed before the main arguments.
+.br
+.Sy Example:
+.Dl extract.pre_args -cd
+.It Va target Ns Ic .args
+Main arguments to pass to the
+.Va target .
+This is often overridden.
+.br
+.Sy Example:
+.Dl configure.args --enable-fooble
+.It Va target Ns Ic .post_args
+Additional arguments passed after the main arguments.
+.br
+.Sy Example:
+.Dl extract.post_args | tar xf -
+.El
+.Sh RUNTIME VARIABLES
+Read-only access to the Darwinports configuration is provided.
+.Bl -tag -width lc
+.It Ic prefix
+Install prefix
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em /opt/local
+.It Ic libpath
+Location of ports-specific TCL libraries.
+.br
+.Sy Type:
+.Em read-only
+.It Ic workdir
+Path to work directory relative to
+.Ic portpath .
+Where possible use
+.Ic workpath
+instead.
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em work
+.It Ic workpath
+Full path to work directory.
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em ${portpath}/${workdir}
+.It Ic worksrcpath
+Full path to working sources (where port has unpacked itself).
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em ${workpath}/${worksrcdir}
+.It Ic filesdir
+Path to port files relative to
+.Ic portpath .
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em files
+.It Ic distpath
+Location to store downloaded distfiles.
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em ${sysportpath}/distfiles/${portname}/
+.It Ic os.arch
+Identifies hardware type (eg "powerpc").
+.br
+.Sy Type:
+.Em read-only
+.It Ic os.version
+Version number of operating system (eg "7.0").
+.br
+.Sy Type:
+.Em read-only
+.It Ic os.endian
+Endianness of the processor (eg "bigEndian").
+.br
+.Sy Type:
+.Em read-only
+.It Ic os.platform
+Operating system name (eg "darwin").
+.br
+.Sy Type:
+.Em read-only
+.It Ic x11prefix
+Absolute path to X11 (eg
+.Pa /usr/X11R6 )
+.br
+.Sy Type:
+.Em read-only
+.El
+.Sh DEPENDENCY OPTIONS
+Each dependency for the port is expressed in the format:
+.Bl -tag -width lc
+.It Ar type Ns : Ns Ao filename Ac Ns : Ns Ao port Ac
+.El
+.Pp
+Where
+.Ar type
+is "bin" if
+.Ao filename Ac
+is a program, "lib" if it is a library, or "path" if it is a path to an
+installed file. If the dependency is really on a whole port and not an
+individual file, then a dummy value of "XXX" can be used as the
+.Ao filename Ac .
+.Bl -tag -width lc
+.It Ic depends_build
+List of dependencies to check before
+.Cm build ,
+.Cm destroot ,
+.Cm install ,
+and
+.Cm package
+targets.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_build bin:autoconf:autoconf
+.It Ic depends_run
+List of dependencies to check before
+.Cm destroot ,
+.Cm install
+and
+.Cm package
+targets.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_run bin:bash:bash
+.It Ic depends_lib
+List of dependencies to check before
+.Cm configure ,
+.Cm build ,
+.Cm destroot ,
+.Cm install ,
+and
+.Cm package
+targets.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_lib lib:libfetch.3:libfetch
+.El
+.Sh FETCH OPTIONS
+Fetch all distribution files and patches.
+.Bl -tag -width lc
+.It Ic master_sites.mirror_subdir
+Subdirectory to append to all mirror sites for any list specified in
+master_sites.
+.br
+.Sy Type:
+.Em optional
+.br
 .Sy Default:
 .Em ${name}
 .br
 .Sy Example:
 .Dl master_sites.mirror_subdir      magic
-.It Ic patch_sites.mirror_subdir
-Subdirectory to append to all mirror sites for any list specified in patch_sites.
+.It Ic patch_sites
+List of sites to fetch
+.Ic patchfiles
+from or a predefined mirror site list.
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default:
+.Em ${master_sites}
+.br
+.Sy Example:
+.Dl patch_sites ftp://ftp.patchcityrepo.com/pub/magic/patches
+.It Ic patch_sites.mirror_subdir
+Subdirectory to append to all mirror sites for any list specified in
+.Ic patch_sites .
+.br
+.Sy Type:
+.Em optional
+.br
 .Sy Default:
 .Em ${name}
 .br
 .Sy Example:
 .Dl patch_sites.mirror_subdir       magic
 .It Ic extract.suffix
-Suffix to append to ${distname}
+Suffix to append to
+.Ic distname .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em .tar.gz
 .br
 .Sy Example:
-.Dl extract.suffix	.tgz
+.Dl extract.suffix .tgz
 .It Ic distfiles
-List of distribution files to fetch from ${master_sites}
+List of distribution files to fetch from
+.Ic master_sites .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em [suffix ${distname}]
 .br
 .Sy Example:
-.Dl distfiles	magicsource.tar.gz cluebat.tar.bz2
+.Dl distfiles magicsource.tar.gz cluebat.tar.bz2
 .It Ic patchfiles
-List of patches to fetch and apply
+List of patches to fetch and apply.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Example:
-.Dl patchfiles	japanese-widechar-fix.diff japanese-localization.diff
+.Dl patchfiles japanese-widechar-fix.diff japanese-localization.diff
 .It Ic use_zip
 Use zip.
 .br
@@ -334,7 +544,7 @@ Sets extract.post_args to: "-d $portpath/$workdir"
 .Em optional
 .br
 .Sy Example:
-.Dl use_zip		yes
+.Dl use_zip yes
 .It Ic use_bzip2
 Use bzip2.
 .br
@@ -346,343 +556,187 @@ Sets extract.cmd to: bzip2
 .Em optional
 .br
 .Sy Example:
-.Dl use_bzip2	yes
+.Dl use_bzip2 yes
 .It Ic dist_subdir
-Create a sub-directory in ${distpath} to store all fetched files.
+Create a sub-directory in
+.Ic distpath
+to store all fetched files.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em ${name}
 .br
 .Sy Example:
-.Dl dist_subdir	vim${version}
+.Dl dist_subdir vim${version}
 .El
-.Ss CHECKSUM OPTIONS
-Compare checksums of all fetched files
+.Ss FETCHING FROM CVS
+As an alternative to fetching distribution files, pulling the sources
+from a CVS repository is supported. Use of CVS can give rise to
+non-reproducible builds, so is strongly discouraged.
 .Bl -tag -width lc
-.It Ic checksums
-List of checksums in the format:
-.br
-<file name> <checksum type> <checksum> [<checksum type> <checksum>] ...
-.br
-Checksum type currently can be md5 or sha1
-.br
-.Sy Type:
-.Em required
-.br
-.Sy Example:
-.Dl checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c
-                magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
-.br
-File name can be omitted if there is a single distfile.
-.br
-.Sy Example (ledit 1.11):
-.Dl checksums  md5 a2d38ba641682509c1e964ad699a9dd2
-                sha1 1fb6443b5fdf3c83787953f06282d256477c1288
-.El
-.Ss EXTRACT OPTIONS
-Extract all compressed/archived files
-.Bl -tag -width lc
-.It Ic extract.only
-List of files to extract into ${workpath}
+.It Ic cvs.tag
+CVS tag identifying the code to checkout.
 .br
 .Sy Type:
 .Em optional
+.It Ic cvs.module
+CVS module to check the code out from.
+.br
+.Sy Type:
+.Em optional
+.El
+.Sh EXTRACT OPTIONS
+Extract all compressed/archived files.
+.Bl -tag -width lc
+.It Ic extract.only
+List of files to extract into
+.Ic workpath .
+.br
+.Sy Type:
+.Em optional
+.br
 .Sy Default:
 .Em ${distfiles}
 .br
 .Sy Example:
-.Dl extract.only	worksrc-1.4.4.tar.gz
+.Dl extract.only worksrc-1.4.4.tar.gz
 .It Ic extract.cmd
-Command to perform extract
+Command to perform extract.
 .br
 .Sy Type:
 .Em optional
-.Sy Default
+.br
+.Sy Default:
 .Em gzip
 .br
 .Sy Example:
-.Dl extract.cmd	bzip2
-.It Ic extract.pre_args
-Arguments added to extract command before a file name
-.br
-.Sy Type:
-.Em optional
-.Sy Default:
-.Em -dc
-.br
-.Sy Example:
-.Dl extract.pre_args	-cd
-.It Ic extract.args
-Arguments to extract.cmd
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${distpath}/${distfile}
-.It Ic extract.post_args
-Arguments added to extract command after a file name
-.br
-.Sy Type:
-.Em optional
-.Sy Default:
-.Em "| tar -xf -"
-.br
-.Sy Example:
-.Dl extract.post_args	| tar -x -s@bladeenc-0.94.2/other_makefiles/BladeEnc..@@p -f -
+.Dl extract.cmd bzip2
 .El
-.Ss PATCH OPTIONS
-Apply all necessary patches to the extracted source
-No options defined for patch. Move patchfiles here?
-.Ss CONFIGURE OPTIONS
-Execute necessary configuration steps
-.Bl -tag -width lc
-.It Ic configure.pre_args
-Arguments added to configure command before ${configure.args}
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl configure.pre_args		--prefix=${prefix}/apache2
-.It Ic configure.args
-Arguments to pass to configure.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl configure.args		--etcdir=${prefix}/etc
-.It Ic configure.dir
-Directory in which to run ${configure.cmd}
-.br
-.Sy Type:
-.Em optional
-.Sy Default:
-.Em ${workpath}/${worksrcdir}
-.br
-.Sy Example:
-.Dl configure.dir		src
-.It Ic configure.env
-Environmental variables to set during configure command
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl configure.env       CFLAGS="-no-cpp-precomp"
-.It Ic use_automake
-If set to yes, use automake
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl use_automake	yes
-.It Ic automake.env
-Environmental variables to pass to automake
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl automake.env	CFLAGS=-I${prefix}/include/gtk12
-.It Ic automake.args
-Arguments to pass to automake.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl automake.args	--foreign
-.It Ic automake.dir
-Directory in which to run ${automake.cmd}
-.br
-.Sy Type:
-.Em optional
-.Sy Default:
-.Em ${workpath}/${worksrcdir}
-.br
-.Sy Example:
-.Dl automake.dir		src
-.It Ic use_autoconf
-If set to yes, run autoconf
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl use_autoconf	yes
-.It Ic autoconf.env
-Environmental variables to pass to autoconf
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl autoconf.env	CFLAGS=I${prefix}/include/gtk12
-.It Ic autoconf.args
-Arguments to pass to autoconf
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl autoconf.args	-l src/aclocaldir
-.It Ic autoconf.dir
-Directory in which to run ${autoconf.cmd}
-.br
-.Sy Type:
-.Em optional
-.Sy Default:
-.Em ${autoconf.dir}
-.br
-.Sy Example:
-.Dl autoconf.dir	src
-.It Ic xmkmf
-Does nothing
-.It Ic libtool
-Does nothing
-.El
-.Ss BUILD OPTIONS
-Execute necessary build commands
+.Sh BUILD OPTIONS
+Execute necessary build commands.
 .Bl -tag -width lc
 .It Ic build.cmd
-Make command to run relative to ${worksrcdir}
+Make command to run relative to
+.Ic worksrcdir .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em make
 .br
 .Sy Example:
-.Dl build.cmd	pbxbuild
+.Dl build.cmd pbxbuild
 .It Ic build.type
-Defines which 'make' is required, either 'gnu' or 'bsd'
-Sets build.cmd to either 'gnumake' or 'bsdmake' accordingly
+Defines which 'make' is required, either 'gnu' or 'bsd'.
+Sets
+.Ic build.cmd
+to either
+.Pa gnumake
+or
+.Pa bsdmake
+accordingly.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em gnu
 .br
 .Sy Example:
-.Dl build.type	bsd
-.It Ic build.pre_args
-Arguments to pass to ${build.cmd} before ${build.args}
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${build.target}
-.It Ic build.args
-Arguments to pass to ${build.cmd}
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl build.args	-DNOWARN
-.It Ic build.env
-Environmental variables to set during build command
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl build.env       CPPFLAGS="-no-cpp-precomp"
+.Dl build.type bsd
 .It Ic build.target
-Target passed to ${build.cmd} 
+Target passed to
+.Ic build.cmd .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em all
 .br
 .Sy Example:
 .Dl build.target all-src
 .El
-.Ss DESTROOT OPTIONS
-Execute necessary commands to install into temporary destination root ("destroot") staging area.
+.Sh DESTROOT OPTIONS
+Execute necessary commands to install into a temporary destination root
+("destroot") staging area.
 .Bl -tag -width lc
 .It Ic destroot.cmd
-Install command to run relative to ${worksrcdir}
+Install command to run relative to
+.Ic worksrcdir .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em ${build.cmd}
 .br
 .Sy Example:
-.Dl destroot.cmd	pbxbuild
+.Dl destroot.cmd pbxbuild
 .It Ic destroot.type
-Defines which 'make' is required, either 'gnu' or 'bsd'
-Sets destroot.cmd to either 'gnumake' or 'bsdmake' accordingly
+Defines which 'make' is required, either 'gnu' or 'bsd'.
+Sets
+.Ic destroot.cmd
+to either
+.Pa gnumake
+or
+.Pa bsdmake
+accordingly.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em ${build.type}
 .br
 .Sy Example:
-.Dl destroot.type	gnu
-.It Ic destroot.pre_args
-Arguments to pass to ${destroot.cmd} before ${destroot.args}
-.br
-.Sy Type:
-.Em read-only
-.Sy Default:
-.Em ${destroot.target}
-.It Ic destroot.args
-Arguments to pass to ${destroot.cmd}
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl destroot.args	-DPREFIX=${prefix}
+.Dl destroot.type gnu
 .It Ic destroot.destdir
-Arguments passed to ${destroot.cmd} in order to install correctly
+Arguments passed to
+.Ic destroot.cmd
+in order to install correctly
 into the destroot.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em DESTDIR=${destroot}
 .br
 .Sy Example:
-.Dl destroot.destdir	prefix=${destroot}${prefix}
-.It Ic build.target.install
-.br
-.Sy Deprecated:
-.Dl Replaced by destroot.target
+.Dl destroot.destdir prefix=${destroot}${prefix}
 .It Ic destroot.target
-Install target to pass to ${destroot.cmd}
+Install target to pass to
+.Ic destroot.cmd .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em install
 .br
 .Sy Example:
 .Dl destroot.target install-src
 .It Ic destroot.umask
-Umask to use during destroot
+Umask to use during destroot.
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em 022
 .br
 .Sy Example:
 .Dl destroot.umask 002
 .El
-.Ss TEST OPTIONS
+.Sh TEST OPTIONS
 Execute commands to run test suites bundled with a port.
 .Bl -tag -width lc
 .It Ic test.run
-Enable running test suites bundled with a port
+Enable running test suites bundled with a port.
 .br
 .Sy Type:
 .Em optional
@@ -690,67 +744,322 @@ Enable running test suites bundled with a port
 .Sy Example:
 .Dl test.run     yes
 .It Ic test.cmd
-test command to run relative to ${worksrcdir}
+Test command to run relative to
+.Ic worksrcdir .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
 .Em ${build.cmd}
 .br
 .Sy Example:
-.Dl test.cmd	checks.sh 
+.Dl test.cmd checks.sh
 .It Ic test.target
-Test target to pass to ${test.cmd}
+Test target to pass to
+.Ic test.cmd .
 .br
 .Sy Type:
 .Em optional
+.br
 .Sy Default:
-.Em test 
+.Em test
 .br
 .Sy Example:
-.Dl test.target	checks
-.It Ic test.dir
-Directory in which to run ${test.cmd}
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Example:
-.Dl test.dir	${worksrcpath}/checks 
+.Dl test.target checks
 .El
-.Ss VARIANT OPTIONS
-DarwinPorts allows for conditional modification to be specified in a Portfile, allowing for handling of software's build-time settings.
+.Sh STARTUPITEMS OPTIONS
+If a port needs to run on system startup, it can use the Darwinports
+startup mechanism.
 .Bl -tag -width lc
-.It Ic variant 
-The key variant is used to begin the gnome variant as shown in the example.
+.It Ic startupitem.name
+Displayed name of the startup item.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl startupitem.name OpenSSH
+.It Ic startupitem.type
+Form of startup item to install.
 .br
 .Sy Type:
 .Em optional
 .br
-.Sy Example:
-.Dl variant gnome {	configure.args-append	--with-gnome \
-				depends_lib-append		lib:gnome-session:gnome-session }
+.Sy Default:
+.Em SystemStarter
+.br
+.Sy Values:
+.Em SystemStarter RCng
 .El
-.Ss PLATFORM OPTIONS
-DarwinPorts allows for platform-specific conditional modification to be specified in a Portfile, much like variants, for handling differences between platforms and versions of the same platform.
+.Sh VARIANT OPTIONS
+Darwinports allows for conditional modification to be specified in a
+.Nm ,
+allowing for user-customization of a software's build-time settings.
 .Bl -tag -width lc
-.It Ic platform
-The platform key is used to begin the darwin platform definitions as shown in the examples from the 
-databases/db4 and devel/libidl1 Portfiles respectively.
+.It Xo
+.Ic variant
+.Op Cm requires Ar variant
+.Op Cm conflicts Ar variant
+.Xc
+The value is usually a TCL script which modifies other port
+.Nm
+variables. Dependencies and conflicts with other variants in the same
+port can be expressed with
+.Cm requires
+and
+.Cm conflicts .
+The example adds a "gnome" variant to a port.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Example:
-.Dl platform darwin 6 { configure.args-append   --enable-tcl \
-                                --with-tcl=/System/Library/Tcl/8.3 }
+.Bd -literal -offset indent -compact
+variant gnome requires glib { configure.args-append --with-gnome \e\
+
+    depends_lib-append lib:gnome-session:gnome-session }
+.Ed
+.It Ic default_variants
+If variants are defined, then the
+.Ic default_variants
+value lists which variants are enabled by default.
+.br
+.Sy Type:
+.Em optional
 .br
 .Sy Example:
-.Dl platform darwin powerpc { configure.args-append \
-                              --host=${os.arch}-apple-rhapsody${os.version} }
-.Dl platform darwin i386 { configure.args-append --host=i386-gnu-rhapsody${os.version} }
+.Dl default_variants +ssl +tcpd
+.El
+.Sh PLATFORM OPTIONS
+Darwinports allows for platform-specific conditional modification to be
+specified in a
+.Nm ,
+much like variants, for handling differences between platforms and
+versions of the same platform.
+.Bl -tag -width lc
+.It Xo
+.Ic platform
+.Ar platform
+.Op Ar version
+.Op Ar arch
+.Xc
+The platform key is used to begin the darwin platform definitions as
+shown in the examples from the databases/db4 and devel/libidl1
+.Nm Portfiles
+respectively.
 .br
-The platform version is optional, and an optional architecture can be specified after the version.
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+platform darwin 6 { configure.args-append   --enable-tcl \e\
+
+        --with-tcl=/System/Library/Tcl/8.3 }
+.Ed
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+platform darwin powerpc { configure.args-append \e\
+
+        --host=${os.arch}-apple-rhapsody${os.version} }
+platform darwin i386 { configure.args-append \e\
+
+        --host=i386-gnu-rhapsody${os.version} }
+.Ed
+.El
+.Sh TCL EXTENSIONS
+A number of TCL extensions are available for use in
+.Nm Portfiles .
+.Pp
+.Bl -tag -width lc
+.Bl -tag -width lc -compact
+.It Xo
+.Ic xinstall
+.Op Fl B Ar suffix
+.Op Fl b
+.Op Fl C
+.Op Fl f Ar flags
+.Op Fl g Ar group
+.Op Fl M
+.Op Fl m Ar mode
+.Op Fl o Ar owner
+.Op Fl p
+.Op Fl S
+.Op Fl s
+.Op Fl W Ar dir
+.Op Ar
+.Ar destination
+.Xc
+.It Xo
+.Ic xinstall
+.Fl d
+.Op Fl B Ar suffix
+.Op Fl b
+.Op Fl C
+.Op Fl f Ar flags
+.Op Fl g Ar group
+.Op Fl M
+.Op Fl m Ar mode
+.Op Fl o Ar owner
+.Op Fl p
+.Op Fl S
+.Op Fl s
+.Op Fl W Ar dir
+.Ar directory
+.Xc
+Install file(s) to a target file or directory. The options are
+intended to be compatible with
+.Xr install 1 :
+.Bl -tag -width indent
+.It Fl b
+Backup any existing files with an
+.Pa .old
+extension.
+.It Fl B
+Specify a different backup suffix for the
+.Fl b
+flag.
+.It Fl C
+Only copy a file if it is different.
+.It Fl d
+Create directories, including (if necessary) parent directories.
+.It Fl f
+Specify target flags, see
+.Xr chflags 1
+for details.
+.It Fl g
+Specify the group.
+.It Fl M
+Disable use of
+.Xr mmap 2 .
+.It Fl m
+Specify an alternate mode. The default is 0755. See
+.Xr chmod 1
+for defails.
+.It Fl p
+Preserve the modification time.
+.It Fl S
+Copy safely, using a temporary file.
+.It Fl s
+Strip binaries using
+.Xr strip 1 .
+.It Fl W
+Change to
+.Ar dir
+before working.
+.El
+.El
+.It Xo
+.Ic adduser
+.Ar username
+.Op Cm uid Ns = Ns uid
+.Op Cm gid Ns = Ns gid
+.Op Cm passwd Ns = Ns passwd
+.Op Cm realname Ns = Ns realname
+.Op Cm home Ns = Ns home
+.Op Cm shell Ns = Ns shell
+.Xc
+Add a new local user to the system with the specified uid, gid,
+password, real name, home directory and login shell.
+.It Ic existsuser Ar username
+Check if a local user exists.
+.It Ic nextuid
+Returns the highest used uid plus one.
+.It Xo
+.Ic addgroup
+.Ar group
+.Op Cm gid Ns = Ns gid
+.Op Cm passwd Ns = Ns passwd
+.Op Cm users Ns = Ns users
+.Xc
+Add a new local group to the system, with the specified gid, password
+and with a list users as members.
+.It Ic existsgroup Ar group
+Check if a local group exists.
+.Ic nextgid
+Returns the highest used gid plus one.
+.It Ic reinplace Ar regex Ar filename
+Provide in-place editing of a file.
+.br
+.Sy Example:
+.Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
+.It Ic system Ar commandline
+Execute a program. See
+.Xr system 3 .
+.It Ic variant_isset Ar variant
+Checks if the given
+.Ar variant
+is being built.
+.It Ic variant_set Ar variant
+Set the given
+.Ar variant .
+.It Ic variant_unset Ar variant
+Unset the given
+.Ar variant .
+.It Va variable Ns - Ns Ic append Ar item
+Append
+.Ar item
+to the
+.Va variable .
+.br
+.Sy Example:
+.Dl configure.args-append --with-gnomedb
+.It Va variable Ns - Ns Ic delete Ar item
+Delete
+.Ar item
+from the
+.Va variable .
+.br
+.Sy Example:
+.Dl configure.args-delete --with-gnomedb
+.It Ic readdir Ar directory
+Return the list of elements in a
+.Ar directory ,
+excluding
+.Pa \&.
+and
+.Pa \&.. .
+.It Ic strsed Ar string Ar pattern
+Perform
+.Xr ed 1 Ns / Ns
+.Xr tr 1 Ns -like
+search, replace, and transliteration on a string.
+.It Ic mktemp Ar template
+Create a temporary file using a
+.Ar template .
+See
+.Xr mktemp 3 .
+.It Ic mkstemp Ar template
+Create a temporary file securely using a
+.Ar template .
+See
+.Xr mkstemp 3 .
+.It Ic md5 Ar
+Compute the MD5 hashes of the file(s).
+.It Ic rpm-vercomp Ar versionA Ar versionB
+Compare two RPM-format versions for equality.
+.It Ic sudo Ar password Ar command Ar \&...
+Execute
+.Ar command
+using
+.Cm sudo
+with the provided password.
+.El
+.Pp
+.Bl -tag -width lc -compact
+.It Ic ui_debug Ar message
+.It Ic ui_error Ar message
+.It Ic ui_info Ar message
+.It Ic ui_msg Ar message
+.It Ic ui_warn Ar message
+Display a
+.Ar message
+to the user, at various different levels.
+.br
+.Sy Example:
+.Dl ui_msg \*qAdd each user to the system using the clamav command\*q
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
