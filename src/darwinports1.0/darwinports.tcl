@@ -926,7 +926,7 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	
 	foreach depspec $depends {
 		# grab the portname portion of the depspec
-		set portname [lindex [split $depspec :] 2]
+		set portname [lindex [split $depspec :] end]
 		
 		# Find the porturl
 		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
