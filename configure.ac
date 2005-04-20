@@ -37,7 +37,7 @@ DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
 OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
-OD_PATH_PORTCONFIGDIR([$prefix])
+OD_PATH_PORTCONFIGDIR
 
 # Check for install ownership
 OD_CHECK_INSTALLUSER
