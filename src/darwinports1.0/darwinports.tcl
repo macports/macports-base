@@ -1007,7 +1007,7 @@ proc darwinports::upgrade {pname dspec} {
 
 	# set version_in_tree
 	if {![info exists portinfo(version)]} {
-		ui_error "Invalid port entry for $portinfo(name), missing version"
+		ui_error "Invalid port entry for $pname, missing version"
 		return 1
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
@@ -1107,21 +1107,21 @@ proc darwinports::upgrade {pname dspec} {
 		# build depends is upgraded
 		if {[info exists portinfo(depends_build)]} {
 			foreach i $portinfo(depends_build) {
-				set d [lindex [split $i :] 2]
+				set d [lindex [split $i :] end]
 				upgrade $d $i
 			}
 		}
 		# library depends is upgraded
 		if {[info exists portinfo(depends_lib)]} {
 			foreach i $portinfo(depends_lib) {
-				set d [lindex [split $i :] 2]
+				set d [lindex [split $i :] end]
 				upgrade $d $i
 			}
 		}
 		# runtime depends is upgraded
 		if {[info exists portinfo(depends_run)]} {
 			foreach i $portinfo(depends_run) {
-				set d [lindex [split $i :] 2]
+				set d [lindex [split $i :] end]
 				upgrade $d $i
 			}
 		}
