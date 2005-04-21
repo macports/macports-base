@@ -125,7 +125,7 @@ proc make_dependency_list {portname} {
             if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
 	    
             foreach depspec $depends {
-                set dep [lindex [split $depspec :] 2]
+                set dep [lindex [split $depspec :] end]
 		
                 # xxx: nasty hack
                 if {$dep != "XFree86"} {
