@@ -273,7 +273,7 @@ proc register_dependencies {deps name} {
 		# We expect the form type:regexp:port to come in, but we don't need to 
 		# store it that way in the dep map.
 		set type [lindex [split $dep :] 0]
-		set depport [lindex [split $dep :] 2]
+		set depport [lindex [split $dep :] end]
 		register_dep $depport $type $name
 	}
 	write_dep_map
