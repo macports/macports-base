@@ -1086,9 +1086,6 @@ proc darwinports::selfupdate {args} {
 	if {$dp_version_new > $dp_version_old } {
 		ui_msg "Configuring, Building and Installing new DarwinPorts base"
 		# check if $prefix/bin/port is writable, if so we go !
-		if {![file writable [file join $prefix bin/port] ]} {
-			return -code error "Error cannot write to $prefix - try using sudo"
-		}
 		# get installation user / group 
 		set owner root
 		set group admin
@@ -1098,7 +1095,14 @@ proc darwinports::selfupdate {args} {
 			# set group
 			set group [file attributes [file join $prefix bin/port] -group]
 		}
+		set p_user [exec /usr/bin/whoami]
+		if {[file writable ${prefix}/bin/port] || [string equal $p_user $owner] } {
+			ui_debug "permissions OK"
+		} else {
+			return -code error "Error: $p_user cannot write to ${prefix}/bin - try using sudo"
+		}
 		ui_debug "Setting owner: $owner group: $group"
+
 		# do the actual installation of new base
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
