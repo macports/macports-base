@@ -145,7 +145,7 @@ proc get_dependencies {portname includeBuildDeps} {
 			eval "lappend depends $portinfo(depends_build)"
 		}
 		foreach depspec $depends {
-			set dep [lindex [split $depspec :] 2]
+			set dep [lindex [split $depspec :] end]
 			set x [get_dependencies $dep $includeBuildDeps]
 			eval "lappend result $x"
 			set result [lsort -unique $result]
