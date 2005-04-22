@@ -181,17 +181,17 @@ Search for an available port whose name matches a regular expression.
 .Pp
 .Dl "port search vim"
 .Pp
-.Ss contents
-Lists the files installed by
-.Ar portname .
-.Ss deps
-Lists the other ports that are required for building and running
+.Ss info
+Displays the meta-information about an available
 .Ar portname .
 .Ss variants
 Lists the build variants available for
 .Ar portname .
-.Ss info
-Displays the meta-information about an available
+.Ss deps
+Lists the other ports that are required for building and running
+.Ar portname .
+.Ss contents
+Lists the files installed by
 .Ar portname .
 .Sh DEVELOPER TARGETS
 The targets that are often used by Port developers are intended to provide access to the different phases of a Port's build process:
