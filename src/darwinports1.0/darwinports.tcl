@@ -1044,8 +1044,15 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 
 # selfupdate procedure
 proc darwinports::selfupdate {args} {
-	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
+	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options options
 
+	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
+		set use_the_force_luke yes
+		ui_debug "Forcing a rebuild of the darwinports base system."
+	} else {
+		set use_the_force_luke no
+		ui_debug "Rebuilding the darwinports base system if needed."
+	}
 	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
 	if {[catch {dportsync} result]} {
 		return -code error "Couldnt sync dports tree: $result"
@@ -1083,7 +1090,7 @@ proc darwinports::selfupdate {args} {
 	ui_msg "New DarwinPorts base version $dp_version_new"
 
 	# check if we we need to rebuild base
-	if {$dp_version_new > $dp_version_old } {
+	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
 		ui_msg "Configuring, Building and Installing new DarwinPorts base"
 		# check if $prefix/bin/port is writable, if so we go !
 		# get installation user / group 
@@ -1103,8 +1110,16 @@ proc darwinports::selfupdate {args} {
 		}
 		ui_debug "Setting owner: $owner group: $group"
 
+		set dp_tclpackage_path [file join $prefix var/db/dports/ .tclpackage]
+		if { [file exists $dp_tclpackage_path]} {
+			set fd [open $dp_tclpackage_path r]
+				gets $fd tclpackage
+		} else {
+			set tclpackage [file join ${prefix} share/darwinports/Tcl]
+		}
 		# do the actual installation of new base
-		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group && make && make install" } result] } {
+		ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
+		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
 	}
