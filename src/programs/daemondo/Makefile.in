@@ -1,0 +1,22 @@
+# $Id: Makefile.in,v 1.1 2005/04/23 19:45:04 jberry Exp $
+
+top_srcdir = @top_srcdir@
+
+include ${top_srcdir}/Mk/dports.autoconf.mk
+
+mandir=		@mandir@
+mandircat8=	${mandir}/cat8
+
+all: daemondo
+
+daemondo:
+	${XCODEBUILD} -buildstyle Deployment build
+
+clean:
+	${XCODEBUILD} -buildstyle Deployment clean
+
+distclean:
+	rm -Rf Makefile build
+
+install:
+	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 build/daemondo ${bindir}
