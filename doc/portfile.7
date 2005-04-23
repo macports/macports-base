@@ -52,8 +52,8 @@ executed in the correct order based on their individual requirements.
 A
 .Nm
 author needs to be aware of the various standard targets, the options
-that they require, and the variables that both the targets and the port
-system provides.
+that they require and the variables that both the targets and the port
+system provide.
 .Sh MAIN VARIABLES
 All ports are required to set certain variables.
 .Bl -tag -width lc
@@ -96,7 +96,7 @@ One line description of the software and what it does.
 .Em required
 .br
 .Sy Example:
-.Dl description \*qDictionary Server Protocol (RFC2229) client\*q
+.Dl description Dictionary Server Protocol (RFC2229) client
 .It Ic long_description
 A verbose description of the software and what it does.
 .br
@@ -116,8 +116,9 @@ long_description The GNU Image Manipulation Program \e\
     painting, processing, and rendering tools.
 .Ed
 .It Ic revision
-Local revision number of portfile.
-Increment for port revisions.
+Local revision number of
+.Nm .
+Increment for port revisions which would change its installation in any way.
 .br
 .Sy Type:
 .Em optional
@@ -202,7 +203,7 @@ List of checksums for the
 .Ic distfiles .
 The checksum
 .Ar type
-can currently can be md5 or sha1. The
+can currently be md5 or sha1. The
 .Ar filename
 can be omitted if there is only one distfile.
 .br
@@ -211,14 +212,14 @@ can be omitted if there is only one distfile.
 .br
 .Sy Example:
 .Bd -literal -offset indent -compact
-checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c
-    magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
+checksums dictd-1.7.1.tar.gz md5 81317b86ea0a5df0163900ad2e6bb12c \e\ 
+	magic-words-1.7.1.tar.gz md5 897a005182928613eadd30c267ce9c5b
 .Ed
 .br
 .Sy Example (ledit 1.11):
 .Bd -literal -offset indent -compact
-checksums md5 a2d38ba641682509c1e964ad699a9dd2
-    sha1 1fb6443b5fdf3c83787953f06282d256477c1288
+checksums md5 a2d38ba641682509c1e964ad699a9dd2 \e\ 
+	sha1 1fb6443b5fdf3c83787953f06282d256477c1288
 .Ed
 .It Ic use_automake
 If set to yes, run the
@@ -289,7 +290,9 @@ Directory in which to run the
 .It Va target Ns Ic .env
 Change the environment the
 .Va target
-is run in. This is often overridden.
+is run in. This is often overridden on a per
+.Nm
+basis.
 .br
 .Sy Example:
 .Dl configure.env CFLAGS=-O
@@ -301,7 +304,9 @@ Additional arguments passed before the main arguments.
 .It Va target Ns Ic .args
 Main arguments to pass to the
 .Va target .
-This is often overridden.
+This is often overridden on a per
+.Nm
+basis.
 .br
 .Sy Example:
 .Dl configure.args --enable-fooble
@@ -411,8 +416,14 @@ is "bin" if
 .Ao filename Ac
 is a program, "lib" if it is a library, or "path" if it is a path to an
 installed file. If the dependency is really on a whole port and not an
-individual file, then a dummy value of "XXX" can be used as the
-.Ao filename Ac .
+individual file, then the alternative syntax:
+.Bl -tag -width ls
+.It port: Ns Ao port Ac
+.El
+.Pp
+should be used.
+.Ao port Ac represents the name of an existing Darwinports
+.Nm port .
 .Bl -tag -width lc
 .It Ic depends_build
 List of dependencies to check before
@@ -574,7 +585,7 @@ to store all fetched files.
 .Ss FETCHING FROM CVS
 As an alternative to fetching distribution files, pulling the sources
 from a CVS repository is supported. Use of CVS can give rise to
-non-reproducible builds, so is strongly discouraged.
+non-reproducible builds, so it is strongly discouraged.
 .Bl -tag -width lc
 .It Ic cvs.tag
 CVS tag identifying the code to checkout.
@@ -603,7 +614,7 @@ List of files to extract into
 .Sy Example:
 .Dl extract.only worksrc-1.4.4.tar.gz
 .It Ic extract.cmd
-Command to perform extract.
+Command to perform the extraction.
 .br
 .Sy Type:
 .Em optional
@@ -731,6 +742,16 @@ Umask to use during destroot.
 .br
 .Sy Example:
 .Dl destroot.umask 002
+.It Ic destroot.keepdirs
+List of directories that should not be pruned if empty upon
+.Cm destroot
+completion.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl destroot.keepdirs ${destroot}${prefix}/var/log/mysql
 .El
 .Sh TEST OPTIONS
 Execute commands to run test suites bundled with a port.
@@ -802,7 +823,7 @@ allowing for user-customization of a software's build-time settings.
 .Op Cm requires Ar variant
 .Op Cm conflicts Ar variant
 .Xc
-The value is usually a TCL script which modifies other port
+The value is usually a TCL script which modifies other port's
 .Nm
 variables. Dependencies and conflicts with other variants in the same
 port can be expressed with
@@ -978,16 +999,29 @@ Add a new local group to the system, with the specified gid, password
 and with a list users as members.
 .It Ic existsgroup Ar group
 Check if a local group exists.
-.Ic nextgid
+.It Ic nextgid
 Returns the highest used gid plus one.
 .It Ic reinplace Ar regex Ar filename
-Provide in-place editing of a file.
+Provide in-place sed like editing of a file.
 .br
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
+.It Ic file
+Standard TCL command to manipulate file names and attributes. See
+.Xr file n .
 .It Ic system Ar commandline
 Execute a program. See
 .Xr system 3 .
+For calls to
+.Xr install 1
+please use
+.Nm xinstall .
+For calls to 
+.Xr mv 1 ,
+.Xr cp 1 ,
+.Xr rm 1
+or similar, please use
+.Nm file .
 .It Ic variant_isset Ar variant
 Checks if the given
 .Ar variant
@@ -1064,8 +1098,10 @@ to the user, at various different levels.
 .Sh SEE ALSO
 .Xr port 1 ,
 .Xr porthier 7 ,
-.Xr portstyle 7
+.Xr portstyle 7 ,
+.Xr file n
 .Sh AUTHORS
 .An "Landon Fuller" Aq landonf@opendarwin.org
 .An "Kevin Van Vechten" Aq kevin@opendarwin.org
 .An "Jordan K. Hubbard" Aq jkh@opendarwin.org
+.An "Chris Ridd" Aq cjr@opendarwin.org
