@@ -6,6 +6,9 @@
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
 
+/* Define if the CoreFoundation is available */
+#undef HAVE_COREFOUNDATION
+
 /* Define to 1 if you have the <crt_externs.h> header file. */
 #undef HAVE_CRT_EXTERNS_H
 

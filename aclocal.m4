@@ -1,5 +1,64 @@
 builtin(include,tcl.m4)
 
+#------------------------------------------------------------------------
+# OD_CHECK_COREFOUNDATION --
+#
+#	Check if CoreFoundation is available, define HAVE_COREFOUNDATION if so.
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       None.
+#
+# Depends:
+#		AC_LANG_PROGRAM
+#
+# Results:
+#       Result is cached.
+#
+#	If CoreFoundation is available, defines the following variables:
+#		HAVE_COREFOUNDATION
+#
+#------------------------------------------------------------------------
+AC_DEFUN(OD_CHECK_COREFOUNDATION, [
+	CFOUNDATION_LIBS="-framework CoreFoundation"
+
+	AC_MSG_CHECKING([for CoreFoundation])
+
+	AC_CACHE_VAL(od_cv_have_corefoundation, [
+		ac_save_LIBS="$LIBS"
+		LIBS="$CFOUNDATION_LIBS $LIBS"
+		
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([
+					#include <CoreFoundation/CoreFoundation.h>
+				], [
+					CFURLRef url = CFURLCreateWithFileSystemPath(NULL, CFSTR("/testing"), kCFURLPOSIXPathStyle, 1);
+					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
+			])
+			], [
+				od_cv_have_corefoundation="yes"
+			], [
+				od_cv_have_corefoundation="no"
+			]
+		)
+
+		LIBS="$ac_save_LIBS"
+	])
+
+	AC_MSG_RESULT(${od_cv_have_corefoundation})
+
+	if test x"${od_cv_have_corefoundation}" = "xyes"; then
+		AC_DEFINE([HAVE_COREFOUNDATION], [], [Define if the CoreFoundation is available])
+	else
+		CHECK_DIRS=""
+	fi
+
+	AC_SUBST(HAVE_COREFOUNDATION)
+])
+
+
 dnl This macro checks if the user specified a dports tree
 dnl explicitly. If not, search for it
 
@@ -273,16 +332,20 @@ AC_DEFUN([OD_PROG_MTREE],[
 # OD_PROG_DAEMONDO
 #---------------------------------------
 AC_DEFUN([OD_PROG_DAEMONDO],[
-	AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
+	AC_REQUIRE([OD_CHECK_COREFOUNDATION])
+    AC_MSG_CHECKING(for whether we will build daemondo)
+    result=no
 	case $host_os in
 	darwin*)
-		if test "x$XCODEBUILD" != "x"; then 
-			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
+		if test "x$od_cv_have_corefoundation" == "xyes"; then
+			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
+			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
 		fi
 		;;
 	*)
 	esac
+	AC_MSG_RESULT(${result})
 ])
 
 #------------------------------------------------------------------------
