@@ -1,4 +1,4 @@
-SUBDIR=		@REPLACEMENT_PROGS@
+SUBDIR=	@REPLACEMENT_PROGS@ @EXTRA_PROGS@
 
 include ../../Mk/dports.subdir.mk
 

@@ -270,6 +270,21 @@ AC_DEFUN([OD_PROG_MTREE],[
 	AC_SUBST(MTREE)
 ])
 
+# OD_PROG_DAEMONDO
+#---------------------------------------
+AC_DEFUN([OD_PROG_DAEMONDO],[
+	AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
+	case $host_os in
+	darwin*)
+		if test "x$XCODEBUILD" != "x"; then 
+			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
+			EXTRA_PROGS="$EXTRA_PROGS daemondo"
+		fi
+		;;
+	*)
+	esac
+])
+
 #------------------------------------------------------------------------
 # OD_TCL_PACKAGE_DIR --
 #

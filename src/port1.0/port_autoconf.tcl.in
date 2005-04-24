@@ -33,6 +33,7 @@ namespace eval portutil::autoconf {
 	variable curl_path "@CURL@"
 	variable cvs_path "@CVS@"
 	variable tar_command "@TAR_CMD@"
+	variable enable_launchd_support "@ENABLE_LAUNCHD_SUPPORT@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
 }
