@@ -28,13 +28,14 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.1 2005/04/23 19:45:04 jberry Exp $
+	$Id: main.c,v 1.2 2005/04/24 01:02:33 jberry Exp $
 */
 	
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
 #include <getopt.h>
+#include <fcntl.h>
 #include <mach/mach.h>
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -138,7 +139,8 @@ WaitChildDeath(pid_t childPid)
 		else
 		{
 			// We've run out of patience; kill the child with SIGKILL
-			printf("Child %d didn't die; Killing with SIGKILL.\n", childPid);
+			if (verbosity >= 2)
+				printf("Child %d didn't die; Killing with SIGKILL.\n", childPid);
 			kill(childPid, SIGKILL);
 		}
 	}
@@ -153,11 +155,13 @@ CheckChildren(void)
 	// Process any pending child deaths
 	int wait_stat = 0;
 	pid_t pid = 0;
-	while ((pid = wait4(0, &wait_stat, WNOHANG, NULL)) == 0)
+	while ((pid = wait4(0, &wait_stat, WNOHANG, NULL)) != 0 && pid != -1)
 	{
 		// Take special note if process running_pid dies
 		if (pid == running_pid)
 		{
+			if (verbosity >= 2)
+				printf("Running process %d died.\n", pid);
 			running_pid = 0;
 			CFRunLoopStop(CFRunLoopGetCurrent());
 		}
@@ -176,11 +180,21 @@ Exec(const char* const argv[], int sync)
 	{
 	case 0:
 		// In the child process
-		execvp(argv[0], (char* const*)argv);
-		
-		// We get here only if the exec fails.
-		printf("Unable to launch process %s.\n", argv[0]);
-		exit(1);
+		{			
+			// Child process has no stdin, but shares stdout and stderr with us
+			// Is that the right behavior?
+			int nullfd = 0;
+			if ((nullfd = open("/dev/null", O_RDONLY)) == -1)
+				_exit(1);
+			dup2(nullfd, STDIN_FILENO);
+
+			// Launch the child
+			execvp(argv[0], (char* const*)argv);
+			
+			// We get here only if the exec fails.
+			printf("Unable to launch process %s.\n", argv[0]);
+			_exit(1);
+		}
 		break;
 	
 	case -1:
@@ -190,10 +204,9 @@ Exec(const char* const argv[], int sync)
 	
 	default:
 		// In the original process
-		
-		// If synchronous, wait for the process to complete
 		if (sync)
 		{
+			// If synchronous, wait for the process to complete
 			WaitChildDeath(pid);
 			pid = 0;
 		}
@@ -209,21 +222,25 @@ Start(void)
 {	
 	if (!startArgs || !startArgs[0])
 	{
-		fprintf(stderr, "There is nothing to start. No start-cmd was specified.\n");
+		if (verbosity >= 0)
+			fprintf(stderr, "There is nothing to start. No start-cmd was specified.\n");
 		return 2;
 	}
 	
-	printf("Running start-cmd %s.\n", startArgs[0]);
+	if (verbosity >= 1)
+		printf("Running start-cmd %s.\n", startArgs[0]);
 	pid_t pid = Exec(startArgs, !start_async);
 	if (pid == -1)
 	{
-		fprintf(stderr, "Error running start-cmd %s.\n", startArgs[0]);
+		if (verbosity >= 1)
+			fprintf(stderr, "Error running start-cmd %s.\n", startArgs[0]);
 		return 2;
 	}
 	
 	if (pid)
 	{
-		printf("Started pid %d\n", pid);
+		if (verbosity >= 1)
+			printf("Started process id %d\n", pid);
 		running_pid = pid;
 	}
 	
@@ -240,7 +257,8 @@ Stop(void)
 		// we've tracked with running_pid
 		if (running_pid)
 		{
-			printf("Stopping pid %d...\n", running_pid);
+			if (verbosity >= 1)
+				printf("Stopping pid %d...\n", running_pid);
 			
 			// Send the process a SIGTERM to ask it to quit
 			kill(running_pid, SIGTERM);
@@ -248,22 +266,26 @@ Stop(void)
 			// Wait for process to quit, killing it after a timeout
 			WaitChildDeath(running_pid);
 			
-			printf("Process stopped.\n");
+			if (verbosity >= 1)
+				printf("Process stopped.\n");
 		}
 		else
 		{
-			printf("Process already stopped.\n");
+			if (verbosity >= 1)
+				printf("Process already stopped.\n");
 		}
 	}
 	else
 	{
 		// We have a stop-cmd to use. We execute it synchronously,
 		// and trust it to do the job.
-		printf("Running stop-cmd %s.\n", stopArgs[0]);
+		if (verbosity >= 1)
+			printf("Running stop-cmd %s.\n", stopArgs[0]);
 		pid_t pid = Exec(stopArgs, TRUE);
 		if (pid == -1)
 		{
-			printf("Error running stop-cmd %s\n", stopArgs[0]);
+			if (verbosity >= 1)
+				printf("Error running stop-cmd %s\n", stopArgs[0]);
 			return 2;
 		}
 	}
@@ -282,11 +304,13 @@ Restart(void)
 	}
 	else
 	{
-		printf("Running restart-cmd %s.\n", restartArgs[0]);
+		if (verbosity >= 1)
+			printf("Running restart-cmd %s.\n", restartArgs[0]);
 		pid_t pid = Exec(restartArgs, TRUE);
 		if (pid == -1)
 		{
-			printf("Error running restart-cmd %s\n", restartArgs[0]);
+			if (verbosity >= 1)
+				printf("Error running restart-cmd %s\n", restartArgs[0]);
 			return 2;
 		}
 	}
