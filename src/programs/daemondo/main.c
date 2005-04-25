@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2 2005/04/24 01:02:33 jberry Exp $
+	$Id: main.c,v 1.2.2.1 2005/04/25 15:26:04 jberry Exp $
 */
 	
 #include <stdio.h>
@@ -448,17 +448,15 @@ MainLoop(void)
 
 
 int
-CollectCmdArgs(int argc, char* const argv[], const char * const ** args)
+CollectCmdArgs(char* arg1, int argc, char* const argv[], const char * const ** args)
 {
-	// Count the number of arguments up until end of args or the marker argument ";"
-	int nargs = 0;
-	for (; nargs < argc && 0 != strcmp(";", argv[nargs]); ++nargs)
+	// Count the number of additional arguments up until end of args or the marker argument ";"
+	int moreArgs = 0;
+	for (; moreArgs < argc && 0 != strcmp(";", argv[moreArgs]); ++moreArgs)
 		;
 		
-	// Don't generate a zero-length cmd vector
-	*args = NULL;
-	if (!nargs)
-		return 0;
+	// We were given one argument for free
+	int nargs = moreArgs + 1;
 		
 	// Allocate an array for the arguments
 	*args = calloc(sizeof(char**), nargs+1);
@@ -466,19 +464,22 @@ CollectCmdArgs(int argc, char* const argv[], const char * const ** args)
 		return 0;
 		
 	// Copy the arguments into our new array
+	(*(char***)args)[0] = arg1;
+	
 	int i;
-	for (i = 0; i < nargs; ++i)
-		(*(char***)args)[i] = argv[i];
+	for (i = 0; i < moreArgs; ++i)
+		(*(char***)args)[i+1] = argv[i];
 		
 	// NULL-terminate the argument array
 	(*(char***)args)[nargs] = NULL;
 	
-	return (nargs == argc) ? nargs : nargs + 1;
+	// Return number of args we consumed, accounting for potential trailing ";"
+	return (moreArgs == argc) ? moreArgs : moreArgs + 1;
 }
 
 
 enum {
-	kVerboseOpt		= 256
+	kVerboseOpt	= 256
 };
 
 
@@ -490,14 +491,14 @@ main(int argc, char* argv[])
 	//	Process arguments
 	static struct option longopts[] = {
 			// Start/Stop/Restart the process
-		{ "start-cmd",		no_argument,			0,				's' },
-		{ "stop-cmd",		no_argument,			0,				'k' },
-		{ "restart-cmd",	no_argument,			0,				'r' },
+		{ "start-cmd",		required_argument,		0,				's' },
+		{ "stop-cmd",		required_argument,		0,				'k' },
+		{ "restart-cmd",	required_argument,		0,				'r' },
 
 			// other
 		{ "help",			no_argument,			0,				'h' },
 		{ "v",				no_argument,			0,				'v' },
-		{ "verbose",		required_argument,		0,				kVerboseOpt },
+		{ "verbose",		optional_argument,		0,				kVerboseOpt },
 		{ "version",		no_argument,			0,				'V' },
 		
 		{ 0,				0,                      0,              0 }
@@ -506,10 +507,15 @@ main(int argc, char* argv[])
 	while (status == 0 && optind < argc)
 	{
 		int optindex = 0;
-		int ret = getopt_long(argc, argv, "skrhv", longopts, &optindex);
+		int ret = getopt_long(argc, argv, ":s:k:r:hvV", longopts, &optindex);
 		int opt = (ret == '?') ? optopt : ret;
 		switch (opt)
 		{
+		case ':':
+			printf("Option error: missing argument for option %s\n", longopts[optindex].name);
+			exit(1);
+			break;
+			
 		case 's':
 			if (startArgs)
 			{
@@ -518,7 +524,7 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				optind += CollectCmdArgs(argc - optind, argv + optind, &startArgs);
+				optind += CollectCmdArgs(optarg, argc - optind, argv + optind, &startArgs);
 				optreset = 1;
 			}
 			break;
@@ -531,7 +537,7 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				optind += CollectCmdArgs(argc - optind, argv + optind, &stopArgs);
+				optind += CollectCmdArgs(optarg, argc - optind, argv + optind, &stopArgs);
 				optreset = 1;
 			}
 			break;
@@ -544,7 +550,7 @@ main(int argc, char* argv[])
 			}
 			else
 			{
-				optind += CollectCmdArgs(argc - optind, argv + optind, &restartArgs);
+				optind += CollectCmdArgs(optarg, argc - optind, argv + optind, &restartArgs);
 				optreset = 1;
 			}
 			break;
