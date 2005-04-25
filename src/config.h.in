@@ -38,6 +38,9 @@
 /* Define if CoreFoundation framework is available */
 #undef HAVE_FRAMEWORK_COREFOUNDATION
 
+/* Define if IOKit framework is available */
+#undef HAVE_FRAMEWORK_IOKIT
+
 /* Define if SystemConfiguration framework is available */
 #undef HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 

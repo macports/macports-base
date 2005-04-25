@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.2.2.1 2005/04/25 18:45:38 jberry Exp $
+# $Id: Makefile.in,v 1.2.2.2 2005/04/25 20:26:13 jberry Exp $
 
 top_srcdir = @top_srcdir@
 
@@ -10,7 +10,9 @@ mandircat8=	${mandir}/cat8
 CFLAGS_QUICHEEATERS	= -W -Wall -Wno-unused-parameter
 SRCS		= main.c
 OBJS		= main.o
-LIBS		= -framework CoreFoundation -framework SystemConfiguration
+LIBS		= -framework CoreFoundation \
+			  -framework SystemConfiguration \
+			  -framework IOKit
 PROGRAM		= build/daemondo
 
 all: daemondo

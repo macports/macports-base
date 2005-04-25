@@ -82,8 +82,9 @@
 		};
 		08FB779DFE84155DC02AAC07 = {
 			children = (
-				9096B7E4081D4A9F00681BD9,
 				09AB6884FE841BABC02AAC07,
+				9096B99B081D831D00681BD9,
+				9096B7E4081D4A9F00681BD9,
 			);
 			isa = PBXGroup;
 			name = "External Frameworks and Libraries";
@@ -184,6 +185,7 @@
 			files = (
 				8DD76F790486A8DE00D96B5E,
 				9096B7E5081D4A9F00681BD9,
+				9096B99C081D831D00681BD9,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -238,6 +240,20 @@
 		};
 		9096B7E5081D4A9F00681BD9 = {
 			fileRef = 9096B7E4081D4A9F00681BD9;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		9096B99B081D831D00681BD9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = IOKit.framework;
+			path = /System/Library/Frameworks/IOKit.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		9096B99C081D831D00681BD9 = {
+			fileRef = 9096B99B081D831D00681BD9;
 			isa = PBXBuildFile;
 			settings = {
 			};

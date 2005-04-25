@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.2 2005/04/25 18:45:38 jberry Exp $
+	$Id: main.c,v 1.2.2.3 2005/04/25 20:26:13 jberry Exp $
 */
 	
 #include <stdio.h>
@@ -41,6 +41,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <SystemConfiguration/SystemConfiguration.h>
 
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/IOMessage.h>
+
 // Globals
 CFStringRef kChildWatchMode		= NULL;
 
@@ -50,14 +53,17 @@ const char* const* startArgs	= NULL;			// Argvs for start-cmd, stop-cmd, and res
 const char* const* stopArgs		= NULL;
 const char* const* restartArgs	= NULL;
 
-int					terminating			= 0;		// True if we're terminating
-int					start_async			= 0;		// True if we are running start-cmd asyncronously
+int					terminating			= 0;		// TRUE if we're terminating
+int					start_async			= 0;		// TRUE if we are running start-cmd asyncronously
 pid_t				running_pid			= 0;		// Process id from start_cmd
 
 mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
 mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
 
 CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patters to restart on
+
+io_connect_t		pwrRootPort			= 0;
+int					restartOnWakeup		= 0;		// TRUE to restart on wake from sleep
 
 void
 DoVersion(void)
@@ -77,6 +83,7 @@ DoHelp(void)
 		"                     [--stop-cmd prog arg... ;]\n"
 		"                     [--restart-cmd prog arg... ;]\n"
 		"                     [--restart-config regex... ;]\n"
+		"                     [--restart-wakup]\n"
 		"\n"
 		"daemondo is a wrapper program that runs daemons. It starts the specified\n"
 		"daemon on launch, stops it when given SIGTERM, and restarts it on SIGHUP.\n"
@@ -93,6 +100,7 @@ DoHelp(void)
 		"  -k, --start-cmd args... ;       The command that will stop the daemon.\n"
 		"  -r, --restart-cmd args... ;     The command that will restart the daemon.\n"
 		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
+		"      --restart-wakup             Restart daemon on wake from sleep.\n"
 		"\n"
 		"daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
 		"stopping it. daemondo exits on receipt of SIGTERM, or when the deamon dies.\n"
@@ -333,7 +341,7 @@ void DynamicStoreChanged(
 					void				*info
 					)
 {
-	if (verbosity >= 0)
+	if (verbosity >= 2)
 	{
 		printf("Restarting daemon because of the following changes in the dynamic store:\n");
 		CFIndex cnt = CFArrayGetCount(changedKeys);
@@ -346,6 +354,30 @@ void DynamicStoreChanged(
 	}
 	
 	Restart();
+}
+
+
+void
+PowerCallBack(void * x, io_service_t y, natural_t messageType, void * messageArgument)
+{
+    switch (messageType)
+	{
+	case kIOMessageSystemWillSleep:
+	case kIOMessageCanSystemSleep:
+		/*  Power Manager waits for your reply via one of these functions for up
+		to 30 seconds. If you don't acknowledge the power change by calling
+		IOAllowPowerChange(), you'll delay sleep by 30 seconds. */
+		IOAllowPowerChange(pwrRootPort, (long)messageArgument);
+		break;
+	case kIOMessageSystemHasPoweredOn:
+		if (restartOnWakeup)
+		{
+			if (verbosity >= 2)
+				printf("Restarting daemon because of system wake from sleep\n");
+			Restart();
+		}
+		break;
+    }
 }
 
 
@@ -422,6 +454,8 @@ MainLoop(void)
 	
 	int status = 0;
 	
+	
+	// === Setup Notifications of Changes to System Configuration ===
 	// Create a new SCDynamicStore session and an associated runloop source, adding it default mode
 	SCDynamicStoreRef	dsRef			= SCDynamicStoreCreate(NULL, CFSTR("daemondo"), DynamicStoreChanged, NULL);
 	CFRunLoopSourceRef	dsSrc			= SCDynamicStoreCreateRunLoopSource(NULL, dsRef, 0);
@@ -431,6 +465,17 @@ MainLoop(void)
 	// daemon will be restarted, at least for now--we may want to give more flexibility at some point.
 	(void) SCDynamicStoreSetNotificationKeys(dsRef, NULL, scRestartPatterns);
 	
+	
+	// === Setup Notifications of Changes to System Power State ===
+	// Register for system power notifications, adding a runloop source to handle then
+	IONotificationPortRef	powerRef = NULL;
+    io_object_t				pwrNotifier = 0;
+    pwrRootPort = IORegisterForSystemPower(0, &powerRef, PowerCallBack, &pwrNotifier);
+    if (pwrRootPort != 0)
+		CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(powerRef), kCFRunLoopDefaultMode);
+		
+	
+	// === Setup Notifications of Signals ===
 	// Add a mach port source to our runloop for handling of the signals
 	CFMachPortRef		sigChildPort	= CFMachPortCreate(NULL, SignalCallback, NULL, NULL);
 	CFMachPortRef		sigGenericPort	= CFMachPortCreate(NULL, SignalCallback, NULL, NULL);
@@ -486,6 +531,10 @@ MainLoop(void)
 	
 	CFRelease(dsSrc);
 	CFRelease(dsRef);
+	
+	// Tear down power management stuff
+	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(powerRef), kCFRunLoopDefaultMode);
+	IODeregisterForSystemPower(&pwrNotifier);
 	
 	return status;	
 }
@@ -547,8 +596,9 @@ CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef arr
 
 
 enum {
-	kVerboseOpt	= 256,
-	kRestartConfigOpt
+	kVerboseOpt			= 256,
+	kRestartConfigOpt,
+	kRestartWakeupOpt
 };
 
 
@@ -570,6 +620,9 @@ main(int argc, char* argv[])
 		
 			// Dynamic Store Keys to monitor
 		{ "restart-config",	required_argument,		0,				kRestartConfigOpt },
+		
+			// Control over behavior on power state
+		{ "restart-wakeup",	no_argument,			0,				kRestartWakeupOpt },
 
 			// other
 		{ "help",			no_argument,			0,				'h' },
@@ -634,6 +687,10 @@ main(int argc, char* argv[])
 		case kRestartConfigOpt:
 			optind += CollectArrayArgs(optarg, argc - optind, argv + optind, scRestartPatterns);
 			optreset = 1;
+			break;
+			
+		case kRestartWakeupOpt:
+			restartOnWakeup = TRUE;
 			break;
 		
 		case 'h':

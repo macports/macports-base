@@ -114,6 +114,63 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
 ])
 
 
+#------------------------------------------------------------------------
+# OD_CHECK_FRAMEWORK_IOKIT --
+#
+#	Check if IOKit framework is available, define HAVE_FRAMEWORK_IOKIT if so.
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       None.
+#
+# Depends:
+#		AC_LANG_PROGRAM
+#
+# Results:
+#       Result is cached.
+#
+#	If IOKit framework is available, defines the following variables:
+#		HAVE_FRAMEWORK_IOKIT
+#
+#------------------------------------------------------------------------
+AC_DEFUN(OD_CHECK_FRAMEWORK_IOKIT, [
+	FRAMEWORK_LIBS="-framework IOKit"
+
+	AC_MSG_CHECKING([for IOKit framework])
+
+	AC_CACHE_VAL(od_cv_have_framework_iokit, [
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+		
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([
+					#include <IOKit/IOKitLib.h>
+				], [
+					IOCreateReceivePort(0, NULL);
+					IORegisterForSystemPower(0, NULL, NULL, NULL);
+			])
+			], [
+				od_cv_have_framework_iokit="yes"
+			], [
+				od_cv_have_framework_iokit="no"
+			]
+		)
+
+		LIBS="$ac_save_LIBS"
+	])
+
+	AC_MSG_RESULT(${od_cv_have_framework_iokit})
+
+	if test x"${od_cv_have_framework_iokit}" = "xyes"; then
+		AC_DEFINE([HAVE_FRAMEWORK_IOKIT], [], [Define if IOKit framework is available])
+	fi
+
+	AC_SUBST(HAVE_FRAMEWORK_IOKIT)
+])
+
+
 dnl This macro checks if the user specified a dports tree
 dnl explicitly. If not, search for it
 
@@ -389,13 +446,15 @@ AC_DEFUN([OD_PROG_MTREE],[
 AC_DEFUN([OD_PROG_DAEMONDO],[
 	AC_REQUIRE([OD_CHECK_FRAMEWORK_COREFOUNDATION])
 	AC_REQUIRE([OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION])
+	AC_REQUIRE([OD_CHECK_FRAMEWORK_IOKIT])
 	
     AC_MSG_CHECKING(for whether we will build daemondo)
     result=no
 	case $host_os in
 	darwin*)
 		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
-		   test "x$od_cv_have_framework_systemconfiguration" == "xyes"; then
+		   test "x$od_cv_have_framework_systemconfiguration" == "xyes" &&
+		   test "x$od_cv_have_framework_iokit" == "xyes"; then
 			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
 			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
