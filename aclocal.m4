@@ -50,9 +50,7 @@ AC_DEFUN(OD_CHECK_COREFOUNDATION, [
 	AC_MSG_RESULT(${od_cv_have_corefoundation})
 
 	if test x"${od_cv_have_corefoundation}" = "xyes"; then
-		AC_DEFINE([HAVE_COREFOUNDATION], [], [Define if the CoreFoundation is available])
-	else
-		CHECK_DIRS=""
+		AC_DEFINE([HAVE_COREFOUNDATION], [], [Define if CoreFoundation framework is available])
 	fi
 
 	AC_SUBST(HAVE_COREFOUNDATION)
