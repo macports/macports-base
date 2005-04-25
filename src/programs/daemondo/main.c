@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.4 2005/04/25 20:55:55 jberry Exp $
+	$Id: main.c,v 1.2.2.5 2005/04/25 23:21:45 jberry Exp $
 */
 
 /*
@@ -55,6 +55,8 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <IOKit/IOMessage.h>
 
+// Constants
+const CFTimeInterval kRestartHystereses	= 5.0;		// Five seconds of hystereses
 
 // Globals
 CFStringRef kChildWatchMode		= NULL;
@@ -66,7 +68,7 @@ const char* const*	stopArgs			= NULL;
 const char* const*	restartArgs			= NULL;
 
 int					terminating			= 0;		// TRUE if we're terminating
-int					start_async			= 0;		// TRUE if we are running start-cmd asyncronously
+int					start_async			= 0;		// TRUE if we're running start-cmd asyncronously
 pid_t				running_pid			= 0;		// Process id from start_cmd
 
 mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
@@ -76,6 +78,7 @@ CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patterns to restart 
 
 io_connect_t		pwrRootPort			= 0;
 int					restartOnWakeup		= 0;		// TRUE to restart daemon on wake from sleep
+CFRunLoopTimerRef	restartTimer		= NULL;		// Timer for scheduled restart
 
 
 void
@@ -283,7 +286,7 @@ Stop(void)
 	if (!stopArgs || !stopArgs[0])
 	{
 		// We don't have a stop command, so we try to kill the process
-		// we're tracked with running_pid
+		// we're tracking with running_pid
 		if (running_pid)
 		{
 			if (verbosity >= 1)
@@ -350,7 +353,59 @@ Restart(void)
 }
 
 
-void DynamicStoreChanged(
+void
+ScheduledRestartCallback(CFRunLoopTimerRef timer, void *info)
+{
+	if (verbosity >= 2)
+		printf("Restarting now due to previously scheduled restart.\n");
+		
+	// Our scheduled restart fired, so restart now
+	Restart();
+}
+
+
+void
+CancelScheduledRestart(void)
+{
+	// Kill off any existing timer
+	if (restartTimer)
+	{
+		if (CFRunLoopTimerIsValid(restartTimer))
+			CFRunLoopTimerInvalidate(restartTimer);
+		CFRelease(restartTimer);
+		restartTimer = NULL;
+	}
+}
+
+
+void
+ScheduleRestartForTime(CFAbsoluteTime absoluteTime)
+{
+	// Cancel any currently scheduled restart
+	CancelScheduledRestart();
+	
+	// Schedule a new restart
+	restartTimer = CFRunLoopTimerCreate(NULL, absoluteTime, 0, 0, 0, ScheduledRestartCallback, NULL);
+	if (restartTimer)
+		CFRunLoopAddTimer(CFRunLoopGetCurrent(), restartTimer, kCFRunLoopDefaultMode);
+}
+
+
+void
+ScheduleDelayedRestart(void)
+{
+	// The hystereses here allows us to take multiple restart requests within a small
+	// period of time, and collapse them together into only one. It also allows for
+	// a certain amount of "slop time" for things to stabilize following whatever
+	// event is triggering the restart.
+	if (verbosity >= 2)
+		printf("Scheduling restart %f seconds in future.\n", kRestartHystereses);
+	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + kRestartHystereses);
+}
+
+
+void
+DynamicStoreChanged(
 					SCDynamicStoreRef	store,
 					CFArrayRef			changedKeys,
 					void				*info
@@ -368,7 +423,7 @@ void DynamicStoreChanged(
 		}
 	}
 	
-	Restart();
+	ScheduleDelayedRestart();
 }
 
 
@@ -389,7 +444,7 @@ PowerCallBack(void * x, io_service_t y, natural_t messageType, void * messageArg
 		{
 			if (verbosity >= 2)
 				printf("Restarting daemon because of system wake from sleep\n");
-			Restart();
+			ScheduleDelayedRestart();
 		}
 		break;
     }
@@ -516,7 +571,7 @@ MainLoop(void)
 	// Start the daemon
 	status = Start();
 	
-	// Run the run loop until we stop it, or until the process we're tracking stop
+	// Run the run loop until we stop it, or until the process we're tracking stops
 	while (status == 0 && !terminating && !(start_async && running_pid == 0))
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 99999999.0, true);
 		
