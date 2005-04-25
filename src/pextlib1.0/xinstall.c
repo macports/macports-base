@@ -88,7 +88,7 @@
 #endif
 #endif
 
-/* CopyFile is available on tiger and later */
+/* copyfile is available on Tiger and later */
 #if HAVE_COPYFILE
 extern int copyfile(const char *from, const char *to, void *state,
                     uint32_t flags) __attribute((weak_import));
