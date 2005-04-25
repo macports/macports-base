@@ -89,7 +89,7 @@
 #endif
 
 /* Only used on Tiger */
-#ifdef __APPLE__
+#if defined(__APPLE__) && (__APPLE_CC__ > 1800)
 extern int copyfile(const char *from, const char *to, void *state,
                     uint32_t flags) __attribute((weak_import));
 #endif
@@ -542,7 +542,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			if (copy(interp, from_fd, from_name, to_fd,
 			     tempcopy ? tempfile : to_name, from_sb.st_size) != TCL_OK)
 				return TCL_ERROR;
-#ifdef __APPLE__
+#if defined(__APPLE__) && (__APPLE_CC__ > 1800)
 			if (copyfile)
 				copyfile(from_name, tempcopy ? tempfile : to_name, 0, 0x5);
 #endif
