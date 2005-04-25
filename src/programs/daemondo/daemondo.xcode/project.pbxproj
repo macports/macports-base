@@ -82,6 +82,7 @@
 		};
 		08FB779DFE84155DC02AAC07 = {
 			children = (
+				9096B7E4081D4A9F00681BD9,
 				09AB6884FE841BABC02AAC07,
 			);
 			isa = PBXGroup;
@@ -182,6 +183,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8DD76F790486A8DE00D96B5E,
+				9096B7E5081D4A9F00681BD9,
 			);
 			isa = PBXFrameworksBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -221,6 +223,30 @@
 //8D2
 //8D3
 //8D4
+//900
+//901
+//902
+//903
+//904
+		9096B7E4081D4A9F00681BD9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = SystemConfiguration.framework;
+			path = /System/Library/Frameworks/SystemConfiguration.framework;
+			refType = 0;
+			sourceTree = "<absolute>";
+		};
+		9096B7E5081D4A9F00681BD9 = {
+			fileRef = 9096B7E4081D4A9F00681BD9;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+//900
+//901
+//902
+//903
+//904
 //C60
 //C61
 //C62

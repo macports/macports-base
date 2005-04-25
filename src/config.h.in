@@ -6,9 +6,6 @@
 /* Define to 1 if you have the `bzero' function. */
 #undef HAVE_BZERO
 
-/* Define if the CoreFoundation is available */
-#undef HAVE_COREFOUNDATION
-
 /* Define to 1 if you have the <crt_externs.h> header file. */
 #undef HAVE_CRT_EXTERNS_H
 
@@ -37,6 +34,12 @@
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
+
+/* Define if CoreFoundation framework is available */
+#undef HAVE_FRAMEWORK_COREFOUNDATION
+
+/* Define if SystemConfiguration framework is available */
+#undef HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H

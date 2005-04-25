@@ -1,9 +1,9 @@
 builtin(include,tcl.m4)
 
 #------------------------------------------------------------------------
-# OD_CHECK_COREFOUNDATION --
+# OD_CHECK_FRAMEWORK_COREFOUNDATION --
 #
-#	Check if CoreFoundation is available, define HAVE_COREFOUNDATION if so.
+#	Check if CoreFoundation framework is available, define HAVE_FRAMEWORK_COREFOUNDATION if so.
 #
 # Arguments:
 #       None.
@@ -17,18 +17,18 @@ builtin(include,tcl.m4)
 # Results:
 #       Result is cached.
 #
-#	If CoreFoundation is available, defines the following variables:
-#		HAVE_COREFOUNDATION
+#	If CoreFoundation framework is available, defines the following variables:
+#		HAVE_FRAMEWORK_COREFOUNDATION
 #
 #------------------------------------------------------------------------
-AC_DEFUN(OD_CHECK_COREFOUNDATION, [
-	CFOUNDATION_LIBS="-framework CoreFoundation"
+AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
+	FRAMEWORK_LIBS="-framework CoreFoundation"
 
-	AC_MSG_CHECKING([for CoreFoundation])
+	AC_MSG_CHECKING([for CoreFoundation framework])
 
-	AC_CACHE_VAL(od_cv_have_corefoundation, [
+	AC_CACHE_VAL(od_cv_have_framework_corefoundation, [
 		ac_save_LIBS="$LIBS"
-		LIBS="$CFOUNDATION_LIBS $LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
 		
 		AC_LINK_IFELSE([
 			AC_LANG_PROGRAM([
@@ -38,22 +38,79 @@ AC_DEFUN(OD_CHECK_COREFOUNDATION, [
 					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
 			])
 			], [
-				od_cv_have_corefoundation="yes"
+				od_cv_have_framework_corefoundation="yes"
 			], [
-				od_cv_have_corefoundation="no"
+				od_cv_have_framework_corefoundation="no"
 			]
 		)
 
 		LIBS="$ac_save_LIBS"
 	])
 
-	AC_MSG_RESULT(${od_cv_have_corefoundation})
+	AC_MSG_RESULT(${od_cv_have_framework_corefoundation})
 
-	if test x"${od_cv_have_corefoundation}" = "xyes"; then
-		AC_DEFINE([HAVE_COREFOUNDATION], [], [Define if CoreFoundation framework is available])
+	if test x"${od_cv_have_framework_corefoundation}" = "xyes"; then
+		AC_DEFINE([HAVE_FRAMEWORK_COREFOUNDATION], [], [Define if CoreFoundation framework is available])
 	fi
 
-	AC_SUBST(HAVE_COREFOUNDATION)
+	AC_SUBST(HAVE_FRAMEWORK_COREFOUNDATION)
+])
+
+
+#------------------------------------------------------------------------
+# OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION --
+#
+#	Check if SystemConfiguration framework is available, define HAVE_FRAMEWORK_SYSTEMCONFIGURATION if so.
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       None.
+#
+# Depends:
+#		AC_LANG_PROGRAM
+#
+# Results:
+#       Result is cached.
+#
+#	If SystemConfiguration framework is available, defines the following variables:
+#		HAVE_FRAMEWORK_SYSTEMCONFIGURATION
+#
+#------------------------------------------------------------------------
+AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
+	FRAMEWORK_LIBS="-framework SystemConfiguration"
+
+	AC_MSG_CHECKING([for SystemConfiguration framework])
+
+	AC_CACHE_VAL(od_cv_have_framework_systemconfiguration, [
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+		
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([
+					#include <SystemConfiguration/SystemConfiguration.h>
+				], [
+					int err = SCError();
+					SCDynamicStoreRef dsRef = SCDynamicStoreCreate(NULL, NULL, NULL, NULL);
+			])
+			], [
+				od_cv_have_framework_systemconfiguration="yes"
+			], [
+				od_cv_have_framework_systemconfiguration="no"
+			]
+		)
+
+		LIBS="$ac_save_LIBS"
+	])
+
+	AC_MSG_RESULT(${od_cv_have_framework_systemconfiguration})
+
+	if test x"${od_cv_have_framework_systemconfiguration}" = "xyes"; then
+		AC_DEFINE([HAVE_FRAMEWORK_SYSTEMCONFIGURATION], [], [Define if SystemConfiguration framework is available])
+	fi
+
+	AC_SUBST(HAVE_FRAMEWORK_SYSTEMCONFIGURATION)
 ])
 
 
@@ -330,12 +387,15 @@ AC_DEFUN([OD_PROG_MTREE],[
 # OD_PROG_DAEMONDO
 #---------------------------------------
 AC_DEFUN([OD_PROG_DAEMONDO],[
-	AC_REQUIRE([OD_CHECK_COREFOUNDATION])
+	AC_REQUIRE([OD_CHECK_FRAMEWORK_COREFOUNDATION])
+	AC_REQUIRE([OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION])
+	
     AC_MSG_CHECKING(for whether we will build daemondo)
     result=no
 	case $host_os in
 	darwin*)
-		if test "x$od_cv_have_corefoundation" == "xyes"; then
+		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
+		   test "x$od_cv_have_framework_systemconfiguration" == "xyes"; then
 			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
 			AC_CONFIG_FILES([src/programs/daemondo/Makefile])

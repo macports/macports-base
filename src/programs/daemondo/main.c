@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.1 2005/04/25 15:26:04 jberry Exp $
+	$Id: main.c,v 1.2.2.2 2005/04/25 18:45:38 jberry Exp $
 */
 	
 #include <stdio.h>
@@ -39,6 +39,7 @@
 #include <mach/mach.h>
 
 #include <CoreFoundation/CoreFoundation.h>
+#include <SystemConfiguration/SystemConfiguration.h>
 
 // Globals
 CFStringRef kChildWatchMode		= NULL;
@@ -49,13 +50,14 @@ const char* const* startArgs	= NULL;			// Argvs for start-cmd, stop-cmd, and res
 const char* const* stopArgs		= NULL;
 const char* const* restartArgs	= NULL;
 
-int				terminating			= 0;		// True if we're terminating
-int				start_async			= 0;		// True if we are running start-cmd asyncronously
-pid_t			running_pid			= 0;		// Process id from start_cmd
+int					terminating			= 0;		// True if we're terminating
+int					start_async			= 0;		// True if we are running start-cmd asyncronously
+pid_t				running_pid			= 0;		// Process id from start_cmd
 
-mach_port_t		sigChild_m_port		= 0;		// Mach port to send signals through
-mach_port_t		sigGeneric_m_port	= 0;		// Mach port to send signals through
+mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
+mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
 
+CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patters to restart on
 
 void
 DoVersion(void)
@@ -70,10 +72,11 @@ DoHelp(void)
 	DoVersion();
 	
 	const char* helpText =
-		"usage: daemondo [-hv] --start-cmd prog args... ;\n"
+		"usage: daemondo [-hv] [--version]\n"
+		"                     --start-cmd prog args... ;\n"
 		"                     [--stop-cmd prog arg... ;]\n"
 		"                     [--restart-cmd prog arg... ;]\n"
-		"                     [--version]\n"
+		"                     [--restart-config regex... ;]\n"
 		"\n"
 		"daemondo is a wrapper program that runs daemons. It starts the specified\n"
 		"daemon on launch, stops it when given SIGTERM, and restarts it on SIGHUP.\n"
@@ -81,20 +84,21 @@ DoHelp(void)
 		"daemondo may be further extended in the future restart daemons on certain\n"
 		"other events such as changes in network availability and/or power transitions.\n"
 		"\n"
-		"  -h, --help                  Provide this help.\n"
-		"  -v                          Increase verbosity.\n"
-		"  --verbose=n                 Set verbosity to n.\n"
-		"  --version                   Display program version information.\n"
+		"  -h, --help                      Provide this help.\n"
+		"  -v                              Increase verbosity.\n"
+		"      --verbose=n                 Set verbosity to n.\n"
+		"      --version                   Display program version information.\n"
 		"\n"
-		"  -s, --start-cmd args... ;   Required: command that will start the daemon.\n"
-		"  -k, --start-cmd args... ;   The command that will stop the daemon.\n"
-		"  -r, --restart-cmd args... ; The command that will restart the daemon.\n"
+		"  -s, --start-cmd args... ;       Required: command that will start the daemon.\n"
+		"  -k, --start-cmd args... ;       The command that will stop the daemon.\n"
+		"  -r, --restart-cmd args... ;     The command that will restart the daemon.\n"
+		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
 		"\n"
 		"daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
 		"stopping it. daemondo exits on receipt of SIGTERM, or when the deamon dies.\n"
 		"\n"
-		"The arguments start-cmd, stop-cmd, and restart-cmd, if present, must each be\n"
-		"followed by a command and arguments, and terminated by a ';'. You may need to\n"
+		"The arguments start-cmd, stop-cmd, restart-cmd, restart-config if present,\n"
+		"must each be followed by arguments terminated by a ';'. You may need to\n"
 		"espace or quote the ';' to protect it from special handling by your shell.\n"
 		"\n"
 		"daemondo runs in one of two modes: (1) If no stop-cmd is given, daemondo\n"
@@ -106,6 +110,10 @@ DoHelp(void)
 		"restart the daemon. If in mode 1, restart-cmd must not disrupt the process id.\n"
 		"If restart-cmd is not provided, the daemon is restarted via a stop/start\n"
 		"sequence.\n"
+		"\n"
+		"The argument restart-config specifies a set of regex patterns corresponding\n"
+		"to system configuration keys, on notification of change for which, the daemon\n"
+		"will be restarted\n"
 		"\n"
 		"In mode 1 only, daemondo will exit when it detects that the daemon being\n"
 		"monitored has exited.\n"
@@ -124,7 +132,7 @@ WaitChildDeath(pid_t childPid)
 	int wait_stat = 0;
 	
 	// Set up a timer for how long we'll wait for child death before we
-	// kill the child outright
+	// kill the child outright (infanticide)
 	double kChildTimeout = 20.0;
 	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildTimeout;
 	
@@ -161,7 +169,7 @@ CheckChildren(void)
 		if (pid == running_pid)
 		{
 			if (verbosity >= 2)
-				printf("Running process %d died.\n", pid);
+				printf("Running process id %d has died.\n", pid);
 			running_pid = 0;
 			CFRunLoopStop(CFRunLoopGetCurrent());
 		}
@@ -319,6 +327,28 @@ Restart(void)
 }
 
 
+void DynamicStoreChanged(
+					SCDynamicStoreRef	store,
+					CFArrayRef			changedKeys,
+					void				*info
+					)
+{
+	if (verbosity >= 0)
+	{
+		printf("Restarting daemon because of the following changes in the dynamic store:\n");
+		CFIndex cnt = CFArrayGetCount(changedKeys);
+		CFIndex i;
+		for (i = 0; i < cnt; ++i)
+		{
+			CFStringRef value = CFArrayGetValueAtIndex(changedKeys, i);
+			CFShow(value);
+		}
+	}
+	
+	Restart();
+}
+
+
 void
 SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
 {
@@ -388,11 +418,19 @@ void handle_generic_signal(int sig)
 int
 MainLoop(void)
 {
+	// *** TODO: This routine needs more error checking
+	
 	int status = 0;
 	
-	// Initialize mode names
-	kChildWatchMode	= CFSTR("ChildWatch");
-
+	// Create a new SCDynamicStore session and an associated runloop source, adding it default mode
+	SCDynamicStoreRef	dsRef			= SCDynamicStoreCreate(NULL, CFSTR("daemondo"), DynamicStoreChanged, NULL);
+	CFRunLoopSourceRef	dsSrc			= SCDynamicStoreCreateRunLoopSource(NULL, dsRef, 0);
+	CFRunLoopAddSource(CFRunLoopGetCurrent(), dsSrc, kCFRunLoopDefaultMode);
+	
+	// Tell the DynamicStore which keys to notify us on: this is the set of keys on which the
+	// daemon will be restarted, at least for now--we may want to give more flexibility at some point.
+	(void) SCDynamicStoreSetNotificationKeys(dsRef, NULL, scRestartPatterns);
+	
 	// Add a mach port source to our runloop for handling of the signals
 	CFMachPortRef		sigChildPort	= CFMachPortCreate(NULL, SignalCallback, NULL, NULL);
 	CFMachPortRef		sigGenericPort	= CFMachPortCreate(NULL, SignalCallback, NULL, NULL);
@@ -406,7 +444,7 @@ MainLoop(void)
 	// Add both child and generic signal sources to the default mode
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), sigChildSrc, kCFRunLoopDefaultMode);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), sigGenericSrc, kCFRunLoopDefaultMode);
-
+	
 	// Install signal handlers
 	sigChild_m_port		= CFMachPortGetPort(sigChildPort);
 	sigGeneric_m_port	= CFMachPortGetPort(sigGenericPort);
@@ -443,6 +481,12 @@ MainLoop(void)
 	CFRelease(sigChildPort);
 	CFRelease(sigGenericPort);
 
+	// Tear down DynamicStore stuff
+	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), dsSrc, kCFRunLoopDefaultMode);
+	
+	CFRelease(dsSrc);
+	CFRelease(dsRef);
+	
 	return status;	
 }
 
@@ -478,8 +522,33 @@ CollectCmdArgs(char* arg1, int argc, char* const argv[], const char * const ** a
 }
 
 
+int
+CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef array)
+{
+	// Let CollectCmdArgs do the grunt work
+	const char* const* args	= NULL;
+	int argsUsed = CollectCmdArgs(arg1, argc, argv, &args);
+	
+	// Add arguments to the mutable array
+	if (args != NULL)
+	{
+		const char* const* argp = args;
+		for (; *argp != NULL; ++argp)
+		{
+			CFStringRef s = CFStringCreateWithCString(NULL, *argp, kCFStringEncodingUTF8);
+			CFArrayAppendValue(array, s);
+			CFRelease(s);
+		}
+		free((void*)args);
+	}
+	
+	return argsUsed;
+}
+
+
 enum {
-	kVerboseOpt	= 256
+	kVerboseOpt	= 256,
+	kRestartConfigOpt
 };
 
 
@@ -487,13 +556,20 @@ int
 main(int argc, char* argv[])
 {
 	int status = 0;
-
-	//	Process arguments
+	
+	// Initialization
+	kChildWatchMode		= CFSTR("ChildWatch");
+	scRestartPatterns	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	
+	// Process arguments
 	static struct option longopts[] = {
 			// Start/Stop/Restart the process
 		{ "start-cmd",		required_argument,		0,				's' },
 		{ "stop-cmd",		required_argument,		0,				'k' },
 		{ "restart-cmd",	required_argument,		0,				'r' },
+		
+			// Dynamic Store Keys to monitor
+		{ "restart-config",	required_argument,		0,				kRestartConfigOpt },
 
 			// other
 		{ "help",			no_argument,			0,				'h' },
@@ -553,6 +629,11 @@ main(int argc, char* argv[])
 				optind += CollectCmdArgs(optarg, argc - optind, argv + optind, &restartArgs);
 				optreset = 1;
 			}
+			break;
+			
+		case kRestartConfigOpt:
+			optind += CollectArrayArgs(optarg, argc - optind, argv + optind, scRestartPatterns);
+			optreset = 1;
 			break;
 		
 		case 'h':
