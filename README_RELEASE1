@@ -1,11 +1,15 @@
-NOTES ON INSTALLATION AND USAGE OF THE DARWINPORTS SYSTEM, RELEASE 1
+--------------------------------------------------------------------------
+DarwinPorts 1.0 Quick notes on installation and usage.
+--------------------------------------------------------------------------
 
 The DarwinPorts system, is installed by running:
 
 	./configure && make && sudo make install
 
-To use the installed DarwinPorts system you should have /opt/local/bin
-in your PATH environment variable.
+This will place a DarwinPorts installation in /opt/local. You should
+ensure that /opt/local/bin is in your PATH environment variable,
+otherwise your shell will not be able to find the executables that
+are installed by DarwinPorts.
 
 If you are using a bourne shell (Panther and Tiger by default uses
 bash) add the following line to your ~./profile file. If the file
@@ -19,7 +23,7 @@ changes will not take effect unit you have opened a new shell.
 
 	set path=(/opt/local/bin $path)
 
-To get the Portfiles for The DarwinPorts System base run:
+Finally, you must download the port description files:
 
 	port sync
 
@@ -43,10 +47,14 @@ Please read the manual page for port:
 
 There are also manual pages for porthier, portstyle and portfile.
 
-There is also the online DarwinPorts Guide at:
+Consult the DarwinPorts Guide:
 
 	http://darwinports.opendarwin.org/guide
 
-And the DarwinPorts mailing list:
+Join the DarwinPorts mailing list:
 
 	http://opendarwin.org/mailman/listinfo/darwinports
+
+Report bugs:
+
+	http://bugzilla.opendarwin.org/
