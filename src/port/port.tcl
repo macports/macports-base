@@ -417,6 +417,10 @@ switch -- $action {
         }
     }
 
+	version {
+		puts "Version: [darwinports::version]"
+	}
+
 	compact {
 		if { ![info exists portname] } {
 			puts "Please specify a port to compact."
