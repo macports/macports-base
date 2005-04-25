@@ -88,6 +88,12 @@
 #endif
 #endif
 
+/* Only used on Tiger */
+#ifdef __APPLE__
+extern int copyfile(const char *from, const char *to, void *state,
+                    uint32_t flags) __attribute((weak_import));
+#endif
+
 #ifndef ALLPERMS
 #define ALLPERMS (S_ISUID|S_ISGID|S_ISTXT|S_IRWXU|S_IRWXG|S_IRWXO)
 #endif
@@ -532,10 +538,15 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 			snprintf(msg, sizeof msg, "%s: %s -> %s\n", funcname, from_name, to_name);
 			ui_info(interp, msg);
 		}
-		if (!devnull)
+		if (!devnull) {
 			if (copy(interp, from_fd, from_name, to_fd,
 			     tempcopy ? tempfile : to_name, from_sb.st_size) != TCL_OK)
 				return TCL_ERROR;
+#ifdef __APPLE__
+			if (copyfile)
+				copyfile(from_name, tempcopy ? tempfile : to_name, 0, 0x5);
+#endif
+		}
 	}
 
 	if (dostrip) {
