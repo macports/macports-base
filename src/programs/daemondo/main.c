@@ -28,7 +28,18 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.3 2005/04/25 20:26:13 jberry Exp $
+	$Id: main.c,v 1.2.2.4 2005/04/25 20:55:55 jberry Exp $
+*/
+
+/*
+	Potentially useful System Configuration regex patterns:
+	
+		State:/Network/Interface/.*\/Link 
+		State:/Network/Interface/.*\/IPv4
+		State:/Network/Interface/.*\/IPv6
+		
+		State:/Network/Global/DNS
+		State:/Network/Global/IPv4
 */
 	
 #include <stdio.h>
@@ -44,14 +55,15 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #include <IOKit/IOMessage.h>
 
+
 // Globals
 CFStringRef kChildWatchMode		= NULL;
 
-int verbosity	= 0;							// Verbosity level
+int					verbosity			= 0;		// Verbosity level
 
-const char* const* startArgs	= NULL;			// Argvs for start-cmd, stop-cmd, and restart-cmd
-const char* const* stopArgs		= NULL;
-const char* const* restartArgs	= NULL;
+const char* const*	startArgs			= NULL;		// Argvs for start-cmd, stop-cmd, and restart-cmd
+const char* const*	stopArgs			= NULL;
+const char* const*	restartArgs			= NULL;
 
 int					terminating			= 0;		// TRUE if we're terminating
 int					start_async			= 0;		// TRUE if we are running start-cmd asyncronously
@@ -60,10 +72,11 @@ pid_t				running_pid			= 0;		// Process id from start_cmd
 mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
 mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
 
-CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patters to restart on
+CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patterns to restart daemon on
 
 io_connect_t		pwrRootPort			= 0;
-int					restartOnWakeup		= 0;		// TRUE to restart on wake from sleep
+int					restartOnWakeup		= 0;		// TRUE to restart daemon on wake from sleep
+
 
 void
 DoVersion(void)
@@ -269,8 +282,8 @@ Stop(void)
 {
 	if (!stopArgs || !stopArgs[0])
 	{
-		// We don't have a stop command, so we try to kill any process
-		// we've tracked with running_pid
+		// We don't have a stop command, so we try to kill the process
+		// we're tracked with running_pid
 		if (running_pid)
 		{
 			if (verbosity >= 1)
@@ -315,11 +328,13 @@ Restart(void)
 {
 	if (!restartArgs || !restartArgs[0])
 	{
+		// We weren't given a restart command, so just use stop/start
 		Stop();
 		Start();
 	}
 	else
 	{
+		// Execute the restart-cmd and trust it to do the job
 		if (verbosity >= 1)
 			printf("Running restart-cmd %s.\n", restartArgs[0]);
 		pid_t pid = Exec(restartArgs, TRUE);
