@@ -1,6 +1,7 @@
 SUBDIR= doc src
 
 include Mk/dports.subdir.mk
+include Mk/dports.autoconf.mk
 
 Mk/dports.autoconf.mk src/pextlib1.0/config.h: configure
 	@if test -f ./config.status ; then				\
@@ -21,3 +22,6 @@ distclean::
 	rm -f Makefile Mk/dports.autoconf.mk
 
 test::
+
+install::
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${DESTDIR}${portconfigdir}
