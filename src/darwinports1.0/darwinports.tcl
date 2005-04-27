@@ -1069,14 +1069,14 @@ proc darwinports::selfupdate {args} {
 	ui_debug "Setting user: $user"
 
 	# get darwinports version 
-	set dp_version_path [file join $prefix /var/db/dports/ dp_version]
+	set dp_version_path [file join ${prefix}/etc/ports/ dp_version]
 	if { [file exists $dp_version_path]} {
 		set fd [open $dp_version_path r]
 		gets $fd dp_version_old
-		ui_msg "DarwinPorts base version $dp_version_old installed"
 	} else {
 		set dp_version_old 0
 	}
+	ui_msg "DarwinPorts base version $dp_version_old installed"
 
 	ui_debug "Updating using rsync"
 	system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path"
