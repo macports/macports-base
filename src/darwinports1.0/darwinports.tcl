@@ -1069,7 +1069,7 @@ proc darwinports::selfupdate {args} {
 	ui_debug "Setting user: $user"
 
 	# get darwinports version 
-	set dp_version_path [file join $dp_base_path dp_version]
+	set dp_version_path [file join $prefix /var/db/dports/ dp_version]
 	if { [file exists $dp_version_path]} {
 		set fd [open $dp_version_path r]
 		gets $fd dp_version_old
@@ -1082,10 +1082,8 @@ proc darwinports::selfupdate {args} {
 	system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path"
 
 	# get new darwinports version and write the old version back
-	set fd [open $dp_version_path r]
+	set fd [open [file join $dp_base_path dp_version] r]
 	gets $fd dp_version_new
-	set fd [open $dp_version_path w]
-	puts $fd $dp_version_old
 	close $fd
 	ui_msg "New DarwinPorts base version $dp_version_new"
 
@@ -1131,8 +1129,6 @@ proc darwinports::selfupdate {args} {
 	}
 
 	# set the right version
-	set fd [open $dp_version_path w]
-	puts $fd $dp_version_new
 	ui_msg "selfupdate done!"
 
 	return 0
@@ -1141,7 +1137,7 @@ proc darwinports::selfupdate {args} {
 proc darwinports::version {} {
 	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir
 	
-	set dp_version_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/dp_version]
+	set dp_version_path [file join $prefix var/db/dports/ dp_version]
 
 	if [file exists $dp_version_path] {
 		set fd [open $dp_version_path r]
