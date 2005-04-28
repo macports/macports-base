@@ -23,7 +23,7 @@ install::
 	@echo ""
 	@echo "sudo port selfupdate"
 	@echo ""
-	@echo "Please read the README_RELEASE1 and port(1)."
+	@echo "Please read README_RELEASE1 and port(1)."
 	@echo ""
 
 clean::

@@ -860,7 +860,9 @@ proc dportsync {args} {
 				}
 
 				# Do rsync fetch
-				system "rsync -rtzv --delete-after --delete \"$source\" \"$destdir\""
+				if {[catch {system "rsync -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
+					return -code error "sync failed doing rsync"
+				}
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
@@ -1079,7 +1081,9 @@ proc darwinports::selfupdate {args} {
 	ui_msg "DarwinPorts base version $dp_version_old installed"
 
 	ui_debug "Updating using rsync"
-	system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path"
+	if { [catch { system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
+		return -code error "Error: rsync failed in selfupdate"
+	}
 
 	# get new darwinports version and write the old version back
 	set fd [open [file join $dp_base_path dp_version] r]

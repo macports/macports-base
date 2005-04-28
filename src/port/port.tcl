@@ -386,6 +386,7 @@ switch -- $action {
 	selfupdate {
 		if { [catch {darwinports::selfupdate} result ] } {
 			puts "Selfupdate failed: $result"
+			exit 1
 		}
 	}
 	upgrade {
