@@ -1,7 +1,7 @@
 # et:ts=4
 # perl5-1.0.tcl
 #
-# $Id: perl5-1.0.tcl,v 1.9 2004/09/07 23:46:00 wbb4 Exp $
+# $Id: perl5-1.0.tcl,v 1.10 2005/04/28 21:44:14 mww Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>,
 #                    Toby Peterson <toby@opendarwin.org>
@@ -105,12 +105,19 @@ proc perl5.setup {module vers {cpandir ""}} {
 
 # Switch from default MakeMaker-style routine to Module::Build-style
 proc perl5.use_module_build {} {
+	global perl5.bin destroot
+
+	depends_lib-append	port:p5-module-build
+
 	configure.pre_args	Build.PL
 	configure.args		installdirs=vendor
 
 	build.cmd			${perl5.bin}
 	build.pre_args		Build
 	build.args			build
+
+	test.pre_args		Build
+	test.args			test
 
 	destroot.cmd		${perl5.bin}
 	destroot.pre_args	Build
