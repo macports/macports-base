@@ -417,8 +417,15 @@ AC_DEFUN([OD_PATH_SCAN],[
 
 dnl This macro tests for tar support of --no-same-owner
 AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
-	AC_CHECK_PROG(TAR_CMD, [gnutar], [gnutar], [tar])
-	AC_MSG_CHECKING([for tar --no-same-owner support])
+	AC_PATH_PROG(TAR, [tar])
+	AC_PATH_PROG(GNUTAR, [gnutar])
+	
+	AC_MSG_CHECKING([for which tar variant to use])
+	AS_IF([test -n "$GNUTAR"], [TAR_CMD=$GNUTAR], [TAR_CMD=$TAR])
+	AC_MSG_RESULT([$TAR_CMD])
+	AC_SUBST(TAR_CMD)
+
+	AC_MSG_CHECKING([for $TAR_CMD --no-same-owner support])
 	[no_same_owner_support=`$TAR_CMD --help 2>&1 | grep no-same-owner`]
 	if test -z "$no_same_owner_support" ; then
 		AC_MSG_RESULT([no])

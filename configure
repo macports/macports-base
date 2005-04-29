@@ -313,7 +313,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -2670,45 +2670,99 @@ fi
 
 
 
-
-	# Extract the first word of "gnutar", so it can be a program name with args.
-set dummy gnutar; ac_word=$2
+	# Extract the first word of "tar", so it can be a program name with args.
+set dummy tar; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_prog_TAR_CMD+set}" = set; then
+if test "${ac_cv_path_TAR+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$TAR_CMD"; then
-  ac_cv_prog_TAR_CMD="$TAR_CMD" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $TAR in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_TAR="$TAR" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_TAR_CMD="gnutar"
+    ac_cv_path_TAR="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
 done
 done
 
-  test -z "$ac_cv_prog_TAR_CMD" && ac_cv_prog_TAR_CMD="tar"
+  ;;
+esac
 fi
-fi
-TAR_CMD=$ac_cv_prog_TAR_CMD
-if test -n "$TAR_CMD"; then
-  echo "$as_me:$LINENO: result: $TAR_CMD" >&5
-echo "${ECHO_T}$TAR_CMD" >&6
+TAR=$ac_cv_path_TAR
+
+if test -n "$TAR"; then
+  echo "$as_me:$LINENO: result: $TAR" >&5
+echo "${ECHO_T}$TAR" >&6
 else
   echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
 fi
 
-	echo "$as_me:$LINENO: checking for tar --no-same-owner support" >&5
-echo $ECHO_N "checking for tar --no-same-owner support... $ECHO_C" >&6
+	# Extract the first word of "gnutar", so it can be a program name with args.
+set dummy gnutar; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_GNUTAR+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $GNUTAR in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GNUTAR="$GNUTAR" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_GNUTAR="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+GNUTAR=$ac_cv_path_GNUTAR
+
+if test -n "$GNUTAR"; then
+  echo "$as_me:$LINENO: result: $GNUTAR" >&5
+echo "${ECHO_T}$GNUTAR" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+
+	echo "$as_me:$LINENO: checking for which tar variant to use" >&5
+echo $ECHO_N "checking for which tar variant to use... $ECHO_C" >&6
+	if test -n "$GNUTAR"; then
+  TAR_CMD=$GNUTAR
+else
+  TAR_CMD=$TAR
+fi
+
+	echo "$as_me:$LINENO: result: $TAR_CMD" >&5
+echo "${ECHO_T}$TAR_CMD" >&6
+
+
+	echo "$as_me:$LINENO: checking for $TAR_CMD --no-same-owner support" >&5
+echo $ECHO_N "checking for $TAR_CMD --no-same-owner support... $ECHO_C" >&6
 	no_same_owner_support=`$TAR_CMD --help 2>&1 | grep no-same-owner`
 	if test -z "$no_same_owner_support" ; then
 		echo "$as_me:$LINENO: result: no" >&5
@@ -8271,6 +8325,8 @@ s,@CURL@,$CURL,;t t
 s,@CVS@,$CVS,;t t
 s,@HAVE_LAUNCHD@,$HAVE_LAUNCHD,;t t
 s,@LAUNCHCTL@,$LAUNCHCTL,;t t
+s,@TAR@,$TAR,;t t
+s,@GNUTAR@,$GNUTAR,;t t
 s,@TAR_CMD@,$TAR_CMD,;t t
 s,@CFLAGS_QUICHEEATERS@,$CFLAGS_QUICHEEATERS,;t t
 s,@MTREE@,$MTREE,;t t
