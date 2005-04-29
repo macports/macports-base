@@ -1141,7 +1141,7 @@ proc darwinports::selfupdate {args} {
 proc darwinports::version {} {
 	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir
 	
-	set dp_version_path [file join $prefix var/db/dports/ dp_version]
+	set dp_version_path [file join $prefix etc/ports/ dp_version]
 
 	if [file exists $dp_version_path] {
 		set fd [open $dp_version_path r]
