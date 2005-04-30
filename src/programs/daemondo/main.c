@@ -28,12 +28,13 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.5 2005/04/25 23:21:45 jberry Exp $
+	$Id: main.c,v 1.2.2.6 2005/04/30 23:38:47 jberry Exp $
 */
 
 /*
 	Potentially useful System Configuration regex patterns:
-	
+
+		(backslash quoting below is only to protect the C comment)
 		State:/Network/Interface/.*\/Link 
 		State:/Network/Interface/.*\/IPv4
 		State:/Network/Interface/.*\/IPv6
@@ -56,7 +57,7 @@
 #include <IOKit/IOMessage.h>
 
 // Constants
-const CFTimeInterval kRestartHystereses	= 5.0;		// Five seconds of hystereses
+const CFTimeInterval kRestartHysteresis	= 5.0;		// Five seconds of hysteresis
 
 // Globals
 CFStringRef kChildWatchMode		= NULL;
@@ -103,9 +104,14 @@ DoHelp(void)
 		"\n"
 		"daemondo is a wrapper program that runs daemons. It starts the specified\n"
 		"daemon on launch, stops it when given SIGTERM, and restarts it on SIGHUP.\n"
+		"It can also watch for transitions in system state, such as a change in\n"
+		"network availability or system power state, and restart the daemon on such\n"
+		"an event.\n"
 		"\n"
-		"daemondo may be further extended in the future restart daemons on certain\n"
-		"other events such as changes in network availability and/or power transitions.\n"
+		"daemondo works well as an adapter between darwin 8's launchd, and daemons\n"
+		"that are normally started via traditional rc.d style scripts or parameters.\n"
+		"\n"
+		"Parameters:\n"
 		"\n"
 		"  -h, --help                      Provide this help.\n"
 		"  -v                              Increase verbosity.\n"
@@ -113,17 +119,18 @@ DoHelp(void)
 		"      --version                   Display program version information.\n"
 		"\n"
 		"  -s, --start-cmd args... ;       Required: command that will start the daemon.\n"
-		"  -k, --start-cmd args... ;       The command that will stop the daemon.\n"
-		"  -r, --restart-cmd args... ;     The command that will restart the daemon.\n"
+		"  -k, --start-cmd args... ;       Command that will stop the daemon.\n"
+		"  -r, --restart-cmd args... ;     Command that will restart the daemon.\n"
 		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
 		"      --restart-wakup             Restart daemon on wake from sleep.\n"
 		"\n"
 		"daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
-		"stopping it. daemondo exits on receipt of SIGTERM, or when the deamon dies.\n"
+		"stopping it. daemondo exits on receipt of SIGTERM, or when it detects\n"
+		"that the daemon process has died.\n"
 		"\n"
-		"The arguments start-cmd, stop-cmd, restart-cmd, restart-config if present,\n"
+		"The arguments start-cmd, stop-cmd, restart-cmd, and restart-config, if present,\n"
 		"must each be followed by arguments terminated by a ';'. You may need to\n"
-		"espace or quote the ';' to protect it from special handling by your shell.\n"
+		"escape or quote the ';' to protect it from special handling by your shell.\n"
 		"\n"
 		"daemondo runs in one of two modes: (1) If no stop-cmd is given, daemondo\n"
 		"executes start-cmd asyncronously, and tracks the process id; that process id\n"
@@ -136,7 +143,7 @@ DoHelp(void)
 		"sequence.\n"
 		"\n"
 		"The argument restart-config specifies a set of regex patterns corresponding\n"
-		"to system configuration keys, on notification of change for which, the daemon\n"
+		"to system configuration keys, on notification of change for which the daemon\n"
 		"will be restarted\n"
 		"\n"
 		"In mode 1 only, daemondo will exit when it detects that the daemon being\n"
@@ -149,6 +156,20 @@ DoHelp(void)
 
 
 void
+ProcessChildDeath(pid_t childPid)
+{
+	// Take special note if process running_pid dies
+	if (childPid == running_pid)
+	{
+		if (verbosity >= 2)
+			printf("Running process id %d has died.\n", childPid);
+		running_pid = 0;
+		CFRunLoopStop(CFRunLoopGetCurrent());
+	}
+}
+
+
+void
 WaitChildDeath(pid_t childPid)
 {
 	// Wait for the death of a particular child
@@ -156,8 +177,8 @@ WaitChildDeath(pid_t childPid)
 	int wait_stat = 0;
 	
 	// Set up a timer for how long we'll wait for child death before we
-	// kill the child outright (infanticide)
-	double kChildTimeout = 20.0;
+	// kill the child outright with SIGKILL (infanticide)
+	CFTimeInterval kChildTimeout = 20.0;
 	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildTimeout;
 	
 	// Wait for the death of child, calling into our run loop if it's not dead yet
@@ -178,6 +199,7 @@ WaitChildDeath(pid_t childPid)
 	}
 	
 	// The child should be dead and gone by now.
+	ProcessChildDeath(childPid);
 }
 
 
@@ -188,16 +210,7 @@ CheckChildren(void)
 	int wait_stat = 0;
 	pid_t pid = 0;
 	while ((pid = wait4(0, &wait_stat, WNOHANG, NULL)) != 0 && pid != -1)
-	{
-		// Take special note if process running_pid dies
-		if (pid == running_pid)
-		{
-			if (verbosity >= 2)
-				printf("Running process id %d has died.\n", pid);
-			running_pid = 0;
-			CFRunLoopStop(CFRunLoopGetCurrent());
-		}
-	}
+		ProcessChildDeath(pid);
 }
 
 
@@ -238,7 +251,7 @@ Exec(const char* const argv[], int sync)
 		// In the original process
 		if (sync)
 		{
-			// If synchronous, wait for the process to complete
+			// If synchronous, wait for the child process to complete
 			WaitChildDeath(pid);
 			pid = 0;
 		}
@@ -254,18 +267,18 @@ Start(void)
 {	
 	if (!startArgs || !startArgs[0])
 	{
-		if (verbosity >= 0)
-			fprintf(stderr, "There is nothing to start. No start-cmd was specified.\n");
+		printf("There is nothing to start. No start-cmd was specified.\n");
 		return 2;
 	}
 	
 	if (verbosity >= 1)
 		printf("Running start-cmd %s.\n", startArgs[0]);
+		
 	pid_t pid = Exec(startArgs, !start_async);
 	if (pid == -1)
 	{
 		if (verbosity >= 1)
-			fprintf(stderr, "Error running start-cmd %s.\n", startArgs[0]);
+			printf("Error running start-cmd %s.\n", startArgs[0]);
 		return 2;
 	}
 	
@@ -357,7 +370,7 @@ void
 ScheduledRestartCallback(CFRunLoopTimerRef timer, void *info)
 {
 	if (verbosity >= 2)
-		printf("Restarting now due to previously scheduled restart.\n");
+		printf("Scheduled restart time has arrived.\n");
 		
 	// Our scheduled restart fired, so restart now
 	Restart();
@@ -394,13 +407,13 @@ ScheduleRestartForTime(CFAbsoluteTime absoluteTime)
 void
 ScheduleDelayedRestart(void)
 {
-	// The hystereses here allows us to take multiple restart requests within a small
+	// The hysteresis here allows us to take multiple restart requests within a small
 	// period of time, and collapse them together into only one. It also allows for
 	// a certain amount of "slop time" for things to stabilize following whatever
 	// event is triggering the restart.
 	if (verbosity >= 2)
-		printf("Scheduling restart %f seconds in future.\n", kRestartHystereses);
-	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + kRestartHystereses);
+		printf("Scheduling restart %f seconds in future.\n", kRestartHysteresis);
+	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + kRestartHysteresis);
 }
 
 
