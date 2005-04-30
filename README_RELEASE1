@@ -12,7 +12,7 @@ variable, otherwise your shell will not be able to find the executables
 that are installed by DarwinPorts.
 
 If you are using a bourne shell (Panther and Tiger by default uses
-bash) add the following line to your ~./profile file. If the file
+bash) add the following line to your ~/.profile file. If the file
 does not exist create it.
 
 	export PATH=/opt/local/bin:$PATH
