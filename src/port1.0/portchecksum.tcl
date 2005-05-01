@@ -168,7 +168,7 @@ proc checksum_main {args} {
 		# check that there is at least one checksum for the distfile.
 		if {$portfile_checksums == -1} {
 			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-			ui_info "[format [msgcat::mc "Correct checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
+			ui_info "[format [msgcat::mc "Distfile checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
 			set fail yes
 		} else {
 			# iterate on this list to check the actual values.
@@ -178,7 +178,8 @@ proc checksum_main {args} {
 					ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
 				} else {
 					ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
-					ui_info "[format [msgcat::mc "Correct checksum: %s %s %s"] $distfile $type $calculated_sum]"
+					ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
+					ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
 					
 					# Raise the failure flag
 					set fail yes

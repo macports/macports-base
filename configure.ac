@@ -19,7 +19,6 @@ AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 
-AC_SUBST(TAR_CMD)
 OD_TAR_NO_SAME_OWNER
 
 # Quiche eaters options.
