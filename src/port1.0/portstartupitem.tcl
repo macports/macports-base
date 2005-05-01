@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.8.4.1 2005/04/24 17:34:49 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.8.4.2 2005/05/01 01:02:51 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -231,7 +231,7 @@ proc startupitem_create_darwin_launchd {args} {
 
 		set args [concat $args \
 			"--start-cmd"   ${wrapper} start   ";" \
-			"--stop-cmd"    ${wrapper} stop    ";"	\
+			"--stop-cmd"    ${wrapper} stop    ";" \
 			"--restart-cmd" ${wrapper} restart ";" \
 			]
 
@@ -240,7 +240,7 @@ proc startupitem_create_darwin_launchd {args} {
 
 		puts ${item} "#!/bin/sh"
 		puts ${item} "#"
-		puts ${item} "# DarwinPorts generated daemondo wrapper script"
+		puts ${item} "# DarwinPorts generated daemondo support script"
 		puts ${item} "#"
 		puts ${item} ""
 		
@@ -292,7 +292,7 @@ proc startupitem_create_darwin_launchd {args} {
 		puts ${item} ""
 
 		puts ${item} "#"
-		puts ${item} "# Run a phrase based on the selector"
+		puts ${item} "# Run a phase based on the selector"
 		puts ${item} "#"
 		puts ${item} "Run \$1"
 		puts ${item} ""
