@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.2.2.6 2005/04/30 23:38:47 jberry Exp $
+	$Id: main.c,v 1.2.2.7 2005/05/01 15:52:31 jberry Exp $
 */
 
 /*
@@ -41,6 +41,10 @@
 		
 		State:/Network/Global/DNS
 		State:/Network/Global/IPv4
+		
+	Potentially useful notifications from Darwin Notify Center:
+	
+		com.apple.system.config.network_change
 */
 	
 #include <stdio.h>
@@ -60,7 +64,8 @@
 const CFTimeInterval kRestartHysteresis	= 5.0;		// Five seconds of hysteresis
 
 // Globals
-CFStringRef kChildWatchMode		= NULL;
+CFStringRef			kProgramName		= NULL;
+CFStringRef			kChildWatchMode		= NULL;
 
 int					verbosity			= 0;		// Verbosity level
 
@@ -76,6 +81,8 @@ mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
 mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
 
 CFMutableArrayRef	scRestartPatterns	= NULL;		// Array of sc patterns to restart daemon on
+CFMutableArrayRef	distNotifyNames		= NULL;		// Array of distributed notification names to restart daemon on
+CFMutableArrayRef	darwinNotifyNames	= NULL;		// Array of darwin notification names to restart daemon on
 
 io_connect_t		pwrRootPort			= 0;
 int					restartOnWakeup		= 0;		// TRUE to restart daemon on wake from sleep
@@ -122,13 +129,20 @@ DoHelp(void)
 		"  -k, --start-cmd args... ;       Command that will stop the daemon.\n"
 		"  -r, --restart-cmd args... ;     Command that will restart the daemon.\n"
 		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
+		"      --restart-dist-notify names... ;\n"
+		"                                  Distributed Notification Center notifications\n"
+		"                                  on which to restart the daemon.\n"
+		"      --restart-darwin-notify names... ;\n"
+		"                                  Darwin Notification Center notifications\n"
+		"                                  on which to restart the daemon.\n"
+		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
 		"      --restart-wakup             Restart daemon on wake from sleep.\n"
 		"\n"
 		"daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
 		"stopping it. daemondo exits on receipt of SIGTERM, or when it detects\n"
 		"that the daemon process has died.\n"
 		"\n"
-		"The arguments start-cmd, stop-cmd, restart-cmd, and restart-config, if present,\n"
+		"The arguments start-cmd, stop-cmd, restart-cmd, and restart-*, if present,\n"
 		"must each be followed by arguments terminated by a ';'. You may need to\n"
 		"escape or quote the ';' to protect it from special handling by your shell.\n"
 		"\n"
@@ -145,6 +159,10 @@ DoHelp(void)
 		"The argument restart-config specifies a set of regex patterns corresponding\n"
 		"to system configuration keys, on notification of change for which the daemon\n"
 		"will be restarted\n"
+		"\n"
+		"The arguments restart-dist-notify and restart-darwin-notify specify a set of\n"
+		"notification names from the distributed and darwin notification centers,\n"
+		"respectively, on receipt of which the daemon will be restarted.\n"
 		"\n"
 		"In mode 1 only, daemondo will exit when it detects that the daemon being\n"
 		"monitored has exited.\n"
@@ -426,7 +444,7 @@ DynamicStoreChanged(
 {
 	if (verbosity >= 2)
 	{
-		printf("Restarting daemon because of the following changes in the dynamic store:\n");
+		CFShow(CFSTR("Restarting daemon because of the following changes in the dynamic store:"));
 		CFIndex cnt = CFArrayGetCount(changedKeys);
 		CFIndex i;
 		for (i = 0; i < cnt; ++i)
@@ -465,6 +483,24 @@ PowerCallBack(void * x, io_service_t y, natural_t messageType, void * messageArg
 
 
 void
+NotificationCenterCallback(
+								CFNotificationCenterRef center, 
+								void *observer, 
+								CFStringRef name, 
+								const void *object, 
+								CFDictionaryRef userInfo)
+{
+	if (verbosity >= 2)
+	{
+		CFShow(CFSTR("Restarting daemon due to receipt of the following notification:"));
+		CFShow(name);
+	}
+		
+	ScheduleDelayedRestart();
+}
+
+
+void
 SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
 {
 	mach_msg_header_t* hdr = (mach_msg_header_t*)msg;
@@ -491,6 +527,18 @@ SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
 	default:
 		break;
 	}
+}
+
+
+void
+AddNotificationToCenter(const void* value, void* context)
+{
+	CFNotificationCenterAddObserver((CFNotificationCenterRef)context,
+		kProgramName,
+		NotificationCenterCallback,
+		value,		// name of notification
+		NULL,		// object to observe
+		CFNotificationSuspensionBehaviorDeliverImmediately);
 }
 
 
@@ -540,7 +588,7 @@ MainLoop(void)
 	
 	// === Setup Notifications of Changes to System Configuration ===
 	// Create a new SCDynamicStore session and an associated runloop source, adding it default mode
-	SCDynamicStoreRef	dsRef			= SCDynamicStoreCreate(NULL, CFSTR("daemondo"), DynamicStoreChanged, NULL);
+	SCDynamicStoreRef	dsRef			= SCDynamicStoreCreate(NULL, kProgramName, DynamicStoreChanged, NULL);
 	CFRunLoopSourceRef	dsSrc			= SCDynamicStoreCreateRunLoopSource(NULL, dsRef, 0);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), dsSrc, kCFRunLoopDefaultMode);
 	
@@ -549,6 +597,13 @@ MainLoop(void)
 	(void) SCDynamicStoreSetNotificationKeys(dsRef, NULL, scRestartPatterns);
 	
 	
+	// === Setup Notifications from Notification Centers  ===
+	CFArrayApplyFunction(distNotifyNames, CFRangeMake(0, CFArrayGetCount(distNotifyNames)),
+		AddNotificationToCenter, CFNotificationCenterGetDistributedCenter());
+	CFArrayApplyFunction(darwinNotifyNames, CFRangeMake(0, CFArrayGetCount(darwinNotifyNames)),
+		AddNotificationToCenter, CFNotificationCenterGetDarwinNotifyCenter());
+
+
 	// === Setup Notifications of Changes to System Power State ===
 	// Register for system power notifications, adding a runloop source to handle then
 	IONotificationPortRef	powerRef = NULL;
@@ -581,6 +636,8 @@ MainLoop(void)
 	signal(SIGTERM, handle_generic_signal);
 	signal(SIGHUP, handle_generic_signal);
 	
+	
+	// === Core Loop ===
 	// Start the daemon
 	status = Start();
 	
@@ -588,6 +645,8 @@ MainLoop(void)
 	while (status == 0 && !terminating && !(start_async && running_pid == 0))
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 99999999.0, true);
 		
+		
+	// === Tear Down ==
 	// The daemon should by now have either been stopped, or stopped of its own accord
 		
 	// Remove signal handlers
@@ -615,6 +674,10 @@ MainLoop(void)
 	CFRelease(dsSrc);
 	CFRelease(dsRef);
 	
+	// Tear down notifications from Notification Center
+	CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDistributedCenter(), kProgramName);
+	CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDarwinNotifyCenter(), kProgramName);
+
 	// Tear down power management stuff
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(powerRef), kCFRunLoopDefaultMode);
 	IODeregisterForSystemPower(&pwrNotifier);
@@ -681,6 +744,8 @@ CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef arr
 enum {
 	kVerboseOpt			= 256,
 	kRestartConfigOpt,
+	kRestartDistNotifyOpt,
+	kRestartDarwinNotifyOpt,
 	kRestartWakeupOpt
 };
 
@@ -691,8 +756,12 @@ main(int argc, char* argv[])
 	int status = 0;
 	
 	// Initialization
+	kProgramName		= CFSTR("daemondo");
 	kChildWatchMode		= CFSTR("ChildWatch");
+	
 	scRestartPatterns	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	distNotifyNames		= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	darwinNotifyNames	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	
 	// Process arguments
 	static struct option longopts[] = {
@@ -703,6 +772,12 @@ main(int argc, char* argv[])
 		
 			// Dynamic Store Keys to monitor
 		{ "restart-config",	required_argument,		0,				kRestartConfigOpt },
+		
+			// Notifications to monitor
+		{ "restart-dist-notify",
+							required_argument,		0,				kRestartDistNotifyOpt },
+		{ "restart-darwin-notify",
+							required_argument,		0,				kRestartDarwinNotifyOpt },
 		
 			// Control over behavior on power state
 		{ "restart-wakeup",	no_argument,			0,				kRestartWakeupOpt },
@@ -769,6 +844,16 @@ main(int argc, char* argv[])
 			
 		case kRestartConfigOpt:
 			optind += CollectArrayArgs(optarg, argc - optind, argv + optind, scRestartPatterns);
+			optreset = 1;
+			break;
+			
+		case kRestartDistNotifyOpt:
+			optind += CollectArrayArgs(optarg, argc - optind, argv + optind, distNotifyNames);
+			optreset = 1;
+			break;
+			
+		case kRestartDarwinNotifyOpt:
+			optind += CollectArrayArgs(optarg, argc - optind, argv + optind, darwinNotifyNames);
 			optreset = 1;
 			break;
 			
