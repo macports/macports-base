@@ -73,7 +73,7 @@ command determines which port owns a given file.
 .It Fl v
 verbose mode (generate verbose messages)
 .It Fl d
-debug mode (generate debugging messages; implies
+debug mode (generate debugging messages, implies
 .Fl v )
 .It Fl q
 quiet mode (suppress messages)
@@ -112,8 +112,14 @@ To uninstall all installed but inactive ports, specify
 .Fl u .
 For example:
 .Pp
-.Dl "port uninstall vim
-.Dl "port -u uninstall
+.Dl "port uninstall vim"
+.Dl "port -u uninstall"
+.Ss activate
+Activate the installed
+.Ar portname .
+.Ss deactivate
+Deactivate the installed
+.Ar portname .
 .Ss installed
 List all installed ports.
 .Ss outdated
@@ -125,8 +131,24 @@ To upgrade all ports, specify
 .Fl a .
 For example:
 .Pp
-.Dl "port upgrade vim
-.Dl "port -a upgrade
+.Dl "port upgrade vim"
+.Dl "port -a upgrade"
+.Pp
+To upgrade
+.Ar portname
+wihtout following its dependencies, specify
+.Fl n .
+For example:
+.Pp
+.Dl "port -n upgrade ethereal"
+.Ss selfupdate
+Updates the DarwinPorts system, both the dports tree and if needed the base tools, installing the newest infrastructure if available. To update you would typically do:
+.Pp
+.Dl "sudo port -d selfupdate"
+.Ss sync
+Performs a sync operation only on the dports tree of a DarwinPorts installation, pulling in the latest revision available of the Portfiles. To update you would do:
+.Pp
+.Dl "sudo port -d sync"
 .Ss clean
 Clean the files used for building
 .Ar portname .
@@ -134,37 +156,49 @@ To just remove the work files, specify
 .Fl -work .
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
-To remove any archives, specify
+To remove the archive(s) for the current version of a port, specify
 .Fl -archive .
-To remove the work files, distribution files, and archives, specify
+To remove the work files, distribution files and archives, specify
 .Fl -all .
 For example:
 .Pp
-.Dl "port clean --dist vim
-.Dl "port clean --archive vim
+.Dl "port clean --dist vim"
+.Dl "port clean --archive vim"
+.Pp
+To remove only certain version(s) of a port's archives (
+.Ar version
+is any valid UNIX glob pattern), you can use:
+.Pp
+.Dl "port clean --archive vim 6.2.114"
+.Pp
+or:
+.Pp
+.Dl "port clean --archive vim '6.*'"
 .Ss list
 List all available ports.
 .Ss search
 Search for an available port whose name matches a regular expression.
 .Pp
-.Dl "post search vim
+.Dl "port search vim"
 .Pp
-.Ss contents
-Lists the files installed by
+.Ss info
+Displays the meta-information about an available
+.Ar portname .
+.Ss variants
+Lists the build variants available for
 .Ar portname .
 .Ss deps
 Lists the other ports that are required for building and running
 .Ar portname .
-.Ss variants
-Lists the build variants available for the
+.Ss contents
+Lists the files installed by
 .Ar portname .
-.Ss info
-Displays the meta-information about an available
-.Ar portname .
+.Ss version
+Display the release number of the installed DarwinPorts infrastructure.
 .Sh DEVELOPER TARGETS
-The targets that are often used by Port developers are intended to provide access to the different phases of a Port's build:
+The targets that are often used by Port developers are intended to provide access to the different phases of a Port's build process:
 .Ss unarchive
-Unarchive the port from a pre-built binary. When archive mode is enabled, this command is called automatically, prior to
+Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
 .Ar fetch ,
 to check for an existing binary archive to unpack. If found, it is unpacked and all stages up to
 .Ar install
@@ -200,12 +234,6 @@ When archive mode is enabled, binary archives will be created automatically when
 is performed, or when the
 .Ar archive
 target is called explicitly.
-.Ss activate
-Activate the installed
-.Ar portname .
-.Ss deactivate
-Deactivate the installed
-.Ar portname .
 .Sh PACKAGING TARGETS
 There are also targets for producing installable packages of ports:
 .Pp
@@ -225,13 +253,16 @@ Creates an RPM package of
 .Sh EXAMPLE
 The following demonstrates invoking
 .Nm
-with the "extract" target on portdir "textproc/figlet" and extract.suffix set to ".tgz":
+with the "extract" target on
+.Ar portdir
+"textproc/figlet" and extract.suffix set to ".tgz":
 .Pp
-.Dl "port extract -d textproc/figlet extract.suffix=.tgz"
+.Dl "port extract -D textproc/figlet extract.suffix=.tgz"
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
+.Xr portall 1 ,
 .Xr portfile 7 ,
 .Xr porthier 7 ,
 .Xr portstyle 7
@@ -241,3 +272,4 @@ with the "extract" target on portdir "textproc/figlet" and extract.suffix set to
 .An Jordan K. Hubbard Aq jkh@opendarwin.org
 .An Ole Guldberg Jensen Aq olegb@opendarwin.org
 .An Robert Shaw Aq rshaw@opendarwin.org
+.An Chris Ridd Aq cjr@opendarwin.org

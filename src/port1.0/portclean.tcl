@@ -142,7 +142,7 @@ proc clean_dist {args} {
 }
 
 proc clean_work {args} {
-	global workpath
+	global workpath worksymlink
 
 	if {[file isdirectory ${workpath}]} {
 		ui_debug "Removing directory: ${workpath}"
@@ -151,6 +151,12 @@ proc clean_work {args} {
 		}
 	} else {
 		ui_debug "No work directory found to remove."
+	}
+
+	# Clean symlink, if necessary
+	if {[file type $worksymlink] == "link"} {
+		ui_debug "Removing symlink: ${worksymlink}"
+		file delete -force -- ${worksymlink}
 	}
 
 	return 0

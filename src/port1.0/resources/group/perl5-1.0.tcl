@@ -1,7 +1,7 @@
 # et:ts=4
 # perl5-1.0.tcl
 #
-# $Id: perl5-1.0.tcl,v 1.10 2005/04/28 21:44:14 mww Exp $
+# $Id: perl5-1.0.tcl,v 1.11 2005/05/04 08:12:59 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>,
 #                    Toby Peterson <toby@opendarwin.org>

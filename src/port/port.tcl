@@ -383,6 +383,12 @@ switch -- $action {
 			exit 1
 		}
 	}
+	selfupdate {
+		if { [catch {darwinports::selfupdate} result ] } {
+			puts "Selfupdate failed: $result"
+			exit 1
+		}
+	}
 	upgrade {
         if {[info exists options(port_upgrade_all)] } {
             # upgrade all installed ports!!!
@@ -411,6 +417,10 @@ switch -- $action {
             darwinports::upgrade $portname "lib:XXX:$portname"
         }
     }
+
+	version {
+		puts "Version: [darwinports::version]"
+	}
 
 	compact {
 		if { ![info exists portname] } {
@@ -782,7 +792,7 @@ switch -- $action {
 			set porturl $portinfo(porturl)
 		}
 		if {![info exists porturl]} {
-			set porturl file://./
+			set porturl file://[pwd]
 		}
 		# If version was specified, save it as a version glob for use
 		# in port actions (e.g. clean).

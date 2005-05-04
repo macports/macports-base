@@ -1,14 +1,8 @@
-# Where to find the sources list.
-sources_conf		@PORTCONFIGDIR_EXPANDED@/sources.conf
-
-# Where to find global variants definition file (optional)
-#variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
+# Set the directory in which to install ports
+prefix			@prefix_expanded@
 
 # Where to store ports specific database files
 portdbpath		@localstatedir_expanded@/db/dports
-
-# Set the directory in which to install ports
-prefix			@prefix_expanded@
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"
 # NOTE: sqlite not yet supported.
@@ -20,8 +14,11 @@ portinstalltype		image
 # Directory containing the X11 installation.
 x11prefix		/usr/X11R6
 
-# Set whether to automatically execute "clean" after "install" of ports
-portautoclean		yes
+# Where to find the sources list.
+sources_conf		@PORTCONFIGDIR_EXPANDED@/sources.conf
+
+# Where to find global variants definition file (optional)
+variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
 
 # Create and use binary archive packages for installation/reinstallation ease
 portarchivemode		yes
@@ -40,3 +37,14 @@ portarchivepath		@localstatedir_expanded@/db/dports/packages
 # Supported types: tgz (default), tar, xar, zip, cpgz , cpio
 portarchivetype		tgz
 
+# Set whether to automatically execute "clean" after "install" of ports
+portautoclean		yes
+
+# Rsync server to use
+rsync_server		rsync.opendarwin.org
+
+# Rsync directory from which to pull the base/ component (infrastructure) of DP
+rsync_dir			dpupdate1/base/
+
+# Rsync options
+rsync_options		"-rtzv --delete --delete-after"

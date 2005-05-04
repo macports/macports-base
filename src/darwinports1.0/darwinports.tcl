@@ -36,8 +36,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf"
-    variable portinterp_options "portdbpath portpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir"
 	
     variable open_dports {}
 }
@@ -74,7 +74,7 @@ proc puts {args} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
 	global options variations
 
     # first look at PORTSRC for testing/debugging
@@ -252,6 +252,20 @@ proc dportinit {args} {
 	# (reading and writing)
 	set darwinports::portarchivetype [split $portarchivetype {:,}]
 
+	# Set rync options
+	if {![info exists rsync_server]} {
+		set darwinports::rsync_server rsync.opendarwin.org
+		global darwinports::rsync_server
+	}
+	if {![info exists rsync_dir]} {
+		set darwinports::rsync_dir dpupdate1/base/
+		global darwinports::rsync_dir
+	}
+	if {![info exists rsync_options]} {
+		set rsync_options "-rtzv --delete --delete-after"
+		global darwinports::rsync_options
+	}
+
     set portsharepath ${prefix}/share/darwinports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
@@ -298,7 +312,7 @@ proc dportinit {args} {
     }
 }
 
-proc darwinports::worker_init {workername portpath options variations} {
+proc darwinports::worker_init {workername portpath portbuildpath options variations} {
     global darwinports::portinterp_options auto_path registry.installtype
 
 	# Tell the sub interpreter about all the Tcl packages we already
@@ -398,16 +412,24 @@ proc darwinports::getprotocol {url} {
 # fetched port will be downloaded to (currently only applies to
 # dports:// sources).
 proc darwinports::getportdir {url {destdir "."}} {
-    if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
-        switch -regexp -- ${protocol} {
-            {^file$} { return $string}
-        {dports} { return [darwinports::index::fetch_port $url $destdir] }
-	    {http|ftp} { return [darwinports::fetch_port $url] }
-            default { return -code error "Unsupported protocol $protocol" }
-        }
-    } else {
-        return -code error "Can't parse url $url"
-    }
+	if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
+		switch -regexp -- ${protocol} {
+			{^file$} {
+				return $string
+			}
+			{^dports$} {
+				return [darwinports::index::fetch_port $url $destdir]
+			}
+			{^https?$|^ftp$} {
+				return [darwinports::fetch_port $url]
+			}
+			default {
+				return -code error "Unsupported protocol $protocol"
+			}
+		}
+	} else {
+		return -code error "Can't parse url $url"
+	}
 }
 
 # dportopen
@@ -456,7 +478,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ditem_key $dport variations $variations
 	ditem_key $dport refcnt 1
 
-    darwinports::worker_init $workername $portpath $options $variations
+    darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $porturl] $options $variations
     if {![file isfile Portfile]} {
         return -code error "Could not find Portfile in $portdir"
     }
@@ -789,54 +811,83 @@ proc dportexec {dport target} {
 	return $result
 }
 
+proc darwinports::getsourcepath {url} {
+	global darwinports::portdbpath
+	regsub {://} $url {.} source_path
+	regsub -all {/} $source_path {_} source_path
+	return [file join $portdbpath sources $source_path]
+}
+
+proc darwinports::getportbuildpath {porturl} {
+	global darwinports::portdbpath
+	regsub {://} $porturl {.} port_path
+	regsub -all {/} $port_path {_} port_path
+	return [file join $portdbpath build $port_path]
+}
+
 proc darwinports::getindex {source} {
-    global darwinports::portdbpath
-    # Special case file:// sources
-    if {[darwinports::getprotocol $source] == "file"} {
-        return [file join [darwinports::getportdir $source] PortIndex]
-    }
-    regsub {://} $source {.} source_dir
-    regsub -all {/} $source_dir {_} source_dir
-    return [file join $portdbpath sources $source_dir PortIndex]
+	# Special case file:// sources
+	if {[darwinports::getprotocol $source] == "file"} {
+		return [file join [darwinports::getportdir $source] PortIndex]
+	}
+
+	return [file join [darwinports::getsourcepath $source] PortIndex]
 }
 
 proc dportsync {args} {
-    global darwinports::sources darwinports::portdbpath tcl_platform
+	global darwinports::sources darwinports::portdbpath tcl_platform
 
-    foreach source $sources {
-        # Special case file:// sources
-        if {[darwinports::getprotocol $source] == "file"} {
-            continue
-        } elseif {[darwinports::getprotocol $source] == "dports"} {
-			darwinports::index::sync $darwinports::portdbpath $source
-        } else {
-			set indexfile [darwinports::getindex $source]
-			if {[catch {file mkdir [file dirname $indexfile]} result]} {
-				return -code error $result
+	foreach source $sources {
+		ui_info "Synchronizing from $source"
+		switch -regexp -- [darwinports::getprotocol $source] {
+			{^file$} {
+				continue
 			}
-			if {![file writable [file dirname $indexfile]]} {
-				return -code error "You do not have permission to write to [file dirname $indexfile]"
+			{^dports$} {
+				darwinports::index::sync $darwinports::portdbpath $source
 			}
-			exec curl -L -s -S -o $indexfile $source/PortIndex
+			{^rsync$} {
+				# Where to, boss?
+				set destdir [file dirname [darwinports::getindex $source]]
+
+				if {[catch {file mkdir $destdir} result]} {
+					return -code error $result
+				}
+
+				# Keep rsync happy with a trailing slash
+				if {[string index $source end] != "/"} {
+					set source "${source}/"
+				}
+
+				# Do rsync fetch
+				if {[catch {system "rsync -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
+					return -code error "sync failed doing rsync"
+				}
+			}
+			{^https?$|^ftp$} {
+				set indexfile [darwinports::getindex $source]
+				if {[catch {file mkdir [file dirname $indexfile]} result]} {
+					return -code error $result
+				}
+				exec curl -L -s -S -o $indexfile $source/PortIndex
+			}
 		}
 	}
 }
 
 proc dportsearch {regexp {case_sensitive "yes"}} {
-    global darwinports::portdbpath darwinports::sources
-    set matches [list]
+	global darwinports::portdbpath darwinports::sources
+	set matches [list]
 
-    # XXX This should not happen, but does with the tk port when searching for tcl.
-    if {![info exists sources]} { return $matches }
 	set found 0
-    foreach source $sources {
-    	if {[darwinports::getprotocol $source] == "dports"} {
-    		array set attrs [list name $regexp]
+	foreach source $sources {
+		if {[darwinports::getprotocol $source] == "dports"} {
+			array set attrs [list name $regexp]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
-        	if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
-        	    ui_warn "Can't open index file for source: $source"
+			if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+				ui_warn "Can't open index file for source: $source"
 			} else {
 				incr found 1
 				while {[gets $fd line] >= 0} {
@@ -849,10 +900,19 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 					if {$rxres == 1} {
 						gets $fd line
 						array set portinfo $line
+						switch -regexp -- [darwinports::getprotocol ${source}] {
+							{^rsync$} {
+								# Rsync files are local
+								set source_url "file://[darwinports::getsourcepath $source]"
+							}
+							default {
+								set source_url $source
+							}
+						}
 						if {[info exists portinfo(portarchive)]} {
-							set porturl ${source}/$portinfo(portarchive)
+							set porturl ${source_url}/$portinfo(portarchive)
 						} elseif {[info exists portinfo(portdir)]} {
-							set porturl ${source}/$portinfo(portdir)
+							set porturl ${source_url}/$portinfo(portdir)
 						}
 						if {[info exists porturl]} {
 							lappend line porturl $porturl
@@ -870,12 +930,12 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 				close $fd
 			}
 		}
-    }
+	}
 	if {!$found} {
 		return -code error "No index(es) found! Have you synced your source indexes?"
 	}
 
-    return $matches
+	return $matches
 }
 
 proc dportinfo {dport} {
@@ -982,6 +1042,114 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	}
 	
 	return 0
+}
+
+# selfupdate procedure
+proc darwinports::selfupdate {args} {
+	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options options
+
+	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
+		set use_the_force_luke yes
+		ui_debug "Forcing a rebuild of the darwinports base system."
+	} else {
+		set use_the_force_luke no
+		ui_debug "Rebuilding the darwinports base system if needed."
+	}
+	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
+	if {[catch {dportsync} result]} {
+		return -code error "Couldnt sync dports tree: $result"
+	}
+
+	set dp_base_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/]
+	if {![file exists $dp_base_path]} {
+		file mkdir $dp_base_path
+	}
+	ui_debug "DarwinPorts base dir: $dp_base_path"
+
+	# get user of the darwinports system
+	set user [file attributes [file join $prefix var/db/dports/sources/] -owner]
+	ui_debug "Setting user: $user"
+
+	# get darwinports version 
+	set dp_version_path [file join ${prefix}/etc/ports/ dp_version]
+	if { [file exists $dp_version_path]} {
+		set fd [open $dp_version_path r]
+		gets $fd dp_version_old
+	} else {
+		set dp_version_old 0
+	}
+	ui_msg "DarwinPorts base version $dp_version_old installed"
+
+	ui_debug "Updating using rsync"
+	if { [catch { system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
+		return -code error "Error: rsync failed in selfupdate"
+	}
+
+	# get new darwinports version and write the old version back
+	set fd [open [file join $dp_base_path dp_version] r]
+	gets $fd dp_version_new
+	close $fd
+	ui_msg "New DarwinPorts base version $dp_version_new"
+
+	# check if we we need to rebuild base
+	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
+		ui_msg "Configuring, Building and Installing new DarwinPorts base"
+		# check if $prefix/bin/port is writable, if so we go !
+		# get installation user / group 
+		set owner root
+		set group admin
+		if {[file exists [file join $prefix bin/port] ]} {
+			# set owner
+			set owner [file attributes [file join $prefix bin/port] -owner]
+			# set group
+			set group [file attributes [file join $prefix bin/port] -group]
+		}
+		set p_user [exec /usr/bin/whoami]
+		if {[file writable ${prefix}/bin/port] || [string equal $p_user $owner] } {
+			ui_debug "permissions OK"
+		} else {
+			return -code error "Error: $p_user cannot write to ${prefix}/bin - try using sudo"
+		}
+		ui_debug "Setting owner: $owner group: $group"
+
+		set dp_tclpackage_path [file join $prefix var/db/dports/ .tclpackage]
+		if { [file exists $dp_tclpackage_path]} {
+			set fd [open $dp_tclpackage_path r]
+				gets $fd tclpackage
+		} else {
+			set tclpackage [file join ${prefix} share/darwinports/Tcl]
+		}
+		# do the actual installation of new base
+		ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
+		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
+			return -code error "Error installing new DarwinPorts base: $result"
+		}
+	}
+
+	# set the darwinports system to the right owner 
+	ui_debug "Setting ownership to $user"
+	if { [catch { exec chown -R $user [file join $prefix var/db/dports/sources/] } result] } {
+		return -code error "Couldn't change permissions: $result"
+	}
+
+	# set the right version
+	ui_msg "selfupdate done!"
+
+	return 0
+}
+
+proc darwinports::version {} {
+	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir
+	
+	set dp_version_path [file join $prefix etc/ports/ dp_version]
+
+	if [file exists $dp_version_path] {
+		set fd [open $dp_version_path r]
+		gets $fd retval
+		return $retval
+	} else {
+		return -1
+	}
 }
 
 # upgrade procedure
