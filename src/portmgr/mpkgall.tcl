@@ -65,7 +65,7 @@ proc copy_package_if_available {portname basepath destpath} {
 		if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
 		#if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
 		foreach depspec $depends {
-			set dep [lindex [split $depspec :] 2]
+			set dep [lindex [split $depspec :] end]
 			set result [copy_package_if_available $dep $basepath $destpath]
 			if {$result == -1} { 
 				return -1

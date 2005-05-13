@@ -276,7 +276,7 @@ switch -- $action {
 				puts -nonewline "Build Dependencies: "
 				for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
 					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] 2]"
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] end]"
 				}
 				set nodeps false
 				puts ""
@@ -287,7 +287,7 @@ switch -- $action {
 				puts -nonewline "Library Dependencies: "
 				for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
 					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] 2]"
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] end]"
 				}
 				set nodeps false
 				puts ""
@@ -298,7 +298,7 @@ switch -- $action {
 				puts -nonewline "Runtime Dependencies: "
 				for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
 					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] 2]"
+					puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] end]"
 				}
 				set nodeps false
 				puts ""
@@ -383,6 +383,12 @@ switch -- $action {
 			exit 1
 		}
 	}
+	selfupdate {
+		if { [catch {darwinports::selfupdate} result ] } {
+			puts "Selfupdate failed: $result"
+			exit 1
+		}
+	}
 	upgrade {
         if {[info exists options(port_upgrade_all)] } {
             # upgrade all installed ports!!!
@@ -411,6 +417,10 @@ switch -- $action {
             darwinports::upgrade $portname "lib:XXX:$portname"
         }
     }
+
+	version {
+		puts "Version: [darwinports::version]"
+	}
 
 	compact {
 		if { ![info exists portname] } {
@@ -658,7 +668,7 @@ switch -- $action {
 		if {[info exists portinfo(depends_build)]} {
 			puts "$portname has build dependencies on:"
 			foreach i $portinfo(depends_build) {
-				puts "\t[lindex [split [lindex $i 0] :] 2]"
+				puts "\t[lindex [split [lindex $i 0] :] end]"
 			}
 			set nodeps false
 		}
@@ -667,7 +677,7 @@ switch -- $action {
 		if {[info exists portinfo(depends_lib)]} {
 			puts "$portname has library dependencies on:"
 			foreach i $portinfo(depends_lib) {
-				puts "\t[lindex [split [lindex $i 0] :] 2]"
+				puts "\t[lindex [split [lindex $i 0] :] end]"
 			}
 			set nodeps false
 		}
@@ -676,7 +686,7 @@ switch -- $action {
 		if {[info exists portinfo(depends_run)]} {
 			puts "$portname has runtime dependencies on:"
 			foreach i $portinfo(depends_run) {
-				puts "\t[lindex [split [lindex $i 0] :] 2]"
+				puts "\t[lindex [split [lindex $i 0] :] end]"
 			}
 			set nodeps false
 		}
@@ -782,7 +792,7 @@ switch -- $action {
 			set porturl $portinfo(porturl)
 		}
 		if {![info exists porturl]} {
-			set porturl file://./
+			set porturl file://[pwd]
 		}
 		# If version was specified, save it as a version glob for use
 		# in port actions (e.g. clean).

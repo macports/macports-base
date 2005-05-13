@@ -140,7 +140,7 @@ proc get_dependencies {portname includeBuildDeps} {
 			eval "lappend depends $portinfo(depends_build)"
 		}
 		foreach depspec $depends {
-			set dep [lindex [split $depspec :] 2]
+			set dep [lindex [split $depspec :] end]
 			set x [get_dependencies $dep $includeBuildDeps]
 			eval "lappend result $x"
 			set result [lsort -unique $result]
@@ -363,7 +363,7 @@ foreach {name array} $res {
 	#if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
 	#if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
 	#foreach depspec $depends {
-	#	set dep [lindex [split $depspec :] 2]
+	#	set dep [lindex [split $depspec :] end]
 		#install_binary_if_available $dep $pkgbase
 	#}
 	set dependencies [get_dependencies $portname 1]

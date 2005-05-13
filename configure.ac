@@ -16,6 +16,9 @@ AC_PROG_LN_S
 AC_PATH_PROG(CURL, [curl], [])
 AC_PATH_PROG(CVS, [cvs], [])
 
+AC_SUBST(TAR_CMD)
+OD_TAR_NO_SAME_OWNER
+
 # Quiche eaters options.
 if test x$GCC = xyes; then
 	CFLAGS_QUICHEEATERS='-W -Wall -pedantic'
@@ -34,7 +37,7 @@ DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
 OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
-OD_PATH_PORTCONFIGDIR([$prefix])
+OD_PATH_PORTCONFIGDIR
 
 # Check for install ownership
 OD_CHECK_INSTALLUSER
@@ -55,9 +58,6 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp])
-
-# Check for CoreFoundation
-OD_COREFOUNDATION
 
 # Check for md5 implementation
 OD_LIB_MD5

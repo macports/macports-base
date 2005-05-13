@@ -1,74 +1,5 @@
 builtin(include,tcl.m4)
 
-#------------------------------------------------------------------------
-# OD_COREFOUNDATION --
-#
-#	Check if CoreFoundation is available, and if so, use it.
-#
-# Arguments:
-#       None.
-#
-# Requires:
-#       None.
-#
-# Depends:
-#	AC_PROG_CC
-#
-# Results:
-#
-#       Result is cached.
-#
-#	If CoreFoundation is available, defines the following variables:
-#		CFOUNDATION_ENABLE
-#	Substitutes the following vars:
-#               CFOUNDATION_LIBS
-#
-#------------------------------------------------------------------------
-
-dnl Test for check, and define CHECK_CFLAGS and CHECK_LIBS
-dnl
-
-AC_DEFUN(OD_COREFOUNDATION, [
-	CFOUNDATION_LIBS="-framework CoreFoundation"
-
-	AC_MSG_CHECKING([for CoreFoundation])
-
-	AC_CACHE_VAL(od_cv_cfoundation, [
-
-		ac_save_LIBS="$LIBS"
-
-		LIBS="$CFOUNDATION_LIBS $LIBS"
-		
-		AC_LINK_IFELSE([
-			AC_LANG_PROGRAM([
-					#include <CoreFoundation/CoreFoundation.h>
-				], [
-					CFURLRef url = CFURLCreateWithFileSystemPath(NULL, CFSTR("/testing"), kCFURLPOSIXPathStyle, 1);
-					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
-			])
-			], [
-				od_cv_cfoundation="yes"
-			], [
-				od_cv_cfoundation="no"
-			]
-		)
-
-		LIBS="$ac_save_LIBS"
-
-	])
-
-	AC_MSG_RESULT(${od_cv_cfoundation})
-
-	if test x"${od_cv_cfoundation}" = "xyes"; then
-		AC_DEFINE([CFOUNDATION_ENABLE], [], [Define if the CoreFoundation is available and to be used])
-	else
-		CHECK_DIRS=""
-	fi
-			
-
-	AC_SUBST(CFOUNDATION_LIBS)
-])
-
 dnl This macro checks if the user specified a dports tree
 dnl explicitly. If not, search for it
 
@@ -108,7 +39,7 @@ dnl explicitly. If not, search for it
          ])
 
 
-# OD_PATH_PORTCONFIGDIR(PREFIX)
+# OD_PATH_PORTCONFIGDIR
 #---------------------------------------
 AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
@@ -117,20 +48,7 @@ AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
 	
         AC_MSG_CHECKING([for ports config directory])
 
-	if test "$1" != "NONE" ; then
-		dnl user gave --prefix
-		portconfigdir='${sysconfdir}/ports'
-	else
-	   case $host_os in
-	   darwin*)
-		portconfigdir='/private/etc/ports'
-		;;
-	   *)
-		portconfigdir='/etc/ports'
-		;;
-	   esac
-	fi
-
+	portconfigdir='${sysconfdir}/ports'
 
 	AC_MSG_RESULT([$portconfigdir])
 	PORTCONFIGDIR="$portconfigdir"
@@ -495,5 +413,18 @@ AC_DEFUN([OD_PATH_SCAN],[
 	done
 	PATH=$newPATH; export PATH
 	prefix=$oldprefix
+])
+
+dnl This macro tests for tar support of --no-same-owner
+AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
+	AC_CHECK_PROG(TAR_CMD, [gnutar], [gnutar], [tar])
+	AC_MSG_CHECKING([for tar --no-same-owner support])
+	[no_same_owner_support=`$TAR_CMD --help 2>&1 | grep no-same-owner`]
+	if test -z "$no_same_owner_support" ; then
+		AC_MSG_RESULT([no])
+	else
+		AC_MSG_RESULT([yes])
+		TAR_CMD="$TAR_CMD --no-same-owner"
+	fi
 ])
 

@@ -1,0 +1,65 @@
+--------------------------------------------------------------------------
+Note sull'installazione e sull' utilizzo di DarwinPorts 1.0.
+--------------------------------------------------------------------------
+
+Il sistema DarwinPorts si installa eseguendo:
+
+	./configure && make && sudo make install
+
+Tale comando eseguira` l'installazione standard di DarwinPorts in 
+/opt/local . Assicurati che /opt/local/bin sia presente nella variabile 
+d'ambiente PATH, altrimenti il sistema non riuscira` a trovare gli 
+eseguibili di DarwinPorts.
+
+Se stai utilizzando una bourne shell (Panther e Tiger hanno bash come
+shell di default) aggiungi la seguente linea al tuo file ~/.profile . 
+Se il file non esiste, crealo.
+
+	export PATH=/opt/local/bin:$PATH
+
+Se invece stai utilizzando una (t)csh shell (Jaguar), inserisci la 
+seguente linea al tuo file ~/.cshrc . Se il file non esiste, crealo.
+Le modifiche non avranno effetto fino a quando non verra` aperta una 
+nuova shell.
+
+	set path=(/opt/local/bin $path)
+
+Infine devi effettuare il download di tutti i files di descrizione 
+dei ports, ovvero i Portfiles:
+
+	port sync
+
+Se vuoi aggiornare sia i Portfiles che l'intera infrastruttura di 
+DarwinPorts (base) esegui il seguente comando:
+ 
+	sudo port selfupdate
+
+AVVIO VELOCE
+
+Per cercare un port e/o relativi, ad esempio "vi":
+
+	port search vi
+
+Per installare un port:
+
+	sudo port install <portname>
+
+Per leggere le pagine di manuale del comando port:
+
+	man port
+
+Sono presenti anche le pagine di manuale per portfile, porthier e 
+portstyle, orientate ai creatori dei Portfiles.
+
+Puoi consultare la Guida in linea (attualmente disponibile solo in 
+lingua inglese): 
+
+	http://darwinports.opendarwin.org/guide
+
+Visita la lista di discussione di DarwinPorts:
+
+	http://opendarwin.org/mailman/listinfo/darwinports
+
+Per segnalare errori e bugs:
+
+	http://bugzilla.opendarwin.org/

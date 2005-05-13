@@ -32,7 +32,6 @@ install:
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
-		echo "file://${dportsdir}" >> ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
 		set -x; \
