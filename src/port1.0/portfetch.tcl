@@ -105,12 +105,12 @@ proc suffix {distname} {
 }
 
 # Given a site url and the name of the distfile, assemble url and
-# return it
+# return it, single quoted.
 proc portfetch::assemble_url {site distfile} {
     if {[string index $site end] != "/"} {
-        return "${site}/${distfile}"
+        return "'${site}/${distfile}'"
     } else {
-        return "${site}${distfile}"
+        return "'${site}${distfile}'"
     }
 }
 
