@@ -145,6 +145,13 @@ proc package_mpkg {portname portversion portrevision} {
 	return 0
 }
 
+proc xml_escape {s} {
+	regsub -all {&} $s {\&amp;} s
+	regsub -all {<} $s {\&lt;} s
+	regsub -all {>} $s {\&gt;} s
+	return $s
+}
+
 proc mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
 	set vers [split $portversion "."]
 	
@@ -154,6 +161,7 @@ proc mpkg_write_info_plist {infofile portname portversion portrevision destinati
 	
 	set depxml ""
 	foreach dep $dependencies {
+		set dep [xml_escape $dep]
 		append depxml "<dict>
 			<key>IFPkgFlagPackageLocation</key>
 			<string>${dep}</string>
@@ -163,6 +171,9 @@ proc mpkg_write_info_plist {infofile portname portversion portrevision destinati
 		"
 	}
 
+	set portname [xml_escape $portname]
+	set portversion [xml_escape $portversion]
+	set portrevision [xml_escape $portrevision]
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
