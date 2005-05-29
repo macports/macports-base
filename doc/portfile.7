@@ -1015,7 +1015,10 @@ Provide in-place sed like editing of a file.
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
 .It Ic file
-Standard TCL command to manipulate file names and attributes. See
+Standard TCL command to manipulate file names and attributes, recommended if you wish to preserve Mac OS
+resource forks when destrooting ports on Mac OS X 10.3.x and Mac OS X 10.4.x . Use
+.Nm xinstall
+to also preserve Extended Attributes (i.e. Access Control Lists). See
 .Xr file n .
 .It Ic system Ar commandline
 Execute a program. See
