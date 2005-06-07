@@ -94,6 +94,8 @@ proc destroot_main {args} {
 
 proc destroot_finish {args} {
     global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask
+	global os.platform os.version
+
     # Create startup-scripts/items
     if {[tbool startupitem.create]} {
         package require portstartupitem 1.0
@@ -118,6 +120,8 @@ proc destroot_finish {args} {
     catch {system "find \"${destroot}\" -depth -type d ${exclude_phrase} -exec rmdir -- \{\} \\; 2>/dev/null"}
 
     # Compress all manpages with gzip (instead)
+	# but NOT on Jaguar (Darwin 6.x)
+	if {![regexp {darwin6} "${os.platform}${os.version}"]} {
     set manpath "${destroot}${prefix}/share/man"
     if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
@@ -196,6 +200,9 @@ proc destroot_finish {args} {
 	} else {
 	    ui_debug "No man pages found to compress."
 	}
+    }
+	} else {
+	    ui_debug "No man page compression on ${os.platform}${os.version}."
     }
 
 	if [file exists "${destroot}${prefix}/share/info/dir"] {
