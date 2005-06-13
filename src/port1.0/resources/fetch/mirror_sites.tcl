@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.29 2005/05/23 17:23:56 olegb Exp $
+# $Id: mirror_sites.tcl,v 1.30 2005/06/13 15:36:38 olegb Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -179,7 +179,6 @@ set portfetch::mirror_sites::sites(ruby) {
 }
 
 set portfetch::mirror_sites::sites(sourceforge) {
-	http://kent.dl.sourceforge.net/
     http://puzzle.dl.sourceforge.net/
     http://mesh.dl.sourceforge.net/
     http://belnet.dl.sourceforge.net/
@@ -188,10 +187,11 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://ovh.dl.sourceforge.net/
 	http://internap.dl.sourceforge.net/
 	http://jaist.dl.sourceforge.net/
-    http://umn.dl.sourceforge.net/
-    http://unc.dl.sourceforge.net/
+	http://umn.dl.sourceforge.net/
+	http://unc.dl.sourceforge.net/
 	http://cogent.dl.sourceforge.net/
-    http://voxel.dl.sourceforge.net/
+	http://kent.dl.sourceforge.net/
+	http://voxel.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sunsite) {
