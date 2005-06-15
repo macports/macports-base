@@ -35,7 +35,11 @@ package require portutil 1.0
 set com.apple.pkg [target_new com.apple.pkg pkg_main]
 target_runtype ${com.apple.pkg} always
 target_provides ${com.apple.pkg} pkg
-target_requires ${com.apple.pkg} destroot
+if {[option portarchivemode] == "yes"} {
+	target_requires ${com.apple.pkg} unarchive destroot
+} else {
+	target_requires ${com.apple.pkg} destroot
+}
 
 # define options
 options package.type package.destpath
