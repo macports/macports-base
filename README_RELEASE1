@@ -19,7 +19,7 @@ does not exist create it.
 
 If you are using a (t)csh shell (Jaguar) put the following line in
 your ~/.cshrc file. If the file does not exist, create it. Your
-changes will not take effect unit you have opened a new shell.
+changes will not take effect until you have opened a new shell.
 
 	set path=(/opt/local/bin $path)
 
