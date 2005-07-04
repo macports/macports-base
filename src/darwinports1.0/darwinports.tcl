@@ -285,7 +285,7 @@ proc dportinit {args} {
 	if {![info exists xcodeversion]} {
 		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
 			# Determine xcode version (<= 2.0 or 2.1)
-			if {[catch {set xcodebuildversion [exec "xcodebuild -version"]}] == 0} {
+			if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
 				if {$xcodebuildversion == "DevToolsCore-620.0; DevToolsSupport-610.0"} {
 					set darwinports::xcodeversion "2.1"
 				} else {
