@@ -1,7 +1,7 @@
 # darwinports.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2004 Paul Guyot, Darwinports Team.
+# Copyright (c) 2004 - 2005 Paul Guyot, Darwinports Team.
 # Copyright (c) 2004 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
@@ -33,11 +33,12 @@
 package provide darwinports 1.0
 package require darwinports_dlist 1.0
 package require darwinports_index 1.0
+package require portutil 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir xcodeversion"
 	
     variable open_dports {}
 }
@@ -74,7 +75,7 @@ proc puts {args} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options darwinports::xcodeversion
 	global options variations
 
     # first look at PORTSRC for testing/debugging
@@ -280,6 +281,25 @@ proc dportinit {args} {
     } else {
 	set env(PATH) "$binpath"
     }
+
+	if {![info exists xcodeversion]} {
+		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
+			# Determine xcode version (<= 2.0 or 2.1)
+			if {[catch {set xcodebuildversion [exec "xcodebuild -version"]}] == 0} {
+				if {$xcodebuildversion == "DevToolsCore-620.0; DevToolsSupport-610.0"} {
+					set darwinports::xcodeversion "2.1"
+				} else {
+					set darwinports::xcodeversion "2.0orlower"
+				}
+			} else {
+				set darwinports::xcodeversion "2.0orlower"
+			}
+		} else {
+			set darwinports::xcodeversion "none"
+		}
+
+		global darwinports::xcodeversion
+	}
 
     # Set the default umask
     if {![info exists destroot_umask]} {
