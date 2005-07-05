@@ -592,6 +592,14 @@ CVS tag identifying the code to checkout.
 .br
 .Sy Type:
 .Em optional
+.It Ic cvs.date
+Date identifying the code to checkout.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl cvs.date \*q12-April-2005\*q
 .It Ic cvs.module
 CVS module to check the code out from.
 .br
@@ -898,6 +906,7 @@ A number of TCL extensions are available for use in
 .Bl -tag -width lc -compact
 .It Xo
 .Ic xinstall
+.Op Fl c
 .Op Fl B Ar suffix
 .Op Fl b
 .Op Fl C
@@ -942,6 +951,8 @@ extension.
 Specify a different backup suffix for the
 .Fl b
 flag.
+.It Fl c
+Install files (this is the default).
 .It Fl C
 Only copy a file if it is different.
 .It Fl d
@@ -1007,7 +1018,10 @@ Provide in-place sed like editing of a file.
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
 .It Ic file
-Standard TCL command to manipulate file names and attributes. See
+Standard TCL command to manipulate file names and attributes, recommended if you wish to preserve Mac OS
+resource forks when destrooting ports on Mac OS X 10.3.x and Mac OS X 10.4.x . Use
+.Nm xinstall
+to also preserve Extended Attributes (i.e. Access Control Lists). See
 .Xr file n .
 .It Ic system Ar commandline
 Execute a program. See

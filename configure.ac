@@ -15,8 +15,9 @@ AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG(CURL, [curl], [])
 AC_PATH_PROG(CVS, [cvs], [])
+AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
+AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 
-AC_SUBST(TAR_CMD)
 OD_TAR_NO_SAME_OWNER
 
 # Quiche eaters options.
@@ -57,7 +58,7 @@ INCLUDES="-I.. -I. $INCLUDES"
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp])
+AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp copyfile])
 
 # Check for md5 implementation
 OD_LIB_MD5

@@ -31,7 +31,7 @@ mkchrootbase() {
 		mkdir -p $dir
 
 		# Add to this list as you find minimum dependencies DP really needs.
-		chrootfiles="bin sbin etc tmp var/log var/spool var/run var/tmp var/db private dev/null usr Developer System/Library Library"
+		chrootfiles="bin sbin etc tmp var/log var/spool var/run var/tmp var/db private/etc private/tmp private/var dev/null usr Developer System/Library Library"
 
 		echo "Calculating chroot base image size..."
 		# start with this size to account for other overhead
@@ -96,6 +96,7 @@ cd darwinports/base
 ./configure
 make all install
 make clean
+echo "file:///darwinports/dports" > /opt/local/etc/ports/sources.conf
 EOF
 	if [ "$PKGTYPE" = "dpkg" ]; then
 	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh

@@ -35,7 +35,11 @@ package require portutil 1.0
 set com.apple.pkg [target_new com.apple.pkg pkg_main]
 target_runtype ${com.apple.pkg} always
 target_provides ${com.apple.pkg} pkg
-target_requires ${com.apple.pkg} destroot
+if {[option portarchivemode] == "yes"} {
+	target_requires ${com.apple.pkg} unarchive destroot
+} else {
+	target_requires ${com.apple.pkg} destroot
+}
 
 # define options
 options package.type package.destpath
@@ -115,7 +119,17 @@ RootVolumeOnly NO"
 	close $infofd
 }
 
+proc xml_escape {s} {
+	regsub -all {&} $s {\&amp;} s
+	regsub -all {<} $s {\&lt;} s
+	regsub -all {>} $s {\&gt;} s
+	return $s
+}
+
 proc write_info_plist {infofile portname portversion portrevision} {
+	set portname [xml_escape $portname]
+	set portversion [xml_escape $portversion]
+	set portrevision [xml_escape $portrevision]
 
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
@@ -161,6 +175,10 @@ proc write_info_plist {infofile portname portversion portrevision} {
 }
 
 proc write_description_plist {infofile portname portversion description} {
+	set portname [xml_escape $portname]
+	set portversion [xml_escape $portversion]
+	set description [xml_escape $description]
+	
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -186,6 +204,12 @@ proc write_welcome_html {filename portname portversion long_description descript
 	set long_description $description
     }
 
+	set portname [xml_escape $portname]
+	set portversion [xml_escape $portversion]
+	set long_description [xml_escape $long_description]
+	set description [xml_escape $description]
+	set homepage [xml_escape $homepage]
+	
 puts $fd "
 <html lang=\"en\">
 <head>

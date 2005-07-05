@@ -34,6 +34,7 @@ package provide portunarchive 1.0
 package require portutil 1.0
 
 set com.apple.unarchive [target_new com.apple.unarchive unarchive_main]
+target_runtype ${com.apple.unarchive} always
 target_init ${com.apple.unarchive} unarchive_init
 target_provides ${com.apple.unarchive} unarchive
 target_requires ${com.apple.unarchive} main

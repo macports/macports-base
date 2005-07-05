@@ -39,7 +39,7 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.date cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
@@ -53,6 +53,7 @@ default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.module {$distname}
 default cvs.tag ""
+default cvs.date ""
 default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
@@ -105,12 +106,12 @@ proc suffix {distname} {
 }
 
 # Given a site url and the name of the distfile, assemble url and
-# return it
+# return it, single quoted.
 proc portfetch::assemble_url {site distfile} {
     if {[string index $site end] != "/"} {
-        return "${site}/${distfile}"
+        return "'${site}/${distfile}'"
     } else {
-        return "${site}${distfile}"
+        return "'${site}${distfile}'"
     }
 }
 
@@ -269,11 +270,15 @@ proc checkfiles {args} {
 # information in a custom .cvspass file
 proc cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
-    global cvs.root cvs.tag cvs.password
+    global cvs.root cvs.date cvs.tag cvs.password
 
     set cvs.args "co ${cvs.args}"
     if {[string length ${cvs.tag}]} {
 	set cvs.args "${cvs.args} -r ${cvs.tag}"
+    }
+
+    if {[string length ${cvs.date}]} {
+	set cvs.args "${cvs.args} -D ${cvs.date}"
     }
 
     if {[regexp ^:pserver: ${cvs.root}]} {
