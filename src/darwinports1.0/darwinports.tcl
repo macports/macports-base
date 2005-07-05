@@ -855,9 +855,6 @@ proc darwinports::getindex {source} {
 }
 
 proc dportsync {args} {
-<<<<<<< darwinports.tcl
-	global darwinports::sources darwinports::portdbpath tcl_platform
-=======
 	global darwinports::sources darwinports::portdbpath tcl_platform
 
 	foreach source $sources {
@@ -866,37 +863,6 @@ proc dportsync {args} {
 			{^file$} {
 				continue
 			}
-			{^dports$} {
-				darwinports::index::sync $darwinports::portdbpath $source
-			}
-			{^rsync$} {
-				# Where to, boss?
-				set destdir [file dirname [darwinports::getindex $source]]
->>>>>>> 1.167
-
-<<<<<<< darwinports.tcl
-	foreach source $sources {
-		ui_info "Synchronizing from $source"
-		switch -regexp -- [darwinports::getprotocol $source] {
-			{^file$} {
-				continue
-=======
-				if {[catch {file mkdir $destdir} result]} {
-					return -code error $result
-				}
-
-				# Keep rsync happy with a trailing slash
-				if {[string index $source end] != "/"} {
-					set source "${source}/"
-				}
-
-				# Do rsync fetch
-				if {[catch {system "rsync -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
-					return -code error "sync failed doing rsync"
-				}
->>>>>>> 1.167
-			}
-<<<<<<< darwinports.tcl
 			{^dports$} {
 				darwinports::index::sync $darwinports::portdbpath $source
 			}
@@ -924,14 +890,6 @@ proc dportsync {args} {
 					return -code error $result
 				}
 				exec curl -L -s -S -o $indexfile $source/PortIndex
-=======
-			{^https?$|^ftp$} {
-				set indexfile [darwinports::getindex $source]
-				if {[catch {file mkdir [file dirname $indexfile]} result]} {
-					return -code error $result
-				}
-				exec curl -L -s -S -o $indexfile $source/PortIndex
->>>>>>> 1.167
 			}
 		}
 	}
