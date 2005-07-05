@@ -34,6 +34,3 @@ distclean::
 	rm -f Makefile Mk/dports.autoconf.mk
 
 test::
-
-install::
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${DESTDIR}${portconfigdir}
