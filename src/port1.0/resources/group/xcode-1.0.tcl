@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.1 2005/07/07 05:42:04 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.2 2005/07/07 05:49:35 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -224,7 +224,7 @@ build {
 	set configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
 	set project_arg [xcode::get_project_arg ${xcode.project}]
 	
-	# iterate on targets if there is more than one.
+	# iterate on targets if there is any, do -alltargets otherwise.
 	if {"$targets" == ""} {
 		xcode::build_one_target \
 			"$project_arg -alltargets $configuration_arg" \
@@ -253,7 +253,7 @@ destroot {
 	set install_path_setting [xcode::get_install_path_setting \
 		${xcode.destroot.path} ${xcode.destroot.type}]
 	
-	# iterate on targets if there is more than one.
+	# iterate on targets if there is any, do -alltargets otherwise.
 	if {"$targets" == ""} {
 		xcode::destroot_one_target \
 			"$project_arg -alltargets $configuration_arg" \
