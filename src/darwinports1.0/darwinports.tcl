@@ -37,8 +37,8 @@ package require portutil 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir xcodeversion"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
 }
@@ -282,28 +282,47 @@ proc dportinit {args} {
 	set env(PATH) "$binpath"
     }
 
-	if {![info exists xcodeversion]} {
+	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
 		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
-			# Determine xcode version (<= 2.0 or 2.1)
-			if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
-				if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
-					if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
-						# for now, we don't need to distinguish 2.1 from 2.1 or higher.
-						set darwinports::xcodeversion "2.1"
+			if {![info exists xcodeversion]} {
+				# Determine xcode version (<= 2.0 or 2.1)
+				if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
+					if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
+						if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
+							# for now, we don't need to distinguish 2.1 from 2.1 or higher.
+							set darwinports::xcodeversion "2.1"
+						} else {
+							set darwinports::xcodeversion "2.0orlower"
+						}
 					} else {
 						set darwinports::xcodeversion "2.0orlower"
 					}
 				} else {
 					set darwinports::xcodeversion "2.0orlower"
 				}
-			} else {
-				set darwinports::xcodeversion "2.0orlower"
+			}
+			
+			if {![info exists xcodebuildcmd]} {
+				set darwinports::xcodebuildcmd "xcodebuild"
+			}
+		} elseif {[catch {set pbxbuild [binaryInPath "pbxbuild"]}] == 0} {
+			if {![info exists xcodeversion]} {
+				set darwinports::xcodeversion "pb"
+			}
+			if {![info exists xcodebuildcmd]} {
+				set darwinports::xcodebuildcmd "pbxbuild"
 			}
 		} else {
-			set darwinports::xcodeversion "none"
+			if {![info exists xcodeversion]} {
+				set darwinports::xcodeversion "none"
+			}
+			if {![info exists xcodebuildcmd]} {
+				set darwinports::xcodebuildcmd "none"
+			}
 		}
 
 		global darwinports::xcodeversion
+		global darwinports::xcodebuildcmd
 	}
 
     # Set the default umask
