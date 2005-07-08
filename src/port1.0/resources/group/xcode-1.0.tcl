@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.2 2005/07/07 05:49:35 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.3 2005/07/08 06:58:19 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -232,7 +232,7 @@ build {
 	} else {
 		foreach target $targets {
 			xcode::build_one_target \
-				"$project_arg -target $targets $configuration_arg" \
+				"$project_arg -target \"$target\" $configuration_arg" \
 				"${xcode.build.settings}"
 		}
 	}
@@ -261,7 +261,7 @@ destroot {
 	} else {
 		foreach target $targets {
 			xcode::destroot_one_target \
-				"$project_arg -target $targets $configuration_arg" \
+				"$project_arg -target \"$target\" $configuration_arg" \
 				"$install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
 		}
 	}
