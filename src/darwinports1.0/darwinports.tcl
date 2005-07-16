@@ -1204,6 +1204,14 @@ proc darwinports::upgrade {pname dspec} {
 	# set to no-zero is epoch overrides version
 	set epoch_override 0
 
+	# check if pname contains \, if so remove it. 
+	if { [regexp {\\} $pname] } {
+		set portname [join $pname {\\}]
+		ui_debug "removing stray ecape-character for $portname"
+	} else {
+		set portname $pname
+	}
+
 	# check if the port is in tree
 	if {[catch {dportsearch ^$pname$} result]} {
 		ui_error "port search failed: $result"
@@ -1211,7 +1219,7 @@ proc darwinports::upgrade {pname dspec} {
 	}
 	# argh! port doesnt exist!
 	if {$result == ""} {
-		ui_error "No port $pname found."
+		ui_error "No port $portname found."
 		return 1
 	}
 	# fill array with information
@@ -1219,7 +1227,7 @@ proc darwinports::upgrade {pname dspec} {
 
 	# set version_in_tree
 	if {![info exists portinfo(version)]} {
-		ui_error "Invalid port entry for $pname, missing version"
+		ui_error "Invalid port entry for $portname, missing version"
 		return 1
 	}
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
@@ -1231,9 +1239,9 @@ proc darwinports::upgrade {pname dspec} {
 
 	# set version_installed
 	set ilist {}
-	if { [catch {set ilist [registry::installed $pname ""]} result] } {
-		if {$result == "Registry error: $pname not registered as installed." } {
-			ui_debug "$pname is *not* installed by DarwinPorts"
+	if { [catch {set ilist [registry::installed $portname ""]} result] } {
+		if {$result == "Registry error: $portname not registered as installed." } {
+			ui_debug "$portname is *not* installed by DarwinPorts"
 			# open porthandle    
 			set porturl $portinfo(porturl)
 		    if {![info exists porturl]} {
@@ -1245,15 +1253,14 @@ proc darwinports::upgrade {pname dspec} {
 		    }
 
 			if {![_dportispresent $workername $dspec ] } {
-				# port in not installed
-				# install it!
+				# port in not installed - install it!
 				if {[catch {set result [dportexec $workername install]} result]} {
 					ui_error "Unable to exec port: $result"
 					return 1
 				}
 			} else {
 				# port installed outside DP
-				ui_debug "$pname installed outside the DarwinPorts system"
+				ui_debug "$portname installed outside the DarwinPorts system"
 				set depflag 1
 			}
 
@@ -1278,32 +1285,32 @@ proc darwinports::upgrade {pname dspec} {
 			set version "[lindex $i 1]_[lindex $i 2]"
 			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
-				set epoch_installed [registry::property_retrieve [registry::open_entry $pname [lindex $i 1] [lindex $i 2] $variant] epoch]
+				set epoch_installed [registry::property_retrieve [registry::open_entry $portname [lindex $i 1] [lindex $i 2] $variant] epoch]
 				set num $i
 			}
 
 			set isactive [lindex $i 4]
 			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
 				# deactivate version
-    			if {[catch {portimage::deactivate $pname $version} result]} {
-    	    		ui_error "Deactivating $pname $version_installed failed: $result"
+    			if {[catch {portimage::deactivate $portname $version} result]} {
+    	    		ui_error "Deactivating $portname $version_installed failed: $result"
     	    		return 1
     			}
 			}
 		}
 		if { [lindex $num 4] == 0} {
 			# activate the latest installed version
-			if {[catch {portimage::activate $pname $version_installed$variant} result]} {
-    			ui_error "Activating $pname $version_installed failed: $result"
+			if {[catch {portimage::activate $portname $version_installed$variant} result]} {
+    			ui_error "Activating $portname $version_installed failed: $result"
 				return 1
 			}
 		}
 	}
 
-	# out put version numbers
+	# output version numbers
 	ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
-	ui_debug "$pname $version_in_tree exists in the ports tree"
-	ui_debug "$pname $version_installed is installed"
+	ui_debug "$portname $version_in_tree exists in the ports tree"
+	ui_debug "$portname $version_installed is installed"
 
 	# set the nodeps option  
 	if {![info exists options(ports_nodeps)]} {
@@ -1341,7 +1348,7 @@ proc darwinports::upgrade {pname dspec} {
 
 	# check installed version against version in ports
 	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 } {
-		ui_debug "No need to upgrade! $pname $version_installed >= $pname $version_in_tree"
+		ui_debug "No need to upgrade! $portname $version_installed >= $portname $version_in_tree"
 		if { $epoch_installed >= $epoch_in_tree } {
 			return 0
 		} else {
@@ -1369,7 +1376,7 @@ proc darwinports::upgrade {pname dspec} {
 	foreach v $variant {
 		if {[lsearch $avariants $v] == -1} {
 		} else {
-			ui_debug "variant $v is present in $pname $version_in_tree"
+			ui_debug "variant $v is present in $portname $version_in_tree"
 			set variations($v) "+"
 		}
 	}
@@ -1389,21 +1396,21 @@ proc darwinports::upgrade {pname dspec} {
 	# uninstall old ports
 	if {[info exists options(port_uninstall_old)] || $epoch_override == 1} {
 		# uninstalll old
-		ui_debug "Uninstalling $pname $version_installed$oldvariant"
-		if {[catch {portuninstall::uninstall $pname $version_installed$oldvariant} result]} {
-     		ui_error "Uninstall $pname $version_installed$oldvariant failed: $result"
+		ui_debug "Uninstalling $portname $version_installed$oldvariant"
+		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant} result]} {
+     		ui_error "Uninstall $portname $version_installed$oldvariant failed: $result"
        		return 1
     	}
 	} else {
 		# XXX deactivate version_installed
-		if {[catch {portimage::deactivate $pname $version_installed$oldvariant} result]} {
-			ui_error "Deactivating $pname $version_installed failed: $result"
+		if {[catch {portimage::deactivate $portname $version_installed$oldvariant} result]} {
+			ui_error "Deactivating $portname $version_installed failed: $result"
 			return 1
 		}
 	}
 
 	if {[catch {set result [dportexec $workername install]} result]} {
-		ui_error "Couldn't activate $pname $version_in_tree$oldvariant: $result"
+		ui_error "Couldn't activate $portname $version_in_tree$oldvariant: $result"
 		return 1
 	}
 	
