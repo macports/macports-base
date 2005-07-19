@@ -457,7 +457,8 @@ proc reinplace {pattern args}  {
 	if {[catch {exec sed $pattern < $file >@ $tmpfd} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
-	    return -code error "reinplace failed"
+	    close $tmpfd
+	    return -code error "reinplace sed(1) failed"
 	}
 	
 	close $tmpfd
@@ -467,13 +468,13 @@ proc reinplace {pattern args}  {
 	if {[catch {file attributes $file -permissions u+w} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
-	    return -code error "reinplace failed"
+	    return -code error "reinplace permissions failed"
 	}
 	
 	if {[catch {exec cp $tmpfile $file} error]} {
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
-	    return -code error "reinplace failed"
+	    return -code error "reinplace copy failed"
 	}
 	
 	for {set i 0} {$i < [llength attributes]} {incr i} {
