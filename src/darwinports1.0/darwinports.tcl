@@ -37,8 +37,8 @@ package require portutil 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
 }
@@ -215,6 +215,17 @@ proc dportinit {args} {
 	if {[info exists options(ports_autoclean)]} {
 		if {![string equal $options(ports_autoclean) $portautoclean]} {
 			set darwinports::portautoclean $options(ports_autoclean)
+		}
+	}
+	# Trace mode, whether to use darwintrace to debug ports.
+	if {![info exists porttrace]} {
+		set darwinports::porttrace "no"
+		global darwinports::porttrace
+	}
+	# Check command line override for trace
+	if {[info exists options(ports_trace)]} {
+		if {![string equal $options(ports_trace) $porttrace]} {
+			set darwinports::porttrace $options(ports_trace)
 		}
 	}
 

@@ -34,6 +34,7 @@ package provide portutil 1.0
 package require Pextlib 1.0
 package require darwinports_dlist 1.0
 package require msgcat
+package require porttrace 1.0
 
 global targets target_uniqid all_variants
 
@@ -527,7 +528,7 @@ proc makeuserproc {name body} {
 ########### Internal Dependancy Manipulation Procedures ###########
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -599,6 +600,10 @@ proc target_run {ditem} {
 			
 		# otherwise execute the task.
 		if {$skipped == 0} {
+			if {([info exists ports_trace] && $ports_trace == "yes")} {
+				trace_start $workpath
+			}
+
 			# Execute pre-run procedure
 			if {[ditem_contains $ditem prerun]} {
 			set result [catch {[ditem_key $ditem prerun] $name} errstr]
@@ -629,6 +634,15 @@ proc target_run {ditem} {
 			set postrun [ditem_key $ditem postrun]
 			ui_debug "Executing $postrun"
 			set result [catch {$postrun $name} errstr]
+			}
+
+			# Check dependencies.
+			if {([info exists ports_trace] && $ports_trace == "yes")} {
+				trace_check_deps {}
+			}
+
+			if {([info exists ports_trace] && $ports_trace == "yes")} {
+				trace_stop
 			}
 		}
 	}
