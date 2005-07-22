@@ -1,7 +1,7 @@
 # darwinports.tcl
 #
 # Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2004 - 2005 Paul Guyot, Darwinports Team.
+# Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
 # Copyright (c) 2004 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
@@ -806,7 +806,7 @@ proc dportexec {dport target} {
 		|| $target == "pkg" || $target == "mpkg"
 		|| $target == "rpmpackage" || $target == "dpkg" } {
 
-		if {[dportdepends $dport 1 1] != 0} {
+		if {[dportdepends $dport $target] != 0} {
 			return 1
 		}
 		
@@ -1024,17 +1024,51 @@ proc _dportkey {dport key} {
 
 # dportdepends builds the list of dports which the given port depends on.
 # This list is added to $dport.
-# - optionally includes the build dependencies in the list.
-# - optionally recurses through the dependencies, looking for dependencies
-#	of dependencies.
-
-proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
+# This list actually depends on the target.
+# This method can optionally recurse through the dependencies, looking for
+#   dependencies of dependencies.
+# This method can optionally cut the search when ports are already installed or
+#   the dependencies are satisfied.
+#
+# dport -> dport item
+# target -> target to consider the dependency for
+# recurseDeps -> if the search should be recursive
+# skipSatisfied -> cut the search tree when encountering installed/satisfied
+#                  dependencies ports.
+# accDeps -> accumulator for recursive calls
+# return 0 if everything was ok, an non zero integer otherwise.
+proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps {}}} {
 	array set portinfo [dportinfo $dport]
 	set depends {}
-	if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-	if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-	if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} {
-		eval "lappend depends $portinfo(depends_build)"
+	
+	if {$target == "configure"} {
+		if {[info exists portinfo(depends_lib)]} {
+			lappend depends $portinfo(depends_lib)
+		}
+	} elseif {$target == "build"} {
+		if {[info exists portinfo(depends_lib)]} {
+			lappend depends $portinfo(depends_lib)
+		}
+		if {[info exists portinfo(depends_build)]} {
+			lappend depends $portinfo(depends_build)
+		}
+	} elseif {$target == "destroot"
+		|| $target == "install"
+		|| $target == "archive"
+		|| $target == "pkg"
+		|| $target == "mpkg"
+		|| $target == "rpmpackage"
+		|| $target == "dpkg"
+		|| $target == ""} {
+		if {[info exists portinfo(depends_lib)]} {
+			lappend depends $portinfo(depends_lib)
+		}
+		if {[info exists portinfo(depends_build)]} {
+			lappend depends $portinfo(depends_build)
+		}
+		if {[info exists portinfo(depends_run)]} {
+			lappend depends $portinfo(depends_run)
+		}
 	}
 
 	set subPorts {}
@@ -1068,12 +1102,12 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 		set subport [dportopen $porturl $options $variations]
 
 		# Is that dependency satisfied or this port installed?
-		# If not, add it to the list. Otherwise, don't.
-		if {![_dportispresent $subport $depspec]} {
+		# If we don't skip or if it is not, add it to the list.
+		if {!$skipSatisfied || ![_dportispresent $subport $depspec]} {
 			# Append the sub-port's provides to the port's requirements list.
 			ditem_append_unique $dport requires "[ditem_key $subport provides]"
 	
-			if {$recurseDeps != ""} {
+			if {$recurseDeps} {
 				# Skip the port if it's already in the accumulated list.
 				if {[lsearch $accDeps $portname] == -1} {
 					# Add it to the list
@@ -1087,9 +1121,10 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	}
 
 	# Loop on the subports.
-	if {$recurseDeps != ""} {
+	if {$recurseDeps} {
 		foreach subport $subPorts {
-			set res [dportdepends $subport $includeBuildDeps $recurseDeps $accDeps]
+			# Sub ports should be installed (all dependencies must be satisfied).
+			set res [dportdepends $subport "" $recurseDeps $skipSatisfied $accDeps]
 			if {$res != 0} {
 				return $res
 			}
@@ -1110,7 +1145,7 @@ proc darwinports::selfupdate {args} {
 		set use_the_force_luke no
 		ui_debug "Rebuilding the darwinports base system if needed."
 	}
-	# syncing ports tree. We expect the user have rsync:// in teh sources.conf
+	# syncing ports tree. We expect the user have rsync:// in the sources.conf
 	if {[catch {dportsync} result]} {
 		return -code error "Couldnt sync dports tree: $result"
 	}
