@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.1 2005/07/21 12:35:00 pguyot Exp $
+# $Id: porttrace.tcl,v 1.2 2005/07/22 21:45:55 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -100,7 +100,7 @@ proc trace_check_deps {portslist} {
 	set portslist [lsort $portslist]
 	foreach port $ports {
 		if {[lsearch -sorted -exact $portslist $port] == -1} {
-			ui_warn "trace revealed a(n undeclared) dependency on $port"
+			ui_warn "trace revealed an undeclared dependency on $port"
 		}
 	}
 }

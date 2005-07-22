@@ -35,6 +35,7 @@ package require Pextlib 1.0
 package require darwinports_dlist 1.0
 package require msgcat
 package require porttrace 1.0
+package require darwinports 1.0
 
 global targets target_uniqid all_variants
 
@@ -528,7 +529,7 @@ proc makeuserproc {name body} {
 ########### Internal Dependancy Manipulation Procedures ###########
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -638,7 +639,45 @@ proc target_run {ditem} {
 
 			# Check dependencies.
 			if {([info exists ports_trace] && $ports_trace == "yes")} {
-				trace_check_deps {}
+				set deps_run {}
+				set deps_lib {}
+				set deps_build {}
+
+				if {[info exists PortInfo(depends_run)]} {
+					set deps_run $PortInfo(depends_run)
+				}
+				if {[info exists PortInfo(depends_lib)]} {
+					set deps_lib $PortInfo(depends_lib)
+				}
+				if {[info exists PortInfo(depends_build)]} {
+					set deps_lib $PortInfo(depends_build)
+				}
+				set target [ditem_key $ditem provides]
+				set deps {}
+				if {$target == "configure"} {
+					set deps $deps_lib
+				} elseif {$target == "build"} {
+					set deps $deps_lib
+					lappend deps $deps_build
+				} elseif {$target == "destroot"} {
+					set deps $deps_lib
+					lappend deps $deps_build
+					lappend deps $deps_run
+				} elseif {$target == "install"} {
+					set deps $deps_lib
+					lappend deps $deps_build
+					lappend deps $deps_run
+				} elseif {$target == "package"} {
+					set deps $deps_lib
+					lappend deps $deps_build
+					lappend deps $deps_run
+				}
+				# Dependencies are in the form verb:[param:]port
+				set depsPorts {}
+				foreach dep $deps {
+					lappend depsPorts [lindex [split [lindex $dep 0] :] end]
+				}
+				trace_check_deps $depsPorts
 			}
 
 			if {([info exists ports_trace] && $ports_trace == "yes")} {
