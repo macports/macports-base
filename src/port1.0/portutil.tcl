@@ -650,7 +650,7 @@ proc target_run {ditem} {
 					set deps_lib $PortInfo(depends_lib)
 				}
 				if {[info exists PortInfo(depends_build)]} {
-					set deps_lib $PortInfo(depends_build)
+					set deps_build $PortInfo(depends_build)
 				}
 				set target [ditem_key $ditem provides]
 				set deps {}
