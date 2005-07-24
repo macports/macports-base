@@ -84,7 +84,7 @@ mkchrootbase() {
 		mkdir -p $dir/receipts
 		mkdir -p $dir/software
 		mkdir -p $dir/packages/darwin/powerpc
-		hdiutil detach $DPORTSDEV >& /dev/null && DPORTSDEV=""
+		hdiutil detach $DPORTSDEV -force >& /dev/null && DPORTSDEV=""
 	fi
 }
 
@@ -108,7 +108,7 @@ EOF
 	chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
 	umount -f ${dir}/dev
 	umount -f ${dir}/dev
-	hdiutil detach $BASEDEV >& /dev/null && BASEDEV=""
+	hdiutil detach $BASEDEV -force >& /dev/null && BASEDEV=""
 }
 
 # Set up the base chroot image
@@ -129,7 +129,7 @@ teardownchroot() {
 	dir=$1
 	umount -f $dir/dev  || (echo "unable to umount devfs"; STUCK_BASEDEV=1)
 	umount -f $dir/dev  || (echo "unable to umount fdesc"; STUCK_BASEDEV=1)
-	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV >& /dev/null || bomb "unable to detach DPORTSDEV")
+	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV -force >& /dev/null || bomb "unable to detach DPORTSDEV")
 	DPORTSDEV=""
 	if [ ! -z "$BASEDEV" ]; then
 		if hdiutil detach $BASEDEV -force >& /dev/null; then
