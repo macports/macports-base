@@ -200,7 +200,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo '/sbin/mount_volfs /.vol' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
-	echo "if port -k -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
+	echo "if port -t -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
 	echo 'umount -f /.vol || (echo "unable to umount volfs"; exit 1)' >> $DIR/bootstrap.sh
 	echo "exit 0" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
