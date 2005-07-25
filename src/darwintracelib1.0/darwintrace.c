@@ -54,7 +54,7 @@ inline void __darwintrace_setup() {
 	  char* path = getenv("DARWINTRACE_LOG");
 	  if (path != NULL) {
 		__darwintrace_fd = open(path,
-		O_CREAT | O_WRONLY | O_APPEND | O_NONBLOCK,
+		O_CREAT | O_WRONLY | O_APPEND,
 		0666);
 		fcntl(__darwintrace_fd, F_SETFD, 1); /* close-on-exec */
 	  }
