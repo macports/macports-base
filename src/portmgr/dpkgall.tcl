@@ -186,21 +186,29 @@ proc reset_tree {args} {
 
 	ui_silent "Restoring pristine ${portprefix} from ${pkgrepo}/${architecture}/root.tar.gz"
 	if {[catch {system "rm -Rf ${portprefix}"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
 
 	if {[catch {system "rm -Rf /usr/X11R6"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
 
 	if {[catch {system "rm -Rf /etc/X11"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
 
 	if {[catch {system "cd / && tar xvf ${pkgrepo}/${architecture}/root.tar.gz"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
@@ -208,11 +216,15 @@ proc reset_tree {args} {
 	ui_silent "Linking static distfiles directory to ${portprefix}/var/db/dports/distfiles."
 	if {[file isdirectory ${portprefix}/var/db/dports/distfiles"]} {
 		if {[catch {system "rm -rf ${portprefix}/var/db/dports/distfiles"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: $error"
 			exit 1
 		}
 
 		if {[catch {system "ln -s ${pkgrepo}/distfiles ${portprefix}/var/db/dports/distfiles"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: $error"
 			exit 1
 		}
@@ -344,6 +356,8 @@ proc main {argc argv} {
 			set fail false
 
 			if {[catch {set res [get_portinfo $port]} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_noisy_error "Error: $result"
 				set fail true
 			}
@@ -387,6 +401,8 @@ proc main {argc argv} {
 
 	# Destroy the existing apt repository
 	if {[catch {system "rm -Rf ${aptpackagedir}"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
@@ -401,6 +417,8 @@ proc main {argc argv} {
 		open_default_log
 
 		if {[catch {set res [get_portinfo $port]} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: port search failed: $error"
 			exit 1
 		}
@@ -474,6 +492,8 @@ proc main {argc argv} {
 		}
 
 		if {[catch {set workername [dportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: unable to open port: $result"
 			exit 1
 		}
@@ -496,6 +516,8 @@ proc main {argc argv} {
 		# Re-open the port. DarwinPorts doesn't play well with multiple targets, apparently
 		dportclose $workername
 		if {[catch {set workername [dportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: unable to open port: $result"
 			exit 1
 		}
@@ -583,11 +605,15 @@ proc main {argc argv} {
 
 	ui_silent "Building apt-get index ..."
 	if {[catch {system "cd ${pkgrepo}/apt && dpkg-scanpackages dists override >${aptpackagedir}/Packages"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
 
 	if {[catch {system "cd ${aptpackagedir} && gzip Packages"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
@@ -662,6 +688,8 @@ proc initialize_system {args} {
 
 	foreach port [get_required_ports] {
 		if {[catch {do_portexec $port [array get options] [array get variants] install} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Fatal error: $result"
 			exit 1
 		}
@@ -674,6 +702,8 @@ proc initialize_system {args} {
 
 			ui_msg "Uninstalling $port."
 			if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_noisy_errorr "Fatal error: Uninstalling $port failed: $result"
 				exit 1
 			}
@@ -693,6 +723,8 @@ proc initialize_system {args} {
 
 	ui_msg "Generating pristine archive: [file join ${pkgrepo} ${architecture} root.tar.gz]"
 	if {[catch {system "tar -zcf \"[file join ${pkgrepo} ${architecture} root.tar.gz]\" \"${portprefix}\""} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Fatal error: Archive creation failed: $result"
 		exit 1
 	}
@@ -771,6 +803,8 @@ proc copy_failure_log {name} {
 proc delete_failure_log {name} {
 	global dpkg::pkgrepo dpkg::architecture
 	if {[catch {system "rm -Rf ${pkgrepo}/${architecture}/log/failure/${name}"} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
@@ -792,6 +826,8 @@ proc add_override {name priority section {maintainer ""}} {
 proc remove_override_file {args} {
 	global dpkg::aptpackagedir dpkg::pkgrepo
 	if {[catch {file delete -force ${pkgrepo}/apt/override} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_noisy_error "Internal error: $error"
 		exit 1
 	}
@@ -873,12 +909,16 @@ proc install_binary_if_available {dep} {
 	if {[file readable $pkgpath] && ![file exists $receiptdir/receipt.bz2]} {
 		ui_silent "Installing binary: $pkgpath"
 		if {[catch {system "dpkg --force-depends -i ${pkgpath}"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: $error"
 			exit 1
 		}
 		# Touch the receipt
 		file mkdir $receiptdir
 		if {[catch {system "touch [file join $receiptdir receipt.bz2]"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: $error"
 			exit 1
 		}

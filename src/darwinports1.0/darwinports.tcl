@@ -383,9 +383,11 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
     $workername eval "proc PortSystem \{version\} \{ \n\
 			package require port \$version \}"
 
-    foreach proc {dportexec dportopen dportclose dportsearch} {
-        $workername alias $proc $proc
-    }
+    # Clearly separate slave interpreters and the master interpreter.
+	$workername alias dport_exec dportexec
+	$workername alias dport_open dportopen
+	$workername alias dport_close dportclose
+	$workername alias dport_search dportsearch
 
     # instantiate the UI call-back
     $workername alias ui_event darwinports::ui_event $workername
@@ -1079,6 +1081,8 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		
 		# Find the porturl
 		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error "Internal error: port search failed: $error"
 			return 1
 		}
@@ -1260,6 +1264,8 @@ proc darwinports::upgrade {pname dspec} {
 
 	# check if the port is in tree
 	if {[catch {dportsearch ^$pname$} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"
 		return 1
 	}
@@ -1294,6 +1300,8 @@ proc darwinports::upgrade {pname dspec} {
 		        set porturl file://./    
 			}    
 			if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+					global errorInfo
+					ui_debug "$errorInfo"
 			        ui_error "Unable to open port: $result"        
 					return 1
 		    }
@@ -1301,6 +1309,8 @@ proc darwinports::upgrade {pname dspec} {
 			if {![_dportispresent $workername $dspec ] } {
 				# port in not installed - install it!
 				if {[catch {set result [dportexec $workername install]} result]} {
+					global errorInfo
+					ui_debug "$errorInfo"
 					ui_error "Unable to exec port: $result"
 					return 1
 				}
@@ -1339,6 +1349,8 @@ proc darwinports::upgrade {pname dspec} {
 			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
 				# deactivate version
     			if {[catch {portimage::deactivate $portname $version} result]} {
+					global errorInfo
+					ui_debug "$errorInfo"
     	    		ui_error "Deactivating $portname $version_installed failed: $result"
     	    		return 1
     			}
@@ -1347,6 +1359,8 @@ proc darwinports::upgrade {pname dspec} {
 		if { [lindex $num 4] == 0} {
 			# activate the latest installed version
 			if {[catch {portimage::activate $portname $version_installed$variant} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
     			ui_error "Activating $portname $version_installed failed: $result"
 				return 1
 			}
@@ -1429,12 +1443,16 @@ proc darwinports::upgrade {pname dspec} {
 	ui_debug "new portvariants: [array get variations]"
 	
 	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "Unable to open port: $result"
 		return 1
 	}
 
 	# install version_in_tree
 	if {[catch {set result [dportexec $workername destroot]} result] || $result != 0} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "Unable to upgrade port: $result"
 		return 1
 	}
@@ -1444,18 +1462,24 @@ proc darwinports::upgrade {pname dspec} {
 		# uninstalll old
 		ui_debug "Uninstalling $portname $version_installed$oldvariant"
 		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
      		ui_error "Uninstall $portname $version_installed$oldvariant failed: $result"
        		return 1
     	}
 	} else {
 		# XXX deactivate version_installed
 		if {[catch {portimage::deactivate $portname $version_installed$oldvariant} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error "Deactivating $portname $version_installed failed: $result"
 			return 1
 		}
 	}
 
 	if {[catch {set result [dportexec $workername install]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "Couldn't activate $portname $version_in_tree$oldvariant: $result"
 		return 1
 	}

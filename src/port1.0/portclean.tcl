@@ -93,6 +93,8 @@ proc clean_dist {args} {
 		if {[file isfile $distfile]} {
 			ui_debug "Removing file: $distfile"
 			if {[catch {exec rm -f ${distfile}} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_error "${result}"
 			}
 			set count [expr $count + 1]
@@ -128,6 +130,8 @@ proc clean_dist {args} {
 		if {[file isdirectory ${distdir}]} {
 			ui_debug "Removing directory: ${distdir}"
 			if {[catch {exec rm -rf ${distdir}} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_error "${result}"
 			}
 			set count [expr $count + 1]
@@ -147,6 +151,8 @@ proc clean_work {args} {
 	if {[file isdirectory ${workpath}]} {
 		ui_debug "Removing directory: ${workpath}"
 		if {[catch {exec rm -rf ${workpath}} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error "${result}"
 		}
 	} else {
@@ -196,6 +202,8 @@ proc clean_archive {args} {
 				if {[file isfile ${path}]} {
 					ui_debug "Removing archive: ${path}"
 					if {[catch {exec rm -f ${path}} result]} {
+						global errorInfo
+						ui_debug "$errorInfo"
 						ui_error "${result}"
 					}
 					set count [expr $count + 1]

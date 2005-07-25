@@ -53,7 +53,9 @@ proc mpkg_main {args} {
 
 proc make_dependency_list {portname} {
 	set result {}
-	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+	if {[catch {set res [dport_search "^$portname\$"]} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "port search failed: $error"
 		return 1
 	}
@@ -85,7 +87,9 @@ proc make_dependency_list {portname} {
 
 proc make_one_package {portname portversion mpkgpath} {
 	global prefix package.destpath 
-	if {[catch {set res [dportsearch "^$portname\$"]} result]} {
+	if {[catch {set res [dport_search "^$portname\$"]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"
 		return 1
 	}
@@ -95,9 +99,9 @@ proc make_one_package {portname portversion mpkgpath} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [dportopen $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources] {} yes]
-			dportexec $worker pkg
-			dportclose $worker
+			set worker [dport_open $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources] {} yes]
+			dport_exec $worker pkg
+			dport_close $worker
 		}
 		unset portinfo
 	}
