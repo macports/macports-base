@@ -199,6 +199,38 @@ proc main {pextlibname} {
 
 	# delete the lock file as well.
 	file delete -force "/tmp/darwinports-pextlib-testmap.lock"
+	
+	# create a RAM-based map.
+	filemap create testmap5
+	
+	# add 1000 subnodes.
+	for {set index 0} {$index < 1000} {incr index} {
+		filemap set testmap5 "/many/foo-$index" "foo-$index"
+	}
+
+	# add another 1000 subnodes, lexicographically before.
+	for {set index 0} {$index < 1000} {incr index} {
+		filemap set testmap5 "/many/bar-$index" "foo-$index"
+	}
+
+	# check the 1000 subnodes.
+	for {set index 0} {$index < 1000} {incr index} {
+		if {[filemap get testmap5 "/many/foo-$index"] != "foo-$index"} {
+			puts {[filemap get testmap5 "/many/foo-$index"] != "foo-$index"}
+			puts $index
+			puts [filemap get testmap5 "/many/foo-$index"]
+			exit 1
+		}
+		if {[filemap get testmap5 "/many/bar-$index"] != "foo-$index"} {
+			puts {[filemap get testmap5 "/many/bar-$index"] != "foo-$index"}
+			puts $index
+			puts [filemap get testmap5 "/many/bar-$index"]
+			exit 1
+		}
+	}
+
+	# close the virtual filemap.
+	filemap close testmap5
 }
 
 main $argv

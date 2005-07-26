@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.6 2005/03/02 14:52:40 pguyot Exp $
+ * $Id: filemap.c,v 1.7 2005/07/26 11:30:32 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -174,6 +174,9 @@ typedef struct {
 	char	fIsReadOnly;
 	/** If the filemap was changed */
 	char	fIsDirty;
+	/** If the filemap is RAM only (in which case fFilemapPath is just
+	    garbage) */
+	char	fIsRAMOnly;
 } SFilemapObject;
 
 /** Error codes */
@@ -197,6 +200,7 @@ static const char kFilemapVersion[4] = { 0x0, 0x1, 0x0, 0x0 };
  * Prototypes
  * ------------------------------------------------------------------------- */
 int Load(const char* inDatabasePath, SNode** outTree);
+void Create(SNode** outTree);
 int LoadNode(
 		char** const ioDatabaseBuffer,
 		SHeader** outNode, ssize_t* ioBytesLeft);
@@ -346,6 +350,22 @@ Load(
 	}
 
 	return theErr;
+}
+
+/**
+ * Create an empty tree in RAM.
+ *
+ * @param outTree			on output, tree in memory
+ */
+void
+Create(
+		SNode** outTree)
+{
+	SNode* theRoot = (SNode*) ckalloc(sizeof(SNode) - sizeof(SHeader*));
+	theRoot->fSubnodesCount = 0;
+	theRoot->fHeader.fNodeType = kNode;
+	theRoot->fHeader.fKeySubpart[0] = '\0';
+	*outTree = theRoot;
 }
 
 /**
@@ -1385,10 +1405,14 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
-		/* Save the filemap to file */
-		theErr = Save(
-					theFilemapObject->fFilemapPath,
-					theFilemapObject->fRoot);
+		/* Save the filemap to file if it's not RAM only */
+		if (theFilemapObject->fIsRAMOnly) {
+			theErr = 0;
+		} else {
+			theErr = Save(
+						theFilemapObject->fFilemapPath,
+						theFilemapObject->fRoot);
+		}
 		
 		/* Return any error. */
 		theResult = SetResultFromErrorCode(interp, theErr);
@@ -1401,6 +1425,52 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
     } while (0);
     
 	return theResult;
+}
+
+/**
+ * filemap create subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	Tcl_Obj* theObject;
+	SFilemapObject* theFilemapObject;
+	SNode* theRoot = NULL;
+
+	/*	first (second) parameter is the variable name */
+	if (objc != 3) {
+		Tcl_WrongNumArgs(interp, 1, objv, "create filemapName");
+		return TCL_ERROR;
+	}	
+
+	/* Create an empty root */
+	Create(&theRoot);
+
+	/* Create the object */
+	theObject = Tcl_NewObj();
+	theFilemapObject = (SFilemapObject*) ckalloc(sizeof(SFilemapObject));
+	theFilemapObject->fRefCount = 1;
+	theFilemapObject->fLockFD = -1;
+	theFilemapObject->fRoot = theRoot;
+	theFilemapObject->fIsReadOnly = 0;
+	theFilemapObject->fIsRAMOnly = 1;
+	theFilemapObject->fIsDirty = 0;
+	theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
+	theObject->typePtr = &tclFilemapType;
+	
+	/* Save it in global variable */
+	(void) Tcl_ObjSetVar2(
+				interp,
+				objv[2],
+				NULL,
+				theObject,
+				0);
+	
+	return TCL_OK;
 }
 
 /**
@@ -1688,6 +1758,7 @@ FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFilemapObject->fRoot = theRoot;
 		theFilemapObject->fIsReadOnly = isReadOnly;
 		theFilemapObject->fIsDirty = 0;
+		theFilemapObject->fIsRAMOnly = 0;
 		theObject->internalRep.otherValuePtr = (VOID*) theFilemapObject;
 		theObject->typePtr = &tclFilemapType;
 		
@@ -1732,6 +1803,12 @@ FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		{
 			theResult = TCL_ERROR;
 			break;
+		}
+		
+		/* If the map is RAM only, return an error */
+		if (theFilemapObject->fIsRAMOnly) {
+			theResult = TCL_ERROR;
+			break;			
 		}
 		
 		/* Free the tree */
@@ -1780,7 +1857,14 @@ FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 	
+		/* If the map is RAM only, return an error */
+		if (theFilemapObject->fIsRAMOnly) {
+			theResult = TCL_ERROR;
+			break;			
+		}
+
 		/* Only do anything if the tree was modified */
+		/* If the tree is read only, fIsDirty is never set */
 		if (theFilemapObject->fIsDirty)
 		{
 			/* Save the filemap to file */
@@ -1924,6 +2008,7 @@ FilemapCmd(
 {
     typedef enum {
     	kFilemapClose,
+    	kFilemapCreate,
     	kFilemapExists,
     	kFilemapGet,
     	kFilemapList,
@@ -1936,8 +2021,8 @@ FilemapCmd(
     } EOption;
     
 	static tableEntryString options[] = {
-		"close", "exists", "get", "list", "open", "revert", "save", "set",
-		"unset", "isreadonly", NULL
+		"close", "create", "exists", "get", "list", "open", "revert", "save",
+		"set", "unset", "isreadonly", NULL
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
@@ -1959,6 +2044,10 @@ FilemapCmd(
 		{
 			case kFilemapClose:
 				theResult = FilemapCloseCmd(interp, objc, objv);
+				break;
+
+			case kFilemapCreate:
+				theResult = FilemapCreateCmd(interp, objc, objv);
 				break;
 
 			case kFilemapExists:

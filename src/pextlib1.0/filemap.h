@@ -1,6 +1,6 @@
 /*
  * filemap.h
- * $Id: filemap.h,v 1.3 2005/03/02 14:52:40 pguyot Exp $
+ * $Id: filemap.h,v 1.4 2005/07/26 11:30:32 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -45,6 +45,9 @@
  * List is a O(n) operation (the slow operation).
  *
  * The syntax is:
+ * filemap create filemapVarName
+ *	Create a r/w filemap in RAM. This map will not be saved to disk.
+ *
  * filemap open filemapVarName filemapPath [readonly]
  *	open or create filemap database at filemapPath and put the handle to access
  *	it in variable filemapVarName.
