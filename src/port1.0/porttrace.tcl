@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.2 2005/07/22 21:45:55 pguyot Exp $
+# $Id: porttrace.tcl,v 1.3 2005/07/26 11:31:28 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -114,6 +114,9 @@ proc trace_stop {} {
 		unset env(DYLD_FORCE_FLAT_NAMESPACE)
 		unset env(DARWINTRACE_LOG)
 
+		# Clean up the thread.
+		thread::send $trace_thread "trace_thread_stop"
+
 		# Destroy the thread.
 		thread::release $trace_thread
 
@@ -128,31 +131,38 @@ proc trace_stop {} {
 # Private.
 # Thread method to read a line from the trace.
 proc trace_read_line {chan} {
-	global files_list ports_list
+	global ports_list trace_filemap
+	# We should never get EOF, actually.
 	if {![eof $chan]} {
-
 		# The line is of the form: verb\tpath
 		# Get the path by chopping it.
 		set theline [gets $chan]
-
+		
 		set line_length [string length $theline]
-		set path_start [expr [string first "\t" $theline] + 1]
-		set path [string range $theline $path_start [expr $line_length - 1]]
-
-		# Did we process the file yet?
-		if {[lsearch -sorted -exact $files_list $path] == -1} {
-			# Add the file to the list. Once is enough.
-			lappend files_list $path
-			set files_list [lsort $files_list]
-
-			# Obtain information about this file.
-			set port [registry::file_registered $path]
-			if { $port != 0 } {
-				# Add the port to the list.
-				if {[lsearch -sorted -exact $ports_list $port] == -1} {
-					lappend ports_list $port
-					set ports_list [lsort $ports_list]
-					# Maybe fill files_list for efficiency?
+		
+		# Skip empty lines.
+		if {$line_length > 0} {
+			set path_start [expr [string first "\t" $theline] + 1]
+			set path [string range $theline $path_start [expr $line_length - 1]]
+			set path [file normalize $path]
+			
+			# Only work on files.
+			if {[file isfile $path]} {
+				# Did we process the file yet?
+				if {![filemap exists trace_filemap $path]} {
+					# Obtain information about this file.
+					set port [registry::file_registered $path]
+					if { $port != 0 } {
+						# Add the port to the list.
+						if {[lsearch -sorted -exact $ports_list $port] == -1} {
+							lappend ports_list $port
+							set ports_list [lsort $ports_list]
+							# Maybe fill trace_filemap for efficiency?
+						}
+					}
+		
+					# Add the file to the tree with port information.
+					filemap set trace_filemap $path $port
 				}
 			}
 		}
@@ -162,11 +172,30 @@ proc trace_read_line {chan} {
 # Private.
 # Thread init method.
 proc trace_thread_start {fifo} {
-	global files_list ports_list
-	set files_list {}
+	global ports_list trace_filemap trace_fifo_r_chan trace_fifo_w_chan
+	# Create a virtual filemap.
+	filemap create trace_filemap
 	set ports_list {}
-	set chan [open $fifo {RDONLY NONBLOCK}]
-	fileevent $chan readable [list trace_read_line $chan]
+	set trace_fifo_r_chan [open $fifo {RDONLY NONBLOCK}]
+	# To prevent EOF when darwintrace closes the file, I also open the pipe
+	# myself as write only.
+	# This is quite ugly. The clean way to do would be to only install the
+	# fileevent handler when the pipe is opened on the other end, but I don't
+	# know how to wait for this while still being interruptable (i.e. while
+	# still being able to get commands thru thread::send). Thoughts, anyone?
+	set trace_fifo_w_chan [open $fifo w]
+	fileevent $trace_fifo_r_chan readable [list trace_read_line $trace_fifo_r_chan]
+}
+
+# Private.
+# Thread cleanup method.
+proc trace_thread_stop {} {
+	global trace_filemap trace_fifo_r_chan trace_fifo_w_chan
+	# Close the virtual filemap.
+	filemap close trace_filemap
+	# Close the pipe (both ends).
+	close $trace_fifo_r_chan
+	close $trace_fifo_w_chan
 }
 
 # Private.
