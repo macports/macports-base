@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.77 2005/07/21 06:27:14 pguyot Exp $
+ * $Id: Pextlib.c,v 1.78 2005/07/27 16:46:42 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -90,6 +90,10 @@
 
 #if HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
 #endif
 
 #if HAVE_SYS_STAT_H
@@ -640,6 +644,37 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 }
 
 /**
+ * Call fork(2).
+ * Syntax is fork
+ * If it fails, generate a Tcl error.
+ *
+ * This implementation may or may not be identical to TclX's fork
+ * implementation.
+ */
+int ForkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	pid_t pid;
+	Tcl_Obj* result;
+	
+	if (objc != 1) {
+		Tcl_WrongNumArgs(interp, 1, objv, NULL);
+		return TCL_ERROR;
+	}
+
+	pid = fork();
+	
+	if (pid < 0) {
+		Tcl_AppendResult(interp, "fork failed: ", strerror(errno), NULL);
+		return TCL_ERROR;		
+	}
+
+	result = Tcl_NewIntObj(pid);
+	Tcl_SetObjResult(interp, result);
+
+	return TCL_OK;
+}
+
+/**
  *
  * Return the list of elements in a directory.
  * Since 1.60.4.2, the list doesn't include . and ..
@@ -705,6 +740,76 @@ int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	return TCL_OK;
 }
 
+/**
+ * Take a file descriptor and generate a Tcl channel out of it.
+ * Syntax is:
+ * mkchannelfromfd fd [r|w|rw]
+ * Use r to generate a read-only channel, w for a write only channel or rw
+ * for a read/write channel (the default).
+ */
+int MkChannelFromFdCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Channel theChannel;
+	int fd;
+	int readOrWrite = TCL_READABLE | TCL_WRITABLE;
+
+	if ((objc != 2) && (objc != 3)) {
+		Tcl_WrongNumArgs(interp, 1, objv, "fd [r|w|rw]");
+		return TCL_ERROR;
+	}
+	
+	if (objc == 3) {
+		char* readOrWrite_as_char_star;
+		readOrWrite_as_char_star = strdup(Tcl_GetString(objv[2]));
+		if (readOrWrite_as_char_star == NULL) {
+			return TCL_ERROR;
+		}
+
+		if ((readOrWrite_as_char_star[0] == 'r')
+			&& (readOrWrite_as_char_star[1] == '\0')) {
+			readOrWrite = TCL_READABLE;
+		} else if ((readOrWrite_as_char_star[0] == 'w')
+			&& (readOrWrite_as_char_star[1] == '\0')) {
+			readOrWrite = TCL_WRITABLE;
+		} else if ((readOrWrite_as_char_star[0] == 'r')
+			&& (readOrWrite_as_char_star[1] == 'w')
+			&& (readOrWrite_as_char_star[1] == '\0')) {
+			readOrWrite = TCL_READABLE | TCL_WRITABLE;
+		} else {
+			Tcl_AppendResult(interp, "Bad mode. Use r, w or rw", NULL);
+			free(readOrWrite_as_char_star);
+			return TCL_ERROR;
+		}
+
+		free(readOrWrite_as_char_star);
+	}
+
+	{
+		char* fd_as_char_star;
+		fd_as_char_star = strdup(Tcl_GetString(objv[1]));
+		if (fd_as_char_star == NULL) {
+			return TCL_ERROR;
+		}
+
+		if (Tcl_GetInt(interp, fd_as_char_star, &fd) != TCL_OK) {
+			free(fd_as_char_star);
+			return TCL_ERROR;
+		}
+		free(fd_as_char_star);
+	}
+
+	theChannel = Tcl_MakeFileChannel((ClientData) fd, readOrWrite);
+	if (theChannel == NULL) {
+		return TCL_ERROR;
+	}
+	
+	/* register the channel in the current interpreter */
+	Tcl_RegisterChannel(interp, theChannel);
+	Tcl_AppendResult(interp, Tcl_GetChannelName(theChannel), (char *) NULL);
+
+	return TCL_OK;
+}
+
 int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *template, *sp;
@@ -761,6 +866,13 @@ int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	return TCL_OK;
 }
 
+/**
+ * Call mkfifo(2).
+ * Generate a Tcl error if something wrong occurred.
+ *
+ * Syntax is:
+ * mkfifo path mode
+ */
 int MkfifoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char* path;
@@ -940,6 +1052,38 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 	return TCL_OK;
 }
 
+/**
+ * Call socketpair to generate a socket pair in the Unix domain.
+ * Syntax is:
+ * unixsocketpair
+ *
+ * Generate a Tcl error if something goes wrong.
+ * Return a list with the file descriptors of the pair.
+ */
+int UnixSocketPairCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj* result;
+	int pair[2];
+
+	if (objc != 1) {
+		Tcl_WrongNumArgs(interp, 1, objv, NULL);
+		return TCL_ERROR;
+	}
+	
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) < 0) {
+		Tcl_AppendResult(interp, "socketpair failed: ", strerror(errno), NULL);
+		return TCL_ERROR;
+	}
+	
+	/* build a list out of the pair */
+	result = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(pair[0]));
+	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(pair[1]));
+	Tcl_SetObjResult(interp, result);
+
+	return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -965,6 +1109,9 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkfifo", MkfifoCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "fork", ForkCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "unixsocketpair", UnixSocketPairCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;

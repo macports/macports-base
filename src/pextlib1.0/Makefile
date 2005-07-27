@@ -13,3 +13,4 @@ include ../../Mk/dports.tea.mk
 test:: ${SHLIB_NAME}
 	${TCLSH} tests/filemap.tcl ${SHLIB_NAME}
 	${TCLSH} tests/fifo.tcl ${SHLIB_NAME}
+	${TCLSH} tests/fork.tcl ${SHLIB_NAME}
