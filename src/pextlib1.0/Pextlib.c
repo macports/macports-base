@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.78 2005/07/27 16:46:42 pguyot Exp $
+ * $Id: Pextlib.c,v 1.79 2005/07/27 18:26:44 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -773,7 +773,7 @@ int MkChannelFromFdCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
 			readOrWrite = TCL_WRITABLE;
 		} else if ((readOrWrite_as_char_star[0] == 'r')
 			&& (readOrWrite_as_char_star[1] == 'w')
-			&& (readOrWrite_as_char_star[1] == '\0')) {
+			&& (readOrWrite_as_char_star[2] == '\0')) {
 			readOrWrite = TCL_READABLE | TCL_WRITABLE;
 		} else {
 			Tcl_AppendResult(interp, "Bad mode. Use r, w or rw", NULL);
