@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.3 2005/07/26 11:31:28 pguyot Exp $
+# $Id: porttrace.tcl,v 1.4 2005/07/27 18:21:51 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -36,48 +36,19 @@ package provide porttrace 1.0
 package require Pextlib 1.0
 package require registry 1.0
 package require Tcl 8.3
-package require Thread 2.6
-
-#set_ui_prefix
 
 proc trace_start {workpath} {
 	global os.platform
 	if {${os.platform} == "darwin"} {
-		global prefix env trace_fifo trace_thread darwinports::portinterp_options
+		global prefix env trace_fifo darwinports::portinterp_options
 		# Create a fifo.
 		set trace_fifo "$workpath/trace_fifo"
 		file delete -force $trace_fifo
 		mkfifo $trace_fifo 0600
 		
-		# Create the thread.
-		set trace_thread [thread::create -preserved {thread::wait}]
-
-		# Tell the thread about all the Tcl packages we already
-		# know about so it won't glob for packages.
-		foreach pkgName [package names] {
-			foreach pkgVers [package versions $pkgName] {
-				set pkgLoadScript [package ifneeded $pkgName $pkgVers]
-				thread::send -async $trace_thread "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
-			}
-		}
-
-		# inherit some configuration variables.
-		thread::send -async $trace_thread "namespace eval darwinports {}"
-		namespace eval darwinports {
-			foreach opt $portinterp_options {
-				if {![info exists $opt]} {
-					global darwinports::$opt
-				}
-				thread::send -async $trace_thread "global darwinports::$opt"
-				set val [set $opt]
-				thread::send -async $trace_thread "set darwinports::$opt \"$val\""
-			}
-		}
-
-		# load this file
-		thread::send -async $trace_thread "package require porttrace 1.0"
-		thread::send -async $trace_thread "trace_thread_start $trace_fifo"
-		
+		# Create the thread/process.
+		create_slave $trace_fifo
+				
 		# Launch darwintrace.dylib.
 		
 		set env(DYLD_INSERT_LIBRARIES) \
@@ -90,11 +61,12 @@ proc trace_start {workpath} {
 # Check the list of ports.
 # Output a warning for every port the trace revealed a dependency on
 # that isn't included in portslist
+# This method must be called after trace_start
 proc trace_check_deps {portslist} {
-	global trace_thread
+	global trace_slave
 	
 	# Get the list of ports.
-	thread::send $trace_thread "trace_get_ports" ports
+	set ports [slave_send slave_get_ports]
 	
 	# Compare with portslist
 	set portslist [lsort $portslist]
@@ -106,31 +78,148 @@ proc trace_check_deps {portslist} {
 }
 
 # Stop the trace and return the list of ports the port depends on.
+# This method must be called after trace_start
 proc trace_stop {} {
 	global os.platform
 	if {${os.platform} == "darwin"} {
-		global env trace_thread trace_fifo
+		global env trace_fifo
 		unset env(DYLD_INSERT_LIBRARIES)
 		unset env(DYLD_FORCE_FLAT_NAMESPACE)
 		unset env(DARWINTRACE_LOG)
 
-		# Clean up the thread.
-		thread::send $trace_thread "trace_thread_stop"
+		# Clean up.
+		slave_send slave_stop
 
-		# Destroy the thread.
-		thread::release $trace_thread
+		# Delete the slave.
+		delete_slave
 
 		file delete -force $trace_fifo
-		
-		return ports
+	}
+}
+
+# Private
+# Threads version of create_slave.
+proc threads_create_slave {} {
+	global trace_thread
+	# Create the thread.
+	set trace_thread [thread::create -preserved {thread::wait}]
+
+	# Tell the thread about all the Tcl packages we already
+	# know about so it won't glob for packages.
+	foreach pkgName [package names] {
+		foreach pkgVers [package versions $pkgName] {
+			set pkgLoadScript [package ifneeded $pkgName $pkgVers]
+			thread::send -async $trace_thread "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
+		}
+	}
+
+	# inherit some configuration variables.
+	thread::send -async $trace_thread "namespace eval darwinports {}"
+	namespace eval darwinports {
+		foreach opt $portinterp_options {
+			if {![info exists $opt]} {
+				global darwinports::$opt
+			}
+			thread::send -async $trace_thread "global darwinports::$opt"
+			set val [set $opt]
+			thread::send -async $trace_thread "set darwinports::$opt \"$val\""
+		}
+	}
+
+	# load this file
+	thread::send -async $trace_thread "package require porttrace 1.0"
+}
+
+# Private
+# Threads version of slave_send_async
+proc threads_slave_send_async {command} {
+	global trace_thread
+
+	thread::send -async $trace_thread "$command"
+}
+
+# Private
+# Threads version of slave_send
+proc threads_slave_send {command} {
+	global trace_thread
+
+	thread::send $trace_thread "$command" result
+	return $result
+}
+
+# Private
+# Threads version of delete_slave
+proc threads_delete_slave {} {
+	global trace_thread
+
+	# Destroy the thread.
+	thread::release $trace_thread
+}
+
+# Private
+# Fork version of create_slave.
+proc fork_create_slave {trace_fifo} {
+	global fork_channel
+	
+	set pair [unixsocketpair]
+	
+	# Fork.
+	if {[fork == 0]} {
+		set fork_channel [mkchannelfromfd [lindex $pair 0] rw]
+		fork_loop
 	} else {
-		return {}
+		set fork_channel [mkchannelfromfd [lindex $pair 1] rw]
+	}
+}
+
+# Private
+# Fork version of slave_send_async.
+proc fork_slave_send_async {command} {
+	global fork_channel
+	
+	puts $fork_channel $command
+}
+
+# Private
+# Fork version of slave_send.
+proc fork_slave_send {command} {
+	global fork_channel
+
+	puts $fork_channel "puts $fork_channel [$command]"
+	return [gets $fork_channel]
+}
+
+# Private
+# Fork version of delete_slave
+proc fork_delete_slave {} {
+	global fork_channel
+	close $fork_channel
+}
+
+# Private
+# Fork loop.
+proc fork_loop {} {
+	global fork_exit fork_channel
+	fileevent $fork_channel readable [list fork_process $fork_channel]
+	vwait fork_exit
+	close $fork_channel
+}
+
+# Private
+# Fork process handler.
+proc fork_process {chan} {
+	if {![eof $chan]} {
+		set theline [gets $chan]
+		eval $theline
+	} else {
+		global fork_exit
+		set fork_exit 1
 	}
 }
 
 # Private.
-# Thread method to read a line from the trace.
-proc trace_read_line {chan} {
+# Slave method to read a line from the trace.
+proc slave_read_line {chan} {
 	global ports_list trace_filemap
 	# We should never get EOF, actually.
 	if {![eof $chan]} {
@@ -170,8 +259,8 @@ proc trace_read_line {chan} {
 }
 
 # Private.
-# Thread init method.
-proc trace_thread_start {fifo} {
+# Slave init method.
+proc slave_start {fifo} {
 	global ports_list trace_filemap trace_fifo_r_chan trace_fifo_w_chan
 	# Create a virtual filemap.
 	filemap create trace_filemap
@@ -184,12 +273,12 @@ proc trace_thread_start {fifo} {
 	# know how to wait for this while still being interruptable (i.e. while
 	# still being able to get commands thru thread::send). Thoughts, anyone?
 	set trace_fifo_w_chan [open $fifo w]
-	fileevent $trace_fifo_r_chan readable [list trace_read_line $trace_fifo_r_chan]
+	fileevent $trace_fifo_r_chan readable [list slave_read_line $trace_fifo_r_chan]
 }
 
 # Private.
-# Thread cleanup method.
-proc trace_thread_stop {} {
+# Slave cleanup method.
+proc slave_stop {} {
 	global trace_filemap trace_fifo_r_chan trace_fifo_w_chan
 	# Close the virtual filemap.
 	filemap close trace_filemap
@@ -199,8 +288,35 @@ proc trace_thread_stop {} {
 }
 
 # Private.
-# Thread ports export method.
-proc trace_get_ports {} {
+# Slave ports export method.
+proc slave_get_ports {} {
 	global ports_list
 	return $ports_list
+}
+
+# Private.
+# Wrapper function around thread or fork depending if thread is available.
+# This function must be the first one to call as it tests the presence of
+# threads and set other wrappers accordingly.
+proc create_slave {trace_fifo} {
+	# Are threads available?
+	if {[catch {package require Thread}]} {
+		# No.
+		# Let's use fork.
+		proc ::slave_send_async {command} {fork_slave_send_async $command}
+		proc ::slave_send {command} {fork_slave_send $command}
+		proc ::delete_slave {} {fork_delete_slave}
+		
+		fork_create_slave
+	} else {
+		# Yes.
+		# Let's use threads.
+		proc ::slave_send_async {command} {threads_slave_send_async $command}
+		proc ::slave_send {command} {threads_slave_send $command}
+		proc ::delete_slave {} {threads_delete_slave}
+
+		threads_create_slave
+	}
+	
+	slave_send_async "slave_start $trace_fifo"
 }
