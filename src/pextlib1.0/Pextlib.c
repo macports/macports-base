@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.79 2005/07/27 18:26:44 pguyot Exp $
+ * $Id: Pextlib.c,v 1.80 2005/07/28 10:10:58 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -1053,6 +1053,39 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 }
 
 /**
+ * Call pipe(2) to create a pipe.
+ * Syntax is:
+ * pipe
+ *
+ * Generate a Tcl error if something goes wrong.
+ * Return a list with the file descriptors of the pipe. The first item is the
+ * readable fd.
+ */
+int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	Tcl_Obj* result;
+	int fildes[2];
+
+	if (objc != 1) {
+		Tcl_WrongNumArgs(interp, 1, objv, NULL);
+		return TCL_ERROR;
+	}
+	
+	if (pipe(fildes) < 0) {
+		Tcl_AppendResult(interp, "pipe failed: ", strerror(errno), NULL);
+		return TCL_ERROR;
+	}
+	
+	/* build a list out of the couple */
+	result = Tcl_NewListObj(0, NULL);
+	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[0]));
+	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[1]));
+	Tcl_SetObjResult(interp, result);
+
+	return TCL_OK;
+}
+
+/**
  * Call socketpair to generate a socket pair in the Unix domain.
  * Syntax is:
  * unixsocketpair
@@ -1112,6 +1145,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "fork", ForkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unixsocketpair", UnixSocketPairCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
