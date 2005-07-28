@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.4 2005/07/27 18:21:51 pguyot Exp $
+# $Id: porttrace.tcl,v 1.5 2005/07/28 10:19:13 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -35,7 +35,6 @@
 package provide porttrace 1.0
 package require Pextlib 1.0
 package require registry 1.0
-package require Tcl 8.3
 
 proc trace_start {workpath} {
 	global os.platform
@@ -63,8 +62,6 @@ proc trace_start {workpath} {
 # that isn't included in portslist
 # This method must be called after trace_start
 proc trace_check_deps {portslist} {
-	global trace_slave
-	
 	# Get the list of ports.
 	set ports [slave_send slave_get_ports]
 	
@@ -158,13 +155,16 @@ proc threads_delete_slave {} {
 
 # Private
 # Fork version of create_slave.
-proc fork_create_slave {trace_fifo} {
+proc fork_create_slave {} {
 	global fork_channel
 	
 	set pair [unixsocketpair]
 	
 	# Fork.
-	if {[fork == 0]} {
+	if {[fork] == 0} {
+		close stdin
+		close stdout
+		close stderr
 		set fork_channel [mkchannelfromfd [lindex $pair 0] rw]
 		fork_loop
 	} else {
@@ -185,7 +185,7 @@ proc fork_slave_send_async {command} {
 proc fork_slave_send {command} {
 	global fork_channel
 
-	puts $fork_channel "puts $fork_channel [$command]"
+	puts $fork_channel "puts $fork_channel \[$command\]"
 	return [gets $fork_channel]
 }
 
@@ -221,6 +221,7 @@ proc fork_process {chan} {
 # Slave method to read a line from the trace.
 proc slave_read_line {chan} {
 	global ports_list trace_filemap
+
 	# We should never get EOF, actually.
 	if {![eof $chan]} {
 		# The line is of the form: verb\tpath
