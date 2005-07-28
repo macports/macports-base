@@ -1040,36 +1040,30 @@ proc _dportkey {dport key} {
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
 proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps {}}} {
+
 	array set portinfo [dportinfo $dport]
 	set depends {}
 	
-	if {$target == "configure"} {
-		if {[info exists portinfo(depends_lib)]} {
-			lappend depends $portinfo(depends_lib)
-		}
-	} elseif {$target == "build"} {
-		if {[info exists portinfo(depends_lib)]} {
-			lappend depends $portinfo(depends_lib)
-		}
-		if {[info exists portinfo(depends_build)]} {
-			lappend depends $portinfo(depends_build)
-		}
-	} elseif {$target == "destroot"
-		|| $target == "install"
-		|| $target == "archive"
-		|| $target == "pkg"
-		|| $target == "mpkg"
-		|| $target == "rpmpackage"
-		|| $target == "dpkg"
-		|| $target == ""} {
-		if {[info exists portinfo(depends_lib)]} {
-			lappend depends $portinfo(depends_lib)
-		}
-		if {[info exists portinfo(depends_build)]} {
-			lappend depends $portinfo(depends_build)
-		}
-		if {[info exists portinfo(depends_run)]} {
-			lappend depends $portinfo(depends_run)
+	# Determine deptypes to look for based on target
+	switch $target {
+		configure	{ set deptypes "depends_lib" }
+		
+		build		{ set deptypes "depends_lib depends_build" }
+		
+		destroot	-
+		install		-
+		archive		-
+		pkg			-
+		mpkg		-
+		rpmpackage	-
+		dpkg		-
+		""			{ set deptypes "depends_lib depends_build depends_run" }
+	}
+	
+	# Gather the dependencies for deptypes
+	foreach deptype $deptypes {
+		if {[info exists portinfo($deptype)]} {
+			eval "lappend depends $portinfo($deptype)"
 		}
 	}
 
