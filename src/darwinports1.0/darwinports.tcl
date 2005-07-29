@@ -1062,6 +1062,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 	
 	# Gather the dependencies for deptypes
 	foreach deptype $deptypes {
+		# Add to the list of dependencies if the option exists and isn't empty.
 		if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
 			lappend depends $portinfo($deptype)
 		}
