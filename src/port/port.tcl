@@ -666,33 +666,20 @@ switch -- $action {
 
 		array set portinfo [lindex $result 1]
 
-		# find build dependencies
-		if {[info exists portinfo(depends_build)]} {
-			puts "$portname has build dependencies on:"
-			foreach i $portinfo(depends_build) {
-				puts "\t[lindex [split [lindex $i 0] :] end]"
-			}
-			set nodeps false
-		}
+		set depstypes {depends_build depends_lib depends_run}
+		set depstypes_descr {"build" "library" "runtime"}
 
-		# find library dependencies
-		if {[info exists portinfo(depends_lib)]} {
-			puts "$portname has library dependencies on:"
-			foreach i $portinfo(depends_lib) {
-				puts "\t[lindex [split [lindex $i 0] :] end]"
+		foreach depstype $depstypes depsdecr $depstypes_descr {
+			if {[info exists portinfo($depstype)] &&
+				$portinfo($depstype) != ""} {
+				puts "$portname has $depsdecr dependencies on:"
+				foreach i $portinfo($depstype) {
+					puts "\t[lindex [split [lindex $i 0] :] end]"
+				}
+				set nodeps false
 			}
-			set nodeps false
 		}
-
-		# find runtime dependencies
-		if {[info exists portinfo(depends_run)]} {
-			puts "$portname has runtime dependencies on:"
-			foreach i $portinfo(depends_run) {
-				puts "\t[lindex [split [lindex $i 0] :] end]"
-			}
-			set nodeps false
-		}
-
+		
 		# no dependencies found
 		if {$nodeps == "true"} {
 			puts "$portname has no dependencies"
