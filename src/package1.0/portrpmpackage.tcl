@@ -176,5 +176,4 @@ echo \"Go DarwinPorts\"
 %files -f ${destroot}/../${origportname}.filelist
 "
     close $specfd
-    system "cp ${specfile} /tmp/woofcookies"
 }
