@@ -117,8 +117,9 @@ proc portfetch::assemble_url {site distfile} {
 
 # Given a distribution file name, return the appended tag
 # Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
+# / isn't included in the regexp, thus allowing port specification in URLs.
 proc getdisttag {name} {
-    if {[regexp {.+:([A-Za-z]+)} $name match tag]} {
+    if {[regexp {.+:([0-9A-Za-z_-]+)} $name match tag]} {
         return $tag
     } else {
         return ""
@@ -127,8 +128,9 @@ proc getdisttag {name} {
 
 # Given a distribution file name, return the name without an attached tag
 # Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
+# / isn't included in the regexp, thus allowing port specification in URLs.
 proc getdistname {name} {
-    regexp {(.+):[A-Za-z_-]+} $name match name
+    regexp {(.+):[0-9A-Za-z_-]+} $name match name
     return $name
 }
 
