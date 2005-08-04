@@ -309,7 +309,7 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 		# On darwin we can do some intelligent guessing
 		case $host_os in
 		    darwin*)
-		    	tcl_autopath=`echo 'puts \$auto_path' | $TCLSH`
+		    	tcl_autopath=`echo 'puts -nonewline \$auto_path' | $TCLSH`
 			for path in $tcl_autopath; do
 			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
@@ -326,7 +326,7 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 		esac
     		if test x"${ac_cv_c_tclpkgd}" = x ; then
 		    # Fudge a path from the first entry in the auto_path
-		    tcl_pkgpath=`echo 'puts [[lindex \$auto_path 0]]' | $TCLSH`
+		    tcl_pkgpath=`echo 'puts -nonewline [[lindex \$auto_path 0]]' | $TCLSH`
 		    if test -d "$tcl_pkgpath"; then
 			ac_cv_c_tclpkgd="$tcl_pkgpath"
 		    fi
@@ -399,7 +399,7 @@ AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
 			[with_tclthread="no"])
 
 	AC_MSG_CHECKING([whether tclsh was compiled with threads])
-	tcl_threadenabled=`echo 'puts [[info exists tcl_platform\(threaded\)]]' | $TCLSH`
+	tcl_threadenabled=`echo 'puts -nonewline [[info exists tcl_platform(threaded)]]' | $TCLSH`
 	if test "$tcl_threadenabled" = "1" ; then
 		AC_MSG_RESULT([yes])
 	else
@@ -409,7 +409,7 @@ AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
 	
 	if test "x$with_tclthread" = "xno" ; then
 		AC_MSG_CHECKING([for Tcl thread package])
-		tcl_present=`echo 'if {[[catch {package require Thread}]]} {puts 0} else {puts 1}' | $TCLSH`
+		tcl_present=`echo 'if {[[catch {package require Thread}]]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
 		if test "$tcl_present" = "1" ; then
 			AC_MSG_RESULT([yes])
 			with_tclthread=no
