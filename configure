@@ -313,7 +313,8 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subdirs_all="$ac_subdirs_all src/thread2.6.2"
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR OUR_TCL_THREAD_PACKAGE INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -871,6 +872,7 @@ Optional Packages:
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files.
   --with-tclpackage       Tcl package installation directory.
+  --with-tclthread        install included thread package.
 
 Some influential environment variables:
   CC          C compiler command
@@ -7597,6 +7599,63 @@ echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
 
 
 
+# Check if thread package is already installed.
+
+
+# Check whether --with-tclthread or --without-tclthread was given.
+if test "${with_tclthread+set}" = set; then
+  withval="$with_tclthread"
+  with_tclthread="yes"
+else
+  with_tclthread="no"
+fi;
+
+	echo "$as_me:$LINENO: checking whether tclsh was compiled with threads" >&5
+echo $ECHO_N "checking whether tclsh was compiled with threads... $ECHO_C" >&6
+	tcl_threadenabled=`echo 'puts [info exists tcl_platform\(threaded\)]' | $TCLSH`
+	if test "$tcl_threadenabled" = "1" ; then
+		echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+	else
+		echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+		{ { echo "$as_me:$LINENO: error: tcl wasn't compiled with threads enabled" >&5
+echo "$as_me: error: tcl wasn't compiled with threads enabled" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+
+	if test "x$with_tclthread" = "xno" ; then
+		echo "$as_me:$LINENO: checking for Tcl thread package" >&5
+echo $ECHO_N "checking for Tcl thread package... $ECHO_C" >&6
+		tcl_present=`echo 'if {[catch {package require Thread}]} {puts 0} else {puts 1}' | $TCLSH`
+		if test "$tcl_present" = "1" ; then
+			echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6
+			with_tclthread=no
+		else
+			echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+			with_tclthread=yes
+		fi
+	fi
+
+
+# If thread package isn't installed, configure and install thread package.
+if test "$with_tclthread" = "yes"; then
+	OUR_TCL_THREAD_PACKAGE=thread2.6.2
+
+
+subdirs="$subdirs src/thread2.6.2"
+
+	# Extract thread package
+	(cd src/; gzip -d < thread2.6.2.tar.gz | tar xf -)
+	# Patch thread package (so thread2.6.2 is the vanilla distribution directory)
+	patch -p0 < src/thread2.6.2.diff
+else
+	OUR_TCL_THREAD_PACKAGE=
+fi
+
+
 # Allows building of shared libraries
 
     echo "$as_me:$LINENO: checking how to build libraries" >&5
@@ -7676,7 +7735,7 @@ prefix=$oldprefix
 
 # Output
 
-                                                                                          ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/ports.conf src/darwinports1.0/darwinports_autoconf.tcl src/port1.0/port_autoconf.tcl src/programs/Makefile src/darwinports1.0/darwinports_fastload.tcl"
+                                                                                                    ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/ports.conf src/Makefile src/darwinports1.0/darwinports_autoconf.tcl src/port1.0/port_autoconf.tcl src/programs/Makefile src/darwinports1.0/darwinports_fastload.tcl"
 
 
 cat >confcache <<\_ACEOF
@@ -8209,6 +8268,7 @@ do
   "doc/prefix.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
   "doc/macosx.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/macosx.mtree" ;;
   "doc/ports.conf" ) CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
+  "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "src/darwinports1.0/darwinports_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
   "src/port1.0/port_autoconf.tcl" ) CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
   "src/programs/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
@@ -8357,6 +8417,7 @@ s,@TCL_STUB_LIB_SPEC@,$TCL_STUB_LIB_SPEC,;t t
 s,@TCL_INCLUDES@,$TCL_INCLUDES,;t t
 s,@TCLSH@,$TCLSH,;t t
 s,@TCL_PACKAGE_DIR@,$TCL_PACKAGE_DIR,;t t
+s,@OUR_TCL_THREAD_PACKAGE@,$OUR_TCL_THREAD_PACKAGE,;t t
 s,@INCLUDES@,$INCLUDES,;t t
 s,@CFLAGS_DEBUG@,$CFLAGS_DEBUG,;t t
 s,@CFLAGS_OPTIMIZE@,$CFLAGS_OPTIMIZE,;t t

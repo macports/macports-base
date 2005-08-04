@@ -374,6 +374,51 @@ AC_DEFUN([OD_PROG_TCLSH],[
 	AC_SUBST(TCLSH)
 ])
 
+# OD_TCL_THREAD_SUPPORT
+#	Determine if thread support is available in tclsh and if thread package is
+#   installed.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#	TCLSH must be set
+#
+# Results:
+#
+#   Fail if thread support isn't available.
+#
+#	Set the following vars:
+#		with_tclthread
+#---------------------------------------
+AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
+    AC_ARG_WITH(
+    		tclthread,
+    		[  --with-tclthread        install included thread package.],
+    		[with_tclthread="yes"],
+			[with_tclthread="no"])
+
+	AC_MSG_CHECKING([whether tclsh was compiled with threads])
+	tcl_threadenabled=`echo 'puts [[info exists tcl_platform\(threaded\)]]' | $TCLSH`
+	if test "$tcl_threadenabled" = "1" ; then
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+		AC_MSG_ERROR([tcl wasn't compiled with threads enabled])
+	fi
+	
+	if test "x$with_tclthread" = "xno" ; then
+		AC_MSG_CHECKING([for Tcl thread package])
+		tcl_present=`echo 'if {[[catch {package require Thread}]]} {puts 0} else {puts 1}' | $TCLSH`
+		if test "$tcl_present" = "1" ; then
+			AC_MSG_RESULT([yes])
+			with_tclthread=no
+		else
+			AC_MSG_RESULT([no])
+			with_tclthread=yes
+		fi
+	fi
+])
 
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters

@@ -80,6 +80,22 @@ OD_PROG_TCLSH
 # Check for Tcl package path
 OD_TCL_PACKAGE_DIR
 
+# Check if thread package is already installed.
+OD_TCL_THREAD_SUPPORT
+
+# If thread package isn't installed, configure and install thread package.
+if test "$with_tclthread" = "yes"; then
+	OUR_TCL_THREAD_PACKAGE=thread2.6.2
+	AC_CONFIG_SUBDIRS([src/thread2.6.2])
+	# Extract thread package
+	(cd src/; gzip -d < thread2.6.2.tar.gz | tar xf -)
+	# Patch thread package (so thread2.6.2 is the vanilla distribution directory)
+	patch -p0 < src/thread2.6.2.diff
+else
+	OUR_TCL_THREAD_PACKAGE=
+fi
+AC_SUBST(OUR_TCL_THREAD_PACKAGE)
+
 # Allows building of shared libraries
 SC_ENABLE_SHARED
 
@@ -136,6 +152,7 @@ AC_CONFIG_FILES([
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/ports.conf
+	src/Makefile
 	src/darwinports1.0/darwinports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
 	src/programs/Makefile
