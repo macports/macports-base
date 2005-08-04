@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.80 2005/07/28 10:10:58 pguyot Exp $
+ * $Id: Pextlib.c,v 1.81 2005/08/04 12:56:12 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -644,37 +644,6 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 }
 
 /**
- * Call fork(2).
- * Syntax is fork
- * If it fails, generate a Tcl error.
- *
- * This implementation may or may not be identical to TclX's fork
- * implementation.
- */
-int ForkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	pid_t pid;
-	Tcl_Obj* result;
-	
-	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, NULL);
-		return TCL_ERROR;
-	}
-
-	pid = fork();
-	
-	if (pid < 0) {
-		Tcl_AppendResult(interp, "fork failed: ", strerror(errno), NULL);
-		return TCL_ERROR;		
-	}
-
-	result = Tcl_NewIntObj(pid);
-	Tcl_SetObjResult(interp, result);
-
-	return TCL_OK;
-}
-
-/**
  *
  * Return the list of elements in a directory.
  * Since 1.60.4.2, the list doesn't include . and ..
@@ -1142,7 +1111,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkfifo", MkfifoCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "fork", ForkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unixsocketpair", UnixSocketPairCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
