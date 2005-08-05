@@ -1,6 +1,6 @@
 /*
  * filemap.c
- * $Id: filemap.c,v 1.7 2005/07/26 11:30:32 pguyot Exp $
+ * $Id: filemap.c,v 1.8 2005/08/05 06:49:21 pguyot Exp $
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -226,6 +226,7 @@ int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapListCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapOpenCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapRevertCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapSaveCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapSetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
@@ -1405,8 +1406,8 @@ FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
-		/* Save the filemap to file if it's not RAM only */
-		if (theFilemapObject->fIsRAMOnly) {
+		/* Save the filemap to file if it's dirty & not RAM only */
+		if (!(theFilemapObject->fIsDirty) || (theFilemapObject->fIsRAMOnly)) {
 			theErr = 0;
 		} else {
 			theErr = Save(
