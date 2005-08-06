@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.7 2005/08/06 10:33:35 pguyot Exp $
+# $Id: porttrace.tcl,v 1.8 2005/08/06 23:58:37 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -93,7 +93,7 @@ proc trace_check_create {} {
 	# Compare with portslist
 	set created [lsort $created]
 	foreach created_file $created {
-		ui_warn "trace revealed an illegal file creation: $created_file"
+		ui_warn "trace revealed a file was created outside \${workpath}: $created_file"
 	}
 }
 
