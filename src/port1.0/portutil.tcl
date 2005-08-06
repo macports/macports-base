@@ -647,43 +647,39 @@ proc target_run {ditem} {
 
 			# Check dependencies.
 			if {([info exists ports_trace] && $ports_trace == "yes")} {
-				set deps_run {}
-				set deps_lib {}
-				set deps_build {}
+				set depends {}
+				set deptypes {}
+				
+				# Determine deptypes to look for based on target
+				switch $target {
+					configure	{ set deptypes "depends_lib" }
+					
+					build		{ set deptypes "depends_lib depends_build" }
+					
+					destroot	-
+					install		-
+					archive		-
+					pkg			-
+					mpkg		-
+					rpmpackage	-
+					dpkg		-
+					""			{ set deptypes "depends_lib depends_build depends_run" }
+				}
+				
+				# Gather the dependencies for deptypes
+				foreach deptype $deptypes {
+					# Add to the list of dependencies if the option exists and isn't empty.
+					if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
+						set depends [concat $depends $portinfo($deptype)]
+					}
+				}
 
-				if {[info exists PortInfo(depends_run)]} {
-					set deps_run $PortInfo(depends_run)
-				}
-				if {[info exists PortInfo(depends_lib)]} {
-					set deps_lib $PortInfo(depends_lib)
-				}
-				if {[info exists PortInfo(depends_build)]} {
-					set deps_build $PortInfo(depends_build)
-				}
-				set target [ditem_key $ditem provides]
-				set deps {}
-				if {$target == "configure"} {
-					set deps $deps_lib
-				} elseif {$target == "build"} {
-					set deps $deps_lib
-					lappend deps $deps_build
-				} elseif {$target == "destroot"} {
-					set deps $deps_lib
-					lappend deps $deps_build
-					lappend deps $deps_run
-				} elseif {$target == "install"} {
-					set deps $deps_lib
-					lappend deps $deps_build
-					lappend deps $deps_run
-				} elseif {$target == "package"} {
-					set deps $deps_lib
-					lappend deps $deps_build
-					lappend deps $deps_run
-				}
 				# Dependencies are in the form verb:[param:]port
 				set depsPorts {}
 				foreach dep $deps {
-					lappend depsPorts [lindex [split [lindex $dep 0] :] end]
+					# grab the portname portion of the depspec
+					set portname [lindex [split $depspec :] end]
+					lappend depsPorts $portname
 				}
 				trace_check_deps $depsPorts
 			}

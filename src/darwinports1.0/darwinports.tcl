@@ -1043,6 +1043,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
 	array set portinfo [dportinfo $dport]
 	set depends {}
+	set deptypes {}
 	
 	# Determine deptypes to look for based on target
 	switch $target {
@@ -1064,7 +1065,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 	foreach deptype $deptypes {
 		# Add to the list of dependencies if the option exists and isn't empty.
 		if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
-			append depends $portinfo($deptype)
+			set depends [concat $depends $portinfo($deptype)]
 		}
 	}
 
