@@ -645,12 +645,13 @@ proc target_run {ditem} {
 			set result [catch {$postrun $name} errstr]
 			}
 
-			# Check dependencies.
+			# Check dependencies & files creates outside work.
 			if {([info exists ports_trace] && $ports_trace == "yes")} {
 				set depends {}
 				set deptypes {}
 				
 				# Determine deptypes to look for based on target
+				set target [ditem_key $ditem provides]
 				switch $target {
 					configure	{ set deptypes "depends_lib" }
 					
@@ -676,12 +677,19 @@ proc target_run {ditem} {
 
 				# Dependencies are in the form verb:[param:]port
 				set depsPorts {}
-				foreach dep $deps {
+				foreach dep $depends {
 					# grab the portname portion of the depspec
 					set portname [lindex [split $depspec :] end]
 					lappend depsPorts $portname
 				}
 				trace_check_deps $depsPorts
+				
+				# Check files that were created.
+				if {$target != "activate"
+					|| $target != "fetch"
+					|| $target != "install"} {
+					trace_check_create
+				}
 			}
 
 			if {([info exists ports_trace] && $ports_trace == "yes")} {

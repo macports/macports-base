@@ -41,6 +41,18 @@
 #include <sys/param.h>
 #include <sys/syscall.h>
 
+/*
+ * Compile time options:
+ * DARWINTRACE_SHOW_PROCESS: show the process id of every access
+ * DARWINTRACE_LOG_CREATE: log creation of files as well.
+ */
+
+/*
+ * Prototypes.
+ */
+void log_op(const char* op, const char* path, int fd);
+void __darwintrace_setup();
+
 int __darwintrace_fd = -2;
 #define BUFFER_SIZE	1024
 char __darwintrace_buf[BUFFER_SIZE];
@@ -50,6 +62,7 @@ pid_t __darwintrace_pid = -1;
 #endif
 
 inline void __darwintrace_setup() {
+#define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 	if (__darwintrace_fd == -2) {
 	  char* path = getenv("DARWINTRACE_LOG");
 	  if (path != NULL) {
@@ -68,12 +81,61 @@ inline void __darwintrace_setup() {
 		}
 	}
 #endif
+#undef open
+}
+
+/* log a call and optionally get the real path from the fd if it's not 0.
+ */
+void log_op(const char* op, const char* path, int fd) {
+	int size;
+	char somepath[MAXPATHLEN];
+	if((fd > 0) && (strncmp(path, "/.vol/", 6) == 0)) {
+		if(0 == fcntl(fd, F_GETPATH, somepath)) {
+#if DARWINTRACE_SHOW_PROCESS
+			size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\t%s\t%s\n", __darwintrace_progname, __darwintrace_pid, op, somepath );
+			/* printf("resolved %s to %s\n", path, realpath); */
+#else
+	  		size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s\t%s\n", op, somepath );
+#endif
+		} else {
+			/* if we can't resolve it, ignore the volfs path */
+			size = 0;
+		}
+	} else {
+		/* append cwd to the path if required */
+		if (path[0] != '/') {
+			(void) getcwd(somepath, sizeof(somepath));
+#if DARWINTRACE_SHOW_PROCESS
+			size = snprintf(__darwintrace_buf,
+						BUFFER_SIZE, "%s[%d]\t%s\t%s/%s\n",
+						__darwintrace_progname, __darwintrace_pid,
+						op, somepath, path );
+#else
+			size = snprintf(__darwintrace_buf,
+						BUFFER_SIZE, "%s\t%s/%s\n", op, somepath, path );
+#endif
+		} else {
+#if DARWINTRACE_SHOW_PROCESS
+			size = snprintf(__darwintrace_buf,
+						BUFFER_SIZE, "%s[%d]\t%s\t%s\n",
+						__darwintrace_progname, __darwintrace_pid,
+						op, path );
+#else
+			size = snprintf(__darwintrace_buf,
+						BUFFER_SIZE, "%s\t%s\n", op, path );
+#endif
+		}
+	}
+	write(__darwintrace_fd, __darwintrace_buf, size);
+	fsync(__darwintrace_fd);
 }
 
 /* Log calls to open(2) into the file specified by DARWINTRACE_LOG.
    Only logs if the DARWINTRACE_LOG environment variable is set.
+   Only logs files (or rather, do not logs directories)
    Only logs files where the open succeeds.
-   Only logs files opened for read access, without the O_CREAT flag set.
+   Only logs files opened for read access, without the O_CREAT flag set
+   	(except if DARWINTRACE_LOG_CREATE is set).
    The assumption is that any file that can be created isn't necessary
    to build the project.
 */
@@ -88,35 +150,28 @@ int open(const char* path, int flags, ...) {
 	mode = va_arg(args, int);
 	va_end(args);
 	result = open(path, flags, mode);
-	if (result >= 0 && (flags & (O_CREAT | O_WRONLY /*O_RDWR*/)) == 0 ) {
-		__darwintrace_setup();
-		if (__darwintrace_fd >= 0) {
-		  int size;
-		  if(strncmp(path, "/.vol/", 6) == 0) {
-		    char realpath[MAXPATHLEN];
-		    if(0 == fcntl(result, F_GETPATH, realpath)) {
-#if DARWINTRACE_SHOW_PROCESS
-		      size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\topen\t%s\n", __darwintrace_progname, __darwintrace_pid, realpath );
-		      /* printf("resolved %s to %s\n", path, realpath); */
-#else
-		      size = snprintf(__darwintrace_buf, BUFFER_SIZE, "open\t%s\n", realpath );
+	if (result >= 0) {
+		/* check that it's a file */
+		struct stat sb;
+		fstat(result, &sb);
+		if ((sb.st_mode & S_IFDIR) == 0) {
+			if ((flags & (O_CREAT | O_WRONLY /*O_RDWR*/)) == 0 ) {
+				__darwintrace_setup();
+				if (__darwintrace_fd >= 0) {
+					log_op("open", path, result);
+				}
+#if DARWINTRACE_LOG_CREATE
+			} else if (flags & O_CREAT) {
+				__darwintrace_setup();
+				if (__darwintrace_fd >= 0) {
+					log_op("create", path, result);
+				}
 #endif
-		    } else {
-		    /* if we can't resolve it, ignore the volfs path */
-		      size = 0;
-		    }
-		  } else {
-#if DARWINTRACE_SHOW_PROCESS
-		    size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\topen\t%s\n", __darwintrace_progname, __darwintrace_pid, path );
-#else
-			size = snprintf(__darwintrace_buf, BUFFER_SIZE, "open\t%s\n", path );
-#endif
-		  }
-		  write(__darwintrace_fd, __darwintrace_buf, size);
-		  fsync(__darwintrace_fd);
+			}
 		}
 	}
 	return result;
+#undef open
 }
 
 int execve(const char* path, char* const argv[], char* const envp[]) {
@@ -127,15 +182,9 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	if (__darwintrace_fd >= 0) {
 	  struct stat sb;
 	  if (stat(path, &sb) == 0) {
-#if DARWINTRACE_SHOW_PROCESS
-		int size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\texecve\t%s\n", __darwintrace_progname, __darwintrace_pid, path );
-#else
-		int size = snprintf(__darwintrace_buf, BUFFER_SIZE, "execve\t%s\n", path );
-#endif
-		int fd;
-		
-		write(__darwintrace_fd, __darwintrace_buf, size);
-		fsync(__darwintrace_fd);
+	  	int fd;
+	  	
+		log_op("execve", path, 0);
 		
 		fd = open(path, O_RDONLY, 0);
 		if (fd != -1) {
@@ -160,15 +209,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 				}
 				/* we have liftoff */
 				if (interp) {
-#if DARWINTRACE_SHOW_PROCESS
-					const char* procname = strrchr(argv[0], '/') + 1;
-					if (procname == NULL) procname = argv[0];
-					int size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\texecve\t%s\n", procname, 0, interp );
-#else
-					int size = snprintf(__darwintrace_buf, BUFFER_SIZE, "execve\t%s\n", interp );
-#endif
-					write(__darwintrace_fd, __darwintrace_buf, size);
-					fsync(__darwintrace_fd);
+					log_op("execve", interp, 0);
 				}
 			}
 			close(fd);

@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.6 2005/08/04 12:55:39 pguyot Exp $
+# $Id: porttrace.tcl,v 1.7 2005/08/06 10:33:35 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -49,7 +49,7 @@ proc trace_start {workpath} {
 			mkfifo $trace_fifo 0600
 			
 			# Create the thread/process.
-			create_slave $trace_fifo
+			create_slave $workpath $trace_fifo
 					
 			# Launch darwintrace.dylib.
 			
@@ -78,6 +78,25 @@ proc trace_check_deps {portslist} {
 	}
 }
 
+# Check that no file were created outside workpath.
+# Output a warning for every created file the trace revealed.
+# This method must be called after trace_start
+proc trace_check_create {} {
+	global trace_mutex
+	# Acquire the mutex.
+	thread::mutex lock $trace_mutex
+	# Get the list of created files.
+	set created [slave_send slave_get_created]
+	# Release the mutex.
+	thread::mutex unlock $trace_mutex
+	
+	# Compare with portslist
+	set created [lsort $created]
+	foreach created_file $created {
+		ui_warn "trace revealed an illegal file creation: $created_file"
+	}
+}
+
 # Stop the trace and return the list of ports the port depends on.
 # This method must be called after trace_start
 proc trace_stop {} {
@@ -100,10 +119,13 @@ proc trace_stop {} {
 
 # Private
 # Create the slave thread.
-proc create_slave {trace_fifo} {
-	global trace_thread
+proc create_slave {workpath trace_fifo} {
+	global trace_thread trace_mutex
 	# Create the thread.
 	set trace_thread [thread::create -preserved {thread::wait}]
+	
+	# Create the mutex
+	set trace_mutex [thread::mutex create]
 
 	# Tell the thread about all the Tcl packages we already
 	# know about so it won't glob for packages.
@@ -131,7 +153,7 @@ proc create_slave {trace_fifo} {
 	thread::send -async $trace_thread "package require porttrace 1.0"
 
 	# Start the slave work.
-	thread::send -async $trace_thread "slave_start $trace_fifo"
+	thread::send -async $trace_thread "slave_start $trace_fifo $workpath $trace_mutex"
 }
 
 # Private
@@ -163,52 +185,81 @@ proc delete_slave {} {
 # Private.
 # Slave method to read a line from the trace.
 proc slave_read_line {chan} {
-	global ports_list trace_filemap
+	global ports_list trace_filemap created_list workpath trace_mutex own_mutex
 
-	# We should never get EOF, actually.
-	if {![eof $chan]} {
+	# Acquire the mutex.
+	thread::mutex lock $trace_mutex
+
+	while 1 {
+		# We should never get EOF, actually.
+		if {[eof $chan]} {
+			break
+		}
+		
 		# The line is of the form: verb\tpath
 		# Get the path by chopping it.
 		set theline [gets $chan]
 		
+		if {[fblocked $chan]} {
+			# Exit the loop.
+			break
+		}
+
 		set line_length [string length $theline]
 		
 		# Skip empty lines.
 		if {$line_length > 0} {
 			set path_start [expr [string first "\t" $theline] + 1]
+			set op [string range $theline 0 [expr $path_start - 2]]
 			set path [string range $theline $path_start [expr $line_length - 1]]
 			set path [file normalize $path]
 			
-			# Only work on files.
-			if {[file isfile $path]} {
-				# Did we process the file yet?
-				if {![filemap exists trace_filemap $path]} {
-					# Obtain information about this file.
-					set port [registry::file_registered $path]
-					if { $port != 0 } {
-						# Add the port to the list.
-						if {[lsearch -sorted -exact $ports_list $port] == -1} {
-							lappend ports_list $port
-							set ports_list [lsort $ports_list]
-							# Maybe fill trace_filemap for efficiency?
+			# open/execve
+			if {$op == "open" || $op == "execve"} {
+				# Only work on files.
+				if {[file isfile $path]} {
+					# Did we process the file yet?
+					if {![filemap exists trace_filemap $path]} {
+						# Obtain information about this file.
+						set port [registry::file_registered $path]
+						if { $port != 0 } {
+							# Add the port to the list.
+							if {[lsearch -sorted -exact $ports_list $port] == -1} {
+								lappend ports_list $port
+								set ports_list [lsort $ports_list]
+								# Maybe fill trace_filemap for efficiency?
+							}
 						}
+			
+						# Add the file to the tree with port information.
+						filemap set trace_filemap $path $port
 					}
-		
-					# Add the file to the tree with port information.
-					filemap set trace_filemap $path $port
+				}
+			} elseif {$op == "create"} {
+				# Only keep entries not under workpath
+				if {![string equal -length [string length $workpath] $workpath $path]} {
+					lappend created_list $path
 				}
 			}
 		}
 	}
+
+	thread::mutex unlock $trace_mutex
 }
 
 # Private.
 # Slave init method.
-proc slave_start {fifo} {
-	global ports_list trace_filemap trace_fifo_r_chan trace_fifo_w_chan
+proc slave_start {fifo p_workpath mutex} {
+	global ports_list trace_filemap created_list trace_fifo_r_chan \
+		trace_fifo_w_chan workpath trace_mutex own_mutex
+	# Save the workpath and the mutex.
+	set workpath $p_workpath
+	set trace_mutex $mutex
+	set own_mutex 0
 	# Create a virtual filemap.
 	filemap create trace_filemap
 	set ports_list {}
+	set created_list {}
 	set trace_fifo_r_chan [open $fifo {RDONLY NONBLOCK}]
 	# To prevent EOF when darwintrace closes the file, I also open the pipe
 	# myself as write only.
@@ -217,6 +268,7 @@ proc slave_start {fifo} {
 	# know how to wait for this while still being interruptable (i.e. while
 	# still being able to get commands thru thread::send). Thoughts, anyone?
 	set trace_fifo_w_chan [open $fifo w]
+	fconfigure $trace_fifo_r_chan -blocking 0 -buffering line
 	fileevent $trace_fifo_r_chan readable [list slave_read_line $trace_fifo_r_chan]
 }
 
@@ -236,4 +288,11 @@ proc slave_stop {} {
 proc slave_get_ports {} {
 	global ports_list
 	return $ports_list
+}
+
+# Private.
+# Slave created export method.
+proc slave_get_created {} {
+	global created_list
+	return $created_list
 }
