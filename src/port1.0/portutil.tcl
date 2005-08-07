@@ -645,7 +645,7 @@ proc target_run {ditem} {
 			set result [catch {$postrun $name} errstr]
 			}
 
-			# Check dependencies & files creates outside work.
+			# Check dependencies & file creations outside workpath.
 			if {([info exists ports_trace] && $ports_trace == "yes")} {
 				set depends {}
 				set deptypes {}
