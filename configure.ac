@@ -85,12 +85,12 @@ OD_TCL_THREAD_SUPPORT
 
 # If thread package isn't installed, configure and install thread package.
 if test "$with_tclthread" = "yes"; then
-	OUR_TCL_THREAD_PACKAGE=thread2.6.2
-	AC_CONFIG_SUBDIRS([src/thread2.6.2])
+	OUR_TCL_THREAD_PACKAGE=thread2.6.1
+	AC_CONFIG_SUBDIRS([src/thread2.6.1])
 	# Extract thread package
-	(cd src/; gzip -d < thread2.6.2.tar.gz | tar xf -)
-	# Patch thread package (so thread2.6.2 is the vanilla distribution directory)
-	patch -p0 < src/thread2.6.2.diff
+	(cd src/; gzip -d < thread2.6.1.tar.gz | tar xf -)
+	# Patch thread package (so thread2.6.1 is the vanilla distribution directory)
+	patch -p0 < src/thread2.6.1.diff
 else
 	OUR_TCL_THREAD_PACKAGE=
 fi

@@ -1,0 +1,34 @@
+diff -u src/thread2.6.1/Makefile.in src/thread2.6.1/Makefile.in
+--- src/thread2.6.1/Makefile.in	2005-07-28 17:15:51.000000000 +0900
++++ src/thread2.6.1/Makefile.in	2005-08-04 21:25:44.000000000 +0900
+@@ -70,9 +70,9 @@
+ exec_prefix	= @exec_prefix@
+ 
+ bindir		= @bindir@
+-libdir		= @libdir@
++libdir		= @prefix@/share/darwinports/Tcl
+ datadir		= @datadir@
+-mandir		= @mandir@
++mandir		= @prefix@/share/man
+ includedir	= @includedir@
+ 
+ DESTDIR		=
+diff -u src/thread2.6.1/configure src/thread2.6.1.mine/configure
+--- src/thread2.6.1/configure.orig	Mon Jan  3 00:21:22 2005
++++ src/thread2.6.1/configure	Sun Aug  7 04:45:05 2005
+@@ -6427,13 +6427,11 @@
+    { (exit 1); exit 1; }; }
+ 	    fi
+ 	else
+-	    # Check order: pkg --prefix location, Tcl's --prefix location,
++	    # Check order:
+ 	    # directory of tclConfig.sh, and Tcl source directory.
+ 	    # Looking in the source dir is not ideal, but OK.
+ 
+-	    eval "temp_includedir=${includedir}"
+-	    list="`ls -d ${temp_includedir}      2>/dev/null` \
+-		`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
++	    list="`ls -d ${TCL_PREFIX}/include     2>/dev/null` \
+ 		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
+ 		`ls -d ${TCL_SRC_DIR}/generic    2>/dev/null`"
+ 	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
