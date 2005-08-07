@@ -33,7 +33,6 @@
 package provide darwinports 1.0
 package require darwinports_dlist 1.0
 package require darwinports_index 1.0
-package require portutil 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports
@@ -72,6 +71,20 @@ proc darwinports::ui_event {context message} {
 rename puts tcl::puts
 proc puts {args} {
 	catch "tcl::puts $args"
+}
+
+# check for a binary in the path
+# returns an error code if it can not be found
+# copied from portutil.tcl
+proc binaryInPath {binary} {
+    global env
+    foreach dir [split $env(PATH) :] { 
+	if {[file executable [file join $dir $binary]]} {
+	    return [file join $dir $binary]
+	}
+    }
+    
+    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
 }
 
 proc dportinit {args} {
