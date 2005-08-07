@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.8 2005/08/06 23:58:37 pguyot Exp $
+# $Id: porttrace.tcl,v 1.9 2005/08/07 11:14:45 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -39,8 +39,8 @@ package require registry 1.0
 proc trace_start {workpath} {
 	global os.platform
 	if {${os.platform} == "darwin"} {
-		if {[catch {package require Thread}]} {
-			ui_warn "trace requires Tcl Thread package"
+		if {[catch {package require Thread} error]} {
+			ui_warn "trace requires Tcl Thread package ($error)"
 		} else {
 			global prefix env trace_fifo darwinports::portinterp_options
 			# Create a fifo.
@@ -236,8 +236,11 @@ proc slave_read_line {chan} {
 					}
 				}
 			} elseif {$op == "create"} {
-				# Only keep entries not under workpath
-				if {![string equal -length [string length $workpath] $workpath $path]} {
+				# Only keep entries not under workpath, under /tmp/ and under
+				# /var/tmp/
+				if {![string equal -length [string length "/tmp/"] "/tmp/" $path]
+					&& ![string equal -length [string length "/var/tmp/"] "/var/tmp/" $path]
+					&& ![string equal -length [string length $workpath] $workpath $path]} {
 					lappend created_list $path
 				}
 			}
