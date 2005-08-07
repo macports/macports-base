@@ -88,7 +88,7 @@ proc binaryInPath {binary} {
 }
 
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options darwinports::xcodeversion
+    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options darwinports::xcodeversion
 	global options variations
 
     # first look at PORTSRC for testing/debugging
@@ -381,7 +381,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath portbuildpath options variations} {
-    global darwinports::portinterp_options auto_path registry.installtype
+    global darwinports::portinterp_options registry.installtype
 
 	# Tell the sub interpreter about all the Tcl packages we already
 	# know about so it won't glob for packages.
@@ -404,6 +404,9 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 
     # instantiate the UI call-back
     $workername alias ui_event darwinports::ui_event $workername
+    
+    # Export some utility functions defined here.
+    $workername alias darwinports_create_thread darwinports::create_thread
 
 	# New Registry/Receipts stuff
 	$workername alias registry_new registry::new_entry
@@ -442,6 +445,42 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
     if { [info exists registry.installtype] } {
 	    $workername eval set installtype ${registry.installtype}
     }
+}
+
+# Create a thread with most configuration options set.
+# The newly created thread is sent portinterp_options vars and knows where to find
+# all packages we know.
+proc darwinports::create_thread {} {
+    package require Thread
+
+    global darwinports::portinterp_options
+
+	# Create the thread.
+	set result [thread::create -preserved {thread::wait}]
+
+	# Tell the thread about all the Tcl packages we already
+	# know about so it won't glob for packages.
+	foreach pkgName [package names] {
+		foreach pkgVers [package versions $pkgName] {
+			set pkgLoadScript [package ifneeded $pkgName $pkgVers]
+			thread::send -async $result "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
+		}
+	}
+
+	# inherit configuration variables.
+	thread::send -async $result "namespace eval darwinports {}"
+	foreach opt $portinterp_options {
+		if {![info exists $opt]} {
+			global darwinports::$opt
+		}
+        if {[info exists $opt]} {
+			thread::send -async $result "global darwinports::$opt"
+			set val [set darwinports::$opt]
+			thread::send -async $result "set darwinports::$opt \"$val\""
+		}
+	}
+	
+	return $result
 }
 
 proc darwinports::fetch_port {url} {
@@ -509,7 +548,7 @@ proc darwinports::getportdir {url {destdir "."}} {
 # DarwinPorts Portfile.
 
 proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
-    global darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
+    global darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
 
 	# Look for an already-open DPort with the same URL.
 	# XXX: should compare options and variations here too.
@@ -799,7 +838,7 @@ proc _dportexec {target dport} {
 # Execute the specified target of the given dport.
 
 proc dportexec {dport target} {
-    global darwinports::portinterp_options darwinports::registry.installtype
+    global darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
 

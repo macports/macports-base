@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.9 2005/08/07 11:14:45 pguyot Exp $
+# $Id: porttrace.tcl,v 1.10 2005/08/07 23:39:38 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -34,7 +34,6 @@
 
 package provide porttrace 1.0
 package require Pextlib 1.0
-package require registry 1.0
 
 proc trace_start {workpath} {
 	global os.platform
@@ -122,34 +121,14 @@ proc trace_stop {} {
 proc create_slave {workpath trace_fifo} {
 	global trace_thread trace_mutex
 	# Create the thread.
-	set trace_thread [thread::create -preserved {thread::wait}]
+	set trace_thread [darwinports_create_thread]
 	
 	# Create the mutex
 	set trace_mutex [thread::mutex create]
 
-	# Tell the thread about all the Tcl packages we already
-	# know about so it won't glob for packages.
-	foreach pkgName [package names] {
-		foreach pkgVers [package versions $pkgName] {
-			set pkgLoadScript [package ifneeded $pkgName $pkgVers]
-			thread::send -async $trace_thread "package ifneeded $pkgName $pkgVers {$pkgLoadScript}"
-		}
-	}
-
-	# inherit some configuration variables.
-	thread::send -async $trace_thread "namespace eval darwinports {}"
-	namespace eval darwinports {
-		foreach opt $portinterp_options {
-			if {![info exists $opt]} {
-				global darwinports::$opt
-			}
-			thread::send -async $trace_thread "global darwinports::$opt"
-			set val [set $opt]
-			thread::send -async $trace_thread "set darwinports::$opt \"$val\""
-		}
-	}
-
-	# load this file
+	# The slave thread requires the registry package.
+	thread::send -async $trace_thread "package require registry 1.0"
+	# and this file as well.
 	thread::send -async $trace_thread "package require porttrace 1.0"
 
 	# Start the slave work.
@@ -236,10 +215,11 @@ proc slave_read_line {chan} {
 					}
 				}
 			} elseif {$op == "create"} {
-				# Only keep entries not under workpath, under /tmp/ and under
-				# /var/tmp/
+				# Only keep entries not under workpath, under /tmp/, under
+				# /var/tmp/ and /dev/null
 				if {![string equal -length [string length "/tmp/"] "/tmp/" $path]
 					&& ![string equal -length [string length "/var/tmp/"] "/var/tmp/" $path]
+					&& ![string equal "/dev/null" $path]
 					&& ![string equal -length [string length $workpath] $workpath $path]} {
 					lappend created_list $path
 				}
