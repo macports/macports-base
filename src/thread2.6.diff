@@ -1,6 +1,6 @@
-diff -u src/thread2.6.1/Makefile.in src/thread2.6.1/Makefile.in
---- src/thread2.6.1/Makefile.in	2005-07-28 17:15:51.000000000 +0900
-+++ src/thread2.6.1/Makefile.in	2005-08-04 21:25:44.000000000 +0900
+diff -u src/thread2.6/Makefile.in src/thread2.6/Makefile.in
+--- src/thread2.6/Makefile.in	2005-07-28 17:15:51.000000000 +0900
++++ src/thread2.6/Makefile.in	2005-08-04 21:25:44.000000000 +0900
 @@ -70,9 +70,9 @@
  exec_prefix	= @exec_prefix@
  
@@ -13,9 +13,9 @@ diff -u src/thread2.6.1/Makefile.in src/thread2.6.1/Makefile.in
  includedir	= @includedir@
  
  DESTDIR		=
-diff -u src/thread2.6.1/configure src/thread2.6.1.mine/configure
---- src/thread2.6.1/configure.orig	Mon Jan  3 00:21:22 2005
-+++ src/thread2.6.1/configure	Sun Aug  7 04:45:05 2005
+diff -u src/thread2.6/configure src/thread2.6.mine/configure
+--- src/thread2.6/configure.orig	Mon Jan  3 00:21:22 2005
++++ src/thread2.6/configure	Sun Aug  7 04:45:05 2005
 @@ -6427,13 +6427,11 @@
     { (exit 1); exit 1; }; }
  	    fi
