@@ -686,8 +686,8 @@ proc target_run {ditem} {
 				
 				# Check files that were created.
 				if {$target != "activate"
-					|| $target != "fetch"
-					|| $target != "install"} {
+					&& $target != "fetch"
+					&& $target != "install"} {
 					trace_check_create
 				}
 			}
