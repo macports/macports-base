@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.10 2005/08/07 23:39:38 pguyot Exp $
+# $Id: porttrace.tcl,v 1.11 2005/08/08 02:20:12 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -211,7 +211,11 @@ proc slave_read_line {chan} {
 						}
 			
 						# Add the file to the tree with port information.
-						filemap set trace_filemap $path $port
+						# Ignore errors. Errors can occur if a directory was
+						# created where a file once lived.
+						# This doesn't affect existing ports and we just
+						# add this information to speed up port detection.
+						catch {filemap set trace_filemap $path $port}
 					}
 				}
 			} elseif {$op == "create"} {
