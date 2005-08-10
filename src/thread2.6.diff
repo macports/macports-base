@@ -9,7 +9,7 @@ diff -u src/thread2.6/Makefile.in src/thread2.6/Makefile.in
 +libdir		= @prefix@/share/darwinports/Tcl
  datadir		= @datadir@
 -mandir		= @mandir@
-+mandir		= @prefix@/share/man
++mandir		= @prefix@/share/darwinports/man
  includedir	= @includedir@
  
  DESTDIR		=
