@@ -374,9 +374,29 @@ AC_DEFUN([OD_PROG_TCLSH],[
 	AC_SUBST(TCLSH)
 ])
 
+# OD_TCL_PACKAGE
+#	Determine if a Tcl package is present.
+#
+# Arguments:
+#	Package name (may include the version)
+#
+# Syntax:
+#   OD_TCL_PACKAGE (package, [action-if-found], [action-if-not-found])
+#
+# Requires:
+#	TCLSH must be set
+#
+# Results:
+#	Execute action-if-found or action-if-not-found
+#---------------------------------------
+AC_DEFUN([OD_TCL_PACKAGE],[
+	AC_MSG_CHECKING([for Tcl $1 package])
+	package_present=`echo 'if {[[catch {package require $1}]]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
+	AS_IF([test "$package_present" = "1"], [$2], [$3])[]
+])
+
 # OD_TCL_THREAD_SUPPORT
-#	Determine if thread support is available in tclsh and if thread package is
-#   installed.
+#	Determine if thread support is available in tclsh.
 #
 # Arguments:
 #	None.
@@ -385,19 +405,9 @@ AC_DEFUN([OD_PROG_TCLSH],[
 #	TCLSH must be set
 #
 # Results:
-#
-#   Fail if thread support isn't available.
-#
-#	Set the following vars:
-#		with_tclthread
+#   Fails if thread support isn't available.
 #---------------------------------------
 AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
-    AC_ARG_WITH(
-    		tclthread,
-    		[  --with-tclthread        install included thread package.],
-    		[with_tclthread="yes"],
-			[with_tclthread="no"])
-
 	AC_MSG_CHECKING([whether tclsh was compiled with threads])
 	tcl_threadenabled=`echo 'puts -nonewline [[info exists tcl_platform(threaded)]]' | $TCLSH`
 	if test "$tcl_threadenabled" = "1" ; then
@@ -406,17 +416,62 @@ AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
 		AC_MSG_RESULT([no])
 		AC_MSG_ERROR([tcl wasn't compiled with threads enabled])
 	fi
-	
-	if test "x$with_tclthread" = "xno" ; then
-		AC_MSG_CHECKING([for Tcl thread package])
-		tcl_present=`echo 'if {[[catch {package require Thread}]]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
-		if test "$tcl_present" = "1" ; then
-			AC_MSG_RESULT([yes])
-			with_tclthread=no
-		else
-			AC_MSG_RESULT([no])
-			with_tclthread=yes
-		fi
+])
+
+# OD_LIBCURL_FLAGS
+#	Sets the flags to compile with libcurl.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#   curl-config or user parameters to define the flags.
+#
+# Results:
+#   defines some help strings.
+#   sets CFLAGS_LIBCURL and LDFLAGS_LIBCURL
+#---------------------------------------
+AC_DEFUN([OD_LIBCURL_FLAGS],[
+	AC_ARG_WITH(curlprefix,
+		   [  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...],
+		   [  curlprefix=$withval ])
+
+	if test "x$curlprefix" = "x"; then
+		AC_PATH_PROG([CURL_CONFIG], [curl-config])
+	else
+		AC_PATH_PROG([CURL_CONFIG], [curl-config], , [$curlprefix/bin])
+	fi
+
+	if test "x$CURL_CONFIG" = "x"; then
+		AC_MSG_ERROR([cannot find curl-config. Is libcurl installed?])
+	fi
+
+	CFLAGS_LIBCURL=`$CURL_CONFIG --cflags`
+	LDFLAGS_LIBCURL=`$CURL_CONFIG --libs`
+
+	AC_SUBST(CFLAGS_LIBCURL)
+	AC_SUBST(LDFLAGS_LIBCURL)
+])
+
+# OD_LIBCURL_VERSION
+#	Determine the version of libcurl.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#	CURL must be set
+#
+# Results:
+#   sets libcurl_version to "0" or some number
+#---------------------------------------
+AC_DEFUN([OD_LIBCURL_VERSION],[
+	if test "x$CURL" = "x"; then
+		libcurl_version="0"
+	else
+		AC_MSG_CHECKING([libcurl version])
+		libcurl_version=`$CURL -V | sed '2,$d' | awk '{print $ 2}' | sed -e 's/\.//g' -e 's/-.*//g'`
+		AC_MSG_RESULT([$libcurl_version])
 	fi
 ])
 

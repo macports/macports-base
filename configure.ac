@@ -80,21 +80,41 @@ OD_PROG_TCLSH
 # Check for Tcl package path
 OD_TCL_PACKAGE_DIR
 
-# Check if thread package is already installed.
+# Check if thread is enabled.
 OD_TCL_THREAD_SUPPORT
 
+## libcurl
+OD_LIBCURL_FLAGS
+
+# Determine if we need to install some bundled packages
+OUR_INCLUDED_PACKAGES=
+
+## Thread package.
+AC_ARG_WITH(
+		included-tclthread,
+		[  --with-included-tclthread install included Thread package.],
+		[with_included_tclthread=$withval],
+		[with_included_tclthread="unspecified"])
+
+# Check if thread package is already installed.
+if test "x$with_included_tclthread" = "xunspecified" ; then
+	OD_TCL_PACKAGE(
+		[Thread],
+		[AC_MSG_RESULT([yes]); with_included_tclthread=no],
+		[AC_MSG_RESULT([no]); with_included_tclthread=yes])
+fi
+
 # If thread package isn't installed, configure and install thread package.
-if test "$with_tclthread" = "yes"; then
-	OUR_TCL_THREAD_PACKAGE=thread2.6
+if test "$with_included_tclthread" = "yes"; then
+	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES thread2.6"
 	AC_CONFIG_SUBDIRS([src/thread2.6])
 	# Extract thread package
 	(cd src/; gzip -d < thread2.6.tar.gz | tar xf -)
 	# Patch thread package (so thread2.6 is the vanilla distribution directory)
 	patch -p0 < src/thread2.6.diff
-else
-	OUR_TCL_THREAD_PACKAGE=
 fi
-AC_SUBST(OUR_TCL_THREAD_PACKAGE)
+
+AC_SUBST(OUR_INCLUDED_PACKAGES)
 
 # Allows building of shared libraries
 SC_ENABLE_SHARED
