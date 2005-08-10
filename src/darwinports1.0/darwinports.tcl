@@ -305,6 +305,15 @@ proc dportinit {args} {
     } else {
 	set env(PATH) "$binpath"
     }
+    
+    # ENV cleanup.
+    # Remove:
+    # - P4*
+    # - LANG
+    # - LC*
+    array unset env "P4*"
+    array unset env "LANG"
+    array unset env "LC*"
 
 	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
 		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
@@ -359,7 +368,7 @@ proc dportinit {args} {
     }
 
 	# Prebinding. useful with MacOS X's ld, harmless elsewhere.
-	# With both variables, prebiding will always succeed but we might need
+	# With both variables, prebinding will always succeed but we might need
 	# to redo it.
     if {![info exists env(LD_PREBIND)] && ![info exists env(LD_PREBIND_ALLOW_OVERLAP)]} {
 	set env(LD_PREBIND) "1"
