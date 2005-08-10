@@ -314,7 +314,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all src/thread2.6"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR OUR_TCL_THREAD_PACKAGE INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL OUR_INCLUDED_PACKAGES INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -872,7 +872,8 @@ Optional Packages:
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files.
   --with-tclpackage       Tcl package installation directory.
-  --with-tclthread        install included thread package.
+  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...
+  --with-included-tclthread install included Thread package.
 
 Some influential environment variables:
   CC          C compiler command
@@ -7599,16 +7600,7 @@ echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
 
 
 
-# Check if thread package is already installed.
-
-
-# Check whether --with-tclthread or --without-tclthread was given.
-if test "${with_tclthread+set}" = set; then
-  withval="$with_tclthread"
-  with_tclthread="yes"
-else
-  with_tclthread="no"
-fi;
+# Check if thread is enabled.
 
 	echo "$as_me:$LINENO: checking whether tclsh was compiled with threads" >&5
 echo $ECHO_N "checking whether tclsh was compiled with threads... $ECHO_C" >&6
@@ -7624,25 +7616,144 @@ echo "$as_me: error: tcl wasn't compiled with threads enabled" >&2;}
    { (exit 1); exit 1; }; }
 	fi
 
-	if test "x$with_tclthread" = "xno" ; then
-		echo "$as_me:$LINENO: checking for Tcl thread package" >&5
-echo $ECHO_N "checking for Tcl thread package... $ECHO_C" >&6
-		tcl_present=`echo 'if {[catch {package require Thread}]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
-		if test "$tcl_present" = "1" ; then
-			echo "$as_me:$LINENO: result: yes" >&5
-echo "${ECHO_T}yes" >&6
-			with_tclthread=no
-		else
-			echo "$as_me:$LINENO: result: no" >&5
+
+## libcurl
+
+
+# Check whether --with-curlprefix or --without-curlprefix was given.
+if test "${with_curlprefix+set}" = set; then
+  withval="$with_curlprefix"
+    curlprefix=$withval
+fi;
+
+	if test "x$curlprefix" = "x"; then
+		# Extract the first word of "curl-config", so it can be a program name with args.
+set dummy curl-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_CURL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $CURL_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CURL_CONFIG="$CURL_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CURL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+CURL_CONFIG=$ac_cv_path_CURL_CONFIG
+
+if test -n "$CURL_CONFIG"; then
+  echo "$as_me:$LINENO: result: $CURL_CONFIG" >&5
+echo "${ECHO_T}$CURL_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6
-			with_tclthread=yes
-		fi
+fi
+
+	else
+		# Extract the first word of "curl-config", so it can be a program name with args.
+set dummy curl-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_CURL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $CURL_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CURL_CONFIG="$CURL_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $curlprefix/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CURL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+CURL_CONFIG=$ac_cv_path_CURL_CONFIG
+
+if test -n "$CURL_CONFIG"; then
+  echo "$as_me:$LINENO: result: $CURL_CONFIG" >&5
+echo "${ECHO_T}$CURL_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
 	fi
 
+	if test "x$CURL_CONFIG" = "x"; then
+		{ { echo "$as_me:$LINENO: error: cannot find curl-config. Is libcurl installed?" >&5
+echo "$as_me: error: cannot find curl-config. Is libcurl installed?" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+
+	CFLAGS_LIBCURL=`$CURL_CONFIG --cflags`
+	LDFLAGS_LIBCURL=`$CURL_CONFIG --libs`
+
+
+
+
+
+# Determine if we need to install some bundled packages
+OUR_INCLUDED_PACKAGES=
+
+## Thread package.
+
+# Check whether --with-included-tclthread or --without-included-tclthread was given.
+if test "${with_included_tclthread+set}" = set; then
+  withval="$with_included_tclthread"
+  with_included_tclthread=$withval
+else
+  with_included_tclthread="unspecified"
+fi;
+
+# Check if thread package is already installed.
+if test "x$with_included_tclthread" = "xunspecified" ; then
+
+	echo "$as_me:$LINENO: checking for Tcl Thread package" >&5
+echo $ECHO_N "checking for Tcl Thread package... $ECHO_C" >&6
+	package_present=`echo 'if {[catch {package require Thread}]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
+	if test "$package_present" = "1"; then
+  echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; with_included_tclthread=no
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; with_included_tclthread=yes
+fi
+
+
+fi
 
 # If thread package isn't installed, configure and install thread package.
-if test "$with_tclthread" = "yes"; then
-	OUR_TCL_THREAD_PACKAGE=thread2.6
+if test "$with_included_tclthread" = "yes"; then
+	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES thread2.6"
 
 
 subdirs="$subdirs src/thread2.6"
@@ -7651,9 +7762,8 @@ subdirs="$subdirs src/thread2.6"
 	(cd src/; gzip -d < thread2.6.tar.gz | tar xf -)
 	# Patch thread package (so thread2.6 is the vanilla distribution directory)
 	patch -p0 < src/thread2.6.diff
-else
-	OUR_TCL_THREAD_PACKAGE=
 fi
+
 
 
 # Allows building of shared libraries
@@ -8417,7 +8527,10 @@ s,@TCL_STUB_LIB_SPEC@,$TCL_STUB_LIB_SPEC,;t t
 s,@TCL_INCLUDES@,$TCL_INCLUDES,;t t
 s,@TCLSH@,$TCLSH,;t t
 s,@TCL_PACKAGE_DIR@,$TCL_PACKAGE_DIR,;t t
-s,@OUR_TCL_THREAD_PACKAGE@,$OUR_TCL_THREAD_PACKAGE,;t t
+s,@CURL_CONFIG@,$CURL_CONFIG,;t t
+s,@CFLAGS_LIBCURL@,$CFLAGS_LIBCURL,;t t
+s,@LDFLAGS_LIBCURL@,$LDFLAGS_LIBCURL,;t t
+s,@OUR_INCLUDED_PACKAGES@,$OUR_INCLUDED_PACKAGES,;t t
 s,@INCLUDES@,$INCLUDES,;t t
 s,@CFLAGS_DEBUG@,$CFLAGS_DEBUG,;t t
 s,@CFLAGS_OPTIMIZE@,$CFLAGS_OPTIMIZE,;t t
