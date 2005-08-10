@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.1 2005/08/10 07:45:35 pguyot Exp $
+ * $Id: curl.c,v 1.2 2005/08/10 08:18:43 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -120,23 +120,44 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 	do {
 		long theResponseCode = 0;
+		int noprogress = 1;
 		const char* theURL;
 		const char* theFilePath;
 		CURLcode theCurlCode;
 		
-		/*	first (second) parameter is the variable name,
-			second (third) parameter is the key */
-		if (objc != 4) {
-			Tcl_WrongNumArgs(interp, 1, objv, "fetch url file");
+		/*	first (second) parameter is -v or the url,
+			second (third) parameter is the file */
+		if ((objc != 4) && (objc != 5)) {
+		}
+
+		if (objc == 4) {
+			/* Retrieve the url */
+			theURL = Tcl_GetString(objv[2]);
+	
+			/* Retrieve the file path */
+			theFilePath = Tcl_GetString(objv[3]);
+		} else if (objc == 5) {
+			if (strcmp(Tcl_GetString(objv[2]), "-v") != 0) {
+				char theErrorString[512];
+				(void) snprintf(theErrorString, sizeof(theErrorString),
+					"Unknown option %s", Tcl_GetString(objv[2]));
+				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+			
+			/* Retrieve the url */
+			theURL = Tcl_GetString(objv[3]);
+	
+			/* Retrieve the file path */
+			theFilePath = Tcl_GetString(objv[4]);
+			
+			noprogress = 0;
+		} else {
+			Tcl_WrongNumArgs(interp, 1, objv, "fetch [-v] url file");
 			theResult = TCL_ERROR;
 			break;
 		}
-
-		/* Retrieve the url */
-		theURL = Tcl_GetString(objv[2]);
-
-		/* Retrieve the file path */
-		theFilePath = Tcl_GetString(objv[3]);
 		
 		/* Open the file */
 		theFile = fopen( theFilePath, "w" );
@@ -176,6 +197,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
+		/* we want/don't want progress */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROGRESS, noprogress);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
 		/* actually fetch the resource */
 		theCurlCode = curl_easy_perform(theHandle);
 		if (theCurlCode != CURLE_OK) {
@@ -230,11 +258,17 @@ int
 CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int theResult = TCL_OK;
+	CURL* theHandle = NULL;
+	FILE* theFile = NULL;
 
 	do {
+		long theResponseCode = 0;
 		const char* theURL;
 		const char* theDate;
-		
+		CURLcode theCurlCode;
+		long theModDate;
+		long userModDate;
+				
 		/*	first (second) parameter is the url,
 			second (third) parameter is the date */
 		if (objc != 4) {
@@ -244,12 +278,145 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
 		/* Retrieve the url */
-		theURL = Tcl_GetString(objv[3]);
+		theURL = Tcl_GetString(objv[2]);
 
 		/* Retrieve the date */
-		theDate = Tcl_GetString(objv[4]);
+		theDate = Tcl_GetString(objv[3]);
+		
+		/* Convert the date (using libcurl) */
+		userModDate = (long) curl_getdate( theDate, NULL );
+		if (userModDate == -1) {
+			char theErrorString[512];
+			(void) snprintf(theErrorString, sizeof(theErrorString),
+				"Couldn't convert %s as a date", theDate);
+			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+		
+		/* Open the file (dev/null) */
+		theFile = fopen( "/dev/null", "a" );
+		if (theFile == NULL) {
+			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			theResult = TCL_ERROR;
+		}
 
+		/* Create the CURL handle */
+		theHandle = curl_easy_init();
+		
+		/* Setup the handle */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* -L option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* -f option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* write to the file */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_WRITEDATA, theFile);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* save the modification date */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FILETIME, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* skip the download if the file wasn't modified */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_TIMEVALUE, userModDate);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* we do not want any progress */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROGRESS, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* actually fetch the resource */
+		theCurlCode = curl_easy_perform(theHandle);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* close the file */
+		(void) fclose( theFile );
+		theFile = NULL;
+		
+		/* check everything went fine */
+		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_RESPONSE_CODE, &theResponseCode);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* we need something between 200 (incl.) and 300 (excl.). */
+		if ((theResponseCode < 200) || (theResponseCode >= 300)) {
+			char theErrorString[512];
+			(void) snprintf(theErrorString, sizeof(theErrorString),
+				"Download failed (code = %li)", theResponseCode);
+			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* get the modification date */
+		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theModDate);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* clean up */
+		curl_easy_cleanup( theHandle );
+		theHandle = NULL;
+
+		/* compare this with the date provided by user */
+		if (theModDate < -1) {
+			Tcl_SetResult(interp, "Couldn't get resource modification date", TCL_STATIC);
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		if (theModDate > userModDate) {
+			Tcl_SetResult(interp, "1", TCL_STATIC);
+		} else {
+			Tcl_SetResult(interp, "0", TCL_STATIC);
+		}		
     } while (0);
+    
+    if (theHandle != NULL) {
+    	curl_easy_cleanup( theHandle );
+    }
+    if (theFile != NULL) {
+    	fclose( theFile );
+    }
     
 	return theResult;
 }

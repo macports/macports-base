@@ -23,6 +23,16 @@ proc main {pextlibname} {
 		puts {![catch {curl fetch http://www.opendarwin.org/~pguyot/curl-test-404 $tempfile}]}
 		exit 1
 	}
+	
+	# check the modification date of the dummy file.
+	if {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050801]} {
+		puts {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050801]}
+		exit 1
+	}
+	if {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050811]} {
+		puts {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050811]}
+		exit 1
+	}
 }
 
 main $argv

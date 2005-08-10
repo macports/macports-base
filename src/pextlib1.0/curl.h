@@ -1,6 +1,6 @@
 /*
  * curl.h
- * $Id: curl.h,v 1.1 2005/08/10 07:45:36 pguyot Exp $
+ * $Id: curl.h,v 1.2 2005/08/10 08:18:43 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -45,8 +45,8 @@ int CurlInit(Tcl_Interp* interp);
  * A native command to use libcurl.
  *
  * The syntax is:
- * curl fetch url file
- *	Fetch a URL to file. Return an error if it failed.
+ * curl fetch [-v] url file
+ *	Fetch a URL to file. Return an error if it failed. -v to display progress meter.
  *
  * curl isnewer url date
  *	Determine if some resource is newer than date. Try to not fetch the resource
