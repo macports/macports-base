@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.81 2005/08/04 12:56:12 pguyot Exp $
+ * $Id: Pextlib.c,v 1.82 2005/08/10 07:45:35 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -106,6 +106,7 @@
 #include "sha1cmd.h"
 #include "find.h"
 #include "filemap.h"
+#include "curl.h"
 #include "xinstall.h"
 #include "vercomp.h"
 #include "compat.h"
@@ -1114,9 +1115,13 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "unixsocketpair", UnixSocketPairCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
+
+	/* init libcurl */
+	CurlInit(interp);
 
 	return TCL_OK;
 }
