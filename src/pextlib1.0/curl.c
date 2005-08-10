@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.2 2005/08/10 08:18:43 pguyot Exp $
+ * $Id: curl.c,v 1.3 2005/08/10 09:13:49 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -121,40 +121,67 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	do {
 		long theResponseCode = 0;
 		int noprogress = 1;
+		int useepsv = 0;
+		const char* theUserPassString = NULL;
+		int optioncrsr;
+		int lastoption;
 		const char* theURL;
 		const char* theFilePath;
 		CURLcode theCurlCode;
 		
-		/*	first (second) parameter is -v or the url,
-			second (third) parameter is the file */
-		if ((objc != 4) && (objc != 5)) {
-		}
-
-		if (objc == 4) {
-			/* Retrieve the url */
-			theURL = Tcl_GetString(objv[2]);
-	
-			/* Retrieve the file path */
-			theFilePath = Tcl_GetString(objv[3]);
-		} else if (objc == 5) {
-			if (strcmp(Tcl_GetString(objv[2]), "-v") != 0) {
+		/* we might have options and then the url and the file */
+		/* let's process the options first */
+		
+		optioncrsr = 2;
+		lastoption = objc - 3;
+		while (optioncrsr <= lastoption) {
+			/* get the option */
+			const char* theOption = Tcl_GetString(objv[optioncrsr]);
+			
+			if (strcmp(theOption, "-v") == 0) {
+				noprogress = 0;
+			} else if (strcmp(theOption, "--disable-epsv") == 0) {
+				useepsv = 1;
+			} else if (strcmp(theOption, "-u") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					theUserPassString = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: -u option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;					
+				}
+			} else {
 				char theErrorString[512];
 				(void) snprintf(theErrorString, sizeof(theErrorString),
-					"Unknown option %s", Tcl_GetString(objv[2]));
+					"curl fetch: unknown option %s", theOption);
 				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
 				theResult = TCL_ERROR;
 				break;
 			}
 			
+			optioncrsr++;
+		}
+		
+		if (optioncrsr <= lastoption) {
+			/* something went wrong */
+			break;
+		}
+
+		/*	first (second) parameter is -v or the url,
+			second (third) parameter is the file */
+
+		if (objc >= 4) {
 			/* Retrieve the url */
-			theURL = Tcl_GetString(objv[3]);
+			theURL = Tcl_GetString(objv[objc - 2]);
 	
 			/* Retrieve the file path */
-			theFilePath = Tcl_GetString(objv[4]);
-			
-			noprogress = 0;
+			theFilePath = Tcl_GetString(objv[objc - 1]);
 		} else {
-			Tcl_WrongNumArgs(interp, 1, objv, "fetch [-v] url file");
+			Tcl_WrongNumArgs(interp, 1, objv, "fetch [options] url file");
 			theResult = TCL_ERROR;
 			break;
 		}
@@ -202,6 +229,22 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
+		}
+
+		/* we want/don't want to use epsv */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FTP_USE_EPSV, useepsv);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set the l/p, if any */
+		if (theUserPassString) {
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERPWD, theUserPassString);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
 		}
 
 		/* actually fetch the resource */
