@@ -33,9 +33,9 @@ proc main {pextlibname} {
 	}
 	
 	# use --disable-epsv
-	curl fetch --disable-epsv ftp://www-126.ibm.com/pub/jikes/JikesPG/1.3/jikespg.tar.gz $tempfile
-	if {[md5 file $tempfile] != "eba183713d9ae61a887211be80eeb21f"} {
-		puts {[md5 file $tempfile] != "eba183713d9ae61a887211be80eeb21f"}
+	curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
+	if {[md5 file $tempfile] != "a4b0f4a5fbd8bec23002ad8023e01729"} {
+		puts {[md5 file $tempfile] != "a4b0f4a5fbd8bec23002ad8023e01729"}
 		exit 1
 	}
 	

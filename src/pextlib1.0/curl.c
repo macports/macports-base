@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.4 2005/08/10 21:19:33 pguyot Exp $
+ * $Id: curl.c,v 1.5 2005/08/10 21:30:11 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -130,7 +130,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	do {
 		long theResponseCode = 0;
 		int noprogress = 1;
-		int useepsv = 0;
+		int useepsv = 1;
 		const char* theUserPassString = NULL;
 		int optioncrsr;
 		int lastoption;
@@ -150,7 +150,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			if (strcmp(theOption, "-v") == 0) {
 				noprogress = 0;
 			} else if (strcmp(theOption, "--disable-epsv") == 0) {
-				useepsv = 1;
+				useepsv = 0;
 			} else if (strcmp(theOption, "-u") == 0) {
 				/* check we also have the parameter */
 				if (optioncrsr < lastoption) {
