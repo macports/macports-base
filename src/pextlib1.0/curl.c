@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.3 2005/08/10 09:13:49 pguyot Exp $
+ * $Id: curl.c,v 1.4 2005/08/10 21:19:33 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -97,7 +97,16 @@ SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode)
 			break;
 		
 		default:
+#ifdef HAVE_CURL_EASY_STRERROR
 			Tcl_SetResult(interp, (char*) curl_easy_strerror(inErrorCode), TCL_VOLATILE);
+#else
+			{
+				char theErrorString[512];
+				(void) snprintf(theErrorString, sizeof(theErrorString),
+					"curl error %i", inErrorCode);
+				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);				
+			}
+#endif
 			theResult = TCL_ERROR;
 	}
 	
