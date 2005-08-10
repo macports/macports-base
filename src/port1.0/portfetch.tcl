@@ -31,6 +31,7 @@
 
 package provide portfetch 1.0
 package require portutil 1.0
+package require Pextlib 1.0
 
 set com.apple.fetch [target_new com.apple.fetch fetch_main]
 target_init ${com.apple.fetch} fetch_init
@@ -39,11 +40,10 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type cvs.module cvs.root cvs.password cvs.date cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type fetch.args fetch.user fetch.password fetch.use_epsv cvs.module cvs.root cvs.password cvs.date cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
-commands fetch
 
 # Defaults
 default extract.suffix .tar.gz
@@ -63,10 +63,14 @@ default cvs.post_args {"${cvs.module}"}
 default distfiles {[suffix $distname]}
 default dist_subdir {${portname}}
 
-default fetch.cmd {$portutil::autoconf::curl_path}
-default fetch.dir {${distpath}}
-default fetch.pre_args {"-f -L -o ${distfile}.TMP"}
-default fetch.post_args {[portfetch::assemble_url ${site} ${distfile}]}
+# support for fetch.args for backward compatibility.
+default fetch.args ""
+
+# user name & password
+default fetch.user ""
+default fetch.password ""
+# Use EPSV for FTP transfers
+default fetch.use_epsv 1
 
 default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -106,12 +110,12 @@ proc suffix {distname} {
 }
 
 # Given a site url and the name of the distfile, assemble url and
-# return it, single quoted.
+# return it.
 proc portfetch::assemble_url {site distfile} {
     if {[string index $site end] != "/"} {
-        return "'${site}/${distfile}'"
+        return "${site}/${distfile}"
     } else {
-        return "'${site}${distfile}'"
+        return "${site}${distfile}"
     }
 }
 
@@ -313,44 +317,61 @@ proc cvsfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-    global distpath all_dist_files UI_PREFIX fetch_urls fetch.cmd fetch.pre_args
-    global distfile site
-    
-    if {![file isdirectory $distpath]} {
-        if {[catch {file mkdir $distpath} result]} {
-	    return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
-	}
-    }
-    foreach {url_var distfile} $fetch_urls {
-	if {![file isfile $distpath/$distfile]} {
-	    ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
-            if {![file writable $distpath]} {
-                return -code error [format [msgcat::mc "%s must be writable"] $distpath]
-            }
-            global portfetch::$url_var
-            if {![info exists $url_var]} {
-                ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set url_var master_sites
-		global portfetch::$url_var
-            }
-	    foreach site [set $url_var] {
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
-		if {![catch {system "[command fetch]"} result] &&
-		    ![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
-		    set fetched 1
-		    break
-		} else {
-#		    ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
-		    exec rm -f ${distpath}/${distfile}.TMP
+	global distpath all_dist_files UI_PREFIX fetch_urls
+	global fetch.args fetch.user fetch.password fetch.use_epsv
+	global distfile site
+	global portverbose
+
+	if {![file isdirectory $distpath]} {
+		if {[catch {file mkdir $distpath} result]} {
+			return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
 		}
-	    }
-	    if {![info exists fetched]} {
-		return -code error [msgcat::mc "fetch failed"]
-	    } else {
-		unset fetched
-	    }
 	}
-    }
+	
+	# Fetch options.
+	set fetch_options ${fetch.args}
+	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
+		lappend fetch_options -u
+		lappend fetch_options "${fetch.user}:${fetch.password}"
+	}
+	if {${fetch.use_epsv} != "1"} {
+		lappend fetch_options "--disable-epsv"
+	}
+	if {$portverbose == "yes"} {
+		lappend fetch_options "-v"
+	}
+	
+	foreach {url_var distfile} $fetch_urls {
+		if {![file isfile $distpath/$distfile]} {
+			ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
+			if {![file writable $distpath]} {
+				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+			}
+			global portfetch::$url_var
+			if {![info exists $url_var]} {
+				ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
+				set url_var master_sites
+				global portfetch::$url_var
+			}
+			foreach site [set $url_var] {
+				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+				set file_url [portfetch::assemble_url $site $distfile]
+				if {![catch {eval curl fetch $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
+					![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
+					set fetched 1
+					break
+				} else {
+#					ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
+					exec rm -f ${distpath}/${distfile}.TMP
+				}
+			}
+			if {![info exists fetched]} {
+				return -code error [msgcat::mc "fetch failed"]
+			} else {
+				unset fetched
+			}
+		}
+	}
     return 0
 }
 

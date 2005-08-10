@@ -460,7 +460,7 @@ AC_DEFUN([OD_LIBCURL_FLAGS],[
 #	None.
 #
 # Requires:
-#	CURL must be set
+#	CURL must be set (AC_PATH_PROG(CURL, [curl], []))
 #
 # Results:
 #   sets libcurl_version to "0" or some number
