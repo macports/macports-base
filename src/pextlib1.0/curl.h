@@ -1,6 +1,6 @@
 /*
  * curl.h
- * $Id: curl.h,v 1.3 2005/08/10 09:13:49 pguyot Exp $
+ * $Id: curl.h,v 1.4 2005/08/11 01:45:59 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -53,7 +53,7 @@ int CurlInit(Tcl_Interp* interp);
  *
  * curl isnewer url date
  *	Determine if some resource is newer than date. Try to not fetch the resource
- *  if possible.
+ *  if possible. The date is the number of seconds since epoch.
  */
 int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 

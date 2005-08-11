@@ -23,12 +23,14 @@ proc main {pextlibname} {
 	}
 	
 	# check the modification date of the dummy file.
-	if {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050801]} {
-		puts {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050801]}
+	# 20050801->1122822000
+	if {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1122822000]} {
+		puts {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1122822000]}
 		exit 1
 	}
-	if {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050811]} {
-		puts {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 20050811]}
+	# 20050811->1123686000
+	if {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1123686000]} {
+		puts {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1123686000]}
 		exit 1
 	}
 	

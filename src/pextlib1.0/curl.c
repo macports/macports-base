@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.5 2005/08/10 21:30:11 pguyot Exp $
+ * $Id: curl.c,v 1.6 2005/08/11 01:45:58 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -316,7 +316,6 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	do {
 		long theResponseCode = 0;
 		const char* theURL;
-		const char* theDate;
 		CURLcode theCurlCode;
 		long theModDate;
 		long userModDate;
@@ -332,17 +331,9 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* Retrieve the url */
 		theURL = Tcl_GetString(objv[2]);
 
-		/* Retrieve the date */
-		theDate = Tcl_GetString(objv[3]);
-		
-		/* Convert the date (using libcurl) */
-		userModDate = (long) curl_getdate( theDate, NULL );
-		if (userModDate == -1) {
-			char theErrorString[512];
-			(void) snprintf(theErrorString, sizeof(theErrorString),
-				"Couldn't convert %s as a date", theDate);
-			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-			theResult = TCL_ERROR;
+		/* Get the date */
+		theResult = Tcl_GetLongFromObj(interp, objv[3], &userModDate);
+		if (theResult != TCL_OK) {
 			break;
 		}
 		
@@ -427,33 +418,27 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
 		}
-		
-		/* we need something between 200 (incl.) and 300 (excl.). */
-		if ((theResponseCode < 200) || (theResponseCode >= 300)) {
-			char theErrorString[512];
-			(void) snprintf(theErrorString, sizeof(theErrorString),
-				"Download failed (code = %li)", theResponseCode);
-			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-			theResult = TCL_ERROR;
-			break;
-		}
 
-		/* get the modification date */
-		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theModDate);
-		if (theCurlCode != CURLE_OK) {
-			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-			break;
-		}
-		
-		/* clean up */
-		curl_easy_cleanup( theHandle );
-		theHandle = NULL;
+		theModDate = -1;
 
-		/* compare this with the date provided by user */
-		if (theModDate < -1) {
-			Tcl_SetResult(interp, "Couldn't get resource modification date", TCL_STATIC);
-			theResult = TCL_ERROR;
-			break;
+		if (theResponseCode != 304) {
+			/* get the modification date */
+			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theModDate);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
+	
+			/* clean up */
+			curl_easy_cleanup( theHandle );
+			theHandle = NULL;
+	
+			/* compare this with the date provided by user */
+			if (theModDate < -1) {
+				Tcl_SetResult(interp, "Couldn't get resource modification date", TCL_STATIC);
+				theResult = TCL_ERROR;
+				break;
+			}
 		}
 
 		if (theModDate > userModDate) {
