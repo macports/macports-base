@@ -70,7 +70,7 @@ default fetch.args ""
 default fetch.user ""
 default fetch.password ""
 # Use EPSV for FTP transfers
-default fetch.use_epsv 1
+default fetch.use_epsv "yes"
 
 default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -329,12 +329,30 @@ proc fetchfiles {args} {
 	}
 	
 	# Fetch options.
-	set fetch_options ${fetch.args}
+	### backward compatibility (remove when all ports have been updated)
+	if {[llength ${fetch.args}] > 1} {
+		if {[lindex ${fetch.args} 0] == "-u"} {
+			ui_warn "fetch.args is deprecated, use fetch.user & fetch.password instead"
+			# -u case (port ksh93)
+			set theuserpwd [eval concat [lrange ${fetch.args} 1 end]]
+			set fetch_options "-u $theuserpwd"
+		} else {
+			return -code error [format [msgcat::mc "fetch.args is deprecated, format unrecognized (%s)"] ${fetch.args}]
+		}
+	} elseif {${fetch.args} == "--disable-epsv"} {
+		# --disable-epsv case.
+		ui_warn "fetch.args is deprecated, use fetch.use_epsv instead"
+		set fetch_options ${fetch.args}
+	} elseif {${fetch.args} != ""} {
+		return -code error [format [msgcat::mc "fetch.args is deprecated, format unrecognized (%s)"] ${fetch.args}]
+	} else {
+		set fetch_options {}
+	}
 	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
 		lappend fetch_options -u
 		lappend fetch_options "${fetch.user}:${fetch.password}"
 	}
-	if {${fetch.use_epsv} != "1"} {
+	if {${fetch.use_epsv} != "yes"} {
 		lappend fetch_options "--disable-epsv"
 	}
 	if {$portverbose == "yes"} {
