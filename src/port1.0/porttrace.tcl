@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.11 2005/08/08 02:20:12 pguyot Exp $
+# $Id: porttrace.tcl,v 1.12 2005/08/11 09:29:32 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -165,6 +165,7 @@ proc delete_slave {} {
 # Slave method to read a line from the trace.
 proc slave_read_line {chan} {
 	global ports_list trace_filemap created_list workpath trace_mutex own_mutex
+	global env
 
 	# Acquire the mutex.
 	thread::mutex lock $trace_mutex
@@ -220,9 +221,11 @@ proc slave_read_line {chan} {
 				}
 			} elseif {$op == "create"} {
 				# Only keep entries not under workpath, under /tmp/, under
-				# /var/tmp/ and /dev/null
+				# /var/tmp/, $TMPDIR and /dev/null
 				if {![string equal -length [string length "/tmp/"] "/tmp/" $path]
 					&& ![string equal -length [string length "/var/tmp/"] "/var/tmp/" $path]
+					&& (![info exists env(TMPDIR)]
+						|| ![string equal -length [string length $env(TMPDIR)] $env(TMPDIR) $path])
 					&& ![string equal "/dev/null" $path]
 					&& ![string equal -length [string length $workpath] $workpath $path]} {
 					lappend created_list $path
