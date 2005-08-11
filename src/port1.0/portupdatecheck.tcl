@@ -1,7 +1,7 @@
 # et:ts=4
 # portupdatecheck.tcl
 #
-# $Id: portupdatecheck.tcl,v 1.1 2005/08/11 01:46:31 pguyot Exp $
+# $Id: portupdatecheck.tcl,v 1.2 2005/08/11 02:11:32 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -49,7 +49,7 @@ options updatecheck.url updatecheck.type updatecheck.md5 updatecheck.name
 
 # defaults
 default updatecheck.url {$homepage}
-default updatecheck.type url_mod_date
+default updatecheck.type moddate
 default updatecheck.md5 ""
 default updatecheck.name {$name}
 
