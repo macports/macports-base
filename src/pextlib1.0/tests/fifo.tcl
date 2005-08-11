@@ -26,6 +26,14 @@ proc main {pextlibname} {
 	}
 
 	file delete -force $fifo_path
+	
+	set fifo_path "/tmp/darwinports-pextlib-fifo-dummydir/foo"
+
+	# Test that mkfifo returns an error if the directory doesn't exist.
+	if {![catch {mkfifo $fifo_path}]} {
+		puts {![catch {mkfifo $fifo_path}]}
+		exit 1
+	}
 }
 
 main $argv
