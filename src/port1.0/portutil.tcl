@@ -609,7 +609,10 @@ proc target_run {ditem} {
 			
 		# otherwise execute the task.
 		if {$skipped == 0} {
-			if {([info exists ports_trace] && $ports_trace == "yes")} {
+			set target [ditem_key $ditem provides]
+			if {([info exists ports_trace]
+				&& $ports_trace == "yes"
+				&& $target != "clean")} {
 				trace_start $workpath
 			}
 
@@ -646,12 +649,13 @@ proc target_run {ditem} {
 			}
 
 			# Check dependencies & file creations outside workpath.
-			if {([info exists ports_trace] && $ports_trace == "yes")} {
+			if {([info exists ports_trace]
+				&& $ports_trace == "yes"
+				&& $target != "clean")} {
 				set depends {}
 				set deptypes {}
 				
 				# Determine deptypes to look for based on target
-				set target [ditem_key $ditem provides]
 				switch $target {
 					configure	{ set deptypes "depends_lib" }
 					
@@ -691,9 +695,8 @@ proc target_run {ditem} {
 					&& $target != "install"} {
 					trace_check_create
 				}
-			}
 
-			if {([info exists ports_trace] && $ports_trace == "yes")} {
+				# End of trace.
 				trace_stop
 			}
 		}
