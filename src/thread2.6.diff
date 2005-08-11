@@ -1,6 +1,6 @@
-diff -u src/thread2.6/Makefile.in src/thread2.6/Makefile.in
---- src/thread2.6/Makefile.in	2005-07-28 17:15:51.000000000 +0900
-+++ src/thread2.6/Makefile.in	2005-08-04 21:25:44.000000000 +0900
+diff -ru src/thread2.6/Makefile.in src/thread2.6.mine/Makefile.in
+--- src/thread2.6/Makefile.in	2004-12-18 22:26:02.000000000 +0900
++++ src/thread2.6.mine/Makefile.in	2005-08-11 12:02:19.000000000 +0900
 @@ -70,9 +70,9 @@
  exec_prefix	= @exec_prefix@
  
@@ -13,10 +13,10 @@ diff -u src/thread2.6/Makefile.in src/thread2.6/Makefile.in
  includedir	= @includedir@
  
  DESTDIR		=
-diff -u src/thread2.6/configure src/thread2.6.mine/configure
---- src/thread2.6/configure.orig	Mon Jan  3 00:21:22 2005
-+++ src/thread2.6/configure	Sun Aug  7 04:45:05 2005
-@@ -6427,13 +6427,11 @@
+diff -ru src/thread2.6/configure src/thread2.6.mine/configure
+--- src/thread2.6/configure	2004-12-23 18:48:44.000000000 +0900
++++ src/thread2.6.mine/configure	2005-08-11 12:02:19.000000000 +0900
+@@ -6374,13 +6374,11 @@
     { (exit 1); exit 1; }; }
  	    fi
  	else
@@ -32,3 +32,18 @@ diff -u src/thread2.6/configure src/thread2.6.mine/configure
  		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
  		`ls -d ${TCL_SRC_DIR}/generic    2>/dev/null`"
  	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
+Only in src/thread2.6.mine: configure.orig
+diff -ru src/thread2.6/lib/ttrace.tcl src/thread2.6.mine/lib/ttrace.tcl
+--- src/thread2.6/lib/ttrace.tcl	2004-07-30 14:37:50.000000000 +0900
++++ src/thread2.6.mine/lib/ttrace.tcl	2005-08-11 12:03:03.000000000 +0900
+@@ -50,8 +50,8 @@
+         variable mutex ns_mutex
+         variable elock [$mutex create traceepochmutex]
+         variable store nsv_
+-    } elseif {![catch {package require Thread} version]} {
+-        variable tvers $version
++    } elseif {![catch {package require Thread} thread_pkg_version]} {
++        variable tvers $thread_pkg_version
+         variable mutex thread::mutex
+         variable elock [$mutex create]
+         variable store tsv::
