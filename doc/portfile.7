@@ -1008,6 +1008,25 @@ before working.
 .El
 .El
 .It Xo
+.Ic curl fetch
+.Ar url
+.Ar file
+.Xc
+Fetch a resource at
+.Ar url
+and save it to
+.Ar file .
+.It Xo
+.Ic curl isnewer
+.Ar url
+.Ar date
+.Xc
+Determine if resource at
+.Ar url
+is newer than
+.Ar date
+(expressed in seconds since epoch).
+.It Xo
 .Ic adduser
 .Ar username
 .Op Cm uid Ns = Ns uid
