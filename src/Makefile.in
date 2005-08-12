@@ -6,6 +6,7 @@ all::
 
 distclean::
 	rm -f config.h
+	rm -f Makefile
 
 test::
 
