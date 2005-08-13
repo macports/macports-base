@@ -193,7 +193,7 @@ proc mirror_sites {mirrors tag subdir} {
 # the name of a variable in the portfetch:: namespace containing a list of fetch
 # sites
 proc checkfiles {args} {
-    global distdir distfiles patchfiles all_dist_files patch_sites fetch_urls \
+    global distfiles patchfiles all_dist_files patch_sites fetch_urls \
 	master_sites filespath master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site env
     
