@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.2 2005/08/13 12:24:14 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.3 2005/08/13 22:47:51 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -41,8 +41,6 @@ target_runtype ${com.apple.livecheck} always
 target_state ${com.apple.livecheck} no
 target_provides ${com.apple.livecheck} livecheck
 target_requires ${com.apple.livecheck} main
-
-set_ui_prefix
 
 # define options
 options livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.name
