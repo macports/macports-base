@@ -674,14 +674,14 @@ proc target_run {ditem} {
 				# Gather the dependencies for deptypes
 				foreach deptype $deptypes {
 					# Add to the list of dependencies if the option exists and isn't empty.
-					if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
-						set depends [concat $depends $portinfo($deptype)]
+					if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
+						set depends [concat $depends $PortInfo($deptype)]
 					}
 				}
 
 				# Dependencies are in the form verb:[param:]port
 				set depsPorts {}
-				foreach dep $depends {
+				foreach depspec $depends {
 					# grab the portname portion of the depspec
 					set portname [lindex [split $depspec :] end]
 					lappend depsPorts $portname
