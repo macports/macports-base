@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.1 2005/08/13 11:24:26 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.2 2005/08/13 12:24:14 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -82,19 +82,24 @@ proc livecheck_main {args} {
 				global portfetch::$url_var
 			}
 			if {${livecheck.distfiles_check} == "moddate"} {
+				set count 0
 				foreach site [set $url_var] {
 					ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
 					set file_url [portfetch::assemble_url $site $distfile]
 					if {[catch {set urlnewer [curl isnewer $file_url $port_moddate]} error]} {
-						ui_error "couldn't fetch $file_url for $portname ($error)"
+						ui_warn "couldn't fetch $file_url for $portname ($error)"
 					} else {
 						if {$urlnewer} {
 							ui_warn "port $portname: $file_url is newer than portfile"
 						}
+						incr count
 					}
 				}
+				if {$count == 0} {
+					ui_error "no mirror had $distfile for $portname"
+				}
 			} else {
-				ui_error "Unknown livecheck.distfiles_check ${livecheck.distfiles_check}"
+				ui_error "unknown livecheck.distfiles_check ${livecheck.distfiles_check}"
 				break
 			}
 		}
