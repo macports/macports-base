@@ -845,6 +845,75 @@ Form of startup item to install.
 .Sy Values:
 .Em SystemStarter RCng
 .El
+.Sh LIVECHECK OPTIONS
+Darwinports can automatically check if the software has been updated
+since the Portfile was modified and if some external changes require
+an update of the Portfile. This helps maintainers to have up-to-date
+and working Portfiles.
+.br
+The check is two-fold. First, Darwinports check that the distfiles
+are still downloadable. Second, a resource is queried to determine
+if a newer version of the software is available.
+.Bl -tag -width lc
+.It Ic livecheck.distfiles_check
+What kind of check to perform on distfiles,
+.Em moddate
+(check if the Portfile is older than the distfile) or
+.Em none
+(no check).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em moddate
+.br
+.Sy Values:
+.Em moddate none
+.It Ic livecheck.update_check
+What kind of check to perform to figure out if the software has been updated.
+Can be
+.Em freshmeat
+(use the date_updated tag of the freshmeat XML file),
+.Em moddate
+(use the modification date of some URL resource),
+.Em md5
+(compare the md5 sum of some URL resource) or
+.Em none
+(no check).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em freshmeat
+.br
+.Sy Values:
+.Em freshmeat md5 moddate none
+.It Ic livecheck.name
+Name of the project for live checks (used for freshmeat-based checks).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em ${name}
+.It Ic livecheck.url
+URL to query for the check.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em ${homepage}
+or
+.Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
+.It Ic livecheck.md5
+md5 sum to use for md5 comparison.
+.br
+.Sy Type:
+.Em optional
+.El
 .Sh VARIANT OPTIONS
 Darwinports allows for conditional modification to be specified in a
 .Nm ,
