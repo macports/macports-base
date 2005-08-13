@@ -1121,7 +1121,10 @@ Returns the highest used uid plus one.
 Add a new local group to the system, with the specified gid, password
 and with a list users as members.
 .It Ic existsgroup Ar group
-Check if a local group exists.
+Check if a local group exists and return the corresponding gid. This can be used
+with adduser:
+.Dl addgroup foo 
+.Dl adduser foo gid=[existsgroup foo]
 .It Ic nextgid
 Returns the highest used gid plus one.
 .It Ic reinplace Ar regex Ar filename
