@@ -35,36 +35,55 @@ package require darwinports_dlist 1.0
 package require darwinports_index 1.0
 
 namespace eval darwinports {
-    namespace export bootstrap_options portinterp_options open_dports
+    namespace export bootstrap_options portinterp_options open_dports ui_priorities
     variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
     variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
+    
+    variable ui_priorities "debug info msg error warn"
 }
 
 # Provided UI instantiations
 # For standard messages, the following priorities are defined
 #     debug, info, msg, warn, error
-# Clients of the library are expected to provide ui_puts with the following prototype.
-#     proc ui_puts {message}
-# message is a tcl list of array element pairs, defined as such:
-#     version   - ui protocol version
-#     priority  - message priority
-#     data      - message data
-# ui_puts should handle the above defined priorities
+# Clients of the library are expected to provide ui_prefix and ui_channels with
+# the following prototypes.
+#     proc ui_prefix {priority}
+#     proc ui_channels {priority}
+# ui_prefix returns the prefix for the messages, if any.
+# ui_channels returns a list of channels to output the message to, empty for
+#     no message.
 
-foreach priority "debug info msg error warn" {
-    eval "proc ui_$priority {str} \{ \n\
-	set message(priority) $priority \n\
-	set message(data) \$str \n\
-	ui_puts \[array get message\] \n\
-    \}"
+proc darwinports::ui_init {priority message} {
+	# Get the list of channels.
+	set channels [ui_channels $priority]
+
+	# Simplify ui_$priority.
+	set nbchans [llength $channels]
+	if {$nbchans == 0} {
+		eval "proc ::ui_$priority {str} {}"
+	} else {
+		set prefix [ui_prefix $priority]
+
+		if {$nbchans == 1} {
+			set chan [lindex $channels 0]
+			eval "proc ::ui_$priority {str} \{ puts $chan \"$prefix\$str\" \}"
+		} else {
+			eval "proc ::ui_$priority {str} \{ \n\
+				foreach chan $channels \{ \n\
+					puts $chan \"$prefix\$str\" \n\
+				\} \n\
+			\}"
+		}
+
+		# Call ui_$priority
+		::ui_$priority $message
+	}
 }
 
-proc darwinports::ui_event {context message} {
-    array set postmessage $message
-    set postmessage(context) $context
-    ui_puts [array get postmessage]
+foreach priority ${darwinports::ui_priorities} {
+    eval "proc ui_$priority {str} \{ darwinports::ui_init $priority \$str \}"
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
@@ -422,8 +441,12 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias dport_close dportclose
 	$workername alias dport_search dportsearch
 
-    # instantiate the UI call-back
-    $workername alias ui_event darwinports::ui_event $workername
+    # instantiate the UI call-backs
+	foreach priority ${darwinports::ui_priorities} {
+		$workername alias ui_$priority darwinports::ui_$priority
+	}
+	$workername alias ui_prefix ui_prefix
+	$workername alias ui_channels ui_channels
     
     # Export some utility functions defined here.
     $workername alias darwinports_create_thread darwinports::create_thread

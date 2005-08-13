@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.28 2005/03/29 09:00:42 olegb Exp $
+# $Id: portindex.tcl,v 1.29 2005/08/13 03:59:54 pguyot Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
@@ -34,40 +34,53 @@ proc ui_isset {val} {
 }
 
 # UI Callback
+proc ui_prefix {priority} {
+    switch $priority {
+        debug {
+        	return "DEBUG: "
+        }
+        error {
+        	return "Error: "
+        }
+        warn {
+        	return "Warning: "
+        }
+        default {
+        	return ""
+        }
+    }
+}
 
-proc ui_puts {messagelist} {
-    set channel stdout
-    array set message $messagelist
-    switch $message(priority) {
+proc ui_channels {priority} {
+    switch $priority {
         debug {
             if {[ui_isset ports_debug]} {
-                set channel stderr
-                set str "DEBUG: $message(data)"
+            	return {stderr}
             } else {
-                return
+            	return {}
             }
         }
         info {
-            if {![ui_isset ports_verbose]} {
-                return
-            }
-	    set str $message(data)
-        }
+            if {[ui_isset ports_verbose]} {
+                return {stdout}
+            } else {
+                return {}
+			}
+		}
         msg {
             if {[ui_isset ports_quiet]} {
-                return
-            }
-	    set str $message(data)
-        }
+                return {}
+			} else {
+				return {stdout}
+			}
+		}
         error {
-            set str "Error: $message(data)"
-            set channel stderr
+        	return {stderr}
         }
-        warn {
-            set str "Warning: $message(data)"
+        default {
+        	return {stdout}
         }
     }
-    puts $channel $str
 }
 
 # Standard procedures

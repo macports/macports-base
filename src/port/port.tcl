@@ -56,39 +56,54 @@ proc ui_isset {val} {
 
 # UI Callback
 
-proc ui_puts {messagelist} {
-	set channel stdout
-	array set message $messagelist
-	switch $message(priority) {
-		debug {
-			if {[ui_isset ports_debug]} {
-				set channel stderr
-				set str "DEBUG: $message(data)"
+proc ui_prefix {priority} {
+    switch $priority {
+        debug {
+        	return "DEBUG: "
+        }
+        error {
+        	return "Error: "
+        }
+        warn {
+        	return "Warning: "
+        }
+        default {
+        	return ""
+        }
+    }
+}
+
+proc ui_channels {priority} {
+    global logfd
+    switch $priority {
+        debug {
+            if {[ui_isset ports_debug]} {
+            	return {stderr}
+            } else {
+            	return {}
+            }
+        }
+        info {
+            if {[ui_isset ports_verbose]} {
+                return {stdout}
+            } else {
+                return {}
+			}
+		}
+        msg {
+            if {[ui_isset ports_quiet]} {
+                return {}
 			} else {
-				return
+				return {stdout}
 			}
 		}
-		info {
-			if {![ui_isset ports_verbose]} {
-				return
-			}
-			set str $message(data)
-		}
-		msg {
-			if {[ui_isset ports_quiet]} {
-				return
-			}
-			set str $message(data)
-		}
-		error {
-			set str "Error: $message(data)"
-			set channel stderr
-		}
-		warn {
-			set str "Warning: $message(data)"
-		}
-	}
-	puts $channel $str
+        error {
+        	return {stderr}
+        }
+        default {
+        	return {stdout}
+        }
+    }
 }
 
 # Standard procedures
@@ -220,7 +235,7 @@ if {$action == "list"} {
 
 if {[catch {dportinit} result]} {
 	global errorInfo
-	ui_debug "$errorInfo"
+	puts "$errorInfo"
 	puts "Failed to initialize ports system, $result"
 	exit 1
 }

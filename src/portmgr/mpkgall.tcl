@@ -34,7 +34,13 @@ package require darwinports
 # globals
 set portdir .
 
-proc ui_puts {args} {}
+proc ui_prefix {priority} {
+	return ""
+}
+
+proc ui_channels {priority} {
+	return {}
+}
 
 # copy binary packages if they've already been built.
 

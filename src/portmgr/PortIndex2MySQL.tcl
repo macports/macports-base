@@ -33,7 +33,13 @@
 
 package require darwinports
 
-proc ui_puts {name} {}
+proc ui_prefix {priority} {
+	return ""
+}
+
+proc ui_channels {priority} {
+	return {}
+}
 
 # This should be a command line argument.
 # if true, use_db insructs the script to insert directly into a database

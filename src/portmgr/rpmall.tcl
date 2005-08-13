@@ -55,48 +55,54 @@ set options(package.destpath) "/darwinports/rpms"
 
 # UI Callback 
 
-proc ui_puts {messagelist} {
+proc ui_prefix {priority} {
+    switch $priority {
+        debug {
+        	return "DEBUG: "
+        }
+        error {
+        	return "Error: "
+        }
+        warn {
+        	return "Warning: "
+        }
+        default {
+        	return ""
+        }
+    }
+}
+
+proc ui_channels {priority} {
     global logfd
-    set channel $logfd
-    array set message $messagelist
-    switch $message(priority) {
+    switch $priority {
         debug {
             if {[ui_isset ports_debug]} {
-                set str "DEBUG: $message(data)"
+            	return {stdout}
             } else {
-                return
+            	return {}
             }
         }
         info {
-	    # put verbose stuff only to the log file
-            if {![ui_isset ports_verbose]} {
-                return
+			# put verbose stuff only to the log file
+            if {[ui_isset ports_verbose]} {
+                return {$logfd}
             } else {
-	        if {[string length $channel] > 0} {
-		    log_message $channel $message(data)
+                return {}
+			}
 		}
-		return
-	    }
-        }
         msg {
             if {[ui_isset ports_quiet]} {
-                return
-            }
-	    set str $message(data)
-        }
-        error {
-            set str "Error: $message(data)"
-        }
-        warn {
-            set str "Warning: $message(data)"
+                return {}
+			} else {
+				return {stdout}
+			}
+		}
+        default {
+        	return {stdout}
         }
     }
-    if {[string length $channel] > 0 } {
-	log_message $channel $str
-    }
-    puts stderr $str
 }
-
+	
 proc pkg_ui_log {message} {
     global logfd
     if {[string length $logfd] > 0 } {

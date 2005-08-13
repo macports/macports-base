@@ -31,39 +31,53 @@ proc ui_isset {val} {
 
 # UI Callback
 
-proc ui_puts {messagelist} {
-    set channel stdout
-    array set message $messagelist
-    switch $message(priority) {
+proc ui_prefix {priority} {
+    switch $priority {
+        debug {
+        	return "DEBUG: "
+        }
+        error {
+        	return "Error: "
+        }
+        warn {
+        	return "Warning: "
+        }
+        default {
+        	return ""
+        }
+    }
+}
+
+proc ui_channels {priority} {
+    switch $priority {
         debug {
             if {[ui_isset ports_debug]} {
-                set channel stderr
-                set str "DEBUG: $message(data)"
+            	return {stderr}
             } else {
-                return
+            	return {}
             }
         }
         info {
-            if {![ui_isset ports_verbose]} {
-                return
-            }
-	    set str $message(data)
-        }
+            if {[ui_isset ports_verbose]} {
+                return {stdout}
+            } else {
+                return {}
+			}
+		}
         msg {
             if {[ui_isset ports_quiet]} {
-                return
-            }
-	    set str $message(data)
-        }
+                return {}
+			} else {
+				return {stdout}
+			}
+		}
         error {
-            set str "Error: $message(data)"
-            set channel stderr
+        	return {stderr}
         }
-        warn {
-            set str "Warning: $message(data)"
+        default {
+        	return {stdout}
         }
     }
-    puts $channel $str
 }
 
 proc pindex {portdir} {

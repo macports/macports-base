@@ -46,17 +46,6 @@ set all_variants [list]
 
 ########### External High Level Procedures ###########
 
-
-# UI Instantiations
-foreach priority "debug info msg error warn" {
-    eval "proc ui_$priority {str} \{ \n\
-	set message(priority) $priority \n\
-	set message(data) \$str \n\
-	ui_event \[array get message\] \n\
-    \}"
-}
-
-
 namespace eval options {
 }
 
