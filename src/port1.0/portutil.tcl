@@ -1283,11 +1283,15 @@ proc archiveTypeIsSupported {type} {
 				}
 			}
 		}
-		t(ar|gz) {
+		t(ar|bz|gz) {
 			set tar "tar"
 			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
 				if {[regexp {z$} $type]} {
-					set gzip "gzip"
+					if {[regexp {bz$} $type]} {
+						set gzip "bzip2"
+					} else {
+						set gzip "gzip"
+					}
 					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 						return 0
 					}

@@ -188,7 +188,7 @@ proc unarchive_command_setup {args} {
 				return -code error "No '$pax' was found on this system!"
 			}
 		}
-		t(ar|gz) {
+		t(ar|bz|gz) {
 			set tar "tar"
 			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
 				ui_debug "Using $tar"
@@ -196,7 +196,11 @@ proc unarchive_command_setup {args} {
 				set unarchive.pre_args {-xvpf}
 				if {[regexp {z$} ${unarchive.type}]} {
 					set unarchive.args {-}
-					set gzip "gzip"
+					if {[regexp {bz$} ${unarchive.type}]} {
+						set gzip "bzip2"
+					} else {
+						set gzip "gzip"
+					}
 					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set unarchive.env "$gzip -d -c ${unarchive.path} |"
