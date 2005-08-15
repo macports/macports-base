@@ -672,8 +672,8 @@ proc target_run {ditem} {
 				set depsPorts {}
 				foreach depspec $depends {
 					# grab the portname portion of the depspec
-					set portname [lindex [split $depspec :] end]
-					lappend depsPorts $portname
+					set dep_portname [lindex [split $depspec :] end]
+					lappend depsPorts $dep_portname
 				}
 				trace_check_deps $depsPorts
 				
