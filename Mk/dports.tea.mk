@@ -11,7 +11,7 @@ clean::
 
 distclean:: clean
 
-install:: all test
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
 	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
