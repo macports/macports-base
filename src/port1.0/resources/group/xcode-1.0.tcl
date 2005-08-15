@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.3 2005/07/08 06:58:19 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.3.2.1 2005/08/15 07:26:02 jmpp Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
