@@ -404,7 +404,7 @@ switch -- $action {
             if { [llength $ilist] > 0 } {
                 foreach i $ilist {
                     set iname [lindex $i 0]
-                    darwinports::upgrade $iname "lib:XXX:$iname"
+                    darwinports::upgrade $iname "port:$iname"
                 }
             }
         } else {
@@ -414,7 +414,7 @@ switch -- $action {
                 exit 1
             }
 
-            darwinports::upgrade $portname "lib:XXX:$portname"
+            darwinports::upgrade $portname "port:$portname"
         }
     }
 
