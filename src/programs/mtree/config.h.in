@@ -28,14 +28,14 @@
 /* Define to 1 if you have the `err' function. */
 #undef HAVE_ERR
 
+/* Define to 1 if you have the <errno.h> header file. */
+#undef HAVE_ERRNO_H
+
 /* Define to 1 if you have the `errx' function. */
 #undef HAVE_ERRX
 
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
-
-/* Define to 1 if you have the <errno.h> header file. */
-#undef HAVE_ERRNO_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -88,8 +88,8 @@
 /* Define to 1 if you have the <machine/endian.h> header file. */
 #undef HAVE_MACHINE_ENDIAN_H
 
-/* Define to 1 if your system has a working `malloc' function, and to 0
-   otherwise. */
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
 #undef HAVE_MALLOC
 
 /* Define to 1 if you have the `MD5File' function. */
@@ -236,6 +236,9 @@
 /* Define to 1 if you have the `warnx' function. */
 #undef HAVE_WARNX
 
+/* define if your compiler has __attribute__ */
+#undef HAVE___ATTRIBUTE__
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -270,15 +273,7 @@
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
 
-/* Define if you have the <errno.h> header file. */
-#undef HAVE_ERRNO_H
 
-/* Define if your compiler has __attribute__ */
-#undef HAVE___ATTRIBUTE__
-
-#ifndef HAVE___ATTRIBUTE__
-# define __attribute__(x)
-#endif
 
 #ifdef HAVE_SYS_CDEFS_H
 #include <sys/cdefs.h>
@@ -384,3 +379,4 @@
 #error You need either memcpy or bcopy
 # endif
 #endif
+
