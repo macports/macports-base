@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.9 2005/08/16 22:19:56 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.10 2005/08/16 23:04:17 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -92,9 +92,15 @@ proc startupitem_create_darwin_systemstarter {args} {
 	
 	set scriptdir ${prefix}/etc/startup
 	
-	set itemname [string toupper ${startupitem.name}]
-	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
-	file mkdir ${destroot}${itemdir}
+	set itemname			[string toupper ${startupitem.name}]
+	set itemdir				${prefix}/etc/StartupItems/${startupitem.name}
+	set startupItemDir		${destroot}${itemdir}
+	set startupItemScript	${startupItemDir}/${startupitem.name}
+	set startupItemPlist	${startupItemDir}/StartupParameters.plist
+	
+	file mkdir ${startupItemDir}
+	
+	set plistName ${destroot}
 	
 	if { [llength ${startupitem.executable}] && 
 			![llength ${startupitem.init}] &&
@@ -137,7 +143,8 @@ proc startupitem_create_darwin_systemstarter {args} {
 	}
 
 	# Generate the startup item script
-	set item [open "${destroot}${itemdir}/${startupitem.name}" w 0755]
+	set item [open "${startupItemScript}" w 0755]
+	file attributes "${startupItemScript}" -owner root -group wheel
 	
 	puts ${item} "#!/bin/sh"
 	puts ${item} "#"
@@ -170,7 +177,9 @@ proc startupitem_create_darwin_systemstarter {args} {
 	close ${item}
 	
 	# Generate the plist
-	set para [open "${destroot}${itemdir}/StartupParameters.plist" w 0644]
+	set para [open "${startupItemPlist}" w 0644]
+	file attributes "${startupItemPlist}" -owner root -group wheel
+	
 	puts ${para} "\{"
 	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
 	puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
@@ -180,6 +189,8 @@ proc startupitem_create_darwin_systemstarter {args} {
 	puts ${para} "\tOrderPreference\t= \"None\";"
 	puts ${para} "\}"
 	close ${para}
+	
+	# Symlink from /Library/StartupItems to the our directory
 	file mkdir ${destroot}/Library/StartupItems
 	system "cd ${destroot}/Library/StartupItems && ln -sf ${itemdir}"
 }
