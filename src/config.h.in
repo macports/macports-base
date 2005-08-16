@@ -12,7 +12,7 @@
 /* Define to 1 if you have the <crt_externs.h> header file. */
 #undef HAVE_CRT_EXTERNS_H
 
-/* Define to 1 if you have the `curl_easy_strerror' function. */
+/* Define to 1 if you have the curl_easy_strerror function. */
 #undef HAVE_CURL_EASY_STRERROR
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
@@ -40,6 +40,15 @@
 
 /* Define to 1 if you have the `fork' function. */
 #undef HAVE_FORK
+
+/* Define if CoreFoundation framework is available */
+#undef HAVE_FRAMEWORK_COREFOUNDATION
+
+/* Define if IOKit framework is available */
+#undef HAVE_FRAMEWORK_IOKIT
+
+/* Define if SystemConfiguration framework is available */
+#undef HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
