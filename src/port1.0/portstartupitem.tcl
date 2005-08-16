@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.10 2005/08/16 23:04:17 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.11 2005/08/16 23:34:48 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -93,14 +93,12 @@ proc startupitem_create_darwin_systemstarter {args} {
 	set scriptdir ${prefix}/etc/startup
 	
 	set itemname			[string toupper ${startupitem.name}]
-	set itemdir				${prefix}/etc/StartupItems/${startupitem.name}
+	set itemdir				/Library/StartupItems/${startupitem.name}
 	set startupItemDir		${destroot}${itemdir}
 	set startupItemScript	${startupItemDir}/${startupitem.name}
 	set startupItemPlist	${startupItemDir}/StartupParameters.plist
 	
 	file mkdir ${startupItemDir}
-	
-	set plistName ${destroot}
 	
 	if { [llength ${startupitem.executable}] && 
 			![llength ${startupitem.init}] &&
@@ -189,10 +187,6 @@ proc startupitem_create_darwin_systemstarter {args} {
 	puts ${para} "\tOrderPreference\t= \"None\";"
 	puts ${para} "\}"
 	close ${para}
-	
-	# Symlink from /Library/StartupItems to the our directory
-	file mkdir ${destroot}/Library/StartupItems
-	system "cd ${destroot}/Library/StartupItems && ln -sf ${itemdir}"
 }
 
 proc startupitem_create_darwin_launchd {args} {
