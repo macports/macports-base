@@ -195,6 +195,24 @@ proc main {pextlibname} {
 
 	filemap close testmap3
 
+	# concurrency bug test
+	filemap open testmap7 "/tmp/darwinports-pextlib-testmap"
+	filemap set testmap7 "/rw/foobar" "foobar"
+	filemap save testmap7
+	filemap close testmap7
+	filemap open testmap6 "/tmp/darwinports-pextlib-testmap" readonly
+	filemap open testmap8 "/tmp/darwinports-pextlib-testmap"
+	filemap unset testmap8 "/rw/foobar"
+	filemap save testmap8
+	filemap close testmap8
+	filemap close testmap6
+	filemap open testmap9 "/tmp/darwinports-pextlib-testmap" readonly
+	if {[filemap exists testmap9 "/rw/foobar"]} {
+		puts {[filemap exists testmap9 "/rw/foobar"]}
+		exit 1
+	}
+	filemap close testmap9
+
 	file delete -force "/tmp/darwinports-pextlib-testmap"
 
 	# delete the lock file as well.
