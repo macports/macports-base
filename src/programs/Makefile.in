@@ -1,4 +1,6 @@
-SUBDIR=		@REPLACEMENT_PROGS@
+# $Id: Makefile.in,v 1.3 2005/08/16 21:30:26 jberry Exp $
+
+SUBDIR=	@REPLACEMENT_PROGS@ @EXTRA_PROGS@
 
 include ../../Mk/dports.subdir.mk
 

@@ -1,0 +1,35 @@
+# $Id: Makefile.in,v 1.4 2005/08/16 21:30:26 jberry Exp $
+
+top_srcdir = @top_srcdir@
+
+include ${top_srcdir}/Mk/dports.autoconf.mk
+
+mandir=		@mandir@
+mandircat8=	${mandir}/cat8
+
+CFLAGS_QUICHEEATERS	= -W -Wall -Wno-unused-parameter
+SRCS		= main.c
+OBJS		= main.o
+LIBS		= -framework CoreFoundation \
+			  -framework SystemConfiguration \
+			  -framework IOKit
+PROGRAM		= build/daemondo
+
+all: daemondo
+
+daemondo: mkdirs ${PROGRAM}
+
+${PROGRAM}: ${OBJS}
+	${CC} ${CFLAGS} -o ${PROGRAM} ${LIBS} ${OBJS}
+	
+mkdirs:
+	mkdir -p build
+
+clean:
+	rm -Rf build ${PROGRAM} ${OBJS}
+
+distclean: clean
+	rm -f Makefile
+
+install:
+	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 ${PROGRAM} ${bindir}
