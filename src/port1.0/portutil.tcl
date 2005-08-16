@@ -675,7 +675,7 @@ proc target_run {ditem} {
 					set dep_portname [lindex [split $depspec :] end]
 					lappend depsPorts $dep_portname
 				}
-				trace_check_deps $depsPorts
+				trace_check_deps $target $depsPorts
 				
 				# Check files that were created.
 				if {$target != "activate"

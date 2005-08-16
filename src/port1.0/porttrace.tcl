@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.12 2005/08/11 09:29:32 pguyot Exp $
+# $Id: porttrace.tcl,v 1.13 2005/08/16 03:55:10 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -64,7 +64,7 @@ proc trace_start {workpath} {
 # Output a warning for every port the trace revealed a dependency on
 # that isn't included in portslist
 # This method must be called after trace_start
-proc trace_check_deps {portslist} {
+proc trace_check_deps {target portslist} {
 	# Get the list of ports.
 	set ports [slave_send slave_get_ports]
 	
@@ -72,27 +72,27 @@ proc trace_check_deps {portslist} {
 	set portslist [lsort $portslist]
 	foreach port $ports {
 		if {[lsearch -sorted -exact $portslist $port] == -1} {
-			ui_warn "trace revealed an undeclared dependency on $port"
+			ui_warn "Target $target has an undeclared dependency on $port"
 		}
 	}
+	foreach port $portslist {
+		if {[lsearch -sorted -exact $ports $port] == -1} {
+			ui_debug "Target $target has no traceable dependency on $port"
+		}
+	}	
 }
 
 # Check that no file were created outside workpath.
 # Output a warning for every created file the trace revealed.
 # This method must be called after trace_start
 proc trace_check_create {} {
-	global trace_mutex
-	# Acquire the mutex.
-	thread::mutex lock $trace_mutex
 	# Get the list of created files.
 	set created [slave_send slave_get_created]
-	# Release the mutex.
-	thread::mutex unlock $trace_mutex
 	
 	# Compare with portslist
 	set created [lsort $created]
 	foreach created_file $created {
-		ui_warn "trace revealed a file was created outside \${workpath}: $created_file"
+		ui_warn "A file was created outside \${workpath}: $created_file"
 	}
 }
 
@@ -119,20 +119,17 @@ proc trace_stop {} {
 # Private
 # Create the slave thread.
 proc create_slave {workpath trace_fifo} {
-	global trace_thread trace_mutex
+	global trace_thread
 	# Create the thread.
 	set trace_thread [darwinports_create_thread]
 	
-	# Create the mutex
-	set trace_mutex [thread::mutex create]
-
 	# The slave thread requires the registry package.
 	thread::send -async $trace_thread "package require registry 1.0"
 	# and this file as well.
 	thread::send -async $trace_thread "package require porttrace 1.0"
 
 	# Start the slave work.
-	thread::send -async $trace_thread "slave_start $trace_fifo $workpath $trace_mutex"
+	thread::send -async $trace_thread "slave_start $trace_fifo $workpath"
 }
 
 # Private
@@ -164,11 +161,8 @@ proc delete_slave {} {
 # Private.
 # Slave method to read a line from the trace.
 proc slave_read_line {chan} {
-	global ports_list trace_filemap created_list workpath trace_mutex own_mutex
+	global ports_list trace_filemap created_list workpath
 	global env
-
-	# Acquire the mutex.
-	thread::mutex lock $trace_mutex
 
 	while 1 {
 		# We should never get EOF, actually.
@@ -233,19 +227,15 @@ proc slave_read_line {chan} {
 			}
 		}
 	}
-
-	thread::mutex unlock $trace_mutex
 }
 
 # Private.
 # Slave init method.
-proc slave_start {fifo p_workpath mutex} {
+proc slave_start {fifo p_workpath} {
 	global ports_list trace_filemap created_list trace_fifo_r_chan \
-		trace_fifo_w_chan workpath trace_mutex own_mutex
-	# Save the workpath and the mutex.
+		trace_fifo_w_chan workpath
+	# Save the workpath.
 	set workpath $p_workpath
-	set trace_mutex $mutex
-	set own_mutex 0
 	# Create a virtual filemap.
 	filemap create trace_filemap
 	set ports_list {}
