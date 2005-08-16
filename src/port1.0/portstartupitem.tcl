@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.8 2005/03/24 10:34:49 mww Exp $
+# $Id: portstartupitem.tcl,v 1.9 2005/08/16 22:19:56 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -84,54 +84,92 @@ proc startupitem_create_rcng {args} {
 	close ${fd}
 }
 
-proc startupitem_create_darwin {args} {
+proc startupitem_create_darwin_systemstarter {args} {
 	global prefix destroot portname os.platform
 	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart
-
+	global startupitem.executable
+	
 	set scriptdir ${prefix}/etc/startup
-	if { ![exists startupitem.name] } {
-		set startupitem.name ${portname}
-	}
-	if { ![exists startupitem.init] } {
-		set startupitem.init [list]
-	}
-	if { ![exists startupitem.start] } {
-		set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
-	}
-	if { ![exists startupitem.stop] } {
-		set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
-	}
-	if { ![exists startupitem.restart] } {
-		set startupitem.restart [list "StopService; StartService"]
-	}
-	if { ![exists startupitem.requires] } {
-		set startupitem.requires [list "Disks" "NFS"]
-	}
+	
 	set itemname [string toupper ${startupitem.name}]
 	set itemdir ${prefix}/etc/StartupItems/${startupitem.name}
 	file mkdir ${destroot}${itemdir}
+	
+	if { [llength ${startupitem.executable}] && 
+			![llength ${startupitem.init}] &&
+			![llength ${startupitem.start}] &&
+			![llength ${startupitem.stop}] &&
+			![llength ${startupitem.restart}] } {
+			
+		# An executable is specified, and there is no init, start, stop, or restart
+		# code; so we need to gen-up those options
+			
+		set startupitem.init [list \
+			"PIDFILE=${prefix}/var/run/${startupitem.name}.pid-dp" \
+			]
+
+		set startupitem.start [list \
+			"rm -f \$PIDFILE" \
+			"${startupitem.executable} &" \
+			"echo \$! >\$PIDFILE" \
+			]
+			
+		set startupitem.stop [list \
+			"if test -r \$PIDFILE; then" \
+			"\tkill \$(cat \$PIDFILE)" \
+			"\trm -f \$PIDFILE" \
+			"fi" \
+			]
+	}
+	
+	if { ![llength ${startupitem.start} ] } {
+		set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
+	}
+	if { ![llength ${startupitem.stop} ] } {
+		set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
+	}
+	if { ![llength ${startupitem.restart} ] } {
+		set startupitem.restart [list StopService StartService]
+	}
+	if { ![llength ${startupitem.requires} ] } {
+		set startupitem.requires [list Disks NFS]
+	}
+
+	# Generate the startup item script
 	set item [open "${destroot}${itemdir}/${startupitem.name}" w 0755]
+	
 	puts ${item} "#!/bin/sh"
-	puts ${item} "#\n# DarwinPorts generated StartupItem\n#\n"
-	puts ${item} ". /etc/rc.common\n"
+	puts ${item} "#"
+	puts ${item} "# DarwinPorts generated StartupItem"
+	puts ${item} "#"
+	puts ${item} ""
+	puts ${item} ". /etc/rc.common"
+	puts ${item} ""
+	
 	foreach line ${startupitem.init} { puts ${item} ${line} }
+	
 	puts ${item} "\nStartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
 	foreach line ${startupitem.start} { puts ${item} "\t\t${line}" }
 	puts ${item} "\tfi\n\}\n"
+	
 	puts ${item} "StopService ()\n\{"
-	puts ${item} "\t\tConsoleMessage \"Stopping ${startupitem.name}\""
-	foreach line ${startupitem.stop} { puts ${item} "\t\t${line}" }
+	puts ${item} "\tConsoleMessage \"Stopping ${startupitem.name}\""
+	foreach line ${startupitem.stop} { puts ${item} "\t${line}" }
 	puts ${item} "\}\n"
+	
 	puts ${item} "RestartService ()\n\{"
 	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
 	puts ${item} "\t\tConsoleMessage \"Restarting ${startupitem.name}\""
 	foreach line ${startupitem.restart} { puts ${item} "\t\t${line}" }
 	puts ${item} "\tfi\n\}\n"
+	
 	puts ${item} "RunService \"\$1\""
 	close ${item}
+	
+	# Generate the plist
 	set para [open "${destroot}${itemdir}/StartupParameters.plist" w 0644]
 	puts ${para} "\{"
 	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
@@ -146,21 +184,180 @@ proc startupitem_create_darwin {args} {
 	system "cd ${destroot}/Library/StartupItems && ln -sf ${itemdir}"
 }
 
-proc startupitem_create {args} {
-	global os.platform UI_PREFIX
-	global startupitem.type
-	ui_msg "$UI_PREFIX [msgcat::mc "Creating Startup Script"]"
+proc startupitem_create_darwin_launchd {args} {
+	global prefix destroot portname os.platform
+	global startupitem.name startupitem.requires startupitem.init
+	global startupitem.start startupitem.stop startupitem.restart
+	global startupitem.executable
 
+	set scriptdir ${prefix}/etc/startup
+	
+	set itemname		${startupitem.name}
+	set plistname		${itemname}.plist
+	set daemondest		LaunchDaemons
+	set itemdir			${prefix}/etc/${daemondest}/${itemname}
+	set args			[list "${prefix}/bin/daemondo"]
+	
+	file mkdir ${destroot}${itemdir}
+		
+	if { [llength ${startupitem.executable}] && 
+			![llength ${startupitem.init}] &&
+			![llength ${startupitem.start}] &&
+			![llength ${startupitem.stop}] &&
+			![llength ${startupitem.restart}] } {
+			
+		# An executable is specified, and there is no init, start, stop, or restart
+		# code; so we don't need a wrapper script
+		
+		set args [concat $args "--start-cmd" ${startupitem.executable} ";"]
+		
+	} else {
+	
+		# No executable was specified, or there was an init, start, stop, or restart
+		# option, so we do need a wrapper script
+		
+		set wrappername		${itemname}.wrapper
+		set wrapper			"${itemdir}/${wrappername}"
+
+		if { ![llength ${startupitem.start}] } {
+			set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
+		}
+		if { ![llength ${startupitem.stop}] } {
+			set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
+		}
+		if { ![llength ${startupitem.restart}] } {
+			set startupitem.restart [list Stop Start]
+		}
+
+		set args [concat $args \
+			"--start-cmd"   ${wrapper} start   ";" \
+			"--stop-cmd"    ${wrapper} stop    ";" \
+			"--restart-cmd" ${wrapper} restart ";" \
+			]
+
+		# Create the wrapper script
+		set item [open "${destroot}${wrapper}" w 0755]
+
+		puts ${item} "#!/bin/sh"
+		puts ${item} "#"
+		puts ${item} "# DarwinPorts generated daemondo support script"
+		puts ${item} "#"
+		puts ${item} ""
+		
+		puts ${item} "#"
+		puts ${item} "# Init"
+		puts ${item} "#"
+		foreach line ${startupitem.init}	{ puts ${item} ${line} }
+		puts ${item} ""
+
+		puts ${item} "#"
+		puts ${item} "# Start"
+		puts ${item} "#"
+		puts ${item} "Start()"
+		puts ${item} "\{"
+		foreach line ${startupitem.start}	{ puts ${item} "\t${line}" }
+		puts ${item} "\}"
+		puts ${item} ""
+		
+		puts ${item} "#"
+		puts ${item} "# Stop"
+		puts ${item} "#"
+		puts ${item} "Stop()"
+		puts ${item} "\{"
+		foreach line ${startupitem.stop}	{ puts ${item} "\t${line}" }
+		puts ${item} "\}"
+		puts ${item} ""
+	
+		puts ${item} "#"
+		puts ${item} "# Restart"
+		puts ${item} "#"
+		puts ${item} "Restart()"
+		puts ${item} "\{"
+		foreach line ${startupitem.restart} { puts ${item} "\t${line}" }
+		puts ${item} "\}"
+		puts ${item} ""
+
+		puts ${item} "#"
+		puts ${item} "# Run"
+		puts ${item} "#"
+		puts ${item} "Run()"
+		puts ${item} "\{"
+		puts ${item} "case \$1 in"
+		puts ${item} "  start  ) Start   ;;"
+		puts ${item} "  stop   ) Stop    ;;"
+		puts ${item} "  restart) Restart ;;"
+		puts ${item} "  *      ) echo \"\$0: unknown argument: \$1\";;"
+		puts ${item} "esac"
+		puts ${item} "\}"
+		puts ${item} ""
+
+		puts ${item} "#"
+		puts ${item} "# Run a phase based on the selector"
+		puts ${item} "#"
+		puts ${item} "Run \$1"
+		puts ${item} ""
+
+		close ${item}
+	}
+		
+	# Create the plist file
+	set plist [open "${destroot}${itemdir}/${plistname}" w 0644]
+	
+	puts ${plist} "<?xml version='1.0' encoding='UTF-8'?>"
+	puts ${plist} "<!DOCTYPE plist PUBLIC -//Apple Computer//DTD PLIST 1.0//EN"
+	puts ${plist} "http://www.apple.com/DTDs/PropertyList-1.0.dtd >"
+	puts ${plist} "<plist version='1.0'>"
+	puts ${plist} "<dict>"
+	
+	puts ${plist} "<key>Label</key><string>${itemname}</string>"
+	
+	puts ${plist} "<key>ProgramArguments</key>"
+	puts ${plist} "<array>"
+	foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
+	puts ${plist} "</array>"
+	
+	puts ${plist} "<key>Disabled</key><false/>"
+	puts ${plist} "<key>OnDemand</key><false/>"
+	puts ${plist} "<key>RunAtLoad</key><false/>"
+	
+	puts ${plist} "</dict>"
+	puts ${plist} "</plist>"
+
+	close ${plist}
+
+	# Make a symlink to the plist file
+	file mkdir "${destroot}/Library/${daemondest}"
+	system "cd ${destroot}/Library/${daemondest} && ln -sf ${itemdir}/${plistname}"
+}
+
+proc startupitem_create {args} {
+	global UI_PREFIX
+	global startupitem.type os.platform
+	
+	# Calculate a default value for startupitem.type
+	# If the option has already been set, default will do nothing
 	switch -exact ${os.platform} {
-		"darwin" {
-			if {${startupitem.type} == "RCng"} {
-				startupitem_create_rcng
+		darwin {
+			set enableLaunchd ${portutil::autoconf::enable_launchd_support}
+			set haveLaunchd	${portutil::autoconf::have_launchd}
+			
+			if { ${enableLaunchd} && ${haveLaunchd} } {
+				default startupitem.type "launchd"
 			} else {
-				startupitem_create_darwin
+				default startupitem.type "SystemStarter"
 			}
 		}
 		default {
-			startupitem_create_rcng
+			default startupitem.type "RCng"
 		}
+	}
+		
+	ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
+
+	switch ${startupitem.type} {
+		launchd			{ startupitem_create_darwin_launchd }
+		SystemStarter	{ startupitem_create_darwin_systemstarter }
+		RCng			{ startupitem_create_rcng }
+		default			{ startupitem_create_rcng }
 	}
 }

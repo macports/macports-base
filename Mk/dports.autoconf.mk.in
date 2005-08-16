@@ -1,5 +1,4 @@
 SHELL			= @SHELL@
-top_srcdir		= @top_srcdir@
 srcdir			= @srcdir@
 VPATH			= @srcdir@
 
@@ -26,6 +25,7 @@ MD5_LIBS		= @MD5_LIBS@
 INSTALL			= @INSTALL@
 MTREE			= @MTREE@
 LN_S			= @LN_S@
+XCODEBUILD		= @XCODEBUILD@
 
 TCLSH			= @TCLSH@
 TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@

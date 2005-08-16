@@ -314,7 +314,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all src/thread2.6"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CVS HAVE_LAUNCHD LAUNCHCTL TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL OUR_INCLUDED_PACKAGES INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CVS HAVE_LAUNCHD LAUNCHCTL XCODEBUILD TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs HAVE_FRAMEWORK_COREFOUNDATION HAVE_FRAMEWORK_SYSTEMCONFIGURATION HAVE_FRAMEWORK_IOKIT ENABLE_LAUNCHD_SUPPORT REPLACEMENT_PROGS EXTRA_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL OUR_INCLUDED_PACKAGES INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -856,6 +856,8 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-launchd-support
+                          add support for launchd startupitems (default is NO)
   --enable-shared         build and link with shared libraries --enable-shared
 
 Optional Packages:
@@ -2632,6 +2634,45 @@ else
 echo "${ECHO_T}no" >&6
 fi
 
+# Extract the first word of "xcodebuild", so it can be a program name with args.
+set dummy xcodebuild; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_XCODEBUILD+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $XCODEBUILD in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XCODEBUILD="$XCODEBUILD" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_XCODEBUILD="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+XCODEBUILD=$ac_cv_path_XCODEBUILD
+
+if test -n "$XCODEBUILD"; then
+  echo "$as_me:$LINENO: result: $XCODEBUILD" >&5
+echo "${ECHO_T}$XCODEBUILD" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
 
 
 	# Extract the first word of "tar", so it can be a program name with args.
@@ -2852,6 +2893,307 @@ subdirs="$subdirs src/programs/mtree"
 		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
 	fi
 
+
+
+
+	FRAMEWORK_LIBS="-framework CoreFoundation"
+
+	echo "$as_me:$LINENO: checking for CoreFoundation framework" >&5
+echo $ECHO_N "checking for CoreFoundation framework... $ECHO_C" >&6
+
+	if test "${od_cv_have_framework_corefoundation+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+
+		cat >conftest.$ac_ext <<_ACEOF
+
+			/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+					#include <CoreFoundation/CoreFoundation.h>
+
+int
+main ()
+{
+
+					CFURLRef url = CFURLCreateWithFileSystemPath(NULL, CFSTR("/testing"), kCFURLPOSIXPathStyle, 1);
+					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
+
+  ;
+  return 0;
+}
+
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+				od_cv_have_framework_corefoundation="yes"
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+				od_cv_have_framework_corefoundation="no"
+
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+		LIBS="$ac_save_LIBS"
+
+fi
+
+
+	echo "$as_me:$LINENO: result: ${od_cv_have_framework_corefoundation}" >&5
+echo "${ECHO_T}${od_cv_have_framework_corefoundation}" >&6
+
+	if test x"${od_cv_have_framework_corefoundation}" = "xyes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_FRAMEWORK_COREFOUNDATION
+_ACEOF
+
+	fi
+
+
+
+
+	FRAMEWORK_LIBS="-framework SystemConfiguration"
+
+	echo "$as_me:$LINENO: checking for SystemConfiguration framework" >&5
+echo $ECHO_N "checking for SystemConfiguration framework... $ECHO_C" >&6
+
+	if test "${od_cv_have_framework_systemconfiguration+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+
+		cat >conftest.$ac_ext <<_ACEOF
+
+			/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+					#include <SystemConfiguration/SystemConfiguration.h>
+
+int
+main ()
+{
+
+					int err = SCError();
+					SCDynamicStoreRef dsRef = SCDynamicStoreCreate(NULL, NULL, NULL, NULL);
+
+  ;
+  return 0;
+}
+
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+				od_cv_have_framework_systemconfiguration="yes"
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+				od_cv_have_framework_systemconfiguration="no"
+
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+		LIBS="$ac_save_LIBS"
+
+fi
+
+
+	echo "$as_me:$LINENO: result: ${od_cv_have_framework_systemconfiguration}" >&5
+echo "${ECHO_T}${od_cv_have_framework_systemconfiguration}" >&6
+
+	if test x"${od_cv_have_framework_systemconfiguration}" = "xyes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_FRAMEWORK_SYSTEMCONFIGURATION
+_ACEOF
+
+	fi
+
+
+
+
+	FRAMEWORK_LIBS="-framework IOKit"
+
+	echo "$as_me:$LINENO: checking for IOKit framework" >&5
+echo $ECHO_N "checking for IOKit framework... $ECHO_C" >&6
+
+	if test "${od_cv_have_framework_iokit+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+
+		cat >conftest.$ac_ext <<_ACEOF
+
+			/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+					#include <IOKit/IOKitLib.h>
+
+int
+main ()
+{
+
+					IOCreateReceivePort(0, NULL);
+					IORegisterForSystemPower(0, NULL, NULL, NULL);
+
+  ;
+  return 0;
+}
+
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+				od_cv_have_framework_iokit="yes"
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+				od_cv_have_framework_iokit="no"
+
+
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+
+		LIBS="$ac_save_LIBS"
+
+fi
+
+
+	echo "$as_me:$LINENO: result: ${od_cv_have_framework_iokit}" >&5
+echo "${ECHO_T}${od_cv_have_framework_iokit}" >&6
+
+	if test x"${od_cv_have_framework_iokit}" = "xyes"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_FRAMEWORK_IOKIT
+_ACEOF
+
+	fi
+
+
+
+# Check whether --enable-launchd-support or --disable-launchd-support was given.
+if test "${enable_launchd_support+set}" = set; then
+  enableval="$enable_launchd_support"
+
+
+
+
+
+    echo "$as_me:$LINENO: checking for whether we will build daemondo" >&5
+echo $ECHO_N "checking for whether we will build daemondo... $ECHO_C" >&6
+    result=no
+	case $host_os in
+	darwin*)
+		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
+		   test "x$od_cv_have_framework_systemconfiguration" == "xyes" &&
+		   test "x$od_cv_have_framework_iokit" == "xyes"; then
+			result=yes
+			EXTRA_PROGS="$EXTRA_PROGS daemondo"
+			          ac_config_files="$ac_config_files src/programs/daemondo/Makefile"
+
+		fi
+		;;
+	*)
+	esac
+	echo "$as_me:$LINENO: result: ${result}" >&5
+echo "${ECHO_T}${result}" >&6
+
+fi;
+ENABLE_LAUNCHD_SUPPORT=$enable_launchd_support
 
 
 
@@ -8409,6 +8751,7 @@ for ac_config_target in $ac_config_targets
 do
   case "$ac_config_target" in
   # Handling of arguments.
+  "src/programs/daemondo/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
   "Mk/dports.autoconf.mk" ) CONFIG_FILES="$CONFIG_FILES Mk/dports.autoconf.mk" ;;
   "doc/prefix.mtree" ) CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
@@ -8531,13 +8874,19 @@ s,@LN_S@,$LN_S,;t t
 s,@CVS@,$CVS,;t t
 s,@HAVE_LAUNCHD@,$HAVE_LAUNCHD,;t t
 s,@LAUNCHCTL@,$LAUNCHCTL,;t t
+s,@XCODEBUILD@,$XCODEBUILD,;t t
 s,@TAR@,$TAR,;t t
 s,@GNUTAR@,$GNUTAR,;t t
 s,@TAR_CMD@,$TAR_CMD,;t t
 s,@CFLAGS_QUICHEEATERS@,$CFLAGS_QUICHEEATERS,;t t
 s,@MTREE@,$MTREE,;t t
 s,@subdirs@,$subdirs,;t t
+s,@HAVE_FRAMEWORK_COREFOUNDATION@,$HAVE_FRAMEWORK_COREFOUNDATION,;t t
+s,@HAVE_FRAMEWORK_SYSTEMCONFIGURATION@,$HAVE_FRAMEWORK_SYSTEMCONFIGURATION,;t t
+s,@HAVE_FRAMEWORK_IOKIT@,$HAVE_FRAMEWORK_IOKIT,;t t
+s,@ENABLE_LAUNCHD_SUPPORT@,$ENABLE_LAUNCHD_SUPPORT,;t t
 s,@REPLACEMENT_PROGS@,$REPLACEMENT_PROGS,;t t
+s,@EXTRA_PROGS@,$EXTRA_PROGS,;t t
 s,@DPORTSDIR@,$DPORTSDIR,;t t
 s,@PORTCONFIGDIR@,$PORTCONFIGDIR,;t t
 s,@DSTUSR@,$DSTUSR,;t t
