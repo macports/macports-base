@@ -1054,10 +1054,10 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	
 	foreach depspec $depends {
 		# grab the portname portion of the depspec
-		set portname [lindex [split $depspec :] end]
+		set dep_portname [lindex [split $depspec :] end]
 		
 		# Find the porturl
-		if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		if {[catch {set res [dportsearch "^$dep_portname\$"]} error]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_error "Internal error: port search failed: $error"
@@ -1072,7 +1072,7 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 		}
 
 		if {![info exists porturl]} {
-			ui_error "Dependency '$portname' not found."
+			ui_error "Dependency '$dep_portname' not found."
 			return 1
 		}
 
@@ -1090,9 +1090,9 @@ proc dportdepends {dport includeBuildDeps recurseDeps {accDeps {}}} {
 	
 			if {$recurseDeps != ""} {
 				# Skip the port if it's already in the accumulated list.
-				if {[lsearch $accDeps $portname] == -1} {
+				if {[lsearch $accDeps $dep_portname] == -1} {
 					# Add it to the list
-					lappend accDeps $portname
+					lappend accDeps $dep_portname
 				
 					# We'll recursively iterate on it.
 					lappend subPorts $subport
