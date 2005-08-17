@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.5 2005/08/17 00:44:54 jberry Exp $
+	$Id: main.c,v 1.6 2005/08/17 20:39:36 jberry Exp $
 */
 
 /*
@@ -52,6 +52,8 @@
 #include <signal.h>
 #include <getopt.h>
 #include <fcntl.h>
+#include <stdarg.h>
+#include <time.h>
 #include <mach/mach.h>
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -68,6 +70,7 @@ CFStringRef			kProgramName		= NULL;
 CFStringRef			kChildWatchMode		= NULL;
 
 int					verbosity			= 0;		// Verbosity level
+const char*			label				= NULL;
 
 const char* const*	startArgs			= NULL;		// Argvs for start-cmd, stop-cmd, and restart-cmd
 const char* const*	stopArgs			= NULL;
@@ -90,9 +93,36 @@ CFRunLoopTimerRef	restartTimer		= NULL;		// Timer for scheduled restart
 
 
 void
+LogMessage(const char* fmt, ...)
+{
+	struct tm tm;
+	time_t timestamp;
+	char datestring[32];
+	
+	// Format the date-time stamp
+	time(&timestamp);
+	strftime(datestring, sizeof(datestring), "%F %T", gmtime_r(&timestamp, &tm));
+	
+	// Output the log header
+	if (label != NULL)
+		printf("%s %s: ", datestring, label);
+	else
+		printf("%s ", datestring);
+	
+	// Output the message
+	va_list ap;
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
+	va_end(ap);
+	
+	printf("\n");
+}
+
+
+void
 DoVersion(void)
 {
-	printf("daemondo, version 1.0d1\n\n");
+	printf("daemondo, version 1.0d2\n\n");
 }
 
 
@@ -122,8 +152,9 @@ DoHelp(void)
 		"\n"
 		"  -h, --help                      Provide this help.\n"
 		"  -v                              Increase verbosity.\n"
-		"      --verbose=n                 Set verbosity to n.\n"
-		"      --version                   Display program version information.\n"
+		"      --verbosity=n               Set verbosity to n.\n"
+		"  -V, --version                   Display program version information.\n"
+		"  -l, --label=desc                Label used to describe the daemon.\n"
 		"\n"
 		"  -s, --start-cmd args... ;       Required: command that will start the daemon.\n"
 		"  -k, --stop-cmd args... ;        Command that will stop the daemon.\n"
@@ -188,7 +219,7 @@ ProcessChildDeath(pid_t childPid)
 	// Take special note if process running_pid dies
 	if (childPid == running_pid)
 	{
-		if (verbosity >= 2)
+		if (verbosity >= 3)
 			printf("Running process id %d has died.\n", childPid);
 		running_pid = 0;
 		CFRunLoopStop(CFRunLoopGetCurrent());
@@ -219,7 +250,7 @@ WaitChildDeath(pid_t childPid)
 		else
 		{
 			// We've run out of patience; kill the child with SIGKILL
-			if (verbosity >= 2)
+			if (verbosity >= 3)
 				printf("Child %d didn't die; Killing with SIGKILL.\n", childPid);
 			kill(childPid, SIGKILL);
 		}
@@ -299,20 +330,24 @@ Start(void)
 	}
 	
 	if (verbosity >= 1)
+		LogMessage("starting process");
+	if (verbosity >= 2)
 		printf("Running start-cmd %s.\n", startArgs[0]);
 		
 	pid_t pid = Exec(startArgs, !start_async);
 	if (pid == -1)
 	{
-		if (verbosity >= 1)
+		if (verbosity >= 2)
 			printf("Error running start-cmd %s.\n", startArgs[0]);
+		if (verbosity >= 1)
+			LogMessage("error while starting");
 		return 2;
 	}
 	
 	if (pid)
 	{
 		if (verbosity >= 1)
-			printf("Started process id %d\n", pid);
+			LogMessage("process id %d", pid);
 		running_pid = pid;
 	}
 	
@@ -323,28 +358,29 @@ Start(void)
 int
 Stop(void)
 {
+	pid_t pid;
 	if (!stopArgs || !stopArgs[0])
 	{
 		// We don't have a stop command, so we try to kill the process
 		// we're tracking with running_pid
-		if (running_pid)
+		if ((pid = running_pid) != 0)
 		{
 			if (verbosity >= 1)
-				printf("Stopping pid %d...\n", running_pid);
+				LogMessage("stopping process %d\n", pid);
 			
 			// Send the process a SIGTERM to ask it to quit
-			kill(running_pid, SIGTERM);
+			kill(pid, SIGTERM);
 			
 			// Wait for process to quit, killing it after a timeout
-			WaitChildDeath(running_pid);
+			WaitChildDeath(pid);
 			
-			if (verbosity >= 1)
-				printf("Process stopped.\n");
+			if (verbosity >= 2)
+				printf("process %d stopped", pid);
 		}
 		else
 		{
 			if (verbosity >= 1)
-				printf("Process already stopped.\n");
+				LogMessage("process was already stopped");
 		}
 	}
 	else
@@ -352,12 +388,16 @@ Stop(void)
 		// We have a stop-cmd to use. We execute it synchronously,
 		// and trust it to do the job.
 		if (verbosity >= 1)
+			LogMessage("stopping process");
+		if (verbosity >= 2)
 			printf("Running stop-cmd %s.\n", stopArgs[0]);
-		pid_t pid = Exec(stopArgs, TRUE);
+		pid = Exec(stopArgs, TRUE);
 		if (pid == -1)
 		{
+			if (verbosity >= 2)
+				printf("Error while running stop-cmd %s\n", stopArgs[0]);
 			if (verbosity >= 1)
-				printf("Error running stop-cmd %s\n", stopArgs[0]);
+				LogMessage("error stopping process");
 			return 2;
 		}
 	}
@@ -372,6 +412,8 @@ Restart(void)
 	if (!restartArgs || !restartArgs[0])
 	{
 		// We weren't given a restart command, so just use stop/start
+		if (verbosity >= 1)
+			LogMessage("restarting process");
 		Stop();
 		Start();
 	}
@@ -379,12 +421,16 @@ Restart(void)
 	{
 		// Execute the restart-cmd and trust it to do the job
 		if (verbosity >= 1)
+			LogMessage("restarting process");
+		if (verbosity >= 2)
 			printf("Running restart-cmd %s.\n", restartArgs[0]);
 		pid_t pid = Exec(restartArgs, TRUE);
 		if (pid == -1)
 		{
-			if (verbosity >= 1)
+			if (verbosity >= 2)
 				printf("Error running restart-cmd %s\n", restartArgs[0]);
+			if (verbosity >= 1)
+				LogMessage("error restarting process");
 			return 2;
 		}
 	}
@@ -396,7 +442,7 @@ Restart(void)
 void
 ScheduledRestartCallback(CFRunLoopTimerRef timer, void *info)
 {
-	if (verbosity >= 2)
+	if (verbosity >= 3)
 		printf("Scheduled restart time has arrived.\n");
 		
 	// Our scheduled restart fired, so restart now
@@ -438,7 +484,7 @@ ScheduleDelayedRestart(void)
 	// period of time, and collapse them together into only one. It also allows for
 	// a certain amount of "slop time" for things to stabilize following whatever
 	// event is triggering the restart.
-	if (verbosity >= 2)
+	if (verbosity >= 3)
 		printf("Scheduling restart %f seconds in future.\n", kRestartHysteresis);
 	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + kRestartHysteresis);
 }
@@ -451,7 +497,7 @@ DynamicStoreChanged(
 					void				*info
 					)
 {
-	if (verbosity >= 2)
+	if (verbosity >= 3)
 	{
 		CFShow(CFSTR("Restarting daemon because of the following changes in the dynamic store:"));
 		CFIndex cnt = CFArrayGetCount(changedKeys);
@@ -482,7 +528,7 @@ PowerCallBack(void * x, io_service_t y, natural_t messageType, void * messageArg
 	case kIOMessageSystemHasPoweredOn:
 		if (restartOnWakeup)
 		{
-			if (verbosity >= 2)
+			if (verbosity >= 3)
 				printf("Restarting daemon because of system wake from sleep\n");
 			ScheduleDelayedRestart();
 		}
@@ -499,7 +545,7 @@ NotificationCenterCallback(
 								const void *object, 
 								CFDictionaryRef userInfo)
 {
-	if (verbosity >= 2)
+	if (verbosity >= 3)
 	{
 		CFShow(CFSTR("Restarting daemon due to receipt of the following notification:"));
 		CFShow(name);
@@ -756,7 +802,7 @@ CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef arr
 
 
 enum {
-	kVerboseOpt			= 256,
+	kVerbosityOpt			= 256,
 	kRestartConfigOpt,
 	kRestartDistNotifyOpt,
 	kRestartDarwinNotifyOpt,
@@ -777,6 +823,9 @@ main(int argc, char* argv[])
 	scRestartPatterns	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	distNotifyNames		= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	darwinNotifyNames	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+	
+	// Make stdout flush after every line
+	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
 	
 	// Process arguments
 	static struct option longopts[] = {
@@ -804,8 +853,9 @@ main(int argc, char* argv[])
 			// other
 		{ "help",			no_argument,			0,				'h' },
 		{ "v",				no_argument,			0,				'v' },
-		{ "verbose",		optional_argument,		0,				kVerboseOpt },
+		{ "verbosity",		optional_argument,		0,				kVerbosityOpt },
 		{ "version",		no_argument,			0,				'V' },
+		{ "label",			required_argument,		0,				'l' },
 		
 		{ 0,				0,                      0,              0 }
 	};
@@ -813,7 +863,7 @@ main(int argc, char* argv[])
 	while (status == 0 && optind < argc)
 	{
 		int optindex = 0;
-		int ret = getopt_long(argc, argv, ":s:k:r:hvV", longopts, &optindex);
+		int ret = getopt_long(argc, argv, ":s:k:r:l:hvV", longopts, &optindex);
 		int opt = (ret == '?') ? optopt : ret;
 		switch (opt)
 		{
@@ -889,11 +939,17 @@ main(int argc, char* argv[])
 			exit(0);
 			break;
 			
+		case 'l':
+			if (label != NULL)
+				free((char*)label);
+			label = strdup(optarg);
+			break;
+			
 		case 'v':
 			++verbosity;
 			break;
 		
-		case kVerboseOpt:
+		case kVerbosityOpt:
 			if (optarg)
 				verbosity = atoi(optarg);
 			else
