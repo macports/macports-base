@@ -114,6 +114,8 @@ proc uninstall {portname {v ""}} {
 		if {![catch {eval $uninstall} err]} {
 			pkg_uninstall $portname ${version}_${revision}${variants}
 		} else {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
 		}
 	}

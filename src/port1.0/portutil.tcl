@@ -445,6 +445,8 @@ proc reinplace {pattern args}  {
     
     foreach file $args {
 	if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
 	    return -code error "reinplace failed"
 	} else {
@@ -455,6 +457,8 @@ proc reinplace {pattern args}  {
 	}
 	
 	if {[catch {exec sed $pattern < $file >@ $tmpfd} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
 	    close $tmpfd
@@ -466,12 +470,16 @@ proc reinplace {pattern args}  {
 	set attributes [file attributes $file]
 	# We need to overwrite this file
 	if {[catch {file attributes $file -permissions u+w} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
 	    return -code error "reinplace permissions failed"
 	}
 	
 	if {[catch {exec cp $tmpfile $file} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
 	    file delete "$tmpfile"
 	    return -code error "reinplace copy failed"
@@ -838,6 +846,8 @@ proc variant_run {ditem} {
     
     # execute proc with same name as variant.
     if {[catch "variant-${name}" result]} {
+	global errorInfo
+	ui_debug "$errorInfo"
 	ui_error "Error executing $name: $result"
 	return 1
     }
@@ -1053,7 +1063,7 @@ proc portexec_int {portname target {newworkpath ""}} {
     # Escape regex special characters
     regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string 
     
-    set res [dportsearch ^$search_string\$]
+    set res [dport_search ^$search_string\$]
     if {[llength $res] < 2} {
         ui_error "Dependency $portname not found"
         return -1
@@ -1061,16 +1071,20 @@ proc portexec_int {portname target {newworkpath ""}} {
     
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
-    if {[catch {set worker [dportopen $porturl [array get options] $variations]} result]} {
+    if {[catch {set worker [dport_open $porturl [array get options] $variations]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
         ui_error "Opening $portname $target failed: $result"
         return -1
     }
-    if {[catch {dportexec $worker $target} result] || $result != 0} {
+    if {[catch {dport_exec $worker $target} result] || $result != 0} {
+		global errorInfo
+		ui_debug "$errorInfo"
         ui_error "Execution $portname $target failed: $result"
-        dportclose $worker
+        dport_close $worker
         return -1
     }
-    dportclose $worker
+    dport_close $worker
     
     return 0
 }

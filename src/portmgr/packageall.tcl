@@ -112,6 +112,8 @@ proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 	
 	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "Internal error: port search failed: $error"
 		return {}
 	}
@@ -162,11 +164,15 @@ proc install_binary_if_available {dep basepath} {
 	if {[file readable $pkgpath]} {
 		ui_msg "installing binary: $pkgpath"
 		if {[catch {system "cd / && gunzip -c ${pkgpath}/Contents/Archive.pax.gz | pax -r"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error "Internal error: $error"
 		}
 		# Touch the receipt
 		# xxx: use some variable to describe this path
 		if {[catch {system "touch /opt/local/var/db/dports/receipts/${portname}-${portversion}.bz2"} error]} {
+			global errorInfo
+			ui_debug "$errorInfo"
 			ui_error "Internal error: $error"
 		}
 	}
@@ -379,11 +385,15 @@ foreach {name array} $res {
 	set ui_options(ports_verbose) yes
 	if {[catch {set workername [dportopen $porturl [array get options] [array get variations] yes]} result] ||
 		$result == 1} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}	
 	if {[catch {set result [dportexec $workername pkg]} result] ||
 		$result == 1} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "port package failed: $result"
 		dportclose $workername
 	    continue

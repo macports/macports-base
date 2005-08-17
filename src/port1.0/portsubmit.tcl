@@ -155,17 +155,17 @@ proc submit_main {args} {
 		set tmpdir [mktemp "/tmp/dports.XXXXXXXX"]
 		file mkdir $tmpdir/new
 		file mkdir $tmpdir/old
-		set worker [dportopen $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
+		set worker [dport_open $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
 		if {$base_rev != ""} {
-			set worker2 [dportopen $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
+			set worker2 [dport_open $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
 			catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$portname-$portversion/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
 			system "mv $tmpdir/Portfile $portpath/Portfile"
-			dportclose $worker2
+			dport_close $worker2
 		} else {
 			catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
 			system "mv $tmpdir/Portfile $portpath/Portfile"
 		}
-		dportclose $worker
+		dport_close $worker
 		catch {system "rm -Rf $tmpdir"}
 		catch {system "rm -Rf $tmpdir"}
 

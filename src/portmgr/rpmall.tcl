@@ -115,6 +115,8 @@ proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 	
 	if {[catch {set search [dportsearch "^$portname\$"]} error]} {
+		global errorInfo
+		ui_debug "$errorInfo"
 		ui_error "Internal error: port search failed: $error"
 		return {}
 	}
@@ -169,6 +171,8 @@ proc install_binary_if_available {dep} {
 			if {[file readable $rpmpath]} {
 				ui_msg "Installing binary: $rpmpath"
 				if {[catch {system "rpm -Uvh --force $rpmpath"} error ]} {
+					global errorInfo
+					ui_debug "$errorInfo"
 					ui_error "Internal error: $error"
 				} else {
 					return true
@@ -425,17 +429,23 @@ foreach {name array} $allpackages {
 		if {![file exists /bin/${prebuild}] && ![file exists /usr/bin/${prebuild}]} {
 			ui_msg "--->  Pre-installing ${prebuild}"
 			if {[catch {set search [dportsearch "^${prebuild}\$"]} error]} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_error "Internal error: port search ${prebuild} failed: $error"
 			}
 			array set prebuildinfo [lindex $search 1]
 			set ui_options(ports_verbose) yes
 			if {[catch {set workername [dportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
 				$result == 1} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_error "Internal error: unable to install ${prebuild}... exiting"
 				exit 1
 			}
 			if {[catch {set result [dportexec $workername install]} result] ||
 				$result == 1} {
+				global errorInfo
+				ui_debug "$errorInfo"
 				ui_error "installation of ${prebuild} failed: $result"
 				dportclose $workername
 				exit 1
@@ -447,11 +457,15 @@ foreach {name array} $allpackages {
 	set ui_options(ports_verbose) yes
 	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result] ||
 		$result == 1} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}
 	if {[catch {set result [dportexec $workername rpmpackage]} result] ||
 		$result == 1} {
+		global errorInfo
+		ui_debug "$errorInfo"
 	    ui_error "port package failed: $result"
 		dportclose $workername
 	    continue
