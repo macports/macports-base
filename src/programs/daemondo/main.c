@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.4 2005/08/16 21:30:26 jberry Exp $
+	$Id: main.c,v 1.5 2005/08/17 00:44:54 jberry Exp $
 */
 
 /*
@@ -106,8 +106,8 @@ DoHelp(void)
 		"                     --start-cmd prog args... ;\n"
 		"                     [--stop-cmd prog arg... ;]\n"
 		"                     [--restart-cmd prog arg... ;]\n"
-		"                     [--restart-config regex... ;]\n"
-		"                     [--restart-wakup]\n"
+		"                     [--restart-wakeup]\n"
+		"                     [--restart-netchange]\n"
 		"\n"
 		"daemondo is a wrapper program that runs daemons. It starts the specified\n"
 		"daemon on launch, stops it when given SIGTERM, and restarts it on SIGHUP.\n"
@@ -126,7 +126,7 @@ DoHelp(void)
 		"      --version                   Display program version information.\n"
 		"\n"
 		"  -s, --start-cmd args... ;       Required: command that will start the daemon.\n"
-		"  -k, --start-cmd args... ;       Command that will stop the daemon.\n"
+		"  -k, --stop-cmd args... ;        Command that will stop the daemon.\n"
 		"  -r, --restart-cmd args... ;     Command that will restart the daemon.\n"
 		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
 		"      --restart-dist-notify names... ;\n"
@@ -136,13 +136,15 @@ DoHelp(void)
 		"                                  Darwin Notification Center notifications\n"
 		"                                  on which to restart the daemon.\n"
 		"      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
-		"      --restart-wakup             Restart daemon on wake from sleep.\n"
+		"      --restart-wakeup            Restart daemon on wake from sleep.\n"
+		"      --restart-netchange         Restart daemon on a network change.\n"
 		"\n"
 		"daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
 		"stopping it. daemondo exits on receipt of SIGTERM, or when it detects\n"
 		"that the daemon process has died.\n"
 		"\n"
-		"The arguments start-cmd, stop-cmd, restart-cmd, and restart-*, if present,\n"
+		"The arguments start-cmd, stop-cmd, restart-cmd, restart-config,\n"
+		"restart-dist-notify, and restart-darwin-notify, if present,\n"
 		"must each be followed by arguments terminated by a ';'. You may need to\n"
 		"escape or quote the ';' to protect it from special handling by your shell.\n"
 		"\n"
@@ -163,6 +165,13 @@ DoHelp(void)
 		"The arguments restart-dist-notify and restart-darwin-notify specify a set of\n"
 		"notification names from the distributed and darwin notification centers,\n"
 		"respectively, on receipt of which the daemon will be restarted.\n"
+		"\n"
+		"The argument restart-wakeup will cause the daemon to be restarted when the\n"
+		"computer wakes from sleep.\n"
+		"\n"
+		"The argument restart-netchange will cause the daemon to be restarted when\n"
+		"the network configuration changes. This is a shortcut for the more\n"
+		"verbose --restart-darwin-notify com.apple.system.config.network_change.\n"
 		"\n"
 		"In mode 1 only, daemondo will exit when it detects that the daemon being\n"
 		"monitored has exited.\n"
@@ -199,7 +208,7 @@ WaitChildDeath(pid_t childPid)
 	CFTimeInterval kChildTimeout = 20.0;
 	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildTimeout;
 	
-	// Wait for the death of child, calling into our run loop if it's not dead yet
+	// Wait for the death of child, calling into our run loop if it's not dead yet.
 	// Note that the wait may actually be processed by our runloop callback, in which
 	// case the wait here will simply return -1.
 	while ((wait_result = wait4(childPid, &wait_stat, WNOHANG, NULL)) == 0)
@@ -717,6 +726,15 @@ CollectCmdArgs(char* arg1, int argc, char* const argv[], const char * const ** a
 }
 
 
+void
+AddSingleArrayArg(const char* arg, CFMutableArrayRef array)
+{
+	CFStringRef s = CFStringCreateWithCString(NULL, arg, kCFStringEncodingUTF8);
+	CFArrayAppendValue(array, s);
+	CFRelease(s);
+}
+
+
 int
 CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef array)
 {
@@ -729,11 +747,7 @@ CollectArrayArgs(char* arg1, int argc, char* const argv[], CFMutableArrayRef arr
 	{
 		const char* const* argp = args;
 		for (; *argp != NULL; ++argp)
-		{
-			CFStringRef s = CFStringCreateWithCString(NULL, *argp, kCFStringEncodingUTF8);
-			CFArrayAppendValue(array, s);
-			CFRelease(s);
-		}
+			AddSingleArrayArg(*argp, array);
 		free((void*)args);
 	}
 	
@@ -746,7 +760,8 @@ enum {
 	kRestartConfigOpt,
 	kRestartDistNotifyOpt,
 	kRestartDarwinNotifyOpt,
-	kRestartWakeupOpt
+	kRestartWakeupOpt,
+	kRestartNetChangeOpt
 };
 
 
@@ -782,6 +797,10 @@ main(int argc, char* argv[])
 			// Control over behavior on power state
 		{ "restart-wakeup",	no_argument,			0,				kRestartWakeupOpt },
 
+			// Short-cuts
+		{ "restart-netchange",
+							no_argument,			0,				kRestartNetChangeOpt },
+		
 			// other
 		{ "help",			no_argument,			0,				'h' },
 		{ "v",				no_argument,			0,				'v' },
@@ -859,6 +878,10 @@ main(int argc, char* argv[])
 			
 		case kRestartWakeupOpt:
 			restartOnWakeup = TRUE;
+			break;
+			
+		case kRestartNetChangeOpt:
+			AddSingleArrayArg("com.apple.system.config.network_change", darwinNotifyNames);
 			break;
 		
 		case 'h':
