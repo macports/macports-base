@@ -130,10 +130,13 @@ proc ditem_create {} {
 #	value - optional value to set the key to
 
 proc ditem_key {ditem args} {
-	if {[llength $args] > 1} {
+	set nbargs [llength $args]
+	if {$nbargs > 1} {
 		return [darwinports_dlist::ditem_key $ditem [lindex $args 0] [lindex $args 1]]
-	} else {
+	} elseif {$nbargs == 1} {
 		return [darwinports_dlist::ditem_key $ditem [lindex $args 0]]
+	} else {
+		return [darwinports_dlist::ditem_key $ditem]
 	}
 }
 
@@ -332,11 +335,17 @@ proc ditem_create {} {
 
 proc ditem_key {ditem args} {
 	variable $ditem
-	set key [lindex $args 0]
-	if {[llength $args] > 1} {
+	set nbargs [llength $args]
+	if {$nbargs > 1} {
+		set key [lindex $args 0]
 		array set $ditem [list $key [lindex $args 1]]
+		return [lindex [array get $ditem $key] 1]
+	} elseif {$nbargs == 1} {
+		set key [lindex $args 0]
+		return [lindex [array get $ditem $key] 1]
+	} else {
+		return [array get $ditem]
 	}
-	return [lindex [array get $ditem $key] 1]
 }
 
 proc ditem_append {ditem key args} {
