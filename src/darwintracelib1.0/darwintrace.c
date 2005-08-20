@@ -216,6 +216,28 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 		}
 	  }
 	}
+	
 	result = execve(path, argv, envp);
+	if (__darwintrace_fd >= 0) {
+	  /* Here, execve failed.
+	  
+	     I noticed that darwin 8.2.0 closes the file.
+	  
+	     I suspect the usefulness of the close-on-exec flag is to close files
+	     that are required to remain open if execve failed and therefore, the
+	     system should not close them should execve fail.
+	     
+	     I cannot access the SUSv2 standard right now, so I cannot tell if
+	     this is a bug in darwin 8.2.0 or not. AFAICT, BSD man pages are
+	     ambiguous and so are Solaris man pages.
+	     
+	     In case the ambiguous behavior changes, I (try to) close the file
+	     anyway */
+	  close(__darwintrace_fd);
+	  /* and of course, the fd should be reset to -2 to reopen it next time the
+	     process tries to call one of the functions we use to trace open files
+	     */
+	  __darwintrace_fd = -2;
+	}
 	return result;
 }
