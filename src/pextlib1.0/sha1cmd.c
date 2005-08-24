@@ -59,52 +59,11 @@
 #define SHA1Update(x,y,z) SHA1_Update(x,y,z)
 #define SHA1Final(x,y) SHA1_Final(x,y)
 
-char *
-SHA1End(SHA_CTX *ctx, char *buf)
-{
-    int i;
-    unsigned char digest[SHA_DIGEST_LENGTH];
-    static const char hex[]="0123456789abcdef";
+#include "md_wrappers.h"
+CHECKSUMEnd(SHA1, SHA_CTX, SHA_DIGEST_LENGTH)
+CHECKSUMFile(SHA1, SHA_CTX)
+CHECKSUMData(SHA1, SHA_CTX)
 
-    if (!buf)
-        buf = malloc(2*SHA_DIGEST_LENGTH + 1);
-    if (!buf)
-        return 0;
-    SHA1Final(digest, ctx);
-    for (i = 0; i < SHA_DIGEST_LENGTH; i++) {
-        buf[i+i] = hex[digest[i] >> 4];
-        buf[i+i+1] = hex[digest[i] & 0x0f];
-    }
-    buf[i+i] = '\0';
-    return buf;
-}
-
-char *SHA1File(const char *filename, char *buf)
-{
-    unsigned char buffer[BUFSIZ];
-    SHA_CTX ctx;
-    int f,i,j;
-
-    SHA1Init(&ctx);
-    f = open(filename,O_RDONLY);
-    if (f < 0) return 0;
-    while ((i = read(f,buffer,sizeof buffer)) > 0) {
-        SHA1Update(&ctx,buffer,i);
-    }
-    j = errno;
-    close(f);
-    errno = j;
-    if (i < 0) return 0;
-    return SHA1End(&ctx, buf);
-}
-
-char *SHA1Data(const unsigned char *data, unsigned int len, char *buf)
-{
-	SHA_CTX ctx;
-	SHA1Init(&ctx);
-	SHA1Update(&ctx, data, len);
-	return SHA1End(&ctx, buf);
-}
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
 #include <sha.h>
