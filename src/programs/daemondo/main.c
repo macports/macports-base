@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.7 2005/08/24 04:08:07 jberry Exp $
+	$Id: main.c,v 1.8 2005/08/24 23:19:17 jberry Exp $
 */
 
 /*
@@ -67,6 +67,7 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <time.h>
+#include <sys/wait.h>
 #include <mach/mach.h>
 
 #include <CoreFoundation/CoreFoundation.h>
