@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.6 2005/08/11 01:45:58 pguyot Exp $
+ * $Id: curl.c,v 1.7 2005/08/24 21:07:44 jberry Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -268,7 +268,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFile = NULL;
 		
 		/* check everything went fine */
-		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_RESPONSE_CODE, &theResponseCode);
+		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_HTTP_CODE, &theResponseCode);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
@@ -413,7 +413,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		theFile = NULL;
 		
 		/* check everything went fine */
-		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_RESPONSE_CODE, &theResponseCode);
+		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_HTTP_CODE, &theResponseCode);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
