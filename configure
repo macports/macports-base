@@ -856,8 +856,8 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --enable-launchd-support
-                          add support for launchd startupitems (default is NO)
+  --disable-launchd-support
+                          disable support for launchd startupitems
   --enable-shared         build and link with shared libraries --enable-shared
 
 Optional Packages:
@@ -2895,6 +2895,14 @@ subdirs="$subdirs src/programs/mtree"
 
 
 
+# Check whether --enable-launchd-support or --disable-launchd-support was given.
+if test "${enable_launchd_support+set}" = set; then
+  enableval="$enable_launchd_support"
+
+else
+  enable_launchd_support=yes
+fi;
+if test x"${enable_launchd_support}" == "xyes"; then
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
@@ -3165,9 +3173,6 @@ _ACEOF
 
 
 
-# Check whether --enable-launchd-support or --disable-launchd-support was given.
-if test "${enable_launchd_support+set}" = set; then
-  enableval="$enable_launchd_support"
 
 
 
@@ -3192,7 +3197,8 @@ echo $ECHO_N "checking for whether we will build daemondo... $ECHO_C" >&6
 	echo "$as_me:$LINENO: result: ${result}" >&5
 echo "${ECHO_T}${result}" >&6
 
-fi;
+fi
+
 ENABLE_LAUNCHD_SUPPORT=$enable_launchd_support
 
 
