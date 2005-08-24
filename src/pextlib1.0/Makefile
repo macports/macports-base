@@ -1,6 +1,6 @@
 OBJS=		Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
 		find.o strcasecmp.o vercomp.o filemap.o \
-		sha1cmd.o compat.o curl.o
+		sha1cmd.o compat.o curl.o rmd160cmd.o
 SHLIB_NAME=	Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
 export MACOSX_DEPLOYMENT_TARGET=10.3

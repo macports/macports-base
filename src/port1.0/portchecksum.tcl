@@ -47,7 +47,7 @@ default checksums ""
 set_ui_prefix
 
 # The list of the types of checksums we know.
-set checksum_types "md5 sha1"
+set checksum_types "md5 sha1 rmd160"
 
 # The number of types we know.
 set checksum_types_count [llength $checksum_types]
@@ -113,6 +113,15 @@ proc calc_md5 {file} {
 #
 proc calc_sha1 {file} {
 	return [sha1 file $file]
+}
+
+# calc_rmd160
+#
+# Calculate the rmd160 checksum for the given file.
+# Return the checksum.
+#
+proc calc_rmd160 {file} {
+	return [rmd160 file $file]
 }
 
 # checksum_start
