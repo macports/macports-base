@@ -31,7 +31,7 @@ mkchrootbase() {
 		mkdir -p $dir
 
 		# Add to this list as you find minimum dependencies DP really needs.
-		chrootfiles="bin sbin etc tmp var/log var/spool var/run var/tmp var/db private dev/null usr Developer System/Library Library"
+		chrootfiles="bin sbin etc tmp var/log var/spool var/run var/tmp var/db private/etc private/tmp private/var dev/null usr Developer System/Library Library"
 
 		echo "Calculating chroot base image size..."
 		# start with this size to account for other overhead
@@ -84,7 +84,7 @@ mkchrootbase() {
 		mkdir -p $dir/receipts
 		mkdir -p $dir/software
 		mkdir -p $dir/packages/darwin/powerpc
-		hdiutil detach $DPORTSDEV >& /dev/null && DPORTSDEV=""
+		hdiutil detach $DPORTSDEV -force >& /dev/null && DPORTSDEV=""
 	fi
 }
 
@@ -96,6 +96,7 @@ cd darwinports/base
 ./configure
 make all install
 make clean
+echo "file:///darwinports/dports" > /opt/local/etc/ports/sources.conf
 EOF
 	if [ "$PKGTYPE" = "dpkg" ]; then
 	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh
@@ -107,7 +108,7 @@ EOF
 	chroot $dir /bootstrap.sh && rm $dir/bootstrap.sh
 	umount -f ${dir}/dev
 	umount -f ${dir}/dev
-	hdiutil detach $BASEDEV >& /dev/null && BASEDEV=""
+	hdiutil detach $BASEDEV -force >& /dev/null && BASEDEV=""
 }
 
 # Set up the base chroot image
@@ -128,7 +129,7 @@ teardownchroot() {
 	dir=$1
 	umount -f $dir/dev  || (echo "unable to umount devfs"; STUCK_BASEDEV=1)
 	umount -f $dir/dev  || (echo "unable to umount fdesc"; STUCK_BASEDEV=1)
-	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV >& /dev/null || bomb "unable to detach DPORTSDEV")
+	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV -force >& /dev/null || bomb "unable to detach DPORTSDEV")
 	DPORTSDEV=""
 	if [ ! -z "$BASEDEV" ]; then
 		if hdiutil detach $BASEDEV -force >& /dev/null; then
