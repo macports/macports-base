@@ -28,7 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 
-	$Id: main.c,v 1.6 2005/08/17 20:39:36 jberry Exp $
+	$Id: main.c,v 1.7 2005/08/24 04:08:07 jberry Exp $
 */
 
 /*
@@ -45,6 +45,19 @@
 	Potentially useful notifications from Darwin Notify Center:
 	
 		com.apple.system.config.network_change
+*/
+
+/*
+	New parameters:
+	
+		--pid=none		- no pid is available; we start/stop only through the commands,
+						  and have no real knowledge of whether the process is running
+		--pid=exec		- we track the pid we receive from exec of the start cmd
+		--pid=fileauto	- we track the pid available in first word of pidfile
+		--pid=fileclean	- we track the pid available in first word of pidfile,
+						  and clean it up when the process dies
+		
+		--pidfile=name	- the name of the pidfile to use
 */
 	
 #include <stdio.h>
@@ -64,6 +77,16 @@
 
 // Constants
 const CFTimeInterval kRestartHysteresis	= 5.0;		// Five seconds of hysteresis
+const CFTimeInterval kChildDeathTimeout = 20.0;
+const CFTimeInterval kChildStartPidTimeout = 30.0;
+
+typedef enum {
+	kPidStyleUnknown = 0,
+	kPidStyleNone,
+	kPidStyleExec,
+	kPidStyleFileAuto,
+	kPidStyleFileClean
+} PidStyle;
 
 // Globals
 CFStringRef			kProgramName		= NULL;
@@ -76,9 +99,11 @@ const char* const*	startArgs			= NULL;		// Argvs for start-cmd, stop-cmd, and re
 const char* const*	stopArgs			= NULL;
 const char* const*	restartArgs			= NULL;
 
+PidStyle			pidStyle			= kPidStyleUnknown;
+const char*			pidFile				= NULL;
+
 int					terminating			= 0;		// TRUE if we're terminating
-int					start_async			= 0;		// TRUE if we're running start-cmd asyncronously
-pid_t				running_pid			= 0;		// Process id from start_cmd
+pid_t				runningPid			= 0;		// Current running pid (0 while stopped, -1 if we don't know pid)
 
 mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
 mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
@@ -101,7 +126,7 @@ LogMessage(const char* fmt, ...)
 	
 	// Format the date-time stamp
 	time(&timestamp);
-	strftime(datestring, sizeof(datestring), "%F %T", gmtime_r(&timestamp, &tm));
+	strftime(datestring, sizeof(datestring), "%F %T", localtime_r(&timestamp, &tm));
 	
 	// Output the log header
 	if (label != NULL)
@@ -214,14 +239,101 @@ DoHelp(void)
 
 
 void
+CreatePidFile(void)
+{
+	// Write a pid file if we're expected to
+	if (pidFile != NULL)
+	{
+		FILE* f = NULL;
+		switch (pidStyle)
+		{
+		default:
+		case kPidStyleNone:			// No pid is available
+		case kPidStyleFileAuto:		// The process should create its own pid file
+		case kPidStyleFileClean:	// The process should create its own pid file
+			break;
+		case kPidStyleExec:			// We know the pid, and will write it to the pid file
+			f = fopen(pidFile, "w");
+			if (f != NULL)
+			{
+				fprintf(f, "%d", runningPid);
+				fclose(f);
+			}
+			break;
+		}
+	}
+}
+
+void
+DestroyPidFile(void)
+{
+	// Cleanup the pid file
+	if (pidFile != NULL)
+	{
+		switch (pidStyle)
+		{
+		default:
+		case kPidStyleNone:			// No pid is available
+		case kPidStyleFileAuto:		// The process should remove its own pid file
+			break;
+		case kPidStyleExec:			// We wrote the file, and we'll remove it
+		case kPidStyleFileClean:	// The process wrote the file, but we'll remove it
+			unlink(pidFile);
+			break;
+		}
+	}
+}
+
+
+pid_t
+CheckForValidPidFile(void)
+{
+	// Try to read the pid from the pid file
+	pid_t pid = -1;
+	FILE* f = fopen(pidFile, "r");
+	if (f != NULL)
+	{
+		if (1 != fscanf(f, "%d", &pid))
+			pid = -1;
+		if (pid == 0)
+			pid = -1;
+		fclose(f);
+	}
+	
+	// Check whether the pid represents a valid process
+	if (pid != -1 && 0 != kill(pid, 0))
+		pid = -1;
+	
+	return pid;
+}
+
+
+pid_t
+WaitForValidPidFile(void)
+{
+	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildStartPidTimeout;
+	
+	// Poll for a child process and pidfile to be generated, until we lose patience.
+	pid_t pid = -1;
+	while ((pid = CheckForValidPidFile()) == -1 && (patience - CFAbsoluteTimeGetCurrent() > 0))
+		sleep(1);
+
+	return pid;
+}
+
+
+void
 ProcessChildDeath(pid_t childPid)
 {
-	// Take special note if process running_pid dies
-	if (childPid == running_pid)
+	// Take special note if process runningPid dies
+	if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
 	{
 		if (verbosity >= 3)
 			printf("Running process id %d has died.\n", childPid);
-		running_pid = 0;
+			
+		DestroyPidFile();
+
+		runningPid = 0;
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
@@ -236,8 +348,7 @@ WaitChildDeath(pid_t childPid)
 	
 	// Set up a timer for how long we'll wait for child death before we
 	// kill the child outright with SIGKILL (infanticide)
-	CFTimeInterval kChildTimeout = 20.0;
-	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildTimeout;
+	CFAbsoluteTime patience = CFAbsoluteTimeGetCurrent() + kChildDeathTimeout;
 	
 	// Wait for the death of child, calling into our run loop if it's not dead yet.
 	// Note that the wait may actually be processed by our runloop callback, in which
@@ -252,7 +363,12 @@ WaitChildDeath(pid_t childPid)
 			// We've run out of patience; kill the child with SIGKILL
 			if (verbosity >= 3)
 				printf("Child %d didn't die; Killing with SIGKILL.\n", childPid);
-			kill(childPid, SIGKILL);
+			
+			if (0 != kill(childPid, SIGKILL))
+			{
+				if (verbosity >= 3)
+					printf("Attempt to kill process %d failed.\n", childPid);
+			}
 		}
 	}
 	
@@ -334,7 +450,10 @@ Start(void)
 	if (verbosity >= 2)
 		printf("Running start-cmd %s.\n", startArgs[0]);
 		
-	pid_t pid = Exec(startArgs, !start_async);
+	// Exec the start-cmd
+	pid_t pid = Exec(startArgs, pidStyle == kPidStyleNone);
+	
+	// Process error during Exec
 	if (pid == -1)
 	{
 		if (verbosity >= 2)
@@ -344,11 +463,42 @@ Start(void)
 		return 2;
 	}
 	
-	if (pid)
+	// Try to discover the pid of the running process
+	switch (pidStyle)
+	{
+	case kPidStyleNone:			// The command should have completed: we have no pid (should be zero)
+		pid = -1;
+		break;
+		
+	case kPidStyleExec:			// The pid comes from the Exec
+		break;
+		
+	case kPidStyleFileAuto:		// Poll pid from the pidfile
+	case kPidStyleFileClean:
+		pid = WaitForValidPidFile();
+		if (pid == -1)
+		{
+			if (verbosity >= 2)
+				printf("Error; expected pidfile not found following Exec of start-cmd %s.\n", startArgs[0]);
+			if (verbosity >= 1)
+				LogMessage("error while starting");
+			return 2;
+		}
+		break;
+		
+	default:
+		break;
+	}
+	
+	// If we have a pid, then begin tracking it
+	runningPid = pid;
+	if (pid != 0 && pid != -1)
 	{
 		if (verbosity >= 1)
 			LogMessage("process id %d", pid);
-		running_pid = pid;
+
+		// Create a pid file if we need to		
+		CreatePidFile();
 	}
 	
 	return 0;
@@ -362,8 +512,8 @@ Stop(void)
 	if (!stopArgs || !stopArgs[0])
 	{
 		// We don't have a stop command, so we try to kill the process
-		// we're tracking with running_pid
-		if ((pid = running_pid) != 0)
+		// we're tracking with runningPid
+		if ((pid = runningPid) != 0 && pid != -1)
 		{
 			if (verbosity >= 1)
 				LogMessage("stopping process %d\n", pid);
@@ -373,9 +523,6 @@ Stop(void)
 			
 			// Wait for process to quit, killing it after a timeout
 			WaitChildDeath(pid);
-			
-			if (verbosity >= 2)
-				printf("process %d stopped", pid);
 		}
 		else
 		{
@@ -400,8 +547,12 @@ Stop(void)
 				LogMessage("error stopping process");
 			return 2;
 		}
-	}
 
+		// We've executed stop-cmd, so we assume any runningPid process is gone
+		runningPid = 0;
+		DestroyPidFile();
+	}
+	
 	return 0;
 }
 
@@ -481,7 +632,7 @@ void
 ScheduleDelayedRestart(void)
 {
 	// The hysteresis here allows us to take multiple restart requests within a small
-	// period of time, and collapse them together into only one. It also allows for
+	// period of time, and coalesce them together into only one. It also allows for
 	// a certain amount of "slop time" for things to stabilize following whatever
 	// event is triggering the restart.
 	if (verbosity >= 3)
@@ -514,7 +665,7 @@ DynamicStoreChanged(
 
 
 void
-PowerCallBack(void * x, io_service_t y, natural_t messageType, void * messageArgument)
+PowerCallBack(void *x, io_service_t y, natural_t messageType, void *messageArgument)
 {
     switch (messageType)
 	{
@@ -697,7 +848,7 @@ MainLoop(void)
 	status = Start();
 	
 	// Run the run loop until we stop it, or until the process we're tracking stops
-	while (status == 0 && !terminating && !(start_async && running_pid == 0))
+	while (status == 0 && !terminating && runningPid != 0)
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 99999999.0, true);
 		
 		
@@ -807,7 +958,9 @@ enum {
 	kRestartDistNotifyOpt,
 	kRestartDarwinNotifyOpt,
 	kRestartWakeupOpt,
-	kRestartNetChangeOpt
+	kRestartNetChangeOpt,
+	kPidOpt,
+	kPidFileOpt
 };
 
 
@@ -849,6 +1002,10 @@ main(int argc, char* argv[])
 			// Short-cuts
 		{ "restart-netchange",
 							no_argument,			0,				kRestartNetChangeOpt },
+							
+			// Pid-files
+		{ "pid",			required_argument,		0,				kPidOpt },
+		{ "pidfile",		required_argument,		0,				kPidFileOpt },
 		
 			// other
 		{ "help",			no_argument,			0,				'h' },
@@ -933,6 +1090,23 @@ main(int argc, char* argv[])
 		case kRestartNetChangeOpt:
 			AddSingleArrayArg("com.apple.system.config.network_change", darwinNotifyNames);
 			break;
+			
+		case kPidOpt:
+			if      (0 == strcasecmp(optarg, "none"))
+				pidStyle = kPidStyleNone;
+			else if (0 == strcasecmp(optarg, "exec"))
+				pidStyle = kPidStyleExec;
+			else if (0 == strcasecmp(optarg, "fileauto"))
+				pidStyle = kPidStyleFileAuto;
+			else if (0 == strcasecmp(optarg, "fileclean"))
+				pidStyle = kPidStyleFileClean;
+			break;
+		
+		case kPidFileOpt:
+			if (pidFile != NULL)
+				free((char*)pidFile);
+			pidFile = strdup(optarg);
+			break;
 		
 		case 'h':
 			DoHelp();
@@ -962,8 +1136,14 @@ main(int argc, char* argv[])
 		}
 	}
 	
-	// Decide whether we'll be syncronous or not
-	start_async = (startArgs && !stopArgs && !restartArgs);
+	// Default the pid style if it wasn't given
+	if (pidStyle == kPidStyleUnknown)
+	{
+		if (startArgs && !stopArgs && !restartArgs)
+			pidStyle = kPidStyleExec;
+		else
+			pidStyle = kPidStyleNone;
+	}
 	
 	// Go into our main loop
 	if (status == 0 && startArgs)
