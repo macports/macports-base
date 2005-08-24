@@ -44,6 +44,7 @@ options destroot.target destroot.destdir destroot.clean destroot.keepdirs destro
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
+options startupitem.pidfile startupitem.logfile startupitem.logevents
 commands destroot
 
 # Set defaults
@@ -65,6 +66,9 @@ default startupitem.restart		""
 default startupitem.requires	""
 default startupitem.executable	""
 default startupitem.type		""
+default startupitem.pidfile		""
+default startupitem.logfile		""
+default startupitem.logevents	no
 
 set_ui_prefix
 

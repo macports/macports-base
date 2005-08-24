@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.11 2005/08/16 23:34:48 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.12 2005/08/24 04:10:26 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -31,6 +31,37 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+
+#
+#	TODO: new keys to add
+#
+#	startupitem.executable	the command to start the executable
+#		This is exclusive of init, start, stop, restart
+#		- This may be composed of exec arguments only--not shell code
+#
+#	startupitem.pidfile		auto filename.pid
+#		The daemon is responsible for creating/deleting the pidfile
+#		- We can use this to try to detect if the process is already running
+#		- We can use this to try to ensure that the process has stopped
+#
+#	startupitem.pidfile		cleanup filename.pid
+#		The daemon creates the pidfile, but we must delete it
+#		- We can use this to try to detect if the process is already running
+#
+#	startupitem.pidfile		manual filename.pid
+#		We create and destroy the pidfile to track the pid we receive from the executable
+#
+#	startupitem.logfile		logpath
+#		Log to the specified file -- if not specified then output to /dev/null
+#		- for launchd, just set this as the key
+#		- for systemstarter, redirect to this
+#
+#	startupitem.logevents	yes/no
+#		Log events to the log
+#		- for launchd, generate log messages inside daemondo
+#		- for systemstarter, generate log messages in script
 #
 
 package provide portstartupitem 1.0
@@ -194,6 +225,7 @@ proc startupitem_create_darwin_launchd {args} {
 	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart
 	global startupitem.executable
+	global startupitem.pidfile startupitem.logfile startupitem.logevents
 
 	set scriptdir ${prefix}/etc/startup
 	
@@ -201,7 +233,10 @@ proc startupitem_create_darwin_launchd {args} {
 	set plistname		${itemname}.plist
 	set daemondest		LaunchDaemons
 	set itemdir			${prefix}/etc/${daemondest}/${itemname}
-	set args			[list "${prefix}/bin/daemondo"]
+	set args			[list \
+							"${prefix}/bin/daemondo" \
+							"--label=${itemname}" \
+							]
 	
 	file mkdir ${destroot}${itemdir}
 		
@@ -214,7 +249,7 @@ proc startupitem_create_darwin_launchd {args} {
 		# An executable is specified, and there is no init, start, stop, or restart
 		# code; so we don't need a wrapper script
 		
-		set args [concat $args "--start-cmd" ${startupitem.executable} ";"]
+		lappend args "--start-cmd" ${startupitem.executable} ";"
 		
 	} else {
 	
@@ -234,11 +269,10 @@ proc startupitem_create_darwin_launchd {args} {
 			set startupitem.restart [list Stop Start]
 		}
 
-		set args [concat $args \
+		lappend args \
 			"--start-cmd"   ${wrapper} start   ";" \
 			"--stop-cmd"    ${wrapper} stop    ";" \
-			"--restart-cmd" ${wrapper} restart ";" \
-			]
+			"--restart-cmd" ${wrapper} restart ";"
 
 		# Create the wrapper script
 		set item [open "${destroot}${wrapper}" w 0755]
@@ -305,6 +339,43 @@ proc startupitem_create_darwin_launchd {args} {
 		close ${item}
 	}
 		
+	# To log events then tell daemondo to log at verbosity=1
+	if { [tbool startupitem.logevents] } {
+		lappend args "--verbosity=1"
+	}
+	
+	# If pidfile was specified, translate it for daemondo.
+	#
+	# There are three cases:
+	#	(1) auto pidfilename
+	#	(2) cleanup pidfilename
+	#	(3) manual pidfilename
+	#
+	set pidfileArgCnt [llength ${startupitem.pidfile}]
+	if { ${pidfileArgCnt} } {
+		if { ${pidfileArgCnt} != 2 } {
+			ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
+		} else {
+			# Translate into appropriate arguments to daemondo
+			set pidStyle [lindex ${startupitem.pidfile} 0]
+			set pidPath	 [lindex ${startupitem.pidfile} 1]
+			switch ${pidStyle} {
+				auto	{ lappend args "--pid=fileauto" "--pidfile" ${pidPath} }
+				clean	{ lappend args "--pid=fileclean" "--pidfile" ${pidPath} }
+				manual	{ lappend args "--pid=exec" "--pidfile" ${pidPath} }
+				default	{
+					ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
+				}
+			}
+		}
+	} else {
+		if { [llength ${startupitem.executable}] } {
+			lappend args "--pid=exec"
+		} else {
+			lappend args "--pid=none"
+		}
+	}
+	
 	# Create the plist file
 	set plist [open "${destroot}${itemdir}/${plistname}" w 0644]
 	
@@ -324,6 +395,10 @@ proc startupitem_create_darwin_launchd {args} {
 	puts ${plist} "<key>Disabled</key><false/>"
 	puts ${plist} "<key>OnDemand</key><false/>"
 	puts ${plist} "<key>RunAtLoad</key><false/>"
+	
+	if { [llength ${startupitem.logfile}] } {
+		puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
+	}
 	
 	puts ${plist} "</dict>"
 	puts ${plist} "</plist>"
