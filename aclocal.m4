@@ -641,8 +641,10 @@ AC_DEFUN([OD_LIBCURL_FLAGS],[
 		AC_MSG_ERROR([cannot find curl-config. Is libcurl installed?])
 	fi
 
-	CFLAGS_LIBCURL=`$CURL_CONFIG --cflags`
-	LDFLAGS_LIBCURL=`$CURL_CONFIG --libs`
+	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
+	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
+	# Get rid of them.
+	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed -E 's/-arch +[^ ]* ?//g'])
 
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
