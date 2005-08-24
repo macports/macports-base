@@ -58,6 +58,63 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
 
 
 #------------------------------------------------------------------------
+# OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER --
+#
+#	Check if if the routine CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
+#	is available in CoreFoundation.
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       None.
+#
+# Depends:
+#		AC_LANG_PROGRAM
+#
+# Results:
+#       Result is cached.
+#
+#	If function CFNotificationCenterGetDarwinNotifyCenter is in the CoreFoundation framework, defines the following variables:
+#		HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
+#
+#------------------------------------------------------------------------
+AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
+	FRAMEWORK_LIBS="-framework CoreFoundation"
+
+	AC_MSG_CHECKING([for whether function CFNotificationCenterGetDarwinNotifyCenter is available])
+
+	AC_CACHE_VAL(od_cv_have_function_cfnotificationcentergetdarwinnotifycenter, [
+		ac_save_LIBS="$LIBS"
+		LIBS="$FRAMEWORK_LIBS $LIBS"
+		
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([
+					#include <CoreFoundation/CoreFoundation.h>
+				], [
+					CFNotificationCenterRef ref = CFNotificationCenterGetDarwinNotifyCenter();
+			])
+			], [
+				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="yes"
+			], [
+				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="no"
+			]
+		)
+
+		LIBS="$ac_save_LIBS"
+	])
+
+	AC_MSG_RESULT(${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter})
+
+	if test x"${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" = "xyes"; then
+		AC_DEFINE([HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER], [], [Define if function CFNotificationCenterGetDarwinNotifyCenter in CoreFoundation framework])
+	fi
+
+	AC_SUBST(HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER)
+])
+
+
+#------------------------------------------------------------------------
 # OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION --
 #
 #	Check if SystemConfiguration framework is available, define HAVE_FRAMEWORK_SYSTEMCONFIGURATION if so.
@@ -447,6 +504,7 @@ AC_DEFUN([OD_PROG_DAEMONDO],[
 	AC_REQUIRE([OD_CHECK_FRAMEWORK_COREFOUNDATION])
 	AC_REQUIRE([OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION])
 	AC_REQUIRE([OD_CHECK_FRAMEWORK_IOKIT])
+	AC_REQUIRE([OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER])
 	
     AC_MSG_CHECKING(for whether we will build daemondo)
     result=no
@@ -454,7 +512,8 @@ AC_DEFUN([OD_PROG_DAEMONDO],[
 	darwin*)
 		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
 		   test "x$od_cv_have_framework_systemconfiguration" == "xyes" &&
-		   test "x$od_cv_have_framework_iokit" == "xyes"; then
+		   test "x$od_cv_have_framework_iokit" == "xyes" &&
+		   test "x$od_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
 			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
 			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
