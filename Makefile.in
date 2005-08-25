@@ -4,12 +4,12 @@ include Mk/dports.subdir.mk
 include Mk/dports.autoconf.mk
 
 Mk/dports.autoconf.mk src/pextlib1.0/config.h: configure
-	@if test -f ./config.status ; then				\
-		set -x							\
-		./config.status --recheck				\
+	@if test -f ./config.status ; then	\
+		set -x ;						\
+		./config.status --recheck ;		\
 	else								\
-		set -x							\
-		echo "Source tree not configured. Use ./configure"	\
+		set -x ;						\
+		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
 all:: Mk/dports.autoconf.mk
