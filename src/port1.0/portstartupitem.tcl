@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.12 2005/08/24 04:10:26 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.13 2005/08/25 05:05:35 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -421,7 +421,7 @@ proc startupitem_create {args} {
 			set enableLaunchd ${portutil::autoconf::enable_launchd_support}
 			set haveLaunchd	${portutil::autoconf::have_launchd}
 			
-			if { ${enableLaunchd} && ${haveLaunchd} } {
+			if { [tbool enableLaunchd] && [tbool haveLaunchd] } {
 				default startupitem.type "launchd"
 			} else {
 				default startupitem.type "SystemStarter"
@@ -434,10 +434,10 @@ proc startupitem_create {args} {
 		
 	ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
 
-	switch ${startupitem.type} {
+	switch -- [string tolower ${startupitem.type}] {
 		launchd			{ startupitem_create_darwin_launchd }
-		SystemStarter	{ startupitem_create_darwin_systemstarter }
-		RCng			{ startupitem_create_rcng }
-		default			{ startupitem_create_rcng }
+		systemstarter	{ startupitem_create_darwin_systemstarter }
+		rcng			{ startupitem_create_rcng }
+		default			{ ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
 	}
 }
