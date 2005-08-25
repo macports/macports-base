@@ -2,7 +2,7 @@
 # portchecksum.tcl
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
-# Copyright (c) 2004 Paul Guyot, Darwinports Team.
+# Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -52,49 +52,92 @@ set checksum_types "md5 sha1 rmd160"
 # The number of types we know.
 set checksum_types_count [llength $checksum_types]
 
-# fchecksums
+# Using global all_dist_files, parse the checksums and store them into the
+# global array checksums_array.
 #
-# Considering the list of checksums, returns only the checksums for the given
-# file. This function returns -1 if no checksum can be found for the file.
-# The checksum types are checked.
+# There are two formats:
+# type value [type value [type value]]						for a single file
+# file1 type value [type value [type value]] [file2 ...]	for multiple files.
 #
-# Remark #1: the format of the list prevents us from having a file name equal to
-# one of the types.
-# Remark #2: the current implementation prevents us from having a file name
-# equal to one of sums.
+# Portfile is in format #1 if:
+# (1) There is only one distfile.
+# (2) There are an even number of words in checksums (i.e. "md5 cksum sha1 cksum" = 4 words).
+# (3) There are no more than $checksum_types_count checksums specified.
+# (4) first word is one of the checksums types.
 #
-# checksums -> the list of checksums in the format:
-#	file type sum [type sum] [type sum] ...
-# file -> the file to find.
-# return a list in the format type sum [type sum] ...
-#
-proc fchecksums {checksums file} {
-	global checksum_types
+# return yes if the syntax was correct, no if there was a problem.
+proc parse_checksums {checksums_str} {
+	global checksums_array all_dist_files checksum_types checksum_types_count
 
-	set i [lsearch $checksums $file]
+	# Parse the string of checksums.
+	set nb_checksum [llength $checksums_str]
 
-	if {$i == -1} {
-		return -1
+	if {[llength $all_dist_files] == 1
+		&& [expr $nb_checksum % 2] == 0
+		&& [expr $nb_checksum / 2] <= $checksum_types_count
+		&& [lsearch -exact $checksum_types [lindex $checksums_str 0]] >= 0} {
+		# Convert to format #2
+		set checksums_str [linsert $checksums_str 0 $all_dist_files]
+		# We increased the size.
+		incr nb_checksum
 	}
+	
+	# Create the array with the checksums.
+	array set checksums_array {}
+	
+	set result yes
+	
+	# Catch out of bounds errors (they're syntax errors).
+	if {[catch {
+		# Parse the string as if it was in format #2.
+		for {set ix_checksum 0} {$ix_checksum < $nb_checksum} {incr ix_checksum} {
+			# first word is the file.
+			set checksum_filename [lindex $checksums_str $ix_checksum]
+			
+			# retrieve the list of values we already know for this file.
+			set checksum_values {}
+			if {[info exists checksums_array($checksum_filename)]} {
+				set checksum_values $checksums_array($checksum_filename)
+			}
+			
+			# append the new value
+			incr ix_checksum
+			while {1} {
+				set checksum_type [lindex $checksums_str $ix_checksum]
+				if {[lsearch -exact $checksum_types $checksum_type] >= 0} {
+					# append the type and the value.
+					incr ix_checksum
+					set checksum_value [lindex $checksums_str $ix_checksum]
+					incr ix_checksum
 
-	# Start at the first item after the filename.
-	set start [expr $i + 1]
+					lappend checksum_values $checksum_type
+					lappend checksum_values $checksum_value
+				} else {
+					# this wasn't a type but the next dist file.
+					incr ix_checksum -1
+					break
+				}
 
-	# Check every other item, making sure they're valid checksum types.
-	while {1} {
-		if {[lsearch $checksum_types [lindex $checksums [expr $i + 1]]] == -1} {
-			break
+				# stop if we exhausted all the items in the list.				
+				if {$ix_checksum == $nb_checksum} {
+					break
+				}
+			}
+			
+			# set the values in the array.
+			set checksums_array($checksum_filename) $checksum_values
 		}
-
-		incr i 2
+	} error]} {
+		# An error occurred.
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "Couldn't parse checksum line ($checksums_str) [$error]"
+		
+		# Something wrong happened.
+		set result no
 	}
-
-	# If no checksums were found, the checksums option is probably invalid.
-	if {$start >= $i} {
-		return -1
-	}
-
-	return [lrange $checksums $start $i]
+	
+	return $result
 }
 
 # calc_md5
@@ -139,62 +182,60 @@ proc checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc checksum_main {args} {
-	global UI_PREFIX all_dist_files checksum_types_count
+	global UI_PREFIX all_dist_files checksums_array
 
 	# If no files have been downloaded, there is nothing to checksum.
 	if {![info exists all_dist_files]} {
 		return 0
 	}
 
-	# Set the list of checksums as the option checksums.
-	set checksums [option checksums]
-
-	# However, this list might not be in our format.
-	
-	# Indeed, we are using a short checksum form if:
-	# (1) There is only one distfile.
-	# (2) There are an even number of words in checksums (i.e. "md5 cksum sha1 cksum" = 4 words).
-	# (3) There are no more than $checksum_types_count checksums specified.
-	if {[llength $all_dist_files] == 1
-		&& [expr [llength $checksums] % 2] == 0
-		&& [expr [llength $checksums] / 2] <= $checksum_types_count} {
-		set checksums [linsert $checksums 0 $all_dist_files]
-	}
-
+	# so far, everything went fine.
 	set fail no
 	
-	set distpath [option distpath]
-
-	foreach distfile $all_dist_files {
-		ui_info "$UI_PREFIX [format [msgcat::mc "Checksumming %s"] $distfile]"
-
-		# get the full path of the distfile.
-		set fullpath [file join $distpath $distfile]
-
-		# obtain the checksums for this file from the portfile (i.e. from $checksums)
-		set portfile_checksums [fchecksums $checksums $distfile]
-
-		# check that there is at least one checksum for the distfile.
-		if {$portfile_checksums == -1} {
-			ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-			ui_info "[format [msgcat::mc "Distfile checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
-			set fail yes
-		} else {
-			# iterate on this list to check the actual values.
-			foreach {type sum} $portfile_checksums {
-				set calculated_sum [calc_$type $fullpath]
-				if {[string equal $sum $calculated_sum]} {
-					ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
-				} else {
-					ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
-					ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
-					ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
-					
-					# Raise the failure flag
-					set fail yes
+	# Set the list of checksums as the option checksums.
+	set checksums_str [option checksums]
+		
+	# if everything is fine with the syntax, keep on and check the checksum of
+	# the distfiles.
+	if {[parse_checksums $checksums_str] == "yes"} {
+		set distpath [option distpath]
+	
+		foreach distfile $all_dist_files {
+			ui_info "$UI_PREFIX [format [msgcat::mc "Checksumming %s"] $distfile]"
+	
+			# get the full path of the distfile.
+			set fullpath [file join $distpath $distfile]
+	
+			# check that there is at least one checksum for the distfile.
+			if {![info exists checksums_array($distfile)]} {
+				ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
+				ui_info "[format [msgcat::mc "Distfile checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
+				ui_info "[format [msgcat::mc "Distfile checksum: %s sha1 %s"] $distfile [calc_sha1 $fullpath]]"
+				ui_info "[format [msgcat::mc "Distfile checksum: %s rmd160 %s"] $distfile [calc_rmd160 $fullpath]]"
+				set fail yes
+			} else {
+				# retrieve the list of types/values from the array.
+				set portfile_checksums $checksums_array($distfile)
+	
+				# iterate on this list to check the actual values.
+				foreach {type sum} $portfile_checksums {
+					set calculated_sum [calc_$type $fullpath]
+					if {[string equal $sum $calculated_sum]} {
+						ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
+					} else {
+						ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
+						ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
+						ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
+						
+						# Raise the failure flag
+						set fail yes
+					}
 				}
 			}
 		}
+	} else {
+		# Something went wrong with the syntax.
+		set fail yes
 	}
 
 	if {[tbool fail]} {
