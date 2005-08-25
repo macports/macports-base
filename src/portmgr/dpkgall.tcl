@@ -85,31 +85,30 @@ namespace eval dpkg {
 }
 
 # DarwinPorts UI Event Callbacks
-proc ui_puts {messageArray} {
+proc ui_prefix {priority} {
+    switch $priority {
+        debug {
+        	return "Debug: "
+        }
+        error {
+        	return "Error: "
+        }
+        warn {
+        	return "Warning: "
+        }
+        default {
+        	return ""
+        }
+    }
+}
+
+proc ui_channels {priority} {
 	global dpkg::logfd
-	array set message $messageArray
-	switch -- $message(priority) {
-		debug {
-			set str "Debug: $message(data)"
-		}
-		info {
-			set str $message(data)
-		}
-		msg {
-			set str $message(data)
-		}
-		error {
-			set str "Error: $message(data)"
-		}
-		warn {
-			set str "Warning: $message(data)"
-		}
-	}
 	if {[info exists logfd] && [string length $logfd] > 0 } {
-		log_message $logfd $str
+		return {$logfd}
 	} elseif {$message(priority) != "debug"} {
 		# If there's no log file, echo to stdout
-		puts $str
+		return {stdout}
 	}
 }
 
