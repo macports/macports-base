@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.4 2005/08/16 21:30:26 jberry Exp $
+# $Id: Makefile.in,v 1.5 2005/08/25 13:27:35 pguyot Exp $
 
 top_srcdir = @top_srcdir@
 
@@ -33,3 +33,5 @@ distclean: clean
 
 install:
 	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 ${PROGRAM} ${bindir}
+
+test:
