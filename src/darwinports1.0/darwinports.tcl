@@ -443,7 +443,7 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 
     # instantiate the UI call-backs
 	foreach priority ${darwinports::ui_priorities} {
-		$workername alias ui_$priority darwinports::ui_$priority
+		$workername alias ui_$priority ui_$priority
 	}
 	$workername alias ui_prefix ui_prefix
 	$workername alias ui_channels ui_channels
