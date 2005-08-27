@@ -41,3 +41,5 @@ test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 			fi) \
 		fi || exit 1; \
 	done
+
+install:
