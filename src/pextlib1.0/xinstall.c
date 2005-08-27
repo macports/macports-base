@@ -1,4 +1,6 @@
 /*
+ * xinstall.c
+ * $Id: xinstall.c,v 1.22 2005/08/27 00:07:28 pguyot Exp $
  * Copyright (c) 1987, 1993
  *	The Regents of the University of California.  All rights reserved.
  *

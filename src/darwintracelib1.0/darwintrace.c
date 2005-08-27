@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
+ * $Id: darwintrace.c,v 1.7 2005/08/27 00:07:27 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 

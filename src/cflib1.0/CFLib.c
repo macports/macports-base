@@ -1,6 +1,7 @@
 /*
  * CFLib.c
  * CFLib.dylib
+ * $Id: CFLib.c,v 1.3 2005/08/27 00:07:25 pguyot Exp $
  *
  * Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
  * All rights reserved.

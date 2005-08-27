@@ -1,5 +1,6 @@
 /*
  * find.c
+ * $Id: find.c,v 1.8 2005/08/27 00:07:28 pguyot Exp $
  *
  * Find files and execute arbitrary expressions on them.
  * Author: Jordan K. Hubbard

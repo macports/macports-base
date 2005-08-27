@@ -1,5 +1,6 @@
 /*
  * options.h
+ * $Id: options.h,v 1.3 2005/08/27 00:07:26 pguyot Exp $
  *
  * Copyright (c) 2003 Apple Computer, Inc.
  * All rights reserved.

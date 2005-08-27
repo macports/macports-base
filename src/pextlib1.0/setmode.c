@@ -2,6 +2,7 @@
 /*	$NetBSD: setmode.c,v 1.15 1997/02/07 22:21:06 christos Exp $	*/
 
 /*
+ * $Id: setmode.c,v 1.3 2005/08/27 00:07:28 pguyot Exp $
  * Copyright (c) 1989, 1993, 1994
  *	The Regents of the University of California.  All rights reserved.
  *

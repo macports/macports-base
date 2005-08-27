@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh
 # darwinports1.0/test_dlist.tcl
+# $Id: test_dlist.tcl,v 1.4 2005/08/27 00:07:26 pguyot Exp $
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 

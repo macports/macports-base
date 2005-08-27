@@ -2,6 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 
+# $Id: portall.tcl,v 1.28 2005/08/27 00:07:30 pguyot Exp $
 # Traverse through all ports running the supplied target.  If target is
 # "index" then just print some useful information about each port.
 

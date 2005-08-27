@@ -1,5 +1,6 @@
 # et:ts=4
 # portconfigure.tcl
+# $Id: portconfigure.tcl,v 1.29 2005/08/27 00:07:30 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

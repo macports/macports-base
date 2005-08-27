@@ -1,5 +1,6 @@
 # et:ts=4
 # package.tcl
+# $Id: package.tcl,v 1.5 2005/08/27 00:07:27 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.

@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh8.4
 # dpkgbuild.tcl
+# $Id: dpkgall.tcl,v 1.16 2005/08/27 00:07:32 pguyot Exp $
 #
 # Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

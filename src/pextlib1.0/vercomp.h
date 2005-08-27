@@ -1,5 +1,6 @@
 /*
  * vercomp.h
+ * $Id: vercomp.h,v 1.2 2005/08/27 00:07:28 pguyot Exp $
  * Author: Landon Fuller <landonf@opendarwin.org>
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.

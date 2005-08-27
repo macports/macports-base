@@ -1,5 +1,6 @@
 /*
  * portconf.c
+ * $Id: portconf.c,v 1.9 2005/08/27 00:07:26 pguyot Exp $
  *
  * Copyright (c) 2003 Apple Computer, Inc.
  * All rights reserved.

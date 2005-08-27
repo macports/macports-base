@@ -1,4 +1,5 @@
-# darwinports-autoconf.tcl.in
+# port_autoconf.tcl.in
+# $Id: port_autoconf.tcl.in,v 1.7 2005/08/27 00:07:30 pguyot Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # All rights reserved.

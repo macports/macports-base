@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh
 # packageall.tcl
+# $Id: packageall.tcl,v 1.20 2005/08/27 00:07:32 pguyot Exp $
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
