@@ -1,0 +1,24 @@
+# $Id: Portfile,v 1.1 2005/08/27 07:24:35 pguyot Exp $
+
+PortSystem 1.0
+name		xcodeversion
+version		1
+categories	test
+maintainers	pguyot@kallisys.net
+description	Test port for \$xcodeversion
+homepage	http://darwinports.opendarwin.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch		{}
+checksum	{}
+extract		{}
+configure	{}
+build		{}
+destroot	{}
+
+test {
+	ui_msg "xcodeversion = $xcodeversion"
+	ui_msg "xcodebuildcmd = $xcodebuildcmd"
+}

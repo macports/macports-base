@@ -1,0 +1,8 @@
+--->  Fetching xcodeversion
+--->  Verifying checksum(s) for xcodeversion
+--->  Extracting xcodeversion
+--->  Configuring xcodeversion
+--->  Building xcodeversion with target all
+--->  Testing xcodeversion
+xcodeversion = 2.1
+xcodebuildcmd = xcodebuild

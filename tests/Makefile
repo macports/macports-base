@@ -1,0 +1,43 @@
+include ../Mk/dports.autoconf.mk
+
+#SUBDIR=checksums-1 trace xcodeversion
+SUBDIR=checksums-1 xcodeversion
+
+.PHONY: test
+
+all:
+
+/tmp/darwinports-tests/opt/local/etc/ports/sources.conf: sources.conf
+	@echo setting up test installation
+	mkdir -p /tmp/darwinports-tests/opt/local/etc/ports/
+	mkdir -p /tmp/darwinports-tests/opt/local/share/
+	mkdir -p /tmp/darwinports-tests/opt/local/var/db/dports/receipts/
+	ln -s $(datadir)/darwinports /tmp/darwinports-tests/opt/local/share/
+	cp sources.conf /tmp/darwinports-tests/opt/local/etc/ports/
+
+clean:
+	rm -rf /tmp/darwinports-tests/
+
+$(bindir)/port:
+	@echo "Please install DarwinPorts before running these tests"
+	@exit 1
+	
+test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
+	@for subdir in $(SUBDIR); do\
+		echo ===\> test ${DIRPRFX}$$subdir; \
+		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
+			( cd $$subdir && \
+				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-ports.conf test) || exit 1; \
+		else \
+			( cd $$subdir && \
+				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port clean > /dev/null && \
+				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port test > output 2>&1 \
+					|| (cat output; exit 1) && \
+			diff output master 2>&1 | tee difference && \
+			if [ -s difference ]; then \
+				exit 1; \
+			else \
+				rm -f difference; \
+			fi) \
+		fi || exit 1; \
+	done

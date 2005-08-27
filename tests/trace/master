@@ -1,0 +1,7 @@
+--->  Fetching trace
+--->  Verifying checksum(s) for trace
+--->  Extracting trace
+--->  Configuring trace
+--->  Building trace with target all
+--->  Testing trace
+Warning: A file was created outside ${workpath}: /Junk/src/opendarwin/darwinports/base/tests/trace/hello-trace
