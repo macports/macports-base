@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.186 2005/08/27 05:42:49 pguyot Exp $
+# $Id: darwinports.tcl,v 1.187 2005/08/27 06:26:34 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -100,7 +100,7 @@ proc puts {args} {
 # check for a binary in the path
 # returns an error code if it can not be found
 # copied from portutil.tcl
-proc binaryInPath {binary} {
+proc darwinports::binaryInPath {binary} {
     global env
     foreach dir [split $env(PATH) :] { 
 	if {[file executable [file join $dir $binary]]} {

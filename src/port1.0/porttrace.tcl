@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.13 2005/08/16 03:55:10 pguyot Exp $
+# $Id: porttrace.tcl,v 1.14 2005/08/27 06:26:34 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -41,7 +41,7 @@ proc trace_start {workpath} {
 		if {[catch {package require Thread} error]} {
 			ui_warn "trace requires Tcl Thread package ($error)"
 		} else {
-			global prefix env trace_fifo darwinports::portinterp_options
+			global prefix env trace_fifo
 			# Create a fifo.
 			set trace_fifo "$workpath/trace_fifo"
 			file delete -force $trace_fifo
