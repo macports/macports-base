@@ -33,4 +33,6 @@ namespace eval portutil::autoconf {
 	variable curl_path "@CURL@"
 	variable cvs_path "@CVS@"
 	variable tar_command "@TAR_CMD@"
+	variable install_user "@DSTUSR@"
+	variable install_group "@DSTGRP@"
 }
