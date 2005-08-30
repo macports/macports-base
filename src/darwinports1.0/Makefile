@@ -9,10 +9,6 @@ DARWIN_OLD_PKGINDEX=	${DESTDIR}${TCL_PACKAGE_DIR}/8.3/darwinports1.0/pkgIndex.tc
 include ../../Mk/dports.autoconf.mk
 include ../../Mk/dports.tea.mk
 
-all::
-
-clean::
-
 test::
 
 distclean:: clean
