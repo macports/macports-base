@@ -95,7 +95,7 @@ proc puts {args} {
 # check for a binary in the path
 # returns an error code if it can not be found
 # copied from portutil.tcl
-proc binaryInPath {binary} {
+proc darwinports::binaryInPath {binary} {
     global env
     foreach dir [split $env(PATH) :] { 
 	if {[file executable [file join $dir $binary]]} {
