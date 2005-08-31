@@ -313,7 +313,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CURL CVS TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CVS TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs REPLACEMENT_PROGS DPORTSDIR PORTCONFIGDIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -871,6 +871,7 @@ Optional Packages:
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files.
   --with-tclpackage       Tcl package installation directory.
+  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...
 
 Some influential environment variables:
   CC          C compiler command
@@ -2514,45 +2515,6 @@ echo "${ECHO_T}yes" >&6
 else
   echo "$as_me:$LINENO: result: no, using $LN_S" >&5
 echo "${ECHO_T}no, using $LN_S" >&6
-fi
-
-# Extract the first word of "curl", so it can be a program name with args.
-set dummy curl; ac_word=$2
-echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
-if test "${ac_cv_path_CURL+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $CURL in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_CURL="$CURL" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_CURL="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-
-  ;;
-esac
-fi
-CURL=$ac_cv_path_CURL
-
-if test -n "$CURL"; then
-  echo "$as_me:$LINENO: result: $CURL" >&5
-echo "${ECHO_T}$CURL" >&6
-else
-  echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6
 fi
 
 # Extract the first word of "cvs", so it can be a program name with args.
@@ -7522,6 +7484,187 @@ echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6
 
 
 
+## libcurl
+
+
+# Check whether --with-curlprefix or --without-curlprefix was given.
+if test "${with_curlprefix+set}" = set; then
+  withval="$with_curlprefix"
+    curlprefix=$withval
+fi;
+
+	if test "x$curlprefix" = "x"; then
+		# Extract the first word of "curl-config", so it can be a program name with args.
+set dummy curl-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_CURL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $CURL_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CURL_CONFIG="$CURL_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CURL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+CURL_CONFIG=$ac_cv_path_CURL_CONFIG
+
+if test -n "$CURL_CONFIG"; then
+  echo "$as_me:$LINENO: result: $CURL_CONFIG" >&5
+echo "${ECHO_T}$CURL_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	else
+		# Extract the first word of "curl-config", so it can be a program name with args.
+set dummy curl-config; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_CURL_CONFIG+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $CURL_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CURL_CONFIG="$CURL_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $curlprefix/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_CURL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  ;;
+esac
+fi
+CURL_CONFIG=$ac_cv_path_CURL_CONFIG
+
+if test -n "$CURL_CONFIG"; then
+  echo "$as_me:$LINENO: result: $CURL_CONFIG" >&5
+echo "${ECHO_T}$CURL_CONFIG" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+	fi
+
+	if test "x$CURL_CONFIG" = "x"; then
+		{ { echo "$as_me:$LINENO: error: cannot find curl-config. Is libcurl installed?" >&5
+echo "$as_me: error: cannot find curl-config. Is libcurl installed?" >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+
+	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
+	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
+	# Get rid of them.
+	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | sed -E 's/-arch +[^ ]* ?//g')
+
+
+
+
+
+# Do we have curl_easy_strerror?
+
+
+echo "$as_me:$LINENO: checking for curl_easy_strerror in -lcurl" >&5
+echo $ECHO_N "checking for curl_easy_strerror in -lcurl... $ECHO_C" >&6
+if test "${ac_cv_lib_curl_curl_easy_strerror+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcurl $LDFLAGS_LIBCURL $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char curl_easy_strerror ();
+int
+main ()
+{
+curl_easy_strerror ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_curl_curl_easy_strerror=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_curl_curl_easy_strerror=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_curl_curl_easy_strerror" >&5
+echo "${ECHO_T}$ac_cv_lib_curl_curl_easy_strerror" >&6
+if test $ac_cv_lib_curl_curl_easy_strerror = yes; then
+  cat >>confdefs.h <<\_ACEOF
+#define HAVE_CURL_EASY_STRERROR 1
+_ACEOF
+
+fi
+
+
 # Allows building of shared libraries
 
     echo "$as_me:$LINENO: checking how to build libraries" >&5
@@ -8247,7 +8390,6 @@ s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
 s,@INSTALL_DATA@,$INSTALL_DATA,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@LN_S@,$LN_S,;t t
-s,@CURL@,$CURL,;t t
 s,@CVS@,$CVS,;t t
 s,@TAR@,$TAR,;t t
 s,@GNUTAR@,$GNUTAR,;t t
@@ -8280,6 +8422,9 @@ s,@TCL_STUB_LIB_SPEC@,$TCL_STUB_LIB_SPEC,;t t
 s,@TCL_INCLUDES@,$TCL_INCLUDES,;t t
 s,@TCLSH@,$TCLSH,;t t
 s,@TCL_PACKAGE_DIR@,$TCL_PACKAGE_DIR,;t t
+s,@CURL_CONFIG@,$CURL_CONFIG,;t t
+s,@CFLAGS_LIBCURL@,$CFLAGS_LIBCURL,;t t
+s,@LDFLAGS_LIBCURL@,$LDFLAGS_LIBCURL,;t t
 s,@INCLUDES@,$INCLUDES,;t t
 s,@CFLAGS_DEBUG@,$CFLAGS_DEBUG,;t t
 s,@CFLAGS_OPTIMIZE@,$CFLAGS_OPTIMIZE,;t t

@@ -1,6 +1,6 @@
 /*
  * curl.h
- * $Id: curl.h,v 1.4 2005/08/11 01:45:59 pguyot Exp $
+ * $Id: curl.h,v 1.4.2.1 2005/08/31 18:46:41 jmpp Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.

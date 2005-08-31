@@ -374,6 +374,64 @@ AC_DEFUN([OD_PROG_TCLSH],[
 	AC_SUBST(TCLSH)
 ])
 
+# OD_LIBCURL_FLAGS
+#	Sets the flags to compile with libcurl.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#   curl-config or user parameters to define the flags.
+#
+# Results:
+#   defines some help strings.
+#   sets CFLAGS_LIBCURL and LDFLAGS_LIBCURL
+#---------------------------------------
+AC_DEFUN([OD_LIBCURL_FLAGS],[
+	AC_ARG_WITH(curlprefix,
+		   [  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...],
+		   [  curlprefix=$withval ])
+
+	if test "x$curlprefix" = "x"; then
+		AC_PATH_PROG([CURL_CONFIG], [curl-config])
+	else
+		AC_PATH_PROG([CURL_CONFIG], [curl-config], , [$curlprefix/bin])
+	fi
+
+	if test "x$CURL_CONFIG" = "x"; then
+		AC_MSG_ERROR([cannot find curl-config. Is libcurl installed?])
+	fi
+
+	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
+	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
+	# Get rid of them.
+	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed -E 's/-arch +[^ ]* ?//g'])
+
+	AC_SUBST(CFLAGS_LIBCURL)
+	AC_SUBST(LDFLAGS_LIBCURL)
+])
+
+# OD_LIBCURL_VERSION
+#	Determine the version of libcurl.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#	CURL must be set (AC_PATH_PROG(CURL, [curl], []))
+#
+# Results:
+#   sets libcurl_version to "0" or some number
+#---------------------------------------
+AC_DEFUN([OD_LIBCURL_VERSION],[
+	if test "x$CURL" = "x"; then
+		libcurl_version="0"
+	else
+		AC_MSG_CHECKING([libcurl version])
+		libcurl_version=`$CURL -V | sed '2,$d' | awk '{print $ 2}' | sed -e 's/\.//g' -e 's/-.*//g'`
+		AC_MSG_RESULT([$libcurl_version])
+	fi
+])
 
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters

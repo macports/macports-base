@@ -594,6 +594,30 @@ to store all fetched files.
 .Sy Example:
 .Dl dist_subdir vim${version}
 .El
+.Ss ADVANCED FETCH OPTIONS
+Some mirrors require special options for the actual resource to be properly
+fetched.
+.Bl -tag -width lc
+.It Ic fetch.user
+HTTP or FTP user to fetch the resource.
+.br
+.Sy Type:
+.Em optional
+.It Ic fetch.password
+HTTP or FTP password to fetch the resource.
+.br
+.Sy Type:
+.Em optional
+.It Ic fetch.use_epsv
+Whether to use EPSV command for FTP transfers.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.El
 .Ss FETCHING FROM CVS
 As an alternative to fetching distribution files, pulling the sources
 from a CVS repository is supported. Use of CVS can give rise to
@@ -995,6 +1019,25 @@ Change to
 before working.
 .El
 .El
+.It Xo
+.Ic curl fetch
+.Ar url
+.Ar file
+.Xc
+Fetch a resource at
+.Ar url
+and save it to
+.Ar file .
+.It Xo
+.Ic curl isnewer
+.Ar url
+.Ar date
+.Xc
+Determine if resource at
+.Ar url
+is newer than
+.Ar date
+(expressed in seconds since epoch).
 .It Xo
 .Ic adduser
 .Ar username

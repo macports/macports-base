@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.74.2.2 2005/07/05 03:35:47 pguyot Exp $
+ * $Id: Pextlib.c,v 1.74.2.3 2005/08/31 18:46:40 jmpp Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -102,6 +102,7 @@
 #include "sha1cmd.h"
 #include "find.h"
 #include "filemap.h"
+#include "curl.h"
 #include "xinstall.h"
 #include "vercomp.h"
 #include "compat.h"
@@ -923,9 +924,13 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
+
+	/* init libcurl */
+	CurlInit(interp);
 
 	return TCL_OK;
 }

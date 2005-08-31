@@ -13,7 +13,6 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
-AC_PATH_PROG(CURL, [curl], [])
 AC_PATH_PROG(CVS, [cvs], [])
 
 OD_TAR_NO_SAME_OWNER
@@ -68,7 +67,7 @@ SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG
 
 # Check for Tcl public headers
-dnl XXX hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)
+dnl XXX	 hardwire CYGPATH (CYGPATH must be set for SC_PUBLIC_TCL_HEADERS)
 CYGPATH=echo
 SC_PUBLIC_TCL_HEADERS
 
@@ -77,6 +76,16 @@ OD_PROG_TCLSH
 
 # Check for Tcl package path
 OD_TCL_PACKAGE_DIR
+
+## libcurl
+OD_LIBCURL_FLAGS
+
+# Do we have curl_easy_strerror?
+AH_TEMPLATE([HAVE_CURL_EASY_STRERROR],
+	       [Define to 1 if you have the curl_easy_strerror function.])
+AC_CHECK_LIB([curl], [curl_easy_strerror],
+	[AC_DEFINE([HAVE_CURL_EASY_STRERROR])],[],
+	[$LDFLAGS_LIBCURL])
 
 # Allows building of shared libraries
 SC_ENABLE_SHARED

@@ -36,8 +36,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
 
@@ -108,7 +108,7 @@ proc darwinports::binaryInPath {binary} {
 
 proc dportinit {args} {
     global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options darwinports::xcodeversion
-	global options variations
+	global options ui_options variations
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -247,6 +247,17 @@ proc dportinit {args} {
 	if {[info exists options(ports_autoclean)]} {
 		if {![string equal $options(ports_autoclean) $portautoclean]} {
 			set darwinports::portautoclean $options(ports_autoclean)
+		}
+	}
+
+	# Export verbosity.
+	if {![info exists portverbose]} {
+		set darwinports::portverbose "no"
+		global darwinports::portverbose
+	}
+	if {[info exists ui_options(ports_verbose)]} {
+		if {![string equal $ui_options(ports_verbose) $portverbose]} {
+			set darwinports::portverbose $ui_options(ports_verbose)
 		}
 	}
 
