@@ -1,0 +1,163 @@
+.\" Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.Dd August 31, 2005
+.Dt PORTS.CONF 5 "OpenDarwin.org"
+.Os 
+.Sh NAME
+ports.conf
+.Nd Configuration file of the DarwinPorts system
+.Sh DESCRIPTION
+.Nm ports.conf
+is the configuration file used to bootstrap the DarwinPorts system. This file is read by the
+.Nm port
+command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
+The format is that of a simple key/value space or tab separated pair.
+.Pp
+The file contains entries of the form:
+.Pp
+.Dl Va "<key> <value>"
+.Pp
+The value of any given key can be referred to by the '${<keyname>}' abstraction, where <keyname> expands
+to the key in question.
+.Pp
+.Sh KEYS
+The following keys are used by
+.Nm port
+itself:
+.Pp
+.Bl -tag -width lc
+.It Va prefix
+Sets the directory where ports are installed. Any path may be used but those with spaces and/or non ascii
+characters should be avoided, as this can broke some ports. This key is often referred to as '${prefix}'.
+.br
+.Ic Default:
+/opt/local
+.It Va portdbpath
+Directory where DarwinPorts keeps working data as downloaded sources, installed ports receipts
+and the main registry. Same path restrictions apply as for '${prefix}'.
+.br
+.Ic Default:
+${prefix}/var/db/dports
+.It Va portdbformat
+Storage type to use for the DarwinPorts registry. Currently the only supportted format is "flat".
+.br
+.Ic Default:
+flat
+.It Va portinstalltype
+Sets the mode in which ports are installed by DarwinPorts. Supported values are 'direct' or 'image'.
+The 'direct' mode is often used on systems that do not support 'image' due to limitations in their
+installed version of TCL. In 'direct' more ports are installed directly into '${prefix}' and only
+one flavor of a port can be installed at any given time. In 'image' mode multiple flavors of a port
+(i.e., different versions and/or any possible combination of its variants) can be installed concurrently
+into '${portdbpath}/software/${portname}' and only one can be "activated" onto '${prefix}' via soft or
+hard links from the former to the latter.
+.br
+.Ic Default:
+image
+.\" I think Paul wrote code to suppot image on Jaguar, so the following comment may no longer be needed.
+.\" is this the case?
+.Pp
+NOTE. Mac OS X 10.2 and Darwin 6.x users should switch to 'direct' mode to have DarwinPorts working properly
+on their systems.
+.It Va x11prefix
+Path containing an X11 installation on your system.
+.br
+.Ic Default:
+/usr/X11R6
+.It Va sources_conf
+Location of the sources file. This file enables rsync synchronization of the default dports tree with the
+OpenDarwin rsync server (through the "sync" target of the
+.Nm port
+commnand) and any other local tree(s) you might have.
+.br
+.Ic Default:
+${prefix}/etc/ports/sources.conf
+.It Va variants_conf
+Location of the optional global variants definition file, listing those that should be used in all installed
+ports if available.
+.br
+.Ic Default:
+${prefix}/etc/ports/variants.conf
+.It Va portarchivemode
+Key governing the creation of binary archives of installed ports for installation/reinstallation ease.
+.br
+.Ic Default:
+yes
+.It Va portarchivepath
+Location where to store/retrieve ports binary archive files from when archive mode is active.
+.br
+.Ic Default:
+${prefix}/var/db/dports/packages
+.It Va portarchivetype
+Colon or comma separated, space free list of supported formats of archives to create or read from when
+\&'${archivemode}' is set to 'yes'. Use of multiple types will cause archive creation to build all the
+specified types in one step. Unarchive uses multiple types as a search list to locate any existing archive,
+with the first found match being used.
+.br
+Supported types are: tgz, tar, tbz2, xar, zip, cpgz, cpio
+.br
+.Ic Default:
+tgz
+.It Va portautoclean
+Automatic cleaning of the build directory of a given port after it has been installed.
+.br
+.Ic Default:
+yes
+.It Va rsync_server
+Default rsync server to connect to when running "selfupdate" through the
+.Nm port
+command to update your entire DarwinPorts
+installation (spanning both the Darwinports infrastucture and the dports tree).
+.br
+.Ic Default:
+rsync.opendarwin.org
+.It Va rsync_dir
+Rsync directory from which to pull the base/ component (infrastructure) of the DarwinPorts system off
+of the default rsync server.
+.br
+.Ic Default:
+dpupdate1/base/ (to pull in the sources from the shipping "release1" branch off of the OpenDarwin rsync
+server)
+.It Va rsync_options
+Default rsync options to use when connecting to the rsync server.
+.br
+.Ic Default:
+-rtzv --delete --delete-after
+.El
+.Sh FILES
+.Bl -tag -width
+.It Va ~/.portsrc
+User configuration file for the DarwinPorts system. This file overrides values listed in the default
+${prefix}/etc/port/ports.conf' one.
+.El
+.Sh SEE ALSO
+.Xr port 1 ,
+.Xr portall 1 ,
+.Xr porthier 7 ,
+.Xr portfile 7 ,
+.Xr portstyle 7
+.Sh AUTHORS
+.An "Matt Anton" Aq matt@opendarwin.org
+.An "Juan Manuel Palacios" Aq jmpp@opendarwin.org

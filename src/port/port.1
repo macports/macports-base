@@ -27,7 +27,7 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd August 24, 2002
+.Dd August 31, 2005
 .Dt PORT 1 "Apple Computer, Inc."
 .Os
 .Sh NAME
@@ -266,14 +266,31 @@ with the "extract" target on
 .Pp
 .Sh DIAGNOSTICS
 .Ex -std
+.Sh FILES
+.Bl -tag -width
+.It Va ${prefix}/etc/ports/ports.conf
+Global configuration file for the DarwinPorts system.
+.It Va ${prefix}/etc/ports/sources.conf
+Global listing of the dports/ trees used by DarwinPorts. This file also enables rsync synchronization.
+.It Va ${prefix}/etc/ports/variants.conf
+Global variants used when a port is installed.
+.It Va ~/.portsrc
+User configuration file for the DarwinPorts system. It overrides the global
+.Ar ports.conf
+file.
+.El
 .Sh SEE ALSO
+.Xr portall 1 ,
+.Xr ports.conf 5 ,
 .Xr portfile 7 ,
 .Xr porthier 7 ,
 .Xr portstyle 7
 .Sh AUTHORS
-.An Landon Fuller Aq landonf@opendarwin.org
-.An Kevin Van Vechten Aq kevin@opendarwin.org
-.An Jordan K. Hubbard Aq jkh@opendarwin.org
-.An Ole Guldberg Jensen Aq olegb@opendarwin.org
-.An Robert Shaw Aq rshaw@opendarwin.org
-.An Chris Ridd Aq cjr@opendarwin.org
+.An "Landon Fuller" Aq landonf@opendarwin.org
+.An "Kevin Van Vechten" Aq kevin@opendarwin.org
+.An "Jordan K. Hubbard" Aq jkh@opendarwin.org
+.An "Ole Guldberg Jensen" Aq olegb@opendarwin.org
+.An "Robert Shaw" Aq rshaw@opendarwin.org
+.An "Chris Ridd" Aq cjr@opendarwin.org
+.An "Juan Manuel Palacios" Aq jmpp@opendarwin.org
+.An "Matt Anton" Aq matt@opendarwin.org
