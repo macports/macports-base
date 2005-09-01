@@ -16,3 +16,5 @@ install::
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
 	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+
+test::
