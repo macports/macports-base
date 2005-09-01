@@ -1,6 +1,6 @@
 /*
  * rmd160cmd.c
- * $Id: rmd160cmd.c,v 1.1 2005/08/24 01:59:44 pguyot Exp $
+ * $Id: rmd160cmd.c,v 1.1.2.1 2005/09/01 01:55:31 jmpp Exp $
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

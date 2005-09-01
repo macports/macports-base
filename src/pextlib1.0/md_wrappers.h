@@ -1,6 +1,6 @@
 /*
  * md_wrappers.h
- * $Id: md_wrappers.h,v 1.1 2005/08/24 01:58:40 pguyot Exp $
+ * $Id: md_wrappers.h,v 1.1.2.1 2005/09/01 01:55:31 jmpp Exp $
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

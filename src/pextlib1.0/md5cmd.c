@@ -61,52 +61,11 @@
 #define MD5Update(x,y,z) MD5_Update(x,y,z)
 #define MD5Final(x,y) MD5_Final(x,y)
 
-char *
-MD5End(MD5_CTX *ctx, char *buf)
-{
-    int i;
-    unsigned char digest[LENGTH];
-    static const char hex[]="0123456789abcdef";
+#include "md_wrappers.h"
+CHECKSUMEnd(MD5, MD5_CTX, LENGTH)
+CHECKSUMFile(MD5, MD5_CTX)
+CHECKSUMData(MD5, MD5_CTX)
 
-    if (!buf)
-        buf = malloc(2*LENGTH + 1);
-    if (!buf)
-        return 0;
-    MD5Final(digest, ctx);
-    for (i = 0; i < LENGTH; i++) {
-        buf[i+i] = hex[digest[i] >> 4];
-        buf[i+i+1] = hex[digest[i] & 0x0f];
-    }
-    buf[i+i] = '\0';
-    return buf;
-}
-
-char *MD5File(const char *filename, char *buf)
-{
-    unsigned char buffer[BUFSIZ];
-    MD5_CTX ctx;
-    int f,i,j;
-
-    MD5Init(&ctx);
-    f = open(filename,O_RDONLY);
-    if (f < 0) return 0;
-    while ((i = read(f,buffer,sizeof buffer)) > 0) {
-        MD5Update(&ctx,buffer,i);
-    }
-    j = errno;
-    close(f);
-    errno = j;
-    if (i < 0) return 0;
-    return MD5End(&ctx, buf);
-}
-
-char *MD5Data(const unsigned char *data, unsigned int len, char *buf)
-{
-	MD5_CTX ctx;
-	MD5Init(&ctx);
-	MD5Update(&ctx, data, len);
-	return MD5End(&ctx, buf);
-}
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
 #include <md5.h>

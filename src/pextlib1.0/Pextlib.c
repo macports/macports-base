@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.74.2.3 2005/08/31 18:46:40 jmpp Exp $
+ * $Id: Pextlib.c,v 1.74.2.4 2005/09/01 01:55:30 jmpp Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
@@ -100,6 +100,7 @@
 
 #include "md5cmd.h"
 #include "sha1cmd.h"
+#include "rmd160cmd.h"
 #include "find.h"
 #include "filemap.h"
 #include "curl.h"
@@ -920,6 +921,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
