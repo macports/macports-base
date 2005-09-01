@@ -40,7 +40,7 @@ namespace eval darwinports {
     variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
-
+    
     variable ui_priorities "debug info msg error warn"
 }
 
@@ -56,30 +56,30 @@ namespace eval darwinports {
 #     no message.
 
 proc darwinports::ui_init {priority message} {
-       # Get the list of channels.
-    set channels [ui_channels $priority]
+	# Get the list of channels.
+	set channels [ui_channels $priority]
 
-       # Simplify ui_$priority.
-    set nbchans [llength $channels]
-    if {$nbchans == 0} {
-	eval "proc ::ui_$priority {str} {}"
-    } else {
-	set prefix [ui_prefix $priority]
-
-	if {$nbchans == 1} {
-	    set chan [lindex $channels 0]
-	    eval "proc ::ui_$priority {str} \{ puts $chan \"$prefix\$str\" \}"
+	# Simplify ui_$priority.
+	set nbchans [llength $channels]
+	if {$nbchans == 0} {
+		eval "proc ::ui_$priority {str} {}"
 	} else {
-	    eval "proc ::ui_$priority {str} \{ \n\
-                               foreach chan $channels \{ \n\
-                                       puts $chan \"$prefix\$str\" \n\
-                               \} \n\
-                       \}"
-	}
+		set prefix [ui_prefix $priority]
 
-               # Call ui_$priority
-               ::ui_$priority $message
-    }
+		if {$nbchans == 1} {
+			set chan [lindex $channels 0]
+			eval "proc ::ui_$priority {str} \{ puts $chan \"$prefix\$str\" \}"
+		} else {
+			eval "proc ::ui_$priority {str} \{ \n\
+				foreach chan $channels \{ \n\
+					puts $chan \"$prefix\$str\" \n\
+				\} \n\
+			\}"
+		}
+
+		# Call ui_$priority
+		::ui_$priority $message
+	}
 }
 
 foreach priority ${darwinports::ui_priorities} {
@@ -431,11 +431,11 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias dport_search dportsearch
 
     # instantiate the UI call-backs
-    foreach priority ${darwinports::ui_priorities} {
-	$workername alias ui_$priority ui_$priority
-    }
-    $workername alias ui_prefix ui_prefix
-    $workername alias ui_channels ui_channels
+	foreach priority ${darwinports::ui_priorities} {
+		$workername alias ui_$priority ui_$priority
+	}
+	$workername alias ui_prefix ui_prefix
+	$workername alias ui_channels ui_channels
 
 	# New Registry/Receipts stuff
 	$workername alias registry_new registry::new_entry
@@ -453,9 +453,9 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_installed registry::installed
 
     foreach opt $portinterp_options {
-	if {![info exists $opt]} {
-	    global darwinports::$opt
-	}
+		if {![info exists $opt]} {
+		    global darwinports::$opt
+		}
         if {[info exists $opt]} {
             $workername eval set system_options($opt) \"[set $opt]\"
             $workername eval set $opt \"[set $opt]\"
