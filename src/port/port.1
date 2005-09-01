@@ -66,8 +66,10 @@ are specified as +name, which indicates the variant is desired, and -name, which
 Installed ports can be activated or deactivated without being uninstalled. A port can be installed if another version/variant is installed but deactivated.
 .Pp
 The
-.Ic provides
-command determines which port owns a given file.
+.Nm
+command knows several command line options and
+.Ar targets
+\&:
 .Sh OPTIONS
 .Bl -tag -width -indent
 .It Fl v
@@ -102,8 +104,7 @@ binary-only mode (only build and install from binary archives, ignores source, f
 enable trace mode debug facilities on platforms that support it
 .El
 .Sh USER TARGETS
-.Nm
-knows several targets. The ones commonly used by users of DarwinPorts are:
+Targets most commonly used by regular DarwinPorts users are:
 .Ss install
 Install and activate
 .Ar portname .
@@ -143,6 +144,11 @@ wihtout following its dependencies, specify
 For example:
 .Pp
 .Dl "port -n upgrade ethereal"
+.Ss provides
+Determines which port owns a given file and can take either a relative or absolut path. For example:
+.Pp
+.Dl "port provides /opt/local/etc/irssi.conf"
+.Dl "port provides include/tiff.h"
 .Ss selfupdate
 Updates the DarwinPorts system, both the dports tree and if needed the base tools, installing the newest infrastructure if available. To update you would typically do:
 .Pp
@@ -258,9 +264,11 @@ Creates an RPM package of
 .Sh EXAMPLE
 The following demonstrates invoking
 .Nm
-with the "extract" target on
+with the
+.Ar extract
+target on
 .Ar portdir
-"textproc/figlet" and extract.suffix set to ".tgz":
+\&"textproc/figlet" and extract.suffix set to ".tgz":
 .Pp
 .Dl "port extract -D textproc/figlet extract.suffix=.tgz"
 .Pp
