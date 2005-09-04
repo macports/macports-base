@@ -1,7 +1,7 @@
 include ../Mk/dports.autoconf.mk
 
-#SUBDIR=checksums-1 trace xcodeversion
-SUBDIR=checksums-1 xcodeversion
+#SUBDIR=checksums-1 site-tags trace xcodeversion
+SUBDIR=checksums-1 site-tags xcodeversion
 
 .PHONY: test
 
@@ -9,6 +9,7 @@ all:
 
 /tmp/darwinports-tests/opt/local/etc/ports/sources.conf: sources.conf
 	@echo setting up test installation
+	rm -rf /tmp/darwinports-tests/
 	mkdir -p /tmp/darwinports-tests/opt/local/etc/ports/
 	mkdir -p /tmp/darwinports-tests/opt/local/share/
 	mkdir -p /tmp/darwinports-tests/opt/local/var/db/dports/receipts/

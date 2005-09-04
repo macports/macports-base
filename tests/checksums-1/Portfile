@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.1 2005/08/27 07:24:35 pguyot Exp $
+# $Id: Portfile,v 1.2 2005/09/04 00:18:16 pguyot Exp $
 
 PortSystem 1.0
 name		checksum
@@ -21,7 +21,7 @@ fetch {
 checksums \
 	md5 d41d8cd98f00b204e9800998ecf8427e \
 	sha1 da39a3ee5e6b4b0d3255bfef95601890afd80709 \
-	ripemd160 9c1185a5c5e9fc54612808977ee8f548b2258d31
+	rmd160 9c1185a5c5e9fc54612808977ee8f548b2258d31
 
 extract		{}
 configure	{}
