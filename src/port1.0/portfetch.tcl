@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.102 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portfetch.tcl,v 1.103 2005/09/04 00:30:57 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -124,7 +124,7 @@ proc portfetch::assemble_url {site distfile} {
 # Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
 # / isn't included in the regexp, thus allowing port specification in URLs.
 proc getdisttag {name} {
-    if {[regexp {.+:([0-9A-Za-z_-]+)} $name match tag]} {
+    if {[regexp {.+:([0-9A-Za-z_-]+)$} $name match tag]} {
         return $tag
     } else {
         return ""
@@ -135,7 +135,7 @@ proc getdisttag {name} {
 # Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
 # / isn't included in the regexp, thus allowing port specification in URLs.
 proc getdistname {name} {
-    regexp {(.+):[0-9A-Za-z_-]+} $name match name
+    regexp {(.+):[0-9A-Za-z_-]+$} $name match name
     return $name
 }
 
@@ -234,7 +234,7 @@ proc checkfiles {args} {
         }
         
         foreach site $site_list {
-	    if {[regexp {([a-zA-Z]+://.+/?):([a-zA-Z]+)} $site match site tag]} {
+	    if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
                 lappend portfetch::$tag $site
             } else {
                 lappend portfetch::$list $site
