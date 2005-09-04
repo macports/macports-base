@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.1 2005/09/04 00:19:41 pguyot Exp $
+# $Id: Portfile,v 1.2 2005/09/04 00:31:50 pguyot Exp $
 
 PortSystem 1.0
 name		site-tags
@@ -18,12 +18,12 @@ distfiles		app-bm.tar.gz:app_aqua \
 
 checksums		app-bm.tar.gz \
 					md5 418b9e615a34ae5aad918f5c5a694a44 \
-					sha1 foo \
-					rmd160 bar \
+					sha1 e8f8939b16665394686284681036e71fb2d3974d \
+					rmd160 756bca16c69bb3b051c581d671e824ca1495a05b \
 				doc.tar.gz \
 					md5 692f7874fc617162d0fe110daf39a98a \
-					sha1 foofoo \
-					rmd160 foobar
+					sha1 51d62b8ab344eaf9c1e95d6563766b2453c27e99 \
+					rmd160 3cbae7e39e8c78eca03a0db709cf520003896a12
 
 extract		{}
 configure	{}
