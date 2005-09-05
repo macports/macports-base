@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.3 2005/07/08 06:58:19 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.4 2005/09/05 11:57:40 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -96,9 +96,11 @@ default use_configure		no
 default build.cmd			$xcodebuildcmd
 default build.args			build
 default build.pre_args		{}
+default build.target		""
 default destroot.cmd		$xcodebuildcmd
 default destroot.args		install
 default destroot.pre_args	{}
+default destroot.target		""
 
 # Default values for parameters.
 options xcode.project
