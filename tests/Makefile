@@ -44,3 +44,5 @@ test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 	done
 
 install:
+
+distclean: clean
