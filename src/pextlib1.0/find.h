@@ -1,5 +1,6 @@
 /*
- * Pextlib.c
+ * find.h
+ * $Id: find.h,v 1.1.6.1 2005/09/05 01:12:17 pguyot Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * All rights reserved.

@@ -1,5 +1,6 @@
 /*
  * Strsed.c
+ * $Id: strsed.c,v 1.12.4.1 2005/09/05 01:12:17 pguyot Exp $
  *
  *     ed(1)/tr(1)-like search, replace, transliterate. See the
  *     manpage for details. See the README for copyright information.

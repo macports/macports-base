@@ -1,5 +1,6 @@
 # et:ts=4
 # portchecksum.tcl
+# $Id: portchecksum.tcl,v 1.40.2.3 2005/09/05 01:12:19 pguyot Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>

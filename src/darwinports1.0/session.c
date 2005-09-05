@@ -1,5 +1,6 @@
 /*
  * session.c
+ * $Id: session.c,v 1.5.4.1 2005/09/05 01:12:15 pguyot Exp $
  *
  * Copyright (c) 2003 Apple Computer, Inc.
  * All rights reserved.

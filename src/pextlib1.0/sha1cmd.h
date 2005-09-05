@@ -1,5 +1,6 @@
 /*
  * sha1cmd.h
+ * $Id: sha1cmd.h,v 1.1.4.1 2005/09/05 01:12:17 pguyot Exp $
  * Copied from md5cmd.h 20040903 EH
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.

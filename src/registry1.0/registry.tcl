@@ -1,4 +1,5 @@
 # registry.tcl
+# $Id: registry.tcl,v 1.4.2.3 2005/09/05 01:12:22 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

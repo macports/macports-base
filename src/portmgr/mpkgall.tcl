@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh
 # mpkgall.tcl
+# $Id: mpkgall.tcl,v 1.6.8.3 2005/09/05 01:12:21 pguyot Exp $
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

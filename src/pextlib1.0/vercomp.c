@@ -1,5 +1,6 @@
 /*
  * vercomp.c
+ * $Id: vercomp.c,v 1.3.4.1 2005/09/05 01:12:17 pguyot Exp $
  * RPM compatible version comparison
  *
  * Author: Landon Fuller <landonf@opendarwin.org>

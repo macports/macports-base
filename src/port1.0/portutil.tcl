@@ -1,5 +1,6 @@
 # et:ts=4
 # portutil.tcl
+# $Id: portutil.tcl,v 1.171.2.6 2005/09/05 01:12:19 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

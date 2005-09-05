@@ -1,4 +1,5 @@
 # receipt_sqlite.tcl
+# $Id: receipt_sqlite.tcl,v 1.2.4.1 2005/09/05 01:12:22 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

@@ -1,5 +1,6 @@
 #!/usr/bin/env tclsh
 # rpmall.tcl
+# $Id: rpmall.tcl,v 1.4.4.4 2005/09/05 01:12:21 pguyot Exp $
 #
 # Copyright (c) 2003 Benjamin Reed <ranger@befunk.com>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
