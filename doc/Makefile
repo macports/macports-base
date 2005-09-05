@@ -1,5 +1,5 @@
 MAN5=		ports.conf.5
-MAN7=		portfile.7 portstyle.7 porthier.7
+MAN7=		portfile.7 portstyle.7 porthier.7 xcode.7
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
