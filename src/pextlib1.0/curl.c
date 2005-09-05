@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.7.2.1 2005/08/31 18:46:40 jmpp Exp $
+ * $Id: curl.c,v 1.7.2.2 2005/09/05 02:13:38 jmpp Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -274,8 +274,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 		
-		/* we need something between 200 (incl.) and 300 (excl.). */
-		if ((theResponseCode < 200) || (theResponseCode >= 300)) {
+		/* we need something between 200 (incl.) and 300 (excl.).*/
+		/* (actually, we sometimes get 0 from GNU FTP servers) */
+		if (((theResponseCode != 0)  && (theResponseCode < 200))
+			|| (theResponseCode >= 300)) {
 			char theErrorString[512];
 			(void) snprintf(theErrorString, sizeof(theErrorString),
 				"Download failed (code = %li)", theResponseCode);
