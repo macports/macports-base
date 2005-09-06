@@ -189,7 +189,9 @@ proc active {{name ""}} {
 			set iref [open_entry $iname $iversion $irevision $ivariants]
 			set iactive	[property_retrieve $iref active]
 			set iepoch [property_retrieve $iref epoch]
-			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
+			if {$iactive} {
+				lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
+			}
 		}
 	}
 	
