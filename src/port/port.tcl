@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.81 2005/08/27 00:07:30 pguyot Exp $
+# $Id: port.tcl,v 1.82 2005/09/06 20:50:25 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -605,6 +605,7 @@ switch -- $action {
 				if { $is_active == 0 } {
 					continue
 				}
+				set installed_epoch		[lindex $i 5]
 
 				# Get info about the port from the index
 				# Escape regex special characters
@@ -630,11 +631,20 @@ switch -- $action {
 					set latest_revision	$portinfo(revision)
 				}
 				set latest_compound		"${latest_version}_${latest_revision}"
+				set latest_epoch		0
+				if {[info exists portinfo(epoch)]} { 
+					set latest_epoch	$portinfo(epoch)
+				}
 				
-				# Compare versions for equality
-				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				# Compare versions, first checking epoch, then the compound version string
+				set comp_result [expr $installed_epoch - $latest_epoch]
+				if { $comp_result == 0 } {
+					set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				}
+				
+				# Report outdated (or, for verbose, predated) versions
 				if { $comp_result != 0 } {
-				
+								
 					# Form a relation between the versions
 					set flag ""
 					if { $comp_result > 0 } {
@@ -648,16 +658,6 @@ switch -- $action {
 					if {$comp_result < 0 || [ui_isset ports_verbose]} {
 						puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound" $flag]
 					}
-					
-					# Even more verbose explanation (disabled at present)
-#					if {[ui_isset ports_verbose]} {
-#						puts "  installed: $installed_compound"
-#						puts "  latest:    $latest_compound"
-#						# Warning for ports that are predated
-#						if { $result > 0 } {
-#							puts "  (installed version is newer than port index version)"
-#						}
-#					}
 					
 				}
 			}
