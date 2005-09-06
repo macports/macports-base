@@ -1,5 +1,4 @@
 # registry.tcl
-# $Id: registry.tcl,v 1.7 2005/08/27 00:07:32 pguyot Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -147,7 +146,8 @@ proc installed {{name ""} {version ""}} {
 			set ivariants [lindex $installed 3]
 			set iref [open_entry $iname $iversion $irevision $ivariants]
 			set iactive	[property_retrieve $iref active]
-			lappend rlist [list $iname $iversion $irevision $ivariants $iactive]
+			set iepoch [property_retrieve $iref epoch]
+			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 		}
 	} elseif { [llength $ilist] < 1 } {
 		if { $name == "" } {
@@ -166,7 +166,8 @@ proc installed {{name ""} {version ""}} {
 		set ivariants [lindex [lindex $ilist 0] 3]
 		set iref [open_entry $name $iversion $irevision $ivariants]
 		set iactive	[property_retrieve $iref active]
-		lappend rlist [list $name $iversion $irevision $ivariants $iactive]
+		set iepoch [property_retrieve $iref epoch]
+		lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 	}
 	return $rlist
 }
@@ -187,9 +188,8 @@ proc active {{name ""}} {
 			set ivariants [lindex $installed 3]
 			set iref [open_entry $iname $iversion $irevision $ivariants]
 			set iactive	[property_retrieve $iref active]
-			if {$iactive} {
-				lappend rlist [list $iname $iversion $irevision $ivariants $iactive]
-			}
+			set iepoch [property_retrieve $iref epoch]
+			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 		}
 	}
 	
