@@ -160,11 +160,11 @@ proc installed {{name ""} {version ""}} {
 			}
 		}
 	} else {
-		set name [lindex [lindex $ilist 0] 0]
+		set iname [lindex [lindex $ilist 0] 0]
 		set iversion [lindex [lindex $ilist 0] 1]
 		set irevision [lindex [lindex $ilist 0] 2]
 		set ivariants [lindex [lindex $ilist 0] 3]
-		set iref [open_entry $name $iversion $irevision $ivariants]
+		set iref [open_entry $iname $iversion $irevision $ivariants]
 		set iactive	[property_retrieve $iref active]
 		set iepoch [property_retrieve $iref epoch]
 		lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
