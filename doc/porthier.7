@@ -27,7 +27,7 @@
 .\"
 .\"	@(#)hier.7	8.1 (Berkeley) 6/5/93
 .\" $FreeBSD: src/share/man/man7/hier.7,v 1.29.2.17 2003/01/13 21:43:50 ceri Exp $
-.\" $Id: porthier.7,v 1.6 2005/09/01 05:52:18 jmpp Exp $
+.\" $Id: porthier.7,v 1.7 2005/09/07 11:42:21 mww Exp $
 .\"
 .\" Take from FreeBSD and adjusted to DarwinPortss' needs.
 .Dd August 31, 2005
@@ -95,6 +95,14 @@ misc. system log files
 .It Pa run/
 system information files describing various info about
 system since it was booted
+.El
+.Pp
+.It Pa www/
+files to be served by a http server
+.Pp
+.Bl -tag -width "cgi-bin/" -compact
+.It Pa cgi-bin/
+directory for cgi executables
 .El
 .El
 .It Pa /Applications/DarwinPorts/
