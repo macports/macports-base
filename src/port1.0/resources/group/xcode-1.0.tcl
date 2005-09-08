@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.3.2.1 2005/08/15 07:26:02 jmpp Exp $
+# $Id: xcode-1.0.tcl,v 1.3.2.2 2005/09/08 06:22:36 jmpp Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -96,9 +96,11 @@ default use_configure		no
 default build.cmd			$xcodebuildcmd
 default build.args			build
 default build.pre_args		{}
+default build.target		""
 default destroot.cmd		$xcodebuildcmd
 default destroot.args		install
 default destroot.pre_args	{}
+default destroot.target		""
 
 # Default values for parameters.
 options xcode.project
