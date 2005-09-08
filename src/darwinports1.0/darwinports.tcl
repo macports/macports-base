@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.157.2.39 2005/09/05 01:12:15 pguyot Exp $
+# $Id: darwinports.tcl,v 1.157.2.40 2005/09/08 06:42:20 jmpp Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -331,9 +331,11 @@ proc dportinit {args} {
     # - P4*
     # - LANG
     # - LC*
+    # - BZIP
     array unset env "P4*"
     array unset env "LANG"
     array unset env "LC*"
+    array unset env "BZIP"
 
 	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
 		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
