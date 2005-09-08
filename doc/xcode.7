@@ -1,0 +1,238 @@
+.\" xcode.7
+.\"
+.\" Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. Neither the name of Apple Computer, Inc. nor the names of its
+.\"    contributors may be used to endorse or promote products derived from
+.\"    this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd August 31, 2005
+.Dt XCODE 7 "Darwinports"
+.Os
+.Sh NAME
+.Nm PortGroup xcode
+.Nd Darwinports PortGroup xcode file reference
+.Sh SYNOPSIS
+.Nm PortSystem 1.0
+.Nm PortGroup xcode 1.0
+.Sh DESCRIPTION
+A manual for PortGroup xcode for Darwinports Portfiles.
+.Nm xcode PortGroup
+is here to easily port Xcode-based opensource software. Users of
+.Nm xcode PortGroup
+should have some notion of Portfiles. See
+.Xr portfile 7
+.Pp
+.Nm xcode PortGroup
+handles configuration, build and destroot phases. It also defines some values
+for Xcode-based software. A minimum Portfile using xcode PortGroup only handles
+the fetch and the checksums.
+.Pp
+Using
+.Nm xcode PortGroup
+is a way to make your port more robust to Xcode version updates as the PortGroup
+is tested against all supported MacOS X and Xcode versions.
+.Sh XCODE PORTGROUP SUGAR
+Portfiles using xcode PortGroup do not need to define the following variables:
+.Bl -tag -width lc
+.It Ic categories
+.Sy Default:
+.Em aqua
+.br
+.It Ic platforms
+.Sy Default:
+.Em macosx
+.br
+.It Ic use_configure
+.Sy Default:
+.Em no
+.El
+.br
+Moreover, Portfiles using xcode PortGroup do not need to define any build or
+destroot phase. Some options are provided for tailoring these phases to what
+the software requires.
+.Sh XCODE PORTGROUP SPECIFIC VARIABLES
+Portfiles using xcode PortGroup may define the following variables:
+.Bl -tag -width lc
+.It Ic xcode.project
+path (relative to ${build.dir} and ${destroot.dir}) of the Xcode project. If
+unset, let xcode tool figure it out. It usually succeeds if there is a single
+project in the directory.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl xcode.project ${name}.xcode
+.br
+.It Ic xcode.configuration
+Project configuration/buildstyle to use.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em Deployment
+.br
+.Sy Example:
+.Dl xcode.configuration Main
+.br
+.It Ic xcode.target
+If present, overrides build.target and destroot.target.
+.br
+.Sy Type:
+.Em optional
+.br
+.It Ic xcode.build.settings
+Additional settings passed to the xcode build tool during the build phase.
+These settings should be in the X=Y form.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+xcode.build.settings FRAMEWORK_SEARCH_PATHS=${prefix}/Library/Frameworks
+.Ed
+.It Ic xcode.destroot.type
+Type of project that will be installed. This tells Xcode PortGroup how to
+destroot the project. Correct values are application and framework.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em application
+.br
+.Sy Example:
+.Dl xcode.destroot.type framework
+.It Ic xcode.destroot.path
+Where to install the build product.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em /Library/Frameworks
+or
+.Em /Application/DarwinPorts depending on xcode.destroot.type
+.br
+.It Ic xcode.destroot.settings
+Additional settings passed to the xcode build tool during the destroot phase.
+These settings should be in the X=Y form.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+xcode.destroot.settings SKIP_INSTALL=NO
+.Ed
+.El
+.Sh STANDARD PORTFILE VARIABLES AFFECTING XCODE PORTGROUP
+The following standard Portfile variables actually affect
+.Nm xcode PortGroup.
+In most cases, you will not need to set any of these variables in the Portfile.
+.Bl -tag -width lc
+.It Ic destroot
+Where to destroot the project.
+.br
+.It Ic build.cmd
+The command to invoke to build the project.
+.Nm xcode PortGroup
+sets this variable to ${xcodebuildcmd}.
+.br
+.It Ic build.target
+The Xcode target to build.
+.Nm xcode PortGroup
+sets this variable to "", thus building all targets. This variable will be
+ignored if xcode.target is set.
+.br
+.It Ic build.pre_args
+Additional parameters for ${build.cmd}.
+.br
+.Sy Default:
+none
+.br
+.It Ic build.args
+Main parameters for ${build.cmd}.
+.br
+.Sy Default:
+.Em build
+.br
+.It Ic build.post_args
+Additional parameters for ${build.cmd}.
+.br
+.Sy Default:
+none
+.br
+.It Ic build.dir
+Where to build the project from (i.e. where the Xcode project is).
+.br
+.Sy Default:
+${worksrcpath}
+.br
+.It Ic destroot.cmd
+The command to invoke to destroot the project.
+.Nm xcode PortGroup
+sets this variable to xcodebuildcmd.
+.br
+.It Ic destroot.target
+The Xcode target to install.
+.Nm xcode PortGroup
+sets this variable to "", thus installing all targets. This variable will be
+ignored if xcode.target is set.
+.br
+.It Ic destroot.pre_args
+Additional parameters for ${destroot.cmd}.
+.br
+.Sy Default:
+none
+.br
+.It Ic destroot.args
+Main parameters for ${destroot.cmd}.
+.br
+.Sy Default:
+.Em install
+.br
+.It Ic destroot.post_args
+Additional parameters for ${destroot.cmd}.
+.br
+.Sy Default:
+none
+.br
+.It Ic destroot.dir
+Where to destroot the project from (i.e. where the Xcode project is).
+.br
+.Sy Default:
+${worksrcpath}
+.br
+.El
+.Sh SEE ALSO
+.Xr port 1 ,
+.Xr portfile 7 ,
+.Xr porthier 7 ,
+.Xr portstyle 7
+.Sh AUTHORS
+.An "Paul Guyot" Aq pguyot@kallisys.net
