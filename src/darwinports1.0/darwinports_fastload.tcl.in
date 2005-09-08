@@ -1,5 +1,5 @@
 # darwinports_fastload.tcl.in
-# $Id: darwinports_fastload.tcl.in,v 1.1 2004/10/14 20:13:38 pguyot Exp $
+# $Id: darwinports_fastload.tcl.in,v 1.2 2005/09/08 11:00:59 pguyot Exp $
 #
 # Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # All rights reserved.
@@ -33,6 +33,35 @@
 # This avoids the very expensive globbing of Tcl' package mechanism.
 # Please note that this is not required and base/ should work even if some
 # packages are moved as long as their new location is in Tcl's package paths.
+# However, this file also defines a workaround to avoid conflicts between a /
+# installation of DP and a user installation of DP (on the same box).
+# (this workaround isn't required on 10.4.2).
+if {($tcl_version < 8.4) ||
+	(($tcl_version == 8.4) && ([lindex [split [info patchlevel] .] 3] < 7))} {
+	global allpackages
+	if {![info exists allpackages]} {
+		# Only patch once.
+		array set allpackages {}
+		rename package package_native
+		proc package {args} {
+				global allpackages
+				if {([lindex $args 0] == "ifneeded") && ([llength $args] == 4)} {
+						set package_name [lindex $args 1]
+						set package_version [lindex $args 2]
+						set package_key ${package_name}::${package_version}
+						if {![info exists allpackages($package_key)]} {
+								set allpackages($package_key) 1
+								set result [eval package_native $args]
+						} else {
+								set result ""
+						}
+				} else {
+						set result [eval package_native $args]
+				}
+				return $result
+		}
+	}
+}
 
 set dir [file join "@TCL_PACKAGE_DIR@" darwinports1.0]
 catch {source [file join $dir pkgIndex.tcl]}
