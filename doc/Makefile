@@ -46,3 +46,4 @@ install:
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 porthier.7 ${INSTALLDIR}/share/man/man7
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 xcode.7 ${INSTALLDIR}/share/man/man7
