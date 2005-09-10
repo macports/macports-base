@@ -82,7 +82,7 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
 AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
-	AC_MSG_CHECKING([for whether function CFNotificationCenterGetDarwinNotifyCenter is available])
+	AC_MSG_CHECKING([for CFNotificationCenterGetDarwinNotifyCenter])
 
 	AC_CACHE_VAL(od_cv_have_function_cfnotificationcentergetdarwinnotifycenter, [
 		ac_save_LIBS="$LIBS"

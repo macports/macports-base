@@ -3178,8 +3178,8 @@ _ACEOF
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
-	echo "$as_me:$LINENO: checking for whether function CFNotificationCenterGetDarwinNotifyCenter is available" >&5
-echo $ECHO_N "checking for whether function CFNotificationCenterGetDarwinNotifyCenter is available... $ECHO_C" >&6
+	echo "$as_me:$LINENO: checking for CFNotificationCenterGetDarwinNotifyCenter" >&5
+echo $ECHO_N "checking for CFNotificationCenterGetDarwinNotifyCenter... $ECHO_C" >&6
 
 	if test "${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
