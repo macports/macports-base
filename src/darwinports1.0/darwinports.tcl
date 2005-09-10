@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.157.2.40 2005/09/08 06:42:20 jmpp Exp $
+# $Id: darwinports.tcl,v 1.157.2.41 2005/09/10 00:35:48 jmpp Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -38,7 +38,11 @@ package require darwinports_index 1.0
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
     variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean portverbose destroot_umask rsync_server rsync_options rsync_dir"
+    # deferred options are only computed when needed.
+    # they are not exported to the trace thread.
+    # they are not exported to the interpreter in system_options array.
+    variable portinterp_deferred_options "xcodeversion xcodebuildcmd"
 	
     variable open_dports {}
     
@@ -107,9 +111,80 @@ proc darwinports::binaryInPath {binary} {
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
 }
 
+# deferred option processing
+proc darwinports::getoption {name} {
+	global darwinports::$name
+	return [expr $$name]
+}
+
+# deferred and on-need extraction of xcodeversion and xcodebuildcmd.
+proc darwinports::setxcodeinfo {name1 name2 op} {
+	global darwinports::xcodeversion
+	global darwinports::xcodebuildcmd
+	
+	trace remove variable darwinports::xcodeversion read darwinports::setxcodeinfo
+	trace remove variable darwinports::xcodebuildcmd read darwinports::setxcodeinfo
+
+	if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
+		if {![info exists xcodeversion]} {
+			# Determine xcode version (<= 2.0 or 2.1)
+			if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
+				if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
+					if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
+						# for now, we don't need to distinguish 2.1 from 2.1 or higher.
+						set darwinports::xcodeversion "2.1"
+					} else {
+						set darwinports::xcodeversion "2.0orlower"
+					}
+				} else {
+					set darwinports::xcodeversion "2.0orlower"
+				}
+			} else {
+				set darwinports::xcodeversion "2.0orlower"
+			}
+		}
+		
+		if {![info exists xcodebuildcmd]} {
+			set darwinports::xcodebuildcmd "xcodebuild"
+		}
+	} elseif {[catch {set pbxbuild [binaryInPath "pbxbuild"]}] == 0} {
+		if {![info exists xcodeversion]} {
+			set darwinports::xcodeversion "pb"
+		}
+		if {![info exists xcodebuildcmd]} {
+			set darwinports::xcodebuildcmd "pbxbuild"
+		}
+	} else {
+		if {![info exists xcodeversion]} {
+			set darwinports::xcodeversion "none"
+		}
+		if {![info exists xcodebuildcmd]} {
+			set darwinports::xcodebuildcmd "none"
+		}
+	}
+}
+
 proc dportinit {args} {
-    global auto_path env darwinports::portdbpath darwinports::bootstrap_options darwinports::portinterp_options darwinports::portconf darwinports::sources darwinports::sources_conf darwinports::portsharepath darwinports::registry.path darwinports::autoconf::dports_conf_path darwinports::registry.format darwinports::registry.installtype darwinports::upgrade darwinports::destroot_umask darwinports::variants_conf darwinports::selfupdate darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options darwinports::xcodeversion
-	global options ui_options variations
+	global auto_path env options ui_options variations
+	global darwinports::autoconf::dports_conf_path
+	global darwinports::bootstrap_options
+	global darwinports::portconf
+	global darwinports::portdbpath
+	global darwinports::portsharepath
+	global darwinports::registry.format
+	global darwinports::registry.path
+	global darwinports::sources
+	global darwinports::sources_conf
+   	global darwinports::destroot_umask
+   	global darwinports::libpath
+   	global darwinports::prefix
+   	global darwinports::registry.installtype
+   	global darwinports::rsync_dir
+   	global darwinports::rsync_options
+   	global darwinports::rsync_server
+   	global darwinports::variants_conf
+   	global darwinports::xcodebuildcmd
+   	global darwinports::xcodeversion
 
     # first look at PORTSRC for testing/debugging
     if {[llength [array names env PORTSRC]] > 0} {
@@ -338,46 +413,9 @@ proc dportinit {args} {
     array unset env "BZIP"
 
 	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
-		if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
-			if {![info exists xcodeversion]} {
-				# Determine xcode version (<= 2.0 or 2.1)
-				if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
-					if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
-						if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
-							# for now, we don't need to distinguish 2.1 from 2.1 or higher.
-							set darwinports::xcodeversion "2.1"
-						} else {
-							set darwinports::xcodeversion "2.0orlower"
-						}
-					} else {
-						set darwinports::xcodeversion "2.0orlower"
-					}
-				} else {
-					set darwinports::xcodeversion "2.0orlower"
-				}
-			}
-			
-			if {![info exists xcodebuildcmd]} {
-				set darwinports::xcodebuildcmd "xcodebuild"
-			}
-		} elseif {[catch {set pbxbuild [binaryInPath "pbxbuild"]}] == 0} {
-			if {![info exists xcodeversion]} {
-				set darwinports::xcodeversion "pb"
-			}
-			if {![info exists xcodebuildcmd]} {
-				set darwinports::xcodebuildcmd "pbxbuild"
-			}
-		} else {
-			if {![info exists xcodeversion]} {
-				set darwinports::xcodeversion "none"
-			}
-			if {![info exists xcodebuildcmd]} {
-				set darwinports::xcodebuildcmd "none"
-			}
-		}
-
-		global darwinports::xcodeversion
-		global darwinports::xcodebuildcmd
+		# We'll resolve these later (if needed)
+		trace add variable darwinports::xcodeversion read darwinports::setxcodeinfo
+		trace add variable darwinports::xcodebuildcmd read darwinports::setxcodeinfo
 	}
 
     # Set the default umask
@@ -412,7 +450,7 @@ proc dportinit {args} {
 }
 
 proc darwinports::worker_init {workername portpath portbuildpath options variations} {
-    global darwinports::portinterp_options auto_path registry.installtype
+    global darwinports::portinterp_options darwinports::portinterp_deferred_options registry.installtype
 
 	# Tell the sub interpreter about all the Tcl packages we already
 	# know about so it won't glob for packages.
@@ -455,6 +493,9 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_bulk_register_files registry::register_bulk_files
 	$workername alias registry_installed registry::installed
 
+	# deferred options processing.
+	$workername alias getoption darwinports::getoption
+
     foreach opt $portinterp_options {
 		if {![info exists $opt]} {
 		    global darwinports::$opt
@@ -462,8 +503,23 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
         if {[info exists $opt]} {
             $workername eval set system_options($opt) \"[set $opt]\"
             $workername eval set $opt \"[set $opt]\"
-        } #"
+        }
     }
+    
+	foreach opt $portinterp_deferred_options {
+		global darwinports::$opt
+		# define the trace hook.
+		$workername eval \
+			"proc trace_$opt {name1 name2 op} { \n\
+				trace remove variable ::$opt read ::trace_$opt \n\
+				global $opt \n\
+				set $opt \[getoption $opt\] \n\
+			}"
+		# next access will actually define the variable.
+		$workername eval "trace add variable ::$opt read ::trace_$opt"
+		# define some value now
+		$workername eval set $opt "?"
+	}		
 
     foreach {opt val} $options {
         $workername eval set user_options($opt) $val
@@ -544,7 +600,7 @@ proc darwinports::getportdir {url {destdir "."}} {
 # DarwinPorts Portfile.
 
 proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
-    global darwinports::portinterp_options darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
+    global darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
 
 	# Look for an already-open DPort with the same URL.
 	# XXX: should compare options and variations here too.
@@ -834,7 +890,7 @@ proc _dportexec {target dport} {
 # Execute the specified target of the given dport.
 
 proc dportexec {dport target} {
-    global darwinports::portinterp_options darwinports::registry.installtype
+    global darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
 
