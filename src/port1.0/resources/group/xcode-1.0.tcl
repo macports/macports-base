@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.5 2005/09/10 19:20:21 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.6 2005/09/11 14:27:41 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -138,10 +138,12 @@ proc xcode::fix_resource_dependencies {} {
 	if {$xcodeversion == "2.1"} {
 		set build_path "[xcode::get_project_path]/build/"
 		set config_build_path "[xcode::get_project_path]/build/${xcode.configuration}/"
-		foreach resource [glob "${config_build_path}*"] {
-			set resource_name [file tail $resource]
-			if {![file exists $build_path/$resource_name]} {
-				file link $build_path/$resource_name $config_build_path/$resource_name
+		if {[file isdirectory ${config_build_path}]} {
+			foreach resource [glob "${config_build_path}*"] {
+				set resource_name [file tail $resource]
+				if {![file exists $build_path/$resource_name]} {
+					file link $build_path/$resource_name $config_build_path/$resource_name
+				}
 			}
 		}
 	}
