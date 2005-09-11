@@ -1019,25 +1019,9 @@ platform darwin i386 { configure.args-append \e\
 .Sh PORTGROUP
 To factorize the work with similar ports, DarwinPorts provides the notion of
 .Nm PortGroup
-that can be used to load definitions for a given class or group of ports.
-DarwinPorts currently provide the following
-.Nm PortGroups.
-.Bl -tag -width lc
-.It Ic PortGroup perl5 1.0
-For Perl 5 modules.
-.It Ic PortGroup python 1.0
-For Python 2.3 modules.
-.It Ic PortGroup python24 1.0
-For Python 2.4 modules.
-.It Ic PortGroup ruby 1.0
-For Ruby modules.
-.It Ic PortGroup xcode 1.0
-For ports based on Xcode/ProjectBuilder projects.
-See
-.Xr xcode 7 .
-.It Ic PortGroup zope 1.0
-For Zope modules.
-.El
+that can be used to load definitions for a given class or group of ports. See
+.Xr portgroup 7
+for more details on the various PortGroup classes.
 .Sh TCL EXTENSIONS
 A number of TCL extensions are available for use in
 .Nm Portfiles .
@@ -1277,7 +1261,7 @@ to the user, at various different levels.
 .Xr ports.conf 5 ,
 .Xr porthier 7 ,
 .Xr portstyle 7 ,
-.Xr xcode 7 ,
+.Xr portgroup 7 ,
 .Xr file n
 .Sh AUTHORS
 .An "Landon Fuller" Aq landonf@opendarwin.org

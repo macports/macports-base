@@ -1,4 +1,4 @@
-.\" xcode.7
+.\" portgroup.7
 .\"
 .\" Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>
 .\" All rights reserved.
@@ -31,26 +31,31 @@
 .Dt XCODE 7 "Darwinports"
 .Os
 .Sh NAME
-.Nm PortGroup xcode
-.Nd Darwinports PortGroup xcode file reference
+.Nm PortGroup
+.Nd Darwinports PortGroup command reference
 .Sh SYNOPSIS
-.Nm PortSystem 1.0
+.Nm PortGroup perl5 1.0
+.Nm PortGroup python 1.0
+.Nm PortGroup python24 1.0
+.Nm PortGroup ruby 1.0
 .Nm PortGroup xcode 1.0
 .Sh DESCRIPTION
-A manual for PortGroup xcode for Darwinports Portfiles.
-.Nm xcode PortGroup
-is here to easily port Xcode-based opensource software. Users of
-.Nm xcode PortGroup
-should have some notion of Portfiles. See
+Darwinports defines the notion of PortGroup classes with the PortGroup command.
+These classes factorize the work for similar ports.  Port maintainers willing to
+use
+.Nm PortGroup
+need to have some notion of Portfiles. See
 .Xr portfile 7
 .Pp
-.Nm xcode PortGroup
-handles configuration, build and destroot phases. It also defines some values
-for Xcode-based software. A minimum Portfile using xcode PortGroup only handles
-the fetch and the checksums.
+.Sh XCODE PORTGROUP
+.Nm PortGroup xcode
+is here to easily port Xcode-based opensource software. It handles
+configuration, build and destroot phases. It also defines some values
+for Xcode-based software. A minimum Portfile using the xcode PortGroup class
+only defines the fetch and the checksum phases.
 .Pp
 Using
-.Nm xcode PortGroup
+.Nm PortGroup xcode
 is a way to make your port more robust to Xcode version updates as the PortGroup
 is tested against all supported MacOS X and Xcode versions.
 .Sh XCODE PORTGROUP SUGAR
@@ -69,9 +74,10 @@ Portfiles using xcode PortGroup do not need to define the following variables:
 .Em no
 .El
 .br
-Moreover, Portfiles using xcode PortGroup do not need to define any build or
-destroot phase. Some options are provided for tailoring these phases to what
-the software requires.
+Moreover, Portfiles using
+.Nm PortGroup xcode
+do not need to define any build or destroot phase.  Some options are provided
+for tailoring these phases to what the software requires.
 .Sh XCODE PORTGROUP SPECIFIC VARIABLES
 Portfiles using xcode PortGroup may define the following variables:
 .Bl -tag -width lc
