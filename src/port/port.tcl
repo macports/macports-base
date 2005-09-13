@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.86 2005/09/13 18:09:38 jberry Exp $
+# $Id: port.tcl,v 1.87 2005/09/13 19:29:24 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,7 +34,8 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#		- Support globing of portnames?
+#		- Revise usage message
+#		- Support urls as ports in portname processing
 #
 
 catch {source \
@@ -272,9 +273,8 @@ proc foreachport {portlist block} {
 }
 
 
-proc get_all_ports {} {
-	set pat ".+"
-	if {[catch {set res [dportsearch ^$pat\$]} result]} {
+proc get_matching_ports {globpat {casesensitive no} {matchstyle glob}} {
+	if {[catch {set res [dportsearch $globpat $casesensitive $matchstyle]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "port search failed: $result"
@@ -283,9 +283,13 @@ proc get_all_ports {} {
 	set results [list]
 	foreach {name info} $res {
 		array set portinfo $info
-		foreach variant $portinfo(variants) {
-			lappend variants $variant "+"
-		}
+		
+		#set variants {}
+		#if {[info exists portinfo(variants)]} {
+		#	foreach variant $portinfo(variants) {
+		#		lappend variants $variant "+"
+		#	}
+		#}
 		# For now, don't include version or variants with all ports list
 		#"$portinfo(version)_$portinfo(revision)"
 		#$variants
@@ -294,6 +298,11 @@ proc get_all_ports {} {
 	
 	# Return the list of all ports, sorted
 	return [lsort -ascii -index 1 $results]
+}
+
+
+proc get_all_ports {} {
+	return [get_matching_ports "*"]
 }
 
 
@@ -489,7 +498,9 @@ proc get_outdated_ports {} {
 
 
 
+##########################################
 # Main
+##########################################
 set argn 0
 
 # Initialize dport
@@ -634,14 +645,17 @@ if {$argn < $argc} {
 		
 		# Resolve the pseudo-portnames
 		# all, current, installed, uninstalled, active, inactive, outdated
-		switch -- $portname {
-			all 			{ add_ports_to_portlist [get_all_ports] [array get portoptions] }
-			current			{ add_ports_to_portlist [get_current_port] [array get portoptions] }
-			installed		{ add_ports_to_portlist [get_installed_ports] [array get portoptions] }
-			uninstalled		{ add_ports_to_portlist [get_uninstalled_ports] [array get portoptions] }
-			active			{ add_ports_to_portlist [get_active_ports] [array get portoptions] }
-			inactive		{ add_ports_to_portlist [get_inactive_ports] [array get portoptions] }
-			outdated		{ add_ports_to_portlist [get_outdated_ports] [array get portoptions] }
+		switch -regexp -- $portname {
+			^all$ 			{ add_ports_to_portlist [get_all_ports] [array get portoptions] }
+			^current$		{ add_ports_to_portlist [get_current_port] [array get portoptions] }
+			^installed$		{ add_ports_to_portlist [get_installed_ports] [array get portoptions] }
+			^uninstalled$	{ add_ports_to_portlist [get_uninstalled_ports] [array get portoptions] }
+			^active$		{ add_ports_to_portlist [get_active_ports] [array get portoptions] }
+			^inactive$		{ add_ports_to_portlist [get_inactive_ports] [array get portoptions] }
+			^outdated$		{ add_ports_to_portlist [get_outdated_ports] [array get portoptions] }
+			
+			[][?*]			{ add_ports_to_portlist [get_matching_ports $portname no glob] [array get portoptions] }
+			
 			default 		{ add_to_portlist [list "" $portname $portversion [array get portvariants]] [array get portoptions] }
 		}
 	}
@@ -1299,3 +1313,5 @@ switch -- $action {
 		}
 	}
 }
+
+

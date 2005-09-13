@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.188 2005/09/06 23:40:39 pguyot Exp $
+# $Id: darwinports.tcl,v 1.189 2005/09/13 19:29:23 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1086,14 +1086,14 @@ proc dportsync {args} {
 	}
 }
 
-proc dportsearch {regexp {case_sensitive "yes"}} {
+proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp}} {
 	global darwinports::portdbpath darwinports::sources
 	set matches [list]
-
+	
 	set found 0
 	foreach source $sources {
 		if {[darwinports::getprotocol $source] == "dports"} {
-			array set attrs [list name $regexp]
+			array set attrs [list name $pattern]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
@@ -1103,12 +1103,14 @@ proc dportsearch {regexp {case_sensitive "yes"}} {
 				incr found 1
 				while {[gets $fd line] >= 0} {
 					set name [lindex $line 0]
-					if {$case_sensitive == "yes"} {
-						set rxres [regexp -- $regexp $name]
-					} else {
-						set rxres [regexp -nocase -- $regexp $name]
+					
+					switch $matchstyle {
+						glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $name] : [string match -nocase $pattern $name]] }
+						regexp	-
+						default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $name] : [regexp -nocase -- $pattern $name]] }
 					}
-					if {$rxres == 1} {
+
+					if {$matchres == 1} {
 						gets $fd line
 						array set portinfo $line
 						switch -regexp -- [darwinports::getprotocol ${source}] {
