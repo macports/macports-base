@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.87 2005/09/13 19:29:24 jberry Exp $
+# $Id: port.tcl,v 1.88 2005/09/13 20:10:43 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,7 +34,6 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#		- Revise usage message
 #		- Support urls as ports in portname processing
 #
 
@@ -119,7 +118,23 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global argv0
-	puts "Usage: [file tail $argv0] \[-vdqfonausbckt\] \[-D portdir\] target \[flags\] \[portname\] \[options\] \[variants\]"
+	set usage { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
+	[[portname | pseudo-portname] [version] [+variant|-variant]... [option=value]...]...
+	
+	Valid actions are:
+	help, info, location, provides, activate, deactivate, selfupdate,
+	upgrade, version, compact, uncompact, uninstall, installed, outdated,
+	contents, deps, variants, search, list, echo, sync,
+	fetch, patch, extract, build, destroot, install, test
+		
+	Pseudo-portnames are:
+	all, current, active, inactive, installed, uninstalled, outdated
+	
+	portnames may contain standard glob-patterns.
+	
+	}
+	
+	puts "Usage: [file tail $argv0] $usage"
 }
 
 proc fatal s {
@@ -273,8 +288,8 @@ proc foreachport {portlist block} {
 }
 
 
-proc get_matching_ports {globpat {casesensitive no} {matchstyle glob}} {
-	if {[catch {set res [dportsearch $globpat $casesensitive $matchstyle]} result]} {
+proc get_matching_ports {pattern {casesensitive no} {matchstyle glob}} {
+	if {[catch {set res [dportsearch $pattern $casesensitive $matchstyle]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "port search failed: $result"
@@ -661,9 +676,8 @@ if {$argn < $argc} {
 	}
 }
 
-
 # If there's no action, just print the usage and be done
-if {![info exists action]} {
+if {$action == ""} {
 	print_usage
 	exit 1
 }
@@ -671,6 +685,10 @@ if {![info exists action]} {
 
 # Perform the action
 switch -- $action {
+
+	help {
+		print_usage
+	}
 
 	info {
 		require_portlist
@@ -1313,5 +1331,6 @@ switch -- $action {
 		}
 	}
 }
+
 
 
