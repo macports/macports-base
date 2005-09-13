@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.83 2005/09/13 05:50:21 jberry Exp $
+# $Id: port.tcl,v 1.84 2005/09/13 15:33:56 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -122,11 +122,12 @@ proc print_usage args {
 	puts "Usage: [file tail $argv0] \[-vdqfonausbckt\] \[-D portdir\] target \[flags\] \[portname\] \[options\] \[variants\]"
 }
 
-proc fatal args {
+proc fatal s {
 	global argv0
-	puts stderr "$argv0: $args"
+	puts stderr "$argv0: $s"
 	exit
 }
+
 
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations} {
@@ -162,6 +163,17 @@ proc composite_version {version variations} {
 	return $composite_version
 }
 
+
+proc split_variants {variants} {
+	set result [list]
+	set l [regexp -all -inline -- {([-+])([[:alpha:]_]+[\w\.]*)} $variants]
+	foreach { match sign variant } $l {
+		lappend result $variant $sign
+	}
+	return $result
+}
+
+
 proc registry_installed {portname {portversion ""}} {
 	set ilist [registry::installed $portname $portversion]
 	if { [llength $ilist] > 1 } {
@@ -185,6 +197,28 @@ proc registry_installed {portname {portversion ""}} {
 }
 
 
+proc add_to_portlist {portentry {options ""}} {
+	upvar portlist portlist
+	global global_options
+	if {![llength $options]} {
+		set options [array get global_options]
+	}
+	lappend portlist [lappend portentry $options]
+}
+
+
+proc add_ports_to_portlist {ports {options ""}} {
+	upvar portlist portlist
+	global global_options
+	if {![llength $options]} {
+		set options [array get global_options]
+	}
+	foreach portentry $ports {
+		lappend portlist [lappend portentry $options]
+	}
+}
+
+
 proc url_to_portname { url } {
 	if {[catch {set ctx [dportopen $url]} result]} {
 		return ""
@@ -199,7 +233,6 @@ proc url_to_portname { url } {
 
 # Supply a default porturl/portname if the portlist is empty
 proc require_portlist {} {
-	global global_options
 	global global_porturl
 	
 	upvar portlist portlist
@@ -212,7 +245,7 @@ proc require_portlist {} {
 		set portname [url_to_portname $url]
 	
 		if {$portname != ""} {
-			lappend portlist [list $url $portname {} {} [array get global_options]]
+			add_to_portlist [list $url $portname "" ""]
 		} else {
 			puts "You must specify a port or be in a port directory"
 			exit 1
@@ -238,8 +271,148 @@ proc foreachport {portlist block} {
 }
 
 
+proc get_all_ports {} {
+	set pat ".+"
+	if {[catch {set res [dportsearch ^$pat\$]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		fatal "port search failed: $result"
+	}
+
+	set results [list]
+	foreach {name info} $res {
+		array set portinfo $info
+		foreach variant $portinfo(variants) {
+			lappend variants $variant "+"
+		}
+		# For now, don't include version or variants with all ports list
+		#"$portinfo(version)_$portinfo(revision)"
+		#$variants
+		lappend results [list $portinfo(porturl) $name {} {}]
+	}
+	
+	return $results
+}
+
+
+proc get_current_port {} {
+	global global_porturl
+
+	if {[info exists global_porturl]} {
+		set url $global_porturl
+	} else {
+		set url file://./
+	}
+	set portname [url_to_portname $url]
+
+	if {$portname == ""} {
+		fatal "To use the _current pseudo port, you must be in a port directory"
+	}
+	
+	return [list [list $url $portname "" ""]]
+}
+
+
+proc get_installed_ports {} {
+	if { [catch {set ilist [registry::installed]} result] } {
+		if {$result == "Registry error: No ports registered as installed."} {
+			fatal "No ports installed!"
+		} else {
+			global errorInfo
+			ui_debug "$errorInfo"
+			fatal "port installed failed: $result"
+		}
+	}
+	
+	set result [list]
+	foreach i $ilist {
+		set iname [lindex $i 0]
+		set iversion [lindex $i 1]
+		set irevision [lindex $i 2]
+		set ivariants [split_variants [lindex $i 3]]
+		set iactive [lindex $i 4]
+		
+		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+	}
+	return $result
+}
+
+
+proc get_uninstalled_ports {} {
+	# Not implemented
+	puts "Pseudo-port uninstalled is not yet implemented"
+	return [list]
+}
+
+
+proc get_active_ports {} {
+	if { [catch {set ilist [registry::installed]} result] } {
+		if {$result == "Registry error: No ports registered as installed."} {
+			fatal "No ports installed!"
+		} else {
+			global errorInfo
+			ui_debug "$errorInfo"
+			fatal "port installed failed: $result"
+		}
+	}
+	
+	set result [list]
+	foreach i $ilist {
+		set iname [lindex $i 0]
+		set iversion [lindex $i 1]
+		set irevision [lindex $i 2]
+		set ivariants [split_variants [lindex $i 3]]
+		set iactive [lindex $i 4]
+		if {!$iactive} continue
+		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+	}
+	return $result
+}
+
+
+proc get_inactive_ports {} {
+	if { [catch {set ilist [registry::installed]} result] } {
+		if {$result == "Registry error: No ports registered as installed."} {
+			fatal "No ports installed!"
+		} else {
+			global errorInfo
+			ui_debug "$errorInfo"
+			fatal "port installed failed: $result"
+		}
+	}
+	
+	set result [list]
+	foreach i $ilist {
+		set iname [lindex $i 0]
+		set iversion [lindex $i 1]
+		set irevision [lindex $i 2]
+		set ivariants [split_variants [lindex $i 3]]
+		set iactive [lindex $i 4]
+		if {$iactive} continue
+		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+	}
+	return $result
+}
+
+
+proc get_outdated_ports {} {
+	# Not implemented
+	puts "Pseudo-port outdated is not yet implemented"
+	return [list]
+}
+
+
+
+
 # Main
 set argn 0
+
+# Initialize dport
+if {[catch {dportinit} result]} {
+	global errorInfo
+	puts "$errorInfo"
+	fatal "Failed to initialize ports system, $result"
+}
 
 # Parse global options
 while {$argn < $argc} {
@@ -374,24 +547,20 @@ if {$argn < $argc} {
 			}
 		}
 		
-		# This is where we will resolve the meta-portnames
+		# Resolve the pseudo-portnames
 		# all, current, installed, uninstalled, active, inactive, outdated
-		if {$portname == "the name of a meta port"} {
-			# Add members of the metaport to the portlist
-		} else {
-			lappend portlist [list \
-				"" $portname $portversion \
-				[array get portvariants] \
-				[array get portoptions] \
-				]
+		switch -- $portname {
+			all 			{ add_ports_to_portlist [get_all_ports] [array get portoptions] }
+			current			{ add_ports_to_portlist [get_current_port] [array get portoptions] }
+			installed		{ add_ports_to_portlist [get_installed_ports] [array get portoptions] }
+			uninstalled		{ add_ports_to_portlist [get_uninstalled_ports] [array get portoptions] }
+			active			{ add_ports_to_portlist [get_active_ports] [array get portoptions] }
+			inactive		{ add_ports_to_portlist [get_inactive_ports] [array get portoptions] }
+			outdated		{ add_ports_to_portlist [get_outdated_ports] [array get portoptions] }
+			default 		{ add_to_portlist [list "" $portname $portversion [array get portvariants]] [array get portoptions] }
 		}
 	}
-} else {
-	# No action was given, so give usage
-	print_usage; exit 1
 }
-
-#puts "portlist: $portlist"
 
 
 # If there's no action, just print the usage and be done
@@ -400,21 +569,6 @@ if {![info exists action]} {
 	exit 1
 }
 
-# Pervert "list" into a special case of search
-if {$action == "list"} {
-	set action search
-	if { [llength $portlist] == 0 } {
-		lappend portlist [list ".+" "" {} {}]
-	}
-}
-
-# Initialize dport
-if {[catch {dportinit} result]} {
-	global errorInfo
-	puts "$errorInfo"
-	puts "Failed to initialize ports system, $result"
-	exit 1
-}
 
 # Perform the action
 switch -- $action {
@@ -951,9 +1105,9 @@ switch -- $action {
 					continue
 				}
 				if {![info exists portinfo(portdir)]} {
-					set output [format "%-20s\t%-8s\t%s" $portinfo(name) $portinfo(version) $portinfo(description)]
+					set output [format "%-30s %-12s %s" $portinfo(name) $portinfo(version) $portinfo(description)]
 				} else {
-					set output [format "%-8s\t%-14s\t%-8s\t%s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
+					set output [format "%-30s %-14s %-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
 				}
 				set portfound 1
 				puts $output
@@ -962,6 +1116,34 @@ switch -- $action {
 			if {![info exists portfound] || $portfound == 0} {
 				puts "No match for $portname found"
 				exit 1
+			}
+		}
+	}
+	
+	list {
+		# Default to list all ports if no portnames are supplied
+		if {![llength portlist]} {
+			add_to_portlist [list "" "-all-" "" {}] {}
+			exit 1
+		}
+		
+		foreachport $portlist {
+			if {$portname == "-all-"} {
+				set pat ".+"
+			} else {
+				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+			}
+
+			if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				puts "port search failed: $result"
+				exit 1
+			}
+
+			foreach {name array} $res {
+				array set portinfo $array
+				puts [format "%-30s %-12s" $portinfo(name) $portinfo(version)]
 			}
 		}
 	}
@@ -1023,3 +1205,4 @@ switch -- $action {
 		}
 	}
 }
+
