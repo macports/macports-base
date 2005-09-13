@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.85 2005/09/13 15:47:28 jberry Exp $
+# $Id: port.tcl,v 1.86 2005/09/13 18:09:38 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,8 +34,7 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#		- Implement pseudo-ports outdated and uninstalled
-#		- Sort variant names in composite_version
+#		- Support globing of portnames?
 #
 
 catch {source \
@@ -151,10 +150,10 @@ proc composite_version {version variations} {
 		set neg_str ""
 		
 		if {[llength $pos]} {
-			set pos_str "+[join $pos "+"]"
+			set pos_str "+[join [lsort -ascii $pos] "+"]"
 		}
 		if {[llength $neg]} {
-			set neg_str "+[join $neg "+"]"
+			set neg_str "-[join [lsort -ascii $neg] "-"]"
 		}
 		
 		set composite_version "$version$pos_str$neg_str"
@@ -263,7 +262,9 @@ proc foreachport {portlist block} {
 			set porturl \"[lindex $portspec 0]\"
 			set portname \"[lindex $portspec 1]\"
 			set portversion \"[lindex $portspec 2]\"
+			array unset variations
 			array set variations { [lindex $portspec 3] }
+			array unset options
 			array set options { [lindex $portspec 4] }
 			$block
 			"
@@ -291,7 +292,8 @@ proc get_all_ports {} {
 		lappend results [list $portinfo(porturl) $name {} {}]
 	}
 	
-	return $results
+	# Return the list of all ports, sorted
+	return [lsort -ascii -index 1 $results]
 }
 
 
@@ -324,7 +326,7 @@ proc get_installed_ports {} {
 		}
 	}
 	
-	set result [list]
+	set results [list]
 	foreach i $ilist {
 		set iname [lindex $i 0]
 		set iversion [lindex $i 1]
@@ -332,16 +334,34 @@ proc get_installed_ports {} {
 		set ivariants [split_variants [lindex $i 3]]
 		set iactive [lindex $i 4]
 		
-		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
 	}
-	return $result
+	
+	# Return the list of ports, sorted
+	return [lsort -ascii -index 1 $results]
 }
 
 
 proc get_uninstalled_ports {} {
-	# Not implemented
-	puts "Pseudo-port uninstalled is not yet implemented"
-	return [list]
+	# Get list of all ports and installed ports
+	set all [get_all_ports]
+	set installed [get_installed_ports]
+	
+	# Create an array of the installed ports so that we can quickly search it
+	array unset installed_array 
+	foreach port $installed {
+		set installed_array([lindex $port 1]) yes
+	}
+	
+	# Create a new list, omitting all those ports that are in installed_array
+	set results [list]
+	foreach port $all {
+		if {![info exists installed_array([lindex $port 1])]} {
+			lappend results $port
+		}
+	}
+	
+	return $results
 }
 
 
@@ -356,7 +376,7 @@ proc get_active_ports {} {
 		}
 	}
 	
-	set result [list]
+	set results [list]
 	foreach i $ilist {
 		set iname [lindex $i 0]
 		set iversion [lindex $i 1]
@@ -364,9 +384,11 @@ proc get_active_ports {} {
 		set ivariants [split_variants [lindex $i 3]]
 		set iactive [lindex $i 4]
 		if {!$iactive} continue
-		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
 	}
-	return $result
+
+	# Return the list of ports, sorted
+	return [lsort -ascii -index 1 $results]
 }
 
 
@@ -381,7 +403,7 @@ proc get_inactive_ports {} {
 		}
 	}
 	
-	set result [list]
+	set results [list]
 	foreach i $ilist {
 		set iname [lindex $i 0]
 		set iversion [lindex $i 1]
@@ -389,18 +411,81 @@ proc get_inactive_ports {} {
 		set ivariants [split_variants [lindex $i 3]]
 		set iactive [lindex $i 4]
 		if {$iactive} continue
-		lappend result [list "" $iname "${iversion}_${irevision}" $ivariants]
+		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
 	}
-	return $result
+
+	# Return the list of ports, sorted
+	return [lsort -ascii -index 1 $results]
 }
 
 
 proc get_outdated_ports {} {
-	# Not implemented
-	puts "Pseudo-port outdated is not yet implemented"
-	return [list]
-}
+	# If port names were supplied, limit ourselves to those port, else check all installed ports
+	if { [catch {set ilist [registry::installed]} result] } {
+		global errorInfo
+		ui_debug "$errorInfo"
+		fatal "can't get installed ports: $result"
+	}
 
+	set results [list]
+	if { [llength $ilist] > 0 } {
+		foreach i $ilist { 
+
+			# Get information about the installed port
+			set portname			[lindex $i 0]
+			set installed_version	[lindex $i 1]
+			set installed_revision	[lindex $i 2]
+			set installed_compound	"${installed_version}_${installed_revision}"
+			set installed_variants	[lindex $i 3]
+
+			set is_active			[lindex $i 4]
+			if { $is_active == 0 } continue
+			set installed_epoch		[lindex $i 5]
+
+			# Get info about the port from the index
+			# Escape regex special characters
+			regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+			if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				puts "port search failed: $result"
+				exit 1
+			}
+			if {[llength $res] < 2} {
+				if {[ui_isset ports_debug]} {
+					puts "$portname ($installed_compound is installed; the port was not found in the port index)"
+				}
+				continue
+			}
+			array set portinfo [lindex $res 1]
+			
+			# Get information about latest available version and revision
+			set latest_version $portinfo(version)
+			set latest_revision		0
+			if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
+				set latest_revision	$portinfo(revision)
+			}
+			set latest_compound		"${latest_version}_${latest_revision}"
+			set latest_epoch		0
+			if {[info exists portinfo(epoch)]} { 
+				set latest_epoch	$portinfo(epoch)
+			}
+			
+			# Compare versions, first checking epoch, then the compound version string
+			set comp_result [expr $installed_epoch - $latest_epoch]
+			if { $comp_result == 0 } {
+				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+			}
+			
+			# Add outdated ports to our results list
+			if { $comp_result < 0 } {
+				lappend results [list "" $portname $installed_compound [split_variants $installed_variants]]
+			}
+		}
+	}
+
+	return $results
+}
 
 
 
@@ -843,28 +928,23 @@ switch -- $action {
 			set ilist [list]
         	foreach portspec $portlist {
         		set portname [lindex $portspec 1]
-				if { [catch {set ilist [concat $ilist [registry::installed $portname]]} result] } {
-					if {$result == "Registry error: $portname not registered as installed."} {
-						puts "Port $portname not installed!"
-						exit 1
-					} else {
+        		set composite_version [composite_version [lindex $portspec 2] [lindex $portspec 3]]
+				if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
+					if {![string match "* not registered as installed." $result]} {
 						global errorInfo
 						ui_debug "$errorInfo"
-						puts "port installed failed: $result"
-						exit 1
+						fatal "port installed failed: $result"
 					}
 				}
 			}
         } else {
             if { [catch {set ilist [registry::installed]} result] } {
                 if {$result == "Registry error: No ports registered as installed."} {
-                    puts "No ports installed!"
-                    exit 1
+                    fatal "No ports installed!"
                 } else {
 					global errorInfo
 					ui_debug "$errorInfo"
-                    puts "port installed failed: $result"
-                    exit 1
+                    fatal "port installed failed: $result"
                 }
             }
         }
@@ -893,11 +973,13 @@ switch -- $action {
 			set ilist [list]
         	foreach portspec $portlist {
         		set portname [lindex $portspec 1]
-				if { [catch {set ilist [concat $ilist [registry::installed $portname]]} result] } {
-					global errorInfo
-					ui_debug "$errorInfo"
-					puts "port outdated failed: $result"
-					exit 1
+        		set composite_version [composite_version [lindex $portspec 2] [lindex $portspec 3]]
+				if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
+					if {![string match "* not registered as installed." $result]} {
+						global errorInfo
+						ui_debug "$errorInfo"
+						fatal "port outdated failed: $result"
+					}
 				}
 			}
 		} else {
@@ -910,7 +992,7 @@ switch -- $action {
 		}
 	
 		if { [llength $ilist] > 0 } {
-			puts "The following installed ports seem to be outdated:"
+			puts "The following installed ports are outdated:"
 		
 			foreach i $ilist { 
 
@@ -1148,6 +1230,18 @@ switch -- $action {
 		}
 	}
 	
+	echo {
+		# Simply echo back the port specs given to this command
+		foreachport $portlist {
+			set opts [list]
+			foreach { key value } [array get options] {
+				lappend opts "$key=\"$value\""
+			}
+			
+			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations]] [join $opts " "]]
+		}
+	}
+	
 	sync {
 		if {[catch {dportsync} result]} {
 			global errorInfo
@@ -1205,4 +1299,3 @@ switch -- $action {
 		}
 	}
 }
-
