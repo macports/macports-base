@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.84 2005/09/13 15:33:56 jberry Exp $
+# $Id: port.tcl,v 1.85 2005/09/13 15:47:28 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,8 +34,8 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#		- Add support for wellknown ports:
-#				all, installed, active, inactive, outdated
+#		- Implement pseudo-ports outdated and uninstalled
+#		- Sort variant names in composite_version
 #
 
 catch {source \
@@ -306,7 +306,7 @@ proc get_current_port {} {
 	set portname [url_to_portname $url]
 
 	if {$portname == ""} {
-		fatal "To use the _current pseudo port, you must be in a port directory"
+		fatal "The pseudo-port current must be issued in a port's directory"
 	}
 	
 	return [list [list $url $portname "" ""]]
@@ -510,9 +510,9 @@ if {$argn < $argc} {
 			if {$firstTime && [string match {[0-9]*} $opt]} {
 				# Parse the version
 				
-				set sepPos [string first ":" $opt]
+				set sepPos [string first "/" $opt]
 				if {$sepPos >= 0} {
-					# Version terminated by ":" to disambiguate -variant from part of version
+					# Version terminated by "/" to disambiguate -variant from part of version
 					set portversion [string range $opt 0 [expr $sepPos-1]]
 					set opt [string range $opt [expr $sepPos+1] end]
 				} else {
