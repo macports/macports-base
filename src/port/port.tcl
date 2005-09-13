@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.88 2005/09/13 20:10:43 jberry Exp $
+# $Id: port.tcl,v 1.89 2005/09/13 21:43:24 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,7 +34,6 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#		- Support urls as ports in portname processing
 #
 
 catch {source \
@@ -262,8 +261,7 @@ proc require_portlist {} {
 		if {$portname != ""} {
 			add_to_portlist [list $url $portname "" ""]
 		} else {
-			puts "You must specify a port or be in a port directory"
-			exit 1
+			fatal "You must specify a port or be in a port directory"
 		}
 	}
 }
@@ -339,7 +337,7 @@ proc get_current_port {} {
 }
 
 
-proc get_installed_ports {} {
+proc get_installed_ports { {ignore_active yes} {active yes} } {
 	if { [catch {set ilist [registry::installed]} result] } {
 		if {$result == "Registry error: No ports registered as installed."} {
 			fatal "No ports installed!"
@@ -358,7 +356,9 @@ proc get_installed_ports {} {
 		set ivariants [split_variants [lindex $i 3]]
 		set iactive [lindex $i 4]
 		
-		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
+		if { ${ignore_active} != "yes" && (${active} == "yes") == (${iactive} != 0) } {
+			lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
+		}
 	}
 	
 	# Return the list of ports, sorted
@@ -377,7 +377,7 @@ proc get_uninstalled_ports {} {
 		set installed_array([lindex $port 1]) yes
 	}
 	
-	# Create a new list, omitting all those ports that are in installed_array
+	# Create a new list, adding only those ports that aren't installed
 	set results [list]
 	foreach port $all {
 		if {![info exists installed_array([lindex $port 1])]} {
@@ -390,56 +390,12 @@ proc get_uninstalled_ports {} {
 
 
 proc get_active_ports {} {
-	if { [catch {set ilist [registry::installed]} result] } {
-		if {$result == "Registry error: No ports registered as installed."} {
-			fatal "No ports installed!"
-		} else {
-			global errorInfo
-			ui_debug "$errorInfo"
-			fatal "port installed failed: $result"
-		}
-	}
-	
-	set results [list]
-	foreach i $ilist {
-		set iname [lindex $i 0]
-		set iversion [lindex $i 1]
-		set irevision [lindex $i 2]
-		set ivariants [split_variants [lindex $i 3]]
-		set iactive [lindex $i 4]
-		if {!$iactive} continue
-		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
-	}
-
-	# Return the list of ports, sorted
-	return [lsort -ascii -index 1 $results]
+	return [get_installed_ports no yes]
 }
 
 
 proc get_inactive_ports {} {
-	if { [catch {set ilist [registry::installed]} result] } {
-		if {$result == "Registry error: No ports registered as installed."} {
-			fatal "No ports installed!"
-		} else {
-			global errorInfo
-			ui_debug "$errorInfo"
-			fatal "port installed failed: $result"
-		}
-	}
-	
-	set results [list]
-	foreach i $ilist {
-		set iname [lindex $i 0]
-		set iversion [lindex $i 1]
-		set irevision [lindex $i 2]
-		set ivariants [split_variants [lindex $i 3]]
-		set iactive [lindex $i 4]
-		if {$iactive} continue
-		lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
-	}
-
-	# Return the list of ports, sorted
-	return [lsort -ascii -index 1 $results]
+	return [get_installed_ports no no]
 }
 
 
@@ -604,11 +560,11 @@ if {$argn < $argc} {
 		incr argn
 
 		set portversion	""
+		array unset portoptions
 		array set portoptions [array get global_options]
 		array unset portvariants
 		
 		# Parse port version/variants/options
-		set portversion ""
 		set opt ""
 		for {set firstTime 1} {$opt != "" || $argn < $argc} {set firstTime 0} {
 			# Refresh opt as needed
@@ -660,6 +616,9 @@ if {$argn < $argc} {
 		
 		# Resolve the pseudo-portnames
 		# all, current, installed, uninstalled, active, inactive, outdated
+		#
+		# This switch statement also handles all other uses of portname
+		#
 		switch -regexp -- $portname {
 			^all$ 			{ add_ports_to_portlist [get_all_ports] [array get portoptions] }
 			^current$		{ add_ports_to_portlist [get_current_port] [array get portoptions] }
@@ -669,9 +628,22 @@ if {$argn < $argc} {
 			^inactive$		{ add_ports_to_portlist [get_inactive_ports] [array get portoptions] }
 			^outdated$		{ add_ports_to_portlist [get_outdated_ports] [array get portoptions] }
 			
-			[][?*]			{ add_ports_to_portlist [get_matching_ports $portname no glob] [array get portoptions] }
+			[][?*]			{ # Handle portname glob patterns
+							  add_ports_to_portlist [get_matching_ports $portname no glob] [array get portoptions]
+							}
+							
+			^\\w+:.+		{ # Handle a url by trying to open it as a port and mapping the name
+							  set actualname [url_to_portname $portname]
+							  if {$actualname != ""} {
+							  	add_to_portlist [list $portname $actualname $portversion [array get portvariants]] [array get portoptions]
+							  } else {
+							  	fatal "Can't open url '$portname' as a port"
+							  }
+							}
 			
-			default 		{ add_to_portlist [list "" $portname $portversion [array get portvariants]] [array get portoptions] }
+			default 		{ # In the default case, just add the portname to the portlist
+							  add_to_portlist [list "" $portname $portversion [array get portvariants]] [array get portoptions]
+							}
 		}
 	}
 }
@@ -681,7 +653,6 @@ if {$action == ""} {
 	print_usage
 	exit 1
 }
-
 
 # Perform the action
 switch -- $action {
@@ -1331,6 +1302,5 @@ switch -- $action {
 		}
 	}
 }
-
 
 
