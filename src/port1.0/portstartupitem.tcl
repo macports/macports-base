@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.13 2005/08/25 05:05:35 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.14 2005/09/15 00:44:33 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -392,6 +392,7 @@ proc startupitem_create_darwin_launchd {args} {
 	foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
 	puts ${plist} "</array>"
 	
+	puts ${plist} "<key>Debug</key><false/>"
 	puts ${plist} "<key>Disabled</key><false/>"
 	puts ${plist} "<key>OnDemand</key><false/>"
 	puts ${plist} "<key>RunAtLoad</key><false/>"
