@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.93 2005/09/15 17:01:44 jberry Exp $
+# $Id: port.tcl,v 1.94 2005/09/15 17:19:14 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1607,18 +1607,17 @@ switch -- $action {
 	
 	list {
 		# Default to list all ports if no portnames are supplied
-		if {![llength portlist]} {
-			add_to_portlist portlist [list name "-all-"] {}
-			exit 1
+		if {![llength $portlist]} {
+			add_to_portlist portlist [list name "-all-"]
 		}
 		
 		foreachport $portlist {
 			if {$portname == "-all-"} {
-				set pat ".+"
+				set search_string ".+"
 			} else {
-				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
+				set search_string [regex_pat_sanitize $portname]
 			}
-
+			
 			if {[catch {set res [dportsearch ^$search_string\$]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
@@ -1706,4 +1705,5 @@ switch -- $action {
 		}
 	}
 }
+
 
