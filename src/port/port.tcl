@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.94 2005/09/15 17:19:14 jberry Exp $
+# $Id: port.tcl,v 1.95 2005/09/15 19:50:40 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -35,8 +35,6 @@ exec @TCLSH@ "$0" "$@"
 #
 #	TODO:
 #
-#	- We could replace the ugly and long regex used in places like default and outdated
-#	  with the much simpler regex_pat_sanitize proc.
 
 catch {source \
 	[file join "/Library/Tcl" darwinports1.0 darwinports_fastload.tcl]}
@@ -121,26 +119,39 @@ proc ui_channels {priority} {
 proc print_usage args {
 	global argv0
 	set usage { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
-	[[portname | pseudo-portname] [version] [+variant|-variant]... [option=value]...]...
+	[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 	
-	Valid actions are:
+Valid actions are:
 	help, info, location, provides, activate, deactivate, selfupdate,
 	upgrade, version, compact, uncompact, uninstall, installed, outdated,
 	contents, deps, variants, search, list, echo, sync,
 	fetch, patch, extract, build, destroot, install, test
-		
-	Pseudo-portnames are:
-	all, current, active, inactive, installed, uninstalled, outdated
 	
-	portnames may contain standard glob-patterns.
+Pseudo-portnames:
+	Pseudo-portnames are words which may be used in place of a portname, and
+	which expand to some set of ports. The common pseudo-ports are:
+	all, current, active, inactive, installed, uninstalled, and outdated.
+	These pseudo-portnames expand to the set of ports named.
 	
-	Port expressions:
+	Additional psuedo-portnames are:
+	variants:, variant:, description:, portdir:, homepage:, epoch:,
+	platforms:, platform:, name:, long_description:, maintainers:,
+	maintainer:, categories:, category:, and revision:.
+	These each select a set or ports based on a regex search of metadata
+	about the ports. In all such cases, a standard regex pattern following
+	the colon will be used to select the set of ports to which the
+	pseudo-portname expands.
+	
+	portnames that contain standard glob characters will be expanded to the
+	set of ports matching the glob pattern.
+	
+Port expressions:
 	Portnames, port glob patterns, and psuedo-portnames may be logically combined
 	using expressions consisting of and, or, not, !, (, and ).
 	
 	}
 	
-	puts "Usage: [file tail $argv0] $usage"
+	puts "Usage: [file tail $argv0]$usage"
 }
 
 proc fatal s {
@@ -466,9 +477,7 @@ proc get_outdated_ports {} {
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
-			# Escape regex special characters
-			regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
-			if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+			if {[catch {set res [dportsearch $portname no exact]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -862,7 +871,7 @@ proc opComplement { a b } {
 		incr i
 	}
 	
-	# Walk through each item in a taking all those items that don't match b
+	# Walk through each item in a, taking all those items that don't match b
 	#
 	# Note: -regexp may not be present in all versions of Tcl we need to work
 	# 		against, in which case we may have to fall back to a slower alternative
@@ -1062,8 +1071,8 @@ switch -- $action {
 	info {
 		require_portlist
 		foreachport $portlist {	
-			# search for port
-			if {[catch {dportsearch ^$portname$} result]} {
+			# Get information about the named port
+			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -1412,9 +1421,7 @@ switch -- $action {
 				set installed_epoch		[lindex $i 5]
 
 				# Get info about the port from the index
-				# Escape regex special characters
-				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
-				if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+				if {[catch {set res [dportsearch $portname no exact]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
 					puts "port search failed: $result"
@@ -1494,8 +1501,8 @@ switch -- $action {
 		
 		require_portlist
 		foreachport $portlist {
-			# search for port
-			if {[catch {dportsearch ^$portname$} result]} {
+			# Get info about the port
+			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -1534,7 +1541,7 @@ switch -- $action {
 		require_portlist
 		foreachport $portlist {
 			# search for port
-			if {[catch {dportsearch ^$portname$} result]} {
+			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -1567,7 +1574,7 @@ switch -- $action {
 		}
 		
 		foreachport $portlist {
-			if {[catch {set res [dportsearch $portname "no"]} result]} {
+			if {[catch {set res [dportsearch $portname no]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -1618,7 +1625,7 @@ switch -- $action {
 				set search_string [regex_pat_sanitize $portname]
 			}
 			
-			if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+			if {[catch {set res [dportsearch ^$search_string\$ no]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				puts "port search failed: $result"
@@ -1666,9 +1673,7 @@ switch -- $action {
 			# otherwise try to map the portname to a url
 			if {$porturl == ""} {
 				# Verify the portname, getting portinfo to map to a porturl
-				# Escape regex special characters
-				regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string
-				if {[catch {set res [dportsearch ^$search_string\$]} result]} {
+				if {[catch {set res [dportsearch $portname no exact]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
 					puts "port search failed: $result"
