@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.191 2005/09/15 18:17:09 jberry Exp $
+# $Id: darwinports.tcl,v 1.192 2005/09/15 19:44:36 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1104,26 +1104,25 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 				incr found 1
 				while {[gets $fd line] >= 0} {
 					set name [lindex $line 0]
+					gets $fd line
 					
 					if {$easy} {
 						set target $name
 					} else {
-						gets $fd line
 						array set portinfo $line
 						if {![info exists portinfo($field)]} continue
 						set target $portinfo($field)
 					}
 					
 					switch $matchstyle {
-						exact	{ set matchres [expr {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target]] }
+						exact	{ set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
 						glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
 						regexp	-
 						default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
 					}
-
+					
 					if {$matchres == 1} {
 						if {$easy} {
-							gets $fd line
 							array set portinfo $line
 						}
 						switch -regexp -- [darwinports::getprotocol ${source}] {
@@ -1148,9 +1147,6 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 						}
 						lappend matches $name
 						lappend matches $line
-					} elseif {!$easy} {
-						set len [lindex $line 1]
-						catch {seek $fd $len current}
 					}
 				}
 				close $fd
