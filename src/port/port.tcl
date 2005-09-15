@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.91 2005/09/15 00:19:23 jberry Exp $
+# $Id: port.tcl,v 1.92 2005/09/15 03:12:25 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -337,8 +337,8 @@ proc regex_pat_sanitize s {
 ##########################################
 # Port selection
 ##########################################
-proc get_matching_ports {pattern {casesensitive no} {matchstyle glob}} {
-	if {[catch {set res [dportsearch $pattern $casesensitive $matchstyle]} result]} {
+proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field name}} {
+	if {[catch {set res [dportsearch $pattern $casesensitive $matchstyle $field]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "port search failed: $result"
@@ -686,6 +686,37 @@ proc element resname {
 		^inactive$		{	advance; add_multiple_ports reslist [get_inactive_ports];		set el 1 }
 		^outdated$		{	advance; add_multiple_ports reslist [get_outdated_ports];		set el 1 }
 		
+		^variants:		-
+		^variant:		-
+		^description:	-
+		^portdir:		-
+		^homepage:		-
+		^epoch:			-
+		^platforms:		-
+		^platform:		-
+		^name:			-
+		^long_description:	-
+		^maintainers:	-
+		^maintainer:	-
+		^categories:	-
+		^category:		-
+		^revision:		{	# Handle special port selectors
+							advance
+							
+							# Break up the token, because older Tcl switch doesn't support -matchvar
+							regexp {^(\w+):(.*)} $token matchvar field pat
+							
+							# Remap friendly names to actual names
+							switch -- $field {
+								variant		-
+								platform	-
+								maintainer	{ set field "${field}s" }
+								category	{ set field "categories" }
+							}							
+							add_multiple_ports reslist [get_matching_ports $pat no regexp $field]
+							set el 1
+						}
+						
 		[][?*]			{	# Handle portname glob patterns
 							advance; add_multiple_ports reslist [get_matching_ports $token no glob]
 							set el 1
@@ -702,7 +733,7 @@ proc element resname {
 															variants [array get variants] \
 															options [array get options]]
 							} else {
-								fatal "Can't open url '$portname' as a port"
+								fatal "Can't open url '$token' as a port"
 							}
 							set el 1
 						}
