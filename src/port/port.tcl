@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.92 2005/09/15 03:12:25 jberry Exp $
+# $Id: port.tcl,v 1.93 2005/09/15 17:01:44 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -276,9 +276,9 @@ proc url_to_portname { url } {
 
 # Supply a default porturl/portname if the portlist is empty
 proc require_portlist {} {
+	upvar portlist portlist
 	global global_porturl
 	
-	upvar portlist portlist
 	if {[llength $portlist] == 0} {
 		if {[info exists global_porturl]} {
 			set url $global_porturl
@@ -288,7 +288,7 @@ proc require_portlist {} {
 		set portname [url_to_portname $url]
 	
 		if {$portname != ""} {
-			add_to_portlist portlist [list $url $portname "" ""]
+			add_to_portlist portlist [list url $url name $portname]
 		} else {
 			fatal "You must specify a port or be in a port directory"
 		}
@@ -515,9 +515,13 @@ proc get_outdated_ports {} {
 ##########################################
 # Port expressions
 ##########################################
+proc moreargs {} {
+	global argn argc
+	return [expr {$argn < $argc}]
+}
+
 proc lookahead {} {
 	global argn argc argv
-	
 	if {$argn < $argc} {
 		return [lindex $argv $argn]
 	} else {
@@ -529,12 +533,6 @@ proc lookahead {} {
 proc advance {} {
 	global argn
 	incr argn
-}
-
-
-proc retreat {} {
-	global argn
-	incr argn -1
 }
 
 
@@ -909,7 +907,7 @@ proc parsePortSpec { vername varname optname } {
 	
 	# Parse port version/variants/options
 	set opt [lookahead]
-	for {set firstTime 1} {$opt != "" || [lookahead] != "_EOF_"} {set firstTime 0} {
+	for {set firstTime 1} {$opt != "" || [moreargs]} {set firstTime 0} {
 		# Refresh opt as needed
 		if {[string length $opt] == 0} {
 			advance
@@ -971,8 +969,8 @@ if {[catch {dportinit} result]} {
 }
 
 # Parse global options
-while {$argn < $argc} {
-	set arg [lindex $argv $argn]
+while {[moreargs]} {
+	set arg [lookahead]
 	
 	if {[string index $arg 0] != "-"} {
 		break
@@ -982,7 +980,7 @@ while {$argn < $argc} {
 	} else {
 		# Process short arg(s)
 		set opts [string range $arg 1 end]
-		foreach c [split $opts] {
+		foreach c [split $opts {}] {
 			switch -- $c {
 				v {	set ui_options(ports_verbose) yes		}
 				d { set ui_options(ports_debug) yes
@@ -1003,11 +1001,11 @@ while {$argn < $argc} {
 				c { set global_options(ports_autoclean) yes		}
 				k { set global_options(ports_autoclean) no		}
 				t { set global_options(ports_trace) yes			}
-				D { incr argn
-					set global_porturl "file://[lindex $argv $argn]"
+				D { advance
+					set global_porturl "file://[lookahead]"
 				  }
-				u { incr argn
-					set global_porturl [lindex $argv $argn]
+				u { advance
+					set global_porturl [lookahead]
 				  }
 				default {
 					print_usage; exit 1
@@ -1016,17 +1014,17 @@ while {$argn < $argc} {
 		}
 	}
 	
-	incr argn
+	advance
 }
 
 # Process an action if there is one
-if {$argn < $argc} {
-	set action [lindex $argv $argn]
-	incr argn
+if {[moreargs]} {
+	set action [lookahead]
+	advance
 	
 	# Parse action options
-	while {$argn < $argc} {
-		set arg [lindex $argv $argn]
+	while {[moreargs]} {
+		set arg [lookahead]
 		
 		if {[string index $arg 0] != "-"} {
 			break
@@ -1040,7 +1038,7 @@ if {$argn < $argc} {
 			print_usage; exit 1
 		}
 		
-		incr argn
+		advance
 	}
 	
 	if {![portExpr portlist]} {
@@ -1610,7 +1608,7 @@ switch -- $action {
 	list {
 		# Default to list all ports if no portnames are supplied
 		if {![llength portlist]} {
-			add_to_portlist portlist [list "" "-all-" "" {}] {}
+			add_to_portlist portlist [list name "-all-"] {}
 			exit 1
 		}
 		
