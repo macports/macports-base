@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.89 2005/09/13 21:43:24 jberry Exp $
+# $Id: port.tcl,v 1.90 2005/09/15 00:04:03 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -35,6 +35,8 @@ exec @TCLSH@ "$0" "$@"
 #
 #	TODO:
 #
+#	- We could replace the ugly and long regex used in places like default and outdated
+#	  with the much simpler regex_pat_sanitize proc.
 
 catch {source \
 	[file join "/Library/Tcl" darwinports1.0 darwinports_fastload.tcl]}
@@ -42,6 +44,7 @@ package require darwinports
 
 # globals
 set portdir .
+set argn 0
 set action ""
 set portlist [list]
 array set global_options [list]
@@ -131,6 +134,10 @@ proc print_usage args {
 	
 	portnames may contain standard glob-patterns.
 	
+	Port expressions:
+	Portnames, port glob patterns, and psuedo-portnames may be logically combined
+	using expressions consisting of and, or, not, !, (, and ).
+	
 	}
 	
 	puts "Usage: [file tail $argv0] $usage"
@@ -211,24 +218,46 @@ proc registry_installed {portname {portversion ""}} {
 }
 
 
-proc add_to_portlist {portentry {options ""}} {
-	upvar portlist portlist
+proc add_to_portlist {listname portentry} {
+	upvar $listname portlist
 	global global_options
-	if {![llength $options]} {
-		set options [array get global_options]
-	}
-	lappend portlist [lappend portentry $options]
+	
+	# The portlist currently has the following elements in it:
+	#	url				if any
+	#	name
+	#	version			(version_revision)
+	#	variants array	(variant=>+-)
+	#	options array	(key=>value)
+	#	fullname		(name/version_revision+-variants)
+	
+	array set port $portentry
+	if {![info exists port(url)]}		{ set port(url) "" }
+	if {![info exists port(name)]}		{ set port(name) "" }
+	if {![info exists port(version)]}	{ set port(version) "" }
+	if {![info exists port(variants)]}	{ set port(variants) "" }
+	if {![info exists port(options)]}	{ set port(options) [array get global_options] }
+		
+	# Form the fully descriminated portname: portname/version_revison+-variants
+	set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
+	
+	# Add it to our portlist
+	lappend portlist [array get port]
 }
 
 
-proc add_ports_to_portlist {ports {options ""}} {
-	upvar portlist portlist
-	global global_options
-	if {![llength $options]} {
-		set options [array get global_options]
-	}
+proc add_ports_to_portlist {listname ports {overridelist ""}} {
+	upvar $listname portlist
+	
+	array set overrides $overridelist
+	
+	# Add each entry to the named portlist, overriding any values
+	# specified as overrides
 	foreach portentry $ports {
-		lappend portlist [lappend portentry $options]
+		array set port $portentry
+		if ([info exists overrides(version)])	{ set port(version) $overrides(version)	}
+		if ([info exists overrides(variants)])	{ set port(variants) $overrides(variants)	}
+		if ([info exists overrides(options)])	{ set port(options) $overrides(options)	}
+		add_to_portlist portlist [array get port]
 	}
 }
 
@@ -259,7 +288,7 @@ proc require_portlist {} {
 		set portname [url_to_portname $url]
 	
 		if {$portname != ""} {
-			add_to_portlist [list $url $portname "" ""]
+			add_to_portlist portlist [list $url $portname "" ""]
 		} else {
 			fatal "You must specify a port or be in a port directory"
 		}
@@ -272,20 +301,42 @@ proc require_portlist {} {
 # will have been set
 proc foreachport {portlist block} {
 	foreach portspec $portlist {
+		array set port $portspec
 		uplevel 1 "
-			set porturl \"[lindex $portspec 0]\"
-			set portname \"[lindex $portspec 1]\"
-			set portversion \"[lindex $portspec 2]\"
+			set porturl \"$port(url)\"
+			set portname \"$port(name)\"
+			set portversion \"$port(version)\"
 			array unset variations
-			array set variations { [lindex $portspec 3] }
+			array set variations { $port(variants) }
 			array unset options
-			array set options { [lindex $portspec 4] }
+			array set options { $port(options) }
 			$block
 			"
 	}
 }
 
 
+proc portlist_compare { a b } {
+	array set a_ $a
+	array set b_ $b
+	return [string compare $a_(name) $b_(name)]
+}
+
+
+proc portlist_sort list {
+	return [lsort -command portlist_compare $list]
+}
+
+
+proc regex_pat_sanitize s {
+	set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
+	return $sanitized
+}
+
+
+##########################################
+# Port selection
+##########################################
 proc get_matching_ports {pattern {casesensitive no} {matchstyle glob}} {
 	if {[catch {set res [dportsearch $pattern $casesensitive $matchstyle]} result]} {
 		global errorInfo
@@ -306,16 +357,21 @@ proc get_matching_ports {pattern {casesensitive no} {matchstyle glob}} {
 		# For now, don't include version or variants with all ports list
 		#"$portinfo(version)_$portinfo(revision)"
 		#$variants
-		lappend results [list $portinfo(porturl) $name {} {}]
+		add_to_portlist results [list url $portinfo(porturl) name $name]
 	}
 	
 	# Return the list of all ports, sorted
-	return [lsort -ascii -index 1 $results]
+	return [portlist_sort $results]
 }
 
 
 proc get_all_ports {} {
-	return [get_matching_ports "*"]
+	global all_ports_cache
+	
+	if {![info exists all_ports_cache]} {
+		set all_ports_cache [get_matching_ports "*"]
+	}
+	return $all_ports_cache
 }
 
 
@@ -333,7 +389,9 @@ proc get_current_port {} {
 		fatal "The pseudo-port current must be issued in a port's directory"
 	}
 	
-	return [list [list $url $portname "" ""]]
+	set results [list]
+	add_to_portlist results [list url $url name $portname]
+	return $results
 }
 
 
@@ -356,36 +414,21 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
 		set ivariants [split_variants [lindex $i 3]]
 		set iactive [lindex $i 4]
 		
-		if { ${ignore_active} != "yes" && (${active} == "yes") == (${iactive} != 0) } {
-			lappend results [list "" $iname "${iversion}_${irevision}" $ivariants]
+		if { ${ignore_active} == "yes" || (${active} == "yes") == (${iactive} != 0) } {
+			add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
 		}
 	}
 	
 	# Return the list of ports, sorted
-	return [lsort -ascii -index 1 $results]
+	return [portlist_sort $results]
 }
 
 
 proc get_uninstalled_ports {} {
-	# Get list of all ports and installed ports
+	# Return all - installed
 	set all [get_all_ports]
 	set installed [get_installed_ports]
-	
-	# Create an array of the installed ports so that we can quickly search it
-	array unset installed_array 
-	foreach port $installed {
-		set installed_array([lindex $port 1]) yes
-	}
-	
-	# Create a new list, adding only those ports that aren't installed
-	set results [list]
-	foreach port $all {
-		if {![info exists installed_array([lindex $port 1])]} {
-			lappend results $port
-		}
-	}
-	
-	return $results
+	return [opComplement $all $installed]
 }
 
 
@@ -409,8 +452,8 @@ proc get_outdated_ports {} {
 
 	set results [list]
 	if { [llength $ilist] > 0 } {
-		foreach i $ilist { 
-
+		foreach i $ilist {
+		
 			# Get information about the installed port
 			set portname			[lindex $i 0]
 			set installed_version	[lindex $i 1]
@@ -459,7 +502,7 @@ proc get_outdated_ports {} {
 			
 			# Add outdated ports to our results list
 			if { $comp_result < 0 } {
-				lappend results [list "" $portname $installed_compound [split_variants $installed_variants]]
+				add_to_portlist results [list name $portname version $installed_compound variants [split_variants $installed_variants]]
 			}
 		}
 	}
@@ -470,9 +513,431 @@ proc get_outdated_ports {} {
 
 
 ##########################################
+# Port expressions
+##########################################
+proc lookahead {} {
+	global argn argc argv
+	
+	if {$argn < $argc} {
+		return [lindex $argv $argn]
+	} else {
+		return _EOF_
+	}
+}
+
+
+proc advance {} {
+	global argn
+	incr argn
+}
+
+
+proc retreat {} {
+	global argn
+	incr argn -1
+}
+
+
+proc match s {
+	if {[lookahead] == $s} {
+		advance
+		return 1
+	}
+	return 0
+}
+
+
+proc portExpr resname {
+	upvar $resname reslist
+	set result [seqExpr reslist]
+	return $result
+}
+
+
+proc seqExpr resname {
+	upvar $resname reslist
+	
+	# Evaluate a sequence of expressions a b c...
+	# These act the same as a or b or c
+
+	set result 1
+	while {$result} {
+		switch -- [lookahead] {
+			)		-
+			_EOF_	{ break }
+		}
+		
+		set blist [list]
+		set result [orExpr blist]
+		if {$result} {
+			# Calculate the union of result and b
+			set reslist [opUnion $reslist $blist]
+		}
+	}
+	
+	return $result
+}
+
+
+proc orExpr resname {
+	upvar $resname reslist
+	
+	set a [andExpr reslist]
+	while ($a) {
+		switch -- [lookahead] {
+			or {
+					advance
+					set blist [list]
+					if {![andExpr blist]} {
+						return 0
+					}
+						
+					# Calculate a union b
+					set reslist [opUnion $reslist $blist]
+				}
+			default {
+					return $a
+				}
+		}
+	}
+	
+	return $a
+}
+
+
+proc andExpr resname {
+	upvar $resname reslist
+	
+	set a [unaryExpr reslist]
+	while {$a} {
+		switch -- [lookahead] {
+			and {
+					advance
+					
+					set blist [list]
+					set b [unaryExpr blist]
+					if {!$b} {
+						return 0
+					}
+					
+					# Calculate a intersect b
+					set reslist [opIntersection $reslist $blist]
+				}
+			default {
+					return $a
+				}
+		}
+	}
+	
+	return $a
+}
+
+
+proc unaryExpr resname {
+	upvar $resname reslist
+	set result 0
+
+	switch -- [lookahead] {
+		!	-
+		not	{
+				advance
+				set blist [list]
+				set result [unaryExpr blist]
+				if {$result} {
+					set all [get_all_ports]
+					
+					# debug:
+					#set all [list]
+					#add_to_portlist all [list name a]
+					#add_to_portlist all [list name b version 2.0]
+					#add_to_portlist all [list name c version 3.0]
+					
+					set reslist [opComplement $all $blist]
+				}
+			}
+		default {
+				set result [element reslist]
+			}
+	}
+	
+	return $result
+}
+
+
+proc element resname {
+	upvar $resname reslist
+	set el 0
+	
+	set version ""
+	array unset variants
+	array unset options
+	
+	set token [lookahead]
+	switch -regex -- $token {
+		^\\)$			-
+		^_EOF_$			{}
+		
+		^\\($			{
+							advance
+							set el [portExpr reslist]
+							if {!$el || ![match ")"]} {
+								set el 0
+							}
+						}
+			
+		^all$ 			{	advance; add_multiple_ports reslist [get_all_ports];			set el 1 }
+		^current$		{	advance; add_multiple_ports reslist [get_current_port];			set el 1 }
+		^installed$		{	advance; add_multiple_ports reslist [get_installed_ports];		set el 1 }
+		^uninstalled$   {	advance; add_multiple_ports reslist [get_uninstalled_ports];	set el 1 }
+		^active$		{	advance; add_multiple_ports reslist [get_active_ports];			set el 1 }
+		^inactive$		{	advance; add_multiple_ports reslist [get_inactive_ports];		set el 1 }
+		^outdated$		{	advance; add_multiple_ports reslist [get_outdated_ports];		set el 1 }
+		
+		[][?*]			{	# Handle portname glob patterns
+							advance; add_multiple_ports reslist [get_matching_ports $token no glob]
+							set el 1
+						}
+						
+		^\\w+:.+		{	# Handle a url by trying to open it as a port and mapping the name
+							advance
+							set actualname [url_to_portname $token]
+							if {$actualname != ""} {
+								parsePortSpec version variants options
+								add_to_portlist reslist [list url $token \
+															actualname $token\
+															version $version \
+															variants [array get variants] \
+															options [array get options]]
+							} else {
+								fatal "Can't open url '$portname' as a port"
+							}
+							set el 1
+						}
+		
+		default			{
+							advance
+							parsePortSpec version variants options
+							add_to_portlist reslist [list name $token \
+														version $version \
+														variants [array get variants] \
+														options [array get options]]
+							set el 1
+						}
+	}
+	
+	return $el
+}
+
+
+proc add_multiple_ports { resname ports } {
+	upvar $resname reslist
+	
+	set version ""
+	array unset variants
+	array unset options
+	parsePortSpec version variants options
+	
+	array unset overrides
+	if {$version != ""}			{ set $overrides(version) $version }
+	if {[array size variants]}	{ set $overrides(variants) [array get variants] }
+	if {[array size options]}	{ set $overrides(options) [array get options] }
+
+	add_ports_to_portlist reslist $ports [array get overrides]
+}
+
+
+proc opUnion { a b } {
+	set result [list]
+	
+	array unset onetime
+	
+	# Walk through each array, adding to result only those items that haven't
+	# been added before
+	foreach item $a {
+		array set port $item
+		if {[info exists onetime($port(fullname))]} continue
+		lappend result $item
+	}
+
+	foreach item $b {
+		array set port $item
+		if {[info exists onetime($port(fullname))]} continue
+		lappend result $item
+	}
+	
+	return $result
+}
+
+
+proc opIntersection { a b } {
+	set result [list]
+	
+	# Rules we follow in performing the intersection of two port lists:
+	#
+	#	a/, a/			==> a/
+	#	a/, b/			==>
+	#	a/, a/1.0		==> a/1.0
+	#	a/1.0, a/		==> a/1.0
+	#	a/1.0, a/2.0	==>
+	#
+	#	If there's exact match, we take it.
+	#	If there's a match between simple and descriminated, we take the later.
+	
+	# First create a list of the fully descriminated names in b
+	array unset bfull
+	set i 0
+	foreach bitem $b {
+		array set port $bitem
+		set bfull($port(fullname)) $i
+		incr i
+	}
+	
+	# Walk through each item in a, matching against b
+	#
+	# Note: -regexp may not be present in all versions of Tcl we need to work
+	# 		against, in which case we may have to fall back to a slower alternative
+	#		for those cases. I'm not worrying about that for now, however. -jdb
+	foreach aitem $a {
+		array set port $aitem
+		
+		# Quote the fullname and portname to avoid special messing up the regexp
+		set safefullname [regex_pat_sanitize $port(fullname)]
+		
+		set simpleform [expr { "$port(name)/" == $port(fullname) }]
+		if {$simpleform} {
+			set pat "^${safefullname}"
+		} else {
+			set safename [regex_pat_sanitize $port(name)]
+			set pat "^${safefullname}$|^${safename}/$"
+		}
+		
+		set matches [array names bfull -regexp $pat]
+		foreach match $matches {
+			if {$simpleform} {
+				set i $bfull($match)
+				lappend result [lindex $b $i]
+			} else {
+				lappend result $aitem
+			}
+		}
+	}
+	
+	return $result
+}
+
+
+proc opComplement { a b } {
+	set result [list]
+	
+	# Return all elements of a not matching elements in b
+	
+	# First create a list of the fully descriminated names in b
+	array unset bfull
+	set i 0
+	foreach bitem $b {
+		array set port $bitem
+		set bfull($port(fullname)) $i
+		incr i
+	}
+	
+	# Walk through each item in a taking all those items that don't match b
+	#
+	# Note: -regexp may not be present in all versions of Tcl we need to work
+	# 		against, in which case we may have to fall back to a slower alternative
+	#		for those cases. I'm not worrying about that for now, however. -jdb
+	foreach aitem $a {
+		array set port $aitem
+		
+		# Quote the fullname and portname to avoid special messing up the regexp
+		set safefullname [regex_pat_sanitize $port(fullname)]
+		
+		set simpleform [expr { "$port(name)/" == $port(fullname) }]
+		if {$simpleform} {
+			set pat "^${safefullname}"
+		} else {
+			set safename [regex_pat_sanitize $port(name)]
+			set pat "^${safefullname}$|^${safename}/$"
+		}
+		
+		set matches [array names bfull -regexp $pat]
+
+		# We copy this element to result only if it didn't match against b
+		if {![llength $matches]} {
+			lappend result $aitem
+		}
+	}
+	
+	return $result
+}
+
+
+proc parsePortSpec { vername varname optname } {
+	upvar $vername portversion
+	upvar $varname portvariants
+	upvar $optname portoptions
+	
+	global global_options
+	
+	set portversion	""
+	array unset portoptions
+	array set portoptions [array get global_options]
+	array unset portvariants
+	
+	# Parse port version/variants/options
+	set opt [lookahead]
+	for {set firstTime 1} {$opt != "" || [lookahead] != "_EOF_"} {set firstTime 0} {
+		# Refresh opt as needed
+		if {[string length $opt] == 0} {
+			advance
+			set opt [lookahead]
+		}
+		
+		# Version must be first, if it's there at all
+		if {$firstTime && [string match {[0-9]*} $opt]} {
+			# Parse the version
+			
+			set sepPos [string first "/" $opt]
+			if {$sepPos >= 0} {
+				# Version terminated by "/" to disambiguate -variant from part of version
+				set portversion [string range $opt 0 [expr $sepPos-1]]
+				set opt [string range $opt [expr $sepPos+1] end]
+			} else {
+				set sepPos [string first "+" $opt]
+				if {$sepPos >= 0} {
+					# Version terminated by "+"
+					set portversion [string range $opt 0 [expr $sepPos-1]]
+					set opt [string range $opt $sepPos end]
+				} else {
+					# Unterminated version
+					set portversion $opt
+					set opt ""
+				}
+			}
+		} else {
+			# Parse all other options
+			
+			# Look first for a variable setting: VARNAME=VALUE
+			if {[regexp {^([[:alpha:]_]+[\w\.]*)=(.*)} $opt match key val] == 1} {
+				# It's a variable setting
+				set portoptions($key) \"$val\"
+				set opt ""
+			} elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
+				# It's a variant
+				set portvariants($variant) $sign
+				set opt [string range $opt [expr [string length $variant]+1] end]
+			} else {
+				# Not an option we recognize, so break from port option processing
+				break
+			}
+		}
+	}
+}
+
+
+
+##########################################
 # Main
 ##########################################
-set argn 0
 
 # Initialize dport
 if {[catch {dportinit} result]} {
@@ -554,97 +1019,8 @@ if {$argn < $argc} {
 		incr argn
 	}
 	
-	# Parse port specs associated with the action
-	while {$argn < $argc} {
-		set portname [lindex $argv $argn]
-		incr argn
-
-		set portversion	""
-		array unset portoptions
-		array set portoptions [array get global_options]
-		array unset portvariants
-		
-		# Parse port version/variants/options
-		set opt ""
-		for {set firstTime 1} {$opt != "" || $argn < $argc} {set firstTime 0} {
-			# Refresh opt as needed
-			if {[string length $opt] == 0} {
-				set opt [lindex $argv $argn]
-				incr argn
-			}
-			
-			# Version must be first, if it's there at all
-			if {$firstTime && [string match {[0-9]*} $opt]} {
-				# Parse the version
-				
-				set sepPos [string first "/" $opt]
-				if {$sepPos >= 0} {
-					# Version terminated by "/" to disambiguate -variant from part of version
-					set portversion [string range $opt 0 [expr $sepPos-1]]
-					set opt [string range $opt [expr $sepPos+1] end]
-				} else {
-					set sepPos [string first "+" $opt]
-					if {$sepPos >= 0} {
-						# Version terminated by "+"
-						set portversion [string range $opt 0 [expr $sepPos-1]]
-						set opt [string range $opt $sepPos end]
-					} else {
-						# Unterminated version
-						set portversion $opt
-						set opt ""
-					}
-				}
-			} else {
-				# Parse all other options
-				
-				# Look first for a variable setting: VARNAME=VALUE
-				if {[regexp {^([[:alpha:]_]+[\w\.]*)=(.*)} $opt match key val] == 1} {
-					# It's a variable setting
-					set portoptions($key) \"$val\"
-					set opt ""
-				} elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
-					# It's a variant
-					set portvariants($variant) $sign
-					set opt [string range $opt [expr [string length $variant]+1] end]
-				} else {
-					# Not an option we recognize, so break from port option processing
-					incr argn -1
-					break
-				}
-			}
-		}
-		
-		# Resolve the pseudo-portnames
-		# all, current, installed, uninstalled, active, inactive, outdated
-		#
-		# This switch statement also handles all other uses of portname
-		#
-		switch -regexp -- $portname {
-			^all$ 			{ add_ports_to_portlist [get_all_ports] [array get portoptions] }
-			^current$		{ add_ports_to_portlist [get_current_port] [array get portoptions] }
-			^installed$		{ add_ports_to_portlist [get_installed_ports] [array get portoptions] }
-			^uninstalled$	{ add_ports_to_portlist [get_uninstalled_ports] [array get portoptions] }
-			^active$		{ add_ports_to_portlist [get_active_ports] [array get portoptions] }
-			^inactive$		{ add_ports_to_portlist [get_inactive_ports] [array get portoptions] }
-			^outdated$		{ add_ports_to_portlist [get_outdated_ports] [array get portoptions] }
-			
-			[][?*]			{ # Handle portname glob patterns
-							  add_ports_to_portlist [get_matching_ports $portname no glob] [array get portoptions]
-							}
-							
-			^\\w+:.+		{ # Handle a url by trying to open it as a port and mapping the name
-							  set actualname [url_to_portname $portname]
-							  if {$actualname != ""} {
-							  	add_to_portlist [list $portname $actualname $portversion [array get portvariants]] [array get portoptions]
-							  } else {
-							  	fatal "Can't open url '$portname' as a port"
-							  }
-							}
-			
-			default 		{ # In the default case, just add the portname to the portlist
-							  add_to_portlist [list "" $portname $portversion [array get portvariants]] [array get portoptions]
-							}
-		}
+	if {![portExpr portlist]} {
+		fatal "Improper expression syntax while processing parameters"
 	}
 }
 
@@ -930,8 +1306,9 @@ switch -- $action {
         if { [llength $portlist] } {
 			set ilist [list]
         	foreach portspec $portlist {
-        		set portname [lindex $portspec 1]
-        		set composite_version [composite_version [lindex $portspec 2] [lindex $portspec 3]]
+        		array set port $portspec
+        		set portname $port(name)
+        		set composite_version [composite_version $port(version) $port(variants)]
 				if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
 					if {![string match "* not registered as installed." $result]} {
 						global errorInfo
@@ -975,8 +1352,9 @@ switch -- $action {
        if { [llength $portlist] } {
 			set ilist [list]
         	foreach portspec $portlist {
-        		set portname [lindex $portspec 1]
-        		set composite_version [composite_version [lindex $portspec 2] [lindex $portspec 3]]
+        		array set port $portspec
+        		set portname $port(name)
+        		set composite_version [composite_version $port(version) $port(variants)]
 				if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
 					if {![string match "* not registered as installed." $result]} {
 						global errorInfo
@@ -1208,7 +1586,7 @@ switch -- $action {
 	list {
 		# Default to list all ports if no portnames are supplied
 		if {![llength portlist]} {
-			add_to_portlist [list "" "-all-" "" {}] {}
+			add_to_portlist portlist [list "" "-all-" "" {}] {}
 			exit 1
 		}
 		
@@ -1228,7 +1606,11 @@ switch -- $action {
 
 			foreach {name array} $res {
 				array set portinfo $array
-				puts [format "%-30s %-12s" $portinfo(name) $portinfo(version)]
+				set outdir ""
+				if {[info exists portinfo(portdir)]} {
+					set outdir $portinfo(portdir)
+				}
+				puts [format "%-30s %-14s %s" $portinfo(name) $portinfo(version) $outdir]
 			}
 		}
 	}
@@ -1302,5 +1684,4 @@ switch -- $action {
 		}
 	}
 }
-
 
