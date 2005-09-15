@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.95 2005/09/15 19:50:40 jberry Exp $
+# $Id: port.tcl,v 1.96 2005/09/15 20:29:24 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -685,13 +685,13 @@ proc element resname {
 							}
 						}
 			
-		^all$ 			{	advance; add_multiple_ports reslist [get_all_ports];			set el 1 }
-		^current$		{	advance; add_multiple_ports reslist [get_current_port];			set el 1 }
-		^installed$		{	advance; add_multiple_ports reslist [get_installed_ports];		set el 1 }
-		^uninstalled$   {	advance; add_multiple_ports reslist [get_uninstalled_ports];	set el 1 }
-		^active$		{	advance; add_multiple_ports reslist [get_active_ports];			set el 1 }
-		^inactive$		{	advance; add_multiple_ports reslist [get_inactive_ports];		set el 1 }
-		^outdated$		{	advance; add_multiple_ports reslist [get_outdated_ports];		set el 1 }
+		^all$ 			-
+		^installed$		-
+		^uninstalled$	-
+		^active$		-
+		^inactive$		-
+		^outdated$		{	advance; add_multiple_ports reslist [get_${token}_ports];	set el 1 }
+		^current$		{	advance; add_multiple_ports reslist [get_current_port];		set el 1 }
 		
 		^variants:		-
 		^variant:		-
