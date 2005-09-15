@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.90 2005/09/15 00:04:03 jberry Exp $
+# $Id: port.tcl,v 1.91 2005/09/15 00:19:23 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -645,13 +645,6 @@ proc unaryExpr resname {
 				set result [unaryExpr blist]
 				if {$result} {
 					set all [get_all_ports]
-					
-					# debug:
-					#set all [list]
-					#add_to_portlist all [list name a]
-					#add_to_portlist all [list name b version 2.0]
-					#add_to_portlist all [list name c version 3.0]
-					
 					set reslist [opComplement $all $blist]
 				}
 			}
@@ -780,7 +773,7 @@ proc opIntersection { a b } {
 	#	a/1.0, a/		==> a/1.0
 	#	a/1.0, a/2.0	==>
 	#
-	#	If there's exact match, we take it.
+	#	If there's an exact match, we take it.
 	#	If there's a match between simple and descriminated, we take the later.
 	
 	# First create a list of the fully descriminated names in b
@@ -800,7 +793,7 @@ proc opIntersection { a b } {
 	foreach aitem $a {
 		array set port $aitem
 		
-		# Quote the fullname and portname to avoid special messing up the regexp
+		# Quote the fullname and portname to avoid special characters messing up the regexp
 		set safefullname [regex_pat_sanitize $port(fullname)]
 		
 		set simpleform [expr { "$port(name)/" == $port(fullname) }]
@@ -848,7 +841,7 @@ proc opComplement { a b } {
 	foreach aitem $a {
 		array set port $aitem
 		
-		# Quote the fullname and portname to avoid special messing up the regexp
+		# Quote the fullname and portname to avoid special characters messing up the regexp
 		set safefullname [regex_pat_sanitize $port(fullname)]
 		
 		set simpleform [expr { "$port(name)/" == $port(fullname) }]
