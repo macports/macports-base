@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.189 2005/09/13 19:29:23 jberry Exp $
+# $Id: darwinports.tcl,v 1.190 2005/09/15 02:57:15 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1086,9 +1086,10 @@ proc dportsync {args} {
 	}
 }
 
-proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp}} {
+proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
 	global darwinports::portdbpath darwinports::sources
 	set matches [list]
+	set easy [expr { $field == "name" }]
 	
 	set found 0
 	foreach source $sources {
@@ -1104,15 +1105,27 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp}} {
 				while {[gets $fd line] >= 0} {
 					set name [lindex $line 0]
 					
+					if {$easy} {
+						set target $name
+					} else {
+						gets $fd line
+						array set portinfo $line
+						if {![info exists portinfo($field)]} continue
+						set target $portinfo($field)
+					}
+					
 					switch $matchstyle {
-						glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $name] : [string match -nocase $pattern $name]] }
+						exact	{ set matchres [expr {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target]] }
+						glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
 						regexp	-
-						default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $name] : [regexp -nocase -- $pattern $name]] }
+						default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
 					}
 
 					if {$matchres == 1} {
-						gets $fd line
-						array set portinfo $line
+						if {$easy} {
+							gets $fd line
+							array set portinfo $line
+						}
 						switch -regexp -- [darwinports::getprotocol ${source}] {
 							{^rsync$} {
 								# Rsync files are local
@@ -1135,7 +1148,7 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp}} {
 						}
 						lappend matches $name
 						lappend matches $line
-					} else {
+					} elseif {!$easy} {
 						set len [lindex $line 1]
 						catch {seek $fd $len current}
 					}
