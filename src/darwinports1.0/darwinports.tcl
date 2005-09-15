@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.190 2005/09/15 02:57:15 jberry Exp $
+# $Id: darwinports.tcl,v 1.191 2005/09/15 18:17:09 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -689,7 +689,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ditem_key $dport variations $variations
 	ditem_key $dport refcnt 1
 
-    darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $porturl] $options $variations
+    darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
     if {![file isfile Portfile]} {
         return -code error "Could not find Portfile in $portdir"
     }
@@ -1029,9 +1029,9 @@ proc darwinports::getsourcepath {url} {
 	return [file join $portdbpath sources $source_path]
 }
 
-proc darwinports::getportbuildpath {porturl} {
+proc darwinports::getportbuildpath {id} {
 	global darwinports::portdbpath
-	regsub {://} $porturl {.} port_path
+	regsub {://} $id {.} port_path
 	regsub -all {/} $port_path {_} port_path
 	return [file join $portdbpath build $port_path]
 }
