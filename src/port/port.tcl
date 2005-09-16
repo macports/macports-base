@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.97 2005/09/15 20:56:30 jberry Exp $
+# $Id: port.tcl,v 1.98 2005/09/16 15:53:06 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1227,29 +1227,18 @@ switch -- $action {
 	}
 	
 	upgrade {
-        if {[info exists options(port_upgrade_all)] } {
-            # upgrade all installed ports!!!
-            if { [catch {set ilist [registry::installed]} result] } {
-                if {$result == "Registry error: No ports registered as installed."} {
-                    fatal "no ports installed!"
-                } else {
-					global errorInfo
-					ui_debug "$errorInfo"
-                    fatal "port installed failed: $result"
-                }
-            }
-            if { [llength $ilist] > 0 } {
-                foreach i $ilist {
-                    set iname [lindex $i 0]
-                    darwinports::upgrade $iname "port:$iname"
-                }
-            }
+        if {[info exists global_options(port_upgrade_all)] } {
+			# if -a then upgrade all installed ports
+			# (union these to any other ports user has in the port list)
+			set portlist [opUnion $portlist [get_installed_ports]]
         } else {
-        	require_portlist
-        	foreachport $portlist {
-            	darwinports::upgrade $portname "port:$portname"
-            }
+        	# Otherwise if the user has supplied no ports we'll use the current port
+			require_portlist
         }
+        
+		foreachport $portlist {
+			darwinports::upgrade $portname "port:$portname"
+		}
     }
 
 	version {
@@ -1279,40 +1268,20 @@ switch -- $action {
 	}
 	
 	uninstall {
-		# if -u then uninstall all non-active ports
-		if {[info exists options(port_uninstall_old)]} {
-			if { [catch {set ilist [registry::installed]} result] } {
-                if {$result == "Registry error: No ports registered as installed."} {
-                    fatal "no ports installed!"
-                } else {
-					global errorInfo
-					ui_debug "$errorInfo"
-                    fatal "port uninstall failed: $result"
-                }
-            }
-			if { [llength ilist] > 0} {
-				foreach i $ilist {
-					# uninstall inactive port
-					if {[lindex $i 4] == 0} {
-						set portname "[lindex $i 0]"
-						set portversion "[lindex $i 1]_[lindex $i 2][lindex $i 3]"
-						ui_debug " uninstalling $portname $portversion"
-						if { [catch {portuninstall::uninstall $portname $portversion} result] } {
-							global errorInfo
-							ui_debug "$errorInfo"
-                        	fatal "port uninstall failed: $result"
-                        }
-					}
-				}
-			}
+		if {[info exists global_options(port_uninstall_old)]} {
+			# if -u then uninstall all inactive ports
+			# (union these to any other ports user has in the port list)
+			set portlist [opUnion $portlist [get_inactive_ports]]
 		} else {
+			# Otherwise the user had better have supplied a portlist, or we'll default to the existing directory
 			require_portlist
-			foreachport $portlist {
-				if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]]} result] } {
-					global errorInfo
-					ui_debug "$errorInfo"
-					fatal "port uninstall failed: $result"
-				}
+		}
+
+		foreachport $portlist {
+			if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]]} result] } {
+				global errorInfo
+				ui_debug "$errorInfo"
+				fatal "port uninstall failed: $result"
 			}
 		}
 	}
@@ -1479,8 +1448,6 @@ switch -- $action {
 	}
 	
 	deps {
-		set nodeps true
-		
 		require_portlist
 		foreachport $portlist {
 			# Get info about the port
@@ -1499,6 +1466,7 @@ switch -- $action {
 			set depstypes {depends_build depends_lib depends_run}
 			set depstypes_descr {"build" "library" "runtime"}
 	
+			set nodeps true
 			foreach depstype $depstypes depsdecr $depstypes_descr {
 				if {[info exists portinfo($depstype)] &&
 					$portinfo($depstype) != ""} {
