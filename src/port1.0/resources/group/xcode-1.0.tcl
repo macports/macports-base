@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.3.2.2 2005/09/08 06:22:36 jmpp Exp $
+# $Id: xcode-1.0.tcl,v 1.3.2.3 2005/09/17 04:41:13 jmpp Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -121,6 +121,34 @@ default xcode.destroot.settings ""
 namespace eval xcode {}
 
 # Some utility functions.
+# get the project directory (where build/ is).
+proc xcode::get_project_path {} {
+	global xcode.project worksrcpath
+	if {${xcode.project} == ""} {
+		set suffix ""
+	} else {
+		set suffix [dirname ${xcode.project}]
+	}
+	return [file normalize "${worksrcpath}/${suffix}"]
+}
+
+# fix resource dependencies (with Xcode >= 2.1).
+proc xcode::fix_resource_dependencies {} {
+	global xcodeversion xcode.configuration
+	if {$xcodeversion == "2.1"} {
+		set build_path "[xcode::get_project_path]/build/"
+		set config_build_path "[xcode::get_project_path]/build/${xcode.configuration}/"
+		if {[file isdirectory ${config_build_path}]} {
+			foreach resource [glob "${config_build_path}*"] {
+				set resource_name [file tail $resource]
+				if {![file exists $build_path/$resource_name]} {
+					file link $build_path/$resource_name $config_build_path/$resource_name
+				}
+			}
+		}
+	}
+}
+
 # get the configuration/buildstyle argument.
 proc xcode::get_configuration_arg { style } {
 	global xcodeversion
@@ -242,6 +270,9 @@ build {
 
 # destroot procedure.
 destroot {
+	# let Xcode 2.1+ find resources.
+	xcode::fix_resource_dependencies
+	
 	# determine the targets.
 	if {${xcode.target} != ""} {
 		set targets ${xcode.target}
