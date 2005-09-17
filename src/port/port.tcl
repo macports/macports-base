@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.98 2005/09/16 15:53:06 jberry Exp $
+# $Id: port.tcl,v 1.99 2005/09/17 03:14:06 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -37,7 +37,7 @@ exec @TCLSH@ "$0" "$@"
 #
 
 catch {source \
-	[file join "/Library/Tcl" darwinports1.0 darwinports_fastload.tcl]}
+	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
 
 # globals
