@@ -1,5 +1,5 @@
 MAN5=		ports.conf.5
-MAN7=		portfile.7 portstyle.7 porthier.7 xcode.7
+MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
@@ -46,4 +46,4 @@ install:
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 porthier.7 ${INSTALLDIR}/share/man/man7
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 xcode.7 ${INSTALLDIR}/share/man/man7
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portgroup.7 ${INSTALLDIR}/share/man/man7
