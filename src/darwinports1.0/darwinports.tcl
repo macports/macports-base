@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.192 2005/09/15 19:44:36 jberry Exp $
+# $Id: darwinports.tcl,v 1.193 2005/09/19 18:49:36 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -164,8 +164,12 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
-proc dportinit {args} {
-	global auto_path env options ui_options variations
+proc dportinit {up_options up_ui_options up_variations} {
+	upvar  $up_options	  options
+	upvar  $up_ui_options ui_options
+	upvar  $up_variations variations
+	
+	global auto_path env
 	global darwinports::autoconf::dports_conf_path
 	global darwinports::bootstrap_options
 	global darwinports::portconf
@@ -1300,8 +1304,9 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 }
 
 # selfupdate procedure
-proc darwinports::selfupdate {args} {
-	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options options
+proc darwinports::selfupdate {optionslist} {
+	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
+	array set options $optionslist
 
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
 		set use_the_force_luke yes
@@ -1408,9 +1413,9 @@ proc darwinports::version {} {
 }
 
 # upgrade procedure
-proc darwinports::upgrade {pname dspec} {
-	# globals
-	global options variations
+proc darwinports::upgrade {pname dspec variationslist optionslist} {
+	array set options $optionslist
+	array set variations $variationslist
 
 	# set to no-zero is epoch overrides version
 	set epoch_override 0
@@ -1548,21 +1553,21 @@ proc darwinports::upgrade {pname dspec} {
 		if {[info exists portinfo(depends_build)]} {
 			foreach i $portinfo(depends_build) {
 				set d [lindex [split $i :] end]
-				upgrade $d $i
+				upgrade $d $i $variationslist $optionslist
 			}
 		}
 		# library depends is upgraded
 		if {[info exists portinfo(depends_lib)]} {
 			foreach i $portinfo(depends_lib) {
 				set d [lindex [split $i :] end]
-				upgrade $d $i
+				upgrade $d $i $variationslist $optionslist
 			}
 		}
 		# runtime depends is upgraded
 		if {[info exists portinfo(depends_run)]} {
 			foreach i $portinfo(depends_run) {
 				set d [lindex [split $i :] end]
-				upgrade $d $i
+				upgrade $d $i $variationslist $optionslist
 			}
 		}
 	}
@@ -1622,7 +1627,7 @@ proc darwinports::upgrade {pname dspec} {
 	if {[info exists options(port_uninstall_old)] || $epoch_override == 1} {
 		# uninstalll old
 		ui_debug "Uninstalling $portname $version_installed$oldvariant"
-		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant} result]} {
+		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant $optionslist} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
      		ui_error "Uninstall $portname $version_installed$oldvariant failed: $result"

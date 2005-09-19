@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.99 2005/09/17 03:14:06 jberry Exp $
+# $Id: port.tcl,v 1.100 2005/09/19 18:49:36 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -46,6 +46,7 @@ set argn 0
 set action ""
 set portlist [list]
 array set global_options [list]
+array set global_variations [list]
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -231,7 +232,7 @@ proc registry_installed {portname {portversion ""}} {
 
 proc add_to_portlist {listname portentry} {
 	upvar $listname portlist
-	global global_options
+	global global_options global_variations
 	
 	# The portlist currently has the following elements in it:
 	#	url				if any
@@ -768,9 +769,9 @@ proc add_multiple_ports { resname ports } {
 	parsePortSpec version variants options
 	
 	array unset overrides
-	if {$version != ""}			{ set $overrides(version) $version }
-	if {[array size variants]}	{ set $overrides(variants) [array get variants] }
-	if {[array size options]}	{ set $overrides(options) [array get options] }
+	if {$version != ""}			{ set overrides(version) $version }
+	if {[array size variants]}	{ set overrides(variants) [array get variants] }
+	if {[array size options]}	{ set overrides(options) [array get options] }
 
 	add_ports_to_portlist reslist $ports [array get overrides]
 }
@@ -969,13 +970,6 @@ proc parsePortSpec { vername varname optname } {
 # Main
 ##########################################
 
-# Initialize dport
-if {[catch {dportinit} result]} {
-	global errorInfo
-	puts "$errorInfo"
-	fatal "Failed to initialize ports system, $result"
-}
-
 # Parse global options
 while {[moreargs]} {
 	set arg [lookahead]
@@ -1023,6 +1017,15 @@ while {[moreargs]} {
 	}
 	
 	advance
+}
+
+# Initialize dport
+# This must be done following parse of global options, as these are
+# evaluated by dportinit.
+if {[catch {dportinit ui_options global_options global_variations} result]} {
+	global errorInfo
+	puts "$errorInfo"
+	fatal "Failed to initialize ports system, $result"
 }
 
 # Process an action if there is one
@@ -1219,7 +1222,7 @@ switch -- $action {
 	}
 	
 	selfupdate {
-		if { [catch {darwinports::selfupdate} result ] } {
+		if { [catch {darwinports::selfupdate $global_options} result ] } {
 			global errorInfo
 			ui_debug "$errorInfo"
 			fatal "selfupdate failed: $result"
@@ -1235,9 +1238,16 @@ switch -- $action {
         	# Otherwise if the user has supplied no ports we'll use the current port
 			require_portlist
         }
-        
+                
 		foreachport $portlist {
-			darwinports::upgrade $portname "port:$portname"
+			# Merge global variations into the variations specified for this port
+			foreach { variation value } [array get global_variations] {
+				if { ![info exists variations($variation)] } {
+					set variations($variation) $value
+				}
+			}
+			
+			darwinports::upgrade $portname "port:$portname" [array get variations] [array get options]
 		}
     }
 
@@ -1625,6 +1635,16 @@ switch -- $action {
 				}
 				array set portinfo [lindex $res 1]
 				set porturl $portinfo(porturl)
+			}
+			
+			# If this is the install target, add any global_variations to the variations
+			# specified for the port
+			if { $target == "install" } {
+				foreach { variation value } [array get global_variations] {
+					if { ![info exists variations($variation)] } {
+						set variations($variation) $value
+					}
+				}
 			}
 
 			# If version was specified, save it as a version glob for use

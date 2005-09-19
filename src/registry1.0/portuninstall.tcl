@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.10 2005/08/27 00:07:32 pguyot Exp $
+# $Id: portuninstall.tcl,v 1.11 2005/09/19 18:49:36 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -38,8 +38,9 @@ set UI_PREFIX "---> "
 
 namespace eval portuninstall {
 
-proc uninstall {portname {v ""}} {
-	global uninstall.force uninstall.nochecksum UI_PREFIX options
+proc uninstall {portname {v ""} optionslist} {
+	global uninstall.force uninstall.nochecksum UI_PREFIX
+	array set options $optionslist
 
 	set ilist [registry::installed $portname $v]
 	if { [llength $ilist] > 1 } {
