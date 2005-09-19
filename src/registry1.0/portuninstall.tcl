@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.11 2005/09/19 18:49:36 jberry Exp $
+# $Id: portuninstall.tcl,v 1.12 2005/09/19 20:51:48 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -105,7 +105,7 @@ proc uninstall {portname {v ""} optionslist} {
 	set installtype [registry::property_retrieve $ref installtype]
 	if { $installtype == "image" && [registry::property_retrieve $ref active] == 1} {
 		#return -code error [msgcat::mc "Registry Error: ${portname} ${version}_${revision}${variants} is active."]
-		portimage::deactivate $portname ${version}_${revision}${variants}
+		portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s %s_%s%s"] $portname $version $revision $variants]"

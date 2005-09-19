@@ -1,6 +1,6 @@
 # et:ts=4
 # portactivate.tcl
-# $Id: portactivate.tcl,v 1.5 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portactivate.tcl,v 1.6 2005/09/19 20:51:47 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -67,7 +67,7 @@ proc activate_start {args} {
 }
 
 proc activate_main {args} {
-	global portname portversion portrevision portvariants
-	registry_activate $portname ${portversion}_${portrevision}${portvariants}
+	global portname portversion portrevision portvariants user_options
+	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
     return 0
 }

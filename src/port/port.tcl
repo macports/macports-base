@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.100 2005/09/19 18:49:36 jberry Exp $
+# $Id: port.tcl,v 1.101 2005/09/19 20:51:47 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1202,7 +1202,7 @@ switch -- $action {
 	activate {
 		require_portlist
 		foreachport $portlist {
-			if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]]} result] } {
+			if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
 				fatal "port activate failed: $result"
@@ -1213,7 +1213,7 @@ switch -- $action {
 	deactivate {
 		require_portlist
 		foreachport $portlist {
-			if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]]} result] } {
+			if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
 				fatal "port deactivate failed: $result"
@@ -1288,7 +1288,7 @@ switch -- $action {
 		}
 
 		foreachport $portlist {
-			if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]]} result] } {
+			if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
 				fatal "port uninstall failed: $result"

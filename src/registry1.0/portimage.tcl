@@ -1,5 +1,5 @@
 # portimage.tcl
-# $Id: portimage.tcl,v 1.14 2005/08/27 00:07:32 pguyot Exp $
+# $Id: portimage.tcl,v 1.15 2005/09/19 20:51:47 jberry Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -68,8 +68,9 @@ variable force
 namespace export force
 	
 # Activate a "Port Image"	
-proc activate {name v} {
-	global darwinports::prefix darwinports::registry.path options UI_PREFIX
+proc activate {name v optionslist} {
+	global darwinports::prefix darwinports::registry.path UI_PREFIX
+	array set options $optionslist
 	variable force
 
 	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
@@ -130,8 +131,9 @@ proc activate {name v} {
 	registry::write_file_map
 }
 
-proc deactivate {name v} {
-	global options UI_PREFIX
+proc deactivate {name v optionslist} {
+	global UI_PREFIX
+	array set options $optionslist
 	variable force
 
 	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {

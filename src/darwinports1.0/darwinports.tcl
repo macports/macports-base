@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.193 2005/09/19 18:49:36 jberry Exp $
+# $Id: darwinports.tcl,v 1.194 2005/09/19 20:51:46 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1514,7 +1514,7 @@ proc darwinports::upgrade {pname dspec variationslist optionslist} {
 			set isactive [lindex $i 4]
 			if {$isactive == 1 && [rpm-vercomp $version_installed $version] < 0 } {
 				# deactivate version
-    			if {[catch {portimage::deactivate $portname $version} result]} {
+    			if {[catch {portimage::deactivate $portname $version $optionslist} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
     	    		ui_error "Deactivating $portname $version_installed failed: $result"
@@ -1524,7 +1524,7 @@ proc darwinports::upgrade {pname dspec variationslist optionslist} {
 		}
 		if { [lindex $num 4] == 0} {
 			# activate the latest installed version
-			if {[catch {portimage::activate $portname $version_installed$variant} result]} {
+			if {[catch {portimage::activate $portname $version_installed$variant $optionslist} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
     			ui_error "Activating $portname $version_installed failed: $result"
@@ -1635,7 +1635,7 @@ proc darwinports::upgrade {pname dspec variationslist optionslist} {
     	}
 	} else {
 		# XXX deactivate version_installed
-		if {[catch {portimage::deactivate $portname $version_installed$oldvariant} result]} {
+		if {[catch {portimage::deactivate $portname $version_installed$oldvariant $optionslist} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_error "Deactivating $portname $version_installed failed: $result"
