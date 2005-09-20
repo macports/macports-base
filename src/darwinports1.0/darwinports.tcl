@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.194 2005/09/19 20:51:46 jberry Exp $
+# $Id: darwinports.tcl,v 1.195 2005/09/20 04:35:43 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -164,9 +164,9 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
-proc dportinit {up_options up_ui_options up_variations} {
-	upvar  $up_options	  options
+proc dportinit {up_ui_options up_options up_variations} {
 	upvar  $up_ui_options ui_options
+	upvar  $up_options	  options
 	upvar  $up_variations variations
 	
 	global auto_path env
