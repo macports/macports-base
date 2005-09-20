@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.101 2005/09/19 20:51:47 jberry Exp $
+# $Id: port.tcl,v 1.102 2005/09/20 02:23:50 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -455,13 +455,14 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
-	# If port names were supplied, limit ourselves to those port, else check all installed ports
+	# Get the list of install ports
 	if { [catch {set ilist [registry::installed]} result] } {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "can't get installed ports: $result"
 	}
 
+	# Now process the list, keeping only those ports that are outdated
 	set results [list]
 	if { [llength $ilist] > 0 } {
 		foreach i $ilist {
