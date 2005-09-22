@@ -2,17 +2,23 @@
 #\
 exec @TCLSH@ "$0" "$@"
 
-# $Id: portall.tcl,v 1.28 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portall.tcl,v 1.29 2005/09/22 23:03:13 jberry Exp $
 # Traverse through all ports running the supplied target.  If target is
 # "index" then just print some useful information about each port.
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
-dportinit
 package require Pextlib
 
 global target
+array set ui_options	[list]
+array set options 		[list]
+array set variations	[list]
+
+# Pass global options into dportinit
+dportinit ui_options options variations
+
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -94,10 +100,6 @@ proc pindex {portdir} {
 }
 
 # Main
-
-# zero-out the options array
-array set options [list]
-array set variations [list]
 
 if { $argc < 1 } {
     set target build

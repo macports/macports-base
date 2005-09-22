@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.102 2005/09/20 02:23:50 jberry Exp $
+# $Id: port.tcl,v 1.103 2005/09/22 23:03:13 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -45,8 +45,9 @@ set portdir .
 set argn 0
 set action ""
 set portlist [list]
-array set global_options [list]
-array set global_variations [list]
+array set ui_options 		[list]
+array set global_options	[list]
+array set global_variations	[list]
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.

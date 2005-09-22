@@ -4,18 +4,25 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.29 2005/08/13 03:59:54 pguyot Exp $
+# $Id: portindex.tcl,v 1.30 2005/09/22 23:03:13 jberry Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
-dportinit
 package require Pextlib
 
 # Globals
 set archive 0
 set stats(total) 0
 set stats(failed) 0
+array set ui_options		[list]
+array set global_options 	[list]
+array set global_variations [list]
+
+# Pass global options into dportinit
+dportinit ui_options global_options global_variations
+
+
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
