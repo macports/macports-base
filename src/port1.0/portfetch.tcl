@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.103 2005/09/04 00:30:57 pguyot Exp $
+# $Id: portfetch.tcl,v 1.104 2005/09/22 01:25:31 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -41,14 +41,21 @@ target_requires ${com.apple.fetch} main
 target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir fetch.type fetch.args fetch.user fetch.password fetch.use_epsv cvs.module cvs.root cvs.password cvs.date cvs.tag master_sites.mirror_subdir patch_sites.mirror_subdir portname
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir \
+	fetch.type fetch.args fetch.user fetch.password fetch.use_epsv \
+	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
+	cvs.module cvs.root cvs.password cvs.date cvs.tag \
+	svn.url svn.tag
+	
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
+commands svn
 
 # Defaults
 default extract.suffix .tar.gz
 default fetch.type standard
+
 default cvs.cmd {$portutil::autoconf::cvs_path}
 default cvs.password ""
 default cvs.dir {${workpath}}
@@ -59,6 +66,14 @@ default cvs.env {CVS_PASSFILE=${workpath}/.cvspass}
 default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
+
+default svn.cmd {svn}
+default svn.dir {${workpath}}
+default svn.tag ""
+default svn.env {}
+default svn.pre_args {"--non-interactive"}
+default svn.args ""
+default svn.post_args {"${svn.url}"}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -104,10 +119,12 @@ set_ui_prefix
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / extract.suffix options
 proc suffix {distname} {
     global extract.suffix fetch.type
-    if {"${fetch.type}" == "cvs"} {
-        return ""
+    switch -- "${fetch.type}" {
+    	cvs			-
+    	svn			{ return "" }
+    	standard	-
+    	default 	{ return "${distname}${extract.suffix}" }
     }
-    return ${distname}${extract.suffix}
 }
 
 # Given a site url and the name of the distfile, assemble url and
@@ -315,6 +332,38 @@ proc cvsfetch {args} {
     return 0
 }
 
+# Perform an svn fetch
+proc svnfetch {args} {
+    global workpath prefix
+    global svn.env svn.cmd svn.args svn.post_args svn.tag svn.url
+    
+    # Look for the svn command, either in the path or in the prefix
+    set goodcmd 0
+    foreach svncmd "${svn.cmd} ${prefix}/bin/svn svn" {
+ 	if { [file executable ${svncmd}] } {
+ 	   	  set svn.cmd $svncmd
+ 	   	  set goodcmd 1
+ 	      break;
+ 	   }
+    }
+    if { !$goodcmd } {
+    	ui_error "The subversion tool (svn) is required to fetch ${svn.url}."
+    	ui_error "Please install the subversion port before proceeding."
+		return -code error [msgcat::mc "Subversion check out failed"]
+    }
+    
+    set svn.args "checkout ${svn.args}"
+    if {[string length ${svn.tag}]} {
+		set svn.args "${svn.args} -r ${svn.tag}"
+    }
+
+    if {[catch {system "[command svn] 2>&1"} result]} {
+		return -code error [msgcat::mc "Subversion check out failed"]
+    }
+
+    return 0
+}
+
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
@@ -423,9 +472,12 @@ proc fetch_main {args} {
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
         return 0
     }
-    if {"${fetch.type}" == "cvs"} {
-        return [cvsfetch]
-    } else {
-	return [fetchfiles]
+    
+    # Fetch the files
+    switch -- "${fetch.type}" {
+    	cvs		{ return [cvsfetch] }
+    	svn		{ return [svnfetch] }
+    	standard -
+    	default	{ return [fetchfiles] }
     }
 }
