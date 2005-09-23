@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.103 2005/09/22 23:03:13 jberry Exp $
+# $Id: port.tcl,v 1.104 2005/09/23 20:20:31 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -249,6 +249,19 @@ proc add_to_portlist {listname portentry} {
 	if {![info exists port(version)]}	{ set port(version) "" }
 	if {![info exists port(variants)]}	{ set port(variants) "" }
 	if {![info exists port(options)]}	{ set port(options) [array get global_options] }
+	
+	# If neither portname nor url is specified, then default to the current port
+	if { $port(url) == "" && $port(name) == "" } {
+		if {[info exists global_porturl]} {
+			set url $global_porturl
+		} else {
+			set url file://./
+		}
+		set portname [url_to_portname $url]
+		set port(url) $url
+		set port(name) $portname
+	}
+	
 		
 	# Form the fully descriminated portname: portname/version_revison+-variants
 	set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
@@ -277,6 +290,7 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
 
 proc url_to_portname { url } {
 	if {[catch {set ctx [dportopen $url]} result]} {
+		fatal "Can't map url to port name; unable to open port $url ($result)"
 		return ""
 	} else {
 		array set portinfo [dportinfo $ctx]
@@ -397,7 +411,6 @@ proc get_current_port {} {
 		set url file://./
 	}
 	set portname [url_to_portname $url]
-
 	if {$portname == ""} {
 		fatal "The pseudo-port current must be issued in a port's directory"
 	}
@@ -670,6 +683,7 @@ proc element resname {
 	upvar $resname reslist
 	set el 0
 	
+	set name ""
 	set version ""
 	array unset variants
 	array unset options
@@ -733,11 +747,11 @@ proc element resname {
 						
 		^\\w+:.+		{	# Handle a url by trying to open it as a port and mapping the name
 							advance
-							set actualname [url_to_portname $token]
-							if {$actualname != ""} {
+							set name [url_to_portname $token]
+							if {$name != ""} {
 								parsePortSpec version variants options
 								add_to_portlist reslist [list url $token \
-															actualname $token\
+															name $name\
 															version $version \
 															variants [array get variants] \
 															options [array get options]]
@@ -748,9 +762,8 @@ proc element resname {
 						}
 		
 		default			{
-							advance
-							parsePortSpec version variants options
-							add_to_portlist reslist [list name $token \
+							parseFullPortSpec name version variants options
+							add_to_portlist reslist [list name $name \
 														version $version \
 														variants [array get variants] \
 														options [array get options]]
@@ -904,6 +917,26 @@ proc opComplement { a b } {
 }
 
 
+proc parseFullPortSpec { namename vername varname optname } {
+	upvar $namename portname
+	upvar $vername portversion
+	upvar $varname portvariants
+	upvar $optname portoptions
+	
+	if { [moreargs] } {
+		# Look first for a potential portname
+		set token [lookahead]
+		if {[regexp {^\w+} $token match]} {
+			set portname $token
+			advance
+		}
+		
+		# Now parse the rest of the spec
+		parsePortSpec portversion portvariants portoptions
+	}
+}
+
+	
 proc parsePortSpec { vername varname optname } {
 	upvar $vername portversion
 	upvar $varname portvariants
@@ -917,7 +950,10 @@ proc parsePortSpec { vername varname optname } {
 	array unset portvariants
 	
 	# Parse port version/variants/options
-	set opt [lookahead]
+	set opt ""
+	if {[moreargs]} {
+		set opt [lookahead]
+	}
 	for {set firstTime 1} {$opt != "" || [moreargs]} {set firstTime 0} {
 		# Refresh opt as needed
 		if {[string length $opt] == 0} {
