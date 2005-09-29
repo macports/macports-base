@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.6 2005/09/11 14:27:41 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.7 2005/09/29 14:55:18 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -82,12 +82,6 @@
 #   destroot.post_args	additional parameters for xcodebuildcmd when installing
 #   destroot.dir		directory where to run destroot command the project
 #						(where xcode project is)
-
-# Check xcode is installed.
-if {$xcodebuildcmd == "none"} {
-	return -code error "This port requires 'pbxbuild/xcodebuild', which \
-couldn't be found (not MacOS X?)"
-}
 
 # Options this group provides:
 default categories			aqua
@@ -192,6 +186,13 @@ proc xcode::get_install_path_setting { path type } {
 proc xcode::setup_command_line {command args settings} {
 	global ${command}.dir ${command}.env ${command}.cmd ${command}.pre_args \
 		${command}.args ${command}.post_args
+
+	# Check that xcode is installed.
+	if {[set ${command}.cmd] == "none"} {
+		return -code error "This port requires 'pbxbuild/xcodebuild', which \
+	couldn't be found (not MacOS X?)"
+	}
+
 	set cmdstring ""
 	if {[info exists ${command}.dir]} {
 		set cmdstring "cd \"[set ${command}.dir]\" &&"
