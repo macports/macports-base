@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.105 2005/09/23 21:02:30 jberry Exp $
+# $Id: port.tcl,v 1.106 2005/09/29 03:56:14 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -293,7 +293,7 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
 
 proc url_to_portname { url } {
 	if {[catch {set ctx [dportopen $url]} result]} {
-		puts stderr "Can't map URL '$url' to a port name (${result}). Unable to open a Portfile at that location. If there is a Portfile there then suspect a Tcl syntax error."
+		puts stderr "Can't map the URL '$url' to a port description file (${result}). Please verify that the directory and portfile syntax are correct."
 		return ""
 	} else {
 		array set portinfo [dportinfo $ctx]
@@ -759,7 +759,7 @@ proc element resname {
 															variants [array get variants] \
 															options [array get options]]
 							} else {
-								fatal "Can't open url '$token' as a port"
+								fatal "Can't open URL '$token' as a port"
 							}
 							set el 1
 						}
