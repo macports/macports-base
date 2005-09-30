@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.106 2005/09/29 03:56:14 jberry Exp $
+# $Id: port.tcl,v 1.107 2005/09/30 13:06:38 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1263,7 +1263,7 @@ switch -- $action {
 	}
 	
 	selfupdate {
-		if { [catch {darwinports::selfupdate $global_options} result ] } {
+		if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 			global errorInfo
 			ui_debug "$errorInfo"
 			fatal "selfupdate failed: $result"
