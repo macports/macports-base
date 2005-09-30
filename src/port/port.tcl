@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.108 2005/09/30 13:10:11 pguyot Exp $
+# $Id: port.tcl,v 1.109 2005/09/30 15:15:19 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -166,10 +166,10 @@ proc fatal s {
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations} {
 	# Form a composite version out of the version and variations
-	set pos [list]
-	set neg [list]
 	
 	# Select the variations into positive and negative
+	set pos {}
+	set neg {}
 	foreach { key val } $variations {
 		if {$val == "+"} {
 			lappend pos $key
@@ -199,7 +199,7 @@ proc composite_version {version variations} {
 
 
 proc split_variants {variants} {
-	set result [list]
+	set result {}
 	set l [regexp -all -inline -- {([-+])([[:alpha:]_]+[\w\.]*)} $variants]
 	foreach { match sign variant } $l {
 		lappend result $variant $sign
@@ -374,7 +374,7 @@ proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field nam
 		fatal "search for portname $pattern failed: $result"
 	}
 
-	set results [list]
+	set results {}
 	foreach {name info} $res {
 		array set portinfo $info
 		
@@ -418,7 +418,7 @@ proc get_current_port {} {
 		fatal "The pseudo-port current must be issued in a port's directory"
 	}
 	
-	set results [list]
+	set results {}
 	add_to_portlist results [list url $url name $portname]
 	return $results
 }
@@ -435,7 +435,7 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
 		}
 	}
 	
-	set results [list]
+	set results {}
 	foreach i $ilist {
 		set iname [lindex $i 0]
 		set iversion [lindex $i 1]
@@ -480,7 +480,7 @@ proc get_outdated_ports {} {
 	}
 
 	# Now process the list, keeping only those ports that are outdated
-	set results [list]
+	set results {}
 	if { [llength $ilist] > 0 } {
 		foreach i $ilist {
 		
@@ -592,7 +592,7 @@ proc seqExpr resname {
 			_EOF_	{ break }
 		}
 		
-		set blist [list]
+		set blist {}
 		set result [orExpr blist]
 		if {$result} {
 			# Calculate the union of result and b
@@ -612,7 +612,7 @@ proc orExpr resname {
 		switch -- [lookahead] {
 			or {
 					advance
-					set blist [list]
+					set blist {}
 					if {![andExpr blist]} {
 						return 0
 					}
@@ -639,7 +639,7 @@ proc andExpr resname {
 			and {
 					advance
 					
-					set blist [list]
+					set blist {}
 					set b [unaryExpr blist]
 					if {!$b} {
 						return 0
@@ -666,7 +666,7 @@ proc unaryExpr resname {
 		!	-
 		not	{
 				advance
-				set blist [list]
+				set blist {}
 				set result [unaryExpr blist]
 				if {$result} {
 					set all [get_all_ports]
@@ -796,7 +796,7 @@ proc add_multiple_ports { resname ports } {
 
 
 proc opUnion { a b } {
-	set result [list]
+	set result {}
 	
 	array unset onetime
 	
@@ -819,7 +819,7 @@ proc opUnion { a b } {
 
 
 proc opIntersection { a b } {
-	set result [list]
+	set result {}
 	
 	# Rules we follow in performing the intersection of two port lists:
 	#
@@ -876,7 +876,7 @@ proc opIntersection { a b } {
 
 
 proc opComplement { a b } {
-	set result [list]
+	set result {}
 	
 	# Return all elements of a not matching elements in b
 	
@@ -1093,6 +1093,7 @@ if {[moreargs]} {
 		advance
 	}
 	
+	# Parse port specifications into portlist
 	if {![portExpr portlist]} {
 		fatal "Improper expression syntax while processing parameters"
 	}
@@ -1339,7 +1340,7 @@ switch -- $action {
 	
 	installed {
         if { [llength $portlist] } {
-			set ilist [list]
+			set ilist {}
         	foreach portspec $portlist {
         		array set port $portspec
         		set portname $port(name)
@@ -1385,7 +1386,7 @@ switch -- $action {
 	outdated {
 		# If port names were supplied, limit ourselves to those port, else check all installed ports
        if { [llength $portlist] } {
-			set ilist [list]
+			set ilist {}
         	foreach portspec $portlist {
         		array set port $portspec
         		set portname $port(name)
@@ -1640,7 +1641,7 @@ switch -- $action {
 	echo {
 		# Simply echo back the port specs given to this command
 		foreachport $portlist {
-			set opts [list]
+			set opts {}
 			foreach { key value } [array get options] {
 				lappend opts "$key=\"$value\""
 			}
@@ -1705,7 +1706,9 @@ switch -- $action {
 			}
 		
 			dportclose $workername
-			exit $result
+			if {$result} {
+				exit $result
+			}
 		}
 	}
 }
