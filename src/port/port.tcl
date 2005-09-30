@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.107 2005/09/30 13:06:38 pguyot Exp $
+# $Id: port.tcl,v 1.108 2005/09/30 13:10:11 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -44,10 +44,10 @@ package require darwinports
 set portdir .
 set argn 0
 set action ""
-set portlist [list]
-array set ui_options 		[list]
-array set global_options	[list]
-array set global_variations	[list]
+set portlist {}
+array set ui_options 		{}
+array set global_options	{}
+array set global_variations	{}
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
