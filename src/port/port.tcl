@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.110 2005/10/01 15:53:17 jberry Exp $
+# $Id: port.tcl,v 1.111 2005/10/01 16:17:42 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -166,10 +166,24 @@ Port expressions:
 	puts "Usage: [file tail $argv0]$usage"
 }
 
+# Produce error message and exit
 proc fatal s {
 	global argv0
 	ui_error "$argv0: $s"
 	exit 1
+}
+
+
+# Produce an error message, and exit, unless
+# we're handling errors in a soft fashion, in which
+# case we continue
+proc fatal_softcontinue s {
+	if {[global_option_isset ports_force]} {
+		ui_error $s
+		return -code continue
+	} else {
+		fatal $s
+	}
 }
 
 
@@ -1116,7 +1130,6 @@ if {$action == ""} {
 }
 
 # Perform the action
-set soft_errors [global_option_isset ports_force]
 switch -- $action {
 
 	help {
@@ -1130,8 +1143,7 @@ switch -- $action {
 			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "search for portname $portname failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "search for portname $portname failed: $result"
 			}
 		
 			if {$result == ""} {
@@ -1209,8 +1221,7 @@ switch -- $action {
 			if { [catch {set ilist [registry_installed $portname [composite_version $portversion [array get variations]]]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port location failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port location failed: $result"
 			} else {
 				set version [lindex $ilist 1]
 				set revision [lindex $ilist 2]
@@ -1223,8 +1234,7 @@ switch -- $action {
 				puts "Port $portname ${version}_${revision}${variants} is installed as an image in:"
 				puts $imagedir
 			} else {
-				ui_error "Port $portname is not installed as an image."
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "Port $portname is not installed as an image."
 			}
 		}
 	}
@@ -1261,8 +1271,7 @@ switch -- $action {
 			if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port activate failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port activate failed: $result"
 			}
 		}
 	}
@@ -1273,8 +1282,7 @@ switch -- $action {
 			if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port deactivate failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port deactivate failed: $result"
 			}
 		}
 	}
@@ -1319,8 +1327,7 @@ switch -- $action {
 			if { [catch {portimage::compact $portname [composite_version $portversion [array get variations]]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port compact failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port compact failed: $result"
 			}
 		}
 	}
@@ -1331,8 +1338,7 @@ switch -- $action {
 			if { [catch {portimage::uncompact $portname [composite_version $portversion [array get variations]]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port uncompact failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port uncompact failed: $result"
 			}
 		}
 	}
@@ -1351,8 +1357,7 @@ switch -- $action {
 			if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "port uninstall failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "port uninstall failed: $result"
 			}
 		}
 	}
@@ -1368,8 +1373,7 @@ switch -- $action {
 					if {![string match "* not registered as installed." $result]} {
 						global errorInfo
 						ui_debug "$errorInfo"
-						ui_error "port installed failed: $result"
-						if {$soft_errors} continue else { exit 1 }
+						fatal_softcontinue "port installed failed: $result"
 					}
 				}
 			}
@@ -1415,8 +1419,7 @@ switch -- $action {
 					if {![string match "* not registered as installed." $result]} {
 						global errorInfo
 						ui_debug "$errorInfo"
-						ui_error "port outdated failed: $result"
-						if {$soft_errors} continue else { exit 1 }
+						fatal_softcontinue "port outdated failed: $result"
 					}
 				}
 			}
@@ -1449,8 +1452,7 @@ switch -- $action {
 				if {[catch {set res [dportsearch $portname no exact]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
-					ui_error "search for portname $portname failed: $result"
-					if {$soft_errors} continue else { exit 1 }
+					fatal_softcontinue "search for portname $portname failed: $result"
 				}
 				if {[llength $res] < 2} {
 					if {[ui_isset ports_debug]} {
@@ -1528,8 +1530,7 @@ switch -- $action {
 			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "search for portname $portname failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "search for portname $portname failed: $result"
 			}
 	
 			if {$result == ""} {
@@ -1567,8 +1568,7 @@ switch -- $action {
 			if {[catch {dportsearch $portname no exact} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "search for portname $portname failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "search for portname $portname failed: $result"
 			}
 		
 			if {$result == ""} {
@@ -1599,8 +1599,7 @@ switch -- $action {
 			if {[catch {set res [dportsearch $portname no]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "search for portname $portname failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "search for portname $portname failed: $result"
 			}
 			foreach {name array} $res {
 				array set portinfo $array
@@ -1649,8 +1648,7 @@ switch -- $action {
 			if {[catch {set res [dportsearch ^$search_string\$ no]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "search for portname $search_string failed: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "search for portname $search_string failed: $result"
 			}
 
 			foreach {name array} $res {
@@ -1696,12 +1694,10 @@ switch -- $action {
 				if {[catch {set res [dportsearch $portname no exact]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
-					ui_error "search for portname $portname failed: $result"
-					if {$soft_errors} continue else { exit 1 }
+					fatal_softcontinue "search for portname $portname failed: $result"
 				}
 				if {[llength $res] < 2} {
-					ui_error "Port $portname not found"
-					if {$soft_errors} continue else { exit 1 }
+					fatal_softcontinue "Port $portname not found"
 				}
 				array set portinfo [lindex $res 1]
 				set porturl $portinfo(porturl)
@@ -1725,15 +1721,13 @@ switch -- $action {
 			if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
-				ui_error "Unable to open port: $result"
-				if {$soft_errors} continue else { exit 1 }
+				fatal_softcontinue "Unable to open port: $result"
 			}
 			if {[catch {set result [dportexec $workername $target]} result]} {
 				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "Unable to execute port: $result"
 				dportclose $workername
-				if {$soft_errors} continue else { exit 1 }
+				ui_debug "$errorInfo"
+				fatal_softcontinue "Unable to execute port: $result"
 			}
 		
 			dportclose $workername
