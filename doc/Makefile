@@ -3,7 +3,9 @@ MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
+ifneq ($(MAKECMDGOALS),distclean)
 include ../Mk/dports.autoconf.mk
+endif
 
 all:
 

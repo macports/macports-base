@@ -6,13 +6,15 @@ SHLIB_NAME=	Darwinports${SHLIB_SUFFIX}
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/darwinports1.0
 DARWIN_OLD_PKGINDEX=	${DESTDIR}${TCL_PACKAGE_DIR}/8.3/darwinports1.0/pkgIndex.tcl
 
+ifneq ($(MAKECMDGOALS),distclean)
 include ../../Mk/dports.autoconf.mk
+endif
 include ../../Mk/dports.tea.mk
 
 test::
 
 distclean:: clean
-	rm -f darwinports_autoconf.tcl darwinports_fastload.tcl;
+	rm -f darwinports_autoconf.tcl darwinports_fastload.tcl Darwinports.dylib
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
