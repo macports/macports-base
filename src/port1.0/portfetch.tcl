@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.104 2005/09/22 01:25:31 jberry Exp $
+# $Id: portfetch.tcl,v 1.105 2005/10/04 17:08:26 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -42,7 +42,7 @@ target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir \
-	fetch.type fetch.args fetch.user fetch.password fetch.use_epsv \
+	fetch.type fetch.user fetch.password fetch.use_epsv \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag \
 	svn.url svn.tag
@@ -78,9 +78,6 @@ default svn.post_args {"${svn.url}"}
 # Set distfiles
 default distfiles {[suffix $distname]}
 default dist_subdir {${portname}}
-
-# support for fetch.args for backward compatibility.
-default fetch.args ""
 
 # user name & password
 default fetch.user ""
@@ -368,7 +365,7 @@ proc svnfetch {args} {
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
 	global distpath all_dist_files UI_PREFIX fetch_urls
-	global fetch.args fetch.user fetch.password fetch.use_epsv
+	global fetch.user fetch.password fetch.use_epsv
 	global distfile site
 	global portverbose
 
@@ -378,26 +375,6 @@ proc fetchfiles {args} {
 		}
 	}
 	
-	# Fetch options.
-	### backward compatibility (remove when all ports have been updated)
-	if {[llength ${fetch.args}] > 1} {
-		if {[lindex ${fetch.args} 0] == "-u"} {
-			ui_warn "fetch.args is deprecated, use fetch.user & fetch.password instead"
-			# -u case (port ksh93)
-			set theuserpwd [eval concat [lrange ${fetch.args} 1 end]]
-			set fetch_options "-u $theuserpwd"
-		} else {
-			return -code error [format [msgcat::mc "fetch.args is deprecated, format unrecognized (%s)"] ${fetch.args}]
-		}
-	} elseif {${fetch.args} == "--disable-epsv"} {
-		# --disable-epsv case.
-		ui_warn "fetch.args is deprecated, use fetch.use_epsv instead"
-		set fetch_options ${fetch.args}
-	} elseif {${fetch.args} != ""} {
-		return -code error [format [msgcat::mc "fetch.args is deprecated, format unrecognized (%s)"] ${fetch.args}]
-	} else {
-		set fetch_options {}
-	}
 	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
 		lappend fetch_options -u
 		lappend fetch_options "${fetch.user}:${fetch.password}"
