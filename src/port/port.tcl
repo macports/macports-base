@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.111 2005/10/01 16:17:42 jberry Exp $
+# $Id: port.tcl,v 1.112 2005/10/04 22:54:09 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1731,6 +1731,11 @@ switch -- $action {
 			}
 		
 			dportclose $workername
+			
+			# Process any error that wasn't thrown and handled already
+			if {$result} {
+				fatal_softcontinue "Status $result encountered during processing."
+			}
 		}
 	}
 }
