@@ -81,8 +81,6 @@ mkchrootbase() {
 		hdiutil create -size ${DPORTSCACHE_SIZE} -fs ${FSTYPE} -volname distfiles ${DPORTSCACHE} > /dev/null
 		DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 		mkdir -p $dir/distfiles
-		mkdir -p $dir/receipts
-		mkdir -p $dir/software
 		mkdir -p $dir/packages/darwin/powerpc
 		hdiutil detach $DPORTSDEV -force >& /dev/null && DPORTSDEV=""
 	fi
