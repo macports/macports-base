@@ -12,7 +12,7 @@ DPORTSCACHE=dportscache.sparseimage
 FSTYPE=HFSX
 
 # Some conservative (and large) defaults.
-BASE_PADDING=8000000
+BASE_PADDING=16000000
 DPORTSCACHE_SIZE=32767M
 
 # deal with fatal errors
@@ -144,7 +144,7 @@ teardownchroot() {
 
 # main:  This is where we start the show.
 TGTPORTS=""
-PKGTYPE=mpkg
+PKGTYPE=rpmpackage
 
 if [ $# -lt 1 ]; then
 	echo "Usage: $0 chrootdir [-p pkgtype] [targetportsfile]"
@@ -200,7 +200,7 @@ for pkg in `cat $TGTPORTS`; do
 	echo '/sbin/mount_volfs /.vol' >> $DIR/bootstrap.sh
 	echo "mkdir -p /Package" >> $DIR/bootstrap.sh
 	echo "rm -f /tmp/success" >> $DIR/bootstrap.sh
-	echo "if port -t -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
+	echo "if port -v $PKGTYPE $pkg package.destpath=/Package >& /tmp/$pkg.log; then touch /tmp/success; fi" >> $DIR/bootstrap.sh
 	echo 'umount -f /.vol || (echo "unable to umount volfs"; exit 1)' >> $DIR/bootstrap.sh
 	echo "exit 0" >> $DIR/bootstrap.sh
 	chmod 755 $DIR/bootstrap.sh
@@ -212,6 +212,8 @@ for pkg in `cat $TGTPORTS`; do
 		echo $pkg >> outputdir/summary/portspackaged
 		if [ "$PKGTYPE" = "mpkg" ]; then
 		    mv $DIR/Package/*.mpkg outputdir/Packages/
+		elif [ "$PKGTYPE" = "rpmpackage" ]; then
+		    mv $DIR/Package/RPMS/ppc/*.rpm outputdir/Packages/
 		elif [ "$PKGTYPE" = "dpkg" ]; then
 		    mv $DIR/Package/*.deb outputdir/Packages/
 		fi
