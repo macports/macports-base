@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.195 2005/09/20 04:35:43 jberry Exp $
+# $Id: darwinports.tcl,v 1.196 2005/10/05 07:31:25 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -417,15 +417,18 @@ proc dportinit {up_ui_options up_options up_variations} {
     }
     
     # ENV cleanup.
-    # Remove:
-    # - P4*
-    # - LANG
-    # - LC*
-    # - BZIP
-    array unset env "P4*"
-    array unset env "LANG"
-    array unset env "LC*"
-    array unset env "BZIP"
+	set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
+	                  DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
+	                  DYLD_LIBRARY_PATH HOME LD_PREBIND
+	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
+	                  PATCH_SITE_LOCAL PATH PORTSRC TMP TMPDIR USER GROUP
+	}
+
+	foreach envkey [array names env] {
+		if {[lsearch $keepenvkeys $envkey] == -1} {
+			array unset env $envkey
+		}
+	}
 
 	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
 		# We'll resolve these later (if needed)
@@ -805,7 +808,7 @@ proc _libtest {dport depspec} {
 	}
 	lappend search_path /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
 	if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
-	    lappend search_path $env(DYLD_LIBRARY_PATH)
+	    lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
 	}
 
 	set i [string first . $depline]
