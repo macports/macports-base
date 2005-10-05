@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.105 2005/10/04 17:08:26 pguyot Exp $
+# $Id: portfetch.tcl,v 1.106 2005/10/05 04:28:05 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -375,6 +375,7 @@ proc fetchfiles {args} {
 		}
 	}
 	
+	set fetch_options {}
 	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
 		lappend fetch_options -u
 		lappend fetch_options "${fetch.user}:${fetch.password}"
