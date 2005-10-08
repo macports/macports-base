@@ -5,18 +5,18 @@
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
-# Date: 2005/10/4
+# $Id: IndexRegen.sh,v 1.5 2005/10/08 07:54:40 pguyot Exp $
 ####
 
 # Configuration
 # ROOT directory, where everything is. This must exist.
-ROOT=/Users/paul/darwinports-portindex
+ROOT=/Users/pguyot/dp-portindex
 # SSH key. This must exist.
 SSH_KEY=${ROOT}/id_dsa
 # DP user.
-DP_USER=paul
+DP_USER=pguyot
 # DP group.
-DP_GROUP=admin
+DP_GROUP=darwinports
 # CVS user.
 CVS_USER=pguyot
 # e-mail address to spam in case of failure.
@@ -42,8 +42,6 @@ PATH=${PREFIX}/bin:/bin:/usr/bin
 FAILURE_LOG=${ROOT}/failure.log
 # Something went wrong.
 FAILED=0
-# Output of portindex.
-PORTINDEX_LOG=${ROOT}/portindex.log
 # Commit message.
 COMMIT_MSG=${ROOT}/commit.msg
 # The date.
@@ -82,10 +80,18 @@ if [ $FAILED -eq 0 ]; then
 	mkdir -p ${TCLPKG} && \
 	./configure \
 		--prefix=${PREFIX} \
-		--with-tcl-package=${TCLPKG} \
+		--with-tclpackage=${TCLPKG} \
 		--with-install-user=${DP_USER} \
 		--with-install-group=${DP_GROUP} > $FAILURE_LOG 2>&1 \
 		|| { echo "./configure failed" >> $FAILURE_LOG ; FAILED=1 ; }
+fi
+
+# clean
+# (cleaning is useful because we don't want the indexing to fail because dependencies aren't properly computed).
+if [ $FAILED -eq 0 ]; then
+	{ cd ${TREE}/${CVS_MODULE}/base/ && \
+	make clean > $FAILURE_LOG 2>&1 ; } \
+		|| { echo "make clean failed" >> $FAILURE_LOG ; FAILED=1 ; }
 fi
 
 # (re)build
@@ -105,7 +111,7 @@ fi
 # (re)index
 if [ $FAILED -eq 0 ]; then
 	{ cd ${TREE}/${CVS_MODULE}/dports/ && \
-	${PREFIX}/bin/portindex | tee $PORTINDEX_LOG > $FAILURE_LOG 2>&1 ; } \
+	${PREFIX}/bin/portindex > $FAILURE_LOG 2>&1 ; } \
 		|| { echo "portindex failed" >> $FAILURE_LOG ; FAILED=1 ; }
 fi
 
@@ -118,7 +124,7 @@ fi
 # commit the file if and only if all ports were successfully indexed.
 if [ $FAILED -eq 0 ]; then
 	# Use the last 5 lines of the log for the commit message.
-	tail -n 5 $PORTINDEX_LOG > $COMMIT_MSG
+	tail -n 5 $FAILURE_LOG > $COMMIT_MSG
 	
 	# Actually commit the file.
 	{ cd ${TREE}/${CVS_MODULE}/dports/ && \
@@ -131,6 +137,6 @@ if [ $FAILED -ne 0 ]; then
 	mail -s "AutoIndex Failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
 else
 	# trash log files
-	rm -f $PORTINDEX_LOG $COMMIT_MSG $FAILURE_LOG
+	rm -f $COMMIT_MSG $FAILURE_LOG
 fi
 
