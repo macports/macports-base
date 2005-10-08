@@ -555,9 +555,10 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
 	ac_cv_c_tclpkgd=${with_tclpackagedir}
     else
 	AC_CACHE_VAL(ac_cv_c_tclpkgd, [
-	    # Use the value from --with-tclpackagedir, if it was given
+	    # Use the value from --with-tclpackage, if it was given
 
 	    if test x"${with_tclpackagedir}" != x ; then
+		echo "tclpackagedir"
 		ac_cv_c_tclpkgd=${with_tclpackagedir}
 	    else
 		# On darwin we can do some intelligent guessing
@@ -591,7 +592,7 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
     fi
 
     if test x"${ac_cv_c_tclpkgd}" = x ; then
-	AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackagedir)
+	AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
     else
 	AC_MSG_RESULT(${ac_cv_c_tclpkgd})
     fi
