@@ -1,11 +1,22 @@
 #
-#	$Id: ChangeLog,v 1.1 2005/10/08 19:45:52 jberry Exp $
+#	$Id: ChangeLog,v 1.2 2005/10/08 21:50:27 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
+ToDo Items for release 1.2:
+
+	- Move some verbiage out of port(1) usage message and into help target. (Juan? James?)
+    - Add to port(1) manpage docs for new port(1) syntax. (Signup?)
+    - Add to portfile(7) manpage docs for the new startupitem keys. (Signup?)
+    - Add to ports.conf(5) manpage docs on new startupitem_type option. (Signup?)
+
+
 Release 1.2:
 
+	- Enhance port command such that targets that require a port to be
+	  specified will now all default to a port in current directory.
+	  
 	- Enhance port command to allow multiple ports per invocation.
 	  Where previously one said "port install porta; port install portb", 
 	  one can now say "port install porta portb".
@@ -32,6 +43,11 @@ Release 1.2:
 	  
 	- Enhance port command to allow use of boolean expressions to combine
 	  ports. The operators are "and", "or", "not", "!", "(", ")". 
+	  
+	- Enhance port command to allow a port to be specified through a file:
+	  url instead of via portname. This function was previously available
+	  though the -D and -u options, which make less sense now that multiple
+	  ports can be specified to a target.
 	  
 	- Under Tiger, startupitems are now by default generated for launchd
 	  rather than systemstarter.
