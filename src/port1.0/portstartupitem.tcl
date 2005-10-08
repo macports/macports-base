@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.15 2005/10/08 18:42:21 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.16 2005/10/08 19:01:54 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -42,29 +42,26 @@
 #		- This may be composed of exec arguments only--not shell code
 #
 #	startupitem.pidfile		none
-#		- There is no pidfile we can track
+#		There is no pidfile we can track
 #
 #	startupitem.pidfile		auto [filename.pid]
 #		The daemon is responsible for creating/deleting the pidfile
-#		- We can use this to try to detect if the process is already running
-#		- We can use this to try to ensure that the process has stopped
 #
 #	startupitem.pidfile		cleanup [filename.pid]
 #		The daemon creates the pidfile, but we must delete it
-#		- We can use this to try to detect if the process is already running
 #
 #	startupitem.pidfile		manual [filename.pid]
 #		We create and destroy the pidfile to track the pid we receive from the executable
 #
 #	startupitem.logfile		logpath
 #		Log to the specified file -- if not specified then output to /dev/null
-#		- for launchd, just set this as the key
+#		- for launchd, just set this as the standard out key
 #		- for systemstarter, redirect to this
 #
 #	startupitem.logevents	yes/no
 #		Log events to the log
 #		- for launchd, generate log messages inside daemondo
-#		- for systemstarter, generate log messages in script
+#		- for systemstarter, generate log messages in our generated script
 #
 
 package provide portstartupitem 1.0
@@ -119,10 +116,9 @@ proc startupitem_create_rcng {args} {
 }
 
 proc startupitem_create_darwin_systemstarter {args} {
-	global prefix destroot portname os.platform
+	global prefix destroot destroot.keepdirs  portname os.platform
 	global startupitem.name startupitem.requires startupitem.init
-	global startupitem.start startupitem.stop startupitem.restart
-	global startupitem.executable
+	global startupitem.start startupitem.stop startupitem.restart startupitem.executable
 	global startupitem.pidfile startupitem.logfile startupitem.logevents
 	
 	set scriptdir ${prefix}/etc/startup
@@ -185,6 +181,9 @@ proc startupitem_create_darwin_systemstarter {args} {
 	}
 	if { ![llength ${startupitem.requires} ] } {
 		set startupitem.requires [list Disks NFS]
+	}
+	if { ![llength ${startupitem.logfile} ] } {
+		set startupitem.logfile "/dev/null"
 	}
 	
 	########################
@@ -371,10 +370,9 @@ RunService "$1"
 }
 
 proc startupitem_create_darwin_launchd {args} {
-	global prefix destroot portname os.platform
+	global prefix destroot destroot.keepdirs portname os.platform
 	global startupitem.name startupitem.requires startupitem.init
-	global startupitem.start startupitem.stop startupitem.restart
-	global startupitem.executable
+	global startupitem.start startupitem.stop startupitem.restart startupitem.executable
 	global startupitem.pidfile startupitem.logfile startupitem.logevents
 
 	set scriptdir ${prefix}/etc/startup
@@ -496,26 +494,34 @@ proc startupitem_create_darwin_launchd {args} {
 	
 	# If pidfile was specified, translate it for daemondo.
 	#
-	# There are three cases:
-	#	(1) auto pidfilename
-	#	(2) cleanup pidfilename
-	#	(3) manual pidfilename
+	# There are four cases:
+	#	(1) none
+	#	(2) auto [pidfilename]
+	#	(3) cleanup [pidfilename]
+	#	(4) manual [pidfilename]
 	#
 	set pidfileArgCnt [llength ${startupitem.pidfile}]
-	if { ${pidfileArgCnt} } {
+	if { ${pidfileArgCnt} > 0 } {
+		if { $pidfileArgCnt == 1 } {
+			set pidFile "${prefix}/var/run/${itemname}.pid"
+			lappend destroot.keepdirs "${destroot}${prefix}/var/run"
+		} else {
+			set pidFile [lindex ${startupitem.pidfile} 1]
+		}
+
 		if { ${pidfileArgCnt} != 2 } {
 			ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
-		} else {
-			# Translate into appropriate arguments to daemondo
-			set pidStyle [lindex ${startupitem.pidfile} 0]
-			set pidPath	 [lindex ${startupitem.pidfile} 1]
-			switch ${pidStyle} {
-				auto	{ lappend args "--pid=fileauto" "--pidfile" ${pidPath} }
-				clean	{ lappend args "--pid=fileclean" "--pidfile" ${pidPath} }
-				manual	{ lappend args "--pid=exec" "--pidfile" ${pidPath} }
-				default	{
-					ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
-				}
+		}
+		
+		# Translate into appropriate arguments to daemondo
+		set pidStyle [lindex ${startupitem.pidfile} 0]
+		switch ${pidStyle} {
+			none	{ lappend args "--pid=none" }
+			auto	{ lappend args "--pid=fileauto" "--pidfile" ${pidFile} }
+			clean	{ lappend args "--pid=fileclean" "--pidfile" ${pidFile} }
+			manual	{ lappend args "--pid=exec" "--pidfile" ${pidFile} }
+			default	{
+				ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
 			}
 		}
 	} else {
