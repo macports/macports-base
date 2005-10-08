@@ -1,12 +1,11 @@
 #
-#	$Id: ChangeLog,v 1.4 2005/10/08 23:00:27 jberry Exp $
+#	$Id: ChangeLog,v 1.5 2005/10/08 23:01:05 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
 ToDo Items for release 1.2:
 
-	- Move some verbiage out of port(1) usage message and into help target. (Juan? James?)
     - Add to port(1) manpage docs for new port(1) syntax. (Signup?)
     - Add to portfile(7) manpage docs for the new startupitem keys. (Signup?)
     - Add to ports.conf(5) manpage docs on new startupitem_type option. (Signup?)
