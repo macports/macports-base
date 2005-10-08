@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.112 2005/10/04 22:54:09 jberry Exp $
+# $Id: port.tcl,v 1.113 2005/10/08 22:24:14 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -130,8 +130,21 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global argv0
+	set cmd [file tail $argv0]
 	set usage { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
-	[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
+[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
+}
+		
+	puts "Usage: $cmd $usage"
+	puts "\"$cmd help\" or \"man 1 port\" for more information."
+}
+
+
+proc print_help args {
+	global argv0
+	
+	set help { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
+[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
 	help, info, location, provides, activate, deactivate, selfupdate,
@@ -161,10 +174,16 @@ Port expressions:
 	Portnames, port glob patterns, and psuedo-portnames may be logically combined
 	using expressions consisting of and, or, not, !, (, and ).
 	
+For more information:
+	See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
+	porthier(7), portstyle(7).
+	
 	}
 	
-	puts "Usage: [file tail $argv0]$usage"
+	puts "[file tail $argv0]$help"
 }
+
+
 
 # Produce error message and exit
 proc fatal s {
@@ -1133,7 +1152,7 @@ if {$action == ""} {
 switch -- $action {
 
 	help {
-		print_usage
+		print_help
 	}
 
 	info {
@@ -1729,7 +1748,7 @@ switch -- $action {
 				ui_debug "$errorInfo"
 				fatal_softcontinue "Unable to execute port: $result"
 			}
-		
+
 			dportclose $workername
 			
 			# Process any error that wasn't thrown and handled already
