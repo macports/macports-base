@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.16 2005/10/08 19:01:54 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.17 2005/10/08 19:21:02 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -116,7 +116,7 @@ proc startupitem_create_rcng {args} {
 }
 
 proc startupitem_create_darwin_systemstarter {args} {
-	global prefix destroot destroot.keepdirs  portname os.platform
+	global UI_PREFIX prefix destroot destroot.keepdirs  portname os.platform
 	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart startupitem.executable
 	global startupitem.pidfile startupitem.logfile startupitem.logevents
@@ -370,7 +370,7 @@ RunService "$1"
 }
 
 proc startupitem_create_darwin_launchd {args} {
-	global prefix destroot destroot.keepdirs portname os.platform
+	global UI_PREFIX prefix destroot destroot.keepdirs portname os.platform
 	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart startupitem.executable
 	global startupitem.pidfile startupitem.logfile startupitem.logevents
@@ -387,6 +387,7 @@ proc startupitem_create_darwin_launchd {args} {
 							]
 	
 	file mkdir ${destroot}${itemdir}
+	file attributes ${destroot}${itemdir} -owner root -group wheel
 		
 	if { [llength ${startupitem.executable}] && 
 			![llength ${startupitem.init}] &&
@@ -424,6 +425,7 @@ proc startupitem_create_darwin_launchd {args} {
 
 		# Create the wrapper script
 		set item [open "${destroot}${wrapper}" w 0755]
+		file attributes "${destroot}${wrapper}" -owner root -group wheel
 
 		puts ${item} "#!/bin/sh"
 		puts ${item} "#"
@@ -509,7 +511,7 @@ proc startupitem_create_darwin_launchd {args} {
 			set pidFile [lindex ${startupitem.pidfile} 1]
 		}
 
-		if { ${pidfileArgCnt} != 2 } {
+		if { ${pidfileArgCnt} > 2 } {
 			ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
 		}
 		
