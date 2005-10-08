@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.197 2005/10/05 13:32:59 jberry Exp $
+# $Id: darwinports.tcl,v 1.198 2005/10/08 21:29:35 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -37,8 +37,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir"
+    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
@@ -179,6 +179,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	global darwinports::registry.path
 	global darwinports::sources
 	global darwinports::sources_conf
+	global darwinports::startupitem_type
    	global darwinports::destroot_umask
    	global darwinports::libpath
    	global darwinports::prefix
@@ -414,6 +415,12 @@ proc dportinit {up_ui_options up_options up_variations} {
 	set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
     } else {
 	set env(PATH) "$binpath"
+    }
+    
+    # Set startupitem default type (can be overridden by portfile)
+    if {![info exists startupitem_type]} {
+    	set darwinports::startupitem_type "default"
+    	global darwinports::startupitem_type
     }
     
     # ENV cleanup.

@@ -1,6 +1,6 @@
 # et:ts=4
 # portdestroot.tcl
-# $Id: portdestroot.tcl,v 1.27 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portdestroot.tcl,v 1.28 2005/10/08 21:29:35 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
@@ -66,7 +66,7 @@ default startupitem.stop		""
 default startupitem.restart		""
 default startupitem.requires	""
 default startupitem.executable	""
-default startupitem.type		""
+default startupitem.type		{$system_options(startupitem_type)}
 default startupitem.pidfile		""
 default startupitem.logfile		""
 default startupitem.logevents	no

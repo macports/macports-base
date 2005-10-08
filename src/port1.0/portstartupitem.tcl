@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.18 2005/10/08 20:00:29 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.19 2005/10/08 21:29:35 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -573,27 +573,30 @@ proc startupitem_create {args} {
 	global UI_PREFIX
 	global startupitem.type os.platform
 	
+	set startupitem.type [string tolower ${startupitem.type}]
+	
 	# Calculate a default value for startupitem.type
-	# If the option has already been set, default will do nothing
-	switch -exact ${os.platform} {
-		darwin {
-			set enableLaunchd ${portutil::autoconf::enable_launchd_support}
-			set haveLaunchd	${portutil::autoconf::have_launchd}
-			
-			if { [tbool enableLaunchd] && [tbool haveLaunchd] } {
-				default startupitem.type "launchd"
-			} else {
-				default startupitem.type "SystemStarter"
+	if {${startupitem.type} == "default" || ${startupitem.type} == ""} {
+		switch -exact ${os.platform} {
+			darwin {
+				set enableLaunchd ${portutil::autoconf::enable_launchd_support}
+				set haveLaunchd	${portutil::autoconf::have_launchd}
+				
+				if { [tbool enableLaunchd] && [tbool haveLaunchd] } {
+					set startupitem.type "launchd"
+				} else {
+					set startupitem.type "systemstarter"
+				}
+			}
+			default {
+				set startupitem.type "rcng"
 			}
 		}
-		default {
-			default startupitem.type "RCng"
-		}
 	}
-		
+
 	ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
 
-	switch -- [string tolower ${startupitem.type}] {
+	switch -- ${startupitem.type} {
 		launchd			{ startupitem_create_darwin_launchd }
 		systemstarter	{ startupitem_create_darwin_systemstarter }
 		rcng			{ startupitem_create_rcng }
