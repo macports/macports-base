@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.3 2005/10/08 22:26:09 jberry Exp $
+#	$Id: ChangeLog,v 1.4 2005/10/08 23:00:27 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -32,17 +32,18 @@ Release 1.2:
 
 	  Currently defined psuedo portnames are:
 	  	current, all, installed, uninstalled, active, inactive, outdated.
-	  	
-	  Additional psuedo portnames can be used to as selectors to select
-	  ports based on a regex pattern match against certain criteria.
-	  Each port selector is a name, followed by a colon,
-	  followed by the desired regex pattern. The selectors are: variants:,
-	  variant:, description:, portdir:, homepage:, epoch:, platforms:,
-	  platform:, name:, long_description:, maintainers:, maintainer:,
+	  
+	  Additional psuedo portnames can be used to select ports based on a
+	  regex pattern match against certain criteria. Each port selector is
+	  a name, followed by a colon, followed by the desired regex pattern.
+	  The selectors are:
+	  variants:, variant:, description:, portdir:, homepage:, epoch:,
+	  platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
 	  categories:, category:, and revision:
 	  
-	- Enhance port command to allow use of boolean expressions to combine
-	  ports. The operators are "and", "or", "not", "!", "(", ")". 
+	- Enhance port command to allow use of set expressions to combine
+	  ports or groups of ports.
+	  Supported operators are "and", "or", "not", "!", "(", ")". 
 	  
 	- Enhance port command to allow a port to be specified through a file:
 	  url instead of via portname. This function was previously available
@@ -53,7 +54,7 @@ Release 1.2:
 	  rather than systemstarter.
 	  
 	- Add new startupitem keys startupitem.executable, startupitem.logfile,
-	  startupitem.logevents, startupitem.pidfile, supported by both
+	  startupitem.logevents, startupitem.pidfile, supported for both
 	  systemstarter and launchd.
 	  
 Release 1.1:
