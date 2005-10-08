@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.17 2005/10/08 19:21:02 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.18 2005/10/08 20:00:29 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -397,8 +397,7 @@ proc startupitem_create_darwin_launchd {args} {
 			
 		# An executable is specified, and there is no init, start, stop, or restart
 		# code; so we don't need a wrapper script
-		
-		lappend args "--start-cmd" ${startupitem.executable} ";"
+		set args [concat $args "--start-cmd" ${startupitem.executable} ";"]
 		
 	} else {
 	
