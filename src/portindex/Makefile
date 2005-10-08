@@ -12,22 +12,22 @@ all: portregister.cgi portsubmit.cgi initialize.sql register.html
 	@ cat $< | sed "/@@PREFIX@@/s//$(subst /,\/,$(PREFIX))/" > $@
 
 install: all
-	mkdir -p $(PREFIX)
-	chown www:www $(PREFIX)
-	chmod 0775 $(PREFIX)
-	$(INSTALL) -m 644 register.html $(PREFIX)
-	mkdir -p $(cgibin)
-	chown www:www $(cgibin)
-	chmod 0775 $(cgibin)
-	$(INSTALL) -m 755 portsubmit.cgi $(cgibin)
-	$(INSTALL) -m 755 portregister.cgi $(cgibin)
-	mkdir -p $(portindex)
-	chown www:www $(portindex)
-	chmod 0775 $(portindex)
-	mkdir -p $(portfiles)
-	chown www:www $(portfiles)
-	chmod 0775 $(portfiles)
-	$(INSTALL) -m 644 initialize.sql $(portindex)
+	mkdir -p ${DESTDIR}$(PREFIX)
+	chown www:www ${DESTDIR}$(PREFIX)
+	chmod 0775 ${DESTDIR}$(PREFIX)
+	$(INSTALL) -m 644 register.html ${DESTDIR}$(PREFIX)
+	mkdir -p ${DESTDIR}$(cgibin)
+	chown www:www ${DESTDIR}$(cgibin)
+	chmod 0775 ${DESTDIR}$(cgibin)
+	$(INSTALL) -m 755 portsubmit.cgi ${DESTDIR}$(cgibin)
+	$(INSTALL) -m 755 portregister.cgi ${DESTDIR}$(cgibin)
+	mkdir -p ${DESTDIR}$(portindex)
+	chown www:www ${DESTDIR}$(portindex)
+	chmod 0775 ${DESTDIR}$(portindex)
+	mkdir -p ${DESTDIR}$(portfiles)
+	chown www:www ${DESTDIR}$(portfiles)
+	chmod 0775 ${DESTDIR}$(portfiles)
+	$(INSTALL) -m 644 initialize.sql ${DESTDIR}$(portindex)
 
 clean:
 	rm -f *.cgi

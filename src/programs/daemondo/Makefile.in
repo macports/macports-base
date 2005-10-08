@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.5 2005/08/25 13:27:35 pguyot Exp $
+# $Id: Makefile.in,v 1.6 2005/10/08 02:20:40 jmpp Exp $
 
 top_srcdir = @top_srcdir@
 
@@ -21,7 +21,7 @@ daemondo: mkdirs ${PROGRAM}
 
 ${PROGRAM}: ${OBJS}
 	${CC} ${CFLAGS} -o ${PROGRAM} ${LIBS} ${OBJS}
-	
+
 mkdirs:
 	mkdir -p build
 
@@ -32,6 +32,6 @@ distclean: clean
 	rm -f Makefile
 
 install:
-	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 ${PROGRAM} ${bindir}
+	${INSTALL} -o ${DSTUSR} -g ${DSTGRP} -m 555 ${PROGRAM} ${DESTDIR}${bindir}
 
 test:

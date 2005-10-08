@@ -15,7 +15,7 @@ Mk/dports.autoconf.mk src/pextlib1.0/config.h: configure
 all:: Mk/dports.autoconf.mk
 
 install::
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${portconfigdir}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${DESTDIR}${portconfigdir}
 	@echo ""
 	@echo "Congratulations, you have successfully installed the DarwinPorts system."
 	@echo ""
