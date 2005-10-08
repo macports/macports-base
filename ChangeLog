@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.2 2005/10/08 21:50:27 jberry Exp $
+#	$Id: ChangeLog,v 1.3 2005/10/08 22:26:09 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -31,7 +31,7 @@ Release 1.2:
 	  the corresponding group of ports is substituted.
 
 	  Currently defined psuedo portnames are:
-	  	all, installed, uninstalled, activate, inactive, outdated, current
+	  	current, all, installed, uninstalled, active, inactive, outdated.
 	  	
 	  Additional psuedo portnames can be used to as selectors to select
 	  ports based on a regex pattern match against certain criteria.
