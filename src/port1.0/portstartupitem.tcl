@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.14 2005/09/15 00:44:33 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.15 2005/10/08 18:42:21 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -35,22 +35,25 @@
 
 
 #
-#	TODO: new keys to add
+#	Newly added keys:
 #
 #	startupitem.executable	the command to start the executable
 #		This is exclusive of init, start, stop, restart
 #		- This may be composed of exec arguments only--not shell code
 #
-#	startupitem.pidfile		auto filename.pid
+#	startupitem.pidfile		none
+#		- There is no pidfile we can track
+#
+#	startupitem.pidfile		auto [filename.pid]
 #		The daemon is responsible for creating/deleting the pidfile
 #		- We can use this to try to detect if the process is already running
 #		- We can use this to try to ensure that the process has stopped
 #
-#	startupitem.pidfile		cleanup filename.pid
+#	startupitem.pidfile		cleanup [filename.pid]
 #		The daemon creates the pidfile, but we must delete it
 #		- We can use this to try to detect if the process is already running
 #
-#	startupitem.pidfile		manual filename.pid
+#	startupitem.pidfile		manual [filename.pid]
 #		We create and destroy the pidfile to track the pid we receive from the executable
 #
 #	startupitem.logfile		logpath
@@ -120,98 +123,245 @@ proc startupitem_create_darwin_systemstarter {args} {
 	global startupitem.name startupitem.requires startupitem.init
 	global startupitem.start startupitem.stop startupitem.restart
 	global startupitem.executable
+	global startupitem.pidfile startupitem.logfile startupitem.logevents
 	
 	set scriptdir ${prefix}/etc/startup
 	
-	set itemname			[string toupper ${startupitem.name}]
-	set itemdir				/Library/StartupItems/${startupitem.name}
+	set itemname			${startupitem.name}
+	set uppername			[string toupper ${startupitem.name}]
+	set itemdir				/Library/StartupItems/${itemname}
 	set startupItemDir		${destroot}${itemdir}
-	set startupItemScript	${startupItemDir}/${startupitem.name}
+	set startupItemScript	${startupItemDir}/${itemname}
 	set startupItemPlist	${startupItemDir}/StartupParameters.plist
 	
-	file mkdir ${startupItemDir}
-	
+	# Interpret the pidfile spec
+	#
+	# There are four cases:
+	#	(1) none (or none specified)
+	#	(2) auto [pidfilename]
+	#	(3) cleanup [pidfilename]
+	#	(4) manual [pidfilename]
+	#
+	set createPidFile false
+	set deletePidFile false
+	set pidFile ""
+	set pidfileArgCnt [llength ${startupitem.pidfile}]
+	if { ${pidfileArgCnt} > 0 } {
+		if { $pidfileArgCnt == 1 } {
+			set pidFile "${prefix}/var/run/${itemname}.pid"
+			lappend destroot.keepdirs "${destroot}${prefix}/var/run"
+		} else {
+			set pidFile [lindex ${startupitem.pidfile} 1]
+		}
+		if { $pidfileArgCnt > 2 } {
+			ui_error "$UI_PREFIX [msgcat::mc "Invalid parameter count to startupitem.pidfile: 2 expected, %d found" ${pidfileArgCnt}]"
+		}
+		
+		set pidStyle [lindex ${startupitem.pidfile} 0]
+		switch ${pidStyle} {
+			none	{ set createPidFile false; set deletePidFile false; set pidFile ""	}
+			auto	{ set createPidFile false; set deletePidFile false	}
+			clean	{ set createPidFile false; set deletePidFile true	}
+			manual	{ set createPidFile true;  set deletePidFile true	}
+			default	{
+				ui_error "$UI_PREFIX [msgcat::mc "Unknown pidfile style %s presented to startupitem.pidfile" ${pidStyle}]"
+			}
+		}
+	}
+
 	if { [llength ${startupitem.executable}] && 
 			![llength ${startupitem.init}] &&
 			![llength ${startupitem.start}] &&
 			![llength ${startupitem.stop}] &&
 			![llength ${startupitem.restart}] } {
-			
 		# An executable is specified, and there is no init, start, stop, or restart
-		# code; so we need to gen-up those options
-			
-		set startupitem.init [list \
-			"PIDFILE=${prefix}/var/run/${startupitem.name}.pid-dp" \
-			]
-
-		set startupitem.start [list \
-			"rm -f \$PIDFILE" \
-			"${startupitem.executable} &" \
-			"echo \$! >\$PIDFILE" \
-			]
-			
-		set startupitem.stop [list \
-			"if test -r \$PIDFILE; then" \
-			"\tkill \$(cat \$PIDFILE)" \
-			"\trm -f \$PIDFILE" \
-			"fi" \
-			]
-	}
-	
-	if { ![llength ${startupitem.start} ] } {
-		set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
-	}
-	if { ![llength ${startupitem.stop} ] } {
-		set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
-	}
-	if { ![llength ${startupitem.restart} ] } {
-		set startupitem.restart [list StopService StartService]
+	} else {
+		if { ![llength ${startupitem.start} ] } {
+			set startupitem.start [list "sh ${scriptdir}/${portname}.sh start"]
+		}
+		if { ![llength ${startupitem.stop} ] } {
+			set startupitem.stop [list "sh ${scriptdir}/${portname}.sh stop"]
+		}
 	}
 	if { ![llength ${startupitem.requires} ] } {
 		set startupitem.requires [list Disks NFS]
 	}
-
+	
+	########################
+	# Create the startup item directory
+	file mkdir ${startupItemDir}
+	file attributes ${startupItemDir} -owner root -group wheel
+	
+	########################
 	# Generate the startup item script
 	set item [open "${startupItemScript}" w 0755]
 	file attributes "${startupItemScript}" -owner root -group wheel
 	
-	puts ${item} "#!/bin/sh"
-	puts ${item} "#"
-	puts ${item} "# DarwinPorts generated StartupItem"
-	puts ${item} "#"
+	# Emit the header
+	puts ${item} {#!/bin/sh
+#
+# DarwinPorts generated StartupItem
+#
+
+# Source the utilities package
+. /etc/rc.common
+}
+
+	# Emit the Configuration Section
+	puts ${item} "NAME=${itemname}"
+	puts ${item} "ENABLE_FLAG=\${${uppername}:=-NO-}"
+	puts ${item} "PIDFILE=\"${pidFile}\""
+	puts ${item} "LOGFILE=\"${startupitem.logfile}\""
+	puts ${item} "EXECUTABLE=\"${startupitem.executable}\""
 	puts ${item} ""
-	puts ${item} ". /etc/rc.common"
+	puts ${item} "HAVE_STARTCMDS=[expr [llength ${startupitem.start}] ? "true" : "false"]"
+	puts ${item} "HAVE_STOPCMDS=[expr [llength ${startupitem.stop}] ? "true" : "false"]"
+	puts ${item} "HAVE_RESTARTCMDS=[expr [llength ${startupitem.restart}] ? "true" : "false"]"
+	puts ${item} "DELETE_PIDFILE=${createPidFile}"
+	puts ${item} "CREATE_PIDFILE=${deletePidFile}"
+	puts ${item} "LOG_EVENTS=[expr [tbool ${startupitem.logevents}] ? "true" : "false"]"
 	puts ${item} ""
-	
+
+	# Emit the init lines
 	foreach line ${startupitem.init} { puts ${item} ${line} }
+	puts ${item} ""
 	
-	puts ${item} "\nStartService ()\n\{"
-	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
-	puts ${item} "\t\tConsoleMessage \"Starting ${startupitem.name}\""
-	foreach line ${startupitem.start} { puts ${item} "\t\t${line}" }
-	puts ${item} "\tfi\n\}\n"
+	# Emit the _Cmds
+	foreach kind { start stop restart } {
+		if {[llength [set "startupitem.$kind"]]} {
+			puts ${item} "${kind}Cmds () {"
+			foreach line [set "startupitem.$kind"] {
+				puts ${item} "\t${line}"
+			}
+			puts ${item} "}\n"
+		}
+	}
 	
-	puts ${item} "StopService ()\n\{"
-	puts ${item} "\tConsoleMessage \"Stopping ${startupitem.name}\""
-	foreach line ${startupitem.stop} { puts ${item} "\t${line}" }
-	puts ${item} "\}\n"
+	# vvvvv START BOILERPLATE vvvvvv
+	# Emit the static boilerplate section
+	puts ${item} {
+IsEnabled () {
+	[ "${ENABLE_FLAG}" = "-YES-" ]
+	return $?
+}
+
+CreatePIDFile () {
+	echo $1 > "$PIDFILE"
+}
+
+DeletePIDFile () {
+	rm -f "$PIDFILE"
+}
+
+ReadPID () {
+	if [ -r "$PIDFILE" ]; then
+		read pid < "$PIDFILE"
+	else
+		pid=0
+	fi
+	echo $pid
+}
+
+CheckPID () {
+	pid=$(ReadPID)
+	if (($pid)); then
+		kill -0 $pid >& /dev/null || pid=0
+	fi
+	echo $pid
+}
+
+NoteEvent () {
+	ConsoleMessage "$1"
+	$LOG_EVENTS && [ -n "$LOGFILE" ] && echo "$(date) $NAME: $1" >> $LOGFILE
+}
+
+StartService () {
+	if IsEnabled; then
+		NoteEvent "Starting $NAME"
+		
+		if $HAVE_STARTCMDS; then
+			startCmds
+		elif [ -n "$EXECUTABLE" ]; then
+			$EXECUTABLE &
+			pid=$!
+			if $CREATE_PIDFILE; then
+				CreatePIDFile $pid
+			fi
+		fi
+		
+	fi
+}
+
+StopService () {
+	NoteEvent "Stopping $NAME"
 	
-	puts ${item} "RestartService ()\n\{"
-	puts ${item} "\tif \[ \"\$\{${itemname}:=-NO-\}\" = \"-YES-\" \]; then"
-	puts ${item} "\t\tConsoleMessage \"Restarting ${startupitem.name}\""
-	foreach line ${startupitem.restart} { puts ${item} "\t\t${line}" }
-	puts ${item} "\tfi\n\}\n"
+	gaveup=false
+	if $HAVE_STOPCMDS; then
+		# If we have stop cmds, use them
+		stopCmds
+	else		
+		# Otherwise, get the pid and try to stop the program
+		echo -n "Stopping $NAME..."
+		
+		pid=$(CheckPID)
+		if (($pid)); then
+			# Try to kill the process with SIGTERM
+			kill $pid
+			
+			# Wait for it to really stop
+			for ((CNT=0; CNT < 15 && $(CheckPID); ++CNT)); do
+				echo -n "."
+				sleep 1
+			done
+			
+			# Report status
+			if (($(CheckPID))); then
+				gaveup=true
+				echo "giving up."
+			else
+				echo "stopped."
+			fi
+		else
+			echo "it's not running."
+		fi
+	fi
 	
-	puts ${item} "RunService \"\$1\""
+	# Cleanup the pidfile if we've been asked to
+	if ! $gaveup && $DELETE_PIDFILE; then
+		DeletePIDFile
+	fi
+}
+
+RestartService () {
+	if IsEnabled; then
+		NoteEvent "Restarting $NAME"
+		
+		if $HAVE_RESTARTCMDS; then
+			# If we have restart cmds, use them
+			restartCmds
+		else
+			# Otherwise just stop/start it
+			StopService
+			StartService
+		fi
+		
+	fi
+}
+
+RunService "$1"
+}
+	# ^^^^^^ END BOILERPLATE ^^^^^^
+	
 	close ${item}
 	
+	########################
 	# Generate the plist
 	set para [open "${startupItemPlist}" w 0644]
 	file attributes "${startupItemPlist}" -owner root -group wheel
 	
 	puts ${para} "\{"
-	puts ${para} "\tDescription\t= \"${startupitem.name}\";"
-	puts ${para} "\tProvides\t= (\"${startupitem.name}\");"
+	puts ${para} "\tDescription\t= \"${itemname}\";"
+	puts ${para} "\tProvides\t= (\"${itemname}\");"
 	puts -nonewline ${para} "\tRequires\t= ("
 	puts -nonewline ${para} [format {"%s"} [join ${startupitem.requires} {", "}]]
 	puts ${para} ");"
@@ -233,8 +383,8 @@ proc startupitem_create_darwin_launchd {args} {
 	set plistname		${itemname}.plist
 	set daemondest		LaunchDaemons
 	set itemdir			${prefix}/etc/${daemondest}/${itemname}
+	set program			"${prefix}/bin/daemondo"
 	set args			[list \
-							"${prefix}/bin/daemondo" \
 							"--label=${itemname}" \
 							]
 	
@@ -387,6 +537,7 @@ proc startupitem_create_darwin_launchd {args} {
 	
 	puts ${plist} "<key>Label</key><string>${itemname}</string>"
 	
+	puts ${plist} "<key>Program</key><string>${program}</string>"
 	puts ${plist} "<key>ProgramArguments</key>"
 	puts ${plist} "<array>"
 	foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
