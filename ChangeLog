@@ -1,0 +1,49 @@
+#
+#	$Id: ChangeLog,v 1.1 2005/10/08 19:45:52 jberry Exp $
+#
+#	This is a log of major user-visible changes in each release
+#
+
+Release 1.2:
+
+	- Enhance port command to allow multiple ports per invocation.
+	  Where previously one said "port install porta; port install portb", 
+	  one can now say "port install porta portb".
+	  
+	- Enhance port command to allow use of shell-like glob patterns for
+	  port selection. When a glob pattern is found, the group of ports
+	  matching the glob pattern is substituted.
+	  
+	- Enhance port command to allow use of "psuedo" portnames to specify
+	  groups of ports.
+	  When one of these pseudo portnames is specified on the command line,
+	  the corresponding group of ports is substituted.
+
+	  Currently defined psuedo portnames are:
+	  	all, installed, uninstalled, activate, inactive, outdated, current
+	  	
+	  Additional psuedo portnames can be used to as selectors to select
+	  ports based on a regex pattern match against certain criteria.
+	  Each port selector is a name, followed by a colon,
+	  followed by the desired regex pattern. The selectors are: variants:,
+	  variant:, description:, portdir:, homepage:, epoch:, platforms:,
+	  platform:, name:, long_description:, maintainers:, maintainer:,
+	  categories:, category:, and revision:
+	  
+	- Enhance port command to allow use of boolean expressions to combine
+	  ports. The operators are "and", "or", "not", "!", "(", ")". 
+	  
+	- Under Tiger, startupitems are now by default generated for launchd
+	  rather than systemstarter.
+	  
+	- Add new startupitem keys startupitem.executable, startupitem.logfile,
+	  startupitem.logevents, startupitem.pidfile, supported by both
+	  systemstarter and launchd.
+	  
+Release 1.1:
+
+	(information not here).
+	
+Release 1.0:
+	
+	(information not here).
