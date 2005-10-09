@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.10 2005/10/09 19:38:10 pguyot Exp $
+#	$Id: ChangeLog,v 1.11 2005/10/09 21:39:27 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -65,12 +65,12 @@ Release 1.2:
 
 	- svn fetching support, parallel to cvs fetching. Note that
 	  this is a bit skanky as svn is not installed on the platform by default.
-	  This code will fail out of svn is not installed. (jberry)
+	  This code will error-out if svn is not installed. (jberry)
 
 	- Removal of old "fetch.args" parameter now that all Portfiles have been
 	  properly moved to leverage Paul's libcurl work (yeled)
 
-	- DP now sets it's own env variables instead of filtering user declared
+	- DP now sets its own env variables instead of filtering user declared
 	  ones considered harmful (blb)
 
 	- "Canonicalization" of expanded path:${prefix}/foo:bar dependencies
