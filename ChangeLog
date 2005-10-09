@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.8 2005/10/09 18:37:18 jberry Exp $
+#	$Id: ChangeLog,v 1.9 2005/10/09 19:31:15 pguyot Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -24,15 +24,15 @@ Release 1.2:
 	  port selection. When a glob pattern is found, the group of ports
 	  matching the glob pattern is substituted. (jberry)
 	  
-	- Enhance port command to allow use of "psuedo" portnames to specify
+	- Enhance port command to allow use of "pseudo" portnames to specify
 	  groups of ports.
 	  When one of these pseudo portnames is specified on the command line,
 	  the corresponding group of ports is substituted.
 
-	  Currently defined psuedo portnames are:
+	  Currently defined pseudo portnames are:
 	  	current, all, installed, uninstalled, active, inactive, outdated.
 	  
-	  Additional psuedo portnames can be used to select ports based on a
+	  Additional pseudo portnames can be used to select ports based on a
 	  regex pattern match against certain criteria. Each port selector is
 	  a name, followed by a colon, followed by the desired regex pattern.
 	  The selectors are:

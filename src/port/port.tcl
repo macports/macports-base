@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.115 2005/10/09 18:37:19 jberry Exp $
+# $Id: port.tcl,v 1.116 2005/10/09 19:31:16 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -163,7 +163,7 @@ Pseudo-portnames:
 	all, current, active, inactive, installed, uninstalled, and outdated.
 	These pseudo-portnames expand to the set of ports named.
 	
-	Additional psuedo-portnames are:
+	Additional pseudo-portnames are:
 	variants:, variant:, description:, portdir:, homepage:, epoch:,
 	platforms:, platform:, name:, long_description:, maintainers:,
 	maintainer:, categories:, category:, and revision:.
@@ -176,7 +176,7 @@ Pseudo-portnames:
 	set of ports matching the glob pattern.
 	
 Port expressions:
-	Portnames, port glob patterns, and psuedo-portnames may be logically combined
+	Portnames, port glob patterns, and pseudo-portnames may be logically combined
 	using expressions consisting of and, or, not, !, (, and ).
 	
 For more information:
