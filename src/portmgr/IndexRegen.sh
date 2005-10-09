@@ -5,7 +5,7 @@
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
-# $Id: IndexRegen.sh,v 1.5 2005/10/08 07:54:40 pguyot Exp $
+# $Id: IndexRegen.sh,v 1.6 2005/10/09 07:41:03 pguyot Exp $
 ####
 
 # Configuration
@@ -128,7 +128,7 @@ if [ $FAILED -eq 0 ]; then
 	
 	# Actually commit the file.
 	{ cd ${TREE}/${CVS_MODULE}/dports/ && \
-	cvs commit -F $COMMIT_MSG PortIndex > $FAILURE_LOG 2>&1 ; } \
+	CVS_RSH=${SSH_WRAPPER} cvs commit -F $COMMIT_MSG PortIndex > $FAILURE_LOG 2>&1 ; } \
 		|| { echo "cvs commit failed" >> $FAILURE_LOG ; FAILED=1 ; }
 fi
 
