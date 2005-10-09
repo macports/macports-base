@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.5 2005/10/08 23:01:05 jberry Exp $
+#	$Id: ChangeLog,v 1.6 2005/10/09 13:54:26 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -14,15 +14,15 @@ ToDo Items for release 1.2:
 Release 1.2:
 
 	- Enhance port command such that targets that require a port to be
-	  specified will now all default to a port in current directory.
+	  specified will now all default to a port in current directory. (jberry)
 	  
 	- Enhance port command to allow multiple ports per invocation.
 	  Where previously one said "port install porta; port install portb", 
-	  one can now say "port install porta portb".
+	  one can now say "port install porta portb". (jberry)
 	  
 	- Enhance port command to allow use of shell-like glob patterns for
 	  port selection. When a glob pattern is found, the group of ports
-	  matching the glob pattern is substituted.
+	  matching the glob pattern is substituted. (jberry)
 	  
 	- Enhance port command to allow use of "psuedo" portnames to specify
 	  groups of ports.
@@ -38,24 +38,54 @@ Release 1.2:
 	  The selectors are:
 	  variants:, variant:, description:, portdir:, homepage:, epoch:,
 	  platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
-	  categories:, category:, and revision:
+	  categories:, category:, and revision: (jberry)
 	  
 	- Enhance port command to allow use of set expressions to combine
 	  ports or groups of ports.
-	  Supported operators are "and", "or", "not", "!", "(", ")". 
+	  Supported operators are "and", "or", "not", "!", "(", ")". (jberry)
 	  
 	- Enhance port command to allow a port to be specified through a file:
 	  url instead of via portname. This function was previously available
 	  though the -D and -u options, which make less sense now that multiple
-	  ports can be specified to a target.
+	  ports can be specified to a target. (jberry)
 	  
 	- Under Tiger, startupitems are now by default generated for launchd
-	  rather than systemstarter.
+	  rather than systemstarter. (jberry)
 	  
 	- Add new startupitem keys startupitem.executable, startupitem.logfile,
 	  startupitem.logevents, startupitem.pidfile, supported for both
-	  systemstarter and launchd.
+	  systemstarter and launchd. (jberry)
 	  
+	- New Test framework [details?] (pguyot)
+
+	- svn fetching support, parallel to cvs fetching. Note that
+	  this is a bit skanky as svn is not installed on the platform by default.
+	  This code will fail out of svn is not installed. (jberry)
+
+	- Removal of old "fetch.args" parameter now that all Portfiles have been
+	  properly moved to leverage Paul's libcurl work (yeled)
+
+	- DP now sets it's own env variables instead of filtering user declared
+	  ones considered harmful (blb)
+
+	- "Canonicalization" of expanded path:${prefix}/foo:bar dependencies
+	  when including them in the PortIndex for better abstraction (jberry)
+
+	- Addition of the IndexRegen.sh script that takes care of the automated
+	  index thingie... (pguyot and jmpp)
+
+	- Miscellaneous cleanups:
+		- DP base is assured to respect a temporary DESTDIR installation and
+		  other Makefile cleanups (toby, jmpp)
+		- "--with-tclpackagedir" error report removals from autofconf voodoo (pguyot)
+		- fixes for the buildall.sh script (jkh)
+
+	- Some other fixes for lurking bugs, untapped by the various developments
+	  that have taken place since 1.1 ("bunch of developers ;-);
+
+	- Snazzy new ChangeLog file
+
+
 Release 1.1:
 
 	(information not here).
