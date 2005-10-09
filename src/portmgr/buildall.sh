@@ -112,11 +112,9 @@ EOF
 # Set up the base chroot image
 prepchroot() {
 	dir=$1
-	if [ $STUCK_BASEDEV = 0 ]; then
-		rm -f ${CHROOTBASE}.shadow
-		BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -shadow -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
-		mkdir -p $dir/.vol
-	fi
+	rm -f ${CHROOTBASE}.shadow
+	BASEDEV=`hdiutil attach ${CHROOTBASE} -mountpoint $dir -shadow -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
+	mkdir -p $dir/.vol
  	DPORTSDEV=`hdiutil attach ${DPORTSCACHE} -mountpoint $dir/opt/local/var/db/dports -union -noverify 2>&1 | awk '/dev/ {if (x == 0) {print $1; x = 1}}'`
 	/sbin/mount_devfs devfs $dir/dev || bomb "unable to mount devfs"
 	/sbin/mount_fdesc -o union fdesc $dir/dev || bomb "unable to mount fdesc"
@@ -125,17 +123,13 @@ prepchroot() {
 # Undo the work of prepchroot
 teardownchroot() {
 	dir=$1
-	umount -f $dir/dev  || (echo "unable to umount devfs"; STUCK_BASEDEV=1)
-	umount -f $dir/dev  || (echo "unable to umount fdesc"; STUCK_BASEDEV=1)
+	umount -f $dir/dev  || (echo "unable to umount devfs")
+	umount -f $dir/dev  || (echo "unable to umount fdesc")
 	[ -z "$DPORTSDEV" ] || (hdiutil detach $DPORTSDEV -force >& /dev/null || bomb "unable to detach DPORTSDEV")
 	DPORTSDEV=""
 	if [ ! -z "$BASEDEV" ]; then
-		if hdiutil detach $BASEDEV -force >& /dev/null; then
-			STUCK_BASEDEV=0
-			BASEDEV=""
-		else
+		if ! hdiutil detach $BASEDEV -force >& /dev/null; then
 			echo "Warning: Unable to detach BASEDEV ($BASEDEV)"
-			STUCK_BASEDEV=1
 		fi
 	fi
 }
@@ -181,8 +175,10 @@ else
 fi
 
 mkchrootbase $DIR
-# Hack to work around sticking volfs problem.
-STUCK_BASEDEV=0
+ARCH="`uname -p`"
+if [ "${ARCH}" = "powerpc" ]; then
+	ARCH=ppc
+fi
 
 echo "Starting packaging run for `wc -l $TGTPORTS | awk '{print $1}'` ports."
 for pkg in `cat $TGTPORTS`; do
@@ -211,7 +207,7 @@ for pkg in `cat $TGTPORTS`; do
 		if [ "$PKGTYPE" = "mpkg" ]; then
 		    mv $DIR/Package/*.mpkg outputdir/Packages/
 		elif [ "$PKGTYPE" = "rpmpackage" ]; then
-		    mv $DIR/Package/RPMS/ppc/*.rpm outputdir/Packages/
+		    mv $DIR/Package/RPMS/${ARCH}/*.rpm outputdir/Packages/
 		elif [ "$PKGTYPE" = "dpkg" ]; then
 		    mv $DIR/Package/*.deb outputdir/Packages/
 		fi
