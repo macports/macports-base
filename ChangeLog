@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.11 2005/10/09 21:39:27 jberry Exp $
+#	$Id: ChangeLog,v 1.12 2005/10/09 21:44:39 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -11,7 +11,7 @@ ToDo Items for release 1.2:
     - Add to ports.conf(5) manpage docs on new startupitem_type option. (Signup?)
 
 
-Release 1.2:
+Release 1.2 (unreleased):
 
 	- Enhance port command such that targets that require a port to be
 	  specified will now all default to a port in current directory. (jberry)
