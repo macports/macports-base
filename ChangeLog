@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.9 2005/10/09 19:31:15 pguyot Exp $
+#	$Id: ChangeLog,v 1.10 2005/10/09 19:38:10 pguyot Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -56,7 +56,12 @@ Release 1.2:
 	  startupitem.logevents, startupitem.pidfile, supported for both
 	  systemstarter and launchd. (jberry)
 	  
-	- New Test framework [details?] (pguyot)
+	- New Test framework. Running make test from base/tests/ will test
+	  several features of port(1) including syntax of Portfiles. New tests
+	  can easily be added by simply creating new directories in base/tests/
+	  with a Portfile and a master file containing the output of port test
+	  in this directory. Some tests are actually more complex. These tests
+	  require the port binary to be installed in ${prefix}. (pguyot)
 
 	- svn fetching support, parallel to cvs fetching. Note that
 	  this is a bit skanky as svn is not installed on the platform by default.
@@ -77,7 +82,8 @@ Release 1.2:
 	- Miscellaneous cleanups:
 		- DP base is assured to respect a temporary DESTDIR installation and
 		  other Makefile cleanups (toby, jmpp)
-		- "--with-tclpackagedir" error report removals from autofconf voodoo (pguyot)
+		- s/--with-tclpackagedir/--with-tclpackage/g in autoconf error
+		  reports (pguyot)
 		- fixes for the buildall.sh script (jkh)
 
 	- Some other fixes for lurking bugs, untapped by the various developments
