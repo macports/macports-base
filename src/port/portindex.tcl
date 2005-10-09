@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.31 2005/10/09 01:02:08 jberry Exp $
+# $Id: portindex.tcl,v 1.32 2005/10/09 05:49:02 jmpp Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
@@ -135,7 +135,7 @@ proc pindex {portdir} {
         		set newDeps {}
         		foreach dep $deps {
         			if {[string match "path:$prefix/*" $dep]} {
-        				lappend newDeps [regsub "^path:$prefix/" $dep "path:\$prefix/"]
+				    lappend newDeps [regsub "^path:$prefix/" $dep "path:\$\{prefix\}/"]
         			} else {
         				lappend newDeps $dep
         			}
