@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.7 2005/10/09 15:31:27 jberry Exp $
+#	$Id: ChangeLog,v 1.8 2005/10/09 18:37:18 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -85,7 +85,13 @@ Release 1.2:
 
 	- Snazzy new ChangeLog file
 	
-	- Add new actions for port(1): help, echo, cat, ed, path, portfile (jberry)
+	- Add new actions for port(1): help (get help about port),
+	  echo (the expanded arguments),
+	  cat (the contents of the Portfiles from the specified ports),
+	  edit (also alias "ed", the contents of the Portfiles, using EDITOR or VISUAL),
+	  dir (emit path to the port's directory),
+	  file (emit path to the port's Portfile)
+	  (jberry)
 
 
 Release 1.1:

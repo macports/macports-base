@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.114 2005/10/09 15:31:28 jberry Exp $
+# $Id: port.tcl,v 1.115 2005/10/09 18:37:19 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -303,7 +303,7 @@ proc add_to_portlist {listname portentry} {
 		if {[info exists global_porturl]} {
 			set url $global_porturl
 		} else {
-			set url file://./
+			set url file://.
 		}
 		set portname [url_to_portname $url]
 		set port(url) $url
@@ -361,7 +361,7 @@ proc require_portlist {} {
 		if {[info exists global_porturl]} {
 			set url $global_porturl
 		} else {
-			set url file://./
+			set url file://.
 		}
 		set portname [url_to_portname $url]
 	
@@ -459,7 +459,7 @@ proc get_current_port {} {
 	if {[info exists global_porturl]} {
 		set url $global_porturl
 	} else {
-		set url file://./
+		set url file://.
 	}
 	set portname [url_to_portname $url]
 	if {$portname == ""} {
@@ -1698,10 +1698,10 @@ switch -- $action {
 		}
 	}
 	
-	ed	-
+	ed - edit -
 	cat -
-	path -
-	portfile {
+	dir -
+	file {
 		# Operations on the PortFiles of the port
 		require_portlist
 		foreachport $portlist {
@@ -1735,7 +1735,7 @@ switch -- $action {
 						close $f
 					}
 					
-					ed {
+					ed - edit {
 						# Find an editor to edit the portfile
 						set editor ""
 						foreach ed { VISUAL EDITOR } {
@@ -1751,13 +1751,13 @@ switch -- $action {
 						}						
 					}
 					
-					path {
-						# output the path to the port
+					dir {
+						# output the path to the port's directory
 						puts $portdir
 					}
 
-					portfile {
-						# output the path to the portfile
+					file {
+						# output the path to the port's portfile
 						puts $portfile
 					}
 				}
