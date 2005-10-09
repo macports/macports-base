@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.113 2005/10/08 22:24:14 jberry Exp $
+# $Id: port.tcl,v 1.114 2005/10/09 15:31:28 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -48,6 +48,10 @@ set portlist {}
 array set ui_options 		{}
 array set global_options	{}
 array set global_variations	{}
+
+# Save off a copy of the environment before dportinit monkeys with it
+global env
+array set boot_env [array get env]
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -126,6 +130,7 @@ proc ui_channels {priority} {
         }
     }
 }
+
 
 # Standard procedures
 proc print_usage args {
@@ -1690,6 +1695,75 @@ switch -- $action {
 			}
 			
 			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations]] [join $opts " "]]
+		}
+	}
+	
+	ed	-
+	cat -
+	path -
+	portfile {
+		# Operations on the PortFiles of the port
+		require_portlist
+		foreachport $portlist {
+			# If we have a url, use that, since it's most specific
+			# otherwise try to map the portname to a url
+			if {$porturl == ""} {
+				# Verify the portname, getting portinfo to map to a porturl
+				if {[catch {set res [dportsearch $portname no exact]} result]} {
+					global errorInfo
+					ui_debug "$errorInfo"
+					fatal_softcontinue "search for portname $portname failed: $result"
+				}
+				if {[llength $res] < 2} {
+					fatal_softcontinue "Port $portname not found"
+				}
+				array set portinfo [lindex $res 1]
+				set porturl $portinfo(porturl)
+			}
+			
+			set portdir [darwinports::getportdir $porturl $portdir]
+			set portfile "${portdir}/PortFile"
+			
+			if {[file readable $portfile]} {
+				switch -- $action {
+					cat	{
+						# Copy the portfile to standard output
+						set f [open $portfile RDONLY]
+						while { ![eof $f] } {
+							puts [read $f 4096]
+						}
+						close $f
+					}
+					
+					ed {
+						# Find an editor to edit the portfile
+						set editor ""
+						foreach ed { VISUAL EDITOR } {
+							if {[info exists boot_env($ed)]} {
+								set editor $boot_env($ed)
+							}
+						}
+						
+						if { $editor == "" } {
+							fatal "No EDITOR is specified in your environment"
+						} else {
+							eval exec $editor $portfile
+						}						
+					}
+					
+					path {
+						# output the path to the port
+						puts $portdir
+					}
+
+					portfile {
+						# output the path to the portfile
+						puts $portfile
+					}
+				}
+			} else {
+				fatal_softcontinue "Could not read $portfile"
+			}
 		}
 	}
 	

@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.6 2005/10/09 13:54:26 jberry Exp $
+#	$Id: ChangeLog,v 1.7 2005/10/09 15:31:27 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -84,6 +84,8 @@ Release 1.2:
 	  that have taken place since 1.1 ("bunch of developers ;-);
 
 	- Snazzy new ChangeLog file
+	
+	- Add new actions for port(1): help, echo, cat, ed, path, portfile (jberry)
 
 
 Release 1.1:
