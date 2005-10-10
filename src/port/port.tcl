@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.117 2005/10/10 02:49:29 jberry Exp $
+# $Id: port.tcl,v 1.118 2005/10/10 14:11:39 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -976,8 +976,12 @@ proc parseFullPortSpec { namename vername varname optname } {
 	
 	if { [moreargs] } {
 		# Look first for a potential portname
+		#
+		# We need to allow a wide variaty of tokens here, because of actions like "provides"
+		# so we take a rather lenient view of what a "portname" is. We allow
+		# anything that doesn't look like either a variant, a version, or an option
 		set token [lookahead]
-		if {[regexp {^\w+} $token match]} {
+		if {![regexp {^(\d.*|[-+].*|[[:alpha:]_]+[\w\.]*=.*)} $token match]} {
 			set portname $token
 			advance
 		}
@@ -1691,7 +1695,7 @@ switch -- $action {
 		foreachport $portlist {
 			set opts {}
 			foreach { key value } [array get options] {
-				lappend opts "$key=\"$value\""
+				lappend opts "$key=$value"
 			}
 			
 			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations]] [join $opts " "]]
