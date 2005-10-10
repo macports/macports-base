@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.116 2005/10/09 19:31:16 pguyot Exp $
+# $Id: port.tcl,v 1.117 2005/10/10 02:49:29 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -154,8 +154,8 @@ proc print_help args {
 Valid actions are:
 	help, info, location, provides, activate, deactivate, selfupdate,
 	upgrade, version, compact, uncompact, uninstall, installed, outdated,
-	contents, deps, variants, search, list, echo, sync,
-	fetch, patch, extract, build, destroot, install, test
+	contents, deps, variants, search, list, echo, sync, dir, file, cat, edit,
+	fetch, patch, extract, build, destroot, install, test.
 	
 Pseudo-portnames:
 	Pseudo-portnames are words which may be used in place of a portname, and
