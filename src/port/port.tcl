@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.118 2005/10/10 14:11:39 jberry Exp $
+# $Id: port.tcl,v 1.119 2005/10/10 14:19:04 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -212,7 +212,7 @@ proc fatal_softcontinue s {
 
 
 # Form a composite version as is sometimes used for registry functions
-proc composite_version {version variations} {
+proc composite_version {version variations {emptyVersionOkay 0}} {
 	# Form a composite version out of the version and variations
 	
 	# Select the variations into positive and negative
@@ -228,7 +228,7 @@ proc composite_version {version variations} {
 	
 	# If there is no version, we have nothing to do
 	set composite_version ""
-	if {$version != ""} {
+	if {$version != "" || $emptyVersionOkay} {
 		set pos_str ""
 		set neg_str ""
 		
@@ -1698,7 +1698,7 @@ switch -- $action {
 				lappend opts "$key=$value"
 			}
 			
-			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations]] [join $opts " "]]
+			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations] 1] [join $opts " "]]
 		}
 	}
 	
