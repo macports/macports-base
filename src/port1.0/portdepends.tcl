@@ -1,6 +1,6 @@
 # et:ts=4
 # portdepends.tcl
-# $Id: portdepends.tcl,v 1.42 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portdepends.tcl,v 1.43 2005/10/10 13:51:36 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -48,7 +48,7 @@ proc validate_depends_options {option action args} {
 		set|append|delete {
 			foreach depspec $args {
 				switch -regex $depspec {
-					(lib|bin|path):([-A-Za-z0-9_/.$^?+()|\\\\]+):([-A-Za-z./0-9_]+) {}
+					(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-A-Za-z./0-9_]+) {}
 					(port):([-A-Za-z./0-9_]+) {}
 					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
 				}
