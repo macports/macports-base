@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.33 2005/10/09 13:36:16 jberry Exp $
+# $Id: portindex.tcl,v 1.34 2005/10/10 14:23:55 pguyot Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
@@ -99,16 +99,18 @@ proc print_usage args {
     puts "-d:\tOutput debugging information"
 }
 
-proc pindex {portdir} {
-	variable prefix $darwinports::prefix
-	
+proc pindex {portdir} {	
     global target fd directory archive outdir stats 
     incr stats(total)
     if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
         puts "Failed to parse file $portdir/Portfile: $result"
 	incr stats(failed)
-    } else {        
+    } else {
+		global darwinports::prefix
+    	set save_prefix $prefix
+    	set prefix {\${prefix}}
         array set portinfo [dportinfo $interp]
+        set $prefix $save_prefix
         dportclose $interp
         set portinfo(portdir) $portdir
         puts "Adding port $portdir"
@@ -126,18 +128,6 @@ proc pindex {portdir} {
                 puts "Failed to create port archive $portinfo(portarchive): $result"
                 exit 1
             }
-        }
-        
-        # Canonicalize any path: dependencies by substituting out $prefix
-        foreach dependstype { depends_build depends_lib depends_run } {
-        	if {[info exists portinfo($dependstype)]} {
-        		set deps $portinfo($dependstype)
-        		set newDeps {}
-        		foreach dep $deps {
-        			lappend newDeps [regsub "^(path|lib|bin):$prefix/" $dep {\1:${prefix}/}]
-        		}
-        		set portinfo($dependstype) $newDeps
-        	}
         }
         
         set output [array get portinfo]
