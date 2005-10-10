@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.13 2005/10/10 03:02:50 jberry Exp $
+#	$Id: ChangeLog,v 1.14 2005/10/10 05:04:57 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -7,10 +7,14 @@
 ToDo Items for release 1.2:
 
     - Add to port(1) manpage docs for new port(1) syntax. (Juan)
-    - Add to portfile(7) manpage docs for the new startupitem keys. (James will stab at it)
-    - Add to ports.conf(5) manpage docs on new startupitem_type option. (James will stab at it)
+    - Add to portfile(7) manpage docs for the new startupitem keys.
+    	(James added some suggested text to bug #4905)
+    - Add to ports.conf(5) manpage docs on new startupitem_type option.
+    	(James added some suggested text to bug #4905)
     - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (???)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
+    - Maybe: remove portall code and manpage.
+    	(pending discussion on list).
 
 
 Release 1.2 (unreleased):
