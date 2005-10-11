@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.127 2005/10/11 22:33:44 jberry Exp $
+# $Id: port.tcl,v 1.128 2005/10/11 22:42:46 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1751,6 +1751,7 @@ switch -- $action {
 						foreach ed { VISUAL EDITOR } {
 							if {[info exists env($ed)]} {
 								set editor $env($ed)
+								break
 							}
 						}
 						
