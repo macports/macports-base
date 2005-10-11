@@ -1,7 +1,7 @@
-MAN1=		port.1 portall.1
+MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	../..
-SCRIPTS=	portindex portall port
+SCRIPTS=	portindex port
 
 edit = sed \
 	-e 's,@TCLSH\@,$(TCLSH),g' \
@@ -29,7 +29,6 @@ distclean: clean
 
 install: mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portall.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port ${INSTALLDIR}/bin/port
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portindex ${INSTALLDIR}/bin/portindex
