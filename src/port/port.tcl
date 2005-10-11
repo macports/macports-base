@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.119 2005/10/10 14:19:04 jberry Exp $
+# $Id: port.tcl,v 1.120 2005/10/11 13:06:51 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -379,17 +379,17 @@ proc require_portlist {} {
 # will have been set
 proc foreachport {portlist block} {
 	foreach portspec $portlist {
-		array set port $portspec
-		uplevel 1 "
-			set porturl \"$port(url)\"
-			set portname \"$port(name)\"
-			set portversion \"$port(version)\"
+		uplevel 1 "array set portspec { $portspec }"
+		uplevel 1 {
+			set porturl $portspec(url)
+			set portname $portspec(name)
+			set portversion $portspec(version)
 			array unset variations
-			array set variations { $port(variants) }
+			array set variations [array get $portspec(variants)]
 			array unset options
-			array set options { $port(options) }
-			$block
-			"
+			array set options [array get $portspec(options)]
+		}
+		uplevel 1 $block
 	}
 }
 
