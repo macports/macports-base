@@ -14,9 +14,6 @@ all: ${SCRIPTS}
 portindex: portindex.tcl
 	${edit} portindex.tcl > $@
 
-portall: portall.tcl
-	${edit} portall.tcl > $@
-
 port: port.tcl
 	${edit} port.tcl > $@
 
@@ -35,5 +32,4 @@ install: mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portall.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port ${INSTALLDIR}/bin/port
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portall ${INSTALLDIR}/bin/portall
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portindex ${INSTALLDIR}/bin/portindex
