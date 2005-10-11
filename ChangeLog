@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.18 2005/10/11 13:06:16 jberry Exp $
+#	$Id: ChangeLog,v 1.19 2005/10/11 13:40:08 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -14,7 +14,9 @@ ToDo Items for release 1.2:
     - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (???)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
     - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (anyone?)
-    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=4700 (anyone?)
+    	(install from CVS or tarfile doesn't build dports directory and portindex)
+    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=4700 (anyone? Paul?)
+    	(dependencies in dep_map.bz2 are broken after 'port upgrade <port>' and 'port -u uninstall')
 
 Release 1.2 (unreleased):
 
