@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.14 2005/10/10 05:04:57 jberry Exp $
+#	$Id: ChangeLog,v 1.15 2005/10/11 02:07:27 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -80,7 +80,7 @@ Release 1.2 (unreleased):
 	  ones considered harmful (blb)
 
 	- "Canonicalization" of expanded path:${prefix}/foo:bar dependencies
-	  when including them in the PortIndex for better abstraction (jberry)
+	  when including them in the PortIndex for better abstraction (jberry/pguyot)
 
 	- Addition of the IndexRegen.sh script that takes care of the automated
 	  index thingie... (pguyot and jmpp)
