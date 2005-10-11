@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.36 2005/10/11 07:22:03 pguyot Exp $
+# $Id: portindex.tcl,v 1.37 2005/10/11 20:48:10 pguyot Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
@@ -102,17 +102,18 @@ proc print_usage args {
 proc pindex {portdir} {	
     global target fd directory archive outdir stats 
     incr stats(total)
+	global darwinports::prefix
+	set save_prefix $prefix
+	set prefix {\${prefix}}
     if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
-        puts "Failed to parse file $portdir/Portfile: $result"
-	incr stats(failed)
+		puts "Failed to parse file $portdir/Portfile: $result"
+		# revert the prefix.
+		set prefix $save_prefix
+		incr stats(failed)
     } else {
-		global darwinports::prefix
-    	set save_prefix $prefix
-    	set prefix {\${prefix}}
-        array set portinfo [dportinfo $interp]
+		# revert the prefix.
         set prefix $save_prefix
-        # the code currently doesn't need prefix to be correct, but let's
-        # revert it ASAP anyway.
+        array set portinfo [dportinfo $interp]
         dportclose $interp
         set portinfo(portdir) $portdir
         puts "Adding port $portdir"
