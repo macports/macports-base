@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.126 2005/10/11 22:11:46 pguyot Exp $
+# $Id: port.tcl,v 1.127 2005/10/11 22:33:44 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1744,7 +1744,7 @@ switch -- $action {
 						# We need it to evaluate the editor, and the editor
 						# may want stuff from it as well, like TERM.
 						array unset env_save; array set env_save [array get env]
-						array unset env; array set env [array get boot_env]
+						array unset env *; array set env [array get boot_env]
 						
 						# Find an editor to edit the portfile
 						set editor ""
@@ -1766,7 +1766,7 @@ switch -- $action {
 						}
 						
 						# Restore internal dp environment
-						array unset env; array set env [array get env_save]
+						array unset env *; array set env [array get env_save]
 					}
 					
 					dir {
