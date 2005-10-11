@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.124 2005/10/11 20:39:03 jberry Exp $
+# $Id: port.tcl,v 1.125 2005/10/11 21:26:21 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1757,7 +1757,7 @@ switch -- $action {
 						if { $editor == "" } {
 							fatal "No EDITOR is specified in your environment"
 						} else {
-							if {[catch {eval exec $editor $portfile} result]} {
+							if {[catch {eval exec >/dev/stdout </dev/stdin $editor $portfile} result]} {
 								global errorInfo
 								ui_debug "$errorInfo"
 								fatal_softcontinue "unable to invoke editor $editor: $result"
