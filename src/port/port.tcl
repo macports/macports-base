@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.125 2005/10/11 21:26:21 jberry Exp $
+# $Id: port.tcl,v 1.126 2005/10/11 22:11:46 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1757,6 +1757,7 @@ switch -- $action {
 						if { $editor == "" } {
 							fatal "No EDITOR is specified in your environment"
 						} else {
+							set editor [darwinports::binaryInPath $editor]
 							if {[catch {eval exec >/dev/stdout </dev/stdin $editor $portfile} result]} {
 								global errorInfo
 								ui_debug "$errorInfo"
