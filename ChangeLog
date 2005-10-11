@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.17 2005/10/11 04:38:36 jberry Exp $
+#	$Id: ChangeLog,v 1.18 2005/10/11 13:06:16 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -13,6 +13,8 @@ ToDo Items for release 1.2:
     	(James added some suggested text to bug #4905)
     - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (???)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
+    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (anyone?)
+    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=4700 (anyone?)
 
 Release 1.2 (unreleased):
 
