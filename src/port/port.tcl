@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.122 2005/10/11 20:17:42 jberry Exp $
+# $Id: port.tcl,v 1.123 2005/10/11 20:34:55 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1743,7 +1743,8 @@ switch -- $action {
 						# Restore our entire environment from start time
 						# We need it to evaluate the editor, and the editor
 						# may want stuff from it as well, like TERM.
-						array set env [array get boot_env]
+						array unset env_save; array set env_save [array get env]
+						array unset env; array set env [array get boot_env]
 						
 						# Find an editor to edit the portfile
 						set editor ""
@@ -1756,8 +1757,15 @@ switch -- $action {
 						if { $editor == "" } {
 							fatal "No EDITOR is specified in your environment"
 						} else {
-							eval exec $editor $portfile
-						}						
+							if {[catch {eval exec $editor $portfile} result]} {
+								global errorInfo
+								ui_debug "$errorInfo"
+								fatal_softcontinue "unable to invoke editor: $result"
+							}
+						}
+						
+						# Restore internal dp environment
+						array unset env; array set env [array get env_save]
 					}
 					
 					dir {
