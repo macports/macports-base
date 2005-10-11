@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.16 2005/10/11 04:16:15 jberry Exp $
+#	$Id: ChangeLog,v 1.17 2005/10/11 04:38:36 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -13,8 +13,6 @@ ToDo Items for release 1.2:
     	(James added some suggested text to bug #4905)
     - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (???)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
-   	- Use org.darwinports. prefix for launchd startupitem files.
-
 
 Release 1.2 (unreleased):
 
