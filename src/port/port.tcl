@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.121 2005/10/11 20:09:47 jberry Exp $
+# $Id: port.tcl,v 1.122 2005/10/11 20:17:42 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1740,11 +1740,16 @@ switch -- $action {
 					}
 					
 					ed - edit {
+						# Restore our entire environment from start time
+						# We need it to evaluate the editor, and the editor
+						# may want stuff from it as well, like TERM.
+						array set env [array get boot_env]
+						
 						# Find an editor to edit the portfile
 						set editor ""
 						foreach ed { VISUAL EDITOR } {
-							if {[info exists boot_env($ed)]} {
-								set editor $boot_env($ed)
+							if {[info exists env($ed)]} {
+								set editor $env($ed)
 							}
 						}
 						
