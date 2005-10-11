@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
 # if requested
-# $Id: portindex.tcl,v 1.34 2005/10/10 14:23:55 pguyot Exp $
+# $Id: portindex.tcl,v 1.35 2005/10/11 06:35:28 pguyot Exp $
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
@@ -110,7 +110,8 @@ proc pindex {portdir} {
     	set save_prefix $prefix
     	set prefix {\${prefix}}
         array set portinfo [dportinfo $interp]
-        set $prefix $save_prefix
+        set prefix $save_prefix	# the code currently doesn't need prefix to be
+        						# correct, but let's revert it ASAP anyway.
         dportclose $interp
         set portinfo(portdir) $portdir
         puts "Adding port $portdir"
