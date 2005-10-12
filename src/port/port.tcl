@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.130 2005/10/12 21:55:45 jmpp Exp $
+# $Id: port.tcl,v 1.131 2005/10/12 22:21:20 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -742,9 +742,10 @@ proc element resname {
 	set token [lookahead]
 	switch -regex -- $token {
 		^\\)$			-
-		^_EOF_$			{}
+		^_EOF_$			{	# End of file/expression
+						}
 		
-		^\\($			{
+		^\\($			{	# Parenthesized Expression
 							advance
 							set el [portExpr reslist]
 							if {!$el || ![match ")"]} {
@@ -812,7 +813,8 @@ proc element resname {
 							set el 1
 						}
 		
-		default			{
+		default			{	# Treat anything else as a portspec (portname, version, variants, options
+							# or some combination thereof).
 							parseFullPortSpec name version variants options
 							add_to_portlist reslist [list name $name \
 														version $version \
@@ -1706,7 +1708,7 @@ switch -- $action {
 	cat -
 	dir -
 	file {
-		# Operations on the Portfiles of the port
+		# Operations on the port's directory and Portfile
 		require_portlist
 		foreachport $portlist {
 			# If we have a url, use that, since it's most specific
@@ -1740,7 +1742,9 @@ switch -- $action {
 					}
 					
 					ed - edit {
-						# Restore our entire environment from start time
+						# Edit the port's portfile with the user's editor
+						
+						# Restore our entire environment from start time.
 						# We need it to evaluate the editor, and the editor
 						# may want stuff from it as well, like TERM.
 						array unset env_save; array set env_save [array get env]
@@ -1755,6 +1759,7 @@ switch -- $action {
 							}
 						}
 						
+						# Invoke the editor
 						if { $editor == "" } {
 							fatal "No EDITOR is specified in your environment"
 						} else {
