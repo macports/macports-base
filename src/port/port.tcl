@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.129 2005/10/12 13:21:16 pguyot Exp $
+# $Id: port.tcl,v 1.130 2005/10/12 21:55:45 jmpp Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1706,7 +1706,7 @@ switch -- $action {
 	cat -
 	dir -
 	file {
-		# Operations on the PortFiles of the port
+		# Operations on the Portfiles of the port
 		require_portlist
 		foreachport $portlist {
 			# If we have a url, use that, since it's most specific
@@ -1726,7 +1726,7 @@ switch -- $action {
 			}
 			
 			set portdir [darwinports::getportdir $porturl $portdir]
-			set portfile "${portdir}/PortFile"
+			set portfile "${portdir}/Portfile"
 			
 			if {[file readable $portfile]} {
 				switch -- $action {
