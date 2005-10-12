@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.23 2005/10/12 04:32:14 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.24 2005/10/12 12:56:26 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -377,7 +377,7 @@ RunService "$1"
 	ui_msg "# by default. Add the following line to /etc/hostconfig"
 	ui_msg "# or ${prefix}/etc/rc.conf to start it at startup:"
 	ui_msg "#"
-	ui_msg "#	${uppername}:=-YES-"
+	ui_msg "# ${uppername}=-YES-"
 	ui_msg "###########################################################"
 }
 
