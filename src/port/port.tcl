@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.131 2005/10/12 22:21:20 jberry Exp $
+# $Id: port.tcl,v 1.132 2005/10/12 22:35:01 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1072,8 +1072,11 @@ while {[moreargs]} {
 	if {[string index $arg 0] != "-"} {
 		break
 	} elseif {[string index $arg 1] == "-"} {
-		# Process long args -- we don't support any for now
-		print_usage; exit 1
+		# Process long arguments
+		switch -- $arg {
+			--version	{ puts {(please use "version" to get version information)}; set action "version" }
+			default		{ print_usage; exit 1 }
+		}
 	} else {
 		# Process short arg(s)
 		set opts [string range $arg 1 end]
