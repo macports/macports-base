@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.106 2005/10/05 04:28:05 pguyot Exp $
+# $Id: portfetch.tcl,v 1.107 2005/10/12 22:10:28 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -407,7 +407,7 @@ proc fetchfiles {args} {
 					set fetched 1
 					break
 				} else {
-#					ui_warn "[msgcat::mc "Unable to fetch:"]: $result"
+					ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 					exec rm -f ${distpath}/${distfile}.TMP
 				}
 			}
