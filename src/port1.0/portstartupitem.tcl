@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.22 2005/10/11 04:38:36 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.23 2005/10/12 04:32:14 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -369,6 +369,16 @@ RunService "$1"
 	puts ${para} "\tOrderPreference\t= \"None\";"
 	puts ${para} "\}"
 	close ${para}
+	
+	# Emit some information for the user
+	ui_msg "###########################################################"
+	ui_msg "# A startup item has been generated that will aid in"
+	ui_msg "# starting ${portname} with SystemStarter. It is disabled"
+	ui_msg "# by default. Add the following line to /etc/hostconfig"
+	ui_msg "# or ${prefix}/etc/rc.conf to start it at startup:"
+	ui_msg "#"
+	ui_msg "#	${uppername}:=-YES-"
+	ui_msg "###########################################################"
 }
 
 proc startupitem_create_darwin_launchd {args} {
@@ -571,6 +581,16 @@ proc startupitem_create_darwin_launchd {args} {
 	# Make a symlink to the plist file
 	file mkdir "${destroot}/Library/${daemondest}"
 	system "cd ${destroot}/Library/${daemondest} && ln -sf ${itemdir}/${plistname}"
+	
+	# Emit some information for the user
+	ui_msg "###########################################################"
+	ui_msg "# A startup item has been generated that will aid in"
+	ui_msg "# starting ${portname} with launchd. It is disabled"
+	ui_msg "# by default. Execute the following command to start it,"
+	ui_msg "# and to cause it to launch at startup:"
+	ui_msg "#"
+	ui_msg "# sudo launchctl load -w /Library/${daemondest}/${plistname}"
+	ui_msg "###########################################################"
 }
 
 proc startupitem_create {args} {
