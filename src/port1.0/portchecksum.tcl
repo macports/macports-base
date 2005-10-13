@@ -1,6 +1,6 @@
 # et:ts=4
 # portchecksum.tcl
-# $Id: portchecksum.tcl,v 1.44 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portchecksum.tcl,v 1.45 2005/10/13 19:45:49 pguyot Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -183,7 +183,7 @@ proc checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc checksum_main {args} {
-	global UI_PREFIX all_dist_files checksums_array
+	global UI_PREFIX all_dist_files checksums_array portverbose
 
 	# If no files have been downloaded, there is nothing to checksum.
 	if {![info exists all_dist_files]} {
@@ -225,6 +225,10 @@ proc checksum_main {args} {
 						ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
 					} else {
 						ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
+						# if -v isn't specified, trash the distfile.
+						if {${portverbose} == "no"} {
+							file delete -force ${fullpath}
+						}
 						ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
 						ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
 						
