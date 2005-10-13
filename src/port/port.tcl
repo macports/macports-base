@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.133 2005/10/12 22:36:18 jberry Exp $
+# $Id: port.tcl,v 1.134 2005/10/13 00:59:16 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -52,6 +52,9 @@ array set global_variations	{}
 # Save off a copy of the environment before dportinit monkeys with it
 global env
 array set boot_env [array get env]
+
+global argv0
+set cmdname [file tail $argv0]
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -134,19 +137,18 @@ proc ui_channels {priority} {
 
 # Standard procedures
 proc print_usage args {
-	global argv0
-	set cmd [file tail $argv0]
+	global cmdname
 	set usage { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 }
 		
-	puts "Usage: $cmd $usage"
-	puts "\"$cmd help\" or \"man 1 port\" for more information."
+	puts "Usage: $cmdname$usage"
+	puts "\"$cmdname help\" or \"man 1 port\" for more information."
 }
 
 
 proc print_help args {
-	global argv0
+	global cmdname
 	
 	set help { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
@@ -185,7 +187,7 @@ For more information:
 	
 	}
 	
-	puts "[file tail $argv0]$help"
+	puts "$cmdname$help"
 }
 
 
@@ -1074,7 +1076,7 @@ while {[moreargs]} {
 	} elseif {[string index $arg 1] == "-"} {
 		# Process long arguments
 		switch -- $arg {
-			--version	{ ui_warn {(please use "version" to get version information)}; set action "version" }
+			--version	{ ui_warn "(please use \"$cmdname version\" to get version information)"; set action "version" }
 			default		{ print_usage; exit 1 }
 		}
 	} else {
