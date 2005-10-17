@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.24 2005/10/12 12:56:26 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.25 2005/10/17 18:42:07 mww Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -202,10 +202,10 @@ proc startupitem_create_darwin_systemstarter {args} {
 # DarwinPorts generated StartupItem
 #
 
-# Source the utilities package and the darwinports config file
-. /etc/rc.common
 }
 	puts ${item} "prefix=$prefix"
+	# Source the utilities package and the darwinports config file
+	puts ${item} {[ -r "/etc/rc.common" ] && . "/etc/rc.common"}
 	puts ${item} {[ -r "${prefix}/etc/rc.conf" ] && . "${prefix}/etc/rc.conf"}
 
 	# Emit the Configuration Section
