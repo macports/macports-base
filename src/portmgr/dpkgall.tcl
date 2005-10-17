@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh8.4
 # dpkgbuild.tcl
-# $Id: dpkgall.tcl,v 1.16 2005/08/27 00:07:32 pguyot Exp $
+# $Id: dpkgall.tcl,v 1.17 2005/10/17 13:32:24 jberry Exp $
 #
 # Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
@@ -290,7 +290,10 @@ proc main {argc argv} {
 	}
 
 	# Initialize System
-	dportinit
+	array set ui_options {}
+	array set options {}
+	array set variations {}
+	dportinit ui_options options variations
 
 	# If -i was specified, install base system and exit
 	if {$initialize_flag == "true"} {

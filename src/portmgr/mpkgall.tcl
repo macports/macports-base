@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # mpkgall.tcl
-# $Id: mpkgall.tcl,v 1.9 2005/08/27 00:07:32 pguyot Exp $
+# $Id: mpkgall.tcl,v 1.10 2005/10/17 13:32:24 jberry Exp $
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -34,6 +34,7 @@ package require darwinports
 
 # globals
 set portdir .
+array set ui_options {}
 
 proc ui_prefix {priority} {
 	return ""
@@ -215,7 +216,7 @@ array set options [list]
 array set variations [list]
 #	set ui_options(ports_verbose) yes
 
-if {[catch {dportinit} result]} {
+if {[catch {dportinit ui_options options variations} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
 }

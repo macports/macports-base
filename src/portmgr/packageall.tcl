@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # packageall.tcl
-# $Id: packageall.tcl,v 1.20 2005/08/27 00:07:32 pguyot Exp $
+# $Id: packageall.tcl,v 1.21 2005/10/17 13:32:24 jberry Exp $
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -36,6 +36,7 @@ package require darwinports
 set portdir .
 
 # UI Instantiations
+array set ui_options {}
 # ui_options(ports_debug) - If set, output debugging messages.
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
@@ -199,7 +200,7 @@ array set options [list]
 array set variations [list]
 #	set ui_options(ports_verbose) yes
 
-if {[catch {dportinit} result]} {
+if {[catch {dportinit ui_options options variations} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
 }
