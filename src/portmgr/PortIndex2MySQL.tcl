@@ -2,7 +2,7 @@
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
 # 3-Oct-2002
-# $Id: PortIndex2MySQL.tcl,v 1.6 2005/08/27 00:07:32 pguyot Exp $
+# $Id: PortIndex2MySQL.tcl,v 1.7 2005/10/17 01:51:00 kevin Exp $
 #
 # Copyright (c) 2003 Apple Computer, Inc.
 # Copyright (c) 2002 Kevin Van Vechten. 
@@ -47,7 +47,10 @@ proc ui_channels {priority} {
 # otherwise, sql statements will be printed to stdout.
 set use_db ""
 
-dportinit
+array set ui_options {}
+array set global_options {}
+array set global_variations {}
+dportinit ui_options global_options global_variations
 
 if {$use_db != ""} {
     load /opt/local/lib/libmysqltcl.dylib
