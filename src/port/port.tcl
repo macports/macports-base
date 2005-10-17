@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.135 2005/10/13 04:41:13 jberry Exp $
+# $Id: port.tcl,v 1.136 2005/10/17 00:45:14 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1400,12 +1400,12 @@ switch -- $action {
 	installed {
         if { [llength $portlist] } {
 			set ilist {}
-        	foreach portspec $portlist {
-        		array set port $portspec
-        		set portname $port(name)
-        		set composite_version [composite_version $port(version) $port(variants)]
+			foreachport $portlist {
+        		set composite_version [composite_version $portversion [array get variations]]
 				if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
-					if {![string match "* not registered as installed." $result]} {
+					if {[string match "* not registered as installed." $result]} {
+						puts "Port $portname is not installed."
+					} else {
 						global errorInfo
 						ui_debug "$errorInfo"
 						fatal_softcontinue "port installed failed: $result"
@@ -1415,7 +1415,7 @@ switch -- $action {
         } else {
             if { [catch {set ilist [registry::installed]} result] } {
                 if {$result == "Registry error: No ports registered as installed."} {
-                    fatal "No ports installed!"
+                    puts "No ports are installed!"
                 } else {
 					global errorInfo
 					ui_debug "$errorInfo"
