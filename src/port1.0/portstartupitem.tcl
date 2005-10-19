@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.25 2005/10/17 18:42:07 mww Exp $
+# $Id: portstartupitem.tcl,v 1.26 2005/10/19 05:19:30 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -581,6 +581,17 @@ proc startupitem_create_darwin_launchd {args} {
 	# Make a symlink to the plist file
 	file mkdir "${destroot}/Library/${daemondest}"
 	system "cd ${destroot}/Library/${daemondest} && ln -sf ${itemdir}/${plistname}"
+	
+	# If launchd is not available, warn the user
+	set haveLaunchd	${portutil::autoconf::have_launchd}
+	if {![tbool haveLaunchd]} {
+		ui_msg "###########################################################"
+		ui_msg "# WARNING:"
+		ui_msg "# We're building a launchd startup item, but launchd wasn't"
+		ui_msg "# found by configure. Are you sure you didn't mess up your"
+		ui_msg "# ports.conf settings?"
+		ui_msg "###########################################################"
+	}
 	
 	# Emit some information for the user
 	ui_msg "###########################################################"
