@@ -1,8 +1,8 @@
-#!/usr/bin/tclsh
+#!/usr/bin/env tclsh
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
 # 3-Oct-2002
-# $Id: PortIndex2MySQL.tcl,v 1.7 2005/10/17 01:51:00 kevin Exp $
+# $Id: PortIndex2MySQL.tcl,v 1.8 2005/10/19 03:23:06 jmpp Exp $
 #
 # Copyright (c) 2003 Apple Computer, Inc.
 # Copyright (c) 2002 Kevin Van Vechten. 
@@ -53,7 +53,7 @@ array set global_variations {}
 dportinit ui_options global_options global_variations
 
 if {$use_db != ""} {
-    load /opt/local/lib/libmysqltcl.dylib
+    load @PREFIX@/lib/libmysqltcl.dylib
     set db [mysqlconnect -user darwinports -password woot -db darwinports]
 } else {
     set db ""
