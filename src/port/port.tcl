@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.136 2005/10/17 00:45:14 jberry Exp $
+# $Id: port.tcl,v 1.137 2005/10/20 21:26:43 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -154,9 +154,9 @@ proc print_help args {
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
-	help, info, location, provides, activate, deactivate, selfupdate,
-	upgrade, version, compact, uncompact, uninstall, installed, outdated,
-	contents, deps, variants, search, list, echo, sync, dir, file, cat, edit,
+	help, info, location, provides, activate, deactivate, selfupdate, upgrade,
+	version, compact, uncompact, uninstall, installed, outdated, contents, deps,
+	variants, search, list, echo, sync, dir, url, file, cat, edit,
 	fetch, patch, extract, build, destroot, install, test.
 	
 Pseudo-portnames:
@@ -342,15 +342,18 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
 
 
 proc url_to_portname { url } {
+	# Save directory and restore the directory, since dportopen changes it
+	set savedir [pwd]
+	set portname ""
 	if {[catch {set ctx [dportopen $url]} result]} {
 		puts stderr "Can't map the URL '$url' to a port description file (${result}). Please verify that the directory and portfile syntax are correct."
-		return ""
 	} else {
 		array set portinfo [dportinfo $ctx]
 		set portname $portinfo(name)
 		dportclose $ctx
-		return $portname
 	}
+	cd $savedir
+	return $portname
 }
 
 
@@ -380,6 +383,9 @@ proc require_portlist {} {
 # When the block is entered, the variables portname, portversion, options, and variations
 # will have been set
 proc foreachport {portlist block} {
+	# Restore cwd after each port, since dportopen changes it, and relative
+	# urls will break on subsequent passes
+	set savedir [pwd]
 	foreach portspec $portlist {
 		uplevel 1 "array set portspec { $portspec }"
 		uplevel 1 {
@@ -392,6 +398,7 @@ proc foreachport {portlist block} {
 			array set options $portspec(options)
 		}
 		uplevel 1 $block
+		cd $savedir
 	}
 }
 
@@ -1105,9 +1112,11 @@ while {[moreargs]} {
 				t { set global_options(ports_trace) yes			}
 				D { advance
 					set global_porturl "file://[lookahead]"
+					break
 				  }
-				u { advance
+				U { advance
 					set global_porturl [lookahead]
+					break
 				  }
 				default {
 					print_usage; exit 1
@@ -1712,6 +1721,7 @@ switch -- $action {
 	ed - edit -
 	cat -
 	dir -
+	url -
 	file {
 		# Operations on the port's directory and Portfile
 		require_portlist
@@ -1732,7 +1742,8 @@ switch -- $action {
 				set porturl $portinfo(porturl)
 			}
 			
-			set portdir [darwinports::getportdir $porturl $portdir]
+			set portdir [file normalize [darwinports::getportdir $porturl $portdir]]
+			set porturl "file://${portdir}";	# Rebuild url so it's fully qualified
 			set portfile "${portdir}/Portfile"
 			
 			if {[file readable $portfile]} {
@@ -1782,6 +1793,11 @@ switch -- $action {
 					dir {
 						# output the path to the port's directory
 						puts $portdir
+					}
+
+					url {
+						# output the url of the port's directory, suitable to feed back in later as a port descriptor
+						puts $porturl
 					}
 
 					file {
