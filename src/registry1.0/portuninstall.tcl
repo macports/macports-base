@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.12 2005/09/19 20:51:48 jberry Exp $
+# $Id: portuninstall.tcl,v 1.13 2005/10/20 16:15:38 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -64,6 +64,14 @@ proc uninstall {portname {v ""} optionslist} {
 		set variants [lindex [lindex $ilist 0] 3]
 	}
 
+	# determine if it's the only installed port with that name or not.
+	if {$v == ""} {
+		set nb_versions_installed 1
+	} else {
+		set ilist [registry::installed $portname ""]
+		set nb_versions_installed [llength $ilist]
+	}
+
 	set ref [registry::open_entry $portname $version $revision $variants]
 
 	# If global forcing is on, make it the same as a local force flag.
@@ -122,8 +130,13 @@ proc uninstall {portname {v ""} optionslist} {
 		}
 	}
 
-	# Remove the port from the deps_map
-	registry::unregister_dependencies $portname
+	# Remove the port from the deps_map if only one version was installed.
+	# This is a temporary fix for a deeper problem that is that the dependency
+	# map doesn't take the port version into account (but should).
+	# Fixing it means transitionning to a new dependency map format.
+	if {$nb_versions_installed == 1} {
+		registry::unregister_dependencies $portname
+	}
 
 	# Now look for a contents list
 	set contents [registry::property_retrieve $ref contents]
