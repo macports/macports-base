@@ -1,20 +1,20 @@
 #
-#	$Id: ChangeLog,v 1.20 2005/10/20 17:31:55 jberry Exp $
+#	$Id: ChangeLog,v 1.21 2005/10/21 02:17:02 jmpp Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
 ToDo Items for release 1.2:
 
-    - Add to port(1) manpage docs for new port(1) syntax. (Juan)
-    - Add to portfile(7) manpage docs for the new startupitem keys.
+    - Add to port(1) manpage docs for new port(1) syntax. (Juan & documentation team, hopefully ;-)
+    - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
     	(James added some suggested text to bug #4905)
-    - Add to ports.conf(5) manpage docs on new startupitem_type option.
+    - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
     	(James added some suggested text to bug #4905)
-    - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (???)
-    - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
-    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (anyone?)
+    - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (idem)
+    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (Juan)
     	(install from CVS or tarfile doesn't build dports directory and portindex)
+    - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
 
 Release 1.2 (unreleased):
 
