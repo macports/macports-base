@@ -1,0 +1,32 @@
+#
+# $Id: TODO.txt,v 1.1 2005/10/22 18:58:34 jberry Exp $
+#
+# DarwinPorts TODO List
+#
+# This is a partial list of items to be completed, or considered, for future
+# revisions.
+#
+
+Version 1.2:
+
+    - Add to port(1) manpage docs for new port(1) syntax. (Juan & documentation team, hopefully ;-)
+    - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
+    	(James added some suggested text to bug #4905)
+    - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
+    	(James added some suggested text to bug #4905)
+    - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (idem)
+    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (Juan)
+    	(install from CVS or tarfile doesn't build dports directory and portindex)
+    - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
+
+Version 1.3:
+
+	- Consider recognizing ports by directory name if the element contains
+	  a / but doesn't look like a url. Such a name could be transformed immediately
+	  into a url.
+	  
+	- Consider allowing multiple actions per port invocation, either read from
+	  standard input as lines, or separated on the command line by something like ';'.
+	  This would allow one to amortize port load time if multiple actions are desired,
+	  particularly from other scripts.
+	  
