@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.1 2005/10/22 18:58:34 jberry Exp $
+# $Id: TODO.txt,v 1.2 2005/10/22 19:03:16 jberry Exp $
 #
 # DarwinPorts TODO List
 #
@@ -21,7 +21,7 @@ Version 1.2:
 
 Version 1.3:
 
-	- Consider recognizing ports by directory name if the element contains
+	- Consider recognizing ports by directory name in port if the element contains
 	  a / but doesn't look like a url. Such a name could be transformed immediately
 	  into a url.
 	  
@@ -29,4 +29,8 @@ Version 1.3:
 	  standard input as lines, or separated on the command line by something like ';'.
 	  This would allow one to amortize port load time if multiple actions are desired,
 	  particularly from other scripts.
+	  
+	- Consider changing dportopen so that it doesn't change the current directory. Does
+	  this get used anywhere? It certainly complicates our handling of relative urls/
+	  directories.
 	  
