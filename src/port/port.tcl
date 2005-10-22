@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.137 2005/10/20 21:26:43 jberry Exp $
+# $Id: port.tcl,v 1.138 2005/10/22 14:40:20 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -138,7 +138,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global cmdname
-	set usage { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
+	set usage { [-vdqfonasbckt] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 }
 		
@@ -150,7 +150,7 @@ proc print_usage args {
 proc print_help args {
 	global cmdname
 	
-	set help { [-vdqfonasbckt] [-D portdir] [-u porturl] action [actionflags]
+	set help { [-vdqfonasbckt] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
@@ -302,11 +302,7 @@ proc add_to_portlist {listname portentry} {
 	
 	# If neither portname nor url is specified, then default to the current port
 	if { $port(url) == "" && $port(name) == "" } {
-		if {[info exists global_porturl]} {
-			set url $global_porturl
-		} else {
-			set url file://.
-		}
+		set url file://.
 		set portname [url_to_portname $url]
 		set port(url) $url
 		set port(name) $portname
@@ -360,21 +356,9 @@ proc url_to_portname { url } {
 # Supply a default porturl/portname if the portlist is empty
 proc require_portlist {} {
 	upvar portlist portlist
-	global global_porturl
 	
 	if {[llength $portlist] == 0} {
-		if {[info exists global_porturl]} {
-			set url $global_porturl
-		} else {
-			set url file://.
-		}
-		set portname [url_to_portname $url]
-	
-		if {$portname != ""} {
-			add_to_portlist portlist [list url $url name $portname]
-		} else {
-			fatal "You must specify a port or be in a port directory"
-		}
+		set portlist [get_current_port]
 	}
 }
 
@@ -463,16 +447,10 @@ proc get_all_ports {} {
 
 
 proc get_current_port {} {
-	global global_porturl
-
-	if {[info exists global_porturl]} {
-		set url $global_porturl
-	} else {
-		set url file://.
-	}
+	set url file://.
 	set portname [url_to_portname $url]
 	if {$portname == ""} {
-		fatal "The pseudo-port current must be issued in a port's directory"
+		fatal "To use the current port, you must in a port's directory"
 	}
 	
 	set results {}
@@ -1111,11 +1089,7 @@ while {[moreargs]} {
 				k { set global_options(ports_autoclean) no		}
 				t { set global_options(ports_trace) yes			}
 				D { advance
-					set global_porturl "file://[lookahead]"
-					break
-				  }
-				U { advance
-					set global_porturl [lookahead]
+					cd [lookahead]
 					break
 				  }
 				default {
