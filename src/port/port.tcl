@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.138 2005/10/22 14:40:20 jberry Exp $
+# $Id: port.tcl,v 1.139 2005/10/22 18:41:24 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -138,7 +138,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global cmdname
-	set usage { [-vdqfonasbckt] [-D portdir] action [actionflags]
+	set usage { [-vdqfonasbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 }
 		
@@ -150,7 +150,7 @@ proc print_usage args {
 proc print_help args {
 	global cmdname
 	
-	set help { [-vdqfonasbckt] [-D portdir] action [actionflags]
+	set help { [-vdqfonasbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
@@ -450,7 +450,7 @@ proc get_current_port {} {
 	set url file://.
 	set portname [url_to_portname $url]
 	if {$portname == ""} {
-		fatal "To use the current port, you must in a port's directory"
+		fatal "To use the current port, you must be in a port's directory"
 	}
 	
 	set results {}
