@@ -2,7 +2,7 @@
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
 # 3-Oct-2002
-# $Id: PortIndex2MySQL.tcl,v 1.8 2005/10/19 03:23:06 jmpp Exp $
+# $Id: PortIndex2MySQL.tcl,v 1.9 2005/10/23 04:40:12 jmpp Exp $
 #
 # Copyright (c) 2003 Apple Computer, Inc.
 # Copyright (c) 2002 Kevin Van Vechten. 
@@ -32,6 +32,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
+catch {source \
+	   [file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
 
 proc ui_prefix {priority} {

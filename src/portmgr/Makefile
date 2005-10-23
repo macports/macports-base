@@ -3,7 +3,8 @@ INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/portmgr
 SCRIPTS=	PortIndex2MySQL
 
 edit = sed \
-	-e 's,@PREFIX\@,$(prefix),g'
+	-e 's,@PREFIX\@,$(prefix),g' \
+	-e 's,@TCL_PACKAGE_DIR\@,$(TCL_PACKAGE_DIR),g'
 
 include ../../Mk/dports.autoconf.mk
 
