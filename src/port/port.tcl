@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.139 2005/10/22 18:41:24 jberry Exp $
+# $Id: port.tcl,v 1.140 2005/10/25 02:25:43 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1716,7 +1716,7 @@ switch -- $action {
 				set porturl $portinfo(porturl)
 			}
 			
-			set portdir [file normalize [darwinports::getportdir $porturl $portdir]]
+			set portdir [file normalize [darwinports::getportdir $porturl]]
 			set porturl "file://${portdir}";	# Rebuild url so it's fully qualified
 			set portfile "${portdir}/Portfile"
 			
