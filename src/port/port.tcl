@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.140 2005/10/25 02:25:43 jberry Exp $
+# $Id: port.tcl,v 1.141 2005/10/26 23:57:51 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -168,8 +168,8 @@ Pseudo-portnames:
 	Additional pseudo-portnames are:
 	variants:, variant:, description:, portdir:, homepage:, epoch:,
 	platforms:, platform:, name:, long_description:, maintainers:,
-	maintainer:, categories:, category:, and revision:.
-	These each select a set or ports based on a regex search of metadata
+	maintainer:, categories:, category:, version:, and revision:.
+	These each select a set of ports based on a regex search of metadata
 	about the ports. In all such cases, a standard regex pattern following
 	the colon will be used to select the set of ports to which the
 	pseudo-portname expands.
@@ -762,6 +762,7 @@ proc element resname {
 		^maintainer:	-
 		^categories:	-
 		^category:		-
+		^version:		-
 		^revision:		{	# Handle special port selectors
 							advance
 							
