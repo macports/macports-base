@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.141 2005/10/26 23:57:51 jberry Exp $
+# $Id: port.tcl,v 1.142 2005/10/27 18:31:58 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -446,6 +446,13 @@ proc get_all_ports {} {
 }
 
 
+proc get_current_ports {} {
+	# This is just a synonym for get_current_port that
+	# works with the regex in element
+	return [get_current_port]
+}
+
+
 proc get_current_port {} {
 	set url file://.
 	set portname [url_to_portname $url]
@@ -740,13 +747,23 @@ proc element resname {
 							}
 						}
 			
-		^all$ 			-
-		^installed$		-
-		^uninstalled$	-
-		^active$		-
-		^inactive$		-
-		^outdated$		{	advance; add_multiple_ports reslist [get_${token}_ports];	set el 1 }
-		^current$		{	advance; add_multiple_ports reslist [get_current_port];		set el 1 }
+		^all(@.*)?$ 			-
+		^installed(@.*)?$		-
+		^uninstalled(@.*)?$		-
+		^active(@.*)?$			-
+		^inactive(@.*)?$		-
+		^outdated(@.*)?$		-
+		^current(@.*)?$	{
+							# A simple pseudo-port name
+							advance
+							
+							# Break off the version component, if there is one
+							regexp {^(\w+)(@.*)?} $token matchvar name remainder
+							
+							add_multiple_ports reslist [get_${name}_ports] $remainder
+							
+							set el 1
+						}
 		
 		^variants:		-
 		^variant:		-
@@ -816,13 +833,13 @@ proc element resname {
 }
 
 
-proc add_multiple_ports { resname ports } {
+proc add_multiple_ports { resname ports {remainder ""} } {
 	upvar $resname reslist
 	
 	set version ""
 	array unset variants
 	array unset options
-	parsePortSpec version variants options
+	parsePortSpec version variants options $remainder
 	
 	array unset overrides
 	if {$version != ""}			{ set overrides(version) $version }
@@ -964,25 +981,32 @@ proc parseFullPortSpec { namename vername varname optname } {
 	upvar $varname portvariants
 	upvar $optname portoptions
 	
+	set portname ""
+	set portversion ""
+	array unset portvariants
+	array unset portoptions
+	
 	if { [moreargs] } {
 		# Look first for a potential portname
 		#
 		# We need to allow a wide variaty of tokens here, because of actions like "provides"
 		# so we take a rather lenient view of what a "portname" is. We allow
-		# anything that doesn't look like either a variant, a version, or an option
+		# anything that doesn't look like either a version, a variant, or an option
 		set token [lookahead]
-		if {![regexp {^(\d.*|[-+].*|[[:alpha:]_]+[\w\.]*=.*)} $token match]} {
-			set portname $token
-			advance
+
+		set remainder ""
+		if {![regexp {^(@|[-+]|[[:alpha:]_]+[\w\.]*=)} $token match]} {
+			advance			
+			regexp {^([^@]+)(@.*)?} $token match portname remainder
 		}
 		
 		# Now parse the rest of the spec
-		parsePortSpec portversion portvariants portoptions
+		parsePortSpec portversion portvariants portoptions $remainder
 	}
 }
 
 	
-proc parsePortSpec { vername varname optname } {
+proc parsePortSpec { vername varname optname {remainder ""} } {
 	upvar $vername portversion
 	upvar $varname portvariants
 	upvar $optname portoptions
@@ -995,27 +1019,34 @@ proc parsePortSpec { vername varname optname } {
 	array unset portvariants
 	
 	# Parse port version/variants/options
-	set opt ""
-	if {[moreargs]} {
-		set opt [lookahead]
-	}
+	set opt $remainder
+	set adv 0
+	set consumed 0
 	for {set firstTime 1} {$opt != "" || [moreargs]} {set firstTime 0} {
+	
 		# Refresh opt as needed
-		if {[string length $opt] == 0} {
-			advance
+		if {$opt == ""} {
+			if {$adv} advance
 			set opt [lookahead]
+			set adv 1
+			set consumed 0
 		}
 		
 		# Version must be first, if it's there at all
-		if {$firstTime && [string match {[0-9]*} $opt]} {
+		if {$firstTime && [string match {@*} $opt]} {
 			# Parse the version
 			
+			# Strip the @
+			set opt [string range $opt 1 end]
+			
+			# Handle the version
 			set sepPos [string first "/" $opt]
 			if {$sepPos >= 0} {
 				# Version terminated by "/" to disambiguate -variant from part of version
 				set portversion [string range $opt 0 [expr $sepPos-1]]
 				set opt [string range $opt [expr $sepPos+1] end]
 			} else {
+				# Version terminated by "+", or else is complete
 				set sepPos [string first "+" $opt]
 				if {$sepPos >= 0} {
 					# Version terminated by "+"
@@ -1027,6 +1058,7 @@ proc parsePortSpec { vername varname optname } {
 					set opt ""
 				}
 			}
+			set consumed 1
 		} else {
 			# Parse all other options
 			
@@ -1035,12 +1067,15 @@ proc parsePortSpec { vername varname optname } {
 				# It's a variable setting
 				set portoptions($key) \"$val\"
 				set opt ""
+				set consumed 1
 			} elseif {[regexp {^([-+])([[:alpha:]_]+[\w\.]*)} $opt match sign variant] == 1} {
 				# It's a variant
 				set portvariants($variant) $sign
 				set opt [string range $opt [expr [string length $variant]+1] end]
+				set consumed 1
 			} else {
 				# Not an option we recognize, so break from port option processing
+				if { $consumed && $adv } advance
 				break
 			}
 		}
@@ -1416,9 +1451,9 @@ switch -- $action {
                 set ivariants [lindex $i 3]
                 set iactive [lindex $i 4]
                 if { $iactive == 0 } {
-                    puts "  $iname ${iversion}_${irevision}${ivariants}"
+                    puts "  $iname @${iversion}_${irevision}${ivariants}"
                 } elseif { $iactive == 1 } {
-                    puts "  $iname ${iversion}_${irevision}${ivariants} (active)"
+                    puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
                 }
             }
         } else {
@@ -1637,9 +1672,9 @@ switch -- $action {
 					continue
 				}
 				if {![info exists portinfo(portdir)]} {
-					set output [format "%-30s %-12s %s" $portinfo(name) $portinfo(version) $portinfo(description)]
+					set output [format "%-30s @%-12s %s" $portinfo(name) $portinfo(version) $portinfo(description)]
 				} else {
-					set output [format "%-30s %-14s %-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
+					set output [format "%-30s %-14s @%-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
 				}
 				set portfound 1
 				puts $output
@@ -1676,7 +1711,7 @@ switch -- $action {
 				if {[info exists portinfo(portdir)]} {
 					set outdir $portinfo(portdir)
 				}
-				puts [format "%-30s %-14s %s" $portinfo(name) $portinfo(version) $outdir]
+				puts [format "%-30s @%-14s %s" $portinfo(name) $portinfo(version) $outdir]
 			}
 		}
 	}
@@ -1689,7 +1724,13 @@ switch -- $action {
 				lappend opts "$key=$value"
 			}
 			
-			puts [format "%-30s %s %s" $portname [composite_version $portversion [array get variations] 1] [join $opts " "]]
+			set composite_version [composite_version $portversion [array get variations] 1]
+			if { $composite_version != "" } {
+				set ver_field "@$composite_version"
+			} else {
+				set ver_field ""
+			}
+			puts [format "%-30s %s %s" $portname $ver_field  [join $opts " "]]
 		}
 	}
 	
