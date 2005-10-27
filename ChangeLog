@@ -1,10 +1,13 @@
 #
-#	$Id: ChangeLog,v 1.22 2005/10/22 18:58:34 jberry Exp $
+#	$Id: ChangeLog,v 1.23 2005/10/27 19:24:27 mww Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
 Release 1.2 (unreleased):
+
+	- gzip-compress manpages that are in the share/man/cat? directories during
+	  destroot, too. (mww)
 
 	- Enhance port command such that targets that require a port to be
 	  specified will now all default to a port in current directory. (jberry)
