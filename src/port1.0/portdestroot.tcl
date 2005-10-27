@@ -1,6 +1,6 @@
 # et:ts=4
 # portdestroot.tcl
-# $Id: portdestroot.tcl,v 1.28 2005/10/08 21:29:35 jberry Exp $
+# $Id: portdestroot.tcl,v 1.29 2005/10/27 19:21:07 mww Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
@@ -139,7 +139,7 @@ proc destroot_finish {args} {
 	set found 0
 	set manlinks [list]
 	foreach mandir [readdir "${manpath}"] {
-	    if {![regexp {^man(.)$} ${mandir} match manindex]} { continue }
+	    if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
 	    set mandirpath [file join ${manpath} ${mandir}]
 	    if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
 		ui_debug "Scanning ${mandir}"
