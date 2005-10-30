@@ -1,10 +1,17 @@
 #
-#	$Id: ChangeLog,v 1.23 2005/10/27 19:24:27 mww Exp $
+#	$Id: ChangeLog,v 1.24 2005/10/30 16:21:01 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
 Release 1.2 (unreleased):
+
+	- Syntax change to disambiguate uses of the port's version on the command
+	  line, when coupled with new changes to accept multiple ports.
+	  The port version must now always be prefixed with an @. Example:
+	  	port uninstall vim @1.0
+	  This probably only affects uninstall and activate, both of which
+	  require a version if there are multiple versions installed.
 
 	- gzip-compress manpages that are in the share/man/cat? directories during
 	  destroot, too. (mww)

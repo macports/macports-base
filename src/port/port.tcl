@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.142 2005/10/27 18:31:58 jberry Exp $
+# $Id: port.tcl,v 1.143 2005/10/30 16:21:02 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -139,7 +139,7 @@ proc ui_channels {priority} {
 proc print_usage args {
 	global cmdname
 	set usage { [-vdqfonasbcktu] [-D portdir] action [actionflags]
-[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
+[[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
 	puts "Usage: $cmdname$usage"
@@ -151,7 +151,7 @@ proc print_help args {
 	global cmdname
 	
 	set help { [-vdqfonasbcktu] [-D portdir] action [actionflags]
-[[portname|pseudo-portname|port-url] [version] [+-variant]... [option=value]...]...
+[[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
 	help, info, location, provides, activate, deactivate, selfupdate, upgrade,
