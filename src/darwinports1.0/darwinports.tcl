@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.198 2005/10/08 21:29:35 jberry Exp $
+# $Id: darwinports.tcl,v 1.199 2005/11/07 15:18:56 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -37,7 +37,7 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
     variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -172,6 +172,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
 	global darwinports::bootstrap_options
+	global darwinports::extra_env
 	global darwinports::portconf
 	global darwinports::portdbpath
 	global darwinports::portsharepath
@@ -429,7 +430,11 @@ proc dportinit {up_ui_options up_options up_variations} {
 	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC TMP TMPDIR USER GROUP
+	                  http_proxy https_proxy ftp_proxy all_proxy no_proxy
 	}
+    if {[info exists extra_env]} {
+    	lappend keepenvkeys ${extra_env}
+    }
 
 	foreach envkey [array names env] {
 		if {[lsearch $keepenvkeys $envkey] == -1} {
