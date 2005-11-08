@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143.2.2 2005/11/08 16:58:54 jberry Exp $
+# $Id: port.tcl,v 1.143.2.3 2005/11/08 19:17:16 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -37,12 +37,10 @@ exec @TCLSH@ "$0" "$@"
 #
 #		- Rename global_options to cmd_options
 #		- Rename global_options_base to global_options
-#		- Document -p and -e
+#		- Document -i, -F, -p, and -e
 #		- Remove specification of port by directory, or work out conflicts w/version?
 #		- In interactive mode, we might need to blow some caches between commands
 #		  (do we cache anything except PortIndex?)
-#		- Add -F command file
-#		- Add support invocation as portf
 #
 
 catch {source \
@@ -2053,16 +2051,12 @@ proc parse_options { action_name ui_options_name global_options_name } {
 						set ui_options(ports_debug) no
 					  }
 					i { # Always go to interactive mode
-						set ui_options(ports_interactive) yes		}
+						lappend ui_options(ports_commandfiles) -	}
 					p { # Ignore errors while processing within a command
 						set ui_options(ports_processall) yes		}
 					e { # Exit with error from any command while in batch/interactive mode
 						set ui_options(ports_exit) yes		}
-					i { # Always go to interactive mode
-						set ui_options(ports_interactive) yes		}
 					
-					F { # Always fail on first error in batch
-						set global_options(ports_batchfail) yes		}
 					f { set global_options(ports_force) yes			}
 					o { set global_options(ports_ignore_older) yes	}
 					n { set global_options(ports_nodeps) yes		}
@@ -2073,8 +2067,16 @@ proc parse_options { action_name ui_options_name global_options_name } {
 					c { set global_options(ports_autoclean) yes		}
 					k { set global_options(ports_autoclean) no		}
 					t { set global_options(ports_trace) yes			}
+					F { # Name a command file to process
+						advance
+						if {[moreargs]} {
+							lappend ui_options(ports_commandfiles) [lookahead]
+						}
+					  }
 					D { advance
-						cd [lookahead]
+						if {[moreargs]} {
+							cd [lookahead]
+						}
 						break
 					  }
 					default {
@@ -2171,17 +2173,6 @@ proc complete_portname { text state } {
 			fatal "search for portname $pattern failed: $result"
 		}
 		foreach {name info} $res {
-			array set portinfo $info
-			
-			#set variants {}
-			#if {[info exists portinfo(variants)]} {
-			#	foreach variant $portinfo(variants) {
-			#		lappend variants $variant "+"
-			#	}
-			#}
-			# For now, don't include version or variants with all ports list
-			#"$portinfo(version)_$portinfo(revision)"
-			#$variants
 			lappend complete_choices $name
 		}
 	}
@@ -2225,9 +2216,8 @@ proc attempt_completion { text word start end } {
 }
 
 
-proc get_next_cmdline { in out prompt linename } {
+proc get_next_cmdline { in out use_readline prompt linename } {
 	upvar $linename line
-	global use_readline
 	
 	set line ""
 	while { $line == "" } {
@@ -2254,14 +2244,14 @@ proc get_next_cmdline { in out prompt linename } {
 }
 
 
-proc interactive_command_loop { args } {
+proc process_command_file { in } {
 	global current_portdir
 
 	# Initialize readline
-	global use_readline
+	set isstdin [string match $in "stdin"]
 	set name "port"
+	set use_readline [expr $isstdin && [readline init $name]]
 	set history_file [file normalize "~/.${name}_history"]
-	set use_readline [readline init $name]
 	
 	# Read readline history
 	if {$use_readline} {
@@ -2270,7 +2260,7 @@ proc interactive_command_loop { args } {
 	}
 	
 	# Be noisy, if appropriate
-	set noisy [expr ![ui_isset ports_quiet]]
+	set noisy [expr $isstdin && ![ui_isset ports_quiet]]
 	if { $noisy } {
 		puts "DarwinPorts [darwinports::version]"
 		puts "Entering interactive mode... (\"help\" for help)"
@@ -2289,7 +2279,7 @@ proc interactive_command_loop { args } {
 		}
 		
 		# Get a command line
-		if { [get_next_cmdline stdin stdout $prompt line] <= 0  } {
+		if { [get_next_cmdline $in stdout $use_readline $prompt line] <= 0  } {
 			puts ""
 			break
 		}
@@ -2298,10 +2288,7 @@ proc interactive_command_loop { args } {
 		set exit_status [process_cmd $line]
 		
 		# Check for semaphore to exit
-		if {$exit_status == -999} {
-			set exit_status 0
-			break
-		}
+		if {$exit_status == -999} break
 		
 		# Ignore status unless we're in error-exit mode
 		if { ![ui_isset ports_exit] } {
@@ -2317,6 +2304,44 @@ proc interactive_command_loop { args } {
 	# Say goodbye
 	if { $noisy } {
 		puts "Goodbye"
+	}
+	
+	return $exit_status
+}
+
+
+proc process_command_files { filelist } {
+	set exit_status 0
+	
+	# For each file in the command list, process commands
+	# in the file
+	foreach file $filelist {
+		if {$file == "-"} {
+			set in stdin
+		} else {
+			
+			if {[catch {set in [open $file]} result]} {
+				fatal "Failed to open command file; $result"
+			}
+			
+		}
+		
+		set exit_status [process_command_file $in]
+		
+		if {$in != "stdin"} {
+			close $in
+		}
+
+		# Check for semaphore to exit
+		if {$exit_status == -999} {
+			set exit_status 0
+			break
+		}
+		
+		# Ignore status unless we're in error-exit mode
+		if { ![ui_isset ports_exit] } {
+			set exit_status 0
+		}
 	}
 	
 	return $exit_status
@@ -2347,6 +2372,14 @@ set cmd_argv $argv
 set cmd_argc $argc
 set cmd_argn 0
 
+# If we've been invoked as portf, then the first argument is assumed
+# to be the name of a command file (i.e., there is an implicit -F
+# before any arguments).
+if {[moreargs] && $cmdname == "portf"} {
+	lappend ui_options(ports_commandfiles) [lookahead]
+	advance
+}
+
 # Parse global options that will affect all subsequent commands
 parse_options default_action ui_options global_options
 
@@ -2364,8 +2397,8 @@ if {[catch {dportinit ui_options global_options global_variations} result]} {
 
 # If we have no arguments remaining after option processing then force
 # interactive mode
-if { [llength $remaining_args] == 0 } {
-	set ui_options(ports_interactive) yes
+if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
+	lappend ui_options(ports_commandfiles) -
 }
 
 # Set up some global state for our code
@@ -2380,18 +2413,19 @@ set global_options_base [array get global_options]
 # First process any remaining args as action(s)
 set exit_status 0
 if { [llength $remaining_args] > 0 } {
+
 	# If there are remaining arguments, process those as a command
 	
-	# Don't hide errors unless we're going to go interactive
-	if {![ui_isset ports_interactive]} {
+	# Exit immediately, by default, unless we're going to be processing command files
+	if {![info exists ui_options(ports_commandfiles)]} {
 		set ui_options(ports_exit) yes
 	}
 	set exit_status [process_cmd $remaining_args]
 }
 
-# Then process stdin if we want interactive mode
-if { [ui_isset ports_interactive] } {
-	set exit_status [interactive_command_loop]
+# Process any prescribed command files, including standard input
+if { $exit_status == 0 && [info exists ui_options(ports_commandfiles)] } {
+	set exit_status [process_command_files $ui_options(ports_commandfiles)]
 }
 
 # Return with exit_status
