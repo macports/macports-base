@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.2 2005/10/22 19:03:16 jberry Exp $
+# $Id: TODO.txt,v 1.2.2.1 2005/11/08 05:49:37 jberry Exp $
 #
 # DarwinPorts TODO List
 #
@@ -21,7 +21,7 @@ Version 1.2:
 
 Version 1.3:
 
-	- Consider recognizing ports by directory name in port if the element contains
+	- Consider recognizing ports by directory name in port(1) if the element contains
 	  a / but doesn't look like a url. Such a name could be transformed immediately
 	  into a url.
 	  
