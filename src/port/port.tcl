@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143.2.3 2005/11/08 19:17:16 jberry Exp $
+# $Id: port.tcl,v 1.143.2.4 2005/11/08 23:09:12 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -38,7 +38,6 @@ exec @TCLSH@ "$0" "$@"
 #		- Rename global_options to cmd_options
 #		- Rename global_options_base to global_options
 #		- Document -i, -F, -p, and -e
-#		- Remove specification of port by directory, or work out conflicts w/version?
 #		- In interactive mode, we might need to blow some caches between commands
 #		  (do we cache anything except PortIndex?)
 #
@@ -345,12 +344,14 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
 }
 
 
-proc url_to_portname { url } {
+proc url_to_portname { url {quiet 0} } {
 	# Save directory and restore the directory, since dportopen changes it
 	set savedir [pwd]
 	set portname ""
 	if {[catch {set ctx [dportopen $url]} result]} {
-		puts stderr "Can't map the URL '$url' to a port description file (${result}). Please verify that the directory and portfile syntax are correct."
+		if {!$quiet} {
+			puts stderr "Can't map the URL '$url' to a port description file (${result}). Please verify that the directory and portfile syntax are correct."
+		}
 	} else {
 		array set portinfo [dportinfo $ctx]
 		set portname $portinfo(name)
@@ -707,6 +708,7 @@ proc element resname {
 	upvar $resname reslist
 	set el 0
 	
+	set url ""
 	set name ""
 	set version ""
 	array unset variants
@@ -799,38 +801,14 @@ proc element resname {
 							set el 1
 						}
 						
-		/				{	# Token didn't look like a url, and it contains a slash, so treat it as
-							# a directory name
-							advance
-							set url "file://$token"
-							set name [url_to_portname $url]
-							if {$name != ""} {
-								# We mapped the url to a portname, so treat it as a port
-								parsePortSpec version variants options
-								add_to_portlist reslist [list url $url \
+		default			{	# Treat anything else as a portspec (portname, version, variants, options
+							# or some combination thereof).
+							parseFullPortSpec url name version variants options
+							add_to_portlist reslist [list 	url $url \
 															name $name \
 															version $version \
 															variants [array get variants] \
 															options [array get options]]
-							} else {
-								# We couldn't map the url to a portname, but just enter
-								# it as name "name", in case this is for something like "port contents"
-								# which needs a raw filename
-								add_to_portlist reslist [list name $token \
-															version $version \
-															variants [array get variants] \
-															options [array get options]]
-							}
-							set el 1
-						}
-		
-		default			{	# Treat anything else as a portspec (portname, version, variants, options
-							# or some combination thereof).
-							parseFullPortSpec name version variants options
-							add_to_portlist reslist [list name $name \
-														version $version \
-														variants [array get variants] \
-														options [array get options]]
 							set el 1
 						}
 	}
@@ -981,7 +959,8 @@ proc opComplement { a b } {
 }
 
 
-proc parseFullPortSpec { namename vername varname optname } {
+proc parseFullPortSpec { urlname namename vername varname optname } {
+	upvar $urlname porturl
 	upvar $namename portname
 	upvar $vername portversion
 	upvar $varname portvariants
@@ -1002,8 +981,28 @@ proc parseFullPortSpec { namename vername varname optname } {
 
 		set remainder ""
 		if {![regexp {^(@|[-+]|[[:alpha:]_]+[\w\.]*=)} $token match]} {
-			advance			
+			advance
 			regexp {^([^@]+)(@.*)?} $token match portname remainder
+			
+			# If the portname contains a /, then try to use it as a URL
+			if {[string match "*/*" $portname]} {
+				set url "file://$portname"
+				set name [url_to_portname $url 1]
+				if { $name != "" } {
+					# We mapped the url to valid port
+					set porturl $url
+					set portname $name
+					# Continue to parse rest of portspec....
+				} else {
+					# We didn't map the url to a port; treat it
+					# as a raw string for something like port contents
+					# or cd
+					set porturl ""
+					# Since this isn't a port, we don't try to parse
+					# any remaining portspec....
+					return
+				}
+			}
 		}
 		
 		# Now parse the rest of the spec
