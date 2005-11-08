@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143.2.1 2005/11/08 05:57:22 jberry Exp $
+# $Id: port.tcl,v 1.143.2.2 2005/11/08 16:58:54 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -35,18 +35,14 @@ exec @TCLSH@ "$0" "$@"
 #
 #	TODO:
 #
-#		- Make action_ procs return real status
-#		- Decide how to return not completely exit on error
-#		  if in interactive mode
 #		- Rename global_options to cmd_options
 #		- Rename global_options_base to global_options
-#		- p: if we fail processing a given port, continue with command
-#		- P: if we fail processing a given command, exit with error
-#		- Remove specification of port by directory, or work out conflicts w/?
-#		- autoconf checks for readline, and handling thereof
+#		- Document -p and -e
+#		- Remove specification of port by directory, or work out conflicts w/version?
 #		- In interactive mode, we might need to blow some caches between commands
 #		  (do we cache anything except PortIndex?)
-#		- Add support for # as comment
+#		- Add -F command file
+#		- Add support invocation as portf
 #
 
 catch {source \
@@ -134,7 +130,7 @@ proc ui_channels {priority} {
 
 
 # Standard procedures
-proc print_usage args {
+proc print_usage {args} {
 	global cmdname
 	set usage { [-vdqfonasbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
@@ -145,7 +141,7 @@ proc print_usage args {
 }
 
 
-proc print_help args {
+proc print_help {args} {
 	global cmdname
 	
 	set help { [-vdqfonasbcktu] [-D portdir] action [actionflags]
@@ -166,8 +162,8 @@ Pseudo-portnames:
 	Additional pseudo-portnames are:
 	variants:, variant:, description:, portdir:, homepage:, epoch:,
 	platforms:, platform:, name:, long_description:, maintainers:,
-	maintainer:, categories:, category:, and revision:.
-	These each select a set or ports based on a regex search of metadata
+	maintainer:, categories:, category:, version:, and revision:.
+	These each select a set of ports based on a regex search of metadata
 	about the ports. In all such cases, a standard regex pattern following
 	the colon will be used to select the set of ports to which the
 	pseudo-portname expands.
