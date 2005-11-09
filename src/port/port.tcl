@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143.2.4 2005/11/08 23:09:12 jberry Exp $
+# $Id: port.tcl,v 1.143.2.5 2005/11/09 18:40:37 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -40,6 +40,8 @@ exec @TCLSH@ "$0" "$@"
 #		- Document -i, -F, -p, and -e
 #		- In interactive mode, we might need to blow some caches between commands
 #		  (do we cache anything except PortIndex?)
+#		- Rename history command to rl_history to avoid conflict with built-in history
+#		- Add auto-completion of filenames
 #
 
 catch {source \
@@ -2200,6 +2202,12 @@ proc complete_action { text state } {
 
 
 proc attempt_completion { text word start end } {
+	# If the word starts with '~', or contains '.' or '/', then use the build-in
+	# completion to complete the word
+	if { [regexp {^~|[/.]} $word] } {
+		return ""
+	}
+
 	# Decide how to do completion based on where we are in the string
 	set prefix [string range $text 0 [expr $start - 1]]
 	
@@ -2235,7 +2243,7 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 		set line [string trim $line]
 		
 		if { $use_readline && $line != "" } {
-			history add $line
+			rl_history add $line
 		}
 	}
 	
@@ -2254,8 +2262,8 @@ proc process_command_file { in } {
 	
 	# Read readline history
 	if {$use_readline} {
-		history read $history_file
-		history stifle 100
+		rl_history read $history_file
+		rl_history stifle 100
 	}
 	
 	# Be noisy, if appropriate
@@ -2297,7 +2305,7 @@ proc process_command_file { in } {
 	
 	# Save readine history
 	if {$use_readline} {
-		history write $history_file
+		rl_history write $history_file
 	}
 	
 	# Say goodbye

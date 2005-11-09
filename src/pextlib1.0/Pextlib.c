@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.83.2.1 2005/11/08 05:42:58 jberry Exp $
+ * $Id: Pextlib.c,v 1.83.2.2 2005/11/09 18:40:37 jberry Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -1120,7 +1120,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "history", HistoryCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
 	
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;

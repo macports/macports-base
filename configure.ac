@@ -74,6 +74,13 @@ OD_CHECK_X11
 
 # Check for readline
 AC_CHECK_LIB([readline], [readline])
+AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
+[
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+])
 
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG

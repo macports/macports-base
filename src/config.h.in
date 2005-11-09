@@ -15,9 +15,33 @@
 /* Define to 1 if you have the curl_easy_strerror function. */
 #undef HAVE_CURL_EASY_STRERROR
 
+/* Define to 1 if you have the declaration of `completion_matches', and to 0
+   if you don't. */
+#undef HAVE_DECL_COMPLETION_MATCHES
+
+/* Define to 1 if you have the declaration of `filename_completion_function',
+   and to 0 if you don't. */
+#undef HAVE_DECL_FILENAME_COMPLETION_FUNCTION
+
+/* Define to 1 if you have the declaration of `rl_completion_matches', and to
+   0 if you don't. */
+#undef HAVE_DECL_RL_COMPLETION_MATCHES
+
+/* Define to 1 if you have the declaration of
+   `rl_filename_completion_function', and to 0 if you don't. */
+#undef HAVE_DECL_RL_FILENAME_COMPLETION_FUNCTION
+
+/* Define to 1 if you have the declaration of
+   `rl_username_completion_function', and to 0 if you don't. */
+#undef HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
+
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRERROR_R
+
+/* Define to 1 if you have the declaration of `username_completion_function',
+   and to 0 if you don't. */
+#undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */

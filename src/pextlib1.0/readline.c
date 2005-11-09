@@ -4,7 +4,7 @@
  * Some basic readline support callable from Tcl
  * By James D. Berry <jberry@opendarwin.org> 10/27/05
  *
- * $Id: readline.c,v 1.1.2.1 2005/11/08 05:42:58 jberry Exp $
+ * $Id: readline.c,v 1.1.2.2 2005/11/09 18:40:37 jberry Exp $
  *
  */
 
@@ -41,7 +41,27 @@ Tcl_Obj* attempted_completion_word = NULL;
 Tcl_Obj* generator_word = NULL;
 #endif
 
+/* Work-around libedit incompatibilities */
+#if HAVE_DECL_RL_FILENAME_COMPLETION_FUNCTION
+#	define FILENAME_COMPLETION_FUNCTION	rl_filename_completion_function
+#elif HAVE_DECL_FILENAME_COMPLETION_FUNCTION
+#	define FILENAME_COMPLETION_FUNCTION	filename_completion_function
+#endif
 
+#if HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
+#	define USERNAME_COMPLETION_FUNCTION	rl_username_completion_function
+#elif HAVE_DECL_USERNAME_COMPLETION_FUNCTION
+#	define USERNAME_COMPLETION_FUNCTION	username_completion_function
+#endif
+
+#if HAVE_DECL_RL_COMPLETION_MATCHES
+#	define COMPLETION_MATCHES rl_completion_matches
+#elif HAVE_DECL_COMPLETION_MATCHES
+#	define COMPLETION_MATCHES completion_matches
+#endif
+
+
+#if HAVE_LIBREADLINE
 char*
 completion_generator(const char* text, int state)
 {
@@ -96,10 +116,29 @@ attempted_completion_function(const char* word, int start, int end)
 			 */
 			generator_word = Tcl_GetObjResult(completion_interp);
 			if (generator_word && Tcl_GetCharLength(generator_word)) {
+				char* (*generator_func)(const char* text, int state) = NULL;
+				char* s = NULL;
+				
 				Tcl_IncrRefCount(generator_word);
-#if HAVE_LIBREADLINE
-				matches = completion_matches(word, completion_generator);
-#endif
+				
+				/*
+					We support certain built-in completion functions:
+						- filename_completion
+						- username_completion
+				 */
+				s = Tcl_GetString(generator_word);
+				if (0 == strcmp("filename_completion", s))
+					generator_func = FILENAME_COMPLETION_FUNCTION;
+				else if (0 == strcmp("username_completion", s))
+					generator_func = USERNAME_COMPLETION_FUNCTION;
+				else {
+					/* Not a built-in completer, so call the word as a command */
+					generator_func = completion_generator;
+				}
+				
+				matches = COMPLETION_MATCHES(word, generator_func);
+
+				 	
 				Tcl_DecrRefCount(generator_word);
 			}
 		}
@@ -107,6 +146,7 @@ attempted_completion_function(const char* word, int start, int end)
 	
 	return matches;
 }
+#endif
 
 
 /*
@@ -224,7 +264,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 
 
 /*
-	history action
+	rl_history action
 	
 	action:
 		add line
@@ -233,7 +273,7 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 		stifle max
 		unstifle
 */
-int HistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char* action = NULL;
 	char* s = NULL;
