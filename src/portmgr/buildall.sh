@@ -95,6 +95,7 @@ cd darwinports/base
 make all install
 make clean
 echo "file:///darwinports/dports" > /opt/local/etc/ports/sources.conf
+echo "BatchMode yes" >> /etc/ssh_config
 EOF
 	if [ "$PKGTYPE" = "dpkg" ]; then
 	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh
