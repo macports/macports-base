@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.24 2005/10/30 16:21:01 jberry Exp $
+#	$Id: ChangeLog,v 1.25 2005/11/20 16:33:05 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -41,7 +41,7 @@ Release 1.2 (unreleased):
 	  The selectors are:
 	  variants:, variant:, description:, portdir:, homepage:, epoch:,
 	  platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
-	  categories:, category:, and revision: (jberry)
+	  categories:, category:, version:, and revision: (jberry)
 	  
 	- Enhance port command to allow use of set expressions to combine
 	  ports or groups of ports.
