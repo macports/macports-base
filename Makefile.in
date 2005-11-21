@@ -37,7 +37,7 @@ distclean::
 	rm -rf autom4te.cache ${DISTDIR}
 	rm -f Makefile Mk/dports.autoconf.mk
 	
-dist::
+dist:: distclean
 	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.1 dist; exit 1 )
 	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
 	tar --exclude CVS --exclude ${DISTDIR} -c . | gzip > ${DISTDIR}/${DISTNAME}.tar.gz
