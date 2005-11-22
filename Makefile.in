@@ -1,6 +1,7 @@
 SUBDIR		= doc src
 DISTDIR		= dist
 DISTNAME	= DarwinPorts-${DISTVER}
+DISTARCNAME	= DarwinPorts-${DISTVER}-archive
 
 include Mk/dports.subdir.mk
 include Mk/dports.autoconf.mk
@@ -40,8 +41,11 @@ distclean::
 dist:: distclean
 	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.1 dist; exit 1 )
 	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
-	tar --exclude CVS --exclude ${DISTDIR} -c . | gzip > ${DISTDIR}/${DISTNAME}.tar.gz
-	tar --exclude CVS --exclude ${DISTDIR} -c . | bzip2 > ${DISTDIR}/${DISTNAME}.tar.bz2
+	# http://forums.macosxhints.com/printthread.php?t=43243 for COPY_EXTENDED_ATTRIBUTES_DISABLE info
+	COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS --exclude ${DISTDIR} -c . | gzip > ${DISTDIR}/${DISTNAME}.tar.gz
+	COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS --exclude ${DISTDIR} -c . | bzip2 > ${DISTDIR}/${DISTNAME}.tar.bz2
+	COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS --exclude ${DISTDIR} -c .. | gzip > ${DISTDIR}/${DISTARCNAME}.tar.gz
+	COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS --exclude ${DISTDIR} -c .. | bzip2 > ${DISTDIR}/${DISTARCNAME}.tar.bz2
 	
 	cd ${DISTDIR}; for type in -md5 -sha1 -ripemd160; do openssl dgst $$type *.gz *.bz2; done > ${DISTNAME}.chk.txt
 	cat ${DISTDIR}/${DISTNAME}.chk.txt
