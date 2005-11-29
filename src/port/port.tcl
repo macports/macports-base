@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143.2.6 2005/11/25 17:20:52 jberry Exp $
+# $Id: port.tcl,v 1.143.2.7 2005/11/29 03:13:44 jberry Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1978,7 +1978,7 @@ array set action_array {
 	url			action_portcmds
 	file		action_portcmds
 	
-	clean		action_target
+	depends		action_target
 	fetch		action_target
 	checksum	action_target
 	extract		action_target
@@ -1988,6 +1988,9 @@ array set action_array {
 	destroot	action_target
 	install		action_target
 	clean		action_target
+	test		action_target
+	submit		action_target
+	trace		action_target
 	livecheck	action_target
 
 	archive		action_target
