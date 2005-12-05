@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.199 2005/11/07 15:18:56 jberry Exp $
+# $Id: darwinports.tcl,v 1.199.4.1 2005/12/05 21:18:20 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1360,11 +1360,11 @@ proc darwinports::selfupdate {optionslist} {
 		return -code error "Error: rsync failed in selfupdate"
 	}
 
-	# get new darwinports version and write the old version back
+	# get downloaded darwinports version and write the old version back
 	set fd [open [file join $dp_base_path dp_version] r]
 	gets $fd dp_version_new
 	close $fd
-	ui_msg "New DarwinPorts base version $dp_version_new"
+	ui_msg "Downloaded DarwinPorts base version $dp_version_new"
 
 	# check if we we need to rebuild base
 	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
@@ -1399,6 +1399,8 @@ proc darwinports::selfupdate {optionslist} {
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
+	} else {
+		ui_msg "The installed DarwinPorts version is >= the downloaded version, so the installation was not upgraded."
 	}
 
 	# set the darwinports system to the right owner 
