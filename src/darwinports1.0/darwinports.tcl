@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.199.4.1 2005/12/05 21:18:20 jberry Exp $
+# $Id: darwinports.tcl,v 1.199.4.2 2005/12/05 23:07:35 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1400,7 +1400,7 @@ proc darwinports::selfupdate {optionslist} {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
 	} else {
-		ui_msg "The installed DarwinPorts version is >= the downloaded version, so the installation was not upgraded."
+		ui_msg "The DarwinPorts installation is not outdated and so was not updated"
 	}
 
 	# set the darwinports system to the right owner 
