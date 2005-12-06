@@ -1,4 +1,4 @@
-SUBDIR= doc src
+SUBDIR= doc src portmgr
 
 include Mk/dports.subdir.mk
 include Mk/dports.autoconf.mk
