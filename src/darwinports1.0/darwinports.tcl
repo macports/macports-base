@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.199.4.3 2005/12/06 16:41:53 jberry Exp $
+# $Id: darwinports.tcl,v 1.199.4.4 2005/12/06 22:53:22 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1350,6 +1350,7 @@ proc darwinports::selfupdate {optionslist} {
 	if { [file exists $dp_version_path]} {
 		set fd [open $dp_version_path r]
 		gets $fd dp_version_old
+		close $fd
 	} else {
 		set dp_version_old 0
 	}
@@ -1361,7 +1362,7 @@ proc darwinports::selfupdate {optionslist} {
 	}
 
 	# get downloaded darwinports version and write the old version back
-	set fd [open [file join $dp_base_path dp_version] r]
+	set fd [open [file join $dp_base_path config/dp_version] r]
 	gets $fd dp_version_new
 	close $fd
 	ui_msg "Downloaded DarwinPorts base version $dp_version_new"
@@ -1390,7 +1391,8 @@ proc darwinports::selfupdate {optionslist} {
 		set dp_tclpackage_path [file join $prefix var/db/dports/ .tclpackage]
 		if { [file exists $dp_tclpackage_path]} {
 			set fd [open $dp_tclpackage_path r]
-				gets $fd tclpackage
+			gets $fd tclpackage
+			close $fd
 		} else {
 			set tclpackage [file join ${prefix} share/darwinports/Tcl]
 		}
