@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.199.4.2 2005/12/05 23:07:35 jberry Exp $
+# $Id: darwinports.tcl,v 1.199.4.3 2005/12/06 16:41:53 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -391,7 +391,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 
 	# Set rync options
 	if {![info exists rsync_server]} {
-		set darwinports::rsync_server rsync.opendarwin.org
+		set darwinports::rsync_server rsync.darwinports.org
 		global darwinports::rsync_server
 	}
 	if {![info exists rsync_dir]} {
