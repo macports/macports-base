@@ -24,6 +24,19 @@ Mk/dports.autoconf.mk src/pextlib1.0/config.h: configure
 all:: Mk/dports.autoconf.mk
 
 install::
+	# Compatibility upgrade from dp 1.1 to dp 1.2
+	@echo "Renaming rsync'd directories from rsync.opendarwin.org to rsync.darwinports.org"
+	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; then \
+		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; \
+	fi
+	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate \
+	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate; then \
+		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate \
+		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate; \
+	fi
+
 	@echo ""
 	@echo "Congratulations, you have successfully installed the DarwinPorts system."
 	@echo ""
