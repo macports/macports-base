@@ -1,5 +1,5 @@
 #
-#	$Id: ChangeLog,v 1.24 2005/10/30 16:21:01 jberry Exp $
+#	$Id: ChangeLog,v 1.25.2.1 2005/12/07 17:51:56 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
@@ -41,7 +41,7 @@ Release 1.2 (unreleased):
 	  The selectors are:
 	  variants:, variant:, description:, portdir:, homepage:, epoch:,
 	  platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
-	  categories:, category:, and revision: (jberry)
+	  categories:, category:, version:, and revision: (jberry)
 	  
 	- Enhance port command to allow use of set expressions to combine
 	  ports or groups of ports.
@@ -101,6 +101,11 @@ Release 1.2 (unreleased):
 	  dir (emit path to the port's directory),
 	  file (emit path to the port's Portfile)
 	  (jberry)
+	  
+	- On make install, upgrade ports.conf and sources.conf to change rsync.opendarwin.org
+	  to rsync.darwinports.org. This is now our preferred rsync hostname.
+	  Likewise, rename the rsync destination directories in ${prefix}/var/db/dports/sources
+	  in a similar fashion (jberry)
 
 
 Release 1.1:

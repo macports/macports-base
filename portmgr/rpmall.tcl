@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # rpmall.tcl
-# $Id: rpmall.tcl,v 1.9 2005/10/17 13:32:24 jberry Exp $
+# $Id: rpmall.tcl,v 1.1.2.2 2005/12/06 21:37:01 jmpp Exp $
 #
 # Copyright (c) 2003 Benjamin Reed <ranger@befunk.com>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>

@@ -5,7 +5,7 @@
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
-# $Id: IndexRegen.sh,v 1.6 2005/10/09 07:41:03 pguyot Exp $
+# $Id: IndexRegen.sh,v 1.1.2.2 2005/12/06 21:37:01 jmpp Exp $
 ####
 
 # Configuration

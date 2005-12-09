@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.2 2005/10/22 19:03:16 jberry Exp $
+# $Id: TODO.txt,v 1.2.4.1 2005/11/28 04:18:04 jberry Exp $
 #
 # DarwinPorts TODO List
 #
@@ -9,6 +9,7 @@
 
 Version 1.2:
 
+	(these may make it into 1.2)
     - Add to port(1) manpage docs for new port(1) syntax. (Juan & documentation team, hopefully ;-)
     - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
     	(James added some suggested text to bug #4905)

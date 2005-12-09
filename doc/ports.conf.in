@@ -41,7 +41,7 @@ portarchivetype		tgz
 portautoclean		yes
 
 # Rsync server to use
-rsync_server		rsync.opendarwin.org
+rsync_server		rsync.darwinports.org
 
 # Rsync directory from which to pull the base/ component (infrastructure) of DP
 rsync_dir			dpupdate1/base/
@@ -55,3 +55,8 @@ rsync_options		"-rtzv --delete --delete-after"
 # to the platform will be chosen. Tiger will default to launchd, while
 # older mac ox X systems will default to systemstarter.
 startupitem_type	default
+
+# Extra environment variables to keep. Any variables listed here are added
+# to the list of variables that are not removed from the environment used
+# while processing ports
+# extra_env			KEEP_THIS THIS_TOO

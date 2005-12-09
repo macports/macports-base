@@ -24,18 +24,29 @@ install:
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi
+	
 	if test ! -e "${INSTALLDIR}/man" ; then \
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
-	$(SILENT)if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
+	
+	# Install the ports.conf file. If it's already installed, upgrade it
+	if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
+	else \
+		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/ports.conf > ${DESTDIR}${portconfigdir}/ports.conf.tmp && \
+			mv ${DESTDIR}${portconfigdir}/ports.conf.tmp ${DESTDIR}${portconfigdir}/ports.conf; \
 	fi
 
-	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
+	# Install the sources.conf file. If it's already installed, upgrade it
+	if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
+	else \
+		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
+			mv ${DESTDIR}${portconfigdir}/sources.conf.tmp ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
+	
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${portconfigdir}; \
