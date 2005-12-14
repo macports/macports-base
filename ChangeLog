@@ -1,10 +1,10 @@
 #
-#	$Id: ChangeLog,v 1.25.2.1 2005/12/07 17:51:56 jberry Exp $
+#	$Id: ChangeLog,v 1.25.2.2 2005/12/14 02:52:13 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
-Release 1.2 (unreleased):
+Release 1.2 (14-Dec-2005):
 
 	- Syntax change to disambiguate uses of the port's version on the command
 	  line, when coupled with new changes to accept multiple ports.
