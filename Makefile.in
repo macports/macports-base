@@ -1,4 +1,11 @@
-SUBDIR= doc src portmgr
+SUBDIR		= config doc src portmgr
+DISTDIR		= dist
+DISTVER		=
+DISTTAG		= release_${subst .,_,${DISTVER}}
+DISTNAME	= DarwinPorts-${DISTVER}
+DISTARCTAG	= ${DISTTAG}-archive
+DISTARCNAME	= ${DISTNAME}-archive
+CVSLOGIN	= ${USER}
 
 include Mk/dports.subdir.mk
 include Mk/dports.autoconf.mk
@@ -17,7 +24,19 @@ Mk/dports.autoconf.mk src/pextlib1.0/config.h: configure
 all:: Mk/dports.autoconf.mk
 
 install::
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${DESTDIR}${portconfigdir}
+	# Compatibility upgrade from dp 1.1 to dp 1.2
+	@echo "Renaming rsync'd directories from rsync.opendarwin.org to rsync.darwinports.org"
+	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; then \
+		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; \
+	fi
+	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
+	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; then \
+		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
+		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; \
+	fi
+
 	@echo ""
 	@echo "Congratulations, you have successfully installed the DarwinPorts system."
 	@echo ""
@@ -32,7 +51,28 @@ clean::
 
 distclean::
 	rm -f config.log config.status configure.lineno
-	rm -rf autom4te.cache
+	rm -rf autom4te.cache ${DISTDIR}
 	rm -f Makefile Mk/dports.autoconf.mk
 
+_gettag:
+	cd ${DISTDIR}; cvs -d ":ext:${CVSLOGIN}@cvs.opendarwin.org:/Volumes/src/cvs/od" co -N -r ${CVSTAG} ${REPOPATH}
+	cd ${DISTDIR}; mv ${REPOPATH} ${PKGNAME}; rm -Rf darwinports
+
+_pkgdist:
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
+	cd ${DISTDIR}; for type in -md5 -sha1 -ripemd160; do openssl dgst $$type ${PKGNAME}.tar.gz ${PKGNAME}.tar.bz2; done >> ${DISTNAME}.chk.txt
+
+_dopkg: _gettag _pkgdist
+
+# This target fetches a tagged distribution from cvs, and generates tarballs and checksums for it
+distfromcvs:
+	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.1 dist; exit 1 )
+	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
+	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
+	${MAKE} PKGNAME=${DISTNAME} REPOPATH=darwinports/base CVSTAG=${DISTTAG} _dopkg
+	${MAKE} PKGNAME=${DISTARCNAME} REPOPATH=darwinports CVSTAG=${DISTARCTAG} _dopkg
+
 test::
+
+.PHONY: dist _gettag _pkgdist _dopkg

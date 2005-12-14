@@ -27,46 +27,168 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd August 31, 2005
+.Dd December 13, 2005
 .Dt PORT 1 "Apple Computer, Inc."
 .Os
 .Sh NAME
 .Nm port
-.Nd build darwin ports
+.Nd operate on individual or multiple Darwin
+.Ar ports
 .Sh SYNOPSIS
 .Nm
 .Op Fl vdqfonausbckt
 .Op Fl D Ar portdir
-.Ar target
-.Op Ar portname
-.Op Ar options ...
-.Op Ar variants ...
+.Ar action
+.Op Ar actionflags
+.Op Oo Ar portname | pseudo-portname | port-url Oc Oo Ar @version Oc Oo +/-variant ... Oc ... Oo option=value ... Oc
 .Sh DESCRIPTION
 .Nm
-is designed to read and execute the build instructions of a darwin port. If no 
+is designed to operate on individual or multiple Darwin
+.Ar ports ,
+optionally within a single call, based on the requested
+.Ar action .
+If no
 .Ar portdir
 or
 .Ar portname
-is specified, the current working directory is assumed.
-If no
-.Ar target
+is specified, the current working directory is assumed; if no
+.Ar action
 is specified, the usage is displayed.
 Port 
 .Ar options 
-are specified as key=value pairs and take precedence over individual port options and system-wide settings.
+are passed as key=value pairs and take precedence over individual port options and system-wide settings.
 .Pp
 Port
 .Ar variants
-are specified as +name, which indicates the variant is desired, and -name, which indicates the variant is not desired. In case of ambiguities, a port can be fully specified with the format
-.Ar version_revision+variants
+can specified as
+.Ar +name ,
+which indicates the variant is desired, or
+.Ar -name ,
+indicating the contrary. In case of ambiguities, a port can be fully specified with the
+.Ar @version_revision+variants
+format.
 .Pp
-Installed ports can be activated or deactivated without being uninstalled. A port can be installed if another version/variant is installed but deactivated.
+Installed ports can be activated or deactivated without being uninstalled. A port can be installed if all other
+version/variant(s) combinations installed at any given moment are deactivated.
 .Pp
 The
 .Nm
-command knows several command line options and
-.Ar targets
-\&:
+command knows various
+.Ar pseudo-portnames
+that will expand to the specified set of ports from the available dports tree(s). These may be used in place of a
+.Ar portname .
+Common options are:
+.Pp
+.Bl -bullet -offset indent -compact
+.It
+.Ar all :
+all the ports in each dports tree listed in
+.Ar sources.conf
+.Pp
+.It
+.Ar current :
+the port in the current working directory.
+.Pp
+.It
+.Ar active :
+set of installed and active ports.
+.Pp
+.It
+.Ar inactive :
+set of installed but inactive ports.
+.Pp
+.It
+.Ar installed :
+set of all installed ports.
+.Pp
+.It
+.Ar uninstalled :
+ports in the dports tree(s) that aren't installed.
+.Pp
+.It
+.Ar outdated :
+installed ports that are out of date with respect to their current version/revision in the dports tree(s)
+.Pp
+.El
+Other options, also known as
+.Ar pseudo-portname selectors ,
+matching the most common keys used in a
+.Ar Portfile
+are also accepted, in both singular and plural form where applicable. These are:
+.Pp
+.Bl -bullet -offset indent -compact
+.It
+.Ar name
+.It
+.Ar version
+.It
+.Ar revision
+.It
+.Ar epoch
+.It
+.Ar variant
+.It
+.Ar variants
+.It
+.Ar category
+.It
+.Ar categories
+.It
+.Ar maintainer
+.It
+.Ar maintainers
+.It
+.Ar platform
+.It
+.Ar platforms
+.It
+.Ar description
+.It
+.Ar long_description
+.It
+.Ar homepage
+.It
+.Ar portdir
+.El
+.Pp
+Search strings that will expand to a set of matching ports can be constructed based on the 
+.Ar \(rqpseudo-portname selector\(lq:regex
+combination used.
+.Ar portnames
+containing valid UNIX glob patterns will also expand to the set of matching ports. Any
+.Ar action
+passed to
+.Nm
+will be invoked on each of them. For example:
+.Pp
+.Dl port list variant:no_ssl
+.Dl port uninstall name:sql
+.\" COMMENT: glob pattern expansion in portnames:
+.\" write an example here that illustrats better glob pattern expansion in portnames, but that does not employ
+.\" logical operators (and, or, not, !) because I still haven't gotten to them yet.
+.Dl port echo apache*
+.Pp
+Logical operators "and", "or", "not", "!", "(" and ")" may be used to combine individual
+.Ar portnames ,
+port glob patterns and/or
+.Ar pseudo-portnames
+to construct complex port expressions that expand to the set of matching ports. For example:
+.Pp
+.Dl port upgrade installed and "apache*"
+.Dl port echo maintainer:jberry and uninstalled and \e(\ category:java and not commons*\ \e)
+.\" COMMENT: more complex exmaples here would be useful.
+.\" PENDING: port-url explanation. Proposed text:
+.\".Pp
+.\"A
+.\".Ar portname
+.\"may also be specified as a URL pointing to the location of the
+.\".Ar portdir
+.\" ...
+.Pp
+The
+.Nm
+command also recognizes several command line flags and
+.Ar targets :
 .Sh OPTIONS
 .Bl -tag -width -indent
 .It Fl v
@@ -76,19 +198,12 @@ debug mode (generate debugging messages, implies
 .Fl v )
 .It Fl q
 quiet mode (suppress messages)
-.It Fl c
-autoclean mode (execute clean after install)
-.It Fl k
-keep mode (don't autoclean after install)
 .It Fl n
 dont follow dependencies in upgrade (only for upgrading)
 .It Fl a
 upgrade all installed ports (only for upgrading)
 .It Fl u
 uninstall non-active ports when upgrading and uninstalling
-.It Fl D
-specify
-.Ar portdir
 .It Fl f
 force mode (ignore state file)
 .It Fl o
@@ -97,18 +212,39 @@ honor state files older than Portfile
 source-only mode (only build and install from source, ignores all binary archives, does not create/recreate binary archives) (only applies when archive mode is enabled)
 .It Fl b
 binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
+.It Fl c
+autoclean mode (execute clean after install)
+.It Fl k
+keep mode (don't autoclean after install)
+.It Fl D
+specify
+.Ar portdir
 .It Fl t
 enable trace mode debug facilities on platforms that support it
 .El
 .Sh USER TARGETS
 Targets most commonly used by regular DarwinPorts users are:
+.Ss search
+Search for an available port whose name matches a regular expression. For example:
+.Pp
+.Dl "port search vim"
+.Pp
+.Ss info
+Displays all the meta-information available for
+.Ar portname .
+.Ss variants
+Lists the build variants available for
+.Ar portname .
+.Ss deps
+Lists the other ports that are required to build and run
+.Ar portname .
 .Ss install
 Install and activate
 .Ar portname .
 .Ss uninstall
 Deactivate and uninstall
 .Ar portname .
-To uninstall all installed but inactive ports, specify
+To uninstall all installed but inactive ports, use
 .Fl u .
 For example:
 .Pp
@@ -122,12 +258,29 @@ Deactivate the installed
 .Ar portname .
 .Ss installed
 List all installed ports.
+.Ss location
+Print the install location of a given port.
+.Ss contents
+Lists the files installed by
+.Ar portname .
+.Ss provides
+Determines which port owns a given file and can take either a relative or absolut path. For example:
+.Pp
+.Dl "port provides /opt/local/etc/irssi.conf"
+.Dl "port provides include/tiff.h"
+.Ss sync
+Performs a sync operation only on the dports tree of a DarwinPorts installation, pulling in the latest
+revision available of the
+.Ar Portfiles
+from the DarwinPorts rsync server. To update you would normally do:
+.Pp
+.Dl "sudo port -d sync"
 .Ss outdated
 List the installed ports that need upgrading.
 .Ss upgrade
 Upgrade the installed
 .Ar portname .
-To upgrade all ports, specify
+To upgrade all ports, use
 .Fl a .
 For example:
 .Pp
@@ -136,34 +289,22 @@ For example:
 .Pp
 To upgrade
 .Ar portname
-wihtout following its dependencies, specify
+wihtout following its dependencies, use
 .Fl n .
 For example:
 .Pp
 .Dl "port -n upgrade ethereal"
-.Ss provides
-Determines which port owns a given file and can take either a relative or absolut path. For example:
-.Pp
-.Dl "port provides /opt/local/etc/irssi.conf"
-.Dl "port provides include/tiff.h"
-.Ss selfupdate
-Updates the DarwinPorts system, both the dports tree and if needed the base tools, installing the newest infrastructure if available. To update you would typically do:
-.Pp
-.Dl "sudo port -d selfupdate"
-.Ss sync
-Performs a sync operation only on the dports tree of a DarwinPorts installation, pulling in the latest revision available of the Portfiles. To update you would do:
-.Pp
-.Dl "sudo port -d sync"
 .Ss clean
 Clean the files used for building
 .Ar portname .
-To just remove the work files, specify
-.Fl -work .
+To just remove the work files, use the
+.Fl -work
+.Ar actionflag .
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
-To remove the archive(s) for the current version of a port, specify
+To remove the archive(s) for the current version of a port, pass
 .Fl -archive .
-To remove the work files, distribution files and archives, specify
+To remove the work files, distribution files and archives, pass
 .Fl -all .
 For example:
 .Pp
@@ -179,29 +320,50 @@ is any valid UNIX glob pattern), you can use:
 or:
 .Pp
 .Dl "port clean --archive vim '6.*'"
+.Ss echo
+Writes to stdout the arguments passed to
+.Nm .
+This follows the expansion of
+.Ar pseudo-portnames ,
+portname glob patterns,
+.Ar pseudo-portname selectors
+and the evaluation of port expressions.
+.Nm echo 
+may be used to determine the exact set of ports to which a given string of arguments will expand, without performing any further operations on them. For example:
+.Pp
+.Dl port echo category:net
+.Dl port echo maintainer:jmpp and name:netw
+.Dl port echo maintainer:jmpp and \e(\ net* or category:text\ \e)
+.Pp
 .Ss list
 List all available ports.
-.Ss search
-Search for an available port whose name matches a regular expression.
-.Pp
-.Dl "port search vim"
-.Pp
-.Ss info
-Displays the meta-information about an available
-.Ar portname .
-.Ss variants
-Lists the build variants available for
-.Ar portname .
-.Ss deps
-Lists the other ports that are required for building and running
-.Ar portname .
-.Ss contents
-Lists the files installed by
-.Ar portname .
 .Ss version
 Display the release number of the installed DarwinPorts infrastructure.
+.Ss selfupdate
+Updates the DarwinPorts system, dports tree(s) and base tools if needed, from the DarwinPorts rsync server,
+installing the newest infrastructure available. To update you would typically do:
+.Pp
+.Dl "sudo port -d selfupdate"
+.Ss help
+Displays a summary of all available actions and port command syntax on stdout.
 .Sh DEVELOPER TARGETS
 The targets that are often used by Port developers are intended to provide access to the different phases of a Port's build process:
+.Ss dir
+Displays the path to the directory containing
+.Ar portname .
+.Ss path
+Displays the path for
+.Ar portname .
+.Ss cat
+Concatenates and prints the contents of
+.Ar Portfile
+on stdout.
+.Ss edit
+Opens
+.Ar Portfile 
+with your default editor specified in your shell's environment variable. Alias
+.Ar ed
+also invokes this command.
 .Ss unarchive
 Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
 .Ar fetch ,
@@ -258,7 +420,7 @@ Creates an internet-enabled disk image containing an OS X package of
 .Ss rpmpackage
 Creates an RPM package of
 .Ar portname .
-.Sh EXAMPLE
+.Sh EXAMPLES
 The following demonstrates invoking
 .Nm
 with the
@@ -269,8 +431,6 @@ target on
 .Pp
 .Dl "port extract -D textproc/figlet extract.suffix=.tgz"
 .Pp
-.Sh DIAGNOSTICS
-.Ex -std
 .Sh FILES
 .Bl -tag -width
 .It Va ${prefix}/etc/ports/ports.conf
@@ -284,11 +444,14 @@ User configuration file for the DarwinPorts system. It overrides the global
 .Ar ports.conf
 file.
 .El
+.Sh DIAGNOSTICS
+.Ex -std
 .Sh SEE ALSO
 .Xr ports.conf 5 ,
 .Xr portfile 7 ,
-.Xr porthier 7 ,
-.Xr portstyle 7
+.Xr portgroup 7 ,
+.Xr portstyle 7 ,
+.Xr porthier 7
 .Sh AUTHORS
 .An "Landon Fuller" Aq landonf@opendarwin.org
 .An "Kevin Van Vechten" Aq kevin@opendarwin.org
@@ -298,3 +461,5 @@ file.
 .An "Chris Ridd" Aq cjr@opendarwin.org
 .An "Juan Manuel Palacios" Aq jmpp@opendarwin.org
 .An "Matt Anton" Aq matt@opendarwin.org
+.An "James Berry" Aq jberry@opendarwin.org
+.An "Joe Auty" Aq joe@opendarwin.org

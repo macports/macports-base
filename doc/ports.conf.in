@@ -41,7 +41,7 @@ portarchivetype		tgz
 portautoclean		yes
 
 # Rsync server to use
-rsync_server		rsync.opendarwin.org
+rsync_server		rsync.darwinports.org
 
 # Rsync directory from which to pull the base/ component (infrastructure) of DP
 rsync_dir			dpupdate1/base/
