@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.4 2005/12/14 05:10:17 jberry Exp $
+# $Id: TODO.txt,v 1.5 2005/12/14 19:04:31 jmpp Exp $
 #
 # DarwinPorts TODO List
 #
@@ -10,12 +10,11 @@
 Version 1.2:
 
 	(these may make it into 1.2)
-    - Add to port(1) manpage docs for new port(1) syntax. (Juan & documentation team, hopefully ;-)
+    - Enhance port(1) man page with stuff that didn't make it into the 1.2 release (Juan, James & Joe)
     - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
     	(James added some suggested text to bug #4905)
     - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
     	(James added some suggested text to bug #4905)
-    - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (idem)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
 
 Version 1.3:
