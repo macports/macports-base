@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.31 2005/09/11 15:03:52 olegb Exp $
+# $Id: mirror_sites.tcl,v 1.31.4.1 2005/12/12 18:33:51 jmpp Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -64,7 +64,6 @@ set portfetch::mirror_sites::sites(gnome) {
 
 set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.gnu.org/gnu/
-    ftp://gatekeeper.dec.com/pub/GNU/
     ftp://ftp.uu.net/archive/systems/gnu/
     ftp://ftp.de.uu.net/pub/gnu/
     ftp://ftp.funet.fi/pub/gnu/prep/

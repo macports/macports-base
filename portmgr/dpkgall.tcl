@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh8.4
 # dpkgbuild.tcl
-# $Id: dpkgall.tcl,v 1.17 2005/10/17 13:32:24 jberry Exp $
+# $Id: dpkgall.tcl,v 1.1.2.2 2005/12/06 21:37:01 jmpp Exp $
 #
 # Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
