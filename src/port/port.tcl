@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.143 2005/10/30 16:21:02 jberry Exp $
+# $Id: port.tcl,v 1.144 2005/12/29 02:34:36 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -1435,6 +1435,7 @@ switch -- $action {
             if { [catch {set ilist [registry::installed]} result] } {
                 if {$result == "Registry error: No ports registered as installed."} {
                     puts "No ports are installed!"
+					set ilist {}
                 } else {
 					global errorInfo
 					ui_debug "$errorInfo"
