@@ -5,10 +5,11 @@
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
-# $Id: IndexRegen.sh,v 1.1 2005/12/06 20:47:42 jmpp Exp $
+# $Id: IndexRegen.sh,v 1.2 2005/12/29 16:43:03 jmpp Exp $
 ####
 
 # Configuration
+LOCKFILE=/tmp/.dp_index_regen.lock
 # ROOT directory, where everything is. This must exist.
 ROOT=/Users/pguyot/dp-portindex
 # SSH key. This must exist.
@@ -46,6 +47,13 @@ FAILED=0
 COMMIT_MSG=${ROOT}/commit.msg
 # The date.
 DATE=$(date +'%A %Y-%m-%d at %H:%M:%S')
+
+if [ ! -e $LOCKFILE ]; then
+	touch $LOCKFILE
+else
+	echo "Index Regen lockfile found, is another index regen running?"
+	exit 1
+fi
 
 # Create the SSH wrapper if it doesn't exist (comment this for -d /Volumes...)
 if [ ! -e $SSH_KEY ]; then
@@ -140,3 +148,4 @@ else
 	rm -f $COMMIT_MSG $FAILURE_LOG
 fi
 
+rm -f $LOCKFILE
