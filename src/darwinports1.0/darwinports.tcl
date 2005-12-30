@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.200 2005/12/14 05:10:19 jberry Exp $
+# $Id: darwinports.tcl,v 1.201 2005/12/30 16:03:51 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1432,9 +1432,12 @@ proc darwinports::version {} {
 }
 
 # upgrade procedure
-proc darwinports::upgrade {pname dspec variationslist optionslist} {
+proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename ""}} {
 	array set options $optionslist
 	array set variations $variationslist
+	if {![string match "" $depscachename]} {
+		upvar $depscachename depscache
+	} 
 
 	# set to no-zero is epoch overrides version
 	set epoch_override 0
@@ -1571,22 +1574,31 @@ proc darwinports::upgrade {pname dspec variationslist optionslist} {
 		# build depends is upgraded
 		if {[info exists portinfo(depends_build)]} {
 			foreach i $portinfo(depends_build) {
+				if {![llength [array get depscache $i]]} {
 				set d [lindex [split $i :] end]
-				upgrade $d $i $variationslist $optionslist
+					set depscache($i) 1
+					upgrade $d $i $variationslist $optionslist depscache
+				} 
 			}
 		}
 		# library depends is upgraded
 		if {[info exists portinfo(depends_lib)]} {
 			foreach i $portinfo(depends_lib) {
+				if {![llength [array get depscache $i]]} {
 				set d [lindex [split $i :] end]
-				upgrade $d $i $variationslist $optionslist
+					set depscache($i) 1
+					upgrade $d $i $variationslist $optionslist depscache
+				} 
 			}
 		}
 		# runtime depends is upgraded
 		if {[info exists portinfo(depends_run)]} {
 			foreach i $portinfo(depends_run) {
+				if {![llength [array get depscache $i]]} {
 				set d [lindex [split $i :] end]
-				upgrade $d $i $variationslist $optionslist
+					set depscache($i) 1
+					upgrade $d $i $variationslist $optionslist depscache
+				} 
 			}
 		}
 	}
