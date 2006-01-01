@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.144 2005/12/29 02:34:36 olegb Exp $
+# $Id: port.tcl,v 1.145 2006/01/01 15:24:48 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -138,7 +138,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global cmdname
-	set usage { [-vdqfonasbcktu] [-D portdir] action [actionflags]
+	set usage { [-vdqfonsbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
@@ -150,7 +150,7 @@ proc print_usage args {
 proc print_help args {
 	global cmdname
 	
-	set help { [-vdqfonasbcktu] [-D portdir] action [actionflags]
+	set help { [-vdqfonsbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
@@ -1117,7 +1117,6 @@ while {[moreargs]} {
 				f { set global_options(ports_force) yes			}
 				o { set global_options(ports_ignore_older) yes	}
 				n { set global_options(ports_nodeps) yes		}
-				a { set global_options(port_upgrade_all) yes	}
 				u { set global_options(port_uninstall_old) yes	}
 				s { set global_options(ports_source_only) yes	}
 				b { set global_options(ports_binary_only) yes	}
@@ -1350,14 +1349,8 @@ switch -- $action {
 	}
 	
 	upgrade {
-        if {[info exists global_options(port_upgrade_all)] } {
-			# if -a then upgrade all installed ports
-			# (union these to any other ports user has in the port list)
-			set portlist [opUnion $portlist [get_installed_ports]]
-        } else {
-        	# Otherwise if the user has supplied no ports we'll use the current port
-			require_portlist
-        }
+        # Otherwise if the user has supplied no ports we'll use the current port
+		require_portlist
                 
 		foreachport $portlist {
 			# Merge global variations into the variations specified for this port

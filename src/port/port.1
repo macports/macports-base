@@ -36,7 +36,7 @@
 .Ar ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonausbckt
+.Op Fl vdqfonusbckt
 .Op Fl D Ar portdir
 .Ar action
 .Op Ar actionflags
@@ -200,8 +200,6 @@ debug mode (generate debugging messages, implies
 quiet mode (suppress messages)
 .It Fl n
 dont follow dependencies in upgrade (only for upgrading)
-.It Fl a
-upgrade all installed ports (only for upgrading)
 .It Fl u
 uninstall non-active ports when upgrading and uninstalling
 .It Fl f
@@ -280,12 +278,13 @@ List the installed ports that need upgrading.
 .Ss upgrade
 Upgrade the installed
 .Ar portname .
-To upgrade all ports, use
-.Fl a .
 For example:
 .Pp
 .Dl "port upgrade vim"
-.Dl "port -a upgrade"
+.Pp
+To upgrade all installed ports:
+.Pp
+.Dl "port upgrade installed"
 .Pp
 To upgrade
 .Ar portname
