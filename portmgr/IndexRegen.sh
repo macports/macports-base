@@ -5,7 +5,7 @@
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
-# $Id: IndexRegen.sh,v 1.2 2005/12/29 16:43:03 jmpp Exp $
+# $Id: IndexRegen.sh,v 1.3 2006/01/04 17:00:32 pguyot Exp $
 ####
 
 # Configuration
@@ -65,7 +65,7 @@ fi
 # Create the SSH wrapper if it doesn't exist  (comment this for -d /Volumes...)
 if [ ! -x $SSH_WRAPPER ]; then
 	echo "#!/bin/bash" > $SSH_WRAPPER && \
-	echo "/usr/bin/ssh -i ${SSH_KEY} \$*" >> $SSH_WRAPPER 1 && \
+	echo "/usr/bin/ssh -i ${SSH_KEY} \$*" >> $SSH_WRAPPER && \
 	chmod +x $SSH_WRAPPER \
 		|| { echo "Creation of wrapper failed" ; exit 1 ; }
 fi
