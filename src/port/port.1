@@ -36,7 +36,7 @@
 .Ar ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonusbckt
+.Op Fl vdqfonRusbckt
 .Op Fl D Ar portdir
 .Ar action
 .Op Ar actionflags
@@ -200,6 +200,8 @@ debug mode (generate debugging messages, implies
 quiet mode (suppress messages)
 .It Fl n
 dont follow dependencies in upgrade (only for upgrading)
+.It Fl R
+also upgrade dependents (only for upgrading)
 .It Fl u
 uninstall non-active ports when upgrading and uninstalling
 .It Fl f
@@ -235,6 +237,9 @@ Lists the build variants available for
 .Ar portname .
 .Ss deps
 Lists the other ports that are required to build and run
+.Ar portname .
+.Ss dependents
+Lists the ports that depend on the port
 .Ar portname .
 .Ss install
 Install and activate
@@ -285,6 +290,16 @@ For example:
 To upgrade all installed ports:
 .Pp
 .Dl "port upgrade installed"
+.Pp
+To upgrade
+.Ar portname
+and the ports that depend on it:
+.Pp
+.Dl "port -R upgrade libiconv"
+.Pp
+To force an upgrade (rebuild) use:
+.Pp
+.Dl "port -f upgrade vim"
 .Pp
 To upgrade
 .Ar portname

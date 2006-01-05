@@ -1,9 +1,9 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.202 2005/12/31 04:48:05 jberry Exp $
+# $Id: darwinports.tcl,v 1.203 2006/01/05 06:40:56 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
-# Copyright (c) 2004 Ole Guldberg Jensen <olegb@opendarwin.org>.
+# Copyright (c) 2004 - 2006 Ole Guldberg Jensen <olegb@opendarwin.org>.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
 # All rights reserved.
 #
@@ -1605,9 +1605,25 @@ proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename
 	}
 
 	# check installed version against version in ports
-	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 } {
+	if { [rpm-vercomp $version_installed $version_in_tree] >= 0 && ![info exists options(ports_force)] } {
 		ui_debug "No need to upgrade! $portname $version_installed >= $portname $version_in_tree"
 		if { $epoch_installed >= $epoch_in_tree } {
+			# Check if we have to do dependents
+			if {[info exists options(ports_do_dependents)]} {
+				# We do dependents ..
+				set options(ports_nodeps) 1
+
+				registry::open_dep_map
+	   			set deplist [registry::list_dependents $portname]
+
+				if { [llength deplist] > 0 } {
+					foreach dep $deplist {
+						set dpname [lindex $dep 2] 
+						darwinports::upgrade $dpname "port:$dpname" [array get variations] [array get options]
+					}
+				}
+			}
+
 			return 0
 		} else {
 			ui_debug "epoch override ... upgrading!"
@@ -1656,8 +1672,8 @@ proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename
 	}
 
 	# uninstall old ports
-	if {[info exists options(port_uninstall_old)] || $epoch_override == 1} {
-		# uninstalll old
+	if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] } {
+		# uninstall old
 		ui_debug "Uninstalling $portname $version_installed$oldvariant"
 		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant $optionslist} result]} {
 			global errorInfo
@@ -1681,6 +1697,23 @@ proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename
 		ui_error "Couldn't activate $portname $version_in_tree$oldvariant: $result"
 		return 1
 	}
+
+	# Check if we have to do dependents
+	if {[info exists options(ports_do_dependents)]} {
+		# We do dependents ..
+		set options(ports_nodeps) 1
+
+		registry::open_dep_map
+	   	set deplist [registry::list_dependents $portname]
+
+		if { [llength deplist] > 0 } {
+			foreach dep $deplist {
+				set dpname [lindex $dep 2] 
+				darwinports::upgrade $dpname "port:$dpname" [array get variations] [array get options]
+			}
+		}
+	}
+
 	
 	# close the port handle
 	dportclose $workername

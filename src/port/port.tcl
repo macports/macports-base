@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.145 2006/01/01 15:24:48 olegb Exp $
+# $Id: port.tcl,v 1.146 2006/01/05 06:40:56 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -138,7 +138,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage args {
 	global cmdname
-	set usage { [-vdqfonsbcktu] [-D portdir] action [actionflags]
+	set usage { [-vdqfonRsbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
@@ -150,13 +150,13 @@ proc print_usage args {
 proc print_help args {
 	global cmdname
 	
-	set help { [-vdqfonsbcktu] [-D portdir] action [actionflags]
+	set help { [-vdqfonRsbcktu] [-D portdir] action [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 	
 Valid actions are:
 	help, info, location, provides, activate, deactivate, selfupdate, upgrade,
 	version, compact, uncompact, uninstall, installed, outdated, contents, deps,
-	variants, search, list, echo, sync, dir, url, file, cat, edit,
+	dependents, variants, search, list, echo, sync, dir, url, file, cat, edit,
 	fetch, patch, extract, build, destroot, install, test.
 	
 Pseudo-portnames:
@@ -1117,6 +1117,7 @@ while {[moreargs]} {
 				f { set global_options(ports_force) yes			}
 				o { set global_options(ports_ignore_older) yes	}
 				n { set global_options(ports_nodeps) yes		}
+				R { set global_options(ports_do_dependents) yes	}
 				u { set global_options(port_uninstall_old) yes	}
 				s { set global_options(ports_source_only) yes	}
 				b { set global_options(ports_binary_only) yes	}
@@ -1347,7 +1348,34 @@ switch -- $action {
 			fatal "selfupdate failed: $result"
 		}
 	}
-	
+
+	dependents {
+		require_portlist
+
+		foreachport $portlist {
+			registry::open_dep_map
+	    	set deplist [registry::list_dependents $portname]
+
+    		if { [llength $deplist] > 0 } {
+    			set dl [list]
+    			# Check the deps first
+    			foreach dep $deplist {
+    				set depport [lindex $dep 2]
+    				ui_msg "$depport depends on $portname"
+    				# xxx: Should look at making registry::installed return 0 or 
+    				# something instead  of erroring.
+    				if { ![catch {set installed [registry::installed $depport]} res] } {
+    					if { [llength [registry::installed $depport]] > 0 } {
+    						lappend dl $depport
+    					}
+					}
+				}
+    		} else {
+				ui_msg "$portname has no dependents!"
+			}
+		}
+	}
+
 	upgrade {
         # Otherwise if the user has supplied no ports we'll use the current port
 		require_portlist
