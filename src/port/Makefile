@@ -16,7 +16,7 @@ portindex: portindex.tcl
 
 port: port.tcl
 	${edit} port.tcl > $@
-
+	
 mkdirs:
 	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 
@@ -30,5 +30,5 @@ distclean: clean
 install: mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port ${INSTALLDIR}/bin/port
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 portindex ${INSTALLDIR}/bin/portindex
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex ${INSTALLDIR}/bin/
+	$(LN_S) -f ${INSTALLDIR}/bin/port ${INSTALLDIR}/bin/portf
