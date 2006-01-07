@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.5 2005/12/14 19:04:31 jmpp Exp $
+# $Id: TODO.txt,v 1.6 2006/01/07 23:12:34 jberry Exp $
 #
 # DarwinPorts TODO List
 #
@@ -18,17 +18,3 @@ Version 1.2:
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
 
 Version 1.3:
-
-	- Consider recognizing ports by directory name in port if the element contains
-	  a / but doesn't look like a url. Such a name could be transformed immediately
-	  into a url.
-	  
-	- Consider allowing multiple actions per port invocation, either read from
-	  standard input as lines, or separated on the command line by something like ';'.
-	  This would allow one to amortize port load time if multiple actions are desired,
-	  particularly from other scripts.
-	  
-	- Consider changing dportopen so that it doesn't change the current directory. Does
-	  this get used anywhere? It certainly complicates our handling of relative urls/
-	  directories.
-
