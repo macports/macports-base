@@ -4383,7 +4383,10 @@ done
 
 
 
-for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h
+
+
+for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
+	readline/readline.h readline/history.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -7602,6 +7605,540 @@ echo "$as_me: error: Broken X11 install" >&2;}
 			esac
 			;;
 	esac
+
+
+
+# Check for readline
+
+echo "$as_me:$LINENO: checking for readline in -lreadline" >&5
+echo $ECHO_N "checking for readline in -lreadline... $ECHO_C" >&6
+if test "${ac_cv_lib_readline_readline+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lreadline  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any gcc2 internal prototype to avoid an error.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+/* We use char because int might match the return type of a gcc2
+   builtin and then its argument prototype would still apply.  */
+char readline ();
+int
+main ()
+{
+readline ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_lib_readline_readline=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_lib_readline_readline=no
+fi
+rm -f conftest.err conftest.$ac_objext \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+echo "$as_me:$LINENO: result: $ac_cv_lib_readline_readline" >&5
+echo "${ECHO_T}$ac_cv_lib_readline_readline" >&6
+if test $ac_cv_lib_readline_readline = yes; then
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
+
+  LIBS="-lreadline $LIBS"
+
+fi
+
+echo "$as_me:$LINENO: checking whether rl_username_completion_function is declared" >&5
+echo $ECHO_N "checking whether rl_username_completion_function is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_rl_username_completion_function+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef rl_username_completion_function
+  char *p = (char *) rl_username_completion_function;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_rl_username_completion_function=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_rl_username_completion_function=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_rl_username_completion_function" >&5
+echo "${ECHO_T}$ac_cv_have_decl_rl_username_completion_function" >&6
+if test $ac_cv_have_decl_rl_username_completion_function = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION 0
+_ACEOF
+
+
+fi
+echo "$as_me:$LINENO: checking whether rl_filename_completion_function is declared" >&5
+echo $ECHO_N "checking whether rl_filename_completion_function is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_rl_filename_completion_function+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef rl_filename_completion_function
+  char *p = (char *) rl_filename_completion_function;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_rl_filename_completion_function=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_rl_filename_completion_function=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_rl_filename_completion_function" >&5
+echo "${ECHO_T}$ac_cv_have_decl_rl_filename_completion_function" >&6
+if test $ac_cv_have_decl_rl_filename_completion_function = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_FILENAME_COMPLETION_FUNCTION 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_FILENAME_COMPLETION_FUNCTION 0
+_ACEOF
+
+
+fi
+echo "$as_me:$LINENO: checking whether rl_completion_matches is declared" >&5
+echo $ECHO_N "checking whether rl_completion_matches is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_rl_completion_matches+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef rl_completion_matches
+  char *p = (char *) rl_completion_matches;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_rl_completion_matches=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_rl_completion_matches=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_rl_completion_matches" >&5
+echo "${ECHO_T}$ac_cv_have_decl_rl_completion_matches" >&6
+if test $ac_cv_have_decl_rl_completion_matches = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_COMPLETION_MATCHES 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_RL_COMPLETION_MATCHES 0
+_ACEOF
+
+
+fi
+echo "$as_me:$LINENO: checking whether username_completion_function is declared" >&5
+echo $ECHO_N "checking whether username_completion_function is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_username_completion_function+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef username_completion_function
+  char *p = (char *) username_completion_function;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_username_completion_function=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_username_completion_function=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_username_completion_function" >&5
+echo "${ECHO_T}$ac_cv_have_decl_username_completion_function" >&6
+if test $ac_cv_have_decl_username_completion_function = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_USERNAME_COMPLETION_FUNCTION 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_USERNAME_COMPLETION_FUNCTION 0
+_ACEOF
+
+
+fi
+echo "$as_me:$LINENO: checking whether filename_completion_function is declared" >&5
+echo $ECHO_N "checking whether filename_completion_function is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_filename_completion_function+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef filename_completion_function
+  char *p = (char *) filename_completion_function;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_filename_completion_function=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_filename_completion_function=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_filename_completion_function" >&5
+echo "${ECHO_T}$ac_cv_have_decl_filename_completion_function" >&6
+if test $ac_cv_have_decl_filename_completion_function = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_FILENAME_COMPLETION_FUNCTION 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_FILENAME_COMPLETION_FUNCTION 0
+_ACEOF
+
+
+fi
+echo "$as_me:$LINENO: checking whether completion_matches is declared" >&5
+echo $ECHO_N "checking whether completion_matches is declared... $ECHO_C" >&6
+if test "${ac_cv_have_decl_completion_matches+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+
+
+int
+main ()
+{
+#ifndef completion_matches
+  char *p = (char *) completion_matches;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  ac_cv_have_decl_completion_matches=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+ac_cv_have_decl_completion_matches=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+echo "$as_me:$LINENO: result: $ac_cv_have_decl_completion_matches" >&5
+echo "${ECHO_T}$ac_cv_have_decl_completion_matches" >&6
+if test $ac_cv_have_decl_completion_matches = yes; then
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_COMPLETION_MATCHES 1
+_ACEOF
+
+
+else
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_COMPLETION_MATCHES 0
+_ACEOF
+
+
+fi
 
 
 

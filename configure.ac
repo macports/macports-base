@@ -56,7 +56,8 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h])
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
+	readline/readline.h readline/history.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
@@ -70,6 +71,16 @@ AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf fl
 OD_LIB_MD5
 # Check for X11 and paraphernalia
 OD_CHECK_X11
+
+# Check for readline
+AC_CHECK_LIB([readline], [readline])
+AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
+[
+#include <stdio.h>
+#if HAVE_READLINE_READLINE_H
+# include <readline/readline.h>
+#endif
+])
 
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG
