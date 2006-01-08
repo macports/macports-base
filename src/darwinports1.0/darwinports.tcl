@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203 2006/01/05 06:40:56 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.1 2006/01/08 17:44:39 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -37,8 +37,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
+    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
@@ -353,41 +353,6 @@ proc dportinit {up_ui_options up_options up_variations} {
 			set darwinports::portverbose $ui_options(ports_verbose)
 		}
 	}
-
-	# Archive mode, whether to create/use binary archive packages
-	if {![info exists portarchivemode]} {
-		set darwinports::portarchivemode "yes"
-		global darwinports::portarchivemode
-	}
-
-	# Archive path, where to store/retrieve binary archive packages
-	if {![info exists portarchivepath]} {
-		set darwinports::portarchivepath [file join $portdbpath packages]
-		global darwinports::portarchivepath
-	}
-	if {$portarchivemode == "yes"} {
-		if {![file isdirectory $portarchivepath]} {
-			if {![file exists $portarchivepath]} {
-				if {[catch {file mkdir $portarchivepath} result]} {
-					return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
-				}
-			}
-		}
-		if {![file isdirectory $portarchivepath]} {
-			return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
-		}
-	}
-
-	# Archive type, what type of binary archive to use (CPIO, gzipped
-	# CPIO, XAR, etc.)
-	if {![info exists portarchivetype]} {
-		set darwinports::portarchivetype "cpgz"
-		global darwinports::portarchivetype
-	}
-	# Convert archive type to a list for multi-archive support, colon or
-	# comma separators indicates to use multiple archive formats
-	# (reading and writing)
-	set darwinports::portarchivetype [split $portarchivetype {:,}]
 
 	# Set rync options
 	if {![info exists rsync_server]} {
@@ -978,7 +943,6 @@ proc dportexec {dport target} {
 	}
 	if {$target == "configure" || $target == "build"
 		|| $target == "destroot" || $target == "install"
-		|| $target == "archive"
 		|| $target == "pkg" || $target == "mpkg"
 		|| $target == "rpmpackage" || $target == "dpkg" } {
 
@@ -1154,9 +1118,7 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 								set source_url $source
 							}
 						}
-						if {[info exists portinfo(portarchive)]} {
-							set porturl ${source_url}/$portinfo(portarchive)
-						} elseif {[info exists portinfo(portdir)]} {
+						if {[info exists portinfo(portdir)]} {
 							set porturl ${source_url}/$portinfo(portdir)
 						}
 						if {[info exists porturl]} {
@@ -1238,7 +1200,6 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		
 		destroot	-
 		install		-
-		archive		-
 		pkg			-
 		mpkg		-
 		rpmpackage	-
