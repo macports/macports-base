@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.148 2006/01/08 01:29:31 jberry Exp $
+# $Id: port.tcl,v 1.149 2006/01/08 01:40:52 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -159,7 +159,7 @@ proc print_help {args} {
 	}
 	
 	set cmdText "
-Valid Commands are
+Supported commands
 ------------------
 $cmds
 "
@@ -167,12 +167,12 @@ $cmds
 	set text {
 Pseudo-portnames
 ----------------
-Pseudo-portnames are words which may be used in place of a portname, and
-which expand to some set of ports. The common pseudo-ports are:
+Pseudo-portnames are words that may be used in place of a portname, and
+which expand to some set of ports. The common pseudo-portnames are:
 all, current, active, inactive, installed, uninstalled, and outdated.
 These pseudo-portnames expand to the set of ports named.
 
-Additional pseudo-portnames are:
+Additional pseudo-portnames start with...
 variants:, variant:, description:, portdir:, homepage:, epoch:,
 platforms:, platform:, name:, long_description:, maintainers:,
 maintainer:, categories:, category:, version:, and revision:.
@@ -181,18 +181,18 @@ about the ports. In all such cases, a standard regex pattern following
 the colon will be used to select the set of ports to which the
 pseudo-portname expands.
 
-portnames that contain standard glob characters will be expanded to the
+Portnames that contain standard glob characters will be expanded to the
 set of ports matching the glob pattern.
 	
 Port expressions
 ----------------
-Portnames, port glob patterns, and pseudo-portnames may be logically combined
-using expressions consisting of and, or, not, !, (, and ).
+Portnames, port glob patterns, and pseudo-portnames may be logically
+combined using expressions consisting of and, or, not, !, (, and ).
 	
 For more information
 --------------------
 See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
-porthier(7), portstyle(7). See also http://www.darwinports.org.
+porthier(7), portstyle(7). Also, see http://www.darwinports.org.
 }
 
 	
