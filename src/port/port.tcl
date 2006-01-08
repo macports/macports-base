@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.151 2006/01/08 12:15:15 olegb Exp $
+# $Id: port.tcl,v 1.152 2006/01/08 15:24:35 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1987,7 +1987,9 @@ array set action_array {
 	activate	action_activate
 	deactivate	action_deactivate
 	
+	sync		action_sync
 	selfupdate	action_selfupdate
+	
 	upgrade		action_upgrade
 	
 	version		action_version
