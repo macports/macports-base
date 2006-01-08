@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.149 2006/01/08 01:40:52 jberry Exp $
+# $Id: port.tcl,v 1.150 2006/01/08 09:58:53 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1363,7 +1363,7 @@ proc action_dependents { action portlist opts } {
 	foreachport $portlist {
 		registry::open_dep_map
 		set deplist [registry::list_dependents $portname]
-
+ 
 		if { [llength $deplist] > 0 } {
 			set dl [list]
 			# Check the deps first
@@ -1372,16 +1372,17 @@ proc action_dependents { action portlist opts } {
 				ui_msg "$depport depends on $portname"
 				# xxx: Should look at making registry::installed return 0 or 
 				# something instead  of erroring.
-				if { ![catch {set installed [registry::installed $depport]} res] } {
-					if { [llength [registry::installed $depport]] > 0 } {
-						lappend dl $depport
-					}
-				}
+				#if { ![catch {set installed [registry::installed $depport]} res] } {
+					#if { [llength [registry::installed $depport]] > 0 } {
+						#lappend dl $depport
+					#}
+				#}
 			}
 		} else {
 			ui_msg "$portname has no dependents!"
 		}
 	}
+	return 0
 }
 
 
