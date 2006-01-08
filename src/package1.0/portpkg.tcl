@@ -1,6 +1,6 @@
 # et:ts=4
 # portpkg.tcl
-# $Id: portpkg.tcl,v 1.5 2005/08/27 00:07:27 pguyot Exp $
+# $Id: portpkg.tcl,v 1.5.6.1 2006/01/08 17:33:32 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -36,11 +36,7 @@ package require portutil 1.0
 set com.apple.pkg [target_new com.apple.pkg pkg_main]
 target_runtype ${com.apple.pkg} always
 target_provides ${com.apple.pkg} pkg
-if {[option portarchivemode] == "yes"} {
-	target_requires ${com.apple.pkg} unarchive destroot
-} else {
-	target_requires ${com.apple.pkg} destroot
-}
+target_requires ${com.apple.pkg} destroot
 
 # define options
 options package.type package.destpath
