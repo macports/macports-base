@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19.6.1 2006/01/08 18:36:41 olegb Exp $
+# $Id: portclean.tcl,v 1.19.6.2 2006/01/08 18:55:43 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -62,7 +62,7 @@ proc clean_main {args} {
 	}
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
 		[info exists ports_clean_work] && $ports_clean_work == "yes" || \
-		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes") &&))} {
+		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes")) } {
 		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing workpath for %s"] [option portname]]"
 		 clean_work
 	}
