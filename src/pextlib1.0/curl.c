@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.8 2005/09/05 00:33:35 pguyot Exp $
+ * $Id: curl.c,v 1.9 2006/01/08 07:05:28 jkh Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -57,6 +57,14 @@ typedef CONST char* tableEntryString;
 #else
 typedef char* tableEntryString;
 #endif
+
+/*
+ * Some compiled-in constants that we may wish to change later, given more
+ * empirical data.  These represent "best guess" values for now.
+ */
+#define _CURL_CONNECTION_TIMEOUT	((long)(5 * 60))	/* 5 minutes */
+#define _CURL_MINIMUM_XFER_SPEED	((long)1024)		/* 1Kb/sec */
+#define _CURL_MINIMUM_XFER_TIMEOUT	((long)(10 * 60))	/* 10 minutes */
 
 /* ========================================================================= **
  * Definitions
@@ -365,6 +373,27 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 		/* -f option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout on connections */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_TIMEOUT, _CURL_CONNECTION_TIMEOUT);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set minimum connection speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_LIMIT, _CURL_MINIMUM_XFER_SPEED);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout interval for connections < min xfer speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_TIME, _CURL_MINIMUM_XFER_TIMEOUT);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
