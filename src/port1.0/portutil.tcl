@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.190 2005/08/27 06:26:34 pguyot Exp $
+# $Id: portutil.tcl,v 1.190.6.1 2006/01/08 17:25:06 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -652,7 +652,6 @@ proc target_run {ditem} {
 					
 					destroot	-
 					install		-
-					archive		-
 					pkg			-
 					mpkg		-
 					rpmpackage	-
@@ -679,7 +678,6 @@ proc target_run {ditem} {
 				
 				# Check files that were created.
 				if {$target != "activate"
-					&& $target != "archive"
 					&& $target != "fetch"
 					&& $target != "install"} {
 					trace_check_create
@@ -1263,62 +1261,3 @@ proc PortGroup {group version} {
 		ui_warn "Group file could not be located."
 	}
 }
-
-# check if archive type is supported by current system
-# returns an error code if it is not
-proc archiveTypeIsSupported {type} {
-    global os.platform os.version
-	set errmsg ""
-	switch -regex $type {
-		cp(io|gz) {
-			set pax "pax"
-			if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
-				if {[regexp {z$} $type]} {
-					set gzip "gzip"
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
-						return 0
-					}
-				} else {
-					return 0
-				}
-			}
-		}
-		t(ar|bz|gz) {
-			set tar "tar"
-			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
-				if {[regexp {z$} $type]} {
-					if {[regexp {bz$} $type]} {
-						set gzip "bzip2"
-					} else {
-						set gzip "gzip"
-					}
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
-						return 0
-					}
-				} else {
-					return 0
-				}
-			}
-		}
-		xar {
-			set xar "xar"
-			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
-				return 0
-			}
-		}
-		zip {
-			set zip "zip"
-			if {[catch {set zip [binaryInPath $zip]} errmsg] == 0} {
-				set unzip "unzip"
-				if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
-					return 0
-				}
-			}
-		}
-		default {
-			return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
-		}
-	}
-	return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
-}
-

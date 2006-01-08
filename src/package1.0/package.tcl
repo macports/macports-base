@@ -1,6 +1,6 @@
 # et:ts=4
 # package.tcl
-# $Id: package.tcl,v 1.5 2005/08/27 00:07:27 pguyot Exp $
+# $Id: package.tcl,v 1.5.6.1 2006/01/08 17:25:05 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -37,5 +37,3 @@ package require portpkg 1.0
 package require portmpkg 1.0
 package require portdmg 1.0
 package require portdpkg 1.0
-package require portunarchive 1.0
-package require portarchive 1.0
