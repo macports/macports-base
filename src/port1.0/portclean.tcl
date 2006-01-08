@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portclean.tcl,v 1.19.6.1 2006/01/08 18:36:41 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -52,7 +52,7 @@ proc clean_start {args} {
 
 proc clean_main {args} {
     global UI_PREFIX
-	global ports_clean_dist ports_clean_work ports_clean_archive
+	global ports_clean_dist ports_clean_work 
 	global ports_clean_all
 
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
@@ -61,14 +61,8 @@ proc clean_main {args} {
 		clean_dist
 	}
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-		[info exists ports_clean_archive] && $ports_clean_archive == "yes"} {
-		ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option portname]]"
-		clean_archive
-	}
-	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
 		[info exists ports_clean_work] && $ports_clean_work == "yes" || \
-		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes") && \
-		 !([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
+		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes") &&))} {
 		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing workpath for %s"] [option portname]]"
 		 clean_work
 	}
@@ -168,56 +162,3 @@ proc clean_work {args} {
 
 	return 0
 }
-
-proc clean_archive {args} {
-	global workpath portarchivepath portname portversion ports_version_glob
-
-	# Define archive destination directory and target filename
-	if {![string equal ${portarchivepath} ${workpath}] && ![string equal ${portarchivepath} ""]} {
-		set archivepath [file join ${portarchivepath} [option os.platform] [option os.arch]]
-	}
-
-	if {[info exists ports_version_glob]} {
-		# Match all possible archive variatns that match the version
-		# glob specified by the user for this OS.
-		set fileglob "${portname}-[option ports_version_glob]*.[option os.arch].*"
-	} else {
-		# Match all possible archive variants for the current version on
-		# this OS. If you want to delete previous versions, use the
-		# version glob argument to clean.
-		#
-		# We do this because if we don't, then ports that match the
-		# first part of the name (e.g. trying to remove foo-*, it will
-		# pick up anything foo-bar-* as well, which is undesirable).
-		set fileglob "${portname}-${portversion}*.[option os.arch].*"
-	}
-
-	# Remove the archive files
-	set count 0
-	if {![catch {set archivelist [glob [file join ${archivepath} ${fileglob}]]} result]} {
-		foreach path $archivelist {
-			set file [file tail $path]
-			# Make sure file is truly a port archive file, and not
-			# and accidental match with some other file that might exist.
-			if {[regexp "^${portname}-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
-				if {[file isfile ${path}]} {
-					ui_debug "Removing archive: ${path}"
-					if {[catch {exec rm -f ${path}} result]} {
-						global errorInfo
-						ui_debug "$errorInfo"
-						ui_error "${result}"
-					}
-					set count [expr $count + 1]
-				}
-			}
-		}
-	}
-	if {$count > 0} {
-		ui_debug "$count archive(s) removed."
-	} else {
-		ui_debug "No archives found to remove."
-	}
-
-	return 0
-}
-
