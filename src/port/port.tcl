@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.147 2006/01/07 23:10:22 jberry Exp $
+# $Id: port.tcl,v 1.148 2006/01/08 01:29:31 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -35,13 +35,6 @@ exec @TCLSH@ "$0" "$@"
 
 #
 #	TODO:
-#
-#		- Rename global_options to cmd_options
-#		- Rename global_options_base to global_options
-#		- Document -i, -F, -p, and -x
-#		- In interactive mode, we might need to blow some caches between commands
-#		  (do we cache anything except PortIndex?)
-#		- Add auto-completion of filenames?
 #
 
 catch {source \
@@ -131,56 +124,79 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage {args} {
 	global cmdname
-	set usage { [-vdqfonRsbcktu] [-D portdir] action [actionflags]
+	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
-	puts "Usage: $cmdname$usage"
+	puts "Usage: $cmdname$syntax"
 	puts "\"$cmdname help\" or \"man 1 port\" for more information."
 }
 
 
 proc print_help {args} {
 	global cmdname
+	global action_array
 	
-	set help { [-vdqfonRsbcktu] [-D portdir] action [actionflags]
+	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
-	
-Valid actions are:
-	help, info, location, provides, activate, deactivate, selfupdate, upgrade,
-	version, compact, uncompact, uninstall, installed, outdated, contents, deps,
-	dependents, variants, search, list, echo, sync, dir, url, file, cat, edit,
-	fetch, patch, extract, build, destroot, install, test.
-	
-Pseudo-portnames:
-	Pseudo-portnames are words which may be used in place of a portname, and
-	which expand to some set of ports. The common pseudo-ports are:
-	all, current, active, inactive, installed, uninstalled, and outdated.
-	These pseudo-portnames expand to the set of ports named.
-	
-	Additional pseudo-portnames are:
-	variants:, variant:, description:, portdir:, homepage:, epoch:,
-	platforms:, platform:, name:, long_description:, maintainers:,
-	maintainer:, categories:, category:, version:, and revision:.
-	These each select a set of ports based on a regex search of metadata
-	about the ports. In all such cases, a standard regex pattern following
-	the colon will be used to select the set of ports to which the
-	pseudo-portname expands.
-	
-	portnames that contain standard glob characters will be expanded to the
-	set of ports matching the glob pattern.
-	
-Port expressions:
-	Portnames, port glob patterns, and pseudo-portnames may be logically combined
-	using expressions consisting of and, or, not, !, (, and ).
-	
-For more information:
-	See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
-	porthier(7), portstyle(7).
-	
+}
+
+	# Generate and format the command list from the action_array
+	set cmds ""
+	set lineLen 0
+	foreach cmd [lsort [array names action_array]] {
+		if {$lineLen > 65} {
+			set cmds "$cmds,\n"
+			set lineLen 0
+		}
+		if {$lineLen == 0} {
+			set new "$cmd"
+		} else {
+			set new ", $cmd"
+		}
+		incr lineLen [string length $new]
+		set cmds "$cmds$new"
 	}
 	
-	puts "$cmdname$help"
+	set cmdText "
+Valid Commands are
+------------------
+$cmds
+"
+
+	set text {
+Pseudo-portnames
+----------------
+Pseudo-portnames are words which may be used in place of a portname, and
+which expand to some set of ports. The common pseudo-ports are:
+all, current, active, inactive, installed, uninstalled, and outdated.
+These pseudo-portnames expand to the set of ports named.
+
+Additional pseudo-portnames are:
+variants:, variant:, description:, portdir:, homepage:, epoch:,
+platforms:, platform:, name:, long_description:, maintainers:,
+maintainer:, categories:, category:, version:, and revision:.
+These each select a set of ports based on a regex search of metadata
+about the ports. In all such cases, a standard regex pattern following
+the colon will be used to select the set of ports to which the
+pseudo-portname expands.
+
+portnames that contain standard glob characters will be expanded to the
+set of ports matching the glob pattern.
+	
+Port expressions
+----------------
+Portnames, port glob patterns, and pseudo-portnames may be logically combined
+using expressions consisting of and, or, not, !, (, and ).
+	
+For more information
+--------------------
+See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
+porthier(7), portstyle(7). See also http://www.darwinports.org.
+}
+
+	
+	puts "$cmdname$syntax $cmdText $text"
 }
 
 
@@ -2307,7 +2323,7 @@ proc process_command_file { in } {
 	set noisy [expr $isstdin && ![ui_isset ports_quiet]]
 	if { $noisy } {
 		puts "DarwinPorts [darwinports::version]"
-		puts "Entering interactive mode... (\"help\" for help)"
+		puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
 	}
 	
 	# Main command loop
