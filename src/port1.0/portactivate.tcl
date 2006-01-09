@@ -1,6 +1,6 @@
 # et:ts=4
 # portactivate.tcl
-# $Id: portactivate.tcl,v 1.6.6.1 2006/01/08 18:36:41 olegb Exp $
+# $Id: portactivate.tcl,v 1.6.6.2 2006/01/09 16:25:17 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -41,29 +41,7 @@ target_runtype ${com.apple.activate} always
 target_state ${com.apple.activate} no
 target_provides ${com.apple.activate} activate
 target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
-target_prerun ${com.apple.activate} activate_start
-
-set_ui_prefix
-
-proc activate_start {args} {
-	global UI_PREFIX portname portversion portrevision variations portvariants
-    
-	if { ![info exists portvariants] } {
-		set portvariants ""
-
-		set vlist [lsort -ascii [array names variations]]
-
-	 	# Put together variants in the form +foo+bar for the registry
-		foreach v $vlist {
-			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
-				set portvariants "${portvariants}+${v}"
-			}
-		}
-	}
-}
 
 proc activate_main {args} {
-	global portname portversion portrevision portvariants user_options
-	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
     return 0
 }

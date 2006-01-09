@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.2 2006/01/08 22:31:31 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.3 2006/01/09 16:25:17 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -47,8 +47,11 @@ proc install_main {args} {
 		set arch "ppc"
 	}
 
-	puts "arch: $arch in: ${prefix}/src/apple/RPMS"
-	system "rpm -ivh ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	if {[info exists options(ports_force)]} {
+		system "rpm -ivh -force ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	} else {
+		system "rpm -ivh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	}
 
     return 0
 }
