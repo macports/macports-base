@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.1 2006/01/08 17:44:39 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.2 2006/01/09 20:16:19 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -485,7 +485,6 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_prop_retr registry::property_retrieve
 	$workername alias registry_delete registry::delete_entry
 	$workername alias registry_exists registry::entry_exists
-	$workername alias registry_activate portimage::activate
 	$workername alias registry_deactivate portimage::deactivate
 	$workername alias registry_register_deps registry::register_dependencies
 	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
@@ -959,11 +958,7 @@ proc dportexec {dport target} {
 		# install them
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
-		if { [string equal ${darwinports::registry.installtype} "image"] } {
-			set result [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
-		} else {
-			set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
-		}
+		set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
 		
 		if {$result != {}} {
 			set errstring "The following dependencies failed to build:"
@@ -986,12 +981,6 @@ proc dportexec {dport target} {
 		set clean 1
 	}
 
-	# If we're doing image installs, then we should activate after install
-	# xxx: This isn't pretty
-	if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
-		set target activate
-	}
-	
 	# Build this port with the specified target
 	set result [$workername eval eval_targets $target]
 

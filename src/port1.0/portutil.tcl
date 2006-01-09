@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.190.6.1 2006/01/08 17:25:06 olegb Exp $
+# $Id: portutil.tcl,v 1.190.6.2 2006/01/09 20:16:20 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -580,20 +580,6 @@ proc target_run {ditem} {
 			# Something to close the registry entry may be called here, if it existed.
 		# 3rd case: the same port/version/revision/Variants is already active
 		# and user didn't mention -f
-		} elseif {$name == "com.apple.activate"
-			&& [registry_exists $portname $portversion $portrevision $portvariants]
-			&& !([info exists ports_force] && $ports_force == "yes")} {
-			
-			# Is port active?
-			set regref [registry_open $portname $portversion $portrevision $portvariants]
-			
-			if { [registry_prop_retr $regref active] != 0 } {
-				# Say we're skipping.
-				set skipped 1
-				
-				ui_debug "Skipping $name ($portname) since this port is already active"
-			}
-			
 		}
 			
 		# otherwise execute the task.
@@ -677,8 +663,7 @@ proc target_run {ditem} {
 				trace_check_deps $target $depsPorts
 				
 				# Check files that were created.
-				if {$target != "activate"
-					&& $target != "fetch"
+				if {$target != "fetch"
 					&& $target != "install"} {
 					trace_check_create
 				}

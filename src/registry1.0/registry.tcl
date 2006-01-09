@@ -137,20 +137,20 @@ proc property_retrieve {ref property} {
 # If only one version of the port is installed, this process returns that
 # version's parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {
-	global darwinports::registry.format
 
-	set ilist [${darwinports::registry.format}::installed $name $version]
+	set ilist [split [exec rpm "-qa" "$name"]]
 	set rlist [list]
 
 	if { [llength $ilist] > 1 } {
 		foreach installed $ilist {
-			set iname [lindex $installed 0]
-			set iversion [lindex $installed 1]
-			set irevision [lindex $installed 2]
-			set ivariants [lindex $installed 3]
-			set iref [open_entry $iname $iversion $irevision $ivariants]
-			set iactive	[property_retrieve $iref active]
-			set iepoch [property_retrieve $iref epoch]
+			set inslst [split $installed -]
+			set iname [lindex $inslst 0]
+			set iversion [lindex $inslst 1]
+			set irevision [lindex $inslst 2]
+			set ivariants ""
+			set iref ""
+			set iactive	""
+			set iepoch ""
 			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 		}
 	} elseif { [llength $ilist] < 1 } {
@@ -164,13 +164,14 @@ proc installed {{name ""} {version ""}} {
 			}
 		}
 	} else {
-		set iname [lindex [lindex $ilist 0] 0]
-		set iversion [lindex [lindex $ilist 0] 1]
-		set irevision [lindex [lindex $ilist 0] 2]
-		set ivariants [lindex [lindex $ilist 0] 3]
-		set iref [open_entry $iname $iversion $irevision $ivariants]
-		set iactive	[property_retrieve $iref active]
-		set iepoch [property_retrieve $iref epoch]
+		set installed [split $ilist -]
+		set iname [lindex $installed 0]
+		set iversion [lindex $installed 1]
+		set irevision [lindex $installed 2]
+		set ivariants ""
+		set iref ""
+		set iactive	""
+		set iepoch ""
 		lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 	}
 	return $rlist

@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.1 2006/01/08 17:25:06 olegb Exp $
+# $Id: port.tcl,v 1.152.2.2 2006/01/09 20:16:20 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -291,13 +291,6 @@ proc registry_installed {portname {portversion ""}} {
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
-			set ivariants [lindex $i 3]
-			set iactive [lindex $i 4]
-			if { $iactive == 0 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants}"
-			} elseif { $iactive == 1 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
-			}
 		}
 		return -code error "Registry error: Please specify the full version as recorded in the port registry."
 	} else {
@@ -1263,21 +1256,6 @@ proc action_provides { action portlist opts } {
 }
 
 
-proc action_activate { action portlist opts } {
-	set status 0
-	require_portlist portlist
-	foreachport $portlist {
-		if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
-			global errorInfo
-			ui_debug "$errorInfo"
-			break_softcontinue "port activate failed: $result" 1 status
-		}
-	}
-	
-	return $status
-}
-
-
 proc action_deactivate { action portlist opts } {
 	set status 0
 	require_portlist portlist
@@ -1439,11 +1417,7 @@ proc action_installed { action portlist opts } {
 			set irevision [lindex $i 2]
 			set ivariants [lindex $i 3]
 			set iactive [lindex $i 4]
-			if { $iactive == 0 } {
-				puts "  $iname @${iversion}_${irevision}${ivariants}"
-			} elseif { $iactive == 1 } {
-				puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
-			}
+			puts "  $iname @${iversion}_${irevision}"
 		}
 	} else {
 		puts "No ports are installed."
@@ -1984,7 +1958,6 @@ array set action_array {
 	location	action_location
 	provides	action_provides
 	
-	activate	action_activate
 	deactivate	action_deactivate
 	
 	sync		action_sync
