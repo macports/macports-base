@@ -78,8 +78,12 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 # Check to see if an entry exists in the registry.  This is passed straight 
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::entry_exists $name $version $revision $variants] 
+	set res 0
+	if { [catch {set res [system "rpm -q $name-$version-$revision"]} ] == 1 } {
+		return 0
+	} else {
+		return 1
+	}
 }
 
 # Close the registry... basically wrap the receipts systems's write process
