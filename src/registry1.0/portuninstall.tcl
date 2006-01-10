@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.1 2006/01/10 08:32:58 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.2 2006/01/10 23:39:08 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -63,10 +63,11 @@ proc uninstall {portname {v ""} optionslist} {
 
 	# XXX Check if we have dependents XXX
 
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Removing package: %s-%s-%s"] ${portname} ${version} ${revision}]"
 	if { $version eq "" } {
 		exec "rpm" "-ev" "$portname"
 	} else {
-		exec "rpm" "-ev" "$portname-$version"
+		exec "rpm" "-ev" "$portname-$version-$revision"
 	}
 
 }
