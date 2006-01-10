@@ -144,18 +144,13 @@ proc location {portname portversion} {
 	set ilist [registry::installed $portname $portversion]
 
 	if { [llength $ilist] > 1 } {
-		puts "The following versons of $portname are currently installed:"
+		puts "The following versions of $portname are currently installed:"
 		foreach i $ilist { 
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
 			set ivariants [lindex $i 3]
-			set iactive [lindex $i 4]
-			if { $iactive == 0 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants}"
-			} elseif { $iactive == 1 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
-			}
+			ui_msg "	$iname ${iversion}_${irevision}${ivariants}"
 		}
 		return -1
 	} else {
@@ -163,16 +158,13 @@ proc location {portname portversion} {
 	}
 }	
 
-
-# File Map Code
-proc open_file_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::open_file_map $args]
-}
-
 proc file_registered {file} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::file_registered $file]
+
+	if { [catch {set res [exec "rpm" "-qf" "$file"]}] } {
+		return 0
+	} else {
+		return $res
+	}
 }
 
 proc port_registered {name} {
