@@ -50,19 +50,6 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 	}
 }
 
-# Delete an entry from the registry.
-proc delete_entry {ref} {
-	global darwinports::registry.format
-	
-	set name [property_retrieve $ref name]
-	set version [property_retrieve $ref version]
-	set revision [property_retrieve $ref revision]
-	set variants [property_retrieve $ref variants]
-	
-	${darwinports::registry.format}::delete_entry $name $version $revision $variants
-	
-}
-
 # Open a registry entry.
 proc open_entry {name {version 0} {revision 0} {variants ""}} {
 	global darwinports::registry.format
