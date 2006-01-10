@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.5 2006/01/10 22:33:10 olegb Exp $
+# $Id: port.tcl,v 1.152.2.6 2006/01/10 23:04:27 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1338,8 +1338,7 @@ proc action_dependents { action portlist opts } {
 			set dl [list]
 			# Check the deps first
 			foreach dep $deplist {
-				set depport [lindex $dep 2]
-				ui_msg "$depport depends on $portname"
+				ui_msg "$dep depends on $portname"
 			}
 		} else {
 			ui_msg "$portname has no dependents!"

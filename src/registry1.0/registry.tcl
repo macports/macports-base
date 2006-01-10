@@ -177,96 +177,14 @@ proc port_registered {name} {
 	return $rlist
 }
 
-# Dependency Map Code
-proc register_dependencies {deps name} {
-
-	open_dep_map
-	foreach dep $deps {
-		# We expect the form type:regexp:port to come in, but we don't need to 
-		# store it that way in the dep map.
-		set type [lindex [split $dep :] 0]
-		set depport [lindex [split $dep :] end]
-		register_dep $depport $type $name
-	}
-	write_dep_map
-}
-
-proc unregister_dependencies {name} {
-
-	open_dep_map
-	foreach dep [list_depends $name] {
-		unregister_dep [lindex $dep 0] [lindex $dep 1] [lindex $dep 2]
-	}
-	write_dep_map
-}
-
 proc open_dep_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::open_dep_map $args]
-}
-
-##
-#
-# From a file name, return a list representing data currently known about the file.
-# This list is a 6-tuple of the form:
-# 0: file path
-# 1: uid
-# 2: gid
-# 3: mode
-# 4: size
-# 5: md5 checksum information
-#
-# fname		a path to a given file.
-# return a 6-tuple about this file.
-proc fileinfo_for_file {fname} {
-    # Add the link to the registry, not the actual file.
-    # (we won't store the md5 of the target of links since it's meaningless
-    # and $statvar(mode) tells us that links are links).
-    if {![catch {file lstat $fname statvar}]} {
-	if {[file isfile $fname] && [file type $fname] != "link"} {
-	    if {[catch {md5 file $fname} md5sum] == 0} {
-		# Create a line that matches md5(1)'s output
-		# for backwards compatibility
-		set line "MD5 ($fname) = $md5sum"
-		return [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) $line]
-	    }
-	} else {
-	    return  [list $fname $statvar(uid) $statvar(gid) $statvar(mode) $statvar(size) "MD5 ($fname) NONE"]
-	}
-    }
-    return {}
-}
-
-##
-#
-# From a list of files, return a list of information concerning these files.
-# The information is obtained through fileinfo_for_file.
-#
-# flist		the list of file to get information about.
-# return a list of 6-tuples described in fileinfo_for_file.
-proc fileinfo_for_index {flist} {
-	global prefix
-
-	set rval [list]
-	foreach file $flist {
-		if {[string index $file 0] != "/"} {
-			set file [file join $prefix $file]
-		}
-		lappend rval [fileinfo_for_file $file]
-	}
-	return $rval
-}
-
-# List all ports this one depends on
-proc list_depends {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_depends $name]
+	# This does nothing !!
 }
 
 # List all the ports that depend on this port
 proc list_dependents {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_dependents $name]
+	set res [exec "rpm" "-q" "--whatrequires" "$name"]
+	return $res
 }
 
 proc register_dep {dep type port} {
