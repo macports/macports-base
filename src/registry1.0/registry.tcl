@@ -32,9 +32,6 @@
 package provide registry 1.0
 
 package require darwinports 1.0
-package require receipt_flat 1.0
-package require receipt_sqlite 1.0
-package require portimage 1.0
 package require portuninstall 1.0
 package require msgcat
 
@@ -48,26 +45,6 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 	} else {
 		return 1
 	}
-}
-
-# Open a registry entry.
-proc open_entry {name {version 0} {revision 0} {variants ""}} {
-	global darwinports::registry.format
-
-	return [${darwinports::registry.format}::open_entry $name $version $revision $variants]
-
-}
-
-# Store a property with the open registry entry.
-proc property_store {ref property value} {
-	global darwinports::registry.format
-	${darwinports::registry.format}::property_store $ref $property $value
-}
-
-# Retrieve a property from the open registry entry.
-proc property_retrieve {ref property} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::property_retrieve $ref $property]
 }
 
 # If only one version of the port is installed, this process returns that
@@ -103,39 +80,6 @@ proc installed {{name ""} {version ""}} {
 		set iactive	""
 		set iepoch ""
 		lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-	}
-	return $rlist
-}
-
-# Return a list with the active version of a port (or the active versions of
-# all ports if name is "").
-proc active {{name ""}} {
-	global darwinports::registry.format
-
-	set ilist [${darwinports::registry.format}::installed $name]
-	set rlist [list]
-
-	if { [llength $ilist] > 0 } {
-		foreach installed $ilist {
-			set iname [lindex $installed 0]
-			set iversion [lindex $installed 1]
-			set irevision [lindex $installed 2]
-			set ivariants [lindex $installed 3]
-			set iref [open_entry $iname $iversion $irevision $ivariants]
-			set iactive	[property_retrieve $iref active]
-			set iepoch [property_retrieve $iref epoch]
-			if {$iactive} {
-				lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-			}
-		}
-	}
-	
-	if { [llength $rlist] < 1 } {
-		if { $name == "" } {
-			return -code error "Registry error: No ports registered as active."
-		} else {
-			return -code error "Registry error: $name not registered as installed & active."
-		}
 	}
 	return $rlist
 }
@@ -186,22 +130,6 @@ proc list_dependents {name} {
 	set res [exec "rpm" "-q" "--whatrequires" "$name"]
 	return $res
 }
-
-proc register_dep {dep type port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::register_dep $dep $type $port]
-}
-
-proc unregister_dep {dep type port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::unregister_dep $dep $type $port]
-}
-
-proc write_dep_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::write_dep_map $args]
-}
-
 
 # End of registry namespace
 }
