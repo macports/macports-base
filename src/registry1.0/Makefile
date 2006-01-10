@@ -1,6 +1,6 @@
 INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/registry1.0
 
-SRCS= registry.tcl receipt_flat.tcl portimage.tcl portuninstall.tcl
+SRCS= registry.tcl receipt_flat.tcl portuninstall.tcl
 
 include ../../Mk/dports.autoconf.mk
 

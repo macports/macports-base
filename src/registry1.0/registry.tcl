@@ -50,21 +50,6 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 	}
 }
 
-# Close the registry... basically wrap the receipts systems's write process
-proc write_entry {ref} {
-	global darwinports::registry.format
-	
-	set name [property_retrieve $ref name]
-	set version [property_retrieve $ref version]
-	set revision [property_retrieve $ref revision]
-	set variants [property_retrieve $ref variants]
-	set epoch [property_retrieve $ref epoch]
-	set contents [property_retrieve $ref contents]
-
-	${darwinports::registry.format}::write_entry $ref $name $version $revision $variants
-
-}
-
 # Delete an entry from the registry.
 proc delete_entry {ref} {
 	global darwinports::registry.format

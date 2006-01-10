@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.3 2006/01/09 16:25:17 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.4 2006/01/10 18:58:07 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -46,6 +46,8 @@ proc install_main {args} {
 	if {$arch eq "powerpc"} {
 		set arch "ppc"
 	}
+
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing package: %s-%s"] ${portname} ${portversion}]"
 
 	if {[info exists options(ports_force)]} {
 		system "rpm -ivh -force ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
