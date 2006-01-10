@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.3 2006/01/10 18:28:12 olegb Exp $
+# $Id: port.tcl,v 1.152.2.4 2006/01/10 22:08:07 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1530,7 +1530,10 @@ proc action_contents { action portlist opts } {
 			if { [llength $files] > 0 } {
 				puts "Port $portname contains:"
 				foreach file $files {
-					puts "  $file"
+					if { $file == "$portname"} {
+					} else {
+						puts "  $file"
+					}
 				}
 			} else {
 				puts "Port $portname does not contain any file or is not active."

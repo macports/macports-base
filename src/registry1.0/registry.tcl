@@ -159,7 +159,6 @@ proc location {portname portversion} {
 }	
 
 proc file_registered {file} {
-
 	if { [catch {set res [exec "rpm" "-qf" "$file"]}] } {
 		return 0
 	} else {
@@ -168,8 +167,8 @@ proc file_registered {file} {
 }
 
 proc port_registered {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::port_registered $name]
+	set res [exec "rpm" "-q" "--filesbypkg" "$name"]
+	return $res
 }
 
 proc register_file {file port} {
