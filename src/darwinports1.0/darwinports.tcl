@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.5 2006/01/10 19:05:45 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.6 2006/01/10 22:33:10 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -484,7 +484,6 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_exists registry::entry_exists
 	$workername alias registry_register_deps registry::register_dependencies
 	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
-	$workername alias registry_bulk_register_files registry::register_bulk_files
 	$workername alias registry_installed registry::installed
 
 	# deferred options processing.

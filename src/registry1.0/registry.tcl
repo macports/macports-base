@@ -168,30 +168,13 @@ proc file_registered {file} {
 
 proc port_registered {name} {
 	set res [exec "rpm" "-q" "--filesbypkg" "$name"]
-	return $res
-}
-
-proc register_file {file port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::register_file $file $port]
-}
-
-proc register_bulk_files {files port} {
-	global darwinports::registry.format
-	open_file_map
-	set r [${darwinports::registry.format}::register_bulk_files $files $port]
-	write_file_map
-	return $r
-}
-
-proc unregister_file {file} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::unregister_file $file]
-}
-
-proc write_file_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::write_file_map $args]
+	set rlist [list]
+	foreach l $res {
+		if {$l != $name} {
+			lappend rlist $l
+		}
+	}
+	return $rlist
 }
 
 # Dependency Map Code
