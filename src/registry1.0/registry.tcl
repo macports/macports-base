@@ -40,44 +40,9 @@ package require msgcat
 
 namespace eval registry {
 
-# Begin creating a new registry entry for the port version_revision+variant
-# This process assembles the directory name and creates a receipt dlist
-proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global darwinports::registry.path darwinports::registry.format darwinports::registry.installtype darwinports::prefix
-
-	# Make sure we don't already have an entry in the Registry for this
-	# port version_revision+variants
-	if {![entry_exists $name $version $revision $variants] } {
-
-		set ref [${darwinports::registry.format}::new_entry]
-
-		property_store $ref name $name
-		property_store $ref version $version
-		property_store $ref revision $revision
-		property_store $ref variants $variants
-		property_store $ref epoch $epoch
-		# Trick to have a portable GMT-POSIX epoch-based time.
-		# (because we'll compare this with a file mtime).
-		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-		property_store $ref installtype ${darwinports::registry.installtype}
-		property_store $ref receipt_f ${darwinports::registry.format}
-		if { ${darwinports::registry.installtype} == "image" } {
-			set imagedir [file join ${darwinports::registry.path} software ${name} ${version}_${revision}${variants}]
-			property_store $ref imagedir $imagedir
-			property_store $ref active 0
-			property_store $ref compact 0
-		}
-
-		return $ref
-	} else {
-		return -code error "Registry error: ${name} ${version}_${revision}${variants} already registered as installed.  Please uninstall it first."
-	}
-}
-
 # Check to see if an entry exists in the registry.  This is passed straight 
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
-	set res 0
 	if { [catch {set res [system "rpm -q $name-$version-$revision"]} ] == 1 } {
 		return 0
 	} else {
@@ -140,6 +105,10 @@ proc installed {{name ""} {version ""}} {
 	set ilist [split [exec rpm "-qa" "$name"]]
 	set rlist [list]
 
+	if {$ilist == {} } {
+		return -code error "Registry error: No such installation"
+	}
+
 	if { [llength $ilist] > 1 } {
 		foreach installed $ilist {
 			set inslst [split $installed -]
@@ -151,16 +120,6 @@ proc installed {{name ""} {version ""}} {
 			set iactive	""
 			set iepoch ""
 			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-		}
-	} elseif { [llength $ilist] < 1 } {
-		if { $name == "" } {
-			return -code error "Registry error: No ports registered as installed."
-		} else {
-			if { $version == "" } {
-				return -code error "Registry error: $name not registered as installed."
-			} else {
-				return -code error "Registry error: $name $version not registered as installed."
-			}
 		}
 	} else {
 		set installed [split $ilist -]

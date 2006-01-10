@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.2 2006/01/09 20:16:19 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.3 2006/01/10 18:28:11 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -478,8 +478,6 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
     $workername alias darwinports_create_thread darwinports::create_thread
 
 	# New Registry/Receipts stuff
-	$workername alias registry_new registry::new_entry
-	$workername alias registry_open registry::open_entry
 	$workername alias registry_write registry::write_entry
 	$workername alias registry_prop_store registry::property_store
 	$workername alias registry_prop_retr registry::property_retrieve
@@ -1480,7 +1478,7 @@ proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename
 			set version "[lindex $i 1]_[lindex $i 2]"
 			if { [rpm-vercomp $version $version_installed] > 0} {
 				set version_installed $version
-				set epoch_installed [registry::property_retrieve [registry::open_entry $portname [lindex $i 1] [lindex $i 2] $variant] epoch]
+				set epoch_installed 0]
 				set num $i
 			}
 

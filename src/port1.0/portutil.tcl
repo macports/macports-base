@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.190.6.2 2006/01/09 20:16:20 olegb Exp $
+# $Id: portutil.tcl,v 1.190.6.3 2006/01/10 18:28:13 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -563,21 +563,10 @@ proc target_run {ditem} {
 			&& [registry_exists $portname $portversion $portrevision $portvariants]
 			&& !([info exists ports_force] && $ports_force == "yes")} {
 						
-			# Did the Portfile change since installation?
-			set regref [registry_open $portname $portversion $portrevision $portvariants]
+			set skipped 1
+			ui_debug "Skipping $name ($portname) since this port is already installed"
 			
-			set installdate [registry_prop_retr $regref date]
-			if { $installdate != 0
-				&& $installdate < [file mtime ${portpath}/Portfile]} {
-				ui_debug "Portfile changed since installation"
-			} else {
-				# Say we're skipping.
-				set skipped 1
-				
-				ui_debug "Skipping $name ($portname) since this port is already installed"
-			}
-			
-			# Something to close the registry entry may be called here, if it existed.
+		# Something to close the registry entry may be called here, if it existed.
 		# 3rd case: the same port/version/revision/Variants is already active
 		# and user didn't mention -f
 		}

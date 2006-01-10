@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.2 2006/01/09 20:16:20 olegb Exp $
+# $Id: port.tcl,v 1.152.2.3 2006/01/10 18:28:12 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1212,14 +1212,6 @@ proc action_location { action portlist opts } {
 			set	variants [lindex $ilist 3]
 		}
 
-		set ref [registry::open_entry $portname $version $revision $variants]
-		if { [string equal [registry::property_retrieve $ref installtype] "image"] } {
-			set imagedir [registry::property_retrieve $ref imagedir]
-			puts "Port $portname ${version}_${revision}${variants} is installed as an image in:"
-			puts $imagedir
-		} else {
-			break_softcontinue "Port $portname is not installed as an image." 1 status
-		}
 	}
 	
 	return $status
