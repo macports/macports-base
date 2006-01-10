@@ -45,7 +45,6 @@ namespace eval registry {
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 	global darwinports::registry.path darwinports::registry.format darwinports::registry.installtype darwinports::prefix
 
-	
 	# Make sure we don't already have an entry in the Registry for this
 	# port version_revision+variants
 	if {![entry_exists $name $version $revision $variants] } {
