@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.6 2006/01/10 23:04:27 olegb Exp $
+# $Id: port.tcl,v 1.152.2.7 2006/01/11 18:07:08 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -169,7 +169,7 @@ Pseudo-portnames
 ----------------
 Pseudo-portnames are words that may be used in place of a portname, and
 which expand to some set of ports. The common pseudo-portnames are:
-all, current, active, inactive, installed, uninstalled, and outdated.
+all, current, installed, uninstalled, and outdated.
 These pseudo-portnames expand to the set of ports named.
 
 Additional pseudo-portnames start with...
@@ -486,7 +486,7 @@ proc get_current_port {} {
 }
 
 
-proc get_installed_ports { {ignore_active yes} {active yes} } {
+proc get_installed_ports {} {
 	if { [catch {set ilist [registry::installed]} result] } {
 		if {$result == "Registry error: No ports registered as installed."} {
 			fatal "No ports installed!"
@@ -503,13 +503,9 @@ proc get_installed_ports { {ignore_active yes} {active yes} } {
 		set iversion [lindex $i 1]
 		set irevision [lindex $i 2]
 		set ivariants [split_variants [lindex $i 3]]
-		set iactive [lindex $i 4]
 		
-		if { ${ignore_active} == "yes" || (${active} == "yes") == (${iactive} != 0) } {
-			add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
-		}
+		add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants $ivariants]
 	}
-	
 	# Return the list of ports, sorted
 	return [portlist_sort $results]
 }
@@ -520,16 +516,6 @@ proc get_uninstalled_ports {} {
 	set all [get_all_ports]
 	set installed [get_installed_ports]
 	return [opComplement $all $installed]
-}
-
-
-proc get_active_ports {} {
-	return [get_installed_ports no yes]
-}
-
-
-proc get_inactive_ports {} {
-	return [get_installed_ports no no]
 }
 
 
@@ -553,8 +539,6 @@ proc get_outdated_ports {} {
 			set installed_compound	"${installed_version}_${installed_revision}"
 			set installed_variants	[lindex $i 3]
 
-			set is_active			[lindex $i 4]
-			if { $is_active == 0 } continue
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
@@ -743,8 +727,6 @@ proc element resname {
 		^all(@.*)?$ 			-
 		^installed(@.*)?$		-
 		^uninstalled(@.*)?$		-
-		^active(@.*)?$			-
-		^inactive(@.*)?$		-
 		^outdated(@.*)?$		-
 		^current(@.*)?$	{
 							# A simple pseudo-port name
@@ -1248,21 +1230,6 @@ proc action_provides { action portlist opts } {
 }
 
 
-proc action_deactivate { action portlist opts } {
-	set status 0
-	require_portlist portlist
-	foreachport $portlist {
-		if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
-			global errorInfo
-			ui_debug "$errorInfo"
-			break_softcontinue "port deactivate failed: $result" 1 status
-		}
-	}
-	
-	return $status
-}
-
-
 proc action_selfupdate { action portlist opts } {
 	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
@@ -1350,14 +1317,7 @@ proc action_dependents { action portlist opts } {
 
 proc action_uninstall { action portlist opts } {
 	set status 0
-	if {[info exists global_options(port_uninstall_old)]} {
-		# if -u then uninstall all inactive ports
-		# (union these to any other ports user has in the port list)
-		set portlist [opUnion $portlist [get_inactive_ports]]
-	} else {
-		# Otherwise the user had better have supplied a portlist, or we'll default to the existing directory
-		require_portlist portlist
-	}
+	require_portlist portlist
 
 	foreachport $portlist {
 		if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
@@ -1407,7 +1367,6 @@ proc action_installed { action portlist opts } {
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
 			set ivariants [lindex $i 3]
-			set iactive [lindex $i 4]
 			puts "  $iname @${iversion}_${irevision}"
 		}
 	} else {
@@ -1455,10 +1414,6 @@ proc action_outdated { action portlist opts } {
 			set installed_revision	[lindex $i 2]
 			set installed_compound	"${installed_version}_${installed_revision}"
 
-			set is_active			[lindex $i 4]
-			if { $is_active == 0 } {
-				continue
-			}
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
@@ -1532,7 +1487,7 @@ proc action_contents { action portlist opts } {
 						puts "  $file"
 				}
 			} else {
-				puts "Port $portname does not contain any file or is not active."
+				puts "Port $portname does not contain any file."
 			}
 		} else {
 			puts "Port $portname is not installed."
@@ -1948,8 +1903,6 @@ array set action_array {
 	info		action_info
 	location	action_location
 	provides	action_provides
-	
-	deactivate	action_deactivate
 	
 	sync		action_sync
 	selfupdate	action_selfupdate
