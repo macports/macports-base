@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.7 2006/01/11 18:07:08 olegb Exp $
+# $Id: port.tcl,v 1.152.2.8 2006/01/11 18:18:08 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -2025,7 +2025,6 @@ proc parse_options { action_name ui_options_name global_options_name } {
 					f { set global_options(ports_force) yes			}
 					o { set global_options(ports_ignore_older) yes	}
 					n { set global_options(ports_nodeps) yes		}
-					u { set global_options(port_uninstall_old) yes	}
 					R { set global_options(ports_do_dependents) yes	}
 					s { set global_options(ports_source_only) yes	}
 					b { set global_options(ports_binary_only) yes	}
