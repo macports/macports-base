@@ -127,8 +127,12 @@ proc open_dep_map {args} {
 
 # List all the ports that depend on this port
 proc list_dependents {name} {
-	set res [exec "rpm" "-q" "--whatrequires" "$name"]
-	return $res
+
+	if { [catch {set res [exec "rpm" "-q" "--whatrequires" "$name"]}] } {
+		return {}
+	} else {
+		return $res
+	}
 }
 
 # End of registry namespace
