@@ -36,7 +36,7 @@
 .Ar ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonRusbckt
+.Op Fl vdqfonRsbckt
 .Op Fl D Ar portdir
 .Ar action
 .Op Ar actionflags
@@ -68,9 +68,6 @@ indicating the contrary. In case of ambiguities, a port can be fully specified w
 .Ar @version_revision+variants
 format.
 .Pp
-Installed ports can be activated or deactivated without being uninstalled. A port can be installed if all other
-version/variant(s) combinations installed at any given moment are deactivated.
-.Pp
 The
 .Nm
 command knows various
@@ -88,14 +85,6 @@ all the ports in each dports tree listed in
 .It
 .Ar current :
 the port in the current working directory.
-.Pp
-.It
-.Ar active :
-set of installed and active ports.
-.Pp
-.It
-.Ar inactive :
-set of installed but inactive ports.
 .Pp
 .It
 .Ar installed :
@@ -202,8 +191,6 @@ quiet mode (suppress messages)
 dont follow dependencies in upgrade (only for upgrading)
 .It Fl R
 also upgrade dependents (only for upgrading)
-.It Fl u
-uninstall non-active ports when upgrading and uninstalling
 .It Fl f
 force mode (ignore state file)
 .It Fl o
@@ -247,18 +234,6 @@ Install and activate
 .Ss uninstall
 Deactivate and uninstall
 .Ar portname .
-To uninstall all installed but inactive ports, use
-.Fl u .
-For example:
-.Pp
-.Dl "port uninstall vim"
-.Dl "port -u uninstall"
-.Ss activate
-Activate the installed
-.Ar portname .
-.Ss deactivate
-Deactivate the installed
-.Ar portname .
 .Ss installed
 List all installed ports.
 .Ss location
@@ -287,9 +262,8 @@ For example:
 .Pp
 .Dl "port upgrade vim"
 .Pp
-To upgrade all installed ports:
-.Pp
-.Dl "port upgrade installed"
+To upgrade only the outdated ports:
+.Dl "port upgrade outdated"
 .Pp
 To upgrade
 .Ar portname
@@ -316,24 +290,12 @@ To just remove the work files, use the
 .Ar actionflag .
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
-To remove the archive(s) for the current version of a port, pass
-.Fl -archive .
-To remove the work files, distribution files and archives, pass
+To remove the work files, distribution files, pass
 .Fl -all .
 For example:
 .Pp
 .Dl "port clean --dist vim"
-.Dl "port clean --archive vim"
 .Pp
-To remove only certain version(s) of a port's archives (
-.Ar version
-is any valid UNIX glob pattern), you can use:
-.Pp
-.Dl "port clean --archive vim 6.2.114"
-.Pp
-or:
-.Pp
-.Dl "port clean --archive vim '6.*'"
 .Ss echo
 Writes to stdout the arguments passed to
 .Nm .
@@ -407,14 +369,8 @@ to a temporary directory.
 .Ss test
 Tests
 .Ar portname .
-.Ss archive
-Archive the port for a later
-.Ar unarchive .
-When archive mode is enabled, binary archives will be created automatically whenever an
 .Ar install
-is performed, or when the
-.Ar archive
-target is called explicitly.
+installs the package.
 .Ss livecheck
 Check if the distfiles haven't change and can be fetched, and if the software hasn't been
 updated since the Portfile was last modified.
