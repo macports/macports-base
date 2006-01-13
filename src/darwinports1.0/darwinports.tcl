@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.9 2006/01/10 23:43:12 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.10 2006/01/13 09:27:48 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -37,8 +37,8 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
+    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir pkg_server startupitem_type xcodeversion xcodebuildcmd"
+    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir pkg_server startupitem_type"
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
@@ -188,6 +188,7 @@ proc dportinit {up_ui_options up_options up_variations} {
    	global darwinports::rsync_dir
    	global darwinports::rsync_options
    	global darwinports::rsync_server
+	global darwinports::pkg_server
    	global darwinports::variants_conf
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
@@ -366,6 +367,13 @@ proc dportinit {up_ui_options up_options up_variations} {
 	if {![info exists rsync_options]} {
 		set rsync_options "-rtzv --delete --delete-after"
 		global darwinports::rsync_options
+	}
+
+	# Set the pkg-server
+	# XXX remove my ~
+	if {![info exists pkg_server]} {
+		set pkg_server "http://www.opendarwin.org/~olegb/RPM/"
+		global darwinports::pkg_server
 	}
 
     set portsharepath ${prefix}/share/darwinports
