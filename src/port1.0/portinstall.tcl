@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.7 2006/01/13 09:27:49 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.8 2006/01/13 09:28:52 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -46,6 +46,9 @@ if { [option ports_binary_only] == "yes" } {
 proc install_main {args} {
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server
 
+	# Map portname to suit RPM-ification
+	set portname [string map {- _} $portname]
+
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
 		set arch "ppc"
@@ -64,9 +67,6 @@ proc install_main {args} {
 
 		return 0
 	}
-
-	# Map portname to suit RPM-ification
-	set portname [string map {- _} $portname]
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing package: %s-%s-%s"] ${portname} ${portversion} ${portrevision}]"
 
