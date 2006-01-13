@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.8 2006/01/13 09:28:52 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.9 2006/01/13 11:44:58 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -65,7 +65,13 @@ proc install_main {args} {
 		# Fetch the file $portname-$portversion-$portrevision.$arch.rpm from $pkg_server 
 		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 
-		return 0
+		set file_url [portfetch::assemble_url $site $distfile]
+		if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
+			set fetched 1
+		} else {
+			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
+			exec rm -f ${distpath}/${distfile}.TMP
+		}
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing package: %s-%s-%s"] ${portname} ${portversion} ${portrevision}]"
