@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.10 2006/01/13 16:02:24 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.11 2006/01/13 21:12:38 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -57,8 +57,12 @@ proc install_main {args} {
 	set distfile ${portname}-${portversion}-${portrevision}.${arch}.rpm
 	set site ${pkg_server}
 
-	# XXX Check if we have the package XXX
+	# Check if we have the package 
 	set havepackage no
+	if { [file exist [file join ${prefix}/src/apple/RPMS/${arch} ${distfile}]] } {
+		ui_debug "Package allready present - Not fetching .."
+		set havepackage yes
+	}
 
 	# If we want binary packages
 	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
