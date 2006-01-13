@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.9 2006/01/13 11:44:58 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.10 2006/01/13 16:02:24 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -37,14 +37,14 @@ package require portutil 1.0
 set com.apple.install [target_new com.apple.install install_main]
 target_state ${com.apple.install} no
 target_provides ${com.apple.install} install
-if { [option ports_binary_only] == "yes" } {
+if { [info exists ports_binary_only] && $ports_binary_only == "yes" } {
 	target_requires ${com.apple.install} main
 } else {
 	target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot rpmpackage
 }
 
 proc install_main {args} {
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
@@ -61,7 +61,7 @@ proc install_main {args} {
 	set havepackage no
 
 	# If we want binary packages
-	if { [option ports_binary_only] == "yes" && $havepackage == "no" } {
+	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
 		# Fetch the file $portname-$portversion-$portrevision.$arch.rpm from $pkg_server 
 		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 
