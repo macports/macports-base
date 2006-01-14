@@ -111,14 +111,17 @@ proc file_registered {file} {
 }
 
 proc port_registered {name} {
-	set res [exec "rpm" "-q" "--filesbypkg" "$name"]
-	set rlist [list]
-	foreach l $res {
-		if {$l != $name} {
-			lappend rlist $l
+	if {[catch {set res [exec "rpm" "-q" "--filesbypkg" "$name"]}] } {
+		return {}
+	} else {
+		set rlist [list]
+		foreach l $res {
+			if {$l != $name} {
+				lappend rlist $l
+			}
 		}
+		return $rlist
 	}
-	return $rlist
 }
 
 proc open_dep_map {args} {
