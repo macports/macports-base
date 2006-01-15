@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.1 2006/01/15 09:22:50 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.2 2006/01/15 09:46:41 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -46,9 +46,21 @@ proc upgrade_main {args} {
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
+	# Get oldversion
+	set oldvlist [registry::installed $portname $portversion]
+	# XXX Hack XXX
+	set oldvlist [lindex $oldvlist 0]
+	set oldversion {}
+	if { [lindex $oldvlist 2] eq {} } {
+		set oldversion "[lindex $oldvlist 0]-[lindex $oldvlist 1]-0"
+	} else {
+		set oldversion "[lindex $oldvlist 0]-[lindex $oldvlist 1]-[lindex $oldvlist 2]"
+	}
 
-	set oldversion [registry::installed $portname $portversion]
+	# Get newversion
 	set newversion $portname-$portversion-$portrevision 
+
+	# Compare versions
 	ui_msg "Comparing $oldversion and $newversion"
 
 	set arch [option os.arch]
@@ -76,11 +88,14 @@ proc upgrade_main {args} {
 			set fetched 1
 		} else {
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
-			exec rm -f ${distpath}/${distfile}.TMP
+			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
 		}
+	} else {
+		# Build our own package
+		ui_msg "Building local package"
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s-%s-%s"] ${portname} ${portversion} ${portrevision}]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${portname}]"
 
 	#system "rpm -uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 

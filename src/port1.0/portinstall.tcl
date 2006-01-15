@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.11 2006/01/13 21:12:38 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.12 2006/01/15 09:46:41 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -74,7 +74,7 @@ proc install_main {args} {
 			set fetched 1
 		} else {
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
-			exec rm -f ${distpath}/${distfile}.TMP
+			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
 		}
 	}
 
