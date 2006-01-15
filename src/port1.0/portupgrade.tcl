@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.3 2006/01/15 10:13:00 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.4 2006/01/15 10:51:42 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -46,9 +46,10 @@ proc upgrade_main {args} {
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
+
 	# Get oldversion
 	set oldvlist [registry::installed $portname $portversion]
-	# XXX Hack XXX
+	# XXX Hack, we should check if we have more that one installed XXX
 	set oldvlist [lindex $oldvlist 0]
 	set oldversion {}
 	if { [lindex $oldvlist 2] eq {} } {
