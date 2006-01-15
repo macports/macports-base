@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.4 2006/01/15 10:51:42 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.5 2006/01/15 19:25:51 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -91,14 +91,16 @@ proc upgrade_main {args} {
 
 		set file_url [portfetch::assemble_url $site $distfile]
 		if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
-			set fetched 1
+			set havepackage yes
 		} else {
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
 		}
-	} else {
-		# Build our own package
-		ui_msg "Building local package"
+	}
+
+	if { $havepackage neq "yes" } {
+		# Build own package
+		ui_debug "Building local package ..."
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${portname}]"
