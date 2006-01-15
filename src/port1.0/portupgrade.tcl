@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.2 2006/01/15 09:46:41 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.3 2006/01/15 10:13:00 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -62,7 +62,12 @@ proc upgrade_main {args} {
 
 	# Compare versions
 	ui_msg "Comparing $oldversion and $newversion"
-
+	if {![rpm-vercomp $newversion $oldversion] > 0 } {
+		ui_debug "Upgrade not needed"
+		return 0
+	} else {
+		ui_debug "Upgrading $portname"
+	}
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
 		set arch "ppc"
@@ -97,7 +102,7 @@ proc upgrade_main {args} {
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${portname}]"
 
-	#system "rpm -uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 
     return 0
 }
