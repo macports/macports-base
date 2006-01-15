@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.8 2006/01/11 18:18:08 olegb Exp $
+# $Id: port.tcl,v 1.152.2.9 2006/01/15 09:22:49 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1241,23 +1241,6 @@ proc action_selfupdate { action portlist opts } {
 }
 
 
-proc action_upgrade { action portlist opts } {
-	require_portlist portlist
-	foreachport $portlist {
-		# Merge global variations into the variations specified for this port
-		foreach { variation value } [array get global_variations] {
-			if { ![info exists variations($variation)] } {
-				set variations($variation) $value
-			}
-		}
-		
-		darwinports::upgrade $portname "port:$portname" [array get variations] [array get options]
-	}
-	
-	return 0
-}
-
-
 proc action_version { action portlist opts } {
 	puts "Version: [darwinports::version]"
 	return 0
@@ -1907,8 +1890,6 @@ array set action_array {
 	sync		action_sync
 	selfupdate	action_selfupdate
 	
-	upgrade		action_upgrade
-	
 	version		action_version
 	compact		action_compact
 	uncompact	action_uncompact
@@ -1947,6 +1928,7 @@ array set action_array {
 	submit		action_target
 	trace		action_target
 	livecheck	action_target
+	upgrade		action_target
 
 	dmg			action_target
 	dpkg		action_target

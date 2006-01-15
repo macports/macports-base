@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.10 2006/01/13 09:27:48 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.11 2006/01/15 09:22:49 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1378,9 +1378,4 @@ proc darwinports::version {} {
 	} else {
 		return -1
 	}
-}
-
-# upgrade procedure
-proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename ""}} {
-	# This should be replaced with some rpm-ification
 }

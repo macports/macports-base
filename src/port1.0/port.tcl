@@ -1,6 +1,6 @@
 # et:ts=4
 # port.tcl
-# $Id: port.tcl,v 1.40.6.1 2006/01/09 17:05:11 olegb Exp $
+# $Id: port.tcl,v 1.40.6.2 2006/01/15 09:22:50 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -48,3 +48,4 @@ package require porttest 1.0
 package require portsubmit 1.0
 package require porttrace 1.0
 package require portlivecheck 1.0
+package require portupgrade 1.0
