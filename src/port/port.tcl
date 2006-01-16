@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152 2006/01/08 15:24:35 jberry Exp $
+# $Id: port.tcl,v 1.153 2006/01/16 01:59:04 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -421,12 +421,12 @@ proc portlist_compare { a b } {
 }
 
 
-proc portlist_sort list {
+proc portlist_sort { list } {
 	return [lsort -command portlist_compare $list]
 }
 
 
-proc regex_pat_sanitize s {
+proc regex_pat_sanitize { s } {
 	set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
 	return $sanitized
 }
@@ -611,14 +611,14 @@ proc get_outdated_ports {} {
 ##########################################
 # Port expressions
 ##########################################
-proc portExpr resname {
+proc portExpr { resname } {
 	upvar $resname reslist
 	set result [seqExpr reslist]
 	return $result
 }
 
 
-proc seqExpr resname {
+proc seqExpr { resname } {
 	upvar $resname reslist
 	
 	# Evaluate a sequence of expressions a b c...
@@ -644,7 +644,7 @@ proc seqExpr resname {
 }
 
 
-proc orExpr resname {
+proc orExpr { resname } {
 	upvar $resname reslist
 	
 	set a [andExpr reslist]
@@ -670,7 +670,7 @@ proc orExpr resname {
 }
 
 
-proc andExpr resname {
+proc andExpr { resname } {
 	upvar $resname reslist
 	
 	set a [unaryExpr reslist]
@@ -698,7 +698,7 @@ proc andExpr resname {
 }
 
 
-proc unaryExpr resname {
+proc unaryExpr { resname } {
 	upvar $resname reslist
 	set result 0
 
@@ -722,7 +722,7 @@ proc unaryExpr resname {
 }
 
 
-proc element resname {
+proc element { resname } {
 	upvar $resname reslist
 	set el 0
 	
