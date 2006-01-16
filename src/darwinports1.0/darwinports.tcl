@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.204 2006/01/16 04:15:38 jberry Exp $
+# $Id: darwinports.tcl,v 1.205 2006/01/16 04:33:25 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1434,7 +1434,7 @@ proc darwinports::version {} {
 }
 
 # upgrade procedure
-proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename ""}} {
+proc darwinports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
 	array set options $optionslist
 	array set variations $variationslist
 	if {![string match "" $depscachename]} {
@@ -1444,16 +1444,8 @@ proc darwinports::upgrade {pname dspec variationslist optionslist {depscachename
 	# set to no-zero is epoch overrides version
 	set epoch_override 0
 
-	# check if pname contains \, if so remove it. 
-	if { [regexp {\\} $pname] } {
-		set portname [join $pname {\\}]
-		ui_debug "removing stray ecape-character for $portname"
-	} else {
-		set portname $pname
-	}
-
 	# check if the port is in tree
-	if {[catch {dportsearch ^$pname$} result]} {
+	if {[catch {dportsearch $portname false exact} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"
