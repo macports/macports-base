@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.6 2006/01/16 07:08:09 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.7 2006/01/16 11:23:11 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -74,10 +74,10 @@ proc upgrade_main {args} {
 	}
 
 	# Map portname to suit RPM-ification
-	set portname [string map {- _} $portname]
+	set rpmportname [string map {- _} $portname]
 
 	# Get oldversion
-	set oldvlist [registry::installed $portname $portversion]
+	set oldvlist [registry::installed $rpmportname $portversion]
 	# XXX Hack, we should check if we have more that one installed XXX
 	set oldvlist [lindex $oldvlist 0]
 	set oldversion {}
@@ -88,7 +88,7 @@ proc upgrade_main {args} {
 	}
 
 	# Get newversion
-	set newversion $portname-$portversion-$portrevision 
+	set newversion $rpmportname-$portversion-$portrevision 
 
 	# Compare versions
 	ui_msg "Comparing $oldversion and $newversion"
@@ -96,14 +96,14 @@ proc upgrade_main {args} {
 		ui_debug "Upgrade not needed"
 		return 0
 	} else {
-		ui_debug "Upgrading $portname"
+		ui_debug "Upgrading $rpmportname"
 	}
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
 		set arch "ppc"
 	}
 
-	set distfile ${portname}-${portversion}-${portrevision}.${arch}.rpm
+	set distfile ${rpmportname}-${portversion}-${portrevision}.${arch}.rpm
 	set site ${pkg_server}
 
 	# Check if we have the package 
@@ -115,7 +115,7 @@ proc upgrade_main {args} {
 
 	# If we want binary packages
 	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
-		# Fetch the file $portname-$portversion-$portrevision.$arch.rpm from $pkg_server 
+		# Fetch the file $rpmportname-$portversion-$portrevision.$arch.rpm from $pkg_server 
 		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 
 		set file_url [portfetch::assemble_url $site $distfile]
@@ -141,9 +141,9 @@ proc upgrade_main {args} {
 		}
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${portname}]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${rpmportname}]"
 
-	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
 
     return 0
 }
