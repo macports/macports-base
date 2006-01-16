@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203 2006/01/05 06:40:56 olegb Exp $
+# $Id: darwinports.tcl,v 1.204 2006/01/16 04:15:38 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -698,6 +698,10 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ui_debug "Changing to port directory: $portdir"
 	cd $portdir
 	set portpath [pwd]
+    if {![file isfile Portfile]} {
+        return -code error "Could not find Portfile in $portdir"
+    }
+
 	set workername [interp create]
 
 	set dport [ditem_create]
@@ -708,14 +712,11 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ditem_key $dport options $options
 	ditem_key $dport variations $variations
 	ditem_key $dport refcnt 1
-
+	
     darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
-    if {![file isfile Portfile]} {
-        return -code error "Could not find Portfile in $portdir"
-    }
 
     $workername eval source Portfile
-	
+
     ditem_key $dport provides [$workername eval return \$portname]
 
     return $dport
