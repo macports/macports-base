@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.11 2006/01/15 09:22:49 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.12 2006/01/16 14:16:26 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -660,6 +660,10 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ui_debug "Changing to port directory: $portdir"
 	cd $portdir
 	set portpath [pwd]
+    if {![file isfile Portfile]} {
+        return -code error "Could not find Portfile in $portdir"
+    }
+
 	set workername [interp create]
 
 	set dport [ditem_create]
@@ -670,14 +674,11 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 	ditem_key $dport options $options
 	ditem_key $dport variations $variations
 	ditem_key $dport refcnt 1
-
+	
     darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
-    if {![file isfile Portfile]} {
-        return -code error "Could not find Portfile in $portdir"
-    }
 
     $workername eval source Portfile
-	
+
     ditem_key $dport provides [$workername eval return \$portname]
 
     return $dport
@@ -1209,7 +1210,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		set dep_portname [lindex [split $depspec :] end]
 		
 		# Find the porturl
-		if {[catch {set res [dportsearch "^$dep_portname\$"]} error]} {
+		if {[catch {set res [dportsearch $dep_portname false exact]} error]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_error "Internal error: port search failed: $error"

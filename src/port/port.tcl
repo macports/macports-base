@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.9 2006/01/15 09:22:49 olegb Exp $
+# $Id: port.tcl,v 1.152.2.10 2006/01/16 14:16:27 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -414,12 +414,12 @@ proc portlist_compare { a b } {
 }
 
 
-proc portlist_sort list {
+proc portlist_sort { list } {
 	return [lsort -command portlist_compare $list]
 }
 
 
-proc regex_pat_sanitize s {
+proc regex_pat_sanitize { s } {
 	set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
 	return $sanitized
 }
@@ -588,14 +588,14 @@ proc get_outdated_ports {} {
 ##########################################
 # Port expressions
 ##########################################
-proc portExpr resname {
+proc portExpr { resname } {
 	upvar $resname reslist
 	set result [seqExpr reslist]
 	return $result
 }
 
 
-proc seqExpr resname {
+proc seqExpr { resname } {
 	upvar $resname reslist
 	
 	# Evaluate a sequence of expressions a b c...
@@ -621,7 +621,7 @@ proc seqExpr resname {
 }
 
 
-proc orExpr resname {
+proc orExpr { resname } {
 	upvar $resname reslist
 	
 	set a [andExpr reslist]
@@ -647,7 +647,7 @@ proc orExpr resname {
 }
 
 
-proc andExpr resname {
+proc andExpr { resname } {
 	upvar $resname reslist
 	
 	set a [unaryExpr reslist]
@@ -675,7 +675,7 @@ proc andExpr resname {
 }
 
 
-proc unaryExpr resname {
+proc unaryExpr { resname } {
 	upvar $resname reslist
 	set result 0
 
@@ -699,7 +699,7 @@ proc unaryExpr resname {
 }
 
 
-proc element resname {
+proc element { resname } {
 	upvar $resname reslist
 	set el 0
 	
@@ -973,7 +973,7 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
 		set token [lookahead]
 
 		set remainder ""
-		if {![regexp {^(@|[-+]|[[:alpha:]_]+[\w\.]*=)} $token match]} {
+		if {![regexp {^(@|[-+]([[:alpha:]_]+[\w\.]*)|[[:alpha:]_]+[\w\.]*=)} $token match]} {
 			advance
 			regexp {^([^@]+)(@.*)?} $token match portname remainder
 			
@@ -1961,10 +1961,10 @@ proc find_action_proc { action } {
 #	(2) Following each command (to parse options that will be unique to that command
 #		(the global_options array is reset to global_options_base prior to each command)
 #
-proc parse_options { action_name ui_options_name global_options_name } {
-	upvar $action_name action
+proc parse_options { action ui_options_name global_options_name } {
 	upvar $ui_options_name ui_options
 	upvar $global_options_name global_options
+	global cmdname
 	
 	while {[moreargs]} {
 		set arg [lookahead]
@@ -1977,7 +1977,7 @@ proc parse_options { action_name ui_options_name global_options_name } {
 				--			{ # This is the options terminator; do no further option processing
 							  advance; break
 							}
-				--version	{ ui_warn "(please use \"$cmdname version\" to get version information)"; set action "version" }
+				--version	{ ui_warn "(please use \"$cmdname version\" to get version information)" }
 				default		{
 							  set key [string range $arg 2 end]
 							  set global_options(ports_${action}_${key}) yes
@@ -2072,7 +2072,7 @@ proc process_cmd { argv } {
 		# Parse options that will be unique to this action
 		# (to avoid abiguity with -variants and a default port, either -- must be
 		# used to terminate option processing, or the pseudo-port current must be specified).
-		parse_options action ui_options global_options
+		parse_options $action ui_options global_options
 		
 		# Parse port specifications into portlist
 		set portlist {}
@@ -2333,7 +2333,7 @@ if {[moreargs] && $cmdname == "portf"} {
 }
 
 # Parse global options that will affect all subsequent commands
-parse_options default_action ui_options global_options
+parse_options "global" ui_options global_options
 
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
