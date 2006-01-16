@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.205 2006/01/16 04:33:25 jberry Exp $
+# $Id: darwinports.tcl,v 1.206 2006/01/16 04:39:11 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1262,7 +1262,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		set dep_portname [lindex [split $depspec :] end]
 		
 		# Find the porturl
-		if {[catch {set res [dportsearch "^$dep_portname\$"]} error]} {
+		if {[catch {set res [dportsearch $dep_portname false exact]} error]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_error "Internal error: port search failed: $error"
