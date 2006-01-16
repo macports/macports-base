@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.154 2006/01/16 02:17:57 jberry Exp $
+# $Id: port.tcl,v 1.155 2006/01/16 04:11:30 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -998,7 +998,7 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
 		set token [lookahead]
 
 		set remainder ""
-		if {![regexp {^(@|[-+]|[[:alpha:]_]+[\w\.]*=)} $token match]} {
+		if {![regexp {^(@|[-+]([[:alpha:]_]+[\w\.]*)|[[:alpha:]_]+[\w\.]*=)} $token match]} {
 			advance
 			regexp {^([^@]+)(@.*)?} $token match portname remainder
 			
