@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.12 2006/01/15 09:46:41 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.13 2006/01/16 16:43:25 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -37,7 +37,7 @@ package require portutil 1.0
 set com.apple.install [target_new com.apple.install install_main]
 target_state ${com.apple.install} no
 target_provides ${com.apple.install} install
-if { [info exists ports_binary_only] && $ports_binary_only == "yes" } {
+if { [info exists ports_binary_only] && [$ports_binary_only == "yes"] } {
 	target_requires ${com.apple.install} main
 } else {
 	target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot rpmpackage
@@ -60,7 +60,7 @@ proc install_main {args} {
 	# Check if we have the package 
 	set havepackage no
 	if { [file exist [file join ${prefix}/src/apple/RPMS/${arch} ${distfile}]] } {
-		ui_debug "Package allready present - Not fetching .."
+		ui_debug "Package ${distfile} present.."
 		set havepackage yes
 	}
 
