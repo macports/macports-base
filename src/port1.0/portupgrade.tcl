@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.5 2006/01/15 19:25:51 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.6 2006/01/16 07:08:09 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -34,15 +34,44 @@
 package provide portupgrade 1.0
 package require portutil 1.0
 package require registry 1.0
+package require darwinports 1.0
 
 set com.apple.upgrade [target_new com.apple.upgrade upgrade_main]
-target_state ${com.apple.upgrade} no
 target_provides ${com.apple.upgrade} upgrade
-target_requires ${com.apple.upgrade} main
 
 proc upgrade_main {args} {
 
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
+
+	dportinit ui_options options variation
+
+	# check if the port is in tree
+	if {[catch {dportsearch ^$portname$} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "port search failed: $result"
+		return 1
+	}
+	# argh! port doesnt exist!
+	if {$result == ""} {
+		ui_error "No port $portname found."
+		return 1
+	}
+	# fill array with information
+	array set portinfo [lindex $result 1]
+
+	# open porthandle    
+	set porturl $portinfo(porturl)
+	if {![info exists porturl]} {
+		set porturl file://./    
+	}    
+
+	if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "Unable to open port: $result"        
+		return 1
+	}
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
@@ -98,9 +127,18 @@ proc upgrade_main {args} {
 		}
 	}
 
-	if { $havepackage neq "yes" } {
+	if { $havepackage != "yes" } {
 		# Build own package
 		ui_debug "Building local package ..."
+		# XXX Not nice
+		file delete -force ${workpath}/.darwinports.${portname}.state
+
+		if {[catch {set result [dportexec $workername rpmpackage]} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			ui_error "Unable to exec port: $result"
+			return 1
+		}
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${portname}]"
