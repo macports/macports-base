@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13 2005/10/20 16:15:38 pguyot Exp $
+# $Id: portuninstall.tcl,v 1.14 2006/01/22 22:26:34 jmpp Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -44,7 +44,7 @@ proc uninstall {portname {v ""} optionslist} {
 
 	set ilist [registry::installed $portname $v]
 	if { [llength $ilist] > 1 } {
-		ui_msg "$UI_PREFIX [msgcat::mc "The following versons of $portname are currently installed:"]"
+		ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
 		foreach i $ilist { 
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]

@@ -209,7 +209,7 @@ proc location {portname portversion} {
 	set ilist [registry::installed $portname $portversion]
 
 	if { [llength $ilist] > 1 } {
-		puts "The following versons of $portname are currently installed:"
+		puts "The following versions of $portname are currently installed:"
 		foreach i $ilist { 
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]

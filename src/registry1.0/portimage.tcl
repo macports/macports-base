@@ -1,5 +1,5 @@
 # portimage.tcl
-# $Id: portimage.tcl,v 1.15 2005/09/19 20:51:47 jberry Exp $
+# $Id: portimage.tcl,v 1.16 2006/01/22 22:26:34 jmpp Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -209,7 +209,7 @@ proc _check_registry {name v} {
 	set ilist [registry::installed $name $v]
 	if { [string equal $v ""] } {
 		if { [llength $ilist] > 1 } {
-			ui_msg "$UI_PREFIX [msgcat::mc "The following versons of $name are currently installed:"]"
+			ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
 			foreach i $ilist { 
 				set iname [lindex $i 0]
 				set iversion [lindex $i 1]
