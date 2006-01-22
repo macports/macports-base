@@ -1,5 +1,5 @@
 # portimage.tcl
-# $Id: portimage.tcl,v 1.16 2006/01/22 22:26:34 jmpp Exp $
+# $Id: portimage.tcl,v 1.17 2006/01/22 22:32:20 jmpp Exp $
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -217,9 +217,9 @@ proc _check_registry {name v} {
 				set	ivariants [lindex $i 3]
 				set iactive [lindex $i 4]
 				if { $iactive == 0 } {
-					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s %s_%s%s"] $iname $iversion $irevision $ivariants]"
+					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
 				} elseif { $iactive == 1 } {
-					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s %s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
 				}
 			}
 			return -code error "Registry error: Please specify the full version as recorded in the port registry."
