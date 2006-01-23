@@ -55,7 +55,7 @@ proc installed {{name ""} {version ""}} {
 	set rlist [list]
 
 	if {$ilist == {} } {
-		return -code error "Registry error: No such installation"
+		return {}
 	}
 
 	if { [llength $ilist] > 1 } {
