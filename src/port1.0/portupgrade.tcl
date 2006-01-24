@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.7 2006/01/16 11:23:11 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.8 2006/01/24 13:54:50 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -46,7 +46,7 @@ proc upgrade_main {args} {
 	dportinit ui_options options variation
 
 	# check if the port is in tree
-	if {[catch {dportsearch ^$portname$} result]} {
+	if {[catch {dportsearch $portname no exact} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"
