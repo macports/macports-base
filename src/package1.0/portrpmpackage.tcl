@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.6 2005/08/27 00:07:27 pguyot Exp $
+# $Id: portrpmpackage.tcl,v 1.6.6.1 2006/01/25 18:14:02 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -88,7 +88,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     
     set dependencies {}
     # get deplist
-    set deps [make_dependency_list $portname]
+    set deps [make_dependency_list {$portname}]
     set deps [lsort -unique $deps]
     foreach dep $deps {
         set name [lindex [split $dep /] 0]
@@ -111,7 +111,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
 
 proc make_dependency_list {portname} {
     set result {}
-    if {[catch {set res [dport_search "^$portname\$"]} error]} {
+    if {[catch {set res [dportsearch $portname no exact]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
         ui_error "port search failed: $error"
