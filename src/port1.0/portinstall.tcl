@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.14 2006/01/22 19:53:06 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.15 2006/01/26 12:45:13 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -44,7 +44,7 @@ if { [info exists ports_binary_only] && $ports_binary_only == "yes" } {
 }
 
 proc install_main {args} {
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
@@ -75,6 +75,45 @@ proc install_main {args} {
 		} else {
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
+
+			# XXX Not nice
+			file delete -force ${workpath}/.darwinports.${portname}.state
+
+			# Build our own rpmpackage
+			dportinit ui_options options variation
+			if {[catch {dportsearch $portname no exact} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error "port search failed: $result"
+				return 1
+			}
+			# argh! port doesnt exist!
+			if {$result == ""} {
+				ui_error "No port $portname found."
+				return 1
+			}
+			# fill array with information
+			array set portinfo [lindex $result 1]
+
+			# open porthandle    
+			set porturl $portinfo(porturl)
+			if {![info exists porturl]} {
+				set porturl file://./    
+			}    
+
+			if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error "Unable to open port: $result"        
+				return 1
+			}
+
+			if {[catch {set result [dportexec $workername rpmpackage]} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error "Unable to exec port: $result"
+				return 1
+			}
 		}
 	}
 
