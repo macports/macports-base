@@ -62,6 +62,7 @@ proc installed {{name ""} {version ""}} {
 		foreach installed $ilist {
 			set inslst [split $installed -]
 			set iname [lindex $inslst 0]
+			set iname [string map {_ -} $iname]
 			set iversion [lindex $inslst 1]
 			set irevision [lindex $inslst 2]
 			set ivariants ""
