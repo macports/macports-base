@@ -50,6 +50,8 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 # If only one version of the port is installed, this process returns that
 # version's parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {
+	# more mapping
+	set name [string map {- _} $name]
 
 	set ilist [split [exec rpm "-qa" "$name"]]
 	set rlist [list]
