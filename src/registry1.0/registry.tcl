@@ -134,6 +134,8 @@ proc open_dep_map {args} {
 # List all the ports that depend on this port
 proc list_dependents {name} {
 
+	set name [string map {- _} $name]
+
 	if { [catch {set res [exec "rpm" "-q" "--whatrequires" "$name"]}] } {
 		return {}
 	} else {
