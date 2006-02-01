@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.7 2006/02/01 19:23:28 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.8 2006/02/01 21:09:15 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -64,28 +64,33 @@ proc uninstall {portname {v ""} optionslist} {
 	# If global forcing is on, make it the same as a local force flag.
 	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
 		set uninstall.force "yes"
+	} else {
+		set uninstall.force "no"
 	}
 
-	# XXX Check if we have dependents XXX
+	# Check if we have dependents 
 	set deps [registry::list_dependents $portname ]
 	if { $deps != {} } {
-		ui_msg "${portname} has dependents, not uninstalling!"
-		return 1
+		if {${uninstall.force} != "yes"} {
+			ui_msg "${portname} has dependents, not uninstalling!"
+			return 1
+		}
+
+		ui_debug "Forcing uninstall despite ${portname} has dependents."
+	}
+	
+	set rpmcmd {}
+	if { ${uninstall.force} == "yes"} {
+		set rpmcmd "rpm -ev --nodeps $portname-$version-$revision"
+	} else {
+		set rpmcmd "rpm -ev $portname-$version-$revision"
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Removing package: %s-%s-%s"] ${portname} ${version} ${revision}]"
-	if { $version eq "" } {
-		if { [catch {set res [exec "rpm" "-ev" "$portname"]}] == 1 } {
-			return 0
-		} else {
-			return 1
-		}
+	if { [catch {system "${rpmcmd}"}] == 1} {
+		return 1
 	} else {
-		if { [catch {set res [exec "rpm" "-ev" "$portname-$version-$revision"]}] == 1} {
-			return 0
-		} else {
-			return 1
-		}
+		return 0
 	}
 
 }
