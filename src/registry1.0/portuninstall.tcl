@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.6 2006/01/31 16:20:40 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.7 2006/02/01 19:23:28 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -67,6 +67,11 @@ proc uninstall {portname {v ""} optionslist} {
 	}
 
 	# XXX Check if we have dependents XXX
+	set deps [registry::list_dependents $portname ]
+	if { $deps != {} } {
+		ui_msg "${portname} has dependents, not uninstalling!"
+		return 1
+	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Removing package: %s-%s-%s"] ${portname} ${version} ${revision}]"
 	if { $version eq "" } {
