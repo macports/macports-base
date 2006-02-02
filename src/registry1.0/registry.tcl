@@ -127,8 +127,16 @@ proc port_registered {name} {
 	}
 }
 
-proc open_dep_map {args} {
-	# This does nothing !!
+# List all dependencies for this port
+proc list_depends {name} {
+
+	set name [string map {- _} $name]
+
+	if { [catch {set res [exec "rpm" "-q" "--requires" "$name"]}] } {
+		return {}
+	} else {
+		return $res
+	}
 }
 
 # List all the ports that depend on this port

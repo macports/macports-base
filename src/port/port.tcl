@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.10 2006/01/16 14:16:27 olegb Exp $
+# $Id: port.tcl,v 1.152.2.11 2006/02/02 16:42:37 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1281,7 +1281,6 @@ proc action_uncompact { action portlist opts } {
 proc action_dependents { action portlist opts } {
 	require_portlist portlist
 	foreachport $portlist {
-		registry::open_dep_map
 		set deplist [registry::list_dependents $portname]
  
 		if { [llength $deplist] > 0 } {
@@ -1480,6 +1479,30 @@ proc action_contents { action portlist opts } {
 	return $status
 }
 
+
+proc action_pdeps { action portlist opt } {
+
+	require_portlist portlist
+	foreachport $portlist {
+
+		if {[registry::installed $portname] == {} } {
+			puts "$portname not installed!"
+			return 0
+		}
+
+		# Get pdeps for teh port
+		set pdeps [registry::list_depends $portname]
+		
+		if { $pdeps == {} } {
+			puts "${portname} doesnt depend on anything"
+		} else {
+			puts "${portname} depends on: "
+			puts $pdeps
+		}
+	}
+
+	return 0
+}
 
 proc action_deps { action portlist opts } {
 	set status 0
@@ -1901,6 +1924,7 @@ array set action_array {
 	contents	action_contents
 	dependents	action_dependents
 	deps		action_deps
+	pdeps		action_pdeps
 	variants	action_variants
 	
 	search		action_search
