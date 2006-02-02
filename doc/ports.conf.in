@@ -27,9 +27,9 @@ rsync_options		"-rtzv --delete --delete-after"
 
 # Package server
 # jbj's box'o magic
-# pkg_server			http://wraptastic.org/dports
+pkg_server			http://wraptastic.org/pub/dports
 # just a few rpms here
-pkg_server 			http://opendarwin.org/~olegb/RPM/
+# pkg_server 			http://opendarwin.org/~olegb/RPM/
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", or "launchd";
