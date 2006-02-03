@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19.6.3 2006/02/03 23:03:00 olegb Exp $
+# $Id: portclean.tcl,v 1.19.6.4 2006/02/03 23:25:43 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -180,7 +180,13 @@ proc clean_pkg {args} {
 		ui_debug "No packages to clean!"
 	} else {
 		ui_debug "Removing package: ${pkgpath} for port: $portname"
-		file delete -force ${pkgpath}
+		foreach f ${pkgpath} {
+			if {[catch {exec rm -f $f} result]} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error "${result}"
+			}
+		}
 	}
 
 }
