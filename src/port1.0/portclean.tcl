@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19.6.2 2006/01/08 18:55:43 olegb Exp $
+# $Id: portclean.tcl,v 1.19.6.3 2006/02/03 23:03:00 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -52,7 +52,7 @@ proc clean_start {args} {
 
 proc clean_main {args} {
     global UI_PREFIX
-	global ports_clean_dist ports_clean_work 
+	global ports_clean_dist ports_clean_work ports_clean_pkg
 	global ports_clean_all
 
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
@@ -65,6 +65,11 @@ proc clean_main {args} {
 		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes")) } {
 		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing workpath for %s"] [option portname]]"
 		 clean_work
+	}
+	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
+		[info exists ports_clean_pkg] && $ports_clean_pkg == "yes" } {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Removing package for %s"] [option portname]]"
+		clean_pkg
 	}
 
     return 0
@@ -161,4 +166,21 @@ proc clean_work {args} {
 	}
 
 	return 0
+}
+
+proc clean_pkg {args} {
+	global prefix portname
+
+	set arch [option os.arch]
+	if {$arch eq "powerpc"} {
+		set arch "ppc"
+	}
+
+	if { [catch {set pkgpath [glob ${prefix}/src/apple/RPMS/${arch}/${portname}*]}] } {
+		ui_debug "No packages to clean!"
+	} else {
+		ui_debug "Removing package: ${pkgpath} for port: $portname"
+		file delete -force ${pkgpath}
+	}
+
 }
