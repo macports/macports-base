@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.8 2006/02/01 21:09:15 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.9 2006/02/04 11:21:54 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -45,7 +45,7 @@ proc uninstall {portname {v ""} optionslist} {
 	set portname [string map {- _} $portname]
 	set ilist [registry::installed $portname]
 	if { $ilist == {} } {
-		ui_msg "No such port installed"
+		ui_msg "No such port: $portname installed"
 		return 1
 	}
 
