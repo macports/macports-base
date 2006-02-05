@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.11 2006/02/02 16:42:37 olegb Exp $
+# $Id: port.tcl,v 1.152.2.12 2006/02/05 13:56:44 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1480,6 +1480,32 @@ proc action_contents { action portlist opts } {
 }
 
 
+proc action_verify { action portlist opt } {
+
+	require_portlist portlist
+	foreachport $portlist {
+
+		if {[registry::installed $portname] == {} } {
+			puts "$portname not installed!"
+			return 0
+		}
+
+		# Verify teh port
+		set vrf [registry::verify $portname]
+		
+		if { $vrf == {} } {
+			puts "${portname} verifies completely!"
+		} else {
+			puts "${portname} verification error on: "
+			foreach l $vrf {
+				puts $l
+			}
+		}
+	}
+
+	return 0
+}
+
 proc action_pdeps { action portlist opt } {
 
 	require_portlist portlist
@@ -1925,6 +1951,7 @@ array set action_array {
 	dependents	action_dependents
 	deps		action_deps
 	pdeps		action_pdeps
+	verify		action_verify
 	variants	action_variants
 	
 	search		action_search

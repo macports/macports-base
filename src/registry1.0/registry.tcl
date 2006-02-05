@@ -151,6 +151,28 @@ proc list_dependents {name} {
 	}
 }
 
+# Verifies an installed port
+proc verify {name} {
+
+	set name [string map {- _} $name]
+
+	if { [catch {[exec rpm --verify $name > /tmp/.db_novrf]}] } {
+		# Didnt verify
+		if {![file exists /tmp/.db_novrf]} {
+			return "Errror!"
+		}
+		set res [list]
+		set fd [open /tmp/.db_novrf r]
+		while { [gets $fd line] >= 0 } {
+			lappend res $line
+		}
+		return $res
+	} else {
+		# Verified fine
+		return {}
+	}
+}
+
 # End of registry namespace
 }
 
