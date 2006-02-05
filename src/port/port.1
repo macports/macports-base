@@ -281,6 +281,10 @@ from the DarwinPorts rsync server. To update you would normally do:
 .Ss outdated
 List the installed ports that need upgrading.
 .Ss upgrade
+The upgrade target works on a port and its dependencies. If you
+want to change this behaviour, look at the switches for n (no
+dependencies) and R (dependents) below.
+.Pp    
 Upgrade the installed
 .Ar portname .
 For example:
