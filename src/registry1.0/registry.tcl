@@ -132,11 +132,45 @@ proc list_depends {name} {
 
 	set name [string map {- _} $name]
 
-	if { [catch {set res [exec "rpm" "-q" "--requires" "$name"]}] } {
+	if { [catch {set res [exec -keepnewline "rpm" "-q" "--requires" "$name"]}] } {
 		return {}
 	} else {
 		return $res
 	}
+}
+
+# Return a list of *all* ports that $name depends on (recurse)
+proc rdeps {name} {
+
+	set rdeps [list]
+	set deps [registry::list_depends $name]	
+	set deps [split $deps "\n"]
+
+	foreach d $deps {
+		set l [split $d]
+		set l [lindex $l 0]
+		if {[regexp "rpmlib" $l]} {
+			break
+		}
+		lappend rdeps $l
+	}
+	
+	set ldeps [list]
+	foreach d $rdeps {
+		if { $d != {} } {
+			lappend ldeps $d
+		}
+	}
+
+	foreach d $ldeps {
+		if {$d != {}} {
+			lappend rdeps $d
+		}
+	}
+
+	set rdeps [lsort -unique $rdeps]
+
+	return $rdeps
 }
 
 # List all the ports that depend on this port

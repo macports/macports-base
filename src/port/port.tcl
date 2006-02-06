@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.12 2006/02/05 13:56:44 olegb Exp $
+# $Id: port.tcl,v 1.152.2.13 2006/02/06 21:04:26 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1480,6 +1480,26 @@ proc action_contents { action portlist opts } {
 }
 
 
+proc action_rdeps { action portlist opt } {
+
+	require_portlist portlist
+	foreachport $portlist {
+
+		set rdeps [registry::rdeps $portname]
+		if {$rdeps == {}} {
+			puts "$portname has no deps!"
+		} else {
+			puts "$portname depends on:"
+			foreach d $rdeps {
+				puts "\t$d"
+			}
+		}
+
+	}
+
+	return 0
+}
+
 proc action_verify { action portlist opt } {
 
 	require_portlist portlist
@@ -1951,6 +1971,7 @@ array set action_array {
 	dependents	action_dependents
 	deps		action_deps
 	pdeps		action_pdeps
+	rdeps		action_rdeps
 	verify		action_verify
 	variants	action_variants
 	
