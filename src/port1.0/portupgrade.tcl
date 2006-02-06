@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.8 2006/01/24 13:54:50 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.9 2006/02/06 21:29:44 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -98,6 +98,9 @@ proc upgrade_main {args} {
 	} else {
 		ui_debug "Upgrading $rpmportname"
 	}
+
+	# while portname has deps that isnt upgraded -> upgrade deps
+
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
 		set arch "ppc"
