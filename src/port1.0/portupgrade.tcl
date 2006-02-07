@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.10 2006/02/07 18:03:28 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.11 2006/02/07 21:38:15 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -111,37 +111,21 @@ proc upgrade_main {args} {
 
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
 
-	ui_debug "Calculating deps.. "
+	ui_msg "Calculating deps.. "
 
-	# XXX while portname has deps that isnt upgraded -> upgrade deps XXX
 	set rdeps [registry::rdeps $portname]
 
 	# do_upgrade ports that dont have deps or 
 	# deps not in rdeps and the remove port from rdep
-
 	while { $rdeps != {} } {
 		foreach d $rdeps {
-
-			if {[registry::rdeps $d] == {}} {
-				if {[do_check $d] == 1} {
-					ui_msg "Upgrading $d"
-					do_upgrade $d
-				} else {
-					ui_msg "$d uptodate"
-				}
-
-				# delete $d from $rdeps
-				set index [lsearch $rdeps $d]
-				set rdeps [lreplace $rdeps $index $index]
-				ui_debug "deps to check: $rdeps"
-				continue
-			}
-
 			set has_deps -1
 			# foreach dep in d check if dep is in rdeps
-			set deps [registry::list_dependents $d]
-			foreach subdeb $deps {
-				if {[lsearch $rdeps $subdeb] != -1} {
+			set deps [registry::pdeps $d]
+			foreach subdep $deps {
+				#set subdep [lindex [split $subdep -] 0]
+				ui_debug "checking subdep: $subdep"
+				if {[lsearch $rdeps $subdep] != -1} {
 					set has_deps 1
 					break
 				}
@@ -162,6 +146,12 @@ proc upgrade_main {args} {
 
 		}
 	}
+	
+	# Actually check the port we were asked to check
+	if {[do_check $portname] == 1} {
+		do_upgrade $portname
+	}
+
 	return 0
 }
 

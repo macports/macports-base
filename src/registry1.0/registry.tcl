@@ -173,6 +173,26 @@ proc rdeps {name} {
 	return $rdeps
 }
 
+# pretty deps
+proc pdeps {portname} {
+
+	set pdeps [list]
+	set deps [registry::list_depends $portname]	
+	set deps [split $deps "\n"]
+
+	foreach d $deps {
+		set l [split $d]
+		set l [lindex $l 0]
+		if {[regexp "rpmlib" $l]} {
+			break
+		}
+		lappend pdeps $l
+	}
+
+	return $pdeps
+	
+}
+
 # List all the ports that depend on this port
 proc list_dependents {name} {
 
