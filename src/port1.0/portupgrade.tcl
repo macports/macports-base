@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.9 2006/02/06 21:29:44 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.10 2006/02/07 18:03:28 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -37,13 +37,21 @@ package require registry 1.0
 package require darwinports 1.0
 
 set com.apple.upgrade [target_new com.apple.upgrade upgrade_main]
+target_runtype ${com.apple.upgrade} always
 target_provides ${com.apple.upgrade} upgrade
 
-proc upgrade_main {args} {
 
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
+proc do_check {portname} {
+
+	global workername
 
 	dportinit ui_options options variation
+
+	set versionstring [split [split [registry::installed $portname] @]]
+	set portversion [lindex $versionstring 1]
+	set portrevision [lindex $versionstring 2]
+
+	ui_debug "processing $portname-$portversion-$portrevision"
 
 	# check if the port is in tree
 	if {[catch {dportsearch $portname no exact} result]} {
@@ -93,13 +101,75 @@ proc upgrade_main {args} {
 	# Compare versions
 	ui_msg "Comparing $oldversion and $newversion"
 	if {![rpm-vercomp $newversion $oldversion] > 0 } {
-		ui_debug "Upgrade not needed"
 		return 0
 	} else {
-		ui_debug "Upgrading $rpmportname"
+		return 1
 	}
+}
 
-	# while portname has deps that isnt upgraded -> upgrade deps
+proc upgrade_main {args} {
+
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
+
+	ui_debug "Calculating deps.. "
+
+	# XXX while portname has deps that isnt upgraded -> upgrade deps XXX
+	set rdeps [registry::rdeps $portname]
+
+	# do_upgrade ports that dont have deps or 
+	# deps not in rdeps and the remove port from rdep
+
+	while { $rdeps != {} } {
+		foreach d $rdeps {
+
+			if {[registry::rdeps $d] == {}} {
+				if {[do_check $d] == 1} {
+					ui_msg "Upgrading $d"
+					do_upgrade $d
+				} else {
+					ui_msg "$d uptodate"
+				}
+
+				# delete $d from $rdeps
+				set index [lsearch $rdeps $d]
+				set rdeps [lreplace $rdeps $index $index]
+				ui_debug "deps to check: $rdeps"
+				continue
+			}
+
+			set has_deps -1
+			# foreach dep in d check if dep is in rdeps
+			set deps [registry::list_dependents $d]
+			foreach subdeb $deps {
+				if {[lsearch $rdeps $subdeb] != -1} {
+					set has_deps 1
+					break
+				}
+			}
+			if { [registry::rdeps $d] == {} || $has_deps == -1 } {
+				if {[do_check $d] == 1} {
+					ui_msg "Upgrading $d"
+					do_upgrade $d
+				} else {
+					ui_msg "$d uptodate"
+				}
+
+				# delete $d from $rdeps
+				set index [lsearch $rdeps $d]
+				set rdeps [lreplace $rdeps $index $index]
+				ui_debug "deps to check: $rdeps"
+			}
+
+		}
+	}
+	return 0
+}
+
+proc do_upgrade {portname} {
+
+	global portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
+
+	set rpmportname [string map {- _} $portname]
 
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
