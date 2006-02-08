@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.11 2006/02/07 21:38:15 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.12 2006/02/08 10:33:32 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -43,43 +43,11 @@ target_provides ${com.apple.upgrade} upgrade
 
 proc do_check {portname} {
 
-	global workername
-
-	dportinit ui_options options variation
-
 	set versionstring [split [split [registry::installed $portname] @]]
 	set portversion [lindex $versionstring 1]
 	set portrevision [lindex $versionstring 2]
 
 	ui_debug "processing $portname-$portversion-$portrevision"
-
-	# check if the port is in tree
-	if {[catch {dportsearch $portname no exact} result]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-		ui_error "port search failed: $result"
-		return 1
-	}
-	# argh! port doesnt exist!
-	if {$result == ""} {
-		ui_error "No port $portname found."
-		return 1
-	}
-	# fill array with information
-	array set portinfo [lindex $result 1]
-
-	# open porthandle    
-	set porturl $portinfo(porturl)
-	if {![info exists porturl]} {
-		set porturl file://./    
-	}    
-
-	if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-		ui_error "Unable to open port: $result"        
-		return 1
-	}
 
 	# Map portname to suit RPM-ification
 	set rpmportname [string map {- _} $portname]
@@ -132,10 +100,8 @@ proc upgrade_main {args} {
 			}
 			if { [registry::rdeps $d] == {} || $has_deps == -1 } {
 				if {[do_check $d] == 1} {
-					ui_msg "Upgrading $d"
 					do_upgrade $d
 				} else {
-					ui_msg "$d uptodate"
 				}
 
 				# delete $d from $rdeps
@@ -158,6 +124,36 @@ proc upgrade_main {args} {
 proc do_upgrade {portname} {
 
 	global portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
+
+	dportinit ui_options options variation
+
+	# check if the port is in tree
+	if {[catch {dportsearch $portname no exact} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "port search failed: $result"
+		return 1
+	}
+	# argh! port doesnt exist!
+	if {$result == ""} {
+		ui_error "No port $portname found."
+		return 1
+	}
+	# fill array with information
+	array set portinfo [lindex $result 1]
+
+	# open porthandle    
+	set porturl $portinfo(porturl)
+	if {![info exists porturl]} {
+		set porturl file://./    
+	}    
+
+	if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "Unable to open port: $result"        
+		return 1
+	}
 
 	set rpmportname [string map {- _} $portname]
 
