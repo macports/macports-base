@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.12 2006/02/08 10:33:32 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.13 2006/02/08 13:54:09 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -77,7 +77,7 @@ proc do_check {portname} {
 
 proc upgrade_main {args} {
 
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
 	ui_msg "Calculating deps.. "
 
@@ -117,6 +117,9 @@ proc upgrade_main {args} {
 	if {[do_check $portname] == 1} {
 		do_upgrade $portname
 	}
+
+	# Check if we do dependents too
+	# if exists ports_do_dependents && $ports_do_dependents == "yes"
 
 	return 0
 }
