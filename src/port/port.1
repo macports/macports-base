@@ -196,9 +196,9 @@ force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
 .It Fl s
-source-only mode (only build and install from source, ignores all binary archives, does not create/recreate binary archives) (only applies when archive mode is enabled)
+source-only mode (only build and install from source)
 .It Fl b
-binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
+binary-only mode (try to install from binary packages, if no package is available build from source)
 .It Fl c
 autoclean mode (execute clean after install)
 .It Fl k
@@ -225,14 +225,23 @@ Lists the build variants available for
 .Ss deps
 Lists the other ports that are required to build and run
 .Ar portname .
+.Ss rdeps
+List the recursively all ports that are required to build and run
+.Ar portname .
+.Ss pdeps
+List the depencies as seen by the package manager
+.Ar portname .
 .Ss dependents
 Lists the ports that depend on the port
 .Ar portname .
 .Ss install
-Install and activate
+Install
 .Ar portname .
 .Ss uninstall
-Deactivate and uninstall
+uninstall
+.Ar portname .
+.Ss verify
+Verify
 .Ar portname .
 .Ss installed
 List all installed ports.
@@ -271,10 +280,6 @@ and the ports that depend on it:
 .Pp
 .Dl "port -R upgrade libiconv"
 .Pp
-To force an upgrade (rebuild) use:
-.Pp
-.Dl "port -f upgrade vim"
-.Pp
 To upgrade
 .Ar portname
 wihtout following its dependencies, use
@@ -290,6 +295,8 @@ To just remove the work files, use the
 .Ar actionflag .
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
+To remove packages, specify
+.Fl -pkg .
 To remove the work files, distribution files, pass
 .Fl -all .
 For example:
@@ -340,10 +347,6 @@ Opens
 with your default editor specified in your shell's environment variable. Alias
 .Ar ed
 also invokes this command.
-.Ss unarchive
-Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
-.Ar fetch ,
-to check for an existing binary archive to unpack. If found, it is unpacked and all stages up to
 .Ar install
 are then skipped.
 .Ss fetch
