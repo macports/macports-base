@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.13 2006/02/08 13:54:09 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.14 2006/02/09 15:40:08 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -83,6 +83,8 @@ proc upgrade_main {args} {
 
 	set rdeps [registry::rdeps $portname]
 
+	# if -n was given dont check deps
+
 	# do_upgrade ports that dont have deps or 
 	# deps not in rdeps and the remove port from rdep
 	while { $rdeps != {} } {
@@ -101,8 +103,7 @@ proc upgrade_main {args} {
 			if { [registry::rdeps $d] == {} || $has_deps == -1 } {
 				if {[do_check $d] == 1} {
 					do_upgrade $d
-				} else {
-				}
+				} 
 
 				# delete $d from $rdeps
 				set index [lsearch $rdeps $d]
