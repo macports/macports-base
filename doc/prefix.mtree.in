@@ -1,5 +1,5 @@
 # $FreeBSD: src/etc/mtree/BSD.local.dist,v 1.55.2.19 2002/08/17 19:11:15 ache Exp $
-#
+# $Id: prefix.mtree.in,v 1.8.10.2 2006/02/10 15:19:01 olegb Exp $
 # Please see the file src/etc/mtree/README before making changes to this file.
 #
 
@@ -239,8 +239,6 @@
         db
             dports
                 distfiles
-                ..
-                receipts
                 ..
             ..
         ..
