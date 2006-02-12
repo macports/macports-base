@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.8 2006/02/12 06:30:44 landonf Exp $
+ * $Id: darwintrace.c,v 1.9 2006/02/12 07:13:18 landonf Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -97,6 +97,8 @@ inline void __darwintrace_setup() {
 void log_op(const char* op, const char* path, int fd) {
 	int size;
 	char somepath[MAXPATHLEN];
+
+#ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
 	if((fd > 0) && (strncmp(path, "/.vol/", 6) == 0)) {
 		if(0 == fcntl(fd, F_GETPATH, somepath)) {
 #if DARWINTRACE_SHOW_PROCESS
@@ -109,31 +111,36 @@ void log_op(const char* op, const char* path, int fd) {
 			/* if we can't resolve it, ignore the volfs path */
 			size = 0;
 		}
-	} else {
-		/* append cwd to the path if required */
-		if (path[0] != '/') {
-			(void) getcwd(somepath, sizeof(somepath));
-#if DARWINTRACE_SHOW_PROCESS
-			size = snprintf(__darwintrace_buf,
-						BUFFER_SIZE, "%s[%d]\t%s\t%s/%s\n",
-						__darwintrace_progname, __darwintrace_pid,
-						op, somepath, path );
-#else
-			size = snprintf(__darwintrace_buf,
-						BUFFER_SIZE, "%s\t%s/%s\n", op, somepath, path );
-#endif
-		} else {
-#if DARWINTRACE_SHOW_PROCESS
-			size = snprintf(__darwintrace_buf,
-						BUFFER_SIZE, "%s[%d]\t%s\t%s\n",
-						__darwintrace_progname, __darwintrace_pid,
-						op, path );
-#else
-			size = snprintf(__darwintrace_buf,
-						BUFFER_SIZE, "%s\t%s\n", op, path );
-#endif
-		}
+
+		goto finish;
 	}
+#endif /* __APPLE__ */
+
+	/* append cwd to the path if required */
+	if (path[0] != '/') {
+		(void) getcwd(somepath, sizeof(somepath));
+#if DARWINTRACE_SHOW_PROCESS
+		size = snprintf(__darwintrace_buf,
+					BUFFER_SIZE, "%s[%d]\t%s\t%s/%s\n",
+					__darwintrace_progname, __darwintrace_pid,
+					op, somepath, path );
+#else
+		size = snprintf(__darwintrace_buf,
+					BUFFER_SIZE, "%s\t%s/%s\n", op, somepath, path );
+#endif
+	} else {
+#if DARWINTRACE_SHOW_PROCESS
+		size = snprintf(__darwintrace_buf,
+					BUFFER_SIZE, "%s[%d]\t%s\t%s\n",
+					__darwintrace_progname, __darwintrace_pid,
+					op, path );
+#else
+		size = snprintf(__darwintrace_buf,
+					BUFFER_SIZE, "%s\t%s\n", op, path );
+#endif
+	}
+
+finish:
 	write(__darwintrace_fd, __darwintrace_buf, size);
 	fsync(__darwintrace_fd);
 }
