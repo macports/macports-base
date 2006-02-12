@@ -1,6 +1,6 @@
 /*
  * rmd160cmd.c
- * $Id: rmd160cmd.c,v 1.1 2005/08/24 01:59:44 pguyot Exp $
+ * $Id: rmd160cmd.c,v 1.2 2006/02/12 06:04:46 landonf Exp $
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.
@@ -61,10 +61,12 @@ CHECKSUMEnd(RMD160, RMD160_CTX, RIPEMD160_DIGEST_LENGTH)
 CHECKSUMFile(RMD160, RMD160_CTX)
 CHECKSUMData(RMD160, RMD160_CTX)
 
-#else defined(HAVE_LIBMD)
+#elif defined(HAVE_LIBMD)
 #include <sys/types.h>
 #include <ripemd.h>
 #define RMD160File(x, y) RIPEMD160_File(x, y)
+#else
+#error libcrypto or libmd are required
 #endif
 
 int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
