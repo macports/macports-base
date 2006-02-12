@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.7 2005/08/27 00:07:27 pguyot Exp $
+ * $Id: darwintrace.c,v 1.8 2006/02/12 06:30:44 landonf Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -31,7 +31,14 @@
  * @APPLE_BSD_LICENSE_HEADER_END@
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
+#endif
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
