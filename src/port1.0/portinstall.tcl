@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.15 2006/01/26 12:45:13 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.16 2006/02/14 10:46:11 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -48,6 +48,7 @@ proc install_main {args} {
 
 	# Map portname to suit RPM-ification
 	set portname [string map {- _} $portname]
+	set portversion [string map {- _} $portversion]
 
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
