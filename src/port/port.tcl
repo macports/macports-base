@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.155 2006/01/16 04:11:30 jberry Exp $
+# $Id: port.tcl,v 1.156 2006/02/16 20:28:17 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1141,63 +1141,146 @@ proc action_info { action portlist opts } {
 				ui_warn "Found $found port $portname definitions, displaying first one."
 			}
 			array set portinfo [lindex $result 1]
+			
+			
+			# Map from friendly to less-friendly but real names
+			array set name_map "
+					category		categories
+					maintainer		maintainers
+					platform		platforms
+					variant			variants
+					"
+					
+			# Understand which info items are actually lists
+			# (this could be overloaded to provide a generic formatting code to
+			# allow us to, say, split off the prefix on libs)
+			array set list_map "
+					categories		1
+					depends_build	1
+					depends_lib		1
+					maintainers		1
+					platforms		1
+					variants		1
+					"
+					
+			# Set up our field separators
+			set show_label 1
+			set field_sep "\n"
+			set subfield_sep ", "
+			
+			# Tune for sort(1)
+			if {[info exists options(ports_info_line)]} {
+				array unset options ports_info_line
+				set show_label 0
+				set field_sep "\t"
+				set subfield_sep ","
+			}
 
-			puts -nonewline "$portinfo(name) $portinfo(version)"
-			if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
-				puts -nonewline ", Revision $portinfo(revision)" 
+			# Figure out whether to show field name
+			set quiet [ui_isset ports_quiet]
+			if {$quiet} {
+				set show_label 0
 			}
-			puts -nonewline ", $portinfo(portdir)" 
-			if {[info exists portinfo(variants)]} {
-				puts -nonewline " (Variants: "
-				for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex $portinfo(variants) $i]"
+			
+			# Spin through action options, emitting information for any found
+			set fields {}
+			foreach { option } [array names options ports_info_*] {
+				set opt [string range $option 11 end]
+				
+				# Map from friendly name
+				set ropt $opt
+				if {[info exists name_map($opt)]} {
+					set ropt $name_map($opt)
 				}
-				puts -nonewline ")"
-			}
-			puts ""
-			if {[info exists portinfo(homepage)]} { 
-				puts "$portinfo(homepage)"
-			}
-	
-			if {[info exists portinfo(long_description)]} {
-				puts "\n$portinfo(long_description)\n"
-			}
-
-			# find build dependencies
-			if {[info exists portinfo(depends_build)]} {
-				puts -nonewline "Build Dependencies: "
-				for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
-					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] end]"
+				
+				# If there's no such info, move on
+				if {![info exists portinfo($ropt)]} {
+					if {!$quiet} {
+						puts "no info for '$opt'"
+					}
+					continue
 				}
-				set nodeps false
+				
+				# Calculate field label
+				set label ""
+				if {$show_label} {
+					set label "$opt: "
+				}
+				
+				# Format the data
+				set inf $portinfo($ropt)
+				if [info exists list_map($ropt)] {
+					set field [join $inf $subfield_sep]
+				} else {
+					set field $inf
+				}
+				
+				lappend fields "$label$field"
+			}
+			
+			if {[llength $fields]} {
+				# Show specific fields
+				puts [join $fields $field_sep]
+			} else {
+			
+				# If we weren't asked to show any specific fields, then show general information
+				puts -nonewline "$portinfo(name) $portinfo(version)"
+				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
+					puts -nonewline ", Revision $portinfo(revision)" 
+				}
+				puts -nonewline ", $portinfo(portdir)" 
+				if {[info exists portinfo(variants)]} {
+					puts -nonewline " (Variants: "
+					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
+						if {$i > 0} { puts -nonewline ", " }
+						puts -nonewline "[lindex $portinfo(variants) $i]"
+					}
+					puts -nonewline ")"
+				}
 				puts ""
-			}
-	
-			# find library dependencies
-			if {[info exists portinfo(depends_lib)]} {
-				puts -nonewline "Library Dependencies: "
-				for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
-					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] end]"
+				if {[info exists portinfo(homepage)]} { 
+					puts "$portinfo(homepage)"
 				}
-				set nodeps false
-				puts ""
-			}
-	
-			# find runtime dependencies
-			if {[info exists portinfo(depends_run)]} {
-				puts -nonewline "Runtime Dependencies: "
-				for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
-					if {$i > 0} { puts -nonewline ", " }
-					puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] end]"
+		
+				if {[info exists portinfo(long_description)]} {
+					puts "\n$portinfo(long_description)\n"
 				}
-				set nodeps false
-				puts ""
+	
+				# find build dependencies
+				if {[info exists portinfo(depends_build)]} {
+					puts -nonewline "Build Dependencies: "
+					for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
+						if {$i > 0} { puts -nonewline ", " }
+						puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] end]"
+					}
+					set nodeps false
+					puts ""
+				}
+		
+				# find library dependencies
+				if {[info exists portinfo(depends_lib)]} {
+					puts -nonewline "Library Dependencies: "
+					for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
+						if {$i > 0} { puts -nonewline ", " }
+						puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] end]"
+					}
+					set nodeps false
+					puts ""
+				}
+		
+				# find runtime dependencies
+				if {[info exists portinfo(depends_run)]} {
+					puts -nonewline "Runtime Dependencies: "
+					for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
+						if {$i > 0} { puts -nonewline ", " }
+						puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] end]"
+					}
+					set nodeps false
+					puts ""
+				}
+				if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
+				if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
 			}
-			if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
-			if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
 		}
 	}
 	
@@ -2080,7 +2163,6 @@ proc parse_options { action ui_options_name global_options_name } {
 				--			{ # This is the options terminator; do no further option processing
 							  advance; break
 							}
-				--version	{ ui_warn "(please use \"$cmdname version\" to get version information)" }
 				default		{
 							  set key [string range $arg 2 end]
 							  set global_options(ports_${action}_${key}) yes
