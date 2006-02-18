@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.12 2006/01/16 14:16:26 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.13 2006/02/18 18:21:52 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -304,14 +304,18 @@ proc dportinit {up_ui_options up_options up_variations} {
 	return -code error "${darwinports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
     }
 
-	# Format for receipts, can currently be either "flat" or "sqlite"
+	# Format for receipts, can currently be either "rpm" "dpkg" "xpkg"
 	if {[info exists portdbformat]} {
-		if { $portdbformat == "sqlite" } {
-			return -code error "SQLite is not yet supported for registry storage."
+		if { $portdbformat == "xpkg" } {
+			return -code error "xpkg is not yet supported for registry storage."
 		} 
+		if { $portdbformat == "dpkg" } {
+			return -code error "dpkg is not yet supported for registry storage."
+		}
+		
 		set registry.format receipt_${portdbformat}
 	} else {
-		set registry.format receipt_flat
+		set registry.format receipt_rpm
 	}
 
 	# Installation type, whether to use port "images" or install "direct"

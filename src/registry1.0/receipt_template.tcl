@@ -30,73 +30,51 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide registry 1.0
+package provide receipt_ 1.0
 
 package require darwinports 1.0
-package require portuninstall 1.0
-package require msgcat
-package require receipt_rpm 1.0
 
-namespace eval registry {
+namespace eval receipt_ {
 
 # Check to see if an entry exists in the registry.  This is passed straight 
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::entry_exists $name $version $revision $variants ]
 }
 
 # If only one version of the port is installed, this process returns that
 # version's parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::installed $name $version ]
 }
 
 proc location {portname portversion} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::location $portname $portversion ]
 }	
 
 proc file_registered {file} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::file_registered $file ]
 }
 
 proc port_registered {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::port_registered $name ]
 }
 
 # List all dependencies for this port
 proc list_depends {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_depends $name ]
 }
 
 # Return a list of *all* ports that $name depends on (recurse)
 proc rdeps {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::rdeps $name ]
 }
 
 # pretty deps
 proc pdeps {portname} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::pdeps $portname ]
 }
 
 # List all the ports that depend on this port
 proc list_dependents {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_dependents $name ]
 }
 
 # Verifies an installed port
 proc verify {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::verify $name ]
 }
 
 # End of registry namespace
 }
+

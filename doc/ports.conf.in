@@ -28,8 +28,12 @@ rsync_options		"-rtzv --delete --delete-after"
 # Package server
 # jbj's box'o magic
 pkg_server			http://wraptastic.org/pub/dports
-# just a few rpms here
-# pkg_server 			http://opendarwin.org/~olegb/RPM/
+# pkg_server	http://opendarwin.org/~olegb/RPM/
+# pkg_server	http://rpm.net.in/mirror/dports
+
+# Type of storage to use for the port registry information, "rpm" "dpkg" or "xpkg"
+# NOTE: dpkg and xpkg not yet supported.
+portdbformat        rpm     
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", or "launchd";
