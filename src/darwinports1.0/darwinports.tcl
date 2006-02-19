@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.13 2006/02/18 18:21:52 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.14 2006/02/19 19:00:19 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -374,9 +374,8 @@ proc dportinit {up_ui_options up_options up_variations} {
 	}
 
 	# Set the pkg-server
-	# XXX remove my ~
 	if {![info exists pkg_server]} {
-		set pkg_server "http://www.opendarwin.org/~olegb/RPM/"
+		set pkg_server "http://rpm.net.in/mirror/dports http://opendarwin.org/~olegb/RPM"
 		global darwinports::pkg_server
 	}
 

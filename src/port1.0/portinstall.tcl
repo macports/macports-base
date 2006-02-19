@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.16 2006/02/14 10:46:11 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.17 2006/02/19 19:00:20 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -56,7 +56,6 @@ proc install_main {args} {
 	}
 
 	set distfile ${portname}-${portversion}-${portrevision}.${arch}.rpm
-	set site ${pkg_server}
 
 	# Check if we have the package 
 	set havepackage no
@@ -68,12 +67,22 @@ proc install_main {args} {
 	# If we want binary packages
 	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
 		# Fetch the file $portname-$portversion-$portrevision.$arch.rpm from $pkg_server 
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+		set fetched 0
 
-		set file_url [portfetch::assemble_url $site $distfile]
-		if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
-			set fetched 1
-		} else {
+		ui_msg "Using these package servers: ${pkg_server}"
+
+		foreach site ${pkg_server} {
+
+			ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+			set file_url [portfetch::assemble_url $site $distfile]
+			if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
+				set fetched 1
+				break
+			}
+		} 
+
+		if {$fetched != 1} {
+			# fetch failed
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
 
