@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19.6.4 2006/02/03 23:25:43 olegb Exp $
+# $Id: portclean.tcl,v 1.19.6.5 2006/02/19 18:59:02 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -170,6 +170,8 @@ proc clean_work {args} {
 
 proc clean_pkg {args} {
 	global prefix portname
+
+	set portname [string map {- _} $portname]
 
 	set arch [option os.arch]
 	if {$arch eq "powerpc"} {
