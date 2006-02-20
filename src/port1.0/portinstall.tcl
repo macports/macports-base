@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.17 2006/02/19 19:00:20 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.18 2006/02/20 14:56:58 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -47,7 +47,7 @@ proc install_main {args} {
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
 	# Map portname to suit RPM-ification
-	set portname [string map {- _} $portname]
+	set rpmportname [string map {- _} $portname]
 	set portversion [string map {- _} $portversion]
 
 	set arch [option os.arch]
@@ -55,7 +55,7 @@ proc install_main {args} {
 		set arch "ppc"
 	}
 
-	set distfile ${portname}-${portversion}-${portrevision}.${arch}.rpm
+	set distfile ${rpmportname}-${portversion}-${portrevision}.${arch}.rpm
 
 	# Check if we have the package 
 	set havepackage no
@@ -66,7 +66,7 @@ proc install_main {args} {
 
 	# If we want binary packages
 	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
-		# Fetch the file $portname-$portversion-$portrevision.$arch.rpm from $pkg_server 
+		# Fetch the file $rpmportname-$portversion-$portrevision.$arch.rpm from $pkg_server 
 		set fetched 0
 
 		ui_msg "Using these package servers: ${pkg_server}"
@@ -129,7 +129,7 @@ proc install_main {args} {
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing package: %s-%s-%s"] ${portname} ${portversion} ${portrevision}]"
 
-	system "rpm -ivh --nodeps ${prefix}/src/apple/RPMS/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
+	system "rpm -ivh --nodeps ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
 
     return 0
 }
