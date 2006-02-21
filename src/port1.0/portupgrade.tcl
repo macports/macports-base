@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.14 2006/02/09 15:40:08 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.15 2006/02/21 11:04:54 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -79,12 +79,12 @@ proc upgrade_main {args} {
 
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
-	ui_msg "Calculating deps.. "
-
-	set rdeps [registry::rdeps $portname]
+	dportinit ui_options options variation
 
 	# if -n was given dont check deps
 
+	ui_msg "Calculating deps.. "
+	set rdeps [registry::rdeps $portname]
 	# do_upgrade ports that dont have deps or 
 	# deps not in rdeps and the remove port from rdep
 	while { $rdeps != {} } {
