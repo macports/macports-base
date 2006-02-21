@@ -1,6 +1,6 @@
 # et:ts=4
 # portchecksum.tcl
-# $Id: portchecksum.tcl,v 1.45.6.1 2006/02/21 17:14:32 olegb Exp $
+# $Id: portchecksum.tcl,v 1.45.6.2 2006/02/21 22:37:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -176,9 +176,7 @@ proc checksum_start {args} {
 	global UI_PREFIX
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: checksum start."
-
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option portname]]"
+	ui_msg "::${time}::[option portname]:: checksum start."
 }
 
 # checksum_main
@@ -251,7 +249,7 @@ proc checksum_main {args} {
 	}
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: checksum end."
+	ui_msg "::${time}::[option portname]:: checksum end."
 
 	return 0
 }

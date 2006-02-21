@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.107.6.2 2006/02/21 17:38:55 olegb Exp $
+# $Id: portfetch.tcl,v 1.107.6.3 2006/02/21 22:37:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -437,9 +437,7 @@ proc fetch_start {args} {
     global UI_PREFIX portname
     
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: fetch start."
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
+	ui_msg "::${time}::${portname}:: fetch start."
 }
 
 # Main fetch routine
@@ -447,7 +445,7 @@ proc fetch_start {args} {
 # there are no files to download. Otherwise, either do a cvs checkout
 # or call the standard fetchfiles procedure
 proc fetch_main {args} {
-    global distname distpath all_dist_files fetch.type
+    global distname distpath all_dist_files fetch.type portname
 
     # Check for files, download if neccesary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
@@ -460,24 +458,24 @@ proc fetch_main {args} {
     	cvs		{ 
 			set rv [cvsfetch]
 			set time [clock format [clock seconds]]
-			ui_msg "::${time}:: fetch end."
+			ui_msg "::${time}::${portname}:: fetch end."
 			return $rv
 		}
     	svn		{ 
 			set rv [svnfetch]
 			set time [clock format [clock seconds]]
-			ui_msg "::${time}:: fetch end."
+			ui_msg "::${time}::${portname}:: fetch end."
 			return $rv
 		}
     	standard -
     	default	{ 
 			set rv [fetchfiles]
 			set time [clock format [clock seconds]]
-			ui_msg "::${time}:: fetch end."
+			ui_msg "::${time}::${portname}:: fetch end."
 			return $rv
 		}
     }
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: fetch end."
+	ui_msg "::${time}::${portname}:: fetch end."
 }

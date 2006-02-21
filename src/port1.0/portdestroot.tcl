@@ -1,6 +1,6 @@
 # et:ts=4
 # portdestroot.tcl
-# $Id: portdestroot.tcl,v 1.29.6.1 2006/02/21 17:14:32 olegb Exp $
+# $Id: portdestroot.tcl,v 1.29.6.2 2006/02/21 22:37:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>
@@ -83,9 +83,7 @@ proc destroot_start {args} {
     global destroot::oldmask destroot.umask
     
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: destroot start."
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
+	ui_msg "::${time}::${portname}:: destroot start."
 
     set oldmask [umask ${destroot.umask}]
     
@@ -227,7 +225,7 @@ proc destroot_finish {args} {
     umask $oldmask
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: destroot end."
+	ui_msg "::${time}::${portname}:: destroot end."
 
     return 0
 }

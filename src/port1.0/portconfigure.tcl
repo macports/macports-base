@@ -1,6 +1,6 @@
 # et:ts=4
 # portconfigure.tcl
-# $Id: portconfigure.tcl,v 1.29.6.1 2006/02/21 17:14:32 olegb Exp $
+# $Id: portconfigure.tcl,v 1.29.6.2 2006/02/21 22:37:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -56,9 +56,7 @@ proc configure_start {args} {
     global UI_PREFIX
     
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: configure start."
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+	ui_msg "::${time}::[option portname]:: configure start."
 }
 
 proc configure_main {args} {
@@ -95,7 +93,7 @@ proc configure_main {args} {
     }
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: configure end."
+	ui_msg "::${time}::[option portname]:: configure end."
 
     return 0
 }

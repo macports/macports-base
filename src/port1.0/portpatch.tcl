@@ -1,6 +1,6 @@
 # et:ts=4
 # portpatch.tcl
-# $Id: portpatch.tcl,v 1.29.6.1 2006/02/21 17:14:32 olegb Exp $
+# $Id: portpatch.tcl,v 1.29.6.2 2006/02/21 22:37:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -55,11 +55,8 @@ proc patch_main {args} {
     }
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: patch start."
+	ui_msg "::${time}::[option portname]:: patch start."
     
-    
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
-
     foreach patch [option patchfiles] {
 	if {[file exists [option filespath]/$patch]} {
 	    lappend patchlist [option filespath]/$patch
@@ -87,7 +84,7 @@ proc patch_main {args} {
     }
 
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: patch end."
+	ui_msg "::${time}::[option portname]:: patch end."
     
     return 0
 }
