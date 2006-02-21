@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.6.6.2 2006/01/31 15:36:49 olegb Exp $
+# $Id: portrpmpackage.tcl,v 1.6.6.3 2006/02/21 22:36:59 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -37,21 +37,41 @@ set com.apple.rpmpackage [target_new com.apple.rpmpackage rpmpackage_main]
 target_runtype ${com.apple.rpmpackage} always
 target_provides ${com.apple.rpmpackage} rpmpackage
 target_requires ${com.apple.rpmpackage} destroot
+target_prerun ${com.apple.rpmpackage} rpmpackage_start
 
 options package.destpath
 
 set_ui_prefix
 
+proc rpmpackage_start {args} { 
+	global portname portversion portrevision variations portvariants
+	
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: rpmpackage start."
+
+	if { ![info exists portvariants] } {
+		set portvariants ""
+
+		set vlist [lsort -ascii [array names variations]]
+
+		# Put together variants in the form +foo+bar for the registry
+		foreach v $vlist {
+			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
+				set portvariants "${portvariants}+${v}"
+			} 
+		}
+	}
+
+}
+
 proc rpmpackage_main {args} {
     global portname portversion portrevision UI_PREFIX
-    
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${portname} ${portversion}]"
-    
+
     return [rpmpackage_pkg $portname $portversion $portrevision]
 }
 
 proc rpmpackage_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
+    global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath portvariants 
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -106,6 +126,9 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     write_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $category $maintainer $destpath $dependencies $epoch
     system "DP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmdestpath} ${specpath}"
     
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: rpmpackage end."
+
     return 0
 }
 
