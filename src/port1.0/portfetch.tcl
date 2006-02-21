@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.107.6.1 2006/02/21 17:14:32 olegb Exp $
+# $Id: portfetch.tcl,v 1.107.6.2 2006/02/21 17:38:55 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -449,20 +449,35 @@ proc fetch_start {args} {
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
 
-
-	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: fetch end."
-    
     # Check for files, download if neccesary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
+
         return 0
     }
     
     # Fetch the files
     switch -- "${fetch.type}" {
-    	cvs		{ return [cvsfetch] }
-    	svn		{ return [svnfetch] }
+    	cvs		{ 
+			set rv [cvsfetch]
+			set time [clock format [clock seconds]]
+			ui_msg "::${time}:: fetch end."
+			return $rv
+		}
+    	svn		{ 
+			set rv [svnfetch]
+			set time [clock format [clock seconds]]
+			ui_msg "::${time}:: fetch end."
+			return $rv
+		}
     	standard -
-    	default	{ return [fetchfiles] }
+    	default	{ 
+			set rv [fetchfiles]
+			set time [clock format [clock seconds]]
+			ui_msg "::${time}:: fetch end."
+			return $rv
+		}
     }
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: fetch end."
 }
