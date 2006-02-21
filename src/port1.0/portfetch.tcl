@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.107 2005/10/12 22:10:28 pguyot Exp $
+# $Id: portfetch.tcl,v 1.107.6.1 2006/02/21 17:14:32 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -436,6 +436,9 @@ proc fetch_init {args} {
 proc fetch_start {args} {
     global UI_PREFIX portname
     
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: fetch start."
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
 }
 
@@ -445,6 +448,10 @@ proc fetch_start {args} {
 # or call the standard fetchfiles procedure
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
+
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: fetch end."
     
     # Check for files, download if neccesary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {

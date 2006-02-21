@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.15 2006/02/21 11:04:54 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.16 2006/02/21 17:14:33 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -79,6 +79,9 @@ proc upgrade_main {args} {
 
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: upgrade start."
+
 	dportinit ui_options options variation
 
 	# if -n was given dont check deps
@@ -121,6 +124,9 @@ proc upgrade_main {args} {
 
 	# Check if we do dependents too
 	# if exists ports_do_dependents && $ports_do_dependents == "yes"
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: upgrade end."
 
 	return 0
 }

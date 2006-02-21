@@ -1,6 +1,6 @@
 # et:ts=4
 # portchecksum.tcl
-# $Id: portchecksum.tcl,v 1.45 2005/10/13 19:45:49 pguyot Exp $
+# $Id: portchecksum.tcl,v 1.45.6.1 2006/02/21 17:14:32 olegb Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -175,6 +175,9 @@ proc calc_rmd160 {file} {
 proc checksum_start {args} {
 	global UI_PREFIX
 
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: checksum start."
+
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option portname]]"
 }
 
@@ -246,6 +249,9 @@ proc checksum_main {args} {
 	if {[tbool fail]} {
 		return -code error "[msgcat::mc "Unable to verify file checksums"]"
 	}
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: checksum end."
 
 	return 0
 }

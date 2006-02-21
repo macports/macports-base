@@ -1,6 +1,6 @@
 # eti:ts=4
 # portbuild.tcl
-# $Id: portbuild.tcl,v 1.43 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portbuild.tcl,v 1.43.6.1 2006/02/21 17:14:32 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -94,6 +94,9 @@ proc build_getmaketype {args} {
 proc build_start {args} {
     global UI_PREFIX
     
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: build start."
+
     if {[string length [option build.target]]} {
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
     } else {
@@ -103,5 +106,9 @@ proc build_start {args} {
 
 proc build_main {args} {
     system "[command build]"
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: build end."
+
     return 0
 }

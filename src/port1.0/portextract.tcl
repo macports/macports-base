@@ -1,6 +1,6 @@
 # et:ts=4
 # portextract.tcl
-# $Id: portextract.tcl,v 1.41 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portextract.tcl,v 1.41.6.1 2006/02/21 17:14:32 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -70,6 +70,9 @@ proc extract_init {args} {
 proc extract_start {args} {
     global UI_PREFIX
     
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: extract start."
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
@@ -88,5 +91,9 @@ proc extract_main {args} {
 	    return -code error "$result"
 	}
     }
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: extract end."
+
     return 0
 }

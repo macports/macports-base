@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19.6.5 2006/02/19 18:59:02 olegb Exp $
+# $Id: portclean.tcl,v 1.19.6.6 2006/02/21 17:14:32 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -47,7 +47,11 @@ set_ui_prefix
 proc clean_start {args} {
     global UI_PREFIX
     
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: clean start."
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
+    return 0
 }
 
 proc clean_main {args} {
@@ -71,6 +75,9 @@ proc clean_main {args} {
 		ui_info "$UI_PREFIX [format [msgcat::mc "Removing package for %s"] [option portname]]"
 		clean_pkg
 	}
+	
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}:: clean end."
 
     return 0
 }
