@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.15 2006/02/17 10:35:31 olegb Exp $
+# $Id: port.tcl,v 1.152.2.16 2006/02/22 14:46:33 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -291,6 +291,7 @@ proc registry_installed {portname {portversion ""}} {
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
+			set ivariant [lindex $i 3]
 		}
 		return -code error "Registry error: Please specify the full version as recorded in the port registry."
 	} else {
@@ -1432,7 +1433,11 @@ proc action_installed { action portlist opts } {
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
 			set ivariants [lindex $i 3]
-			puts "  $iname @${iversion}_${irevision}"
+			if {$ivariants == ""} {
+				puts "  $iname @${iversion}_${irevision} "
+			} else {
+				puts "  $iname @${iversion}_${irevision}+${ivariants}"
+			}
 		}
 	} else {
 		puts "No ports are installed."

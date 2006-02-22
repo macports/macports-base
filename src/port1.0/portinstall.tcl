@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.20 2006/02/21 22:37:34 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.21 2006/02/22 14:46:33 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -42,15 +42,34 @@ if { [info exists ports_binary_only] && $ports_binary_only == "yes" } {
 } else {
 	target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot rpmpackage
 }
+target_prerun ${com.apple.install} install_start
 
+proc install_start {args} { 
+	global portname portversion portrevision variations portvariants
+	
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: install start."
+
+	if { ![info exists portvariants] } {
+		set portvariants ""
+
+		set vlist [lsort -ascii [array names variations]]
+
+		# Put together variants in the form +foo+bar for the registry
+		foreach v $vlist {
+			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
+				set portvariants "${portvariants}+${v}"
+			} 
+		}
+	}
+
+}
 proc install_main {args} {
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
 
-	set time [clock format [clock seconds]]
-	ui_msg "::${time}::${portname}-${portversion}:: install start."
-
 	# Map portname to suit RPM-ification
 	set rpmportname [string map {- _} $portname]
+	set rpmportname "$rpmportname$portvariants"
 	set portversion [string map {- _} $portversion]
 
 	set arch [option os.arch]

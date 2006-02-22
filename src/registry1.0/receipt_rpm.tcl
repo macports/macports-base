@@ -62,11 +62,13 @@ proc installed {{name ""} {version ""}} {
 	if { [llength $ilist] > 1 } {
 		foreach installed $ilist {
 			set inslst [split $installed -]
-			set iname [lindex $inslst 0]
+			set ilname [lindex $inslst 0]
+			set ilname [split $ilname +]
+			set iname [lindex $ilname 0]
 			set iname [string map {_ -} $iname]
 			set iversion [lindex $inslst 1]
 			set irevision [lindex $inslst 2]
-			set ivariants ""
+			set ivariants [lrange $ilname 1 end]
 			set iref ""
 			set iactive	""
 			set iepoch ""
@@ -74,10 +76,13 @@ proc installed {{name ""} {version ""}} {
 		}
 	} else {
 		set installed [split $ilist -]
-		set iname [lindex $installed 0]
+		set ilname [lindex $installed 0]
+		set ilname [split $ilname +]
+		set iname [lindex $ilname 0]
+		set iname [string map {_ -} $iname]
 		set iversion [lindex $installed 1]
 		set irevision [lindex $installed 2]
-		set ivariants ""
+		set ivariants [lrange $ilname 1 end]
 		set iref ""
 		set iactive	""
 		set iepoch ""
