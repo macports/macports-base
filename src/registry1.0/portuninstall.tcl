@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.13 2006/02/22 17:53:31 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.14 2006/02/22 20:55:35 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -58,6 +58,8 @@ proc uninstall {portname {v ""} optionslist} {
 	set variants [lindex [lindex $ilist 0] 3]
 
 	if {${variants} != ""} {
+		set variants [string map {" " "+"} $variants]
+		set variants [string trim $variants +]
 		set portname "${portname}+${variants}"
 	}
 
