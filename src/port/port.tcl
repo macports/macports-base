@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.152.2.17 2006/02/22 16:53:41 olegb Exp $
+# $Id: port.tcl,v 1.152.2.18 2006/02/22 21:15:13 olegb Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1433,6 +1433,11 @@ proc action_installed { action portlist opts } {
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
 			set ivariants [lindex $i 3]
+			if {${ivariants} != ""} {
+				set ivariants [string map {" " "+"} $ivariants]
+				set ivariants [string trim $ivariants +]
+			}
+
 			if {$ivariants == ""} {
 				puts "  $iname @${iversion}_${irevision} "
 			} else {
