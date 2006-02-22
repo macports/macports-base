@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.10 2006/02/21 19:47:28 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.11 2006/02/22 08:09:22 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -42,10 +42,8 @@ proc uninstall {portname {v ""} optionslist} {
 	global uninstall.force uninstall.nochecksum UI_PREFIX
 	array set options $optionslist
 
-	set time [clock format [clock seconds]]
-	ui_msg "::${time}:: uninstall start."
-
 	set portname [string map {- _} $portname]
+
 	set ilist [registry::installed $portname]
 	if { $ilist == {} } {
 		ui_msg "No such port: $portname installed"
@@ -55,6 +53,9 @@ proc uninstall {portname {v ""} optionslist} {
 	set version [lindex [lindex $ilist 0] 1]
 	set revision [lindex [lindex $ilist 0] 2]
 	set variants [lindex [lindex $ilist 0] 3]
+
+	set time [clock format [clock seconds]]
+	ui_msg "::${time}::${portname}-${version}-${revision}:: uninstall start."
 
 	# determine if it's the only installed port with that name or not.
 	if {$v == ""} {
@@ -89,17 +90,15 @@ proc uninstall {portname {v ""} optionslist} {
 		set rpmcmd "rpm -ev $portname-$version-$revision"
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Removing package: %s-%s-%s"] ${portname} ${version} ${revision}]"
 	if { [catch {system "${rpmcmd}"}] == 1} {
 		set time [clock format [clock seconds]]
-		ui_msg "::${time}:: uninstall end."
+		ui_msg "::${time}::${portname}-${version}-${revision}:: uninstall end."
 		return 1
 	} else {
 		set time [clock format [clock seconds]]
-		ui_msg "::${time}:: uninstall end."
+		ui_msg "::${time}::${portname}-${version}-${revision}:: uninstall end."
 		return 0
 	}
-
 
 }
 
