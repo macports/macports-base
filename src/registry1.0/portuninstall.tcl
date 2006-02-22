@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.13.6.12 2006/02/22 14:46:34 olegb Exp $
+# $Id: portuninstall.tcl,v 1.13.6.13 2006/02/22 17:53:31 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -57,6 +57,10 @@ proc uninstall {portname {v ""} optionslist} {
 	set revision [lindex [lindex $ilist 0] 2]
 	set variants [lindex [lindex $ilist 0] 3]
 
+	if {${variants} != ""} {
+		set portname "${portname}+${variants}"
+	}
+
 	# determine if it's the only installed port with that name or not.
 	if {$v == ""} {
 		set nb_versions_installed 1
@@ -92,11 +96,11 @@ proc uninstall {portname {v ""} optionslist} {
 
 	if { [catch {system "${rpmcmd}"}] == 1} {
 		set time [clock format [clock seconds]]
-		ui_msg "::${time}::${portname}-${version}-${revision} ${variants}:: uninstall end."
+		ui_msg "::${time}::${portname}-${version}-${revision}:: uninstall end."
 		return 1
 	} else {
 		set time [clock format [clock seconds]]
-		ui_msg "::${time}::${portname}-${version}-${revision} ${variants}:: uninstall end."
+		ui_msg "::${time}::${portname}-${version}-${revision}:: uninstall end."
 		return 0
 	}
 
