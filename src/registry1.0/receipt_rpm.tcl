@@ -51,16 +51,32 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 proc installed {{name ""} {version ""}} {
 	# more mapping
 	set name [string map {- _} $name]
+	
+	set ilist [list]
+	if {$name == ""} {
+		set ilistorg [split [exec rpm "-qa"]]
+	} else {
+		set ilistorg [split [exec rpm "-qa" "$name*"]]
+	}
+	if {$name != ""} {
+		foreach li $ilistorg {
+			set l [lindex $li 0]
+			set l [split $l "-"]
+			set l [split $l "+"]
+			if {[lindex $l 0] == "$name" } {
+				lappend ilist [lindex $l 0]
+			}
+		}
+	}	
 
-	set ilist [split [exec rpm "-qa" "$name"]]
 	set rlist [list]
 
-	if {$ilist == {} } {
+	if {$ilistorg == {} } {
 		return {}
 	}
 
-	if { [llength $ilist] > 1 } {
-		foreach installed $ilist {
+	if { [llength $ilistorg] > 1 } {
+		foreach installed $ilistorg {
 			set inslst [split $installed -]
 			set ilname [lindex $inslst 0]
 			set ilname [split $ilname +]
@@ -75,7 +91,7 @@ proc installed {{name ""} {version ""}} {
 			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
 		}
 	} else {
-		set installed [split $ilist -]
+		set installed [split $ilistorg -]
 		set ilname [lindex $installed 0]
 		set ilname [split $ilname +]
 		set iname [lindex $ilname 0]
