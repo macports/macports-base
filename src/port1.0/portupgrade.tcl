@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.17 2006/02/21 22:37:34 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.18 2006/02/23 20:08:22 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -77,7 +77,7 @@ proc do_check {portname} {
 
 proc upgrade_main {args} {
 
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath
+	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix ports_binary_only workpath
 
 	set time [clock format [clock seconds]]
 	ui_msg "::${time}::${portname}:: upgrade start."
@@ -133,7 +133,7 @@ proc upgrade_main {args} {
 
 proc do_upgrade {portname} {
 
-	global portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix pkg_server ports_binary_only workpath workername
+	global portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch prefix ports_binary_only workpath workername
 
 	dportinit ui_options options variation
 
@@ -172,8 +172,18 @@ proc do_upgrade {portname} {
 		set arch "ppc"
 	}
 
-	set distfile ${rpmportname}-${portversion}-${portrevision}.${arch}.rpm
-	set site ${pkg_server}
+	set distfile ${rpmportname}${portvariants}-${portversion}-${portrevision}.${arch}.rpm
+
+	set pkg_server [list]
+	if {[file exists ${prefix}/etc/ports/pkgmirrors.conf]} {
+		set fd [open ${prefix}/etc/ports/pkgmirrors.conf r]
+		while { [gets $fd ps] != -1 } {
+			lappend pkg_server $ps
+		}
+	} else {
+		set pkg_server { http://opendarwin.org/~olegb/RPM }
+	}
+	ui_msg "Using these package servers: ${pkg_server}"
 
 	# Check if we have the package 
 	set havepackage no
@@ -185,14 +195,24 @@ proc do_upgrade {portname} {
 	# If we want binary packages
 	if { [info exists ports_binary_only] && $ports_binary_only == "yes" && $havepackage == "no" } {
 		# Fetch the file $rpmportname-$portversion-$portrevision.$arch.rpm from $pkg_server 
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+		set fetched 0
 
-		set file_url [portfetch::assemble_url $site $distfile]
-		if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
-			set havepackage yes
-		} else {
+		foreach site ${pkg_server} {
+
+			ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+			set file_url [portfetch::assemble_url $site $distfile]
+			if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
+				set fetched 1
+				set havepackage "yes"
+				break
+			}
+		} 
+
+		if {$fetched != 1} {
+			# fetch failed
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
+
 		}
 	}
 
