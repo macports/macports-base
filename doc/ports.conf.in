@@ -25,9 +25,6 @@ rsync_dir			dpupdate1/base/
 # Rsync options
 rsync_options		"-rtzv --delete --delete-after"
 
-# Package server
-pkg_server		"http://rpm.net.in/mirror/dports http://opendarwin.org/~olegb/RPM/ http://wraptastic.org/pub/dports"
-
 # Type of storage to use for the port registry information, "rpm" "dpkg" or "xpkg"
 # NOTE: dpkg and xpkg not yet supported.
 portdbformat        rpm     

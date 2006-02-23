@@ -46,6 +46,13 @@ install:
 		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
 			mv ${DESTDIR}${portconfigdir}/sources.conf.tmp ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
+
+	# Install the pkgmirror.conf file
+	if test ! -e ${DESTDIR}${portconfigdir}/pkgmirrors.conf ; then \
+		set -x; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 pkgmirrors.conf ${DESTDIR}${portconfigdir}; \
+	fi
+
 	
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
 		set -x; \

@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.21 2006/02/22 14:46:33 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.22 2006/02/23 16:17:01 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -91,6 +91,15 @@ proc install_main {args} {
 		# Fetch the file $rpmportname-$portversion-$portrevision.$arch.rpm from $pkg_server 
 		set fetched 0
 
+		set pkg_server [list]
+		if {[file exists ${prefix}/etc/ports/pkgmirrors.conf]} {
+			set fd [open ${prefix}/etc/ports/pkgmirrors.conf r]
+			while { [gets $fd ps] != -1 } {
+				lappend pkg_server $ps
+			}
+		} else {
+			set pkg_server { http://opendarwin.org/~olegb/RPM }
+		}
 		ui_msg "Using these package servers: ${pkg_server}"
 
 		foreach site ${pkg_server} {
