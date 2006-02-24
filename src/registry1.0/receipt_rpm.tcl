@@ -39,6 +39,14 @@ namespace eval receipt_rpm {
 # Check to see if an entry exists in the registry.  This is passed straight 
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
+	set name [string map {- _} $name]
+	set name [lindex [installed $name] 0]
+	if {[lindex $name 3] != "" } {
+		set name "[lindex $name 0]+[lindex $name 3]"
+	} else {
+		 set name "[lindex $name 0]"
+	}
+
 	if { [catch {set res [system "rpm -q $name-$version-$revision"]} ] == 1 } {
 		return 0
 	} else {
@@ -135,6 +143,15 @@ proc file_registered {file} {
 }
 
 proc port_registered {name} {
+
+	set name [string map {- _} $name]
+	set name [lindex [installed $name] 0]
+	if {[lindex $name 3] != "" } {
+		set name "[lindex $name 0]+[lindex $name 3]"
+	} else {
+		 set name "[lindex $name 0]"
+	}
+
 	if {[catch {set res [exec "rpm" "-q" "--filesbypkg" "$name"]}] } {
 		return {}
 	} else {
@@ -152,6 +169,12 @@ proc port_registered {name} {
 proc list_depends {name} {
 
 	set name [string map {- _} $name]
+	set name [lindex [installed $name] 0]
+	if {[lindex $name 3] != "" } {
+		set name "[lindex $name 0]+[lindex $name 3]"
+	} else {
+		 set name "[lindex $name 0]"
+	}
 
 	if { [catch {set res [exec -keepnewline "rpm" "-q" "--requires" "$name"]}] } {
 		return {}
@@ -230,6 +253,12 @@ proc list_dependents {name} {
 proc verify {name} {
 
 	set name [string map {- _} $name]
+	set name [lindex [installed $name] 0]
+	if {[lindex $name 3] != "" } {
+		set name "[lindex $name 0]+[lindex $name 3]"
+	} else {
+		 set name "[lindex $name 0]"
+	}
 
 	if { [catch {[exec rpm --verify $name > /tmp/.db_novrf]}] } {
 		# Didnt verify
