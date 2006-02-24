@@ -57,16 +57,17 @@ proc installed {{name ""} {version ""}} {
 		set ilistorg [split [exec rpm "-qa"]]
 	} else {
 		set ilistorg [split [exec rpm "-qa" "$name*"]]
-	}
-	if {$name != ""} {
+		set c 0
 		foreach li $ilistorg {
 			set l [lindex $li 0]
 			set l [split $l "-"]
 			set l [split $l "+"]
-			if {[lindex $l 0] == "$name" } {
-				lappend ilist [lindex $l 0]
+			if {[lindex [lindex $l 0] 0] == "$name" } {
+				lappend ilist [lindex $ilistorg $c]
 			}
+			incr c
 		}
+		set ilistorg $ilist
 	}	
 
 	set rlist [list]
