@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.18 2006/02/23 20:08:22 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.19 2006/02/25 17:46:28 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -43,9 +43,26 @@ target_provides ${com.apple.upgrade} upgrade
 
 proc do_check {portname} {
 
-	set versionstring [split [split [registry::installed $portname] @]]
-	set portversion [lindex $versionstring 1]
-	set portrevision [lindex $versionstring 2]
+	dportinit ui_options options variation
+
+	# check if the port is in tree
+	if {[catch {dportsearch $portname no exact} result]} {
+		global errorInfo
+		ui_debug "$errorInfo"
+		ui_error "port search failed: $result"
+		return 1
+	}
+	# argh! port doesnt exist!
+	if {$result == ""} {
+		ui_error "No port $portname found."
+		return 1
+	}
+	# fill array with information
+	array set portinfo [lindex $result 1]
+
+	#set versionstring [split [split [registry::installed $portname] @]]
+	set portversion $portinfo(version)
+	set portrevision $portinfo(revision)
 
 	ui_debug "processing $portname-$portversion-$portrevision"
 
@@ -230,9 +247,16 @@ proc do_upgrade {portname} {
 		}
 	}
 
+	if {$portvariants != ""} {
+		set rpmportname "${rpmportname}$portvariants"
+	} else {
+		set rpmportname "${rpmportname}"
+	}
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${rpmportname}]"
 
 	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
+
+	dportclose $workername
 
     return 0
 }
