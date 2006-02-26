@@ -1,6 +1,10 @@
 --------------------------------------------------------------------------
-DarwinPorts 1.0 Quick notes on installation and usage.
+DarwinPorts Quick notes on installation and usage.
 --------------------------------------------------------------------------
+
+Before installing DarwinPorts you should installed rpm (RPM Package
+Manager). DarwinPorts relies on rpm for packaging, maintainance and
+registring.
 
 The DarwinPorts system is installed by running:
 
