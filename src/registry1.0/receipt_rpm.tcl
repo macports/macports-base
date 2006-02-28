@@ -41,13 +41,18 @@ namespace eval receipt_rpm {
 proc entry_exists {name version {revision 0} {variants ""}} {
 	set name [string map {- _} $name]
 	set name [lindex [installed $name] 0]
+
+	if {$name == ""} {
+		return 0
+	}
+
 	if {[lindex $name 3] != "" } {
 		set name "[lindex $name 0]+[lindex $name 3]"
 	} else {
 		 set name "[lindex $name 0]"
 	}
 
-	if { [catch {set res [system "rpm -q $name-$version-$revision"]} ] == 1 } {
+	if { [catch {set res [system "rpm -q ${name}-${version}-${revision}"]} ] == 1 } {
 		return 0
 	} else {
 		return 1
@@ -64,7 +69,7 @@ proc installed {{name ""} {version ""}} {
 	if {$name == ""} {
 		set ilistorg [split [exec rpm "-qa"]]
 	} else {
-		set ilistorg [split [exec rpm "-qa" "$name*"]]
+		set ilistorg [split [exec rpm "-qa" "${name}*"]]
 		set c 0
 		foreach li $ilistorg {
 			set l [lindex $li 0]

@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.190.6.3 2006/01/10 18:28:13 olegb Exp $
+# $Id: portutil.tcl,v 1.190.6.4 2006/02/28 19:49:35 olegb Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -548,8 +548,8 @@ proc target_run {ditem} {
 			}
 		}
 	}
-
 	if {$result == 0} {
+
 		# Skip the step if required and explain why through ui_debug.
 		# 1st case: the step was already done (as mentioned in the state file)
 		if {[check_statefile target $name $target_state_fd]} {

@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.6.6.4 2006/02/22 14:46:32 olegb Exp $
+# $Id: portrpmpackage.tcl,v 1.6.6.5 2006/02/28 19:49:34 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -47,7 +47,7 @@ proc rpmpackage_start {args} {
 	global portname portversion portrevision variations portvariants
 	
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: rpmpackage start."
+	ui_msg "::${time}::${portname}-${portversion}-${portrevision}${portvariants}:: rpmpackage start."
 
 	if { ![info exists portvariants] } {
 		set portvariants ""
@@ -127,7 +127,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     system "DP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmdestpath} ${specpath}"
     
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: rpmpackage end."
+	ui_msg "::${time}::${portname}-${portversion}-${portrevision}${portvariants}:: rpmpackage end."
 
     return 0
 }
