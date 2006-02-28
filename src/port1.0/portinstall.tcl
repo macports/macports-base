@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.22 2006/02/23 16:17:01 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.23 2006/02/28 19:48:18 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -48,7 +48,7 @@ proc install_start {args} {
 	global portname portversion portrevision variations portvariants
 	
 	set time [clock format [clock seconds]]
-	ui_msg "::${time}::$portname-$portversion-$portrevision${portvariants}:: install start."
+	ui_msg "::${time}::${portname}-${portversion}-${portrevision}${portvariants}:: install start."
 
 	if { ![info exists portvariants] } {
 		set portvariants ""
@@ -115,7 +115,7 @@ proc install_main {args} {
 		if {$fetched != 1} {
 			# fetch failed
 			ui_debug "[msgcat::mc "Fetching failed:"]: $result"
-			exec rm -f ${prefix}/share/apple/RPMS/${arch}/{distfile}.TMP
+			exec rm -f ${prefix}/src/apple/RPMS/${arch}/{distfile}.TMP
 
 			# XXX Not nice
 			file delete -force ${workpath}/.darwinports.${portname}.state
