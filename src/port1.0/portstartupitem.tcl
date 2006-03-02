@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.26 2005/10/19 05:19:30 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.27 2006/03/02 23:52:43 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -394,8 +394,8 @@ proc startupitem_create_darwin_launchd {args} {
 	set plistname		${uniquename}.plist
 	set daemondest		LaunchDaemons
 	set itemdir			${prefix}/etc/${daemondest}/${uniquename}
-	set program			"${prefix}/bin/daemondo"
 	set args			[list \
+							"${prefix}/bin/daemondo"
 							"--label=${itemname}" \
 							]
 	
@@ -558,7 +558,6 @@ proc startupitem_create_darwin_launchd {args} {
 	
 	puts ${plist} "<key>Label</key><string>${uniquename}</string>"
 	
-	puts ${plist} "<key>Program</key><string>${program}</string>"
 	puts ${plist} "<key>ProgramArguments</key>"
 	puts ${plist} "<array>"
 	foreach arg ${args} { puts ${plist} "\t<string>${arg}</string>" }
