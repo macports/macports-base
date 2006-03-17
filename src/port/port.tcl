@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.156 2006/02/16 20:28:17 jberry Exp $
+# $Id: port.tcl,v 1.157 2006/03/17 00:22:23 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -541,6 +541,9 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
+	global darwinports::registry.installtype
+	set is_image_mode [expr 0 == [string compare "image" ${darwinports::registry.installtype}]]
+	
 	# Get the list of install ports
 	if { [catch {set ilist [registry::installed]} result] } {
 		global errorInfo
@@ -561,7 +564,8 @@ proc get_outdated_ports {} {
 			set installed_variants	[lindex $i 3]
 
 			set is_active			[lindex $i 4]
-			if { $is_active == 0 } continue
+			if { $is_active == 0 && $is_image_mode } continue
+
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
@@ -1537,7 +1541,11 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
+	global darwinports::registry.installtype
+	set is_image_mode [expr 0 == [string compare "image" ${darwinports::registry.installtype}]]
+
 	set status 0
+
 	# If port names were supplied, limit ourselves to those port, else check all installed ports
 	if { [llength $portlist] } {
 		set ilist {}
@@ -1566,7 +1574,7 @@ proc action_outdated { action portlist opts } {
 		puts "The following installed ports are outdated:"
 	
 		foreach i $ilist { 
-
+		
 			# Get information about the installed port
 			set portname			[lindex $i 0]
 			set installed_version	[lindex $i 1]
@@ -1574,7 +1582,7 @@ proc action_outdated { action portlist opts } {
 			set installed_compound	"${installed_version}_${installed_revision}"
 
 			set is_active			[lindex $i 4]
-			if { $is_active == 0 } {
+            if { $is_active == 0 && $is_image_mode } {
 				continue
 			}
 			set installed_epoch		[lindex $i 5]

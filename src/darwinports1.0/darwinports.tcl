@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.206 2006/01/16 04:39:11 jberry Exp $
+# $Id: darwinports.tcl,v 1.207 2006/03/17 00:22:22 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1435,6 +1435,7 @@ proc darwinports::version {} {
 
 # upgrade procedure
 proc darwinports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
+    global darwinports::registry.installtype
 	array set options $optionslist
 	array set variations $variationslist
 	if {![string match "" $depscachename]} {
@@ -1538,7 +1539,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
     			}
 			}
 		}
-		if { [lindex $num 4] == 0} {
+        if { [lindex $num 4] == 0 && 0 == [string compare "image" ${darwinports::registry.installtype}] } {
 			# activate the latest installed version
 			if {[catch {portimage::activate $portname $version_installed$variant $optionslist} result]} {
 				global errorInfo
@@ -1665,7 +1666,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	}
 
 	# uninstall old ports
-	if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] } {
+    if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${darwinports::registry.installtype}] } {
 		# uninstall old
 		ui_debug "Uninstalling $portname $version_installed$oldvariant"
 		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant $optionslist} result]} {
