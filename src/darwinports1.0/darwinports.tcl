@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.207 2006/03/17 00:22:22 jberry Exp $
+# $Id: darwinports.tcl,v 1.208 2006/03/17 00:31:47 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1334,7 +1334,7 @@ proc darwinports::selfupdate {optionslist} {
 	}
 	# syncing ports tree. We expect the user have rsync:// in the sources.conf
 	if {[catch {dportsync} result]} {
-		return -code error "Couldnt sync dports tree: $result"
+		return -code error "Couldn't sync dports tree: $result"
 	}
 
 	set dp_base_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/]
@@ -1359,7 +1359,7 @@ proc darwinports::selfupdate {optionslist} {
 	ui_msg "DarwinPorts base version $dp_version_old installed"
 
 	ui_debug "Updating using rsync"
-	if { [catch { system "/usr/bin/rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
+	if { [catch { system "rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
 		return -code error "Error: rsync failed in selfupdate"
 	}
 
