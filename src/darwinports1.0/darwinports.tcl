@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.208 2006/03/17 00:31:47 jberry Exp $
+# $Id: darwinports.tcl,v 1.209 2006/03/19 17:25:08 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1124,6 +1124,7 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 			} else {
 				incr found 1
 				while {[gets $fd line] >= 0} {
+					array unset portinfo
 					set name [lindex $line 0]
 					gets $fd line
 					
