@@ -1,5 +1,5 @@
 # port_autoconf.tcl.in
-# $Id: port_autoconf.tcl.in,v 1.7 2005/08/27 00:07:30 pguyot Exp $
+# $Id: port_autoconf.tcl.in,v 1.8 2006/03/21 20:10:18 jberry Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # All rights reserved.
@@ -32,6 +32,7 @@ package provide port 1.0
 
 namespace eval portutil::autoconf {
 	variable cvs_path "@CVS@"
+	variable rsync_path "@RSYNC@"
 	variable tar_command "@TAR_CMD@"
 	variable enable_launchd_support "@ENABLE_LAUNCHD_SUPPORT@"
 	variable have_launchd "@HAVE_LAUNCHD@"
