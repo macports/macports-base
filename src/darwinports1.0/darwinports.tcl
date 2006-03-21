@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.209 2006/03/19 17:25:08 jberry Exp $
+# $Id: darwinports.tcl,v 1.210 2006/03/21 20:28:35 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1068,6 +1068,7 @@ proc darwinports::getindex {source} {
 
 proc dportsync {args} {
 	global darwinports::sources darwinports::portdbpath tcl_platform
+	global darwinports::autoconf::rsync_path
 
 	foreach source $sources {
 		ui_info "Synchronizing from $source"
@@ -1092,7 +1093,7 @@ proc dportsync {args} {
 				}
 
 				# Do rsync fetch
-				if {[catch {system "rsync -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
+				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
 					return -code error "sync failed doing rsync"
 				}
 			}
@@ -1324,8 +1325,9 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 # selfupdate procedure
 proc darwinports::selfupdate {optionslist} {
 	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
+	global darwinports::autoconf::rsync_path
 	array set options $optionslist
-
+	
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
 		set use_the_force_luke yes
 		ui_debug "Forcing a rebuild of the darwinports base system."
@@ -1360,7 +1362,7 @@ proc darwinports::selfupdate {optionslist} {
 	ui_msg "DarwinPorts base version $dp_version_old installed"
 
 	ui_debug "Updating using rsync"
-	if { [catch { system "rsync $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
+	if { [catch { system "${darwinports::autoconf::rsync_path} $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
 		return -code error "Error: rsync failed in selfupdate"
 	}
 
