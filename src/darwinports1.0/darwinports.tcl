@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.203.2.15 2006/02/23 16:17:01 olegb Exp $
+# $Id: darwinports.tcl,v 1.203.2.16 2006/03/24 07:00:58 olegb Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -317,13 +317,6 @@ proc dportinit {up_ui_options up_options up_variations} {
 		set registry.format receipt_rpm
 	}
 
-	# Installation type, whether to use port "images" or install "direct"
-	if {[info exists portinstalltype]} {
-		set registry.installtype $portinstalltype
-	} else {
-		set registry.installtype image
-	}
-    
 	# Autoclean mode, whether to automatically call clean after "install"
 	if {![info exists portautoclean]} {
 		set darwinports::portautoclean "yes"
