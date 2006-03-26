@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.198 2005/10/08 21:29:35 jberry Exp $
+# $Id: darwinports.tcl,v 1.199.4.4 2005/12/06 22:53:22 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -37,7 +37,7 @@ package require darwinports_index 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
     variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -172,6 +172,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
 	global darwinports::bootstrap_options
+	global darwinports::extra_env
 	global darwinports::portconf
 	global darwinports::portdbpath
 	global darwinports::portsharepath
@@ -390,7 +391,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 
 	# Set rync options
 	if {![info exists rsync_server]} {
-		set darwinports::rsync_server rsync.opendarwin.org
+		set darwinports::rsync_server rsync.darwinports.org
 		global darwinports::rsync_server
 	}
 	if {![info exists rsync_dir]} {
@@ -429,7 +430,11 @@ proc dportinit {up_ui_options up_options up_variations} {
 	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC TMP TMPDIR USER GROUP
+	                  http_proxy https_proxy ftp_proxy all_proxy no_proxy
 	}
+    if {[info exists extra_env]} {
+    	lappend keepenvkeys ${extra_env}
+    }
 
 	foreach envkey [array names env] {
 		if {[lsearch $keepenvkeys $envkey] == -1} {
@@ -1345,6 +1350,7 @@ proc darwinports::selfupdate {optionslist} {
 	if { [file exists $dp_version_path]} {
 		set fd [open $dp_version_path r]
 		gets $fd dp_version_old
+		close $fd
 	} else {
 		set dp_version_old 0
 	}
@@ -1355,11 +1361,11 @@ proc darwinports::selfupdate {optionslist} {
 		return -code error "Error: rsync failed in selfupdate"
 	}
 
-	# get new darwinports version and write the old version back
-	set fd [open [file join $dp_base_path dp_version] r]
+	# get downloaded darwinports version and write the old version back
+	set fd [open [file join $dp_base_path config/dp_version] r]
 	gets $fd dp_version_new
 	close $fd
-	ui_msg "New DarwinPorts base version $dp_version_new"
+	ui_msg "Downloaded DarwinPorts base version $dp_version_new"
 
 	# check if we we need to rebuild base
 	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
@@ -1385,7 +1391,8 @@ proc darwinports::selfupdate {optionslist} {
 		set dp_tclpackage_path [file join $prefix var/db/dports/ .tclpackage]
 		if { [file exists $dp_tclpackage_path]} {
 			set fd [open $dp_tclpackage_path r]
-				gets $fd tclpackage
+			gets $fd tclpackage
+			close $fd
 		} else {
 			set tclpackage [file join ${prefix} share/darwinports/Tcl]
 		}
@@ -1394,6 +1401,8 @@ proc darwinports::selfupdate {optionslist} {
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
 			return -code error "Error installing new DarwinPorts base: $result"
 		}
+	} else {
+		ui_msg "The DarwinPorts installation is not outdated and so was not updated"
 	}
 
 	# set the darwinports system to the right owner 
