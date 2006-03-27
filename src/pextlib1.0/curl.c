@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.9 2006/01/08 07:05:28 jkh Exp $
+ * $Id: curl.c,v 1.10 2006/03/27 21:27:02 jberry Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -124,6 +124,8 @@ SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode)
 /**
  * curl fetch subcommand entry point.
  *
+ * syntax: curl fetch [-v] [--disable-epsv] [-u userpass] [--effective-url lasturlvar] url filename
+ *
  * @param interp		current interpreter
  * @param objc			number of parameters
  * @param objv			parameters
@@ -140,6 +142,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		int noprogress = 1;
 		int useepsv = 1;
 		const char* theUserPassString = NULL;
+		const char* effectiveURLVarName = NULL;
+		char* effectiveURL = NULL;
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
@@ -167,6 +171,18 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				} else {
 					Tcl_SetResult(interp,
 						"curl fetch: -u option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;					
+				}
+			} else if (strcmp(theOption, "--effective-url") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					effectiveURLVarName = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: --effective-url option requires a parameter",
 						TCL_STATIC);
 					theResult = TCL_ERROR;
 					break;					
@@ -274,6 +290,14 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		/* close the file */
 		(void) fclose( theFile );
 		theFile = NULL;
+		
+		/* If --effective-url option was given, set given variable name to last effective url used by curl */
+		if (effectiveURLVarName != NULL) {
+			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
+			Tcl_SetVar(interp, effectiveURLVarName,
+				(effectiveURL == NULL || theCurlCode != CURLE_OK) ? "" : effectiveURL,
+				0);
+		}
 		
 		/* check everything went fine */
 		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_HTTP_CODE, &theResponseCode);
