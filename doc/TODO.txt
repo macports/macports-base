@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.2 2005/10/22 19:03:16 jberry Exp $
+# $Id: TODO.txt,v 1.2.4.2 2005/12/12 18:23:38 jmpp Exp $
 #
 # DarwinPorts TODO List
 #
@@ -9,14 +9,13 @@
 
 Version 1.2:
 
+	(these may make it into 1.2)
     - Add to port(1) manpage docs for new port(1) syntax. (Juan & documentation team, hopefully ;-)
     - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
     	(James added some suggested text to bug #4905)
     - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
     	(James added some suggested text to bug #4905)
     - Portfile(7) missing keywords: http://bugzilla.opendarwin.org/show_bug.cgi?id=4905 (idem)
-    - Bug http://bugzilla.opendarwin.org/show_bug.cgi?id=5220 (Juan)
-    	(install from CVS or tarfile doesn't build dports directory and portindex)
     - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
 
 Version 1.3:
@@ -33,4 +32,4 @@ Version 1.3:
 	- Consider changing dportopen so that it doesn't change the current directory. Does
 	  this get used anywhere? It certainly complicates our handling of relative urls/
 	  directories.
-	  
+

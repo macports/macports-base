@@ -13,7 +13,7 @@ FSTYPE=HFSX
 
 # Some conservative (and large) defaults.
 BASE_PADDING=16000000
-DPORTSCACHE_SIZE=32767M
+DPORTSCACHE_SIZE=65536M
 
 # deal with fatal errors
 bomb() {
@@ -95,6 +95,7 @@ cd darwinports/base
 make all install
 make clean
 echo "file:///darwinports/dports" > /opt/local/etc/ports/sources.conf
+echo "BatchMode yes" >> /etc/ssh_config
 EOF
 	if [ "$PKGTYPE" = "dpkg" ]; then
 	    echo "/opt/local/bin/port install dpkg" >> $dir/bootstrap.sh

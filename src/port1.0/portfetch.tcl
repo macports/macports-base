@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.107 2005/10/12 22:10:28 pguyot Exp $
+# $Id: portfetch.tcl,v 1.107.4.1 2006/03/28 20:11:07 jberry Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -399,13 +399,33 @@ proc fetchfiles {args} {
 				set url_var master_sites
 				global portfetch::$url_var
 			}
+			unset -nocomplain fetched
 			foreach site [set $url_var] {
 				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 				set file_url [portfetch::assemble_url $site $distfile]
-				if {![catch {eval curl fetch $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
+				set effectiveURL ""
+				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
 					![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
-					set fetched 1
-					break
+
+					# Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
+					if {![string equal $effectiveURL $file_url] &&
+						[string match "*sourceforge*" $file_url] &&
+						[string match "*failedmirror*" $effectiveURL]} {
+						
+						# *SourceForge hackage in effect*
+						# The url seen by curl seems to have been a redirect to the sourceforge mirror page
+						ui_debug "[msgcat::mc "Fetching from sourceforge mirror failed"]"
+						exec rm -f ${distpath}/${distfile}.TMP
+						
+						# Continue on to try the next mirror, if any
+					} else {
+					
+						# Successful fetch
+						set fetched 1
+						break
+					
+					}
+
 				} else {
 					ui_debug "[msgcat::mc "Fetching failed:"]: $result"
 					exec rm -f ${distpath}/${distfile}.TMP
@@ -413,8 +433,6 @@ proc fetchfiles {args} {
 			}
 			if {![info exists fetched]} {
 				return -code error [msgcat::mc "fetch failed"]
-			} else {
-				unset fetched
 			}
 		}
 	}

@@ -28,62 +28,49 @@
 # SUCH DAMAGE.
 #
 
-# check if installation is present
-if [ -e /opt/local/var/db/dports/.tclpackage ]; then # set the PATH 
-    echo ""
-    echo "Checking the PATH variable..."
-    echo ""
-fi
+echo ""
+echo "Checking the PATH variable for $USER..."
+echo ""
 
+BINPATH=/opt/local/bin
+SBINPATH=/opt/local/sbin
 TMP=`/usr/bin/mktemp /tmp/dp.$$`
-/usr/bin/login -f $USER >$TMP <<EOF
-  /usr/bin/printenv SHELL
-  /usr/bin/printenv PATH
-  if test $(/bin/echo $SHELL | /usr/bin/grep bash); then
-    bash --login <<EOF2
+$SHELL -l <<EOF > $TMP
     /usr/bin/printenv PATH
     exit
-EOF2
-  fi
-  exit
 EOF
 
-if grep /opt/local/bin $TMP >/dev/null 2>&1; then
-	echo "You have the right PATH - l337!"
-    export PATH=/opt/local/bin:$PATH
+if grep $BINPATH $TMP >/dev/null 2>&1; then
+	echo "You already have the right PATH - l337!"
 else
-	echo "Setting the PATH for you!"
     USHELL=`basename $SHELL`
+   echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
     case $USHELL in
       *csh)
-		cp /Users/$USER/.cshrc /Users/$USER/.cshrc.dpsaved	# we backup the original
-		echo "#" >> /Users/$USER/.cshrc
-		echo "# Your .cshrc has been safely renamed to .cshrc.dpsaved" >> /Users/$USER/.cshrc
-		echo "# Setting the path for DarwinPorts." >> /Users/$USER/.cshrc
-        echo "set path=(/opt/local/bin /opt/local/sbin $path)" >> /Users/$USER/.cshrc
-        chown $USER /Users/$USER/.cshrc
-        ;;
-      bash)
-		cp /Users/$USER/.profile /Users/$USER/.profile.dpsaved # we backup the original
-		echo "#" >> /Users/$USER/.profile
-		echo "# Your .profile has been safely renamed to .profile.dpsaved" >> /Users/$USER/.profile
-		echo "# Setting the path for DarwinPorts." >> /Users/$USER/.profile
-        echo "export PATH=/opt/local/bin:/opt/local/sbin:$PATH" >> /Users/$USER/.profile
-        chown $USER /Users/$USER/.profile
+        /bin/cp -fp $HOME/.cshrc $HOME/.cshrc.dpsaved	# we backup the original
+        echo "#" >> $HOME/.cshrc
+        echo "# Your previous .cshrc (if any) is saved as .cshrc.dpsaved" >> $HOME/.cshrc
+        echo "# Setting the path for DarwinPorts." >> $HOME/.cshrc
+        echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.cshrc
+        chown $USER $HOME/.cshrc
+        echo "Finished modifying $HOME/.cshrc"
+       ;;
+      *sh)
+        /bin/cp -fp $HOME/.profile $HOME/.profile.dpsaved # we backup the original
+        echo "#" >> $HOME/.profile
+        echo "# Your previous .profile  (if any) is saved as .profile.dpsaved" >> $HOME/.profile
+        echo "# Setting the path for DarwinPorts." >> $HOME/.profile
+        echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.profile
+        chown $USER $HOME/.profile
+        echo "Finished modifying $HOME/.profile"
         ;;
       *)
-		echo "Strange shell, i am adding changes to your .profile - please check !"
-		cp /Users/$USER/.profile /Users/$USER/.profile.dpsaved # we backup the original
-		echo "#" >> /Users/$USER/.profile
-		echo "# Your .profile has been safely renamed to .profile.dpsaved" >> /Users/$USER/.profile
-		echo "# Setting the path for DarwinPorts." >> /Users/$USER/.profile
-        echo "export PATH=/opt/local/bin:/opt/local/sbin:$PATH" >> /Users/$USER/.profile
-        chown $USER /Users/$USER/.profile
+        echo "Unknown shell! Please set your own PATH manually."
         ;;
     esac
-
-    export PATH=/opt/local/bin:$PATH
 fi
+
+export PATH=$BINPATH:$PATH
 
 # run selfupdate
 

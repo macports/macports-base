@@ -2,7 +2,7 @@
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
 # 3-Oct-2002
-# $Id: PortIndex2MySQL.tcl,v 1.9 2005/10/23 04:40:12 jmpp Exp $
+# $Id: PortIndex2MySQL.tcl,v 1.1.2.2 2005/12/06 21:37:01 jmpp Exp $
 #
 # Copyright (c) 2003 Apple Computer, Inc.
 # Copyright (c) 2002 Kevin Van Vechten. 
