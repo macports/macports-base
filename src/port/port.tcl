@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.157 2006/03/17 00:22:23 jberry Exp $
+# $Id: port.tcl,v 1.158 2006/03/28 06:50:37 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -494,10 +494,9 @@ proc get_current_port {} {
 
 
 proc get_installed_ports { {ignore_active yes} {active yes} } {
+	set ilist {}
 	if { [catch {set ilist [registry::installed]} result] } {
-		if {$result == "Registry error: No ports registered as installed."} {
-			fatal "No ports installed!"
-		} else {
+		if {$result != "Registry error: No ports registered as installed."} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			fatal "port installed failed: $result"
@@ -544,11 +543,14 @@ proc get_outdated_ports {} {
 	global darwinports::registry.installtype
 	set is_image_mode [expr 0 == [string compare "image" ${darwinports::registry.installtype}]]
 	
-	# Get the list of install ports
+	# Get the list of installed ports
+	set ilist {}
 	if { [catch {set ilist [registry::installed]} result] } {
-		global errorInfo
-		ui_debug "$errorInfo"
-		fatal "can't get installed ports: $result"
+		if {$result != "Registry error: No ports registered as installed."} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			fatal "port installed failed: $result"
+		}
 	}
 
 	# Now process the list, keeping only those ports that are outdated
@@ -1491,8 +1493,8 @@ proc action_uninstall { action portlist opts } {
 
 proc action_installed { action portlist opts } {
 	set status 0
+	set ilist {}
 	if { [llength $portlist] } {
-		set ilist {}
 		foreachport $portlist {
 			set composite_version [composite_version $portversion [array get variations]]
 			if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
@@ -1507,10 +1509,7 @@ proc action_installed { action portlist opts } {
 		}
 	} else {
 		if { [catch {set ilist [registry::installed]} result] } {
-			if {$result == "Registry error: No ports registered as installed."} {
-				set ilist {}
-				puts "No ports are installed!"
-			} else {
+			if {$result != "Registry error: No ports registered as installed."} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				ui_error "port installed failed: $result"
@@ -1547,8 +1546,8 @@ proc action_outdated { action portlist opts } {
 	set status 0
 
 	# If port names were supplied, limit ourselves to those port, else check all installed ports
+	set ilist {}
 	if { [llength $portlist] } {
-		set ilist {}
 		foreach portspec $portlist {
 			array set port $portspec
 			set portname $port(name)
@@ -1563,10 +1562,12 @@ proc action_outdated { action portlist opts } {
 		}
 	} else {
 		if { [catch {set ilist [registry::installed]} result] } {
-			global errorInfo
-			ui_debug "$errorInfo"
-			ui_error "port outdated failed: $result"
-			set status 1
+			if {$result != "Registry error: No ports registered as installed."} {
+				global errorInfo
+				ui_debug "$errorInfo"
+				ui_error "port installed failed: $result"
+				set status 1
+			}
 		}
 	}
 
