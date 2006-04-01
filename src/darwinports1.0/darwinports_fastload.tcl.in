@@ -1,5 +1,5 @@
 # darwinports_fastload.tcl.in
-# $Id: darwinports_fastload.tcl.in,v 1.4 2005/09/19 21:32:19 jberry Exp $
+# $Id: darwinports_fastload.tcl.in,v 1.5 2006/04/01 03:40:11 jberry Exp $
 #
 # Copyright (c) 2004 Paul Guyot, Darwinports Team.
 # All rights reserved.
@@ -83,3 +83,7 @@ set dir [file join "@prefix_expanded@" share darwinports Tcl pextlib1.0]
 catch {source [file join $dir pkgIndex.tcl]}
 set dir [file join "@prefix_expanded@" share darwinports Tcl registry1.0]
 catch {source [file join $dir pkgIndex.tcl]}
+
+if { "@SQLITE3_DIR@" != "" } {
+	catch {source [file join "@SQLITE3_DIR@" pkgIndex.tcl]}
+}
