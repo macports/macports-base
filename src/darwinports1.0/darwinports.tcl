@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.211 2006/04/05 23:45:44 jberry Exp $
+# $Id: darwinports.tcl,v 1.212 2006/04/05 23:51:50 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -430,9 +430,9 @@ proc dportinit {up_ui_options up_options up_variations} {
 	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
-	                  USER GROUP http_proxy https_proxy ftp_proxy all_proxy
-	                  no_proxy
-	}
+	                  USER GROUP
+	                  http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
+					}
     if {[info exists extra_env]} {
     	lappend keepenvkeys ${extra_env}
     }
