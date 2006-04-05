@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.210 2006/03/21 20:28:35 jberry Exp $
+# $Id: darwinports.tcl,v 1.211 2006/04/05 23:45:44 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1438,7 +1438,8 @@ proc darwinports::version {} {
 
 # upgrade procedure
 proc darwinports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
-    global darwinports::registry.installtype
+	global darwinports::registry.installtype
+	global darwinports::portarchivemode
 	array set options $optionslist
 	array set variations $variationslist
 	if {![string match "" $depscachename]} {
@@ -1661,7 +1662,13 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	}
 
 	# install version_in_tree
-	if {[catch {set result [dportexec $workername destroot]} result] || $result != 0} {
+	if {0 == [string compare "yes" ${darwinports::portarchivemode}]} {
+		set upgrade_action "archive"
+	} else {
+		set upgrade_action "destroot"
+	}
+
+	if {[catch {set result [dportexec $workername $upgrade_action]} result] || $result != 0} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Unable to upgrade port: $result"
