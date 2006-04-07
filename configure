@@ -4477,8 +4477,9 @@ done
 
 
 
+
 for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
-	readline/readline.h readline/history.h
+	readline/readline.h readline/history.h, pwd.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
