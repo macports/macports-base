@@ -1,8 +1,8 @@
 /*
- * curl.h
- * $Id: uid.h,v 1.1 2006/04/07 04:55:40 jberry Exp $
+ * uid.h
+ * $Id: uid.h,v 1.2 2006/04/07 04:58:43 jberry Exp $
  *
- * Copyright (c) 2005 Paul Guyot, Darwinports Team.
+ * Copyright (c) 2005, Darwinports Team.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
