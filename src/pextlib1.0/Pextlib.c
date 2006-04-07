@@ -1,6 +1,6 @@
 /*
  * Pextlib.c
- * $Id: Pextlib.c,v 1.84 2006/01/07 23:08:58 jberry Exp $
+ * $Id: Pextlib.c,v 1.85 2006/04/07 04:55:40 jberry Exp $
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
@@ -112,6 +112,7 @@
 #include "vercomp.h"
 #include "compat.h"
 #include "readline.h"
+#include "uid.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1119,9 +1120,18 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
+	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
 	
+	Tcl_CreateObjCommand(interp, "getuid", getuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "geteuid", geteuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "setuid", setuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "seteuid", seteuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "name_to_uid", name_to_uidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "uid_to_name", uid_to_nameCmd, NULL, NULL);
+
+
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 
