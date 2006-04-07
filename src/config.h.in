@@ -117,7 +117,10 @@
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
-/* Define to 1 if you have the <readline/history.h> header file. */
+/* Define to 1 if you have the <pwd.h> header file. */
+#undef HAVE_PWD_H
+
+/* Define to 1 if you have the <readline/history.h */
 #undef HAVE_READLINE_HISTORY_H
 
 /* Define to 1 if you have the <readline/readline.h> header file. */

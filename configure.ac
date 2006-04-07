@@ -14,9 +14,16 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG(CVS, [cvs], [])
+AC_PATH_PROG(RSYNC, [rsync], [])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
+
+# Define some precious variables allowing user to override PATH for some programs
+AC_ARG_VAR(CVS, [path to cvs command])
+AC_ARG_VAR(RSYNC, [path to rsync command])
+AC_ARG_VAR(TAR, [path to tar command])
+AC_ARG_VAR(GNUTAR, [path to gnutar command])
 
 OD_TAR_NO_SAME_OWNER
 
@@ -45,6 +52,7 @@ DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 AC_PREFIX_DEFAULT(/opt/local)
 OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
 OD_PATH_PORTCONFIGDIR
+OD_PATH_SQLITE3
 
 # Check for install ownership
 OD_CHECK_INSTALLUSER
@@ -57,7 +65,7 @@ AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
-	readline/readline.h readline/history.h])
+	readline/readline.h readline/history.h, pwd.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
