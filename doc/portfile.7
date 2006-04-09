@@ -887,6 +887,8 @@ Can be
 (uses the date_updated tag of the freshmeat XML file),
 .Em moddate
 (uses the modification date of some URL resource),
+.Em regex
+(retrieve the version by applying a regex to some URL resource),
 .Em md5
 (compares the md5 sum of some URL resource) or
 .Em none
@@ -899,7 +901,7 @@ Can be
 .Em freshmeat
 .br
 .Sy Values:
-.Em freshmeat md5 moddate none
+.Em freshmeat moddate regex md5 none
 .It Ic livecheck.name
 Name of the project for live checks (used for freshmeat-based checks).
 .br
@@ -908,6 +910,14 @@ Name of the project for live checks (used for freshmeat-based checks).
 .br
 .Sy Default:
 .Em ${name}
+.It Ic livecheck.version
+Version of the project for live checks (used for regex-based checks).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em ${version}
 .It Ic livecheck.url
 URL to query for the check.
 .br
@@ -918,6 +928,11 @@ URL to query for the check.
 .Em ${homepage}
 or
 .Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
+.It Ic livecheck.regex
+Regular expression to parse the resource for regex checks.
+.br
+.Sy Type:
+.Em optional
 .It Ic livecheck.distfiles_check
 What kind of check to perform on distfiles,
 .Em moddate

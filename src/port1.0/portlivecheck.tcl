@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.3 2005/08/13 22:47:51 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.4 2006/04/09 05:24:50 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -50,19 +50,23 @@ default livecheck.distfiles_check moddate
 default livecheck.url {$homepage}
 default livecheck.update_check freshmeat
 default livecheck.md5 ""
+default livecheck.regex ""
 default livecheck.name {$name}
+default livecheck.version {$version}
 
 proc livecheck_main {args} {
-	global livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.name
+	global livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.regex livecheck.name livecheck.version
 	global fetch.type
-	global homepage portname portpath workpath
+	global homepage portname portpath workpath version
 	
 	set updated 0
+	set updated_version "unknown"
 
 	set tempfile ${workpath}/livecheck.TMP
 	set port_moddate [file mtime ${portpath}/Portfile]
 
 	ui_debug "Portfile modification date is [clock format $port_moddate]"
+	ui_debug "Port version is $version"
 
 	# Check the distfiles if it's a regular fetch phase.
 	if {"${livecheck.distfiles_check}" != "none"
@@ -104,33 +108,39 @@ proc livecheck_main {args} {
 	}
 	
 	# Perform the check depending on the type.
+	if {"${livecheck.update_check}" == "freshmeat"} {
+		if {![info exists homepage] || [string equal "${livecheck.url}" "${homepage}"]} {
+			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
+		}
+		if {"${livecheck.regex}" == ""} {
+			set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
+		}
+		set livecheck.update_check "regex"
+	}
+	
 	switch ${livecheck.update_check} {
-		"freshmeat" {
-			if {${livecheck.url} == ${homepage}} {
-				set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
-			}
-			
+		"regex" {
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
 			} else {
-				# let's extract the modification date from the file.
+				# let's extract the version from the file.
 				set chan [open $tempfile "r"]
 				set updated -1
 				while {1} {
-					set line [gets $chan]
-					if {[regexp "<date_updated>(.*)</date_updated>" $line line date_string]} {
-						if {[catch {set date_updated [clock scan $date_string -gmt 1]} error]} {
-							set updated 0
-							ui_error "cannot check if $portname was updated (couldn't parse date_updated tag: $error)"
+					if {[gets $chan line] < 0} {
+						break
+					}
+					if {[regexp ${livecheck.regex} $line line updated_version]} {
+						if {$updated_version != $version} {
+							set updated 1
 						} else {
-							ui_debug "Freshmeat date is [clock format $date_updated]"
-							set updated [expr $date_updated > $port_moddate]
+							set updated 0
 						}
 						break
 					}
 				}
 				if {$updated < 0} {
-					ui_error "cannot check if $portname was updated (couldn't find date_updated tag)"
+					ui_error "cannot check if $portname was updated (regex didn't match)"
 				}
 			}
 		}
@@ -166,9 +176,9 @@ proc livecheck_main {args} {
 	file delete -force $tempfile
 
 	if {${livecheck.update_check} != "none"} {
-		if {$updated} {
-			ui_info "$portname seems to have been updated"
-		} else {
+		if {$updated > 0} {
+			ui_msg "$portname seems to have been updated (port version: $version, new version: $updated_version)"
+		} elseif {$updated == 0} {
 			ui_debug "$portname seems to be up to date"
 		}
 	}
