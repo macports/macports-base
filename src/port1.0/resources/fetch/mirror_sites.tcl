@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.35 2006/03/27 19:00:11 olegb Exp $
+# $Id: mirror_sites.tcl,v 1.36 2006/04/09 05:25:56 pguyot Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -13,10 +13,10 @@
 namespace eval portfetch::mirror_sites { }
 
 set portfetch::mirror_sites::sites(afterstep) {
-	ftp://ftp.afterstep.org/
-	ftp://ftp.kddlabs.co.jp/X11/AfterStep/
-	ftp://ftp.dti.ad.jp/pub/X/AfterStep/
-	ftp://ftp.chg.ru/pub/X11/windowmanagers/afterstep/
+    ftp://ftp.afterstep.org/
+    ftp://ftp.kddlabs.co.jp/X11/AfterStep/
+    ftp://ftp.dti.ad.jp/pub/X/AfterStep/
+    ftp://ftp.chg.ru/pub/X11/windowmanagers/afterstep/
 }
 
 set portfetch::mirror_sites::sites(apache) {
@@ -169,21 +169,20 @@ set portfetch::mirror_sites::sites(ruby) {
 }
 
 set portfetch::mirror_sites::sites(sourceforge) {
-	http://easynews.dl.sourceforge.net/
-	http://surfnet.dl.sourceforge.net/
+    http://easynews.dl.sourceforge.net/
+    http://surfnet.dl.sourceforge.net/
     http://belnet.dl.sourceforge.net/
-    http://optusnet.dl.sourceforge.net/
     http://heanet.dl.sourceforge.net/
     http://ovh.dl.sourceforge.net/
-	http://internap.dl.sourceforge.net/
-	http://jaist.dl.sourceforge.net/
-	http://umn.dl.sourceforge.net/
-	http://unc.dl.sourceforge.net/
-	http://cogent.dl.sourceforge.net/
-	http://kent.dl.sourceforge.net/
-	http://voxel.dl.sourceforge.net/
+    http://internap.dl.sourceforge.net/
+    http://jaist.dl.sourceforge.net/
+    http://umn.dl.sourceforge.net/
+    http://kent.dl.sourceforge.net/
     http://mesh.dl.sourceforge.net/
-    http://puzzle.dl.sourceforge.net/
+    http://ufpr.dl.sourceforge.net/
+    http://nchc.dl.sourceforge.net/
+    http://switch.dl.sourceforge.net/
+    http://superb-west.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sunsite) {
