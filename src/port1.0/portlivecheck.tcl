@@ -1,9 +1,9 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.4 2006/04/09 05:24:50 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.5 2006/04/10 06:59:11 pguyot Exp $
 #
-# Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
+# Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ target_provides ${com.apple.livecheck} livecheck
 target_requires ${com.apple.livecheck} main
 
 # define options
-options livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.name
+options livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.regex livecheck.name livecheck.version
 
 # defaults
 default livecheck.distfiles_check moddate
@@ -57,7 +57,7 @@ default livecheck.version {$version}
 proc livecheck_main {args} {
 	global livecheck.distfiles_check livecheck.url livecheck.update_check livecheck.md5 livecheck.regex livecheck.name livecheck.version
 	global fetch.type
-	global homepage portname portpath workpath version
+	global homepage portname portpath workpath
 	
 	set updated 0
 	set updated_version "unknown"
@@ -66,7 +66,7 @@ proc livecheck_main {args} {
 	set port_moddate [file mtime ${portpath}/Portfile]
 
 	ui_debug "Portfile modification date is [clock format $port_moddate]"
-	ui_debug "Port version is $version"
+	ui_debug "Port (livecheck) version is ${livecheck.version}"
 
 	# Check the distfiles if it's a regular fetch phase.
 	if {"${livecheck.distfiles_check}" != "none"
@@ -131,7 +131,7 @@ proc livecheck_main {args} {
 						break
 					}
 					if {[regexp ${livecheck.regex} $line line updated_version]} {
-						if {$updated_version != $version} {
+						if {$updated_version != ${livecheck.version}} {
 							set updated 1
 						} else {
 							set updated 0
@@ -177,7 +177,7 @@ proc livecheck_main {args} {
 
 	if {${livecheck.update_check} != "none"} {
 		if {$updated > 0} {
-			ui_msg "$portname seems to have been updated (port version: $version, new version: $updated_version)"
+			ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
 		} elseif {$updated == 0} {
 			ui_debug "$portname seems to be up to date"
 		}
