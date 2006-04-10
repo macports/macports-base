@@ -1,8 +1,22 @@
 #
-#	$Id: ChangeLog,v 1.26 2005/12/14 05:10:16 jberry Exp $
+#	$Id: ChangeLog,v 1.27 2006/04/10 17:17:42 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
+
+Release 1.2.1 (10-Apr-2006):
+
+	- Changes to darwinports build infrastructure to allow for build of
+	  the darwinports infrastructure as a multiarchitecture binary.
+	  This allows darwinports to be built as fat, but does nothing to
+	  allow ports themselves to be built as fat. To build darwinports
+	  fat, configure as follows:
+	  	./configure CFLAGS='-arch ppc -arch i386' SHLIB_LDFLAGS='-arch ppc -arch i386'
+	  									backported from HEAD (jberry)
+	  									
+	- Add a hack in order attempt to detect when a sourceforge mirror
+	  is actually returning an error page. If this is detected, proceed
+	  to the next mirror.				backported from HEAD (jberry)
 
 Release 1.2 (14-Dec-2005):
 
