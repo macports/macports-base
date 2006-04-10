@@ -1,10 +1,10 @@
 #
-#	$Id: ChangeLog,v 1.25.2.3 2006/03/28 20:22:22 jberry Exp $
+#	$Id: ChangeLog,v 1.25.2.4 2006/04/10 17:19:05 jberry Exp $
 #
 #	This is a log of major user-visible changes in each release
 #
 
-Release 1.2.1 (unreleased):
+Release 1.2.1 (10-Apr-2006):
 
 	- Changes to darwinports build infrastructure to allow for build of
 	  the darwinports infrastructure as a multiarchitecture binary.
