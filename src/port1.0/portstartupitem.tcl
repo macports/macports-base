@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.28 2006/03/03 00:06:37 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.29 2006/04/14 02:35:29 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -47,7 +47,7 @@
 #	startupitem.pidfile		auto [filename.pid]
 #		The daemon is responsible for creating/deleting the pidfile
 #
-#	startupitem.pidfile		cleanup [filename.pid]
+#	startupitem.pidfile		clean [filename.pid]
 #		The daemon creates the pidfile, but we must delete it
 #
 #	startupitem.pidfile		manual [filename.pid]
@@ -135,7 +135,7 @@ proc startupitem_create_darwin_systemstarter {args} {
 	# There are four cases:
 	#	(1) none (or none specified)
 	#	(2) auto [pidfilename]
-	#	(3) cleanup [pidfilename]
+	#	(3) clean [pidfilename]
 	#	(4) manual [pidfilename]
 	#
 	set createPidFile false
