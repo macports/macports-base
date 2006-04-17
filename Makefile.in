@@ -26,15 +26,15 @@ all:: Mk/dports.autoconf.mk
 install::
 	# Compatibility upgrade from dp 1.1 to dp 1.2
 	@echo "Renaming rsync'd directories from rsync.opendarwin.org to rsync.darwinports.org"
-	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
-	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; then \
-		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
-		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; \
+	if test -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+	   -a ! -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; then \
+		mv ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
+		   ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; \
 	fi
-	if test -d ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
-	   -a ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; then \
-		mv ${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
-		   ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; \
+	if test -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
+	   -a ! -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; then \
+		mv ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
+		   ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; \
 	fi
 
 	@echo ""
