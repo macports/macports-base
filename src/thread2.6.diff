@@ -1,8 +1,12 @@
 diff -ru src/thread2.6/Makefile.in src/thread2.6.mine/Makefile.in
---- src/thread2.6/Makefile.in	2004-12-18 22:26:02.000000000 +0900
-+++ src/thread2.6.mine/Makefile.in	2005-08-11 12:02:19.000000000 +0900
-@@ -70,9 +70,9 @@
- exec_prefix	= @exec_prefix@
+--- src/thread2.6/Makefile.in	Sat Dec 18 09:26:02 2004
++++ src/thread2.6.mine/Makefile.in	Mon Apr 17 02:42:43 2006
+@@ -67,12 +67,12 @@
+ 
+ srcdir		= @srcdir@
+ prefix		= @prefix@
+-exec_prefix	= @exec_prefix@
++exec_prefix	= @prefix@
  
  bindir		= @bindir@
 -libdir		= @libdir@
@@ -14,8 +18,8 @@ diff -ru src/thread2.6/Makefile.in src/thread2.6.mine/Makefile.in
  
  DESTDIR		=
 diff -ru src/thread2.6/configure src/thread2.6.mine/configure
---- src/thread2.6/configure	2004-12-23 18:48:44.000000000 +0900
-+++ src/thread2.6.mine/configure	2005-08-11 12:02:19.000000000 +0900
+--- src/thread2.6/configure	Thu Dec 23 05:48:44 2004
++++ src/thread2.6.mine/configure	Mon Apr 17 02:27:46 2006
 @@ -6374,13 +6374,11 @@
     { (exit 1); exit 1; }; }
  	    fi
@@ -32,10 +36,9 @@ diff -ru src/thread2.6/configure src/thread2.6.mine/configure
  		`ls -d ${TCL_BIN_DIR}/../include 2>/dev/null` \
  		`ls -d ${TCL_SRC_DIR}/generic    2>/dev/null`"
  	    if test "${TEA_PLATFORM}" != "windows" -o "$GCC" = "yes"; then
-Only in src/thread2.6.mine: configure.orig
 diff -ru src/thread2.6/lib/ttrace.tcl src/thread2.6.mine/lib/ttrace.tcl
---- src/thread2.6/lib/ttrace.tcl	2004-07-30 14:37:50.000000000 +0900
-+++ src/thread2.6.mine/lib/ttrace.tcl	2005-08-11 12:03:03.000000000 +0900
+--- src/thread2.6/lib/ttrace.tcl	Fri Jul 30 01:37:50 2004
++++ src/thread2.6.mine/lib/ttrace.tcl	Mon Apr 17 02:27:46 2006
 @@ -50,8 +50,8 @@
          variable mutex ns_mutex
          variable elock [$mutex create traceepochmutex]
