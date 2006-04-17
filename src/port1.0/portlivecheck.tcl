@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.5 2006/04/10 06:59:11 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.6 2006/04/17 07:06:51 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -130,7 +130,9 @@ proc livecheck_main {args} {
 					if {[gets $chan line] < 0} {
 						break
 					}
-					if {[regexp ${livecheck.regex} $line line updated_version]} {
+					set the_re [eval "concat ${livecheck.regex}"]
+					puts $the_re
+					if {[regexp $the_re $line line updated_version]} {
 						if {$updated_version != ${livecheck.version}} {
 							set updated 1
 						} else {
