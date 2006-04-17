@@ -870,17 +870,35 @@ Form of startup item to install.
 .Sy Values:
 .Em SystemStarter RCng
 .El
-.Sh LIVECHECK OPTIONS
+.Sh DISTCHECK AND LIVECHECK OPTIONS
 Darwinports can automatically check if the software has been updated
 since the Portfile was modified and if some external changes require
 an update to the Portfile. This helps maintainers have up-to-date
 and working Portfiles.
 .br
-The check is two-fold. First, Darwinports checks that the distfile(s)
-are still downloadable. Second, a resource is queried to determine
-if a newer version of the software is available.
+Two checks are available. With distcheck, Darwinports can check that the
+distfile(s) are still downloadable and did not change since the portfile
+was modified.
+With livecheck, Darwinports can query a resource to determine if a newer
+version of the software is available.
 .Bl -tag -width lc
-.It Ic livecheck.update_check
+.It Ic distcheck.check
+This option can be used to disable distcheck. It specifies what kind
+of check should be performed on distfiles:
+.Em moddate
+(check if the Portfile is older than the distfile) or
+.Em none
+(no check).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em moddate
+.br
+.Sy Values:
+.Em moddate none
+.It Ic livecheck.check
 What kind of check to perform to figure out if the software has been updated.
 Can be
 .Em freshmeat
@@ -933,21 +951,6 @@ Regular expression to parse the resource for regex checks.
 .br
 .Sy Type:
 .Em optional
-.It Ic livecheck.distfiles_check
-What kind of check to perform on distfiles,
-.Em moddate
-(check if the Portfile is older than the distfile) or
-.Em none
-(no check).
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em moddate
-.br
-.Sy Values:
-.Em moddate none
 .It Ic livecheck.md5
 md5 sum to use for md5 comparison.
 .br

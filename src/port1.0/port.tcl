@@ -1,6 +1,6 @@
 # et:ts=4
 # port.tcl
-# $Id: port.tcl,v 1.40 2005/08/27 00:07:30 pguyot Exp $
+# $Id: port.tcl,v 1.41 2006/04/17 21:49:19 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -48,4 +48,5 @@ package require portclean 1.0
 package require porttest 1.0
 package require portsubmit 1.0
 package require porttrace 1.0
+package require portdistcheck 1.0
 package require portlivecheck 1.0
