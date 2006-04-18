@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.34.2.1 2006/03/26 09:20:22 olegb Exp $
+# $Id: mirror_sites.tcl,v 1.34.2.2 2006/04/18 10:17:12 olegb Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -21,10 +21,8 @@ set portfetch::mirror_sites::sites(afterstep) {
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
-    ftp://ftp.planetmirror.com/pub/apache/dist/
     ftp://apache.mirrored.ca/
     ftp://ftp.is.co.za/Apache/dist/
-    http://apache.planetmirror.com.au/dist/
     ftp://ftp.leo.org/pub/comp/general/infosys/www/daemons/apache/dist/
     ftp://ftp.infoscience.co.jp/pub/net/apache/dist/
 }
@@ -46,7 +44,6 @@ set portfetch::mirror_sites::sites(freebsd) {
 
 set portfetch::mirror_sites::sites(gnome) {
     http://www.gtlib.cc.gatech.edu/pub/gnome/
-    http://public.planetmirror.com/pub/gnome/
     ftp://ftp.dit.upm.es/linux/gnome/
     ftp://ftp.dataplus.se/pub/linux/gnome/
     ftp://ftp.chg.ru/pub/X11/gnome/
