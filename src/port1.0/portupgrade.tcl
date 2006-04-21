@@ -1,6 +1,6 @@
 # et:ts=4
 # portupgrade.tcl
-# $Id: portupgrade.tcl,v 1.1.2.19 2006/02/25 17:46:28 olegb Exp $
+# $Id: portupgrade.tcl,v 1.1.2.20 2006/04/21 14:32:16 olegb Exp $
 #
 # Copyright (c) 2006 Ole Guldberg Jensen <olegb@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -254,7 +254,7 @@ proc do_upgrade {portname} {
 	}
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Upgrading package: %s"] ${rpmportname}]"
 
-	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
+	system "rpm -Uvh ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
 
 	dportclose $workername
 

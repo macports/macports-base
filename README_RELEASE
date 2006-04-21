@@ -6,6 +6,9 @@ Before installing DarwinPorts you should installed rpm (RPM Package
 Manager). DarwinPorts relies on rpm for packaging, maintainance and
 registring.
 
+After installing rpm you should install the base-rpm
+config/macosx-base-{version}.{arch}.rpm.
+
 The DarwinPorts system is installed by running:
 
 	./configure && make && sudo make install

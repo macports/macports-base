@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.24 2006/03/24 07:02:49 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.25 2006/04/21 14:32:16 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -161,7 +161,7 @@ proc install_main {args} {
 
 	#ui_msg "$UI_PREFIX [format [msgcat::mc "Installing package: %s-%s-%s"] ${portname} ${portversion} ${portrevision}]"
 
-	system "rpm -Uvh --nodeps ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
+	system "rpm -Uvh ${prefix}/src/apple/RPMS/${arch}/${rpmportname}-${portversion}-${portrevision}.${arch}.rpm"
 
 	set time [clock format [clock seconds]]
 	ui_msg "::${time}::${portname}-${portversion}:: install end."
