@@ -1,6 +1,6 @@
 # et:ts=4
 # portinstall.tcl
-# $Id: portinstall.tcl,v 1.78.6.25 2006/04/21 14:32:16 olegb Exp $
+# $Id: portinstall.tcl,v 1.78.6.26 2006/04/22 20:22:28 olegb Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -70,7 +70,7 @@ proc install_main {args} {
 
 	# Map portname to suit RPM-ification
 	set rpmportname [string map {- _} $portname]
-	set rpmportname "$rpmportname$portvariants"
+	set rpmportname "$rpmportname"
 	set portversion [string map {- _} $portversion]
 
 	set arch [option os.arch]
@@ -107,7 +107,7 @@ proc install_main {args} {
 
 			ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 			set file_url [portfetch::assemble_url $site $distfile]
-			if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
+			if {![catch {eval curl fetch {$file_url} ${prefix}/src/apple/RPMS/${arch}/${distfile}.TMP} result] && ![catch {system "mv ${prefix}/src/apple/RPMS/${arch}/${portvariant}/${distfile}.TMP ${prefix}/src/apple/RPMS/${arch}/${distfile}"}]} {
 				set fetched 1
 				break
 			}
