@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.108 2006/03/27 21:32:27 jberry Exp $
+# $Id: portfetch.tcl,v 1.109 2006/04/30 05:32:52 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -132,25 +132,6 @@ proc portfetch::assemble_url {site distfile} {
     } else {
         return "${site}${distfile}"
     }
-}
-
-# Given a distribution file name, return the appended tag
-# Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
-# / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdisttag {name} {
-    if {[regexp {.+:([0-9A-Za-z_-]+)$} $name match tag]} {
-        return $tag
-    } else {
-        return ""
-    }
-}
-
-# Given a distribution file name, return the name without an attached tag
-# Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
-# / isn't included in the regexp, thus allowing port specification in URLs.
-proc getdistname {name} {
-    regexp {(.+):[0-9A-Za-z_-]+$} $name match name
-    return $name
 }
 
 # XXX

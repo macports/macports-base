@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.190 2005/08/27 06:26:34 pguyot Exp $
+# $Id: portutil.tcl,v 1.191 2006/04/30 05:32:52 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -400,6 +400,28 @@ proc platform {args} {
     }
     }
 }
+
+########### Distname utility functions ###########
+
+# Given a distribution file name, return the appended tag
+# Example: getdisttag distfile.tar.gz:tag1 returns "tag1"
+# / isn't included in the regexp, thus allowing port specification in URLs.
+proc getdisttag {name} {
+    if {[regexp {.+:([0-9A-Za-z_-]+)$} $name match tag]} {
+        return $tag
+    } else {
+        return ""
+    }
+}
+
+# Given a distribution file name, return the name without an attached tag
+# Example : getdistname distfile.tar.gz:tag1 returns "distfile.tar.gz"
+# / isn't included in the regexp, thus allowing port specification in URLs.
+proc getdistname {name} {
+    regexp {(.+):[0-9A-Za-z_-]+$} $name match name
+    return $name
+}
+
 
 ########### Misc Utility Functions ###########
 

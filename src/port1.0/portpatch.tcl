@@ -1,6 +1,6 @@
 # et:ts=4
 # portpatch.tcl
-# $Id: portpatch.tcl,v 1.29 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portpatch.tcl,v 1.30 2006/04/30 05:32:52 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -57,10 +57,13 @@ proc patch_main {args} {
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
 
     foreach patch [option patchfiles] {
-	if {[file exists [option filespath]/$patch]} {
-	    lappend patchlist [option filespath]/$patch
-	} elseif {[file exists [option distpath]/$patch]} {
-	    lappend patchlist [option distpath]/$patch
+    set patch_file [getdistname $patch]
+	if {[file exists [option filespath]/$patch_file]} {
+	    lappend patchlist [option filespath]/$patch_file
+	} elseif {[file exists [option distpath]/$patch_file]} {
+	    lappend patchlist [option distpath]/$patch_file
+	} else {
+		return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
 	}
     }
     if {![info exists patchlist]} {
