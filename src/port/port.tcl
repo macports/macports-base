@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.159 2006/04/17 21:49:18 pguyot Exp $
+# $Id: port.tcl,v 1.160 2006/05/24 00:42:56 pguyot Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -2123,6 +2123,7 @@ array set action_array {
 	trace		action_target
 	livecheck	action_target
 	distcheck	action_target
+	mirror		action_target
 
 	archive		action_target
 	unarchive	action_target

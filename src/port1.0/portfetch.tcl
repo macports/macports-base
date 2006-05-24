@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.109 2006/04/30 05:32:52 pguyot Exp $
+# $Id: portfetch.tcl,v 1.110 2006/05/24 00:42:56 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -420,6 +420,16 @@ proc fetchfiles {args} {
     return 0
 }
 
+# Utility function to delete fetched files.
+proc fetch_deletefiles {args} {
+	global distpath fetch_urls
+	foreach {url_var distfile} $fetch_urls {
+		if {[file isfile $distpath/$distfile]} {
+			exec rm -f ${distpath}/${distfile}
+		}
+	}
+}
+
 # Initialize fetch target, calling checkfiles if neccesary
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type
@@ -444,7 +454,7 @@ proc fetch_start {args} {
 # or call the standard fetchfiles procedure
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
-    
+
     # Check for files, download if neccesary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
         return 0
