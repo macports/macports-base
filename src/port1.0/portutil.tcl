@@ -1,9 +1,10 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.191 2006/04/30 05:32:52 pguyot Exp $
+# $Id: portutil.tcl,v 1.192 2006/05/29 16:57:03 mww Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2006 Markus W. Weissmann <mww@opendarwin.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -508,6 +509,15 @@ proc reinplace {pattern args}  {
 	file delete "$tmpfile"
     }
     return
+}
+
+# delete
+# fast (and more reliable than 'file delete') file- and directory-remove routine
+proc delete {args} {
+	foreach arg $args {
+		ui_debug "delete: $arg"
+		system "/bin/rm -rf $arg"
+	}
 }
 
 # filefindbypath
