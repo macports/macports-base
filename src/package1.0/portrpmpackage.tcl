@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.7 2006/06/07 19:25:07 mww Exp $
+# $Id: portrpmpackage.tcl,v 1.8 2006/06/07 21:31:16 mww Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -101,9 +101,9 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     }
 
 	# depend on system (virtual packages for apple stuff)
-	regexp {[0-9]+\.[0-9]+} ${os.version} major
+	regexp {[0-9]+} ${os.version} major
 	lappend dependencies "org.darwinports.${os.arch}"
-	lappend dependencies "org.darwinports.${os.platform}_${major}"
+	lappend dependencies "org.darwinports.${os.platform}${major}"
     
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"
     #system "cd '${destpath}' && find . -type d | grep -v -E '^.$' | sed -e 's/\"/\\\"/g' -e 's/^./%dir \"/' -e 's/$/\"/' > '${workpath}/${portname}.filelist'"
