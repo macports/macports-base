@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.6 2005/08/27 00:07:27 pguyot Exp $
+# $Id: portrpmpackage.tcl,v 1.7 2006/06/07 19:25:07 mww Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -52,6 +52,7 @@ proc rpmpackage_main {args} {
 
 proc rpmpackage_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
+	global os.platform os.arch os.version
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -98,6 +99,11 @@ proc rpmpackage_pkg {portname portversion portrevision} {
             lappend dependencies "${name} >= ${vers}"
         }
     }
+
+	# depend on system (virtual packages for apple stuff)
+	regexp {[0-9]+\.[0-9]+} ${os.version} major
+	lappend dependencies "org.darwinports.${os.arch}"
+	lappend dependencies "org.darwinports.${os.platform}_${major}"
     
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"
     #system "cd '${destpath}' && find . -type d | grep -v -E '^.$' | sed -e 's/\"/\\\"/g' -e 's/^./%dir \"/' -e 's/$/\"/' > '${workpath}/${portname}.filelist'"
@@ -160,7 +166,8 @@ Release: ${portrevision}
 Group: ${category}
 License: Unknown
 BuildRoot: ${destroot}
-Epoch: ${epoch}"
+Epoch: ${epoch}
+AutoReqProv: no"
     if {[llength ${dependencies}] != 0} {
 	foreach require ${dependencies} {
 	    puts $specfd "Requires: [regsub -all -- "\-" $require "_"]"
