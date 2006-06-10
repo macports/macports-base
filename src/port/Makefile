@@ -1,7 +1,7 @@
 MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	../..
-SCRIPTS=	portindex port
+SCRIPTS=	portmirror portindex port
 
 edit = sed \
 	-e 's,@TCLSH\@,$(TCLSH),g' \
@@ -10,6 +10,9 @@ edit = sed \
 include ../../Mk/dports.autoconf.mk
 
 all: ${SCRIPTS}
+
+portmirror: portmirror.tcl
+	${edit} portmirror.tcl > $@
 
 portindex: portindex.tcl
 	${edit} portindex.tcl > $@
@@ -30,5 +33,5 @@ distclean: clean
 install: mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex ${INSTALLDIR}/bin/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
 	$(LN_S) -f ${INSTALLDIR}/bin/port ${INSTALLDIR}/bin/portf
