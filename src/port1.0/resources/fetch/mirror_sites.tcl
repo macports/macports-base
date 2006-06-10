@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.36 2006/04/09 05:25:56 pguyot Exp $
+# $Id: mirror_sites.tcl,v 1.37 2006/06/10 23:04:30 pguyot Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -125,6 +125,9 @@ set portfetch::mirror_sites::sites(kde) {
 }
 
 set portfetch::mirror_sites::sites(opendarwin) {
+    http://distfiles-od.opendarwin.org/:mirror
+    http://distfiles-msn.opendarwin.org/:mirror
+    http://distfiles-bay13.opendarwin.org/:mirror
     http://distfiles-od.opendarwin.org/:nosubdir
     http://distfiles-msn.opendarwin.org/:nosubdir
     http://distfiles-bay13.opendarwin.org/:nosubdir

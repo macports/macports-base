@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.111 2006/06/10 08:07:40 pguyot Exp $
+# $Id: portfetch.tcl,v 1.112 2006/06/10 23:04:29 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -150,7 +150,7 @@ proc disttagclean {list} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX portname portresourcepath mirror_sites.listfile mirror_sites.listpath
+    global UI_PREFIX portname portresourcepath mirror_sites.listfile mirror_sites.listpath dist_subdir
     source ${mirror_sites.listpath}${mirror_sites.listfile}
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
@@ -167,15 +167,19 @@ proc mirror_sites {mirrors tag subdir} {
 	    set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
 	    set mirror_tag "[lindex $splitlist 2]"
 	}
-	
-	if {$subdir == "" && $mirror_tag != "nosubdir"} {
-	    set subdir ${portname}
+
+	if {$mirror_tag == "mirror"} {
+		set thesubdir ${dist_subdir}
+	} elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
+		set thesubdir ${portname}
+	} else {
+		set thesubdir ${subdir}
 	}
 	
 	if {"$tag" != ""} {
-	    eval append element "${subdir}:${tag}"
+	    eval append element "${thesubdir}:${tag}"
 	} else {
-	    eval append element "${subdir}"
+	    eval append element "${thesubdir}"
 	}
         eval lappend ret $element
     }
