@@ -1,7 +1,7 @@
 # et:ts=4
 # portmirror.tcl
 #
-# $Id: portmirror.tcl,v 1.1 2006/05/24 00:42:56 pguyot Exp $
+# $Id: portmirror.tcl,v 1.2 2006/06/10 08:07:40 pguyot Exp $
 #
 # Copyright (c) 2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -34,6 +34,7 @@
 
 package provide portmirror 1.0
 package require portutil 1.0
+package require Pextlib 1.0
 package require portfetch 1.0
 package require portchecksum 1.0
 
@@ -46,22 +47,40 @@ target_requires ${com.apple.mirror} main
 
 # Mirror is a target that fetches & checksums files and delete them
 # if the checksum isn't correct.
+# It also records the path in a database.
 
 proc mirror_main {args} {
-	global fetch.type portname
+	global fetch.type portname mirror_filemap ports_mirror_new portdbpath
 	
+	set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
+	if {![info exists mirror_filemap]
+		&& [info exists ports_mirror_new]
+		&& $ports_mirror_new == "yes"
+		&& [file exists $mirror_filemap_path]} {
+		# Trash the map file if it existed.
+		file delete -force $mirror_filemap_path
+	}
+	
+	filemap open mirror_filemap $mirror_filemap_path
+
 	# Check the distfiles if it's a regular fetch phase.
 	if {"${fetch.type}" == "standard"} {
 		# fetch the files.
 		fetch_init $args
-		#fetch_start $args
+		#fetch_start
 		fetch_main $args
 
 		# checksum the files.
-		#checksum_start $args
+		#checksum_start
 		if {[catch {checksum_main $args}]} {
 			# delete the files.
 			fetch_deletefiles $args
+		} else {
+			# add the list of files.
+			fetch_addfilestomap mirror_filemap
 		}
 	}
+
+	# close the filemap.
+	filemap close mirror_filemap
 }

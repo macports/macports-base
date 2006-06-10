@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.110 2006/05/24 00:42:56 pguyot Exp $
+# $Id: portfetch.tcl,v 1.111 2006/06/10 08:07:40 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -426,6 +426,16 @@ proc fetch_deletefiles {args} {
 	foreach {url_var distfile} $fetch_urls {
 		if {[file isfile $distpath/$distfile]} {
 			exec rm -f ${distpath}/${distfile}
+		}
+	}
+}
+
+# Utility function to add files to a list of fetched files.
+proc fetch_addfilestomap {filemapname} {
+	global distpath fetch_urls $filemapname
+	foreach {url_var distfile} $fetch_urls {
+		if {[file isfile $distpath/$distfile]} {
+			filemap set $filemapname $distpath/$distfile 1
 		}
 	}
 }
