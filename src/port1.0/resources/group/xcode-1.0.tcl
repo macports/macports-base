@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.7 2005/09/29 14:55:18 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.8 2006/07/19 07:29:01 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -121,7 +121,7 @@ proc xcode::get_project_path {} {
 	if {${xcode.project} == ""} {
 		set suffix ""
 	} else {
-		set suffix [dirname ${xcode.project}]
+		set suffix [file dirname ${xcode.project}]
 	}
 	return [file normalize "${worksrcpath}/${suffix}"]
 }
@@ -178,7 +178,7 @@ proc xcode::get_install_path_setting { path type } {
 			return ""
 		}
 	} else {
-		return "INSTALL_PATH=$path"
+		return "INSTALL_PATH=\"$path\""
 	}
 }
 
