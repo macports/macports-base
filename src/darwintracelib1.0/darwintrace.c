@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.10 2006/07/20 07:00:23 pguyot Exp $
+ * $Id: darwintrace.c,v 1.11 2006/07/20 13:35:24 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -48,37 +48,84 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
+#include <sys/paths.h>
+#include <errno.h>
 
 /*
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
+ * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
+ * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
  */
+
+#ifndef DARWINTRACE_SHOW_PROCESS
+#define DARWINTRACE_SHOW_PROCESS 0
+#endif
+#ifndef DARWINTRACE_LOG_CREATE
+#define DARWINTRACE_LOG_CREATE 1
+#endif
+#ifndef DARWINTRACE_DEBUG_OUTPUT
+#define DARWINTRACE_DEBUG_OUTPUT 0
+#endif
+#ifndef DARWINTRACE_LOG_FULL_PATH
+#define DARWINTRACE_LOG_FULL_PATH 1
+#endif
+
+#ifndef DEFFILEMODE
+#define DEFFILEMODE 0666
+#endif
 
 /*
  * Prototypes.
  */
-void log_op(const char* op, const char* path, int fd);
+void log_op(const char* op, const char* procname, const char* path, int fd);
 void __darwintrace_setup();
+inline void __darwintrace_cleanup_path(char *path);
 
-int __darwintrace_fd = -2;
+#define START_FD 81
+static int __darwintrace_fd = -2;
 #define BUFFER_SIZE	1024
-char __darwintrace_buf[BUFFER_SIZE];
 #if DARWINTRACE_SHOW_PROCESS
-char __darwintrace_progname[BUFFER_SIZE];
-pid_t __darwintrace_pid = -1;
+static char __darwintrace_progname[BUFFER_SIZE];
+static pid_t __darwintrace_pid = -1;
+#endif
+
+#if __STDC_VERSION__==199901L
+#if DARWINTRACE_DEBUG_OUTPUT
+#define dprintf(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define dprintf(...)
+#endif
+#else
+#if DARWINTRACE_DEBUG_OUTPUT
+#define dprintf(format, param) fprintf(stderr, format, param)
+#else
+#define dprintf(format, param)
+#endif
 #endif
 
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
+#define close(x) syscall(SYS_close, (x))
 	if (__darwintrace_fd == -2) {
-	  char* path = getenv("DARWINTRACE_LOG");
-	  if (path != NULL) {
-		__darwintrace_fd = open(path,
-		O_CREAT | O_WRONLY | O_APPEND,
-		0666);
-		fcntl(__darwintrace_fd, F_SETFD, 1); /* close-on-exec */
-	  }
+		char* path = getenv("DARWINTRACE_LOG");
+		if (path != NULL) {
+			int olderrno = errno;
+			int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, DEFFILEMODE);
+			int newfd;
+			for(newfd = START_FD; newfd < START_FD + 21; newfd++) {
+				if(-1 == write(newfd, "", 0) && errno == EBADF) {
+					if(-1 != dup2(fd, newfd)) {
+						__darwintrace_fd = newfd;
+					}
+					close(fd);
+					fcntl(__darwintrace_fd, F_SETFD, 1); /* close-on-exec */
+					break;
+				}
+			}
+			errno = olderrno;
+		}
 	}
 #if DARWINTRACE_SHOW_PROCESS
 	if (__darwintrace_pid == -1) {
@@ -89,60 +136,106 @@ inline void __darwintrace_setup() {
 		}
 	}
 #endif
+#undef close
 #undef open
 }
 
 /* log a call and optionally get the real path from the fd if it's not 0.
+ * op:			the operation (open, readlink, execve)
+ * procname:	the name of the process (can be NULL)
+ * path:		the path of the file
+ * fd:			a fd to the file, or 0 if we don't have any.
  */
-void log_op(const char* op, const char* path, int fd) {
+void log_op(const char* op, const char* procname, const char* path, int fd) {
+#if !DARWINTRACE_SHOW_PROCESS
+	#pragma unused(procname)
+#endif
 	int size;
 	char somepath[MAXPATHLEN];
-
+	char logbuffer[BUFFER_SIZE];
+	
+	do {
 #ifdef __APPLE__ /* Only Darwin has volfs and F_GETPATH */
-	if((fd > 0) && (strncmp(path, "/.vol/", 6) == 0)) {
-		if(0 == fcntl(fd, F_GETPATH, somepath)) {
-#if DARWINTRACE_SHOW_PROCESS
-			size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s[%d]\t%s\t%s\n", __darwintrace_progname, __darwintrace_pid, op, somepath );
-			/* printf("resolved %s to %s\n", path, realpath); */
-#else
-	  		size = snprintf(__darwintrace_buf, BUFFER_SIZE, "%s\t%s\n", op, somepath );
+		if ((fd > 0) && (DARWINTRACE_LOG_FULL_PATH
+			|| (strncmp(path, "/.vol/", 6) == 0))) {
+			if(fcntl(fd, F_GETPATH, somepath) == -1) {
+				/* getpath failed. use somepath instead */
+				strlcpy(somepath, path, sizeof(somepath));
+				break;
+			}
+		}
 #endif
-		} else {
-			/* if we can't resolve it, ignore the volfs path */
-			size = 0;
+		if (path[0] != '/') {
+			int len;
+			(void) getcwd(somepath, sizeof(somepath));
+			len = strlen(somepath);
+			somepath[len++] = '/';
+			strlcpy(&somepath[len], path, sizeof(somepath) - len);
+			break;
 		}
 
-		goto finish;
-	}
-#endif /* __APPLE__ */
+		/* otherwise, just copy the original path. */
+		strlcpy(somepath, path, sizeof(somepath));
+	} while (0);
 
-	/* append cwd to the path if required */
-	if (path[0] != '/') {
-		(void) getcwd(somepath, sizeof(somepath));
-#if DARWINTRACE_SHOW_PROCESS
-		size = snprintf(__darwintrace_buf,
-					BUFFER_SIZE, "%s[%d]\t%s\t%s/%s\n",
-					__darwintrace_progname, __darwintrace_pid,
-					op, somepath, path );
-#else
-		size = snprintf(__darwintrace_buf,
-					BUFFER_SIZE, "%s\t%s/%s\n", op, somepath, path );
-#endif
-	} else {
-#if DARWINTRACE_SHOW_PROCESS
-		size = snprintf(__darwintrace_buf,
-					BUFFER_SIZE, "%s[%d]\t%s\t%s\n",
-					__darwintrace_progname, __darwintrace_pid,
-					op, path );
-#else
-		size = snprintf(__darwintrace_buf,
-					BUFFER_SIZE, "%s\t%s\n", op, path );
-#endif
-	}
+	/* clean the path. */
+	__darwintrace_cleanup_path(somepath);
 
-finish:
-	write(__darwintrace_fd, __darwintrace_buf, size);
+	size = snprintf(logbuffer, sizeof(logbuffer),
+#if DARWINTRACE_SHOW_PROCESS
+		"%s[%d]\t"
+#endif
+		"%s\t%s\n",
+#if DARWINTRACE_SHOW_PROCESS
+		procname ? procname : __darwintrace_progname, __darwintrace_pid,
+#endif
+		op, path );
+
+	write(__darwintrace_fd, logbuffer, size);
 	fsync(__darwintrace_fd);
+}
+
+/* remap resource fork access to the data fork.
+ * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
+ */
+inline void __darwintrace_cleanup_path(char *path) {
+  size_t pathlen, rsrclen;
+  size_t i, shiftamount;
+  enum { SAWSLASH, NOTHING } state = NOTHING;
+
+  /* if this is a foo/..namedfork/rsrc, strip it off */
+  pathlen = strlen(path);
+  rsrclen = strlen(_PATH_RSRCFORKSPEC);
+  if(pathlen > rsrclen
+     && 0 == strcmp(path + pathlen - rsrclen,
+		    _PATH_RSRCFORKSPEC)) {
+    path[pathlen - rsrclen] = '\0';
+    pathlen -= rsrclen;
+  }
+
+  /* for each position in string (including
+     terminal \0), check if we're in a run of
+     multiple slashes, and only emit the
+     first one
+  */
+  for(i=0, shiftamount=0; i <= pathlen; i++) {
+    if(state == SAWSLASH) {
+      if(path[i] == '/') {
+	/* consume it */
+	shiftamount++;
+      } else {
+	state = NOTHING;
+	path[i - shiftamount] = path[i];
+      }
+    } else {
+      if(path[i] == '/') {
+	state = SAWSLASH;
+      }
+      path[i - shiftamount] = path[i];
+    }
+  }
+
+  dprintf("darwintrace: cleanup resulted in %s\n", path);
 }
 
 /* Log calls to open(2) into the file specified by DARWINTRACE_LOG.
@@ -150,7 +243,7 @@ finish:
    Only logs files (or rather, do not logs directories)
    Only logs files where the open succeeds.
    Only logs files opened for read access, without the O_CREAT flag set
-   	(except if DARWINTRACE_LOG_CREATE is set).
+   	(unless DARWINTRACE_LOG_CREATE is set).
    The assumption is that any file that can be created isn't necessary
    to build the project.
 */
@@ -173,13 +266,13 @@ int open(const char* path, int flags, ...) {
 			if ((flags & (O_CREAT | O_WRONLY /*O_RDWR*/)) == 0 ) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
-					log_op("open", path, result);
+					log_op("open", NULL, path, result);
 				}
 #if DARWINTRACE_LOG_CREATE
 			} else if (flags & O_CREAT) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
-					log_op("create", path, result);
+					log_op("create", NULL, path, result);
 				}
 #endif
 			}
@@ -189,8 +282,31 @@ int open(const char* path, int flags, ...) {
 #undef open
 }
 
+/* Log calls to readlink(2) into the file specified by DARWINTRACE_LOG.
+   Only logs if the DARWINTRACE_LOG environment variable is set.
+   Only logs files where the readlink succeeds.
+*/
+
+ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
+#define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
+	ssize_t result;
+
+	result = readlink(path, buf, bufsiz);
+	if (result >= 0) {
+	  __darwintrace_setup();
+	  if (__darwintrace_fd >= 0) {
+	    dprintf("darwintrace: original readlink path is %s\n", path);
+		log_op("readlink", NULL, path, 0);
+	  }
+	}
+	return result;
+#undef readlink
+}
+
 int execve(const char* path, char* const argv[], char* const envp[]) {
 #define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
+#define open(x,y,z) syscall(SYS_open, (x), (y), (z))
+#define close(x) syscall(SYS_close, (x))
 	int result;
 	int saved_fd;
 #if DARWINTRACE_SHOW_PROCESS
@@ -199,38 +315,62 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	__darwintrace_setup();
 	if (__darwintrace_fd >= 0) {
 	  struct stat sb;
-	  if (stat(path, &sb) == 0) {
+	  /* for symlinks, we wan't to capture
+	   * both the original path and the modified one,
+	   * since for /usr/bin/gcc -> gcc-4.0,
+	   * both "gcc_select" and "gcc" are contributors
+	   */
+	  if (lstat(path, &sb) == 0) {
 	  	int fd;
-	  	
-		log_op("execve", path, 0);
+
+	    if(S_ISLNK(sb.st_mode)) {
+	      /* for symlinks, print both */
+		  log_op("execve", NULL, path, 0);
+	    }
 		
 		fd = open(path, O_RDONLY, 0);
-		if (fd != -1) {
-			char buffer[MAXPATHLEN];
-			(void) read(fd, buffer, MAXPATHLEN);
-			if (buffer[0] == '#' && buffer[1] == '!') {
-				const char* interp = &buffer[2];
-				int i;
-				/* skip past leading whitespace */
-				for (i = 2; i < (MAXPATHLEN-1); ++i) {
-					if (buffer[i] != ' ' && buffer[i] != '\t') {
-						interp = &buffer[i];
-						break;
-					}
-				}
-				/* found interpreter (or ran out of data)
-				 skip until next whitespace, then terminate the string */
-				for (; i < (MAXPATHLEN-1); ++i) {
-					if (buffer[i] == ' ' || buffer[i] == '\t' || buffer[i] == '\n') {
-						buffer[i] = 0;
-					}
-				}
-				/* we have liftoff */
-				if (interp) {
-					log_op("execve", interp, 0);
-				}
+		if (fd > 0) {
+		  char buffer[MAXPATHLEN+1];
+		  ssize_t bytes_read;
+	
+		  /* once we have an open fd, if a full path was requested, do it */
+		  log_op("execve", NULL, path, fd);
+
+		  /* read the file for the interpreter */
+		  bytes_read = read(fd, buffer, MAXPATHLEN);
+		  buffer[bytes_read] = 0;
+		  if (bytes_read > 2 &&
+			buffer[0] == '#' && buffer[1] == '!') {
+			const char* interp = &buffer[2];
+			int i;
+			/* skip past leading whitespace */
+			for (i = 2; i < bytes_read; ++i) {
+			  if (buffer[i] != ' ' && buffer[i] != '\t') {
+				interp = &buffer[i];
+				break;
+			  }
 			}
-			close(fd);
+			/* found interpreter (or ran out of data)
+			   skip until next whitespace, then terminate the string */
+			for (; i < bytes_read; ++i) {
+			  if (buffer[i] == ' ' || buffer[i] == '\t' || buffer[i] == '\n') {
+				buffer[i] = 0;
+				break;
+			  }
+			}
+			/* we have liftoff */
+			if (interp && interp[0] != '\0') {
+			  const char* procname = NULL;
+#if DARWINTRACE_SHOW_PROCESS
+			  procname = strrchr(argv[0], '/') + 1;
+			  if (procname == NULL) {
+				procname = argv[0];
+			  }
+#endif
+			  log_op("execve", procname, interp, 0);
+			}
+		  }
+		  close(fd);
 		}
 	  }
 	}
@@ -250,4 +390,22 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 #endif
 
 	return result;
+#undef close
+#undef open
+#undef execve
+}
+
+/* if darwintrace has  been initialized, trap
+   attempts to close our file descriptor
+*/
+int close(int fd) {
+#define close(x) syscall(SYS_close, (x))
+
+  if(__darwintrace_fd != -2 && fd == __darwintrace_fd) {
+    errno = EBADF;
+    return -1;
+  }
+
+  return close(fd);
+#undef close
 }
