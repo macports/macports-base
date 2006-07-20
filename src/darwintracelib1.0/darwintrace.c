@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.9 2006/02/12 07:13:18 landonf Exp $
+ * $Id: darwintrace.c,v 1.10 2006/07/20 07:00:23 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -192,7 +192,10 @@ int open(const char* path, int flags, ...) {
 int execve(const char* path, char* const argv[], char* const envp[]) {
 #define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 	int result;
-	
+	int saved_fd;
+#if DARWINTRACE_SHOW_PROCESS
+	int saved_pid;
+#endif
 	__darwintrace_setup();
 	if (__darwintrace_fd >= 0) {
 	  struct stat sb;
@@ -232,27 +235,19 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	  }
 	}
 	
+	saved_fd = __darwintrace_fd;
+	__darwintrace_fd = -2;
+#if DARWINTRACE_SHOW_PROCESS
+	saved_pid = __darwintrace_pid;
+	__darwintrace_pid = -1;
+#endif
+	
 	result = execve(path, argv, envp);
-	if (__darwintrace_fd >= 0) {
-	  /* Here, execve failed.
-	  
-	     I noticed that darwin 8.2.0 closes the file.
-	  
-	     I suspect the usefulness of the close-on-exec flag is to close files
-	     that are required to remain open if execve failed and therefore, the
-	     system should not close them should execve fail.
-	     
-	     I cannot access the SUSv2 standard right now, so I cannot tell if
-	     this is a bug in darwin 8.2.0 or not. AFAICT, BSD man pages are
-	     ambiguous and so are Solaris man pages.
-	     
-	     In case the ambiguous behavior changes, I (try to) close the file
-	     anyway */
-	  close(__darwintrace_fd);
-	  /* and of course, the fd should be reset to -2 to reopen it next time the
-	     process tries to call one of the functions we use to trace open files
-	     */
-	  __darwintrace_fd = -2;
-	}
+	/* execve failed and the file wasn't closed. keep the reference */
+	__darwintrace_fd = saved_fd;
+#if DARWINTRACE_SHOW_PROCESS
+	__darwintrace_pid = saved_pid;
+#endif
+
 	return result;
 }
