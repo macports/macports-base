@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.15 2006/07/22 03:11:02 pguyot Exp $
+# $Id: porttrace.tcl,v 1.16 2006/07/22 09:16:10 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -41,7 +41,7 @@ proc trace_start {workpath} {
 		if {[catch {package require Thread} error]} {
 			ui_warn "trace requires Tcl Thread package ($error)"
 		} else {
-			global prefix env trace_fifo
+			global env trace_fifo
 			# Create a fifo.
 			set trace_fifo "$workpath/trace_fifo"
 			file delete -force $trace_fifo
@@ -53,7 +53,7 @@ proc trace_start {workpath} {
 			# Launch darwintrace.dylib.
 			
 			set env(DYLD_INSERT_LIBRARIES) \
-				"$prefix/share/darwinports/Tcl/darwintrace1.0/darwintrace.dylib"
+				[file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
 			set env(DYLD_FORCE_FLAT_NAMESPACE) 1
 			set env(DARWINTRACE_LOG) "$trace_fifo"
 		}

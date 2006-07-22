@@ -1,5 +1,5 @@
 # port_autoconf.tcl.in
-# $Id: port_autoconf.tcl.in,v 1.8 2006/03/21 20:10:18 jberry Exp $
+# $Id: port_autoconf.tcl.in,v 1.9 2006/07/22 09:16:09 pguyot Exp $
 #
 # Copyright (c) 2002 - 2004 Apple Computer, Inc.
 # All rights reserved.
@@ -39,4 +39,5 @@ namespace eval portutil::autoconf {
 	variable launchctl_path "@LAUNCHCTL@"
 	variable install_user "@DSTUSR@"
 	variable install_group "@DSTGRP@"
+	variable prefix "@prefix_expanded@"
 }
