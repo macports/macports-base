@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.14 2005/08/27 06:26:34 pguyot Exp $
+# $Id: porttrace.tcl,v 1.15 2006/07/22 03:11:02 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -186,7 +186,6 @@ proc slave_read_line {chan} {
 			set path_start [expr [string first "\t" $theline] + 1]
 			set op [string range $theline 0 [expr $path_start - 2]]
 			set path [string range $theline $path_start [expr $line_length - 1]]
-			set path [file normalize $path]
 			
 			# open/execve
 			if {$op == "open" || $op == "execve"} {
