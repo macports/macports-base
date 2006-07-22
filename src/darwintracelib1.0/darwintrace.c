@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.11 2006/07/20 13:35:24 pguyot Exp $
+ * $Id: darwintrace.c,v 1.12 2006/07/22 03:08:58 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -129,8 +129,8 @@ inline void __darwintrace_setup() {
 	}
 #if DARWINTRACE_SHOW_PROCESS
 	if (__darwintrace_pid == -1) {
-		__darwintrace_pid = getpid();
 		char** progname = _NSGetProgname();
+		__darwintrace_pid = getpid();
 		if (progname && *progname) {
 			strcpy(__darwintrace_progname, *progname);
 		}
@@ -189,7 +189,7 @@ void log_op(const char* op, const char* procname, const char* path, int fd) {
 #if DARWINTRACE_SHOW_PROCESS
 		procname ? procname : __darwintrace_progname, __darwintrace_pid,
 #endif
-		op, path );
+		op, somepath );
 
 	write(__darwintrace_fd, logbuffer, size);
 	fsync(__darwintrace_fd);
@@ -266,12 +266,14 @@ int open(const char* path, int flags, ...) {
 			if ((flags & (O_CREAT | O_WRONLY /*O_RDWR*/)) == 0 ) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
+				    dprintf("darwintrace: original open path is %s\n", path);
 					log_op("open", NULL, path, result);
 				}
 #if DARWINTRACE_LOG_CREATE
 			} else if (flags & O_CREAT) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
+				    dprintf("darwintrace: original create path is %s\n", path);
 					log_op("create", NULL, path, result);
 				}
 #endif
@@ -375,20 +377,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	  }
 	}
 	
-	saved_fd = __darwintrace_fd;
-	__darwintrace_fd = -2;
-#if DARWINTRACE_SHOW_PROCESS
-	saved_pid = __darwintrace_pid;
-	__darwintrace_pid = -1;
-#endif
-	
 	result = execve(path, argv, envp);
-	/* execve failed and the file wasn't closed. keep the reference */
-	__darwintrace_fd = saved_fd;
-#if DARWINTRACE_SHOW_PROCESS
-	__darwintrace_pid = saved_pid;
-#endif
-
 	return result;
 #undef close
 #undef open
