@@ -1,0 +1,24 @@
+# $Id: Portfile,v 1.1 2006/07/22 05:50:41 pguyot Exp $
+
+PortSystem 1.0
+name		envvariables
+version		1
+categories	test
+maintainers	pguyot@kallisys.net
+description	Test port for env variables
+homepage	http://darwinports.opendarwin.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch		{}
+checksum	{}
+extract		{}
+configure	{}
+build		{}
+destroot	{}
+
+test {
+	puts $env(ENVA)
+	puts $env(ENVB)
+}

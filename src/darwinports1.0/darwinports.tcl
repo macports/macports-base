@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.212 2006/04/05 23:51:50 jberry Exp $
+# $Id: darwinports.tcl,v 1.213 2006/07/22 05:50:40 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -224,7 +224,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	    set fd [open $file r]
 	    while {[gets $fd line] >= 0} {
 		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:,\./-\]+$)" $line match val] == 1} {
+		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:,\./-\].+$)" $line match val] == 1} {
 			set darwinports::$option $val
 			global darwinports::$option
 		    }
@@ -434,9 +434,9 @@ proc dportinit {up_ui_options up_options up_variations} {
 	                  http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
 					}
     if {[info exists extra_env]} {
-    	lappend keepenvkeys ${extra_env}
+    	set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
     }
-
+	
 	foreach envkey [array names env] {
 		if {[lsearch $keepenvkeys $envkey] == -1} {
 			array unset env $envkey
