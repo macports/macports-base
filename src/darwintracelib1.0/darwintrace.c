@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.12 2006/07/22 03:08:58 pguyot Exp $
+ * $Id: darwintrace.c,v 1.13 2006/07/22 03:12:58 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -310,7 +310,6 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	int result;
-	int saved_fd;
 #if DARWINTRACE_SHOW_PROCESS
 	int saved_pid;
 #endif
