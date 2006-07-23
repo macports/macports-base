@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.13 2006/07/22 03:12:58 pguyot Exp $
+ * $Id: darwintrace.c,v 1.14 2006/07/23 00:36:42 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -79,8 +79,8 @@
 /*
  * Prototypes.
  */
-void log_op(const char* op, const char* procname, const char* path, int fd);
-void __darwintrace_setup();
+inline void __darwintrace_log_op(const char* op, const char* procname, const char* path, int fd);
+inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 
 #define START_FD 81
@@ -146,7 +146,7 @@ inline void __darwintrace_setup() {
  * path:		the path of the file
  * fd:			a fd to the file, or 0 if we don't have any.
  */
-void log_op(const char* op, const char* procname, const char* path, int fd) {
+inline void __darwintrace_log_op(const char* op, const char* procname, const char* path, int fd) {
 #if !DARWINTRACE_SHOW_PROCESS
 	#pragma unused(procname)
 #endif
@@ -267,14 +267,14 @@ int open(const char* path, int flags, ...) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
 				    dprintf("darwintrace: original open path is %s\n", path);
-					log_op("open", NULL, path, result);
+					__darwintrace_log_op("open", NULL, path, result);
 				}
 #if DARWINTRACE_LOG_CREATE
 			} else if (flags & O_CREAT) {
 				__darwintrace_setup();
 				if (__darwintrace_fd >= 0) {
 				    dprintf("darwintrace: original create path is %s\n", path);
-					log_op("create", NULL, path, result);
+					__darwintrace_log_op("create", NULL, path, result);
 				}
 #endif
 			}
@@ -298,7 +298,7 @@ ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
 	  __darwintrace_setup();
 	  if (__darwintrace_fd >= 0) {
 	    dprintf("darwintrace: original readlink path is %s\n", path);
-		log_op("readlink", NULL, path, 0);
+		__darwintrace_log_op("readlink", NULL, path, 0);
 	  }
 	}
 	return result;
@@ -326,7 +326,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 
 	    if(S_ISLNK(sb.st_mode)) {
 	      /* for symlinks, print both */
-		  log_op("execve", NULL, path, 0);
+		  __darwintrace_log_op("execve", NULL, path, 0);
 	    }
 		
 		fd = open(path, O_RDONLY, 0);
@@ -335,7 +335,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 		  ssize_t bytes_read;
 	
 		  /* once we have an open fd, if a full path was requested, do it */
-		  log_op("execve", NULL, path, fd);
+		  __darwintrace_log_op("execve", NULL, path, fd);
 
 		  /* read the file for the interpreter */
 		  bytes_read = read(fd, buffer, MAXPATHLEN);
@@ -368,7 +368,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 				procname = argv[0];
 			  }
 #endif
-			  log_op("execve", procname, interp, 0);
+			  __darwintrace_log_op("execve", procname, interp, 0);
 			}
 		  }
 		  close(fd);
