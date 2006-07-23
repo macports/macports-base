@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.37 2006/06/10 23:04:30 pguyot Exp $
+# $Id: mirror_sites.tcl,v 1.38 2006/07/23 13:20:28 pguyot Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -45,21 +45,33 @@ set portfetch::mirror_sites::sites(freebsd) {
 }
 
 set portfetch::mirror_sites::sites(gnome) {
-    http://www.gtlib.cc.gatech.edu/pub/gnome/
-    http://public.planetmirror.com/pub/gnome/
-    ftp://ftp.dit.upm.es/linux/gnome/
-    ftp://ftp.dataplus.se/pub/linux/gnome/
+    http://ftp.rpmfind.net/linux/gnome.org/
+    http://archive.progeny.com/GNOME/
+    http://mirror.clarkson.edu/pub/gnome/
+    http://mirror.aarnet.edu.au/pub/GNOME/
+    http://www.download-ftp-center.com/mirrors/gnome.org/
+    http://ftp.unina.it/pub/linux/GNOME
+    http://fr.rpmfind.net/linux/gnome.org/
+    http://fr2.rpmfind.net/linux/gnome.org/
+    http://ftp.acc.umu.se/pub/GNOME/
+    http://ftp.belnet.be/mirror/ftp.gnome.org/
+    http://ftp.linux.org.uk/mirrors/ftp.gnome.org/
+    http://www.mirror.ac.uk/sites/ftp.gnome.org/pub/GNOME/
+    http://www.zentek-international.com/mirrors/gnome/
+    http://ftp.nara.wide.ad.jp/pub/X11/GNOME/
+    http://archive.progeny.com/GNOME/
+    http://ftp.gnome.org/pub/GNOME/
+    ftp://ftp.cse.buffalo.edu/pub/Gnome
+    ftp://ftp.ussg.iu.edu/pub/gnome/
+    ftp://mirror.pacific.net.au/linux/GNOME
+    ftp://ftp.dataplus.se/pub/GNOME/
+    ftp://ftp.dit.upm.es/pub/GNOME/
+    ftp://ftp.no.gnome.org/pub/GNOME/
+    ftp://ftp.isu.edu.tw/pub/Unix/Desktop/GNOME/
+    ftp://ftp.nara.wide.ad.jp/pub/X11/GNOME/
     ftp://ftp.chg.ru/pub/X11/gnome/
     ftp://ftp.kddlabs.co.jp/pub/GNOME/
     ftp://ftp.dti.ad.jp/pub/X/gnome/
-    ftp://ftp.belnet.be/mirror/ftp.gnome.org/
-    ftp://ftp.no.gnome.org/pub/GNOME/
-    ftp://www.t.ring.gr.jp/pub/X/gnome/
-    http://www.t.ring.gr.jp/archives/X/gnome/
-    http://archive.progeny.com/GNOME/
-    ftp://ftp.tuwien.ac.at/linux/gnome.org/
-    http://ftp.gnome.org/pub/GNOME/
-    http://ftp.linux.org.uk/mirrors/ftp.gnome.org/
 }
 
 set portfetch::mirror_sites::sites(gnu) {
