@@ -4,4 +4,4 @@
 --->  Configuring trace
 --->  Building trace with target all
 --->  Testing trace
-Warning: A file was created outside ${workpath}: /Junk/src/opendarwin/darwinports/base/tests/trace/hello-trace
+Warning: A file creation/writing was attempted outside sandbox: PWD/hello-trace

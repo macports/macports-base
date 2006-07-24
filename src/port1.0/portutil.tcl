@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.192 2006/05/29 16:57:03 mww Exp $
+# $Id: portutil.tcl,v 1.193 2006/07/24 05:55:44 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -635,6 +635,15 @@ proc target_run {ditem} {
 				&& $ports_trace == "yes"
 				&& $target != "clean")} {
 				trace_start $workpath
+
+				# Enable the fence to prevent any creation/modification
+				# outside the sandbox.
+				if {$target != "activate"
+					&& $target != "archive"
+					&& $target != "fetch"
+					&& $target != "install"} {
+					trace_enable_fence
+				}
 			}
 
 			# Execute pre-run procedure
@@ -708,15 +717,8 @@ proc target_run {ditem} {
 					lappend depsPorts $dep_portname
 				}
 				trace_check_deps $target $depsPorts
+				trace_check_violations
 				
-				# Check files that were created.
-				if {$target != "activate"
-					&& $target != "archive"
-					&& $target != "fetch"
-					&& $target != "install"} {
-					trace_check_create
-				}
-
 				# End of trace.
 				trace_stop
 			}

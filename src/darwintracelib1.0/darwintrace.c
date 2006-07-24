@@ -1,6 +1,9 @@
 /*
  * Copyright (c) 2005 Apple Computer, Inc. All rights reserved.
- * $Id: darwintrace.c,v 1.14 2006/07/23 00:36:42 pguyot Exp $
+ * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
+ * All rights reserved.
+ *
+ * $Id: darwintrace.c,v 1.15 2006/07/24 05:55:43 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -55,15 +58,27 @@
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
+ * DARWINTRACE_SANDBOX: control creation and writing to files.
  * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
  * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
+ *
+ * global variables (only checked when setup is first called)
+ * DARWINTRACE_LOG
+ *    path to the log file (no logging happens if it's unset).
+ * DARWINTRACE_SANDBOX_BOUNDS
+ *    : separated allowed paths for the creation of files.
+ *    \: -> :
+ *    \\ -> \
  */
 
 #ifndef DARWINTRACE_SHOW_PROCESS
 #define DARWINTRACE_SHOW_PROCESS 0
 #endif
 #ifndef DARWINTRACE_LOG_CREATE
-#define DARWINTRACE_LOG_CREATE 1
+#define DARWINTRACE_LOG_CREATE 0
+#endif
+#ifndef DARWINTRACE_SANDBOX
+#define DARWINTRACE_SANDBOX 1
 #endif
 #ifndef DARWINTRACE_DEBUG_OUTPUT
 #define DARWINTRACE_DEBUG_OUTPUT 0
@@ -79,6 +94,7 @@
 /*
  * Prototypes.
  */
+inline int __darwintrace_strbeginswith(const char* str, const char* prefix);
 inline void __darwintrace_log_op(const char* op, const char* procname, const char* path, int fd);
 inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
@@ -89,6 +105,9 @@ static int __darwintrace_fd = -2;
 #if DARWINTRACE_SHOW_PROCESS
 static char __darwintrace_progname[BUFFER_SIZE];
 static pid_t __darwintrace_pid = -1;
+#endif
+#if DARWINTRACE_SANDBOX
+static char** __darwintrace_sandbox_bounds = NULL;
 #endif
 
 #if __STDC_VERSION__==199901L
@@ -104,6 +123,19 @@ static pid_t __darwintrace_pid = -1;
 #define dprintf(format, param)
 #endif
 #endif
+
+/*
+ * return 0 if str doesn't begin with prefix, 1 otherwise.
+ */
+inline int __darwintrace_strbeginswith(const char* str, const char* prefix) {
+	char theCharS;
+	char theCharP;
+	do {
+		theCharS = *str++;
+		theCharP = *prefix++;
+	} while(theCharP && (theCharP == theCharS));
+	return (theCharP == 0);
+}
 
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
@@ -133,6 +165,67 @@ inline void __darwintrace_setup() {
 		__darwintrace_pid = getpid();
 		if (progname && *progname) {
 			strcpy(__darwintrace_progname, *progname);
+		}
+	}
+#endif
+#if DARWINTRACE_SANDBOX
+	if (__darwintrace_sandbox_bounds == NULL) {
+		char* paths = getenv("DARWINTRACE_SANDBOX_BOUNDS");
+		if (paths != NULL) {
+			/* copy the string */
+			char* copy = strdup(paths);
+			if (copy != NULL) {
+				int nbPaths = 1;
+				int nbAllocatedPaths = 5;
+				char** paths = (char**) malloc(sizeof(char*) * nbAllocatedPaths);
+				char* crsr = copy;
+				char** pathsCrsr = paths;
+				/* first path */
+				*pathsCrsr++ = crsr;
+				/* parse the paths (modify the copy) */
+				do {
+					char theChar = *crsr;
+					if (theChar == '\0') {
+						/* the end of the paths */
+						break;
+					}
+					if (theChar == ':') {
+						/* the end of this path */
+						*crsr = 0;
+						nbPaths++;
+						if (nbPaths == nbAllocatedPaths) {
+							nbAllocatedPaths += 5;
+							paths = (char**) realloc(paths, sizeof(char*) * nbAllocatedPaths);
+							/* reset the cursor in case paths pointer was moved */
+							pathsCrsr = paths + (nbPaths - 1);
+						}
+						*pathsCrsr++ = crsr + 1;
+					}
+					if (theChar == '\\') {
+						/* escape character. test next char */
+						char nextChar = crsr[1];
+						if (nextChar == '\\') {
+							/* rewrite the string */
+							char* rewriteCrsr = crsr + 1;
+							do {
+								char theChar = *rewriteCrsr;
+								rewriteCrsr[-1] = theChar;
+								rewriteCrsr++;
+							} while (theChar != 0);
+						} else if (nextChar == ':') {
+							crsr++;
+						}
+						/* otherwise, ignore (keep the backslash) */
+					}
+					
+					/* next char */
+					crsr++;
+				} while (1);
+				/* null terminate the array */
+				*pathsCrsr = 0;
+				/* resize and save it */
+				__darwintrace_sandbox_bounds = (char**) realloc(paths, sizeof(char*) * (nbPaths + 1));
+			}
 		}
 	}
 #endif
@@ -257,7 +350,43 @@ int open(const char* path, int flags, ...) {
 	va_start(args, flags);
 	mode = va_arg(args, int);
 	va_end(args);
+#if DARWINTRACE_SANDBOX
+	result = 0;
+	if (flags & (O_CREAT | O_APPEND | O_RDWR | O_WRONLY | O_TRUNC)) {
+		__darwintrace_setup();
+		if (__darwintrace_sandbox_bounds != NULL) {
+			/* check the path */
+			char** basePathsCrsr = __darwintrace_sandbox_bounds;
+			char* basepath = *basePathsCrsr++;
+			/* normalize the path */
+			char createpath[MAXPATHLEN];
+			if (realpath(path, createpath) != NULL) {
+				__darwintrace_cleanup_path(createpath);
+				/* forbid unless allowed */
+				result = -1;
+				while (basepath != NULL) {
+					if (__darwintrace_strbeginswith(createpath, basepath)) {
+						result = 0;
+						break;
+					}
+					basepath = *basePathsCrsr++;;
+				}
+			} /* otherwise, open will fail anyway */
+		}
+		if (result == 0) {
+			dprintf("darwintrace: creation/writing was allowed at %s\n", path);
+		}
+	}
+	if (result == 0) {
+		result = open(path, flags, mode);
+	} else {
+		dprintf("darwintrace: creation/writing was forbidden at %s\n", path);
+		__darwintrace_log_op("sandbox_violation", NULL, path, result);
+		errno = EACCES;
+	}
+#else
 	result = open(path, flags, mode);
+#endif
 	if (result >= 0) {
 		/* check that it's a file */
 		struct stat sb;

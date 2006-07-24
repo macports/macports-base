@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.1 2005/08/27 07:24:35 pguyot Exp $
+# $Id: Portfile,v 1.2 2006/07/24 05:55:44 pguyot Exp $
 
 PortSystem 1.0
 name		trace
@@ -19,7 +19,6 @@ build		{}
 destroot	{}
 
 test {  
-	system "rm -f hello-trace"
-	system "touch hello-trace"
-	system "rm hello-trace"
+	catch {system "rm -f hello-trace && touch hello-trace && rm hello-trace"}
+	catch {system "rm -f /tmp/hello-trace && /tmp/hello-trace && rm /tmp/hello-trace"}
 }

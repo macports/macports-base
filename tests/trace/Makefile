@@ -9,7 +9,8 @@ $(bindir)/port:
 test:
 	@PORTSRC=$(PORTSRC) $(bindir)/port clean > /dev/null
 	@PORTSRC=$(PORTSRC) $(bindir)/port -t test > output 2>&1 || (cat output; exit 1)
-	@diff output master 2>&1 | tee difference
+	@sed -e "s|${PWD}|PWD|g" < output > output.sed
+	@diff output.sed master 2>&1 | tee difference
 	@if [ -s difference ]; then \
 		exit 1; \
 	else \

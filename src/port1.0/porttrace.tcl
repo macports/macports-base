@@ -1,9 +1,9 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.16 2006/07/22 09:16:10 pguyot Exp $
+# $Id: porttrace.tcl,v 1.17 2006/07/24 05:55:44 pguyot Exp $
 #
-# Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
+# Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ proc trace_start {workpath} {
 		if {[catch {package require Thread} error]} {
 			ui_warn "trace requires Tcl Thread package ($error)"
 		} else {
-			global env trace_fifo
+			global env trace_fifo trace_sandboxbounds
 			# Create a fifo.
 			set trace_fifo "$workpath/trace_fifo"
 			file delete -force $trace_fifo
@@ -56,7 +56,34 @@ proc trace_start {workpath} {
 				[file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
 			set env(DYLD_FORCE_FLAT_NAMESPACE) 1
 			set env(DARWINTRACE_LOG) "$trace_fifo"
+			# The sandbox is limited to:
+			# workpath
+			# /tmp
+			# /var/tmp
+			# $TMPDIR
+			# /dev/null
+			# /dev/tty
+			set trace_sandboxbounds "/tmp:/var/tmp:/dev/null:/dev/tty:${workpath}"
+			if {[info exists env(TMPDIR)]} {
+				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
+			}
 		}
+	}
+}
+
+# Enable the fence.
+# Only done for targets that should only happen in the sandbox.
+proc trace_enable_fence {} {
+	global env trace_sandboxbounds
+	set env(DARWINTRACE_SANDBOX_BOUNDS) $trace_sandboxbounds	
+}
+
+# Disable the fence.
+# Unused yet.
+proc trace_disable_fence {} {
+	global env
+	if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
+		unset env(DARWINTRACE_SANDBOX_BOUNDS)
 	}
 }
 
@@ -82,17 +109,15 @@ proc trace_check_deps {target portslist} {
 	}	
 }
 
-# Check that no file were created outside workpath.
-# Output a warning for every created file the trace revealed.
+# Check that no violation happened.
+# Output a warning for every sandbox violation the trace revealed.
 # This method must be called after trace_start
-proc trace_check_create {} {
-	# Get the list of created files.
-	set created [slave_send slave_get_created]
+proc trace_check_violations {} {
+	# Get the list of violations.
+	set violations [slave_send slave_get_sandbox_violations]
 	
-	# Compare with portslist
-	set created [lsort $created]
-	foreach created_file $created {
-		ui_warn "A file was created outside \${workpath}: $created_file"
+	foreach violation [lsort $violations] {
+		ui_warn "A file creation/writing was attempted outside sandbox: $violation"
 	}
 }
 
@@ -105,6 +130,9 @@ proc trace_stop {} {
 		unset env(DYLD_INSERT_LIBRARIES)
 		unset env(DYLD_FORCE_FLAT_NAMESPACE)
 		unset env(DARWINTRACE_LOG)
+		if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
+			unset env(DARWINTRACE_SANDBOX_BOUNDS)
+		}
 
 		# Clean up.
 		slave_send slave_stop
@@ -161,7 +189,7 @@ proc delete_slave {} {
 # Private.
 # Slave method to read a line from the trace.
 proc slave_read_line {chan} {
-	global ports_list trace_filemap created_list workpath
+	global ports_list trace_filemap sandbox_violation_list workpath
 	global env
 
 	while 1 {
@@ -212,17 +240,8 @@ proc slave_read_line {chan} {
 						catch {filemap set trace_filemap $path $port}
 					}
 				}
-			} elseif {$op == "create"} {
-				# Only keep entries not under workpath, under /tmp/, under
-				# /var/tmp/, $TMPDIR and /dev/null
-				if {![string equal -length [string length "/tmp/"] "/tmp/" $path]
-					&& ![string equal -length [string length "/var/tmp/"] "/var/tmp/" $path]
-					&& (![info exists env(TMPDIR)]
-						|| ![string equal -length [string length $env(TMPDIR)] $env(TMPDIR) $path])
-					&& ![string equal "/dev/null" $path]
-					&& ![string equal -length [string length $workpath] $workpath $path]} {
-					lappend created_list $path
-				}
+			} elseif {$op == "sandbox_violation"} {
+				lappend sandbox_violation_list $path
 			}
 		}
 	}
@@ -231,14 +250,14 @@ proc slave_read_line {chan} {
 # Private.
 # Slave init method.
 proc slave_start {fifo p_workpath} {
-	global ports_list trace_filemap created_list trace_fifo_r_chan \
+	global ports_list trace_filemap sandbox_violation_list trace_fifo_r_chan \
 		trace_fifo_w_chan workpath
 	# Save the workpath.
 	set workpath $p_workpath
 	# Create a virtual filemap.
 	filemap create trace_filemap
 	set ports_list {}
-	set created_list {}
+	set sandbox_violation_list {}
 	set trace_fifo_r_chan [open $fifo {RDONLY NONBLOCK}]
 	# To prevent EOF when darwintrace closes the file, I also open the pipe
 	# myself as write only.
@@ -270,8 +289,8 @@ proc slave_get_ports {} {
 }
 
 # Private.
-# Slave created export method.
-proc slave_get_created {} {
-	global created_list
-	return $created_list
+# Slave sandbox violations export method.
+proc slave_get_sandbox_violations {} {
+	global sandbox_violation_list
+	return $sandbox_violation_list
 }

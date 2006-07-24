@@ -33,7 +33,8 @@ test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port clean > /dev/null && \
 				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port test > output 2>&1 \
 					|| (cat output; exit 1) && \
-			diff output master 2>&1 | tee difference && \
+			sed -e "s|${PWD}|PWD|g" < output > output.sed && \
+			diff output.sed master 2>&1 | tee difference && \
 			if [ -s difference ]; then \
 				exit 1; \
 			else \
