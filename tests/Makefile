@@ -2,7 +2,7 @@ include ../Mk/dports.autoconf.mk
 
 SUBDIR=checksums-1 envvariables site-tags trace xcodeversion
 
-.PHONY: test
+.PHONY: test clean
 
 all:
 
@@ -22,7 +22,7 @@ $(bindir)/port:
 	@echo "Please install DarwinPorts before running these tests"
 	@exit 1
 	
-test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
+test: clean /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 	@for subdir in $(SUBDIR); do\
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
@@ -38,7 +38,7 @@ test: /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 			if [ -s difference ]; then \
 				exit 1; \
 			else \
-				rm -f difference; \
+				rm -f difference output.sed; \
 			fi) \
 		fi || exit 1; \
 	done

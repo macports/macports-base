@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.15 2006/07/24 05:55:43 pguyot Exp $
+ * $Id: darwintrace.c,v 1.16 2006/07/25 04:01:33 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -58,7 +58,7 @@
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
- * DARWINTRACE_SANDBOX: control creation and writing to files.
+ * DARWINTRACE_SANDBOX: control creation, deletion and writing to files.
  * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
  * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
  *
@@ -331,6 +331,37 @@ inline void __darwintrace_cleanup_path(char *path) {
   dprintf("darwintrace: cleanup resulted in %s\n", path);
 }
 
+#if DARWINTRACE_SANDBOX
+/*
+ * return 1 if path (once normalized) is in sandbox, 0 otherwise.
+ * return -1 if no sandbox is defined or if the path couldn't be normalized.
+ */
+inline int __darwintrace_is_in_sandbox(const char* path) {
+	int result = -1; /* no sandbox is defined */
+	__darwintrace_setup();
+	if (__darwintrace_sandbox_bounds != NULL) {
+		/* check the path */
+		char** basePathsCrsr = __darwintrace_sandbox_bounds;
+		char* basepath = *basePathsCrsr++;
+		/* normalize the path */
+		char createpath[MAXPATHLEN];
+		if (realpath(path, createpath) != NULL) {
+			__darwintrace_cleanup_path(createpath);
+			/* say it's outside unless it's proved inside */
+			result = 0;
+			while (basepath != NULL) {
+				if (__darwintrace_strbeginswith(createpath, basepath)) {
+					result = 1;
+					break;
+				}
+				basepath = *basePathsCrsr++;;
+			}
+		} /* otherwise, operation will fail anyway */
+	}
+	return result;
+}
+#endif
+
 /* Log calls to open(2) into the file specified by DARWINTRACE_LOG.
    Only logs if the DARWINTRACE_LOG environment variable is set.
    Only logs files (or rather, do not logs directories)
@@ -353,36 +384,19 @@ int open(const char* path, int flags, ...) {
 #if DARWINTRACE_SANDBOX
 	result = 0;
 	if (flags & (O_CREAT | O_APPEND | O_RDWR | O_WRONLY | O_TRUNC)) {
-		__darwintrace_setup();
-		if (__darwintrace_sandbox_bounds != NULL) {
-			/* check the path */
-			char** basePathsCrsr = __darwintrace_sandbox_bounds;
-			char* basepath = *basePathsCrsr++;
-			/* normalize the path */
-			char createpath[MAXPATHLEN];
-			if (realpath(path, createpath) != NULL) {
-				__darwintrace_cleanup_path(createpath);
-				/* forbid unless allowed */
-				result = -1;
-				while (basepath != NULL) {
-					if (__darwintrace_strbeginswith(createpath, basepath)) {
-						result = 0;
-						break;
-					}
-					basepath = *basePathsCrsr++;;
-				}
-			} /* otherwise, open will fail anyway */
-		}
-		if (result == 0) {
+		int isInSandbox = __darwintrace_is_in_sandbox(path);
+		if (isInSandbox == 1) {
 			dprintf("darwintrace: creation/writing was allowed at %s\n", path);
+		} else if (isInSandbox == 0) {
+			/* outside sandbox, but sandbox is defined: forbid */
+			dprintf("darwintrace: creation/writing was forbidden at %s\n", path);
+			__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+			errno = EACCES;
+			result = -1;
 		}
 	}
 	if (result == 0) {
 		result = open(path, flags, mode);
-	} else {
-		dprintf("darwintrace: creation/writing was forbidden at %s\n", path);
-		__darwintrace_log_op("sandbox_violation", NULL, path, result);
-		errno = EACCES;
 	}
 #else
 	result = open(path, flags, mode);
@@ -526,3 +540,28 @@ int close(int fd) {
   return close(fd);
 #undef close
 }
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to unlink a file outside the sandbox.
+ */
+int unlink(const char* path) {
+#define __unlink(x) syscall(SYS_unlink, (x))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: unlink was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		dprintf("darwintrace: unlink was forbidden at %s\n", path);
+		__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+		errno = EACCES;
+		result = -1;
+	}
+	
+	if (result == 0) {
+		result = __unlink(path);
+	}
+	
+	return result;
+}
+#endif

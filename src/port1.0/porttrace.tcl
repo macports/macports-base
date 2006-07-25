@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.17 2006/07/24 05:55:44 pguyot Exp $
+# $Id: porttrace.tcl,v 1.18 2006/07/25 04:01:34 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -117,7 +117,7 @@ proc trace_check_violations {} {
 	set violations [slave_send slave_get_sandbox_violations]
 	
 	foreach violation [lsort $violations] {
-		ui_warn "A file creation/writing was attempted outside sandbox: $violation"
+		ui_warn "A file creation/deletion/modification was attempted outside sandbox: $violation"
 	}
 }
 
