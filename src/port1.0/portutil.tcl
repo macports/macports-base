@@ -1,6 +1,6 @@
 # et:ts=4
 # portutil.tcl
-# $Id: portutil.tcl,v 1.193 2006/07/24 05:55:44 pguyot Exp $
+# $Id: portutil.tcl,v 1.194 2006/07/25 08:44:14 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -679,44 +679,50 @@ proc target_run {ditem} {
 			}
 
 			# Check dependencies & file creations outside workpath.
-			if {([info exists ports_trace]
+			if {[info exists ports_trace]
 				&& $ports_trace == "yes"
-				&& $target != "clean")} {
-				set depends {}
-				set deptypes {}
+				&& $target != "clean"} {
 				
-				# Determine deptypes to look for based on target
-				switch $target {
-					configure	{ set deptypes "depends_lib" }
+				# Don't check dependencies for extract (they're not honored
+				# anyway). This avoids warnings about bzip2.
+				if {$target != "extract"} {
+					set depends {}
+					set deptypes {}
 					
-					build		{ set deptypes "depends_lib depends_build" }
-					
-					destroot	-
-					install		-
-					archive		-
-					pkg			-
-					mpkg		-
-					rpmpackage	-
-					dpkg		-
-					""			{ set deptypes "depends_lib depends_build depends_run" }
-				}
-				
-				# Gather the dependencies for deptypes
-				foreach deptype $deptypes {
-					# Add to the list of dependencies if the option exists and isn't empty.
-					if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
-						set depends [concat $depends $PortInfo($deptype)]
+					# Determine deptypes to look for based on target
+					switch $target {
+						configure	{ set deptypes "depends_lib" }
+						
+						build		{ set deptypes "depends_lib depends_build" }
+						
+						destroot	-
+						install		-
+						archive		-
+						pkg			-
+						mpkg		-
+						rpmpackage	-
+						dpkg		-
+						""			{ set deptypes "depends_lib depends_build depends_run" }
 					}
+					
+					# Gather the dependencies for deptypes
+					foreach deptype $deptypes {
+						# Add to the list of dependencies if the option exists and isn't empty.
+						if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
+							set depends [concat $depends $PortInfo($deptype)]
+						}
+					}
+	
+					# Dependencies are in the form verb:[param:]port
+					set depsPorts {}
+					foreach depspec $depends {
+						# grab the portname portion of the depspec
+						set dep_portname [lindex [split $depspec :] end]
+						lappend depsPorts $dep_portname
+					}
+					trace_check_deps $target $depsPorts
 				}
-
-				# Dependencies are in the form verb:[param:]port
-				set depsPorts {}
-				foreach depspec $depends {
-					# grab the portname portion of the depspec
-					set dep_portname [lindex [split $depspec :] end]
-					lappend depsPorts $dep_portname
-				}
-				trace_check_deps $target $depsPorts
+				
 				trace_check_violations
 				
 				# End of trace.
