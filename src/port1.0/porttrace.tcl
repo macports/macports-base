@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.18 2006/07/25 04:01:34 pguyot Exp $
+# $Id: porttrace.tcl,v 1.19 2006/07/25 06:24:42 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -59,11 +59,12 @@ proc trace_start {workpath} {
 			# The sandbox is limited to:
 			# workpath
 			# /tmp
+			# /private/tmp
 			# /var/tmp
 			# $TMPDIR
 			# /dev/null
 			# /dev/tty
-			set trace_sandboxbounds "/tmp:/var/tmp:/dev/null:/dev/tty:${workpath}"
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/dev/null:/dev/tty:${workpath}"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
