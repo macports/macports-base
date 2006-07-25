@@ -1,7 +1,7 @@
 # et:ts=4
 # perl5-1.0.tcl
 #
-# $Id: perl5-1.0.tcl,v 1.11 2005/05/04 08:12:59 olegb Exp $
+# $Id: perl5-1.0.tcl,v 1.12 2006/07/25 08:17:50 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>,
 #                    Toby Peterson <toby@opendarwin.org>
@@ -101,6 +101,10 @@ proc perl5.setup {module vers {cpandir ""}} {
 			reinplace "s|${destroot}||" ${packlist}
 		}
 	}
+
+	livecheck.check		regexm
+	livecheck.url		http://search.cpan.org/dist/${perl5.module}/
+	livecheck.regex		(?:This Release)?<td class=label>(?:This|Latest) Release</td>.*<td class=cell>(?:<\[^<\]+>)?${perl5.module}-(\[^<\]+?)<
 }
 
 # Switch from default MakeMaker-style routine to Module::Build-style
