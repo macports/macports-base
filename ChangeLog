@@ -1,10 +1,13 @@
 #
-#   $Id: ChangeLog,v 1.30 2006/07/25 23:01:08 pguyot Exp $
+#   $Id: ChangeLog,v 1.31 2006/07/26 06:29:25 mww Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
 Release 1.3 (unreleased):
+
+    - Added new command 'delete' for use in Portfiles instead of
+      'file delete' and 'system "rm.."' (mww)
 
     - Fixed a bug where only the first word of configuration settings (in
       ports.conf) was processed. This bug affected the use of extra_env.
