@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.112 2006/06/10 23:04:29 pguyot Exp $
+# $Id: portfetch.tcl,v 1.113 2006/07/26 03:49:41 yeled Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -277,6 +277,7 @@ proc checkfiles {args} {
 proc cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
     global cvs.root cvs.date cvs.tag cvs.password
+    global patch_sites patchfiles filespath fetch_urls
 
     set cvs.args "co ${cvs.args}"
     if {[string length ${cvs.tag}]} {
@@ -311,6 +312,23 @@ proc cvsfetch {args} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
 
+# XXX this is a hack to make cvsfetch do the same as "standard fetch"
+# should be it's own routine that can be called.
+    if {[info exists patchfiles]} {
+	foreach file $patchfiles {
+	    if {![file exists $filespath/$file]} {
+		set distsite [getdisttag $file]
+		set file [getdistname $file]
+		lappend all_dist_files $file
+		if {$distsite != ""} {
+		    lappend fetch_urls $distsite $file
+		} elseif {[info exists patch_sites]} {
+		    lappend fetch_urls patch_sites $file
+		} 
+	    }
+	}
+	return [fetchfiles]
+    }
     return 0
 }
 
@@ -341,6 +359,24 @@ proc svnfetch {args} {
 
     if {[catch {system "[command svn] 2>&1"} result]} {
 		return -code error [msgcat::mc "Subversion check out failed"]
+    }
+
+# XXX this is a hack to make svnfetch do the same as "standard fetch" (untested)
+# should be it's own routine that can be called.
+    if {[info exists patchfiles]} {
+	foreach file $patchfiles {
+	    if {![file exists $filespath/$file]} {
+		set distsite [getdisttag $file]
+		set file [getdistname $file]
+		lappend all_dist_files $file
+		if {$distsite != ""} {
+		    lappend fetch_urls $distsite $file
+		} elseif {[info exists patch_sites]} {
+		    lappend fetch_urls patch_sites $file
+		} 
+	    }
+	}
+	return [fetchfiles]
     }
 
     return 0
@@ -378,7 +414,8 @@ proc fetchfiles {args} {
 			if {![file writable $distpath]} {
 				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
 			}
-			global portfetch::$url_var
+# add master_sites & patch_sites here for when we call it from cvsfetch..
+			global portfetch::$url_var master_sites patch_sites
 			if {![info exists $url_var]} {
 				ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
 				set url_var master_sites
