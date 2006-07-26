@@ -903,6 +903,8 @@ What kind of check to perform to figure out if the software has been updated.
 Can be
 .Em freshmeat
 (uses the date_updated tag of the freshmeat XML file),
+.Em sourceforge
+(uses the version of the latest file release of the project),
 .Em moddate
 (uses the modification date of some URL resource),
 .Em regex
@@ -919,17 +921,21 @@ Can be
 .br
 .Sy Default:
 .Em freshmeat
+or
+.Em sourceforge
+if the master_sites is sourceforge.
 .br
 .Sy Values:
-.Em freshmeat moddate regex regexm md5 none
+.Em freshmeat sourceforge moddate regex regexm md5 none
 .It Ic livecheck.name
-Name of the project for live checks (used for freshmeat-based checks).
+Name of the project for live checks (used for freshmeat and sourceforge checks).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${name}
+or the sourceforge project name if it can be guessed by looking at the master_sites.
 .It Ic livecheck.version
 Version of the project for live checks (used for regex-based checks).
 .br
@@ -948,6 +954,8 @@ URL to query for the check.
 .Em ${homepage}
 or
 .Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
+or
+.Em http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}
 .It Ic livecheck.regex
 Regular expression to parse the resource for regex checks.
 .br
