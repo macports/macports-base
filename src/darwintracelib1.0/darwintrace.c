@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.16 2006/07/25 04:01:33 pguyot Exp $
+ * $Id: darwintrace.c,v 1.17 2006/07/27 22:45:30 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -53,6 +53,7 @@
 #include <sys/syscall.h>
 #include <sys/paths.h>
 #include <errno.h>
+#include <sys/cdefs.h>
 
 /*
  * Compile time options:
@@ -431,8 +432,11 @@ int open(const char* path, int flags, ...) {
    Only logs if the DARWINTRACE_LOG environment variable is set.
    Only logs files where the readlink succeeds.
 */
-
+#ifdef READLINK_IS_NOT_P1003_1A
+int  readlink(const char * path, char * buf, int bufsiz) {
+#else
 ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
+#endif
 #define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
 	ssize_t result;
 

@@ -821,3 +821,51 @@ AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
 	fi
 ])
 
+#------------------------------------------------------------------------
+# DP_CHECK_READLINK_IS_P1003_1A --
+#
+#	Check if readlink conforms to POSIX 1003.1a standard, define
+#	READLINK_IS_NOT_P1003_1A if it doesn't.
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       None.
+#
+# Depends:
+#		AC_LANG_PROGRAM
+#
+# Results:
+#       Result is cached.
+#
+#	If readlink doesn't conform to POSIX 1003.1a, defines the following variables:
+#		READLINK_IS_NOT_P1003_1A
+#
+#------------------------------------------------------------------------
+AC_DEFUN(DP_CHECK_READLINK_IS_P1003_1A, [
+	AC_MSG_CHECKING([if readlink conforms to POSIX 1003.1a])
+
+	AC_CACHE_VAL(dp_cv_readlink_is_posix_1003_1a, [
+		AC_COMPILE_IFELSE([
+			AC_LANG_PROGRAM([
+					#include <unistd.h>
+					ssize_t readlink(const char *, char *, size_t);
+				], [
+			])
+			], [
+				dp_cv_readlink_is_posix_1003_1a="yes"
+			], [
+				dp_cv_readlink_is_posix_1003_1a="no"
+			]
+		)
+	])
+
+	AC_MSG_RESULT(${dp_cv_readlink_is_posix_1003_1a})
+
+	if test x"${dp_cv_readlink_is_posix_1003_1a}" = "xno"; then
+		AC_DEFINE([READLINK_IS_NOT_P1003_1A], [], [Define to 1 if readlink does not conform with POSIX 1003.1a (where third argument is a size_t and return value is a ssize_t)])
+	fi
+
+	AC_SUBST(READLINK_IS_NOT_P1003_1A)
+])

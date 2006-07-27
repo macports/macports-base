@@ -221,6 +221,10 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
+/* Define to 1 if readlink does not conform with POSIX 1003.1a (where third
+   argument is a size_t and return value is a ssize_t) */
+#undef READLINK_IS_NOT_P1003_1A
+
 /* Define to 1 if static build is requested */
 #undef STATIC_BUILD
 
