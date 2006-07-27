@@ -1,10 +1,10 @@
 #
-#   $Id: ChangeLog,v 1.32 2006/07/26 07:39:58 pguyot Exp $
+#   $Id: ChangeLog,v 1.32.2.1 2006/07/27 05:56:19 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.3 (unreleased):
+Release 1.3 (27-Jul-2006):
 
     - Fixed a bug where only the first word of configuration settings (in
       ports.conf) was processed. This bug affected the use of extra_env.
@@ -43,11 +43,14 @@ Release 1.3 (unreleased):
     - Fixed a bug where thread2.6 Tcl library wasn't installed where DP is
       installed. (jmpp)
 
-    - Fixed a bugs in xcode PortGroup which prevented the use of a custom
+    - Fixed a bug in xcode PortGroup which prevented the use of a custom
       project path. (pguyot)
     
-    - Fixed a bugs in xcode PortGroup which made destroot to fail when there
+    - Fixed a bug in xcode PortGroup which made destroot to fail when there
       were spaces in the install path. (pguyot)
+
+    - Fixed a bug in portfetch.tcl which failed to fetch patches when using
+      CVS or SVN. (Bugzilla 5269) (yeled)
     
     - Added new command 'delete' for use in Portfiles instead of
       'file delete' and 'system "rm.."' (mww)
