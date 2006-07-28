@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.160 2006/05/24 00:42:56 pguyot Exp $
+# $Id: port.tcl,v 1.161 2006/07/28 18:15:32 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1383,6 +1383,7 @@ proc action_deactivate { action portlist opts } {
 
 
 proc action_selfupdate { action portlist opts } {
+	global global_options;
 	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -1470,7 +1471,7 @@ proc action_dependents { action portlist opts } {
 
 proc action_uninstall { action portlist opts } {
 	set status 0
-	if {[info exists global_options(port_uninstall_old)]} {
+	if {[global_option_isset port_uninstall_old]} {
 		# if -u then uninstall all inactive ports
 		# (union these to any other ports user has in the port list)
 		set portlist [opUnion $portlist [get_inactive_ports]]
