@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.17 2006/07/27 22:45:30 pguyot Exp $
+ * $Id: darwintrace.c,v 1.18 2006/07/28 08:14:12 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -42,6 +42,10 @@
 #include <crt_externs.h>
 #endif
 
+#ifdef HAVE_SYS_PATHS_H
+#include <sys/paths.h>
+#endif
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -51,9 +55,27 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
-#include <sys/paths.h>
 #include <errno.h>
-#include <sys/cdefs.h>
+
+#ifndef HAVE_STRLCPY
+/* Define strlcpy if it's not available. */
+size_t strlcpy(char* dst, const char* src, size_t size);
+size_t strlcpy(char* dst, const char* src, size_t size)
+{
+	size_t result = strlen(src);
+	if (size > 0)
+	{
+		size_t copylen = size - 1;
+		if (copylen > result)
+		{
+			copylen = result;
+		}
+		memcpy(dst, src, copylen);
+		dst[copylen] = 0;
+	}
+	return result;
+}
+#endif
 
 /*
  * Compile time options:
@@ -293,12 +315,17 @@ inline void __darwintrace_log_op(const char* op, const char* procname, const cha
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
 inline void __darwintrace_cleanup_path(char *path) {
-  size_t pathlen, rsrclen;
+  size_t pathlen;
+#ifdef __APPLE__
+  size_t rsrclen;
+#endif
   size_t i, shiftamount;
   enum { SAWSLASH, NOTHING } state = NOTHING;
 
   /* if this is a foo/..namedfork/rsrc, strip it off */
   pathlen = strlen(path);
+  /* ..namedfork/rsrc is only on OS X */
+#ifdef __APPLE__ 
   rsrclen = strlen(_PATH_RSRCFORKSPEC);
   if(pathlen > rsrclen
      && 0 == strcmp(path + pathlen - rsrclen,
@@ -306,6 +333,7 @@ inline void __darwintrace_cleanup_path(char *path) {
     path[pathlen - rsrclen] = '\0';
     pathlen -= rsrclen;
   }
+#endif
 
   /* for each position in string (including
      terminal \0), check if we're in a run of
