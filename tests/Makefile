@@ -1,6 +1,6 @@
 include ../Mk/dports.autoconf.mk
 
-SUBDIR=checksums-1 envvariables site-tags trace xcodeversion
+SUBDIR=checksums-1 cvs-and-patchsites envvariables site-tags trace xcodeversion
 
 .PHONY: test clean
 

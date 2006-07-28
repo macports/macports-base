@@ -1,0 +1,7 @@
+--->  Fetching cvs-and-patchsites
+--->  Attempting to fetch patch-cvs20051003.bc.smtp from http://mutt.kublai.com/patches/
+--->  Verifying checksum(s) for cvs-and-patchsites
+--->  Extracting cvs-and-patchsites
+--->  Configuring cvs-and-patchsites
+--->  Building cvs-and-patchsites with target all
+--->  Testing cvs-and-patchsites
