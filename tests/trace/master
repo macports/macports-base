@@ -4,5 +4,6 @@
 --->  Configuring trace
 --->  Building trace with target all
 --->  Testing trace
-Warning: A file creation/deletion/modification was attempted outside sandbox: PWD/create-trace
-Warning: A file creation/deletion/modification was attempted outside sandbox: PWD/delete-trace
+Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace
+Warning: A creation/deletion/modification was attempted outside sandbox: PWD/delete-trace
+Warning: A creation/deletion/modification was attempted outside sandbox: PWD/mkdir-trace

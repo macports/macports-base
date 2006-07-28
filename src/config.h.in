@@ -120,7 +120,7 @@
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
-/* Define to 1 if you have the <readline/history.h */
+/* Define to 1 if you have the <readline/history.h> header file. */
 #undef HAVE_READLINE_HISTORY_H
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
@@ -156,6 +156,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* Define to 1 if you have the `strlcpy' function. */
+#undef HAVE_STRLCPY
+
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
 
@@ -178,6 +181,9 @@
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/paths.h> header file. */
+#undef HAVE_SYS_PATHS_H
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
@@ -220,6 +226,10 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Define to 1 if readlink does not conform with POSIX 1003.1a (where third
+   argument is a size_t and return value is a ssize_t) */
+#undef READLINK_IS_NOT_P1003_1A
 
 /* Define to 1 if static build is requested */
 #undef STATIC_BUILD
