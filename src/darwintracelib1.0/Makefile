@@ -6,5 +6,3 @@ test::
 
 include ../../Mk/dports.autoconf.mk
 include ../../Mk/dports.tea.mk
-
-CFLAGS+=	-DDARWINTRACE_LOG_CREATE

@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.18 2006/07/28 08:14:12 pguyot Exp $
+ * $Id: darwintrace.c,v 1.19 2006/07/28 10:11:09 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -52,6 +52,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
@@ -81,7 +82,7 @@ size_t strlcpy(char* dst, const char* src, size_t size)
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
- * DARWINTRACE_SANDBOX: control creation, deletion and writing to files.
+ * DARWINTRACE_SANDBOX: control creation, deletion and writing to files and dirs.
  * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
  * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
  *
@@ -592,6 +593,39 @@ int unlink(const char* path) {
 	
 	if (result == 0) {
 		result = __unlink(path);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to create directories outside the sandbox.
+ */
+int mkdir(const char* path, mode_t mode) {
+#define __mkdir(x,y) syscall(SYS_mkdir, (x), (y))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: mkdir was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		/* only consider directories that do not exist. */
+		struct stat theInfo;
+		int err;
+		err = lstat(path, &theInfo);
+		if ((err == -1) && (errno == ENOENT))
+		{
+			dprintf("darwintrace: mkdir was forbidden at %s\n", path);
+			__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+			errno = EACCES;
+			result = -1;
+		} /* otherwise, mkdir will do nothing (directory exists) or fail
+		     (another error) */
+	}
+	
+	if (result == 0) {
+		result = __mkdir(path, mode);
 	}
 	
 	return result;
