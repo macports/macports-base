@@ -1,5 +1,5 @@
 #
-#   $Id: ChangeLog,v 1.36 2006/07/28 01:07:40 pguyot Exp $
+#   $Id: ChangeLog,v 1.37 2006/07/28 09:34:25 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
@@ -14,7 +14,9 @@ Release 1.3.1 (unreleased):
       can really deal with patch files even if the main fetch method is CVS or
       SVN. (pguyot)
 
-	- Added a new test case for the previous bug.
+	- Added a new test case for the previous bug. (pguyot)
+	
+	- Added ruby gems support for ruby group. (rcavanaugh & pguyot)
 
 Release 1.3 (27-Jul-2006):
 
