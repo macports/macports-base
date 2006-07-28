@@ -1,5 +1,5 @@
 #
-#   $Id: ChangeLog,v 1.37 2006/07/28 09:34:25 pguyot Exp $
+#   $Id: ChangeLog,v 1.38 2006/07/28 12:38:52 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
@@ -17,6 +17,8 @@ Release 1.3.1 (unreleased):
 	- Added a new test case for the previous bug. (pguyot)
 	
 	- Added ruby gems support for ruby group. (rcavanaugh & pguyot)
+
+	- Trace now forbids creation of directories outside the sandbox. (pguyot)
 
 Release 1.3 (27-Jul-2006):
 
