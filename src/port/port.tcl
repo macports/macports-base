@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.161 2006/07/28 18:15:32 jberry Exp $
+# $Id: port.tcl,v 1.162 2006/07/28 19:58:18 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -124,7 +124,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage {args} {
 	global cmdname
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
@@ -137,7 +137,7 @@ proc print_help {args} {
 	global cmdname
 	global action_array
 	
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 

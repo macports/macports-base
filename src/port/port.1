@@ -36,8 +36,9 @@
 .Ar ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonRusbckt
+.Op Fl vdqfonRusbckixpt
 .Op Fl D Ar portdir
+.Op Fl F Ar cmdfile
 .Ar action
 .Op Ar actionflags
 .Op Oo Ar portname | pseudo-portname | port-url Oc Oo Ar @version Oc Oo +/-variant ... Oc ... Oo option=value ... Oc
@@ -53,7 +54,7 @@ or
 .Ar portname
 is specified, the current working directory is assumed; if no
 .Ar action
-is specified, the usage is displayed.
+is specified, the port command enters interactive mode in which commands are read via stdin. Batch files of commands may be specified via batch files	.
 Port 
 .Ar options 
 are passed as key=value pairs and take precedence over individual port options and system-wide settings.
@@ -219,8 +220,19 @@ keep mode (don't autoclean after install)
 .It Fl D
 specify
 .Ar portdir
+.It Fl F
+Read and process the
+.Ar file
+of commands specified by the argument. If the argument is '-', then read commands from stdin. If the option is given multiple times, then multiple files will be read.
+.It Fl i
+Read commands from stdin. Short for -F -
+.It Fl x
+In batch and interactive mode, exit on the first error encountered. Otherwise, errors during batch execution are simply reported.
+.It Fl p
+Despite any errors encountered, proceed to process multiple ports and commands.
 .It Fl t
 enable trace mode debug facilities on platforms that support it (MacOS X). This feature is two-folded. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes. In verbose mode, it will also report unused dependencies for each stage of the port installation. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${worksrcpath}).
+
 .El
 .Sh USER TARGETS
 Targets most commonly used by regular DarwinPorts users are:
@@ -232,6 +244,21 @@ Search for an available port whose name matches a regular expression. For exampl
 .Ss info
 Displays all the meta-information available for
 .Ar portname .
+Specific meta-information may be requested through an option such as
+.Fl --maintainer
+or
+.Fl --category
+(recognized field names are those from the portindex). If the global option
+.Fl -q
+is in effect, the meta-info fields will not be labeled; if the option
+.Fl --line
+is provided, all such data will be consolodated into a single line per port, suitable for processing in a pipe of commands.
+For example:
+.Pp
+.Dl "port info vim"
+.Dl "port info --category --name apache*"
+.Dl "port -q info --category --name --version category:java"
+.Dl "port info --line --category --name all"
 .Ss variants
 Lists the build variants available for
 .Ar portname .
