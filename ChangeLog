@@ -1,14 +1,15 @@
 #
-#   $Id: ChangeLog,v 1.41 2006/07/28 19:59:05 jberry Exp $
+#   $Id: ChangeLog,v 1.42 2006/07/28 23:42:20 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.3.1 (unreleased):
+Release 1.3.1 (31-Jul-2006):
 
     - Fixed a bug in livecheck sourceforge guess algorithm. (pguyot)
 
-    - Fixed an incompatibility of darwintrace.c with MacOS X 10.3. (pguyot)
+    - Fixed an incompatibility of darwintrace.c with MacOS X 10.3. Darwintrace.c
+      now also compiles on Linux. (pguyot)
 
     - Fixed a bug introduced by a patch to the fetch code. Now, fetch target
       can really deal with patch files even if the main fetch method is CVS or
@@ -20,16 +21,18 @@ Release 1.3.1 (unreleased):
     - Fixed a bug, introduced in 1.3, that prevented -u uninstall from working.
       (jberry)
 
-    - Added a new test case for the previous bug. (pguyot)
+    - Added a new test case for a cvs+remote patch file bug. (pguyot)
     
     - Added ruby gems support for ruby group. (rcavanaugh & pguyot)
 
     - Trace now forbids creation of directories outside the sandbox. (pguyot)
     
-    - Additions to man page for port(1):
+    - Additions to man page for port(1): (jberry)
        * new port options -F, -i, -x, -p
        * mention interactive and batch modes
        * document extensions to info command.
+    
+    - Archive mode is now disabled by default. (landonf)
     
 Release 1.3 (27-Jul-2006):
 
