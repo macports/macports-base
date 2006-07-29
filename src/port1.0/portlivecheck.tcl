@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.9.2.1 2006/07/28 23:57:21 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.9.2.2 2006/07/29 06:45:02 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.

@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.160.2.1 2006/07/28 23:57:21 pguyot Exp $
+# $Id: port.tcl,v 1.160.2.2 2006/07/29 06:45:01 pguyot Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
