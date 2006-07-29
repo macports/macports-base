@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.21 2006/07/28 10:11:10 pguyot Exp $
+# $Id: porttrace.tcl,v 1.22 2006/07/29 06:08:50 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -65,7 +65,8 @@ proc trace_start {workpath} {
 			# $TMPDIR
 			# /dev/null
 			# /dev/tty
-			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:${workpath}"
+			# /Library/Caches/com.apple.Xcode
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:/Library/Caches/com.apple.Xcode:${workpath}"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
