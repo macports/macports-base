@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.213 2006/07/22 05:50:40 pguyot Exp $
+# $Id: darwinports.tcl,v 1.214 2006/07/29 17:48:27 jmpp Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1096,6 +1096,7 @@ proc dportsync {args} {
 				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
 					return -code error "sync failed doing rsync"
 				}
+				system "chmod -R a+r \"$destdir\""
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
