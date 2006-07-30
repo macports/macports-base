@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.214 2006/07/29 17:48:27 jmpp Exp $
+# $Id: darwinports.tcl,v 1.215 2006/07/30 02:39:28 jmpp Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1096,7 +1096,9 @@ proc dportsync {args} {
 				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
 					return -code error "sync failed doing rsync"
 				}
-				system "chmod -R a+r \"$destdir\""
+				if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+				    return -code error "Setting world read permissions on \"$destdir\" failed, need root?"
+				}
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
