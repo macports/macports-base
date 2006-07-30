@@ -65,7 +65,7 @@ AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
-	readline/readline.h readline/history.h, pwd.h])
+	readline/readline.h readline/history.h pwd.h sys/paths.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
@@ -73,7 +73,8 @@ INCLUDES="-I.. -I. $INCLUDES"
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp copyfile])
+AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile])
+DP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
 OD_LIB_MD5

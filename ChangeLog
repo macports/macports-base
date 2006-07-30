@@ -1,10 +1,47 @@
 #
-#   $Id: ChangeLog,v 1.30 2006/07/25 23:01:08 pguyot Exp $
+#   $Id: ChangeLog,v 1.32.2.5 2006/07/30 18:26:20 jmpp Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.3 (unreleased):
+Release 1.3.1 (31-Jul-2006):
+
+    - Fixed a bug in livecheck sourceforge guess algorithm. (pguyot)
+
+    - Fixed an incompatibility of darwintrace.c with MacOS X 10.3. Darwintrace.c
+      now also compiles on Linux. (pguyot)
+
+    - Fixed a bug introduced by a patch to the fetch code. Now, fetch target
+      can really deal with patch files even if the main fetch method is CVS or
+      SVN. (pguyot)
+
+    - Fixed a bug, introduced in 1.3, that prevented -f selfupdate from forcing
+      a build of the fetched sources. (jberry)
+      
+    - Fixed a bug, introduced in 1.3, that prevented -u uninstall from working.
+      (jberry)
+
+	- Fixed a bug in xcode portgroup. One variable used by the group conflicted
+	  with global variables in port base code. (pguyot)
+
+    - Added a new test case for a cvs+remote patch file bug. (pguyot)
+    
+    - Added ruby gems support for ruby group. (rcavanaugh & pguyot)
+
+    - Trace now forbids creation of directories outside the sandbox. (pguyot)
+    
+    - Additions to man page for port(1): (jberry)
+       * new port options -F, -i, -x, -p
+       * mention interactive and batch modes
+       * document extensions to info command.
+    
+    - Archive mode is now disabled by default. (landonf)
+
+    - The upgrade target now properly detects and uses a matching binary
+      archive if found, an uninstall && install combination needed up till
+      now to pick it up. (jmpp)
+    
+Release 1.3 (27-Jul-2006):
 
     - Fixed a bug where only the first word of configuration settings (in
       ports.conf) was processed. This bug affected the use of extra_env.
@@ -43,12 +80,18 @@ Release 1.3 (unreleased):
     - Fixed a bug where thread2.6 Tcl library wasn't installed where DP is
       installed. (jmpp)
 
-    - Fixed a bugs in xcode PortGroup which prevented the use of a custom
+    - Fixed a bug in xcode PortGroup which prevented the use of a custom
       project path. (pguyot)
     
-    - Fixed a bugs in xcode PortGroup which made destroot to fail when there
+    - Fixed a bug in xcode PortGroup which made destroot to fail when there
       were spaces in the install path. (pguyot)
+
+    - Fixed a bug in portfetch.tcl which failed to fetch patches when using
+      CVS or SVN. (Bugzilla 5269) (yeled)
     
+    - Added new command 'delete' for use in Portfiles instead of
+      'file delete' and 'system "rm.."' (mww)
+
     - Added more information to porthier(7) about ${prefix}/var/db/dports.
       (olegb)
     

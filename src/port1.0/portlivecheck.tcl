@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.9 2006/07/26 05:29:50 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.9.2.2 2006/07/29 06:45:02 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -69,8 +69,7 @@ proc livecheck_main {args} {
 
 	# Determine the default type depending on the mirror.
 	if {"${livecheck.check}" == "default"} {
-		set sourceforge_projectname ${name}
-		if {[regexp {sourceforge:(.+)} $master_sites tag]} {
+		if {[regexp {sourceforge:(.+)} $master_sites dummy tag]} {
 			if {"${livecheck.name}" == "default"} {
 				set livecheck.name $tag
 			}

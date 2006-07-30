@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.113 2006/07/26 03:49:41 yeled Exp $
+# $Id: portfetch.tcl,v 1.113.2.3 2006/07/30 01:10:20 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -187,14 +187,13 @@ proc mirror_sites {mirrors tag subdir} {
     return $ret
 }
 
-# Checks all files and their tags to assemble url lists for later fetching
+# Checks sites.
 # sites tags create variables in the portfetch:: namespace containing all sites
 # within that tag distfiles are added in $site $distfile format, where $site is
 # the name of a variable in the portfetch:: namespace containing a list of fetch
 # sites
-proc checkfiles {args} {
-    global distfiles patchfiles all_dist_files patch_sites fetch_urls \
-	master_sites filespath master_sites.mirror_subdir \
+proc checksites {args} {
+    global patch_sites master_sites master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site env
     
     append master_sites " ${fallback_mirror_site}"
@@ -240,6 +239,11 @@ proc checkfiles {args} {
             }
         }
     }
+}
+
+# Checks patch files and their tags to assemble url lists for later fetching
+proc checkpatchfiles {args} {
+    global patchfiles all_dist_files patch_sites fetch_urls filespath
     
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
@@ -257,7 +261,13 @@ proc checkfiles {args} {
 	    }
 	}
     }
+}
+
+# Checks dist files and their tags to assemble url lists for later fetching
+proc checkdistfiles {args} {
+    global distfiles all_dist_files fetch_urls master_sites filespath
     
+    if {[info exists distfiles]} {
     foreach file $distfiles {
 	if {![file exists $filespath/$file]} {
 	    set distsite [getdisttag $file]
@@ -270,14 +280,27 @@ proc checkfiles {args} {
 	    }
 	}
     }
+    }
 }
+
+# Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
+# This method is used by distcheck target.
+proc checkfiles {args} {
+	# Set fetch_urls to be empty in case there is no file to fetch.
+	global fetch_urls
+	set fetch_urls {}
+	checksites
+	checkpatchfiles
+	checkdistfiles
+}
+
 
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
     global cvs.root cvs.date cvs.tag cvs.password
-    global patch_sites patchfiles filespath fetch_urls
+    global patch_sites patchfiles filespath
 
     set cvs.args "co ${cvs.args}"
     if {[string length ${cvs.tag}]} {
@@ -312,21 +335,7 @@ proc cvsfetch {args} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
 
-# XXX this is a hack to make cvsfetch do the same as "standard fetch"
-# should be it's own routine that can be called.
     if {[info exists patchfiles]} {
-	foreach file $patchfiles {
-	    if {![file exists $filespath/$file]} {
-		set distsite [getdisttag $file]
-		set file [getdistname $file]
-		lappend all_dist_files $file
-		if {$distsite != ""} {
-		    lappend fetch_urls $distsite $file
-		} elseif {[info exists patch_sites]} {
-		    lappend fetch_urls patch_sites $file
-		} 
-	    }
-	}
 	return [fetchfiles]
     }
     return 0
@@ -361,21 +370,7 @@ proc svnfetch {args} {
 		return -code error [msgcat::mc "Subversion check out failed"]
     }
 
-# XXX this is a hack to make svnfetch do the same as "standard fetch" (untested)
-# should be it's own routine that can be called.
     if {[info exists patchfiles]} {
-	foreach file $patchfiles {
-	    if {![file exists $filespath/$file]} {
-		set distsite [getdisttag $file]
-		set file [getdistname $file]
-		lappend all_dist_files $file
-		if {$distsite != ""} {
-		    lappend fetch_urls $distsite $file
-		} elseif {[info exists patch_sites]} {
-		    lappend fetch_urls patch_sites $file
-		} 
-	    }
-	}
 	return [fetchfiles]
     }
 
@@ -414,8 +409,7 @@ proc fetchfiles {args} {
 			if {![file writable $distpath]} {
 				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
 			}
-# add master_sites & patch_sites here for when we call it from cvsfetch..
-			global portfetch::$url_var master_sites patch_sites
+			global portfetch::$url_var
 			if {![info exists $url_var]} {
 				ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
 				set url_var master_sites
@@ -481,16 +475,14 @@ proc fetch_addfilestomap {filemapname} {
 	}
 }
 
-# Initialize fetch target, calling checkfiles if neccesary
+# Initialize fetch target and call checkfiles.
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type
     
     if {[info exist distpath] && [info exists dist_subdir]} {
 	set distpath ${distpath}/${dist_subdir}
     }
-    if {"${fetch.type}" == "standard"} {
-        checkfiles
-    }
+    checkfiles
 }
 
 proc fetch_start {args} {

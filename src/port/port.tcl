@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.160 2006/05/24 00:42:56 pguyot Exp $
+# $Id: port.tcl,v 1.160.2.2 2006/07/29 06:45:01 pguyot Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -124,7 +124,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage {args} {
 	global cmdname
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
@@ -137,7 +137,7 @@ proc print_help {args} {
 	global cmdname
 	global action_array
 	
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 
@@ -1383,6 +1383,7 @@ proc action_deactivate { action portlist opts } {
 
 
 proc action_selfupdate { action portlist opts } {
+	global global_options;
 	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -1470,7 +1471,7 @@ proc action_dependents { action portlist opts } {
 
 proc action_uninstall { action portlist opts } {
 	set status 0
-	if {[info exists global_options(port_uninstall_old)]} {
+	if {[global_option_isset port_uninstall_old]} {
 		# if -u then uninstall all inactive ports
 		# (union these to any other ports user has in the port list)
 		set portlist [opUnion $portlist [get_inactive_ports]]

@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.20 2006/07/25 08:50:48 pguyot Exp $
+# $Id: porttrace.tcl,v 1.20.2.3 2006/07/29 06:45:02 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -65,7 +65,8 @@ proc trace_start {workpath} {
 			# $TMPDIR
 			# /dev/null
 			# /dev/tty
-			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:${workpath}"
+			# /Library/Caches/com.apple.Xcode
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:/Library/Caches/com.apple.Xcode:${workpath}"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
@@ -119,7 +120,7 @@ proc trace_check_violations {} {
 	set violations [slave_send slave_get_sandbox_violations]
 	
 	foreach violation [lsort $violations] {
-		ui_warn "A file creation/deletion/modification was attempted outside sandbox: $violation"
+		ui_warn "A creation/deletion/modification was attempted outside sandbox: $violation"
 	}
 }
 

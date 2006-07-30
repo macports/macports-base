@@ -1,6 +1,6 @@
 include ../Mk/dports.autoconf.mk
 
-SUBDIR=checksums-1 envvariables site-tags trace xcodeversion
+TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace xcodeversion
 
 .PHONY: test clean
 
@@ -23,7 +23,7 @@ $(bindir)/port:
 	@exit 1
 	
 test: clean /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
-	@for subdir in $(SUBDIR); do\
+	@for subdir in $(TESTS); do\
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
 			( cd $$subdir && \

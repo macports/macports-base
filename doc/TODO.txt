@@ -1,5 +1,5 @@
 #
-# $Id: TODO.txt,v 1.7 2006/07/25 16:19:39 jberry Exp $
+# $Id: TODO.txt,v 1.7.2.2 2006/07/29 06:45:00 pguyot Exp $
 #
 # DarwinPorts TODO List
 #
@@ -7,19 +7,9 @@
 # revisions.
 #
 
-Version 1.2:
+Outstanding ToDos:
 
-	(these may make it into 1.2)
-    - Enhance port(1) man page with stuff that didn't make it into the 1.2 release (Juan, James & Joe)
     - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
     	(James added some suggested text to bug #4905)
     - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
     	(James added some suggested text to bug #4905)
-    - Maybe: cvs/svn fetch w/ patches: http://bugzilla.opendarwin.org/show_bug.cgi?id=5269 (yeled?)
-
-Version 1.3:
-
-	- Add new global options -p, -x, -F, -i to port(1) man page.
-	- Document interactive/batch mode in port(1) man page.
-	- Document extended info command in port(1) man page.
-	- Check whether stuff listed above for 1.2 got documented.

@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.5 2004/12/12 21:32:12 rshaw Exp $
+# $Id: ruby-1.0.tcl,v 1.5.12.2 2006/07/29 06:45:02 pguyot Exp $
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.
@@ -113,6 +113,8 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 	depends_lib		path:${ruby.bin}:ruby
 
 	post-extract {
+		# Create the work directory for gem-based ruby ports.
+		system "mkdir -p ${worksrcpath}"
 		system "find ${worksrcpath} -type d -name CVS | xargs rm -rf"
 	}
 
@@ -234,6 +236,32 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 				}
 			}
 			destroot.args		RUBY="${ruby.bin} -rvendor-specific"
+		}
+		gem {
+			use_configure no
+			extract.suffix .gem
+			
+			depends_lib-append	port:rb-rubygems
+			
+			extract {}
+			build {}
+			
+			pre-destroot {
+				xinstall -d -m 0755 ${destroot}${prefix}/lib/ruby/gems/${ruby.version}
+			}
+			
+			destroot {
+			  cd [option distpath]
+			  system "${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distname}"
+			
+				set binDir ${destroot}${prefix}/lib/ruby/gems/${ruby.version}/bin
+				if {[file isdirectory $binDir]} {
+					cd $binDir
+					foreach file [readdir $binDir] {
+						file copy $file ${destroot}${prefix}/bin
+					}
+				}
+			}
 		}
 		default {
 			ui_error "ruby.setup: unknown setup type '${type}' specified!"

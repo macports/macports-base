@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.16 2006/07/25 04:01:33 pguyot Exp $
+ * $Id: darwintrace.c,v 1.16.2.2 2006/07/29 06:45:01 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -42,23 +42,47 @@
 #include <crt_externs.h>
 #endif
 
+#ifdef HAVE_SYS_PATHS_H
+#include <sys/paths.h>
+#endif
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
-#include <sys/paths.h>
 #include <errno.h>
+
+#ifndef HAVE_STRLCPY
+/* Define strlcpy if it's not available. */
+size_t strlcpy(char* dst, const char* src, size_t size);
+size_t strlcpy(char* dst, const char* src, size_t size)
+{
+	size_t result = strlen(src);
+	if (size > 0)
+	{
+		size_t copylen = size - 1;
+		if (copylen > result)
+		{
+			copylen = result;
+		}
+		memcpy(dst, src, copylen);
+		dst[copylen] = 0;
+	}
+	return result;
+}
+#endif
 
 /*
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
- * DARWINTRACE_SANDBOX: control creation, deletion and writing to files.
+ * DARWINTRACE_SANDBOX: control creation, deletion and writing to files and dirs.
  * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
  * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
  *
@@ -292,12 +316,17 @@ inline void __darwintrace_log_op(const char* op, const char* procname, const cha
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
 inline void __darwintrace_cleanup_path(char *path) {
-  size_t pathlen, rsrclen;
+  size_t pathlen;
+#ifdef __APPLE__
+  size_t rsrclen;
+#endif
   size_t i, shiftamount;
   enum { SAWSLASH, NOTHING } state = NOTHING;
 
   /* if this is a foo/..namedfork/rsrc, strip it off */
   pathlen = strlen(path);
+  /* ..namedfork/rsrc is only on OS X */
+#ifdef __APPLE__ 
   rsrclen = strlen(_PATH_RSRCFORKSPEC);
   if(pathlen > rsrclen
      && 0 == strcmp(path + pathlen - rsrclen,
@@ -305,6 +334,7 @@ inline void __darwintrace_cleanup_path(char *path) {
     path[pathlen - rsrclen] = '\0';
     pathlen -= rsrclen;
   }
+#endif
 
   /* for each position in string (including
      terminal \0), check if we're in a run of
@@ -431,8 +461,11 @@ int open(const char* path, int flags, ...) {
    Only logs if the DARWINTRACE_LOG environment variable is set.
    Only logs files where the readlink succeeds.
 */
-
+#ifdef READLINK_IS_NOT_P1003_1A
+int  readlink(const char * path, char * buf, int bufsiz) {
+#else
 ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
+#endif
 #define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
 	ssize_t result;
 
@@ -560,6 +593,39 @@ int unlink(const char* path) {
 	
 	if (result == 0) {
 		result = __unlink(path);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to create directories outside the sandbox.
+ */
+int mkdir(const char* path, mode_t mode) {
+#define __mkdir(x,y) syscall(SYS_mkdir, (x), (y))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: mkdir was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		/* only consider directories that do not exist. */
+		struct stat theInfo;
+		int err;
+		err = lstat(path, &theInfo);
+		if ((err == -1) && (errno == ENOENT))
+		{
+			dprintf("darwintrace: mkdir was forbidden at %s\n", path);
+			__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+			errno = EACCES;
+			result = -1;
+		} /* otherwise, mkdir will do nothing (directory exists) or fail
+		     (another error) */
+	}
+	
+	if (result == 0) {
+		result = __mkdir(path, mode);
 	}
 	
 	return result;
