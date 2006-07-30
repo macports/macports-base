@@ -1,6 +1,6 @@
 # et:ts=4
 # portfetch.tcl
-# $Id: portfetch.tcl,v 1.114 2006/07/27 23:49:48 pguyot Exp $
+# $Id: portfetch.tcl,v 1.115 2006/07/30 01:08:33 pguyot Exp $
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
@@ -243,8 +243,7 @@ proc checksites {args} {
 
 # Checks patch files and their tags to assemble url lists for later fetching
 proc checkpatchfiles {args} {
-    global patchfiles all_dist_files patch_sites fetch_urls \
-	filespath
+    global patchfiles all_dist_files patch_sites fetch_urls filespath
     
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
@@ -287,6 +286,9 @@ proc checkdistfiles {args} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc checkfiles {args} {
+	# Set fetch_urls to be empty in case there is no file to fetch.
+	global fetch_urls
+	set fetch_urls {}
 	checksites
 	checkpatchfiles
 	checkdistfiles
@@ -298,7 +300,7 @@ proc checkfiles {args} {
 proc cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
     global cvs.root cvs.date cvs.tag cvs.password
-    global patch_sites patchfiles filespath fetch_urls
+    global patch_sites patchfiles filespath
 
     set cvs.args "co ${cvs.args}"
     if {[string length ${cvs.tag}]} {
