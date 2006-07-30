@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.215 2006/07/30 02:39:28 jmpp Exp $
+# $Id: darwinports.tcl,v 1.216 2006/07/30 18:04:46 jmpp Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1666,7 +1666,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 
 	# install version_in_tree
 	if {0 == [string compare "yes" ${darwinports::portarchivemode}]} {
-		set upgrade_action "archive"
+		set upgrade_action "unarchive"
 	} else {
 		set upgrade_action "destroot"
 	}
