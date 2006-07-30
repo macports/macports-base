@@ -1,5 +1,5 @@
 #
-#   $Id: ChangeLog,v 1.43 2006/07/29 06:50:23 pguyot Exp $
+#   $Id: ChangeLog,v 1.44 2006/07/30 18:19:48 jmpp Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
@@ -36,6 +36,10 @@ Release 1.3.1 (31-Jul-2006):
        * document extensions to info command.
     
     - Archive mode is now disabled by default. (landonf)
+
+    - The upgrade target now properly detects and uses a matching binary
+      archive if found, an uninstall && install combination needed up till
+      now to pick it up. (jmpp)
     
 Release 1.3 (27-Jul-2006):
 
