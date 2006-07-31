@@ -1,8 +1,12 @@
 #
-#   $Id: ChangeLog,v 1.44 2006/07/30 18:19:48 jmpp Exp $
+#   $Id: ChangeLog,v 1.45 2006/07/31 15:57:37 jmpp Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
+
+Release 1.3.2 (unreleased):
+
+    - Corrected a bug in the creation of the portf symlink. (jmpp)
 
 Release 1.3.1 (31-Jul-2006):
 
