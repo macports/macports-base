@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.217 2006/07/30 18:48:50 jmpp Exp $
+# $Id: darwinports.tcl,v 1.218 2006/07/31 22:40:05 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1521,6 +1521,10 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
 		set version_installed $version_in_tree
+		# That was a very dirty hack showing how ugly our depencendy and upgrade code is.
+		# To get it working when user provides -f, we also need to set the variant to
+		# avoid a future failure.
+		set variant ""
 	} else {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later
