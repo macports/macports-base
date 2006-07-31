@@ -1,6 +1,6 @@
 # et:ts=4
 # portclean.tcl
-# $Id: portclean.tcl,v 1.19 2005/08/27 00:07:30 pguyot Exp $
+# $Id: portclean.tcl,v 1.20 2006/07/31 04:30:44 pguyot Exp $
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -35,6 +35,7 @@
 
 package provide portclean 1.0
 package require portutil 1.0
+package require Pextlib 1.0
 
 set com.apple.clean [target_new com.apple.clean clean_main]
 target_runtype ${com.apple.clean} always
@@ -112,7 +113,10 @@ proc clean_dist {args} {
 	set dirlist [list]
 	if {($dist_subdir != $portname)} {
 		if {[info exists dist_subdir]} {
-			if {!([info exists ports_force] && $ports_force == "yes")} {
+			set distfullpath [file join ${distpath} ${dist_subdir}]
+			if {!([info exists ports_force] && $ports_force == "yes")
+				&& [file isdirectory ${distfullpath}]
+				&& [llength [readdir ${distfullpath}]] > 0} {
 				ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join ${distpath} ${dist_subdir}]]
 			} else {
 				lappend dirlist $dist_subdir
