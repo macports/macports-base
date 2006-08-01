@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.162 2006/07/28 19:58:18 jberry Exp $
+# $Id: port.tcl,v 1.163 2006/08/01 03:58:11 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -40,7 +40,6 @@ exec @TCLSH@ "$0" "$@"
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
-
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
