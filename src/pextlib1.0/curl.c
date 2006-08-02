@@ -1,6 +1,6 @@
 /*
  * curl.c
- * $Id: curl.c,v 1.10 2006/03/27 21:27:02 jberry Exp $
+ * $Id: curl.c,v 1.11 2006/08/02 00:32:02 pguyot Exp $
  *
  * Copyright (c) 2005 Paul Guyot, Darwinports Team.
  * All rights reserved.
@@ -149,6 +149,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		const char* theURL;
 		const char* theFilePath;
 		CURLcode theCurlCode;
+		struct curl_slist *headers = NULL;
 		
 		/* we might have options and then the url and the file */
 		/* let's process the options first */
@@ -280,6 +281,14 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			}
 		}
 
+		/* Clear the Pragma: no-cache header */
+		headers = curl_slist_append(headers, "Pragma:");
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HTTPHEADER, headers);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
 		/* actually fetch the resource */
 		theCurlCode = curl_easy_perform(theHandle);
 		if (theCurlCode != CURLE_OK) {
@@ -291,6 +300,9 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		(void) fclose( theFile );
 		theFile = NULL;
 		
+		/* free header memory */
+		curl_slist_free_all(headers);
+
 		/* If --effective-url option was given, set given variable name to last effective url used by curl */
 		if (effectiveURLVarName != NULL) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_EFFECTIVE_URL, &effectiveURL);
