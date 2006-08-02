@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.38 2006/07/23 13:20:28 pguyot Exp $
+# $Id: mirror_sites.tcl,v 1.39 2006/08/02 00:24:14 pguyot Exp $
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles
@@ -90,6 +90,16 @@ set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.rediris.es/mirror/gnu/
     ftp://ftp.lip6.fr/pub/gnu/
     ftp://ftp.chg.ru/pub/gnu/
+}
+
+set portfetch::mirror_sites::sites(gnustep) {
+    http://ftp.easynet.nl/mirror/GNUstep/pub/gnustep/
+    ftp://ftp.easynet.nl/mirror/GNUstep/pub/gnustep/
+    http://www.peanuts.org/peanuts/Mirrors/GNUstep/gnustep/
+    http://ftpmain.gnustep.org/pub/gnustep/
+    ftp://ftp.gnustep.org/pub/gnustep/
+    http://archive.progeny.com/gnustep/
+    ftp://archive.progeny.com/gnustep/
 }
 
 set portfetch::mirror_sites::sites(isc) {
