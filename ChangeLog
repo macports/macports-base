@@ -1,12 +1,36 @@
 #
-#   $Id: ChangeLog,v 1.45 2006/07/31 15:57:37 jmpp Exp $
+#   $Id: ChangeLog,v 1.46 2006/08/02 00:50:23 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.3.2 (unreleased):
+Release 1.? (unreleased):
 
-    - Corrected a bug in the creation of the portf symlink. (jmpp)
+    - Fixed a bug in the creation of the portf symlink. (jmpp)
+
+    - Fixed a bug where port upgrade -uf fails because of the dirty upgrade
+      code. (pguyot)
+
+    - Port no longer warns when a shared distfile directory is emptied by a
+      clean --dist or clean --all, it now prunes the directory instead. (pguyot)
+
+    - Gem method of ruby portgroup now destroots from the worksrcdir, thus
+      avoiding an unnecessary warning with -t. (pguyot)
+
+    - Tell ld to look into /usr/local/lib when building port. This solves a
+      problem occurring when a newer version of readline is installed in
+      /usr/local. (pguyot)
+
+    - Added gnustep portgroup support. (Bugzilla #8139) (yves)
+
+    - Avoid sending Pragma: no cache when fetching files. (Bugzilla #8669)
+      (josh_root, blb)
+
+    - Changed Makefile logic to reconfigure/regenerate files when templates
+      are modified. (pguyot)
+    
+    - Trace now forbids renaming files and directories as well as removing
+      directories outside the sandbox. (pguyot)
 
 Release 1.3.1 (31-Jul-2006):
 
