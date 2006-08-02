@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.19 2006/07/28 10:11:09 pguyot Exp $
+ * $Id: darwintrace.c,v 1.20 2006/08/02 00:48:28 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -626,6 +626,69 @@ int mkdir(const char* path, mode_t mode) {
 	
 	if (result == 0) {
 		result = __mkdir(path, mode);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to remove directories outside the sandbox.
+ */
+int rmdir(const char* path) {
+#define __rmdir(x) syscall(SYS_rmdir, (x))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: rmdir was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		dprintf("darwintrace: removing directory %s was forbidden\n", path);
+		__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+		errno = EACCES;
+		result = -1;
+	}
+	
+	if (result == 0) {
+		result = __rmdir(path);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to rename files/directories outside the sandbox.
+ */
+int rename(const char* from, const char* to) {
+#define __rename(x,y) syscall(SYS_rename, (x), (y))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(from);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: rename was allowed at %s\n", from);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		dprintf("darwintrace: renaming from %s was forbidden\n", from);
+		__darwintrace_log_op("sandbox_violation", NULL, from, 0);
+		errno = EACCES;
+		result = -1;
+	}
+
+	if (result == 0) {
+		isInSandbox = __darwintrace_is_in_sandbox(to);
+		if (isInSandbox == 1) {
+			dprintf("darwintrace: rename was allowed at %s\n", to);
+		} else if (isInSandbox == 0) {
+			/* outside sandbox, but sandbox is defined: forbid */
+			dprintf("darwintrace: renaming to %s was forbidden\n", to);
+			__darwintrace_log_op("sandbox_violation", NULL, to, 0);
+			errno = EACCES;
+			result = -1;
+		}
+	}
+	
+	if (result == 0) {
+		result = __rename(from, to);
 	}
 	
 	return result;

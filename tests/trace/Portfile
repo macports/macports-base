@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.5 2006/07/28 10:11:10 pguyot Exp $
+# $Id: Portfile,v 1.6 2006/08/02 00:48:29 pguyot Exp $
 
 PortSystem 1.0
 name		trace
@@ -24,5 +24,7 @@ test {
 	system "touch /tmp/hello-trace"
 	system "rm /tmp/hello-trace"
 	catch {system "mkdir mkdir-trace"}
+	catch {system "rmdir rmdir-trace"}
+	catch {system "mv rename-trace rename-new-trace"}
 	system "mkdir -p /usr/bin"
 }
