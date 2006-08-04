@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.20 2006/08/02 00:48:28 pguyot Exp $
+ * $Id: darwintrace.c,v 1.21 2006/08/04 06:40:41 pguyot Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -120,6 +120,9 @@ size_t strlcpy(char* dst, const char* src, size_t size)
  */
 inline int __darwintrace_strbeginswith(const char* str, const char* prefix);
 inline void __darwintrace_log_op(const char* op, const char* procname, const char* path, int fd);
+void __darwintrace_copy_env() __attribute__((constructor));
+inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
+inline char* const* __darwintrace_restore_env(char* const envp[]);
 inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 
@@ -132,6 +135,14 @@ static pid_t __darwintrace_pid = -1;
 #endif
 #if DARWINTRACE_SANDBOX
 static char** __darwintrace_sandbox_bounds = NULL;
+#endif
+
+/* copy of the global variables */
+static char* __env_dyld_insert_libraries;
+static char* __env_dyld_force_flat_namespace;
+static char* __env_darwintrace_log;
+#if DARWINTRACE_SANDBOX
+static char* __env_darwintrace_sandbox_bounds;
 #endif
 
 #if __STDC_VERSION__==199901L
@@ -161,14 +172,151 @@ inline int __darwintrace_strbeginswith(const char* str, const char* prefix) {
 	return (theCharP == 0);
 }
 
+/*
+ * Copy the environment variables, if they're defined.
+ */
+void __darwintrace_copy_env() {
+	char* theValue;
+	theValue = getenv("DYLD_INSERT_LIBRARIES");
+	if (theValue != NULL) {
+		__env_dyld_insert_libraries = strdup(theValue);
+	} else {
+		__env_dyld_insert_libraries = NULL;
+	}
+	theValue = getenv("DYLD_FORCE_FLAT_NAMESPACE");
+	if (theValue != NULL) {
+		__env_dyld_force_flat_namespace = strdup(theValue);
+	} else {
+		__env_dyld_force_flat_namespace = NULL;
+	}
+	theValue = getenv("DARWINTRACE_LOG");
+	if (theValue != NULL) {
+		__env_darwintrace_log = strdup(theValue);
+	} else {
+		__env_darwintrace_log = NULL;
+	}
+#if DARWINTRACE_SANDBOX
+	theValue = getenv("DARWINTRACE_SANDBOX_BOUNDS");
+	if (theValue != NULL) {
+		__env_darwintrace_sandbox_bounds = strdup(theValue);
+	} else {
+		__env_darwintrace_sandbox_bounds = NULL;
+	}
+#endif
+}
+
+/*
+ * Allocate a X=Y string where X is the variable name and Y its value.
+ * Return the new string.
+ *
+ * If the value is NULL, return NULL.
+ */
+inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) {
+	char* theResult = NULL;
+	if (varValue) {
+		int theSize = strlen(varName) + strlen(varValue) + 2;
+		theResult = (char*) malloc(theSize);
+		sprintf(theResult, "%s=%s", varName, varValue);
+		theResult[theSize - 1] = 0;
+	}
+	
+	return theResult;
+}
+
+/*
+ * This function checks that envp contains the global variables we had when the
+ * library was loaded and modifies it if it doesn't.
+ */
+inline char* const* __darwintrace_restore_env(char* const envp[]) {
+	/* allocate the strings. */
+	/* we don't care about the leak here because we're going to call execve,
+     * which, if it succeeds, will get rid of our heap */
+	char* dyld_insert_libraries_ptr =	
+		__darwintrace_alloc_env(
+			"DYLD_INSERT_LIBRARIES",
+			__env_dyld_insert_libraries);
+	char* dyld_force_flat_namespace_ptr =	
+		__darwintrace_alloc_env(
+			"DYLD_FORCE_FLAT_NAMESPACE",
+			__env_dyld_force_flat_namespace);
+	char* darwintrace_log_ptr =	
+		__darwintrace_alloc_env(
+			"DARWINTRACE_LOG",
+			__env_darwintrace_log);
+#if DARWINTRACE_SANDBOX
+	char* darwintrace_sandbox_bounds_ptr =	
+		__darwintrace_alloc_env(
+			"DARWINTRACE_SANDBOX_BOUNDS",
+			__env_darwintrace_sandbox_bounds);
+#endif
+
+	char* const * theEnvIter = envp;
+	int theEnvLength = 0;
+	char** theCopy;
+	char** theCopyIter;
+
+	while (*theEnvIter != NULL) {
+		theEnvLength++;
+		theEnvIter++;
+	}
+
+	/* 5 is sufficient for the four variables we copy and the terminator */
+	theCopy = (char**) malloc(sizeof(char*) * (theEnvLength + 5));
+	theEnvIter = envp;
+	theCopyIter = theCopy;
+
+	while (*theEnvIter != NULL) {
+		char* theValue = *theEnvIter;
+		if (__darwintrace_strbeginswith(theValue, "DYLD_INSERT_LIBRARIES=")) {
+			theValue = dyld_insert_libraries_ptr;
+			dyld_insert_libraries_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(theValue, "DYLD_FORCE_FLAT_NAMESPACE=")) {
+			theValue = dyld_force_flat_namespace_ptr;
+			dyld_force_flat_namespace_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_LOG=")) {
+			theValue = darwintrace_log_ptr;
+			darwintrace_log_ptr = NULL;
+#if DARWINTRACE_SANDBOX
+		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_SANDBOX_BOUNDS=")) {
+			theValue = darwintrace_sandbox_bounds_ptr;
+			darwintrace_sandbox_bounds_ptr = NULL;
+#endif
+		}
+		
+		if (theValue) {
+			*theCopyIter++ = theValue;
+		}
+
+		theEnvIter++;
+	}
+	
+	if (dyld_insert_libraries_ptr) {
+		*theCopyIter++ = dyld_insert_libraries_ptr;
+	}
+	if (dyld_force_flat_namespace_ptr) {
+		*theCopyIter++ = dyld_force_flat_namespace_ptr;
+	}
+	if (darwintrace_log_ptr) {
+		*theCopyIter++ = darwintrace_log_ptr;
+	}
+#if DARWINTRACE_SANDBOX
+	if (darwintrace_sandbox_bounds_ptr) {
+		*theCopyIter++ = darwintrace_sandbox_bounds_ptr;
+	}
+#endif
+
+	*theCopyIter = 0;
+	
+	return theCopy;
+}
+
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	if (__darwintrace_fd == -2) {
-		char* path = getenv("DARWINTRACE_LOG");
-		if (path != NULL) {
+		if (__env_darwintrace_log != NULL) {
 			int olderrno = errno;
-			int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, DEFFILEMODE);
+			int fd = open(__env_darwintrace_log, O_CREAT | O_WRONLY | O_APPEND, DEFFILEMODE);
 			int newfd;
 			for(newfd = START_FD; newfd < START_FD + 21; newfd++) {
 				if(-1 == write(newfd, "", 0) && errno == EBADF) {
@@ -194,10 +342,9 @@ inline void __darwintrace_setup() {
 #endif
 #if DARWINTRACE_SANDBOX
 	if (__darwintrace_sandbox_bounds == NULL) {
-		char* paths = getenv("DARWINTRACE_SANDBOX_BOUNDS");
-		if (paths != NULL) {
+		if (__env_darwintrace_sandbox_bounds != NULL) {
 			/* copy the string */
-			char* copy = strdup(paths);
+			char* copy = strdup(__env_darwintrace_sandbox_bounds);
 			if (copy != NULL) {
 				int nbPaths = 1;
 				int nbAllocatedPaths = 5;
@@ -482,7 +629,7 @@ ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
 }
 
 int execve(const char* path, char* const argv[], char* const envp[]) {
-#define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
+#define __execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	int result;
@@ -552,7 +699,8 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	  }
 	}
 	
-	result = execve(path, argv, envp);
+	/* call the original execve function, but fix the environment if required. */
+	result = __execve(path, argv, __darwintrace_restore_env(envp));
 	return result;
 #undef close
 #undef open

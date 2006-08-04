@@ -5,6 +5,7 @@
 --->  Building trace with target all
 --->  Testing trace
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace
+Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace-modenv
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/delete-trace
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/mkdir-trace
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/rename-trace
