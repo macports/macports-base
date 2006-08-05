@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.5.12.2 2006/07/29 06:45:02 pguyot Exp $
+# $Id: ruby-1.0.tcl,v 1.5.12.3 2006/08/05 14:36:35 jberry Exp $
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.
@@ -251,8 +251,8 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			}
 			
 			destroot {
-			  cd [option distpath]
-			  system "${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distname}"
+			  cd ${worksrcpath}
+			  system "${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distpath}/${distname}"
 			
 				set binDir ${destroot}${prefix}/lib/ruby/gems/${ruby.version}/bin
 				if {[file isdirectory $binDir]} {

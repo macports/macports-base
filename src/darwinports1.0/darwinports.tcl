@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.213.2.1 2006/07/30 18:08:19 jmpp Exp $
+# $Id: darwinports.tcl,v 1.213.2.2 2006/08/05 14:36:33 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -427,7 +427,8 @@ proc dportinit {up_ui_options up_options up_variations} {
     # ENV cleanup.
 	set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
 	                  DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
-	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
+	                  DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
+	                  HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
 	                  USER GROUP
@@ -1096,6 +1097,9 @@ proc dportsync {args} {
 				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
 					return -code error "sync failed doing rsync"
 				}
+				if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+				    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+				}
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
@@ -1518,6 +1522,10 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
 		set version_installed $version_in_tree
+		# That was a very dirty hack showing how ugly our depencendy and upgrade code is.
+		# To get it working when user provides -f, we also need to set the variant to
+		# avoid a future failure.
+		set variant ""
 	} else {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later

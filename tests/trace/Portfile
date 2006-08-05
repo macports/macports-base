@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.4.2.2 2006/07/29 06:45:03 pguyot Exp $
+# $Id: Portfile,v 1.4.2.3 2006/08/05 14:36:35 jberry Exp $
 
 PortSystem 1.0
 name		trace
@@ -18,11 +18,14 @@ configure	{}
 build		{}
 destroot	{}
 
-test {  
+test {
 	catch {system "touch create-trace"}
 	catch {system "rm delete-trace"}
 	system "touch /tmp/hello-trace"
 	system "rm /tmp/hello-trace"
 	catch {system "mkdir mkdir-trace"}
+	catch {system "rmdir rmdir-trace"}
+	catch {system "mv rename-trace rename-new-trace"}
+	catch {system "DYLD_INSERT_LIBRARIES= touch create-trace-modenv"}
 	system "mkdir -p /usr/bin"
 }
