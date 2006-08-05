@@ -1,10 +1,13 @@
 #
-#   $Id: ChangeLog,v 1.46 2006/08/02 00:50:23 pguyot Exp $
+#   $Id: ChangeLog,v 1.47 2006/08/05 00:28:27 jberry Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
 Release 1.? (unreleased):
+
+	- Fix a bug that prevented operation of port ed with some editors.
+	  The env wasn't being properly restored for the editor. (jberry)
 
     - Fixed a bug in the creation of the portf symlink. (jmpp)
 

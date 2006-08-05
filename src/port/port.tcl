@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.163 2006/08/01 03:58:11 jberry Exp $
+# $Id: port.tcl,v 1.164 2006/08/05 00:28:27 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -1851,7 +1851,7 @@ proc action_echo { action portlist opts } {
 
 proc action_portcmds { action portlist opts } {
 	# Operations on the port's directory and Portfile
-	global env, boot_env
+	global env boot_env
 	global current_portdir
 	
 	set status 0
