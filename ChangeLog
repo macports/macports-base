@@ -1,12 +1,15 @@
 #
-#   $Id: ChangeLog,v 1.32.2.6 2006/07/31 15:58:54 jmpp Exp $
+#   $Id: ChangeLog,v 1.32.2.7 2006/08/05 01:03:51 jberry Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.3.2 (unreleased):
+Release 1.? (unreleased):
 
-    - Corrected a bug in the creation of the portf symlink. (jmpp)
+    - Fix a bug that prevented operation of port ed with some editors.
+      The env wasn't being properly restored for the editor. (jberry)
+
+    - Fixed a bug in the creation of the portf symlink. (jmpp)
 
 Release 1.3.1 (31-Jul-2006):
 
@@ -25,8 +28,8 @@ Release 1.3.1 (31-Jul-2006):
     - Fixed a bug, introduced in 1.3, that prevented -u uninstall from working.
       (jberry)
 
-	- Fixed a bug in xcode portgroup. One variable used by the group conflicted
-	  with global variables in port base code. (pguyot)
+    - Fixed a bug in xcode portgroup. One variable used by the group conflicted
+      with global variables in port base code. (pguyot)
 
     - Added a new test case for a cvs+remote patch file bug. (pguyot)
     
