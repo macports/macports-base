@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.218 2006/07/31 22:40:05 pguyot Exp $
+# $Id: darwinports.tcl,v 1.219 2006/08/05 14:03:34 pguyot Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -427,7 +427,8 @@ proc dportinit {up_ui_options up_options up_variations} {
     # ENV cleanup.
 	set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
 	                  DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
-	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
+	                  DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
+	                  HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
 	                  USER GROUP

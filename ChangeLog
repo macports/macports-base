@@ -1,12 +1,12 @@
 #
-#   $Id: ChangeLog,v 1.48 2006/08/05 01:04:24 jberry Exp $
+#   $Id: ChangeLog,v 1.49 2006/08/05 14:03:34 pguyot Exp $
 #
 #   This is a log of major user-visible changes in each release
 #
 
 Release 1.? (unreleased):
 
-    - Fix a bug that prevented operation of port ed with some editors.
+    - Fixed a bug that prevented operation of port ed with some editors.
       The env wasn't being properly restored for the editor. (jberry)
 
     - Fixed a bug in the creation of the portf symlink. (jmpp)
@@ -34,6 +34,9 @@ Release 1.? (unreleased):
     
     - Trace now forbids renaming files and directories as well as removing
       directories outside the sandbox. (pguyot)
+
+    - Allow additional inserted libraries by keeping DYLD_INSERT_LIBRARIES
+      variable. (pguyot)
 
 Release 1.3.1 (31-Jul-2006):
 

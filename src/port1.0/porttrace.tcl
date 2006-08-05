@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.22 2006/07/29 06:08:50 pguyot Exp $
+# $Id: porttrace.tcl,v 1.23 2006/08/05 14:03:34 pguyot Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -52,8 +52,13 @@ proc trace_start {workpath} {
 					
 			# Launch darwintrace.dylib.
 			
-			set env(DYLD_INSERT_LIBRARIES) \
-				[file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
+			set tracelib_path [file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
+
+			if {[info exists env(DYLD_INSERT_LIBRARIES)]} {
+				set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib_path}"
+			} else {
+				set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
+			}
 			set env(DYLD_FORCE_FLAT_NAMESPACE) 1
 			set env(DARWINTRACE_LOG) "$trace_fifo"
 			# The sandbox is limited to:
