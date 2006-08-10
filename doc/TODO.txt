@@ -1,7 +1,7 @@
 #
-# $Id: TODO.txt,v 1.8 2006/07/28 19:58:18 jberry Exp $
+# $Id: TODO.txt,v 1.9 2006/08/10 02:54:24 jberry Exp $
 #
-# DarwinPorts TODO List
+# MacPorts TODO List
 #
 # This is a partial list of items to be completed, or considered, for future
 # revisions.

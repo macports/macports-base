@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.219 2006/08/05 14:03:34 pguyot Exp $
+# $Id: darwinports.tcl,v 1.220 2006/08/10 02:54:25 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -1334,10 +1334,10 @@ proc darwinports::selfupdate {optionslist} {
 	
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
 		set use_the_force_luke yes
-		ui_debug "Forcing a rebuild of the darwinports base system."
+		ui_debug "Forcing a rebuild of the MacPorts base system."
 	} else {
 		set use_the_force_luke no
-		ui_debug "Rebuilding the darwinports base system if needed."
+		ui_debug "Rebuilding the MacPorts base system if needed."
 	}
 	# syncing ports tree. We expect the user have rsync:// in the sources.conf
 	if {[catch {dportsync} result]} {
@@ -1348,7 +1348,7 @@ proc darwinports::selfupdate {optionslist} {
 	if {![file exists $dp_base_path]} {
 		file mkdir $dp_base_path
 	}
-	ui_debug "DarwinPorts base dir: $dp_base_path"
+	ui_debug "MacPorts base dir: $dp_base_path"
 
 	# get user of the darwinports system
 	set user [file attributes [file join $prefix var/db/dports/sources/] -owner]
@@ -1374,11 +1374,11 @@ proc darwinports::selfupdate {optionslist} {
 	set fd [open [file join $dp_base_path config/dp_version] r]
 	gets $fd dp_version_new
 	close $fd
-	ui_msg "Downloaded DarwinPorts base version $dp_version_new"
+	ui_msg "Downloaded MacPorts base version $dp_version_new"
 
 	# check if we we need to rebuild base
 	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
-		ui_msg "Configuring, Building and Installing new DarwinPorts base"
+		ui_msg "Configuring, Building and Installing new MacPorts base"
 		# check if $prefix/bin/port is writable, if so we go !
 		# get installation user / group 
 		set owner root
@@ -1408,10 +1408,10 @@ proc darwinports::selfupdate {optionslist} {
 		# do the actual installation of new base
 		ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
-			return -code error "Error installing new DarwinPorts base: $result"
+			return -code error "Error installing new MacPorts base: $result"
 		}
 	} else {
-		ui_msg "The DarwinPorts installation is not outdated and so was not updated"
+		ui_msg "The MacPorts installation is not outdated and so was not updated"
 	}
 
 	# set the darwinports system to the right owner 
@@ -1507,7 +1507,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 				}
 			} else {
 				# port installed outside DP
-				ui_debug "$portname installed outside the DarwinPorts system"
+				ui_debug "$portname installed outside the MacPorts system"
 				set depflag 1
 			}
 

@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.164 2006/08/05 00:28:27 jberry Exp $
+# $Id: port.tcl,v 1.165 2006/08/10 02:54:25 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -191,7 +191,7 @@ combined using expressions consisting of and, or, not, !, (, and ).
 For more information
 --------------------
 See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
-porthier(7), portstyle(7). Also, see http://www.darwinports.org.
+porthier(7), portstyle(7). Also, see http://www.macports.org.
 }
 
 	
@@ -1337,7 +1337,7 @@ proc action_provides { action portlist opts } {
 				if { $port != 0 } {
 					puts "$file is provided by: $port"
 				} else {
-					puts "$file is not provided by a DarwinPorts port."
+					puts "$file is not provided by a MacPorts port."
 				}
 			} else {
 				puts "$file is a directory."
@@ -2411,7 +2411,7 @@ proc process_command_file { in } {
 	# Be noisy, if appropriate
 	set noisy [expr $isstdin && ![ui_isset ports_quiet]]
 	if { $noisy } {
-		puts "DarwinPorts [darwinports::version]"
+		puts "MacPorts [darwinports::version]"
 		puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
 	}
 	

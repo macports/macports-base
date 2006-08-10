@@ -235,7 +235,7 @@ enable trace mode debug facilities on platforms that support it (MacOS X). This 
 
 .El
 .Sh USER TARGETS
-Targets most commonly used by regular DarwinPorts users are:
+Targets most commonly used by regular MacPorts users are:
 .Ss search
 Search for an available port whose name matches a regular expression. For example:
 .Pp
@@ -299,10 +299,10 @@ Determines which port owns a given file and can take either a relative or absolu
 .Dl "port provides /opt/local/etc/irssi.conf"
 .Dl "port provides include/tiff.h"
 .Ss sync
-Performs a sync operation only on the dports tree of a DarwinPorts installation, pulling in the latest
+Performs a sync operation only on the dports tree of a MacPorts installation, pulling in the latest
 revision available of the
 .Ar Portfiles
-from the DarwinPorts rsync server. To update you would normally do:
+from the MacPorts rsync server. To update you would normally do:
 .Pp
 .Dl "sudo port -d sync"
 .Ss outdated
@@ -383,9 +383,9 @@ may be used to determine the exact set of ports to which a given string of argum
 .Ss list
 List all available ports.
 .Ss version
-Display the release number of the installed DarwinPorts infrastructure.
+Display the release number of the installed MacPorts infrastructure.
 .Ss selfupdate
-Updates the DarwinPorts system, dports tree(s) and base tools if needed, from the DarwinPorts rsync server,
+Updates the MacPorts system, dports tree(s) and base tools if needed, from the MacPorts rsync server,
 installing the newest infrastructure available. To update you would typically do:
 .Pp
 .Dl "sudo port -d selfupdate"
@@ -480,13 +480,13 @@ target on
 .Sh FILES
 .Bl -tag -width
 .It Va ${prefix}/etc/ports/ports.conf
-Global configuration file for the DarwinPorts system.
+Global configuration file for the MacPorts system.
 .It Va ${prefix}/etc/ports/sources.conf
-Global listing of the dports/ trees used by DarwinPorts. This file also enables rsync synchronization.
+Global listing of the dports/ trees used by MacPorts. This file also enables rsync synchronization.
 .It Va ${prefix}/etc/ports/variants.conf
 Global variants used when a port is installed.
 .It Va ~/.portsrc
-User configuration file for the DarwinPorts system. It overrides the global
+User configuration file for the MacPorts system. It overrides the global
 .Ar ports.conf
 file.
 .El
