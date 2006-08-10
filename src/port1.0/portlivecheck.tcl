@@ -1,7 +1,7 @@
 # et:ts=4
 # portlivecheck.tcl
 #
-# $Id: portlivecheck.tcl,v 1.9.2.2 2006/07/29 06:45:02 pguyot Exp $
+# $Id: portlivecheck.tcl,v 1.9.2.3 2006/08/10 02:31:22 jberry Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -116,24 +116,26 @@ proc livecheck_main {args} {
 				set the_re [eval "concat ${livecheck.regex}"]
 				if {${livecheck.check} == "regexm"} {
 					set data [read $chan]
-					if {[regexp $the_re $data data updated_version]} {
+					if {[regexp $the_re $data matched updated_version]} {
 						if {$updated_version != ${livecheck.version}} {
 							set updated 1
 						} else {
 							set updated 0
 						}
+						ui_debug "The regex matched >$matched<"
 					}
 				} else {
 					while {1} {
 						if {[gets $chan line] < 0} {
 							break
 						}
-						if {[regexp $the_re $line line updated_version]} {
+						if {[regexp $the_re $line matched updated_version]} {
 							if {$updated_version != ${livecheck.version}} {
 								set updated 1
 							} else {
 								set updated 0
 							}
+							ui_debug "The regex matched >$matched<"
 							break
 						}
 					}
