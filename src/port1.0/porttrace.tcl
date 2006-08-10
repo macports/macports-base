@@ -1,7 +1,7 @@
 # et:ts=4
 # porttrace.tcl
 #
-# $Id: porttrace.tcl,v 1.20 2006/07/25 08:50:48 pguyot Exp $
+# $Id: porttrace.tcl,v 1.20.2.4 2006/08/05 14:36:34 jberry Exp $
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -52,8 +52,13 @@ proc trace_start {workpath} {
 					
 			# Launch darwintrace.dylib.
 			
-			set env(DYLD_INSERT_LIBRARIES) \
-				[file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
+			set tracelib_path [file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
+
+			if {[info exists env(DYLD_INSERT_LIBRARIES)]} {
+				set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib_path}"
+			} else {
+				set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
+			}
 			set env(DYLD_FORCE_FLAT_NAMESPACE) 1
 			set env(DARWINTRACE_LOG) "$trace_fifo"
 			# The sandbox is limited to:
@@ -65,7 +70,8 @@ proc trace_start {workpath} {
 			# $TMPDIR
 			# /dev/null
 			# /dev/tty
-			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:${workpath}"
+			# /Library/Caches/com.apple.Xcode
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:/Library/Caches/com.apple.Xcode:${workpath}"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
@@ -119,7 +125,7 @@ proc trace_check_violations {} {
 	set violations [slave_send slave_get_sandbox_violations]
 	
 	foreach violation [lsort $violations] {
-		ui_warn "A file creation/deletion/modification was attempted outside sandbox: $violation"
+		ui_warn "A creation/deletion/modification was attempted outside sandbox: $violation"
 	}
 }
 

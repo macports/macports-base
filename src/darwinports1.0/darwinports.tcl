@@ -1,5 +1,5 @@
 # darwinports.tcl
-# $Id: darwinports.tcl,v 1.213 2006/07/22 05:50:40 pguyot Exp $
+# $Id: darwinports.tcl,v 1.213.2.3 2006/08/10 03:04:16 jberry Exp $
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot, <pguyot@kallisys.net>.
@@ -427,7 +427,8 @@ proc dportinit {up_ui_options up_options up_variations} {
     # ENV cleanup.
 	set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
 	                  DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
-	                  DYLD_LIBRARY_PATH HOME JAVA_HOME LD_PREBIND
+	                  DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
+	                  HOME JAVA_HOME LD_PREBIND
 	                  LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
 	                  PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
 	                  USER GROUP
@@ -1096,6 +1097,9 @@ proc dportsync {args} {
 				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
 					return -code error "sync failed doing rsync"
 				}
+				if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+				    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+				}
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
@@ -1330,10 +1334,10 @@ proc darwinports::selfupdate {optionslist} {
 	
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
 		set use_the_force_luke yes
-		ui_debug "Forcing a rebuild of the darwinports base system."
+		ui_debug "Forcing a rebuild of the MacPorts base system."
 	} else {
 		set use_the_force_luke no
-		ui_debug "Rebuilding the darwinports base system if needed."
+		ui_debug "Rebuilding the MacPorts base system if needed."
 	}
 	# syncing ports tree. We expect the user have rsync:// in the sources.conf
 	if {[catch {dportsync} result]} {
@@ -1344,7 +1348,7 @@ proc darwinports::selfupdate {optionslist} {
 	if {![file exists $dp_base_path]} {
 		file mkdir $dp_base_path
 	}
-	ui_debug "DarwinPorts base dir: $dp_base_path"
+	ui_debug "MacPorts base dir: $dp_base_path"
 
 	# get user of the darwinports system
 	set user [file attributes [file join $prefix var/db/dports/sources/] -owner]
@@ -1370,11 +1374,11 @@ proc darwinports::selfupdate {optionslist} {
 	set fd [open [file join $dp_base_path config/dp_version] r]
 	gets $fd dp_version_new
 	close $fd
-	ui_msg "Downloaded DarwinPorts base version $dp_version_new"
+	ui_msg "Downloaded MacPorts base version $dp_version_new"
 
 	# check if we we need to rebuild base
 	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
-		ui_msg "Configuring, Building and Installing new DarwinPorts base"
+		ui_msg "Configuring, Building and Installing new MacPorts base"
 		# check if $prefix/bin/port is writable, if so we go !
 		# get installation user / group 
 		set owner root
@@ -1404,10 +1408,10 @@ proc darwinports::selfupdate {optionslist} {
 		# do the actual installation of new base
 		ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
 		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
-			return -code error "Error installing new DarwinPorts base: $result"
+			return -code error "Error installing new MacPorts base: $result"
 		}
 	} else {
-		ui_msg "The DarwinPorts installation is not outdated and so was not updated"
+		ui_msg "The MacPorts installation is not outdated and so was not updated"
 	}
 
 	# set the darwinports system to the right owner 
@@ -1503,7 +1507,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 				}
 			} else {
 				# port installed outside DP
-				ui_debug "$portname installed outside the DarwinPorts system"
+				ui_debug "$portname installed outside the MacPorts system"
 				set depflag 1
 			}
 
@@ -1518,6 +1522,10 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
 		set version_installed $version_in_tree
+		# That was a very dirty hack showing how ugly our depencendy and upgrade code is.
+		# To get it working when user provides -f, we also need to set the variant to
+		# avoid a future failure.
+		set variant ""
 	} else {
 		# a port could be installed but not activated
 		# so, deactivate all and save newest for activation later
@@ -1663,7 +1671,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 
 	# install version_in_tree
 	if {0 == [string compare "yes" ${darwinports::portarchivemode}]} {
-		set upgrade_action "archive"
+		set upgrade_action "unarchive"
 	} else {
 		set upgrade_action "destroot"
 	}

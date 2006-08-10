@@ -1,7 +1,7 @@
 # et:ts=4
 # xcode.tcl
 #
-# $Id: xcode-1.0.tcl,v 1.8 2006/07/19 07:29:01 pguyot Exp $
+# $Id: xcode-1.0.tcl,v 1.8.2.1 2006/07/29 06:45:03 pguyot Exp $
 #
 # Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.
@@ -246,24 +246,24 @@ proc xcode::destroot_one_target {args settings} {
 build {
 	# determine the targets.
 	if {${xcode.target} != ""} {
-		set targets ${xcode.target}
+		set xcode_targets ${xcode.target}
 	} else {
-		set targets ${build.target}
+		set xcode_targets ${build.target}
 	}
 	
 	# set some arguments.
-	set configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
-	set project_arg [xcode::get_project_arg ${xcode.project}]
+	set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
+	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
 	
 	# iterate on targets if there is any, do -alltargets otherwise.
-	if {"$targets" == ""} {
+	if {"$xcode_targets" == ""} {
 		xcode::build_one_target \
-			"$project_arg -alltargets $configuration_arg" \
+			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
 			"${xcode.build.settings}"
 	} else {
-		foreach target $targets {
+		foreach target $xcode_targets {
 			xcode::build_one_target \
-				"$project_arg -target \"$target\" $configuration_arg" \
+				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
 				"${xcode.build.settings}"
 		}
 	}
@@ -276,27 +276,27 @@ destroot {
 	
 	# determine the targets.
 	if {${xcode.target} != ""} {
-		set targets ${xcode.target}
+		set xcode_targets ${xcode.target}
 	} else {
-		set targets ${destroot.target}
+		set xcode_targets ${destroot.target}
 	}
 	
 	# set some arguments.
-	set configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
-	set project_arg [xcode::get_project_arg ${xcode.project}]
-	set install_path_setting [xcode::get_install_path_setting \
+	set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
+	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
+	set xcode_install_path_setting [xcode::get_install_path_setting \
 		${xcode.destroot.path} ${xcode.destroot.type}]
 	
 	# iterate on targets if there is any, do -alltargets otherwise.
-	if {"$targets" == ""} {
+	if {"$xcode_targets" == ""} {
 		xcode::destroot_one_target \
-			"$project_arg -alltargets $configuration_arg" \
-			"$install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
+			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
+			"$xcode_install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
 	} else {
-		foreach target $targets {
+		foreach target $xcode_targets {
 			xcode::destroot_one_target \
-				"$project_arg -target \"$target\" $configuration_arg" \
-				"$install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
+				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
+				"$xcode_install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
 		}
 	}
 }

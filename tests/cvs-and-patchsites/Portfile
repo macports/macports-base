@@ -1,0 +1,33 @@
+# $Id: Portfile,v 1.1.2.3 2006/07/29 06:45:03 pguyot Exp $
+
+PortSystem 1.0
+name		cvs-and-patchsites
+version		1
+categories	test
+maintainers	pguyot@kallisys.net
+description	Test port for cvs+distant patchfiles functionalities
+homepage	http://darwinports.opendarwin.org/
+platforms	darwin
+
+long_description ${description}
+
+fetch.type          cvs
+cvs.root            :pserver:anonymous@cvs.mutt.org:/home/roessler/cvs
+cvs.module          mutt
+cvs.password        anonymous
+worksrcdir          mutt
+
+patch_sites      http://mutt.kublai.com/patches/
+patchfiles       patch-cvs20051003.bc.smtp
+checksums        patch-cvs20051003.bc.smtp md5 69c8b148572db40100dab494488b8551
+
+# disable the patch phase in case the cvs code gets out of sync with the patch.
+patch		{}
+extract		{}
+configure	{}
+build		{}
+destroot	{}
+
+test {
+	# test is actually running the fetch target
+}

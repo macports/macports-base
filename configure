@@ -314,7 +314,7 @@ ac_includes_default="\
 #endif"
 
 ac_subdirs_all="$ac_subdirs_all src/thread2.6"
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CVS RSYNC HAVE_LAUNCHD LAUNCHCTL XCODEBUILD TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs ENABLE_LAUNCHD_SUPPORT HAVE_FRAMEWORK_COREFOUNDATION HAVE_FRAMEWORK_SYSTEMCONFIGURATION HAVE_FRAMEWORK_IOKIT HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER REPLACEMENT_PROGS EXTRA_PROGS DPORTSDIR PORTCONFIGDIR SQLITE3_DIR DSTUSR DSTGRP DSTMODE CPP EGREP MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL OUR_INCLUDED_PACKAGES INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os target target_cpu target_vendor target_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE LN_S CVS RSYNC HAVE_LAUNCHD LAUNCHCTL XCODEBUILD TAR GNUTAR TAR_CMD CFLAGS_QUICHEEATERS MTREE subdirs ENABLE_LAUNCHD_SUPPORT HAVE_FRAMEWORK_COREFOUNDATION HAVE_FRAMEWORK_SYSTEMCONFIGURATION HAVE_FRAMEWORK_IOKIT HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER REPLACEMENT_PROGS EXTRA_PROGS DPORTSDIR PORTCONFIGDIR SQLITE3_DIR DSTUSR DSTGRP DSTMODE CPP EGREP READLINK_IS_NOT_P1003_1A MD5_LIBS X_CFLAGS X_PRE_LIBS X_LIBS X_EXTRA_LIBS TCL_VERSION TCL_BIN_DIR TCL_SRC_DIR TCL_LIB_FILE TCL_LIB_FLAG TCL_LIB_SPEC TCL_STUB_LIB_FILE TCL_STUB_LIB_FLAG TCL_STUB_LIB_SPEC TCL_INCLUDES TCLSH TCL_PACKAGE_DIR CURL_CONFIG CFLAGS_LIBCURL LDFLAGS_LIBCURL OUR_INCLUDED_PACKAGES INCLUDES CFLAGS_DEBUG CFLAGS_OPTIMIZE TCL_DEFS STLIB_LD SHLIB_LD SHLIB_CFLAGS SHLIB_LDFLAGS SHLIB_SUFFIX TCL_CC prefix_expanded PORTCONFIGDIR_EXPANDED localstatedir_expanded LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -4478,8 +4478,9 @@ done
 
 
 
+
 for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
-	readline/readline.h readline/history.h, pwd.h
+	readline/readline.h readline/history.h pwd.h sys/paths.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then
@@ -5549,7 +5550,8 @@ fi
 
 
 
-for ac_func in bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp copyfile
+
+for ac_func in bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -5649,6 +5651,87 @@ _ACEOF
 
 fi
 done
+
+
+	echo "$as_me:$LINENO: checking if readlink conforms to POSIX 1003.1a" >&5
+echo $ECHO_N "checking if readlink conforms to POSIX 1003.1a... $ECHO_C" >&6
+
+	if test "${dp_cv_readlink_is_posix_1003_1a+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+
+		cat >conftest.$ac_ext <<_ACEOF
+
+			/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+					#include <unistd.h>
+					ssize_t readlink(const char *, char *, size_t);
+
+int
+main ()
+{
+
+
+  ;
+  return 0;
+}
+
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"
+			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+
+				dp_cv_readlink_is_posix_1003_1a="yes"
+
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+
+				dp_cv_readlink_is_posix_1003_1a="no"
+
+
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
+
+
+	echo "$as_me:$LINENO: result: ${dp_cv_readlink_is_posix_1003_1a}" >&5
+echo "${ECHO_T}${dp_cv_readlink_is_posix_1003_1a}" >&6
+
+	if test x"${dp_cv_readlink_is_posix_1003_1a}" = "xno"; then
+
+cat >>confdefs.h <<\_ACEOF
+#define READLINK_IS_NOT_P1003_1A
+_ACEOF
+
+	fi
+
+
 
 
 # Check for md5 implementation
@@ -9627,6 +9710,7 @@ s,@DSTGRP@,$DSTGRP,;t t
 s,@DSTMODE@,$DSTMODE,;t t
 s,@CPP@,$CPP,;t t
 s,@EGREP@,$EGREP,;t t
+s,@READLINK_IS_NOT_P1003_1A@,$READLINK_IS_NOT_P1003_1A,;t t
 s,@MD5_LIBS@,$MD5_LIBS,;t t
 s,@X_CFLAGS@,$X_CFLAGS,;t t
 s,@X_PRE_LIBS@,$X_PRE_LIBS,;t t

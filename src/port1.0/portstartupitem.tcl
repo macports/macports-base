@@ -1,7 +1,7 @@
 # et:ts=4
 # portstartupitem.tcl
 #
-# $Id: portstartupitem.tcl,v 1.29 2006/04/14 02:35:29 jberry Exp $
+# $Id: portstartupitem.tcl,v 1.29.2.1 2006/08/10 03:04:17 jberry Exp $
 #
 # Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
@@ -93,14 +93,14 @@ proc startupitem_create_rcng {args} {
 
 	puts ${fd} "#!/bin/sh"
 	puts ${fd} "#"
-	puts ${fd} "# DarwinPorts generated RCng Script"
+	puts ${fd} "# MacPorts generated RCng Script"
 	puts ${fd} "#"
 	puts ${fd} ""
 	puts ${fd} "# PROVIDE: ${startupitem.name}"
 	puts ${fd} "# REQUIRE: ${startupitem.requires}"
 	# TODO: Implement BEFORE support
 	puts ${fd} "# BEFORE:"
-	puts ${fd} "# KEYWORD: DarwinPorts"
+	puts ${fd} "# KEYWORD: MacPorts"
 	puts ${fd} ""
 	puts ${fd} ". ${prefix}/etc/rc.subr"
 	puts ${fd} ""
@@ -199,7 +199,7 @@ proc startupitem_create_darwin_systemstarter {args} {
 	# Emit the header
 	puts ${item} {#!/bin/sh
 #
-# DarwinPorts generated StartupItem
+# MacPorts generated StartupItem
 #
 
 }
@@ -390,7 +390,7 @@ proc startupitem_create_darwin_launchd {args} {
 	set scriptdir ${prefix}/etc/startup
 	
 	set itemname		${startupitem.name}
-	set uniquename		org.darwinports.${itemname}
+	set uniquename		org.macports.${itemname}
 	set plistname		${uniquename}.plist
 	set daemondest		LaunchDaemons
 	set itemdir			${prefix}/etc/${daemondest}/${uniquename}
@@ -441,7 +441,7 @@ proc startupitem_create_darwin_launchd {args} {
 
 		puts ${item} "#!/bin/sh"
 		puts ${item} "#"
-		puts ${item} "# DarwinPorts generated daemondo support script"
+		puts ${item} "# MacPorts generated daemondo support script"
 		puts ${item} "#"
 		puts ${item} ""
 		

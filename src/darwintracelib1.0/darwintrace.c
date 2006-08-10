@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.16 2006/07/25 04:01:33 pguyot Exp $
+ * $Id: darwintrace.c,v 1.16.2.3 2006/08/05 14:36:34 jberry Exp $
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 
@@ -42,23 +42,47 @@
 #include <crt_externs.h>
 #endif
 
+#ifdef HAVE_SYS_PATHS_H
+#include <sys/paths.h>
+#endif
+
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/syscall.h>
-#include <sys/paths.h>
 #include <errno.h>
+
+#ifndef HAVE_STRLCPY
+/* Define strlcpy if it's not available. */
+size_t strlcpy(char* dst, const char* src, size_t size);
+size_t strlcpy(char* dst, const char* src, size_t size)
+{
+	size_t result = strlen(src);
+	if (size > 0)
+	{
+		size_t copylen = size - 1;
+		if (copylen > result)
+		{
+			copylen = result;
+		}
+		memcpy(dst, src, copylen);
+		dst[copylen] = 0;
+	}
+	return result;
+}
+#endif
 
 /*
  * Compile time options:
  * DARWINTRACE_SHOW_PROCESS: show the process id of every access
  * DARWINTRACE_LOG_CREATE: log creation of files as well.
- * DARWINTRACE_SANDBOX: control creation, deletion and writing to files.
+ * DARWINTRACE_SANDBOX: control creation, deletion and writing to files and dirs.
  * DARWINTRACE_LOG_FULL_PATH: use F_GETPATH to log the full path.
  * DARWINTRACE_DEBUG_OUTPUT: verbose output of stuff to debug darwintrace.
  *
@@ -96,6 +120,9 @@
  */
 inline int __darwintrace_strbeginswith(const char* str, const char* prefix);
 inline void __darwintrace_log_op(const char* op, const char* procname, const char* path, int fd);
+void __darwintrace_copy_env() __attribute__((constructor));
+inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
+inline char* const* __darwintrace_restore_env(char* const envp[]);
 inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
 
@@ -108,6 +135,14 @@ static pid_t __darwintrace_pid = -1;
 #endif
 #if DARWINTRACE_SANDBOX
 static char** __darwintrace_sandbox_bounds = NULL;
+#endif
+
+/* copy of the global variables */
+static char* __env_dyld_insert_libraries;
+static char* __env_dyld_force_flat_namespace;
+static char* __env_darwintrace_log;
+#if DARWINTRACE_SANDBOX
+static char* __env_darwintrace_sandbox_bounds;
 #endif
 
 #if __STDC_VERSION__==199901L
@@ -137,14 +172,151 @@ inline int __darwintrace_strbeginswith(const char* str, const char* prefix) {
 	return (theCharP == 0);
 }
 
+/*
+ * Copy the environment variables, if they're defined.
+ */
+void __darwintrace_copy_env() {
+	char* theValue;
+	theValue = getenv("DYLD_INSERT_LIBRARIES");
+	if (theValue != NULL) {
+		__env_dyld_insert_libraries = strdup(theValue);
+	} else {
+		__env_dyld_insert_libraries = NULL;
+	}
+	theValue = getenv("DYLD_FORCE_FLAT_NAMESPACE");
+	if (theValue != NULL) {
+		__env_dyld_force_flat_namespace = strdup(theValue);
+	} else {
+		__env_dyld_force_flat_namespace = NULL;
+	}
+	theValue = getenv("DARWINTRACE_LOG");
+	if (theValue != NULL) {
+		__env_darwintrace_log = strdup(theValue);
+	} else {
+		__env_darwintrace_log = NULL;
+	}
+#if DARWINTRACE_SANDBOX
+	theValue = getenv("DARWINTRACE_SANDBOX_BOUNDS");
+	if (theValue != NULL) {
+		__env_darwintrace_sandbox_bounds = strdup(theValue);
+	} else {
+		__env_darwintrace_sandbox_bounds = NULL;
+	}
+#endif
+}
+
+/*
+ * Allocate a X=Y string where X is the variable name and Y its value.
+ * Return the new string.
+ *
+ * If the value is NULL, return NULL.
+ */
+inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) {
+	char* theResult = NULL;
+	if (varValue) {
+		int theSize = strlen(varName) + strlen(varValue) + 2;
+		theResult = (char*) malloc(theSize);
+		sprintf(theResult, "%s=%s", varName, varValue);
+		theResult[theSize - 1] = 0;
+	}
+	
+	return theResult;
+}
+
+/*
+ * This function checks that envp contains the global variables we had when the
+ * library was loaded and modifies it if it doesn't.
+ */
+inline char* const* __darwintrace_restore_env(char* const envp[]) {
+	/* allocate the strings. */
+	/* we don't care about the leak here because we're going to call execve,
+     * which, if it succeeds, will get rid of our heap */
+	char* dyld_insert_libraries_ptr =	
+		__darwintrace_alloc_env(
+			"DYLD_INSERT_LIBRARIES",
+			__env_dyld_insert_libraries);
+	char* dyld_force_flat_namespace_ptr =	
+		__darwintrace_alloc_env(
+			"DYLD_FORCE_FLAT_NAMESPACE",
+			__env_dyld_force_flat_namespace);
+	char* darwintrace_log_ptr =	
+		__darwintrace_alloc_env(
+			"DARWINTRACE_LOG",
+			__env_darwintrace_log);
+#if DARWINTRACE_SANDBOX
+	char* darwintrace_sandbox_bounds_ptr =	
+		__darwintrace_alloc_env(
+			"DARWINTRACE_SANDBOX_BOUNDS",
+			__env_darwintrace_sandbox_bounds);
+#endif
+
+	char* const * theEnvIter = envp;
+	int theEnvLength = 0;
+	char** theCopy;
+	char** theCopyIter;
+
+	while (*theEnvIter != NULL) {
+		theEnvLength++;
+		theEnvIter++;
+	}
+
+	/* 5 is sufficient for the four variables we copy and the terminator */
+	theCopy = (char**) malloc(sizeof(char*) * (theEnvLength + 5));
+	theEnvIter = envp;
+	theCopyIter = theCopy;
+
+	while (*theEnvIter != NULL) {
+		char* theValue = *theEnvIter;
+		if (__darwintrace_strbeginswith(theValue, "DYLD_INSERT_LIBRARIES=")) {
+			theValue = dyld_insert_libraries_ptr;
+			dyld_insert_libraries_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(theValue, "DYLD_FORCE_FLAT_NAMESPACE=")) {
+			theValue = dyld_force_flat_namespace_ptr;
+			dyld_force_flat_namespace_ptr = NULL;
+		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_LOG=")) {
+			theValue = darwintrace_log_ptr;
+			darwintrace_log_ptr = NULL;
+#if DARWINTRACE_SANDBOX
+		} else if (__darwintrace_strbeginswith(theValue, "DARWINTRACE_SANDBOX_BOUNDS=")) {
+			theValue = darwintrace_sandbox_bounds_ptr;
+			darwintrace_sandbox_bounds_ptr = NULL;
+#endif
+		}
+		
+		if (theValue) {
+			*theCopyIter++ = theValue;
+		}
+
+		theEnvIter++;
+	}
+	
+	if (dyld_insert_libraries_ptr) {
+		*theCopyIter++ = dyld_insert_libraries_ptr;
+	}
+	if (dyld_force_flat_namespace_ptr) {
+		*theCopyIter++ = dyld_force_flat_namespace_ptr;
+	}
+	if (darwintrace_log_ptr) {
+		*theCopyIter++ = darwintrace_log_ptr;
+	}
+#if DARWINTRACE_SANDBOX
+	if (darwintrace_sandbox_bounds_ptr) {
+		*theCopyIter++ = darwintrace_sandbox_bounds_ptr;
+	}
+#endif
+
+	*theCopyIter = 0;
+	
+	return theCopy;
+}
+
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	if (__darwintrace_fd == -2) {
-		char* path = getenv("DARWINTRACE_LOG");
-		if (path != NULL) {
+		if (__env_darwintrace_log != NULL) {
 			int olderrno = errno;
-			int fd = open(path, O_CREAT | O_WRONLY | O_APPEND, DEFFILEMODE);
+			int fd = open(__env_darwintrace_log, O_CREAT | O_WRONLY | O_APPEND, DEFFILEMODE);
 			int newfd;
 			for(newfd = START_FD; newfd < START_FD + 21; newfd++) {
 				if(-1 == write(newfd, "", 0) && errno == EBADF) {
@@ -170,10 +342,9 @@ inline void __darwintrace_setup() {
 #endif
 #if DARWINTRACE_SANDBOX
 	if (__darwintrace_sandbox_bounds == NULL) {
-		char* paths = getenv("DARWINTRACE_SANDBOX_BOUNDS");
-		if (paths != NULL) {
+		if (__env_darwintrace_sandbox_bounds != NULL) {
 			/* copy the string */
-			char* copy = strdup(paths);
+			char* copy = strdup(__env_darwintrace_sandbox_bounds);
 			if (copy != NULL) {
 				int nbPaths = 1;
 				int nbAllocatedPaths = 5;
@@ -292,12 +463,17 @@ inline void __darwintrace_log_op(const char* op, const char* procname, const cha
  * do a partial realpath(3) to fix "foo//bar" to "foo/bar"
  */
 inline void __darwintrace_cleanup_path(char *path) {
-  size_t pathlen, rsrclen;
+  size_t pathlen;
+#ifdef __APPLE__
+  size_t rsrclen;
+#endif
   size_t i, shiftamount;
   enum { SAWSLASH, NOTHING } state = NOTHING;
 
   /* if this is a foo/..namedfork/rsrc, strip it off */
   pathlen = strlen(path);
+  /* ..namedfork/rsrc is only on OS X */
+#ifdef __APPLE__ 
   rsrclen = strlen(_PATH_RSRCFORKSPEC);
   if(pathlen > rsrclen
      && 0 == strcmp(path + pathlen - rsrclen,
@@ -305,6 +481,7 @@ inline void __darwintrace_cleanup_path(char *path) {
     path[pathlen - rsrclen] = '\0';
     pathlen -= rsrclen;
   }
+#endif
 
   /* for each position in string (including
      terminal \0), check if we're in a run of
@@ -431,8 +608,11 @@ int open(const char* path, int flags, ...) {
    Only logs if the DARWINTRACE_LOG environment variable is set.
    Only logs files where the readlink succeeds.
 */
-
+#ifdef READLINK_IS_NOT_P1003_1A
+int  readlink(const char * path, char * buf, int bufsiz) {
+#else
 ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
+#endif
 #define readlink(x,y,z) syscall(SYS_readlink, (x), (y), (z))
 	ssize_t result;
 
@@ -449,7 +629,7 @@ ssize_t  readlink(const char * path, char * buf, size_t bufsiz) {
 }
 
 int execve(const char* path, char* const argv[], char* const envp[]) {
-#define execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
+#define __execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
 	int result;
@@ -519,7 +699,8 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	  }
 	}
 	
-	result = execve(path, argv, envp);
+	/* call the original execve function, but fix the environment if required. */
+	result = __execve(path, argv, __darwintrace_restore_env(envp));
 	return result;
 #undef close
 #undef open
@@ -560,6 +741,102 @@ int unlink(const char* path) {
 	
 	if (result == 0) {
 		result = __unlink(path);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to create directories outside the sandbox.
+ */
+int mkdir(const char* path, mode_t mode) {
+#define __mkdir(x,y) syscall(SYS_mkdir, (x), (y))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: mkdir was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		/* only consider directories that do not exist. */
+		struct stat theInfo;
+		int err;
+		err = lstat(path, &theInfo);
+		if ((err == -1) && (errno == ENOENT))
+		{
+			dprintf("darwintrace: mkdir was forbidden at %s\n", path);
+			__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+			errno = EACCES;
+			result = -1;
+		} /* otherwise, mkdir will do nothing (directory exists) or fail
+		     (another error) */
+	}
+	
+	if (result == 0) {
+		result = __mkdir(path, mode);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to remove directories outside the sandbox.
+ */
+int rmdir(const char* path) {
+#define __rmdir(x) syscall(SYS_rmdir, (x))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(path);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: rmdir was allowed at %s\n", path);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		dprintf("darwintrace: removing directory %s was forbidden\n", path);
+		__darwintrace_log_op("sandbox_violation", NULL, path, 0);
+		errno = EACCES;
+		result = -1;
+	}
+	
+	if (result == 0) {
+		result = __rmdir(path);
+	}
+	
+	return result;
+}
+#endif
+
+#if DARWINTRACE_SANDBOX
+/* Trap attempts to rename files/directories outside the sandbox.
+ */
+int rename(const char* from, const char* to) {
+#define __rename(x,y) syscall(SYS_rename, (x), (y))
+	int result = 0;
+	int isInSandbox = __darwintrace_is_in_sandbox(from);
+	if (isInSandbox == 1) {
+		dprintf("darwintrace: rename was allowed at %s\n", from);
+	} else if (isInSandbox == 0) {
+		/* outside sandbox, but sandbox is defined: forbid */
+		dprintf("darwintrace: renaming from %s was forbidden\n", from);
+		__darwintrace_log_op("sandbox_violation", NULL, from, 0);
+		errno = EACCES;
+		result = -1;
+	}
+
+	if (result == 0) {
+		isInSandbox = __darwintrace_is_in_sandbox(to);
+		if (isInSandbox == 1) {
+			dprintf("darwintrace: rename was allowed at %s\n", to);
+		} else if (isInSandbox == 0) {
+			/* outside sandbox, but sandbox is defined: forbid */
+			dprintf("darwintrace: renaming to %s was forbidden\n", to);
+			__darwintrace_log_op("sandbox_violation", NULL, to, 0);
+			errno = EACCES;
+			result = -1;
+		}
+	}
+	
+	if (result == 0) {
+		result = __rename(from, to);
 	}
 	
 	return result;

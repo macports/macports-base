@@ -2,7 +2,7 @@
 #\
 exec @TCLSH@ "$0" "$@"
 # port.tcl
-# $Id: port.tcl,v 1.160 2006/05/24 00:42:56 pguyot Exp $
+# $Id: port.tcl,v 1.160.2.4 2006/08/10 03:04:17 jberry Exp $
 #
 # Copyright (c) 2002-2006 DarwinPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
@@ -40,7 +40,6 @@ exec @TCLSH@ "$0" "$@"
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
-
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -124,7 +123,7 @@ proc ui_channels {priority} {
 # Standard procedures
 proc print_usage {args} {
 	global cmdname
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 		
@@ -137,7 +136,7 @@ proc print_help {args} {
 	global cmdname
 	global action_array
 	
-	set syntax { [-bcdfFiknopqRstuxv] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+	set syntax { [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
 [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
 }
 
@@ -192,7 +191,7 @@ combined using expressions consisting of and, or, not, !, (, and ).
 For more information
 --------------------
 See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
-porthier(7), portstyle(7). Also, see http://www.darwinports.org.
+porthier(7), portstyle(7). Also, see http://www.macports.org.
 }
 
 	
@@ -1338,7 +1337,7 @@ proc action_provides { action portlist opts } {
 				if { $port != 0 } {
 					puts "$file is provided by: $port"
 				} else {
-					puts "$file is not provided by a DarwinPorts port."
+					puts "$file is not provided by a MacPorts port."
 				}
 			} else {
 				puts "$file is a directory."
@@ -1383,6 +1382,7 @@ proc action_deactivate { action portlist opts } {
 
 
 proc action_selfupdate { action portlist opts } {
+	global global_options;
 	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -1470,7 +1470,7 @@ proc action_dependents { action portlist opts } {
 
 proc action_uninstall { action portlist opts } {
 	set status 0
-	if {[info exists global_options(port_uninstall_old)]} {
+	if {[global_option_isset port_uninstall_old]} {
 		# if -u then uninstall all inactive ports
 		# (union these to any other ports user has in the port list)
 		set portlist [opUnion $portlist [get_inactive_ports]]
@@ -1851,7 +1851,7 @@ proc action_echo { action portlist opts } {
 
 proc action_portcmds { action portlist opts } {
 	# Operations on the port's directory and Portfile
-	global env, boot_env
+	global env boot_env
 	global current_portdir
 	
 	set status 0
@@ -2411,7 +2411,7 @@ proc process_command_file { in } {
 	# Be noisy, if appropriate
 	set noisy [expr $isstdin && ![ui_isset ports_quiet]]
 	if { $noisy } {
-		puts "DarwinPorts [darwinports::version]"
+		puts "MacPorts [darwinports::version]"
 		puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
 	}
 	

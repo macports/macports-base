@@ -21,7 +21,7 @@ sources_conf		@PORTCONFIGDIR_EXPANDED@/sources.conf
 variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
 
 # Create and use binary archive packages for installation/reinstallation ease
-portarchivemode		yes
+portarchivemode		no
 
 # Where to store/retrieve ports binary archive files
 portarchivepath		@localstatedir_expanded@/db/dports/packages
