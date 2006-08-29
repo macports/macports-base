@@ -1,0 +1,35 @@
+#!/bin/sh
+# fkr, jberry, yeled
+# checks out both HEAD and then the svn url specified in $RELEASE_URL_FILE
+# made for dulcinea 2005-12-06
+# TODO should clean up after itself.
+# TODO shouldn't refer to the Tag as "dp1.0"
+
+set -e
+
+SVN=/opt/local/bin/svn
+DPROOT="/Volumes/bigsrc/darwinports"
+REPO_BASE=http://svn.macports.org/repository/macports
+RELEASE_URL_FILE="base/config/RELEASE_URL"
+
+# Check out HEAD
+TMPDIR=dp
+cd ${DPROOT}
+rm -Rf ${DPROOT}/${TMPDIR}.tmp
+#cvs -q -R -d /cvs/od co -P -d ${TMPDIR}.tmp darwinports
+$SVN checkout ${REPO_BASE}/trunk ${DPROOT}/${TMPDIR}.tmp
+rsync -q --exclude=.svn -a --delete ${DPROOT}/${TMPDIR}.tmp/ ${DPROOT}/${TMPDIR}/
+echo `date -u +%s` > ${DPROOT}/${TMPDIR}/TIMESTAMP
+
+# Extract the release URL from HEAD
+read RELEASE_URL < ${DPROOT}/${TMPDIR}/${RELEASE_URL_FILE}
+[ -n "${RELEASE_URL}" ] || { echo "no RELEASE_URL specified in svn HEAD" ; exit 1 }
+
+# Checkout from the release tag specified in HEAD
+TMPDIR=dp1.0
+cd ${DPROOT}
+rm -Rf ${DPROOT}/${TMPDIR}.tmp
+#cvs -q -R -d /cvs/od co -r ${RELEASE_TAG} -P -d ${TMPDIR}.tmp darwinports
+$SVN checkout ${RELEASE_URL} ${DPROOT}/${TMPDIR}.tmp
+rsync -q --exclude=.svn -a --delete ${DPROOT}/${TMPDIR}.tmp/ ${DPROOT}/${TMPDIR}/
+echo `date -u +%s` > ${DPROOT}/${TMPDIR}/TIMESTAMP
