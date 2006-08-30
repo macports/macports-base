@@ -1,14 +1,14 @@
 #!/bin/sh
 # fkr, jberry, yeled
 # checks out both HEAD and then the svn url specified in $RELEASE_URL_FILE
-# made for dulcinea 2005-12-06
+# made for sampson 2006-08-30
 # TODO should clean up after itself.
 # TODO shouldn't refer to the Tag as "dp1.0"
 
 set -e
 
-SVN=/opt/local/bin/svn
-DPROOT="/Volumes/bigsrc/darwinports"
+SVN=/usr/bin/svn
+DPROOT="/Volumes/src2/darwinports"
 REPO_BASE=http://svn.macports.org/repository/macports
 RELEASE_URL_FILE="base/config/RELEASE_URL"
 
