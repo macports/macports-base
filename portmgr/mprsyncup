@@ -14,10 +14,11 @@ RELEASE_URL_FILE="base/config/RELEASE_URL"
 
 # Check out HEAD
 TMPDIR=dp
-cd ${DPROOT}
-rm -Rf ${DPROOT}/${TMPDIR}.tmp
-#cvs -q -R -d /cvs/od co -P -d ${TMPDIR}.tmp darwinports
-$SVN checkout ${REPO_BASE}/trunk ${DPROOT}/${TMPDIR}.tmp
+if [ -d ${DPROOT}/${TMPDIR}.tmp ]; then
+	$SVN update ${DPROOT}/${TMPDIR}.tmp
+else
+	$SVN checkout ${REPO_BASE}/trunk ${DPROOT}/${TMPDIR}.tmp
+fi
 rsync -q --exclude=.svn -a --delete ${DPROOT}/${TMPDIR}.tmp/ ${DPROOT}/${TMPDIR}/
 echo `date -u +%s` > ${DPROOT}/${TMPDIR}/TIMESTAMP
 
@@ -27,9 +28,10 @@ read RELEASE_URL < ${DPROOT}/${TMPDIR}/${RELEASE_URL_FILE}
 
 # Checkout from the release tag specified in HEAD
 TMPDIR=dp1.0
-cd ${DPROOT}
-rm -Rf ${DPROOT}/${TMPDIR}.tmp
-#cvs -q -R -d /cvs/od co -r ${RELEASE_TAG} -P -d ${TMPDIR}.tmp darwinports
-$SVN checkout ${RELEASE_URL} ${DPROOT}/${TMPDIR}.tmp
+if [ -d ${DPROOT}/${TMPDIR}.tmp ]; then
+	$SVN switch ${RELEASE_URL} ${DPROOT}/${TMPDIR}.tmp
+else
+	$SVN checkout ${RELEASE_URL} ${DPROOT}/${TMPDIR}.tmp
+fi
 rsync -q --exclude=.svn -a --delete ${DPROOT}/${TMPDIR}.tmp/ ${DPROOT}/${TMPDIR}/
 echo `date -u +%s` > ${DPROOT}/${TMPDIR}/TIMESTAMP
