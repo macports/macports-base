@@ -4,6 +4,8 @@
 # made for sampson 2006-08-30
 # TODO should clean up after itself.
 # TODO shouldn't refer to the Tag as "dp1.0"
+# TODO stop using darwinports -> macports?
+#
 
 set -e
 
@@ -24,7 +26,7 @@ echo `date -u +%s` > ${DPROOT}/${TMPDIR}/TIMESTAMP
 
 # Extract the release URL from HEAD
 read RELEASE_URL < ${DPROOT}/${TMPDIR}/${RELEASE_URL_FILE}
-[ -n "${RELEASE_URL}" ] || { echo "no RELEASE_URL specified in svn HEAD" ; exit 1 }
+[ -n ${RELEASE_URL} ] || { echo "no RELEASE_URL specified in svn HEAD" ; exit 1; }
 
 # Checkout from the release tag specified in HEAD
 TMPDIR=dp1.0
