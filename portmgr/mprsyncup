@@ -9,7 +9,7 @@
 
 set -e
 
-SVN=/usr/bin/svn
+SVN="/usr/bin/svn -q"
 DPROOT="/Volumes/src2/darwinports"
 REPO_BASE=http://svn.macports.org/repository/macports
 RELEASE_URL_FILE="base/config/RELEASE_URL"
