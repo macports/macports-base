@@ -1,7 +1,7 @@
 # et:ts=4
 # python-1.0.tcl
 #
-# $Id: python-1.0.tcl,v 1.6 2004/12/12 01:12:28 landonf Exp $
+# $Id$
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.

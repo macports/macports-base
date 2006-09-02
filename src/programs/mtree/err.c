@@ -1,4 +1,4 @@
-/*	$Id: err.c,v 1.2 2003/06/21 21:47:48 ssen Exp $	*/
+/*	$Id$	*/
 
 /*
  * Copyright 1997-2000 Luke Mewburn <lukem@netbsd.org>.

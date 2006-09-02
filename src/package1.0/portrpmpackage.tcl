@@ -1,6 +1,6 @@
 # et:ts=4
 # portrpmpackage.tcl
-# $Id: portrpmpackage.tcl,v 1.8 2006/06/07 21:31:16 mww Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

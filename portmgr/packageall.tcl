@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 # packageall.tcl
-# $Id: packageall.tcl,v 1.1 2005/12/06 20:47:42 jmpp Exp $
+# $Id$
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

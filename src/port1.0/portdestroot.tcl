@@ -1,6 +1,6 @@
 # et:ts=4
 # portdestroot.tcl
-# $Id: portdestroot.tcl,v 1.29 2005/10/27 19:21:07 mww Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 - 2005 Robert Shaw <rshaw@opendarwin.org>

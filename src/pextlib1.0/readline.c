@@ -4,7 +4,7 @@
  * Some basic readline support callable from Tcl
  * By James D. Berry <jberry@opendarwin.org> 10/27/05
  *
- * $Id: readline.c,v 1.2 2006/01/07 23:08:58 jberry Exp $
+ * $Id$
  *
  */
 

@@ -1,4 +1,4 @@
-# $Id: mirror_sites.tcl,v 1.39 2006/08/02 00:24:14 pguyot Exp $
+# $Id$
 # mirror_sites.tcl
 #
 # List of master site classes for use in Portfiles

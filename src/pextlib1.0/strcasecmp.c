@@ -1,6 +1,6 @@
 /*
  * strcasecmp.c
- * $Id: strcasecmp.c,v 1.2 2004/07/01 17:43:20 wbb4 Exp $
+ * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.

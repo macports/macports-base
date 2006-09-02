@@ -1,7 +1,7 @@
 # et:ts=4
 # python24-1.0.tcl
 #
-# $Id: python24-1.0.tcl,v 1.2 2005/01/13 20:39:14 mww Exp $
+# $Id$
 #
 # Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
 # All rights reserved.

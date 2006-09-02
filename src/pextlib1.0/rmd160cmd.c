@@ -1,6 +1,6 @@
 /*
  * rmd160cmd.c
- * $Id: rmd160cmd.c,v 1.2 2006/02/12 06:04:46 landonf Exp $
+ * $Id$
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

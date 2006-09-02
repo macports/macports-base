@@ -1,6 +1,6 @@
 /*
  * readline.h
- * $Id: readline.h,v 1.2 2006/01/07 23:08:58 jberry Exp $
+ * $Id$
  *
  */
 

@@ -1,6 +1,6 @@
 # et:ts=4
 # portactivate.tcl
-# $Id: portactivate.tcl,v 1.6 2005/09/19 20:51:47 jberry Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>

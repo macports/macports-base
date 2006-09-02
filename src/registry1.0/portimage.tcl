@@ -1,5 +1,5 @@
 # portimage.tcl
-# $Id: portimage.tcl,v 1.17 2006/01/22 22:32:20 jmpp Exp $
+# $Id$
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.

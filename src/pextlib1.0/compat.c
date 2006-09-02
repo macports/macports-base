@@ -1,6 +1,6 @@
 /*
  * compat.c
- * $Id: compat.c,v 1.5 2005/02/01 07:39:17 pguyot Exp $
+ * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.

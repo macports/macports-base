@@ -1,4 +1,4 @@
-dnl $Id: configure.ac,v 1.2 2003/06/21 21:47:48 ssen Exp $
+dnl $Id$
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
 AC_INIT([nbsd-mtree], [20021009], [agc@netbsd.org])

@@ -1,7 +1,7 @@
 # et:ts=4
 # portdistcheck.tcl
 #
-# $Id: portdistcheck.tcl,v 1.1 2006/04/17 21:49:19 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.

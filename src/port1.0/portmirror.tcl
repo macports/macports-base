@@ -1,7 +1,7 @@
 # et:ts=4
 # portmirror.tcl
 #
-# $Id: portmirror.tcl,v 1.2 2006/06/10 08:07:40 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2006 Paul Guyot <pguyot@kallisys.net>,
 # All rights reserved.

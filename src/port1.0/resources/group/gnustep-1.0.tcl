@@ -1,7 +1,7 @@
 # et:ts=4
 # gnustep.tcl
 #
-# $Id: gnustep-1.0.tcl,v 1.1 2006/08/02 00:24:15 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2006 Yves de Champlain <yves@opendarwin.org>,
 # All rights reserved.

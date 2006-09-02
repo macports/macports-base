@@ -1,4 +1,4 @@
-# $Id: Portfile,v 1.7 2006/08/04 06:40:42 pguyot Exp $
+# $Id$
 
 PortSystem 1.0
 name		trace

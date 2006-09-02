@@ -3,7 +3,7 @@
  * Copyright (c) 2005-2006 Paul Guyot <pguyot@kallisys.net>,
  * All rights reserved.
  *
- * $Id: darwintrace.c,v 1.21 2006/08/04 06:40:41 pguyot Exp $
+ * $Id$
  *
  * @APPLE_BSD_LICENSE_HEADER_START@
  * 

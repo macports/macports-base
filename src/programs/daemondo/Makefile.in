@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.6 2005/10/08 02:20:40 jmpp Exp $
+# $Id$
 
 top_srcdir = @top_srcdir@
 

@@ -1,6 +1,6 @@
 # et:ts=4
 # portdpkg.tcl
-# $Id: portdpkg.tcl,v 1.7 2005/08/27 00:07:27 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.

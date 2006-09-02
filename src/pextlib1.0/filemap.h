@@ -1,6 +1,6 @@
 /*
  * filemap.h
- * $Id: filemap.h,v 1.4 2005/07/26 11:30:32 pguyot Exp $
+ * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.

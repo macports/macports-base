@@ -1,6 +1,6 @@
 # et:ts=4
 # portextract.tcl
-# $Id: portextract.tcl,v 1.41 2005/08/27 00:07:30 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

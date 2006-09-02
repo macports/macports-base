@@ -1,6 +1,6 @@
 # et:ts=4
 # portuninstall.tcl
-# $Id: portuninstall.tcl,v 1.15 2006/01/22 22:32:20 jmpp Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

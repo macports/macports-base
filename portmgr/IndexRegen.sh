@@ -6,7 +6,7 @@
 # e-mail: jmpp@opendarwin.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
 # Updated for svn by Daniel J. Luke <dluke@geeklair.net>
-# $Id: IndexRegen.sh,v 1.1 2005/12/06 20:47:42 jmpp Exp $
+# $Id$
 ####
 
 # Configuration

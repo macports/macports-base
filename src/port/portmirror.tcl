@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 
 # Updates the distfiles to current distfiles by deleting old stuff.
 # Uses the database.
-# $Id: portmirror.tcl,v 1.1 2006/06/10 23:32:54 pguyot Exp $
+# $Id$
 
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}

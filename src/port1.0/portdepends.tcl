@@ -1,6 +1,6 @@
 # et:ts=4
 # portdepends.tcl
-# $Id: portdepends.tcl,v 1.43 2005/10/10 13:51:36 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

@@ -1,7 +1,7 @@
 # et:ts=4
 # zope-1.0.tcl
 #
-# $Id: zope-1.0.tcl,v 1.6 2005/03/11 18:54:15 rshaw Exp $
+# $Id$
 # 
 # Group file for 'zope' group.
 #

@@ -1,6 +1,6 @@
 /*
  * md_wrappers.h
- * $Id: md_wrappers.h,v 1.2 2006/02/12 06:04:23 landonf Exp $
+ * $Id$
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

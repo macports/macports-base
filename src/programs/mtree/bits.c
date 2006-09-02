@@ -33,7 +33,7 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-__RCSID("$Id: bits.c,v 1.2 2003/06/21 21:47:47 ssen Exp $");
+__RCSID("$Id$");
 #endif
 #include <stdio.h>
 #include <string.h>
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     }
     fprintf(f, "/* %s -- this file was generated for %s by\n", fn, HOST);
     fprintf(f, "   %*s    %s */\n\n", (int)strlen(fn), "", 
-	    "$Id: bits.c,v 1.2 2003/06/21 21:47:47 ssen Exp $");
+	    "$Id$");
     fprintf(f, "#ifndef %s\n", hb);
     fprintf(f, "#define %s\n", hb);
     fprintf(f, "\n");

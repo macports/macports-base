@@ -1,6 +1,6 @@
 /*
  * uid.h
- * $Id: uid.h,v 1.2 2006/04/07 04:58:43 jberry Exp $
+ * $Id$
  *
  * Copyright (c) 2005, Darwinports Team.
  * All rights reserved.

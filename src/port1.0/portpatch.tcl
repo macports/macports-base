@@ -1,6 +1,6 @@
 # et:ts=4
 # portpatch.tcl
-# $Id: portpatch.tcl,v 1.30 2006/04/30 05:32:52 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.

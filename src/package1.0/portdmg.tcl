@@ -1,6 +1,6 @@
 # et:ts=4
 # portdmg.tcl
-# $Id: portdmg.tcl,v 1.4 2005/08/27 00:07:27 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2003 Apple Computer, Inc.
 # All rights reserved.

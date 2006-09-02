@@ -1,6 +1,6 @@
 /*
  * rmd160cmd.h
- * $Id: rmd160cmd.h,v 1.2 2005/08/27 00:07:28 pguyot Exp $
+ * $Id$
  *
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.

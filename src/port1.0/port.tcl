@@ -1,6 +1,6 @@
 # et:ts=4
 # port.tcl
-# $Id: port.tcl,v 1.42 2006/05/24 00:42:56 pguyot Exp $
+# $Id$
 #
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.

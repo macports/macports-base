@@ -1,6 +1,6 @@
 /*
  * md5cmd.c
- * $Id: md5cmd.c,v 1.5 2005/08/27 00:07:28 pguyot Exp $
+ * $Id$
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * All rights reserved.

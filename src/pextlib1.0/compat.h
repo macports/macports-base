@@ -1,6 +1,6 @@
 /*
  * compat.h
- * $Id: compat.h,v 1.3 2004/12/13 17:58:06 pguyot Exp $
+ * $Id$
  *
  * Copyright (c) 2004 Paul Guyot, Darwinports Team.
  * All rights reserved.

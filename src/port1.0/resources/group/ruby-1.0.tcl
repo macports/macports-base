@@ -1,4 +1,4 @@
-# $Id: ruby-1.0.tcl,v 1.7 2006/07/31 04:32:06 pguyot Exp $
+# $Id$
 # ruby-1.0.tcl
 # 
 # Group file for 'ruby' group.

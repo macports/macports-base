@@ -4,7 +4,7 @@
  * uid handling routines
  * By James D. Berry <jberry@opendarwin.org> 4/6/06
  *
- * $Id: uid.c,v 1.1 2006/04/07 04:55:40 jberry Exp $
+ * $Id$
  *
  */
  
