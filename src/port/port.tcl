@@ -1571,9 +1571,8 @@ proc action_outdated { action portlist opts } {
 		}
 	}
 
-	if { [llength $ilist] > 0 } {
-		puts "The following installed ports are outdated:"
-	
+	set num_outdated 0
+	if { [llength $ilist] > 0 } {	
 		foreach i $ilist { 
 		
 			# Get information about the installed port
@@ -1634,13 +1633,23 @@ proc action_outdated { action portlist opts } {
 				
 				# Emit information
 				if {$comp_result < 0 || [ui_isset ports_verbose]} {
+				
+					if { $num_outdated == 0 } {
+						puts "The following installed ports are outdated:"
+					}
+					incr num_outdated
+
 					puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound" $flag]
 				}
 				
 			}
 		}
+		
+		if { $num_outdated == 0 } {
+			puts "No installed ports are outdated."
+		}
 	} else {
-		puts "No installed ports are outdated."
+		puts "No ports are installed."
 	}
 	
 	return $status
