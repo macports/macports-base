@@ -367,7 +367,8 @@ proc url_to_portname { url {quiet 0} } {
 	set portname ""
 	if {[catch {set ctx [dportopen $url]} result]} {
 		if {!$quiet} {
-			puts stderr "Can't map the URL '$url' to a port description file (${result}). Please verify that the directory and portfile syntax are correct."
+			ui_msg "Can't map the URL '$url' to a port description file (\"${result}\")."
+			ui_msg "Please verify that the directory and portfile syntax are correct."
 		}
 	} else {
 		array set portinfo [dportinfo $ctx]
@@ -483,7 +484,9 @@ proc get_current_port {} {
 	set url file://.
 	set portname [url_to_portname $url]
 	if {$portname == ""} {
-		ui_error "To use the current port, you must be in a port's directory"
+		ui_msg "To use the current port, you must be in a port's directory."
+		ui_msg "(you might also see this message if a pseudo-port such as"
+		ui_msg "outdated or installed expands to no ports)."
 	}
 	
 	set results {}
