@@ -151,15 +151,16 @@ class PortPlugin < Plugin
 		
 		doHerald = true
 		email = @registry["email_#{nick}"]
-		lastHerald = @registry["lastherald_#{email}"]
-		if (lastHerald)
-			secondsAgo = now - lastHerald
-			doHerald = secondsAgo > minSecondsBetween
+		if (email)
+			lastHerald = @registry["lastherald_#{email}"]
+			if (lastHerald)
+				secondsAgo = now - lastHerald
+				doHerald = secondsAgo > minSecondsBetween
+			end
+			@registry["lastherald_#{email}"] = now
 		end
 		
 		heraldUser where, nick if doHerald
-
-		@registry["lastherald_#{email}"] = now
 	end
 	
 	def join(m)
@@ -169,7 +170,7 @@ class PortPlugin < Plugin
 	def part(m)
 		nick = m.sourcenick
 		email = @registry["email_#{nick}"]
-		@registry["lastherald_#{email}"] = Time.new 
+		@registry["lastherald_#{email}"] = Time.new if email
 	end
 	
 	def nick(m)
