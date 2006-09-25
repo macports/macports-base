@@ -3,7 +3,7 @@
 ####
 # PortIndex regen automation script.
 # Created by Juan Manuel Palacios,
-# e-mail: jmpp@opendarwin.org
+# e-mail: jmpp@macports.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
 # Updated for svn by Daniel J. Luke <dluke@geeklair.net>
 # $Id$
@@ -18,7 +18,7 @@ DP_USER=dluke
 # DP group.
 DP_GROUP=staff
 # e-mail address to spam in case of failure.
-SPAM_LOVERS=portmgr@opendarwin.org,dluke@geeklair.net
+SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
 SVN_URL=https://svn.macosforge.org/repository/macports/trunk/
