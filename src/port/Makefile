@@ -34,4 +34,4 @@ install: mkdirs
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
-	$(LN_S) -f ${prefix}/bin/port ${INSTALLDIR}/bin/portf
+	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf
