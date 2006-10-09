@@ -444,6 +444,7 @@ proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field nam
 
 	set results {}
 	foreach {name info} $res {
+		array unset portinfo
 		array set portinfo $info
 		
 		#set variants {}
@@ -584,6 +585,7 @@ proc get_outdated_ports {} {
 				}
 				continue
 			}
+			array unset portinfo
 			array set portinfo [lindex $res 1]
 			
 			# Get information about latest available version and revision
@@ -1148,6 +1150,7 @@ proc action_info { action portlist opts } {
 			if {$found > 1} {
 				ui_warn "Found $found port $portname definitions, displaying first one."
 			}
+			array unset portinfo
 			array set portinfo [lindex $result 1]
 			
 			
@@ -1602,6 +1605,7 @@ proc action_outdated { action portlist opts } {
 				}
 				continue
 			}
+			array unset portinfo
 			array set portinfo [lindex $res 1]
 			
 			# Get information about latest available version and revision
@@ -1697,6 +1701,7 @@ proc action_deps { action portlist opts } {
 			break_softcontinue "No port $portname found." 1 status
 		}
 
+		array unset portinfo
 		array set portinfo [lindex $result 1]
 
 		set depstypes {depends_build depends_lib depends_run}
@@ -1739,6 +1744,7 @@ proc action_variants { action portlist opts } {
 			puts "No port $portname found."
 		}
 	
+		array unset portinfo
 		array set portinfo [lindex $result 1]
 	
 		# if this fails the port doesn't have any variants
@@ -1772,6 +1778,7 @@ proc action_search { action portlist opts } {
 			break_softcontinue "search for portname $portname failed: $result" 1 status
 		}
 		foreach {name array} $res {
+			array unset portinfo
 			array set portinfo $array
 
 			# XXX is this the right place to verify an entry?
@@ -1794,7 +1801,6 @@ proc action_search { action portlist opts } {
 			}
 			set portfound 1
 			puts $output
-			unset portinfo
 		}
 		if { !$portfound } {
 			ui_msg "No match for $portname found"
@@ -1827,6 +1833,7 @@ proc action_list { action portlist opts } {
 		}
 
 		foreach {name array} $res {
+			array unset portinfo
 			array set portinfo $array
 			set outdir ""
 			if {[info exists portinfo(portdir)]} {
@@ -1994,6 +2001,7 @@ proc action_target { action portlist opts } {
 			if {[llength $res] < 2} {
 				break_softcontinue "Port $portname not found" 1 status
 			}
+			array unset portinfo
 			array set portinfo [lindex $res 1]
 			set porturl $portinfo(porturl)
 		}
