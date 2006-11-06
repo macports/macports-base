@@ -96,6 +96,10 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			homepage		http://rubyforge.org/projects/${ruby.project}
 			master_sites	http://rubyforge.org/frs/download.php/${num}/
 		}
+		rubyforge_gem {
+			homepage		http://rubyforge.org/projects/${ruby.project}
+			master_sites	http://rubyforge.rubyuser.de/gems/
+		}
 		sourceforge:* {
 			set ruby.project [lindex [split ${source} {:}] 1]
 			homepage		http://sourceforge.net/projects/${ruby.project}
