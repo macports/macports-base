@@ -90,15 +90,24 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			set ruby.project [string tolower [lindex [split ${source} {:}] 2]]
 			homepage		http://rubyforge.org/projects/${ruby.project}
 			master_sites	http://rubyforge.org/frs/download.php/${num}/
+			livecheck.check	regex
+			livecheck.url	http://rubyforge.org/projects/${ruby.project}
+			livecheck.regex	"<strong>${ruby.project}</strong></td><td>REL (.*)$"
 		}
 		rubyforge:* {
 			set num [lindex [split ${source} {:}] 1]
 			homepage		http://rubyforge.org/projects/${ruby.project}
 			master_sites	http://rubyforge.org/frs/download.php/${num}/
+			livecheck.check	regex
+			livecheck.url	http://rubyforge.org/projects/${ruby.project}
+			livecheck.regex	"<strong>${ruby.project}</strong></td><td>REL (.*)$"
 		}
 		rubyforge_gem {
 			homepage		http://rubyforge.org/projects/${ruby.project}
 			master_sites	http://rubyforge.rubyuser.de/gems/
+			livecheck.check	regex
+			livecheck.url	http://rubyforge.org/projects/${ruby.project}
+			livecheck.regex	"<strong>${ruby.project}</strong></td><td>REL (.*)$"
 		}
 		sourceforge:* {
 			set ruby.project [lindex [split ${source} {:}] 1]
