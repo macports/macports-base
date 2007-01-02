@@ -1671,7 +1671,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 
 	# install version_in_tree
 	if {0 == [string compare "yes" ${darwinports::portarchivemode}]} {
-		set upgrade_action "unarchive"
+		set upgrade_action "archive"
 	} else {
 		set upgrade_action "destroot"
 	}
