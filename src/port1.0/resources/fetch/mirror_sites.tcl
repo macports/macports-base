@@ -194,20 +194,7 @@ set portfetch::mirror_sites::sites(ruby) {
 }
 
 set portfetch::mirror_sites::sites(sourceforge) {
-    http://easynews.dl.sourceforge.net/
-    http://surfnet.dl.sourceforge.net/
-    http://belnet.dl.sourceforge.net/
-    http://heanet.dl.sourceforge.net/
-    http://ovh.dl.sourceforge.net/
-    http://internap.dl.sourceforge.net/
-    http://jaist.dl.sourceforge.net/
-    http://umn.dl.sourceforge.net/
-    http://kent.dl.sourceforge.net/
-    http://mesh.dl.sourceforge.net/
-    http://ufpr.dl.sourceforge.net/
-    http://nchc.dl.sourceforge.net/
-    http://switch.dl.sourceforge.net/
-    http://superb-west.dl.sourceforge.net/
+    http://downloads.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sunsite) {
