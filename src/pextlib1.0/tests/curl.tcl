@@ -42,9 +42,9 @@ proc main {pextlibname} {
 	}
 	
 	# use -u
-	curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/ast-ksh.2005-02-02.tgz $tempfile
-	if {[md5 file $tempfile] != "fecce7e67b55fe986c7c2163346e0977"} {
-		puts {[md5 file $tempfile] != "fecce7e67b55fe986c7c2163346e0977"}
+	curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/ast-ksh.2007-01-11.tgz $tempfile
+	if {[md5 file $tempfile] != "a24a0b8d8dc81600d624e3c0f2159e38"} {
+		puts {[md5 file $tempfile] != "a24a0b8d8dc81600d624e3c0f2159e38"}
 		exit 1
 	}
 	
