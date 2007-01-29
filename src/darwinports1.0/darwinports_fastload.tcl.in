@@ -73,16 +73,9 @@ if { ($tcl_version < 8.4) ||
 set dir [file join "@TCL_PACKAGE_DIR@" darwinports1.0]
 catch {source [file join $dir pkgIndex.tcl]}
 
-# I could iterate on the directory, but the only way I know in Tcl involves a
-# native function we provide in pextlib.
-set dir [file join "@prefix_expanded@" share darwinports Tcl port1.0]
-catch {source [file join $dir pkgIndex.tcl]}
-set dir [file join "@prefix_expanded@" share darwinports Tcl package1.0]
-catch {source [file join $dir pkgIndex.tcl]}
-set dir [file join "@prefix_expanded@" share darwinports Tcl pextlib1.0]
-catch {source [file join $dir pkgIndex.tcl]}
-set dir [file join "@prefix_expanded@" share darwinports Tcl registry1.0]
-catch {source [file join $dir pkgIndex.tcl]}
+foreach dir [glob -directory "@prefix_expanded@" -join share darwinports Tcl *] {
+	catch {source [file join $dir pkgIndex.tcl]}
+}
 
 if { "@SQLITE3_DIR@" != "" } {
 	set dir "@SQLITE3_DIR@"
