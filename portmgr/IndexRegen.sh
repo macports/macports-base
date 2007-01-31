@@ -21,7 +21,7 @@ DP_GROUP=staff
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
-SVN_URL=https://svn.macports.org/repository/macports/trunk/
+SVN_URL=http://svn.macports.org/repository/macports/trunk/
 SVN_CONFIG_DIR=${ROOT}/svnconfig
 # Where to checkout the source code. This gets created.
 TREE=${ROOT}/source
