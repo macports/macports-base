@@ -10,9 +10,9 @@
 ####
 
 # Configuration
-LOCKFILE=/tmp/.dp_svn_index_regen.lock
+LOCKFILE=/tmp/.mp_svn_index_regen.lock
 # ROOT directory, where everything is. This must exist.
-ROOT=/Users/dluke/Projects/dp_svn_index_regen
+ROOT=/Users/dluke/Projects/mp_svn_index_regen
 # DP user.
 DP_USER=dluke
 # DP group.
