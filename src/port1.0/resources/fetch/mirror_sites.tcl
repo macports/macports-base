@@ -146,6 +146,11 @@ set portfetch::mirror_sites::sites(kde) {
     http://ftp.tiscali.nl/kde/
 }
 
+set portfetch::mirror_sites::sites(macports) {
+    http://svn.macosforge.org/repository/macports/distfiles/
+    http://svn.macosforge.org/repository/macports/distfiles/general/:nosubdir
+}
+
 set portfetch::mirror_sites::sites(opendarwin) {
     http://distfiles-od.opendarwin.org/:mirror
     http://distfiles-msn.opendarwin.org/:mirror
