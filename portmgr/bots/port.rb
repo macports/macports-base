@@ -40,6 +40,8 @@ class PortPlugin < Plugin
 			return "maintainer <portname> => show maintainer of port <portname>"
 		  when "version"
 			return "version <portname> => show version of port <portname>"
+		  when "search"
+			return "search <query> => show ports matching <query>"
 		  when "herald"
 			return "herald enable|disable => enable or disable heralding by port"
 		  when "remember"
@@ -72,6 +74,10 @@ class PortPlugin < Plugin
 	
 	def portversion(m, params)
 		doPort(m, "info", "--version", params[:portname])
+	end
+	
+	def portsearch(m, params)
+		doPort(m, "search", params[:query])
 	end
 	
 	def herald_enable(m, params)
@@ -188,6 +194,7 @@ plugin = PortPlugin.new
 plugin.map 'port info :portname', :action => 'info'
 plugin.map 'port maintainer :portname', :action => 'portmaintainer'
 plugin.map 'port version :portname', :action => 'portversion'
+#plugin.map 'port search :query', :action => 'portsearch'
 
 plugin.map 'port herald enable', :action => 'herald_enable'
 plugin.map 'port herald disable', :action => 'herald_disable'
