@@ -95,6 +95,7 @@ default destroot.cmd		$xcodebuildcmd
 default destroot.args		install
 default destroot.pre_args	{}
 default destroot.target		""
+default destroot.destdir	{DSTROOT="${destroot}"}
 
 # Default values for parameters.
 options xcode.project
@@ -254,17 +255,18 @@ build {
 	# set some arguments.
 	set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
 	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
+	set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
 	
 	# iterate on targets if there is any, do -alltargets otherwise.
 	if {"$xcode_targets" == ""} {
 		xcode::build_one_target \
 			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
-			"${xcode.build.settings}"
+			"$xcode_build_args ${xcode.build.settings}"
 	} else {
 		foreach target $xcode_targets {
 			xcode::build_one_target \
 				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
-				"${xcode.build.settings}"
+				"$xcode_build_args ${xcode.build.settings}"
 		}
 	}
 }
@@ -286,17 +288,18 @@ destroot {
 	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
 	set xcode_install_path_setting [xcode::get_install_path_setting \
 		${xcode.destroot.path} ${xcode.destroot.type}]
+	set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
 	
 	# iterate on targets if there is any, do -alltargets otherwise.
 	if {"$xcode_targets" == ""} {
 		xcode::destroot_one_target \
 			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
-			"$xcode_install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
+			"$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
 	} else {
 		foreach target $xcode_targets {
 			xcode::destroot_one_target \
 				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
-				"$xcode_install_path_setting DSTROOT=$destroot ${xcode.destroot.settings}"
+				"$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
 		}
 	}
 }
