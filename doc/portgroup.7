@@ -27,12 +27,12 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd August 31, 2005
-.Dt XCODE 7 "Darwinports"
+.Dd February 5, 2007
+.Dt XCODE 7 "MacPorts"
 .Os
 .Sh NAME
 .Nm PortGroup
-.Nd Darwinports PortGroup command reference
+.Nd MacPorts PortGroup command reference
 .Sh SYNOPSIS
 .Nm PortGroup gnustep 1.0
 .Nm PortGroup perl5 1.0
@@ -41,7 +41,7 @@
 .Nm PortGroup ruby 1.0
 .Nm PortGroup xcode 1.0
 .Sh DESCRIPTION
-Darwinports defines the notion of PortGroup classes with the PortGroup command.
+MacPorts defines the notion of PortGroup classes with the PortGroup command.
 These classes factorize the work for similar ports.  Port maintainers willing to
 use
 .Nm PortGroup
@@ -143,7 +143,7 @@ Where to install the build product.
 .Sy Default:
 .Em /Library/Frameworks
 or
-.Em /Application/DarwinPorts depending on xcode.destroot.type
+.Em /Application/MacPorts depending on xcode.destroot.type
 .br
 .It Ic xcode.destroot.settings
 Additional settings passed to the xcode build tool during the destroot phase.
@@ -235,6 +235,113 @@ Where to destroot the project from (i.e. where the Xcode project is).
 .Sy Default:
 ${worksrcpath}
 .br
+.Sh GNUSTEP PORTGROUP
+.Nm PortGroup gnustep
+is here to easily port GNUstep-based opensource software using the GNU 
+objective-C runtime. It handles configuration, build and destroot phases.
+It also defines some values for GNUstep-based software. A minimum Portfile 
+using the gnustep PortGroup class only defines the fetch and the checksum phases.
+.Pp
+.Sh GNUSTEP PORTGROUP SUGAR
+Portfiles using gnustep PortGroup do not need to define the following variables:
+.Bl -tag -width lc
+.It Ic categories
+.Sy Default:
+.Em gnustep
+.br
+.It Ic homepage
+.Sy Default:
+.Em http://www.gnustep.org/
+.br
+.It Ic master_sites
+.Sy Default:
+.Em gnustep:core
+.br
+.It Ic depends_build
+.Sy Default:
+.Em port:gnustep-make
+.br
+.It Ic depends_lib
+.Sy Default:
+.Em gnustep-back
+.br
+.It Ic use_configure
+.Sy Default:
+.Em no
+.It Ic configure.args
+.Sy Default:
+.Em CC=gcc-dp-4.1
+.br
+.It Ic build.type
+.Sy Default:
+.Em gnu
+.br
+.It Ic build.args
+.Sy Default:
+.Em messages=yes
+.br
+.It Ic destroot.args
+.Sy Default:
+.Em messages=yes
+.br
+.It Ic destroot.destdir
+.Sy Default:
+.Em GNUSTEP_INSTALLATION_DIR=${destroot}${prefix}/GNUstep/$gnustep.domain
+.br
+.br
+.El
+.br
+Moreover, Portfiles using
+.Nm PortGroup gnustep
+do not need to define any build or destroot phase.  Some options are provided
+for tailoring these phases to what the software requires.  A mechanism is also
+provided to ease the patch process.
+.Sh GNUSTEP PORTGROUP SPECIFIC VARIABLES
+Portfiles using 
+.Nm gnustep PortGroup 
+may define the following variables:
+.Bl -tag -width lc
+.It Ic gnustep.post_flags
+an associative array which specifies the sub-directories relative to ${worksrcpath}
+and the SHARED_LD_POSTFLAGS variables to be added to GNUmakefile.preamble in those
+sub-directories.  This helps making the patching process easier on Darwin.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl platform darwin {
+.Dl		array set gnustep.post_flags {
+.Dl			BundleSubDir  """-lfoo -lbar""
+.Dl		}
+.Dl }
+.br
+.It Ic gnustep.domain
+can be System or Local.  It is usually guessed by the 
+.Nm gnustep PortGroup
+but it is sometimes necessary to force the installation directory.  
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em Local
+.br
+.Sy Example:
+.Dl gnustep.domain System
+.br
+.It Ic variant with_docs
+Many GNUstep packages include a Documentation sub-directory that is not
+built by default.  Enabling this variant builds and installs the included 
+documentation.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl port install gnustep-gui +with_docs
+.br
+.El
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
@@ -244,3 +351,4 @@ ${worksrcpath}
 .Xr porthier 7
 .Sh AUTHORS
 .An "Paul Guyot" Aq pguyot@kallisys.net
+.An "Yves de Champlain" Aq yves@macports.org

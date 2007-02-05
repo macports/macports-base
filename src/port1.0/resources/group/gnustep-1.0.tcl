@@ -54,12 +54,12 @@
 #                               }
 #                                
 # default use_configure         no
-# default configure.args        CC-gcc-dp-4.1
+# default configure.args        CC=gcc-dp-4.1
 #
 # default build.type            gnu
 # default build.args            messages=yes
 #
-# default gnustep.domain        System
+# default gnustep.domain        As provided by the current package or Local
 # default destroot.args         messages=yes
 # default destroot.destdir      GNUSTEP_INSTALLATION_DIR=${destroot}${prefix}/GNUstep/$gnustep.domain
 # variant with_docs             GNUstep programs providing documentation should
