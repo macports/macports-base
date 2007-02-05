@@ -6,7 +6,8 @@
 
 Release 1.4 (unreleased):
 
-    - Ruby port group (pguyot).
+    - rubyforge_gem fetch method for the Ruby PortGroup & livecheck support
+      (pguyot in r20544 & r20834, respectively).
 
     - New Python 2.5 GroupCode (mww in r21451).
 
