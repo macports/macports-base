@@ -6,14 +6,16 @@
 
 Release 1.4 (unreleased):
 
-    - GNUStep PortGroup improvements and full documentation in portgroup.7 (yves in r21764)
+    - GNUStep PortGroup improvements and full documentation in portgroup.7 (yves in r21764).
 
     - New 'macports' mirrors list, with entries pointing to svn's /distfiles/<user> &
       /distfiles/general directories in our repo (eridius & jmpp in r21621).
 
-    - Iterate in darwinports_fastload using glob instead of hardcoding the library names (eridius in r21585)
+    - Iterate in darwinports_fastload using glob instead of hardcoding the library names (eridius in r21585).
 
     - New Python 2.5 GroupCode (mww in r21451).
+
+    - Set upgrade.target back to archive (from unarchive) (dluke in r21110).
 
     - rubyforge_gem fetch method for the Ruby PortGroup & livecheck support
       (pguyot in r20544 & r20834, respectively).
