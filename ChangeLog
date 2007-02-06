@@ -11,6 +11,8 @@ Release 1.4 (unreleased):
 
     - GNUStep PortGroup improvements and full documentation in portgroup.7 (yves in r21764).
 
+    - Xcode GroupCode improvements to ensure builds always take place inside the work dir (eridius in r21762).
+
     - New 'macports' mirrors list, with entries pointing to svn's /distfiles/<user> &
       /distfiles/general directories in our repo (eridius & jmpp in r21621).
 
