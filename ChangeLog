@@ -11,6 +11,8 @@ Release 1.4 (unreleased):
     - New 'macports' mirrors list, with entries pointing to svn's /distfiles/<user> &
       /distfiles/general directories in our repo (eridius & jmpp in r21621).
 
+    - Iterate in darwinports_fastload using glob instead of hardcoding the library names (eridius in r21585)
+
     - New Python 2.5 GroupCode (mww in r21451).
 
     - rubyforge_gem fetch method for the Ruby PortGroup & livecheck support
