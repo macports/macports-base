@@ -6,6 +6,9 @@
 
 Release 1.4 (unreleased):
 
+    - New SourceForge mirrors redirector and a few fallback geographically distributed hardcoded ones
+      to prevent disaster from happening, as suggested by Ross Turk (jkh in r21143 & jmpp in r21768).
+
     - GNUStep PortGroup improvements and full documentation in portgroup.7 (yves in r21764).
 
     - New 'macports' mirrors list, with entries pointing to svn's /distfiles/<user> &
