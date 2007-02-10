@@ -172,7 +172,7 @@ proc xcode::get_project_arg { project } {
 proc xcode::get_install_path_setting { path type } {
 	if {$path == ""} {
 		if {$type == "application"} {
-			return "INSTALL_PATH=/Applications/DarwinPorts"
+			return "INSTALL_PATH=/Applications/MacPorts"
 		} elseif {$type == "framework"} {
 			return "INSTALL_PATH=/Library/Frameworks"
 		} else {
