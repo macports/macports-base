@@ -233,10 +233,6 @@ proc checksum_main {args} {
 						ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
 					} else {
 						ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
-						# if -v isn't specified, trash the distfile.
-						if {${portverbose} == "no"} {
-							file delete -force ${fullpath}
-						}
 						ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
 						ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
 						
