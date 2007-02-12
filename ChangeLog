@@ -6,6 +6,9 @@
 
 Release 1.4 (unreleased):
 
+    - /Applications/DarwinPorts --> /Applications/MacPorts migration in base for aqua ports
+      (rhwood in r21852 and r21853, but other commits to this effect were also applied to trunk/dports)
+
     - New SourceForge mirrors redirector and a few fallback geographically distributed hardcoded ones
       to prevent disaster from happening, as suggested by Ross Turk (jkh in r21143 & jmpp in r21768).
 
