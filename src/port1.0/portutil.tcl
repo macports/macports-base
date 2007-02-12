@@ -90,34 +90,33 @@ proc exists {name} {
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
-	eval "proc $option {args} \{ \n\
-	    global ${option} user_options option_procs \n\
-		\if \{!\[info exists user_options(${option})\]\} \{ \n\
-		     set ${option} \$args \n\
-		\} \n\
-	\}"
-	
-	eval "proc ${option}-delete {args} \{ \n\
-	    global ${option} user_options option_procs \n\
-		\if \{!\[info exists user_options(${option})\]\ && \[info exists ${option}\]\} \{ \n\
-		    foreach val \$args \{ \n\
-                       set ${option} \[ldelete \$\{$option\} \$val\] \n\
-		    \} \n\
-		    if \{\[string length \$\{${option}\}\] == 0\} \{ \n\
-			unset ${option} \n\
-		    \} \n\
-		\} \n\
-	\}"
-	eval "proc ${option}-append {args} \{ \n\
-	    global ${option} user_options option_procs \n\
-		\if \{!\[info exists user_options(${option})\]\} \{ \n\
-		    if \{\[info exists ${option}\]\} \{ \n\
-			set ${option} \[concat \$\{$option\} \$args\] \n\
-		    \} else \{ \n\
-			set ${option} \$args \n\
-		    \} \n\
-		\} \n\
-	\}"
+        proc $option {args} "
+            global ${option} user_options option_procs
+            if {!\[info exists user_options(${option})\]} {
+                set ${option} \$args
+            }
+        "
+        proc ${option}-delete {args} "
+            global ${option} user_options option_procs
+            if {!\[info exists user_options(${option})\] && \[info exists ${option}\]} {
+                foreach val \$args {
+                   set ${option} \[ldelete \${$option} \$val\]
+                }
+                if {\[string length \${${option}}\] == 0} {
+                    unset ${option}
+                }
+            }
+        "
+        proc ${option}-append {args} "
+            global ${option} user_options option_procs
+            if {!\[info exists user_options(${option})\]} {
+                if {\[info exists ${option}\]} {
+                    set ${option} \[concat \${$option} \$args\]
+                } else {
+                    set ${option} \$args
+                }
+            }
+        "
     }
 }
 
@@ -127,9 +126,8 @@ proc options_export {args} {
             global ${option} PortInfo
             if {\[info exists ${option}\]} {
                 set PortInfo(${option}) \${${option}}
-                } else {
-                    unset PortInfo(${option})
-                }
+            } else {
+                unset PortInfo(${option})
             }
         "
         option_proc ${option} options::export-${option}
@@ -142,20 +140,20 @@ proc option_deprecate {option {newoption ""} } {
     # If a new option is specified, default the option to {${newoption}}
     # Display a warning
     if {$newoption != ""} {
-    	eval "proc warn_deprecated_$option \{option action args\} \{ \n\
-	    global portname $option $newoption \n\
-	    if \{\$action != \"read\"\} \{ \n\
-	    	$newoption \$$option \n\
-	    \} else \{ \n\
-	        ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
-		$option \[set $newoption\] \n\
-	    \} \n\
-	\}"
+        proc warn_deprecated_${option} {option action args} "
+            global portname $option $newoption
+            if {\$action != \"read\"} {
+                $newoption \$$option
+            } else {
+                ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\"
+                $option \[set $newoption\]
+            }
+        "
     } else {
-    	eval "proc warn_deprecated_$option \{option action args\} \{ \n\
-	    global portname $option $newoption \n\
-	    ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\" \n\
-	\}"
+        proc warn_deprecated_$option {option action args} "
+            global portname $option $newoption
+            ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\"
+        "
     }
     option_proc $option warn_deprecated_$option
 }
@@ -173,25 +171,25 @@ proc option_proc_trace {optionName index op} {
     global option_procs
     upvar $optionName optionValue
     switch $op {
-	w {
-	    foreach p $option_procs($optionName) {
-		eval "$p $optionName set ${optionValue}" 
-	    }
-	    return
-	}
-	r {
-	    foreach p $option_procs($optionName) {
-		eval "$p $optionName read"
-	    }
-	    return
-	}
-	u {
-	    foreach p $option_procs($optionName) {
-		eval "$p $optionName delete"
-	    	trace vdelete $optionName rwu $p
-	    }
-	    return
-	}
+        w {
+            foreach p $option_procs($optionName) {
+                $p $optionName set $optionValue
+            }
+            return
+        }
+        r {
+            foreach p $option_procs($optionName) {
+                $p $optionName read
+            }
+            return
+        }
+        u {
+            foreach p $option_procs($optionName) {
+                $p $optionName delete
+                trace vdelete $optionName rwu $p
+            }
+            return
+        }
     }
 }
 
@@ -1029,52 +1027,52 @@ proc target_provides {ditem args} {
     # User-code exceptions are caught and returned as a result of the target.
     # Thus if the user code breaks, dependent targets will not execute.
     foreach target $args {
-	set origproc [ditem_key $ditem procedure]
-	set ident [ditem_key $ditem name]
-	if {[info commands $target] != ""} {
-	    ui_debug "$ident registered provides \'$target\', a pre-existing procedure. Target override will not be provided"
-	} else {
-	    eval "proc $target {args} \{ \n\
-			variable proc_index \n\
-			set proc_index \[llength \[ditem_key $ditem proc\]\] \n\
-			ditem_key $ditem procedure proc-${ident}-${target}-\${proc_index}
-			eval \"proc proc-${ident}-${target}-\${proc_index} \{name\} \{ \n\
-				if \{\\\[catch userproc-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			eval \"proc do-$target \{\} \{ $origproc $target\}\" \n\
-			makeuserproc userproc-${ident}-${target}-\${proc_index} \$args \n\
-		\}"
-	}
-	eval "proc pre-$target {args} \{ \n\
-			variable proc_index \n\
-			set proc_index \[llength \[ditem_key $ditem pre\]\] \n\
-			ditem_append $ditem pre proc-pre-${ident}-${target}-\${proc_index}
-			eval \"proc proc-pre-${ident}-${target}-\${proc_index} \{name\} \{ \n\
-				if \{\\\[catch userproc-pre-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			makeuserproc userproc-pre-${ident}-${target}-\${proc_index} \$args \n\
-		\}"
-	eval "proc post-$target {args} \{ \n\
-			variable proc_index \n\
-			set proc_index \[llength \[ditem_key $ditem post\]\] \n\
-			ditem_append $ditem post proc-post-${ident}-${target}-\${proc_index}
-			eval \"proc proc-post-${ident}-${target}-\${proc_index} \{name\} \{ \n\
-				if \{\\\[catch userproc-post-${ident}-${target}-\${proc_index} result\\\]\} \{ \n\
-					return -code error \\\$result \n\
-				\} else \{ \n\
-					return 0 \n\
-				\} \n\
-			\}\" \n\
-			makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args \n\
-		\}"
+        set origproc [ditem_key $ditem procedure]
+        set ident [ditem_key $ditem name]
+        if {[info commands $target] != ""} {
+            ui_debug "$ident registered provides '$target', a pre-existing procedure. Target override will not be provided"
+        } else {
+            proc $target {args} "
+                variable proc_index
+                set proc_index \[llength \[ditem_key $ditem proc\]\]
+                ditem_key $ditem procedure proc-${ident}-${target}-\${proc_index}
+                proc proc-${ident}-${target}-\${proc_index} {name} \"
+                    if {\\\[catch userproc-${ident}-${target}-\${proc_index} result\\\]} {
+                        return -code error \\\$result
+                    } else {
+                        return 0
+                    }
+                \"
+                proc do-$target {} { $origproc $target }
+                makeuserproc userproc-${ident}-${target}-\${proc_index} \$args
+            "
+        }
+        proc pre-$target {args} "
+            variable proc_index
+            set proc_index \[llength \[ditem_key $ditem pre\]\]
+            ditem_append $ditem pre proc-pre-${ident}-${target}-\${proc_index}
+            proc proc-pre-${ident}-${target}-\${proc_index} {name} \"
+                if {\\\[catch userproc-pre-${ident}-${target}-\${proc_index} result\\\]} {
+                    return -code error \\\$result
+                } else {
+                    return 0
+                }
+            \"
+            makeuserproc userproc-pre-${ident}-${target}-\${proc_index} \$args
+        "
+        proc post-$target {args} "
+            variable proc_index
+            set proc_index \[llength \[ditem_key $ditem post\]\]
+            ditem_append $ditem post proc-post-${ident}-${target}-\${proc_index}
+            proc proc-post-${ident}-${target}-\${proc_index} {name} \"
+                if {\\\[catch userproc-post-${ident}-${target}-\${proc_index} result\\\]} {
+                    return -code error \\\$result
+                } else {
+                    return 0
+                }
+            \"
+            makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args
+        "
     }
     eval "ditem_append $ditem provides $args"
 }
