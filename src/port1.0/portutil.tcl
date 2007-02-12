@@ -160,7 +160,7 @@ proc option_deprecate {option {newoption ""} } {
 
 proc option_proc {option args} {
     global option_procs $option
-    eval "lappend option_procs($option) $args"
+    eval lappend option_procs($option) $args
     # Add a read trace to the variable, as the option procedures have no access to reads
     trace variable $option rwu option_proc_trace
 }
@@ -1074,39 +1074,39 @@ proc target_provides {ditem args} {
             makeuserproc userproc-post-${ident}-${target}-\${proc_index} \$args
         "
     }
-    eval "ditem_append $ditem provides $args"
+    eval ditem_append $ditem provides $args
 }
 
 proc target_requires {ditem args} {
-    eval "ditem_append $ditem requires $args"
+    eval ditem_append $ditem requires $args
 }
 
 proc target_uses {ditem args} {
-    eval "ditem_append $ditem uses $args"
+    eval ditem_append $ditem uses $args
 }
 
 proc target_deplist {ditem args} {
-    eval "ditem_append $ditem deplist $args"
+    eval ditem_append $ditem deplist $args
 }
 
 proc target_prerun {ditem args} {
-    eval "ditem_append $ditem prerun $args"
+    eval ditem_append $ditem prerun $args
 }
 
 proc target_postrun {ditem args} {
-    eval "ditem_append $ditem postrun $args"
+    eval ditem_append $ditem postrun $args
 }
 
 proc target_runtype {ditem args} {
-    eval "ditem_append $ditem runtype $args"
+    eval ditem_append $ditem runtype $args
 }
 
 proc target_state {ditem args} {
-    eval "ditem_append $ditem state $args"
+    eval ditem_append $ditem state $args
 }
 
 proc target_init {ditem args} {
-    eval "ditem_append $ditem init $args"
+    eval ditem_append $ditem init $args
 }
 
 ##### variant class #####
