@@ -23,14 +23,14 @@
 .\" SUCH DAMAGE.
 .\"
 .Dd August 31, 2005
-.Dt PORTS.CONF 5 "OpenDarwin.org"
+.Dt PORTS.CONF 5 "MacPorts.org"
 .Os 
 .Sh NAME
 ports.conf
-.Nd Configuration file of the DarwinPorts system
+.Nd Configuration file of the MacPorts system
 .Sh DESCRIPTION
 .Nm ports.conf
-is the configuration file used to bootstrap the DarwinPorts system. This file is read by the
+is the configuration file used to bootstrap the MacPorts system. This file is read by the
 .Nm port
 command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
 The format is that of a simple key/value space or tab separated pair.
@@ -54,19 +54,24 @@ characters should be avoided, as this can broke some ports. This key is often re
 .br
 .Ic Default:
 /opt/local
+.It Va x11prefix
+Path containing an X11 installation on your system.
+.br
+.Ic Default:
+/usr/X11R6
 .It Va portdbpath
-Directory where DarwinPorts keeps working data as downloaded sources, installed ports receipts
+Directory where MacPorts keeps working data as downloaded sources, installed ports receipts
 and the main registry. Same path restrictions apply as for '${prefix}'.
 .br
 .Ic Default:
 ${prefix}/var/db/dports
 .It Va portdbformat
-Storage type to use for the DarwinPorts registry. Currently the only supportted format is "flat".
+Storage type to use for the MacPorts registry. Currently the only supportted format is "flat".
 .br
 .Ic Default:
 flat
 .It Va portinstalltype
-Sets the mode in which ports are installed by DarwinPorts. Supported values are 'direct' or 'image'.
+Sets the mode in which ports are installed by MacPorts. Supported values are 'direct' or 'image'.
 The 'direct' mode is often used on systems that do not support 'image' due to limitations in their
 installed version of TCL. In 'direct' more ports are installed directly into '${prefix}' and only
 one flavor of a port can be installed at any given time. In 'image' mode multiple flavors of a port
@@ -79,16 +84,11 @@ image
 .\" I think Paul wrote code to suppot image on Jaguar, so the following comment may no longer be needed.
 .\" is this the case?
 .Pp
-NOTE. Mac OS X 10.2 and Darwin 6.x users should switch to 'direct' mode to have DarwinPorts working properly
+NOTE. Mac OS X 10.2 and Darwin 6.x users should switch to 'direct' mode to have MacPorts working properly
 on their systems.
-.It Va x11prefix
-Path containing an X11 installation on your system.
-.br
-.Ic Default:
-/usr/X11R6
 .It Va sources_conf
 Location of the sources file. This file enables rsync synchronization of the default dports tree with the
-OpenDarwin rsync server (through the "sync" target of the
+MacPorts rsync server (through the "sync" target of the
 .Nm port
 commnand) and any other local tree(s) you might have.
 .br
@@ -125,31 +125,43 @@ Automatic cleaning of the build directory of a given port after it has been inst
 .br
 .Ic Default:
 yes
+.It Va startupitem_type
+Set the default type of startupitems to be generated. If set to "default", then a type will be 
+selected that's appropriate to the OS. Supported types are: SystemStarter, launchd, default, rcNG.
+.br
+.Ic Default:
+default
 .It Va rsync_server
 Default rsync server to connect to when running "selfupdate" through the
 .Nm port
-command to update your entire DarwinPorts
-installation (spanning both the Darwinports infrastucture and the dports tree).
+command to update your entire MacPorts
+installation (spanning both the MacPorts infrastucture and the dports tree).
 .br
 .Ic Default:
-rsync.opendarwin.org
+rsync.darwinports.org
 .It Va rsync_dir
-Rsync directory from which to pull the base/ component (infrastructure) of the DarwinPorts system off
+Rsync directory from which to pull the base/ component (infrastructure) of the MacPorts system off
 of the default rsync server.
 .br
 .Ic Default:
-dpupdate1/base/ (to pull in the sources from the shipping "release1" branch off of the OpenDarwin rsync
+dpupdate1/base/ (to pull in the sources from the shipping "release1" branch off of the MacPorts rsync
 server)
 .It Va rsync_options
 Default rsync options to use when connecting to the rsync server.
 .br
 .Ic Default:
 -rtzv --delete --delete-after
+.It Va binpath
+Sets the directory search path for locating system executables used by MacPorts. This variable should contain
+the paths for locating utilities such as rsync, tar, cvs and others.
+.br
+.Ic Default:
+${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
 .El
 .Sh FILES
 .Bl -tag -width
 .It Va ~/.portsrc
-User configuration file for the DarwinPorts system. This file overrides values listed in the default
+User configuration file for the MacPorts system. This file overrides values listed in the default
 ${prefix}/etc/port/ports.conf' one.
 .El
 .Sh SEE ALSO
@@ -159,5 +171,5 @@ ${prefix}/etc/port/ports.conf' one.
 .Xr portstyle 7
 .Xr porthier 7 ,
 .Sh AUTHORS
+.An "Juan Manuel Palacios" Aq jmpp@macports.org
 .An "Matt Anton" Aq matt@opendarwin.org
-.An "Juan Manuel Palacios" Aq jmpp@opendarwin.org

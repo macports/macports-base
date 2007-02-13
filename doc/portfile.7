@@ -27,12 +27,12 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd August 31, 2005
+.Dd February 13, 2007
 .Dt PORTFILE 7 "Apple Computer, Inc."
 .Os
 .Sh NAME
 .Nm Portfile
-.Nd Darwinports description file reference
+.Nd MacPorts description file reference
 .Sh DESCRIPTION
 A complete reference of all available
 .Nm
@@ -44,7 +44,7 @@ as utilization of TCL's extensive functionality.
 are encoded in UTF-8.
 .Pp
 The
-.Nm Darwinports System
+.Nm Macports System
 uses a target dependency system based on a
 depends/provides model, allowing for targets to be registered and
 executed in the correct order based on their individual requirements.
@@ -161,6 +161,30 @@ Declares which platforms are supported by the port.
 .br
 .Sy Example:
 .Dl platforms darwin
+.It Ic homepage
+Project homepage for the port.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Dl http://wireshark.org
+.It Ic master_sites
+List of sites to fetch
+.Ic distfiles
+from or a predefined mirror site
+list. If set to a predefined mirror site, without a subdirectory being
+defined, the portname is used as the name of the subdirectory.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+master_sites ftp://ftp.cdrom.com/pub/magic \e\
+
+    sourceforge
+.Ed
 .It Ic worksrcdir
 Path to source directory relative to
 .Ic workpath .
@@ -185,22 +209,6 @@ Name of distribution file, without the
 .br
 .Sy Example:
 .Dl distname ${name}-${version}-src
-.It Ic master_sites
-List of sites to fetch
-.Ic distfiles
-from or a predefined mirror site
-list. If set to a predefined mirror site, without a subdirectory being
-defined, the portname is used as the name of the subdirectory.
-.br
-.Sy Type:
-.Em required
-.br
-.Sy Example:
-.Bd -literal -offset indent -compact
-master_sites ftp://ftp.cdrom.com/pub/magic \e\
-
-    sourceforge
-.Ed
 .It Xo
 .Ic checksums Ar filename Ar type Ar checksum
 .Op Ar filename Ar type checksum ...
@@ -330,7 +338,7 @@ Additional arguments passed after the main arguments.
 .Dl extract.post_args | tar xf -
 .El
 .Sh RUNTIME VARIABLES
-Read-only access to the Darwinports configuration is provided.
+Read-only access to the MacPorts configuration is provided.
 .Bl -tag -width lc
 .It Ic prefix
 Install prefix
@@ -342,6 +350,11 @@ Install prefix
 .Em /opt/local
 .It Ic libpath
 Location of ports-specific TCL libraries.
+.br
+.Sy Type:
+.Em read-only
+.It Ic portpath
+Full path to the Portfile location.
 .br
 .Sy Type:
 .Em read-only
@@ -411,13 +424,13 @@ Operating system name (eg "darwin").
 .Sy Type:
 .Em read-only
 .It Ic install.user
-User for darwinports installation (eg
+User for MacPorts installation (eg
 .Pa root )
 .br
 .Sy Type:
 .Em read-only
 .It Ic install.group
-Group for darwinports installation (eg
+Group for MacPorts installation (eg
 .Pa wheel )
 .br
 .Sy Type:
@@ -430,25 +443,33 @@ Absolute path to X11 (eg
 .Em read-only
 .El
 .Sh DEPENDENCY OPTIONS
-Each dependency for the port is expressed in the format:
-.Bl -tag -width lc
-.It Ar type Ns : Ns Ao filename Ac Ns : Ns Ao port Ac
-.El
-.Pp
-Where
-.Ar type
-is "bin" if
-.Ao filename Ac
-is a program, "lib" if it is a library, or "path" if it is a path to an
-installed file. If the dependency is really on a whole port and not an
-individual file, then the alternative syntax:
+Port dependencies should refer to other MacPort ports
+whenever possible, therefore each dependency should be
+expressed in the format:
 .Bl -tag -width ls
 .It port: Ns Ao port Ac
 .El
 .Pp
-should be used.
-.Ao port Ac represents the name of an existing Darwinports
+Where 
+.Ao port Ac represents the name of an existing MacPorts
 .Nm port .
+If satisfying a dependency with a MacPorts port is not
+practical and it is likely that a dependency must be met
+by an Apple optional install, then the alternative dependency
+format:
+.Bl -tag -width lc
+.It Ar type Ns : Ns Ao filename Ac Ns : Ns Ao port Ac
+.El
+.Pp
+may be used. Where
+.Ar type
+is "bin" if
+.Ao filename Ac
+is a program, "lib" if it is a library, or "path" if it is a path to an
+installed file.
+.br
+.Sy Example:
+.Dl lib:libX11.6:XFree86
 .Bl -tag -width lc
 .It Ic depends_build
 List of dependencies to check before
@@ -463,7 +484,7 @@ targets.
 .Em optional
 .br
 .Sy Example:
-.Dl depends_build bin:autoconf:autoconf
+.Dl depends_build port:autoconf
 .It Ic depends_run
 List of dependencies to check before
 .Cm destroot ,
@@ -476,7 +497,7 @@ targets.
 .Em optional
 .br
 .Sy Example:
-.Dl depends_run bin:bash:bash
+.Dl depends_run port:bash
 .It Ic depends_lib
 List of dependencies to check before
 .Cm configure ,
@@ -491,7 +512,7 @@ targets.
 .Em optional
 .br
 .Sy Example:
-.Dl depends_lib lib:libfetch.3:libfetch
+.Dl depends_lib port:libfetch
 .El
 .Sh FETCH OPTIONS
 Fetch all distribution files and patches.
@@ -574,7 +595,7 @@ Sets extract.cmd to: unzip
 .br
 Sets extract.pre_args to: -q
 .br
-Sets extract.post_args to: "-d $portpath/$workdir"
+Sets extract.post_args to: "-d ${portpath}/${workdir}"
 .br
 .Sy Type:
 .Em optional
@@ -608,7 +629,7 @@ to store all fetched files.
 .Dl dist_subdir vim${version}
 .El
 .Ss ADVANCED FETCH OPTIONS
-Some mirrors require special options for the actual resource to be properly
+Some mirrors require special options for a resource to be properly
 fetched.
 .Bl -tag -width lc
 .It Ic fetch.user
@@ -636,24 +657,81 @@ As an alternative to fetching distribution files, pulling the sources
 from a CVS repository is supported. Use of CVS can give rise to
 non-reproducible builds, so it is strongly discouraged.
 .Bl -tag -width lc
+.It Ic cvs.root
+Specify the address to a CVS repository from which to checkout files.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl cvs.root :pserver:anonymous cvs.sv.gnu.org:/sources/emacs
 .It Ic cvs.tag
-CVS tag identifying the code to checkout.
+Specify a CVS tag identifying the code to checkout.
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default
+.Em none
+.br
+.Sy Example:
+.Dl cvs.tag HEAD
 .It Ic cvs.date
-Date identifying the code to checkout.
+A date that identifies the CVS code set to checkout.
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default
+.Em none
 .br
 .Sy Example:
 .Dl cvs.date \*q12-April-2005\*q
 .It Ic cvs.module
-CVS module to check the code out from.
+A CVS module from which to check out the code.
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default
+.Em none
+.br
+.Sy Example:
+.Dl cvs.module Sources
+.El
+.Ss FETCHING FROM SUBVERSION
+As an alternative to fetching distribution files, pulling the sources
+from a subversion repository is supported. Use of subversion can give
+rise to non-reproducible builds, so it is strongly discouraged.
+.Bl -tag -width lc
+.It Ic svn.url
+Specify the url from which to fetch files.
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl svn.url http://www.domain.com/svn-repo/mydirectory
+      svn.url svn://www.domain.com/svn-repo/mydirectory
+.It Ic svn.tag
+Specify the a tag from which svn should fetch files. This
+corresponds to the -r option to the svn cli.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl svn.url http://www.domain.com/svn-repo/mydirectory
+      svn.url svn://www.domain.com/svn-repo/mydirectory
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.
@@ -846,10 +924,43 @@ Test target to pass to
 .Sy Example:
 .Dl test.target checks
 .El
-.Sh STARTUPITEMS OPTIONS
-If a port needs to run on system startup, it can use the Darwinports
-startup mechanism.
+.Sh STARTUPITEM OPTIONS
+If a port needs to run on system startup, it can use MacPorts
+startupitem keywords to install native OS X startup scripts.
+Startup scripts require user interaction after port installation
+to activate them and instructions are given during port installs.
 .Bl -tag -width lc
+.It Ic startupitem.create
+Choose whether or not to generate a startup item.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Values:
+.Em yes no
+.br
+.Sy Example:
+.Dl startupitem.create yes
+.It Ic startupitem.type
+Select the type of startupitem to generate. By default, a startupitem
+will be generated that is of the appropriate type for the OS. For
+instance, launchd is used on system 10.4, while SystemStarter is used
+on prior Mac OS X systems. A global default may be specified with the startupitem_type preference in ports.conf.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em default
+.br
+.Sy Values:
+.Em SystemStarter launchd default rcNG
+.br
+.Sy Example
+.Dl startupitem.type launchd
 .It Ic startupitem.name
 Displayed name of the startup item.
 .br
@@ -858,28 +969,134 @@ Displayed name of the startup item.
 .br
 .Sy Example:
 .Dl startupitem.name OpenSSH
-.It Ic startupitem.type
-Form of startup item to install.
+.It Ic startupitem.executable
+The name of the daemon to be run in the background. This is
+the preferred type of startup item rather than any of
+startupitem.init, startupitem.start, startupitem.stop, or
+startupitem.restart, and may not be used together with any
+of these options.  This option may contain multiple
+arguments, but they must be appropriate for a call to exec; they
+may not contain arbitrary shell code.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em /path/to/executable <args>
+.br
+.Sy Example:
+.Dl startupitem.executable ${prefix}/bin/wonka
+.It Ic startupitem.init
+Shell code that will be executed prior to any of the options
+startupitem.start, startupitem.stop and startupitem.restart.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em sh code
+.br
+.Sy Example:
+.Dl startupitem.init FOO=start
+.It Ic startupitem.start
+Shell code executed to start the daemon.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em sh code
+.br
+.Sy Example:
+.Dl startupitem.start ${prefix}/share/mysql/mysql.server start
+.It Ic startupitem.stop
+Shell code executed to stop the daemon.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em sh code
+.br
+.Sy Example:
+.Dl startupitem.stop ${prefix}/share/mysql/mysql.server stop
+.It Ic startupitem.restart
+Shell code executed to restart the daemon. In the absence
+of this key, the daemon will be restarted by taking the
+stop action, followed by taking the start action.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em sh code
+.br
+.Sy Example:
+.Dl startupitem.restart ${prefix}/share/mysql/mysql.server restart
+.It Ic startupitem.pidfile
+Specification for pidfile handling. This is particularly useful
+in conjunction with the startupitem.executable key, because it is
+important that the startupitem know how to track the executable.
+This specifies whether the daemon generates its own pidfile (auto),
+whether it generates its own but forgets to delete it, so that the
+startupitem should delete it (clean), or whether it never generates
+one, in which case the startupitem should manage the pidfile on its
+own (manual), or whether no pidfile should be used at all (none).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
-.Em SystemStarter
+.Em none "${prefix}/var/run/${name}.pid"
 .br
 .Sy Values:
-.Em SystemStarter RCng
+.Em none|auto|manual|clean [/path/to/pidfile]
+.br
+.Sy Example:
+.Dl startupitem.pidfile auto ${prefix}/var/run/${name}.pidfile
+.It Ic startupitem.logfile
+Path to a logfile for logging events about the lifetime of the
+startupitem. Depending on the type of startupitem, and the manner
+in which it is started, standard output from the daemon may also be
+directed to the logfile.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em /dev/null
+.br
+.Sy Values:
+.Em path
+.br
+.Sy Example:
+.Dl startupitem.logfile ${prefix}/var/log/mydaemon.log
+.It Ic startupitem.logevents
+Control whether or not to log events to the log file. If logevents
+is set, events with timestamps are logged to the logfile.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Values:
+.Em yes|no
+.br
+.Sy Example:
+.Dl startupitem.logevents yes
 .El
 .Sh DISTCHECK AND LIVECHECK OPTIONS
-Darwinports can automatically check if the software has been updated
+MacPorts can automatically check if the software has been updated
 since the Portfile was modified and if some external changes require
 an update to the Portfile. This helps maintainers have up-to-date
 and working Portfiles.
 .br
-Two checks are available. With distcheck, Darwinports can check that the
+Two checks are available. With distcheck, MacPorts can check that the
 distfile(s) are still downloadable and did not change since the portfile
 was modified.
-With livecheck, Darwinports can query a resource to determine if a newer
+With livecheck, MacPorts can query a resource to determine if a newer
 version of the software is available.
 .Bl -tag -width lc
 .It Ic distcheck.check
@@ -968,7 +1185,7 @@ md5 sum to use for md5 comparison.
 .Em optional
 .El
 .Sh VARIANT OPTIONS
-Darwinports allows for conditional modification to be specified in a
+MacPorts allows for conditional modification to be specified in a
 .Nm ,
 allowing for user-customization of a software's build-time settings.
 .Bl -tag -width lc
@@ -1007,7 +1224,7 @@ value lists which variants are enabled by default.
 .Dl default_variants +ssl +tcpd
 .El
 .Sh PLATFORM OPTIONS
-Darwinports allows for platform-specific conditional modification to be
+MacPorts allows for platform-specific conditional modification to be
 specified in a
 .Nm ,
 much like variants, for handling differences between platforms and
@@ -1045,7 +1262,7 @@ platform darwin i386 { configure.args-append \e\
 .Ed
 .El
 .Sh PORTGROUP
-To factorize the work with similar ports, DarwinPorts provides the notion of
+To factorize the work with similar ports, MacPorts provides the notion of
 .Nm PortGroup
 that can be used to load definitions for a given class or group of ports. See
 .Xr portgroup 7
@@ -1197,6 +1414,10 @@ resource forks when destrooting ports on Mac OS X 10.3.x and Mac OS X 10.4.x . U
 .Nm xinstall
 to also preserve Extended Attributes (i.e. Access Control Lists). See
 .Xr file n .
+.It Ic delete
+MacPorts 1.3 and onwards extension to properly handle file deletion on Panther systems for which a standard
+"file -delete" call may fail. To be used in place of the latter in all cases where directories (and not just
+files) are being deleted.
 .It Ic system Ar commandline
 Execute a program. See
 .Xr system 3 .
@@ -1291,8 +1512,9 @@ to the user, at various different levels.
 .Xr porthier 7 ,
 .Xr file n
 .Sh AUTHORS
-.An "Landon Fuller" Aq landonf@opendarwin.org
+.An "Landon Fuller" Aq landonf@macports.org
+.An "Juan Manuel Palacios" Aq jmpp@macports.org
+.An "Mark Duling" Aq markd@macports.org
 .An "Kevin Van Vechten" Aq kevin@opendarwin.org
 .An "Jordan K. Hubbard" Aq jkh@opendarwin.org
 .An "Chris Ridd" Aq cjr@opendarwin.org
-.An "Juan Manuel Palacios" Aq jmpp@opendarwin.org
