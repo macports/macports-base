@@ -429,11 +429,11 @@ proc getdistname {name} {
 # If the variable exists in the calling procedure's namespace
 # and is set to "yes", return 1. Otherwise, return 0
 proc tbool {key} {
-    upvar $key $key
-    if {[info exists $key]} {
-	if {[string equal -nocase [set $key] "yes"]} {
-	    return 1
-	}
+    upvar $key var
+    if {[info exists var]} {
+        if {[string equal -nocase [set var] "yes"]} {
+            return 1
+        }
     }
     return 0
 }
