@@ -6,6 +6,9 @@
 
 Release 1.4 (unreleased):
 
+    - Documentation updates to the ports.conf.5 and portfile.7 man pages (markd, jmpp and others I may
+      be forgetting, sorry 'bout that, in r21998, referencing tickets #4905, #6880 & #10840).
+
     - /Applications/DarwinPorts --> /Applications/MacPorts migration in base for aqua ports
       (rhwood in r21852 and r21853, but other commits to this effect were also applied to trunk/dports)
 
