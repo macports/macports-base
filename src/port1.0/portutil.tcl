@@ -443,7 +443,7 @@ proc tbool {key} {
 proc ldelete {list value} {
     set ix [lsearch -exact $list $value]
     if {$ix >= 0} {
-	return [lreplace $list $ix $ix]
+        return [lreplace $list $ix $ix]
     }
     return $list
 }
@@ -511,12 +511,202 @@ proc reinplace {pattern args}  {
 }
 
 # delete
-# fast (and more reliable than 'file delete') file- and directory-remove routine
+# file delete -force by itself doesn't handle directories properly
+# on systems older than Tiger. However we can recurse this thing ourselves
 proc delete {args} {
-	foreach arg $args {
-		ui_debug "delete: $arg"
-		system "/bin/rm -rf $arg"
-	}
+    foreach arg $args {
+        ui_debug "delete: $arg"
+        set stack [list $arg]
+        while {[llength $stack] > 0} {
+            set file [lindex $stack 0]
+            if {[file isdirectory $file]} {
+                # it's a directory
+                set children [glob -nocomplain -directory $file {{*,.*}}]
+                set children [ldelete [ldelete $children $file/.] $file/..]
+                if {[llength $children] > 0} {
+                    set stack [concat $children $stack]
+                } else {
+                    # directory is empty
+                    file delete -force -- $file
+                    set stack [lrange $stack 1 end]
+                }
+            } else {
+                # it's not a directory - kill it now
+                file delete -force -- $file
+                set stack [lrange $stack 1 end]
+            }
+        }
+    }
+}
+
+# touch
+# mimics the BSD touch command
+proc touch {args} {
+    while {[string match -* [lindex $args 0]]} {
+        set arg [string range [lindex $args 0] 1 end]
+        set args [lrange $args 1 end]
+        switch -- $arg {
+            a -
+            c -
+            m {set options($arg) yes}
+            r -
+            t {
+                set narg [lindex $args 0]
+                set args [lrange $args 1 end]
+                if {[string length $narg] == 0} {
+                    return -code error "touch: option requires an argument -- $arg"
+                }
+                set options($arg) $narg
+                set options(rt) $arg ;# later option overrides earlier
+            }
+            - break
+            default {return -code error "touch: illegal option -- $arg"}
+        }
+    }
+    
+    # parse the r/t options
+    if {[info exists options(rt)]} {
+        if {[string equal $options(rt) r]} {
+            # -r
+            # get atime/mtime from the file
+            if {[file exists $options(r)]} {
+                set atime [file atime $options(r)]
+                set mtime [file mtime $options(r)]
+            } else {
+                return -code error "touch: $options(r): No such file or directory"
+            }
+        } else {
+            # -t
+            # parse the time specification
+            # turn it into a CCyymmdd hhmmss
+            set timespec {^(?:(\d\d)?(\d\d))?(\d\d)(\d\d)(\d\d)(\d\d)(?:\.(\d\d))?$}
+            if {[regexp $timespec $options(t) {} CC YY MM DD hh mm SS]} {
+                if {[string length $YY] == 0} {
+                    set year [clock format [clock seconds] -format %Y]
+                } elseif {[string length $CC] == 0} {
+                    if {$YY >= 69 && $YY <= 99} {
+                        set year 19$YY
+                    } else {
+                        set year 20$YY
+                    }
+                } else {
+                    set year $CC$YY
+                }
+                if {[string length $SS] == 0} {
+                    set SS 00
+                }
+                set atime [clock scan "$year$MM$DD $hh$mm$SS"]
+                set mtime $atime
+            } else {
+                return -code error \
+                    {touch: out of range or illegal time specification: [[CC]YY]MMDDhhmm[.SS]}
+            }
+        }
+    } else {
+        set atime [clock seconds]
+        set mtime [clock seconds]
+    }
+    
+    # do we have any files to process?
+    if {[llength $args] == 0} {
+        # print usage
+        ui_msg {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...}
+        return
+    }
+    
+    foreach file $args {
+        if {![file exists $file]} {
+            if {[info exists options(c)]} {
+                continue
+            } else {
+                close [open $file w]
+            }
+        }
+        
+        if {[info exists options(a)] || ![info exists options(m)]} {
+            file atime $file $atime
+        }
+        if {[info exists options(m)] || ![info exists options(a)]} {
+            file mtime $file $mtime
+        }
+    }
+    return
+}
+
+# copy
+proc copy {args} {
+    exec file copy $args
+}
+
+# move
+proc move {args} {
+    exec file rename $args
+}
+
+# ln
+# Mimics the BSD ln implementation
+# ln [-f] [-h] [-s] [-v] source_file [target_file]
+# ln [-f] [-h] [-s] [-v] source_file ... target_dir
+proc ln {args} {
+    while {[string match -* [lindex $args 0]]} {
+        set arg [string range [lindex $args 0] 1 end]
+        set args [lrange $args 1 end]
+        switch -- $arg {
+            f -
+            h -
+            s -
+            v {set options($arg) yes}
+            - break
+            default {return -code error "ln: illegal option -- $arg"}
+        }
+    }
+    
+    if {[llength $args] == 0} {
+        ui_msg {usage: ln [-f] [-h] [-s] [-v] source_file [target_file]}
+        ui_msg {       ln [-f] [-h] [-s] [-v] file ... directory}
+        return
+    } elseif {[llength $args] == 1} {
+        set files $args
+        set target ./
+    } else {
+        set files [lrange $args 0 [expr [llength $args] - 2]]
+        set target [lindex $args end]
+    }
+    
+    foreach file $files {
+        if {[file isdirectory $file] && ![info exists options(s)]} {
+            return -code error "ln: $file: Is a directory"
+        }
+        
+        if {[file isdirectory $target] && ![info exists options(h)]} {
+            set linktarget [file join $target [file tail $file]]
+        } else {
+            set linktarget $target
+        }
+        
+        if {[file exists $linktarget] && ![info exists options(f)]} {
+            return -code error "ln: $linktarget: File exists"
+        }
+        
+        if {[llength $files] > 2} {
+            if {![file exists $linktarget]} {
+                return -code error "ln: $linktarget: No such file or directory"
+            } elseif {![file isdirectory $target]} {
+                # this error isn't striclty what BSD ln gives, but I think it's more useful
+                return -code error "ln: $target: Not a directory"
+            }
+        }
+        
+        if {[info exists options(v)]} {
+            ui_msg "ln: $linktarget -> $file"
+        }
+        if {[info exists options(s)]} {
+            file link -symbolic $linktarget $file
+        } else {
+            file link -hard $linktarget $file
+        }
+    }
+    return
 }
 
 # filefindbypath
