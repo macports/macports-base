@@ -1,7 +1,7 @@
 # Set the directory in which to install ports
 prefix			@prefix_expanded@
 
-# Where to store DarwinPorts working data
+# Where to store MacPorts working data
 portdbpath		@localstatedir_expanded@/db/dports
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"

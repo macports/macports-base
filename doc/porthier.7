@@ -29,7 +29,7 @@
 .\" $FreeBSD: src/share/man/man7/hier.7,v 1.29.2.17 2003/01/13 21:43:50 ceri Exp $
 .\" $Id$
 .\"
-.\" Take from FreeBSD and adjusted to DarwinPortss' needs.
+.\" Take from FreeBSD and adjusted to MacPortss' needs.
 .Dd August 31, 2005
 .Dt PORTHIER 7
 .Os
@@ -37,10 +37,10 @@
 .Nm porthier
 .Nd layout of the ports-filesystems
 .Sh DESCRIPTION
-A sketch of the filesystem hierarchy as it is applied on ports being distributed by DarwinPorts.
+A sketch of the filesystem hierarchy as it is applied on ports being distributed by MacPorts.
 .Bl -tag -width "/Applications/"
 .It Pa /${prefix}/
-The base of the DarwinPorts filesystem hierarchy. By default set to "/opt/local/"
+The base of the MacPorts filesystem hierarchy. By default set to "/opt/local/"
 .Pp
 .Bl -tag -width "include/"
 .It Pa bin/
@@ -85,7 +85,7 @@ multi-purpose log, temporary, transient, and spool files
 misc. automatically generated system-specific database files
 .Bl -tag -width "dports/"
 .It Pa dports/
-DarwinPorts runtime data
+MacPorts runtime data
 .Bl -tag -width "build/"
 .It Pa build/
 Where ports are build and destrooted
@@ -136,6 +136,6 @@ Native Mac OS X Library Frameworks
 .Sh HISTORY
 The
 .Nm
-manual page appeared first in DarwinPorts. Lots of it is based on hier(7).
+manual page appeared first in MacPorts. Lots of it is based on hier(7).
 .Sh AUTHORS
 .An "Felix Kronlage" Aq fkr@opendarwin.org
