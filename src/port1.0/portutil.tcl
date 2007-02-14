@@ -521,7 +521,7 @@ proc delete {args} {
             set file [lindex $stack 0]
             if {[file isdirectory $file]} {
                 # it's a directory
-                set children [glob -nocomplain -directory $file {{*,.*}}]
+                set children [glob -nocomplain -directory $file * .*]
                 set children [ldelete [ldelete $children $file/.] $file/..]
                 if {[llength $children] > 0} {
                     set stack [concat $children $stack]
