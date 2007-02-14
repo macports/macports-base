@@ -519,7 +519,7 @@ proc delete {args} {
         set stack [list $arg]
         while {[llength $stack] > 0} {
             set file [lindex $stack 0]
-            if {![string equal [file type $file] link] && [file isdirectory $file]} {
+            if {[string equal [file type $file] directory]} {
                 # it's a directory
                 set children [glob -nocomplain -directory $file * .*]
                 set children [ldelete [ldelete $children $file/.] $file/..]
