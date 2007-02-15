@@ -66,8 +66,8 @@ FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 {
 	char *startdir;
 	char *match, *action;
-	char *def_match = "expr 1";
-	char *def_action = "puts \"$filename\"";
+	char *def_match = "1";
+	char *def_action = "puts \"$_filename\"";
 	int depth = 0;
 
 	/* Adjust arguments */
@@ -107,8 +107,7 @@ do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
 {
 	DIR *dirp;
 	struct dirent *dp;
-	Tcl_Obj *result;
-	int val, rval, mlen, alen;
+	int rval, alen;
 	struct stat sb;
 	
 	if ((dirp = opendir(dir)) == NULL)
@@ -116,11 +115,11 @@ do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
 	/* be optimistic */
 	rval = TCL_OK;
 
-	mlen = strlen(match);
 	alen = strlen(action);
 
 	while ((dp = readdir(dirp)) != NULL) {
 		char tmp_path[PATH_MAX];
+		int res;
 
 		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 			continue;
@@ -136,21 +135,17 @@ do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
 			if (do_find(interp, depth, tmp_path, match, action) != TCL_OK)
 				return TCL_ERROR;
 		}
-		Tcl_SetVar(interp, "filename", tmp_path, TCL_GLOBAL_ONLY);
-		if (Tcl_EvalEx(interp, match, mlen, TCL_EVAL_GLOBAL) == TCL_OK) {
-			result = Tcl_GetObjResult(interp);
-			if (Tcl_GetIntFromObj(interp, result, &val) != TCL_OK) {
-				rval = TCL_ERROR;
-				break;
-			}
-			if (!val)
-				continue;
-			else {	/* match */
+		Tcl_SetVar(interp, "_filename", tmp_path, TCL_GLOBAL_ONLY);
+		if (Tcl_ExprBoolean(interp, match, &res) == TCL_OK) {
+			if (res == 1) {
+				/* match */
 				if (Tcl_EvalEx(interp, action, alen, TCL_EVAL_GLOBAL) != TCL_OK) {
 					rval = TCL_ERROR;
 					break;
 				}
 			}
+			else
+				continue;
 		}
 		else {
 			rval = TCL_ERROR;
@@ -165,4 +160,3 @@ do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
 	(void)closedir(dirp);
 	return rval;
 }
-
