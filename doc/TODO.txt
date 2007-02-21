@@ -9,7 +9,3 @@
 
 Outstanding ToDos:
 
-    - Add to portfile(7) manpage docs for the new startupitem keys. (idem)
-    	(James added some suggested text to bug #4905)
-    - Add to ports.conf(5) manpage docs on new startupitem_type option. (idem)
-    	(James added some suggested text to bug #4905)
