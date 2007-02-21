@@ -212,7 +212,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	}
     }
 
-    # finally /etc/ports/ports.conf, or whatever path was configured
+    # finally ${prefix}/etc/ports/ports.conf, or whatever path was configured
     if {![info exists portconf]} {
 	if {[file isfile $dports_conf_path/ports.conf]} {
 	    set portconf $dports_conf_path/ports.conf
