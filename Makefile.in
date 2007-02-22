@@ -41,7 +41,7 @@ install::
 	fi
 
 	@echo ""
-	@echo "Congratulations, you have successfully installed the DarwinPorts system."
+	@echo "Congratulations, you have successfully installed the MacPorts system."
 	@echo ""
 	@echo "To get the Portfiles and update the system run:"
 	@echo ""
