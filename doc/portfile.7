@@ -338,7 +338,7 @@ Additional arguments passed after the main arguments.
 .Dl extract.post_args | tar xf -
 .El
 .Sh UNIVERSAL TARGET HOOKS
-For universal builds of configure-based ports, we also define specific target hooks. These can be overrided for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless. Please also note that problems may occur with the default code if a port already overrides LDFLAGS or CFLAGS (port(1) will display a warning in such a case).
+For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless. Please also note that problems may occur with the default code if a port already overrides LDFLAGS or CFLAGS (port(1) will display a warning in such a case).
 .Bl -tag -width lc
 .It Ic configure.universal_args
 Arguments appended to the configure script to build the port universal.
