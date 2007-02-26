@@ -337,6 +337,42 @@ Additional arguments passed after the main arguments.
 .Sy Example:
 .Dl extract.post_args | tar xf -
 .El
+.Sh UNIVERSAL TARGET HOOKS
+For universal builds of configure-based ports, we also define specific target hooks. These can be overrided for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless. Please also note that problems may occur with the default code if a port already overrides LDFLAGS or CFLAGS (port(1) will display a warning in such a case).
+.Bl -tag -width lc
+.It Ic configure.universal_args
+Arguments appended to the configure script to build the port universal.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em --disable-dependency-tracking
+.It Ic configure.universal_cflags
+Value of the CFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
+.It Ic configure.universal_ldflags
+Value of the LDFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -arch i386 -arch ppc
+.It Ic configure.universal_env
+Environment appended to the port-defined environment when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em CFLAGS="${configure.universal_cflags}" LDFLAGS="${configure.universal_ldflags}"
+.El
 .Sh RUNTIME VARIABLES
 Read-only access to the MacPorts configuration is provided.
 .Bl -tag -width lc

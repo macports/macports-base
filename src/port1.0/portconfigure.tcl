@@ -50,6 +50,13 @@ default xmkmf.cmd xmkmf
 default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
+# Universal options & default values.
+options configure.universal_args configure.universal_cflags configure.universal_ldflags configure.universal_env
+default configure.universal_args	--disable-dependency-tracking
+default configure.universal_cflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
+default configure.universal_ldflags	{"-arch i386 -arch ppc"}
+default configure.universal_env		{"CFLAGS=\"${configure.universal_cflags}\" LDFLAGS=\"${configure.universal_ldflags}\""}
+
 set_ui_prefix
 
 proc configure_start {args} {
