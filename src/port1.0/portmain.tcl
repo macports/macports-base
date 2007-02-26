@@ -96,7 +96,7 @@ if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_se
 if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(puredarwin)]} { variant_set puredarwin }
 if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} {
 	variant_set macosx
-	# Declare default universal variant.
+	# Declare default universal variant, on >10.3
 	variant universal {
 		if {[tbool use_xmkmf] || ![tbool use_configure]} {
 			return -code error "Default universal variant only works with ports based on configure"
@@ -104,6 +104,9 @@ if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirecto
 		configure.args-append ${configure.universal_args}
 		if {[info exists configure.env] && [regexp "(^| )(LD|C)FLAGS=" ${configure.env}]} {
 			ui_warn "This port already overrides CFLAGS or LDFLAGS. The universal variant may break it."
+		}
+		if {![file exists /Developer/SDKs/MacOSX10.4u.sdk/]} {
+			ui_warn "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
 		}
 		configure.env-append ${configure.universal_env}
 	}
