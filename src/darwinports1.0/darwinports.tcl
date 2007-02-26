@@ -527,6 +527,7 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_fileinfo_for_index registry::fileinfo_for_index
 	$workername alias registry_bulk_register_files registry::register_bulk_files
 	$workername alias registry_installed registry::installed
+	$workername alias registry_active registry::active
 
 	# deferred options processing.
 	$workername alias getoption darwinports::getoption
