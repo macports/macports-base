@@ -34,7 +34,7 @@ portarchivepath		@localstatedir_expanded@/db/dports/packages
 # Unarchive uses multiple types as a search list to locate the archive,
 # first archive to match one of the specified types in order is used.
 #
-# Supported types: tgz (default), tar, tbz, xar, zip, cpgz, cpio
+# Supported types: tgz (default), tar, tbz, tbz2, xar, zip, cpgz, cpio
 portarchivetype		tgz
 
 # Set whether to automatically execute "clean" after "install" of ports
