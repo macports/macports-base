@@ -12,19 +12,24 @@ Release 1.5 (unreleased):
 
 Release 1.4 (unreleased):
 
+    - Archivemode now supports both tbz2 & tbz binary archives naming variations (jmpp in r22584).
+
+    - Add new alias 'registry_active' for registry::active so portfiles can check if another port is
+      installed and activated (eridius in r22304).
+
     - with_docs variant of GNUStep PortGroup ports now installs the latex2html port by default (yves in r22014).
 
     - Add new 'touch' & 'ln' portfile writing commands, their usage being similar to their BSD equivalents,
-      along with 'move' and 'copy' shorthands for TCL's "file rename/copy" calls (Eridius in r22007).
+      along with 'move' and 'copy' shorthands for TCL's "file rename/copy" calls (eridius in r22007).
 
     - Fix a dangerous bug in parsing filenames with spaces in the the 'delete' command, while reworking it
-      to no longer be a plain 'system "rm -rf <path>"' call (Eridius in r22007).
+      to no longer be a plain 'system "rm -rf <path>"' call (eridius in r22007).
 
     - Checksum phase no longer deletes distfiles upon checksums mistmatch, eliminating "file not found"
       errors when a second run is attempted, thus making the need for a "port clean --dist" call more
-      explicit before continuing (Eridius in r21967).
+      explicit before continuing (eridius in r21967).
 
-    - Stating an empty key value in a Portfile now correctly clears it, as expected (Eridius in r21950 & r21951).
+    - Stating an empty key value in a Portfile now correctly clears it, as expected (eridius in r21950 & r21951).
 
     - Documentation updates to the ports.conf.5 and portfile.7 man pages (markd, jmpp and others I may
       be forgetting, sorry 'bout that, in r21998, referencing tickets #4905, #6880 & #10840).
