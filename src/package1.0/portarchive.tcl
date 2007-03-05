@@ -175,8 +175,8 @@ proc archive_command_setup {args} {
 				ui_debug "Using $tar"
 				set archive.cmd "$tar"
 				set archive.pre_args {-cvf}
-				if {[regexp {z$} ${archive.type}]} {
-					if {[regexp {bz$} ${archive.type}]} {
+				if {[regexp {z2?$} ${archive.type}]} {
+					if {[regexp {bz2?$} ${archive.type}]} {
 						set gzip "bzip2"
 					} else {
 						set gzip "gzip"
