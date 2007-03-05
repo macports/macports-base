@@ -4,10 +4,13 @@
 #   This is a log of major user-visible changes in each release
 #
 
+
 Release 1.4 (unreleased):
 
+    - Archivemode now supports both tbz2 & tbz binary archives naming variations (jmpp in r22584).
+
     - Add new alias 'registry_active' for registry::active so portfiles can check if another port is
-      installed and activated (eridius in r22304)
+      installed and activated (eridius in r22304).
 
     - with_docs variant of GNUStep PortGroup ports now installs the latex2html port by default (yves in r22014).
 
