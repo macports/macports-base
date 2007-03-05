@@ -4,6 +4,12 @@
 #   This is a log of major user-visible changes in each release
 #
 
+
+Release 1.5 (unreleased):
+
+    - Default +universal variant for configure-based ports (pguyot in r22313).
+
+
 Release 1.4 (unreleased):
 
     - with_docs variant of GNUStep PortGroup ports now installs the latex2html port by default (yves in r22014).
