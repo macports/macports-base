@@ -1449,11 +1449,21 @@ Standard TCL command to manipulate file names and attributes, recommended if you
 resource forks when destrooting ports on Mac OS X 10.3.x and Mac OS X 10.4.x . Use
 .Nm xinstall
 to also preserve Extended Attributes (i.e. Access Control Lists). See
-.Xr file n .
+.Xr file n
+for more information on this command.
+.It Ic copy
+Built-in shorthand alternative to "file -copy".
+.It Ic move
+Built-in shorthand alternative to "file -rename".
 .It Ic delete
-MacPorts 1.3 and onwards extension to properly handle file deletion on Panther systems for which a standard
-"file -delete" call may fail. To be used in place of the latter in all cases where directories (and not just
-files) are being deleted.
+Built-in shorthand alternative to "file -delete". Required over the latter for Portfiles that perform deleting
+operations on directories while building the port on Mac OS X 10.3 and earlier, due to a Tcl anomaly on those systems
+that causes "file -delete" to fail.
+.It Ic touch
+Built-in command mimicking the BSD touch command.
+.It Ic ln
+.br
+Built-in command mimicking the BSD ln command.
 .It Ic system Ar commandline
 Execute a program. See
 .Xr system 3 .
@@ -1465,8 +1475,9 @@ For calls to
 .Xr mv 1 ,
 .Xr cp 1 ,
 .Xr rm 1
-or similar, please use
-.Nm file .
+or similar, please use the built-in commands or
+.Nm file
+if they don't meet your requirements.
 .It Ic variant_isset Ar variant
 Checks if the given
 .Ar variant
