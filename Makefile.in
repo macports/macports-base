@@ -2,10 +2,10 @@ SUBDIR		= config doc src portmgr
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}
-DISTNAME	= DarwinPorts-${DISTVER}
+DISTNAME	= MacPorts-${DISTVER}
 DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
-CVSLOGIN	= ${USER}
+SVNURL		= http://svn.macports.org/repository/macports
 
 include Mk/dports.autoconf.mk
 
@@ -58,23 +58,23 @@ distclean::
 	rm -f Makefile Mk/dports.autoconf.mk
 
 _gettag:
-	cd ${DISTDIR}; cvs -d ":ext:${CVSLOGIN}@cvs.opendarwin.org:/Volumes/src/cvs/od" co -N -r ${CVSTAG} ${REPOPATH}
-	cd ${DISTDIR}; mv ${REPOPATH} ${PKGNAME}; rm -Rf darwinports
+	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${REPOPATH}
+	cd ${DISTDIR}; mv ${REPOPATH} ${PKGNAME}; rm -Rf macports
 
 _pkgdist:
-	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
-	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude CVS -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude .svn -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
+	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar --exclude .svn -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
 	cd ${DISTDIR}; for type in -md5 -sha1 -ripemd160; do openssl dgst $$type ${PKGNAME}.tar.gz ${PKGNAME}.tar.bz2; done >> ${DISTNAME}.chk.txt
 
 _dopkg: _gettag _pkgdist
 
 # This target fetches a tagged distribution from cvs, and generates tarballs and checksums for it
-distfromcvs:
-	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.1 dist; exit 1 )
+distfromsvn:
+	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.4 dist; exit 1 )
 	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
 	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
-	${MAKE} PKGNAME=${DISTNAME} REPOPATH=darwinports/base CVSTAG=${DISTTAG} _dopkg
-	${MAKE} PKGNAME=${DISTARCNAME} REPOPATH=darwinports CVSTAG=${DISTARCTAG} _dopkg
+	${MAKE} PKGNAME=${DISTNAME} REPOPATH=macports/base SVNTAG=${DISTTAG} _dopkg
+	${MAKE} PKGNAME=${DISTARCNAME} REPOPATH=macports SVNTAG=${DISTARCTAG} _dopkg
 
 test::
 

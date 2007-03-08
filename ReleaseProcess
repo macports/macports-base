@@ -1,0 +1,148 @@
+
+== MacPorts Release Process ==
+
+This page documents the evolving MacPorts release process.
+
+
+== Goals of a Release ==
+
+There are several goals in the release process:
+
+* Make a specific version of MacPorts available to users.
+* Archive the materials (code, documentation, etc) that compose the release.
+* Replicatability: Enable the release to be regenerated.
+* Consistency: codify naming, network locations, etc, for released components.
+* Ensure that the user base and public is notified of the release.
+
+
+== Steps to a Release ==
+
+The following steps to a release are documented in more detail below:
+
+* Create an svn branch to carry the release.
+* Prepare the code for release.
+* Tag the release.
+* Create release products: tarball and dmg.
+* Post release products.
+* Make release version available through selfupdate.
+* Notify public of the release.
+
+
+=== Create a Release Branch ===
+
+For each major release (i.e. 1.3, 1.4, etc.) an appropriate branch is created with a consistent name. To do this, two things are required:
+
+* Choose the svn revision from which to create the branch, most likely based off trunk.
+* Create the branch (e.g. release_1_4) through the svn "copy" command for history preservation:
+
+ svn copy -r<rev> http://svn.macports.org/repository/macports/trunk/base/ http://svn.macports.org/repository/macports/branches/release_1_4
+
+The actual release, alpha or beta releases, release candidates, and any point releases will all live on this branch, and tagged appropriately and if necessary (a must for the actual releases, optional for beta snapshots) into the /tags svn directory.
+
+Only the base subdirectory, not the dports subdirectory, is branched for a given release.
+
+
+=== Prepare the code for Release ===
+
+In preparation for a release, several things should be completed within the code:
+
+* Update the file base/ChangeLog to reflect changes in the release.
+* Update the file base/config/dp_version with the target release number. Note that this is a floating point number that corresponds to the release number; it should correspond roughly to the release number where possible. Release 1.4.1, for instance, would be represented by the floating point number 1.41. The version number in dp_version is displayed by the port command as the version of MacPorts, and is used by the selfupdate command to determine whether a newer version of code is available.
+* Make sure that these, and any other changes or bug fixes as necessary, are made on and/or merged into the release branch. If you've made changes to ChangeLog only on the release branch, those changes should be merged to trunk as well.
+
+
+=== Tag the Release ===
+
+Once the release is ready, it must be tagged so that the release components may be fetched in the future, to ensure replicatability.
+
+Generally, a release candidate is first tagged and built. When and if it is approved as the actual release, an additional tag is created that names the same sources.
+
+Tagging conventions:
+
+* release_1_4_0-rc1 (release candidate 1 for release 1.4)
+* release_1_4_0 (tagged release 1.4)
+* release_1_4_0-archive (tagged release 1.4 -- complete archive)
+* release_1_4_1 (1.4.1 release)
+
+We first tag the branched base directory for the release
+
+ svn copy branches/release_1_4 http://svn.macports.org/repository/macports/tags/release_1_4_0
+
+Although only the base subdirectory is branched and tagged for a given major release, we also create a seperate tag for the entire tree (base sources and full ports tree) at the time a release tag is created, in order to provide a stake in the ground that specifies a set of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory at TOT (top of tree), except for the base directory which is kept at the point of the release.
+
+Such a composite directory may be created by checking out all of trunk and then switching the base directory to the appropriate release tag URL. For instance:
+
+ svn co http://svn.macports.org/repository/macports/trunk macports/release-1.4
+ cd macports/release-1.4/base
+ svn switch http://svn.macports.org/repository/macports/tags/release_1_4_0
+
+And finally we tag the entire directory as release_1_4_0-archive
+
+ svn cp macports/release-1.4 http://svn.macports.org/repository/tags/release_1_4_0-archive
+(NOTE: copying a "mixed" directory like this to a different URL is highly counter-recommended by developers in #svn @freenode, as it may lead to great history confusion, so an alternate procedure that gets us in a "legal" svn way what James first outlined with a cvs framework in mind should be sought. Nevertheless, I can't seem to find it at the moment, so I'd love it if more experienced svn users could take a stab at it! Daniel...? Blair...? Anyone else? For the record, James' orginal document is at http://trac.macports.org/projects/macports/browser/users/jberry/mediawiki_archive/releaseprocess.txt)
+
+
+=== Create & Post Release Tarballs ===
+
+The release tarballs are tar.bz2 and tar.gz archives of the  base directory only and of the entire svn tree for a particular release. They are named with the following naming convention:
+
+ MacPorts-1.4.tar.{bz2,gz} (base directory only, corresponding to tag release_1_4_0)
+ MacPorts-1.4-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_4_0-archive)
+
+The following commands issued to the top level Makefile will generate the archives and checksums:
+
+ make DISTVER=1.4 DISTTAG=release_1_4_0 distfromsvn
+
+Note that DISTTAG is generated from DISTVER automatically. But our naming convention drops the last .0 in the DISTNAME, so for x.y.0 releases, you want to specify these distinctly, as above.
+
+These tarballs are uploaded via svn to http://svn.macports.org/repository/macports/downloads/MacPorts-1.4/ directory.
+
+Additionally, a file is created, and posted to the same location, that contains md5, sha1, and rmd160 checksums for each of the files:
+
+ MacPorts-1.4.chk.txt
+(We should have a way to sign these checksums, and have the signer's keys posted somewhere. Security experts in the project, would you be interested in leading this effort? Eric? Mark? Anyone else?)
+
+
+=== Create Release Disk Image(s) ===
+
+The dmg is a Mac OS X disk image that contains a standalone installer for the release, named in a consistent fashion and incorporating the OS version for which it was built.
+
+ MacPorts-1.4-10.3.dmg
+ MacPorts-1.4-10.4.dmg
+
+To create the disk image, use the macports port; the Portfile will need to be updated to incorporate the proper release version and the release tarballs will need to be already uploaded to the downloads section of the site (wherefrom the sources are fetched by the macports port to build the dmg for the release). Checksums need to be adapted likewise.
+
+ port dmg macports
+
+Name the dmg appropriately, and generate checksums, which will need to be added to the checksum file:
+
+ cd work
+ mv MacPorts-1.4.dmg MacPorts-1.4-10.4.dmg
+ for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.4-10.4.dmg; done
+
+These new products, along with the new checksums file, also have to be posted to the downloads section of the MacPorts svn repository. Developers are required to validate the generated installer as thoroughly as possible through extensive testing, which is mainly why this step of the release process is not automated through a Makefile or similar.
+
+
+=== Make the Release Available through Self-Update ===
+
+In order to make the release version available through selfupdate, the base/config/RELEASE_URL file in svn trunk needs to be updated with the tag of the release to distribute. This file is read by the cron job that makes the code available via rsync. See base/portmgr/mprsyncup.
+
+
+=== Notify the Public of the Release ===
+
+Once the release has been posted, notification of the release should be sent/posted to the following places:
+
+* The macports-users@lists.macosforge.org and macports-dev@lists.macosforge.org mailing lists.
+* Apple's [http://www.apple.com/downloads/macosx/unix_open_source/darwinports.html Mac OS X software download page] (submitter: mww@)
+* [http://freshmeat.net/projects/darwinports/ Freshmeat] (submitter: mww@)
+* [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
+* (Where else? -- MacUpdate?)
+(Following three locations --last two being leftovers from darwinports days-- need to be carefully thought out and reworked in view of a much --*URGENTLY*-- needed website redesign!!!)
+* Wordpress news section at the main MacPorts site, www.macports.org
+* The [http://www.darwinports.org/getdp/ getdp] and [http://www.darwinports.org/ main] sites (the "$dp_version" variable in the includes/common.inc file for the main English site --www/includes/common.inc-- and each localization has to be updated with the release version)
+* The darwinports wiki (updating the "Current DarwinPorts release" line on the [[DarwinPorts|main]] page)
+
+
+== Additional Release Resources ==
+
+* Landon Fuller's [http://www.opendarwin.org/pipermail/darwinports/2005-May/026055.html release process] suggestions
