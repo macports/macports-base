@@ -68,13 +68,15 @@ _pkgdist:
 
 _dopkg: _gettag _pkgdist
 
-# This target fetches a tagged distribution from cvs, and generates tarballs and checksums for it
+# This target fetches a tagged distribution from svn, and generates tarballs and checksums for it
 distfromsvn:
 	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.4 dist; exit 1 )
 	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
 	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
 	${MAKE} PKGNAME=${DISTNAME} REPOPATH=macports/base SVNTAG=${DISTTAG} _dopkg
+ifeq ($(ARC),yes) 
 	${MAKE} PKGNAME=${DISTARCNAME} REPOPATH=macports SVNTAG=${DISTARCTAG} _dopkg
+endif
 
 test::
 

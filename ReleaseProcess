@@ -35,7 +35,7 @@ For each major release (i.e. 1.3, 1.4, etc.) an appropriate branch is created wi
 * Choose the svn revision from which to create the branch, most likely based off trunk.
 * Create the branch (e.g. release_1_4) through the svn "copy" command for history preservation:
 
- svn copy -r<rev> http://svn.macports.org/repository/macports/trunk/base/ http://svn.macports.org/repository/macports/branches/release_1_4
+ svn cp -r<rev> http://svn.macports.org/repository/macports/trunk/base/ http://svn.macports.org/repository/macports/branches/release_1_4
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all live on this branch, and tagged appropriately and if necessary (a must for the actual releases, optional for beta snapshots) into the /tags svn directory.
 
@@ -66,7 +66,7 @@ Tagging conventions:
 
 We first tag the branched base directory for the release
 
- svn copy branches/release_1_4 http://svn.macports.org/repository/macports/tags/release_1_4_0
+ svn cp http://svn.macports.org/repository/macports/branches/release_1_4 http://svn.macports.org/repository/macports/tags/release_1_4_0
 
 Although only the base subdirectory is branched and tagged for a given major release, we also create a seperate tag for the entire tree (base sources and full ports tree) at the time a release tag is created, in order to provide a stake in the ground that specifies a set of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory at TOT (top of tree), except for the base directory which is kept at the point of the release.
 
@@ -93,7 +93,7 @@ The following commands issued to the top level Makefile will generate the archiv
 
  make DISTVER=1.4 DISTTAG=release_1_4_0 distfromsvn
 
-Note that DISTTAG is generated from DISTVER automatically. But our naming convention drops the last .0 in the DISTNAME, so for x.y.0 releases, you want to specify these distinctly, as above.
+Note that DISTTAG is generated from DISTVER automatically. But our naming convention drops the last .0 in the DISTNAME, so for x.y.0 releases, you want to specify these distinctly, as above. Also, you need to pass the "ARC=yes" flag on the command line to the "distfromsvn" target if you wish to produce tarballs for the full archive.
 
 These tarballs are uploaded via svn to http://svn.macports.org/repository/macports/downloads/MacPorts-1.4/ directory.
 
