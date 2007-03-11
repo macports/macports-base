@@ -3,7 +3,7 @@
 ####
 # PortIndex regen automation script.
 # Created by Juan Manuel Palacios,
-# e-mail: jmpp@opendarwin.org
+# e-mail: jmpp@macports.org
 # Updated by Paul Guyot, <pguyot@kallisys.net>
 # Updated for svn by Daniel J. Luke <dluke@geeklair.net>
 # $Id$
