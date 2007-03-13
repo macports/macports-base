@@ -21,7 +21,8 @@ DP_GROUP=staff
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
-SVN_URL=http://svn.macports.org/repository/macports/trunk/
+SVN_DPORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
+SVN_BASE_URL=http://svn.macports.org/repository/macports/branches/release_1_4
 SVN_CONFIG_DIR=${ROOT}/svnconfig
 # Where to checkout the source code. This gets created.
 TREE=${ROOT}/source
@@ -48,13 +49,22 @@ else
 fi
 
 # checkout if required, update otherwise.
-if [ ! -d ${TREE} ]; then
+if [ ! -d ${TREE}/dports ]; then
 		{ echo "SVN update failed, please check out a copy of DP into ${TREE}" >> $FAILURE_LOG ; FAILED=1 ; }
 else
-	cd ${TREE} && \
+	cd ${TREE}/dports && \
 	svn -q --non-interactive --config-dir $SVN_CONFIG_DIR update > $FAILURE_LOG 2>&1 \
 		|| { echo "SVN update failed" >> $FAILURE_LOG ; FAILED=1 ; }
 fi
+
+if [ ! -d ${TREE}/base ]; then
+        { echo "SVN update failed, please check out a copy of DP into ${TREE}" >> $FAILURE_LOG ; FAILED=1 ; }
+else
+    cd ${TREE}/base && \
+    svn -q --non-interactive --config-dir $SVN_CONFIG_DIR update > $FAILURE_LOG 2>&1 \
+        || { echo "SVN update failed" >> $FAILURE_LOG ; FAILED=1 ; }
+fi
+
 
 # (re)configure.
 if [ $FAILED -eq 0 ]; then
