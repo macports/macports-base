@@ -17,6 +17,8 @@ Release 1.4 (unreleased):
     - Add new alias 'registry_active' for registry::active so portfiles can check if another port is
       installed and activated (eridius in r22304).
 
+    - Built-in 'find' command now always expects an expression as its first argument (jkh in r22048).
+
     - with_docs variant of GNUStep PortGroup ports now installs the latex2html port by default (yves in r22014).
 
     - Add new 'touch' & 'ln' portfile writing commands, their usage being similar to their BSD equivalents,
