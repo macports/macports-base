@@ -22,7 +22,7 @@ SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
 SVN_DPORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
-SVN_BASE_URL=http://svn.macports.org/repository/macports/branches/release_1_4
+SVN_BASE_URL=http://svn.macports.org/repository/macports/trunk/base
 SVN_CONFIG_DIR=${ROOT}/svnconfig
 # Where to checkout the source code. This gets created.
 TREE=${ROOT}/source
