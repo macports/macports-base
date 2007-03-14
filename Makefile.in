@@ -41,13 +41,11 @@ install::
 	fi
 
 	@echo ""
-	@echo "Congratulations, you have successfully installed the MacPorts system."
-	@echo ""
-	@echo "To get the Portfiles and update the system run:"
+	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
 	@echo ""
 	@echo "sudo port selfupdate"
 	@echo ""
-	@echo "Please read README_RELEASE1 and port(1)."
+	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."
 	@echo ""
 
 clean::
