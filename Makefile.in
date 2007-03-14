@@ -41,7 +41,7 @@ install::
 	fi
 
 	@echo ""
-	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system run:"
+	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
 	@echo ""
 	@echo "sudo port selfupdate"
 	@echo ""
