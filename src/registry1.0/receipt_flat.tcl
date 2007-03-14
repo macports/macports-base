@@ -146,10 +146,9 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		set receipt_file [file join ${receipt_path} receipt]
 	}
 
-	if { [file exists ${receipt_file}.bz2] && [file exists /usr/bin/bzip2] } {
-		# xxx: Again, we shouldn't use absolute paths
+	if { [file exists ${receipt_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
 		set receipt_file ${receipt_file}.bz2
-		set receipt_contents [exec /usr/bin/bzip2 -d -c ${receipt_file}]
+		set receipt_contents [exec ${registry::autoconf::bzip2_path} -d -c ${receipt_file}]
 	} elseif { [file exists ${receipt_file}] } {
 		set receipt_handle [open ${receipt_file} r]
 		set receipt_contents [read $receipt_handle]
@@ -322,9 +321,8 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 
 	system "mv ${receipt_file}.tmp ${receipt_file}"
 
-	# We should really not use absolute path for bzip2
-	if { [file exists ${receipt_file}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip] } {
-		system "/usr/bin/bzip2 -f ${receipt_file}"
+	if { [file exists ${receipt_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
+		system "${registry::autoconf::bzip2_path} -f ${receipt_file}"
 	}
 
 	return 1
@@ -512,9 +510,8 @@ proc open_file_map {{readonly 0}} {
 
 	if { ![file exists ${map_file}.db] } {
 		# Convert to new format
-		if { [file exists ${map_file}.bz2] && [file exists /usr/bin/bzip2] } {
-			# xxx: Again, we shouldn't use absolute paths
-			set old_filemap [exec /usr/bin/bzip2 -d -c ${map_file}.bz2]
+		if { [file exists ${map_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
+			set old_filemap [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
 		} elseif { [file exists $map_file] } {		
 			set map_handle [open ${map_file} r]
 			set old_filemap [read $map_handle]
@@ -693,9 +690,8 @@ proc open_dep_map {args} {
 		system "touch $map_file"
 	}
 
-	# xxx: Again, we shouldn't use absolute paths
-	if { [file exists ${map_file}.bz2] && [file exists /usr/bin/bzip2] } {
-		set dep_map [exec /usr/bin/bzip2 -d -c ${map_file}.bz2]
+	if { [file exists ${map_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
+		set dep_map [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
 	} else {
 		set map_handle [open ${map_file} r]
 		set dep_map [read $map_handle]
@@ -772,9 +768,8 @@ proc write_dep_map {args} {
 
 	system "mv ${map_file}.tmp ${map_file}"
 
-	# We should really not use absolute path for bzip2
-	if { [file exists ${map_file}] && [file exists /usr/bin/bzip2] && ![info exists registry.nobzip] } {
-		system "/usr/bin/bzip2 -f ${map_file}"
+	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
+		system "${registry::autoconf::bzip2_path} -f ${map_file}"
 	}
 
 	return 1
