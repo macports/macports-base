@@ -686,16 +686,14 @@ proc open_dep_map {args} {
 
 	set map_file [file join ${receipt_path} dep_map]
 
-	if { ![file exists $map_file] } {
-		system "touch $map_file"
-	}
-
 	if { [file exists ${map_file}.bz2] && [file exists ${registry::autoconf::bzip2_path}] } {
 		set dep_map [exec ${registry::autoconf::bzip2_path} -d -c ${map_file}.bz2]
-	} else {
+	} elseif { [file exists ${map_file}] } {
 		set map_handle [open ${map_file} r]
 		set dep_map [read $map_handle]
 		close $map_handle
+	} else {
+	    set dep_map [list]
 	}
 	if { ![llength $dep_map] > 0 } {
 		set dep_map [list]
@@ -760,13 +758,10 @@ proc write_dep_map {args} {
 	puts $map_handle $dep_map
 	close $map_handle
 
-	if { [file exists ${map_file}] } {
-		system "rm -rf ${map_file}"
-	} elseif { [file exists ${map_file}.bz2] } {
-		system "rm -rf ${map_file}.bz2"
-	}
+    # don't both checking for presence, file delete doesn't error if file doesn't exist
+    file delete ${map_file} ${map_file}.bz2
 
-	system "mv ${map_file}.tmp ${map_file}"
+    file rename ${map_file}.tmp ${map_file}
 
 	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${map_file}"
