@@ -251,6 +251,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
+        /* -A option */
+        theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERAGENT, "MacPorts libcurl/" LIBCURL_VERSION);
+        if (theCurlCode != CURLE_OK) {
+            theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+            break;
+        }
+
 		/* write to the file */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_WRITEDATA, theFile);
 		if (theCurlCode != CURLE_OK) {
