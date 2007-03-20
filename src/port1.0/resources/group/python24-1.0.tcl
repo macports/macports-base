@@ -35,12 +35,13 @@
 set python.bin	${prefix}/bin/python2.4
 set python.lib	${prefix}/lib/libpython2.4.dylib
 set python.pkgd	${prefix}/lib/python2.4/site-packages
+set python.include	${prefix}/include/python/2.4
 
 categories		python
 
 dist_subdir		python
 
-depends_lib		path:${python.bin}:python24
+depends_lib		port:python24
 
 use_configure	no
 
