@@ -20,9 +20,9 @@ set portfetch::mirror_sites::sites(afterstep) {
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
+    http://apache.planetmirror.com.au/dist/
     ftp://ftp.planetmirror.com/pub/apache/dist/
     ftp://ftp.is.co.za/Apache/dist/
-    http://apache.planetmirror.com.au/dist/
     ftp://ftp.infoscience.co.jp/pub/net/apache/dist/
 }
 
@@ -60,8 +60,8 @@ set portfetch::mirror_sites::sites(gnome) {
 }
 
 set portfetch::mirror_sites::sites(gnu) {
-    ftp://ftp.gnu.org/gnu/
     http://ftp.gnu.org/gnu/
+    ftp://ftp.gnu.org/gnu/
     ftp://ftp.uu.net/archive/systems/gnu/
     ftp://ftp.funet.fi/pub/gnu/prep/
     ftp://ftp.kddlabs.co.jp/pub/gnu/
@@ -74,15 +74,15 @@ set portfetch::mirror_sites::sites(gnu) {
 
 set portfetch::mirror_sites::sites(gnupg) {
     http://ftp.gnupg.org/gcrypt/
-    ftp://ftp.gnupg.org/gcrypt/
     http://mirrors.rootmode.com/ftp.gnupg.org/
     http://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt/
+    ftp://ftp.gnupg.org/gcrypt/
 }
 
 set portfetch::mirror_sites::sites(gnustep) {
     http://ftp.easynet.nl/mirror/GNUstep/pub/gnustep/
-    ftp://ftp.easynet.nl/mirror/GNUstep/pub/gnustep/
     http://ftpmain.gnustep.org/pub/gnustep/
+    ftp://ftp.easynet.nl/mirror/GNUstep/pub/gnustep/
     ftp://ftp.gnustep.org/pub/gnustep/
 }
 
@@ -109,14 +109,14 @@ set portfetch::mirror_sites::sites(isc) {
 set portfetch::mirror_sites::sites(kde) {
     http://kde.mirrors.hoobly.com/
     http://gd.tuwien.ac.at/kde/
-    ftp://ftp.oregonstate.edu/pub/kde/
-    ftp://ftp.solnet.ch/mirror/KDE/
     http://mirrors.isc.org/pub/kde/
-    ftp://ftp.kde.org/pub/kde/
     http://ftp.gtlib.cc.gatech.edu/pub/kde/
     http://ftp.du.se/pub/mirrors/kde/
     http://kde.mirrors.tds.net/pub/kde
     http://ftp.caliu.info/pub/mirrors/kde
+    ftp://ftp.oregonstate.edu/pub/kde/
+    ftp://ftp.solnet.ch/mirror/KDE/
+    ftp://ftp.kde.org/pub/kde/
 }
 
 set portfetch::mirror_sites::sites(macports) {
@@ -150,8 +150,9 @@ set portfetch::mirror_sites::sites(perl_cpan) {
 }
 
 set portfetch::mirror_sites::sites(ruby) {
-    ftp://xyz.lcs.mit.edu/pub/ruby/
     http://www.ibiblio.org/pub/languages/ruby/
+    http://mirrors.sunsite.dk/ruby/
+    ftp://xyz.lcs.mit.edu/pub/ruby/
     ftp://ftp.iij.ad.jp/pub/lang/ruby/
     ftp://ftp.ruby-lang.org/pub/ruby/
     ftp://ftp.fu-berlin.de/unix/languages/ruby/
@@ -159,7 +160,6 @@ set portfetch::mirror_sites::sites(ruby) {
     ftp://ftp.ntua.gr/pub/lang/ruby/
     ftp://ftp.chg.ru/pub/lang/ruby/
     ftp://ftp.kr.FreeBSD.org/pub/ruby/
-    http://mirrors.sunsite.dk/ruby/
     ftp://ftp.iDaemons.org/pub/mirror/ftp.ruby-lang.org/ruby/
 }
 
@@ -198,8 +198,8 @@ set portfetch::mirror_sites::sites(xcontrib) {
 }
 
 set portfetch::mirror_sites::sites(xfree) {
-    ftp://ftp.fit.vutbr.cz/pub/XFree86/
     http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.xfree86.org/XFree86/
+    ftp://ftp.fit.vutbr.cz/pub/XFree86/
     ftp://mir1.ovh.net/ftp.xfree86.org/
     ftp://ftp.gwdg.de/pub/xfree86/XFree86/
     ftp://ftp.rediris.es/mirror/XFree86/
@@ -212,11 +212,11 @@ set portfetch::mirror_sites::sites(xfree) {
 }
 
 set portfetch::mirror_sites::sites(openbsd) {
+    http://mirror.pacific.net.au/OpenBSD/
+    http://ftp.chg.ru/pub/OpenBSD/
     ftp://ftp.openbsd.org/pub/OpenBSD/
     ftp://ftp.jp.openbsd.org/pub/OpenBSD/
     ftp://carroll.cac.psu.edu/pub/OpenBSD/
-    http://mirror.pacific.net.au/OpenBSD/
-    http://ftp.chg.ru/pub/OpenBSD/
     ftp://openbsd.informatik.uni-erlangen.de/pub/OpenBSD/
     ftp://gd.tuwien.ac.at/opsys/OpenBSD/
     ftp://ftp.stacken.kth.se/pub/OpenBSD/
