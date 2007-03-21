@@ -84,6 +84,7 @@ set portfetch::mirror_sites::sites(gnupg) {
 
 set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.gnu.org/gnu/
+    http://ftp.gnu.org/gnu/
     ftp://ftp.uu.net/archive/systems/gnu/
     ftp://ftp.de.uu.net/pub/gnu/
     ftp://ftp.funet.fi/pub/gnu/prep/
