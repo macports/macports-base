@@ -75,11 +75,11 @@ set portfetch::mirror_sites::sites(gnome) {
 }
 
 set portfetch::mirror_sites::sites(gnupg) {
+    http://ftp.gnupg.org/gcrypt/
     ftp://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt/
     ftp://ftp.gnupg.org/gcrypt/
     http://mirrors.rootmode.com/ftp.gnupg.org/
     http://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt/
-    http://ftp.gnupg.org/gcrypt/
 }
 
 set portfetch::mirror_sites::sites(gnu) {
