@@ -74,6 +74,14 @@ set portfetch::mirror_sites::sites(gnome) {
     ftp://ftp.dti.ad.jp/pub/X/gnome/
 }
 
+set portfetch::mirror_sites::sites(gnupg) {
+    ftp://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt/
+    ftp://ftp.gnupg.org/gcrypt/
+    http://mirrors.rootmode.com/ftp.gnupg.org/
+    http://ftp.freenet.de/pub/ftp.gnupg.org/gcrypt/
+    http://ftp.gnupg.org/gcrypt/
+}
+
 set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.gnu.org/gnu/
     ftp://ftp.uu.net/archive/systems/gnu/
