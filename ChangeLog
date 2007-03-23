@@ -12,6 +12,16 @@ Release 1.5 (unreleased):
 
 Release 1.4 (unreleased):
 
+    - New gnupg mirrors list and general cleanups to varios other lists (pipping in r22979 through r22982,
+      r22999, r23000 & r23037).
+
+    - Python 2.4 & Python 2.5 group code now offer a "python.include" variable (mww in r22914 & r22953).
+
+    - Resolved ticket #7563: The Pextlib curl command now sends a user agent, set to
+      "MacPorts libcurl/[libcurl version]" (eridius in r22771).
+
+    - Resolved ticket #11417: No longer touch the dep map file when opening it for reading (eridius in r22769).
+
     - Archivemode now supports both tbz2 & tbz binary archives naming variations (jmpp in r22584).
 
     - Add new alias 'registry_active' for registry::active so portfiles can check if another port is
