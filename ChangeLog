@@ -7,6 +7,8 @@
 
 Release 1.5 (unreleased):
 
+    - "port sync" now updates svn repos too (eridius in r22784).
+
     - Default +universal variant for configure-based ports (pguyot in r22313).
 
 
