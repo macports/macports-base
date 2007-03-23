@@ -39,7 +39,7 @@
 .Op Fl vdqfonRusbckixpt
 .Op Fl D Ar portdir
 .Op Fl F Ar cmdfile
-.Ar action
+.Op Ar action
 .Op Ar actionflags
 .Op Oo Ar portname | pseudo-portname | port-url Oc Oo Ar @version Oc Oo +/-variant ... Oc ... Oo option=value ... Oc
 .Sh DESCRIPTION
@@ -54,10 +54,14 @@ or
 .Ar portname
 is specified, the current working directory is assumed; if no
 .Ar action
-is specified, the port command enters interactive mode in which commands are read via stdin. Batch files of commands may be specified via batch files	.
+is specified the port command enters interactive mode, in which commands are read via stdin. Batch commands may be
+passed via a
+.Ar cmdfile .
 Port 
 .Ar options 
-are passed as key=value pairs and take precedence over individual port options and system-wide settings.
+are passed as key=value pairs and take precedence over individual
+.Ar portname
+options as specified in its Portfile and system-wide settings.
 .Pp
 Port
 .Ar variants
