@@ -8,7 +8,8 @@ all::
 
 clean::
 
-distclean::
+distclean:: clean
+	rm -f registry_autoconf.tcl
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
