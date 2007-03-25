@@ -401,6 +401,87 @@ proc platform {args} {
     }
 }
 
+########### Environment utility functions ###########
+
+# Parse an environment string, returning a list of key/value pairs.
+proc parse_environment {environment_str parsed_environment} {
+	upvar 1 ${parsed_environment} env_array
+	set the_environment ${environment_str}
+	while {[regexp "^(?: *)(\[^= \]+)=(\\\\?(\"|'|))(\[^\"'\].*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter_full delimiter value remaining]} {
+		set the_environment ${remaining}
+		set env_array(${key}) ${delimiter}${value}${delimiter}
+	}
+}
+
+# Append to the value in the parsed environment.
+# Leave the environment untouched if the value is empty.
+proc append_to_environment_value {parsed_environment key value} {
+	upvar 1 ${parsed_environment} env_array
+
+	if {[string length $value] == 0} {
+		return
+	}
+
+	if {[info exists env_array($key)]} {
+		set original_value $env_array($key)
+		set original_delim ""
+		if {[regexp {^("|')(.*)\1$} ${original_value} matchVar original_delim matchedValue]} {
+			set original_value $matchedValue
+		}
+		set append_delim ""
+		set append_value $value
+		if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
+			set append_value $matchedValue
+		}
+	
+		# Always honor original delimiter when appending, unless there isn't any.
+		if {[string length $original_delim] == 0} {
+			if {[string length $append_delim] == 0} {
+				set new_delim "'"
+			} else {
+				set new_delim $append_delim
+			}
+		} else {
+			set new_delim $original_delim
+		}
+		
+		set space " "
+		set env_array($key) ${new_delim}${original_value}${space}${append_value}${new_delim}
+	} else {
+		set env_array($key) $value
+	}
+}
+
+# Append several items to a value in the parsed environment.
+proc append_list_to_environment_value {parsed_environment key vallist} {
+	upvar 1 ${parsed_environment} env_array
+
+	foreach {value} $vallist {
+		append_to_environment_value env_array $key $value
+	}
+}
+
+# Rebuild the environment as a string.
+proc environment_array_to_string {parsed_environment} {
+	upvar 1 ${parsed_environment} env_array
+	set theString ""
+	foreach {key value} [array get env_array] {
+		set added_delim "'"
+		if {[regexp {^("|').*\1$} ${value} matchVar original_delim]} {
+			set added_delim ""
+		}
+		set value "${added_delim}${value}${added_delim}"
+
+		if {$theString == ""} {
+			set theString "$key=$value"
+		} else {
+			set theString "${theString} $key=$value"
+		}
+	}
+	
+	return $theString
+}
+
 ########### Distname utility functions ###########
 
 # Given a distribution file name, return the appended tag

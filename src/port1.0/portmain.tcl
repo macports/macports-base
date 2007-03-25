@@ -102,13 +102,13 @@ if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirecto
 			return -code error "Default universal variant only works with ports based on configure"
 		}
 		configure.args-append ${configure.universal_args}
-		if {[info exists configure.env] && [regexp "(^| )(LD|C)FLAGS=" ${configure.env}]} {
-			ui_warn "This port already overrides CFLAGS or LDFLAGS. The universal variant may break it."
-		}
 		if {![file exists /Developer/SDKs/MacOSX10.4u.sdk/]} {
-			ui_warn "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
+			return -code error "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
 		}
-		configure.env-append ${configure.universal_env}
+		configure.cflags-append ${configure.universal_cflags}
+		configure.cppflags-append ${configure.universal_cppflags}
+		configure.cxxflags-append ${configure.universal_cxxflags}
+		configure.ldflags-append ${configure.universal_ldflags}
 	}
 }
 

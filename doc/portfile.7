@@ -316,7 +316,7 @@ is run in. This is often overridden on a per
 basis.
 .br
 .Sy Example:
-.Dl configure.env CFLAGS=-O
+.Dl configure.env CPP=/usr/bin/cpp-4.0
 .It Va target Ns Ic .pre_args
 Additional arguments passed before the main arguments.
 .br
@@ -336,42 +336,6 @@ Additional arguments passed after the main arguments.
 .br
 .Sy Example:
 .Dl extract.post_args | tar xf -
-.El
-.Sh UNIVERSAL TARGET HOOKS
-For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless. Please also note that problems may occur with the default code if a port already overrides LDFLAGS or CFLAGS (port(1) will display a warning in such a case).
-.Bl -tag -width lc
-.It Ic configure.universal_args
-Arguments appended to the configure script to build the port universal.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em --disable-dependency-tracking
-.It Ic configure.universal_cflags
-Value of the CFLAGS environment variable when invoking the configure script.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
-.It Ic configure.universal_ldflags
-Value of the LDFLAGS environment variable when invoking the configure script.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em -arch i386 -arch ppc
-.It Ic configure.universal_env
-Environment appended to the port-defined environment when invoking the configure script.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em CFLAGS="${configure.universal_cflags}" LDFLAGS="${configure.universal_ldflags}"
 .El
 .Sh RUNTIME VARIABLES
 Read-only access to the MacPorts configuration is provided.
@@ -795,6 +759,80 @@ Command to perform the extraction.
 .br
 .Sy Example:
 .Dl extract.cmd bzip2
+.El
+.Sh CONFIGURE OPTIONS
+MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
+.Bl -tag -width lc
+.It Ic configure.cflags
+Flags to put in the CFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
+.br
+.Sy Example:
+.Dl configure.cflags-append -DHAS_LRINTF
+.It Ic configure.cppflags
+Flags to put in the CPPFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.cxxflags
+Flags to put in the CXXFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
+.It Ic configure.ldflags
+Flags to put in the LDFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.El
+.Ss UNIVERSAL TARGET HOOKS
+For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.
+.Bl -tag -width lc
+.It Ic configure.universal_args
+Arguments appended to the configure script to build the port universal.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em --disable-dependency-tracking
+.It Ic configure.universal_cflags
+Additional flags to put in the CFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
+.It Ic configure.universal_cppflags
+Additional flags to put in the CPPFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.universal_cxxflags
+Additional flags to put in the CXXFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
+.It Ic configure.universal_ldflags
+Additional flags to put in the LDFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -arch i386 -arch ppc
 .El
 .Sh BUILD OPTIONS
 Execute necessary build commands.

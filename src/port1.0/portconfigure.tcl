@@ -41,6 +41,7 @@ target_prerun ${com.apple.configure} configure_start
 # define options
 commands configure automake autoconf xmkmf libtool
 # defaults
+default configure.env ""
 default configure.pre_args {--prefix=${prefix}}
 default configure.cmd ./configure
 default configure.dir {${worksrcpath}}
@@ -50,12 +51,22 @@ default xmkmf.cmd xmkmf
 default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
+# Configure special environment variables.
+options configure.cflags configure.cppflags configure.cxxflags configure.ldflags
+# This could move to default debug/optimization flags at some point.
+# We probably want to add -L${prefix}/lib and -I${prefix}/include here.
+default configure.cflags	{-O2}
+default configure.cppflags	{}
+default configure.cxxflags	{-O2}
+default configure.ldflags	{}
+
 # Universal options & default values.
-options configure.universal_args configure.universal_cflags configure.universal_ldflags configure.universal_env
-default configure.universal_args	--disable-dependency-tracking
-default configure.universal_cflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
-default configure.universal_ldflags	{"-arch i386 -arch ppc"}
-default configure.universal_env		{"CFLAGS=\"${configure.universal_cflags}\" LDFLAGS=\"${configure.universal_ldflags}\""}
+options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
+default configure.universal_args		--disable-dependency-tracking
+default configure.universal_cflags		{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
+default configure.universal_cppflags	{}
+default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
+default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
 set_ui_prefix
 
@@ -67,7 +78,8 @@ proc configure_start {args} {
 
 proc configure_main {args} {
     global [info globals]
-    global configure configure.args configure.dir automake automake.env automake.args automake.dir autoconf autoconf.env autoconf.args autoconf.dir xmkmf libtool portname worksrcpath prefix workpath UI_PREFIX use_configure use_autoconf use_automake use_xmkmf
+    global worksrcpath use_configure use_autoconf use_automake use_xmkmf
+    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags
     
     if {[tbool use_automake]} {
 	# XXX depend on automake
@@ -84,18 +96,25 @@ proc configure_main {args} {
     }
     
     if {[tbool use_xmkmf]} {
-	# XXX depend on xmkmf
-	if {[catch {system "[command xmkmf]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
-	} else {
-	    # XXX should probably use make command abstraction but we know that
-	    # X11 will already set things up so that "make Makefiles" always works.
-	    system "cd ${worksrcpath} && make Makefiles"
-	}
-    } elseif {[tbool use_configure]} {
-	if {[catch {system "[command configure]"} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
-	}
+		# XXX depend on xmkmf
+		if {[catch {system "[command xmkmf]"} result]} {
+		    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
+		} else {
+		    # XXX should probably use make command abstraction but we know that
+		    # X11 will already set things up so that "make Makefiles" always works.
+		    system "cd ${worksrcpath} && make Makefiles"
+		}
+	} elseif {[tbool use_configure]} {
+    	# Merge (ld|c|cpp|cxx)flags into the environment variable.
+    	parse_environment ${configure.env} parsed_env
+		append_list_to_environment_value parsed_env "CFLAGS" ${configure.cflags}
+		append_list_to_environment_value parsed_env "CPPFLAGS" ${configure.cppflags}
+		append_list_to_environment_value parsed_env "CXXFLAGS" ${configure.cxxflags}
+		append_list_to_environment_value parsed_env "LDFLAGS" ${configure.ldflags}
+		set configure.env [environment_array_to_string parsed_env]
+		if {[catch {system "[command configure]"} result]} {
+			return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
+		}
     }
     return 0
 }
