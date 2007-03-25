@@ -106,7 +106,13 @@ proc configure_main {args} {
 		}
 	} elseif {[tbool use_configure]} {
     	# Merge (ld|c|cpp|cxx)flags into the environment variable.
-    	parse_environment ${configure.env} parsed_env
+    	# Flatten the environment string.
+    	set env_str ""
+    	foreach str [set configure.env] {
+    		set env_str "$env_str $str"
+    	}
+    	parse_environment $env_str parsed_env
+    	# Append configure flags.
 		append_list_to_environment_value parsed_env "CFLAGS" ${configure.cflags}
 		append_list_to_environment_value parsed_env "CPPFLAGS" ${configure.cppflags}
 		append_list_to_environment_value parsed_env "CXXFLAGS" ${configure.cxxflags}
