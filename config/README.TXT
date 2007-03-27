@@ -5,6 +5,3 @@ ultimately, at rsync://rsync.darwinports.org/dpupdate1/base.
 The script handling that operation checks out from svn the code tagged by the
 contents of the RELEASE_URL file, and makes that code available via rsync.
 The script is at /base/portmgr/mprsyncup.
-
-(Previous machinery checked out from cvs the tag at RELEASE_TAG, and handled by
-the script /base/portmgr/dprsyncup).
