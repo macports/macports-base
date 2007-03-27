@@ -779,7 +779,7 @@ Flags to put in the CFLAGS environment variable when invoking the configure scri
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em -O2 -I${prefix}/include -L${prefix}/lib
 .br
 .Sy Example:
 .Dl configure.cflags-append -DHAS_LRINTF
@@ -795,7 +795,7 @@ Flags to put in the CXXFLAGS environment variable when invoking the configure sc
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em -O2 -I${prefix}/include -L${prefix}/lib
 .It Ic configure.ldflags
 Flags to put in the LDFLAGS environment variable when invoking the configure script.
 .br
