@@ -30,7 +30,7 @@ proc test_start {args} {
 proc test_main {args} {
     global portname test.run
     if {[tbool test.run]} {
-    	system "[command test]"
+    	command_exec test
     } else {
 	return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $portname]
     }

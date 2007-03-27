@@ -83,21 +83,21 @@ proc configure_main {args} {
     
     if {[tbool use_automake]} {
 	# XXX depend on automake
-	if {[catch {system "[command automake]"} result]} {
+	if {[catch {command_exec automake} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
 	}
     }
     
     if {[tbool use_autoconf]} {
 	# XXX depend on autoconf
-	if {[catch {system "[command autoconf]"} result]} {
+	if {[catch {command_exec autoconf} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
     }
     
     if {[tbool use_xmkmf]} {
 		# XXX depend on xmkmf
-		if {[catch {system "[command xmkmf]"} result]} {
+		if {[catch {command_exec xmkmf} result]} {
 		    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
 		} else {
 		    # XXX should probably use make command abstraction but we know that
@@ -106,19 +106,16 @@ proc configure_main {args} {
 		}
 	} elseif {[tbool use_configure]} {
     	# Merge (ld|c|cpp|cxx)flags into the environment variable.
-    	# Flatten the environment string.
-    	set env_str ""
-    	foreach str [set configure.env] {
-    		set env_str "$env_str $str"
-    	}
-    	parse_environment $env_str parsed_env
+    	parse_environment configure
+
     	# Append configure flags.
-		append_list_to_environment_value parsed_env "CFLAGS" ${configure.cflags}
-		append_list_to_environment_value parsed_env "CPPFLAGS" ${configure.cppflags}
-		append_list_to_environment_value parsed_env "CXXFLAGS" ${configure.cxxflags}
-		append_list_to_environment_value parsed_env "LDFLAGS" ${configure.ldflags}
-		set configure.env [environment_array_to_string parsed_env]
-		if {[catch {system "[command configure]"} result]} {
+		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
+		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
+		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
+		append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
+
+		# Execute the command (with the new environment).
+		if {[catch {command_exec configure} result]} {
 			return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
 		}
     }

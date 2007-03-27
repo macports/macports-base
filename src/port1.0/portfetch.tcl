@@ -320,7 +320,7 @@ proc cvsfetch {args} {
 	set cvs.env ""
 	set cvs.args login
 	set cvs.post_args ""
-	if {[catch {system -notty "[command cvs] 2>&1"} result]} {
+	if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
 	    return -code error [msgcat::mc "CVS login failed"]
 	}
 	set cvs.cmd ${savecmd}
@@ -331,7 +331,7 @@ proc cvsfetch {args} {
 	set env(CVS_RSH) ssh
     }
 
-    if {[catch {system "[command cvs] 2>&1"} result]} {
+    if {[catch {command_exec cvs "" "2>&1"} result]} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
 
@@ -366,7 +366,7 @@ proc svnfetch {args} {
 		set svn.args "${svn.args} -r ${svn.tag}"
     }
 
-    if {[catch {system "[command svn] 2>&1"} result]} {
+    if {[catch {command_exec svn "" "2>&1"} result]} {
 		return -code error [msgcat::mc "Subversion check out failed"]
     }
 

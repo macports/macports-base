@@ -202,21 +202,14 @@ proc commands {args} {
     }
 }
 
-# command
-# Given a command name, command assembled a string
+# Given a command name, assemble a command string
 # composed of the command options.
-proc command {command} {
+proc command_string {command} {
     global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
     
     set cmdstring ""
     if {[info exists ${command}.dir]} {
 	set cmdstring "cd \"[set ${command}.dir]\" &&"
-    }
-    
-    if {[info exists ${command}.env]} {
-	foreach string [set ${command}.env] {
-	    set cmdstring "$cmdstring $string"
-	}
     }
     
     if {[info exists ${command}.cmd]} {
@@ -235,6 +228,69 @@ proc command {command} {
     }
     ui_debug "Assembled command: '$cmdstring'"
     return $cmdstring
+}
+
+# Given a command name, execute it with the options.
+# command_exec command [-notty] [command_prefix [command_suffix]]
+# command			name of the command
+# command_prefix	additional command prefix (typically pipe command)
+# command_suffix	additional command suffix (typically redirection)
+proc command_exec {command args} {
+	global ${command}.env ${command}.env_array env
+	set notty 0
+	set command_prefix ""
+	set command_suffix ""
+
+	if {[llength $args] > 0} {
+		if {[lindex $args 0] == "-notty"} {
+			set notty 1
+			set args [lrange $args 1 end]
+		}
+
+		if {[llength $args] > 0} {
+			set command_prefix [lindex $args 0]
+			if {[llength $args] > 1} {
+				set command_suffix [lindex $args 1]
+			}
+		}
+	}
+	
+	# Set the environment.
+	# If the array doesn't exist, we create it with the value
+	# coming from ${command}.env
+	# Otherwise, it means the caller actually played with the environment
+	# array already (e.g. configure flags).
+	if {![array exists ${command}.env_array]} {
+		parse_environment ${command}
+	}
+	
+	# Debug that.
+    ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
+
+	# Get the command string.
+	set cmdstring [command_string ${command}]
+	
+	# Call this command.
+	# TODO: move that to the system native call?
+	# Save the environment.
+	set saved_env [array get env]
+	# Set the overriden variables from the portfile.
+	array set env [array get ${command}.env_array]
+	# Call the command.
+	set fullcmdstring "$command_prefix $cmdstring $command_suffix"
+	if {$notty} {
+		set code [catch {system -notty $fullcmdstring} result]
+	} else {
+		set code [catch {system $fullcmdstring} result]
+	}
+	# Unset the command array until next time.
+	array unset ${command}.env_array
+	# Restore the environment.
+	array unset env
+	array set env [array get saved_env]
+
+	# Return as if system had been called directly.	
+	return -code $code $result
 }
 
 # default
@@ -403,79 +459,68 @@ proc platform {args} {
 
 ########### Environment utility functions ###########
 
-# Parse an environment string, returning a list of key/value pairs.
-proc parse_environment {environment_str parsed_environment} {
-	upvar 1 ${parsed_environment} env_array
-	set the_environment ${environment_str}
-	while {[regexp "^(?: *)(\[^= \]+)=(\\\\?(\"|'|))(\[^\"'\].*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter_full delimiter value remaining]} {
-		set the_environment ${remaining}
-		set env_array(${key}) ${delimiter}${value}${delimiter}
+# Parse the environment string of a command, storing the values into the
+# associated environment array.
+proc parse_environment {command} {
+	global ${command}.env ${command}.env_array
+
+	if {[info exists ${command}.env]} {
+		# Flatten the environment string.
+		set the_environment ""
+		foreach str [set ${command}.env] {
+			set the_environment "$the_environment $str"
+		}
+	
+		while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\].*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
+			set the_environment ${remaining}
+			set ${command}.env_array(${key}) ${value}
+		}
+	} else {
+		array set ${command}.env_array {}
 	}
 }
 
 # Append to the value in the parsed environment.
 # Leave the environment untouched if the value is empty.
-proc append_to_environment_value {parsed_environment key value} {
-	upvar 1 ${parsed_environment} env_array
+proc append_to_environment_value {command key value} {
+	global ${command}.env_array
 
 	if {[string length $value] == 0} {
 		return
 	}
 
-	if {[info exists env_array($key)]} {
-		set original_value $env_array($key)
-		set original_delim ""
-		if {[regexp {^("|')(.*)\1$} ${original_value} matchVar original_delim matchedValue]} {
-			set original_value $matchedValue
-		}
-		set append_delim ""
-		set append_value $value
-		if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
-			set append_value $matchedValue
-		}
-	
-		# Always honor original delimiter when appending, unless there isn't any.
-		if {[string length $original_delim] == 0} {
-			if {[string length $append_delim] == 0} {
-				set new_delim "'"
-			} else {
-				set new_delim $append_delim
-			}
-		} else {
-			set new_delim $original_delim
-		}
-		
-		set space " "
-		set env_array($key) ${new_delim}${original_value}${space}${append_value}${new_delim}
+	# Parse out any delimiter.
+	set append_value $value
+	if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
+		set append_value $matchedValue
+	}
+
+	if {[info exists ${command}.env_array($key)]} {
+		set original_value [set ${command}.env_array($key)]
+		set ${command}.env_array($key) "${original_value} ${append_value}"
 	} else {
-		set env_array($key) $value
+		set ${command}.env_array($key) $append_value
 	}
 }
 
 # Append several items to a value in the parsed environment.
-proc append_list_to_environment_value {parsed_environment key vallist} {
-	upvar 1 ${parsed_environment} env_array
-
+proc append_list_to_environment_value {command key vallist} {
 	foreach {value} $vallist {
-		append_to_environment_value env_array $key $value
+		append_to_environment_value ${command} $key $value
 	}
 }
 
-# Rebuild the environment as a string.
-proc environment_array_to_string {parsed_environment} {
-	upvar 1 ${parsed_environment} env_array
+# Build the environment as a string.
+# Remark: this method is only used for debugging purposes.
+proc environment_array_to_string {environment_array} {
+	upvar 1 ${environment_array} env_array
+	
 	set theString ""
 	foreach {key value} [array get env_array] {
-		set added_delim "'"
-		if {[regexp {^("|').*\1$} ${value} matchVar original_delim]} {
-			set added_delim ""
-		}
-		set value "${added_delim}${value}${added_delim}"
-
 		if {$theString == ""} {
-			set theString "$key=$value"
+			set theString "$key='$value'"
 		} else {
-			set theString "${theString} $key=$value"
+			set theString "${theString} $key='$value'"
 		}
 	}
 	

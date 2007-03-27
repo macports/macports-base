@@ -268,7 +268,7 @@ proc unarchive_main {args} {
 
 	# Unpack the archive
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-	system "[command unarchive]"
+	command_exec unarchive
 
 	return 0
 }
@@ -313,7 +313,7 @@ proc unarchive_main {args} {
 
 	# Unpack the archive
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-	system "[command unarchive]"
+	command_exec unarchive
 
 	return 0
 }

@@ -324,7 +324,7 @@ proc archive_main {args} {
 			}
 
 			ui_info "$UI_PREFIX [format [msgcat::mc "Creating %s"] ${archive.file}]"
-			system "[command archive]"
+			command_exec archive
 			ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s packaged"] ${archive.file}]"
 		}
 	}

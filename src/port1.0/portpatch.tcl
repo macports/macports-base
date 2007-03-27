@@ -79,9 +79,9 @@ proc patch_main {args} {
 	}
 	switch -glob -- [file tail $patch] {
 	    *.Z -
-	    *.gz {system "$gzcat \"$patch\" | ([command patch])"}
-	    *.bz2 {system "bzcat \"$patch\" | ([command patch])"}
-	    default {system "[command patch] < \"$patch\""}
+	    *.gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
+	    *.bz2 {command_exec patch "bzcat \"$patch\" | (" ")"}
+	    default {command_exec patch "" "< '$patch'"}
 	}
     }
     return 0
