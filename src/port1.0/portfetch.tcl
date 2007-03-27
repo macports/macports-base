@@ -42,7 +42,7 @@ target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir \
-	fetch.type fetch.user fetch.password fetch.use_epsv \
+	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag \
 	svn.url svn.tag
@@ -84,6 +84,8 @@ default fetch.user ""
 default fetch.password ""
 # Use EPSV for FTP transfers
 default fetch.use_epsv "yes"
+# Ignore SSL certificate
+default fetch.ignore_sslcert "no"
 
 default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -381,7 +383,7 @@ proc svnfetch {args} {
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
 	global distpath all_dist_files UI_PREFIX fetch_urls
-	global fetch.user fetch.password fetch.use_epsv
+	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
 	global distfile site
 	global portverbose
 
@@ -398,6 +400,9 @@ proc fetchfiles {args} {
 	}
 	if {${fetch.use_epsv} != "yes"} {
 		lappend fetch_options "--disable-epsv"
+	}
+	if {${fetch.ignore_sslcert} != "no"} {
+		lappend fetch_options "--ignore-ssl-cert"
 	}
 	if {$portverbose == "yes"} {
 		lappend fetch_options "-v"

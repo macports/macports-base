@@ -124,7 +124,7 @@ SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode)
 /**
  * curl fetch subcommand entry point.
  *
- * syntax: curl fetch [-v] [--disable-epsv] [-u userpass] [--effective-url lasturlvar] url filename
+ * syntax: curl fetch [-v] [--disable-epsv] [--ignore-ssl-cert] [-u userpass] [--effective-url lasturlvar] url filename
  *
  * @param interp		current interpreter
  * @param objc			number of parameters
@@ -141,6 +141,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		long theResponseCode = 0;
 		int noprogress = 1;
 		int useepsv = 1;
+		int ignoresslcert = 0;
 		const char* theUserPassString = NULL;
 		const char* effectiveURLVarName = NULL;
 		char* effectiveURL = NULL;
@@ -164,6 +165,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				noprogress = 0;
 			} else if (strcmp(theOption, "--disable-epsv") == 0) {
 				useepsv = 0;
+			} else if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
+				ignoresslcert = 1;
 			} else if (strcmp(theOption, "-u") == 0) {
 				/* check we also have the parameter */
 				if (optioncrsr < lastoption) {
@@ -277,6 +280,20 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
+		}
+		
+		/* we may want to ignore ssl errors */
+		if (ignoresslcert) {
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYPEER, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYHOST, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
 		}
 
 		/* set the l/p, if any */
