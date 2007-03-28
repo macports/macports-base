@@ -779,7 +779,7 @@ Flags to put in the CFLAGS environment variable when invoking the configure scri
 .Em optional
 .br
 .Sy Default:
-.Em -O2 -I${prefix}/include -L${prefix}/lib
+.Em -O2 -I${prefix}/include
 .br
 .Sy Example:
 .Dl configure.cflags-append -DHAS_LRINTF
@@ -795,12 +795,15 @@ Flags to put in the CXXFLAGS environment variable when invoking the configure sc
 .Em optional
 .br
 .Sy Default:
-.Em -O2 -I${prefix}/include -L${prefix}/lib
+.Em -O2 -I${prefix}/include
 .It Ic configure.ldflags
 Flags to put in the LDFLAGS environment variable when invoking the configure script.
 .br
 .Sy Type:
 .Em optional
+.br
+.Sy Default:
+.Em -L${prefix}/lib
 .El
 .Ss UNIVERSAL TARGET HOOKS
 For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.

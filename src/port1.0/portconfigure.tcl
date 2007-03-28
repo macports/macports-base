@@ -54,10 +54,10 @@ default use_configure yes
 # Configure special environment variables.
 options configure.cflags configure.cppflags configure.cxxflags configure.ldflags
 # We could have default debug/optimization flags at some point.
-default configure.cflags	{-O2 -I${prefix}/include -L${prefix}/lib}
+default configure.cflags	{"-O2 -I${prefix}/include"}
 default configure.cppflags	{}
-default configure.cxxflags	{-O2 -I${prefix}/include -L${prefix}/lib}
-default configure.ldflags	{}
+default configure.cxxflags	{"-O2 -I${prefix}/include"}
+default configure.ldflags	{"-L${prefix}/lib"}
 
 # Universal options & default values.
 options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
