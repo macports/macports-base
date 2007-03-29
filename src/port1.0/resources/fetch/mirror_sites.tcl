@@ -213,8 +213,9 @@ set portfetch::mirror_sites::sites(xfree) {
 }
 
 set portfetch::mirror_sites::sites(openbsd) {
-    http://mirror.pacific.net.au/OpenBSD/
-    http://ftp.chg.ru/pub/OpenBSD/
+    http://mirror.roothell.org/pub/OpenBSD/
+    http://ftp-stud.fht-esslingen.de/pub/OpenBSD/
+    http://mirror.paranoidbsd.org/pub/OpenBSD/
     ftp://ftp.openbsd.org/pub/OpenBSD/
     ftp://ftp.jp.openbsd.org/pub/OpenBSD/
     ftp://carroll.cac.psu.edu/pub/OpenBSD/
