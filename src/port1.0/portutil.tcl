@@ -285,8 +285,9 @@ proc command_exec {command args} {
 	}
 	# Unset the command array until next time.
 	array unset ${command}.env_array
+	
 	# Restore the environment.
-	array unset env
+	array unset env *
 	array set env [array get saved_env]
 
 	# Return as if system had been called directly.	
