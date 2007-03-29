@@ -9,7 +9,7 @@ Release 1.4.1 (Unreleased):
 
     - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
 
-    - Resolved ticekt #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
+    - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
 
 
 Release 1.4 (26-March-2007):
