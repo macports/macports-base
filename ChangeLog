@@ -7,6 +7,11 @@
 	
 Release 1.5 (Unreleased):
 
+    - Add -I${prefix}/include -L${prefix}/lib to the default configure flags (pguyot in r23246).
+
+    - New options for configure flags (C|CPP|CXX|LD)FLAGS and logic to handle that and backward compatibility
+      (pguyot in r23089).
+	
     - "port sync" now updates svn repos too (eridius in r22784).
 
     - Default +universal variant for configure-based ports (pguyot in r22313).
