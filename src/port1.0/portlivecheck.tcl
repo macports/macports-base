@@ -60,6 +60,7 @@ proc livecheck_main {args} {
 	
 	set updated 0
 	set updated_version "unknown"
+	set has_master_sites [info exists the_master_sites]
 
 	set tempfile ${workpath}/livecheck.TMP
 	set port_moddate [file mtime ${portpath}/Portfile]
@@ -69,12 +70,12 @@ proc livecheck_main {args} {
 
 	# Determine the default type depending on the mirror.
 	if {"${livecheck.check}" == "default"} {
-		if {[regexp {sourceforge:(.+)} $master_sites dummy tag]} {
+		if {$has_master_sites && [regexp {sourceforge:(.+)} $master_sites dummy tag]} {
 			if {"${livecheck.name}" == "default"} {
 				set livecheck.name $tag
 			}
 			set livecheck.check sourceforge
-		} elseif {"$master_sites" == "sourceforge"} {
+		} elseif {$has_master_sites && {"$master_sites" == "sourceforge"}} {
 			set livecheck.check sourceforge
 		} else {
 			set livecheck.check freshmeat
