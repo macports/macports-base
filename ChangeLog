@@ -4,15 +4,22 @@
 #   This is a log of major user-visible changes in each release
 #
 
-
-Release 1.5 (unreleased):
+	
+Release 1.5 (Unreleased):
 
     - "port sync" now updates svn repos too (eridius in r22784).
 
     - Default +universal variant for configure-based ports (pguyot in r22313).
 
 
-Release 1.4 (unreleased):
+Release 1.4.1 (Unreleased):
+
+    - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
+
+    - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
+
+
+Release 1.4 (26-March-2007):
 
     - New gnupg mirrors list and general cleanups to varios other lists (pipping in r22979 through r22982,
       r22999, r23000 & r23037).
