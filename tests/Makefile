@@ -6,24 +6,25 @@ TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace xcodeversion
 
 all:
 
-/tmp/darwinports-tests/opt/local/etc/ports/sources.conf: sources.conf
+/tmp/macports-tests/opt/local/etc/ports/sources.conf: sources.conf
 	@echo setting up test installation
-	rm -rf /tmp/darwinports-tests/
-	mkdir -p /tmp/darwinports-tests/opt/local/etc/ports/
-	mkdir -p /tmp/darwinports-tests/opt/local/share/
-	mkdir -p /tmp/darwinports-tests/opt/local/var/db/dports/receipts/
-	ln -s $(datadir)/darwinports /tmp/darwinports-tests/opt/local/share/
-	cp sources.conf /tmp/darwinports-tests/opt/local/etc/ports/
+	rm -rf /tmp/macports-tests/
+	mkdir -p /tmp/macports-tests/opt/local/etc/ports/
+	mkdir -p /tmp/macports-tests/opt/local/share/
+	mkdir -p /tmp/macports-tests/opt/local/var/db/dports/receipts/
+	ln -s $(datadir)/darwinports /tmp/macports-tests/opt/local/share/
+	cp sources.conf /tmp/macports-tests/opt/local/etc/ports/
 
 clean:
-	rm -rf /tmp/darwinports-tests/
+	rm -rf /tmp/macports-tests/
 
 $(bindir)/port:
-	@echo "Please install DarwinPorts before running these tests"
+	@echo "Please install macports before running these tests"
 	@exit 1
 	
-test: clean /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
-	@for subdir in $(TESTS); do\
+test: clean /tmp/macports-tests/opt/local/etc/ports/sources.conf
+	@for testname in $(TESTS); do\
+	    subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
 			( cd $$subdir && \
@@ -42,7 +43,7 @@ test: clean /tmp/darwinports-tests/opt/local/etc/ports/sources.conf
 			fi) \
 		fi || exit 1; \
 	done
-	@rm -rf /tmp/darwinports-tests/
+	@rm -rf /tmp/macports-tests/
 
 install:
 
