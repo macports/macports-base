@@ -9,10 +9,12 @@ all:
 /tmp/macports-tests/opt/local/etc/ports/sources.conf: sources.conf
 	@echo setting up test installation
 	rm -rf /tmp/macports-tests/
+	mkdir -p /tmp/macports-tests/dports
 	mkdir -p /tmp/macports-tests/opt/local/etc/ports/
 	mkdir -p /tmp/macports-tests/opt/local/share/
 	mkdir -p /tmp/macports-tests/opt/local/var/db/dports/receipts/
 	ln -s $(datadir)/darwinports /tmp/macports-tests/opt/local/share/
+	ln -s test /tmp/macports-tests/dports/
 	cp sources.conf /tmp/macports-tests/opt/local/etc/ports/
 
 clean:

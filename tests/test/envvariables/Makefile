@@ -1,9 +1,9 @@
-include ../../Mk/dports.autoconf.mk
+include ../../../Mk/dports.autoconf.mk
 
 .PHONY: test
 
 $(bindir)/port:
-	@echo "Please install DarwinPorts before running this test"
+	@echo "Please install MacPorts before running this test"
 	@exit 1
 	
 test:
