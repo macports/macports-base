@@ -315,18 +315,15 @@ proc cvsfetch {args} {
 
     if {[regexp ^:pserver: ${cvs.root}]} {
 	set savecmd ${cvs.cmd}
-	set saveenv ${cvs.env}
 	set saveargs ${cvs.args}
 	set savepost_args ${cvs.post_args}
-	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} $portutil::autoconf::cvs_path"
-	set cvs.env ""
+	set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
 	set cvs.args login
 	set cvs.post_args ""
 	if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
 	    return -code error [msgcat::mc "CVS login failed"]
 	}
 	set cvs.cmd ${savecmd}
-	set cvs.env ${saveenv}
 	set cvs.args ${saveargs}
 	set cvs.post_args ${savepost_args}
     } else {
