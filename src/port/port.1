@@ -215,9 +215,9 @@ force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
 .It Fl s
-source-only mode (only build and install from source, ignores all binary archives, does not create/recreate binary archives) (only applies when archive mode is enabled)
+source-only mode (build and install from source, ignore all binary archives, do not create/recreate binary archives) (only applies when archive mode is enabled)
 .It Fl b
-binary-only mode (only build and install from binary archives, ignores source, fails when no archive present, and does not create/recreate binary archives from source) (only applies when archive mode is enabled)
+binary-only mode (build and install from binary archives, ignore source, abort if no archive present; do not create/recreate binary archives from source) (only applies when archive mode is enabled)
 .It Fl c
 autoclean mode (execute clean after install)
 .It Fl k
@@ -236,7 +236,7 @@ In batch and interactive mode, exit on the first error encountered. Otherwise, e
 .It Fl p
 Despite any errors encountered, proceed to process multiple ports and commands.
 .It Fl t
-enable trace mode debug facilities on platforms that support it (MacOS X). This feature is two-folded. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes. In verbose mode, it will also report unused dependencies for each stage of the port installation. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${worksrcpath}).
+enable trace mode debug facilities on platforms that support it (MacOS X). This feature is two-folded. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes. In verbose mode, it will also report unused dependencies for each stage of the port installation. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${workpath}).
 .El
 .Sh USER TARGETS
 Targets most commonly used by regular MacPorts users are:
