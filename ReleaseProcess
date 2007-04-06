@@ -65,15 +65,15 @@ Tagging conventions:
 * release_1_4_0-archive (tagged release 1.4.0 -- complete archive)
 * release_1_4_1 (1.4.1 release)
 
-We first tag the branched base directory for the release
+We first tag the branched base directory to make up for the final release:
 
  svn cp -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_4 http://svn.macports.org/repository/macports/tags/release_1_4_0
 
 Although only the base subdirectory is branched and tagged for a given major release, we also create a seperate tag for the entire tree (base sources and full ports tree) at the time the final release tag is created (only for major releases, 1.x.0), in order to provide a stake in the ground that specifies a set of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory at the revision number at which the final release was tagged.
 
-The necessary working copy to create such a tag is created by checking out all of trunk and then switching the base directory to the appropriate release tag URL. For instance:
+The necessary working copy to create such a tag is created by checking out all of trunk at the specific revision of the final tagging of base and then switching the base directory inturn to the appropriate release tag URL. For instance:
 
- svn co http://svn.macports.org/repository/macports/trunk macports/release-1.4.0
+ svn co -r<rev> http://svn.macports.org/repository/macports/trunk macports/release-1.4.0
  cd macports/release-1.4.0/base
  svn switch http://svn.macports.org/repository/macports/tags/release_1_4_0/base
 
