@@ -1499,14 +1499,14 @@ proc action_uninstall { action portlist opts } {
 
 proc action_installed { action portlist opts } {
 	set status 0
+	set restrictedList 0
 	set ilist {}
 	if { [llength $portlist] } {
+		set restrictedList 1
 		foreachport $portlist {
 			set composite_version [composite_version $portversion [array get variations]]
 			if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
-				if {[string match "* not registered as installed." $result]} {
-					puts "Port $portname is not installed."
-				} else {
+				if {![string match "* not registered as installed." $result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
 					break_softcontinue "port installed failed: $result" 1 status
@@ -1537,6 +1537,8 @@ proc action_installed { action portlist opts } {
 				puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
 			}
 		}
+	} elseif { $restrictedList } {
+		puts "None of the specified ports are installed."
 	} else {
 		puts "No ports are installed."
 	}
@@ -1553,7 +1555,9 @@ proc action_outdated { action portlist opts } {
 
 	# If port names were supplied, limit ourselves to those port, else check all installed ports
 	set ilist {}
+	set restrictedList 0
 	if { [llength $portlist] } {
+		set restrictedList 1
 		foreach portspec $portlist {
 			array set port $portspec
 			set portname $port(name)
@@ -1655,6 +1659,8 @@ proc action_outdated { action portlist opts } {
 		if { $num_outdated == 0 } {
 			puts "No installed ports are outdated."
 		}
+	} elseif { $restrictedList } {
+		puts "None of the specified ports are outdated."
 	} else {
 		puts "No ports are installed."
 	}
