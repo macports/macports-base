@@ -38,6 +38,7 @@ AC_SUBST(CFLAGS_QUICHEEATERS)
 OD_COMPILER_ATTRIBUTE_UNUSED
 
 OD_PROG_MTREE
+OD_PROG_XAR
 AC_ARG_ENABLE(launchd-support,
 	AC_HELP_STRING([--disable-launchd-support], [disable support for launchd startupitems]),
 	[], [enable_launchd_support=yes])
