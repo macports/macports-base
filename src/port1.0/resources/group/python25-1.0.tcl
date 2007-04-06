@@ -1,7 +1,7 @@
 # et:ts=4
-# python24-1.0.tcl
+# python25-1.0.tcl
 #
-# $Id: python24-1.0.tcl,v 1.2 2005/01/13 20:39:14 mww Exp $
+# $Id: $
 #
 # Copyright (c) 2007 Markus W. Weissman <mww@macports.org>,
 # All rights reserved.
@@ -35,7 +35,7 @@
 set python.bin	${prefix}/bin/python2.5
 set python.lib	${prefix}/lib/libpython2.5.dylib
 set python.pkgd	${prefix}/lib/python2.5/site-packages
-set python.include	${prefix}/include/python/2.4
+set python.include	${prefix}/include/python/2.5
 
 categories		python
 
