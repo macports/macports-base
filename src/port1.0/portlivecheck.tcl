@@ -143,6 +143,8 @@ proc livecheck_main {args} {
 				}
 				close $chan
 				if {$updated < 0} {
+					ui_debug "regex is >$the_re<"
+					ui_debug "url is >${livecheck.url}<"
 					ui_error "cannot check if $portname was updated (regex didn't match)"
 				}
 			}
