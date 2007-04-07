@@ -941,36 +941,40 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	return TCL_OK;
 }
 
+/* Find the first unused UID > 100
+   previously this would find the highest used UID and add 1
+   but UIDs > 500 are visible on the login screen of OS X */
 int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
-	struct passwd *pwent;
-	int max;
+	int cur;
 
-	max = 0;
-
-	while ((pwent = getpwent()) != NULL)
-		if ((int)pwent->pw_uid > max)
-			max = (int)pwent->pw_uid;
+	cur = 100;
 	
-	tcl_result = Tcl_NewIntObj(max + 1);
+	while (getpwuid(cur) != NULL) {
+        cur++;
+	}
+	
+	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
 }
 
+/* Just as with NextuidCmd, return the first unused gid > 100
+   groups aren't visible on the login screen, but I see no reason
+   to create group 502 when I can create group 100 */
 int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
-	struct group *grent;
-	int max;
+	int cur;
 
-	max = 0;
+    cur = 100;
 
-	while ((grent = getgrent()) != NULL)
-		if ((int)grent->gr_gid > max)
-			max = (int)grent->gr_gid;
+    while (getgrgid(cur) != NULL) {
+        cur++;
+    }
 	
-	tcl_result = Tcl_NewIntObj(max + 1);
+	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
 }
