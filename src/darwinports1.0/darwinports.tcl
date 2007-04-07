@@ -980,6 +980,7 @@ proc dportexec {dport target} {
 		set target "pkg"
 	}
 	if {$target == "configure" || $target == "build"
+		|| $target == "test"
 		|| $target == "destroot" || $target == "install"
 		|| $target == "archive"
 		|| $target == "pkg" || $target == "mpkg"
@@ -1251,13 +1252,14 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 	array set portinfo [dportinfo $dport]
 	set depends {}
 	set deptypes {}
-	
+		
 	# Determine deptypes to look for based on target
 	switch $target {
 		configure	{ set deptypes "depends_lib" }
 		
 		build		{ set deptypes "depends_lib depends_build" }
 		
+		test		-
 		destroot	-
 		install		-
 		archive		-

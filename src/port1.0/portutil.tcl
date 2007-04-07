@@ -871,7 +871,7 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
-########### Internal Dependancy Manipulation Procedures ###########
+########### Internal Dependency Manipulation Procedures ###########
 
 proc target_run {ditem} {
     global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo
@@ -1011,6 +1011,7 @@ proc target_run {ditem} {
 						
 						build		{ set deptypes "depends_lib depends_build" }
 						
+						test		-
 						destroot	-
 						install		-
 						archive		-

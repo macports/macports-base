@@ -7,7 +7,7 @@ package require portutil 1.0
 
 set com.apple.test [target_new com.apple.test test_main]
 target_provides ${com.apple.test} test
-target_requires ${com.apple.test} build
+target_requires ${com.apple.test} main fetch extract checksum patch configure build
 target_prerun ${com.apple.test} test_start
 
 # define options
