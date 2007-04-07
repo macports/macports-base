@@ -16,7 +16,9 @@ checksum	{}
 extract		{}
 configure	{}
 build		{}
-destroot	{}
+destroot	{
+	system "touch ${destroot}${prefix}/lib/${name}"
+}
 
 test {
 	puts $env(ENVA)

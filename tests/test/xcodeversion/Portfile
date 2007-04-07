@@ -16,7 +16,9 @@ checksum	{}
 extract		{}
 configure	{}
 build		{}
-destroot	{}
+destroot	{
+	system "touch ${destroot}${prefix}/lib/${name}"
+}
 
 test {
 	ui_msg "xcodeversion = $xcodeversion"

@@ -26,7 +26,9 @@ patch		{}
 extract		{}
 configure	{}
 build		{}
-destroot	{}
+destroot	{
+	system "touch ${destroot}${prefix}/lib/${name}"
+}
 
 test {
 	# test is actually running the fetch target
