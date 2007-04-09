@@ -94,6 +94,10 @@ AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,
 #endif
 ])
 
+# Lowest non-system-reserved uid and gid (Apple claims <500)
+AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])
+AC_DEFINE([MIN_USABLE_GID], [500], [Lowest non-system-reserved GID.])
+
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG
 SC_LOAD_TCLCONFIG

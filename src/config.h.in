@@ -212,6 +212,12 @@
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
+/* Lowest non-system-reserved GID. */
+#undef MIN_USABLE_GID
+
+/* Lowest non-system-reserved UID. */
+#undef MIN_USABLE_UID
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 

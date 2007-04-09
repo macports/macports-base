@@ -949,10 +949,10 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	Tcl_Obj *tcl_result;
 	int cur;
 
-	cur = 100;
+	cur = MIN_USABLE_UID;
 	
 	while (getpwuid(cur) != NULL) {
-        cur++;
+		cur++;
 	}
 	
 	tcl_result = Tcl_NewIntObj(cur);
@@ -968,11 +968,11 @@ int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	Tcl_Obj *tcl_result;
 	int cur;
 
-    cur = 100;
+	cur = MIN_USABLE_GID;
 
-    while (getgrgid(cur) != NULL) {
-        cur++;
-    }
+	while (getgrgid(cur) != NULL) {
+		cur++;
+	}
 	
 	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
