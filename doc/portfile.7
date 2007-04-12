@@ -1211,6 +1211,8 @@ Can be
 (uses the date_updated tag of the freshmeat XML file),
 .Em sourceforge
 (uses the version of the latest file release of the project),
+.Em googlecode
+(uses the version of the latest file release of the project),
 .Em moddate
 (uses the modification date of some URL resource),
 .Em regex
@@ -1226,22 +1228,37 @@ Can be
 .Em optional
 .br
 .Sy Default:
-.Em freshmeat
-or
 .Em sourceforge
-if the master_sites is sourceforge.
+or
+.Em googlecode
+if the master_sites is one of these, else
+.Em freshmeat
 .br
 .Sy Values:
-.Em freshmeat sourceforge moddate regex regexm md5 none
+.Em freshmeat sourceforge googlecode moddate regex regexm md5 none
 .It Ic livecheck.name
-Name of the project for live checks (used for freshmeat and sourceforge checks).
+Name of the project for live checks (used for freshmeat, sourceforge, and googlecode checks).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${name}
-or the sourceforge project name if it can be guessed by looking at the master_sites.
+or the sourceforge/freshmeat/googlecode project name if it can be guessed by looking at the master_sites.
+.It Ic livecheck.distname
+Name of the file release (used for sourceforge and googlecode checks).
+For sourceforge releases use the name of the package release.
+For googlecode releases use the name of the file download, including extension.
+Replace the version part of the name with "(.*)".
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em ${livecheck.name}
+for sourceforge projects or the first entry in
+.Em ${distfiles}
+for googlecode projects
 .It Ic livecheck.version
 Version of the project for live checks (used for regex-based checks).
 .br
@@ -1262,8 +1279,11 @@ or
 .Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
 or
 .Em http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}
+or
+.Em http://code.google.com/p/${livecheck.name}/downloads/list
 .It Ic livecheck.regex
 Regular expression to parse the resource for regex checks.
+Be sure to use a regular expression grouping around the version component.
 .br
 .Sy Type:
 .Em optional
