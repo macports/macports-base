@@ -76,14 +76,17 @@ proc livecheck_main {args} {
 				set livecheck.name $tag
 			}
 			set livecheck.check $site
-		} elseif {[regexp {http://code.google.com/p/([^/]+)} $homepage _ tag]} {
-		    set livecheck.check "googlecode"
-		    set livecheck.name $tag
 		} else {
 		    set livecheck.check "freshmeat"
 		}
+		if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+		    if {${livecheck.name} eq "default"} {
+		        set livecheck.name $tag
+		    }
+		    set livecheck.check "googlecode"
+		}
 	}
-	if {${livecheck.name} == "default"} {
+	if {${livecheck.name} eq "default"} {
 		set livecheck.name $name
 	}
 
@@ -128,6 +131,7 @@ proc livecheck_main {args} {
 		"regex" -
 		"regexm" {
 			# single and multiline regex
+			ui_debug "Fetching ${livecheck.url}"
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
 			} else {
@@ -170,6 +174,7 @@ proc livecheck_main {args} {
 			}
 		}
 		"md5" {
+		    ui_debug "Fetching ${livecheck.url}"
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
 			} else {
