@@ -182,7 +182,7 @@ proc livecheck_main {args} {
 		if {$updated > 0} {
 			ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
 		} elseif {$updated == 0} {
-			ui_debug "$portname seems to be up to date"
+			ui_info "$portname seems to be up to date"
 		}
 	}
 }
