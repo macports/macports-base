@@ -60,7 +60,7 @@ proc livecheck_main {args} {
 	
 	set updated 0
 	set updated_version "unknown"
-	set has_master_sites [info exists the_master_sites]
+	set has_master_sites [info exists master_sites]
 
 	set tempfile ${workpath}/livecheck.TMP
 	set port_moddate [file mtime ${portpath}/Portfile]
@@ -69,36 +69,34 @@ proc livecheck_main {args} {
 	ui_debug "Port (livecheck) version is ${livecheck.version}"
 
 	# Determine the default type depending on the mirror.
-	if {"${livecheck.check}" == "default"} {
-		if {$has_master_sites && [regexp {sourceforge:(.+)} $master_sites dummy tag]} {
-			if {"${livecheck.name}" == "default"} {
+	if {${livecheck.check} == "default"} {
+		if {$has_master_sites && [regexp {\y(sourceforge|freshmeat)\y(?::(\S+))?} $master_sites dummy site tag]} {
+			if {$tag ne "" && ${livecheck.name} eq "default"} {
 				set livecheck.name $tag
 			}
-			set livecheck.check sourceforge
-		} elseif {$has_master_sites && {"$master_sites" == "sourceforge"}} {
-			set livecheck.check sourceforge
+			set livecheck.check $site
 		} else {
-			set livecheck.check freshmeat
+		    set livecheck.check none
 		}
 	}
-	if {"${livecheck.name}" == "default"} {
+	if {${livecheck.name} == "default"} {
 		set livecheck.name $name
 	}
 
 	# Perform the check depending on the type.
-	if {"${livecheck.check}" == "freshmeat"} {
-		if {![info exists homepage] || [string equal "${livecheck.url}" "${homepage}"]} {
+	if {${livecheck.check} == "freshmeat"} {
+		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
 			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
 		}
-		if {"${livecheck.regex}" == ""} {
+		if {${livecheck.regex} == ""} {
 			set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
 		}
 		set livecheck.check "regex"
-	} elseif {"${livecheck.check}" == "sourceforge"} {
-		if {![info exists homepage] || [string equal "${livecheck.url}" "${homepage}"]} {
+	} elseif {${livecheck.check} == "sourceforge"} {
+		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
 			set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
 		}
-		if {"${livecheck.regex}" == ""} {
+		if {${livecheck.regex} == ""} {
 			set livecheck.regex "<title>${livecheck.name} (.*) released.*</title>"
 		}
 		set livecheck.check "regex"
