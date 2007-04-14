@@ -110,6 +110,14 @@ if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirecto
 		configure.cxxflags-append ${configure.universal_cxxflags}
 		configure.ldflags-append ${configure.universal_ldflags}
 	}
+
+	# This is not a standard option, because we need to take an action when it's
+	# set, in order to alter the PortInfo structure in time.
+	proc universal_variant {state} {
+		if {${state} == "no"} {
+			variant_undef universal
+		}
+	}
 }
 
 proc main {args} {

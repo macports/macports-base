@@ -1,0 +1,7 @@
+universal-2 1, test/universal-2
+http://www.macports.org/
+
+{Test port for universal variant}
+
+Platforms: darwin
+Maintainers: pguyot@kallisys.net

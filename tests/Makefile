@@ -1,6 +1,6 @@
 include ../Mk/dports.autoconf.mk
 
-TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace xcodeversion dependencies-c
+TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c
 
 .PHONY: test clean PortIndex
 

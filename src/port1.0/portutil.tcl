@@ -403,6 +403,28 @@ proc variant_unset {name} {
     set variations($name) -
 }
 
+# variant_undef name
+# Undefine a variant for the current portfile.
+proc variant_undef {name} {
+    global variations PortInfo
+    
+    # Remove it from the list of selected variations.
+    array unset variations $name
+
+	# Remove the variant from the portinfo.
+	if {[info exists PortInfo(variants)]} {
+		set variant_index [lsearch -exact $PortInfo(variants) $name]
+		if {$variant_index >= 0} {
+			set new_list [lreplace $PortInfo(variants) $variant_index $variant_index]
+			if {"$new_list" == {}} {
+				unset PortInfo(variants) 
+			} else {
+				set PortInfo(variants) $new_list
+			}
+		}
+	}
+}
+
 # platform <os> [<release>] [<arch>] 
 # Portfile level procedure to provide support for declaring platform-specifics
 # Basically, just wrap 'variant', so that Portfiles' platform declarations can

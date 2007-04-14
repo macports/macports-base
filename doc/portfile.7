@@ -1331,6 +1331,26 @@ value lists which variants are enabled by default.
 .br
 .Sy Example:
 .Dl default_variants +ssl +tcpd
+.It Ic unversal_variant
+When using MacPorts on MacOS X, a universal variant is defined and
+the default behavior is to configure ports with universal flags
+(see the
+.Ic UNIVERSAL TARGET HOOKS
+section above). The variant can be
+overridden if the default code does not work. It can also be
+suppressed if having a universal variant for the port does not make
+sense. To suppress it, use the
+.Ic universal_variant
+option.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.Sy Example:
+.Dl universal_variant no
 .El
 .Sh PLATFORM OPTIONS
 MacPorts allows for platform-specific conditional modification to be
