@@ -1388,7 +1388,7 @@ proc action_deactivate { action portlist opts } {
 
 
 proc action_selfupdate { action portlist opts } {
-	global global_options;
+	global global_options
 	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -1400,6 +1400,7 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
+    global global_variations
 	require_portlist portlist
 	foreachport $portlist {
 		# Merge global variations into the variations specified for this port
@@ -1990,6 +1991,7 @@ proc action_sync { action portlist opts } {
 
 
 proc action_target { action portlist opts } {
+    global global_variations
 	set status 0
 	require_portlist portlist
 	foreachport $portlist {
