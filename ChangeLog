@@ -23,6 +23,7 @@ Release 1.4.1 (Unreleased):
 
     - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
 
+	- Add xar 1.4 into the build of MacPorts base. xar is now installed into /opt/local/, which will conflict with anybody who has the xar port installed. r23687.
 
 Release 1.4 (26-March-2007):
 
