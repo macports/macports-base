@@ -7,6 +7,15 @@
 	
 Release 1.5 (Unreleased):
 
+
+Release 1.4.1 (Unreleased):
+
+    - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
+
+    - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
+
+	- Add xar 1.4 into the build of MacPorts base. xar is now installed into /opt/local/, which will conflict with anybody who has the xar port installed. (jberry in r23687).
+
     - Add -I${prefix}/include -L${prefix}/lib to the default configure flags (pguyot in r23246 and r23291).
 
     - New options for configure flags (C|CPP|CXX|LD)FLAGS and logic to handle that and backward compatibility
@@ -15,15 +24,6 @@ Release 1.5 (Unreleased):
     - "port sync" now updates svn repos too (eridius in r22784).
 
     - Default +universal variant for configure-based ports (pguyot in r22313).
-
-
-Release 1.4.1 (Unreleased):
-
-    - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
-
-    - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
-
-	- Add xar 1.4 into the build of MacPorts base. xar is now installed into /opt/local/, which will conflict with anybody who has the xar port installed. r23687.
 
 Release 1.4 (26-March-2007):
 
