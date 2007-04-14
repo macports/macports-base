@@ -43,7 +43,7 @@ target_provides ${com.apple.livecheck} livecheck
 target_requires ${com.apple.livecheck} main
 
 # define options
-options livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.version
+options livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
 
 # defaults
 default livecheck.url {$homepage}
@@ -51,16 +51,17 @@ default livecheck.check default
 default livecheck.md5 ""
 default livecheck.regex ""
 default livecheck.name default
+default livecheck.distname default
 default livecheck.version {$version}
 
 proc livecheck_main {args} {
-	global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.version
+	global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
 	global homepage portname portpath workpath
-	global master_sites name
+	global master_sites name distfiles
 	
 	set updated 0
 	set updated_version "unknown"
-	set has_master_sites [info exists the_master_sites]
+	set has_master_sites [info exists master_sites]
 
 	set tempfile ${workpath}/livecheck.TMP
 	set port_moddate [file mtime ${portpath}/Portfile]
@@ -69,45 +70,68 @@ proc livecheck_main {args} {
 	ui_debug "Port (livecheck) version is ${livecheck.version}"
 
 	# Determine the default type depending on the mirror.
-	if {"${livecheck.check}" == "default"} {
-		if {$has_master_sites && [regexp {sourceforge:(.+)} $master_sites dummy tag]} {
-			if {"${livecheck.name}" == "default"} {
+	if {${livecheck.check} eq "default"} {
+		if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode)\y(?::(\S+))?} $master_sites _ site tag]} {
+			if {$tag ne "" && ${livecheck.name} eq "default"} {
 				set livecheck.name $tag
 			}
-			set livecheck.check sourceforge
-		} elseif {$has_master_sites && {"$master_sites" == "sourceforge"}} {
-			set livecheck.check sourceforge
+			set livecheck.check $site
 		} else {
-			set livecheck.check freshmeat
+		    set livecheck.check "freshmeat"
+		}
+		if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+		    if {${livecheck.name} eq "default"} {
+		        set livecheck.name $tag
+		    }
+		    set livecheck.check "googlecode"
 		}
 	}
-	if {"${livecheck.name}" == "default"} {
+	if {${livecheck.name} eq "default"} {
 		set livecheck.name $name
 	}
 
 	# Perform the check depending on the type.
-	if {"${livecheck.check}" == "freshmeat"} {
-		if {![info exists homepage] || [string equal "${livecheck.url}" "${homepage}"]} {
-			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
+	switch ${livecheck.check} {
+	    "freshmeat" {
+    		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+    			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
+    		}
+    		if {${livecheck.regex} eq ""} {
+    			set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
+    		}
+    		set livecheck.check "regex"
 		}
-		if {"${livecheck.regex}" == ""} {
-			set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
+		"sourceforge" {
+    		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+    			set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
+    		}
+    		if {${livecheck.distname} eq "default"} {
+    		    set livecheck.distname ${livecheck.name}
+    		}
+    		if {${livecheck.regex} eq ""} {
+    			set livecheck.regex "<title>${livecheck.distname} (.*) released.*</title>"
+    		}
+    		set livecheck.check "regex"
 		}
-		set livecheck.check "regex"
-	} elseif {"${livecheck.check}" == "sourceforge"} {
-		if {![info exists homepage] || [string equal "${livecheck.url}" "${homepage}"]} {
-			set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
+		"googlecode" {
+		    if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+		        set livecheck.url "http://code.google.com/p/${livecheck.name}/downloads/list"
+		    }
+		    if {${livecheck.distname} eq "default"} {
+		        set livecheck.distname [regsub ***=${livecheck.version} [file tail [lindex ${distfiles} 0]] (.*)]
+		    }
+		    if {${livecheck.regex} eq ""} {
+		        set livecheck.regex {<a href="http://${livecheck.name}.googlecode.com/files/${livecheck.distname}"}
+		    }
+		    set livecheck.check "regex"
 		}
-		if {"${livecheck.regex}" == ""} {
-			set livecheck.regex "<title>${livecheck.name} (.*) released.*</title>"
-		}
-		set livecheck.check "regex"
 	}
 	
 	switch ${livecheck.check} {
 		"regex" -
 		"regexm" {
 			# single and multiline regex
+			ui_debug "Fetching ${livecheck.url}"
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
 			} else {
@@ -143,11 +167,14 @@ proc livecheck_main {args} {
 				}
 				close $chan
 				if {$updated < 0} {
+					ui_debug "regex is >$the_re<"
+					ui_debug "url is >${livecheck.url}<"
 					ui_error "cannot check if $portname was updated (regex didn't match)"
 				}
 			}
 		}
 		"md5" {
+		    ui_debug "Fetching ${livecheck.url}"
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
 			} else {
@@ -182,7 +209,7 @@ proc livecheck_main {args} {
 		if {$updated > 0} {
 			ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
 		} elseif {$updated == 0} {
-			ui_debug "$portname seems to be up to date"
+			ui_info "$portname seems to be up to date"
 		}
 	}
 }

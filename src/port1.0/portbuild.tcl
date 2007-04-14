@@ -102,6 +102,6 @@ proc build_start {args} {
 }
 
 proc build_main {args} {
-    system "[command build]"
+    command_exec build
     return 0
 }

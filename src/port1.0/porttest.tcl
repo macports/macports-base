@@ -7,7 +7,7 @@ package require portutil 1.0
 
 set com.apple.test [target_new com.apple.test test_main]
 target_provides ${com.apple.test} test
-target_requires ${com.apple.test} build
+target_requires ${com.apple.test} main fetch extract checksum patch configure build
 target_prerun ${com.apple.test} test_start
 
 # define options
@@ -30,7 +30,7 @@ proc test_start {args} {
 proc test_main {args} {
     global portname test.run
     if {[tbool test.run]} {
-    	system "[command test]"
+    	command_exec test
     } else {
 	return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $portname]
     }

@@ -99,7 +99,7 @@ proc destroot_start {args} {
 }
 
 proc destroot_main {args} {
-    system "[command destroot]"
+    command_exec destroot
     return 0
 }
 

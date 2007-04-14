@@ -491,11 +491,25 @@ AC_DEFUN([OD_PROG_MTREE],[
 	if test "x$MTREE" = "x" ; then
 		AC_CONFIG_SUBDIRS([src/programs/mtree])
 		MTREE='$(TOPSRCDIR)/src/programs/mtree/mtree'
-#		MTREE='${prefix}/bin/mtree'
 		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
 	fi
 
 	AC_SUBST(MTREE)
+])
+
+# OD_PROG_XAR
+#---------------------------------------
+AC_DEFUN([OD_PROG_XAR],[
+
+	AC_PATH_PROG([XAR], [xar], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
+
+	if test "x$XAR" = "x" ; then
+		AC_CONFIG_SUBDIRS([src/programs/xar])
+		XAR='$(TOPSRCDIR)/src/programs/xar/xar'
+		REPLACEMENT_PROGS="$REPLACEMENT_PROGS xar"
+	fi
+
+	AC_SUBST(XAR)
 ])
 
 # OD_PROG_DAEMONDO

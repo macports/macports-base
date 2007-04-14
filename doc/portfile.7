@@ -316,7 +316,7 @@ is run in. This is often overridden on a per
 basis.
 .br
 .Sy Example:
-.Dl configure.env CFLAGS=-O
+.Dl configure.env CPP=/usr/bin/cpp-4.0
 .It Va target Ns Ic .pre_args
 Additional arguments passed before the main arguments.
 .br
@@ -651,6 +651,15 @@ Whether to use EPSV command for FTP transfers.
 .Sy Default:
 .Em yes
 .br
+.It Ic fetch.ignore_sslcrt
+Whether to ignore the host SSL certificate (for HTTPS).
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
 .El
 .Ss FETCHING FROM CVS
 As an alternative to fetching distribution files, pulling the sources
@@ -759,6 +768,86 @@ Command to perform the extraction.
 .br
 .Sy Example:
 .Dl extract.cmd bzip2
+.El
+.Sh CONFIGURE OPTIONS
+MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
+.Bl -tag -width lc
+.It Ic configure.cflags
+Flags to put in the CFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
+.br
+.Sy Example:
+.Dl configure.cflags-append -DHAS_LRINTF
+.It Ic configure.cppflags
+Flags to put in the CPPFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -I${prefix}/include
+.It Ic configure.cxxflags
+Flags to put in the CXXFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
+.It Ic configure.ldflags
+Flags to put in the LDFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -L${prefix}/lib
+.El
+.Ss UNIVERSAL TARGET HOOKS
+For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.
+.Bl -tag -width lc
+.It Ic configure.universal_args
+Arguments appended to the configure script to build the port universal.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em --disable-dependency-tracking
+.It Ic configure.universal_cflags
+Additional flags to put in the CFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
+.It Ic configure.universal_cppflags
+Additional flags to put in the CPPFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.universal_cxxflags
+Additional flags to put in the CXXFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc
+.It Ic configure.universal_ldflags
+Additional flags to put in the LDFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -arch i386 -arch ppc
 .El
 .Sh BUILD OPTIONS
 Execute necessary build commands.
@@ -1122,6 +1211,8 @@ Can be
 (uses the date_updated tag of the freshmeat XML file),
 .Em sourceforge
 (uses the version of the latest file release of the project),
+.Em googlecode
+(uses the version of the latest file release of the project),
 .Em moddate
 (uses the modification date of some URL resource),
 .Em regex
@@ -1137,22 +1228,37 @@ Can be
 .Em optional
 .br
 .Sy Default:
-.Em freshmeat
-or
 .Em sourceforge
-if the master_sites is sourceforge.
+or
+.Em googlecode
+if the master_sites is one of these, else
+.Em freshmeat
 .br
 .Sy Values:
-.Em freshmeat sourceforge moddate regex regexm md5 none
+.Em freshmeat sourceforge googlecode moddate regex regexm md5 none
 .It Ic livecheck.name
-Name of the project for live checks (used for freshmeat and sourceforge checks).
+Name of the project for live checks (used for freshmeat, sourceforge, and googlecode checks).
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Default:
 .Em ${name}
-or the sourceforge project name if it can be guessed by looking at the master_sites.
+or the sourceforge/freshmeat/googlecode project name if it can be guessed by looking at the master_sites.
+.It Ic livecheck.distname
+Name of the file release (used for sourceforge and googlecode checks).
+For sourceforge releases use the name of the package release.
+For googlecode releases use the name of the file download, including extension.
+Replace the version part of the name with "(.*)".
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em ${livecheck.name}
+for sourceforge projects or the first entry in
+.Em ${distfiles}
+for googlecode projects
 .It Ic livecheck.version
 Version of the project for live checks (used for regex-based checks).
 .br
@@ -1173,8 +1279,11 @@ or
 .Em http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml
 or
 .Em http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}
+or
+.Em http://code.google.com/p/${livecheck.name}/downloads/list
 .It Ic livecheck.regex
 Regular expression to parse the resource for regex checks.
+Be sure to use a regular expression grouping around the version component.
 .br
 .Sy Type:
 .Em optional
@@ -1222,6 +1331,26 @@ value lists which variants are enabled by default.
 .br
 .Sy Example:
 .Dl default_variants +ssl +tcpd
+.It Ic unversal_variant
+When using MacPorts on MacOS X, a universal variant is defined and
+the default behavior is to configure ports with universal flags
+(see the
+.Ic UNIVERSAL TARGET HOOKS
+section above). The variant can be
+overridden if the default code does not work. It can also be
+suppressed if having a universal variant for the port does not make
+sense. To suppress it, use the
+.Ic universal_variant
+option.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em yes
+.br
+.Sy Example:
+.Dl universal_variant no
 .El
 .Sh PLATFORM OPTIONS
 MacPorts allows for platform-specific conditional modification to be

@@ -980,6 +980,7 @@ proc dportexec {dport target} {
 		set target "pkg"
 	}
 	if {$target == "configure" || $target == "build"
+		|| $target == "test"
 		|| $target == "destroot" || $target == "install"
 		|| $target == "archive"
 		|| $target == "pkg" || $target == "mpkg"
@@ -1076,7 +1077,21 @@ proc dportsync {args} {
 		ui_info "Synchronizing from $source"
 		switch -regexp -- [darwinports::getprotocol $source] {
 			{^file$} {
-				continue
+			    set portdir [darwinports::getportdir $source]
+				if {[file exists $portdir/.svn]} {
+				    if {[catch {set svncmd [darwinports::binaryInPath "svn"]}] == 0} {
+				        set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
+				        ui_debug $svn_commandline
+				        if {[catch {system $svn_commandline}]} {
+				            return -code error "sync failed doing svn update"
+				        }
+				        if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
+				            ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+				        }
+				    } else {
+				        return -code error "svn command not found"
+				    }
+				}
 			}
 			{^dports$} {
 				darwinports::index::sync $darwinports::portdbpath $source
@@ -1237,13 +1252,14 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 	array set portinfo [dportinfo $dport]
 	set depends {}
 	set deptypes {}
-	
+		
 	# Determine deptypes to look for based on target
 	switch $target {
 		configure	{ set deptypes "depends_lib" }
 		
 		build		{ set deptypes "depends_lib depends_build" }
 		
+		test		-
 		destroot	-
 		install		-
 		archive		-

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [1.4], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts], [1.5], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
@@ -38,6 +38,7 @@ AC_SUBST(CFLAGS_QUICHEEATERS)
 OD_COMPILER_ATTRIBUTE_UNUSED
 
 OD_PROG_MTREE
+OD_PROG_XAR
 AC_ARG_ENABLE(launchd-support,
 	AC_HELP_STRING([--disable-launchd-support], [disable support for launchd startupitems]),
 	[], [enable_launchd_support=yes])
@@ -92,6 +93,10 @@ AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,
 # include <readline/readline.h>
 #endif
 ])
+
+# Lowest non-system-reserved uid and gid (Apple claims <500)
+AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])
+AC_DEFINE([MIN_USABLE_GID], [500], [Lowest non-system-reserved GID.])
 
 # Load tclConfig.sh
 SC_PATH_TCLCONFIG

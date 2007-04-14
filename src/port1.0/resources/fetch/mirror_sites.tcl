@@ -86,6 +86,10 @@ set portfetch::mirror_sites::sites(gnustep) {
     ftp://ftp.gnustep.org/pub/gnustep/
 }
 
+set portfetch::mirror_sites::sites(googlecode) {
+    http://${name}.googlecode.com/files/
+}
+
 set portfetch::mirror_sites::sites(isc) {
     ftp://ftp.isc.org/isc/
     ftp://gd.tuwien.ac.at/infosys/servers/isc/

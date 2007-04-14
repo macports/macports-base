@@ -1,0 +1,24 @@
+--->  Fetching dependencies-b
+--->  Verifying checksum(s) for dependencies-b
+--->  Extracting dependencies-b
+--->  Configuring dependencies-b
+--->  Building dependencies-b with target all
+--->  Staging dependencies-b into destroot
+--->  Installing dependencies-b 1_0
+--->  Activating dependencies-b 1_0
+--->  Cleaning dependencies-b
+--->  Fetching dependencies-a
+--->  Verifying checksum(s) for dependencies-a
+--->  Extracting dependencies-a
+--->  Configuring dependencies-a
+--->  Building dependencies-a with target all
+--->  Staging dependencies-a into destroot
+--->  Installing dependencies-a 1_0+i_want_b
+--->  Activating dependencies-a 1_0+i_want_b
+--->  Cleaning dependencies-a
+--->  Fetching dependencies-c
+--->  Verifying checksum(s) for dependencies-c
+--->  Extracting dependencies-c
+--->  Configuring dependencies-c
+--->  Building dependencies-c with target all
+--->  Testing dependencies-c

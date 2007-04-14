@@ -42,7 +42,7 @@ target_prerun ${com.apple.fetch} fetch_start
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir \
-	fetch.type fetch.user fetch.password fetch.use_epsv \
+	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag \
 	svn.url svn.tag
@@ -84,6 +84,8 @@ default fetch.user ""
 default fetch.password ""
 # Use EPSV for FTP transfers
 default fetch.use_epsv "yes"
+# Ignore SSL certificate
+default fetch.ignore_sslcert "no"
 
 default fallback_mirror_site "opendarwin"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -163,17 +165,28 @@ proc mirror_sites {mirrors tag subdir} {
 	# here we have the chance to take a look at tags, that possibly
 	# have been assigned in mirror_sites.tcl
 	set splitlist [split $element :]
-	if {[llength $splitlist] > 1} {
-	    set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
-	    set mirror_tag "[lindex $splitlist 2]"
-	}
+	# every element is a URL, so we'll always have multiple elements. no need to check
+    set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
+    set mirror_tag "[lindex $splitlist 2]"
 
+    set name_re {\$(?:name\y|\{name\})}
+    # if the URL has $name embedded, kill any mirror_tag that may have been added
+    # since a mirror_tag and $name are incompatible
+    if {[regexp $name_re $element]} {
+        set mirror_tag ""
+    }
+    
 	if {$mirror_tag == "mirror"} {
 		set thesubdir ${dist_subdir}
 	} elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
 		set thesubdir ${portname}
 	} else {
 		set thesubdir ${subdir}
+	}
+	
+	# parse an embedded $name. if present, remove the subdir
+	if {[regsub $name_re $element $thesubdir element] > 0} {
+	    set thesubdir ""
 	}
 	
 	if {"$tag" != ""} {
@@ -313,25 +326,22 @@ proc cvsfetch {args} {
 
     if {[regexp ^:pserver: ${cvs.root}]} {
 	set savecmd ${cvs.cmd}
-	set saveenv ${cvs.env}
 	set saveargs ${cvs.args}
 	set savepost_args ${cvs.post_args}
-	set cvs.cmd "echo ${cvs.password} | /usr/bin/env ${cvs.env} $portutil::autoconf::cvs_path"
-	set cvs.env ""
+	set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
 	set cvs.args login
 	set cvs.post_args ""
-	if {[catch {system -notty "[command cvs] 2>&1"} result]} {
+	if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
 	    return -code error [msgcat::mc "CVS login failed"]
 	}
 	set cvs.cmd ${savecmd}
-	set cvs.env ${saveenv}
 	set cvs.args ${saveargs}
 	set cvs.post_args ${savepost_args}
     } else {
 	set env(CVS_RSH) ssh
     }
 
-    if {[catch {system "[command cvs] 2>&1"} result]} {
+    if {[catch {command_exec cvs "" "2>&1"} result]} {
 	return -code error [msgcat::mc "CVS check out failed"]
     }
 
@@ -366,7 +376,7 @@ proc svnfetch {args} {
 		set svn.args "${svn.args} -r ${svn.tag}"
     }
 
-    if {[catch {system "[command svn] 2>&1"} result]} {
+    if {[catch {command_exec svn "" "2>&1"} result]} {
 		return -code error [msgcat::mc "Subversion check out failed"]
     }
 
@@ -381,7 +391,7 @@ proc svnfetch {args} {
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
 	global distpath all_dist_files UI_PREFIX fetch_urls
-	global fetch.user fetch.password fetch.use_epsv
+	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
 	global distfile site
 	global portverbose
 
@@ -398,6 +408,9 @@ proc fetchfiles {args} {
 	}
 	if {${fetch.use_epsv} != "yes"} {
 		lappend fetch_options "--disable-epsv"
+	}
+	if {${fetch.ignore_sslcert} != "no"} {
+		lappend fetch_options "--ignore-ssl-cert"
 	}
 	if {$portverbose == "yes"} {
 		lappend fetch_options "-v"
