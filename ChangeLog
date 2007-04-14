@@ -8,7 +8,7 @@
 Release 1.5 (Unreleased):
 
 
-Release 1.4.1 (Unreleased):
+Release 1.4.1 (14-Apr-2007):
 
     - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
 
@@ -24,7 +24,18 @@ Release 1.4.1 (Unreleased):
     - "port sync" now updates svn repos too (eridius in r22784).
 
     - Default +universal variant for configure-based ports (pguyot in r22313).
+    
+    - Fixed use of master_site in livecheck, added support for code.google.com checks, made the up to date message info (instead of debug) and improved debugging output with livecheck (eridius in r23888, r23889, r23890, r23894; pguyot in 23660)
 
+	- Fixed a bug where running port test would not install dependencies when required. (pguyot in r23700)
+	
+	- New ruby portgroup option to specify the name of the module for gem-based ports. (pguyot in 23659)
+	
+	- New fetch option to ignore the SSL certificate when fetching from a secure site (default is to not ignore it). (pguyot in r23242)
+	
+	- Bugfix #11720. Fixes for variants.conf functionality. (jberry in r23967)
+	
+	
 Release 1.4 (26-March-2007):
 
     - New gnupg mirrors list and general cleanups to varios other lists (pipping in r22979 through r22982,
