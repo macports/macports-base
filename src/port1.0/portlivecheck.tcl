@@ -177,6 +177,7 @@ proc livecheck_main {args} {
 		    ui_debug "Fetching ${livecheck.url}"
 			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
+				set updated -1
 			} else {
 				# let's compute the md5 sum.
 				set dist_md5 [md5 file $tempfile]
@@ -190,6 +191,7 @@ proc livecheck_main {args} {
 			set port_moddate [file mtime ${portpath}/Portfile]
 			if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
 				ui_error "cannot check if $portname was updated ($error)"
+				set updated -1
 			} else {
 				if {!$updated} {
 					ui_debug "${livecheck.url} is older than Portfile"
