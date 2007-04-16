@@ -38,12 +38,8 @@ AC_SUBST(CFLAGS_QUICHEEATERS)
 OD_COMPILER_ATTRIBUTE_UNUSED
 
 OD_PROG_MTREE
-OD_PROG_XAR
-AC_ARG_ENABLE(launchd-support,
-	AC_HELP_STRING([--disable-launchd-support], [disable support for launchd startupitems]),
-	[], [enable_launchd_support=yes])
-AC_SUBST(ENABLE_LAUNCHD_SUPPORT, [$enable_launchd_support])
-AS_IF([test x"${enable_launchd_support}" == "xyes"], [OD_PROG_DAEMONDO])
+#OD_PROG_XAR
+OD_PROG_DAEMONDO
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
