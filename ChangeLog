@@ -26,6 +26,16 @@
 
     - Improvements on livecheck: fixed a report bug, improved ruby group
       default behavior (pguyot in r24026 and r24018)
+      
+    - Remove xar from the build. xar doesn't build on panther due to
+      and libxml2 lib too old for xar requirements. We'll find another
+      way to deal with xar, perhaps by requiring users to install the
+      xar port when they need it's services. (jberry r24107:r24108)
+      
+    - Remove configure switch for building launchd support. (jberry r24107:r24108)
+    
+    - Remove compatibility upgrade for conf files from
+      darwinports 1.1 to 1.2. (jberry r24106).
 
 Release 1.4.1 (14-Apr-2007):
 
