@@ -4,19 +4,23 @@
 #   This is a log of major user-visible changes in each release
 #
 
-	
+
 (unreleased):
 
-	- Add per-user preferences in ~/.macports/user.conf. This will be used
-	  for submitter information.
-	  Simplify selection of ports.conf file:
-	  	- ~/.portsrc is no longer supported.
-	  	- Search order for ports.conf is now:
-	  		- PORTSRC
-	  		- ~/.macports/ports.conf
-	  		- ${prefix}/etc/ports.conf
-	  	  Only the first file found will be parsed and used.
-	   (jberry r24071)
+<<<<<<< .mine
+    - Implement brand new find command in Pextlib.
+      See portfile.7 for documentation (eridius in r24079 and r24080).
+
+    - Add per-user preferences in ~/.macports/user.conf. This will be used
+      for submitter information.
+      Simplify selection of ports.conf file:
+        - ~/.portsrc is no longer supported.
+        - Search order for ports.conf is now:
+            - PORTSRC
+            - ~/.macports/ports.conf
+            - ${prefix}/etc/ports.conf
+          Only the first file found will be parsed and used.
+       (jberry r24071)
 
 Release 1.4.1 (14-Apr-2007):
 
