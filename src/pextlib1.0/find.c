@@ -59,104 +59,132 @@
 
 #include <tcl.h>
 
-static int do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action);
+static int do_find(Tcl_Interp *interp, int flags, char *target, char *varname, char *body);
 
+#define F_DEPTH 0x1
+#define F_IGNORE_ERRORS 0x2
+
+/* find ?-depth? ?-ignoreErrors? varname target ?target ...? body */
 int
 FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	char *startdir;
-	char *match, *action;
-	char *def_match = "1";
-	char *def_action = "puts \"$_filename\"";
-	int depth = 0;
+    char *varname;
+    char *body;
+    int flags = 0;
+    int rval = TCL_OK;
+    Tcl_Obj *CONST *objv_orig = objv;
 
-	/* Adjust arguments */
-	++objv, --objc;
+    /* Adjust arguments to remove initial `find' */
+    ++objv, --objc;
 
-	if (objc && !strcmp(Tcl_GetString(*objv), "-depth")) {
-		depth = 1;
-		++objv, --objc;
-	}
-	if (!objc)
-		startdir = ".";
-	else {
-		startdir = Tcl_GetString(*objv);
-		++objv, --objc;
-	}
-	if (!objc)
-		match = def_match;
-	else {
-		match = Tcl_GetString(*objv);
-		++objv, --objc;
-	}
-	if (!objc)
-		action = def_action;
-	else {
-		action = Tcl_GetString(*objv);
-		++objv, --objc;
-	}
-	if (objc) {
-		Tcl_WrongNumArgs(interp, 1, objv, "[dir] [match] [action]");
-		return TCL_ERROR;
-	}
-	return do_find(interp, depth, startdir, match, action);
+    /* Parse flags */
+    while (objc) {
+        if (!strcmp(Tcl_GetString(*objv), "-depth")) {
+            flags |= F_DEPTH;
+            ++objv, --objc;
+            continue;
+        }
+        if (!strcmp(Tcl_GetString(*objv), "-ignoreErrors")) {
+            flags |= F_IGNORE_ERRORS;
+            ++objv, --objc;
+            continue;
+        }
+        break;
+    }
+    
+    /* Parse remaining args */
+    if (objc < 3) {
+        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? varname target ?target target ...? body");
+        return TCL_ERROR;
+    }
+    
+    varname = Tcl_GetString(*objv);
+    ++objv, --objc;
+    
+    body = Tcl_GetString(objv[objc-1]);
+    --objc;
+    
+    while (objc) {
+        char *target = Tcl_GetString(*objv);
+        ++objv, --objc;
+        
+        if ((rval = do_find(interp, flags, target, varname, body)) == TCL_CONTINUE) {
+            rval = TCL_OK;
+            continue;
+        } else if (rval == TCL_BREAK) {
+            rval = TCL_OK;
+            break;
+        } else if (rval != TCL_OK) {
+            break;
+        }
+    }
+    return rval;
 }
 
 static int
-do_find(Tcl_Interp *interp, int depth, char *dir, char *match, char *action)
+do_find(Tcl_Interp *interp, int flags, char *target, char *varname, char *body)
 {
-	DIR *dirp;
-	struct dirent *dp;
-	int rval, alen;
-	struct stat sb;
-	
-	if ((dirp = opendir(dir)) == NULL)
-		return TCL_ERROR;
-	/* be optimistic */
-	rval = TCL_OK;
+    DIR *dirp;
+    struct dirent *dp;
+    int rval = TCL_OK;
+    struct stat sb;
+    
+    /* No permission? */
+    if (lstat(target, &sb) != 0) {
+        if (flags & F_IGNORE_ERRORS) {
+            return TCL_OK;
+        } else {
+            Tcl_ResetResult(interp);
+            Tcl_AppendResult(interp, "Error: no permission to access file/folder `", target, "'");
+            return TCL_ERROR;
+        }
+    }
+    
+    /* Handle files now, or directories if !depth */
+    if (!(flags & F_DEPTH) || !(sb.st_mode & S_IFDIR)) {
+        Tcl_SetVar(interp, varname, target, 0);
+        if ((rval = Tcl_EvalEx(interp, body, -1, 0)) != TCL_OK) {
+            return rval;
+        }
+    }
+    
+    /* Handle directories */
+    if (sb.st_mode & S_IFDIR) {
+        if ((dirp = opendir(target)) == NULL) {
+            if (flags & F_IGNORE_ERRORS) {
+                return TCL_OK;
+            } else {
+                Tcl_ResetResult(interp);
+                Tcl_AppendResult(interp, "Error: Could not open directory `", target, "'");
+                return TCL_ERROR;
+            }
+        }
+        
+        while ((dp = readdir(dirp)) != NULL) {
+            char tmp_path[PATH_MAX];
 
-	alen = strlen(action);
+            if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+                continue;
+            strcpy(tmp_path, target);
+            strcat(tmp_path, "/");
+            strcat(tmp_path, dp->d_name);
 
-	while ((dp = readdir(dirp)) != NULL) {
-		char tmp_path[PATH_MAX];
-		int res;
-
-		if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
-			continue;
-		strcpy(tmp_path, dir);
-		strcat(tmp_path, "/");
-		strcat(tmp_path, dp->d_name);
-
-		/* No permission? */
-		if (stat(tmp_path, &sb) != 0)
-			continue;
-		/* Handle directories specially.  If depth, do it now */
-		if (depth && sb.st_mode & S_IFDIR) {
-			if (do_find(interp, depth, tmp_path, match, action) != TCL_OK)
-				return TCL_ERROR;
-		}
-		Tcl_SetVar(interp, "_filename", tmp_path, TCL_GLOBAL_ONLY);
-		if (Tcl_ExprBoolean(interp, match, &res) == TCL_OK) {
-			if (res == 1) {
-				/* match */
-				if (Tcl_EvalEx(interp, action, alen, TCL_EVAL_GLOBAL) != TCL_OK) {
-					rval = TCL_ERROR;
-					break;
-				}
-			}
-			else
-				continue;
-		}
-		else {
-			rval = TCL_ERROR;
-			break;
-		}
-		/* Handle directories specially.  If !depth, do it now */
-		if (!depth && sb.st_mode & S_IFDIR) {
-			if (do_find(interp, depth, tmp_path, match, action) != TCL_OK)
-				return TCL_ERROR;
-		}
-	}
-	(void)closedir(dirp);
-	return rval;
+            if ((rval = do_find(interp, flags, tmp_path, varname, body)) == TCL_CONTINUE) {
+                rval = TCL_OK;
+                continue;
+            } else if (rval != TCL_OK) {
+                break;
+            }
+        }
+        (void)closedir(dirp);
+        
+        /* Handle directory now if depth */
+        if (flags & F_DEPTH) {
+            Tcl_SetVar(interp, varname, target, 0);
+            if ((rval = Tcl_EvalEx(interp, body, -1, 0)) != TCL_OK) {
+                return rval;
+            }
+        }
+    }
+    return rval;
 }
