@@ -49,7 +49,7 @@ namespace eval darwinports {
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type \
     	$user_options"
-    	
+    
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
@@ -215,9 +215,14 @@ proc dportinit {up_ui_options up_options up_variations} {
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
 		if [file exists $file] {
+			set portconf $file
 			set fd [open $file r]
 			while {[gets $fd line] >= 0} {
 				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+					if {[regexp {^"(.*)"[ \t]*$} $val match val2] == 1} {
+						# Nasty hack for malformed rsync_options in ports.conf
+						set val $val2
+					}
 					if {[lsearch $bootstrap_options $option] >= 0} {
 						set darwinports::$option $val
 						global darwinports::$option
@@ -547,8 +552,8 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 		    global darwinports::$opt
 		}
         if {[info exists $opt]} {
-            $workername eval set system_options($opt) \"[set $opt]\"
-            $workername eval set $opt \"[set $opt]\"
+            $workername eval set system_options($opt) \{[set $opt]\}
+            $workername eval set $opt \{[set $opt]\}
         }
     }
     

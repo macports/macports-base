@@ -47,7 +47,7 @@ rsync_server		rsync.darwinports.org
 rsync_dir			dpupdate1/base/
 
 # Rsync options
-rsync_options		"-rtzv --delete --delete-after"
+rsync_options		-rtzv --delete --delete-after
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", or "launchd";

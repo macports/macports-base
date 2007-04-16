@@ -16,6 +16,7 @@
 	  		- ~/.macports/ports.conf
 	  		- ${prefix}/etc/ports.conf
 	  	  Only the first file found will be parsed and used.
+	   (jberry r24071)
 
 Release 1.4.1 (14-Apr-2007):
 
