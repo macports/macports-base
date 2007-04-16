@@ -1482,6 +1482,38 @@ before working.
 .El
 .El
 .It Xo
+.Ic find
+.Op Fl depth
+.Op Fl ignoreErrors
+.Ar varname
+.Ar target
+.Op Ar target ...
+.Ar body
+.Xc
+Traverse the filesystem hierarchy rooted in each
+.Ar target
+and execute
+.Ar body
+for each found file/directory. Sets
+.Ar varname
+to the path of the file/directory. If
+.Nm break
+is called during execution, the filesystem traversal is stopped. If
+.Nm continue
+is called during execution, the current file and any children are skipped
+and traversal continues with the next file/directory.
+.Bl -tag -width indent
+.It Fl depth
+Equivalent to the
+.Fl d
+switch to
+.Xr find 1 .
+.It Fl ignoreErrors
+Causes
+.Nm find
+to ignore any permissions/read errors encountered during processing.
+.El
+.It Xo
 .Ic curl fetch
 .Ar url
 .Ar file
