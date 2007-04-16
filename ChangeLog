@@ -7,6 +7,15 @@
 	
 (unreleased):
 
+	- Add per-user preferences in ~/.macports/user.conf. This will be used
+	  for submitter information.
+	  Simplify selection of ports.conf file:
+	  	- ~/.portsrc is no longer supported.
+	  	- Search order for ports.conf is now:
+	  		- PORTSRC
+	  		- ~/.macports/ports.conf
+	  		- ${prefix}/etc/ports.conf
+	  	  Only the first file found will be parsed and used.
 
 Release 1.4.1 (14-Apr-2007):
 

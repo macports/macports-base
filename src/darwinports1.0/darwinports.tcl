@@ -36,9 +36,20 @@ package require darwinports_dlist 1.0
 package require darwinports_index 1.0
 
 namespace eval darwinports {
-    namespace export bootstrap_options portinterp_options open_dports ui_priorities
-    variable bootstrap_options "portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat portinstalltype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask variants_conf rsync_server rsync_options rsync_dir startupitem_type xcodeversion xcodebuildcmd"
-    variable portinterp_options "portdbpath portpath portbuildpath auto_path prefix portsharepath registry.path registry.format registry.installtype portarchivemode portarchivepath portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server rsync_options rsync_dir startupitem_type"
+    namespace export bootstrap_options user_options portinterp_options open_dports ui_priorities
+    variable bootstrap_options "\
+    	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
+    	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
+    	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
+    	rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    variable user_options "submitter_name submitter_email submitter_key"
+    variable portinterp_options "\
+    	portdbpath portpath portbuildpath auto_path prefix portsharepath \
+    	registry.path registry.format registry.installtype portarchivemode portarchivepath \
+    	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
+    	rsync_options rsync_dir startupitem_type \
+    	$user_options"
+    	
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
@@ -172,6 +183,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
 	global darwinports::bootstrap_options
+	global darwinports::user_options
 	global darwinports::extra_env
 	global darwinports::portconf
 	global darwinports::portdbpath
@@ -191,48 +203,46 @@ proc dportinit {up_ui_options up_options up_variations} {
    	global darwinports::variants_conf
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
-
-    # first look at PORTSRC for testing/debugging
+   	
+   	# Configure the search path for configuration files
+   	set conf_files ""
     if {[llength [array names env PORTSRC]] > 0} {
-	set PORTSRC [lindex [array get env PORTSRC] 1]
-	if {[file isfile ${PORTSRC}]} {
-	    set portconf ${PORTSRC}
-	    lappend conf_files ${portconf}
-	}
+		set PORTSRC [lindex [array get env PORTSRC] 1]
+		lappend conf_files ${PORTSRC}
     }
-
-    # then look in ~/.portsrc
-    if {![info exists portconf]} {
-	if {[llength [array names env HOME]] > 0} {
-	    set HOME [lindex [array get env HOME] 1]
-	    if {[file isfile [file join ${HOME} .portsrc]]} {
-		set portconf [file join ${HOME} .portsrc]
-		lappend conf_files ${portconf}
-	    }
-	}
-    }
-
-    # finally ${prefix}/etc/ports/ports.conf, or whatever path was configured
-    if {![info exists portconf]} {
-	if {[file isfile $dports_conf_path/ports.conf]} {
-	    set portconf $dports_conf_path/ports.conf
-	    lappend conf_files $dports_conf_path/ports.conf
-	}
-    }
-    if {[info exists conf_files]} {
+    lappend conf_files "~/.macports/ports.conf" "${dports_conf_path}/ports.conf"
+    
+    # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
-	    set fd [open $file r]
-	    while {[gets $fd line] >= 0} {
-		foreach option $bootstrap_options {
-		    if {[regexp "^$option\[ \t\]+(\[A-Za-z0-9_:,\./-\].+$)" $line match val] == 1} {
-			set darwinports::$option $val
-			global darwinports::$option
-		    }
+		if [file exists $file] {
+			set fd [open $file r]
+			while {[gets $fd line] >= 0} {
+				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+					if {[lsearch $bootstrap_options $option] >= 0} {
+						set darwinports::$option $val
+						global darwinports::$option
+					}
+				}
+			}
+			
+			break
 		}
-	    }
-        }
-    }
-
+	}
+	
+	# Process per-user only settings
+	set per_user "~/.macports/user.conf"
+	if [file exists $per_user] {
+		set fd [open $per_user r]
+		while {[gets $fd line] >= 0} {
+			if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
+				if {[lsearch $user_options $option] >= 0} {
+					set darwinports::$option $val
+					global darwinports::$option
+				}
+			}
+		}
+	}
+	
     if {![info exists sources_conf]} {
         return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
     }
