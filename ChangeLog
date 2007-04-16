@@ -28,9 +28,9 @@
       default behavior (pguyot in r24026 and r24018)
       
     - Remove xar from the build. xar doesn't build on panther due to
-      and libxml2 lib too old for xar requirements. We'll find another
+      a libxml2 lib too old for xar requirements. We'll find another
       way to deal with xar, perhaps by requiring users to install the
-      xar port when they need it's services. (jberry r24107:r24108)
+      xar port when they need its services. (jberry r24107:r24108)
       
     - Remove configure switch for building launchd support. (jberry r24107:r24108)
     
