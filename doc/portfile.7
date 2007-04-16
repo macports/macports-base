@@ -1508,6 +1508,11 @@ Equivalent to the
 .Fl d
 switch to
 .Xr find 1 .
+Please note that using
+.Fl depth
+means you cannot prune a directory with
+.Nm continue
+as it will be processed after its children.
 .It Fl ignoreErrors
 Causes
 .Nm find
