@@ -22,7 +22,7 @@
             - ~/.macports/ports.conf
             - ${prefix}/etc/ports.conf
           Only the first file found will be parsed and used.
-       (jberry r24071)
+       (jberry r24071, r24113, r24114)
 
     - Improvements on livecheck: fixed a report bug, improved ruby group
       default behavior (pguyot in r24026 and r24018)
