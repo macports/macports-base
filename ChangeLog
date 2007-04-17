@@ -7,6 +7,8 @@
 
 (unreleased):
 
+Release 1.4.2 (16-Apr-2007):
+
     - New logic for variants overload that basically yields to listing only
       variant +universal on ports that redefine it (pguyot in 24100).
 
