@@ -683,6 +683,7 @@ HAVE_LAUNCHD
 LAUNCHCTL
 XCODEBUILD
 BZIP2
+XAR
 TAR
 GNUTAR
 TAR_CMD
@@ -756,6 +757,7 @@ RSYNC
 TAR
 GNUTAR
 BZIP2
+XAR
 CPP
 XMKMF'
 ac_subdirs_all='src/programs/mtree
@@ -1371,6 +1373,7 @@ Some influential environment variables:
   TAR         path to tar command
   GNUTAR      path to gnutar command
   BZIP2       path to bzip2 command
+  XAR         path to xar command
   CPP         C preprocessor
   XMKMF       Path to xmkmf, Makefile generator for X Window System
 
@@ -3269,8 +3272,49 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
+# Extract the first word of "xar", so it can be a program name with args.
+set dummy xar; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_XAR+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $XAR in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XAR="$XAR" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_XAR="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+XAR=$ac_cv_path_XAR
+if test -n "$XAR"; then
+  { echo "$as_me:$LINENO: result: $XAR" >&5
+echo "${ECHO_T}$XAR" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
 
 # Define some precious variables allowing user to override PATH for some programs
+
 
 
 
@@ -10193,6 +10237,7 @@ HAVE_LAUNCHD!$HAVE_LAUNCHD$ac_delim
 LAUNCHCTL!$LAUNCHCTL$ac_delim
 XCODEBUILD!$XCODEBUILD$ac_delim
 BZIP2!$BZIP2$ac_delim
+XAR!$XAR$ac_delim
 TAR!$TAR$ac_delim
 GNUTAR!$GNUTAR$ac_delim
 TAR_CMD!$TAR_CMD$ac_delim
@@ -10222,7 +10267,6 @@ X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
 TCL_VERSION!$TCL_VERSION$ac_delim
-TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -10264,6 +10308,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
 TCL_LIB_FILE!$TCL_LIB_FILE$ac_delim
 TCL_LIB_FLAG!$TCL_LIB_FLAG$ac_delim
@@ -10295,7 +10340,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 29; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 30; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
