@@ -1331,7 +1331,7 @@ value lists which variants are enabled by default.
 .br
 .Sy Example:
 .Dl default_variants +ssl +tcpd
-.It Ic unversal_variant
+.It Ic universal_variant
 When using MacPorts on MacOS X, a universal variant is defined and
 the default behavior is to configure ports with universal flags
 (see the
@@ -1480,6 +1480,43 @@ Change to
 .Ar dir
 before working.
 .El
+.El
+.It Xo
+.Ic fs-traverse
+.Op Fl depth
+.Op Fl ignoreErrors
+.Ar varname
+.Ar target
+.Op Ar target ...
+.Ar body
+.Xc
+Traverse the filesystem hierarchy rooted in each
+.Ar target
+and execute
+.Ar body
+for each found file/directory. Sets
+.Ar varname
+to the path of the file/directory. If
+.Nm break
+is called during execution, the filesystem traversal is stopped. If
+.Nm continue
+is called during execution, the current file and any children are skipped
+and traversal continues with the next file/directory.
+.Bl -tag -width indent
+.It Fl depth
+Equivalent to the
+.Fl d
+switch to
+.Xr find 1 .
+Please note that using
+.Fl depth
+means you cannot prune a directory with
+.Nm continue
+as it will be processed after its children.
+.It Fl ignoreErrors
+Causes
+.Nm fs-traverse
+to ignore any permissions/read errors encountered during processing.
 .El
 .It Xo
 .Ic curl fetch

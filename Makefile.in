@@ -27,19 +27,6 @@ config.status: configure
 include Mk/dports.subdir.mk
 
 install::
-	# Compatibility upgrade from dp 1.1 to dp 1.2
-	@echo "Renaming rsync'd directories from rsync.opendarwin.org to rsync.darwinports.org"
-	if test -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
-	   -a ! -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; then \
-		mv ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate_dports \
-		   ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports; \
-	fi
-	if test -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
-	   -a ! -d ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; then \
-		mv ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.opendarwin.org_dpupdate1 \
-		   ${DESTDIR}${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1; \
-	fi
-
 	@echo ""
 	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
 	@echo ""

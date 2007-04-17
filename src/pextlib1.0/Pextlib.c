@@ -105,7 +105,7 @@
 #include "md5cmd.h"
 #include "sha1cmd.h"
 #include "rmd160cmd.h"
-#include "find.h"
+#include "fs-traverse.h"
 #include "filemap.h"
 #include "curl.h"
 #include "xinstall.h"
@@ -1111,7 +1111,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "nextgid", NextgidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "md5", MD5Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "xinstall", InstallCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "find", FindCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "fs-traverse", FsTraverseCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);

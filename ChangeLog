@@ -4,38 +4,83 @@
 #   This is a log of major user-visible changes in each release
 #
 
-	
-Release 1.5 (Unreleased):
 
+(unreleased):
+
+Release 1.4.2 (16-Apr-2007):
+
+    - New logic for variants overload that basically yields to listing only
+      variant +universal on ports that redefine it (pguyot in 24100).
+
+    - Implement brand new fs-traverse command in Pextlib.
+      See portfile.7 for documentation (eridius in r24079, r24080, and r24112).
+
+    - Add per-user preferences in ~/.macports/user.conf. This will be used
+      for submitter information.
+      Simplify selection of ports.conf file:
+        - ~/.portsrc is no longer supported.
+        - Search order for ports.conf is now:
+            - PORTSRC
+            - ~/.macports/ports.conf
+            - ${prefix}/etc/ports.conf
+          Only the first file found will be parsed and used.
+       (jberry r24071, r24113, r24114)
+
+    - Improvements on livecheck: fixed a report bug, improved ruby group
+      default behavior (pguyot in r24026 and r24018)
+      
+    - Remove xar from the build. xar doesn't build on panther due to
+      a libxml2 lib too old for xar requirements. We'll find another
+      way to deal with xar, perhaps by requiring users to install the
+      xar port when they need its services. (jberry r24107:r24108)
+      
+    - Remove configure switch for building launchd support. (jberry r24107:r24108)
+    
+    - Remove compatibility upgrade for conf files from
+      darwinports 1.1 to 1.2. (jberry r24106).
 
 Release 1.4.1 (14-Apr-2007):
 
-    - Add responsive, reasonably fast http mirrors to openbsd group (pipping in r23343).
+    - Add responsive, reasonably fast http mirrors to openbsd group
+      (pipping in r23343).
 
-    - Resolved ticket #11637: livecheck incorrectly assumed that master_sites was set. (pguyot in r23329).
+    - Resolved ticket #11637: livecheck incorrectly assumed that
+      master_sites was set. (pguyot in r23329).
 
-	- Add xar 1.4 into the build of MacPorts base. xar is now installed into /opt/local/, which will conflict with anybody who has the xar port installed. (jberry in r23687).
+    - Add xar 1.4 into the build of MacPorts base. xar is now installed
+      into /opt/local/, which will conflict with anybody who has the xar
+      port installed. (jberry in r23687).
 
-    - Add -I${prefix}/include -L${prefix}/lib to the default configure flags (pguyot in r23246 and r23291).
+    - Add -I${prefix}/include -L${prefix}/lib to the default configure
+      flags (pguyot in r23246 and r23291).
 
-    - New options for configure flags (C|CPP|CXX|LD)FLAGS and logic to handle that and backward compatibility
-      (pguyot in r23089, r23125, r23238, r23248 and r23249).
+    - New options for configure flags (C|CPP|CXX|LD)FLAGS and logic to
+      handle that and backward compatibility (pguyot in r23098, r23125,
+      r23238, r23248 and r23249).
 
     - "port sync" now updates svn repos too (eridius in r22784).
 
-    - Default +universal variant for configure-based ports (pguyot in r22313).
-    
-    - Fixed use of master_site in livecheck, added support for code.google.com checks, made the up to date message info (instead of debug) and improved debugging output with livecheck (eridius in r23888, r23889, r23890, r23894; pguyot in 23660)
+    - Default +universal variant for configure-based ports (pguyot in
+      r22313).
 
-	- Fixed a bug where running port test would not install dependencies when required. (pguyot in r23700)
-	
-	- New ruby portgroup option to specify the name of the module for gem-based ports. (pguyot in 23659)
-	
-	- New fetch option to ignore the SSL certificate when fetching from a secure site (default is to not ignore it). (pguyot in r23242)
-	
-	- Bugfix #11720. Fixes for variants.conf functionality. (jberry in r23967)
-	
-	
+    - Fixed use of master_site in livecheck, added support for
+      code.google.com checks, made the up to date message info (instead of
+      debug) and improved debugging output with livecheck (eridius in
+      r23888, r23889, r23890, r23894; pguyot in 23660)
+
+    - Fixed a bug where running port test would not install dependencies
+      when required. (pguyot in r23700)
+
+    - New ruby portgroup option to specify the name of the module for
+      gem-based ports. (pguyot in 23659)
+
+    - New fetch option to ignore the SSL certificate when fetching from
+      a secure site (default is to not ignore it). (pguyot in r23242)
+
+    - Bugfix #11720. Fixes for variants.conf functionality. (jberry in
+      r23967)
+
+
 Release 1.4 (26-March-2007):
 
     - New gnupg mirrors list and general cleanups to varios other lists (pipping in r22979 through r22982,

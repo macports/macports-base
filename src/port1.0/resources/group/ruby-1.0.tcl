@@ -108,14 +108,14 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			master_sites	http://rubyforge.rubyuser.de/gems/
 			livecheck.check	regex
 			livecheck.url	http://rubyforge.org/projects/${ruby.project}
-			livecheck.regex	"<strong>${module}</strong></td><td>(?:REL )?(.*)$"
+			livecheck.regex	"<strong>${ruby.module}</strong></td><td>(?:REL )?(.*)$"
 		}
 		rubyforge_gem {
 			homepage		http://rubyforge.org/projects/${ruby.project}
 			master_sites	http://rubyforge.rubyuser.de/gems/
 			livecheck.check	regex
 			livecheck.url	http://rubyforge.org/projects/${ruby.project}
-			livecheck.regex	"<strong>${module}</strong></td><td>(?:REL )?(.*)$"
+			livecheck.regex	"<strong>${ruby.module}</strong></td><td>(?:REL )?(.*)$"
 		}
 		sourceforge:* {
 			set ruby.project [lindex [split ${source} {:}] 1]

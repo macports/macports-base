@@ -19,6 +19,7 @@ AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(XAR, [xar], [])
 
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(CVS, [path to cvs command])
@@ -26,6 +27,7 @@ AC_ARG_VAR(RSYNC, [path to rsync command])
 AC_ARG_VAR(TAR, [path to tar command])
 AC_ARG_VAR(GNUTAR, [path to gnutar command])
 AC_ARG_VAR(BZIP2, [path to bzip2 command])
+AC_ARG_VAR(XAR, [path to xar command])
 
 OD_TAR_NO_SAME_OWNER
 
@@ -38,12 +40,8 @@ AC_SUBST(CFLAGS_QUICHEEATERS)
 OD_COMPILER_ATTRIBUTE_UNUSED
 
 OD_PROG_MTREE
-OD_PROG_XAR
-AC_ARG_ENABLE(launchd-support,
-	AC_HELP_STRING([--disable-launchd-support], [disable support for launchd startupitems]),
-	[], [enable_launchd_support=yes])
-AC_SUBST(ENABLE_LAUNCHD_SUPPORT, [$enable_launchd_support])
-AS_IF([test x"${enable_launchd_support}" == "xyes"], [OD_PROG_DAEMONDO])
+#OD_PROG_XAR
+OD_PROG_DAEMONDO
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)

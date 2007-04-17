@@ -370,10 +370,20 @@ proc variant {args} {
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
     makeuserproc "variant-[ditem_key $ditem name]" \{$code\}
-    lappend all_variants $ditem
     
     # Export provided variant to PortInfo
-    lappend PortInfo(variants) [ditem_key $ditem provides]
+    # (don't list it twice if the variant was already defined, which can happen
+    # with universal or group code).
+    set variant_provides [ditem_key $ditem provides]
+	if {![info exists PortInfo(variants)] || [lsearch -exact $PortInfo(variants) $variant_provides] < 0} {
+	    lappend PortInfo(variants) $variant_provides
+	} else {
+		# This variant was already defined. Remove it from the dlist.
+		variant_remove_ditem $variant_provides
+	}
+
+	# Finally append the ditem to the dlist.
+    lappend all_variants $ditem
 }
 
 # variant_isset name
@@ -422,6 +432,25 @@ proc variant_undef {name} {
 				set PortInfo(variants) $new_list
 			}
 		}
+	}
+	
+	# And from the dlist.
+	variant_remove_ditem $name
+}
+
+# variant_remove_ditem name
+# Remove variant name's ditem from the all_variants dlist
+proc variant_remove_ditem {name} {
+	global all_variants
+	set item_index 0
+	foreach variant_item $all_variants {
+		set item_provides [ditem_key $variant_item provides]
+		if {$item_provides == $name} {
+			set all_variants [lreplace $all_variants $item_index $item_index]
+			break
+		}
+		
+		incr item_index
 	}
 }
 

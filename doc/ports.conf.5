@@ -168,9 +168,11 @@ List of extra environment variables MacPorts should keep in the user's environme
 .El
 .Sh FILES
 .Bl -tag -width
-.It Va ~/.portsrc
-User configuration file for the MacPorts system. This file overrides values listed in the default
-${prefix}/etc/port/ports.conf' one.
+.It Va ${prefix}/etc/ports/ports.conf
+Standard system-wide MacPorts configuration file.
+.It Va ~/.macports/ports.conf
+User-specific configuration override. This file, if found, will be used instead of the default file at
+${prefix}/etc/port/ports.conf.
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
