@@ -10,8 +10,8 @@
     - New logic for variants overload that basically yields to listing only
       variant +universal on ports that redefine it (pguyot in 24100).
 
-    - Implement brand new find command in Pextlib.
-      See portfile.7 for documentation (eridius in r24079 and r24080).
+    - Implement brand new fs-traverse command in Pextlib.
+      See portfile.7 for documentation (eridius in r24079, r24080, and r24112).
 
     - Add per-user preferences in ~/.macports/user.conf. This will be used
       for submitter information.

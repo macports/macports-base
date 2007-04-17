@@ -1,5 +1,5 @@
 /*
- * find.h
+ * fs-traverse.h
  * $Id$
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-int FindCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);
+int FsTraverseCmd(ClientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]);

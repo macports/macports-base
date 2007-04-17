@@ -1,9 +1,9 @@
 /*
- * find.c
+ * fs-traverse.c
  * $Id$
  *
  * Find files and execute arbitrary expressions on them.
- * Author: Jordan K. Hubbard
+ * Author: Jordan K. Hubbard, Kevin Ballard
  *
  * Copyright (c) 2004 Apple Computer, Inc.
  * All rights reserved.
@@ -59,14 +59,14 @@
 
 #include <tcl.h>
 
-static int do_find(Tcl_Interp *interp, int flags, char *target, char *varname, char *body);
+static int do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *body);
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
 
-/* find ?-depth? ?-ignoreErrors? varname target ?target ...? body */
+/* fs-traverse ?-depth? ?-ignoreErrors? varname target ?target ...? body */
 int
-FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *varname;
     char *body;
@@ -108,7 +108,7 @@ FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CON
         char *target = Tcl_GetString(*objv);
         ++objv, --objc;
         
-        if ((rval = do_find(interp, flags, target, varname, body)) == TCL_CONTINUE) {
+        if ((rval = do_traverse(interp, flags, target, varname, body)) == TCL_CONTINUE) {
             rval = TCL_OK;
             continue;
         } else if (rval == TCL_BREAK) {
@@ -122,7 +122,7 @@ FindCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CON
 }
 
 static int
-do_find(Tcl_Interp *interp, int flags, char *target, char *varname, char *body)
+do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *body)
 {
     DIR *dirp;
     struct dirent *dp;
@@ -169,7 +169,7 @@ do_find(Tcl_Interp *interp, int flags, char *target, char *varname, char *body)
             strcat(tmp_path, "/");
             strcat(tmp_path, dp->d_name);
 
-            if ((rval = do_find(interp, flags, tmp_path, varname, body)) == TCL_CONTINUE) {
+            if ((rval = do_traverse(interp, flags, tmp_path, varname, body)) == TCL_CONTINUE) {
                 rval = TCL_OK;
                 continue;
             } else if (rval != TCL_OK) {
