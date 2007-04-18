@@ -7,9 +7,17 @@
 
 (unreleased):
 
+Release 1.4.3 (17-Apr-2007):
+
     - Fix bug in launchd support, introduced in 1.4.2. Remove remnants of
       launchd enable flag which caused reversion to systemstarter in 1.4.2.
       (jberry r24151).
+      
+    - add functions 'backup' and 'lipo' along with some description
+      to be used for lipo-based universal variants, tested with openssl.
+      These functions should be considered test only for the time being,
+      and should not yet be adopted widely by port authors.
+      (pipping r24148).
 
 Release 1.4.2 (16-Apr-2007):
 
