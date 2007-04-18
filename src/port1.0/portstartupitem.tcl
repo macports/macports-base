@@ -613,10 +613,8 @@ proc startupitem_create {args} {
 	if {${startupitem.type} == "default" || ${startupitem.type} == ""} {
 		switch -exact ${os.platform} {
 			darwin {
-				set enableLaunchd ${portutil::autoconf::enable_launchd_support}
 				set haveLaunchd	${portutil::autoconf::have_launchd}
-				
-				if { [tbool enableLaunchd] && [tbool haveLaunchd] } {
+				if { [tbool haveLaunchd] } {
 					set startupitem.type "launchd"
 				} else {
 					set startupitem.type "systemstarter"
