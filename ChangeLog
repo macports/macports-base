@@ -7,6 +7,10 @@
 
 (unreleased):
 
+    - Fix bug in launchd support, introduced in 1.4.2. Remove remnants of
+      launchd enable flag which caused reversion to systemstarter in 1.4.2.
+      (jberry r24151).
+
 Release 1.4.2 (16-Apr-2007):
 
     - New logic for variants overload that basically yields to listing only
