@@ -922,6 +922,38 @@ proc makeuserproc {name body} {
     eval "proc $name {} $body"
 }
 
+# backup
+# Operates on universal_filelist, creates universal_archlist
+# Save single-architecture files, a temporary location, preserving the original
+# directory structure.
+
+proc backup {arch} {
+    global universal_archlist universal_filelist workpath
+    lappend universal_archlist ${arch}
+    foreach file ${universal_filelist} {
+        set filedir [file dirname $file]
+        xinstall -d ${workpath}/${arch}/${filedir}
+        xinstall ${file} ${workpath}/${arch}/${filedir}
+    }
+}
+
+# lipo
+# Operates on universal_filelist, universal_archlist.
+# Run lipo(1) on a list of single-arch files.
+
+proc lipo {} {
+    global universal_archlist universal_filelist workpath
+    foreach file ${universal_filelist} {
+        xinstall -d [file dirname $file]
+        file delete ${file}
+        set lipoSources ""
+        foreach arch $universal_archlist {
+            append lipoSources "-arch ${arch} ${workpath}/${arch}/${file} "
+        }
+        system "lipo ${lipoSources}-create -output ${file}"
+    }
+}
+
 ########### Internal Dependency Manipulation Procedures ###########
 
 proc target_run {ditem} {
