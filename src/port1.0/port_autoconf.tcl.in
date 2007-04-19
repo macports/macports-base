@@ -33,6 +33,7 @@ package provide port 1.0
 namespace eval portutil::autoconf {
 	variable cvs_path "@CVS@"
 	variable rsync_path "@RSYNC@"
+	variable xar_path "@XAR@"
 	variable tar_command "@TAR_CMD@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
