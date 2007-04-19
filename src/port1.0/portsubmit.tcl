@@ -129,6 +129,8 @@ proc create_portpkg {} {
 		puts $sd "<submitter>"
 			putel $sd name $submitter_name
 			putel $sd email $submitter_email
+			
+			# TODO provide means to set notes?
 			putel $sd notes ""
 		puts $sd "</submitter>"
 		
@@ -158,7 +160,7 @@ proc create_portpkg {} {
     close $sd
     
     # Create portpkg.xar, including the metadata and the portpkg directory contents
-    set cmd "cd ${workpath}; ${xar} -cf ${pkgpath} ${dirname} -s ${metapath} -n ${metaname}"
+    set cmd "cd ${workpath}; ${xar} -cf ${pkgpath} --exclude \\.DSStore --exclude \\.svn ${dirname} -s ${metapath} -n ${metaname}"
     if {[system $cmd] != ""} {
 		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $portname]
     }
@@ -170,7 +172,7 @@ proc create_portpkg {} {
 proc submit_main {args} {
     global portname portversion prefix UI_PREFIX workpath portpath
   
-   	# Create portpkg.xar in the work direcotory
+   	# Create portpkg.xar in the work directory
    	create_portpkg
    	
    	# If a private key was provided, create a signed digest of the submission
