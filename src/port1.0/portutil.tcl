@@ -375,11 +375,11 @@ proc variant {args} {
     # (don't list it twice if the variant was already defined, which can happen
     # with universal or group code).
     set variant_provides [ditem_key $ditem provides]
-	if {![info exists PortInfo(variants)] || [lsearch -exact $PortInfo(variants) $variant_provides] < 0} {
-	    lappend PortInfo(variants) $variant_provides
-	} else {
+    if {[variant_exists $variant_provides]} {
 		# This variant was already defined. Remove it from the dlist.
 		variant_remove_ditem $variant_provides
+	} else {
+	    lappend PortInfo(variants) $variant_provides
 	}
 
 	# Finally append the ditem to the dlist.
@@ -454,6 +454,18 @@ proc variant_remove_ditem {name} {
 	}
 }
 
+# variant_exists name
+# determine if a variant exists.
+proc variant_exists {name} {
+	global PortInfo
+	if {[info exists PortInfo(variants)] &&
+		[lsearch -exact $PortInfo(variants) $name] >= 0} {
+		return 1
+	}
+	
+	return 0
+}
+
 # platform <os> [<release>] [<arch>] 
 # Portfile level procedure to provide support for declaring platform-specifics
 # Basically, just wrap 'variant', so that Portfiles' platform declarations can
@@ -482,6 +494,15 @@ proc platform {args} {
     if {[info exists release]} { set platform ${platform}_${release} }
     if {[info exists arch]} { set platform ${platform}_${arch} }
     
+    # Pick up a unique name.
+    if {[variant_exists $platform]} {
+    	set suffix 1
+    	while {[variant_exists "$platform-$suffix"]} {
+    		incr suffix
+    	}
+    	
+    	set platform "$platform-$suffix"
+    }
     variant $platform $code
     
     # Set the variant if this platform matches the platform we're on
@@ -1102,6 +1123,7 @@ proc target_run {ditem} {
 						mpkg		-
 						rpmpackage	-
 						dpkg		-
+						activate    -
 						""			{ set deptypes "depends_lib depends_build depends_run" }
 					}
 					

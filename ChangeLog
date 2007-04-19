@@ -7,6 +7,10 @@
 
 (unreleased):
 
+    - Trace mode now take dependencies into account when executing the activate
+      phase. This fixes an unwanted warning when activating ports that depend
+      on teTeX (pguyot r24199).
+
 Release 1.4.3 (17-Apr-2007):
 
     - Fix bug in launchd support, introduced in 1.4.2. Remove remnants of
