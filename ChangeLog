@@ -4,12 +4,17 @@
 #   This is a log of major user-visible changes in each release
 #
 
-
 (unreleased):
 
     - Trace mode now take dependencies into account when executing the activate
       phase. This fixes an unwanted warning when activating ports that depend
       on teTeX (pguyot r24199).
+      
+    - Support for mpwa submit through "port submit".
+      This work is in progress. (jberry)
+       - Expose autoconf XAR variable as portutil::autoconf::xar_path. (r24194).
+       - Start to build portpkg.xar and meta data, hijacking Kevin's
+         portsubmit.tcl. (r24195-24196).
 
 Release 1.4.3 (17-Apr-2007):
 
