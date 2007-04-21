@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - Added the downloads section of our repo to the macports mirrors list (jmpp r24278).
+
     - Trace mode now take dependencies into account when executing the activate
       phase. This fixes an unwanted warning when activating ports that depend
       on teTeX (pguyot r24199).
