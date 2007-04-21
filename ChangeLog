@@ -8,6 +8,9 @@
 
     - Added the downloads section of our repo to the macports mirrors list (jmpp r24278).
 
+    - Fixed a bug with the archive mode introduced with r23238 change (1.4.1)
+      (pguyot r24273).
+
     - Trace mode now take dependencies into account when executing the activate
       phase. This fixes an unwanted warning when activating ports that depend
       on teTeX (pguyot r24199).
