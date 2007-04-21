@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - Fixed a bug where livecheck failed on ports that do not define a homepage
+      (ticket #11818, pguyot r24319).
+
     - Added the downloads section of our repo to the macports mirrors list (jmpp r24278).
 
     - Fixed a bug with the archive mode introduced with r23238 change (1.4.1)
