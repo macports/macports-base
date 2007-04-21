@@ -152,6 +152,7 @@ proc unarchive_command_setup {args} {
 	global unarchive.env unarchive.cmd
 	global unarchive.pre_args unarchive.args unarchive.post_args
 	global unarchive.type unarchive.path
+	global unarchive.pipe_cmd
 	global os.platform os.version env
 
 	# Define appropriate unarchive command and options
@@ -160,6 +161,7 @@ proc unarchive_command_setup {args} {
 	set unarchive.pre_args {}
 	set unarchive.args {}
 	set unarchive.post_args {}
+	set unarchive.pipe_cmd ""
 	switch -regex ${unarchive.type} {
 		cp(io|gz) {
 			set pax "pax"
@@ -176,7 +178,7 @@ proc unarchive_command_setup {args} {
 					set gzip "gzip"
 					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 						ui_debug "Using $gzip"
-						set unarchive.env "$gzip -d -c ${unarchive.path} |"
+						set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
 					} else {
 						ui_debug $errmsg
 						return -code error "No '$gzip' was found on this system!"
@@ -204,7 +206,7 @@ proc unarchive_command_setup {args} {
 					}
 					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 						ui_debug "Using $gzip"
-						set unarchive.env "$gzip -d -c ${unarchive.path} |"
+						set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
 					} else {
 						ui_debug $errmsg
 						return -code error "No '$gzip' was found on this system!"
@@ -256,7 +258,7 @@ proc unarchive_command_setup {args} {
 proc unarchive_main {args} {
 	global UI_PREFIX
 	global portname portversion portrevision portvariants
-	global unarchive.dir unarchive.file
+	global unarchive.dir unarchive.file unarchive.pipe_cmd
 
 	# Setup unarchive command
 	unarchive_command_setup
@@ -268,52 +270,11 @@ proc unarchive_main {args} {
 
 	# Unpack the archive
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-	command_exec unarchive
-
-	return 0
-}
-
-proc unarchive_finish {args} {
-	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
-
-	# Reset state file with archive version
-    set statefile [file join $workpath .darwinports.${portname}.state]
-	file copy -force [file join $destpath "+STATE"] $statefile
-	exec touch $statefile
-
-    # Update the state from unpacked archive version
-    set target_state_fd [open_statefile]
-
-	# Archive unpacked, skip archive target
-	write_statefile target "com.apple.archive" $target_state_fd
-    
-	# Cleanup all control files when finished
-	set control_files [glob -nocomplain -types f [file join $destpath +*]]
-	foreach file $control_files {
-		ui_debug "Removing $file"
-		file delete -force $file
+	if {${unarchive.pipe_cmd} == ""} {
+		command_exec unarchive
+	} else {
+		command_exec unarchive "${unarchive.pipe_cmd} (" ")"
 	}
-
-	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
-	return 0
-}
-
-proc unarchive_main {args} {
-	global UI_PREFIX
-	global portname portversion portrevision portvariants
-	global unarchive.dir unarchive.file
-
-	# Setup unarchive command
-	unarchive_command_setup
-
-	# Create destination directory for unpacking
-	if {![file isdirectory ${unarchive.dir}]} {
-		file mkdir ${unarchive.dir}
-	}
-
-	# Unpack the archive
-	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] ${unarchive.file}]"
-	command_exec unarchive
 
 	return 0
 }
