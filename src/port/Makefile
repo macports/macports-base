@@ -21,7 +21,7 @@ port: port.tcl
 	${edit} port.tcl > $@
 
 mkdirs:
-	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
+	cat ../../doc/prefix.mtree | mtree -U -d -e -p ${INSTALLDIR} > /dev/null
 
 clean:
 	rm -f ${SCRIPTS}

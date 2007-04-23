@@ -688,8 +688,6 @@ TAR
 GNUTAR
 TAR_CMD
 CFLAGS_QUICHEEATERS
-MTREE
-subdirs
 HAVE_FRAMEWORK_COREFOUNDATION
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 HAVE_FRAMEWORK_IOKIT
@@ -727,6 +725,7 @@ TCL_PACKAGE_DIR
 CURL_CONFIG
 CFLAGS_LIBCURL
 LDFLAGS_LIBCURL
+subdirs
 OUR_INCLUDED_PACKAGES
 INCLUDES
 CFLAGS_DEBUG
@@ -760,8 +759,7 @@ BZIP2
 XAR
 CPP
 XMKMF'
-ac_subdirs_all='src/programs/mtree
-src/thread2.6'
+ac_subdirs_all='src/thread2.6'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -3486,60 +3484,6 @@ echo "${ECHO_T}" >&6; }
 
 
 
-
-	# Extract the first word of "mtree", so it can be a program name with args.
-set dummy mtree; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_path_MTREE+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $MTREE in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_MTREE="$MTREE" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="/usr/bin:/usr/sbin:/bin:/sbin"
-for as_dir in $as_dummy
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_MTREE="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-MTREE=$ac_cv_path_MTREE
-if test -n "$MTREE"; then
-  { echo "$as_me:$LINENO: result: $MTREE" >&5
-echo "${ECHO_T}$MTREE" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-
-	if test "x$MTREE" = "x" ; then
-		subdirs="$subdirs src/programs/mtree"
-
-		MTREE='$(TOPSRCDIR)/src/programs/mtree/mtree'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
-	fi
-
-
-
-#OD_PROG_XAR
-
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
 	{ echo "$as_me:$LINENO: checking for CoreFoundation framework" >&5
@@ -3912,6 +3856,7 @@ echo $ECHO_N "checking for whether we will build daemondo... $ECHO_C" >&6; }
 	{ echo "$as_me:$LINENO: result: ${result}" >&5
 echo "${ECHO_T}${result}" >&6; }
 
+#OD_PROG_XAR
 
 
 
@@ -10242,8 +10187,6 @@ TAR!$TAR$ac_delim
 GNUTAR!$GNUTAR$ac_delim
 TAR_CMD!$TAR_CMD$ac_delim
 CFLAGS_QUICHEEATERS!$CFLAGS_QUICHEEATERS$ac_delim
-MTREE!$MTREE$ac_delim
-subdirs!$subdirs$ac_delim
 HAVE_FRAMEWORK_COREFOUNDATION!$HAVE_FRAMEWORK_COREFOUNDATION$ac_delim
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION!$HAVE_FRAMEWORK_SYSTEMCONFIGURATION$ac_delim
 HAVE_FRAMEWORK_IOKIT!$HAVE_FRAMEWORK_IOKIT$ac_delim
@@ -10267,6 +10210,8 @@ X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
 TCL_VERSION!$TCL_VERSION$ac_delim
+TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
+TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -10308,8 +10253,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
-TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
 TCL_LIB_FILE!$TCL_LIB_FILE$ac_delim
 TCL_LIB_FLAG!$TCL_LIB_FLAG$ac_delim
 TCL_LIB_SPEC!$TCL_LIB_SPEC$ac_delim
@@ -10322,6 +10265,7 @@ TCL_PACKAGE_DIR!$TCL_PACKAGE_DIR$ac_delim
 CURL_CONFIG!$CURL_CONFIG$ac_delim
 CFLAGS_LIBCURL!$CFLAGS_LIBCURL$ac_delim
 LDFLAGS_LIBCURL!$LDFLAGS_LIBCURL$ac_delim
+subdirs!$subdirs$ac_delim
 OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 INCLUDES!$INCLUDES$ac_delim
 CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
@@ -10340,7 +10284,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 30; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 29; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

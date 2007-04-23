@@ -20,15 +20,14 @@ install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${portconfigdir}
 
-	cat prefix.mtree | $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
+	cat prefix.mtree | mtree -U -e -p ${INSTALLDIR} > /dev/null
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi
-	
+
 	if test ! -e "${INSTALLDIR}/man" ; then \
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
-	
 	# Install the ports.conf file. If it's already installed, upgrade it
 	if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
 		set -x; \
@@ -46,7 +45,7 @@ install:
 		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
 			mv ${DESTDIR}${portconfigdir}/sources.conf.tmp ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
-	
+
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${portconfigdir}; \
