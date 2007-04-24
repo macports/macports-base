@@ -7,52 +7,7 @@ catch {source /Library/Tcl/darwinports1.0/darwinports_fastload.tcl}
 source [file dirname [info script]]/../portutil.tcl
 package require darwinports
 
-# boilerplate necessary for using the macports infrastructure
-proc ui_isset {val} { return 0 }
-
-# no global options
-proc global_option_isset {val} { return 0 }
-
-# UI callback
-proc ui_prefix {priority} {
-    switch $priority {
-        debug {
-            return "DEBUG: "
-        }
-        error {
-            return "Error: "
-        }
-        warn {
-            return "Warning: "
-        }
-        default {
-            return ""
-        }
-    }
-}
-
-proc ui_channels {priority} {
-    switch $priority {
-        debug -
-        info {
-            return {}
-        }
-        msg {
-            return {stdout}
-        }
-        error {
-            return {stderr}
-        }
-        default {
-            return {stdout}
-        }
-    }
-}
-
-array set ui_options {}
-array set global_options {}
-array set global_variations {}
-dportinit ui_options global_options global_variations
+dportinit
 
 # end boilerplate
 

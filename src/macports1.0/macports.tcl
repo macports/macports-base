@@ -70,23 +70,33 @@ namespace eval darwinports {
 # ui_prefix returns the prefix for the messages, if any.
 # ui_channels returns a list of channels to output the message to, empty for
 #     no message.
+# if these functions are not provided, defaults are used, but this should
+# not be relied upon for production code
 
 proc darwinports::ui_init {priority message} {
 	# Get the list of channels.
-	set channels [ui_channels $priority]
+	if {[llength [info commands ui_channels]] > 0} {
+		set channels [ui_channels $priority]
+	} else {
+	    set channels [ui_channels_default $priority]
+	}
 
 	# Simplify ui_$priority.
 	set nbchans [llength $channels]
 	if {$nbchans == 0} {
 		proc ::ui_$priority {str} {}
 	} else {
-		set prefix [ui_prefix $priority]
+		if {[llength [info commands ui_prefix]] > 0} {
+			set prefix [ui_prefix $priority]
+		} else {
+		    set prefix [ui_prefix_default $priority]
+		}
 
 		if {$nbchans == 1} {
 			set chan [lindex $channels 0]
-			proc ::ui_$priority {str} [subst -nocommands { puts $chan "$prefix\$str" }]
+			proc ::ui_$priority {str} [subst { puts $chan "$prefix\$str" }]
 		} else {
-			proc ::ui_$priority {str} [subst -nocommands {
+			proc ::ui_$priority {str} [subst {
 				foreach chan \$channels {
 					puts $chan "$prefix\$str"
 				}
@@ -98,8 +108,45 @@ proc darwinports::ui_init {priority message} {
 	}
 }
 
+# Defult implementation of ui_prefix
+proc darwinports::ui_prefix_default {priority} {
+	switch $priority {
+		debug {
+			return "DEBUG: "
+		}
+		error {
+			return "Error: "
+		}
+		warn {
+			return "Warning: "
+		}
+		default {
+			return ""
+		} 
+	}
+}
+
+# Default implementation of ui_channels
+proc darwinports::ui_channels_default {priority} {
+    switch $priority {
+        debug -
+        info {
+            return {}
+        }
+        msg {
+            return {stdout}
+        }
+        error {
+            return {stderr}
+        }
+        default {
+            return {stdout}
+        }
+    }
+}
+
 foreach priority ${darwinports::ui_priorities} {
-    eval "proc ui_$priority {str} \{ darwinports::ui_init $priority \$str \}"
+    proc ui_$priority {str} [subst { darwinports::ui_init $priority \$str }]
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
@@ -175,10 +222,22 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
-proc dportinit {up_ui_options up_options up_variations} {
-	upvar  $up_ui_options ui_options
-	upvar  $up_options	  options
-	upvar  $up_variations variations
+proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+	if {$up_ui_options eq ""} {
+		array set ui_options {}
+	} else {
+		upvar $up_ui_options ui_options
+	}
+	if {$up_options eq ""} {
+		array set options {}
+	} else {
+		upvar $up_options options
+	}
+	if {$up_variations eq ""} {
+		array set $up_variations {}
+	} else {
+		upvar $up_variations variations
+	}
 	
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
