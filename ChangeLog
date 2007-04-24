@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - fs-traverse now takes a list of targets rather than a variable number of arguments
+      (ticket #11836, eridius r24410).
+
     - Fixed a potential crasher in fs-traverse when showing error message
       (ticket #11827, eridius r24396, thanks sfiera).
     
