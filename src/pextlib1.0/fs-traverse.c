@@ -135,7 +135,7 @@ do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *bo
             return TCL_OK;
         } else {
             Tcl_ResetResult(interp);
-            Tcl_AppendResult(interp, "Error: no permission to access file/folder `", target, "'");
+            Tcl_AppendResult(interp, "Error: no permission to access file/folder `", target, "'", NULL);
             return TCL_ERROR;
         }
     }
@@ -155,7 +155,7 @@ do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *bo
                 return TCL_OK;
             } else {
                 Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "Error: Could not open directory `", target, "'");
+                Tcl_AppendResult(interp, "Error: Could not open directory `", target, "'", NULL);
                 return TCL_ERROR;
             }
         }
