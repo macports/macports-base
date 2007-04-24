@@ -78,19 +78,19 @@ proc darwinports::ui_init {priority message} {
 	# Simplify ui_$priority.
 	set nbchans [llength $channels]
 	if {$nbchans == 0} {
-		eval "proc ::ui_$priority {str} {}"
+		proc ::ui_$priority {str} {}
 	} else {
 		set prefix [ui_prefix $priority]
 
 		if {$nbchans == 1} {
 			set chan [lindex $channels 0]
-			eval "proc ::ui_$priority {str} \{ puts $chan \"$prefix\$str\" \}"
+			proc ::ui_$priority {str} [subst -nocommands { puts $chan "$prefix\$str" }]
 		} else {
-			eval "proc ::ui_$priority {str} \{ \n\
-				foreach chan $channels \{ \n\
-					puts $chan \"$prefix\$str\" \n\
-				\} \n\
-			\}"
+			proc ::ui_$priority {str} [subst -nocommands {
+				foreach chan \$channels {
+					puts $chan "$prefix\$str"
+				}
+			}]
 		}
 
 		# Call ui_$priority
