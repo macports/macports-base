@@ -136,8 +136,14 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             case FTS_DP: /* directory in post-order*/
             {
                 if (!(flags & F_DEPTH) != !(ent->fts_info == FTS_D)) {
-                    Tcl_Obj *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
-                    Tcl_ObjSetVar2(interp, varname, NULL, path, 0);
+                    Tcl_Obj *rpath, *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                    Tcl_IncrRefCount(path);
+                    rpath = Tcl_ObjSetVar2(interp, varname, NULL, path, TCL_LEAVE_ERR_MSG);
+                    Tcl_DecrRefCount(path);
+                    if (rpath == NULL && !(flags & F_IGNORE_ERRORS)) {
+                        fts_close(root_fts);
+                        return TCL_ERROR;
+                    }
                     if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
                         fts_set(root_fts, ent, FTS_SKIP);
                     } else if (rval == TCL_BREAK) {
@@ -155,8 +161,14 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             case FTS_SLNONE: /* symbolic link with non-existant target */
             case FTS_DEFAULT: /* file type not otherwise handled (e.g., fifo) */
             {
-                Tcl_Obj *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
-                Tcl_ObjSetVar2(interp, varname, NULL, path, 0);
+                Tcl_Obj *rpath, *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                Tcl_IncrRefCount(path);
+                rpath = Tcl_ObjSetVar2(interp, varname, NULL, path, TCL_LEAVE_ERR_MSG);
+                Tcl_DecrRefCount(path);
+                if (rpath == NULL && !(flags & F_IGNORE_ERRORS)) {
+                    fts_close(root_fts);
+                    return TCL_ERROR;
+                }
                 if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
                     fts_set(root_fts, ent, FTS_SKIP); /* probably useless on files/symlinks */
                 } else if (rval == TCL_BREAK) {

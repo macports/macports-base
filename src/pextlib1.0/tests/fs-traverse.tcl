@@ -94,6 +94,23 @@ proc main {pextlibname} {
             }
         }
         
+        # Test using an array variable as varname
+        # It should error out
+        if {![catch {
+            array set aryvar {}
+            fs-traverse aryvar $root {}
+        }]} {
+            error "fs-traverse did not error when setting the variable"
+        }
+        
+        # Same test with -ignoreErrors
+        if {[catch {
+            array set aryvar {}
+            fs-traverse -ignoreErrors aryvar $root {}
+        }]} {
+            error "fs-traverse errored out when setting the variable despite -ignoreErrors"
+        }
+        
         # NOTE: This should be the last test performed, as it modifies the file tree
         # Test to make sure deleting files during traversal works as expected
         set output [list]
