@@ -155,7 +155,8 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             case FTS_SLNONE: /* symbolic link with non-existant target */
             case FTS_DEFAULT: /* file type not otherwise handled (e.g., fifo) */
             {
-                Tcl_SetVar(interp, varname, ent->fts_path, 0);
+                Tcl_Obj *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                Tcl_ObjSetVar2(interp, varname, NULL, path, 0);
                 if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
                     fts_set(root_fts, ent, FTS_SKIP); /* probably useless on files/symlinks */
                 } else if (rval == TCL_BREAK) {
