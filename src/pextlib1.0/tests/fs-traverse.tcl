@@ -121,6 +121,13 @@ proc main {pextlibname} {
             error "fs-traverse did not error with malformed target list using -ignoreErrors"
         }
         
+        # Test wacky variable name called -depth
+        set output [list]
+        fs-traverse -- -depth $root {
+            lappend output ${-depth}
+        }
+        check_output $output $trees(1)
+        
         # NOTE: This should be the last test performed, as it modifies the file tree
         # Test to make sure deleting files during traversal works as expected
         set output [list]

@@ -63,7 +63,7 @@ static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
 
-/* fs-traverse ?-depth? ?-ignoreErrors? varname target-list body */
+/* fs-traverse ?-depth? ?-ignoreErrors? ?--? varname target-list body */
 int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -76,27 +76,32 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int lobjc;
     Tcl_Obj **lobjv;
 
-    /* Adjust arguments to remove initial `find' */
+    /* Adjust arguments to remove command name */
     ++objv, --objc;
 
     /* Parse flags */
     while (objc) {
-        if (!strcmp(Tcl_GetString(*objv), "-depth")) {
+        char *arg = Tcl_GetString(*objv);
+        if (!strcmp(arg, "-depth")) {
             flags |= F_DEPTH;
             ++objv, --objc;
             continue;
         }
-        if (!strcmp(Tcl_GetString(*objv), "-ignoreErrors")) {
+        if (!strcmp(arg, "-ignoreErrors")) {
             flags |= F_IGNORE_ERRORS;
             ++objv, --objc;
             continue;
+        }
+        if (!strcmp(arg, "--")) {
+            ++objv, --objc;
+            break;
         }
         break;
     }
     
     /* Parse remaining args */
     if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? varname target-list body");
+        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?--? varname target-list body");
         return TCL_ERROR;
     }
     
