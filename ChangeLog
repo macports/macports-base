@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - default_variants now handles multiple values correctly (ticket #11828, eridius r24450).
+
     - ln uses new symlink command so it can create symlinks that point to
       files that don't actually exist (eridius r24444).
 
