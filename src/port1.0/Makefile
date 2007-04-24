@@ -12,6 +12,8 @@ SUBDIR=		resources
 include ../../Mk/dports.subdir.mk
 include ../../Mk/dports.autoconf.mk
 
+.PHONY: test
+
 all::
 
 clean::
@@ -25,3 +27,6 @@ install::
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
 	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+
+test::
+	${TCLSH} tests/portutil.tcl

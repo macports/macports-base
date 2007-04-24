@@ -711,30 +711,12 @@ proc reinplace {pattern args}  {
 
 # delete
 # file delete -force by itself doesn't handle directories properly
-# on systems older than Tiger. However we can recurse this thing ourselves
+# on systems older than Tiger. Lets recurse using fs-traverse instead
 proc delete {args} {
-    foreach arg $args {
-        ui_debug "delete: $arg"
-        set stack [list $arg]
-        while {[llength $stack] > 0} {
-            set file [lindex $stack 0]
-            if {[string equal [file type $file] directory]} {
-                # it's a directory
-                set children [glob -nocomplain -directory $file * .*]
-                set children [ldelete [ldelete $children $file/.] $file/..]
-                if {[llength $children] > 0} {
-                    set stack [concat $children $stack]
-                } else {
-                    # directory is empty
-                    file delete -force -- $file
-                    set stack [lrange $stack 1 end]
-                }
-            } else {
-                # it's not a directory - kill it now
-                file delete -force -- $file
-                set stack [lrange $stack 1 end]
-            }
-        }
+    ui_debug "delete: $args"
+    fs-traverse -depth file $args {
+        file delete -force -- $file
+        continue
     }
 }
 
