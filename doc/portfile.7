@@ -1501,11 +1501,15 @@ is called during execution, the filesystem traversal is stopped. If
 .Nm continue
 is called during execution, the current file and any children are skipped
 and traversal continues with the next file/directory.
-
+.Pp
 If
 .Nm fs-traverse
 is called directly on a symbolic link, the link will be followed. All other
 links encountered during traversal will not be followed.
+.Pp
+.Nm fs-traverse
+will not descend into directories that have a different device number than
+the root of the descent.
 .Bl -tag -width indent
 .It Fl depth
 Equivalent to the
