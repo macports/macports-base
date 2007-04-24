@@ -1494,11 +1494,11 @@ Traverse the filesystem hierarchy rooted in each element of
 and execute
 .Ar body
 for each found file/directory.
-.Ar varname
+.Va varname
 is set to the path of the file/directory. If
-.Nm break
+.Ic break
 is called during execution, the filesystem traversal is stopped. If
-.Nm continue
+.Ic continue
 is called during execution, the current file and any children are skipped
 and traversal continues with the next file/directory.
 .Bl -tag -width indent
@@ -1510,11 +1510,11 @@ switch to
 Please note that using
 .Fl depth
 means you cannot prune a directory with
-.Nm continue
+.Ic continue
 as it will be processed after its children.
 .It Fl ignoreErrors
 Causes
-.Nm fs-traverse
+.Ic fs-traverse
 to ignore any permissions/read errors encountered during processing.
 .El
 .Pp
