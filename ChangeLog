@@ -6,6 +6,10 @@
 
 (unreleased):
 
+    - macports infrastructure now easier to use from scripts.
+      ui_prefix and ui_channels have default implementations, and
+      all arguments to dportinit are now optional (ticket #11837, eridius r24460).
+
     - ln now accepts combined flags (ex. ln -sf foo bar) (eridius r24452)
 
     - default_variants now handles multiple values correctly (ticket #11828, eridius r24450).
