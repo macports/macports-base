@@ -1527,11 +1527,11 @@ proc variant_new {name} {
     return $ditem
 }
 
-proc handle_default_variants {option action args} {
+proc handle_default_variants {option action {value ""}} {
     global variations
     switch -regex $action {
 	set|append {
-	    foreach v $args {
+	    foreach v $value {
 		if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
 		    if {![info exists variations($variant)]} {
 			set variations($variant) $val
