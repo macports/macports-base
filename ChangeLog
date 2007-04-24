@@ -6,6 +6,10 @@
 
 (unreleased):
 
+    - fs-traverse now uses the fts(3) family of functions instead of readdir/opendir.
+      This fixes a couple behavioral oddities, and makes deleting during traversal work on 10.3
+      (ticket #11839, eridius r24423).
+
     - fs-traverse now takes a list of targets rather than a variable number of arguments
       (ticket #11836, eridius r24410).
 
