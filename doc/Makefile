@@ -20,7 +20,7 @@ install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${portconfigdir}
 
-	cat prefix.mtree | mtree -U -e -p ${INSTALLDIR} > /dev/null
+	cat prefix.mtree | $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi
