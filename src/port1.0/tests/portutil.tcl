@@ -95,6 +95,37 @@ proc test_delete {} {
     file delete -force $root
 }
 
+proc test_touch {} {
+    set root "/tmp/macports-portutil-touch"
+    file delete -force $root
+    
+    try {
+        touch -c $root
+        if {[file exists $root]} { error "touch failed" }
+    
+        touch $root
+        if {![file exists $root]} { error "touch failed" }
+    
+        touch -a -t 199912010001.01 $root
+        if {[file atime $root] != [clock scan 19991201T000101]} { error "touch failed" }
+        if {[file mtime $root] == [clock scan 19991201T000101]} { error "touch failed" }
+    
+        touch -m -t 200012010001.01 $root
+        if {[file atime $root] == [clock scan 20001201T000101]} { error "touch failed" }
+        if {[file mtime $root] != [clock scan 20001201T000101]} { error "touch failed" }
+    
+        touch -a -m -t 200112010001.01 $root
+        if {[file atime $root] != [clock scan 20011201T000101]} { error "touch failed" }
+        if {[file mtime $root] != [clock scan 20011201T000101]} { error "touch failed" }
+    
+        touch -r ~ $root
+        if {[file atime $root] != [file atime ~]} { error "touch failed" }
+        if {[file mtime $root] != [file mtime ~]} { error "touch failed" }
+    } finally {
+        file delete -force $root
+    }
+}
+
 # Create a filesystem hierarchy based on the given specification
 # The mtree spec consists of name/type pairings, where type can be
 # one of directory, file or link. If type is link, it must be a
@@ -121,6 +152,22 @@ proc mtree {root spec} {
                 return -code error "Unknown file map type: $typelist"
             }
         }
+    }
+}
+
+# try-finally block
+# Usage: try { script1 } finally { script2 }
+proc try {script1 finally script2} {
+    if {$finally ne "finally"} {
+        error "Usage: try { script1 } finally { script2 }"
+    }
+    if {[set fail [catch {uplevel $script1} result]]} {
+        set savedInfo $::errorInfo
+        set savedCode $::errorCode
+    }
+    uplevel $script2
+    if {$fail} {
+        return -code $fail -errorinfo $savedInfo -errorcode $savedCode $result
     }
 }
 
