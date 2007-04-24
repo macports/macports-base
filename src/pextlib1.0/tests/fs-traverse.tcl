@@ -4,7 +4,7 @@
 # tclsh fs-traverse.tcl <Pextlib name>
 
 proc main {pextlibname} {
-    global tree1 tree2 tree3 tree4 errorInfo
+    global tree1 sub_tree1 tree2 tree3 tree4 errorInfo
     
     load $pextlibname
     
@@ -25,6 +25,13 @@ proc main {pextlibname} {
             lappend output $file
         }
         check_output $output $tree1
+        
+        # Test starting with a symlink
+        set output [list]
+        fs-traverse file $root/a/c/a {
+            lappend output $file
+        }
+        check_output $output $sub_tree1
         
         # Test -depth
         set output [list]
@@ -119,7 +126,7 @@ proc make_root {} {
 }
 
 proc setup_trees {root} {
-    global tree1 tree2 tree3 tree4
+    global tree1 sub_tree1 tree2 tree3 tree4
     
     set tree1 "
         $root           directory
@@ -147,6 +154,14 @@ proc setup_trees {root} {
         $root/b/c/a     file
         $root/b/c/b     file
         $root/b/c/c     file
+    "
+    
+    set sub_tree1 "
+        $root/a/d       directory
+        $root/a/d/a     file
+        $root/a/d/b     {link ../../b/a}
+        $root/a/d/c     directory
+        $root/a/d/d     file
     "
     
     set tree2 "
