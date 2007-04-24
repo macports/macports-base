@@ -177,6 +177,10 @@ proc test_ln {} {
         
         ln -s -f -h z $root/dir
         if {[catch {file type $root/dir/z}] || [file type $root/dir/z] ne "link"} { error "ln failed" }
+        
+        # test combined flags
+        ln -sf q $root/dir
+        if {[catch {file type $root/dir/q}] || [file type $root/dir/q] ne "link"} { error "ln failed" }
     } finally {
         file delete -force $root
     }

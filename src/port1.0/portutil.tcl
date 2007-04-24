@@ -831,7 +831,13 @@ proc move {args} {
 proc ln {args} {
     while {[string match -* [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
-        set args [lrange $args 1 end]
+        if {[string length $arg] > 1} {
+            set remainder -[string range $arg 1 end]
+            set arg [string range $arg 0 0]
+            set args [lreplace $args 0 0 $remainder]
+        } else {
+            set args [lreplace $args 0 0]
+        }
         switch -- $arg {
             f -
             h -

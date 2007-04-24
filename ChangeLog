@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - ln now accepts combined flags (ex. ln -sf foo bar) (eridius r24452)
+
     - default_variants now handles multiple values correctly (ticket #11828, eridius r24450).
 
     - ln uses new symlink command so it can create symlinks that point to
