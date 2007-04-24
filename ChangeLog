@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - delete reimplemented using fs-traverse (eridius r24435).
+
     - fs-traverse now uses the fts(3) family of functions instead of readdir/opendir.
       This fixes a couple behavioral oddities, and makes deleting during traversal work on 10.3
       (ticket #11839, eridius r24423).
