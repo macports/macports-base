@@ -2,7 +2,7 @@
 prefix			@prefix_expanded@
 
 # Where to store MacPorts working data
-portdbpath		@localstatedir_expanded@/db/dports
+portdbpath		@localstatedir_expanded@/macports
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"
 # NOTE: sqlite not yet supported.
@@ -24,7 +24,7 @@ variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
 portarchivemode		no
 
 # Where to store/retrieve ports binary archive files
-portarchivepath		@localstatedir_expanded@/db/dports/packages
+portarchivepath		@localstatedir_expanded@/macports/packages
 
 # Type of binary archive packages to create when using archive mode
 #
@@ -41,13 +41,13 @@ portarchivetype		tgz
 portautoclean		yes
 
 # Rsync server to use
-rsync_server		rsync.darwinports.org
+rsync_server		rsync.macports.org
 
-# Rsync directory from which to pull the base/ component (infrastructure) of DP
-rsync_dir			dpupdate1/base/
+# Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
+rsync_dir			release/base/
 
 # Rsync options
-rsync_options		-rtzv --delete --delete-after
+rsync_options		-rtzv --delete-after
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", or "launchd";
