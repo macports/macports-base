@@ -64,7 +64,7 @@ static int do_traverse(Tcl_Interp *interp, int flags, char *target, char *varnam
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
 
-/* fs-traverse ?-depth? ?-ignoreErrors? varname target ?target ...? body */
+/* fs-traverse ?-depth? ?-ignoreErrors? varname target-list body */
 int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -72,7 +72,10 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     char *body;
     int flags = 0;
     int rval = TCL_OK;
+    Tcl_Obj *listPtr;
     Tcl_Obj *CONST *objv_orig = objv;
+    int lobjc;
+    Tcl_Obj **lobjv;
 
     /* Adjust arguments to remove initial `find' */
     ++objv, --objc;
@@ -93,29 +96,33 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     }
     
     /* Parse remaining args */
-    if (objc < 3) {
-        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? varname target ?target target ...? body");
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? varname target-list body");
         return TCL_ERROR;
     }
     
     varname = Tcl_GetString(*objv);
     ++objv, --objc;
     
-    body = Tcl_GetString(objv[objc-1]);
-    --objc;
+    listPtr = *objv;
+    ++objv, --objc;
     
-    while (objc) {
-        char *target = Tcl_GetString(*objv);
-        ++objv, --objc;
-        
-        if ((rval = do_traverse(interp, flags, target, varname, body)) == TCL_CONTINUE) {
-            rval = TCL_OK;
-            continue;
-        } else if (rval == TCL_BREAK) {
-            rval = TCL_OK;
-            break;
-        } else if (rval != TCL_OK) {
-            break;
+    body = Tcl_GetString(*objv);
+    
+    if ((rval = Tcl_ListObjGetElements(interp, listPtr, &lobjc, &lobjv)) == TCL_OK) {
+        while (lobjc) {
+            char *target = Tcl_GetString(*lobjv);
+            ++lobjv, --lobjc;
+            
+            if ((rval = do_traverse(interp, flags, target, varname, body)) == TCL_CONTINUE) {
+                rval = TCL_OK;
+                continue;
+            } else if (rval == TCL_BREAK) {
+                rval = TCL_OK;
+                break;
+            } else if (rval != TCL_OK) {
+                break;
+            }
         }
     }
     return rval;
@@ -135,7 +142,7 @@ do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *bo
             return TCL_OK;
         } else {
             Tcl_ResetResult(interp);
-            Tcl_AppendResult(interp, "Error: no permission to access file/folder `", target, "'", NULL);
+            Tcl_AppendResult(interp, "no permission to access file/folder `", target, "'", NULL);
             return TCL_ERROR;
         }
     }
@@ -155,7 +162,7 @@ do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *bo
                 return TCL_OK;
             } else {
                 Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "Error: Could not open directory `", target, "'", NULL);
+                Tcl_AppendResult(interp, "could not open directory `", target, "'", NULL);
                 return TCL_ERROR;
             }
         }

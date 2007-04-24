@@ -1486,17 +1486,16 @@ before working.
 .Op Fl depth
 .Op Fl ignoreErrors
 .Ar varname
-.Ar target
-.Op Ar target ...
+.Ar target-list
 .Ar body
 .Xc
-Traverse the filesystem hierarchy rooted in each
-.Ar target
+Traverse the filesystem hierarchy rooted in each element of
+.Ar target-list
 and execute
 .Ar body
-for each found file/directory. Sets
+for each found file/directory.
 .Ar varname
-to the path of the file/directory. If
+is set to the path of the file/directory. If
 .Nm break
 is called during execution, the filesystem traversal is stopped. If
 .Nm continue

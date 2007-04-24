@@ -35,14 +35,14 @@ proc main {pextlibname} {
         
         # Test multiple sources
         set output [list]
-        fs-traverse file $root/a $root/b {
+        fs-traverse file [list $root/a $root/b] {
             lappend output $file
         }
         check_output $output $tree3
         
         # Test multiple sources with -depth
         set output [list]
-        fs-traverse -depth file $root/a $root/b {
+        fs-traverse -depth file [list $root/a $root/b] {
             lappend output $file
         }
         check_output $output $tree4
@@ -60,7 +60,7 @@ proc main {pextlibname} {
         # Test -ignoreErrors with multiple sources, make sure it still gets the sources after the error
         if {[catch {
             set output [list]
-            fs-traverse -depth -ignoreErrors file $root/a $root/c $root/b {
+            fs-traverse -depth -ignoreErrors file [list $root/a $root/c $root/b] {
                 lappend output $file
             }
             check_output $output $tree4
