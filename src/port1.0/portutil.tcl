@@ -859,14 +859,18 @@ proc ln {args} {
             return -code error "ln: $file: Is a directory"
         }
         
-        if {[file isdirectory $target] && ![info exists options(h)]} {
+        if {[file isdirectory $target] && ([file type $target] ne "link" || ![info exists options(h)])} {
             set linktarget [file join $target [file tail $file]]
         } else {
             set linktarget $target
         }
         
-        if {[file exists $linktarget] && ![info exists options(f)]} {
-            return -code error "ln: $linktarget: File exists"
+        if {![catch {file type $linktarget}]} {
+            if {[info exists options(f)]} {
+                file delete $linktarget
+            } else {
+                return -code error "ln: $linktarget: File exists"
+            }
         }
         
         if {[llength $files] > 2} {
@@ -882,7 +886,7 @@ proc ln {args} {
             ui_msg "ln: $linktarget -> $file"
         }
         if {[info exists options(s)]} {
-            file link -symbolic $linktarget $file
+            symlink $file $linktarget
         } else {
             file link -hard $linktarget $file
         }

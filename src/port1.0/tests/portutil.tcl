@@ -63,36 +63,39 @@ proc test_delete {} {
     # use file delete -force to kill the test directory if it already exists
     # yeah I realize this will fail on 10.3 if it already exists. oh well.
     file delete -force $root
-    mtree $root {
-        a               directory
-        a/a             file
-        a/b             file
-        a/c             directory
-        a/c/a           file
-        a/c/b           {link ../b}
-        a/c/c           {link ../../b}
-        a/c/d           directory
-        a/c/d/a         file
-        a/c/d/b         directory
-        a/c/d/c         file
-        a/d             file
-        b               directory
-        b/a             file
-        b/b             {link q}
-        b/c             directory
-        b/c/a           file
-        b/c/b           file
-        b/d             file
-    }
     
-    # test multiple args
-    delete $root/a $root/b
+    try {
+        mtree $root {
+            a               directory
+            a/a             file
+            a/b             file
+            a/c             directory
+            a/c/a           file
+            a/c/b           {link ../b}
+            a/c/c           {link ../../b}
+            a/c/d           directory
+            a/c/d/a         file
+            a/c/d/b         directory
+            a/c/d/c         file
+            a/d             file
+            b               directory
+            b/a             file
+            b/b             {link q}
+            b/c             directory
+            b/c/a           file
+            b/c/b           file
+            b/d             file
+        }
     
-    if {[file exists $root/a] || [file exists $root/b]} {
+        # test multiple args
+        delete $root/a $root/b
+    
+        if {[file exists $root/a] || [file exists $root/b]} {
+            error "delete failed"
+        }
+    } finally {
         file delete -force $root
-        error "delete failed"
     }
-    file delete -force $root
 }
 
 proc test_touch {} {
@@ -121,6 +124,59 @@ proc test_touch {} {
         touch -r ~ $root
         if {[file atime $root] != [file atime ~]} { error "touch failed" }
         if {[file mtime $root] != [file mtime ~]} { error "touch failed" }
+    } finally {
+        file delete -force $root
+    }
+}
+
+proc test_ln {} {
+    set root "/tmp/macports-portutil-ln"
+    file delete -force $root
+    
+    file mkdir $root
+    try {
+        close [open $root/a w]
+        ln -s a $root/b
+        if {[catch {file type $root/b}] || [file type $root/b] ne "link"} {
+            set message "ln failed: "
+            if {[catch {file type $root/b}]} {
+                append message "symlink not created"
+            } elseif {[file type $root/b] ne "link"} {
+                append message "created [file type $root/b], expected link"
+            }
+            error $message
+        }
+    
+        close [open $root/c w]
+        if {![catch {ln -s c $root/b}]} { error "ln failed" }
+    
+        ln -s -f c $root/b
+        if {[catch {file type $root/b}] || [file type $root/b] ne "link"} { error "ln failed" }
+    
+        file delete $root/b
+    
+        ln $root/a $root/b
+        if {[catch {file type $root/b}] || [file type $root/b] ne "file"} { error "ln failed" }
+    
+        file delete $root/b
+        file mkdir $root/dir
+        ln -s dir $root/b
+        ln -s a $root/b
+        if {[catch {file type $root/dir/a}] || [file type $root/dir/a] ne "link"} { error "ln failed" }
+        file delete $root/dir/a
+    
+        ln -s -f -h a $root/b
+        if {[catch {file type $root/b}] || [file type $root/b] ne "link" || [file readlink $root/b] ne "a"} { error "ln failed" }
+    
+        cd $root/dir
+        ln -s ../c
+        if {[catch {file type $root/dir/c}] || [file type $root/dir/c] ne "link"} { error "ln failed" }
+    
+        ln -s foobar $root/d
+        if {[catch {file type $root/d}] || [file type $root/d] ne "link" || [file readlink $root/d] ne "foobar"} { error "ln failed" }
+        
+        ln -s -f -h z $root/dir
+        if {[catch {file type $root/dir/z}] || [file type $root/dir/z] ne "link"} { error "ln failed" }
     } finally {
         file delete -force $root
     }

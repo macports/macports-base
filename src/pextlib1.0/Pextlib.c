@@ -1094,6 +1094,30 @@ int UnixSocketPairCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc
 	return TCL_OK;
 }
 
+/**
+ * symlink value target
+ * Create a symbolic link at target pointing to value
+ * See symlink(2) for possible errors
+ */
+int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    char *value, *target;
+    
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "value target");
+        return TCL_ERROR;
+    }
+    
+    value = Tcl_GetString(objv[1]);
+    target = Tcl_GetString(objv[2]);
+    
+    if (symlink(value, target) != 0) {
+        Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -1124,6 +1148,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
