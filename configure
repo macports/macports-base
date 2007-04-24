@@ -677,6 +677,7 @@ INSTALL_SCRIPT
 INSTALL_DATA
 SET_MAKE
 LN_S
+MTREE
 CVS
 RSYNC
 HAVE_LAUNCHD
@@ -688,16 +689,14 @@ TAR
 GNUTAR
 TAR_CMD
 CFLAGS_QUICHEEATERS
-MTREE
-subdirs
 HAVE_FRAMEWORK_COREFOUNDATION
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 HAVE_FRAMEWORK_IOKIT
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 REPLACEMENT_PROGS
 EXTRA_PROGS
-DPORTSDIR
-PORTCONFIGDIR
+PORTSDIR
+MPCONFIGDIR
 SQLITE3_DIR
 DSTUSR
 DSTGRP
@@ -727,6 +726,7 @@ TCL_PACKAGE_DIR
 CURL_CONFIG
 CFLAGS_LIBCURL
 LDFLAGS_LIBCURL
+subdirs
 OUR_INCLUDED_PACKAGES
 INCLUDES
 CFLAGS_DEBUG
@@ -739,7 +739,7 @@ SHLIB_LDFLAGS
 SHLIB_SUFFIX
 TCL_CC
 prefix_expanded
-PORTCONFIGDIR_EXPANDED
+MPCONFIGDIR_EXPANDED
 localstatedir_expanded
 LIBOBJS
 LTLIBOBJS'
@@ -752,6 +752,7 @@ CFLAGS
 LDFLAGS
 LIBS
 CPPFLAGS
+MTREE
 CVS
 RSYNC
 TAR
@@ -760,8 +761,7 @@ BZIP2
 XAR
 CPP
 XMKMF'
-ac_subdirs_all='src/programs/mtree
-src/thread2.6'
+ac_subdirs_all='src/thread2.6'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1345,7 +1345,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-dports-dir=DIR   Specify alternate dports directory
+  --with-ports-dir=DIR    Specify alternate ports directory
   --with-sqlite3=DIR      directory for sqlite3 (default /usr/lib/sqlite3)
   --with-install-user=USER
                           Specify user ownership of installed files
@@ -1368,6 +1368,7 @@ Some influential environment variables:
   LIBS        libraries to pass to the linker, e.g. -l<library>
   CPPFLAGS    C/C++/Objective C preprocessor flags, e.g. -I<include dir> if
               you have headers in a nonstandard directory <include dir>
+  MTREE       path to mtree command
   CVS         path to cvs command
   RSYNC       path to rsync command
   TAR         path to tar command
@@ -1969,7 +1970,7 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-# Check user PATH for DP paths, and remove as necessary.
+# Check user PATH for MP paths, and remove as necessary.
 
 	oldprefix=$prefix
 	if test "x$prefix" = "xNONE" ; then
@@ -3035,6 +3036,46 @@ else
 echo "${ECHO_T}no, using $LN_S" >&6; }
 fi
 
+# Extract the first word of "mtree", so it can be a program name with args.
+set dummy mtree; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_MTREE+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $MTREE in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MTREE="$MTREE" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MTREE="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+MTREE=$ac_cv_path_MTREE
+if test -n "$MTREE"; then
+  { echo "$as_me:$LINENO: result: $MTREE" >&5
+echo "${ECHO_T}$MTREE" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
 # Extract the first word of "cvs", so it can be a program name with args.
 set dummy cvs; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -3322,6 +3363,7 @@ fi
 
 
 
+
 	# Extract the first word of "tar", so it can be a program name with args.
 set dummy tar; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -3486,66 +3528,12 @@ echo "${ECHO_T}" >&6; }
 
 
 
-
-	# Extract the first word of "mtree", so it can be a program name with args.
-set dummy mtree; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_path_MTREE+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $MTREE in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_MTREE="$MTREE" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-as_dummy="/usr/bin:/usr/sbin:/bin:/sbin"
-for as_dir in $as_dummy
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_MTREE="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-MTREE=$ac_cv_path_MTREE
-if test -n "$MTREE"; then
-  { echo "$as_me:$LINENO: result: $MTREE" >&5
-echo "${ECHO_T}$MTREE" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-
-	if test "x$MTREE" = "x" ; then
-		subdirs="$subdirs src/programs/mtree"
-
-		MTREE='$(TOPSRCDIR)/src/programs/mtree/mtree'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
-	fi
-
-
-
-#OD_PROG_XAR
-
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
 	{ echo "$as_me:$LINENO: checking for CoreFoundation framework" >&5
 echo $ECHO_N "checking for CoreFoundation framework... $ECHO_C" >&6; }
 
-	if test "${od_cv_have_framework_corefoundation+set}" = set; then
+	if test "${mp_cv_have_framework_corefoundation+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
@@ -3593,14 +3581,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-				od_cv_have_framework_corefoundation="yes"
+				mp_cv_have_framework_corefoundation="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-				od_cv_have_framework_corefoundation="no"
+				mp_cv_have_framework_corefoundation="no"
 
 
 fi
@@ -3613,10 +3601,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 fi
 
 
-	{ echo "$as_me:$LINENO: result: ${od_cv_have_framework_corefoundation}" >&5
-echo "${ECHO_T}${od_cv_have_framework_corefoundation}" >&6; }
+	{ echo "$as_me:$LINENO: result: ${mp_cv_have_framework_corefoundation}" >&5
+echo "${ECHO_T}${mp_cv_have_framework_corefoundation}" >&6; }
 
-	if test x"${od_cv_have_framework_corefoundation}" = "xyes"; then
+	if test x"${mp_cv_have_framework_corefoundation}" = "xyes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FRAMEWORK_COREFOUNDATION
@@ -3632,7 +3620,7 @@ _ACEOF
 	{ echo "$as_me:$LINENO: checking for SystemConfiguration framework" >&5
 echo $ECHO_N "checking for SystemConfiguration framework... $ECHO_C" >&6; }
 
-	if test "${od_cv_have_framework_systemconfiguration+set}" = set; then
+	if test "${mp_cv_have_framework_systemconfiguration+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
@@ -3680,14 +3668,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-				od_cv_have_framework_systemconfiguration="yes"
+				mp_cv_have_framework_systemconfiguration="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-				od_cv_have_framework_systemconfiguration="no"
+				mp_cv_have_framework_systemconfiguration="no"
 
 
 fi
@@ -3700,10 +3688,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 fi
 
 
-	{ echo "$as_me:$LINENO: result: ${od_cv_have_framework_systemconfiguration}" >&5
-echo "${ECHO_T}${od_cv_have_framework_systemconfiguration}" >&6; }
+	{ echo "$as_me:$LINENO: result: ${mp_cv_have_framework_systemconfiguration}" >&5
+echo "${ECHO_T}${mp_cv_have_framework_systemconfiguration}" >&6; }
 
-	if test x"${od_cv_have_framework_systemconfiguration}" = "xyes"; then
+	if test x"${mp_cv_have_framework_systemconfiguration}" = "xyes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FRAMEWORK_SYSTEMCONFIGURATION
@@ -3719,7 +3707,7 @@ _ACEOF
 	{ echo "$as_me:$LINENO: checking for IOKit framework" >&5
 echo $ECHO_N "checking for IOKit framework... $ECHO_C" >&6; }
 
-	if test "${od_cv_have_framework_iokit+set}" = set; then
+	if test "${mp_cv_have_framework_iokit+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
@@ -3767,14 +3755,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-				od_cv_have_framework_iokit="yes"
+				mp_cv_have_framework_iokit="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-				od_cv_have_framework_iokit="no"
+				mp_cv_have_framework_iokit="no"
 
 
 fi
@@ -3787,10 +3775,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 fi
 
 
-	{ echo "$as_me:$LINENO: result: ${od_cv_have_framework_iokit}" >&5
-echo "${ECHO_T}${od_cv_have_framework_iokit}" >&6; }
+	{ echo "$as_me:$LINENO: result: ${mp_cv_have_framework_iokit}" >&5
+echo "${ECHO_T}${mp_cv_have_framework_iokit}" >&6; }
 
-	if test x"${od_cv_have_framework_iokit}" = "xyes"; then
+	if test x"${mp_cv_have_framework_iokit}" = "xyes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FRAMEWORK_IOKIT
@@ -3806,7 +3794,7 @@ _ACEOF
 	{ echo "$as_me:$LINENO: checking for CFNotificationCenterGetDarwinNotifyCenter" >&5
 echo $ECHO_N "checking for CFNotificationCenterGetDarwinNotifyCenter... $ECHO_C" >&6; }
 
-	if test "${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter+set}" = set; then
+	if test "${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
@@ -3853,14 +3841,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
        } && test -s conftest$ac_exeext &&
        $as_test_x conftest$ac_exeext; then
 
-				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="yes"
+				mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="no"
+				mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter="no"
 
 
 fi
@@ -3873,10 +3861,10 @@ rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
 fi
 
 
-	{ echo "$as_me:$LINENO: result: ${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" >&5
-echo "${ECHO_T}${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" >&6; }
+	{ echo "$as_me:$LINENO: result: ${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" >&5
+echo "${ECHO_T}${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" >&6; }
 
-	if test x"${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" = "xyes"; then
+	if test x"${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" = "xyes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
@@ -3897,10 +3885,10 @@ echo $ECHO_N "checking for whether we will build daemondo... $ECHO_C" >&6; }
     result=no
 	case $host_os in
 	darwin*)
-		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
-		   test "x$od_cv_have_framework_systemconfiguration" == "xyes" &&
-		   test "x$od_cv_have_framework_iokit" == "xyes" &&
-		   test "x$od_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
+		if test "x$mp_cv_have_framework_corefoundation" == "xyes" &&
+		   test "x$mp_cv_have_framework_systemconfiguration" == "xyes" &&
+		   test "x$mp_cv_have_framework_iokit" == "xyes" &&
+		   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
 			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
 			ac_config_files="$ac_config_files src/programs/daemondo/Makefile"
@@ -3912,12 +3900,13 @@ echo $ECHO_N "checking for whether we will build daemondo... $ECHO_C" >&6; }
 	{ echo "$as_me:$LINENO: result: ${result}" >&5
 echo "${ECHO_T}${result}" >&6; }
 
+#MP_PROG_XAR
 
 
 
 
-# set default dports-directory
-DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
+# set default ports-directory
+PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 
@@ -3925,52 +3914,52 @@ DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 
 
 
-# Check whether --with-dports-dir was given.
-if test "${with_dports_dir+set}" = set; then
-  withval=$with_dports_dir;  dportsdir="$withval"
+# Check whether --with-ports-dir was given.
+if test "${with_ports_dir+set}" = set; then
+  withval=$with_ports_dir;  portsdir="$withval"
 fi
 
 
 
- 	{ echo "$as_me:$LINENO: checking for dports tree" >&5
-echo $ECHO_N "checking for dports tree... $ECHO_C" >&6; }
- 	if test "x$dportsdir" != "x" ; then
- 	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
+ 	{ echo "$as_me:$LINENO: checking for ports tree" >&5
+echo $ECHO_N "checking for ports tree... $ECHO_C" >&6; }
+ 	if test "x$portsdir" != "x" ; then
+ 	  if test -d "$portsdir" -a -e "$portsdir/PortIndex" ; then
  		:
  	  else
- 		{ { echo "$as_me:$LINENO: error: $dportsdir not a valid dports tree" >&5
-echo "$as_me: error: $dportsdir not a valid dports tree" >&2;}
+ 		{ { echo "$as_me:$LINENO: error: $portsdir not a valid ports tree" >&5
+echo "$as_me: error: $portsdir not a valid ports tree" >&2;}
    { (exit 1); exit 1; }; }
  	  fi
  	else
- 		 		if test "x$DPORTS_DIR_DEFAULT" != "x" ; then
- 		  if test -d "$DPORTS_DIR_DEFAULT" -a -e "$DPORTS_DIR_DEFAULT/PortIndex" ; then
- 			dportsdir=$DPORTS_DIR_DEFAULT
+ 		 		if test "x$PORTS_DIR_DEFAULT" != "x" ; then
+ 		  if test -d "$PORTS_DIR_DEFAULT" -a -e "$PORTS_DIR_DEFAULT/PortIndex" ; then
+ 			portsdir=$PORTS_DIR_DEFAULT
  		  fi
  		fi
  	fi
 
- 	if test "x$dportsdir" != "x" ; then
- 		{ echo "$as_me:$LINENO: result: $dportsdir" >&5
-echo "${ECHO_T}$dportsdir" >&6; }
- 		DPORTSDIR="$dportsdir"
+ 	if test "x$portsdir" != "x" ; then
+ 		{ echo "$as_me:$LINENO: result: $portsdir" >&5
+echo "${ECHO_T}$portsdir" >&6; }
+ 		PORTSDIR="$portsdir"
 
  	else
- 		{ echo "$as_me:$LINENO: WARNING: No dports tree found" >&5
-echo "$as_me: WARNING: No dports tree found" >&2;}
+ 		{ echo "$as_me:$LINENO: WARNING: No ports tree found" >&5
+echo "$as_me: WARNING: No ports tree found" >&2;}
  	fi
 
 
 
 
-        { echo "$as_me:$LINENO: checking for ports config directory" >&5
-echo $ECHO_N "checking for ports config directory... $ECHO_C" >&6; }
+        { echo "$as_me:$LINENO: checking for MacPorts config directory" >&5
+echo $ECHO_N "checking for MacPorts config directory... $ECHO_C" >&6; }
 
-	portconfigdir='${sysconfdir}/ports'
+	mpconfigdir='${sysconfdir}/macports'
 
-	{ echo "$as_me:$LINENO: result: $portconfigdir" >&5
-echo "${ECHO_T}$portconfigdir" >&6; }
-	PORTCONFIGDIR="$portconfigdir"
+	{ echo "$as_me:$LINENO: result: $mpconfigdir" >&5
+echo "${ECHO_T}$mpconfigdir" >&6; }
+	MPCONFIGDIR="$mpconfigdir"
 
 
 
@@ -3979,25 +3968,25 @@ echo "${ECHO_T}$portconfigdir" >&6; }
 
 # Check whether --with-sqlite was given.
 if test "${with_sqlite+set}" = set; then
-  withval=$with_sqlite; od_sqlite3_dir=$withval
+  withval=$with_sqlite; mp_sqlite3_dir=$withval
 else
-  od_sqlite3_dir=/usr/lib/sqlite3
+  mp_sqlite3_dir=/usr/lib/sqlite3
 fi
 
 
 	{ echo "$as_me:$LINENO: checking for sqlite3 location" >&5
 echo $ECHO_N "checking for sqlite3 location... $ECHO_C" >&6; }
-if test "${od_cv_sqlite3_dir+set}" = set; then
+if test "${mp_cv_sqlite3_dir+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  od_cv_sqlite3_dir=
-		test -r "${od_sqlite3_dir}/pkgIndex.tcl" && od_cv_sqlite3_dir=$od_sqlite3_dir
+  mp_cv_sqlite3_dir=
+		test -r "${mp_sqlite3_dir}/pkgIndex.tcl" && mp_cv_sqlite3_dir=$mp_sqlite3_dir
 
 fi
-{ echo "$as_me:$LINENO: result: $od_cv_sqlite3_dir" >&5
-echo "${ECHO_T}$od_cv_sqlite3_dir" >&6; }
+{ echo "$as_me:$LINENO: result: $mp_cv_sqlite3_dir" >&5
+echo "${ECHO_T}$mp_cv_sqlite3_dir" >&6; }
 
-	SQLITE3_DIR=$od_cv_sqlite3_dir
+	SQLITE3_DIR=$mp_cv_sqlite3_dir
 
 
 
@@ -6273,7 +6262,7 @@ done
 	{ echo "$as_me:$LINENO: checking if readlink conforms to POSIX 1003.1a" >&5
 echo $ECHO_N "checking if readlink conforms to POSIX 1003.1a... $ECHO_C" >&6; }
 
-	if test "${dp_cv_readlink_is_posix_1003_1a+set}" = set; then
+	if test "${mp_cv_readlink_is_posix_1003_1a+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
 
@@ -6316,14 +6305,14 @@ eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
 	 test ! -s conftest.err
        } && test -s conftest.$ac_objext; then
 
-				dp_cv_readlink_is_posix_1003_1a="yes"
+				mp_cv_readlink_is_posix_1003_1a="yes"
 
 else
   echo "$as_me: failed program was:" >&5
 sed 's/^/| /' conftest.$ac_ext >&5
 
 
-				dp_cv_readlink_is_posix_1003_1a="no"
+				mp_cv_readlink_is_posix_1003_1a="no"
 
 
 fi
@@ -6333,10 +6322,10 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 fi
 
 
-	{ echo "$as_me:$LINENO: result: ${dp_cv_readlink_is_posix_1003_1a}" >&5
-echo "${ECHO_T}${dp_cv_readlink_is_posix_1003_1a}" >&6; }
+	{ echo "$as_me:$LINENO: result: ${mp_cv_readlink_is_posix_1003_1a}" >&5
+echo "${ECHO_T}${mp_cv_readlink_is_posix_1003_1a}" >&6; }
 
-	if test x"${dp_cv_readlink_is_posix_1003_1a}" = "xno"; then
+	if test x"${mp_cv_readlink_is_posix_1003_1a}" = "xno"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define READLINK_IS_NOT_P1003_1A
@@ -8239,8 +8228,8 @@ fi
 		"__no__yes__")
 		# either the user said --without-x, or it was not found
 		# at all (runtime or headers)
-			{ echo "$as_me:$LINENO: WARNING: X11 not available. You will not be able to use dports that use X11" >&5
-echo "$as_me: WARNING: X11 not available. You will not be able to use dports that use X11" >&2;}
+			{ echo "$as_me:$LINENO: WARNING: X11 not available. You will not be able to use ports that use X11" >&5
+echo "$as_me: WARNING: X11 not available. You will not be able to use ports that use X11" >&2;}
 			state=0
 			;;
 		"__yes__yes__")
@@ -9049,50 +9038,6 @@ echo "${ECHO_T}${ac_cv_c_tclh}" >&6; }
 
 
 	case $host_os in
-		freebsd*)
-			# FreeBSD installs a dummy tclsh (annoying)
-			# Look for a real versioned tclsh first
-			# Extract the first word of "tclsh${TCL_VERSION} tclsh", so it can be a program name with args.
-set dummy tclsh${TCL_VERSION} tclsh; ac_word=$2
-{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_path_TCLSH+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  case $TCLSH in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_TCLSH="$TCLSH" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_exec_ext in '' $ac_executable_extensions; do
-  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_path_TCLSH="$as_dir/$ac_word$ac_exec_ext"
-    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-TCLSH=$ac_cv_path_TCLSH
-if test -n "$TCLSH"; then
-  { echo "$as_me:$LINENO: result: $TCLSH" >&5
-echo "${ECHO_T}$TCLSH" >&6; }
-else
-  { echo "$as_me:$LINENO: result: no" >&5
-echo "${ECHO_T}no" >&6; }
-fi
-
-
-			;;
 		*)
 			# Otherwise, look for a non-versioned tclsh
 			# Extract the first word of "tclsh tclsh${TCL_VERSION}", so it can be a program name with args.
@@ -9518,7 +9463,7 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
 
 
-#misc variables that need to be expanded for substitution into tcl
+# misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
 if test "x$prefix" = "xNONE" ; then
@@ -9529,8 +9474,8 @@ eval "prefix_expanded=$prefix"
 
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR_EXPANDED"
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
 
 eval "localstatedir_expanded=$localstatedir"
 
@@ -9539,8 +9484,7 @@ prefix=$oldprefix
 
 
 # Output
-
-ac_config_files="$ac_config_files Makefile Mk/dports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/ports.conf src/Makefile src/darwinports1.0/darwinports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/darwinports1.0/darwinports_fastload.tcl"
+ac_config_files="$ac_config_files Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl"
 
 
 cat >confcache <<\_ACEOF
@@ -10099,16 +10043,16 @@ do
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/programs/daemondo/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "Mk/dports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/dports.autoconf.mk" ;;
+    "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;
     "doc/prefix.mtree") CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
     "doc/macosx.mtree") CONFIG_FILES="$CONFIG_FILES doc/macosx.mtree" ;;
-    "doc/ports.conf") CONFIG_FILES="$CONFIG_FILES doc/ports.conf" ;;
+    "doc/macports.conf") CONFIG_FILES="$CONFIG_FILES doc/macports.conf" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "src/darwinports1.0/darwinports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_autoconf.tcl" ;;
+    "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
-    "src/darwinports1.0/darwinports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/darwinports1.0/darwinports_fastload.tcl" ;;
+    "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -10231,6 +10175,7 @@ INSTALL_SCRIPT!$INSTALL_SCRIPT$ac_delim
 INSTALL_DATA!$INSTALL_DATA$ac_delim
 SET_MAKE!$SET_MAKE$ac_delim
 LN_S!$LN_S$ac_delim
+MTREE!$MTREE$ac_delim
 CVS!$CVS$ac_delim
 RSYNC!$RSYNC$ac_delim
 HAVE_LAUNCHD!$HAVE_LAUNCHD$ac_delim
@@ -10242,16 +10187,14 @@ TAR!$TAR$ac_delim
 GNUTAR!$GNUTAR$ac_delim
 TAR_CMD!$TAR_CMD$ac_delim
 CFLAGS_QUICHEEATERS!$CFLAGS_QUICHEEATERS$ac_delim
-MTREE!$MTREE$ac_delim
-subdirs!$subdirs$ac_delim
 HAVE_FRAMEWORK_COREFOUNDATION!$HAVE_FRAMEWORK_COREFOUNDATION$ac_delim
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION!$HAVE_FRAMEWORK_SYSTEMCONFIGURATION$ac_delim
 HAVE_FRAMEWORK_IOKIT!$HAVE_FRAMEWORK_IOKIT$ac_delim
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER!$HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER$ac_delim
 REPLACEMENT_PROGS!$REPLACEMENT_PROGS$ac_delim
 EXTRA_PROGS!$EXTRA_PROGS$ac_delim
-DPORTSDIR!$DPORTSDIR$ac_delim
-PORTCONFIGDIR!$PORTCONFIGDIR$ac_delim
+PORTSDIR!$PORTSDIR$ac_delim
+MPCONFIGDIR!$MPCONFIGDIR$ac_delim
 SQLITE3_DIR!$SQLITE3_DIR$ac_delim
 DSTUSR!$DSTUSR$ac_delim
 DSTGRP!$DSTGRP$ac_delim
@@ -10267,6 +10210,7 @@ X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
 TCL_VERSION!$TCL_VERSION$ac_delim
+TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -10308,7 +10252,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
 TCL_LIB_FILE!$TCL_LIB_FILE$ac_delim
 TCL_LIB_FLAG!$TCL_LIB_FLAG$ac_delim
@@ -10322,6 +10265,7 @@ TCL_PACKAGE_DIR!$TCL_PACKAGE_DIR$ac_delim
 CURL_CONFIG!$CURL_CONFIG$ac_delim
 CFLAGS_LIBCURL!$CFLAGS_LIBCURL$ac_delim
 LDFLAGS_LIBCURL!$LDFLAGS_LIBCURL$ac_delim
+subdirs!$subdirs$ac_delim
 OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 INCLUDES!$INCLUDES$ac_delim
 CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
@@ -10334,7 +10278,7 @@ SHLIB_LDFLAGS!$SHLIB_LDFLAGS$ac_delim
 SHLIB_SUFFIX!$SHLIB_SUFFIX$ac_delim
 TCL_CC!$TCL_CC$ac_delim
 prefix_expanded!$prefix_expanded$ac_delim
-PORTCONFIGDIR_EXPANDED!$PORTCONFIGDIR_EXPANDED$ac_delim
+MPCONFIGDIR_EXPANDED!$MPCONFIGDIR_EXPANDED$ac_delim
 localstatedir_expanded!$localstatedir_expanded$ac_delim
 LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim

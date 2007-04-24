@@ -2,7 +2,7 @@
 
 SUBDIR=	@REPLACEMENT_PROGS@ @EXTRA_PROGS@
 
-include ../../Mk/dports.subdir.mk
+include ../../Mk/macports.subdir.mk
 
 distclean::
 	rm -f Makefile

@@ -7,11 +7,11 @@ DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
 SVNURL		= http://svn.macports.org/repository/macports
 
-include Mk/dports.autoconf.mk
+include Mk/macports.autoconf.mk
 
-all:: Mk/dports.autoconf.mk
+all:: Mk/macports.autoconf.mk
 
-Mk/dports.autoconf.mk: Mk/dports.autoconf.mk.in src/config.h.in Makefile.in config.status
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in config.status
 	./config.status
 	make clean
 
@@ -24,7 +24,7 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-include Mk/dports.subdir.mk
+include Mk/macports.subdir.mk
 
 install::
 	@echo ""
@@ -40,7 +40,7 @@ clean::
 distclean::
 	rm -f config.log config.status configure.lineno
 	rm -rf autom4te.cache ${DISTDIR}
-	rm -f Makefile Mk/dports.autoconf.mk
+	rm -f Makefile Mk/macports.autoconf.mk
 
 _gettag:
 	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn

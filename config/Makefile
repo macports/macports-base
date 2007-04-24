@@ -1,4 +1,4 @@
-include ../Mk/dports.autoconf.mk
+include ../Mk/macports.autoconf.mk
 
 all:
 
@@ -10,4 +10,4 @@ distclean: clean
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${portconfigdir}
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 dp_version ${DESTDIR}${portconfigdir}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 mp_version ${DESTDIR}${portconfigdir}

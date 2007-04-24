@@ -28,8 +28,8 @@
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
 .Dd February 13, 2007
-.Dt PORTFILE 7 "Apple Computer, Inc."
-.Os
+.Dt PORTFILE 7 "Apple Inc."
+.Os Darwin
 .Sh NAME
 .Nm Portfile
 .Nd MacPorts description file reference
@@ -1486,20 +1486,19 @@ before working.
 .Op Fl depth
 .Op Fl ignoreErrors
 .Ar varname
-.Ar target
-.Op Ar target ...
+.Ar target-list
 .Ar body
 .Xc
-Traverse the filesystem hierarchy rooted in each
-.Ar target
+Traverse the filesystem hierarchy rooted in each element of
+.Ar target-list
 and execute
 .Ar body
-for each found file/directory. Sets
-.Ar varname
-to the path of the file/directory. If
-.Nm break
+for each found file/directory.
+.Va varname
+is set to the path of the file/directory. If
+.Ic break
 is called during execution, the filesystem traversal is stopped. If
-.Nm continue
+.Ic continue
 is called during execution, the current file and any children are skipped
 and traversal continues with the next file/directory.
 .Bl -tag -width indent
@@ -1511,13 +1510,28 @@ switch to
 Please note that using
 .Fl depth
 means you cannot prune a directory with
-.Nm continue
+.Ic continue
 as it will be processed after its children.
 .It Fl ignoreErrors
 Causes
-.Nm fs-traverse
+.Ic fs-traverse
 to ignore any permissions/read errors encountered during processing.
 .El
+.Pp
+If
+.Nm fs-traverse
+is called directly on a symbolic link, the link will be followed. All other
+links encountered during traversal will not be followed.
+.Pp
+.Nm fs-traverse
+will not descend into directories that have a different device number than
+the root of the descent.
+.Pp
+If you remove the current directory during traversal, be aware that you must call
+.Nm continue
+to inform
+.Nm fs-traverse
+that the directory should not be descended into.
 .It Xo
 .Ic curl fetch
 .Ar url
@@ -1582,9 +1596,9 @@ to also preserve Extended Attributes (i.e. Access Control Lists). See
 .Xr file n
 for more information on this command.
 .It Ic copy
-Built-in shorthand alternative to "file -copy".
+Built-in shorthand alternative to "file copy".
 .It Ic move
-Built-in shorthand alternative to "file -rename".
+Built-in shorthand alternative to "file rename".
 .It Ic delete
 Built-in shorthand alternative to "file -delete". Required over the latter for Portfiles that perform deleting
 operations on directories while building the port on Mac OS X 10.3 and earlier, due to a Tcl anomaly on those systems
@@ -1695,3 +1709,4 @@ to the user, at various different levels.
 .An "Kevin Van Vechten" Aq kevin@opendarwin.org
 .An "Jordan K. Hubbard" Aq jkh@opendarwin.org
 .An "Chris Ridd" Aq cjr@opendarwin.org
+.An "Kevin Ballard" Aq eridius@macports.org

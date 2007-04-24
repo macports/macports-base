@@ -46,7 +46,7 @@ libdir			= @libdir@
 localstatedir		= @localstatedir@
 infodir			= @infodir@
 
-portconfigdir		= @PORTCONFIGDIR@
-dportsdir		= @DPORTSDIR@
+mpportconfigdir		= @MPCONFIGDIR@
+portsdir		= @PORTSDIR@
 
 SILENT			= @

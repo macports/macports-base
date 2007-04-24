@@ -5,14 +5,15 @@ AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
-# Check user PATH for DP paths, and remove as necessary.
-OD_PATH_SCAN
+# Check user PATH for MP paths, and remove as necessary.
+MP_PATH_SCAN
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
+AC_PATH_PROG(MTREE, [mtree], [])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
@@ -22,6 +23,7 @@ AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(XAR, [xar], [])
 
 # Define some precious variables allowing user to override PATH for some programs
+AC_ARG_VAR(MTREE, [path to mtree command])
 AC_ARG_VAR(CVS, [path to cvs command])
 AC_ARG_VAR(RSYNC, [path to rsync command])
 AC_ARG_VAR(TAR, [path to tar command])
@@ -29,7 +31,7 @@ AC_ARG_VAR(GNUTAR, [path to gnutar command])
 AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(XAR, [path to xar command])
 
-OD_TAR_NO_SAME_OWNER
+MP_TAR_NO_SAME_OWNER
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
@@ -37,28 +39,27 @@ if test x$GCC = xyes; then
 fi
 AC_SUBST(CFLAGS_QUICHEEATERS)
 
-OD_COMPILER_ATTRIBUTE_UNUSED
+MP_COMPILER_ATTRIBUTE_UNUSED
 
-OD_PROG_MTREE
-#OD_PROG_XAR
-OD_PROG_DAEMONDO
+MP_PROG_DAEMONDO
+#MP_PROG_XAR
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
 
-# set default dports-directory
-DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
+# set default ports-directory
+PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
-OD_PATH_PORTCONFIGDIR
-OD_PATH_SQLITE3
+MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
+MP_PATH_MPCONFIGDIR
+MP_PATH_SQLITE3
 
 # Check for install ownership
-OD_CHECK_INSTALLUSER
-OD_CHECK_INSTALLGROUP
-OD_DIRECTORY_MODE
+MP_CHECK_INSTALLUSER
+MP_CHECK_INSTALLGROUP
+MP_DIRECTORY_MODE
 
 # Check for standard header files.
 AC_HEADER_STDC
@@ -75,12 +76,12 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile])
-DP_CHECK_READLINK_IS_P1003_1A
+MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
-OD_LIB_MD5
+MP_LIB_MD5
 # Check for X11 and paraphernalia
-OD_CHECK_X11
+MP_CHECK_X11
 
 # Check for readline
 AC_CHECK_LIB([readline], [readline])
@@ -106,16 +107,16 @@ CYGPATH=echo
 SC_PUBLIC_TCL_HEADERS
 
 # Check for tclsh binary
-OD_PROG_TCLSH
+MP_PROG_TCLSH
 
 # Check for Tcl package path
-OD_TCL_PACKAGE_DIR
+MP_TCL_PACKAGE_DIR
 
 # Check if thread is enabled.
-OD_TCL_THREAD_SUPPORT
+MP_TCL_THREAD_SUPPORT
 
 ## libcurl
-OD_LIBCURL_FLAGS
+MP_LIBCURL_FLAGS
 
 # Do we have curl_easy_strerror?
 AH_TEMPLATE([HAVE_CURL_EASY_STRERROR],
@@ -136,7 +137,7 @@ AC_ARG_WITH(
 
 # Check if thread package is already installed.
 if test "x$with_included_tclthread" = "xunspecified" ; then
-	OD_TCL_PACKAGE(
+	MP_TCL_PACKAGE(
 		[Thread],
 		[AC_MSG_RESULT([yes]); with_included_tclthread=no],
 		[AC_MSG_RESULT([no]); with_included_tclthread=yes])
@@ -179,7 +180,7 @@ AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
 
-#misc variables that need to be expanded for substitution into tcl
+# misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
 if test "x$prefix" = "xNONE" ; then
@@ -190,9 +191,9 @@ eval "prefix_expanded=$prefix"
 AC_SUBST(prefix_expanded)
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR_EXPANDED"
-AC_SUBST(PORTCONFIGDIR_EXPANDED)
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
+AC_SUBST(MPCONFIGDIR_EXPANDED)
 eval "localstatedir_expanded=$localstatedir"
 AC_SUBST(localstatedir_expanded)
 
@@ -203,19 +204,18 @@ dnl
 dnl SC_CONFIG_MANPAGES
 
 # Output
-
 AC_CONFIG_FILES([
 	Makefile
-	Mk/dports.autoconf.mk
+	Mk/macports.autoconf.mk
 	doc/prefix.mtree
 	doc/macosx.mtree
-	doc/ports.conf
+	doc/macports.conf
 	src/Makefile
-	src/darwinports1.0/darwinports_autoconf.tcl
+	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
-	src/darwinports1.0/darwinports_fastload.tcl
+	src/macports1.0/macports_fastload.tcl
 ])
 
 AC_OUTPUT

@@ -1,8 +1,8 @@
 OBJS=		darwintrace.o
 SHLIB_NAME=	darwintrace${SHLIB_SUFFIX}
-INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/darwintrace1.0
+INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/darwintrace1.0
 
 test::
 
-include ../../Mk/dports.autoconf.mk
-include ../../Mk/dports.tea.mk
+include ../../Mk/macports.autoconf.mk
+include ../../Mk/macports.tea.mk

@@ -21,14 +21,14 @@ MP_GROUP=staff
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
-SVN_DPORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
+SVN_PORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
 SVN_BASE_URL=http://svn.macports.org/repository/macports/trunk/base
 SVN_CONFIG_DIR=${ROOT}/svnconfig
 # Where to checkout the source code. This needs to exist!
 SRCTREE=${ROOT}/source
 # Where MP will install its world. This gets created.
 PREFIX=${ROOT}/opt/local
-# Where MP installs darwinports1.0. This gets created.
+# Where MP installs macports1.0. This gets created.
 TCLPKG=${PREFIX}/lib/tcl
 # Path.
 PATH=${PREFIX}/bin:/bin:/usr/bin:/opt/local/bin
@@ -62,12 +62,12 @@ fi
 
 # Update both the ports tree and base sources, bail out if they don't exist beforehand.
 if [ ! -d ${SRCTREE}/dports/.svn ]; then
-    echo "No dports tree found at ${SRCTREE}. This needs to exist (with proper svn \
+    echo "No ports tree found at ${SRCTREE}. This needs to exist (with proper svn \
         credentials at ${SVN_CONFIG_DIR}) prior to runnig this script." > $FAILURE_LOG; bail
 else
     cd ${SRCTREE}/dports && \
 	svn -q --non-interactive --config-dir $SVN_CONFIG_DIR update > $FAILURE_LOG 2>&1 \
-	|| { echo "Updating the ports tree from $SVN_DPORTS_URL failed." >> $FAILURE_LOG ; bail ; }
+	|| { echo "Updating the ports tree from $SVN_PORTS_URL failed." >> $FAILURE_LOG ; bail ; }
 fi
 if [ ! -d ${SRCTREE}/base/.svn ]; then
     echo "No base sources found at ${SRCTREE}. This needs to exist (with proper svn \

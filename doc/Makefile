@@ -1,10 +1,10 @@
-MAN5=		ports.conf.5
+MAN5=		macports.conf.5
 MAN7=		portfile.7 portstyle.7 porthier.7 portgroup.7
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	..
 
 ifneq ($(MAKECMDGOALS),distclean)
-include ../Mk/dports.autoconf.mk
+include ../Mk/macports.autoconf.mk
 endif
 
 all:
@@ -14,7 +14,7 @@ clean:
 test:
 
 distclean: clean
-	rm -f prefix.mtree ports.conf macosx.mtree
+	rm -f prefix.mtree macports.conf macosx.mtree
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
@@ -24,18 +24,18 @@ install:
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi
-	
+
 	if test ! -e "${INSTALLDIR}/man" ; then \
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
-	
-	# Install the ports.conf file. If it's already installed, upgrade it
-	if test ! -e ${DESTDIR}/${portconfigdir}/ports.conf ; then \
+
+	# Install the macports.conf file. If it's already installed, upgrade it
+	if test ! -e ${DESTDIR}/${portconfigdir}/macports.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 ports.conf ${DESTDIR}${portconfigdir}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${portconfigdir}; \
 	else \
-		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/ports.conf > ${DESTDIR}${portconfigdir}/ports.conf.tmp && \
-			mv ${DESTDIR}${portconfigdir}/ports.conf.tmp ${DESTDIR}${portconfigdir}/ports.conf; \
+		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${portconfigdir}/macports.conf > ${DESTDIR}${portconfigdir}/macports.conf.tmp && \
+			mv ${DESTDIR}${portconfigdir}/macports.conf.tmp ${DESTDIR}${portconfigdir}mac/macports.conf; \
 	fi
 
 	# Install the sources.conf file. If it's already installed, upgrade it
@@ -43,19 +43,19 @@ install:
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
 	else \
-		sed -e s/rsync.opendarwin.org/rsync.darwinports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
+		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
 			mv ${DESTDIR}${portconfigdir}/sources.conf.tmp ${DESTDIR}${portconfigdir}/sources.conf; \
 	fi
-	
+
 	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${portconfigdir}; \
 	fi
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${portconfigdir}
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/darwinports/resources/port1.0/install
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/darwinports/resources/port1.0/install/
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ports.conf.5 ${INSTALLDIR}/share/man/man5
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/macports/resources/port1.0/install
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports.conf.5 ${INSTALLDIR}/share/man/man5
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portstyle.7 ${INSTALLDIR}/share/man/man7
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 porthier.7 ${INSTALLDIR}/share/man/man7

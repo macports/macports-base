@@ -1,4 +1,4 @@
-TCLPKG=		darwinports1.0 port1.0 package1.0 pextlib1.0 registry1.0 \
+TCLPKG=		macports1.0 port1.0 package1.0 pextlib1.0 registry1.0 \
 			darwintracelib1.0 @OUR_INCLUDED_PACKAGES@
 SUBDIR=		${TCLPKG} port programs
 
@@ -10,4 +10,4 @@ distclean::
 
 test::
 
-include ../Mk/dports.subdir.mk
+include ../Mk/macports.subdir.mk

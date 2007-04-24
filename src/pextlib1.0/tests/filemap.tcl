@@ -6,9 +6,9 @@
 proc main {pextlibname} {
 	load $pextlibname
 	
-	file delete -force "/tmp/darwinports-pextlib-testmap"
+	file delete -force "/tmp/macports-pextlib-testmap"
 
-	filemap open testmap "/tmp/darwinports-pextlib-testmap"
+	filemap open testmap "/tmp/macports-pextlib-testmap"
 	if {[filemap exists testmap "/foo/bar"]} {
 		puts {[filemap exists testmap "/foo/bar"]}
 		exit 1
@@ -87,7 +87,7 @@ proc main {pextlibname} {
 
 	filemap close testmap
 
-	filemap open testmap2 "/tmp/darwinports-pextlib-testmap"
+	filemap open testmap2 "/tmp/macports-pextlib-testmap"
 	if {[filemap exists testmap2 "/foo/foobar"]} {
 		puts {[filemap exists testmap2 "/foo/foobar"]}
 		exit 1
@@ -164,10 +164,10 @@ proc main {pextlibname} {
 	filemap close testmap2
 
 	# open it again, r/o
-	filemap open testmap3 "/tmp/darwinports-pextlib-testmap" readonly
+	filemap open testmap3 "/tmp/macports-pextlib-testmap" readonly
 
 	# open it again, r/w
-	filemap open testmap4 "/tmp/darwinports-pextlib-testmap"
+	filemap open testmap4 "/tmp/macports-pextlib-testmap"
 	
 	# put a key (r/w copy)
 	filemap set testmap4 "/rw/foobar" "foobar"
@@ -196,27 +196,27 @@ proc main {pextlibname} {
 	filemap close testmap3
 
 	# concurrency bug test
-	filemap open testmap7 "/tmp/darwinports-pextlib-testmap"
+	filemap open testmap7 "/tmp/macports-pextlib-testmap"
 	filemap set testmap7 "/rw/foobar" "foobar"
 	filemap save testmap7
 	filemap close testmap7
-	filemap open testmap6 "/tmp/darwinports-pextlib-testmap" readonly
-	filemap open testmap8 "/tmp/darwinports-pextlib-testmap"
+	filemap open testmap6 "/tmp/macports-pextlib-testmap" readonly
+	filemap open testmap8 "/tmp/macports-pextlib-testmap"
 	filemap unset testmap8 "/rw/foobar"
 	filemap save testmap8
 	filemap close testmap8
 	filemap close testmap6
-	filemap open testmap9 "/tmp/darwinports-pextlib-testmap" readonly
+	filemap open testmap9 "/tmp/macports-pextlib-testmap" readonly
 	if {[filemap exists testmap9 "/rw/foobar"]} {
 		puts {[filemap exists testmap9 "/rw/foobar"]}
 		exit 1
 	}
 	filemap close testmap9
 
-	file delete -force "/tmp/darwinports-pextlib-testmap"
+	file delete -force "/tmp/macports-pextlib-testmap"
 
 	# delete the lock file as well.
-	file delete -force "/tmp/darwinports-pextlib-testmap.lock"
+	file delete -force "/tmp/macports-pextlib-testmap.lock"
 	
 	# create a RAM-based map.
 	filemap create testmap5

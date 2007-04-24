@@ -1,7 +1,7 @@
-INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/package
+INSTALLDIR=	${DESTDIR}${datadir}/macports/resources/port1.0/package
 RSRCS=		background.tiff
 
-include ../../../../Mk/dports.autoconf.mk
+include ../../../../Mk/macports.autoconf.mk
 
 all:
 

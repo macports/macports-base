@@ -711,30 +711,12 @@ proc reinplace {pattern args}  {
 
 # delete
 # file delete -force by itself doesn't handle directories properly
-# on systems older than Tiger. However we can recurse this thing ourselves
+# on systems older than Tiger. Lets recurse using fs-traverse instead
 proc delete {args} {
-    foreach arg $args {
-        ui_debug "delete: $arg"
-        set stack [list $arg]
-        while {[llength $stack] > 0} {
-            set file [lindex $stack 0]
-            if {[string equal [file type $file] directory]} {
-                # it's a directory
-                set children [glob -nocomplain -directory $file * .*]
-                set children [ldelete [ldelete $children $file/.] $file/..]
-                if {[llength $children] > 0} {
-                    set stack [concat $children $stack]
-                } else {
-                    # directory is empty
-                    file delete -force -- $file
-                    set stack [lrange $stack 1 end]
-                }
-            } else {
-                # it's not a directory - kill it now
-                file delete -force -- $file
-                set stack [lrange $stack 1 end]
-            }
-        }
+    ui_debug "delete: $args"
+    fs-traverse -depth file $args {
+        file delete -force -- $file
+        continue
     }
 }
 
@@ -849,7 +831,13 @@ proc move {args} {
 proc ln {args} {
     while {[string match -* [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
-        set args [lrange $args 1 end]
+        if {[string length $arg] > 1} {
+            set remainder -[string range $arg 1 end]
+            set arg [string range $arg 0 0]
+            set args [lreplace $args 0 0 $remainder]
+        } else {
+            set args [lreplace $args 0 0]
+        }
         switch -- $arg {
             f -
             h -
@@ -877,14 +865,18 @@ proc ln {args} {
             return -code error "ln: $file: Is a directory"
         }
         
-        if {[file isdirectory $target] && ![info exists options(h)]} {
+        if {[file isdirectory $target] && ([file type $target] ne "link" || ![info exists options(h)])} {
             set linktarget [file join $target [file tail $file]]
         } else {
             set linktarget $target
         }
         
-        if {[file exists $linktarget] && ![info exists options(f)]} {
-            return -code error "ln: $linktarget: File exists"
+        if {![catch {file type $linktarget}]} {
+            if {[info exists options(f)]} {
+                file delete $linktarget
+            } else {
+                return -code error "ln: $linktarget: File exists"
+            }
         }
         
         if {[llength $files] > 2} {
@@ -900,7 +892,7 @@ proc ln {args} {
             ui_msg "ln: $linktarget -> $file"
         }
         if {[info exists options(s)]} {
-            file link -symbolic $linktarget $file
+            symlink $file $linktarget
         } else {
             file link -hard $linktarget $file
         }
@@ -1541,11 +1533,11 @@ proc variant_new {name} {
     return $ditem
 }
 
-proc handle_default_variants {option action args} {
+proc handle_default_variants {option action {value ""}} {
     global variations
     switch -regex $action {
 	set|append {
-	    foreach v $args {
+	    foreach v $value {
 		if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
 		    if {![info exists variations($variant)]} {
 			set variations($variant) $val
