@@ -85,6 +85,7 @@ proc destroot_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
 
     set oldmask [umask ${destroot.umask}]
+    set mtree ${portutil::autoconf::mtree_path}
     
     if { ${destroot.clean} == "yes" } {
 	system "rm -Rf \"${destroot}\""
@@ -92,10 +93,10 @@ proc destroot_start {args} {
     
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
-	system "cd \"${destroot}\" && mtree -e -U -f ${portresourcepath}/install/macosx.mtree"
+	system "cd \"${destroot}\" && ${mtree} -e -U -f ${portresourcepath}/install/macosx.mtree"
     }
     file mkdir "${destroot}/${prefix}"
-    system "cd \"${destroot}/${prefix}\" && mtree -e -U -f ${portresourcepath}/install/prefix.mtree"
+    system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f ${portresourcepath}/install/prefix.mtree"
 }
 
 proc destroot_main {args} {
