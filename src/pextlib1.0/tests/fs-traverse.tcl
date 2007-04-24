@@ -157,11 +157,11 @@ proc setup_trees {root} {
     "
     
     set sub_tree1 "
-        $root/a/d       directory
-        $root/a/d/a     file
-        $root/a/d/b     {link ../../b/a}
-        $root/a/d/c     directory
-        $root/a/d/d     file
+        $root/a/c/a     {link ../d}
+        $root/a/c/a/a   file
+        $root/a/c/a/b   {link ../../b/a}
+        $root/a/c/a/c   directory
+        $root/a/c/a/d   file
     "
     
     set tree2 "
