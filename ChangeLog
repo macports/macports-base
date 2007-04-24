@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - Fixed a potential crasher in fs-traverse when showing error message
+      (ticket #11827, eridius r24396, thanks sfiera).
+    
     - Fixed a bug where livecheck failed on ports that do not define a homepage
       (ticket #11818, pguyot r24319).
 
