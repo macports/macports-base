@@ -111,6 +111,16 @@ proc main {pextlibname} {
             error "fs-traverse errored out when setting the variable despite -ignoreErrors"
         }
         
+        # Test using a malformed target list
+        if {![catch {fs-traverse file "$root/a \{$root/b" {}}]} {
+            error "fs-traverse did not error with malformed target list"
+        }
+        
+        # Test again with -ignoreErrors - this is the one case where it should still error
+        if {![catch {fs-traverse -ignoreErrors file "$root/a \{$root/b" {}}]} {
+            error "fs-traverse did not error with malformed target list using -ignoreErrors"
+        }
+        
         # NOTE: This should be the last test performed, as it modifies the file tree
         # Test to make sure deleting files during traversal works as expected
         set output [list]
