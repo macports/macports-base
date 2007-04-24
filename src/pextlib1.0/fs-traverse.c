@@ -49,9 +49,8 @@
 #include <sys/stat.h>
 #endif
 
-#if HAVE_DIRENT_H
-#include <dirent.h>
-#endif
+#include <fts.h>
+#include <errno.h>
 
 #if HAVE_LIMITS_H
 #include <limits.h>
@@ -59,7 +58,7 @@
 
 #include <tcl.h>
 
-static int do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *body);
+static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, char *varname, Tcl_Obj *body);
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
@@ -69,7 +68,7 @@ int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *varname;
-    char *body;
+    Tcl_Obj *body;
     int flags = 0;
     int rval = TCL_OK;
     Tcl_Obj *listPtr;
@@ -107,91 +106,84 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     listPtr = *objv;
     ++objv, --objc;
     
-    body = Tcl_GetString(*objv);
+    body = *objv;
     
     if ((rval = Tcl_ListObjGetElements(interp, listPtr, &lobjc, &lobjv)) == TCL_OK) {
+        char **entries = calloc(objc, sizeof(char *));
+        char **iter = (char **)entries;
         while (lobjc) {
-            char *target = Tcl_GetString(*lobjv);
-            ++lobjv, --lobjc;
-            
-            if ((rval = do_traverse(interp, flags, target, varname, body)) == TCL_CONTINUE) {
-                rval = TCL_OK;
-                continue;
-            } else if (rval == TCL_BREAK) {
-                rval = TCL_OK;
-                break;
-            } else if (rval != TCL_OK) {
-                break;
-            }
+            *iter++ = Tcl_GetString(*lobjv);
+            --lobjc, ++lobjv;
         }
+        rval = do_traverse(interp, flags, entries, varname, body);
+        free(entries);
     }
     return rval;
 }
 
 static int
-do_traverse(Tcl_Interp *interp, int flags, char *target, char *varname, char *body)
+do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, char *varname, Tcl_Obj *body)
 {
-    DIR *dirp;
-    struct dirent *dp;
     int rval = TCL_OK;
-    struct stat sb;
+    FTS *root_fts;
+    FTSENT *ent;
     
-    /* No permission? */
-    if (lstat(target, &sb) != 0) {
-        if (flags & F_IGNORE_ERRORS) {
-            return TCL_OK;
-        } else {
-            Tcl_ResetResult(interp);
-            Tcl_AppendResult(interp, "no permission to access file/folder `", target, "'", NULL);
-            return TCL_ERROR;
-        }
-    }
+    root_fts = fts_open(targets, FTS_PHYSICAL | FTS_COMFOLLOW | FTS_NOCHDIR | FTS_XDEV, NULL);
     
-    /* Handle files now, or directories if !depth */
-    if (!(flags & F_DEPTH) || !(sb.st_mode & S_IFDIR)) {
-        Tcl_SetVar(interp, varname, target, 0);
-        if ((rval = Tcl_EvalEx(interp, body, -1, 0)) != TCL_OK) {
-            return rval;
-        }
-    }
-    
-    /* Handle directories */
-    if (sb.st_mode & S_IFDIR) {
-        if ((dirp = opendir(target)) == NULL) {
-            if (flags & F_IGNORE_ERRORS) {
-                return TCL_OK;
-            } else {
-                Tcl_ResetResult(interp);
-                Tcl_AppendResult(interp, "could not open directory `", target, "'", NULL);
-                return TCL_ERROR;
-            }
-        }
-        
-        while ((dp = readdir(dirp)) != NULL) {
-            char tmp_path[PATH_MAX];
-
-            if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
-                continue;
-            strcpy(tmp_path, target);
-            strcat(tmp_path, "/");
-            strcat(tmp_path, dp->d_name);
-
-            if ((rval = do_traverse(interp, flags, tmp_path, varname, body)) == TCL_CONTINUE) {
-                rval = TCL_OK;
-                continue;
-            } else if (rval != TCL_OK) {
+    while ((ent = fts_read(root_fts)) != NULL) {
+        switch (ent->fts_info) {
+            case FTS_D:  /* directory in pre-order */
+            case FTS_DP: /* directory in post-order*/
+            {
+                if (!(flags & F_DEPTH) != !(ent->fts_info == FTS_D)) {
+                    Tcl_SetVar(interp, varname, ent->fts_path, 0);
+                    if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
+                        fts_set(root_fts, ent, FTS_SKIP);
+                    } else if (rval == TCL_BREAK) {
+                        fts_close(root_fts);
+                        return TCL_OK;
+                    } else if (rval != TCL_OK) {
+                        fts_close(root_fts);
+                        return rval;
+                    }
+                }
                 break;
             }
-        }
-        (void)closedir(dirp);
-        
-        /* Handle directory now if depth */
-        if (flags & F_DEPTH) {
-            Tcl_SetVar(interp, varname, target, 0);
-            if ((rval = Tcl_EvalEx(interp, body, -1, 0)) != TCL_OK) {
-                return rval;
+            case FTS_F:   /* regular file */
+            case FTS_SL:  /* symbolic link */
+            case FTS_SLNONE: /* symbolic link with non-existant target */
+            case FTS_DEFAULT: /* file type not otherwise handled (e.g., fifo) */
+            {
+                Tcl_SetVar(interp, varname, ent->fts_path, 0);
+                if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
+                    fts_set(root_fts, ent, FTS_SKIP); /* probably useless on files/symlinks */
+                } else if (rval == TCL_BREAK) {
+                    fts_close(root_fts);
+                    return TCL_OK;
+                } else if (rval != TCL_OK) {
+                    fts_close(root_fts);
+                    return rval;
+                }
+            }
+            case FTS_DC:  /* directory that causes a cycle */
+                break;    /* ignore it */
+            case FTS_DNR: /* directory that cannot be read */
+            case FTS_ERR: /* error return */
+            case FTS_NS:  /* file with no stat(2) information */
+            {
+                if (!(flags & F_IGNORE_ERRORS)) {
+                    Tcl_SetErrno(ent->fts_errno);
+                    Tcl_SetResult(interp, (char *)Tcl_PosixError(interp),  TCL_STATIC);
+                    fts_close(root_fts);
+                    return TCL_ERROR;
+                }
             }
         }
     }
-    return rval;
+    /* check errno before calling fts_close in case it sets errno to 0 on success */
+    if (errno != 0 || (fts_close(root_fts) != 0 && !(flags & F_IGNORE_ERRORS))) {
+        Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
+        return TCL_ERROR;
+    }
+    return TCL_OK;
 }
