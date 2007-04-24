@@ -78,10 +78,10 @@ proc main {pextlibname} {
         # Test skipping parts of the tree
         set output [list]
         fs-traverse file $root {
-            lappend output $file
             if {[string match */a $file]} {
                 continue
             }
+            lappend output $file
         }
         check_output $output $trees(5)
         
@@ -93,6 +93,19 @@ proc main {pextlibname} {
                 break
             }
         }
+        
+        # NOTE: This should be the last test performed, as it modifies the file tree
+        # Test to make sure deleting files during traversal works as expected
+        set output [list]
+        fs-traverse file $root {
+            if {[string match */a $file]} {
+                # use /bin/rm because on 10.3 file delete doesn't work on directories properly
+                exec /bin/rm -rf $file
+                continue
+            }
+            lappend output $file
+        }
+        check_output $output $trees(5)
     } errMsg]
     set savedInfo $errorInfo
     
@@ -269,12 +282,9 @@ proc setup_trees {root} {
     
     set trees(5) "
         $root           directory
-        $root/a         directory
         $root/b         directory
-        $root/b/a       directory
         $root/b/b       directory
         $root/b/c       directory
-        $root/b/c/a     file
         $root/b/c/b     file
         $root/b/c/c     file
     "

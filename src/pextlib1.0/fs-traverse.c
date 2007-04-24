@@ -58,7 +58,7 @@
 
 #include <tcl.h>
 
-static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, char *varname, Tcl_Obj *body);
+static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body);
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
@@ -67,7 +67,7 @@ static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, cha
 int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-    char *varname;
+    Tcl_Obj *varname;
     Tcl_Obj *body;
     int flags = 0;
     int rval = TCL_OK;
@@ -100,7 +100,7 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         return TCL_ERROR;
     }
     
-    varname = Tcl_GetString(*objv);
+    varname = *objv;
     ++objv, --objc;
     
     listPtr = *objv;
@@ -122,7 +122,7 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 }
 
 static int
-do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, char *varname, Tcl_Obj *body)
+do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body)
 {
     int rval = TCL_OK;
     FTS *root_fts;
@@ -136,7 +136,8 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, char *varname,
             case FTS_DP: /* directory in post-order*/
             {
                 if (!(flags & F_DEPTH) != !(ent->fts_info == FTS_D)) {
-                    Tcl_SetVar(interp, varname, ent->fts_path, 0);
+                    Tcl_Obj *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                    Tcl_ObjSetVar2(interp, varname, NULL, path, 0);
                     if ((rval = Tcl_EvalObjEx(interp, body, 0)) == TCL_CONTINUE) {
                         fts_set(root_fts, ent, FTS_SKIP);
                     } else if (rval == TCL_BREAK) {
