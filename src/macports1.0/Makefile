@@ -11,7 +11,6 @@ include ../../Mk/macports.tea.mk
 test::
 
 distclean:: clean
-	echo ${SHLIB_NAME}
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
 
 install::
