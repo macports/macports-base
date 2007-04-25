@@ -42,7 +42,7 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "darwinports.h"
+#include "macports.h"
 
 #include <tcl.h>
 

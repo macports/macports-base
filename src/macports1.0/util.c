@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "darwinports.h"
+#include "macports.h"
 #include "util.h"
 
 #include <tcl.h>
