@@ -5,14 +5,13 @@ SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/macports1.0
 
-ifneq ($(MAKECMDGOALS),distclean)
 include ../../Mk/macports.autoconf.mk
-endif
 include ../../Mk/macports.tea.mk
 
 test::
 
 distclean:: clean
+	echo ${SHLIB_NAME}
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
 
 install::
