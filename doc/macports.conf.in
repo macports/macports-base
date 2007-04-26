@@ -15,10 +15,10 @@ portinstalltype		image
 x11prefix		/usr/X11R6
 
 # Where to find the sources list.
-sources_conf		@PORTCONFIGDIR_EXPANDED@/sources.conf
+sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
 
 # Where to find global variants definition file (optional)
-variants_conf		@PORTCONFIGDIR_EXPANDED@/variants.conf
+variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 
 # Create and use binary archive packages for installation/reinstallation ease
 portarchivemode		no
