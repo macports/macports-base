@@ -18,7 +18,7 @@ distclean: clean
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${portconfigdir}
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${mpconfigdir}
 
 	cat prefix.mtree | $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
 	if test -L "${INSTALLDIR}/man" ; then \
@@ -30,28 +30,28 @@ install:
 	fi
 
 	# Install the macports.conf file. If it's already installed, upgrade it
-	if test ! -e ${DESTDIR}/${portconfigdir}/macports.conf ; then \
+	if test ! -e ${DESTDIR}/${mpconfigdir}/macports.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${portconfigdir}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${mpconfigdir}; \
 	else \
-		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${portconfigdir}/macports.conf > ${DESTDIR}${portconfigdir}/macports.conf.tmp && \
-			mv ${DESTDIR}${portconfigdir}/macports.conf.tmp ${DESTDIR}${portconfigdir}mac/macports.conf; \
+		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${mpconfigdir}/macports.conf > ${DESTDIR}${mpconfigdir}/macports.conf.tmp && \
+			mv ${DESTDIR}${mpconfigdir}/macports.conf.tmp ${DESTDIR}${mpconfigdir}mac/macports.conf; \
 	fi
 
 	# Install the sources.conf file. If it's already installed, upgrade it
-	if test ! -e ${DESTDIR}${portconfigdir}/sources.conf ; then \
+	if test ! -e ${DESTDIR}${mpconfigdir}/sources.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${portconfigdir}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${mpconfigdir}; \
 	else \
-		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${portconfigdir}/sources.conf > ${DESTDIR}${portconfigdir}/sources.conf.tmp && \
-			mv ${DESTDIR}${portconfigdir}/sources.conf.tmp ${DESTDIR}${portconfigdir}/sources.conf; \
+		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${mpconfigdir}/sources.conf > ${DESTDIR}${mpconfigdir}/sources.conf.tmp && \
+			mv ${DESTDIR}${mpconfigdir}/sources.conf.tmp ${DESTDIR}${mpconfigdir}/sources.conf; \
 	fi
 
-	$(SILENT)if test ! -e ${DESTDIR}${portconfigdir}/variants.conf ; then \
+	$(SILENT)if test ! -e ${DESTDIR}${mpconfigdir}/variants.conf ; then \
 		set -x; \
-		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${portconfigdir}; \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${mpconfigdir}; \
 	fi
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${portconfigdir}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${DESTDIR}${mpconfigdir}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/macports/resources/port1.0/install
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
