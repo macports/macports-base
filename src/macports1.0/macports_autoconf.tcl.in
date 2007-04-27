@@ -1,4 +1,4 @@
-# darwinports-autoconf.tcl.in
+# macports-autoconf.tcl.in
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -28,9 +28,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-package provide darwinports 1.0
+package provide macports 1.0
 
-namespace eval darwinports::autoconf {
-	variable dports_conf_path "@PORTCONFIGDIR_EXPANDED@"
+namespace eval macports::autoconf {
+	variable mports_conf_path "@MPCONFIGDIR_EXPANDED@"
 	variable rsync_path "@RSYNC@"
 }

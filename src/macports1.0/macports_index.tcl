@@ -1,4 +1,4 @@
-# darwinports_index.tcl
+# macports_index.tcl
 # $Id$
 #
 # Copyright (c) 2004 Apple Computer, Inc.
@@ -29,35 +29,35 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 # 31-Mar-2004
-# Kevin Van Vechten <kevin@opendarwin.org>
+# Kevin Van Vechten <kevin@opedarwin.org>
 #
 
-package provide darwinports_index 1.0
+package provide macports_index 1.0
 
-namespace eval darwinports::index {
+namespace eval macports::index {
 	variable has_sqlite {}
 }
 
-proc darwinports::index::init {} {
-	global darwinports::index::has_sqlite darwinports::prefix
-	if {$darwinports::index::has_sqlite == 1 ||
-		[file exists ${darwinports::prefix}/lib/tclsqlite.dylib]} {
-		load ${darwinports::prefix}/lib/tclsqlite.dylib Sqlite
-		set darwinports::index::has_sqlite 1
+proc macports::index::init {} {
+	global macports::index::has_sqlite macports::prefix
+	if {$macports::index::has_sqlite == 1 ||
+		[file exists ${macports::prefix}/lib/tclsqlite.dylib]} {
+		load ${macports::prefix}/lib/tclsqlite.dylib Sqlite
+		set macports::index::has_sqlite 1
 	} else {
 		return -code error "Sqlite must be installed to use a remote index.  Use the tclsqlite port."
 	}
 }
 
-proc darwinports::index::get_path {source} {
-    global darwinports::portdbpath
+proc macports::index::get_path {source} {
+    global macports::portdbpath
     regsub {://} $source {.} source_dir
     regsub -all {/} $source_dir {_} source_dir
     return [file join $portdbpath sources $source_dir]
 }
 
 
-# darwinports::index::sync
+# macports::index::sync
 # Interact with the remote index at the specified URL.
 # Replays the SQL transactions contained in the remote
 # index file into a local database, creating it if it
@@ -70,10 +70,10 @@ proc darwinports::index::get_path {source} {
 #              on the url will be appended to this path.
 # url        - the url of the remote index to synchronize with
 
-proc darwinports::index::sync {portdbpath url} {
-	darwinports::index::init
+proc macports::index::sync {portdbpath url} {
+	macports::index::init
 
-	set indexpath [darwinports::index::get_path $url]
+	set indexpath [macports::index::get_path $url]
 	if {[catch {file mkdir $indexpath} result]} {
 		return -code error "$indexpath could not be created: $result"
 	}
@@ -82,7 +82,7 @@ proc darwinports::index::sync {portdbpath url} {
 	cd $indexpath
 	
 	# We actually use http:// as the transport mechanism
-	set url [regsub -- {^dports} $url {http}]
+	set url [regsub -- {^mports} $url {http}]
 
 	# If the database didn't exist, initialize it.
 	# The schema is available on the server in the initialize.sql file.
@@ -165,7 +165,7 @@ proc darwinports::index::sync {portdbpath url} {
 	cd $oldpath
 }
 
-# darwinports::index::search
+# macports::index::search
 #
 # Searches the cached copy of the specified port index for
 # the Portfile satisfying the given query.
@@ -181,9 +181,9 @@ proc darwinports::index::sync {portdbpath url} {
 # attrs      - an array of the attributes to search for
 #			   currently only "name" is supported.
 
-proc darwinports::index::search {portdbpath url attrslist} {
-	darwinports::index::init
-	set indexpath [darwinports::index::get_path $url]
+proc macports::index::search {portdbpath url attrslist} {
+	macports::index::init
+	set indexpath [macports::index::get_path $url]
 
 	if {![file exists $indexpath/database.sqlite]} {
 		return -code error "Can't open index file for source $url. Have you synced your source indexes (port sync)?"
@@ -232,7 +232,7 @@ proc darwinports::index::search {portdbpath url attrslist} {
 		}
 	}
 	
-	# Historically dportsearch has returned a serialized list of arrays.
+	# Historically mportsearch has returned a serialized list of arrays.
 	# This is kinda gross and really needs to change to a more opaque
 	# data type in the future, but to ease the transition we're it the old
 	# way here.  For each port that matched the query, build up an array 
@@ -273,11 +273,11 @@ proc darwinports::index::search {portdbpath url attrslist} {
 
 
 
-# darwinports::index::fetch_port
+# macports::index::fetch_port
 #
 # Checks for a locally cached copy of the port, or downloads the port
 # from the specified URL.  The port is extracted into the current working
-# directory along with a .dports_source file containing the url of the
+# directory along with a .mports_source file containing the url of the
 # source the port came from.  (This can be later used as a default for
 # "port submit")
 #
@@ -287,8 +287,8 @@ proc darwinports::index::search {portdbpath url attrslist} {
 # but we really ought to have an opaque handle to a port.  We want to
 # get the source URL and the Portfile.tar.gz md5 from this opaque handle.
 
-proc darwinports::index::fetch_port {url destdir} {
-	global darwinports::sources
+proc macports::index::fetch_port {url destdir} {
+	global macports::sources
 	
 	set portsource ""
 	set portname ""
@@ -303,7 +303,7 @@ proc darwinports::index::fetch_port {url destdir} {
 	foreach source $sources {
 		if {[regexp -- "^$source" $url] == 1} {
 			set portsource $source
-			set indexpath [darwinports::index::get_path $source]
+			set indexpath [macports::index::get_path $source]
 			
 			# Extract the relative portion of the url, 
 			# and append it to the indexpath, this is where
@@ -357,7 +357,7 @@ proc darwinports::index::fetch_port {url destdir} {
 				return -code error "Could not unpack port file: $result"
 			}
 			
-			set fd [open ".dports_source" w]
+			set fd [open ".mports_source" w]
 			puts $fd "source: $portsource"
 			puts $fd "port: $portname"
 			puts $fd "version: $portversion"
@@ -367,7 +367,7 @@ proc darwinports::index::fetch_port {url destdir} {
 			cd $oldcwd
 		} else {		
 			# We actually use http:// as the transport mechanism
-			set http_url [regsub -- {^dports} $url {http}]
+			set http_url [regsub -- {^mports} $url {http}]
 			if {[catch {exec curl -L -s -S -o $fetchfile $http_url} result ]} {
 				return -code error "Could not download port from remote index: $result"
 			}

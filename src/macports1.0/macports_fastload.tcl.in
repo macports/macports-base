@@ -1,7 +1,7 @@
-# darwinports_fastload.tcl.in
+# macports_fastload.tcl.in
 # $Id$
 #
-# Copyright (c) 2004 Paul Guyot, Darwinports Team.
+# Copyright (c) 2004 Paul Guyot, MacPorts Team.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-# This script is here to fast load all the darwinports-related packages.
+# This script is here to fast load all the MacPorts related packages.
 # This avoids the very expensive globbing of Tcl' package mechanism.
 # Please note that this is not required and base/ should work even if some
 # packages are moved as long as their new location is in Tcl's package paths.
 # However, this file also defines a workaround to avoid conflicts between a /
-# installation of DP and a user installation of DP (on the same box).
+# installation of MacPorts and a user installation of MacPorts (on the same box).
 # (this workaround isn't required on 10.4.2).
 #
 # The package command that's replaced in this code works somewhat differently
@@ -70,10 +70,10 @@ if { ($tcl_version < 8.4) ||
 	}
 }
 
-set dir [file join "@TCL_PACKAGE_DIR@" darwinports1.0]
+set dir [file join "@TCL_PACKAGE_DIR@" macports1.0]
 catch {source [file join $dir pkgIndex.tcl]}
 
-foreach dir [glob -directory "@prefix_expanded@" -join share darwinports Tcl *] {
+foreach dir [glob -directory "@prefix_expanded@" -join share macports Tcl *] {
 	catch {source [file join $dir pkgIndex.tcl]}
 }
 

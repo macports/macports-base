@@ -1,5 +1,5 @@
 /*
- * darwinports.c
+ * macports.c
  * $Id$
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -36,11 +36,11 @@
 
 #include <tcl.h>
 
-int darwinports_Init(Tcl_Interp *interp)
+int macports_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return TCL_ERROR;
-	if(Tcl_PkgProvide(interp, "darwinports", "1.0") != TCL_OK)
+	if(Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
 }

@@ -1,14 +1,14 @@
 #!/usr/bin/env tclsh
-# darwinports1.0/test_dlist.tcl
+# macports1.0/test_dlist.tcl
 # $Id$
 #
-# Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
+# Copyright (c) 2003 Kevin Van Vechten <kevin@openmac.org>
 
-# Test suite for darwinports_dlist package.
+# Test suite for macports_dlist package.
 
 #lappend auto_path .
-#package require darwinports_dlist 1.0
-source darwinports_dlist.tcl
+#package require macports_dlist 1.0
+source macports_dlist.tcl
 
 puts ""
 puts "Testing ditem"

@@ -33,14 +33,14 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
-typedef void* dp_hash_t;
-dp_hash_t dp_hash_create();
-dp_hash_t dp_hash_create_copy(dp_hash_t h);
-dp_hash_t dp_hash_retain(dp_hash_t h);
-void dp_hash_release(dp_hash_t h);
-void dp_hash_set_value(dp_hash_t h, const void* key, const void* data);
-int dp_hash_get_count(dp_hash_t h);
-const void* dp_hash_get_value(dp_hash_t h, const void* key);
+typedef void* mp_hash_t;
+mp_hash_t mp_hash_create();
+mp_hash_t mp_hash_create_copy(mp_hash_t h);
+mp_hash_t mp_hash_retain(mp_hash_t h);
+void mp_hash_release(mp_hash_t h);
+void mp_hash_set_value(mp_hash_t h, const void* key, const void* data);
+int mp_hash_get_count(mp_hash_t h);
+const void* mp_hash_get_value(mp_hash_t h, const void* key);
 /* something for delete */
 
 #endif /* __UTIL_H__ */

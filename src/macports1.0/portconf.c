@@ -46,7 +46,7 @@ static int set_session_option(ClientData clientData UNUSED, Tcl_Interp *interp U
     return TCL_OK;
 }
 
-void parse_port_conf(dp_session_t dp UNUSED, char* path) {
+void parse_port_conf(mp_session_t mp UNUSED, char* path) {
     int fd = open(path, O_RDONLY, 0);
     if (fd != -1) {
         Tcl_Interp* interp = Tcl_CreateInterp();

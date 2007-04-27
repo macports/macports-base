@@ -1,5 +1,5 @@
 /*
- * darwinports.h
+ * macports.h
  * $Id$
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -30,31 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __DARWINPORTS_H__
-#define __DARWINPORTS_H__
+#ifndef __MACPORTS_H__
+#define __MACPORTS_H__
 
-typedef void* dp_session_t;
-typedef void* dp_software_t;
+typedef void* mp_session_t;
+typedef void* mp_software_t;
 
-typedef void* dp_array_t;
-dp_array_t dp_array_create();
-dp_array_t dp_array_create_copy(dp_array_t a);
-dp_array_t dp_array_retain(dp_array_t a);
-void dp_array_release(dp_array_t a);
-void dp_array_append(dp_array_t a, const void* data);
-int dp_array_get_count(dp_array_t a);
-const void* dp_array_get_index(dp_array_t a, int index);
+typedef void* mp_array_t;
+mp_array_t mp_array_create();
+mp_array_t mp_array_create_copy(mp_array_t a);
+mp_array_t mp_array_retain(mp_array_t a);
+void mp_array_release(mp_array_t a);
+void mp_array_append(mp_array_t a, const void* data);
+int mp_array_get_count(mp_array_t a);
+const void* mp_array_get_index(mp_array_t a, int index);
 /* something for delete */
 
-dp_session_t dp_session_open();
-int dp_session_sync_index();
+mp_session_t mp_session_open();
+int mp_session_sync_index();
 
-int dp_software_search(dp_session_t dp, const char* regexp, dp_software_t* out_matches, int* out_count);
-dp_software_t dp_software_open_portfile(dp_session_t dp, const char* path, const char** options);
-dp_session_t dp_software_get_session(dp_software_t sw);
-dp_software_t dp_software_exec(dp_software_t sw, const char* target);
-int dp_softare_close(dp_software_t sw);
+int mp_software_search(mp_session_t mp, const char* regexp, mp_software_t* out_matches, int* out_count);
+mp_software_t mp_software_open_portfile(mp_session_t mp, const char* path, const char** options);
+mp_session_t mp_software_get_session(mp_software_t sw);
+mp_software_t mp_software_exec(mp_software_t sw, const char* target);
+int mp_softare_close(mp_software_t sw);
 
-int dp_session_close();
+int mp_session_close();
 
-#endif /* __DARWINPORTS_H__ */
+#endif /* __MACPORTS_H__ */
