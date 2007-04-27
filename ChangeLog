@@ -50,7 +50,7 @@
          portsubmit.tcl. (r24195-24196).
          
     - Revise error messages in port image activation to use syntax that
-      matches port(1). (jberry r24543).
+      matches port(1). (jberry r24543, r24548).
 
 Release 1.4.3 (17-Apr-2007):
 
