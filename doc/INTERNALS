@@ -3,14 +3,14 @@ MacPorts Internals:
 The MacPorts system is composed of a three TCL libraries:
 	macports - public API
 	port - portfile parsing and execution
-	pextlib - neccesary C extensions to TCL
+	pextlib - necessary C extensions to TCL
 
-    These three TCL libraries are grouped as a TCL "package". TCL packages
-allow for complex versioning and have a provide/require model of use, making
+    These three TCL libraries are grouped as TCL "packages". They allow
+for complex versioning and have a provide/require model of use, making
 them well suited for maintaining a backwards compatable ports system.
 
-    The "macports" TCL Library provides a public API into the mac
-ports system. Any external application wishing to manipulate a port can
+    The "macports" TCL Library provides a public API into the MacPorts
+system. Any external application wishing to manipulate a port can
 load the "macports" TCL library. 'port', the included command line port
 utility, uses only the exported "macports" API.
 
@@ -18,7 +18,7 @@ utility, uses only the exported "macports" API.
 ports (ie, mportexec/mportopen/mportget). Also, the API has very little
 knowledge of the contents of a portfile; instead, it relies entirely upon
 the "port" TCL library. By keeping the high level API simple and generic,
-a revision of the underlying ports system will not neccesarily require
+a revision of the underlying ports system will not necessarily require
 a revision of the high level "macports" API.
 
     TCL packages allow for complex versioning with a strong requires/provides
