@@ -162,7 +162,7 @@ proc com.apple.dpkg::main {args} {
 
 proc com.apple.dpkg::make_dependency_list {portname} {
 	set result {}
-	if {[catch {set res [port_search "^$portname\$"]} error]} {
+	if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $error"
