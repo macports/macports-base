@@ -1,6 +1,6 @@
 MacPorts Internals:
 
-The MacPports system is composed of a three TCL libraries:
+The MacPorts system is composed of a three TCL libraries:
 	macports - public API
 	port - portfile parsing and execution
 	pextlib - neccesary C extensions to TCL
