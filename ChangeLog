@@ -48,6 +48,9 @@
        - Expose autoconf XAR variable as portutil::autoconf::xar_path. (r24194).
        - Start to build portpkg.xar and meta data, hijacking Kevin's
          portsubmit.tcl. (r24195-24196).
+         
+    - Revise error messages in for port image activation to use syntax that
+      matches port(1). (jberry r24543).
 
 Release 1.4.3 (17-Apr-2007):
 
