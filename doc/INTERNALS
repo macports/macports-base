@@ -3,7 +3,7 @@ DARWIN PORTS INTERNALS
 The darwin ports system is composed of a three TCL libraries:
 	darwinports - public API
 	port - portfile parsing and execution
-	pextlib - neccesary C extensions to TCL
+	pextlib - necessary C extensions to TCL
 
     These three TCL libraries are grouped as a TCL "package". TCL packages
 allow for complex versioning and have a provide/require model of use, making
@@ -18,7 +18,7 @@ utility, uses only the exported "darwinports" API.
 ports (ie, dportexec/dportopen/dportget). Also, the API has very little
 knowledge of the contents of a portfile; instead, it relies entirely upon
 the "port" TCL library. By keeping the high level API simple and generic,
-a revision of the underlying ports system will not neccesarily require
+a revision of the underlying ports system will not necessarily require
 a revision of the high level "darwinports" API.
 
     TCL packages allow for complex versioning with a strong requires/provides
