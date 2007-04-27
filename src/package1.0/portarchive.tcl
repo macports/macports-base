@@ -241,18 +241,18 @@ proc archive_main {args} {
 	}
 
 	# Copy state file into destroot for archiving
-	# +STATE contains a copy of the DP state information
-    set statefile [file join $workpath .darwinports.${portname}.state]
+	# +STATE contains a copy of the MacPorts state information
+    set statefile [file join $workpath .macports.${portname}.state]
 	file copy -force $statefile [file join $destpath "+STATE"]
 
 	# Copy Portfile into destroot for archiving
-	# +PORTFILE contains a copy of the DP Portfile
+	# +PORTFILE contains a copy of the MacPorts Portfile
     set portfile [file join $portpath Portfile]
 	file copy -force $portfile [file join $destpath "+PORTFILE"]
 
 	# Create some informational files that we don't really use just yet,
 	# but we may in the future in order to allow port installation from
-	# archives without a full "dports" tree of Portfiles.
+	# archives without a full "ports" tree of Portfiles.
 	#
 	# Note: These have been modeled after FreeBSD type package files to
 	# start. We can change them however we want for actual future use if

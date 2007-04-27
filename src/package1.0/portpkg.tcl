@@ -141,7 +141,7 @@ proc write_info_plist {infofile portname portversion portrevision} {
 	<key>CFBundleGetInfoString</key>
 	<string>${portname} ${portversion}</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.opendarwin.darwinports.${portname}</string>
+	<string>org.macports.${portname}</string>
 	<key>CFBundleName</key>
 	<string>${portname}</string>
 	<key>CFBundleShortVersionString</key>

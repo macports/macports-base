@@ -283,7 +283,7 @@ proc unarchive_finish {args} {
 	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
 
 	# Reset state file with archive version
-    set statefile [file join $workpath .darwinports.${portname}.state]
+    set statefile [file join $workpath .macports.${portname}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
 	exec touch $statefile
 
