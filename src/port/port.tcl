@@ -1883,19 +1883,20 @@ proc action_portcmds { action portlist opts } {
 	set status 0
 	require_portlist portlist
 	foreachport $portlist {
+		# Verify the portname, getting portinfo to map to a porturl
+		if {[catch {set res [dportsearch $portname no exact]} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			break_softcontinue "search for portname $portname failed: $result" 1 status
+		}
+		if {[llength $res] < 2} {
+			break_softcontinue "Port $portname not found" 1 status
+		}
+		array set portinfo [lindex $res 1]
+
 		# If we have a url, use that, since it's most specific
 		# otherwise try to map the portname to a url
 		if {$porturl == ""} {
-			# Verify the portname, getting portinfo to map to a porturl
-			if {[catch {set res [dportsearch $portname no exact]} result]} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				break_softcontinue "search for portname $portname failed: $result" 1 status
-			}
-			if {[llength $res] < 2} {
-				break_softcontinue "Port $portname not found" 1 status
-			}
-			array set portinfo [lindex $res 1]
 			set porturl $portinfo(porturl)
 		}
 		
@@ -1966,6 +1967,26 @@ proc action_portcmds { action portlist opts } {
 				file {
 					# output the path to the port's portfile
 					puts $portfile
+				}
+
+				homepage {
+					set homepage $portinfo(homepage)
+					if { $homepage != "" } {
+						puts $homepage
+					} elseif { [ui_isset ports_verbose] } {
+						puts "(no homepage)"
+					}
+				}
+
+				gohome {
+					set homepage $portinfo(homepage)
+					if { $homepage != "" } {
+						# TODO we should autoconfigure this, and perhaps leave an option for
+						# a different command to visit the homepage
+						system "/usr/bin/open $homepage"
+					} else {
+						puts "(no homepage)"
+					}
 				}
 			}
 		} else {
@@ -2135,6 +2156,8 @@ array set action_array {
 	cd			action_portcmds
 	url			action_portcmds
 	file		action_portcmds
+	homepage	action_portcmds
+	gohome		action_portcmds
 	
 	depends		action_target
 	fetch		action_target
