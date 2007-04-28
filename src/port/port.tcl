@@ -1969,15 +1969,6 @@ proc action_portcmds { action portlist opts } {
 					puts $portfile
 				}
 
-				homepage {
-					set homepage $portinfo(homepage)
-					if { $homepage != "" } {
-						puts $homepage
-					} elseif { [ui_isset ports_verbose] } {
-						puts "(no homepage)"
-					}
-				}
-
 				gohome {
 					set homepage $portinfo(homepage)
 					if { $homepage != "" } {
@@ -2156,7 +2147,6 @@ array set action_array {
 	cd			action_portcmds
 	url			action_portcmds
 	file		action_portcmds
-	homepage	action_portcmds
 	gohome		action_portcmds
 	
 	depends		action_target
