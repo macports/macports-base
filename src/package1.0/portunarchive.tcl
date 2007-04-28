@@ -283,12 +283,12 @@ proc unarchive_finish {args} {
 	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
 
 	# Reset state file with archive version
-    set statefile [file join $workpath .darwinports.${portname}.state]
+	set statefile [file join $workpath .darwinports.${portname}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
 	exec touch $statefile
 
-    # Update the state from unpacked archive version
-    set target_state_fd [open_statefile]
+	# Update the state from unpacked archive version
+	set target_state_fd [open_statefile]
 
 	# Archive unpacked, skip archive target
 	write_statefile target "com.apple.archive" $target_state_fd
@@ -303,4 +303,3 @@ proc unarchive_finish {args} {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
 	return 0
 }
-
