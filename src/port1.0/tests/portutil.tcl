@@ -2,13 +2,11 @@
 # Requires r/w access to /tmp
 # MacPorts must be installed for this to work
 
-#I'm sure there's a way to abstract the path to the MacPorts Tcl package dir, but I can't remember it at the moment...
-catch {source [file join /Library Tcl macports1.0 macports_fastload.tcl]}
+package require macports
+mportinit
+
 # load the current copy of portutil instead of the installed one
 source [file dirname [info script]]/../portutil.tcl
-package require macports
-
-mportinit
 
 # end boilerplate
 
