@@ -93,8 +93,8 @@ proc create_portpkg {} {
 	
     set dirname "portpkg"
     set dirpath "${workpath}/${dirname}"
-    set pkgpath "${workpath}/portpkg.xar"
-    set metaname "portpkg.meta"
+    set pkgpath "${workpath}/${portname}.portpkg"
+    set metaname "portpkg_meta.xml"
     set metapath "${workpath}/${metaname}"
     
     # Expose and default some global variables
@@ -165,21 +165,40 @@ proc create_portpkg {} {
 		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $portname]
     }
     
-    return
+    return ${pkgpath}
 }
 
 
 proc submit_main {args} {
-    global portname portversion prefix UI_PREFIX workpath portpath
+    global mp_remote_submit_url portname portversion prefix UI_PREFIX workpath portpath
+    
+    set submiturl $mp_remote_submit_url
   
    	# Create portpkg.xar in the work directory
-   	create_portpkg
+   	set pkgpath [create_portpkg]
    	
    	# If a private key was provided, create a signed digest of the submission
    	# TODO
    	
    	# Submit to the submit url
-   	
+    set args "curl"
+    lappend args "--silent "
+    lappend args "--url ${submiturl}"
+    lappend args "--output ${workpath}/.portsubmit.out"
+    lappend args "-F machine=true"
+    lappend args "-F portpkg=@${pkgpath}"
+    #lappend args "-F signeddigest=${digest}"
+    set cmd [join $args]
+
+    ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
+
+    ui_debug $cmd
+    if {[system $cmd] != ""} {
+		return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
+    }
+
+    ui_msg "Submission complete."
+
    	# 
     return
     
