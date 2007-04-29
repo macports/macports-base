@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2006 Markus W. Weissmann <mww@opendarwin.org>
+# Copyright (c) 2006 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 package provide portutil 1.0
 package require Pextlib 1.0
-package require darwinports_dlist 1.0
+package require macports_dlist 1.0
 package require msgcat
 package require porttrace 1.0
 
@@ -1214,7 +1214,7 @@ proc open_statefile {args} {
 	file mkdir $workpath
     }
     # flock Portfile
-    set statefile [file join $workpath .darwinports.${portname}.state]
+    set statefile [file join $workpath .macports.${portname}.state]
     if {[file exists $statefile]} {
 	if {![file writable $statefile]} {
 	    return -code error "$statefile is not writable - check permission on port directory"
@@ -1567,7 +1567,7 @@ proc portexec_int {portname target {newworkpath ""}} {
     # Escape regex special characters
     regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string 
     
-    set res [dport_search ^$search_string\$]
+    set res [mport_search ^$search_string\$]
     if {[llength $res] < 2} {
         ui_error "Dependency $portname not found"
         return -1
@@ -1575,20 +1575,20 @@ proc portexec_int {portname target {newworkpath ""}} {
     
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
-    if {[catch {set worker [dport_open $porturl [array get options] $variations]} result]} {
+    if {[catch {set worker [mport_open $porturl [array get options] $variations]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
         ui_error "Opening $portname $target failed: $result"
         return -1
     }
-    if {[catch {dport_exec $worker $target} result] || $result != 0} {
+    if {[catch {mport_exec $worker $target} result] || $result != 0} {
 		global errorInfo
 		ui_debug "$errorInfo"
         ui_error "Execution $portname $target failed: $result"
-        dport_close $worker
+        mport_close $worker
         return -1
     }
-    dport_close $worker
+    mport_close $worker
     
     return 0
 }

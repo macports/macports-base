@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2004, 2005 Markus W. Weissman <mww@opendarwin.org>,
+# Copyright (c) 2004, 2005 Markus W. Weissman <mww@macports.org>,
 # Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
 # All rights reserved.
 #
@@ -204,7 +204,7 @@ proc startupitem_create_darwin_systemstarter {args} {
 
 }
 	puts ${item} "prefix=$prefix"
-	# Source the utilities package and the darwinports config file
+	# Source the utilities package and the MacPorts config file
 	puts ${item} {[ -r "/etc/rc.common" ] && . "/etc/rc.common"}
 	puts ${item} {[ -r "${prefix}/etc/rc.conf" ] && . "${prefix}/etc/rc.conf"}
 

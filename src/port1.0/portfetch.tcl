@@ -87,7 +87,7 @@ default fetch.use_epsv "yes"
 # Ignore SSL certificate
 default fetch.ignore_sslcert "no"
 
-default fallback_mirror_site "opendarwin"
+default fallback_mirror_site "macports"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 

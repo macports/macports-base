@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2004 Markus W. Weissman <mww@opendarwin.org>,
+# Copyright (c) 2004 Markus W. Weissman <mww@macports.org>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

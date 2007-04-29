@@ -32,7 +32,7 @@
 # standard package load
 package provide port 1.0
 
-package require dp_package 1.0
+package require mp_package 1.0
 package require portmain 1.0
 package require portdepends 1.0
 package require portfetch 1.0
