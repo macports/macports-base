@@ -2,7 +2,7 @@
  * compat.h
  * $Id$
  *
- * Copyright (c) 2004 Paul Guyot, Darwinports Team.
+ * Copyright (c) 2004 Paul Guyot, MacPorts Team.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Darwinports Team nor the names of its contributors
+ * 3. Neither the name of MacPorts Team nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
