@@ -6,6 +6,12 @@
 
 (unreleased):
 
+    - variable tracing now works in a much better way and handles unsets properly.
+      Similarly, ${option}-delete now works better. Depends validation no longer
+      attempts to validate when the variable is unset. Additionally, the validation
+      now actually validates each depspec instead of simply finding a single spec
+      within the list that works (ticket #11868, eridius r24678).
+
     - macports infrastructure now easier to use from scripts.
       ui_prefix and ui_channels have default implementations, and
       all arguments to dportinit are now optional (ticket #11837, eridius r24460).
