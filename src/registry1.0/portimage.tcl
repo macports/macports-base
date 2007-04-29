@@ -95,7 +95,7 @@ proc activate {name v optionslist} {
 			set	ivariants [lindex $i 3]
 			set iactive [lindex $i 4]
 			if { ![string equal ${iversion}_${irevision}${ivariants} ${version}_${revision}${variants}] && $iactive == 1 } {
-				return -code error "Image error: Another version of $iname (${iversion}_${irevision}${ivariants}) is already active."
+				return -code error "Image error: Another version of this port ($iname @${iversion}_${irevision}${ivariants}) is already active."
 			}
 		}
 	}
@@ -103,13 +103,13 @@ proc activate {name v optionslist} {
 	set ref [registry::open_entry $name $version $revision $variants]
 	
 	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} not installed as an image."
+		return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
 	}
 	if { [registry::property_retrieve $ref active] != 0 } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} is already active."
+		return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
 	} 
 	if { [registry::property_retrieve $ref compact] != 0 } {
-		return -code error "Image error: ${name} ${version}_${revision}${variants} is compactd."
+		return -code error "Image error: ${name} @${version}_${revision}${variants} is compactd."
 	} 
 
 	set imagedir [registry::property_retrieve $ref imagedir]
@@ -162,13 +162,13 @@ proc deactivate {name v optionslist} {
 	set ref [registry::open_entry $name $version $revision $variants]
 
 	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} ${fqversion} not installed as an image."
+		return -code error "Image error: ${name} @${fqversion} not installed as an image."
 	}
 	if { [registry::property_retrieve $ref active] != 1 } {
-		return -code error "Image error: ${name} ${fqversion} is not active."
+		return -code error "Image error: ${name} @${fqversion} is not active."
 	} 
 	if { [registry::property_retrieve $ref compact] != 0 } {
-		return -code error "Image error: ${name} ${fqversion} is compactd."
+		return -code error "Image error: ${name} @${fqversion} is compactd."
 	} 
 
 	set imagedir [registry::property_retrieve $ref imagedir]
