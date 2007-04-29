@@ -33,14 +33,14 @@
 package provide portimage 1.0
 
 package require registry 1.0
-package require darwinports 1.0
+package require macports 1.0
 package require Pextlib 1.0
 
 set UI_PREFIX "--> "
 
 #
 # Port Images are basically just installations of the destroot of a port into
-# ${darwinports::registry.path}/software/${name}/${version}_${revision}${variants}
+# ${macports::registry.path}/software/${name}/${version}_${revision}${variants}
 # They allow the user to instal multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
@@ -69,7 +69,7 @@ namespace export force
 	
 # Activate a "Port Image"	
 proc activate {name v optionslist} {
-	global darwinports::prefix darwinports::registry.path UI_PREFIX
+	global macports::prefix macports::registry.path UI_PREFIX
 	array set options $optionslist
 	variable force
 
@@ -303,7 +303,7 @@ proc _activate_list {flist imagedir} {
 
 proc _activate_contents {name imagefiles imagedir} {
 	variable force
-	global darwinports::prefix
+	global macports::prefix
 
 	set files [list]
 	
@@ -332,7 +332,7 @@ proc _activate_contents {name imagefiles imagedir} {
 		} elseif { [file exists $file] && $force != 1 } {
 			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
 		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
-			set bakfile ${file}.dp_[clock seconds]
+			set bakfile ${file}.mp_[clock seconds]
 
 			if {[file exists $file]} {
 				ui_warn "File $file already exists.  Moving to: $bakfile."
