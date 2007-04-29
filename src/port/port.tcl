@@ -1972,9 +1972,7 @@ proc action_portcmds { action portlist opts } {
 				gohome {
 					set homepage $portinfo(homepage)
 					if { $homepage != "" } {
-						# TODO we should autoconfigure this, and perhaps leave an option for
-						# a different command to visit the homepage
-						system "/usr/bin/open $homepage"
+						system "${darwinports::autoconf::open_path} $homepage"
 					} else {
 						puts "(no homepage)"
 					}

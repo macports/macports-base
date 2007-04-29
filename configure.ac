@@ -21,6 +21,7 @@ AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(XAR, [xar], [])
+AC_PATH_PROG(OPEN, [open], [])
 
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(MTREE, [path to mtree command])
@@ -30,6 +31,7 @@ AC_ARG_VAR(TAR, [path to tar command])
 AC_ARG_VAR(GNUTAR, [path to gnutar command])
 AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(XAR, [path to xar command])
+AC_ARG_VAR(OPEN, [path to open command])
 
 OD_TAR_NO_SAME_OWNER
 

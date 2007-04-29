@@ -33,4 +33,5 @@ package provide darwinports 1.0
 namespace eval darwinports::autoconf {
 	variable dports_conf_path "@PORTCONFIGDIR_EXPANDED@"
 	variable rsync_path "@RSYNC@"
+	variable open_path "@OPEN@"
 }
