@@ -10,10 +10,10 @@ diff -ru src/thread2.6/Makefile.in src/thread2.6.mine/Makefile.in
  
  bindir		= @bindir@
 -libdir		= @libdir@
-+libdir		= @prefix@/share/darwinports/Tcl
++libdir		= @prefix@/share/macports/Tcl
  datadir		= @datadir@
 -mandir		= @mandir@
-+mandir		= @prefix@/share/darwinports/man
++mandir		= @prefix@/share/macports/man
  includedir	= @includedir@
  
  DESTDIR		=
