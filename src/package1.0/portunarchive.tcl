@@ -197,9 +197,9 @@ proc unarchive_command_setup {args} {
 				ui_debug "Using $tar"
 				set unarchive.cmd "$tar"
 				set unarchive.pre_args {-xvpf}
-				if {[regexp {z$} ${unarchive.type}]} {
+				if {[regexp {z2?$} ${unarchive.type}]} {
 					set unarchive.args {-}
-					if {[regexp {bz$} ${unarchive.type}]} {
+					if {[regexp {bz2?$} ${unarchive.type}]} {
 						set gzip "bzip2"
 					} else {
 						set gzip "gzip"
