@@ -41,13 +41,15 @@ namespace eval darwinports {
     	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
-    	rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    	rsync_dir startupitem_type xcodeversion xcodebuildcmd \
+    	mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
     	portdbpath portpath portbuildpath auto_path prefix portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type \
+    	mp_remote_url mp_remote_submit_url \
     	$user_options"
     
     # deferred options are only computed when needed.
@@ -496,6 +498,16 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists startupitem_type]} {
     	set darwinports::startupitem_type "default"
     	global darwinports::startupitem_type
+    }
+    
+    # Default mp remote options
+    if {![info exists mp_remote_url]} {
+    	set darwinports::mp_remote_url "http://db.macports.org"
+    	global darwinports::mp_remote_url
+    }
+    if {![info exists mp_remote_submit_url]} {
+    	set darwinports::mp_remote_submit_url "${darwinports::mp_remote_url}/submit"
+    	global darwinports::mp_remote_submit_url
     }
     
     # ENV cleanup.
