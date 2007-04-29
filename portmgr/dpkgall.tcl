@@ -2,7 +2,7 @@
 # dpkgbuild.tcl
 # $Id$
 #
-# Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
+# Copyright (c) 2004 Landon Fuller <landonf@macports.org>
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
