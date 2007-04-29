@@ -2,12 +2,11 @@
 # Requires r/w access to /tmp
 # MacPorts must be installed for this to work
 
-catch {source /Library/Tcl/darwinports1.0/darwinports_fastload.tcl}
+package require darwinports
+dportinit
+
 # load the current copy of portutil instead of the installed one
 source [file dirname [info script]]/../portutil.tcl
-package require darwinports
-
-dportinit
 
 # end boilerplate
 
