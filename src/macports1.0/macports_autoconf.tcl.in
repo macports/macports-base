@@ -33,4 +33,5 @@ package provide macports 1.0
 namespace eval macports::autoconf {
 	variable mports_conf_path "@MPCONFIGDIR_EXPANDED@"
 	variable rsync_path "@RSYNC@"
+        variable open_path "@OPEN@"
 }
