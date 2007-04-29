@@ -40,7 +40,7 @@ set com.apple.activate [target_new com.apple.activate activate_main]
 target_runtype ${com.apple.activate} always
 target_state ${com.apple.activate} no
 target_provides ${com.apple.activate} activate
-if {[option portarchivemode] == "yes"} {
+if {[info exists darwinports::portarchivemode] && $darwinports::portarchivemode == "yes"} {
 	target_requires ${com.apple.activate} main unarchive fetch extract checksum patch configure build destroot archive install
 } else {
 	target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install

@@ -37,7 +37,7 @@ package require portutil 1.0
 set com.apple.install [target_new com.apple.install install_main]
 target_state ${com.apple.install} no
 target_provides ${com.apple.install} install
-if {[option portarchivemode] == "yes"} {
+if {[info exists darwinports::portarchivemode] && $darwinports::portarchivemode == "yes"} {
 	target_requires ${com.apple.install} main unarchive fetch extract checksum patch configure build destroot archive
 } else {
 	target_requires ${com.apple.install} main fetch extract checksum patch configure build destroot
