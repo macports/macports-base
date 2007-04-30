@@ -170,7 +170,7 @@ proc create_portpkg {} {
 
 
 proc submit_main {args} {
-    global mp_remote_submit_url portname portversion prefix UI_PREFIX workpath portpath
+    global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
     
     set submiturl $mp_remote_submit_url
   
@@ -182,7 +182,7 @@ proc submit_main {args} {
    	
    	# Submit to the submit url
     set args "curl"
-    lappend args "--silent "
+    lappend args "--silent"
     lappend args "--url ${submiturl}"
     lappend args "--output ${workpath}/.portsubmit.out"
     lappend args "-F machine=true"
@@ -190,16 +190,41 @@ proc submit_main {args} {
     #lappend args "-F signeddigest=${digest}"
     set cmd [join $args]
 
-    ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
+    if {[tbool portverbose]} {
+    	ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
+    }
 
     ui_debug $cmd
     if {[system $cmd] != ""} {
-		return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
+		return -code error [format [msgcat::mc "Failure during submit of port %s"] $portname]
     }
 
-    ui_msg "Submission complete."
+	# Parse the result
+	set fd [open ${workpath}/.portsubmit.out r]
+	array set result [list]
+	while {[gets $fd line] != -1} {
+		regexp -- {^([^:]+):\s*(.*)$} $line unused key value
+		set result($key) $value
+	}
+	close $fd
+	
+	# Interpret and act on the result
+	if {[info exists result(MESSAGE)] && [tbool portverbose]} {
+		ui_msg $result(MESSAGE)
+	}
+	if {[info exists result(STATUS)]} {
+		if { $result(STATUS) == 0 } {
+			if {[info exists result(URL)]} {
+				ui_msg "Submitted $portname port is available at\n ==> $result(URL)"
+			}
+			
+		} else {
+			return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
+		}
+	} else {
+		return -code error [format [msgcat::mc "Status not received during submit of port %s"] $portname]
+	}
 
-   	# 
     return
     
     # REMNANTS OF KEVIN'S CODE
