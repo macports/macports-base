@@ -1,26 +1,15 @@
-#!/bin/sh
-#\
-exec /usr/bin/tclsh "$0" "$@"
-
-# Updates the distfiles to current distfiles by deleting old stuff.
-# Uses the database.
-# $Id: portmirror.tcl 24631 2007-04-29 05:35:59Z jmpp@macports.org $
+#!/usr/bin/env tclsh
 
 # TODO:
-#	- autoconfigurize the tcl path
 #	- don't use a hard-coded db location
-#	- search path is hardcoded at the moment
 
-
-catch {source \
-	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
 package require sqlite3
 
 
 proc open_db {} {
 	# Open/create our database
-	sqlite3 db "/Users/jberry/autosubmit.sqlite3"
+	sqlite3 db "/Users/jberry/autosubmit.db"
 	db timeout 10000
 	if { [llength [db eval {pragma table_info('SubmitInfo')}]] == 0 } {
 		db eval {
@@ -44,7 +33,7 @@ proc sql_date { datetime } {
 
 
 proc check_ports {} {
-	if {[catch {set res [dportsearch "^commons-.*\$"]} result]} {
+	if {[catch {set res [dportsearch "^.*\$"]} result]} {
 		puts "port search failed: $result"
 		exit 1
 	}
@@ -74,6 +63,7 @@ proc check_ports {} {
 			if { [llength $values] == 0 } {
 				puts "submitting ${name}"
 				
+				# Open the port
 				if {[catch {set workername [dportopen $porturl]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
@@ -81,14 +71,19 @@ proc check_ports {} {
 					continue
 				}
 				
+				# Submit the port
 				if {[catch {set result [dportexec $workername submit]} result]} {
 					global errorInfo
 					dportclose $workername
 					ui_debug "$errorInfo"
 					puts "Unable to execute port: $result"
+					
+					# Cleanup
+					dportclose $workername
 					continue
 				}
 		
+				# Close the port
 				dportclose $workername
 		
 				# Update the date in the database for this item
