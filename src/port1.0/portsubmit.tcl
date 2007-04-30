@@ -215,11 +215,12 @@ proc submit_main {args} {
 	}
 	if {[info exists result(STATUS)]} {
 		if { $result(STATUS) == 0 } {
-			if {[info exists result(URL)]} {
-				ui_msg "Submitted $portname portpkg is available for download at: $result(URL)"
+			ui_msg "$portname portpkg was submitted"
+			if {[info exists result(DOWNLOAD_URL)]} {
+				ui_msg "download URL: $result(DOWNLOAD_URL)"
 			}
-			if {[info exists result(PORTPKGURL)]} {
-				ui_msg "The human readable portpkg page is at: $result(PORTPKGURL)"
+			if {[info exists result(HUMAN_URL)]} {
+				ui_msg "human readable URL: $result(HUMAN_URL)"
 			}
 		} else {
 			return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
