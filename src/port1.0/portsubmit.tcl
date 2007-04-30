@@ -203,8 +203,9 @@ proc submit_main {args} {
 	set fd [open ${workpath}/.portsubmit.out r]
 	array set result [list]
 	while {[gets $fd line] != -1} {
-		regexp -- {^([^:]+):\s*(.*)$} $line unused key value
-		set result($key) $value
+		if {0 != [regexp -- {^([^:]+):\s*(.*)$} $line unused key value]} {
+			set result($key) $value
+		}
 	}
 	close $fd
 	
@@ -215,9 +216,11 @@ proc submit_main {args} {
 	if {[info exists result(STATUS)]} {
 		if { $result(STATUS) == 0 } {
 			if {[info exists result(URL)]} {
-				ui_msg "Submitted $portname port is available at\n ==> $result(URL)"
+				ui_msg "Submitted $portname portpkg is available for download at: $result(URL)"
 			}
-			
+			if {[info exists result(PORTPKGURL)]} {
+				ui_msg "The human readable portpkg page is at: $result(PORTPKGURL)"
+			}
 		} else {
 			return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
 		}
