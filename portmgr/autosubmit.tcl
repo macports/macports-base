@@ -6,6 +6,12 @@ exec /usr/bin/tclsh "$0" "$@"
 # Uses the database.
 # $Id: portmirror.tcl 24631 2007-04-29 05:35:59Z jmpp@macports.org $
 
+# TODO:
+#	- autoconfigurize the tcl path
+#	- don't use a hard-coded db location
+#	- search path is hardcoded at the moment
+
+
 catch {source \
 	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
 package require darwinports
@@ -54,7 +60,7 @@ proc check_ports {} {
 		}
 		
 		set porturl $portinfo(porturl)
-		if { 0 && 0 != [regexp {file://(.*)} $porturl match path] } {
+		if { 0 != [regexp {file://(.*)} $porturl match path] } {
 			set portdir [file normalize $path]
 		} else {
 			set portdir [file normalize [darwinports::getportdir $porturl]]
@@ -85,7 +91,7 @@ proc check_ports {} {
 		
 				dportclose $workername
 		
-				
+				# Update the date in the database for this item
 				db eval { insert or replace into submitinfo (porturl,lastsubmit) values ($porturl, $moddate) }
 			}
 		}
