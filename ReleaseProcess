@@ -133,14 +133,10 @@ In order to make the release version available through selfupdate, the base/conf
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
 * The macports-users@lists.macosforge.org and macports-dev@lists.macosforge.org mailing lists.
-* Apple's [http://www.apple.com/downloads/macosx/unix_open_source/darwinports.html Mac OS X software download page] (submitter: mww@)
-* [http://freshmeat.net/projects/darwinports/ Freshmeat] (submitter: mww@)
+* Apple's [http://www.apple.com/downloads/macosx/unix_open_source/darwinports.html Mac OS X software downloads page] (submitter: mww@) (we're currently not listed there, so this link is invalid)
+* [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
 * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
 * (Where else? -- MacUpdate?)
-(Following three locations --last two being leftovers from darwinports days-- need to be carefully thought out and reworked in view of a much --*URGENTLY*-- needed website redesign!!!)
-* Wordpress news section at the main MacPorts site, www.macports.org
-* The [http://www.darwinports.org/getdp/ getdp] and [http://www.darwinports.org/ main] sites (the "$dp_version" variable in the includes/common.inc file for the main English site --www/includes/common.inc-- and each localization has to be updated with the release version)
-* The darwinports wiki (updating the "Current DarwinPorts release" line on the [[DarwinPorts|main]] page)
 
 
 == Additional Release Resources ==
