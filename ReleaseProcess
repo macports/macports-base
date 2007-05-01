@@ -40,7 +40,7 @@ For each major release (i.e. 1.3.x, 1.4.x, etc.) an appropriate branch is create
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all live on this branch, and tagged appropriately and if necessary (a must for the actual releases, optional for beta snapshots) into the /tags svn directory.
 
-Only the base subdirectory, not the dports subdirectory, is branched for a given release.
+Only the base subdirectory, not the ports subdirectory, is branched for a given release.
 
 
 === Prepare the code for Release ===
