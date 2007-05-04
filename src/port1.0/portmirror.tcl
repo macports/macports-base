@@ -38,12 +38,12 @@ package require Pextlib 1.0
 package require portfetch 1.0
 package require portchecksum 1.0
 
-set com.apple.mirror [target_new com.apple.mirror mirror_main]
-target_runtype ${com.apple.mirror} always
-target_state ${com.apple.mirror} no
-target_provides ${com.apple.mirror} mirror
-target_requires ${com.apple.mirror} main
-#target_parallel ${com.apple.mirror} yes
+set org.macports.mirror [target_new org.macports.mirror mirror_main]
+target_runtype ${org.macports.mirror} always
+target_state ${org.macports.mirror} no
+target_provides ${org.macports.mirror} mirror
+target_requires ${org.macports.mirror} main
+#target_parallel ${org.macports.mirror} yes
 
 # Mirror is a target that fetches & checksums files and delete them
 # if the checksum isn't correct.

@@ -33,10 +33,10 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-set com.apple.configure [target_new com.apple.configure configure_main]
-target_provides ${com.apple.configure} configure
-target_requires ${com.apple.configure} main fetch extract checksum patch
-target_prerun ${com.apple.configure} configure_start
+set org.macports.configure [target_new org.macports.configure configure_main]
+target_provides ${org.macports.configure} configure
+target_requires ${org.macports.configure} main fetch extract checksum patch
+target_prerun ${org.macports.configure} configure_start
 
 # define options
 commands configure automake autoconf xmkmf libtool

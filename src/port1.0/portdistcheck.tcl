@@ -36,11 +36,11 @@ package provide portdistcheck 1.0
 package require portutil 1.0
 package require portfetch 1.0
 
-set com.apple.distcheck [target_new com.apple.distcheck distcheck_main]
-target_runtype ${com.apple.distcheck} always
-target_state ${com.apple.distcheck} no
-target_provides ${com.apple.distcheck} distcheck
-target_requires ${com.apple.distcheck} main
+set org.macports.distcheck [target_new org.macports.distcheck distcheck_main]
+target_runtype ${org.macports.distcheck} always
+target_state ${org.macports.distcheck} no
+target_provides ${org.macports.distcheck} distcheck
+target_requires ${org.macports.distcheck} main
 
 # define options
 options distcheck.check

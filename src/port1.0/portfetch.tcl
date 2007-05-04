@@ -34,11 +34,11 @@ package provide portfetch 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
-set com.apple.fetch [target_new com.apple.fetch fetch_main]
-target_init ${com.apple.fetch} fetch_init
-target_provides ${com.apple.fetch} fetch
-target_requires ${com.apple.fetch} main
-target_prerun ${com.apple.fetch} fetch_start
+set org.macports.fetch [target_new org.macports.fetch fetch_main]
+target_init ${org.macports.fetch} fetch_init
+target_provides ${org.macports.fetch} fetch
+target_requires ${org.macports.fetch} main
+target_prerun ${org.macports.fetch} fetch_start
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 dist_subdir \

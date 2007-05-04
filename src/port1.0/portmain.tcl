@@ -36,8 +36,8 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-set com.apple.main [target_new com.apple.main main]
-target_provides ${com.apple.main} main
+set org.macports.main [target_new org.macports.main main]
+target_provides ${org.macports.main} main
 
 # define options
 options prefix name version revision epoch categories maintainers

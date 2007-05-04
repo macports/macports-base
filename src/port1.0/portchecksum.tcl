@@ -34,10 +34,10 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-set com.apple.checksum [target_new com.apple.checksum checksum_main]
-target_provides ${com.apple.checksum} checksum
-target_requires ${com.apple.checksum} main fetch
-target_prerun ${com.apple.checksum} checksum_start
+set org.macports.checksum [target_new org.macports.checksum checksum_main]
+target_provides ${org.macports.checksum} checksum
+target_requires ${org.macports.checksum} main fetch
+target_prerun ${org.macports.checksum} checksum_start
 
 # Options
 options checksums checksum.skip

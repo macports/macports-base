@@ -36,11 +36,11 @@ package provide portlivecheck 1.0
 package require portutil 1.0
 package require portfetch 1.0
 
-set com.apple.livecheck [target_new com.apple.livecheck livecheck_main]
-target_runtype ${com.apple.livecheck} always
-target_state ${com.apple.livecheck} no
-target_provides ${com.apple.livecheck} livecheck
-target_requires ${com.apple.livecheck} main
+set org.macports.livecheck [target_new org.macports.livecheck livecheck_main]
+target_runtype ${org.macports.livecheck} always
+target_state ${org.macports.livecheck} no
+target_provides ${org.macports.livecheck} livecheck
+target_requires ${org.macports.livecheck} main
 
 # define options
 options livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version

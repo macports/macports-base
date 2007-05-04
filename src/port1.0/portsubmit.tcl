@@ -33,10 +33,10 @@
 package provide portsubmit 1.0
 package require portutil 1.0
 
-set com.apple.submit [target_new com.apple.submit submit_main]
-target_runtype ${com.apple.submit} always
-target_provides ${com.apple.submit} submit 
-target_requires ${com.apple.submit} main
+set org.macports.submit [target_new org.macports.submit submit_main]
+target_runtype ${org.macports.submit} always
+target_provides ${org.macports.submit} submit 
+target_requires ${org.macports.submit} main
 
 set_ui_prefix
 

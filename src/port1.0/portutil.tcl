@@ -1033,7 +1033,7 @@ proc target_run {ditem} {
 			# Something to close the registry entry may be called here, if it existed.
 		# 3rd case: the same port/version/revision/Variants is already active
 		# and user didn't mention -f
-		} elseif {$name == "com.apple.activate"
+		} elseif {$name == "org.macports.activate"
 			&& [registry_exists $portname $portversion $portrevision $portvariants]
 			&& !([info exists ports_force] && $ports_force == "yes")} {
 			

@@ -33,9 +33,9 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-set com.apple.patch [target_new com.apple.patch patch_main]
-target_provides ${com.apple.patch} patch
-target_requires ${com.apple.patch} main fetch checksum extract 
+set org.macports.patch [target_new org.macports.patch patch_main]
+target_provides ${org.macports.patch} patch
+target_requires ${org.macports.patch} main fetch checksum extract 
 
 set_ui_prefix
 

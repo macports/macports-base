@@ -33,11 +33,11 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-set com.apple.extract [target_new com.apple.extract extract_main]
-target_init ${com.apple.extract} extract_init
-target_provides ${com.apple.extract} extract
-target_requires ${com.apple.extract} fetch checksum
-target_prerun ${com.apple.extract} extract_start
+set org.macports.extract [target_new org.macports.extract extract_main]
+target_init ${org.macports.extract} extract_init
+target_provides ${org.macports.extract} extract
+target_requires ${org.macports.extract} fetch checksum
+target_prerun ${org.macports.extract} extract_start
 
 # define options
 options extract.only
