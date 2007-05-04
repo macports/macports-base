@@ -33,10 +33,10 @@
 package provide portmpkg 1.0
 package require portutil 1.0
 
-set com.apple.mpkg [target_new com.apple.mpkg mpkg_main]
-target_runtype ${com.apple.mpkg} always
-target_provides ${com.apple.mpkg} mpkg
-target_requires ${com.apple.mpkg} pkg
+set org.macports.mpkg [target_new org.macports.mpkg mpkg_main]
+target_runtype ${org.macports.mpkg} always
+target_provides ${org.macports.mpkg} mpkg
+target_requires ${org.macports.mpkg} pkg
 
 # define options
 options package.destpath

@@ -33,10 +33,10 @@
 package provide portrpmpackage 1.0
 package require portutil 1.0
 
-set com.apple.rpmpackage [target_new com.apple.rpmpackage rpmpackage_main]
-target_runtype ${com.apple.rpmpackage} always
-target_provides ${com.apple.rpmpackage} rpmpackage
-target_requires ${com.apple.rpmpackage} destroot
+set org.macports.rpmpackage [target_new org.macports.rpmpackage rpmpackage_main]
+target_runtype ${org.macports.rpmpackage} always
+target_provides ${org.macports.rpmpackage} rpmpackage
+target_requires ${org.macports.rpmpackage} destroot
 
 options package.destpath
 

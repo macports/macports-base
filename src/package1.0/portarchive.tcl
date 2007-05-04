@@ -34,12 +34,12 @@
 package provide portarchive 1.0
 package require portutil 1.0
 
-set com.apple.archive [target_new com.apple.archive archive_main]
-target_init ${com.apple.archive} archive_init
-target_provides ${com.apple.archive} archive
-target_requires ${com.apple.archive} main fetch extract checksum patch configure build destroot
-target_prerun ${com.apple.archive} archive_start
-target_postrun ${com.apple.archive} archive_finish
+set org.macports.archive [target_new org.macports.archive archive_main]
+target_init ${org.macports.archive} archive_init
+target_provides ${org.macports.archive} archive
+target_requires ${org.macports.archive} main fetch extract checksum patch configure build destroot
+target_prerun ${org.macports.archive} archive_start
+target_postrun ${org.macports.archive} archive_finish
 
 # defaults
 default archive.dir {${destpath}}
@@ -87,9 +87,9 @@ proc archive_init {args} {
 
 	# Determine if archive should be skipped
 	set skipped 0
-	if {[check_statefile target com.apple.archive $target_state_fd]} {
+	if {[check_statefile target org.macports.archive $target_state_fd]} {
 		return 0
-	} elseif {[check_statefile target com.apple.unarchive $target_state_fd] && ([info exists ports_binary_only] && $ports_binary_only == "yes")} {
+	} elseif {[check_statefile target org.macports.unarchive $target_state_fd] && ([info exists ports_binary_only] && $ports_binary_only == "yes")} {
 		ui_debug "Skipping archive ($portname) since binary-only is set"
 		set skipped 1
 	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
@@ -113,7 +113,7 @@ proc archive_init {args} {
 	}
 	# Skip archive target by setting state
 	if {$skipped == 1} {
-		write_statefile target "com.apple.archive" $target_state_fd
+		write_statefile target "org.macports.archive" $target_state_fd
 	}
 
 	return 0

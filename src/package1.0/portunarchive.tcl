@@ -34,13 +34,13 @@
 package provide portunarchive 1.0
 package require portutil 1.0
 
-set com.apple.unarchive [target_new com.apple.unarchive unarchive_main]
-target_runtype ${com.apple.unarchive} always
-target_init ${com.apple.unarchive} unarchive_init
-target_provides ${com.apple.unarchive} unarchive
-target_requires ${com.apple.unarchive} main
-target_prerun ${com.apple.unarchive} unarchive_start
-target_postrun ${com.apple.unarchive} unarchive_finish
+set org.macports.unarchive [target_new org.macports.unarchive unarchive_main]
+target_runtype ${org.macports.unarchive} always
+target_init ${org.macports.unarchive} unarchive_init
+target_provides ${org.macports.unarchive} unarchive
+target_requires ${org.macports.unarchive} main
+target_prerun ${org.macports.unarchive} unarchive_start
+target_postrun ${org.macports.unarchive} unarchive_finish
 
 # defaults
 default unarchive.dir {${destpath}}
@@ -87,12 +87,12 @@ proc unarchive_init {args} {
 
 	# Determine if unarchive should be skipped
 	set skipped 0
-	if {[check_statefile target com.apple.unarchive $target_state_fd]} {
+	if {[check_statefile target org.macports.unarchive $target_state_fd]} {
 		return 0
 	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
 		ui_debug "Skipping unarchive ($portname) since source-only is set"
 		set skipped 1
-	} elseif {[check_statefile target com.apple.destroot $target_state_fd]} {
+	} elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
 		ui_debug "Skipping unarchive ($portname) since destroot completed"
 		set skipped 1
 	} elseif {[info exists ports_force] && $ports_force == "yes"} {
@@ -133,7 +133,7 @@ proc unarchive_init {args} {
 	}
 	# Skip unarchive target by setting state
 	if {$skipped == 1} {
-		write_statefile target "com.apple.unarchive" $target_state_fd
+		write_statefile target "org.macports.unarchive" $target_state_fd
 	}
 
 	return 0
@@ -291,7 +291,7 @@ proc unarchive_finish {args} {
     set target_state_fd [open_statefile]
 
 	# Archive unpacked, skip archive target
-	write_statefile target "com.apple.archive" $target_state_fd
+	write_statefile target "org.macports.archive" $target_state_fd
     
 	# Cleanup all control files when finished
 	set control_files [glob -nocomplain -types f [file join $destpath +*]]
