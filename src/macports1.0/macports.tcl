@@ -1517,7 +1517,7 @@ proc macports::selfupdate {optionslist} {
 
 proc macports::version {} {
 	global macports::rsync_server macports::rsync_dir
-        global macports::autconf:mports_conf_path
+        global macports::autoconf::mports_conf_path
 	
 	set mp_version_path [file join $mports_conf_path mp_version]
 
