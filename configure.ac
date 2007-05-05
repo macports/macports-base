@@ -15,6 +15,7 @@ AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG(MTREE, [mtree], [])
 AC_PATH_PROG(CVS, [cvs], [])
+AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
@@ -26,6 +27,7 @@ AC_PATH_PROG(OPEN, [open], [])
 # Define some precious variables allowing user to override PATH for some programs
 AC_ARG_VAR(MTREE, [path to mtree command])
 AC_ARG_VAR(CVS, [path to cvs command])
+AC_ARG_VAR(SVN, [path to svn command])
 AC_ARG_VAR(RSYNC, [path to rsync command])
 AC_ARG_VAR(TAR, [path to tar command])
 AC_ARG_VAR(GNUTAR, [path to gnutar command])

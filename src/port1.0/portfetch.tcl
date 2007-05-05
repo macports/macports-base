@@ -67,7 +67,7 @@ default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
-default svn.cmd {svn}
+default svn.cmd {$portutil::autoconf::svn_path}
 default svn.dir {${workpath}}
 default svn.tag ""
 default svn.env {}
