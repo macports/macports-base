@@ -2434,13 +2434,14 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 
 proc process_command_file { in } {
 	global current_portdir
+	global darwinports::autoconf::macports_user_dir
 
 	# Initialize readline
 	set isstdin [string match $in "stdin"]
 	set name "port"
 	set use_readline [expr $isstdin && [readline init $name]]
-	set history_file [file normalize "~/.${name}_history"]
-	
+	set history_file [file normalize "${macports_user_dir}/.history"]
+
 	# Read readline history
 	if {$use_readline} {
 		rl_history read $history_file
