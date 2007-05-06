@@ -1,21 +1,20 @@
 #!/usr/bin/env tclsh
 
-# TODO:
-#	- don't use a hard-coded db location
-
 package require darwinports
 package require sqlite3
 
-
-proc open_db {} {
+proc open_db { db_file } {
 	# Open/create our database
-	sqlite3 db "/Users/jberry/autosubmit.db"
+	sqlite3 db $db_file
 	db timeout 10000
 	if { [llength [db eval {pragma table_info('SubmitInfo')}]] == 0 } {
 		db eval {
 			create table SubmitInfo (
 				porturl text unique,
-				lastsubmit datetime
+				portname text,
+				last_mod_date datetime,
+				submitted_mod_date datetime,
+				submit_date datetime
 			)
 		}
 	}
@@ -32,14 +31,15 @@ proc sql_date { datetime } {
 }
 
 
-proc check_ports {} {
+proc submit_ports {} {
+	global prefix submit_options
+
 	if {[catch {set res [dportsearch "^.*\$"]} result]} {
 		puts "port search failed: $result"
 		exit 1
 	}
 	
 	foreach {name array} $res {
-		global prefix
 		array unset portinfo
 		array set portinfo $array
 	
@@ -58,36 +58,68 @@ proc check_ports {} {
 		puts "checking ${name}"
 	
 		if {[file readable $portfile]} {
-			set moddate [sql_date [file mtime $portfile]]
-			set values [db eval { select * from submitinfo where porturl=$porturl and $moddate <= lastsubmit }]
-			if { [llength $values] == 0 } {
-				puts "submitting ${name}"
+			set mod_date [sql_date [file mtime $portfile]]
+			set cur_date [sql_date [clock seconds]]
+			
+			set post ""
+			set none 1
+			db eval { select * from submitinfo where porturl=$porturl } values {
+				set none 0
 				
-				# Open the port
-				if {[catch {set workername [dportopen $porturl]} result]} {
-					global errorInfo
-					ui_debug "$errorInfo"
-					puts "Unable to open port: $result"
-					continue
-				}
+				if { $values(last_mod_date) == "" || $values(last_mod_date) != $mod_date } {
 				
-				# Submit the port
-				if {[catch {set result [dportexec $workername submit]} result]} {
-					global errorInfo
+					# The last_mod_date has changed, so just update it to provide
+					# hysteresis for file changes
+					puts "    update ${name} mod date to $mod_date"
+					set post { update submitinfo set last_mod_date=$mod_date where porturl=$porturl }				
+				
+				} elseif { $values(submitted_mod_date) != $mod_date } {
+				
+					# last_mod_date is correct and stable, but has not yet been submitted
+					# so let's submit it
+	
+					# Open the port
+					set err 0
+					if {[catch {set workername [dportopen $porturl [array get submit_options]]} result]} {
+						global errorInfo
+						ui_debug "$errorInfo"
+						puts "Unable to open port: $result"
+						set err 1
+					}
+	
+					# Submit the port
+					if { !$err && [catch {set result [dportexec $workername submit]} result]} {
+						global errorInfo
+						ui_debug "$errorInfo"
+						puts "Unable to execute port: $result"
+						set err 1
+					}
+			
+					# Close the port
 					dportclose $workername
-					ui_debug "$errorInfo"
-					puts "Unable to execute port: $result"
 					
-					# Cleanup
-					dportclose $workername
-					continue
+					# Update the date in the database for this item
+					if { !$err && !$result } {
+						set post { update submitinfo set submitted_mod_date=$mod_date, submit_date=$cur_date where porturl=$porturl }
+					}
+				} else {
+				
+					# The port has already been submitted
+					puts "   submission up to date as of $values(submit_date)"
 				}
-		
-				# Close the port
-				dportclose $workername
-		
-				# Update the date in the database for this item
-				db eval { insert or replace into submitinfo (porturl,lastsubmit) values ($porturl, $moddate) }
+				
+			}
+			
+			if { $none } {
+				# No record yet, so just create a record for this port
+				# Do nothing else yet to provide hysteresis for file changes
+				puts "    set ${name} mod date to $mod_date"
+				set post { insert into submitinfo (porturl,portname,last_mod_date) values ($porturl, $name, $mod_date) }				
+			}
+			
+			# Do update or insert post processing
+			if { $post != "" } {
+				db eval $post
 			}
 		}
 		
@@ -95,8 +127,19 @@ proc check_ports {} {
 }
 
 
+# Globals
+set SUBMITTER_NAME "autosubmit"
+set SUBMITTER_EMAIL "autosubmit@macports.org"
+array set submit_options "submitter_name $SUBMITTER_NAME submitter_email $SUBMITTER_EMAIL"
+
+global darwinports::autoconf::macports_user_dir
+set db_file [file normalize "${darwinports::autoconf::macports_user_dir}/autosubmit.db"]
+
+puts "Using database at $db_file"
+
 # Initialize dports api
 dportinit
-open_db
-check_ports
+
+open_db $db_file
+submit_ports
 close_db
