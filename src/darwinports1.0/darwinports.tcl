@@ -243,6 +243,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
+	global darwinports::autoconf::macports_user_dir
 	global darwinports::bootstrap_options
 	global darwinports::user_options
 	global darwinports::extra_env
@@ -265,13 +266,16 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
    	
+    # Ensure that the macports user directory exists
+    file mkdir $macports_user_dir
+    
    	# Configure the search path for configuration files
    	set conf_files ""
     if {[llength [array names env PORTSRC]] > 0} {
 		set PORTSRC [lindex [array get env PORTSRC] 1]
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "~/.macports/ports.conf" "${dports_conf_path}/ports.conf"
+    lappend conf_files "${macports_user_dir}/ports.conf" "${dports_conf_path}/ports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
@@ -296,7 +300,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
 	# Process per-user only settings
-	set per_user "~/.macports/user.conf"
+	set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
 		while {[gets $fd line] >= 0} {
@@ -310,7 +314,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
+        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in $macports_user_dir/ports.conf"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
