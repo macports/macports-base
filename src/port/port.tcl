@@ -2440,7 +2440,7 @@ proc process_command_file { in } {
 	set isstdin [string match $in "stdin"]
 	set name "port"
 	set use_readline [expr $isstdin && [readline init $name]]
-	set history_file [file normalize "${macports_user_dir}/.history"]
+	set history_file [file normalize "${macports_user_dir}/history"]
 
 	# Read readline history
 	if {$use_readline} {
