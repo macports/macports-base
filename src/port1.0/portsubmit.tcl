@@ -42,9 +42,9 @@ set_ui_prefix
 
 
 proc xar_path {args} {
-	global prefix 
+	global prefix_frozen
     set xar ""
-    foreach path "${portutil::autoconf::xar_path} ${prefix}/bin/xar xar" {
+    foreach path "${portutil::autoconf::xar_path} ${prefix_frozen}/bin/xar xar" {
  	if { [file executable ${path}] } {
  	   	  set xar $path
  	      break;
@@ -182,8 +182,7 @@ proc submit_main {args} {
    	# Create portpkg.xar in the work directory
    	set pkgpath [create_portpkg]
    	
-   	# If a private key was provided, create a signed digest of the submission
-   	# TODO
+   	# TODO: If a private key was provided, create a signed digest of the submission
    	
    	# Submit to the submit url
     set args "curl"
