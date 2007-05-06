@@ -32,7 +32,7 @@ proc sql_date { datetime } {
 
 
 proc submit_ports {} {
-	global prefix submit_options
+	global prefix submit_options verbose
 
 	if {[catch {set res [dportsearch "^.*\$"]} result]} {
 		puts "port search failed: $result"
@@ -55,7 +55,7 @@ proc submit_ports {} {
 			set portdir [file normalize [darwinports::getportdir $porturl]]
 		}
 		set portfile "${portdir}/Portfile"
-		puts "checking ${name}"
+		if { $verbose } { puts "checking ${name}" }
 	
 		if {[file readable $portfile]} {
 			set mod_date [sql_date [file mtime $portfile]]
@@ -70,7 +70,7 @@ proc submit_ports {} {
 				
 					# The last_mod_date has changed, so just update it to provide
 					# hysteresis for file changes
-					puts "    update ${name} mod date to $mod_date"
+					if { $verbose } { puts "    update ${name} mod date to $mod_date" }
 					set post { update submitinfo set last_mod_date=$mod_date where porturl=$porturl }				
 				
 				} elseif { $values(submitted_mod_date) != $mod_date } {
@@ -105,7 +105,7 @@ proc submit_ports {} {
 				} else {
 				
 					# The port has already been submitted
-					puts "   submission up to date as of $values(submit_date)"
+					if { $verbose } { puts "   submission up to date as of $values(submit_date)" }
 				}
 				
 			}
@@ -113,7 +113,7 @@ proc submit_ports {} {
 			if { $none } {
 				# No record yet, so just create a record for this port
 				# Do nothing else yet to provide hysteresis for file changes
-				puts "    set ${name} mod date to $mod_date"
+				if { $verbose } { puts "    set ${name} mod date to $mod_date" }
 				set post { insert into submitinfo (porturl,portname,last_mod_date) values ($porturl, $name, $mod_date) }				
 			}
 			
@@ -135,11 +135,17 @@ array set submit_options "submitter_name $SUBMITTER_NAME submitter_email $SUBMIT
 global darwinports::autoconf::macports_user_dir
 set db_file [file normalize "${darwinports::autoconf::macports_user_dir}/autosubmit.db"]
 
-puts "Using database at $db_file"
+# Do argument processing
+set verbose 0
+if { [lsearch $argv -v] >= 0 } {
+	set verbose 1
+}
 
 # Initialize dports api
 dportinit
 
+# Submit ports
+puts "Using database at $db_file"
 open_db $db_file
 submit_ports
 close_db
