@@ -45,7 +45,7 @@ namespace eval darwinports {
     	mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-    	portdbpath portpath portbuildpath auto_path prefix portsharepath \
+    	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type \
@@ -258,6 +258,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global darwinports::destroot_umask
    	global darwinports::libpath
    	global darwinports::prefix
+   	global darwinports::prefix_frozen
    	global darwinports::registry.installtype
    	global darwinports::rsync_dir
    	global darwinports::rsync_options
@@ -423,6 +424,10 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		}
 	}
 
+    # Duplicate prefix into prefix_frozen, to that port actions
+    # can always get to the original prefix, even if a portfile overrides prefix
+    set darwinports::prefix_frozen $prefix
+    
 	# Export verbosity.
 	if {![info exists portverbose]} {
 		set darwinports::portverbose "no"
