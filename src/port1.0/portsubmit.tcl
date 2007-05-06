@@ -153,7 +153,11 @@ proc create_portpkg {} {
 			putel $sd long_description $long_description
 		
 			# TODO: variants has platforms in it
-			putlist $sd variants variant $PortInfo(variants)
+			if {[info exists PortInfo(variants)]} {
+				putlist $sd variants variant $PortInfo(variants)
+			} else {
+				putel $sd variants ""
+			}
 			
 			# TODO: Dependencies and platforms
 			#putel $sd dependencies ""
