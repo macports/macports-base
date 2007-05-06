@@ -220,12 +220,12 @@ proc submit_main {args} {
 	}
 	if {[info exists result(STATUS)]} {
 		if { $result(STATUS) == 0 } {
-			ui_msg "$portname portpkg was submitted"
+			ui_msg "Submitted portpkg for $portname"
 			if {[info exists result(DOWNLOAD_URL)]} {
-				ui_msg "download URL: $result(DOWNLOAD_URL)"
+				ui_msg "    download URL => $result(DOWNLOAD_URL)"
 			}
 			if {[info exists result(HUMAN_URL)]} {
-				ui_msg "human readable URL: $result(HUMAN_URL)"
+				ui_msg "    human readable URL => $result(HUMAN_URL)"
 			}
 		} else {
 			return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
