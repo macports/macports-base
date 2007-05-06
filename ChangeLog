@@ -58,6 +58,16 @@
     - Revise error messages in port image activation to use syntax that
       matches port(1). (jberry r24543, r24548).
 
+    - Create new interp variable prefix_frozen, which is available to port phases
+      even when the Portfile redefines prefix. (jberry r24848-r24849)
+      
+    - Search for prefix-relative commands in prefix_frozen rather than prefix.
+      Affects port submit (xar) and port fetch (svn). (jberry r24849)
+
+    - Always create a ~/.macports user directory if it doesn't yet exist. (jberry r24831)
+    
+    - Move port(1) readline history file to ~/.macports/history (jberry r24832, r24843)
+
 Release 1.4.3 (17-Apr-2007):
 
     - Fix bug in launchd support, introduced in 1.4.2. Remove remnants of
