@@ -122,6 +122,11 @@ proc create_portpkg {} {
         file copy files ${dirpath}
     }
     
+    # Preconditions for submit
+    if {$submitter_email == ""} {
+		return -code error [format [msgcat::mc "Submitter email is required to submit a port"]]
+    }
+
     # Create the metadata subdoc
     set sd [open ${metapath} w]
     puts $sd "<portpkg version='1'>"
