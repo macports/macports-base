@@ -93,8 +93,8 @@ proc create_portpkg {} {
 	
     set dirname "portpkg"
     set dirpath "${workpath}/${dirname}"
-    set pkgpath "${workpath}/portpkg.xar"
-    set metaname "portpkg.meta"
+    set pkgpath "${workpath}/${portname}.portpkg"
+    set metaname "portpkg_meta.xml"
     set metapath "${workpath}/${metaname}"
     
     # Expose and default some global variables
@@ -122,6 +122,11 @@ proc create_portpkg {} {
         file copy files ${dirpath}
     }
     
+    # Preconditions for submit
+    if {$submitter_email == ""} {
+		return -code error [format [msgcat::mc "Submitter email is required to submit a port"]]
+    }
+
     # Create the metadata subdoc
     set sd [open ${metapath} w]
     puts $sd "<portpkg version='1'>"
@@ -148,7 +153,11 @@ proc create_portpkg {} {
 			putel $sd long_description $long_description
 		
 			# TODO: variants has platforms in it
-			putlist $sd variants variant $PortInfo(variants)
+			if {[info exists PortInfo(variants)]} {
+				putlist $sd variants variant $PortInfo(variants)
+			} else {
+				putel $sd variants ""
+			}
 			
 			# TODO: Dependencies and platforms
 			#putel $sd dependencies ""
@@ -165,22 +174,70 @@ proc create_portpkg {} {
 		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $portname]
     }
     
-    return
+    return ${pkgpath}
 }
 
 
 proc submit_main {args} {
-    global portname portversion prefix UI_PREFIX workpath portpath
+    global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
+    
+    set submiturl $mp_remote_submit_url
   
    	# Create portpkg.xar in the work directory
-   	create_portpkg
+   	set pkgpath [create_portpkg]
    	
    	# If a private key was provided, create a signed digest of the submission
    	# TODO
    	
    	# Submit to the submit url
-   	
-   	# 
+    set args "curl"
+    lappend args "--silent"
+    lappend args "--url ${submiturl}"
+    lappend args "--output ${workpath}/.portsubmit.out"
+    lappend args "-F machine=true"
+    lappend args "-F portpkg=@${pkgpath}"
+    #lappend args "-F signeddigest=${digest}"
+    set cmd [join $args]
+
+    if {[tbool portverbose]} {
+    	ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
+    }
+
+    ui_debug $cmd
+    if {[system $cmd] != ""} {
+		return -code error [format [msgcat::mc "Failure during submit of port %s"] $portname]
+    }
+
+	# Parse the result
+	set fd [open ${workpath}/.portsubmit.out r]
+	array set result [list]
+	while {[gets $fd line] != -1} {
+		if {0 != [regexp -- {^([^:]+):\s*(.*)$} $line unused key value]} {
+			set result($key) $value
+		}
+	}
+	close $fd
+	
+	# Interpret and act on the result
+	if {[info exists result(MESSAGE)] && [tbool portverbose]} {
+		ui_msg $result(MESSAGE)
+	}
+	if {[info exists result(STATUS)]} {
+		if { $result(STATUS) == 0 } {
+			ui_msg "Submitted portpkg for $portname"
+			if {[info exists result(DOWNLOAD_URL)]} {
+				ui_msg "    download URL => $result(DOWNLOAD_URL)"
+			}
+			if {[info exists result(HUMAN_URL)]} {
+				ui_msg "    human readable URL => $result(HUMAN_URL)"
+			}
+		} else {
+			return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
+		}
+	} else {
+		return -code error [format [msgcat::mc "Status not received during submit of port %s"] $portname]
+	}
+
     return
     
     # REMNANTS OF KEVIN'S CODE
