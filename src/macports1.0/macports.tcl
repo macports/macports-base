@@ -323,8 +323,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
     }
     if {![info exists sources]} {
-	if {[file isdirectory mports]} {
-	    set sources "file://[pwd]/mports"
+	if {[file isdirectory ports]} {
+	    set sources "file://[pwd]/ports"
 	} else {
 	    return -code error "No sources defined in $sources_conf"
 	}
