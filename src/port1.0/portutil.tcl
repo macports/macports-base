@@ -1406,24 +1406,25 @@ proc eval_variants {variations target} {
     # If they don't match, print an error indicating a 'port clean' 
     # should be performed.  
     # - Skip this test if the statefile is empty.
-    # - Skip this test if performing a clean.
+    # - Skip this test if performing a clean or submit.
     # - Skip this test if ports_force was specified.
     
-    if {$target != "clean" && 
-	!([info exists ports_force] && $ports_force == "yes")} {
-	set state_fd [open_statefile]
+    if { [lsearch "clean submit" $target] < 0 && 
+		!([info exists ports_force] && $ports_force == "yes")} {
+		
+		set state_fd [open_statefile]
 	
-	if {[check_statefile_variants upvariations $state_fd]} {
-	    ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
-	    set result 1
-	} else {
-	    # Write variations out to the statefile
-	    foreach key [array names upvariations *] {
-		write_statefile variant $upvariations($key)$key $state_fd
-	    }
-	}
-	
-	close $state_fd
+		if {[check_statefile_variants upvariations $state_fd]} {
+			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
+			set result 1
+		} else {
+			# Write variations out to the statefile
+			foreach key [array names upvariations *] {
+			write_statefile variant $upvariations($key)$key $state_fd
+			}
+		}
+		
+		close $state_fd
     }
     
     return $result
