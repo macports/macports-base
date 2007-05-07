@@ -243,6 +243,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	
 	global auto_path env
 	global macports::autoconf::mports_conf_path
+        global macports::autoconf::macports_user_dir
 	global macports::bootstrap_options
 	global macports::user_options
 	global macports::extra_env
@@ -264,6 +265,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global macports::variants_conf
    	global macports::xcodebuildcmd
    	global macports::xcodeversion
+
+        # Ensure that the macports user directory exists
+        file mkdir $macports_user_dir
    	
    	# Configure the search path for configuration files
    	set conf_files ""
@@ -271,7 +275,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		set PORTSRC [lindex [array get env PORTSRC] 1]
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "~/.macports/macports.conf" "${mports_conf_path}/macports.conf"
+    lappend conf_files "${macports_user_dir}/macports.conf" "${mports_conf_path}/macports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
@@ -292,7 +296,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
 	# Process per-user only settings
-	set per_user "~/.macports/user.conf"
+        set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
 		while {[gets $fd line] >= 0} {
@@ -306,7 +310,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in $mports_conf_path/macports.conf or in your ~/.macports/macports.conf file"
+        return -code error "sources_conf must be set in $mports_conf_path/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
