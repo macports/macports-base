@@ -38,7 +38,7 @@ package require macports_index 1.0
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
-    	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
+    	portdbpath libpath binpath auto_path extra_env sources_conf prefix prefix_frozen portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
     	rsync_dir startupitem_type xcodeversion xcodebuildcmd \
@@ -258,6 +258,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global macports::destroot_umask
    	global macports::libpath
    	global macports::prefix
+        global macports::prefix_frozen
    	global macports::registry.installtype
    	global macports::rsync_dir
    	global macports::rsync_options
@@ -418,6 +419,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 			set macports::porttrace $options(ports_trace)
 		}
 	}
+
+        # Duplicate prefix into prefix_frozen, so that port actions
+        # can always get to the original prefix, even if a portfile overrides prefix
+        set macports::prefix_frozen $prefix
 
 	# Export verbosity.
 	if {![info exists portverbose]} {
