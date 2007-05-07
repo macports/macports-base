@@ -295,7 +295,7 @@ proc submit_main {args} {
 
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url [regsub -- {^ports} $portsource {http}]/cgi-bin/portsubmit.cgi "
+    append cmd "--url [regsub -- {^mports} $portsource {http}]/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
