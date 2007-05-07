@@ -354,7 +354,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 
     if {![info exists portdbpath]} {
-	return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ~/.macports/macports.conf"
+	return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
     }
     if {![file isdirectory $portdbpath]} {
 	if {![file exists $portdbpath]} {
