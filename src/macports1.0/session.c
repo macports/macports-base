@@ -89,7 +89,7 @@ mp_session_t mp_session_open() {
 
     /* finally ${prefix}/etc/macports/macports.conf, or whatever path was configured */
     if (mp->portconf == NULL) {
-      /* XXX: honor autoconf setting ($mports_conf_path) */
+      /* XXX: honor autoconf setting ($macports_conf_path) */
         char* path = "${prefix}/etc/macports/macports.conf";
         if (access(path, R_OK) == 0) {
             mp->portconf = strdup(path);

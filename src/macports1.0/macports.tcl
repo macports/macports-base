@@ -242,7 +242,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
 	global auto_path env
-	global macports::autoconf::mports_conf_path
+	global macports::autoconf::macports_conf_path
         global macports::autoconf::macports_user_dir
 	global macports::bootstrap_options
 	global macports::user_options
@@ -275,7 +275,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		set PORTSRC [lindex [array get env PORTSRC] 1]
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "${macports_user_dir}/macports.conf" "${mports_conf_path}/macports.conf"
+    lappend conf_files "${macports_user_dir}/macports.conf" "${macports_conf_path}/macports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
@@ -310,7 +310,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in $mports_conf_path/macports.conf or in your ${macports_user_dir}/macports.conf file"
+        return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
@@ -354,7 +354,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 
     if {![info exists portdbpath]} {
-	return -code error "portdbpath must be set in $mports_conf_path/macports.conf or in your ~/.macports/macports.conf"
+	return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ~/.macports/macports.conf"
     }
     if {![file isdirectory $portdbpath]} {
 	if {![file exists $portdbpath]} {
@@ -1459,7 +1459,7 @@ proc macports::selfupdate {optionslist} {
 	ui_debug "Setting user: $user"
 
 	# get MacPorts version 
-	set mp_version_path [file join $mports_conf_path mp_version]
+    set mp_version_path [file join ${macports_conf_path} mp_version]
 	if { [file exists $mp_version_path]} {
 		set fd [open $mp_version_path r]
 		gets $fd mp_version_old
@@ -1533,9 +1533,9 @@ proc macports::selfupdate {optionslist} {
 
 proc macports::version {} {
 	global macports::rsync_server macports::rsync_dir
-        global macports::autoconf::mports_conf_path
+        global macports::autoconf::macports_conf_path
 	
-	set mp_version_path [file join $mports_conf_path mp_version]
+    set mp_version_path [file join ${macports_conf_path} mp_version]
 
 	if [file exists $mp_version_path] {
 		set fd [open $mp_version_path r]
