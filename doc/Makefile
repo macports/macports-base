@@ -29,13 +29,13 @@ install:
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
 
-	# Install the macports.conf file. If it's already installed, upgrade it
+# Install the macports.conf file. If it's already installed, upgrade it
 	if test ! -e ${DESTDIR}/${mpconfigdir}/macports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${mpconfigdir}; \
 	else \
 		sed -e s/rsync.darwinports.org/rsync.macports.org/ ${DESTDIR}${mpconfigdir}/macports.conf > ${DESTDIR}${mpconfigdir}/macports.conf.tmp && \
-			mv ${DESTDIR}${mpconfigdir}/macports.conf.tmp ${DESTDIR}${mpconfigdir}mac/macports.conf; \
+			mv ${DESTDIR}${mpconfigdir}/macports.conf.tmp ${DESTDIR}${mpconfigdir}/macports.conf; \
 	fi
 
 	# Install the sources.conf file. If it's already installed, upgrade it
