@@ -359,7 +359,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 
     if {![info exists portdbpath]} {
-	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
+	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your $macports_user_dir/ports.conf"
     }
     if {![file isdirectory $portdbpath]} {
 	if {![file exists $portdbpath]} {
