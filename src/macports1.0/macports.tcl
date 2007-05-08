@@ -1162,62 +1162,60 @@ proc macports::getindex {source} {
 }
 
 proc mportsync {args} {
-	global macports::sources macports::portdbpath macports::rsync_options tcl_platform
-	global macports::autoconf::rsync_path 
-
-	foreach source $sources {
-		ui_info "Synchronizing from $source"
-		switch -regexp -- [macports::getprotocol $source] {
-			{^file$} {
-			    set portdir [macports::getportdir $source]
-				if {[file exists $portdir/.svn]} {
-				    if {[catch {set svncmd [macports::binaryInPath "svn"]}] == 0} {
-				        set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
-				        ui_debug $svn_commandline
-				        if {[catch {system $svn_commandline}]} {
-				            return -code error "sync failed doing svn update"
-				        }
-				        if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
-				            ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-				        }
-				    } else {
-				        return -code error "svn command not found"
-				    }
-				}
+    global macports::sources macports::portdbpath macports::rsync_options tcl_platform
+    global macports::autoconf::rsync_path 
+    
+    foreach source $sources {
+	ui_info "Synchronizing from $source"
+	switch -regexp -- [macports::getprotocol $source] {
+	    {^file$} {
+		set portdir [macports::getportdir $source]
+		if {[file exists $portdir/.svn]} {
+		    if {[catch {set svncmd [macports::binaryInPath "svn"]}] == 0} {
+			set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
+			ui_debug $svn_commandline
+			if {[catch {system $svn_commandline}]} {
+			    return -code error "sync failed doing svn update"
 			}
-			{^mports$} {
-				macports::index::sync $macports::portdbpath $source
+			if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
+			    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 			}
-			{^rsync$} {
-				# Where to, boss?
-				set destdir [file dirname [macports::getindex $source]]
-
-				if {[catch {file mkdir $destdir} result]} {
-					return -code error $result
-				}
-
-				# Keep rsync happy with a trailing slash
-				if {[string index $source end] != "/"} {
-					set source "${source}/"
-				}
-
-				# Do rsync fetch
-				if {[catch {system "${macports::autoconf::rsync_path} $rsync_options \"$source\" \"$destdir\""}]} {
-					return -code error "sync failed doing rsync"
-				}
-				if {[catch {system "chmod -R a+r \"$destdir\""}]} {
-				    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-				}
-			}
-			{^https?$|^ftp$} {
-				set indexfile [macports::getindex $source]
-				if {[catch {file mkdir [file dirname $indexfile]} result]} {
-					return -code error $result
-				}
-				exec curl -L -s -S -o $indexfile $source/PortIndex
-			}
+		    } else {
+			return -code error "svn command not found"
+		    }
 		}
+	    }
+	    {^mports$} {
+		macports::index::sync $macports::portdbpath $source
+	    }
+	    {^rsync$} {
+		# Where to, boss?
+		set destdir [file dirname [macports::getindex $source]]
+		
+		if {[catch {file mkdir $destdir} result]} {
+		    return -code error $result
+		}		
+		# Keep rsync happy with a trailing slash
+		if {[string index $source end] != "/"} {
+		    set source "${source}/"
+		}		
+		# Do rsync fetch
+		if {[catch {system "${macports::autoconf::rsync_path} $rsync_options \"$source\" \"$destdir\""}]} {
+		    return -code error "sync failed doing rsync"
+		}
+		if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+		    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+		}
+	    }
+	    {^https?$|^ftp$} {
+		set indexfile [macports::getindex $source]
+		if {[catch {file mkdir [file dirname $indexfile]} result]} {
+		    return -code error $result
+		}
+		exec curl -L -s -S -o $indexfile $source/PortIndex
+	    }
 	}
+    }
 }
 
 proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
