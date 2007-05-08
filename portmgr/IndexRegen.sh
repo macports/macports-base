@@ -12,17 +12,17 @@
 # Configuration
 LOCKFILE=/tmp/.mp_svn_index_regen.lock
 # ROOT directory, where everything is. This needs to exist!
-ROOT=/Users/dluke/Projects/mp_svn_index_regen
+ROOT=/Users/mp-user/mp_svn_index_regen
 # MP user.
-MP_USER=dluke
+MP_USER=mp-user
 # MP group.
-MP_GROUP=staff
+MP_GROUP=mp-user
 # e-mail address to spam in case of failure.
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
 SVN_DPORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
-SVN_BASE_URL=http://svn.macports.org/repository/macports/tags/release_1_4_40/base
+SVN_BASE_URL=http://svn.macports.org/repository/macports/branches/release_1_4/base
 SVN_CONFIG_DIR=${ROOT}/svnconfig
 # Where to checkout the source code. This needs to exist!
 SRCTREE=${ROOT}/source
@@ -31,7 +31,7 @@ PREFIX=${ROOT}/opt/local
 # Where MP installs darwinports1.0. This gets created.
 TCLPKG=${PREFIX}/lib/tcl
 # Path.
-PATH=${PREFIX}/bin:/bin:/usr/bin:/opt/local/bin
+PATH=${PREFIX}/bin:/bin:/usr/bin:/usr/sbin:/opt/local/bin
 # Log for the e-mail in case of failure.
 FAILURE_LOG=${ROOT}/failure.log
 # Commit message.
