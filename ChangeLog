@@ -6,7 +6,7 @@
 
 (unreleased):
 
-Release 1.4.40 (7-May-2007):
+Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 
     - Note the bump in version naming. To leave ourselves lots of room in our versioning
       scheme, we've jumped from 1.4.3 to 1.4.40. The floating point represenation as
