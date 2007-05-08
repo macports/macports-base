@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - Remove bundled xar. (jberry r24913).
+
 Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 
     - Note the bump in version naming. To leave ourselves lots of room in our versioning
