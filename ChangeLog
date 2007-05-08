@@ -10,7 +10,8 @@
     
     - Loosen checking of port: depspec to allow + in portnames. The validation
       improved in r24678 to examine the entire portname, and this popped up.
-      (jberry r24929).
+      Also, removes / as an allowable character in portnames.
+      (jberry r24929, r24934).
 
 Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 
