@@ -6,6 +6,13 @@
 
 (unreleased):
 
+Release 1.4.40 (7-May-2007):
+
+    - Note the bump in version naming. To leave ourselves lots of room in our versioning
+      scheme, we've jumped from 1.4.3 to 1.4.40. The floating point represenation as
+      reported by port version (1.440) will still be the same; we're just interpreting
+      it differently.
+
     - variable tracing now works in a much better way and handles unsets properly.
       Similarly, ${option}-delete now works better. Depends validation no longer
       attempts to validate when the variable is unset. Additionally, the validation
