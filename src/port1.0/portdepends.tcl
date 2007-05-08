@@ -49,7 +49,7 @@ proc validate_depends_options {option action {value ""}} {
 			foreach depspec $value {
 				switch -regex $depspec {
 					^(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-A-Za-z./0-9_]+)$ {}
-					^(port):([-A-Za-z./0-9_]+)$ {}
+					^(port):([-+A-Za-z./0-9_]+)$ {}
 					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
 				}
 			}
