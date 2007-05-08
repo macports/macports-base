@@ -67,7 +67,7 @@ default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
-default svn.cmd {svn}
+default svn.cmd {$portutil::autoconf::svn_path}
 default svn.dir {${workpath}}
 default svn.tag ""
 default svn.env {}
@@ -353,12 +353,12 @@ proc cvsfetch {args} {
 
 # Perform an svn fetch
 proc svnfetch {args} {
-    global workpath prefix
+    global workpath prefix_frozen
     global svn.env svn.cmd svn.args svn.post_args svn.tag svn.url
     
     # Look for the svn command, either in the path or in the prefix
     set goodcmd 0
-    foreach svncmd "${svn.cmd} ${prefix}/bin/svn svn" {
+    foreach svncmd "${svn.cmd} ${prefix_frozen}/bin/svn svn" {
  	if { [file executable ${svncmd}] } {
  	   	  set svn.cmd $svncmd
  	   	  set goodcmd 1

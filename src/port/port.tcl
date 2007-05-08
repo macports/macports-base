@@ -1883,19 +1883,20 @@ proc action_portcmds { action portlist opts } {
 	set status 0
 	require_portlist portlist
 	foreachport $portlist {
+		# Verify the portname, getting portinfo to map to a porturl
+		if {[catch {set res [dportsearch $portname no exact]} result]} {
+			global errorInfo
+			ui_debug "$errorInfo"
+			break_softcontinue "search for portname $portname failed: $result" 1 status
+		}
+		if {[llength $res] < 2} {
+			break_softcontinue "Port $portname not found" 1 status
+		}
+		array set portinfo [lindex $res 1]
+
 		# If we have a url, use that, since it's most specific
 		# otherwise try to map the portname to a url
 		if {$porturl == ""} {
-			# Verify the portname, getting portinfo to map to a porturl
-			if {[catch {set res [dportsearch $portname no exact]} result]} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				break_softcontinue "search for portname $portname failed: $result" 1 status
-			}
-			if {[llength $res] < 2} {
-				break_softcontinue "Port $portname not found" 1 status
-			}
-			array set portinfo [lindex $res 1]
 			set porturl $portinfo(porturl)
 		}
 		
@@ -1966,6 +1967,15 @@ proc action_portcmds { action portlist opts } {
 				file {
 					# output the path to the port's portfile
 					puts $portfile
+				}
+
+				gohome {
+					set homepage $portinfo(homepage)
+					if { $homepage != "" } {
+						system "${darwinports::autoconf::open_path} $homepage"
+					} else {
+						puts "(no homepage)"
+					}
 				}
 			}
 		} else {
@@ -2135,6 +2145,7 @@ array set action_array {
 	cd			action_portcmds
 	url			action_portcmds
 	file		action_portcmds
+	gohome		action_portcmds
 	
 	depends		action_target
 	fetch		action_target
@@ -2423,13 +2434,14 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 
 proc process_command_file { in } {
 	global current_portdir
+	global darwinports::autoconf::macports_user_dir
 
 	# Initialize readline
 	set isstdin [string match $in "stdin"]
 	set name "port"
 	set use_readline [expr $isstdin && [readline init $name]]
-	set history_file [file normalize "~/.${name}_history"]
-	
+	set history_file [file normalize "${macports_user_dir}/history"]
+
 	# Read readline history
 	if {$use_readline} {
 		rl_history read $history_file

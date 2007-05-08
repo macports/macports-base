@@ -42,14 +42,14 @@ option_proc depends_build validate_depends_options
 option_proc depends_run validate_depends_options
 option_proc depends_lib validate_depends_options
 
-proc validate_depends_options {option action args} {
+proc validate_depends_options {option action {value ""}} {
     global targets
-    switch -regex $action {
-		set|append|delete {
-			foreach depspec $args {
+    switch $action {
+		set {
+			foreach depspec $value {
 				switch -regex $depspec {
-					(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-A-Za-z./0-9_]+) {}
-					(port):([-A-Za-z./0-9_]+) {}
+					^(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-A-Za-z./0-9_]+)$ {}
+					^(port):([-A-Za-z./0-9_]+)$ {}
 					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
 				}
 			}

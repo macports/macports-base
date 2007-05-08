@@ -5,7 +5,7 @@
 proc main {pextlibname} {
 	load $pextlibname
 
-	set tempfile /tmp/darwinports-pextlib-testcurl
+	set tempfile /tmp/macports-pextlib-testcurl
 
 	# download a dummy file over HTTP.
 	curl fetch http://www.opendarwin.org/~pguyot/kilroy $tempfile

@@ -71,7 +71,7 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 
 		return $ref
 	} else {
-		return -code error "Registry error: ${name} ${version}_${revision}${variants} already registered as installed.  Please uninstall it first."
+		return -code error "Registry error: ${name} @${version}_${revision}${variants} already registered as installed.  Please uninstall it first."
 	}
 }
 
@@ -217,9 +217,9 @@ proc location {portname portversion} {
 			set ivariants [lindex $i 3]
 			set iactive [lindex $i 4]
 			if { $iactive == 0 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants}"
+				puts "	$iname @${iversion}_${irevision}${ivariants}"
 			} elseif { $iactive == 1 } {
-				puts "	$iname ${iversion}_${irevision}${ivariants} (active)"
+				puts "	$iname @${iversion}_${irevision}${ivariants} (active)"
 			}
 		}
 		return -1

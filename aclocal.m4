@@ -482,21 +482,6 @@ EOF
 
 ])
 
-# OD_PROG_MTREE
-#---------------------------------------
-AC_DEFUN([OD_PROG_MTREE],[
-
-	AC_PATH_PROG([MTREE], [mtree], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
-
-	if test "x$MTREE" = "x" ; then
-		AC_CONFIG_SUBDIRS([src/programs/mtree])
-		MTREE='$(TOPSRCDIR)/src/programs/mtree/mtree'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS mtree"
-	fi
-
-	AC_SUBST(MTREE)
-])
-
 # OD_PROG_XAR
 #---------------------------------------
 AC_DEFUN([OD_PROG_XAR],[

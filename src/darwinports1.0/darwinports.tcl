@@ -41,13 +41,15 @@ namespace eval darwinports {
     	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
-    	rsync_dir startupitem_type xcodeversion xcodebuildcmd"
+    	rsync_dir startupitem_type xcodeversion xcodebuildcmd \
+    	mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-    	portdbpath portpath portbuildpath auto_path prefix portsharepath \
+    	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type \
+    	mp_remote_url mp_remote_submit_url \
     	$user_options"
     
     # deferred options are only computed when needed.
@@ -70,27 +72,37 @@ namespace eval darwinports {
 # ui_prefix returns the prefix for the messages, if any.
 # ui_channels returns a list of channels to output the message to, empty for
 #     no message.
+# if these functions are not provided, defaults are used, but this should
+# not be relied upon for production code
 
 proc darwinports::ui_init {priority message} {
 	# Get the list of channels.
-	set channels [ui_channels $priority]
+	if {[llength [info commands ui_channels]] > 0} {
+		set channels [ui_channels $priority]
+	} else {
+	    set channels [ui_channels_default $priority]
+	}
 
 	# Simplify ui_$priority.
 	set nbchans [llength $channels]
 	if {$nbchans == 0} {
-		eval "proc ::ui_$priority {str} {}"
+		proc ::ui_$priority {str} {}
 	} else {
-		set prefix [ui_prefix $priority]
+		if {[llength [info commands ui_prefix]] > 0} {
+			set prefix [ui_prefix $priority]
+		} else {
+		    set prefix [ui_prefix_default $priority]
+		}
 
 		if {$nbchans == 1} {
 			set chan [lindex $channels 0]
-			eval "proc ::ui_$priority {str} \{ puts $chan \"$prefix\$str\" \}"
+			proc ::ui_$priority {str} [subst { puts $chan "$prefix\$str" }]
 		} else {
-			eval "proc ::ui_$priority {str} \{ \n\
-				foreach chan $channels \{ \n\
-					puts $chan \"$prefix\$str\" \n\
-				\} \n\
-			\}"
+			proc ::ui_$priority {str} [subst {
+				foreach chan \$channels {
+					puts $chan "$prefix\$str"
+				}
+			}]
 		}
 
 		# Call ui_$priority
@@ -98,8 +110,45 @@ proc darwinports::ui_init {priority message} {
 	}
 }
 
+# Defult implementation of ui_prefix
+proc darwinports::ui_prefix_default {priority} {
+	switch $priority {
+		debug {
+			return "DEBUG: "
+		}
+		error {
+			return "Error: "
+		}
+		warn {
+			return "Warning: "
+		}
+		default {
+			return ""
+		} 
+	}
+}
+
+# Default implementation of ui_channels
+proc darwinports::ui_channels_default {priority} {
+    switch $priority {
+        debug -
+        info {
+            return {}
+        }
+        msg {
+            return {stdout}
+        }
+        error {
+            return {stderr}
+        }
+        default {
+            return {stdout}
+        }
+    }
+}
+
 foreach priority ${darwinports::ui_priorities} {
-    eval "proc ui_$priority {str} \{ darwinports::ui_init $priority \$str \}"
+    proc ui_$priority {str} [subst { darwinports::ui_init $priority \$str }]
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
@@ -175,13 +224,26 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
-proc dportinit {up_ui_options up_options up_variations} {
-	upvar  $up_ui_options ui_options
-	upvar  $up_options	  options
-	upvar  $up_variations variations
+proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+	if {$up_ui_options eq ""} {
+		array set ui_options {}
+	} else {
+		upvar $up_ui_options ui_options
+	}
+	if {$up_options eq ""} {
+		array set options {}
+	} else {
+		upvar $up_options options
+	}
+	if {$up_variations eq ""} {
+		array set $up_variations {}
+	} else {
+		upvar $up_variations variations
+	}
 	
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
+	global darwinports::autoconf::macports_user_dir
 	global darwinports::bootstrap_options
 	global darwinports::user_options
 	global darwinports::extra_env
@@ -196,6 +258,7 @@ proc dportinit {up_ui_options up_options up_variations} {
    	global darwinports::destroot_umask
    	global darwinports::libpath
    	global darwinports::prefix
+   	global darwinports::prefix_frozen
    	global darwinports::registry.installtype
    	global darwinports::rsync_dir
    	global darwinports::rsync_options
@@ -204,13 +267,16 @@ proc dportinit {up_ui_options up_options up_variations} {
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
    	
+    # Ensure that the macports user directory exists
+    file mkdir $macports_user_dir
+    
    	# Configure the search path for configuration files
    	set conf_files ""
     if {[llength [array names env PORTSRC]] > 0} {
 		set PORTSRC [lindex [array get env PORTSRC] 1]
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "~/.macports/ports.conf" "${dports_conf_path}/ports.conf"
+    lappend conf_files "${macports_user_dir}/ports.conf" "${dports_conf_path}/ports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
@@ -235,7 +301,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	}
 	
 	# Process per-user only settings
-	set per_user "~/.macports/user.conf"
+	set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
 		while {[gets $fd line] >= 0} {
@@ -249,7 +315,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	}
 	
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
+        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in $macports_user_dir/ports.conf"
     }
     if {[catch {set fd [open $sources_conf r]} result]} {
         return -code error "$result"
@@ -293,7 +359,7 @@ proc dportinit {up_ui_options up_options up_variations} {
 	}
 
     if {![info exists portdbpath]} {
-	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your ~/.portsrc"
+	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your $macports_user_dir/ports.conf"
     }
     if {![file isdirectory $portdbpath]} {
 	if {![file exists $portdbpath]} {
@@ -358,6 +424,10 @@ proc dportinit {up_ui_options up_options up_variations} {
 		}
 	}
 
+    # Duplicate prefix into prefix_frozen, to that port actions
+    # can always get to the original prefix, even if a portfile overrides prefix
+    set darwinports::prefix_frozen $prefix
+    
 	# Export verbosity.
 	if {![info exists portverbose]} {
 		set darwinports::portverbose "no"
@@ -437,6 +507,16 @@ proc dportinit {up_ui_options up_options up_variations} {
     if {![info exists startupitem_type]} {
     	set darwinports::startupitem_type "default"
     	global darwinports::startupitem_type
+    }
+    
+    # Default mp remote options
+    if {![info exists mp_remote_url]} {
+    	set darwinports::mp_remote_url "http://db.macports.org"
+    	global darwinports::mp_remote_url
+    }
+    if {![info exists mp_remote_submit_url]} {
+    	set darwinports::mp_remote_submit_url "${darwinports::mp_remote_url}/submit"
+    	global darwinports::mp_remote_submit_url
     }
     
     # ENV cleanup.

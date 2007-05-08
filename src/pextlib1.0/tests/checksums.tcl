@@ -6,7 +6,7 @@
 proc main {pextlibname} {
 	load $pextlibname
 	
-	set testfile "/tmp/darwinports-pextlib-testchecksums"
+	set testfile "/tmp/macports-pextlib-testchecksums"
 	file delete -force $testfile
 
 	# create a dummy file.

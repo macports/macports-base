@@ -62,6 +62,7 @@ proc livecheck_main {args} {
 	set updated 0
 	set updated_version "unknown"
 	set has_master_sites [info exists master_sites]
+	set has_homepage [info exists homepage]
 
 	set tempfile ${workpath}/livecheck.TMP
 	set port_moddate [file mtime ${portpath}/Portfile]
@@ -79,7 +80,7 @@ proc livecheck_main {args} {
 		} else {
 		    set livecheck.check "freshmeat"
 		}
-		if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+		if {$has_homepage && [regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
 		    if {${livecheck.name} eq "default"} {
 		        set livecheck.name $tag
 		    }
@@ -93,7 +94,7 @@ proc livecheck_main {args} {
 	# Perform the check depending on the type.
 	switch ${livecheck.check} {
 	    "freshmeat" {
-    		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+    		if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
     			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
     		}
     		if {${livecheck.regex} eq ""} {
@@ -102,7 +103,7 @@ proc livecheck_main {args} {
     		set livecheck.check "regex"
 		}
 		"sourceforge" {
-    		if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+    		if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
     			set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
     		}
     		if {${livecheck.distname} eq "default"} {
@@ -114,7 +115,7 @@ proc livecheck_main {args} {
     		set livecheck.check "regex"
 		}
 		"googlecode" {
-		    if {![info exists homepage] || ${livecheck.url} eq ${homepage}} {
+		    if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
 		        set livecheck.url "http://code.google.com/p/${livecheck.name}/downloads/list"
 		    }
 		    if {${livecheck.distname} eq "default"} {

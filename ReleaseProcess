@@ -40,7 +40,7 @@ For each major release (i.e. 1.3.x, 1.4.x, etc.) an appropriate branch is create
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all live on this branch, and tagged appropriately and if necessary (a must for the actual releases, optional for beta snapshots) into the /tags svn directory.
 
-Only the base subdirectory, not the dports subdirectory, is branched for a given release.
+Only the base subdirectory, not the ports subdirectory, is branched for a given release.
 
 
 === Prepare the code for Release ===
@@ -133,16 +133,7 @@ In order to make the release version available through selfupdate, the base/conf
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
 * The macports-users@lists.macosforge.org and macports-dev@lists.macosforge.org mailing lists.
-* Apple's [http://www.apple.com/downloads/macosx/unix_open_source/darwinports.html Mac OS X software download page] (submitter: mww@)
-* [http://freshmeat.net/projects/darwinports/ Freshmeat] (submitter: mww@)
+* Apple's [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Mac OS X software downloads page] (submitter: jmpp@)
+* [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
 * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
 * (Where else? -- MacUpdate?)
-(Following three locations --last two being leftovers from darwinports days-- need to be carefully thought out and reworked in view of a much --*URGENTLY*-- needed website redesign!!!)
-* Wordpress news section at the main MacPorts site, www.macports.org
-* The [http://www.darwinports.org/getdp/ getdp] and [http://www.darwinports.org/ main] sites (the "$dp_version" variable in the includes/common.inc file for the main English site --www/includes/common.inc-- and each localization has to be updated with the release version)
-* The darwinports wiki (updating the "Current DarwinPorts release" line on the [[DarwinPorts|main]] page)
-
-
-== Additional Release Resources ==
-
-* Landon Fuller's [http://www.opendarwin.org/pipermail/darwinports/2005-May/026055.html release process] suggestions

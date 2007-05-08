@@ -126,6 +126,7 @@ set portfetch::mirror_sites::sites(kde) {
 set portfetch::mirror_sites::sites(macports) {
     http://svn.macports.org/repository/macports/distfiles/
     http://svn.macports.org/repository/macports/distfiles/general/:nosubdir
+    http://svn.macports.org/repository/macports/downloads/
 }
 
 set portfetch::mirror_sites::sites(opendarwin) {

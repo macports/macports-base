@@ -111,7 +111,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		
 		if {![string length $receipt_file]} {
 			if { $version != 0 } {
-				return -code error "Registry error: ${name} ${version}_${revision}${variants} not registered as installed."
+				return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 			} else {
 				return -code error "Registry error: ${name} not registered as installed."
 			}
@@ -138,7 +138,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		}
 	
 		if { ![entry_exists $name $version $revision $variants] } {
-			return -code error "Registry error: ${name} ${version}_${revision}${variants} not registered as installed."
+			return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 		}
 	
 		set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
@@ -154,7 +154,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		set receipt_contents [read $receipt_handle]
 		close $receipt_handle
 	} else {
-		return -code error "Registry error: receipt for ${name} ${version}_${revision}${variants} seems to be compressed, but bzip2 couln't be found."
+		return -code error "Registry error: receipt for ${name} @${version}_${revision}${variants} seems to be compressed, but bzip2 couln't be found."
 	}
 
 	set ref [new_entry]
@@ -176,7 +176,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 	} elseif {[string match "# Version: *" $receipt_contents]} {
 		# This is new format
 		if {![string match "# Version: 1.0*" $receipt_contents]} {
-			return -code error "Registry error: receipt ${name} ${version}_${revision}${variants} is in an unknown format (version too new?)."
+			return -code error "Registry error: receipt ${name} @${version}_${revision}${variants} is in an unknown format (version too new?)."
 		}
 
 		# Remove any line starting with #

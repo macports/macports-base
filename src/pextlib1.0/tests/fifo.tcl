@@ -6,7 +6,7 @@
 proc main {pextlibname} {
 	load $pextlibname
 	
-	set fifo_path "/tmp/darwinports-pextlib-fifo"
+	set fifo_path "/tmp/macports-pextlib-fifo"
 	
 	file delete -force $fifo_path
 
@@ -27,7 +27,7 @@ proc main {pextlibname} {
 
 	file delete -force $fifo_path
 	
-	set fifo_path "/tmp/darwinports-pextlib-fifo-dummydir/foo"
+	set fifo_path "/tmp/macports-pextlib-fifo-dummydir/foo"
 
 	# Test that mkfifo returns an error if the directory doesn't exist.
 	if {![catch {mkfifo $fifo_path}]} {

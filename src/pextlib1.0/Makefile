@@ -15,4 +15,5 @@ test:: ${SHLIB_NAME}
 	${TCLSH} tests/checksums.tcl ${SHLIB_NAME}
 	${TCLSH} tests/filemap.tcl ${SHLIB_NAME}
 	${TCLSH} tests/fifo.tcl ${SHLIB_NAME}
+	${TCLSH} tests/fs-traverse.tcl ${SHLIB_NAME}
 	${TCLSH} tests/socketpair.tcl ${SHLIB_NAME}

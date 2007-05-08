@@ -4,8 +4,76 @@
 #   This is a log of major user-visible changes in each release
 #
 
-
 (unreleased):
+
+Release 1.4.40 (7-May-2007):
+
+    - Note the bump in version naming. To leave ourselves lots of room in our versioning
+      scheme, we've jumped from 1.4.3 to 1.4.40. The floating point represenation as
+      reported by port version (1.440) will still be the same; we're just interpreting
+      it differently.
+
+    - variable tracing now works in a much better way and handles unsets properly.
+      Similarly, ${option}-delete now works better. Depends validation no longer
+      attempts to validate when the variable is unset. Additionally, the validation
+      now actually validates each depspec instead of simply finding a single spec
+      within the list that works (ticket #11868, eridius r24678).
+
+    - macports infrastructure now easier to use from scripts.
+      ui_prefix and ui_channels have default implementations, and
+      all arguments to dportinit are now optional (ticket #11837, eridius r24460).
+
+    - ln now accepts combined flags (ex. ln -sf foo bar) (eridius r24452)
+
+    - default_variants now handles multiple values correctly (ticket #11828, eridius r24450).
+
+    - ln uses new symlink command so it can create symlinks that point to
+      files that don't actually exist (eridius r24444).
+
+    - New bare-bones Pextlib command `symlink source target` (ticket #11840, eridius r24444).
+
+    - delete reimplemented using fs-traverse (eridius r24435).
+
+    - fs-traverse now uses the fts(3) family of functions instead of readdir/opendir.
+      This fixes a couple behavioral oddities, and makes deleting during traversal work on 10.3
+      (ticket #11839, eridius r24423).
+
+    - fs-traverse now takes a list of targets rather than a variable number of arguments
+      (ticket #11836, eridius r24410).
+
+    - Fixed a potential crasher in fs-traverse when showing error message
+      (ticket #11827, eridius r24396, thanks sfiera).
+    
+    - Fixed a bug where livecheck failed on ports that do not define a homepage
+      (ticket #11818, pguyot r24319).
+
+    - Added the downloads section of our repo to the macports mirrors list (jmpp r24278).
+
+    - Fixed a bug with the archive mode introduced with r23238 change (1.4.1)
+      (pguyot r24273).
+
+    - Trace mode now take dependencies into account when executing the activate
+      phase. This fixes an unwanted warning when activating ports that depend
+      on teTeX (pguyot r24199).
+      
+    - Support for mpwa submit through "port submit".
+      This work is in progress. (jberry)
+       - Expose autoconf XAR variable as portutil::autoconf::xar_path. (r24194).
+       - Start to build portpkg.xar and meta data, hijacking Kevin's
+         portsubmit.tcl. (r24195-24196).
+         
+    - Revise error messages in port image activation to use syntax that
+      matches port(1). (jberry r24543, r24548).
+
+    - Create new interp variable prefix_frozen, which is available to port phases
+      even when the Portfile redefines prefix. (jberry r24848-r24849)
+      
+    - Search for prefix-relative commands in prefix_frozen rather than prefix.
+      Affects port submit (xar) and port fetch (svn). (jberry r24849)
+
+    - Always create a ~/.macports user directory if it doesn't yet exist. (jberry r24831)
+    
+    - Move port(1) readline history file to ~/.macports/history (jberry r24832, r24843)
 
 Release 1.4.3 (17-Apr-2007):
 

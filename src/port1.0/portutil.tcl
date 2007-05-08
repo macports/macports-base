@@ -90,47 +90,53 @@ proc exists {name} {
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
-        proc $option {args} "
-            global ${option} user_options option_procs
-            if {!\[info exists user_options(${option})\]} {
-                set ${option} \$args
+        proc $option {args} [subst -nocommands {
+            global $option user_options option_procs
+            if {![info exists user_options($option)]} {
+                set $option \$args
             }
-        "
-        proc ${option}-delete {args} "
-            global ${option} user_options option_procs
-            if {!\[info exists user_options(${option})\] && \[info exists ${option}\]} {
+        }]
+        proc ${option}-delete {args} [subst -nocommands {
+            global $option user_options option_procs
+            if {![info exists user_options($option)] && [info exists $option]} {
+                set temp $option
                 foreach val \$args {
-                   set ${option} \[ldelete \${$option} \$val\]
+                   set temp [ldelete \${$option} \$val]
                 }
-                if {\[string length \${${option}}\] == 0} {
-                    unset ${option}
-                }
-            }
-        "
-        proc ${option}-append {args} "
-            global ${option} user_options option_procs
-            if {!\[info exists user_options(${option})\]} {
-                if {\[info exists ${option}\]} {
-                    set ${option} \[concat \${$option} \$args\]
+                if {\$temp eq ""} {
+                    unset $option
                 } else {
-                    set ${option} \$args
+                    set $option \$temp
                 }
             }
-        "
+        }]
+        proc ${option}-append {args} [subst -nocommands {
+            global $option user_options option_procs
+            if {![info exists user_options($option)]} {
+                if {[info exists $option]} {
+                    set $option [concat \${$option} \$args]
+                } else {
+                    set $option \$args
+                }
+            }
+        }]
     }
 }
 
 proc options_export {args} {
     foreach option $args {
-        proc options::export-${option} {args} "
-            global ${option} PortInfo
-            if {\[info exists ${option}\]} {
-                set PortInfo(${option}) \${${option}}
-            } else {
-                unset PortInfo(${option})
+        proc options::export-${option} {option action {value ""}} [subst -nocommands {
+            global $option PortInfo
+            switch \$action {
+                set {
+                    set PortInfo($option) \$value
+                }
+                delete {
+                    unset PortInfo($option)
+                }
             }
-        "
-        option_proc ${option} options::export-${option}
+        }]
+        option_proc $option options::export-$option
     }
 }
 
@@ -140,55 +146,58 @@ proc option_deprecate {option {newoption ""} } {
     # If a new option is specified, default the option to {${newoption}}
     # Display a warning
     if {$newoption != ""} {
-        proc warn_deprecated_${option} {option action args} "
+        proc warn_deprecated_${option} {option action args} [subst -nocommands {
             global portname $option $newoption
-            if {\$action != \"read\"} {
+            if {\$action != "read"} {
                 $newoption \$$option
             } else {
-                ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\"
+                ui_warn "Port \$portname using deprecated option \\\"$option\\\"."
                 $option \[set $newoption\]
             }
-        "
+        }]
     } else {
-        proc warn_deprecated_$option {option action args} "
+        proc warn_deprecated_$option {option action args} [subst -nocommands {
             global portname $option $newoption
-            ui_warn \"Port \$portname using deprecated option \\\"$option\\\".\"
-        "
+            ui_warn "Port \$portname using deprecated option \\\"$option\\\"."
+        }]
     }
     option_proc $option warn_deprecated_$option
 }
 
 proc option_proc {option args} {
     global option_procs $option
-    eval lappend option_procs($option) $args
-    # Add a read trace to the variable, as the option procedures have no access to reads
-    trace variable $option rwu option_proc_trace
+    if {[info exists option_procs($option)]} {
+        set option_procs($option) [concat $option_procs($option) $args]
+        # we're already tracing
+    } else {
+        set option_procs($option) $args
+        trace add variable $option {read write unset} option_proc_trace
+    }
 }
 
 # option_proc_trace
 # trace handler for option reads. Calls option procedures with correct arguments.
 proc option_proc_trace {optionName index op} {
     global option_procs
-    upvar $optionName optionValue
+    upvar $optionName $optionName
     switch $op {
-        w {
+        write {
             foreach p $option_procs($optionName) {
-                $p $optionName set $optionValue
+                $p $optionName set [set $optionName]
             }
-            return
         }
-        r {
+        read {
             foreach p $option_procs($optionName) {
                 $p $optionName read
             }
-            return
         }
-        u {
+        unset {
             foreach p $option_procs($optionName) {
-                $p $optionName delete
-                trace vdelete $optionName rwu $p
+                if {[catch {$p $optionName delete} result]} {
+                    ui_debug "error during unset trace ($p): $result\n$::errorInfo"
+                }
             }
-            return
+            trace add variable $optionName {read write unset} option_proc_trace
         }
     }
 }
@@ -375,11 +384,11 @@ proc variant {args} {
     # (don't list it twice if the variant was already defined, which can happen
     # with universal or group code).
     set variant_provides [ditem_key $ditem provides]
-	if {![info exists PortInfo(variants)] || [lsearch -exact $PortInfo(variants) $variant_provides] < 0} {
-	    lappend PortInfo(variants) $variant_provides
-	} else {
+    if {[variant_exists $variant_provides]} {
 		# This variant was already defined. Remove it from the dlist.
 		variant_remove_ditem $variant_provides
+	} else {
+	    lappend PortInfo(variants) $variant_provides
 	}
 
 	# Finally append the ditem to the dlist.
@@ -454,6 +463,18 @@ proc variant_remove_ditem {name} {
 	}
 }
 
+# variant_exists name
+# determine if a variant exists.
+proc variant_exists {name} {
+	global PortInfo
+	if {[info exists PortInfo(variants)] &&
+		[lsearch -exact $PortInfo(variants) $name] >= 0} {
+		return 1
+	}
+	
+	return 0
+}
+
 # platform <os> [<release>] [<arch>] 
 # Portfile level procedure to provide support for declaring platform-specifics
 # Basically, just wrap 'variant', so that Portfiles' platform declarations can
@@ -482,6 +503,15 @@ proc platform {args} {
     if {[info exists release]} { set platform ${platform}_${release} }
     if {[info exists arch]} { set platform ${platform}_${arch} }
     
+    # Pick up a unique name.
+    if {[variant_exists $platform]} {
+    	set suffix 1
+    	while {[variant_exists "$platform-$suffix"]} {
+    		incr suffix
+    	}
+    	
+    	set platform "$platform-$suffix"
+    }
     variant $platform $code
     
     # Set the variant if this platform matches the platform we're on
@@ -690,30 +720,12 @@ proc reinplace {pattern args}  {
 
 # delete
 # file delete -force by itself doesn't handle directories properly
-# on systems older than Tiger. However we can recurse this thing ourselves
+# on systems older than Tiger. Lets recurse using fs-traverse instead
 proc delete {args} {
-    foreach arg $args {
-        ui_debug "delete: $arg"
-        set stack [list $arg]
-        while {[llength $stack] > 0} {
-            set file [lindex $stack 0]
-            if {[string equal [file type $file] directory]} {
-                # it's a directory
-                set children [glob -nocomplain -directory $file * .*]
-                set children [ldelete [ldelete $children $file/.] $file/..]
-                if {[llength $children] > 0} {
-                    set stack [concat $children $stack]
-                } else {
-                    # directory is empty
-                    file delete -force -- $file
-                    set stack [lrange $stack 1 end]
-                }
-            } else {
-                # it's not a directory - kill it now
-                file delete -force -- $file
-                set stack [lrange $stack 1 end]
-            }
-        }
+    ui_debug "delete: $args"
+    fs-traverse -depth file $args {
+        file delete -force -- $file
+        continue
     }
 }
 
@@ -828,7 +840,13 @@ proc move {args} {
 proc ln {args} {
     while {[string match -* [lindex $args 0]]} {
         set arg [string range [lindex $args 0] 1 end]
-        set args [lrange $args 1 end]
+        if {[string length $arg] > 1} {
+            set remainder -[string range $arg 1 end]
+            set arg [string range $arg 0 0]
+            set args [lreplace $args 0 0 $remainder]
+        } else {
+            set args [lreplace $args 0 0]
+        }
         switch -- $arg {
             f -
             h -
@@ -856,14 +874,18 @@ proc ln {args} {
             return -code error "ln: $file: Is a directory"
         }
         
-        if {[file isdirectory $target] && ![info exists options(h)]} {
+        if {[file isdirectory $target] && ([file type $target] ne "link" || ![info exists options(h)])} {
             set linktarget [file join $target [file tail $file]]
         } else {
             set linktarget $target
         }
         
-        if {[file exists $linktarget] && ![info exists options(f)]} {
-            return -code error "ln: $linktarget: File exists"
+        if {![catch {file type $linktarget}]} {
+            if {[info exists options(f)]} {
+                file delete $linktarget
+            } else {
+                return -code error "ln: $linktarget: File exists"
+            }
         }
         
         if {[llength $files] > 2} {
@@ -879,7 +901,7 @@ proc ln {args} {
             ui_msg "ln: $linktarget -> $file"
         }
         if {[info exists options(s)]} {
-            file link -symbolic $linktarget $file
+            symlink $file $linktarget
         } else {
             file link -hard $linktarget $file
         }
@@ -1102,6 +1124,7 @@ proc target_run {ditem} {
 						mpkg		-
 						rpmpackage	-
 						dpkg		-
+						activate    -
 						""			{ set deptypes "depends_lib depends_build depends_run" }
 					}
 					
@@ -1383,24 +1406,25 @@ proc eval_variants {variations target} {
     # If they don't match, print an error indicating a 'port clean' 
     # should be performed.  
     # - Skip this test if the statefile is empty.
-    # - Skip this test if performing a clean.
+    # - Skip this test if performing a clean or submit.
     # - Skip this test if ports_force was specified.
     
-    if {$target != "clean" && 
-	!([info exists ports_force] && $ports_force == "yes")} {
-	set state_fd [open_statefile]
+    if { [lsearch "clean submit" $target] < 0 && 
+		!([info exists ports_force] && $ports_force == "yes")} {
+		
+		set state_fd [open_statefile]
 	
-	if {[check_statefile_variants upvariations $state_fd]} {
-	    ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
-	    set result 1
-	} else {
-	    # Write variations out to the statefile
-	    foreach key [array names upvariations *] {
-		write_statefile variant $upvariations($key)$key $state_fd
-	    }
-	}
-	
-	close $state_fd
+		if {[check_statefile_variants upvariations $state_fd]} {
+			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
+			set result 1
+		} else {
+			# Write variations out to the statefile
+			foreach key [array names upvariations *] {
+			write_statefile variant $upvariations($key)$key $state_fd
+			}
+		}
+		
+		close $state_fd
     }
     
     return $result
@@ -1519,11 +1543,11 @@ proc variant_new {name} {
     return $ditem
 }
 
-proc handle_default_variants {option action args} {
+proc handle_default_variants {option action {value ""}} {
     global variations
     switch -regex $action {
 	set|append {
-	    foreach v $args {
+	    foreach v $value {
 		if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
 		    if {![info exists variations($variant)]} {
 			set variations($variant) $val
@@ -1726,8 +1750,8 @@ proc archiveTypeIsSupported {type} {
 		t(ar|bz|gz) {
 			set tar "tar"
 			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
-				if {[regexp {z$} $type]} {
-					if {[regexp {bz$} $type]} {
+				if {[regexp {z2?$} $type]} {
+					if {[regexp {bz2?$} $type]} {
 						set gzip "bzip2"
 					} else {
 						set gzip "gzip"
