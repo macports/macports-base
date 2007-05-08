@@ -25,6 +25,7 @@ test {
 	catch {system "rm delete-trace"}
 	system "touch /tmp/hello-trace"
 	system "rm /tmp/hello-trace"
+	system "ln -s /usr/include/ link-trace"
 	catch {system "mkdir mkdir-trace"}
 	catch {system "rmdir rmdir-trace"}
 	catch {system "mv rename-trace rename-new-trace"}

@@ -15,7 +15,9 @@ test:
 	@rm -f create-trace-modenv
 	@rm -rf mkdir-trace
 	@rm -f /tmp/hello-trace
+	@rm -f link-trace
 	@PORTSRC=$(PORTSRC) $(bindir)/port -t test > output 2>&1 || (cat output; exit 1)
+	@rm -f link-trace
 	@rm -f delete-trace
 	@rm -f rename-trace
 	@rm -f rename-new-trace
