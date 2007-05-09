@@ -21,9 +21,10 @@ MP_GROUP=mp-user
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
-SVN_DPORTS_URL=http://svn.macports.org/repository/macports/trunk/dports
-SVN_BASE_URL=http://svn.macports.org/repository/macports/trunk/base
 SVN_CONFIG_DIR=${ROOT}/svnconfig
+REPO_BASE=http://svn.macports.org/repository/macports
+RELEASE_URL_FILE="config/RELEASE_URL"
+SVN="/opt/local/bin/svn -q --non-interactive --config-dir $SVN_CONFIG_DIR"
 # Where to checkout the source code. This needs to exist!
 SRCTREE=${ROOT}/source
 # Where MP will install its world. This gets created.
@@ -60,23 +61,39 @@ else
     exit 1
 fi
 
-# Update both the ports tree and base sources, bail out if they don't exist beforehand.
-if [ ! -d ${SRCTREE}/dports/.svn ]; then
-    echo "No dports tree found at ${SRCTREE}. This needs to exist (with proper svn \
-        credentials at ${SVN_CONFIG_DIR}) prior to runnig this script." > $FAILURE_LOG; bail
+# Checkout/update the dports tree
+if [ -d ${SRCTREE}/dports ]; then
+    $SVN update ${SRCTREE}/dports > $FAILURE_LOG 2>&1 \
+        || { echo "Updating the dports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG; bail ; }
 else
-    cd ${SRCTREE}/dports && \
-	svn -q --non-interactive --config-dir $SVN_CONFIG_DIR update > $FAILURE_LOG 2>&1 \
-	|| { echo "Updating the ports tree from $SVN_DPORTS_URL failed." >> $FAILURE_LOG ; bail ; }
+    $SVN checkout ${REPO_BASE}/trunk/dports ${SRCTREE}/dports > $FAILURE_LOG 2>&1 \
+        || { echo "Checking out the dports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG; bail ; }
 fi
-if [ ! -d ${SRCTREE}/base/.svn ]; then
-    echo "No base sources found at ${SRCTREE}. This needs to exist (with proper svn \
-        credentials at ${SVN_CONFIG_DIR}) prior to running this script." > $FAILURE_LOG; bail
+
+# Checkout/update HEAD
+TMPDIR=mp_trunk/base
+if [ -d ${ROOT}/${TMPDIR} ]; then
+    $SVN update ${ROOT}/${TMPDIR} > $FAILURE_LOG 2>&1 \
+        || { echo "Updating the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
 else
-    cd ${SRCTREE}/base && \
-	svn -q --non-interactive --config-dir $SVN_CONFIG_DIR update > $FAILURE_LOG 2>&1 \
-       || { echo "Updating the base sources from $SVN_BASE_URL failed." >> $FAILURE_LOG ; bail ; }
+    $SVN checkout ${REPO_BASE}/trunk/base ${ROOT}/${TMPDIR} > $FAILURE_LOG 2>&1 \
+        || { echo "Checking out the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
 fi
+echo `date -u +%s` > ${ROOT}/DPORTS-TIMESTAMP
+
+# Extract the release URL from HEAD
+read RELEASE_URL < ${ROOT}/${TMPDIR}/${RELEASE_URL_FILE}
+[ -n ${RELEASE_URL} ] || { echo "no RELEASE_URL specified in svn HEAD." >> $FAILURE_LOG; bail ; }
+
+# Checkout/update the release base
+if [ -d ${SRCTREE}/base ]; then
+    $SVN switch ${RELEASE_URL}/base ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
+        || { echo "Updating base from ${RELEASE_URL}/base failed." >> $FAILURE_LOG; bail ; }
+else
+    $SVN checkout $RELEASE_URL/base ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
+        || { echo "Checking out base from ${RELEASE_URL}/base failed." >> $FAILURE_LOG ; bail ; }
+fi
+echo `date -u +%s` > ${ROOT}/BASE-TIMESTAMP
 
 # (re)configure.
 cd ${SRCTREE}/base/ && \
