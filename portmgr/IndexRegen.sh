@@ -12,11 +12,11 @@
 # Configuration
 LOCKFILE=/tmp/.mp_svn_index_regen.lock
 # ROOT directory, where everything is. This needs to exist!
-ROOT=/Users/dluke/Projects/mp_svn_index_regen
+ROOT=/Users/mp-user/mp_svn_index_regen
 # MP user.
-MP_USER=dluke
+MP_USER=mp-user
 # MP group.
-MP_GROUP=staff
+MP_GROUP=mp-user
 # e-mail address to spam in case of failure.
 SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
 
