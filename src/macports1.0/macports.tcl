@@ -157,18 +157,32 @@ proc puts {args} {
 	catch "tcl::puts $args"
 }
 
-# check for a binary in the path
-# returns an error code if it can not be found
-# copied from portutil.tcl
-proc macports::binaryInPath {binary} {
-    global env
-    foreach dir [split $env(PATH) :] { 
-	if {[file executable [file join $dir $binary]]} {
-	    return [file join $dir $binary]
+# 
+proc findBinary {prog {autoconf_hint ""}} {
+# debug, remove when done!
+    puts "entering findBinary proc"
+    puts "naming hint passed is: ${autoconf_hint}"
+    if {${autoconf_hint} != "" and [file executable ${autoconf_hint}]} {
+	return [set cmd [set ${autoconf_hint}]]
+    } else {
+	if {[catch {set cmd [binaryInPath "${prog}"]}] == 0} {
+	    return $cmd
+	} else {
+	    return -code error "Command ${prog} couldn't be found"
 	}
     }
-    
-    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
+}
+
+# check for a binary in the path
+# returns an error code if it can not be found
+proc macports::binaryInPath {prog} {
+    global env
+    foreach dir [split $env(PATH) :] { 
+	if {[file executable [file join $dir $prog]]} {
+	    return [file join $dir $prog]
+	}
+    }
+    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $prog $env(PATH)];
 }
 
 # deferred option processing
@@ -1171,8 +1185,10 @@ proc mportsync {args} {
 	    {^file$} {
 		set portdir [macports::getportdir $source]
 		if {[file exists $portdir/.svn]} {
-		    if {[catch {set svncmd [macports::binaryInPath "svn"]}] == 0} {
-			set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
+		    if {[catch {set svn_command [findBinary "svn" "${macports::autoconf::svn_path}"]}] == 0} {
+			# debug, remove!
+			puts "entered findBinary conditional..."
+			set svn_commandline "${svn_command} update --non-interactive \"${portdir}\""
 			ui_debug $svn_commandline
 			if {[catch {system $svn_commandline}]} {
 			    return -code error "sync failed doing svn update"
@@ -1181,7 +1197,7 @@ proc mportsync {args} {
 			    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 			}
 		    } else {
-			return -code error "svn command not found"
+			return -code error "Synchronizing the svn checkout failed due to an unknown reason"
 		    }
 		}
 	    }
@@ -1191,20 +1207,25 @@ proc mportsync {args} {
 	    {^rsync$} {
 		# Where to, boss?
 		set destdir [file dirname [macports::getindex $source]]
-		
 		if {[catch {file mkdir $destdir} result]} {
 		    return -code error $result
-		}		
+		}
 		# Keep rsync happy with a trailing slash
 		if {[string index $source end] != "/"} {
 		    set source "${source}/"
-		}		
-		# Do rsync fetch
-		if {[catch {system "${macports::autoconf::rsync_path} $rsync_options \"$source\" \"$destdir\""}]} {
-		    return -code error "sync failed doing rsync"
 		}
-		if {[catch {system "chmod -R a+r \"$destdir\""}]} {
-		    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+		# Do rsync fetch
+		if {[catch {set rsync_command [findBinary "rsync" "${macports::autoconf::rsync_path}"]}] == 0} {
+		    set rsync_commandline "${rsync_command} ${rsync_options} \"${source}\" \"${destdir}\""
+		    ui_debug $rsync_commandline
+		    if {[catch {system $rsync_commandline}]} {
+			return -code error "sync failed doing rsync"
+		    }
+		    if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+			ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+		    }
+		} else {
+		    return -code error "bye!"
 		}
 	    }
 	    {^https?$|^ftp$} {
