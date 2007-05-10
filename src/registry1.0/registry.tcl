@@ -253,7 +253,7 @@ proc register_file {file port} {
 proc register_bulk_files {files port} {
 	global macports::registry.format
 	open_file_map
-	set macports::registry.format}::register_bulk_files $files $port]
+        set r [${macports::registry.format}::register_bulk_files $files $port]
 	write_file_map
 	return $r
 }
