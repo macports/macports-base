@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - Fix copy and move commands (eridius r25024).
+
     - Passing multiple arguments to $option-delete now works as expected
       (ticket #11929, eridius r25006).
 
