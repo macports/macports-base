@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - fs-traverse no longer follows symlinks specified on the root. This fixes
+      the incorrect behaviour of delete seen in #11862 (eridius r25003).
+
     - Remove bundled xar. (jberry r24913).
     
     - Tighten checking of port name in depspecs. neither + nor / is allowed.
