@@ -825,12 +825,12 @@ proc touch {args} {
 
 # copy
 proc copy {args} {
-    exec file copy $args
+    eval file copy $args
 }
 
 # move
 proc move {args} {
-    exec file rename $args
+    eval file rename $args
 }
 
 # ln
