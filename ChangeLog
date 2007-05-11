@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - Passing multiple arguments to $option-delete now works as expected
+      (ticket #11929, eridius r25006).
+
     - fs-traverse no longer follows symlinks specified on the root. This fixes
       the incorrect behaviour of delete seen in #11862 (eridius r25003).
 
