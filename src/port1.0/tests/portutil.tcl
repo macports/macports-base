@@ -40,12 +40,19 @@ proc test_delete {} {
             b/c/b           file
             b/d             file
         }
-    
+        
+        # test deleting a symlink
+        delete $root/a/c/b
+        
+        if {[file exists $root/a/c/b] || ![file exists $root/a/b]} {
+            error "delete (symlink) failed"
+        }
+        
         # test multiple args
         delete $root/a $root/b
-    
+        
         if {[file exists $root/a] || [file exists $root/b]} {
-            error "delete failed"
+            error "delete (multiple args) failed"
         }
     } finally {
         file delete -force $root
