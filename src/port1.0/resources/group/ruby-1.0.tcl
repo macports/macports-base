@@ -92,7 +92,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			master_sites	http://rubyforge.org/frs/download.php/${num}/
 			livecheck.check	regex
 			livecheck.url	http://rubyforge.org/projects/${ruby.project}
-			livecheck.regex	"<strong>${ruby.project}</strong></td><td>REL (.*)$"
+			livecheck.regex	"<strong>${ruby.project}</strong></td><td>(?:REL )?(.*)$"
 		}
 		rubyforge:* {
 			set num [lindex [split ${source} {:}] 1]
@@ -100,7 +100,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			master_sites	http://rubyforge.org/frs/download.php/${num}/
 			livecheck.check	regex
 			livecheck.url	http://rubyforge.org/projects/${ruby.project}
-			livecheck.regex	"<strong>${ruby.project}</strong></td><td>REL (.*)$"
+			livecheck.regex	"<strong>${ruby.project}</strong></td><td>(?:REL )?(.*)$"
 		}
 		rubyforge_gem:* {
 			set ruby.project [lindex [split ${source} {:}] 1]
