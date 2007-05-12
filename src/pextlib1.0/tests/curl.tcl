@@ -8,7 +8,7 @@ proc main {pextlibname} {
 	set tempfile /tmp/macports-pextlib-testcurl
 
 	# download a dummy file over HTTP.
-	curl fetch http://www.opendarwin.org/~pguyot/kilroy $tempfile
+	curl fetch http://svn.macports.org/repository/macports/users/pguyot/kilroy $tempfile
 	
 	# check the md5 sum of the file.
 	if {[md5 file $tempfile] != "a1b1cca7ffaa377e7dcdaaf2f619d8ae"} {
@@ -17,20 +17,20 @@ proc main {pextlibname} {
 	}
 
 	# check we indeed get a 404 a dummy file over HTTP.
-	if {![catch {curl fetch http://www.opendarwin.org/~pguyot/curl-test-404 $tempfile}]} {
-		puts {![catch {curl fetch http://www.opendarwin.org/~pguyot/curl-test-404 $tempfile}]}
+	if {![catch {curl fetch http://svn.macports.org/repository/macports/users/pguyot/curl-test-404 $tempfile}]} {
+		puts {![catch {curl fetch http://svn.macports.org/repository/macports/users/pguyot/curl-test-404 $tempfile}]}
 		exit 1
 	}
 	
 	# check the modification date of the dummy file.
 	# 20050801->1122822000
-	if {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1122822000]} {
-		puts {![curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1122822000]}
+	if {![curl isnewer http://svn.macports.org/repository/macports/users/pguyot/kilroy 1122822000]} {
+		puts {![curl isnewer http://svn.macports.org/repository/macports/users/pguyot/kilroy 1122822000]}
 		exit 1
 	}
 	# 20050811->1123686000
-	if {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1123686000]} {
-		puts {[curl isnewer http://www.opendarwin.org/~pguyot/kilroy 1123686000]}
+	if {[curl isnewer http://svn.macports.org/repository/macports/users/pguyot/kilroy 1123686000]} {
+		puts {[curl isnewer http://svn.macports.org/repository/macports/users/pguyot/kilroy 1123686000]}
 		exit 1
 	}
 	
