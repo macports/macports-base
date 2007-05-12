@@ -813,6 +813,12 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
     darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
 
     $workername eval source Portfile
+    
+    # evaluate the variants
+	if {[$workername eval eval_variants variations] != 0} {
+	    dportclose $dport
+		error "Error evaluating variants"
+	}
 
     ditem_key $dport provides [$workername eval return \$portname]
 
@@ -1034,7 +1040,7 @@ proc _dportispresent {dport depspec} {
 proc _dportexec {target dport} {
 	# xxx: set the work path?
 	set workername [ditem_key $dport workername]
-	if {![catch {$workername eval eval_variants variations $target} result] && $result == 0 &&
+	if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# If auto-clean mode, clean-up after dependency install
 		if {[string equal ${darwinports::portautoclean} "yes"]} {
@@ -1061,9 +1067,9 @@ proc dportexec {dport target} {
     global darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
-
-	# XXX: move this into dportopen?
-	if {[$workername eval eval_variants variations $target] != 0} {
+	
+	# check variants
+	if {[$workername eval check_variants variations $target] != 0} {
 		return 1
 	}
 	

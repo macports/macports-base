@@ -6,6 +6,11 @@
 
 (unreleased):
 
+    - Evaluate variants at dportopen instead of dportexec. This ensures that
+      the portfile represents the proper information if queried before targets
+      are executed. It also prevents variants from being executed twice if multiple
+      targets are executed separately on the portfile (ticket #11296, eridius r25033).
+
     - Fix copy and move commands (eridius r25024).
 
     - Passing multiple arguments to $option-delete now works as expected

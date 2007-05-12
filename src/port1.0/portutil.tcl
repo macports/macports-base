@@ -1365,10 +1365,9 @@ proc variant_run {ditem} {
     return 0
 }
 
-proc eval_variants {variations target} {
+proc eval_variants {variations} {
     global all_variants ports_force PortInfo
     set dlist $all_variants
-    set result 0
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
 	set portname $PortInfo(name)
@@ -1399,6 +1398,15 @@ proc eval_variants {variations target} {
     if {[llength $dlist] > 0} {
 		return 1
     }
+    
+    return 0
+}
+
+proc check_variants {variations target} {
+    global ports_force PortInfo
+    upvar $variations upvariations
+    set result 0
+    set portname $PortInfo(name)
     
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean' 
