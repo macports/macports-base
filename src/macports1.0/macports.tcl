@@ -157,18 +157,15 @@ proc puts {args} {
 	catch "tcl::puts $args"
 }
 
-# 
-proc findBinary {prog {autoconf_hint ""}} {
-# debug, remove when done!
-    puts "entering findBinary proc"
-    puts "naming hint passed is: ${autoconf_hint}"
-    if {${autoconf_hint} != "" and [file executable ${autoconf_hint}]} {
-	return [set cmd [set ${autoconf_hint}]]
+# find a binary either in a path defined at configuration time or in the path (fallback)
+proc macports::findBinary {prog {autoconf_hint ""}} {
+    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
+	return ${autoconf_hint}
     } else {
-	if {[catch {set cmd [binaryInPath "${prog}"]}] == 0} {
-	    return $cmd
+	if {[catch {set cmd_path [macports::binaryInPath ${prog}]} result] == 0} {
+	    return ${cmd_path}
 	} else {
-	    return -code error "Command ${prog} couldn't be found"
+	    return -code error "${result} or at its MacPorts configuration time location, did you move it?"
 	}
     }
 }
@@ -1185,19 +1182,13 @@ proc mportsync {args} {
 	    {^file$} {
 		set portdir [macports::getportdir $source]
 		if {[file exists $portdir/.svn]} {
-		    if {[catch {set svn_command [findBinary "svn" "${macports::autoconf::svn_path}"]}] == 0} {
-			# debug, remove!
-			puts "entered findBinary conditional..."
-			set svn_commandline "${svn_command} update --non-interactive \"${portdir}\""
-			ui_debug $svn_commandline
-			if {[catch {system $svn_commandline}]} {
-			    return -code error "sync failed doing svn update"
-			}
-			if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
-			    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-			}
-		    } else {
-			return -code error "Synchronizing the svn checkout failed due to an unknown reason"
+		    set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
+		    ui_debug $svn_commandline
+		    if {[catch {system $svn_commandline}]} {
+			return -code error "sync failed doing svn update"
+		    }
+		    if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
+			ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 		    }
 		}
 	    }
@@ -1215,17 +1206,13 @@ proc mportsync {args} {
 		    set source "${source}/"
 		}
 		# Do rsync fetch
-		if {[catch {set rsync_command [findBinary "rsync" "${macports::autoconf::rsync_path}"]}] == 0} {
-		    set rsync_commandline "${rsync_command} ${rsync_options} \"${source}\" \"${destdir}\""
-		    ui_debug $rsync_commandline
-		    if {[catch {system $rsync_commandline}]} {
-			return -code error "sync failed doing rsync"
-		    }
-		    if {[catch {system "chmod -R a+r \"$destdir\""}]} {
-			ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-		    }
-		} else {
-		    return -code error "bye!"
+		set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
+		ui_debug $rsync_commandline
+		if {[catch {system $rsync_commandline}]} {
+		    return -code error "sync failed doing rsync"
+		}
+		if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+		    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 		}
 	    }
 	    {^https?$|^ftp$} {
