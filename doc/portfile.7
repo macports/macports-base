@@ -1599,10 +1599,12 @@ for more information on this command.
 Built-in shorthand alternative to "file copy".
 .It Ic move
 Built-in shorthand alternative to "file rename".
-.It Ic delete
-Built-in shorthand alternative to "file delete". Required over the latter for Portfiles that perform deleting
-operations on directories while building the port on Mac OS X 10.3 and earlier, due to a Tcl anomaly on those systems
-that causes "file delete" to fail.
+.It Ic delete Ar
+Deletes each of the given files/directories. Behaves similarly to
+.Ic file delete -force
+except that
+.Ic file delete -force
+will fail to delete directories properly on 10.3 systems.
 .It Ic touch
 Built-in command mimicking the BSD touch command.
 .It Ic ln
