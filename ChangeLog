@@ -6,6 +6,19 @@
 
 (unreleased):
 
+    - Evaluate variants at dportopen instead of dportexec. This ensures that
+      the portfile represents the proper information if queried before targets
+      are executed. It also prevents variants from being executed twice if multiple
+      targets are executed separately on the portfile (ticket #11296, eridius r25033).
+
+    - Fix copy and move commands (eridius r25024).
+
+    - Passing multiple arguments to $option-delete now works as expected
+      (ticket #11929, eridius r25006).
+
+    - fs-traverse no longer follows symlinks specified on the root. This fixes
+      the incorrect behaviour of delete seen in #11862 (eridius r25003).
+
     - Remove bundled xar. (jberry r24913).
     
     - Tighten checking of port name in depspecs. neither + nor / is allowed.
