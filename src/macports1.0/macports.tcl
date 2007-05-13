@@ -157,7 +157,8 @@ proc puts {args} {
 	catch "tcl::puts $args"
 }
 
-# find a binary either in a path defined at configuration time or in the path (fallback)
+# find a binary either in a path defined at MacPorts' configuration time
+# or in the PATH environment variable through macports::binaryInPath (fallback)
 proc macports::findBinary {prog {autoconf_hint ""}} {
     if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
 	return ${autoconf_hint}
