@@ -822,6 +822,12 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
 
     $workername eval source Portfile
 
+    # evaluate the variants
+    if {[$workername eval eval_variants variations] != 0} {
+	mportclose $mport
+	error "Error evaluating variants"
+    }
+
     ditem_key $mport provides [$workername eval return \$portname]
 
     return $mport
@@ -1042,7 +1048,7 @@ proc _mportispresent {mport depspec} {
 proc _mportexec {target mport} {
 	# xxx: set the work path?
 	set workername [ditem_key $mport workername]
-	if {![catch {$workername eval eval_variants variations $target} result] && $result == 0 &&
+	if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# If auto-clean mode, clean-up after dependency install
 		if {[string equal ${macports::portautoclean} "yes"]} {
@@ -1070,8 +1076,8 @@ proc mportexec {mport target} {
 
 	set workername [ditem_key $mport workername]
 
-	# XXX: move this into mportopen?
-	if {[$workername eval eval_variants variations $target] != 0} {
+	# check variants
+	if {[$workername eval check_variants variations $target] != 0} {
 		return 1
 	}
 	
