@@ -353,7 +353,6 @@ proc default_check {optionName index op} {
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
     global all_variants PortInfo
-    upvar $args upargs
     
     set len [llength $args]
     set code [lindex $args end]
@@ -481,7 +480,6 @@ proc variant_exists {name} {
 # be more readable, and support arch and version specifics
 proc platform {args} {
     global all_variants PortInfo os.platform os.arch os.version
-    upvar $args upargs
     
     set len [llength $args]
     set code [lindex $args end]
