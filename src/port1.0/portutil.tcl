@@ -99,9 +99,9 @@ proc options {args} {
         proc ${option}-delete {args} [subst -nocommands {
             global $option user_options option_procs
             if {![info exists user_options($option)] && [info exists $option]} {
-                set temp $option
+                set temp [set $option]
                 foreach val \$args {
-                   set temp [ldelete \${$option} \$val]
+                   set temp [ldelete \$temp \$val]
                 }
                 if {\$temp eq ""} {
                     unset $option

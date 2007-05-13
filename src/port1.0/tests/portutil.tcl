@@ -59,6 +59,36 @@ proc test_delete {} {
     }
 }
 
+proc test_depends_lib-delete {} {
+    # tests depends_lib-delete
+    # actually tests all option-deletes
+    # but the bug was originally documented with depends_lib
+    
+    # depends_lib is intended to work from within a worker thread
+    # so we shall oblige
+    set workername [interp create]
+    darwinports::worker_init $workername {} [darwinports::getportbuildpath {}] {} {}
+    set body {
+        # load the current copy of portutil instead of the installed one
+        source [file dirname [info script]]/../portutil.tcl
+        package require port
+        
+        depends_lib port:foo port:bar port:blah
+        depends_lib-delete port:blah port:bar
+        array get PortInfo
+    }
+    if {[catch {$workername eval $body} result]} {
+        interp delete $workername
+        error $result $::errorInfo $::errorCode
+    } else {
+        interp delete $workername
+    }
+    array set temp $result
+    if {$temp(depends_lib) ne "port:foo"} {
+        error "depends_lib-delete did not delete properly"
+    }
+}
+
 proc test_touch {} {
     set root "/tmp/macports-portutil-touch"
     file delete -force $root
