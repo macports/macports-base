@@ -132,8 +132,7 @@ set SUBMITTER_NAME "autosubmit"
 set SUBMITTER_EMAIL "autosubmit@macports.org"
 array set submit_options "submitter_name $SUBMITTER_NAME submitter_email $SUBMITTER_EMAIL"
 
-global darwinports::autoconf::macports_user_dir
-set db_file [file normalize "${darwinports::autoconf::macports_user_dir}/autosubmit.db"]
+set db_file [file normalize "${darwinports::macports_user_dir}/autosubmit.db"]
 
 # Do argument processing
 set verbose 0

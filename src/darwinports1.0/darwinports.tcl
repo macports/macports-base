@@ -243,7 +243,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
-	global darwinports::autoconf::macports_user_dir
+	global darwinports::macports_user_dir
 	global darwinports::bootstrap_options
 	global darwinports::user_options
 	global darwinports::extra_env
@@ -268,6 +268,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global darwinports::xcodeversion
    	
     # Ensure that the macports user directory exists
+    set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
     file mkdir $macports_user_dir
     
    	# Configure the search path for configuration files
