@@ -1,4 +1,4 @@
-SUBDIR		= config doc src portmgr
+SUBDIR		= config doc src
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}
