@@ -224,6 +224,7 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
+
 proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	if {$up_ui_options eq ""} {
 		array set ui_options {}
@@ -269,7 +270,12 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	
     # Ensure that the macports user directory exists
     set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
-    file mkdir $macports_user_dir
+    if { ![file exists $macports_user_dir] } {
+    	# If not, create it with ownership of the enclosing directory, rw by the user only
+		file mkdir $macports_user_dir 
+		file attributes $macports_user_dir -permissions u=rw,go=
+		file attributes $macports_user_dir -owner [file attributes "$macports_user_dir/.." -owner]
+    }
     
    	# Configure the search path for configuration files
    	set conf_files ""
