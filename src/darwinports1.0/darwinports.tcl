@@ -1178,7 +1178,7 @@ proc darwinports::getindex {source} {
 	return [file join [darwinports::getsourcepath $source] PortIndex]
 }
 
-proc dportsync {args} {
+proc dportsync {} {
 	global darwinports::sources darwinports::portdbpath tcl_platform
 	global darwinports::autoconf::rsync_path
 
