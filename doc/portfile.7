@@ -96,7 +96,11 @@ is formatted like a date.
 .Sy Example:
 .Dl epoch 20041231
 .It Ic description
-One line description of the software and what it does.
+One line description of the software and what it does.  To appear in the
+description, brackets and semi-colons need to be escaped with a backslash (i.e.
+they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+.Xr re_syntax n
+may also be used, with the exception of \\n, \\r and \\f.
 .br
 .Sy Type:
 .Em required
@@ -104,7 +108,11 @@ One line description of the software and what it does.
 .Sy Example:
 .Dl description Dictionary Server Protocol (RFC2229) client
 .It Ic long_description
-A verbose description of the software and what it does.
+A verbose description of the software and what it does.  To appear in the
+description, brackets and semi-colons need to be escaped with a backslash (i.e.
+they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+.Xr re_syntax n
+may also be used, with the exception of \\n, \\r and \\f.
 .br
 .Sy Type:
 .Em required
