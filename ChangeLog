@@ -6,6 +6,13 @@
 
 (unreleased):
 
+    - Make port(1) convert description and long_description from lists to
+      strings before printing to stdout; this enables the proper printing of
+      semi-colons, brackets and other characters by way of Tcl escape sequences.
+      The exceptions to this are the sequences for newline and carriage return
+      (these break the flatfile PortIndex format by introducing line breaks).
+      (boeyms r25110)
+
     - Evaluate variants at dportopen instead of dportexec. This ensures that
       the portfile represents the proper information if queried before targets
       are executed. It also prevents variants from being executed twice if multiple
