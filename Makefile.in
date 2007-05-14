@@ -24,9 +24,68 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-include Mk/macports.subdir.mk
+dp2mpUpgrade:
+	@echo "Upgrading your existing MacPorts installation to the new layout."
+# We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now
+# be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
+	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -vrf ${TCL_PACKAGE_DIR}/darwinports1.0
 
-install::
+# Old version file can be safely deleted, as it was already used to start this upgrade
+# and a new one will be installed into the new location.
+	[ ! -f ${sysconfdir}/ports/dp_version ] || rm -vf ${sysconfdir}/ports/dp_version
+
+# The main configuration file is first renamed to macports.conf while still in its old dir.
+	[ ! -f ${sysconfdir}/ports/ports.conf ] || mv -v ${sysconfdir}/ports/ports.conf ${sysconfdir}/ports/macports.conf
+
+# Following that, the dir itself is renamed to its new name.
+	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
+
+# MacPorts base files in ${datadir} are safely removed as new ones are always installed.
+	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
+
+# Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
+#####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
+
+# MacPorts rsyns server is replaced into the macpors.conf and sources.conf files.
+	sed -e "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+	sed -e "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
+	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
+
+# 
+	sed -e "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+	sed -e "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
+	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
+
+# 
+	sed -e "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+
+# 
+	sed -e "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+
+#
+	sed -e "s/\-\-delete //" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+
+#something more?
+
+####
+# NOTES:
+#    -) Is it safe to delete the dp_version file while the upgrade target runs?
+#    -) should we use the ${DESTDIR} sandbox?
+#    -) should we force moves?
+#    -) maybe I can regroup at least some of the sed calls?
+#    -) 
+####
+
+install:: dp2mpUpgrade
+#The order of installation targets having been reversed between this Makefile and Mk/macports.subdir.mk to
+#get the upgrade target working in the best way possible, this informational text below ends up hidden
+#among lots of output. Therefore I need to find somewhere to put it, so that it's seen as it used to be.
 	@echo ""
 	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
 	@echo ""
@@ -34,6 +93,8 @@ install::
 	@echo ""
 	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."
 	@echo ""
+
+include Mk/macports.subdir.mk
 
 clean::
 
