@@ -30,6 +30,14 @@ dp2mpUpgrade:
 # be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
 	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -vrf ${TCL_PACKAGE_DIR}/darwinports1.0
 
+# MacPorts base files in ${datadir} are also safely removed as new ones are always installed,
+# and onto a their new location in this case too.
+	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
+
+# Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
+#####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
+
 # Old version file can be safely deleted, as it was already used to start this upgrade
 # and a new one will be installed into the new location.
 	[ ! -f ${sysconfdir}/ports/dp_version ] || rm -vf ${sysconfdir}/ports/dp_version
@@ -40,12 +48,6 @@ dp2mpUpgrade:
 # Following that, the dir itself is renamed to its new name.
 	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
 
-# MacPorts base files in ${datadir} are safely removed as new ones are always installed.
-	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
-
-# Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
-#####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
 
 # MacPorts rsyns server is replaced into the macpors.conf and sources.conf files.
 	sed -e "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
