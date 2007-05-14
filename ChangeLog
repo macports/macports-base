@@ -6,6 +6,9 @@
 
 (unreleased):
 
+    - Updating a file: source via svn update during port sync now uses the uid/gid
+      of the owner of the working copy (eridius r25142).
+
     - Make port(1) convert description and long_description from lists to
       strings before printing to stdout; this enables the proper printing of
       semi-colons, brackets and other characters by way of Tcl escape sequences.
