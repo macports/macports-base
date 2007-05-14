@@ -34,6 +34,12 @@ dp2mpUpgrade:
 # and onto a their new location in this case too.
 	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
 
+# 
+#	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || 
+
+# 
+#	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || 
+
 # Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
 #####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
@@ -50,27 +56,27 @@ dp2mpUpgrade:
 
 
 # MacPorts rsyns server is replaced into the macpors.conf and sources.conf files.
-	sed -e "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-	sed -e "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
+	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
 # 
-	sed -e "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-	sed -e "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
+	sed "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
 # 
-	sed -e "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
 # 
-	sed -e "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
 #
-	sed -e "s/\-\-delete //" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/\-\-delete //" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
 #something more?
