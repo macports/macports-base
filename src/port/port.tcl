@@ -1239,26 +1239,16 @@ proc action_info { action portlist opts } {
 				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
 					puts -nonewline ", Revision $portinfo(revision)" 
 				}
-				puts ", $portinfo(portdir)" 
-				
+				puts -nonewline ", $portinfo(portdir)" 
 				if {[info exists portinfo(variants)]} {
-					if {[info exists portinfo(variant_desc)]} {
-						array set descs $portinfo(variant_desc)
-					} else {
-						array set descs ""
-					}
-					puts "Variants:"
+					puts -nonewline " (Variants: "
 					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-						set v [lindex $portinfo(variants) $i]
-						if {[info exists descs($v)]} {
-							puts " - $v: $descs($v)"
-						} else {
-							puts " - $v"
-						}
+						if {$i > 0} { puts -nonewline ", " }
+						puts -nonewline "[lindex $portinfo(variants) $i]"
 					}
+					puts -nonewline ")"
 				}
 				puts ""
-				
 				if {[info exists portinfo(homepage)]} { 
 					puts "$portinfo(homepage)"
 				}
@@ -1768,10 +1758,21 @@ proc action_variants { action portlist opts } {
 		if {![info exists portinfo(variants)]} {
 			puts "$portname has no variants"
 		} else {
+			# Get the variant descriptions
+			if {[info exists portinfo(variant_desc)]} {
+				array set descs $portinfo(variant_desc)
+			} else {
+				array set descs ""
+			}
+
 			# print out all the variants
 			puts "$portname has the variants:"
-			for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-				puts "\t[lindex $portinfo(variants) $i]"
+			foreach v $portinfo(variants) {
+				if {[info exists descs($v)]} {
+					puts "\t$v: $descs($v)"
+				} else {
+					puts "\t$v"
+				}
 			}
 		}
 	}
