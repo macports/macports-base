@@ -1252,7 +1252,7 @@ proc action_info { action portlist opts } {
 					puts "\n[join $portinfo(long_description)]\n"
 				}
 	
-				# find build dependencies
+				# Emit build, library, and runtime dependencies
 				foreach {key title} {
 					depends_build "Build Dependencies"
 					depends_lib "Library Dependencies"
