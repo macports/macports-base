@@ -268,23 +268,31 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
    	
-    # Ensure that the macports user directory exists
-    set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
-    if { ![file exists $macports_user_dir] } {
-    	# If not, create it with ownership of the enclosing directory, rwx by the user only
-		file mkdir $macports_user_dir 
-		file attributes $macports_user_dir -permissions u=rwx,go= \
-                                           -owner [file attributes $macports_user_dir/.. -owner] \
-                                           -group [file attributes $macports_user_dir/.. -group]
-    }
-    
+    # Ensure that the macports user directory exists if HOME is defined
+    if {[info exists env(HOME)]} {
+	    set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
+		if { ![file exists $macports_user_dir] } {
+			# If not, create it with ownership of the enclosing directory, rwx by the user only
+			file mkdir $macports_user_dir 
+			file attributes $macports_user_dir -permissions u=rwx,go= \
+											   -owner [file attributes $macports_user_dir/.. -owner] \
+											   -group [file attributes $macports_user_dir/.. -group]
+		}
+	} else {
+		# Otherwise define the user directory as a direcotory that will never exist
+		set darwinports::macports_user_dir "/dev/null/NO_HOME_DIR" 
+	}
+	
    	# Configure the search path for configuration files
    	set conf_files ""
-    if {[llength [array names env PORTSRC]] > 0} {
-		set PORTSRC [lindex [array get env PORTSRC] 1]
+    if {[info exists env(PORTSRC)]} {
+		set PORTSRC $env(PORTSRC)
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "${macports_user_dir}/ports.conf" "${dports_conf_path}/ports.conf"
+    if { [file isdirectory macports_user_dir] } {
+ 		lappend conf_files "${macports_user_dir}/ports.conf"
+ 	}
+    lappend conf_files "${dports_conf_path}/ports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {

@@ -2452,7 +2452,7 @@ proc process_command_file { in } {
 	set history_file [file normalize "${darwinports::macports_user_dir}/history"]
 
 	# Read readline history
-	if {$use_readline} {
+	if {$use_readline && [file isdirectory $darwinports::macports_user_dir]} {
 		rl_history read $history_file
 		rl_history stifle 100
 	}
@@ -2495,7 +2495,7 @@ proc process_command_file { in } {
 	}
 	
 	# Save readine history
-	if {$use_readline} {
+	if {$use_readline && [file isdirectory $darwinports::macports_user_dir]} {
 		rl_history write $history_file
 	}
 	
