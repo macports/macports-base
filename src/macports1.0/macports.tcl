@@ -1450,7 +1450,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 # selfupdate procedure
 proc macports::selfupdate {optionslist} {
 	global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir macports::rsync_options
-	global macports::autoconf::rsync_path
+	global macports::autoconf::macports_conf_path macports::autoconf::rsync_path
 	array set options $optionslist
 	
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
@@ -1465,7 +1465,7 @@ proc macports::selfupdate {optionslist} {
 		return -code error "Couldn't sync the ports tree: $result"
 	}
 
-	set mp_base_path [file join $portdbpath sources ${rsync_server}_${rsync_dir}/]
+	set mp_base_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
 	if {![file exists $mp_base_path]} {
 		file mkdir $mp_base_path
 	}
