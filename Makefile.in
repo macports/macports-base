@@ -34,15 +34,15 @@ dp2mpUpgrade:
 # and onto a their new location in this case too.
 	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
 
-# Move the default base sources to the new layout
+# Move the default base sources to the new layout.
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || mv -v \
 	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ${localstatedir}/macports/sources/rsync.macports.org/release/base
 
-# Move the default ports tree to the new layout
+# Move the default ports tree to the new layout.
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || mv -v \
 	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports
 
-# Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
+# Main ${localstatedir}/db/dports directory (where installed ports live) is then moved to its new location.
 #####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
 
@@ -63,23 +63,20 @@ dp2mpUpgrade:
 	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
-# 
+# New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files.
 	sed "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 	sed "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
-# 
+# New default value for the portdbpath variable is inserted into the macports.conf file.
 	sed "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
-# 
+# New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file.
 	sed "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
-#
-	sed "s/\-\-delete //" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
 #something more?
 
