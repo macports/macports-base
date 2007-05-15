@@ -34,8 +34,9 @@ dp2mpUpgrade:
 # and onto a their new location in this case too.
 	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
 
-# 
-#	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || 
+# Move the default base sources to the new layout
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ${localstatedir}/macports/sources/rsync.macports.org/release/base
 
 # Move the default ports tree to the new layout
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || mv -v \
