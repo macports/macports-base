@@ -24,7 +24,7 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-dp2mpUpgrade:
+upgrade:
 	@echo "Upgrading your existing MacPorts installation to the new layout."
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now
 # be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
@@ -36,11 +36,11 @@ dp2mpUpgrade:
 
 # Move the default base sources to the new layout.
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ${localstatedir}/macports/sources/rsync.macports.org/release/base
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ${localstatedir}/db/dports/sources/rsync.macports.org/release/base
 
 # Move the default ports tree to the new layout.
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/db/dports/sources/rsync.macports.org/release/ports
 
 # Main ${localstatedir}/db/dports directory (where installed ports live) is then moved to its new location.
 #####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -56,8 +56,15 @@ dp2mpUpgrade:
 # Following that, the dir itself is renamed to its new name.
 	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
 
+# New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file.
+	sed "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
-# MacPorts rsyns server is replaced into the macpors.conf and sources.conf files.
+# New default value for the portdbpath variable is inserted into the macports.conf file.
+	sed "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+
+# MacPorts rsync server is replaced into the macpors.conf and sources.conf files.
 	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
@@ -68,14 +75,6 @@ dp2mpUpgrade:
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 	sed "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
-
-# New default value for the portdbpath variable is inserted into the macports.conf file.
-	sed "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-
-# New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file.
-	sed "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 
 
 #something more?
@@ -89,7 +88,7 @@ dp2mpUpgrade:
 #    -) 
 ####
 
-install:: dp2mpUpgrade
+install:: upgrade
 #The order of installation targets having been reversed between this Makefile and Mk/macports.subdir.mk to
 #get the upgrade target working in the best way possible, this informational text below ends up hidden
 #among lots of output. Therefore I need to find somewhere to put it, so that it's seen as it used to be.
