@@ -33,6 +33,27 @@
     
     - Tighten checking of port name in depspecs. neither + nor / is allowed.
       (jberry r24929, r24934, r24940).
+      
+    - Restore ability for portindex lines to contain carriage returns, allowing
+      fields such as descriptions to contain line breaks. Note that any portindex
+      containing such entries will not be readable by a recent version of macports.
+      (jberry r25146)
+      
+    - Add support for descriptions on variants:
+		 * The syntax follows the syntax for variant depends, etc.
+		 * Descriptions for variants are entirely optional
+		 * The change to the portindex format to allow variant descriptions
+		   should be backwards compatible. Variant descriptions are stored,
+		   keyed by the variant name, in a new portinfo array named "variant_desc".
+   
+		Example:
+
+			variant myvariant description "This variant does this and that" {
+				configure.args-append   --do-this --do-that
+			}
+			
+		(jberry r25147)
+	
 
 Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 
