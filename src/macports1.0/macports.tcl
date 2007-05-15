@@ -1157,10 +1157,9 @@ proc mportexec {mport target} {
 }
 
 proc macports::getsourcepath {url} {
-	global macports::portdbpath
-	regsub {://} $url {.} source_path
-	regsub -all {/} $source_path {_} source_path
-	return [file join $portdbpath sources $source_path]
+    global macports::portdbpath
+    set source_path [split $url ://]
+    return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
 }
 
 proc macports::getportbuildpath {id} {
