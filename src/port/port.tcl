@@ -1259,11 +1259,11 @@ proc action_info { action portlist opts } {
 					depends_run "Runtime Dependencies"
 				} {
 					if {[info exists portinfo($key)]} {
-						puts -nonewline "$title: "
+						puts -nonewline "$title:"
 						set joiner ""
 						foreach d $portinfo($key) {
-							puts -nonewline $joiner; set joiner ", "
-							puts -nonewline "[lindex [split $d :] end]"
+							puts -nonewline "$joiner [lindex [split $d :] end]"
+							set joiner ","
 						}
 						set nodeps false
 						puts ""
