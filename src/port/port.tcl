@@ -1241,12 +1241,7 @@ proc action_info { action portlist opts } {
 				}
 				puts -nonewline ", $portinfo(portdir)" 
 				if {[info exists portinfo(variants)]} {
-					puts -nonewline " (Variants: "
-					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex $portinfo(variants) $i]"
-					}
-					puts -nonewline ")"
+					puts -nonewline " (Variants: [join $portinfo(variants) ", "])"
 				}
 				puts ""
 				if {[info exists portinfo(homepage)]} { 
@@ -1258,37 +1253,23 @@ proc action_info { action portlist opts } {
 				}
 	
 				# find build dependencies
-				if {[info exists portinfo(depends_build)]} {
-					puts -nonewline "Build Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] end]"
+				foreach {key title} {
+					depends_build "Build Dependencies"
+					depends_lib "Library Dependencies"
+					depends_run "Runtime Dependencies"
+				} {
+					if {[info exists portinfo($key)]} {
+						puts -nonewline "$title: "
+						set joiner ""
+						foreach d $portinfo($key) {
+							puts -nonewline $joiner; set joiner ", "
+							puts -nonewline "[lindex [split $d :] end]"
+						}
+						set nodeps false
+						puts ""
 					}
-					set nodeps false
-					puts ""
 				}
-		
-				# find library dependencies
-				if {[info exists portinfo(depends_lib)]} {
-					puts -nonewline "Library Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] end]"
-					}
-					set nodeps false
-					puts ""
-				}
-		
-				# find runtime dependencies
-				if {[info exists portinfo(depends_run)]} {
-					puts -nonewline "Runtime Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] end]"
-					}
-					set nodeps false
-					puts ""
-				}
+					
 				if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
 				if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
 			}
