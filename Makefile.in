@@ -83,7 +83,7 @@ upgrade:
 # New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files.
 	sed "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-	sed "s/dpupdate\/dports/release\/ports/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
+	sed "s/dpupdate\/dports/release\/ports\//g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
 
