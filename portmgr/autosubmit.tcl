@@ -144,7 +144,7 @@ if { [lsearch $argv -v] >= 0 } {
 dportinit
 
 # Submit ports
-puts "Using database at $db_file"
+if { $verbose } { puts "Using database at $db_file" }
 open_db $db_file
 submit_ports
 close_db
