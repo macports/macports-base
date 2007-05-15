@@ -1239,16 +1239,26 @@ proc action_info { action portlist opts } {
 				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
 					puts -nonewline ", Revision $portinfo(revision)" 
 				}
-				puts -nonewline ", $portinfo(portdir)" 
+				puts ", $portinfo(portdir)" 
+				
 				if {[info exists portinfo(variants)]} {
-					puts -nonewline " (Variants: "
-					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex $portinfo(variants) $i]"
+					if {[info exists portinfo(variant_desc)]} {
+						array set descs $portinfo(variant_desc)
+					} else {
+						array set descs ""
 					}
-					puts -nonewline ")"
+					puts "Variants:"
+					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
+						set v [lindex $portinfo(variants) $i]
+						if {[info exists descs($v)]} {
+							puts " - $v: $descs($v)"
+						} else {
+							puts " - $v"
+						}
+					}
 				}
 				puts ""
+				
 				if {[info exists portinfo(homepage)]} { 
 					puts "$portinfo(homepage)"
 				}

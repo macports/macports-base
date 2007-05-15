@@ -367,9 +367,10 @@ proc variant {args} {
     set mode "provides"
     foreach arg $args {
 	switch -exact $arg {
-	    provides { set mode "provides" }
-	    requires { set mode "requires" }
-	    conflicts { set mode "conflicts" }
+	    description -
+	    provides -
+	    requires -
+	    conflicts { set mode $arg }
 	    default { ditem_append $ditem $mode $arg }		
         }
     }
@@ -388,6 +389,10 @@ proc variant {args} {
 		variant_remove_ditem $variant_provides
 	} else {
 	    lappend PortInfo(variants) $variant_provides
+	    set vdesc [join [ditem_key $ditem description]]
+	    if {$vdesc != ""} {
+		    lappend PortInfo(variant_desc) $variant_provides $vdesc
+		}
 	}
 
 	# Finally append the ditem to the dlist.
