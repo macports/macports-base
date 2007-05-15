@@ -26,21 +26,31 @@ config.status: configure
 
 upgrade:
 	@echo "Upgrading your existing MacPorts installation to the new layout."
+	@echo ""
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now
 # be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
-	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -vrf ${TCL_PACKAGE_DIR}/darwinports1.0
+	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -rf ${TCL_PACKAGE_DIR}/darwinports1.0
 
 # MacPorts base files in ${datadir} are also safely removed as new ones are always installed,
 # and onto a their new location in this case too.
-	[ ! -d ${datadir}/darwinports ] || rm -vrf ${datadir}/darwinports
+	[ ! -d ${datadir}/darwinports ] || rm -rf ${datadir}/darwinports
 
 # Move the default base sources to the new layout.
-	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ${localstatedir}/db/dports/sources/rsync.macports.org/release/base
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1/base ] || { mkdir -pv \
+	${localstatedir}/db/dports/sources/rsync.macports.org/release && mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1/base ${localstatedir}/db/dports/sources/rsync.macports.org/release/ && \
+	rm -rf ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ; }
 
 # Move the default ports tree to the new layout.
-	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/db/dports/sources/rsync.macports.org/release/ports
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || { mkdir -pv \
+	${localstatedir}/db/dports/sources/rsync.macports.org/release && mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/db/dports/sources/rsync.macports.org/release/ports ; }
+
+# Some people also have base sources fetched from the rsync module corresponding to trunk, so lets move that too just in case.
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate/base ] || { mkdir -pv \
+	${localstatedir}/db/dports/sources/rsync.macports.org/unstable && mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate/base ${localstatedir}/db/dports/sources/rsync.macports.org/unstable/ && \
+	rm -rf ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate ; }
 
 # Main ${localstatedir}/db/dports directory (where installed ports live) is then moved to its new location.
 #####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
