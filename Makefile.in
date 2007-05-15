@@ -37,8 +37,9 @@ dp2mpUpgrade:
 # 
 #	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ] || 
 
-# 
-#	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || 
+# Move the default ports tree to the new layout
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports
 
 # Main ${localstatedir}/db/dports directory (where installed ports live) is moved to its new location.
 #####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
