@@ -132,8 +132,6 @@ set SUBMITTER_NAME "autosubmit"
 set SUBMITTER_EMAIL "autosubmit@macports.org"
 array set submit_options "submitter_name $SUBMITTER_NAME submitter_email $SUBMITTER_EMAIL"
 
-set db_file [file normalize "${darwinports::macports_user_dir}/autosubmit.db"]
-
 # Do argument processing
 set verbose 0
 if { [lsearch $argv -v] >= 0 } {
@@ -144,6 +142,7 @@ if { [lsearch $argv -v] >= 0 } {
 dportinit
 
 # Submit ports
+set db_file [file normalize "${darwinports::macports_user_dir}/autosubmit.db"]
 if { $verbose } { puts "Using database at $db_file" }
 open_db $db_file
 submit_ports
