@@ -1263,8 +1263,9 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 				while {[gets $fd line] >= 0} {
 					array unset portinfo
 					set name [lindex $line 0]
-					gets $fd line
-					
+					set len [lindex $line 1]
+					set line [read $fd $len]
+						
 					if {$easy} {
 						set target $name
 					} else {
