@@ -53,6 +53,9 @@
 			}
 			
 		(jberry r25147)
+		
+	- Only look for, or create, ~/.macports user directory if the HOME environment
+	  variable is defined. (jberry r25177)
 	
 
 Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
