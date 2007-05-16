@@ -254,15 +254,24 @@ or
 .Fl -category
 (recognized field names are those from the portindex). If the global option
 .Fl q
-is in effect, the meta-info fields will not be labeled; if the option
+is in effect, the meta-info fields will not be labeled.
+If the option
 .Fl -line
-is provided, all such data will be consolidated into a single line per port, suitable for processing in a pipe of commands.
-For example:
+is provided, all such data will be consolidated into a single line per port,
+suitable for processing in a pipe of commands.
+If the option
+.Fl -index
+is provided, the information will be pulled from the PortIndex rather than
+from the Portfile (in this case variant information, such as dependencies,
+will not affect the output).
 .Pp
-.Dl "port info vim"
+For example:
+.br
+.Dl "port info vim +ruby"
 .Dl "port info --category --name apache*"
 .Dl "port -q info --category --name --version category:java"
 .Dl "port info --line --category --name all"
+.Dl "port info --index python24"
 .Ss variants
 Lists the build variants available for
 .Ar portname .

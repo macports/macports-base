@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - `port info` now supports new --index flag for using old behaviour (eridius r25256).
+
     - `port info` now opens the Portfile and displays up-to-date information.
       This allows information about variants to be displayed (eg. dependencies).
       Also allow `port info` to default to current directory if no name is provided

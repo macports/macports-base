@@ -1157,12 +1157,20 @@ proc action_info { action portlist opts } {
             set portdir $portinfo(portdir)
         }
         
-        set dport [dportopen $porturl [array get options] [array get variations]]
-        array unset portinfo
-        array set portinfo [dportinfo $dport]
-        dportclose $dport
-        if {[info exists portdir]} {
-            set portinfo(portdir) $portdir
+        if {!([info exists options(ports_info_index)] && $options(ports_info_index) eq "yes")} {
+            if {[catch {set dport [dportopen $porturl [array get options] [array get variations]]} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Unable to open port: $result" 1 status
+            }
+            array unset portinfo
+            array set portinfo [dportinfo $dport]
+            dportclose $dport
+            if {[info exists portdir]} {
+                set portinfo(portdir) $portdir
+            }
+        } elseif {![info exists portinfo]} {
+            ui_warn "port info --index does not work with 'current' pseudo-port"
+            continue
         }
         
         # Map from friendly to less-friendly but real names
@@ -1208,6 +1216,9 @@ proc action_info { action portlist opts } {
         set fields {}
         foreach { option } [array names options ports_info_*] {
             set opt [string range $option 11 end]
+            if {$opt eq "index"} {
+                continue
+            }
             
             # Map from friendly name
             set ropt $opt
