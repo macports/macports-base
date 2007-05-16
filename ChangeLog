@@ -6,6 +6,10 @@
 
 (unreleased):
 
+    - Add support for [nosync] flag in sources.conf to prevent a source from syncing
+      during a `port sync` or `port selfupdate` (eridius r25236).
+      Example: file:///Users/landonf/misc/MacPorts/dports [nosync]
+
     - Updating a file: source via svn update during port sync now uses the uid/gid
       of the owner of the working copy (eridius r25142).
 
@@ -40,23 +44,23 @@
       (jberry r25146)
       
     - Add support for descriptions on variants:
-		 * The syntax follows the syntax for variant depends, etc.
-		 * Descriptions for variants are entirely optional
-		 * The change to the portindex format to allow variant descriptions
-		   should be backwards compatible. Variant descriptions are stored,
-		   keyed by the variant name, in a new portinfo array named "variant_desc".
+         * The syntax follows the syntax for variant depends, etc.
+         * Descriptions for variants are entirely optional
+         * The change to the portindex format to allow variant descriptions
+           should be backwards compatible. Variant descriptions are stored,
+           keyed by the variant name, in a new portinfo array named "variant_desc".
    
-		Example:
+        Example:
 
-			variant myvariant description "This variant does this and that" {
-				configure.args-append   --do-this --do-that
-			}
-			
-		(jberry r25147)
-		
-	- Only look for, or create, ~/.macports user directory if the HOME environment
-	  variable is defined. (jberry r25177)
-	
+            variant myvariant description "This variant does this and that" {
+                configure.args-append   --do-this --do-that
+            }
+            
+        (jberry r25147)
+        
+    - Only look for, or create, ~/.macports user directory if the HOME environment
+      variable is defined. (jberry r25177)
+    
 
 Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 

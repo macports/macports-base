@@ -339,9 +339,19 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     fconfigure $fd -encoding utf-8
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-        if {![regexp {[\ \t]*#.*|^$} $line]} {
-            lappend sources $line
-	}
+        if {![regexp {^\s*#|^$} $line]} {
+            if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+                set flags [split $flags ,]
+                foreach flag $flags {
+                    if {[lsearch -exact [list nosync] $flag] == -1} {
+                        ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+                    }
+                }
+                lappend sources [concat [list $url] $flags]
+            } else {
+                ui_warn "$sources_conf specifies invalid source '$line', ignored."
+            }
+        }
     }
     if {![info exists sources]} {
 	if {[file isdirectory dports]} {
@@ -1186,7 +1196,14 @@ proc dportsync {} {
 	global darwinports::sources darwinports::portdbpath tcl_platform
 	global darwinports::autoconf::rsync_path
 
+    ui_debug "Synchronizing dports tree(s)"
 	foreach source $sources {
+	    set flags [lrange $source 1 end]
+	    set source [lindex $source 0]
+	    if {[lsearch -exact $flags nosync] != -1} {
+	        ui_debug "Skipping $source"
+	        continue
+	    }
 		ui_info "Synchronizing from $source"
 		switch -regexp -- [darwinports::getprotocol $source] {
 			{^file$} {
@@ -1240,6 +1257,9 @@ proc dportsync {} {
 				file mkdir [file dirname $indexfile]
 				exec curl -L -s -S -o $indexfile $source/PortIndex
 			}
+			default {
+			    ui_warn "Unknown protocol for $source"
+			}
 		}
 	}
 }
@@ -1251,6 +1271,8 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 	
 	set found 0
 	foreach source $sources {
+	    set flags [lrange $source 1 end]
+	    set source [lindex $source 0]
 		if {[darwinports::getprotocol $source] == "dports"} {
 			array set attrs [list name $pattern]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
