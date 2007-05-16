@@ -309,6 +309,12 @@ revision available of the
 from the MacPorts rsync server. To update you would normally do:
 .Pp
 .Dl "sudo port -d sync"
+.Pp
+If any of the dports tree(s) uses a file: URL that points to a local subversion working copy,
+.Ic sync
+will perform an
+.Ic "svn update"
+on the working copy with the user set to the owner of the working copy.
 .Ss outdated
 List the installed ports that need upgrading.
 .Ss upgrade
@@ -394,6 +400,10 @@ Updates the MacPorts system, dports tree(s) and base tools if needed, from the M
 installing the newest infrastructure available. To update you would typically do:
 .Pp
 .Dl "sudo port -d selfupdate"
+.Pp
+See
+.Ic sync
+for more information about updating dports tree(s).
 .Ss help
 Displays a summary of all available actions and port command syntax on stdout.
 .Sh DEVELOPER TARGETS
