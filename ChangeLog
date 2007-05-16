@@ -6,6 +6,8 @@
 
 (unreleased):
 
+    - Add -E flag to reinplace, does the same thing as in sed (eridius r25251).
+
     - Add support for [nosync] flag in sources.conf to prevent a source from syncing
       during a `port sync` or `port selfupdate` (eridius r25236).
       Example: file:///Users/landonf/misc/MacPorts/dports [nosync]
