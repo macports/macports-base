@@ -9,6 +9,7 @@
  */
  
 #include "uid.h"
+#include "grp.h"
 
 #if HAVE_CONFIG_H
 #include <config.h>
@@ -40,7 +41,6 @@
 
 #include <tcl.h>
 
-
 /*
 	getuid
 	
@@ -48,19 +48,15 @@
 */
 int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *tcl_result;
-	
 	/* Check the arg count */
 	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, "getuid");
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
 		return TCL_ERROR;
 	}
 	
-	tcl_result = Tcl_NewLongObj(getuid());	
-	Tcl_SetObjResult(interp, tcl_result);
+	Tcl_SetObjResult(interp, Tcl_NewLongObj(getuid()));
 	return TCL_OK;
 }
-
 
 /*
 	geteuid
@@ -69,19 +65,43 @@ int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 */
 int geteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *tcl_result;
-	
 	/* Check the arg count */
 	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, "geteuid");
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
 		return TCL_ERROR;
 	}
 	
-	tcl_result = Tcl_NewLongObj(geteuid());	
-	Tcl_SetObjResult(interp, tcl_result);
+	Tcl_SetObjResult(interp, Tcl_NewLongObj(geteuid()));
 	return TCL_OK;
 }
 
+/*
+    getgid
+*/
+int getgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    if (objc != 1) {
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
+        return TCL_ERROR;
+    }
+    
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(getgid()));
+    return TCL_OK;
+}
+
+/*
+    getegid
+*/
+int getegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    if (objc != 1) {
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
+        return TCL_ERROR;
+    }
+    
+    Tcl_SetObjResult(interp, Tcl_NewLongObj(getegid()));
+    return TCL_OK;
+}
 
 /*
 	setuid
@@ -94,7 +114,7 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "setuid");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -103,13 +123,15 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		return TCL_ERROR;
 		
 	/* set the uid */
-	if (0 != setuid(uid))
-		Tcl_SetResult(interp, "setuid failed", NULL);
+	if (0 != setuid(uid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set uid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
 		
 	return TCL_OK;
 }
-
-
 
 /*
 	seteuid
@@ -122,7 +144,7 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "seteuid");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -131,13 +153,67 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 		return TCL_ERROR;
 		
 	/* set the euid */
-	if (0 != seteuid(uid))
-		Tcl_SetResult(interp, "seteuid failed", NULL);
+	if (0 != seteuid(uid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set effective uid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
 		
 	return TCL_OK;
 }
 
+/*
+    setgid
+*/
+int setgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    long gid;
+    
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "gid");
+        return TCL_ERROR;
+    }
+    
+    if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &gid)) {
+        return TCL_ERROR;
+    }
+    
+    if (0 != setgid(gid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set gid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
+    
+    return TCL_OK;
+}
 
+/*
+    setegid
+*/
+int setegidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    long gid;
+    
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "gid");
+        return TCL_ERROR;
+    }
+    
+    if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &gid)) {
+        return TCL_ERROR;
+    }
+    
+    if (0 != setegid(gid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set effective gid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
+    
+    return TCL_OK;
+}
 
 /*
 	name_to_uid
@@ -151,7 +227,7 @@ int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "name_to_uid");
+		Tcl_WrongNumArgs(interp, 1, objv, "name");
 		return TCL_ERROR;
 	}
 	
@@ -171,8 +247,6 @@ int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	return TCL_OK;
 }
 
-
-
 /*
 	uid_to_name
 	
@@ -185,7 +259,7 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "getpwnam");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -196,10 +270,57 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	/* Map the uid --> name, or empty result on error */
 	pwent = getpwuid(uid);
 	if (pwent != NULL)
-		Tcl_SetResult(interp, pwent->pw_name, NULL);
+		Tcl_SetResult(interp, pwent->pw_name, TCL_STATIC);
 
 	return TCL_OK;
 }
 
+/*
+    name_to_gid
+*/
+int name_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    struct group *grent;
+    char *name;
+    
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "name");
+        return TCL_ERROR;
+    }
+    
+    name = Tcl_GetString(objv[1]);
+    if (name == NULL || !*name)
+        return TCL_ERROR;
+    
+    grent = getgrnam(name);
+    
+    if (grent == NULL)
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(-1));
+    else
+        Tcl_SetObjResult(interp, Tcl_NewIntObj(grent->gr_gid)); 
+    
+    return TCL_OK;
+}
 
-
+/*
+    gid_to_name
+*/
+int gid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    long gid;
+    struct group *grent;
+    
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "gid");
+        return TCL_ERROR;
+    }
+    
+    if (TCL_OK != Tcl_GetLongFromObj(interp, objv[1], &gid))
+        return TCL_ERROR;
+    
+    grent = getgrgid(gid);
+    if (grent != NULL)
+        Tcl_SetResult(interp, grent->gr_name, TCL_STATIC);
+    
+    return TCL_OK;
+}

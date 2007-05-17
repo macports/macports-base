@@ -4,9 +4,73 @@
 #   This is a log of major user-visible changes in each release
 #
 
-(unreleased):
+Release 1.4.41 (16-May-2007):
 
-Release 1.4.40 (7-May-2007):
+    - `port info` now supports new --index flag for using old behaviour (eridius r25256).
+
+    - `port info` now opens the Portfile and displays up-to-date information.
+      This allows information about variants to be displayed (eg. dependencies).
+      Also allow `port info` to default to current directory if no name is provided
+      (eridius r25255).
+    
+    - Add -E flag to reinplace, does the same thing as in sed (eridius r25251).
+
+    - Add support for [nosync] flag in sources.conf to prevent a source from syncing
+      during a `port sync` or `port selfupdate` (eridius r25236).
+      Example: file:///Users/landonf/misc/MacPorts/dports [nosync]
+
+    - Updating a file: source via svn update during port sync now uses the uid/gid
+      of the owner of the working copy (eridius r25142).
+
+    - Make port(1) convert description and long_description from lists to
+      strings before printing to stdout; this enables the proper printing of
+      semi-colons, brackets and other characters by way of Tcl escape sequences.
+      The exceptions to this are the sequences for newline and carriage return
+      (these break the flatfile PortIndex format by introducing line breaks).
+      (boeyms r25110)
+
+    - Evaluate variants at dportopen instead of dportexec. This ensures that
+      the portfile represents the proper information if queried before targets
+      are executed. It also prevents variants from being executed twice if multiple
+      targets are executed separately on the portfile (ticket #11296, eridius r25033).
+
+    - Fix copy and move commands (eridius r25024).
+
+    - Passing multiple arguments to $option-delete now works as expected
+      (ticket #11929, eridius r25006).
+
+    - fs-traverse no longer follows symlinks specified on the root. This fixes
+      the incorrect behaviour of delete seen in #11862 (eridius r25003).
+
+    - Remove bundled xar. (jberry r24913).
+
+    - Tighten checking of port name in depspecs. neither + nor / is allowed.
+      (jberry r24929, r24934, r24940).
+      
+    - Restore ability for portindex lines to contain carriage returns, allowing
+      fields such as descriptions to contain line breaks. Note that any portindex
+      containing such entries will not be readable by a recent version of macports.
+      (jberry r25146)
+      
+    - Add support for descriptions on variants:
+         * The syntax follows the syntax for variant depends, etc.
+         * Descriptions for variants are entirely optional
+         * The change to the portindex format to allow variant descriptions
+           should be backwards compatible. Variant descriptions are stored,
+           keyed by the variant name, in a new portinfo array named "variant_desc".
+   
+        Example:
+
+            variant myvariant description "This variant does this and that" {
+                configure.args-append   --do-this --do-that
+            }
+            
+        (jberry r25147)
+        
+    - Only look for, or create, ~/.macports user directory if the HOME environment
+      variable is defined. (jberry r25177)
+
+Release 1.4.40 (7-May-2007, tagged at r24909 by jberry):
 
     - Note the bump in version naming. To leave ourselves lots of room in our versioning
       scheme, we've jumped from 1.4.3 to 1.4.40. The floating point represenation as

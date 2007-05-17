@@ -224,6 +224,7 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
+
 proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	if {$up_ui_options eq ""} {
 		array set ui_options {}
@@ -243,7 +244,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	
 	global auto_path env
 	global darwinports::autoconf::dports_conf_path
-	global darwinports::autoconf::macports_user_dir
+	global darwinports::macports_user_dir
 	global darwinports::bootstrap_options
 	global darwinports::user_options
 	global darwinports::extra_env
@@ -267,22 +268,38 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global darwinports::xcodebuildcmd
    	global darwinports::xcodeversion
    	
-    # Ensure that the macports user directory exists
-    file mkdir $macports_user_dir
-    
+    # Ensure that the macports user directory exists if HOME is defined
+    if {[info exists env(HOME)]} {
+	    set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
+		if { ![file exists $macports_user_dir] } {
+			# If not, create it with ownership of the enclosing directory, rwx by the user only
+			file mkdir $macports_user_dir 
+			file attributes $macports_user_dir -permissions u=rwx,go= \
+											   -owner [file attributes $macports_user_dir/.. -owner] \
+											   -group [file attributes $macports_user_dir/.. -group]
+		}
+	} else {
+		# Otherwise define the user directory as a direcotory that will never exist
+		set darwinports::macports_user_dir "/dev/null/NO_HOME_DIR" 
+	}
+	
    	# Configure the search path for configuration files
    	set conf_files ""
-    if {[llength [array names env PORTSRC]] > 0} {
-		set PORTSRC [lindex [array get env PORTSRC] 1]
+    if {[info exists env(PORTSRC)]} {
+		set PORTSRC $env(PORTSRC)
 		lappend conf_files ${PORTSRC}
     }
-    lappend conf_files "${macports_user_dir}/ports.conf" "${dports_conf_path}/ports.conf"
+    if { [file isdirectory macports_user_dir] } {
+ 		lappend conf_files "${macports_user_dir}/ports.conf"
+ 	}
+    lappend conf_files "${dports_conf_path}/ports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
 		if [file exists $file] {
 			set portconf $file
 			set fd [open $file r]
+			fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 					if {[regexp {^"(.*)"[ \t]*$} $val match val2] == 1} {
@@ -304,6 +321,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
+		fconfigure $fd -encoding utf-8
 		while {[gets $fd line] >= 0} {
 			if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 				if {[lsearch $user_options $option] >= 0} {
@@ -317,14 +335,23 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists sources_conf]} {
         return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in $macports_user_dir/ports.conf"
     }
-    if {[catch {set fd [open $sources_conf r]} result]} {
-        return -code error "$result"
-    }
+    set fd [open $sources_conf r]
+    fconfigure $fd -encoding utf-8
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-        if {![regexp {[\ \t]*#.*|^$} $line]} {
-            lappend sources $line
-	}
+        if {![regexp {^\s*#|^$} $line]} {
+            if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+                set flags [split $flags ,]
+                foreach flag $flags {
+                    if {[lsearch -exact [list nosync] $flag] == -1} {
+                        ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+                    }
+                }
+                lappend sources [concat [list $url] $flags]
+            } else {
+                ui_warn "$sources_conf specifies invalid source '$line', ignored."
+            }
+        }
     }
     if {![info exists sources]} {
 	if {[file isdirectory dports]} {
@@ -336,9 +363,8 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 	if {[info exists variants_conf]} {
 		if {[file exist $variants_conf]} {
-			if {[catch {set fd [open $variants_conf r]} result]} {
-				return -code error "$result"
-			}
+			set fd [open $variants_conf r]
+			fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				set line [string trimright $line]
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -706,18 +732,14 @@ proc darwinports::fetch_port {url} {
     global darwinports::portdbpath tcl_platform
     set fetchdir [file join $portdbpath portdirs]
     set fetchfile [file tail $url]
-    if {[catch {file mkdir $fetchdir} result]} {
-        return -code error $result
-    }
+    file mkdir $fetchdir
     if {![file writable $fetchdir]} {
     	return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
     if {[catch {exec curl -L -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
         return -code error "Port remote fetch failed: $result"
     }
-    if {[catch {cd $fetchdir} result]} {
-	return -code error $result
-    }
+    cd $fetchdir
     if {[catch {exec tar -zxf $fetchfile} result]} {
 	return -code error "Port extract failed: $result"
     }
@@ -813,6 +835,12 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
     darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
 
     $workername eval source Portfile
+    
+    # evaluate the variants
+	if {[$workername eval eval_variants variations] != 0} {
+	    dportclose $dport
+		error "Error evaluating variants"
+	}
 
     ditem_key $dport provides [$workername eval return \$portname]
 
@@ -1034,7 +1062,7 @@ proc _dportispresent {dport depspec} {
 proc _dportexec {target dport} {
 	# xxx: set the work path?
 	set workername [ditem_key $dport workername]
-	if {![catch {$workername eval eval_variants variations $target} result] && $result == 0 &&
+	if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# If auto-clean mode, clean-up after dependency install
 		if {[string equal ${darwinports::portautoclean} "yes"]} {
@@ -1061,9 +1089,9 @@ proc dportexec {dport target} {
     global darwinports::registry.installtype
 
 	set workername [ditem_key $dport workername]
-
-	# XXX: move this into dportopen?
-	if {[$workername eval eval_variants variations $target] != 0} {
+	
+	# check variants
+	if {[$workername eval check_variants variations $target] != 0} {
 		return 1
 	}
 	
@@ -1164,11 +1192,18 @@ proc darwinports::getindex {source} {
 	return [file join [darwinports::getsourcepath $source] PortIndex]
 }
 
-proc dportsync {args} {
+proc dportsync {} {
 	global darwinports::sources darwinports::portdbpath tcl_platform
 	global darwinports::autoconf::rsync_path
 
+    ui_debug "Synchronizing dports tree(s)"
 	foreach source $sources {
+	    set flags [lrange $source 1 end]
+	    set source [lindex $source 0]
+	    if {[lsearch -exact $flags nosync] != -1} {
+	        ui_debug "Skipping $source"
+	        continue
+	    }
 		ui_info "Synchronizing from $source"
 		switch -regexp -- [darwinports::getprotocol $source] {
 			{^file$} {
@@ -1177,11 +1212,18 @@ proc dportsync {args} {
 				    if {[catch {set svncmd [darwinports::binaryInPath "svn"]}] == 0} {
 				        set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
 				        ui_debug $svn_commandline
-				        if {[catch {system $svn_commandline}]} {
+				        if {[catch {
+				            set euid [geteuid]
+				            set egid [getegid]
+				            ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+				            setegid [name_to_gid [file attributes $portdir -group]]
+				            seteuid [name_to_uid [file attributes $portdir -owner]]
+				            system $svn_commandline
+				            seteuid $euid
+				            setegid $egid
+				        }]} {
+				            ui_debug "$::errorInfo"
 				            return -code error "sync failed doing svn update"
-				        }
-				        if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
-				            ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 				        }
 				    } else {
 				        return -code error "svn command not found"
@@ -1195,9 +1237,7 @@ proc dportsync {args} {
 				# Where to, boss?
 				set destdir [file dirname [darwinports::getindex $source]]
 
-				if {[catch {file mkdir $destdir} result]} {
-					return -code error $result
-				}
+				file mkdir $destdir
 
 				# Keep rsync happy with a trailing slash
 				if {[string index $source end] != "/"} {
@@ -1214,10 +1254,11 @@ proc dportsync {args} {
 			}
 			{^https?$|^ftp$} {
 				set indexfile [darwinports::getindex $source]
-				if {[catch {file mkdir [file dirname $indexfile]} result]} {
-					return -code error $result
-				}
+				file mkdir [file dirname $indexfile]
 				exec curl -L -s -S -o $indexfile $source/PortIndex
+			}
+			default {
+			    ui_warn "Unknown protocol for $source"
 			}
 		}
 	}
@@ -1230,6 +1271,8 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 	
 	set found 0
 	foreach source $sources {
+	    set flags [lrange $source 1 end]
+	    set source [lindex $source 0]
 		if {[darwinports::getprotocol $source] == "dports"} {
 			array set attrs [list name $pattern]
 			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
@@ -1238,12 +1281,14 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 			if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
 				ui_warn "Can't open index file for source: $source"
 			} else {
+			    fconfigure $fd -encoding utf-8
 				incr found 1
 				while {[gets $fd line] >= 0} {
 					array unset portinfo
 					set name [lindex $line 0]
-					gets $fd line
-					
+					set len [lindex $line 1]
+					set line [read $fd $len]
+						
 					if {$easy} {
 						set target $name
 					} else {

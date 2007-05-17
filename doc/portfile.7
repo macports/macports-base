@@ -96,7 +96,11 @@ is formatted like a date.
 .Sy Example:
 .Dl epoch 20041231
 .It Ic description
-One line description of the software and what it does.
+One line description of the software and what it does.  To appear in the
+description, brackets and semi-colons need to be escaped with a backslash (i.e.
+they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+.Xr re_syntax n
+may also be used, with the exception of \\n, \\r and \\f.
 .br
 .Sy Type:
 .Em required
@@ -104,7 +108,11 @@ One line description of the software and what it does.
 .Sy Example:
 .Dl description Dictionary Server Protocol (RFC2229) client
 .It Ic long_description
-A verbose description of the software and what it does.
+A verbose description of the software and what it does.  To appear in the
+description, brackets and semi-colons need to be escaped with a backslash (i.e.
+they must be written as "\\[", "\\]" and "\\;").  The escape sequences listed in
+.Xr re_syntax n
+may also be used, with the exception of \\n, \\r and \\f.
 .br
 .Sy Type:
 .Em required
@@ -676,7 +684,7 @@ Specify the address to a CVS repository from which to checkout files.
 .Em none
 .br
 .Sy Example:
-.Dl cvs.root :pserver:anonymous cvs.sv.gnu.org:/sources/emacs
+.Dl cvs.root :pserver:anonymous@cvs.sv.gnu.org:/sources/emacs
 .It Ic cvs.tag
 Specify a CVS tag identifying the code to checkout.
 .br
@@ -1583,8 +1591,17 @@ with adduser:
 .Dl adduser foo gid=[existsgroup foo]
 .It Ic nextgid
 Returns the highest used gid plus one.
-.It Ic reinplace Ar regex Ar filename
-Provide in-place sed like editing of a file.
+.It Xo
+.Ic reinplace
+.Op Fl E
+.Ar regex
+.Ar
+.Xc
+Provide in-place
+.Xr sed 1
+like editing of a file.
+The -E flag does the same thing as in
+.Xr sed 1
 .br
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1
@@ -1599,10 +1616,12 @@ for more information on this command.
 Built-in shorthand alternative to "file copy".
 .It Ic move
 Built-in shorthand alternative to "file rename".
-.It Ic delete
-Built-in shorthand alternative to "file delete". Required over the latter for Portfiles that perform deleting
-operations on directories while building the port on Mac OS X 10.3 and earlier, due to a Tcl anomaly on those systems
-that causes "file delete" to fail.
+.It Ic delete Ar
+Deletes each of the given files/directories. Behaves similarly to
+.Ic file delete -force
+except that
+.Ic file delete -force
+will fail to delete directories properly on 10.3 systems.
 .It Ic touch
 Built-in command mimicking the BSD touch command.
 .It Ic ln

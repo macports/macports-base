@@ -99,9 +99,9 @@ proc options {args} {
         proc ${option}-delete {args} [subst -nocommands {
             global $option user_options option_procs
             if {![info exists user_options($option)] && [info exists $option]} {
-                set temp $option
+                set temp [set $option]
                 foreach val \$args {
-                   set temp [ldelete \${$option} \$val]
+                   set temp [ldelete \$temp \$val]
                 }
                 if {\$temp eq ""} {
                     unset $option
@@ -353,7 +353,6 @@ proc default_check {optionName index op} {
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
     global all_variants PortInfo
-    upvar $args upargs
     
     set len [llength $args]
     set code [lindex $args end]
@@ -368,9 +367,10 @@ proc variant {args} {
     set mode "provides"
     foreach arg $args {
 	switch -exact $arg {
-	    provides { set mode "provides" }
-	    requires { set mode "requires" }
-	    conflicts { set mode "conflicts" }
+	    description -
+	    provides -
+	    requires -
+	    conflicts { set mode $arg }
 	    default { ditem_append $ditem $mode $arg }		
         }
     }
@@ -389,6 +389,10 @@ proc variant {args} {
 		variant_remove_ditem $variant_provides
 	} else {
 	    lappend PortInfo(variants) $variant_provides
+	    set vdesc [join [ditem_key $ditem description]]
+	    if {$vdesc != ""} {
+		    lappend PortInfo(variant_desc) $variant_provides $vdesc
+		}
 	}
 
 	# Finally append the ditem to the dlist.
@@ -481,7 +485,6 @@ proc variant_exists {name} {
 # be more readable, and support arch and version specifics
 proc platform {args} {
     global all_variants PortInfo os.platform os.arch os.version
-    upvar $args upargs
     
     set len [llength $args]
     set code [lindex $args end]
@@ -658,13 +661,34 @@ proc ldelete {list value} {
 
 # reinplace
 # Provides "sed in place" functionality
-proc reinplace {pattern args}  {
-    if {$args == ""} {
-    	ui_error "reinplace: no value given for parameter \"file\""
-	return -code error "no value given for parameter \"file\" to \"reinplace\"" 
+proc reinplace {args}  {
+    set extended 0
+    while 1 {
+        set arg [lindex $args 0]
+        if {[string first - $arg] != -1} {
+            set args [lrange $args 1 end]
+            switch [string range $arg 1 end] {
+                E {
+                    set extended 1
+                }
+                - {
+                    break
+                }
+                default {
+                    error "reinplace: unknown flag '-$arg'"
+                }
+            }
+        } else {
+            break
+        }
     }
+    if {[llength $args] < 2} {
+        error "reinplace ?-E? pattern file ..."
+    }
+    set pattern [lindex $args 0]
+    set files [lrange $args 1 end]
     
-    foreach file $args {
+    foreach file $files {
 	if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -677,7 +701,12 @@ proc reinplace {pattern args}  {
 	    set tmpfile [lindex $tmpfile 1]
 	}
 	
-	if {[catch {exec sed $pattern < $file >@ $tmpfd} error]} {
+	set cmdline sed
+	if {$extended} {
+	    lappend cmdline -E
+	}
+	set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+	if {[catch {eval exec $cmdline} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
@@ -825,12 +854,12 @@ proc touch {args} {
 
 # copy
 proc copy {args} {
-    exec file copy $args
+    eval file copy $args
 }
 
 # move
 proc move {args} {
-    exec file rename $args
+    eval file rename $args
 }
 
 # ln
@@ -1367,10 +1396,9 @@ proc variant_run {ditem} {
     return 0
 }
 
-proc eval_variants {variations target} {
+proc eval_variants {variations} {
     global all_variants ports_force PortInfo
     set dlist $all_variants
-    set result 0
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
 	set portname $PortInfo(name)
@@ -1401,6 +1429,15 @@ proc eval_variants {variations target} {
     if {[llength $dlist] > 0} {
 		return 1
     }
+    
+    return 0
+}
+
+proc check_variants {variations target} {
+    global ports_force PortInfo
+    upvar $variations upvariations
+    set result 0
+    set portname $PortInfo(name)
     
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean' 

@@ -33,6 +33,13 @@ proc main {pextlibname} {
         }
         check_output $output $trees(sub1)
         
+        # Test starting with a slash-ended symlink
+        set output [list]
+        fs-traverse file $root/a/c/a/ {
+            lappend output $file
+        }
+        check_output $output $trees(sub2)
+        
         # Test -depth
         set output [list]
         fs-traverse -depth file $root {
@@ -226,10 +233,14 @@ proc setup_trees {root} {
     
     set trees(sub1) "
         $root/a/c/a     {link ../d}
-        $root/a/c/a/a   file
-        $root/a/c/a/b   {link ../../b/a}
-        $root/a/c/a/c   directory
-        $root/a/c/a/d   file
+    "
+    
+    set trees(sub2) "
+        $root/a/c/a/     {link ../d}
+        $root/a/c/a//a   file
+        $root/a/c/a//b   {link ../../b/a}
+        $root/a/c/a//c   directory
+        $root/a/c/a//d   file
     "
     
     set trees(2) "

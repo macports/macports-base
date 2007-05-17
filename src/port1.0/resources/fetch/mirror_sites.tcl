@@ -173,7 +173,7 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://easynews.dl.sourceforge.net/
     http://ufpr.dl.sourceforge.net/
     http://kent.dl.sourceforge.net/
-    http://jaist.dl.sourceforge.net
+    http://jaist.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sunsite) {

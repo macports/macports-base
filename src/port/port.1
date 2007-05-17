@@ -254,15 +254,24 @@ or
 .Fl -category
 (recognized field names are those from the portindex). If the global option
 .Fl q
-is in effect, the meta-info fields will not be labeled; if the option
+is in effect, the meta-info fields will not be labeled.
+If the option
 .Fl -line
-is provided, all such data will be consolidated into a single line per port, suitable for processing in a pipe of commands.
-For example:
+is provided, all such data will be consolidated into a single line per port,
+suitable for processing in a pipe of commands.
+If the option
+.Fl -index
+is provided, the information will be pulled from the PortIndex rather than
+from the Portfile (in this case variant information, such as dependencies,
+will not affect the output).
 .Pp
-.Dl "port info vim"
+For example:
+.br
+.Dl "port info vim +ruby"
 .Dl "port info --category --name apache*"
 .Dl "port -q info --category --name --version category:java"
 .Dl "port info --line --category --name all"
+.Dl "port info --index python24"
 .Ss variants
 Lists the build variants available for
 .Ar portname .
@@ -309,6 +318,12 @@ revision available of the
 from the MacPorts rsync server. To update you would normally do:
 .Pp
 .Dl "sudo port -d sync"
+.Pp
+If any of the dports tree(s) uses a file: URL that points to a local subversion working copy,
+.Ic sync
+will perform an
+.Ic "svn update"
+on the working copy with the user set to the owner of the working copy.
 .Ss outdated
 List the installed ports that need upgrading.
 .Ss upgrade
@@ -394,6 +409,10 @@ Updates the MacPorts system, dports tree(s) and base tools if needed, from the M
 installing the newest infrastructure available. To update you would typically do:
 .Pp
 .Dl "sudo port -d selfupdate"
+.Pp
+See
+.Ic sync
+for more information about updating dports tree(s).
 .Ss help
 Displays a summary of all available actions and port command syntax on stdout.
 .Sh DEVELOPER TARGETS

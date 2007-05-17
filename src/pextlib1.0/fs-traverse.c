@@ -133,7 +133,7 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
     FTS *root_fts;
     FTSENT *ent;
     
-    root_fts = fts_open(targets, FTS_PHYSICAL | FTS_COMFOLLOW | FTS_NOCHDIR | FTS_XDEV, NULL);
+    root_fts = fts_open(targets, FTS_PHYSICAL /*| FTS_COMFOLLOW */| FTS_NOCHDIR | FTS_XDEV, NULL);
     
     while ((ent = fts_read(root_fts)) != NULL) {
         switch (ent->fts_info) {
