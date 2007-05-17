@@ -4,7 +4,7 @@
 #   This is a log of major user-visible changes in each release
 #
 
-(unreleased):
+Release 1.4.41 (16-May-2007):
 
     - `port info` now supports new --index flag for using old behaviour (eridius r25256).
 
