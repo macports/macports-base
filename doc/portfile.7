@@ -366,15 +366,6 @@ Full path to the Portfile location.
 .br
 .Sy Type:
 .Em read-only
-.It Ic workdir
-Path to work directory relative to
-.Ic portpath .
-Where possible use
-.Ic workpath
-instead.
-.br
-.Sy Type:
-.Em read-only
 .br
 .Sy Default:
 .Em work
@@ -385,7 +376,7 @@ Full path to work directory.
 .Em read-only
 .br
 .Sy Default:
-.Em ${portpath}/${workdir}
+.Em ${portbuildpath}/work
 .It Ic worksrcpath
 Full path to working sources (where port has unpacked itself).
 .br
@@ -603,7 +594,7 @@ Sets extract.cmd to: unzip
 .br
 Sets extract.pre_args to: -q
 .br
-Sets extract.post_args to: "-d ${portpath}/${workdir}"
+Sets extract.post_args to: "-d ${workpath}"
 .br
 .Sy Type:
 .Em optional
@@ -1310,6 +1301,7 @@ allowing for user-customization of a software's build-time settings.
 .Ic variant
 .Op Cm requires Ar variant
 .Op Cm conflicts Ar variant
+.Op Cm description Ar "description"
 .Xc
 The value is usually a TCL script which modifies other port's
 .Nm
@@ -1317,13 +1309,15 @@ variables. Dependencies and conflicts with other variants in the same
 port can be expressed with
 .Cm requires
 and
-.Cm conflicts .
-The example adds a "gnome" variant to a port.
+.Cm conflicts . 
+.Cm description
+provides a means to supply a description of the variant for the user.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Example:
+Add a "gnome" variant to a port.
 .Bd -literal -offset indent -compact
 variant gnome requires glib { configure.args-append --with-gnome \e\
 
