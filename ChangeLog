@@ -4,7 +4,11 @@
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.4.41 (16-May-2007):
+Release 1.4.41 (17-May-2007)
+
+    - Fix reinplace, broken in 1.4.41 (eridius r25285).
+
+Release 1.4.41 (16-May-2007 tagged at r25266 by jberry):
 
     - `port info` now supports new --index flag for using old behaviour (eridius r25256).
 
