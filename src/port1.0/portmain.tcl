@@ -42,7 +42,7 @@ target_provides ${com.apple.main} main
 # define options
 options prefix name version revision epoch categories maintainers
 options long_description description homepage
-options workdir worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants install.user install.group
+options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants install.user install.group
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage
@@ -53,9 +53,8 @@ option_proc default_variants handle_default_variants
 # Hard coded version number for resource location
 default portresourcepath {[file join $portsharepath resources/port1.0]}
 default distpath {[file join $portdbpath distfiles]}
-default workdir work
-default workpath {[file join $portbuildpath $workdir]}
-default worksymlink {[file join $portpath $workdir]}
+default workpath {[getportworkpath_from_buildpath $portbuildpath]}
+default worksymlink {[file join $portpath work]}
 default prefix /opt/local
 default x11prefix /usr/X11R6
 default destdir destroot

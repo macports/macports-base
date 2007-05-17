@@ -165,7 +165,7 @@ proc clean_work {args} {
 	}
 
 	# Clean symlink, if necessary
-	if {[file type $worksymlink] == "link"} {
+	if {[file exists $worksymlink] && [file type $worksymlink] == "link"} {
 		ui_debug "Removing symlink: ${worksymlink}"
 		file delete -force -- ${worksymlink}
 	}

@@ -41,14 +41,14 @@ namespace eval darwinports {
     	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
-    	rsync_dir startupitem_type xcodeversion xcodebuildcmd \
+    	rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
     	mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
     	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
-    	rsync_options rsync_dir startupitem_type \
+    	rsync_options rsync_dir startupitem_type place_worksymlink \
     	mp_remote_url mp_remote_submit_url \
     	$user_options"
     
@@ -255,7 +255,6 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	global darwinports::registry.path
 	global darwinports::sources
 	global darwinports::sources_conf
-	global darwinports::startupitem_type
    	global darwinports::destroot_umask
    	global darwinports::libpath
    	global darwinports::prefix
@@ -530,19 +529,21 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # Set startupitem default type (can be overridden by portfile)
-    if {![info exists startupitem_type]} {
+    if {![info exists darwinports::startupitem_type]} {
     	set darwinports::startupitem_type "default"
-    	global darwinports::startupitem_type
+    }
+    
+    # Default place_worksymlink
+    if {![info exists darwinports::place_worksymlink]} {
+    	set darwinports::place_worksymlink yes
     }
     
     # Default mp remote options
-    if {![info exists mp_remote_url]} {
+    if {![info exists darwinports::mp_remote_url]} {
     	set darwinports::mp_remote_url "http://db.macports.org"
-    	global darwinports::mp_remote_url
     }
-    if {![info exists mp_remote_submit_url]} {
+    if {![info exists darwinports::mp_remote_submit_url]} {
     	set darwinports::mp_remote_submit_url "${darwinports::mp_remote_url}/submit"
-    	global darwinports::mp_remote_submit_url
     }
     
     # ENV cleanup.
@@ -633,6 +634,7 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
     
     # Export some utility functions defined here.
     $workername alias darwinports_create_thread darwinports::create_thread
+    $workername alias getportworkpath_from_buildpath darwinports::getportworkpath_from_buildpath
 
 	# New Registry/Receipts stuff
 	$workername alias registry_new registry::new_entry
@@ -765,7 +767,7 @@ proc darwinports::getportdir {url {destdir "."}} {
 	if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
 		switch -regexp -- ${protocol} {
 			{^file$} {
-				return $string
+				return [file normalize $string]
 			}
 			{^dports$} {
 				return [darwinports::index::fetch_port $url $destdir]
@@ -813,12 +815,11 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 		set portdir ""
 	}
 
-	set portdir [darwinports::getportdir $porturl $portdir]
-	ui_debug "Changing to port directory: $portdir"
-	cd $portdir
-	set portpath [pwd]
+	set portpath [darwinports::getportdir $porturl $portdir]
+	ui_debug "Changing to port directory: $portpath"
+	cd $portpath
     if {![file isfile Portfile]} {
-        return -code error "Could not find Portfile in $portdir"
+        return -code error "Could not find Portfile in $portpath"
     }
 
 	set workername [interp create]
@@ -1181,6 +1182,14 @@ proc darwinports::getportbuildpath {id} {
 	regsub {://} $id {.} port_path
 	regsub -all {/} $port_path {_} port_path
 	return [file join $portdbpath build $port_path]
+}
+
+proc darwinports::getportworkpath_from_buildpath {portbuildpath} {
+	return [file join $portbuildpath work]
+}
+
+proc darwinports::getportworkpath_from_portdir {portpath} {
+	return [darwinports::getportworkpath_from_buildpath [darwinports::getportbuildpath $portpath]]
 }
 
 proc darwinports::getindex {source} {

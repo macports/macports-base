@@ -1968,6 +1968,14 @@ proc action_portcmds { action portlist opts } {
 					puts $portdir
 				}
 				
+				work {
+					# output the path to the port's work directory
+					set workpath [darwinports::getportworkpath_from_portdir $portdir]
+					if {[file exists $workpath]} {
+						puts $workpath
+					}
+				}
+				
 				cd {
 					# Change to the port's directory, making it the default
 					# port for any future commands
@@ -2157,6 +2165,7 @@ array set action_array {
 	edit		action_portcmds
 	cat			action_portcmds
 	dir			action_portcmds
+	work		action_portcmds
 	cd			action_portcmds
 	url			action_portcmds
 	file		action_portcmds

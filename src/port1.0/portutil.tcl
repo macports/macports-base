@@ -941,7 +941,7 @@ proc ln {args} {
 # filefindbypath
 # Provides searching of the standard path for included files
 proc filefindbypath {fname} {
-    global distpath filesdir workdir worksrcdir portpath
+    global distpath filesdir worksrcdir portpath
     
     if {[file readable $portpath/$fname]} {
 	return $portpath/$fname
@@ -1246,7 +1246,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink portname portpath ports_ignore_older
+    global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     
     if {![file isdirectory $workpath]} {
 	file mkdir $workpath
@@ -1266,7 +1266,7 @@ proc open_statefile {args} {
     }
 
     # Create a symlink to the workpath for port authors 
-    if {![file isdirectory $worksymlink]} {
+    if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
 	    exec ln -sf $workpath $worksymlink
     }
     
@@ -1288,8 +1288,6 @@ proc open_statefile {args} {
 # check_statefile
 # Check completed/selected state of target/variant $name
 proc check_statefile {class name fd} {
-    global portpath workdir
-    
     seek $fd 0
     while {[gets $fd line] >= 0} {
 	if {$line == "$class: $name"} {
