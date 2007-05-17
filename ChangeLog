@@ -4,7 +4,7 @@
 #   This is a log of major user-visible changes in each release
 #
 
-Release 1.4.41 (17-May-2007)
+Release 1.4.42 (17-May-2007)
 
     - Fix reinplace, broken in 1.4.41 (eridius r25285).
 
