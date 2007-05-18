@@ -600,10 +600,13 @@ proc get_outdated_ports {} {
 				set latest_epoch	$portinfo(epoch)
 			}
 			
-			# Compare versions, first checking epoch, then the compound version string
+			# Compare versions, first checking epoch, then version, then revision
 			set comp_result [expr $installed_epoch - $latest_epoch]
 			if { $comp_result == 0 } {
-				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				set comp_result [rpm-vercomp $installed_version $latest_version]
+				if { $comp_result == 0 } {
+					set comp_result [rpm-vercomp $installed_revision $latest_revision]
+				}
 			}
 			
 			# Add outdated ports to our results list
@@ -1629,10 +1632,13 @@ proc action_outdated { action portlist opts } {
 				set latest_epoch	$portinfo(epoch)
 			}
 			
-			# Compare versions, first checking epoch, then the compound version string
+			# Compare versions, first checking epoch, then version, then revision
 			set comp_result [expr $installed_epoch - $latest_epoch]
 			if { $comp_result == 0 } {
-				set comp_result [rpm-vercomp $installed_compound $latest_compound]
+				set comp_result [rpm-vercomp $installed_version $latest_version]
+				if { $comp_result == 0 } {
+					set comp_result [rpm-vercomp $installed_revision $latest_revision]
+				}
 			}
 			
 			# Report outdated (or, for verbose, predated) versions
