@@ -6,6 +6,13 @@
 
 (unreleased)
 
+    - Make a correction to port(1)'s determination of whether or not a port has
+      been updated by making it compare ${version} and then ${revision} rather
+      than a single comparison of the compound ${version}_${revision}; the
+      latter reports 2.01_2 to be newer than 2.01.01a25_0 because, at the fifth
+      character, `_' comes after `.' in ASCII lexicographic order.
+      (boeyms in r25310)
+
 Release 1.4.42 (17-May-2007 tagged at r25296 by jberry)
 
     - Fix reinplace, broken in 1.4.41 (eridius r25285).
