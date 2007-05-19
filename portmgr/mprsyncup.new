@@ -1,0 +1,60 @@
+#!/bin/sh
+
+
+####
+# Script to checkout/update base sources from both trunk (ToT) and the current release tag (as determined by the base/config/RELEASE_URL file)
+# and a ports tree from trunk (ToT), and then export and sync them to the ${REPOROOT} location, wherefrom the rsync modules are fed.
+# Read the base/portmgr/rsync.repos file for more information on both the rsync modules and necessary filesystem level paths layouts.
+# Created by fkr@opendarwin.org, jberry@macports.org and yeled@macports.org,
+# updated by jmpp@macports.org
+# $Id$
+####
+
+
+set -e
+
+
+SVN="/opt/local/bin/svn -q --non-interactive"
+MPROOT=/usr/local/src/macosforge/macports
+REPOROOT=/usr/local/repos/macports
+SVNURL=http://svn.macports.org/repository/macports
+RELEASE_URL_FILE=config/RELEASE_URL
+RSYNC="/usr/bin/rsync -q"
+
+
+# Checkout trunk/base:
+BASE=${MPROOT}/trunk/base
+if [ -d ${BASE} ]; then
+    ${SVN} update ${BASE}
+else
+    ${SVN} checkout ${BASE}
+fi
+${SVN} export ${BASE} ${BASE}-export
+${RSYNC} -a -I --delete ${BASE}-export/ ${REPOROOT}/trunk/base && rm -rf ${BASE}-export
+
+
+# Read what tag we're releasign from, (check|update) it and export it:
+read RELEASE_URL < ${BASE}/${RELEASE_URL_FILE}
+if [ ! -n ${RELEASE_URL} ]; then
+    echo "no RELEASE_URL specified in svn trunk"
+    exit 1
+fi
+BASE=${MPROOT}/release
+if [ -d ${BASE} ]; then
+    ${SVN} switch ${RELEASE_URL} ${BASE}
+else
+    ${SVN} checkout ${RELEASE_URL} ${BASE}
+fi
+${SVN} export ${BASE} ${BASE}-export
+${RSYNC} -a -I --delete ${BASE}-export/ ${REPOROOT}/release && rm -rf ${BASE}-export
+
+
+# Checkout the ports tree and export it to the release rsync repo:
+PORTS=${MPROOT}/trunk/dports
+if [ -d ${PORTS} ]; then
+  ${SVN} update ${PORTS}  
+else
+    ${SVN} checkout ${PORTS}
+fi
+${SVN} export ${PORTS} ${PORTS}-export
+${RSYNC} -a -I --delete ${PORTS}-export/ ${REPOROOT}/release/ports && rm -rf ${PORTS}-export
