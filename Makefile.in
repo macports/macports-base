@@ -75,12 +75,19 @@ upgrade:
 	sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
-# Stray quotes are removed from the rsync_options in old conf files
+# Stray quotes are removed from the value of the rsync_options key in old conf files
 	sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
 
 #something more?
+
+# Finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name
+	sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+	sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
+
 
 ####
 # NOTES:
