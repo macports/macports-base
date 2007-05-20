@@ -25,8 +25,8 @@ config.status: configure
 	fi
 
 upgrade:
-	@echo "Upgrading your existing MacPorts installation to the new layout."
-	@echo ""
+	@echo -e "Upgrading your existing MacPorts installation to the new layout.\n"
+
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now
 # be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
 	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -rf ${TCL_PACKAGE_DIR}/darwinports1.0
@@ -35,29 +35,18 @@ upgrade:
 # and onto a their new location in this case too.
 	[ ! -d ${datadir}/darwinports ] || rm -rf ${datadir}/darwinports
 
-# Move the default base sources to the new layout.
-	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1/base ] || { mkdir -pv \
-	${localstatedir}/db/dports/sources/rsync.macports.org/release && mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1/base ${localstatedir}/db/dports/sources/rsync.macports.org/release/ && \
-	rm -rf ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate1 ; }
+# Important directories inside ${localstatedir}/db/dports are moved to their new location, creating it first
+	mkdir -p ${localstatedir}/macports
+	for dir in distfiles packages receipts software; do \
+		[ ! -d ${localstatedir}/db/dports/$$dir ] || mv -v ${localstatedir}/db/dports/$$dir ${localstatedir}/macports ; \
+	done
 
 # Move the default ports tree to the new layout.
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || { mkdir -pv \
-	${localstatedir}/db/dports/sources/rsync.macports.org/release && mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/db/dports/sources/rsync.macports.org/release/ports ; }
+	${localstatedir}/macports/sources/rsync.macports.org/release && mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports ; }
 
-# Some people also have base sources fetched from the rsync module corresponding to trunk, so lets move that too just in case.
-	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate/base ] || { mkdir -pv \
-	${localstatedir}/db/dports/sources/rsync.macports.org/unstable && mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate/base ${localstatedir}/db/dports/sources/rsync.macports.org/unstable/ && \
-	rm -rf ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate ; }
-
-# Main ${localstatedir}/db/dports directory (where installed ports live) is then moved to its new location.
-#####this needs a lot of testing *WITH* installed ports!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	[ ! -d ${localstatedir}/db/dports ] || mv -v ${localstatedir}/db/dports ${localstatedir}/macports
-
-# Old version file can be safely deleted, as it was already used to start this upgrade
-# and a new one will be installed into the new location.
+# Old version file can be safely deleted, as it was already used to start this upgrade and a new one will be installed into the new location.
 	[ ! -f ${sysconfdir}/ports/dp_version ] || rm -vf ${sysconfdir}/ports/dp_version
 
 # The main configuration file is first renamed to macports.conf while still in its old dir.
@@ -81,7 +70,7 @@ upgrade:
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
 
 # New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files.
-	sed "s/dpupdate1\/base\//release\/base\//g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
+	sed "s/dpupdate1\/base/release\/base/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
 	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
 	sed "s/dpupdate\/dports/release\/ports\//g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
 	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
@@ -91,26 +80,25 @@ upgrade:
 
 ####
 # NOTES:
-#    -) Is it safe to delete the dp_version file while the upgrade target runs?
 #    -) should we use the ${DESTDIR} sandbox?
 #    -) should we force moves?
+#    -) rsync flags in main conf file still need an upgrading rule to remove legacy quotes (but nothing more!);
+#    -) receipts still need an updating rule!
+#    -) not sure if its safe moving the software and packages dirs...
 #    -) maybe I can regroup at least some of the sed calls?
 #    -) 
 ####
 
 install:: upgrade
-#The order of installation targets having been reversed between this Makefile and Mk/macports.subdir.mk to
-#get the upgrade target working in the best way possible, this informational text below ends up hidden
-#among lots of output. Therefore I need to find somewhere to put it, so that it's seen as it used to be.
-	@echo ""
-	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
-	@echo ""
-	@echo "sudo port selfupdate"
-	@echo ""
-	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."
-	@echo ""
 
 include Mk/macports.subdir.mk
+
+install::
+	@echo -e "\nCongratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:\n"
+	@echo -e "sudo port selfupdate\n"
+	@echo -e "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation.\n"
+	@echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade,"
+	@echo -e "which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
 
 clean::
 
