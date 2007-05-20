@@ -75,6 +75,10 @@ upgrade:
 	sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
+# Stray quotes are removed from the rsync_options in old conf files
+	sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+
 
 #something more?
 
@@ -82,7 +86,6 @@ upgrade:
 # NOTES:
 #    -) should we use the ${DESTDIR} sandbox?
 #    -) should we force moves?
-#    -) rsync flags in main conf file still need an upgrading rule to remove legacy quotes (but nothing more!);
 #    -) receipts still need an updating rule!
 #    -) not sure if its safe moving the software and packages dirs...
 #    -) maybe I can regroup at least some of the sed calls?
