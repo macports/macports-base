@@ -56,24 +56,24 @@ upgrade:
 	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
 
 # New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file.
-	sed "s/etc\/ports/etc\/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+	sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
 # New default value for the portdbpath variable is inserted into the macports.conf file.
-	sed "s/db\/dports/macports/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
+	sed 's/db\/dports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
 # MacPorts rsync server is replaced into the macpors.conf and sources.conf files.
-	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-	sed "s/rsync.darwinports.org/rsync.macports.org/g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
-	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
+	sed 's/rsync.darwinports.org/rsync.macports.org/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+	sed 's/rsync.darwinports.org/rsync.macports.org/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
 # New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files.
-	sed "s/dpupdate1\/base/release\/base/g" ${mpconfigdir}/macports.conf > ${mpconfigdir}/macports.conf.tmp && \
-	mv -v ${mpconfigdir}/macports.conf.tmp ${mpconfigdir}/macports.conf
-	sed "s/dpupdate\/dports/release\/ports\//g" ${mpconfigdir}/sources.conf > ${mpconfigdir}/sources.conf.tmp && \
-	mv -v ${mpconfigdir}/sources.conf.tmp ${mpconfigdir}/sources.conf
+	sed 's/dpupdate1\/base/release\/base/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+	sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
 
 #something more?
