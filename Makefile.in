@@ -25,76 +25,82 @@ config.status: configure
 	fi
 
 upgrade:
-	@echo -e "Upgrading your existing MacPorts installation to the new layout.\n"
+	@echo -e "\nUpgrading your existing MacPorts installation to the new layout.\n"
 
-# We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now
-# be installed onto ${TCL_PACKAGE_DIR}/macports1.0 with new names.
+# We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
+# ${TCL_PACKAGE_DIR}/macports1.0 with new names:
 	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -rf ${TCL_PACKAGE_DIR}/darwinports1.0
 
-# MacPorts base files in ${datadir} are also safely removed as new ones are always installed,
-# and onto a their new location in this case too.
+# MacPorts base files in ${datadir} are also safely removed as new ones are always installed, and onto a their new location in this case too:
 	[ ! -d ${datadir}/darwinports ] || rm -rf ${datadir}/darwinports
 
-# Important directories inside ${localstatedir}/db/dports are moved to their new location, creating it first
+# Important directories inside ${localstatedir}/db/dports are moved to their new location, creating it first:
 	mkdir -p ${localstatedir}/macports
 	for dir in distfiles packages receipts software; do \
-		[ ! -d ${localstatedir}/db/dports/$$dir ] || mv -v ${localstatedir}/db/dports/$$dir ${localstatedir}/macports ; \
+		[ ! -d ${localstatedir}/db/dports/$${dir} ] || mv -v ${localstatedir}/db/dports/$${dir} ${localstatedir}/macports ; \
 	done
 
-# Move the default ports tree to the new layout.
+# Move the default ports tree to the new layout:
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || { mkdir -pv \
 	${localstatedir}/macports/sources/rsync.macports.org/release && mv -v \
 	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports ; }
 
-# Old version file can be safely deleted, as it was already used to start this upgrade and a new one will be installed into the new location.
+# Old version file can be safely deleted, as it was already used to start this upgrade and a new one will be installed into the new location:
 	[ ! -f ${sysconfdir}/ports/dp_version ] || rm -vf ${sysconfdir}/ports/dp_version
 
-# The main configuration file is first renamed to macports.conf while still in its old dir.
+# The main configuration file is first renamed to macports.conf while still in its old dir:
 	[ ! -f ${sysconfdir}/ports/ports.conf ] || mv -v ${sysconfdir}/ports/ports.conf ${sysconfdir}/ports/macports.conf
 
-# Following that, the dir itself is renamed to its new name.
+# Following that, the dir itself is renamed to its new name:
 	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
 
-# New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file.
+# Open up receipts and upgrade any paths in them containing old conventions to the new namespace:
+	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do \
+		cp -v $${receipt} $${receipt}.old && { \
+			$(BZIP2) -q -dc $${receipt} | sed 's/db\/dports/macports/g' | $(BZIP2) -q -zf > $${receipt}.new ; \
+		} && mv -v $${receipt}.new $${receipt} ; \
+	done
+
+# New default path up to the configuration files (referenced through other variables) is inserted into the macports.conf file:
 	sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
-# New default value for the portdbpath variable is inserted into the macports.conf file.
+# New default value for the portdbpath variable is inserted into the macports.conf file:
 	sed 's/db\/dports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
-# MacPorts rsync server is replaced into the macpors.conf and sources.conf files.
-	sed 's/rsync.darwinports.org/rsync.macports.org/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
-	sed 's/rsync.darwinports.org/rsync.macports.org/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
-	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
+# MacPorts rsync server is replaced into the macpors.conf and sources.conf files:
+	sed 's/darwinports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+	sed 's/darwinports/macports/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+		mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
-# New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files.
+# New default values for the base and ports trees are inserted into the macports.conf and sources.conf configuration files:
 	sed 's/dpupdate1\/base/release\/base/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 	sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
-	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
+		mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
 
-# Stray quotes are removed from the value of the rsync_options key in old conf files
+# Stray quotes are removed from the value of the rsync_options key in old conf files:
 	sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
 
 #something more?
 
-# Finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name
+# References to the old ports.conf(5) man page are updated to the new macports.conf(5) page:
+	sed 's/ports.conf(5)/macports.conf(5)/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
+
+# Finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name:
 	sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-	mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
-	sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
-	mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf
+		mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf
 
 
 ####
 # NOTES:
 #    -) should we use the ${DESTDIR} sandbox?
 #    -) should we force moves?
-#    -) receipts still need an updating rule!
-#    -) not sure if its safe moving the software and packages dirs...
 #    -) maybe I can regroup at least some of the sed calls?
 #    -) 
 ####
