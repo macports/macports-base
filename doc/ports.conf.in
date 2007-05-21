@@ -1,3 +1,6 @@
+# MacPorts system wide configuration file
+# $Id$
+
 # Set the directory in which to install ports
 prefix			@prefix_expanded@
 
@@ -43,7 +46,7 @@ portautoclean		yes
 # Rsync server to use
 rsync_server		rsync.darwinports.org
 
-# Rsync directory from which to pull the base/ component (infrastructure) of DP
+# Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
 rsync_dir			dpupdate1/base/
 
 # Rsync options
