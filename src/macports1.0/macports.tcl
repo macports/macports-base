@@ -1198,11 +1198,18 @@ proc mportsync {} {
 		if {[file exists $portdir/.svn]} {
 		    set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
 		    ui_debug $svn_commandline
-		    if {[catch {system $svn_commandline}]} {
+		    if {[catch {
+			set euid [geteuid]
+			set egid [getegid]
+			ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+			setegid [name_to_gid [file attributes $portdir -group]]
+			seteuid [name_to_uid [file attributes $portdir -owner]]
+			system $svn_commandline
+			seteuid $euid
+			setegid $egid
+		    }]} {
+			ui_debug "$::errorInfo"
 			return -code error "sync failed doing svn update"
-		    }
-		    if {[catch {system "chmod -R a+r \"${portdir}\""}]} {
-			ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
 		    }
 		}
 	    }
