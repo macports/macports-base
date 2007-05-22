@@ -1591,8 +1591,17 @@ with adduser:
 .Dl adduser foo gid=[existsgroup foo]
 .It Ic nextgid
 Returns the highest used gid plus one.
-.It Ic reinplace Ar regex Ar filename
-Provide in-place sed like editing of a file.
+.It Xo
+.Ic reinplace
+.Op Fl E
+.Ar regex
+.Ar
+.Xc
+Provide in-place
+.Xr sed 1
+like editing of a file.
+The -E flag does the same thing as in
+.Xr sed 1
 .br
 .Sy Example:
 .Dl reinplace \*qs|/usr/local|${prefix}|g\*q doc/manpage.1

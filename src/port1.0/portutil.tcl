@@ -661,13 +661,34 @@ proc ldelete {list value} {
 
 # reinplace
 # Provides "sed in place" functionality
-proc reinplace {pattern args}  {
-    if {$args == ""} {
-    	ui_error "reinplace: no value given for parameter \"file\""
-	return -code error "no value given for parameter \"file\" to \"reinplace\"" 
+proc reinplace {args}  {
+    set extended 0
+    while 1 {
+        set arg [lindex $args 0]
+        if {[string first - $arg] != -1} {
+            set args [lrange $args 1 end]
+            switch [string range $arg 1 end] {
+                E {
+                    set extended 1
+                }
+                - {
+                    break
+                }
+                default {
+                    error "reinplace: unknown flag '-$arg'"
+                }
+            }
+        } else {
+            break
+        }
     }
+    if {[llength $args] < 2} {
+        error "reinplace ?-E? pattern file ..."
+    }
+    set pattern [lindex $args 0]
+    set files [lrange $args 1 end]
     
-    foreach file $args {
+    foreach file $files {
 	if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -680,7 +701,12 @@ proc reinplace {pattern args}  {
 	    set tmpfile [lindex $tmpfile 1]
 	}
 	
-	if {[catch {exec sed $pattern < $file >@ $tmpfd} error]} {
+	set cmdline sed
+	if {$extended} {
+	    lappend cmdline -E
+	}
+	set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+	if {[catch {eval exec $cmdline} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "reinplace: $error"
