@@ -88,16 +88,15 @@ proc clean_dist {args} {
 	set count 0
 	foreach file $distfiles {
 		if {[info exist distpath] && [info exists dist_subdir]} {
-			set distfile [file join ${distpath} ${dist_subdir} ${file}]
+			set distfile [file join $distpath $dist_subdir $file]
 		} else {
-			set distfile [file join ${distpath} ${file}]
+			set distfile [file join $distpath $file]
 		}
 		if {[file isfile $distfile]} {
 			ui_debug "Removing file: $distfile"
-			if {[catch {exec rm -f ${distfile}} result]} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "${result}"
+			if {[catch {delete $distfile} result]} {
+				ui_debug "$::errorInfo"
+				ui_error "$result"
 			}
 			set count [expr $count + 1]
 		}
@@ -113,11 +112,11 @@ proc clean_dist {args} {
 	set dirlist [list]
 	if {($dist_subdir != $portname)} {
 		if {[info exists dist_subdir]} {
-			set distfullpath [file join ${distpath} ${dist_subdir}]
+			set distfullpath [file join $distpath $dist_subdir]
 			if {!([info exists ports_force] && $ports_force == "yes")
-				&& [file isdirectory ${distfullpath}]
-				&& [llength [readdir ${distfullpath}]] > 0} {
-				ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join ${distpath} ${dist_subdir}]]
+				&& [file isdirectory $distfullpath]
+				&& [llength [readdir $distfullpath]] > 0} {
+				ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join $distpath $dist_subdir]]
 			} else {
 				lappend dirlist $dist_subdir
 				lappend dirlist $portname
@@ -131,13 +130,12 @@ proc clean_dist {args} {
 	# loop through directories
 	set count 0
 	foreach dir $dirlist {
-		set distdir [file join ${distpath} ${dir}]
-		if {[file isdirectory ${distdir}]} {
+		set distdir [file join $distpath $dir]
+		if {[file isdirectory $distdir]} {
 			ui_debug "Removing directory: ${distdir}"
-			if {[catch {exec rm -rf ${distdir}} result]} {
-				global errorInfo
-				ui_debug "$errorInfo"
-				ui_error "${result}"
+			if {[catch {delete $distdir} result]} {
+				ui_debug "$::errorInfo"
+				ui_error "$result"
 			}
 			set count [expr $count + 1]
 		}
@@ -153,21 +151,20 @@ proc clean_dist {args} {
 proc clean_work {args} {
 	global workpath worksymlink
 
-	if {[file isdirectory ${workpath}]} {
+	if {[file isdirectory $workpath]} {
 		ui_debug "Removing directory: ${workpath}"
-		if {[catch {exec rm -rf ${workpath}} result]} {
-			global errorInfo
-			ui_debug "$errorInfo"
-			ui_error "${result}"
+		if {[catch {delete $workpath} result]} {
+			ui_debug "$::errorInfo"
+			ui_error "$result"
 		}
 	} else {
 		ui_debug "No work directory found to remove."
 	}
 
 	# Clean symlink, if necessary
-	if {[file exists $worksymlink] && [file type $worksymlink] == "link"} {
-		ui_debug "Removing symlink: ${worksymlink}"
-		file delete -force -- ${worksymlink}
+	if {![catch {file type $worksymlink} result] && $result eq "link"} {
+		ui_debug "Removing symlink: $worksymlink"
+		delete $worksymlink
 	}
 
 	return 0
@@ -177,14 +174,14 @@ proc clean_archive {args} {
 	global workpath portarchivepath portname portversion ports_version_glob
 
 	# Define archive destination directory and target filename
-	if {![string equal ${portarchivepath} ${workpath}] && ![string equal ${portarchivepath} ""]} {
-		set archivepath [file join ${portarchivepath} [option os.platform] [option os.arch]]
+	if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
+		set archivepath [file join $portarchivepath [option os.platform] [option os.arch]]
 	}
 
 	if {[info exists ports_version_glob]} {
 		# Match all possible archive variatns that match the version
 		# glob specified by the user for this OS.
-		set fileglob "${portname}-[option ports_version_glob]*.[option os.arch].*"
+		set fileglob "$portname-[option ports_version_glob]*.[option os.arch].*"
 	} else {
 		# Match all possible archive variants for the current version on
 		# this OS. If you want to delete previous versions, use the
@@ -193,23 +190,22 @@ proc clean_archive {args} {
 		# We do this because if we don't, then ports that match the
 		# first part of the name (e.g. trying to remove foo-*, it will
 		# pick up anything foo-bar-* as well, which is undesirable).
-		set fileglob "${portname}-${portversion}*.[option os.arch].*"
+		set fileglob "$portname-$portversion*.[option os.arch].*"
 	}
 
 	# Remove the archive files
 	set count 0
-	if {![catch {set archivelist [glob [file join ${archivepath} ${fileglob}]]} result]} {
+	if {![catch {set archivelist [glob [file join $archivepath $fileglob]]} result]} {
 		foreach path $archivelist {
 			set file [file tail $path]
 			# Make sure file is truly a port archive file, and not
 			# and accidental match with some other file that might exist.
-			if {[regexp "^${portname}-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
-				if {[file isfile ${path}]} {
-					ui_debug "Removing archive: ${path}"
-					if {[catch {exec rm -f ${path}} result]} {
-						global errorInfo
-						ui_debug "$errorInfo"
-						ui_error "${result}"
+			if {[regexp "^$portname-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
+				if {[file isfile $path]} {
+					ui_debug "Removing archive: $path"
+					if {[catch {delete $path} result]} {
+						ui_debug "$::errorInfo"
+						ui_error "$result"
 					}
 					set count [expr $count + 1]
 				}
