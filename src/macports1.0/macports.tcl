@@ -303,6 +303,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		if [file exists $file] {
 			set portconf $file
 			set fd [open $file r]
+		        fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 					if {[lsearch $bootstrap_options $option] >= 0} {
@@ -320,6 +321,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
+	        fconfigure $fd -encoding utf-8
 		while {[gets $fd line] >= 0} {
 			if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 				if {[lsearch $user_options $option] >= 0} {
@@ -352,9 +354,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 	if {[info exists variants_conf]} {
 		if {[file exist $variants_conf]} {
-			if {[catch {set fd [open $variants_conf r]} result]} {
-				return -code error "$result"
-			}
+		        set fd [open $variants_conf r]
+		        fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				set line [string trimright $line]
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -723,18 +724,14 @@ proc macports::fetch_port {url} {
     global macports::portdbpath tcl_platform
     set fetchdir [file join $portdbpath portdirs]
     set fetchfile [file tail $url]
-    if {[catch {file mkdir $fetchdir} result]} {
-        return -code error $result
-    }
+    file mkdir $fetchdir
     if {![file writable $fetchdir]} {
     	return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
     if {[catch {exec curl -L -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
         return -code error "Port remote fetch failed: $result"
     }
-    if {[catch {cd $fetchdir} result]} {
-	return -code error $result
-    }
+    cd $fetchdir
     if {[catch {exec tar -zxf $fetchfile} result]} {
 	return -code error "Port extract failed: $result"
     }
@@ -1238,9 +1235,7 @@ proc mportsync {} {
 	    }
 	    {^https?$|^ftp$} {
 		set indexfile [macports::getindex $source]
-		if {[catch {file mkdir [file dirname $indexfile]} result]} {
-		    return -code error $result
-		}
+		file mkdir [file dirname $indexfile]
 		exec curl -L -s -S -o $indexfile $source/PortIndex
 	    }
 	}
@@ -1262,6 +1257,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 			if {[catch {set fd [open [macports::getindex $source] r]} result]} {
 				ui_warn "Can't open index file for source: $source"
 			} else {
+			        fconfigure $fd -encoding utf-8
 				incr found 1
 				while {[gets $fd line] >= 0} {
 					array unset portinfo
