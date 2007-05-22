@@ -255,7 +255,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	
 	global auto_path env
 	global macports::autoconf::macports_conf_path
-        global macports::autoconf::macports_user_dir
+        global macports::macports_user_dir
 	global macports::bootstrap_options
 	global macports::user_options
 	global macports::extra_env
@@ -280,6 +280,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global macports::xcodeversion
 
         # Ensure that the macports user directory exists
+        set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
         file mkdir $macports_user_dir
    	
    	# Configure the search path for configuration files
