@@ -665,7 +665,7 @@ proc reinplace {args}  {
     set extended 0
     while 1 {
         set arg [lindex $args 0]
-        if {[string first - $arg] != -1} {
+        if {[string index $arg 0] eq "-"} {
             set args [lrange $args 1 end]
             switch [string range $arg 1 end] {
                 E {
@@ -675,7 +675,7 @@ proc reinplace {args}  {
                     break
                 }
                 default {
-                    error "reinplace: unknown flag '-$arg'"
+                    error "reinplace: unknown flag '$arg'"
                 }
             }
         } else {
