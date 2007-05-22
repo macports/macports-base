@@ -1254,7 +1254,7 @@ proc action_info { action portlist opts } {
 				}
 		
 				if {[info exists portinfo(long_description)]} {
-					puts "\n$portinfo(long_description)\n"
+					puts "\n[join $portinfo(long_description)]\n"
 				}
 	
 				# find build dependencies
@@ -1802,9 +1802,9 @@ proc action_search { action portlist opts } {
 				continue
 			}
 			if {![info exists portinfo(portdir)]} {
-				set output [format "%-30s %-12s %s" $portinfo(name) $portinfo(version) $portinfo(description)]
+				set output [format "%-30s %-12s %s" $portinfo(name) $portinfo(version) [join $portinfo(description)]]
 			} else {
-				set output [format "%-30s %-14s %-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) $portinfo(description)]
+				set output [format "%-30s %-14s %-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) [join $portinfo(description)]]
 			}
 			set portfound 1
 			puts $output
