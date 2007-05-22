@@ -1155,8 +1155,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 	
 	Tcl_CreateObjCommand(interp, "getuid", getuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "geteuid", geteuidCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "getgid", getuidCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "getegid", geteuidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "getgid", getgidCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "getegid", getegidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "setuid", setuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "seteuid", seteuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "setgid", setgidCmd, NULL, NULL);
