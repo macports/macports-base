@@ -1,4 +1,5 @@
 .\" Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+.\" Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -22,14 +23,14 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd August 31, 2005
-.Dt PORTS.CONF 5 "MacPorts.org"
+.Dd May 22, 2007
+.Dt MACPORTS.CONF 5 "MacPorts"
 .Os 
 .Sh NAME
-ports.conf
+macports.conf
 .Nd Configuration file of the MacPorts system
 .Sh DESCRIPTION
-.Nm ports.conf
+.Nm macports.conf
 is the configuration file used to bootstrap the MacPorts system. This file is read by the
 .Nm port
 command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
@@ -132,7 +133,7 @@ Supported types are: SystemStarter, launchd, default, rcNG.
 .br
 .Ic Default:
 default
-.It va destroot_umask
+.It Va destroot_umask
 Umask value to use during the destrooting or a port.
 .br
 .Ic Default:
@@ -170,7 +171,7 @@ List of extra environment variables MacPorts should keep in the user's environme
 Standard system-wide MacPorts configuration file.
 .It Va ~/.macports/macports.conf
 User-specific configuration override. This file, if found, will be used instead of the default file at
-${prefix}/etc/macport/macports.conf.
+${prefix}/etc/macports/macports.conf.
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
