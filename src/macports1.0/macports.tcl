@@ -1186,7 +1186,7 @@ proc macports::getindex {source} {
 	return [file join [macports::getsourcepath $source] PortIndex]
 }
 
-proc mportsync {args} {
+proc mportsync {} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::autoconf::rsync_path 
     
