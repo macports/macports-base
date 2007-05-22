@@ -1239,26 +1239,11 @@ proc action_info { action portlist opts } {
 				if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
 					puts -nonewline ", Revision $portinfo(revision)" 
 				}
-				puts ", $portinfo(portdir)" 
-				
+				puts -nonewline ", $portinfo(portdir)" 
 				if {[info exists portinfo(variants)]} {
-					if {[info exists portinfo(variant_desc)]} {
-						array set descs $portinfo(variant_desc)
-					} else {
-						array set descs ""
-					}
-					puts "Variants:"
-					for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-						set v [lindex $portinfo(variants) $i]
-						if {[info exists descs($v)]} {
-							puts " - $v: $descs($v)"
-						} else {
-							puts " - $v"
-						}
-					}
+					puts -nonewline " (Variants: [join $portinfo(variants) ", "])"
 				}
 				puts ""
-				
 				if {[info exists portinfo(homepage)]} { 
 					puts "$portinfo(homepage)"
 				}
@@ -1267,38 +1252,24 @@ proc action_info { action portlist opts } {
 					puts "\n[join $portinfo(long_description)]\n"
 				}
 	
-				# find build dependencies
-				if {[info exists portinfo(depends_build)]} {
-					puts -nonewline "Build Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_build)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_build) $i] :] end]"
+				# Emit build, library, and runtime dependencies
+				foreach {key title} {
+					depends_build "Build Dependencies"
+					depends_lib "Library Dependencies"
+					depends_run "Runtime Dependencies"
+				} {
+					if {[info exists portinfo($key)]} {
+						puts -nonewline "$title:"
+						set joiner ""
+						foreach d $portinfo($key) {
+							puts -nonewline "$joiner [lindex [split $d :] end]"
+							set joiner ","
+						}
+						set nodeps false
+						puts ""
 					}
-					set nodeps false
-					puts ""
 				}
-		
-				# find library dependencies
-				if {[info exists portinfo(depends_lib)]} {
-					puts -nonewline "Library Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_lib)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_lib) $i] :] end]"
-					}
-					set nodeps false
-					puts ""
-				}
-		
-				# find runtime dependencies
-				if {[info exists portinfo(depends_run)]} {
-					puts -nonewline "Runtime Dependencies: "
-					for {set i 0} {$i < [llength $portinfo(depends_run)]} {incr i} {
-						if {$i > 0} { puts -nonewline ", " }
-						puts -nonewline "[lindex [split [lindex $portinfo(depends_run) $i] :] end]"
-					}
-					set nodeps false
-					puts ""
-				}
+					
 				if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
 				if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
 			}
@@ -1768,10 +1739,21 @@ proc action_variants { action portlist opts } {
 		if {![info exists portinfo(variants)]} {
 			puts "$portname has no variants"
 		} else {
+			# Get the variant descriptions
+			if {[info exists portinfo(variant_desc)]} {
+				array set descs $portinfo(variant_desc)
+			} else {
+				array set descs ""
+			}
+
 			# print out all the variants
 			puts "$portname has the variants:"
-			for {set i 0} {$i < [llength $portinfo(variants)]} {incr i} {
-				puts "\t[lindex $portinfo(variants) $i]"
+			foreach v $portinfo(variants) {
+				if {[info exists descs($v)]} {
+					puts "\t$v: $descs($v)"
+				} else {
+					puts "\t$v"
+				}
 			}
 		}
 	}
