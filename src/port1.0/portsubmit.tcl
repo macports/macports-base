@@ -149,7 +149,7 @@ proc create_portpkg {} {
 			putel $sd version $version
 			putel $sd revision $revision
 			
-			putel $sd description $description
+			putel $sd description [join $description]
 			putel $sd long_description [join $long_description]
 		
 			# TODO: variants has platforms in it
