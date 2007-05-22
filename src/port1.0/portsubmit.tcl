@@ -150,7 +150,7 @@ proc create_portpkg {} {
 			putel $sd revision $revision
 			
 			putel $sd description $description
-			putel $sd long_description $long_description
+			putel $sd long_description [join $long_description]
 		
 			# TODO: variants has platforms in it
 			if {[info exists PortInfo(variants)]} {
