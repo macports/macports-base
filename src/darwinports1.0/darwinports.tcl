@@ -1529,7 +1529,7 @@ proc darwinports::selfupdate {optionslist} {
 	} else {
 		set dp_version_old 0
 	}
-	ui_msg "DarwinPorts base version $dp_version_old installed"
+	ui_msg "MacPorts base version $dp_version_old installed"
 
 	ui_debug "Updating using rsync"
 	if { [catch { system "${darwinports::autoconf::rsync_path} $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
@@ -1650,7 +1650,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	set ilist {}
 	if { [catch {set ilist [registry::installed $portname ""]} result] } {
 		if {$result == "Registry error: $portname not registered as installed." } {
-			ui_debug "$portname is *not* installed by DarwinPorts"
+			ui_debug "$portname is *not* installed by MacPorts"
 			# open porthandle    
 			set porturl $portinfo(porturl)
 		    if {![info exists porturl]} {
