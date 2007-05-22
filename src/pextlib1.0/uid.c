@@ -52,7 +52,7 @@ int getuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	
 	/* Check the arg count */
 	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, "getuid");
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
 		return TCL_ERROR;
 	}
 	
@@ -73,7 +73,7 @@ int geteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	
 	/* Check the arg count */
 	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, "geteuid");
+        Tcl_WrongNumArgs(interp, 1, objv, NULL);
 		return TCL_ERROR;
 	}
 	
@@ -94,7 +94,7 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "setuid");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -103,8 +103,12 @@ int setuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		return TCL_ERROR;
 		
 	/* set the uid */
-	if (0 != setuid(uid))
-		Tcl_SetResult(interp, "setuid failed", NULL);
+	if (0 != setuid(uid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set uid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
 		
 	return TCL_OK;
 }
@@ -122,7 +126,7 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "seteuid");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -131,8 +135,12 @@ int seteuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 		return TCL_ERROR;
 		
 	/* set the euid */
-	if (0 != seteuid(uid))
-		Tcl_SetResult(interp, "seteuid failed", NULL);
+	if (0 != seteuid(uid)) {
+        Tcl_Obj *result = Tcl_NewStringObj("could not set effective uid to ", -1);
+        Tcl_AppendObjToObj(result, objv[1]);
+        Tcl_SetObjResult(interp, result);
+        return TCL_ERROR;
+    }
 		
 	return TCL_OK;
 }
@@ -151,7 +159,7 @@ int name_to_uidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "name_to_uid");
+		Tcl_WrongNumArgs(interp, 1, objv, "name");
 		return TCL_ERROR;
 	}
 	
@@ -185,7 +193,7 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	
 	/* Check the arg count */
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "getpwnam");
+		Tcl_WrongNumArgs(interp, 1, objv, "uid");
 		return TCL_ERROR;
 	}
 	
@@ -196,7 +204,7 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	/* Map the uid --> name, or empty result on error */
 	pwent = getpwuid(uid);
 	if (pwent != NULL)
-		Tcl_SetResult(interp, pwent->pw_name, NULL);
+		Tcl_SetResult(interp, pwent->pw_name, TCL_STATIC);
 
 	return TCL_OK;
 }
