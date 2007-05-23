@@ -1936,7 +1936,7 @@ proc action_portcmds { action portlist opts } {
 						}
 					}
 					
-					# Restore internal dp environment
+					# Restore internal MacPorts environment
 					array unset env *; array set env [array get env_save]
 				}
 				
