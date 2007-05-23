@@ -348,8 +348,18 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-        if {![regexp {[\ \t]*#.*|^$} $line]} {
-            lappend sources $line
+	if {![regexp {^\s*#|^$} $line]} {
+	    if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+		set flags [split $flags ,]
+		foreach flag $flags {
+		    if {[lsearch -exact [list nosync] $flag] == -1} {
+			ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+		    }
+		}
+		lappend sources [concat [list $url] $flags]
+	    } else {
+		ui_warn "$sources_conf specifies invalid source '$line', ignored."
+	    }
 	}
     }
     if {![info exists sources]} {
@@ -1195,7 +1205,14 @@ proc mportsync {} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::autoconf::rsync_path 
     
+    ui_debug "Synchronizing ports tree(s)"
     foreach source $sources {
+	set flags [lrange $source 1 end]
+	set source [lindex $source 0]
+	if {[lsearch -exact $flags nosync] != -1} {
+	    ui_debug "Skipping $source"
+	    continue
+	}
 	ui_info "Synchronizing from $source"
 	switch -regexp -- [macports::getprotocol $source] {
 	    {^file$} {
@@ -1246,6 +1263,9 @@ proc mportsync {} {
 		file mkdir [file dirname $indexfile]
 		exec curl -L -s -S -o $indexfile $source/PortIndex
 	    }
+	    default {
+		ui_warn "Unknown protocol for $source"
+	    }
 	}
     }
 }
@@ -1257,6 +1277,8 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 	
 	set found 0
 	foreach source $sources {
+	        set flags [lrange $source 1 end]
+	        set source [lindex $source 0]
 		if {[macports::getprotocol $source] == "mports"} {
 			array set attrs [list name $pattern]
 			set res [macports::index::search $macports::portdbpath $source [array get attrs]]
