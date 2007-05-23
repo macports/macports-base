@@ -1,4 +1,4 @@
-d#!/usr/bin/env tclsh
+#!/usr/bin/env tclsh
 
 package require macports
 package require sqlite3
