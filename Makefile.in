@@ -63,7 +63,7 @@ upgrade:
 		} && mv -v $${receipt}.new $${receipt} ; \
 	}; done
 
-# Check the existance of the main configuration file and perform a couple of replacements on it:
+# Check the existance of the main configuration file and perform a couple of replacements on it, backing it up first:
 ## 1) new default path up to our configuration files (referenced through other variables);
 ## 2) new default value for the portdbpath variable;
 ## 3) new MacPorts rsync server;
@@ -72,6 +72,7 @@ upgrade:
 ## 6) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
 ## 7) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
 	[ ! -f ${sysconfdir}/macports/macports.conf ] || { \
+		[ -f ${sysconfdir}/macports/macports.conf.mpsaved ] || cp -v ${sysconfdir}/macports/macports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/db\/dports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
@@ -88,10 +89,11 @@ upgrade:
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 	}
 
-# Check the existance of the main sources file and perform a couple of replacements on it:
+# Check the existance of the main sources file and perform a couple of replacements on it, backing it up first:
 ## 1) new MacPorts rsync server;
 ## 2) new default value for the ports tree.
 	[ ! -f ${sysconfdir}/macports/sources.conf ] || { \
+		[ -f ${sysconfdir}/macports/sources.conf.mpsaved ] || cp -v ${sysconfdir}/macports/sources.conf ${sysconfdir}/macports/sources.conf.mpsaved; \
 		sed 's/darwinports/macports/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
 		sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
