@@ -1159,7 +1159,7 @@ proc action_info { action portlist opts } {
         
 	set mport [mportopen $porturl [array get options] [array get variations]]
         array unset portinfo
-        array set portinfo [mportinfo $dport]
+        array set portinfo [mportinfo $mport]
         mportclose $mport
         if {[info exists portdir]} {
             set portinfo(portdir) $portdir
