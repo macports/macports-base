@@ -1,3 +1,5 @@
+# $Id$
+
 SUBDIR		= config doc src
 DISTDIR		= dist
 DISTVER		=
