@@ -41,14 +41,14 @@ namespace eval macports {
     	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
-    	rsync_dir startupitem_type xcodeversion xcodebuildcmd \
+    	rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
     	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
-    	rsync_options rsync_dir startupitem_type \
+    	rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url \
     	$user_options"
     
@@ -267,7 +267,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	global macports::registry.path
 	global macports::sources
 	global macports::sources_conf
-	global macports::startupitem_type
    	global macports::destroot_umask
    	global macports::libpath
    	global macports::prefix
@@ -540,19 +539,21 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # Set startupitem default type (can be overridden by portfile)
-    if {![info exists startupitem_type]} {
+    if {![info exists macports::startupitem_type]} {
     	set macports::startupitem_type "default"
-    	global macports::startupitem_type
+    }
+
+    # Default place_worksymlink
+    if {![info exists macports::place_worksymlink]} {
+	set macports::place_worksymlink yes
     }
 
     # Default mp remote options
-    if {![info exists mp_remote_url]} {
+    if {![info exists macports::mp_remote_url]} {
 	set macports::mp_remote_url "http://db.macports.org"
-	global macports::mp_remote_url
     }
-    if {![info exists mp_remote_submit_url]} {
+    if {![info exists macports::mp_remote_submit_url]} {
 	set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
-	global macports::mp_remote_submit_url
     }
     
     # ENV cleanup.
@@ -643,6 +644,7 @@ proc macports::worker_init {workername portpath portbuildpath options variations
     
     # Export some utility functions defined here.
     $workername alias macports_create_thread macports::create_thread
+    $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
 
 	# New Registry/Receipts stuff
 	$workername alias registry_new registry::new_entry
@@ -775,7 +777,7 @@ proc macports::getportdir {url {destdir "."}} {
 	if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
 		switch -regexp -- ${protocol} {
 			{^file$} {
-				return $string
+			    return [file normalize $string]
 			}
 			{^mports$} {
 				return [macports::index::fetch_port $url $destdir]
@@ -823,12 +825,11 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
 		set portdir ""
 	}
 
-	set portdir [macports::getportdir $porturl $portdir]
-	ui_debug "Changing to port directory: $portdir"
-	cd $portdir
-	set portpath [pwd]
+	set portpath [macports::getportdir $porturl $portdir]
+	ui_debug "Changing to port directory: $portpath"
+	cd $portpath
     if {![file isfile Portfile]} {
-        return -code error "Could not find Portfile in $portdir"
+        return -code error "Could not find Portfile in $portpath"
     }
 
 	set workername [interp create]
@@ -1190,6 +1191,14 @@ proc macports::getportbuildpath {id} {
 	regsub {://} $id {.} port_path
 	regsub -all {/} $port_path {_} port_path
 	return [file join $portdbpath build $port_path]
+}
+
+proc macnports::getportworkpath_from_buildpath {portbuildpath} {
+    return [file join $portbuildpath work]
+}
+
+proc macports::getportworkpath_from_portdir {portpath} {
+    return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath]]
 }
 
 proc macports::getindex {source} {
