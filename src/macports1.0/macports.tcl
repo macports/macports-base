@@ -1193,7 +1193,7 @@ proc macports::getportbuildpath {id} {
 	return [file join $portdbpath build $port_path]
 }
 
-proc macnports::getportworkpath_from_buildpath {portbuildpath} {
+proc macports::getportworkpath_from_buildpath {portbuildpath} {
     return [file join $portbuildpath work]
 }
 
