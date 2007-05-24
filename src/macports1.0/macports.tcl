@@ -342,9 +342,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists sources_conf]} {
         return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
-    if {[catch {set fd [open $sources_conf r]} result]} {
-        return -code error "$result"
-    }
+    set fd [open $sources_conf r]
+    fconfigure $fd -encoding utf-8
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
 	if {![regexp {^\s*#|^$} $line]} {
@@ -514,7 +513,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		global macports::rsync_server
 	}
 	if {![info exists rsync_dir]} {
-	    # Still thinking about this path.
 		set macports::rsync_dir release/base/
 		global macports::rsync_dir
 	}
@@ -1250,13 +1248,14 @@ proc mportsync {} {
 	    {^rsync$} {
 		# Where to, boss?
 		set destdir [file dirname [macports::getindex $source]]
-		if {[catch {file mkdir $destdir} result]} {
-		    return -code error $result
-		}
+
+		file mkdir $destdir
+		
 		# Keep rsync happy with a trailing slash
 		if {[string index $source end] != "/"} {
 		    set source "${source}/"
 		}
+
 		# Do rsync fetch
 		set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
 		ui_debug $rsync_commandline
