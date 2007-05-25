@@ -1646,7 +1646,7 @@ proc portexec {portname target} {
 
 proc adduser {name args} {
     global os.platform
-    set passwd {\*}
+    set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
     set realname ${name}
@@ -1654,59 +1654,59 @@ proc adduser {name args} {
     set shell /dev/null
     
     foreach arg $args {
-	if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
-	    regsub -all " " ${val} "\\ " val
-	    set $key $val
-	}
+        if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
+            regsub -all " " ${val} "\\ " val
+            set $key $val
+        }
     }
     
     if {[existsuser ${name}] != 0 || [existsuser ${uid}] != 0} {
-	return
+        return
     }
     
-    if {${os.platform} == "darwin"} {
-	system "niutil -create . /users/${name}"
-	system "niutil -createprop . /users/${name} name ${name}"
-	system "niutil -createprop . /users/${name} passwd ${passwd}"
-	system "niutil -createprop . /users/${name} uid ${uid}"
-	system "niutil -createprop . /users/${name} gid ${gid}"
-	system "niutil -createprop . /users/${name} realname ${realname}"
-	system "niutil -createprop . /users/${name} home ${home}"
-	system "niutil -createprop . /users/${name} shell ${shell}"
+    if {${os.platform} eq "darwin"} {
+        exec dscl . -create /Users/${name} Password ${passwd}
+        exec dscl . -create /Users/${name} UniqueID ${uid}
+        exec dscl . -create /Users/${name} PrimaryGroupID ${gid}
+        exec dscl . -create /Users/${name} RealName ${realname}
+        exec dscl . -create /Users/${name} NFSHomeDirectory ${home}
+        exec dscl . -create /Users/${name} UserShell ${shell}
     } else {
-	# XXX adduser is only available for darwin, add more support here
-	ui_warn "WARNING: adduser is not implemented on ${os.platform}."
-	ui_warn "The requested user was not created."
+        # XXX adduser is only available for darwin, add more support here
+        ui_warn "WARNING: adduser is not implemented on ${os.platform}."
+        ui_warn "The requested user was not created."
     }
 }
 
 proc addgroup {name args} {
     global os.platform
     set gid [nextgid]
-    set passwd {\*}
+    set realname ${name}
+    set passwd {*}
     set users ""
     
     foreach arg $args {
-	if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
-	    regsub -all " " ${val} "\\ " val
-	    set $key $val
-	}
+        if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
+            regsub -all " " ${val} "\\ " val
+            set $key $val
+        }
     }
     
     if {[existsgroup ${name}] != 0 || [existsgroup ${gid}] != 0} {
-	return
+        return
     }
     
-    if {${os.platform} == "darwin"} {
-	system "niutil -create . /groups/${name}"
-	system "niutil -createprop . /groups/${name} name ${name}"
-	system "niutil -createprop . /groups/${name} gid ${gid}"
-	system "niutil -createprop . /groups/${name} passwd ${passwd}"
-	system "niutil -createprop . /groups/${name} users ${users}"
+    if {${os.platform} eq "darwin"} {
+        exec dscl . -create /Groups/${name} Password ${passwd}
+        exec dscl . -create /Groups/${name} RealName ${realname}
+        exec dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+        if {${users} ne ""} {
+            exec dscl . -create /Groups/${name} GroupMembership ${users}
+        }
     } else {
-	# XXX addgroup is only available for darwin, add more support here
-	ui_warn "WARNING: addgroup is not implemented on ${os.platform}."
-	ui_warn "The requested group was not created."
+        # XXX addgroup is only available for darwin, add more support here
+        ui_warn "WARNING: addgroup is not implemented on ${os.platform}."
+        ui_warn "The requested group was not created."
     }
 }
 
