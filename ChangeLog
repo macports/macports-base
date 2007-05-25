@@ -6,6 +6,9 @@
 
 (unreleased)
 
+    - Update adduser/addgroup to use dscl instead of niutil. Also add support
+      for realname key in addgroup (ticket #11012, eridius r25586).
+
     - Make a correction to port(1)'s determination of whether or not a port has
       been updated by making it compare ${version} and then ${revision} rather
       than a single comparison of the compound ${version}_${revision}; the

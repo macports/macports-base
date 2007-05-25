@@ -1574,10 +1574,11 @@ Returns the highest used uid plus one.
 .Ar group
 .Op Cm gid Ns = Ns gid
 .Op Cm passwd Ns = Ns passwd
+.Op Cm realname Ns = Ns realname
 .Op Cm users Ns = Ns users
 .Xc
-Add a new local group to the system, with the specified gid, password
-and with a list users as members.
+Add a new local group to the system, with the specified gid, password,
+real name, and with a list users as members.
 .It Ic existsgroup Ar group
 Check if a local group exists and return the corresponding gid. This can be used
 with adduser:
