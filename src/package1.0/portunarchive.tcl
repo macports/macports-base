@@ -287,6 +287,18 @@ proc unarchive_finish {args} {
 	file copy -force [file join $destpath "+STATE"] $statefile
 	exec touch $statefile
 
+# Hack to temporarily move com.apple.* strings in statefiles extracted from old archives
+# to the org.macports.* namespace. "temporarily" because old archives will still have a
+# +STATE file with the old strings in it, as we only update them on the unpacked statefile.
+    set fd_new_sf [open $statefile r]
+    set fd_tmp [open ${statefile}.tmp w+]
+    while {[gets $fd_new_sf line] >= 0} {
+	puts $fd_tmp "[regsub com.apple $line org.macports]"
+    }
+    close $fd_new_sf
+    close $fd_tmp
+    file rename -force ${statefile}.tmp $statefile
+
     # Update the state from unpacked archive version
     set target_state_fd [open_statefile]
 
