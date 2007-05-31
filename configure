@@ -699,7 +699,6 @@ REPLACEMENT_PROGS
 EXTRA_PROGS
 DPORTSDIR
 PORTCONFIGDIR
-SQLITE3_DIR
 DSTUSR
 DSTGRP
 DSTMODE
@@ -729,6 +728,8 @@ CURL_CONFIG
 CFLAGS_LIBCURL
 LDFLAGS_LIBCURL
 subdirs
+SQLITE3_LIBS
+SQLITE3_DIR
 OUR_INCLUDED_PACKAGES
 INCLUDES
 CFLAGS_DEBUG
@@ -765,7 +766,8 @@ XAR
 OPEN
 CPP
 XMKMF'
-ac_subdirs_all='src/thread2.6'
+ac_subdirs_all='src/thread2.6
+src/sqlite-3.1.3'
 
 # Initialize some variables set by options.
 ac_init_help=
@@ -1350,7 +1352,6 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-dports-dir=DIR   Specify alternate dports directory
-  --with-sqlite3=DIR      directory for sqlite3 (default /usr/lib/sqlite3)
   --with-install-user=USER
                           Specify user ownership of installed files
   --with-install-group=GROUP
@@ -1362,7 +1363,10 @@ Optional Packages:
   --with-tclinclude       directory containing the public Tcl header files.
   --with-tclpackage       Tcl package installation directory.
   --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...
-  --with-included-tclthread install included Thread package.
+  --with-included-tclthread
+                          install included Thread package.
+  --with-included-sqlite3 build using bundled sqlite3 package
+  --with-tcl-sqlite3=DIR  directory for Tcl sqlite3 (default /usr/lib/sqlite3)
 
 Some influential environment variables:
   CC          C compiler command
@@ -4049,32 +4053,6 @@ echo $ECHO_N "checking for ports config directory... $ECHO_C" >&6; }
 echo "${ECHO_T}$portconfigdir" >&6; }
 	PORTCONFIGDIR="$portconfigdir"
 
-
-
-
-
-
-# Check whether --with-sqlite was given.
-if test "${with_sqlite+set}" = set; then
-  withval=$with_sqlite; od_sqlite3_dir=$withval
-else
-  od_sqlite3_dir=/usr/lib/sqlite3
-fi
-
-
-	{ echo "$as_me:$LINENO: checking for sqlite3 location" >&5
-echo $ECHO_N "checking for sqlite3 location... $ECHO_C" >&6; }
-if test "${od_cv_sqlite3_dir+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  od_cv_sqlite3_dir=
-		test -r "${od_sqlite3_dir}/pkgIndex.tcl" && od_cv_sqlite3_dir=$od_sqlite3_dir
-
-fi
-{ echo "$as_me:$LINENO: result: $od_cv_sqlite3_dir" >&5
-echo "${ECHO_T}$od_cv_sqlite3_dir" >&6; }
-
-	SQLITE3_DIR=$od_cv_sqlite3_dir
 
 
 
@@ -9536,6 +9514,134 @@ if test "$with_included_tclthread" = "yes"; then
 	patch -p0 < src/thread2.6.diff
 fi
 
+## sqlite3 package.
+
+# Check whether --with-included-sqlite3 was given.
+if test "${with_included_sqlite3+set}" = set; then
+  withval=$with_included_sqlite3; with_included_sqlite3=$withval
+else
+  with_included_sqlite3="unspecified"
+fi
+
+
+# Check if sqlite3 package is already installed.
+if test "x$with_included_sqlite3" = "xunspecified" ; then
+	{ echo "$as_me:$LINENO: checking for sqlite3_open in -lsqlite3" >&5
+echo $ECHO_N "checking for sqlite3_open in -lsqlite3... $ECHO_C" >&6; }
+if test "${ac_cv_lib_sqlite3_sqlite3_open+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsqlite3  $LIBS"
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sqlite3_open ();
+int
+main ()
+{
+return sqlite3_open ();
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
+  (eval "$ac_link") 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext &&
+       $as_test_x conftest$ac_exeext; then
+  ac_cv_lib_sqlite3_sqlite3_open=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_cv_lib_sqlite3_sqlite3_open=no
+fi
+
+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
+      conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ echo "$as_me:$LINENO: result: $ac_cv_lib_sqlite3_sqlite3_open" >&5
+echo "${ECHO_T}$ac_cv_lib_sqlite3_sqlite3_open" >&6; }
+if test $ac_cv_lib_sqlite3_sqlite3_open = yes; then
+  with_included_sqlite3=no
+else
+  with_included_sqlite3=yes
+fi
+
+fi
+
+
+# Check whether --with-tcl-sqlite3 was given.
+if test "${with_tcl_sqlite3+set}" = set; then
+  withval=$with_tcl_sqlite3; od_sqlite3_dir=$withval
+else
+  od_sqlite3_dir=/usr/lib/sqlite3
+fi
+
+
+# If sqlite3 package isn't installed, configure and install sqlite3 package.
+if test "$with_included_sqlite3" = "yes"; then
+	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES sqlite-3.1.3"
+	subdirs="$subdirs src/sqlite-3.1.3"
+
+	# Extract sqlite3 package
+	(cd src/; gzip -d < sqlite-3.1.3.tar.gz | tar xf -)
+	# patch sqlite3 with desired configure options
+	patch -p0 < src/sqlite-3.1.3.diff
+	# the new tclinstaller.tcl needs to have substitution occur
+	mv src/sqlite-3.1.3/tclinstaller.tcl src/sqlite-3.1.3/tclinstaller.tcl.in
+	SQLITE3_LIBS=`pwd`"/src/sqlite-3.1.3/.libs/libsqlite3.a"
+	if test "x$prefix" = "xNONE" ; then
+		SQLITE3_DIR=$ac_default_prefix/share/darwinports/Tcl/sqlite3
+	else
+		SQLITE3_DIR=$prefix/share/darwinports/Tcl/sqlite3
+	fi
+else
+	SQLITE3_LIBS="-lsqlite3"
+
+	{ echo "$as_me:$LINENO: checking for Tcl sqlite3 location" >&5
+echo $ECHO_N "checking for Tcl sqlite3 location... $ECHO_C" >&6; }
+if test "${od_cv_sqlite3_dir+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  od_cv_sqlite3_dir=
+		test -r "${od_sqlite3_dir}/pkgIndex.tcl" && od_cv_sqlite3_dir=$od_sqlite3_dir
+
+fi
+{ echo "$as_me:$LINENO: result: $od_cv_sqlite3_dir" >&5
+echo "${ECHO_T}$od_cv_sqlite3_dir" >&6; }
+
+	SQLITE3_DIR=$od_cv_sqlite3_dir
+fi
+
+
+
+
 
 
 # Allows building of shared libraries
@@ -10330,7 +10436,6 @@ REPLACEMENT_PROGS!$REPLACEMENT_PROGS$ac_delim
 EXTRA_PROGS!$EXTRA_PROGS$ac_delim
 DPORTSDIR!$DPORTSDIR$ac_delim
 PORTCONFIGDIR!$PORTCONFIGDIR$ac_delim
-SQLITE3_DIR!$SQLITE3_DIR$ac_delim
 DSTUSR!$DSTUSR$ac_delim
 DSTGRP!$DSTGRP$ac_delim
 DSTMODE!$DSTMODE$ac_delim
@@ -10344,6 +10449,7 @@ X_CFLAGS!$X_CFLAGS$ac_delim
 X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
+TCL_VERSION!$TCL_VERSION$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -10385,7 +10491,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-TCL_VERSION!$TCL_VERSION$ac_delim
 TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
 TCL_LIB_FILE!$TCL_LIB_FILE$ac_delim
@@ -10401,6 +10506,8 @@ CURL_CONFIG!$CURL_CONFIG$ac_delim
 CFLAGS_LIBCURL!$CFLAGS_LIBCURL$ac_delim
 LDFLAGS_LIBCURL!$LDFLAGS_LIBCURL$ac_delim
 subdirs!$subdirs$ac_delim
+SQLITE3_LIBS!$SQLITE3_LIBS$ac_delim
+SQLITE3_DIR!$SQLITE3_DIR$ac_delim
 OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 INCLUDES!$INCLUDES$ac_delim
 CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
@@ -10419,7 +10526,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 32; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 33; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

@@ -58,7 +58,6 @@ DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
 AC_PREFIX_DEFAULT(/opt/local)
 OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
 OD_PATH_PORTCONFIGDIR
-OD_PATH_SQLITE3
 
 # Check for install ownership
 OD_CHECK_INSTALLUSER
@@ -135,7 +134,8 @@ OUR_INCLUDED_PACKAGES=
 ## Thread package.
 AC_ARG_WITH(
 		included-tclthread,
-		[  --with-included-tclthread install included Thread package.],
+		AS_HELP_STRING([--with-included-tclthread],
+			[install included Thread package.]),
 		[with_included_tclthread=$withval],
 		[with_included_tclthread="unspecified"])
 
@@ -156,6 +156,58 @@ if test "$with_included_tclthread" = "yes"; then
 	# Patch thread package (so thread2.6 is the vanilla distribution directory)
 	patch -p0 < src/thread2.6.diff
 fi
+
+## sqlite3 package.
+AC_ARG_WITH(
+		included-sqlite3,
+		AS_HELP_STRING([--with-included-sqlite3],
+			[build using bundled sqlite3 package]),
+		[with_included_sqlite3=$withval],
+		[with_included_sqlite3="unspecified"])
+
+# Check if sqlite3 package is already installed.
+if test "x$with_included_sqlite3" = "xunspecified" ; then
+	AC_CHECK_LIB([sqlite3],[sqlite3_open],
+		[with_included_sqlite3=no],
+		[with_included_sqlite3=yes])
+fi
+
+AC_ARG_WITH(
+		tcl-sqlite3,
+		AS_HELP_STRING([--with-tcl-sqlite3=DIR],
+			[directory for Tcl sqlite3 (default /usr/lib/sqlite3)]),
+		[od_sqlite3_dir=$withval],
+		[od_sqlite3_dir=/usr/lib/sqlite3])
+
+# If sqlite3 package isn't installed, configure and install sqlite3 package.
+if test "$with_included_sqlite3" = "yes"; then
+	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES sqlite-3.1.3"
+	AC_CONFIG_SUBDIRS([src/sqlite-3.1.3])
+	# Extract sqlite3 package
+	(cd src/; gzip -d < sqlite-3.1.3.tar.gz | tar xf -)
+	# patch sqlite3 with desired configure options
+	patch -p0 < src/sqlite-3.1.3.diff
+	# the new tclinstaller.tcl needs to have substitution occur
+	mv src/sqlite-3.1.3/tclinstaller.tcl src/sqlite-3.1.3/tclinstaller.tcl.in
+	SQLITE3_LIBS=`pwd`"/src/sqlite-3.1.3/.libs/libsqlite3.a"
+	if test "x$prefix" = "xNONE" ; then
+		SQLITE3_DIR=$ac_default_prefix/share/darwinports/Tcl/sqlite3
+	else
+		SQLITE3_DIR=$prefix/share/darwinports/Tcl/sqlite3
+	fi
+else
+	SQLITE3_LIBS="-lsqlite3"
+
+	AC_CACHE_CHECK([for Tcl sqlite3 location], [od_cv_sqlite3_dir],
+		[od_cv_sqlite3_dir=
+		test -r "${od_sqlite3_dir}/pkgIndex.tcl" && od_cv_sqlite3_dir=$od_sqlite3_dir
+		])
+
+	SQLITE3_DIR=$od_cv_sqlite3_dir
+fi
+
+AC_SUBST(SQLITE3_LIBS)
+AC_SUBST(SQLITE3_DIR)
 
 AC_SUBST(OUR_INCLUDED_PACKAGES)
 
