@@ -71,9 +71,10 @@ upgrade:
 ## 2) new default value for the portdbpath variable;
 ## 3) new MacPorts rsync server;
 ## 4) new default value for the base tree;
-## 5) stray quotes are removed from the value of the rsync_options key in old conf files;
-## 6) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
-## 7) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
+## 5) new default value for trunk's base sources for users who have it (some do);
+## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
+## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
+## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
 	[ ! -f ${sysconfdir}/macports/macports.conf ] || { \
 		[ -f ${sysconfdir}/macports/macports.conf.mpsaved ] || cp -v ${sysconfdir}/macports/macports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
@@ -83,6 +84,8 @@ upgrade:
 		sed 's/darwinports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/dpupdate1\/base/release\/base/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/dpupdate\/base\/\{0,1\}/trunk\/base\//g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
