@@ -727,34 +727,6 @@ AC_DEFUN([MP_LIBCURL_VERSION],[
 ])
 
 
-# MP_PATH_SQLITE3
-#	Specify sqlite3 location
-#
-# Arguments:
-#	None.
-#
-# Requires:
-#   System or user-specified --with-sqlite=dir to specify
-#
-# Results:
-#   Sets SQLITE3_DIR to the directory where sqlite3 tcl pkgIndex.tcl is
-#---------------------------------------
-AC_DEFUN([MP_PATH_SQLITE3],[
-
-	AC_ARG_WITH([sqlite],
-		AS_HELP_STRING([--with-sqlite3=DIR],
-			[directory for sqlite3 (default /usr/lib/sqlite3)]),		
-		[mp_sqlite3_dir=$withval], [mp_sqlite3_dir=/usr/lib/sqlite3])
-		
-	AC_CACHE_CHECK([for sqlite3 location], [mp_cv_sqlite3_dir],
-		[mp_cv_sqlite3_dir=
-		test -r "${mp_sqlite3_dir}/pkgIndex.tcl" && mp_cv_sqlite3_dir=$mp_sqlite3_dir
-		])
-		
-	SQLITE3_DIR=$mp_cv_sqlite3_dir
-	AC_SUBST(SQLITE3_DIR)
-])
-
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters
 AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
