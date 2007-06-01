@@ -56,6 +56,9 @@ upgrade:
 # Following that, the dir itself is renamed to its new name:
 	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
 
+# Old ports.conf(5) man page is removed:
+	[ ! -f ${prefix}/share/man/man5/ports.conf.5 ] || rm -f ${prefix}/share/man/man5/ports.conf.5
+
 # Open up receipts and upgrade any paths in them containing old conventions to the new namespace:
 	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do [ ! -f $${receipt} ] || { \
 		cp -v $${receipt} $${receipt}.old && { \
