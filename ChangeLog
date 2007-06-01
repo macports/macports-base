@@ -6,6 +6,9 @@
 
 (unreleased)
 
+    - Bugfix startup item generation so that launchd.plists are disabled
+      by default, as we claim they are in our documentation. (jberry r25785).
+
     - Update adduser/addgroup to use dscl instead of niutil. Also add support
       for realname key in addgroup (ticket #11012, eridius r25586).
 
