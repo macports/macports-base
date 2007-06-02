@@ -912,10 +912,6 @@ proc opIntersection { a b } {
 	}
 	
 	# Walk through each item in a, matching against b
-	#
-	# Note: -regexp may not be present in all versions of Tcl we need to work
-	# 		against, in which case we may have to fall back to a slower alternative
-	#		for those cases. I'm not worrying about that for now, however. -jdb
 	foreach aitem $a {
 		array set port $aitem
 		
@@ -1509,7 +1505,8 @@ proc action_installed { action portlist opts } {
 	set status 0
 	set restrictedList 0
 	set ilist {}
-	if { [llength $portlist] } {
+	
+	if { [llength $portlist] || ![global_option_isset ports_no_args]} {
 		set restrictedList 1
 		foreachport $portlist {
 			set composite_version [composite_version $portversion [array get variations]]
@@ -1561,10 +1558,10 @@ proc action_outdated { action portlist opts } {
 
 	set status 0
 
-	# If port names were supplied, limit ourselves to those port, else check all installed ports
+	# If port names were supplied, limit ourselves to those ports, else check all installed ports
 	set ilist {}
 	set restrictedList 0
-	if { [llength $portlist] } {
+	if { [llength $portlist] || ![global_option_isset ports_no_args]} {
 		set restrictedList 1
 		foreach portspec $portlist {
 			array set port $portspec
@@ -1793,7 +1790,7 @@ proc action_variants { action portlist opts } {
 
 proc action_search { action portlist opts } {
 	set status 0
-	if {![llength portlist]} {
+	if {![llength $portlist] && [global_option_isset ports_no_args]} {
 		ui_error "You must specify a search pattern"
 		return 1
 	}
@@ -1841,9 +1838,9 @@ proc action_search { action portlist opts } {
 
 proc action_list { action portlist opts } {
 	set status 0
-
+	
 	# Default to list all ports if no portnames are supplied
-	if {![llength $portlist]} {
+	if {![llength $portlist] && [global_option_isset ports_no_args]} {
 		add_to_portlist portlist [list name "-all-"]
 	}
 	
@@ -2340,14 +2337,23 @@ proc process_cmd { argv } {
 		# used to terminate option processing, or the pseudo-port current must be specified).
 		parse_options $action ui_options global_options
 		
-		# Parse port specifications into portlist
+		# Parse action arguments, setting a special flag if there were none
+		# We otherwise can't tell the difference between arguments that evaluate
+		# to the empty set, and the empty set itself.
 		set portlist {}
-		if {![portExpr portlist]} {
-			ui_error "Improper expression syntax while processing parameters"
-			set action_status 1
-			break
+		switch -- [lookahead] {
+			;		-
+			_EOF_	{ set global_options(ports_no_args) yes }
+			default {
+				# Parse port specifications into portlist
+				if {![portExpr portlist]} {
+					ui_error "Improper expression syntax while processing parameters"
+					set action_status 1
+					break
+				}
+			}
 		}
-
+		
 		# Find an action to execute
 		set action_proc [find_action_proc $action]
 		if { $action_proc != "" } {
