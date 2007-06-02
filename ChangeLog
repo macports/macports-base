@@ -6,6 +6,14 @@
 
 (unreleased)
 
+    - Add support for decoding of obscured maintainer addresses.
+      We support two types of obscured addresses in Portfile maintainers field:
+         (1) username ==> implies username@macports.org
+         (2) subdomain.tld:username ==> implies username@subdomain.tld
+      These are unobscured by port info, and by port submit during the submission process,
+      but are left obscured in the Portfile to avoid accidental disclosure.
+      (jberry r25795).
+
     - Bugfix startup item generation so that launchd.plists are disabled
       by default, as we claim they are in our documentation. (jberry r25785).
 
