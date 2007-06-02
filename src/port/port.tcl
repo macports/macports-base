@@ -432,6 +432,22 @@ proc regex_pat_sanitize { s } {
 }
 
 
+proc unobscure_maintainers { list } {
+	set result {}
+	foreach m $list {
+		if {[string first "@" $m] < 0} {
+			if {[string first ":" $m] >= 0} {
+				set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
+			} else {
+				set m "$m@macports.org"
+			}
+		}
+		lappend result $m
+	}
+	return $result
+}
+
+
 ##########################################
 # Port selection
 ##########################################
@@ -1241,6 +1257,9 @@ proc action_info { action portlist opts } {
             
             # Format the data
             set inf $portinfo($ropt)
+            if { $ropt eq "maintainers" } {
+            	set inf [unobscure_maintainers $inf]
+            }
             if [info exists list_map($ropt)] {
                 set field [join $inf $subfield_sep]
             } else {
@@ -1294,7 +1313,9 @@ proc action_info { action portlist opts } {
             }
                 
             if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
-            if {[info exists portinfo(maintainers)]} { puts "Maintainers: $portinfo(maintainers)"}
+            if {[info exists portinfo(maintainers)]} {
+            	puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
+            }
         }
     }
     
