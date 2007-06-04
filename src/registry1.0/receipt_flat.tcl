@@ -68,31 +68,31 @@ proc new_entry {} {
 # portversion		the version for this port, 0 if unknown.
 # return the path to the file or "" if the file couldn't be found.
 proc get_head_entry_receipt_path {portname portversion} {
-    global darwinports::registry.path
+	global darwinports::registry.path
 
-    # regex match case
-    if {$portversion == 0} {
+	# regex match case
+	if {$portversion == 0} {
 	set x [glob -nocomplain [file join ${darwinports::registry.path} receipts ${portname}-*]]
 	if {[string length $x]} {
-	    set matchfile [lindex $x 0]
+		set matchfile [lindex $x 0]
 		# Remove trailing .bz2, if any.
 		regexp {(.*)\.bz2$} $matchfile match matchfile
 	} else {
-	    set matchfile ""
+		set matchfile ""
 	}
-    } else {
+	} else {
 	set matchfile [file join ${darwinports::registry.path} receipts ${portname}-${portversion}]
-    }
+	}
 
-    # Might as well bail out early if no file to match
-    if {![string length $matchfile]} {
+	# Might as well bail out early if no file to match
+	if {![string length $matchfile]} {
 		return ""
-    }
+	}
 
-    if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
+	if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
 		return $matchfile
-    }
-    return ""
+	}
+	return ""
 }
 
 ##
@@ -452,15 +452,15 @@ proc installed {{name ""} {version ""}} {
 	} else {
 		set query_path [file join ${darwinports::registry.path} receipts ${name}-*]
 	}
-    set receiptglob [glob -nocomplain -types f ${query_path}]
-    foreach receipt_file $receiptglob {
+	set receiptglob [glob -nocomplain -types f ${query_path}]
+	foreach receipt_file $receiptglob {
 		set theFileName [file tail $receipt_file]
 
-    	# Remark: these regexes do not always work.
-   		set theName ""
-    	if { $name == "" } {
+		# Remark: these regexes do not always work.
+		set theName ""
+		if { $name == "" } {
 			regexp {^(.*)-(.*)$} $theFileName match theName version
-    	} else {
+		} else {
 			regexp "^($name)-(.*)\$" $theFileName match theName version
 		}
 		
@@ -693,7 +693,7 @@ proc open_dep_map {args} {
 		set dep_map [read $map_handle]
 		close $map_handle
 	} else {
-	    set dep_map [list]
+		set dep_map [list]
 	}
 	if { ![llength $dep_map] > 0 } {
 		set dep_map [list]
@@ -758,10 +758,10 @@ proc write_dep_map {args} {
 	puts $map_handle $dep_map
 	close $map_handle
 
-    # don't both checking for presence, file delete doesn't error if file doesn't exist
-    file delete ${map_file} ${map_file}.bz2
+	# don't both checking for presence, file delete doesn't error if file doesn't exist
+	file delete ${map_file} ${map_file}.bz2
 
-    file rename ${map_file}.tmp ${map_file}
+	file rename ${map_file}.tmp ${map_file}
 
 	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${map_file}"
