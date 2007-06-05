@@ -1,22 +1,43 @@
-
 #######
-# MacPorts rsync repos, feeding the sync & selfupdate procedures.
-# Two main modules are supplied for current installations and two for backwards compatibility (legacy darwinports namespace).
-# Assuming a REPOROOT path of /usr/local/repos/macports, this file is organized in the following modules and filesystem level paths:
+# MacPorts rsync repos feeding the sync & selfupdate procedures, created and maintained by the base/portmgr/mprsyncup.new script.
+# 
+# Two main modules are supplied for current installations off the dp2mp-move branch (intended to become mainstream moving forwad)
+# and two for backwards compatibility (legacy DarwinPorts namespace). Assuming an example REPOROOT path of /usr/local/repos/macports,
+# this file is organized in the following four modules and filesystem level paths (server side):
 #
-# ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's trunk (ToT), and the current release base dir,
-#    as determined by the base/config/RELEASE_URL file that's read by the base/portmgr/mprsyncup script;
 #
-# ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk base dir (ToT);
+# PATHS:
 #
-# ${REPOROOT}/dpupdate: backwards compatible module, a filesystem level (relative) symlink to the trunk module;
+# ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's trunk/dports dir (ToT), and the current release base dir,
+#    as determined by the base/config/RELEASE_URL file read by the base/portmgr/mprsyncup.new script;
 #
-# ${REPOROOT}/dpupdate1: backwards compatible module, a filesystem level (relative) symlink to the release module.
+# ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk/base dir (ToT);
 #
-# Futhermore the ${REPOROOT}/trunk path should also hold a (relative) `dports' symlink to ../release/ports,
-# so that a sync operation against `dpupdate/ports' for the ports tree works on legacy MacPorts installations.
-# Whatever server pretends to use this file should simply add the modules listed here to an already tailored
-# rsyncd.conf file, as no other particular config flags are supplied.
+# ${REPOROOT}/dpupdate: backwards compatible path & module, a filesystem level (relative) symlink to the trunk path above
+#    (relative to ${REPOROOT}: dpupdate --> trunk);
+#
+# ${REPOROOT}/dpupdate1: backwards compatible path & module, a filesystem level (relative) symlink to the release path
+#    (relative to ${REPOROOT}: dpupdate1 --> release).
+#
+# 
+# Futhermore the ${REPOROOT}/trunk path must also hold a (relative) `dports' symlink to `../release/ports',
+# so that a sync operation against `dpupdate/ports' for the ports tree works on legacy MacPorts installations
+# (DarwinPorts namespace). Overall, the ${REPOROOT} skeleton should look like:
+#
+# release/
+# release/base/
+# release/ports/
+# trunk/
+# trunk/base/
+# trunk/dports --> ../release/ports
+# dpupdate --> trunk
+# dpupdate1 --> release
+#
+#
+# Whatever server uses this file should simply add the modules listed here to an already
+# tailored rsyncd.conf file, as no other particular config options are supplied.
+# Repositories themselves are created and maintained by the base/portmgr/mprsyncup.new script, as stated above
+# (that is, no manual intervention what-so-ever is needed, other than adding the repos to the local rsyncd.conf file).
 #
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@macports.org
@@ -33,9 +54,9 @@
 	path = /usr/local/repos/macports/trunk
 
 [dpupdate]
-	comment = legacy MacPorts ToT rsync repo, ports tree and base component (solely for backwards compatibility purposes).
+	comment = Legacy MacPorts ToT rsync repo, ports tree and base component (solely for backwards compatibility purposes).
 	path = /usr/local/repos/macports/dpupdate
 
 [dpupdate1]
-	comment = legacy MacPorts rsync dpupdate1 repo, released base component (solely for backwards compatibility purposes).
+	comment = Legacy MacPorts rsync dpupdate1 repo, release base component (solely for backwards compatibility purposes).
 	path = /usr/local/repos/macports/dpupdate1
