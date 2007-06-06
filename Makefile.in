@@ -60,8 +60,8 @@ upgrade:
 	[ ! -f ${prefix}/share/man/man5/ports.conf.5 ] || rm -f ${prefix}/share/man/man5/ports.conf.5
 
 # Open up receipts and upgrade any paths in them containing old conventions to the new namespace:
-	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do [ ! -f $${receipt} ] || { \
-		cp -v $${receipt} $${receipt}.old && { \
+	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do [ ! \( -f $${receipt} -a ! -f $${receipt}.mpsaved \) ] || { \
+		cp -v $${receipt} $${receipt}.mpsaved && { \
 			$(BZIP2) -q -dc $${receipt} | sed 's/db\/dports/macports/g' | $(BZIP2) -q -zf > $${receipt}.new ; \
 		} && mv -v $${receipt}.new $${receipt} ; \
 	}; done
@@ -109,6 +109,8 @@ upgrade:
 
 #something more?
 
+# Trailing new line to signal the uprade procedure is done!
+	echo -e \n
 
 ####
 # NOTES:
