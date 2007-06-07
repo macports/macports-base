@@ -12,8 +12,8 @@ all:
 	mkdir -p /tmp/macports-tests/ports
 	mkdir -p /tmp/macports-tests/opt/local/etc/macports/
 	mkdir -p /tmp/macports-tests/opt/local/share/
-	mkdir -p /tmp/macports-tests/opt/local/var/db/macports/receipts/
-	mkdir -p /tmp/macports-tests/opt/local/var/db/macports/build/
+	mkdir -p /tmp/macports-tests/opt/local/var/macports/receipts/
+	mkdir -p /tmp/macports-tests/opt/local/var/macports/build/
 	ln -s $(datadir)/macports /tmp/macports-tests/opt/local/share/
 	ln -s $(PWD)/test /tmp/macports-tests/ports/
 	cp sources.conf /tmp/macports-tests/opt/local/etc/macports/
