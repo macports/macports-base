@@ -564,7 +564,7 @@ proc startupitem_create_darwin_launchd {args} {
 	puts ${plist} "</array>"
 	
 	puts ${plist} "<key>Debug</key><false/>"
-	puts ${plist} "<key>Disabled</key><false/>"
+	puts ${plist} "<key>Disabled</key><true/>"
 	puts ${plist} "<key>OnDemand</key><false/>"
 	puts ${plist} "<key>RunAtLoad</key><false/>"
 	
