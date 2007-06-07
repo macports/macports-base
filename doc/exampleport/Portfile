@@ -1,5 +1,5 @@
 # All ports must have the "svn:keywords : Id" and "svn:eol-style : native"
-# svn props set on them and start with a commented out $Id$ tag, which
+# svn props set on them and start with a commented out Id tag, which
 # the server will expand:
 # $Id$
 
