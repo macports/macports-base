@@ -29,15 +29,15 @@ install:
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
 
-	$(SILENT)if test ! -e ${DESTDIR}/${mpconfigdir}/macports.conf ; then \
+	if test ! -e ${DESTDIR}/${mpconfigdir}/macports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${mpconfigdir}; \
 	fi
-	$(SILENT)if test ! -e ${DESTDIR}${mpconfigdir}/sources.conf ; then \
+	if test ! -e ${DESTDIR}${mpconfigdir}/sources.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${mpconfigdir}; \
 	fi
-	$(SILENT)if test ! -e ${DESTDIR}${mpconfigdir}/variants.conf ; then \
+	if test ! -e ${DESTDIR}${mpconfigdir}/variants.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${mpconfigdir}; \
 	fi
