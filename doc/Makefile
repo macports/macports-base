@@ -29,7 +29,7 @@ install:
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
 
-	if test ! -e ${DESTDIR}/${mpconfigdir}/macports.conf ; then \
+	if test ! -e ${DESTDIR}${mpconfigdir}/macports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${mpconfigdir}; \
 	fi
