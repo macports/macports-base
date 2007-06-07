@@ -107,6 +107,9 @@ proc create_portpkg {} {
 	foreach var $vars {
 		if {![info exists $var]} { set $var {} }
 	}
+	
+	# Unobscure the maintainer addresses
+	set maintainers [unobscure_maintainers $maintainers]
 
     # Make sure our workpath is clean
     file delete -force $dirpath $metapath $pkgpath
@@ -182,6 +185,9 @@ proc submit_main {args} {
     global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
     
     set submiturl $mp_remote_submit_url
+    
+    # Make sure we have a work directory
+    file mkdir ${workpath}
   
    	# Create portpkg.xar in the work directory
    	set pkgpath [create_portpkg]
@@ -201,7 +207,8 @@ proc submit_main {args} {
     if {[tbool portverbose]} {
     	ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
     }
-
+    
+	# Invoke curl to do the submit
     ui_debug $cmd
     if {[system $cmd] != ""} {
 		return -code error [format [msgcat::mc "Failure during submit of port %s"] $portname]

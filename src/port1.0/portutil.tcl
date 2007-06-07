@@ -1005,6 +1005,32 @@ proc lipo {} {
     }
 }
 
+
+# unobscure maintainer addresses as used in Portfiles
+# We allow two obscured forms:
+#	(1) User name only with no domain:
+#			foo implies foo@macports.org
+#	(2) Mangled name:
+#			subdomain.tld:username implies username@subdomain.tld
+#
+proc unobscure_maintainers { list } {
+	set result {}
+	foreach m $list {
+		if {[string first "@" $m] < 0} {
+			if {[string first ":" $m] >= 0} {
+				set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
+			} else {
+				set m "$m@macports.org"
+			}
+		}
+		lappend result $m
+	}
+	return $result
+}
+
+
+
+
 ########### Internal Dependency Manipulation Procedures ###########
 
 proc target_run {ditem} {
