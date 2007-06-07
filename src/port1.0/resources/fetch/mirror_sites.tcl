@@ -40,7 +40,7 @@ set portfetch::mirror_sites::sites(freebsd) {
 set portfetch::mirror_sites::sites(gnome) {
     http://mandril.creatis.insa-lyon.fr/linux/gnome.org/
     http://mirror.aarnet.edu.au/pub/GNOME/
-    http://ftp.unina.it/pub/linux/GNOME
+    http://ftp.unina.it/pub/linux/GNOME/
     http://fr.rpmfind.net/linux/gnome.org/
     http://fr2.rpmfind.net/linux/gnome.org/
     http://ftp.acc.umu.se/pub/GNOME/
