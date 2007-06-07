@@ -157,7 +157,22 @@ proc create_portpkg {} {
 		
 			# TODO: variants has platforms in it
 			if {[info exists PortInfo(variants)]} {
-				putlist $sd variants variant $PortInfo(variants)
+				if {[info exists PortInfo(variant_desc)]} {
+					array set descs $PortInfo(variant_desc)
+				} else {
+					array set descs ""
+				}
+	
+				puts $sd "<variants>"
+				foreach v $PortInfo(variants) {
+					puts $sd "<variant>"
+						putel $sd name $v
+						if {[info exists descs($v)]} {
+							putel $sd description $descs($v)
+						}
+					puts $sd "</variant>"
+				}
+				puts $sd "</variants>"
 			} else {
 				putel $sd variants ""
 			}
