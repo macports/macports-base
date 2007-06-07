@@ -45,7 +45,7 @@ fi
 ${RSYNC} -a -I --delete ${TBASE}-export/ ${RSYNCROOT}/trunk/base && rm -rf ${TBASE}-export
 
 
-# Read what tag we're releasign from, switch to/checkout a copy, export and rsync it to ${REPOROOT}/release/base:
+# Read what tag we're releasing from, switch to/checkout a copy, export and rsync it to ${REPOROOT}/release/base:
 read RELEASE_URL < ${TBASE}/${RELEASE_URL_FILE}
 if [ ! -n ${RELEASE_URL} ]; then
     echo "no RELEASE_URL specified in svn trunk, baling out"
