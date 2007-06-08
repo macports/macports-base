@@ -1290,57 +1290,60 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 			if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
 				ui_warn "Can't open index file for source: $source"
 			} else {
-				incr found 1
-				while {[gets $fd line] >= 0} {
-					array unset portinfo
-					set name [lindex $line 0]
-					set len [lindex $line 1]
-					set line [read $fd $len]
+			    try {
+					incr found 1
+					while {[gets $fd line] >= 0} {
+						array unset portinfo
+						set name [lindex $line 0]
+						set len [lindex $line 1]
+						set line [read $fd $len]
 						
-					if {$easy} {
-						set target $name
-					} else {
-						array set portinfo $line
-						if {![info exists portinfo($field)]} continue
-						set target $portinfo($field)
-					}
-					
-					switch $matchstyle {
-						exact	{ set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
-						glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
-						regexp	-
-						default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
-					}
-					
-					if {$matchres == 1} {
 						if {$easy} {
-							array set portinfo $line
-						}
-						switch -regexp -- [darwinports::getprotocol ${source}] {
-							{^rsync$} {
-								# Rsync files are local
-								set source_url "file://[darwinports::getsourcepath $source]"
-							}
-							default {
-								set source_url $source
-							}
-						}
-						if {[info exists portinfo(portarchive)]} {
-							set porturl ${source_url}/$portinfo(portarchive)
-						} elseif {[info exists portinfo(portdir)]} {
-							set porturl ${source_url}/$portinfo(portdir)
-						}
-						if {[info exists porturl]} {
-							lappend line porturl $porturl
-							ui_debug "Found port in $porturl"
+							set target $name
 						} else {
-							ui_debug "Found port info: $line"
+							array set portinfo $line
+							if {![info exists portinfo($field)]} continue
+							set target $portinfo($field)
 						}
-						lappend matches $name
-						lappend matches $line
+					
+						switch $matchstyle {
+							exact	{ set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
+							glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
+							regexp	-
+							default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
+						}
+					
+						if {$matchres == 1} {
+							if {$easy} {
+								array set portinfo $line
+							}
+							switch -regexp -- [darwinports::getprotocol ${source}] {
+								{^rsync$} {
+									# Rsync files are local
+									set source_url "file://[darwinports::getsourcepath $source]"
+								}
+								default {
+									set source_url $source
+								}
+							}
+							if {[info exists portinfo(portarchive)]} {
+								set porturl ${source_url}/$portinfo(portarchive)
+							} elseif {[info exists portinfo(portdir)]} {
+								set porturl ${source_url}/$portinfo(portdir)
+							}
+							if {[info exists porturl]} {
+								lappend line porturl $porturl
+								ui_debug "Found port in $porturl"
+							} else {
+								ui_debug "Found port info: $line"
+							}
+							lappend matches $name
+							lappend matches $line
+						}
 					}
+				} finally {
+					close $fd
 				}
-				close $fd
 			}
 		}
 	}
