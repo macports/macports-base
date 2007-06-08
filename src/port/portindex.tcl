@@ -202,7 +202,6 @@ if {[info exists outdir]} {
 
 puts "Creating software index in $outdir"
 set fd [open [file join $outdir PortIndex] w]
-fconfigure $fd -encoding utf-8
 dporttraverse pindex $directory
 close $fd
 puts "\nTotal number of ports parsed:\t$stats(total)\

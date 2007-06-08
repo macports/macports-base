@@ -6,6 +6,10 @@
 
 (unreleased)
 
+    - Handles encodings properly now. All Portfiles and .conf files are assumed
+      to be utf-8, and reading them or calling portindex(1) should now work
+      the same on all locales (ticket #11978, eridius r25975).
+
     - Add support for decoding of obscured maintainer addresses.
       We support two types of obscured addresses in Portfile maintainers field:
          (1) username ==> implies username@macports.org
