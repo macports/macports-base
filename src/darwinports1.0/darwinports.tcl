@@ -34,6 +34,7 @@
 package provide darwinports 1.0
 package require darwinports_dlist 1.0
 package require darwinports_index 1.0
+package require darwinports_util 1.0
 
 namespace eval darwinports {
     namespace export bootstrap_options user_options portinterp_options open_dports ui_priorities

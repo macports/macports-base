@@ -1,5 +1,5 @@
-SRCS=		darwinports.tcl darwinports_dlist.tcl darwinports_autoconf.tcl \
-		darwinports_index.tcl darwinports_fastload.tcl
+SRCS=		darwinports.tcl darwinports_dlist.tcl darwinports_util.tcl \
+		darwinports_autoconf.tcl darwinports_index.tcl darwinports_fastload.tcl
 OBJS=		darwinports.o portconf.o session.o util.o
 SHLIB_NAME=	Darwinports${SHLIB_SUFFIX}
 

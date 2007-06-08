@@ -35,6 +35,7 @@
 package provide portutil 1.0
 package require Pextlib 1.0
 package require darwinports_dlist 1.0
+package require darwinports_util 1.0
 package require msgcat
 package require porttrace 1.0
 

@@ -206,22 +206,6 @@ proc mtree {root spec} {
     }
 }
 
-# try-finally block
-# Usage: try { script1 } finally { script2 }
-proc try {script1 finally script2} {
-    if {$finally ne "finally"} {
-        error "Usage: try { script1 } finally { script2 }"
-    }
-    if {[set fail [catch {uplevel $script1} result]]} {
-        set savedInfo $::errorInfo
-        set savedCode $::errorCode
-    }
-    uplevel $script2
-    if {$fail} {
-        return -code $fail -errorinfo $savedInfo -errorcode $savedCode $result
-    }
-}
-
 # run all tests
 foreach proc [info procs test_*] {
     $proc
