@@ -106,7 +106,7 @@ proc pindex {portdir} {
 	set save_prefix $prefix
 	set prefix {\${prefix}}
     if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
-		puts "Failed to parse file $portdir/Portfile: $result"
+		puts stderr "Failed to parse file $portdir/Portfile: $result"
 		# revert the prefix.
 		set prefix $save_prefix
 		incr stats(failed)
@@ -120,7 +120,7 @@ proc pindex {portdir} {
         if {$archive == "1"} {
             if {![file isdirectory [file join $outdir [file dirname $portdir]]]} {
                 if {[catch {file mkdir [file join $outdir [file dirname $portdir]]} result]} {
-                    puts "$result"
+                    puts stderr "$result"
                     exit 1
                 }
             }
@@ -128,7 +128,7 @@ proc pindex {portdir} {
             cd [file join $directory [file dirname $portinfo(portdir)]]
             puts "Archiving port $portinfo(name) to [file join $outdir $portinfo(portarchive)]"
             if {[catch {exec tar -cf - [file tail $portdir] | gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
-                puts "Failed to create port archive $portinfo(portarchive): $result"
+                puts stderr "Failed to create port archive $portinfo(portarchive): $result"
                 exit 1
             }
         }
@@ -157,7 +157,7 @@ for {set i 0} {$i < $argc} {incr i} {
 		incr i
 		set outdir [lindex $argv $i]
 	    } else {
-		puts "Unknown option: $arg"
+		puts stderr "Unknown option: $arg"
 		print_usage
 		exit 1
 	    }
@@ -167,7 +167,7 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 
 if {$archive == 1 && ![info exists outdir]} {
-   puts "You must specify an output directory with -o when using the -a option"
+   puts stderr "You must specify an output directory with -o when using the -a option"
    print_usage
    exit 1
 }
@@ -178,7 +178,7 @@ if {![info exists directory]} {
 
 # cd to input directory 
 if {[catch {cd $directory} result]} {
-    puts "$result"
+    puts stderr "$result"
     exit 1
 } else {
     set directory [pwd]
@@ -187,11 +187,11 @@ if {[catch {cd $directory} result]} {
 # Set output directory to full path
 if {[info exists outdir]} {
     if {[catch {file mkdir $outdir} result]} {
-        puts "$result"
+        puts stderr "$result"
         exit 1
     }
     if {[catch {cd $outdir} result]} {
-        puts "$result"
+        puts stderr "$result"
         exit 1
     } else {
         set outdir [pwd]
