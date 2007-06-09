@@ -6,7 +6,15 @@
 
 (unreleased)
 
-    - Handles encodings properly now. All Portfiles and .conf files are assumed
+    - Add global methods lpush, lpop, lshift, and lunshift. Works similar to
+      lappend (in fact lpush is just lappend) and do what they sound like.
+      Also add ldindex. Works like lindex, but deletes the element from the list.
+      Documented in portfile.7 (eridius r26034).
+    
+    - Add global methods try and throw. Implemented based on the specification
+      in TIP #89. Documented in portfile.7 (eridius r26034).
+
+    - Handle encodings properly now. All Portfiles and .conf files are assumed
       to be utf-8, and reading them or calling portindex(1) should now work
       the same on all locales (ticket #11978, eridius r25975).
 
