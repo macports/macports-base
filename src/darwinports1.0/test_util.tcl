@@ -457,6 +457,13 @@ if {[set err [catch {
                 join $list ", "
             }
         } "code: correct, msg: correct, info: probably correct"
+        block {try-break-catch} {
+            try {
+                break
+            } catch {*} {
+                error "catch triggered"
+            }
+        } -break
         
         # ensure the stack is sound
         var ::_trycatch::catchStack {}
