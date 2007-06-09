@@ -102,13 +102,14 @@ if {$options(t) > 0} {
     if {$options(t) > 1} {
         lappend ops enterstep leavestep
     }
+    set util_list {ldindex lpop lpush lshift lunshift try throw}
     if {[llength $argv] > 0} {
         set list $argv
         if {[set idx [lsearch -exact $list *]] != -1} {
-            set list [eval lreplace [list $list] $idx $idx [namespace eval darwinports_util { namespace export }]]
+            set list [eval lreplace [list $list] $idx $idx $util_list]
         }
     } else {
-        set list [namespace eval darwinports_util { namespace export }]
+        set list $util_list
     }
     foreach arg $list {
         trace add execution $arg $ops dotrace
