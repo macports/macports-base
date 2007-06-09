@@ -1341,6 +1341,9 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 							lappend matches $line
 						}
 					}
+				} catch {*} {
+				    ui_warn "It looks like your PortIndex file may be corrupt."
+				    throw
 				} finally {
 					close $fd
 				}
