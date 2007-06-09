@@ -1046,18 +1046,6 @@ proc target_run {ditem} {
 	    set result [catch {[ditem_key $ditem init] $name} errstr]
 	}
 	
-	if { ![info exists portvariants] } {
-		set portvariants ""
-		set vlist [lsort -ascii [array names variations]]
-
-		# Put together variants in the form +foo+bar for the registry
-		foreach v $vlist {
-			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
-				set portvariants "${portvariants}+${v}"
-			}
-		}
-	}
-
 	if {$result == 0} {
 		# Skip the step if required and explain why through ui_debug.
 		# 1st case: the step was already done (as mentioned in the state file)
@@ -1100,7 +1088,7 @@ proc target_run {ditem} {
 				# Say we're skipping.
 				set skipped 1
 				
-				ui_debug "Skipping $name ($portname) since this port is already active"
+				ui_msg "Skipping $name ($portname $portvariants) since this port is already active"
 			}
 			
 		}
@@ -1421,8 +1409,32 @@ proc variant_run {ditem} {
     return 0
 }
 
+# Given a list of variant specifications, return a canonical string form
+# for the registry. 
+    # The strategy is as follows: regardless of how some collection of variants
+    # was turned on or off, a particular instance of the port is uniquely
+    # characterized by the set of variants that are *on*. Thus, record those
+    # variants in a string in a standard order as +var1+var2 etc.
+    # We can skip the platform and architecture since those are always
+    # requested.  XXX: Is that really true? What if the user explicitly
+    # overrides the platform and architecture variants? Will the registry get
+    # bollixed? It would seem safer to me to just leave in all the variants that
+    # are on, but for now I'm just leaving the skipping code as it was in the
+    # previous version.
+proc canonicalize_variants {variants} {
+    array set vara $variants
+    set result ""
+    set vlist [lsort -ascii [array names vara]]
+    foreach v $vlist {
+        if {$vara($v) == "+" && $v ne [option os.platform] && $v ne [option os.arch]} {
+            append result +$v
+        }
+    }
+    return $result
+}
+
 proc eval_variants {variations} {
-    global all_variants ports_force PortInfo
+    global all_variants ports_force PortInfo portvariants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
@@ -1454,7 +1466,41 @@ proc eval_variants {variations} {
     if {[llength $dlist] > 0} {
 		return 1
     }
-    
+
+    # Now compute the true active array of variants. Note we do not
+    # change upvariations any further, since that represents the
+    # requested list of variations; but the registry for consistency
+    # must encode the actual list of variants evaluated, however that
+    # came to pass (dependencies, defaults, etc.) While we're at it,
+    # it's convenient to check for inconsistent requests for
+    # variations, namely foo +requirer -required where the 'requirer'
+    # variant requires the 'required' one.
+    array set activevariants [list]
+    foreach dvar $newlist {
+        set thevar [ditem_key $dvar provides]
+        if {[info exists upvariations($thevar)] && $upvariations($thevar) eq "-"} {
+            set chosenlist ""
+            foreach choice $chosen {
+                lappend chosenlist +[ditem_key $choice provides]
+            }
+            ui_error "Inconsistent variant specification: $portname variant +$thevar is required by at least one of $chosenlist, but specified -$thevar"
+            return 1
+        }
+        set activevariants($thevar) "+"
+    }
+
+    # Record a canonical variant string, used e.g. in accessing the registry
+    set portvariants [canonicalize_variants [array get activevariants]]
+
+    # XXX: I suspect it would actually work better in the following
+    # block to record the activevariants in the statefile rather than
+    # the upvariations, since as far as I can see different sets of
+    # upvariations which amount to the same activevariants in the end
+    # can share all aspects of the build. But I'm leaving this alone
+    # for the time being, so that someone with more extensive
+    # experience can examine the idea before putting it into
+    # action. -- GlenWhitney
+
     return 0
 }
 

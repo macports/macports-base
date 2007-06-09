@@ -45,26 +45,8 @@ if {[option portarchivemode] == "yes"} {
 } else {
 	target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
 }
-target_prerun ${com.apple.activate} activate_start
 
 set_ui_prefix
-
-proc activate_start {args} {
-	global UI_PREFIX portname portversion portrevision variations portvariants
-    
-	if { ![info exists portvariants] } {
-		set portvariants ""
-
-		set vlist [lsort -ascii [array names variations]]
-
-	 	# Put together variants in the form +foo+bar for the registry
-		foreach v $vlist {
-			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
-				set portvariants "${portvariants}+${v}"
-			}
-		}
-	}
-}
 
 proc activate_main {args} {
 	global portname portversion portrevision portvariants user_options
