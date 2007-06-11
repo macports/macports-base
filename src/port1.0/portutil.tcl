@@ -35,6 +35,7 @@
 package provide portutil 1.0
 package require Pextlib 1.0
 package require macports_dlist 1.0
+package require macports_util 1.0
 package require msgcat
 package require porttrace 1.0
 

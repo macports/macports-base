@@ -1,5 +1,5 @@
-SRCS=		macports.tcl macports_dlist.tcl macports_autoconf.tcl \
-		macports_index.tcl macports_fastload.tcl
+SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
+		macports_autoconf.tcl macports_index.tcl macports_fastload.tcl
 OBJS=		macports.o portconf.o session.o util.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 

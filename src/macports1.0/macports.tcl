@@ -34,6 +34,7 @@
 package provide macports 1.0
 package require macports_dlist 1.0
 package require macports_index 1.0
+package require macports_util 1.0
 
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
