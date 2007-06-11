@@ -279,6 +279,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global macports::xcodebuildcmd
    	global macports::xcodeversion
 
+        # Set the system encoding to utf-8
+        encoding system utf-8
+
         # Ensure that the macports user directory exists if HOME is defined
         if {[info exists env(HOME)]} {
 	    set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
@@ -310,7 +313,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 		if [file exists $file] {
 			set portconf $file
 			set fd [open $file r]
-		        fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 					if {[lsearch $bootstrap_options $option] >= 0} {
@@ -328,7 +330,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
-	        fconfigure $fd -encoding utf-8
 		while {[gets $fd line] >= 0} {
 			if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 				if {[lsearch $user_options $option] >= 0} {
@@ -343,7 +344,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
     set fd [open $sources_conf r]
-    fconfigure $fd -encoding utf-8
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
 	if {![regexp {^\s*#|^$} $line]} {
@@ -371,7 +371,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	if {[info exists variants_conf]} {
 		if {[file exist $variants_conf]} {
 		        set fd [open $variants_conf r]
-		        fconfigure $fd -encoding utf-8
 			while {[gets $fd line] >= 0} {
 				set line [string trimright $line]
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -1295,7 +1294,6 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 			if {[catch {set fd [open [macports::getindex $source] r]} result]} {
 				ui_warn "Can't open index file for source: $source"
 			} else {
-			        fconfigure $fd -encoding utf-8
 				incr found 1
 				while {[gets $fd line] >= 0} {
 					array unset portinfo
