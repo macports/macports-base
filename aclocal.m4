@@ -1,4 +1,6 @@
 builtin(include,tcl.m4)
+builtin(include,objc.m4)
+builtin(include,foundation.m4)
 
 #------------------------------------------------------------------------
 # OD_CHECK_FRAMEWORK_COREFOUNDATION --
@@ -839,4 +841,32 @@ AC_DEFUN(DP_CHECK_READLINK_IS_P1003_1A, [
 	fi
 
 	AC_SUBST(READLINK_IS_NOT_P1003_1A)
+])
+
+#------------------------------------------------------------------------
+# MP_WERROR --
+#
+#       Enable -Werror
+#
+# Arguments:
+#       None.
+#
+# Requires:
+#       none
+#
+# Depends:
+#       none
+#
+# Results:
+#       Substitutes WERROR_CFLAGS variable
+#------------------------------------------------------------------------
+AC_DEFUN([MP_WERROR],[
+	AC_REQUIRE([AC_PROG_CC])
+	AC_ARG_ENABLE(werror, AC_HELP_STRING([--enable-werror], [Add -Werror to CFLAGS. Used for development.]), [enable_werror=${enableval}], [enable_werror=no])
+	if test x"$enable_werror" != "xno"; then
+		CFLAGS_WERROR="-Werror"
+	else
+		CFLAGS_WERROR=""
+	fi
+	AC_SUBST([CFLAGS_WERROR])
 ])
