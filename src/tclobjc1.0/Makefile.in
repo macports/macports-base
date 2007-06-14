@@ -1,0 +1,7 @@
+OBJS=		tclobjc.o tclobjc_types.o MPMethodSignatureExtensions.o objc_encoding.o
+SHLIB_NAME=	tclobjc${SHLIB_SUFFIX}
+INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/tclobjc1.0
+export MACOSX_DEPLOYMENT_TARGET=10.3
+
+include ../../Mk/dports.autoconf.mk
+include ../../Mk/dports.tea.mk

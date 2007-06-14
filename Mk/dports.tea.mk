@@ -1,3 +1,8 @@
+.SUFFIXES: .m
+
+.m.o:
+	${CC} -c -DUSE_TCL_STUBS ${OBJCFLAGS} ${TCL_DEFS} ${SHLIB_CFLAGS} $< -o $@
+
 .c.o:
 	${CC} -c -DUSE_TCL_STUBS ${CFLAGS} ${TCL_DEFS} ${SHLIB_CFLAGS} $< -o $@
 

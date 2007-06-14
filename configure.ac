@@ -276,6 +276,7 @@ AC_CONFIG_FILES([
 	doc/ports.conf
 	src/Makefile
 	src/darwinports1.0/darwinports_autoconf.tcl
+	src/tclobjc1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
