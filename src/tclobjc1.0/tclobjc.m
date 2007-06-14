@@ -38,13 +38,12 @@
 #include <Foundation/Foundation.h>
 #include <tcl.h>
 
-#include "MPMethodSignatureExtensions.h"
 #include "objc_encoding.h"
-
+#include "MPMethodSignatureExtensions.h"
 #include "tclobjc_types.h"
 
 /*
- * Type Encodings
+ * Dispatch an Objective-C method call
  */
 int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -94,7 +93,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 	for (i = 2; i < objc; i += 2) {
 		int arg_num = i / 2 + 1;
 
-		const char* arg_type = [signature getArgumentTypeStringAtIndex:arg_num];
+		const char* arg_type = tclobjc_getarg_typestring(signature, arg_num);
 		fprintf(stderr, "argument type %s\n", arg_type);
 		if (arg_type[0] == _C_ID) {
 			id obj;
@@ -106,6 +105,19 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 			if (Tcl_GetIntFromObj(interp, objv[i], &word) == TCL_OK) {
 				[invocation setArgument:&word atIndex:arg_num];
 			}
+		} else if (arg_type[0] == _C_UINT) {
+            long value;
+            if (Tcl_GetLongFromObj(interp, objv[i], &value) == TCL_OK) {
+                if (value > UINT_MAX || value < 0) {
+                    NSString *str = [NSString stringWithFormat:@"Unsigned integer argument invalid: %ld", value];
+                    Tcl_Obj *tcl_result = Tcl_NewStringObj([str cString], -1);
+                    Tcl_SetObjResult(interp, tcl_result);
+                    result = TCL_ERROR;
+                } else {
+                    unsigned int word = value;
+                    [invocation setArgument:&value atIndex:arg_num];
+                }
+            }
 		} else if (arg_type[0] == _C_CHARPTR) {
 			int length;
 			char* buf = Tcl_GetStringFromObj(objv[i], &length);
@@ -126,8 +138,9 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 		[invocation invoke];
 		fprintf(stderr, "result size = %d\n", [signature methodReturnLength]);
 		void* result_ptr;
-		[invocation getReturnValue:&result_ptr];
-		const char* result_type = [signature methodReturnTypeString];
+		[invocation getReturnValue:&result_ptr];        
+		
+		const char* result_type = tclobjc_getreturn_typestring(signature);
 		result = objc_to_tclobj(interp, &tcl_result, result_type, result_ptr);
 		Tcl_SetObjResult(interp, tcl_result);
 	}

@@ -35,10 +35,6 @@
 
 #include <Foundation/Foundation.h>
 
-@interface NSMethodSignature (MPMethodSignatureExtensions)
-
-- (unsigned int) getArgumentTypeSpecifierAtIndex: (unsigned) index;
-- (const char *) getArgumentTypeStringAtIndex: (unsigned) index;
-- (const char*) methodReturnTypeString;
-
-@end
+unsigned int tclobjc_getarg_typespecifier (NSMethodSignature* signature, unsigned int index);
+const char *tclobjc_getarg_typestring (NSMethodSignature* signature, unsigned int index);
+const char *tclobjc_getreturn_typestring (NSMethodSignature* signature);

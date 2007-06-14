@@ -40,6 +40,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <Foundation/Foundation.h>
 #include <objc/objc.h>
 
 #include <tcl.h>
@@ -55,6 +56,7 @@ static const char tclobjc_name_prefix[] = "objc.id-";
 static const char tclobjc_invalid_string_error[] = "Invalid Objective-C object: ";
 
 /* Standard prototypes */
+static void free_objc_internalrep(Tcl_Obj *objPtr);
 static void dup_objc_internalrep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr);
 static void update_objc_string(Tcl_Obj *objPtr);
 static int set_objc_fromstring(Tcl_Interp *interp, Tcl_Obj *objPtr);
@@ -63,7 +65,7 @@ static Tcl_ObjType tclObjcIdType = {
 	/* Name */
 	"tclObjcId",
 	/* Tcl_FreeInternalRepProc */
-	NULL,
+	&free_objc_internalrep,
 	/* Tcl_DupInternalRepProc */
 	&dup_objc_internalrep,
 	/* Tcl_UpdateStringProc */
@@ -75,6 +77,13 @@ static Tcl_ObjType tclObjcIdType = {
 /*
  * Private Functions
  */
+
+/**
+ * Release the internal objective-c instance.
+ */
+static void free_objc_internalrep(Tcl_Obj *objPtr) {
+    // TODO cleanup
+}
 
 /**
  * Duplicate the internal objective-c pointer.

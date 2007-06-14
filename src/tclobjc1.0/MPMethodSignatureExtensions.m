@@ -39,29 +39,29 @@
 
 #include "objc_encoding.h"
 
-@implementation NSMethodSignature (MPMethodSignatureExtensions)
-
 #ifdef GNU_RUNTIME
-- (unsigned int) getArgumentTypeSpecifierAtIndex: (unsigned int) index {
-	NSArgumentInfo info;
-	info = [self argumentInfoAtIndex: index];
-	return info.qual;
+
+unsigned int tclobjc_getarg_typespecifier (NSMethodSignature* signature, unsigned int index) {
+    	NSArgumentInfo info;
+    	info = [signature argumentInfoAtIndex: index];
+    	return info.qual;    
 }
 
-- (const char *) getArgumentTypeStringAtIndex: (unsigned int) index {
-	return [self getArgumentTypeAtIndex: index];
+const char *tclobjc_getarg_typestring (NSMethodSignature* signature, unsigned int index) {
+    return [signature getArgumentTypeAtIndex: index];
 }
 
-
-- (const char*) methodReturnTypeString {
-	return [self methodReturnType];
+const char *tclobjc_getreturn_typestring (NSMethodSignature* signature) {
+    return [signature methodReturnType];
 }
 
-#endif
+#elif defined(APPLE_RUNTIME)
 
-#ifdef APPLE_RUNTIME
-
-static const char * stripSpecifiers (const char *type) {
+/**
+ * Skips any initial argument type specifiers, and returns a pointer
+ * to the argument type.
+ */
+static const char *strip_specifiers (const char *type) {
 	const char *p;
 	for (p = type; p != '\0'; p++) {
 		switch (*p) {
@@ -79,62 +79,66 @@ static const char * stripSpecifiers (const char *type) {
 	return (NULL);
 }
 
-- (unsigned int) getArgumentTypeSpecifierAtIndex: (unsigned int) index {
-	const char *type;
-	unsigned int qual = 0;
-	type = [self getArgumentTypeAtIndex: index];
-	for (; type != '\0'; type++) {
-		switch (type[0]) {
-			case _C_BYCOPY:
-				qual |= _F_BYCOPY;
-				break;
-			case _C_IN:
-				qual |= _F_IN;
-				break;
-			case _C_OUT:
-				qual |= _F_OUT;
-				break;
-			case _C_INOUT:
-				qual |= _F_INOUT;
-				break;
-			case _C_CONST:
-				qual |= _F_CONST;
-				break;
-			case _C_ONEWAY:
-				qual |= _F_ONEWAY;
-				break;
-			default:
-				goto finish;
-		}
-	}
+/**
+ * Returns the argument's type specifier (in GNU Objective-C style).
+ */
+unsigned int tclobjc_getarg_typespecifier (NSMethodSignature* signature, unsigned int index) {
+    	const char *type;
+    	unsigned int qual = 0;
+    	type = [signature getArgumentTypeAtIndex: index];
+    	for (; type != '\0'; type++) {
+    		switch (type[0]) {
+    			case _C_BYCOPY:
+    				qual |= _F_BYCOPY;
+    				break;
+    			case _C_IN:
+    				qual |= _F_IN;
+    				break;
+    			case _C_OUT:
+    				qual |= _F_OUT;
+    				break;
+    			case _C_INOUT:
+    				qual |= _F_INOUT;
+    				break;
+    			case _C_CONST:
+    				qual |= _F_CONST;
+    				break;
+    			case _C_ONEWAY:
+    				qual |= _F_ONEWAY;
+    				break;
+    			default:
+    				goto finish;
+    		}
+    	}
 finish:
-	return (qual);
+    	return (qual);
 }
 
+/**
+ * Returns apointer to the argument's type string.
+ */
+const char *tclobjc_getarg_typestring (NSMethodSignature* signature, unsigned int index) {
+    const char *type;
 
-- (const char *) getArgumentTypeStringAtIndex: (unsigned int) index {
-	const char *type;
-	type = stripSpecifiers([self getArgumentTypeAtIndex: index]);
-	if (!type) {
+    /* Fetch the argument type, and strip the type specifiers. */
+	type = strip_specifiers([signature getArgumentTypeAtIndex: index]);
+	if (type == NULL) {
 		/* This is a fatal condition */
 		NSLog(@"No type found in string at %s:%d", __FILE__, __LINE__);
-		exit(1);
+        abort();
 	}
 	return (type);
 }
 
-
-- (const char*) methodReturnTypeString {
-	const char *type;
-	type = stripSpecifiers([self methodReturnType]);
-	if (!type) {
+const char *tclobjc_getreturn_typestring (NSMethodSignature* signature) {
+    const char *type;
+	type = strip_specifiers([signature methodReturnType]);
+	if (type == NULL) {
 		/* This is a fatal condition */
 		NSLog(@"No type found in string at %s:%d", __FILE__, __LINE__);
-		exit(1);
+		abort();
 	}
 	return (type);
 }
 
 #endif
-
-@end
