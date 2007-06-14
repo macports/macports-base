@@ -58,9 +58,11 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "arguments");
-		return (TCL_ERROR);
+        result = TCL_ERROR;
+        goto cleanup;
 	}
 
+    /* Look up the selector */
 	selname = Tcl_NewObj();
 	for (i = 1; i < objc; i += 2) {
 		Tcl_AppendObjToObj(selname, objv[i]);
@@ -73,59 +75,64 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 #elif defined(APPLE_RUNTIME)
 	selector = sel_getUid(Tcl_GetString(selname));
 #endif
-	
+
+    /* If the selector isn't found, error out */
 	if (!selector) {
 		Tcl_Obj* tcl_result = Tcl_NewStringObj("Invalid selector specified", -1);
 		Tcl_SetObjResult(interp, tcl_result);
 		result = TCL_ERROR;
-	} else {
-//		fprintf(stderr, "target = %08x\n", target);
-		NSMethodSignature* signature = [target methodSignatureForSelector:selector];
-		NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature];
-		[invocation setTarget:target];
-		[invocation setSelector:selector];
-		
-		for (i = 2; i < objc; i += 2) {
-			int arg_num = i / 2 + 1;
+        goto cleanup;
+	}
 
-			const char* arg_type = [signature getArgumentTypeStringAtIndex:arg_num];
-			fprintf(stderr, "argument type %s\n", arg_type);
-			if (arg_type[0] == _C_ID) {
-				id obj;
-				if (TclObjC_GetIdFromObj(interp, objv[i], &obj) == TCL_OK) {
-					[invocation setArgument:&obj atIndex:arg_num];
-				}
-			} else if (arg_type[0] == _C_INT) {
-				int word = 0;
-				if (Tcl_GetIntFromObj(interp, objv[i], &word) == TCL_OK) {
-					[invocation setArgument:&word atIndex:arg_num];
-				}
-			} else if (arg_type[0] == _C_CHARPTR) {
-				int length;
-				char* buf = Tcl_GetStringFromObj(objv[i], &length);
-				if (buf)
-					[invocation setArgument:&buf atIndex:arg_num];
-			} else {
-				NSString* str = [NSString stringWithFormat:@"unexpected argument type %s at %s:%d", arg_type, __FILE__, __LINE__];
-				Tcl_Obj* tcl_result = Tcl_NewStringObj([str cString], -1);
-				Tcl_SetObjResult(interp, tcl_result);
-				result = TCL_ERROR;
-				break;
+//		fprintf(stderr, "target = %08x\n", target);
+	NSMethodSignature* signature = [target methodSignatureForSelector:selector];
+	NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature];
+	[invocation setTarget:target];
+	[invocation setSelector:selector];
+
+    /* Build our arguments list */
+	for (i = 2; i < objc; i += 2) {
+		int arg_num = i / 2 + 1;
+
+		const char* arg_type = [signature getArgumentTypeStringAtIndex:arg_num];
+		fprintf(stderr, "argument type %s\n", arg_type);
+		if (arg_type[0] == _C_ID) {
+			id obj;
+			if (TclObjC_GetIdFromObj(interp, objv[i], &obj) == TCL_OK) {
+				[invocation setArgument:&obj atIndex:arg_num];
 			}
-		}
-		
-		if (result == TCL_OK) {
-			Tcl_Obj *tcl_result;
-			[invocation invoke];
-			fprintf(stderr, "result size = %d\n", [signature methodReturnLength]);
-			void* result_ptr;
-			[invocation getReturnValue:&result_ptr];
-			const char* result_type = [signature methodReturnTypeString];
-			result = objc_to_tclobj(interp, &tcl_result, result_type, result_ptr);
+		} else if (arg_type[0] == _C_INT) {
+			int word = 0;
+			if (Tcl_GetIntFromObj(interp, objv[i], &word) == TCL_OK) {
+				[invocation setArgument:&word atIndex:arg_num];
+			}
+		} else if (arg_type[0] == _C_CHARPTR) {
+			int length;
+			char* buf = Tcl_GetStringFromObj(objv[i], &length);
+			if (buf)
+				[invocation setArgument:&buf atIndex:arg_num];
+		} else {
+			NSString* str = [NSString stringWithFormat:@"unexpected argument type %s at %s:%d", arg_type, __FILE__, __LINE__];
+			Tcl_Obj* tcl_result = Tcl_NewStringObj([str cString], -1);
 			Tcl_SetObjResult(interp, tcl_result);
+			result = TCL_ERROR;
+			break;
 		}
 	}
-	
+
+    /* If all is well, invoke the Objective-C method. */
+	if (result == TCL_OK) {
+		Tcl_Obj *tcl_result;
+		[invocation invoke];
+		fprintf(stderr, "result size = %d\n", [signature methodReturnLength]);
+		void* result_ptr;
+		[invocation getReturnValue:&result_ptr];
+		const char* result_type = [signature methodReturnTypeString];
+		result = objc_to_tclobj(interp, &tcl_result, result_type, result_ptr);
+		Tcl_SetObjResult(interp, tcl_result);
+	}
+
+cleanup:
 	[pool release];
 	return result;
 }
