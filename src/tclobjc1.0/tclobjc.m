@@ -197,7 +197,7 @@ static int UnknownObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tc
 	return (result);
 }
 
-int tclobjc_init(Tcl_Interp *interp)
+int Tclobjc_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return (TCL_ERROR);
