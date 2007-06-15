@@ -6,6 +6,38 @@
 
 (unreleased)
 
+    - Fix port variants calculation to properly account for negated variants and
+      to detect problems between required and negated variants
+      (ticket #11920, eridius r26036, patch by gwhitney).
+
+    - Add global methods lpush, lpop, lshift, and lunshift. Works similar to
+      lappend (in fact lpush is just lappend) and do what they sound like.
+      Also add ldindex. Works like lindex, but deletes the element from the list.
+      Documented in portfile.7 (eridius r26034).
+    
+    - Add global methods try and throw. Implemented based on the specification
+      in TIP #89. Documented in portfile.7 (eridius r26034).
+
+    - Handle encodings properly now. All Portfiles and .conf files are assumed
+      to be utf-8, and reading them or calling portindex(1) should now work
+      the same on all locales (ticket #11978, eridius r25975).
+
+    - Fix port variants calculation to properly account for negated variants and
+      to detect problems between required and negated variants
+      (ticket #11920, eridius r26036, patch by gwhitney).
+
+    - Add global methods lpush, lpop, lshift, and lunshift. Works similar to
+      lappend (in fact lpush is just lappend) and do what they sound like.
+      Also add ldindex. Works like lindex, but deletes the element from the list.
+      Documented in portfile.7 (eridius r26034).
+    
+    - Add global methods try and throw. Implemented based on the specification
+      in TIP #89. Documented in portfile.7 (eridius r26034).
+
+    - Handle encodings properly now. All Portfiles and .conf files are assumed
+      to be utf-8, and reading them or calling portindex(1) should now work
+      the same on all locales (ticket #11978, eridius r25975).
+
     - Add support for decoding of obscured maintainer addresses.
       We support two types of obscured addresses in Portfile maintainers field:
          (1) username ==> implies username@macports.org
