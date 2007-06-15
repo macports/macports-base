@@ -2,7 +2,7 @@
 
 top_srcdir = @top_srcdir@
 
-include ${top_srcdir}/Mk/dports.autoconf.mk
+include ${top_srcdir}/Mk/macports.autoconf.mk
 
 mandir=		@mandir@
 mandircat8=	${mandir}/cat8

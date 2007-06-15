@@ -2,7 +2,7 @@
 # portdpkg.tcl
 # $Id$
 #
-# Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
+# Copyright (c) 2004 Landon Fuller <landonf@macports.org>
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -34,13 +34,13 @@
 package provide portdpkg 1.0
 package require portutil 1.0
 
-set com.apple.dpkg [target_new com.apple.dpkg com.apple.dpkg::main]
-target_runtype ${com.apple.dpkg} always
-target_provides ${com.apple.dpkg} dpkg
-target_requires ${com.apple.dpkg} destroot
+set org.macports.dpkg [target_new org.macports.dpkg org.macports.dpkg::main]
+target_runtype ${org.macports.dpkg} always
+target_provides ${org.macports.dpkg} dpkg
+target_requires ${org.macports.dpkg} destroot
 
 # Target Namespace
-namespace eval com.apple.dpkg {
+namespace eval org.macports.dpkg {
 }
 
 # Options
@@ -48,7 +48,7 @@ options package.destpath
 
 set_ui_prefix
 
-proc com.apple.dpkg::main {args} {
+proc org.macports.dpkg::main {args} {
 	global UI_PREFIX destpath os.arch os.platform
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option portname] [option portversion]]"
@@ -160,9 +160,9 @@ proc com.apple.dpkg::main {args} {
 	system "rm -rf \"${controlpath}\""
 }
 
-proc com.apple.dpkg::make_dependency_list {portname} {
+proc org.macports.dpkg::make_dependency_list {portname} {
 	set result {}
-	if {[catch {set res [dport_search "^$portname\$"]} error]} {
+	if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $error"

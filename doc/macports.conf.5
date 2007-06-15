@@ -1,4 +1,5 @@
 .\" Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+.\" Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -22,14 +23,14 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd August 31, 2005
-.Dt PORTS.CONF 5 "MacPorts.org"
+.Dd May 22, 2007
+.Dt MACPORTS.CONF 5 "MacPorts"
 .Os 
 .Sh NAME
-ports.conf
+macports.conf
 .Nd Configuration file of the MacPorts system
 .Sh DESCRIPTION
-.Nm ports.conf
+.Nm macports.conf
 is the configuration file used to bootstrap the MacPorts system. This file is read by the
 .Nm port
 command and determines how it behaves. Lines beginning with '#' are comments, empty lines are ignored.
@@ -64,7 +65,7 @@ Directory where MacPorts keeps working data as downloaded sources, installed por
 and the main registry. Same path restrictions apply as for '${prefix}'.
 .br
 .Ic Default:
-${prefix}/var/db/dports
+${prefix}/var/macports
 .It Va portdbformat
 Storage type to use for the MacPorts registry. Currently the only supportted format is "flat".
 .br
@@ -87,19 +88,19 @@ image
 NOTE. Mac OS X 10.2 and Darwin 6.x users should switch to 'direct' mode to have MacPorts working properly
 on their systems.
 .It Va sources_conf
-Location of the sources file. This file enables rsync synchronization of the default dports tree with the
+Location of the sources file. This file enables rsync synchronization of the default ports tree with the
 MacPorts rsync server (through the "sync" target of the
 .Nm port
 commnand) and any other local tree(s) you might have.
 .br
 .Ic Default:
-${prefix}/etc/ports/sources.conf
+${prefix}/etc/macports/sources.conf
 .It Va variants_conf
 Location of the optional global variants definition file, listing those that should be used in all installed
 ports if available.
 .br
 .Ic Default:
-${prefix}/etc/ports/variants.conf
+${prefix}/etc/macports/variants.conf
 .It Va portarchivemode
 Key governing the creation of binary archives of installed ports for installation/reinstallation ease.
 .br
@@ -109,7 +110,7 @@ yes
 Location where to store/retrieve ports binary archive files from when archive mode is active.
 .br
 .Ic Default:
-${prefix}/var/db/dports/packages
+${portdbpath}/packages
 .It Va portarchivetype
 Colon or comma separated, space free list of supported formats of archives to create or read from when
 \&'${archivemode}' is set to 'yes'. Use of multiple types will cause archive creation to build all the
@@ -141,20 +142,20 @@ Umask value to use during the destrooting or a port.
 Default rsync server to connect to when running "selfupdate" through the
 .Nm port
 command to update your entire MacPorts
-installation (spanning both the MacPorts infrastucture and the dports tree).
+installation (spanning both the MacPorts infrastucture and the ports tree).
 .br
 .Ic Default:
-rsync.darwinports.org
+rsync.macports.org
 .It Va rsync_dir
 Rsync directory from which to pull MacPorts sources from the rsync server.
 .br
 .Ic Default:
-dpupdate1/base/ (which pulls sources for the currently shipping MacPorts release)
+release/base/ (which pulls sources for the currently shipping MacPorts release)
 .It Va rsync_options
 Default rsync options to use when connecting to the rsync server.
 .br
 .Ic Default:
--rtzv --delete --delete-after
+-rtzv --delete-after
 .It Va binpath
 Sets the directory search path for locating system executables used by MacPorts. This variable should contain
 the paths for locating utilities such as rsync, tar, cvs and others.
@@ -166,11 +167,11 @@ List of extra environment variables MacPorts should keep in the user's environme
 .El
 .Sh FILES
 .Bl -tag -width
-.It Va ${prefix}/etc/ports/ports.conf
+.It Va ${prefix}/etc/macports/macports.conf
 Standard system-wide MacPorts configuration file.
-.It Va ~/.macports/ports.conf
+.It Va ~/.macports/macports.conf
 User-specific configuration override. This file, if found, will be used instead of the default file at
-${prefix}/etc/ports/ports.conf.
+${prefix}/etc/macports/macports.conf.
 .El
 .Sh SEE ALSO
 .Xr port 1 ,

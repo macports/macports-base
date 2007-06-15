@@ -1,4 +1,4 @@
-# darwinports.tcl
+# macports.tcl
 # $Id$
 #
 # Copyright (c) 2007 Kevin Ballard <eridius@macports.org>
@@ -29,11 +29,11 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide darwinports_util 1.0
+package provide macports_util 1.0
 
 # Provide some global utilities
 
-namespace eval darwinports_util {
+namespace eval macports_util {
     ###################
     # Private methods #
     ###################
@@ -124,7 +124,7 @@ proc ldindex {varName args} {
     }
     return $item
 }
-darwinports_util::method_wrap ldindex
+macports_util::method_wrap ldindex
 
 # lpop varName
 # Removes the last list element from a variable
@@ -136,7 +136,7 @@ proc lpop {varName} {
         uplevel 1 [subst -nocommands {ldindex $varName end}]
     }
 }
-darwinports_util::method_wrap lpop
+macports_util::method_wrap lpop
 
 # lpush varName ?value ...?
 # Appends list elements onto a variable
@@ -146,7 +146,7 @@ proc lpush {varName args} {
     set varName [list $varName]
     uplevel 1 [subst -nocommands {lappend $varName $args}]
 }
-darwinports_util::method_wrap lpush
+macports_util::method_wrap lpush
 
 # lshift varName
 # Removes the first list element from a variable
@@ -158,7 +158,7 @@ proc lshift {varName} {
         uplevel 1 [subst -nocommands {ldindex $varName 0}]
     }
 }
-darwinports_util::method_wrap lshift
+macports_util::method_wrap lshift
 
 # lunshift varName ?value ...?
 # Prepends list elements onto a variable
@@ -173,7 +173,7 @@ proc lunshift {varName args} {
     set value [concat $args [uplevel 1 set $varName]]
     uplevel 1 set $varName [list $value]
 }
-darwinports_util::method_wrap lunshift
+macports_util::method_wrap lunshift
 
 ################################
 # try/catch exception handling #

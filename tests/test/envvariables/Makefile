@@ -1,11 +1,11 @@
-include ../../../Mk/dports.autoconf.mk
+include ../../../Mk/macports.autoconf.mk
 
 .PHONY: test
 
 $(bindir)/port:
 	@echo "Please install MacPorts before running this test"
 	@exit 1
-	
+
 test:
 	@PORTSRC=$(PORTSRC) $(bindir)/port clean > /dev/null
 	@sh -c "export ENVA=A ; export ENVB=B; \

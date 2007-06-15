@@ -1,7 +1,7 @@
 /*
  * TclObjTypes.c
  *
- * Copyright (c) 2004 Landon J. Fuller <landonf@opendarwin.org>
+ * Copyright (c) 2004 Landon J. Fuller <landonf@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

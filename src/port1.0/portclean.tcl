@@ -37,11 +37,11 @@ package provide portclean 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
-set com.apple.clean [target_new com.apple.clean clean_main]
-target_runtype ${com.apple.clean} always
-target_provides ${com.apple.clean} clean
-target_requires ${com.apple.clean} main
-target_prerun ${com.apple.clean} clean_start
+set org.macports.clean [target_new org.macports.clean clean_main]
+target_runtype ${org.macports.clean} always
+target_provides ${org.macports.clean} clean
+target_requires ${org.macports.clean} main
+target_prerun ${org.macports.clean} clean_start
 
 set_ui_prefix
 

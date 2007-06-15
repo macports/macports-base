@@ -1,5 +1,5 @@
 /*
- * portconf.c
+ * macports.c
  * $Id$
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -34,29 +34,13 @@
 #include <config.h>
 #endif
 
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
-
-#include "darwinports.h"
-
 #include <tcl.h>
 
-static int set_session_option(ClientData clientData UNUSED, Tcl_Interp *interp UNUSED, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED) {
-    return TCL_OK;
-}
-
-void parse_port_conf(dp_session_t dp UNUSED, char* path) {
-    int fd = open(path, O_RDONLY, 0);
-    if (fd != -1) {
-        Tcl_Interp* interp = Tcl_CreateInterp();
-        char* bootstrap_options[] = {"portdbpath", "libpath", "binpath", "master_site_local",
-				     "auto_path", "sources_conf", "prefix", NULL};
-        char** option = bootstrap_options;
-        while (*option != NULL) {
-            Tcl_CreateObjCommand(interp, *option, &set_session_option, NULL, NULL);
-            ++option;
-        }
-        /* XXX: parse config file */
-    }
+int macports_Init(Tcl_Interp *interp)
+{
+	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
+		return TCL_ERROR;
+	if(Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
+		return TCL_ERROR;
+	return TCL_OK;
 }

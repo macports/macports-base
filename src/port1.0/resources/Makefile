@@ -1,12 +1,9 @@
 SUBDIR=		package fetch group
-INSTALLDIR=	${DESTDIR}${datadir}/darwinports/resources/port1.0/
-RSRCS=
+INSTALLDIR=	${DESTDIR}${datadir}/macports/resources/port1.0/
 
-include ../../../Mk/dports.subdir.mk
-include ../../../Mk/dports.autoconf.mk
+include ../../../Mk/macports.subdir.mk
+include ../../../Mk/macports.autoconf.mk
 
 install::
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
-#	$(SILENT)set -x; for file in ${RSRCS}; do \
-#		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
-#	done
+

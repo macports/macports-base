@@ -1,4 +1,4 @@
-INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/port1.0
+INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/port1.0
 
 SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
@@ -9,8 +9,8 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 
 SUBDIR=		resources
 
-include ../../Mk/dports.subdir.mk
-include ../../Mk/dports.autoconf.mk
+include ../../Mk/macports.subdir.mk
+include ../../Mk/macports.autoconf.mk
 
 .PHONY: test
 

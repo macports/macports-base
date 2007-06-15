@@ -1,7 +1,7 @@
 /*
  * vercomp.h
  * $Id$
- * Author: Landon Fuller <landonf@opendarwin.org>
+ * Author: Landon Fuller <landonf@macports.org>
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 Landon Fuller

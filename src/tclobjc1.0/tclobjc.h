@@ -2,11 +2,11 @@
  * TclObjC.m
  *
  * Authors:
- * 	Keven Van Vechten <kevin@opendarwin.org>
- * 	Landon J. Fuller  <landonf@opendarwin.org>
+ * 	Keven Van Vechten <kvv@apple.com>
+ * 	Landon J. Fuller  <landonf@macports.org>
  *
- * Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
- * Copyright (c) 2004 Landon J. Fuller <landonf@opendarwin.org>
+ * Copyright (c) 2003 Kevin Van Vechten <kvv@apple.com>
+ * Copyright (c) 2004 Landon J. Fuller <landonf@macports.org>
  * Copyright (c) 2003 Apple Computer, Inc.
  * All rights reserved.
  *

@@ -1,12 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [1.5], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts], [1.6], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
-# Check user PATH for DP paths, and remove as necessary.
-OD_PATH_SCAN
+# Check user PATH for MP paths, and remove as necessary.
+MP_PATH_SCAN
 
 # Checks for programs.
 AC_PROG_CC
@@ -36,7 +36,7 @@ AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(XAR, [path to xar command])
 AC_ARG_VAR(OPEN, [path to open command])
 
-OD_TAR_NO_SAME_OWNER
+MP_TAR_NO_SAME_OWNER
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
@@ -45,31 +45,31 @@ fi
 AC_SUBST(CFLAGS_QUICHEEATERS)
 MP_WERROR
 
-OD_COMPILER_ATTRIBUTE_UNUSED
+MP_COMPILER_ATTRIBUTE_UNUSED
 MP_COMPILER_ATTRIBUTE_LF_PRIVATE
 
 # Foundation checks
 MP_OBJC_RUNTIME
 MP_OBJC_FOUNDATION
 
-OD_PROG_DAEMONDO
-#OD_PROG_XAR
+MP_PROG_DAEMONDO
+#MP_PROG_XAR
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
 
-# set default dports-directory
-DPORTS_DIR_DEFAULT=`pwd | sed -e "s/base/dports/"`
+# set default ports-directory
+PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-OD_PATH_DPORTSDIR([$DPORTS_DIR_DEFAULT])
-OD_PATH_PORTCONFIGDIR
+MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
+MP_PATH_MPCONFIGDIR
 
 # Check for install ownership
-OD_CHECK_INSTALLUSER
-OD_CHECK_INSTALLGROUP
-OD_DIRECTORY_MODE
+MP_CHECK_INSTALLUSER
+MP_CHECK_INSTALLGROUP
+MP_DIRECTORY_MODE
 
 # Check for standard header files.
 AC_HEADER_STDC
@@ -86,12 +86,12 @@ AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile])
-DP_CHECK_READLINK_IS_P1003_1A
+MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
-OD_LIB_MD5
+MP_LIB_MD5
 # Check for X11 and paraphernalia
-OD_CHECK_X11
+MP_CHECK_X11
 
 # Check for readline
 AC_CHECK_LIB([readline], [readline])
@@ -117,16 +117,16 @@ CYGPATH=echo
 SC_PUBLIC_TCL_HEADERS
 
 # Check for tclsh binary
-OD_PROG_TCLSH
+MP_PROG_TCLSH
 
 # Check for Tcl package path
-OD_TCL_PACKAGE_DIR
+MP_TCL_PACKAGE_DIR
 
 # Check if thread is enabled.
-OD_TCL_THREAD_SUPPORT
+MP_TCL_THREAD_SUPPORT
 
 ## libcurl
-OD_LIBCURL_FLAGS
+MP_LIBCURL_FLAGS
 
 # Do we have curl_easy_strerror?
 AH_TEMPLATE([HAVE_CURL_EASY_STRERROR],
@@ -148,7 +148,7 @@ AC_ARG_WITH(
 
 # Check if thread package is already installed.
 if test "x$with_included_tclthread" = "xunspecified" ; then
-	OD_TCL_PACKAGE(
+	MP_TCL_PACKAGE(
 		[Thread],
 		[AC_MSG_RESULT([yes]); with_included_tclthread=no],
 		[AC_MSG_RESULT([no]); with_included_tclthread=yes])
@@ -183,8 +183,8 @@ AC_ARG_WITH(
 		tcl-sqlite3,
 		AS_HELP_STRING([--with-tcl-sqlite3=DIR],
 			[directory for Tcl sqlite3 (default /usr/lib/sqlite3)]),
-		[od_sqlite3_dir=$withval],
-		[od_sqlite3_dir=/usr/lib/sqlite3])
+		[mp_sqlite3_dir=$withval],
+		[mp_sqlite3_dir=/usr/lib/sqlite3])
 
 # If sqlite3 package isn't installed, configure and install sqlite3 package.
 if test "$with_included_sqlite3" = "yes"; then
@@ -198,19 +198,19 @@ if test "$with_included_sqlite3" = "yes"; then
 	mv src/sqlite-3.1.3/tclinstaller.tcl src/sqlite-3.1.3/tclinstaller.tcl.in
 	SQLITE3_LIBS=`pwd`"/src/sqlite-3.1.3/.libs/libsqlite3.a"
 	if test "x$prefix" = "xNONE" ; then
-		SQLITE3_DIR=$ac_default_prefix/share/darwinports/Tcl/sqlite3
+		SQLITE3_DIR=$ac_default_prefix/share/macports/Tcl/sqlite3
 	else
-		SQLITE3_DIR=$prefix/share/darwinports/Tcl/sqlite3
+		SQLITE3_DIR=$prefix/share/macports/Tcl/sqlite3
 	fi
 else
 	SQLITE3_LIBS="-lsqlite3"
 
-	AC_CACHE_CHECK([for Tcl sqlite3 location], [od_cv_sqlite3_dir],
-		[od_cv_sqlite3_dir=
-		test -r "${od_sqlite3_dir}/pkgIndex.tcl" && od_cv_sqlite3_dir=$od_sqlite3_dir
+	AC_CACHE_CHECK([for Tcl sqlite3 location], [mp_cv_sqlite3_dir],
+		[mp_cv_sqlite3_dir=
+		test -r "${mp_sqlite3_dir}/pkgIndex.tcl" && mp_cv_sqlite3_dir=$mp_sqlite3_dir
 		])
 
-	SQLITE3_DIR=$od_cv_sqlite3_dir
+	SQLITE3_DIR=$mp_cv_sqlite3_dir
 fi
 
 AC_SUBST(SQLITE3_LIBS)
@@ -243,7 +243,7 @@ AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
 
-#misc variables that need to be expanded for substitution into tcl
+# misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
 if test "x$prefix" = "xNONE" ; then
@@ -254,9 +254,9 @@ eval "prefix_expanded=$prefix"
 AC_SUBST(prefix_expanded)
 # do this twice, since there is a nested variable of
 # ${prefix} inside of ${sysconfdir}
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR"
-eval "PORTCONFIGDIR_EXPANDED=$PORTCONFIGDIR_EXPANDED"
-AC_SUBST(PORTCONFIGDIR_EXPANDED)
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
+eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
+AC_SUBST(MPCONFIGDIR_EXPANDED)
 eval "localstatedir_expanded=$localstatedir"
 AC_SUBST(localstatedir_expanded)
 
@@ -267,20 +267,19 @@ dnl
 dnl SC_CONFIG_MANPAGES
 
 # Output
-
 AC_CONFIG_FILES([
 	Makefile
-	Mk/dports.autoconf.mk
+	Mk/macports.autoconf.mk
 	doc/prefix.mtree
 	doc/macosx.mtree
-	doc/ports.conf
+	doc/macports.conf
 	src/Makefile
-	src/darwinports1.0/darwinports_autoconf.tcl
+	src/macports1.0/macports_autoconf.tcl
 	src/tclobjc1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
-	src/darwinports1.0/darwinports_fastload.tcl
+	src/macports1.0/macports_fastload.tcl
 ])
 
 AC_OUTPUT

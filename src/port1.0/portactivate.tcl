@@ -36,14 +36,14 @@
 package provide portactivate 1.0
 package require portutil 1.0
 
-set com.apple.activate [target_new com.apple.activate activate_main]
-target_runtype ${com.apple.activate} always
-target_state ${com.apple.activate} no
-target_provides ${com.apple.activate} activate
+set org.macports.activate [target_new org.macports.activate activate_main]
+target_runtype ${org.macports.activate} always
+target_state ${org.macports.activate} no
+target_provides ${org.macports.activate} activate
 if {[option portarchivemode] == "yes"} {
-	target_requires ${com.apple.activate} main unarchive fetch extract checksum patch configure build destroot archive install
+	target_requires ${org.macports.activate} main unarchive fetch extract checksum patch configure build destroot archive install
 } else {
-	target_requires ${com.apple.activate} main fetch extract checksum patch configure build destroot install
+	target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
 }
 
 set_ui_prefix

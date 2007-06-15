@@ -1,14 +1,14 @@
 #!/usr/bin/env tclsh
-# darwinports1.0/test_dlist.tcl
+# macports1.0/test_dlist.tcl
 # $Id$
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 
-# Test suite for darwinports_dlist package.
+# Test suite for macports_dlist package.
 
 #lappend auto_path .
-#package require darwinports_dlist 1.0
-source darwinports_dlist.tcl
+#package require macports_dlist 1.0
+source macports_dlist.tcl
 
 puts ""
 puts "Testing ditem"
@@ -70,7 +70,7 @@ if {[catch {dlist_count_unmet [list] status "foo"} value] || $value != 0 ||
 }
 
 # Replicate Shantonu's Bug #354 to test dlist functionality.
-# <http://www.opendarwin.org/bugzilla/show_bug.cgi?id=354>
+# http://trac.macports.org/projects/macports/ticket/354
 # A depends on B, C.
 # B depends on C.
 # C has no dependencies.

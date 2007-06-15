@@ -2,7 +2,7 @@
  * uid.c
  *
  * uid handling routines
- * By James D. Berry <jberry@opendarwin.org> 4/6/06
+ * By James D. Berry <jberry@macports.org> 4/6/06
  *
  * $Id$
  *

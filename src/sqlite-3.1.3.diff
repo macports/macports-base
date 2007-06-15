@@ -39,7 +39,7 @@ diff -ru src/sqlite-3.1.3/tclinstaller.tcl src/sqlite-3.1.3.mine/tclinstaller.tc
  set LIBFILE .libs/libtclsqlite3[info sharedlibextension]
  if { ![info exists env(DESTDIR)] } { set env(DESTDIR) "" }
 -set LIBDIR $env(DESTDIR)[lindex $auto_path 0]
-+set LIBDIR @prefix@/share/darwinports/Tcl
++set LIBDIR @prefix@/share/macports/Tcl
  set LIBNAME [file tail $LIBFILE]
  set LIB $LIBDIR/sqlite3/$LIBNAME
  

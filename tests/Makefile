@@ -1,4 +1,4 @@
-include ../Mk/dports.autoconf.mk
+include ../Mk/macports.autoconf.mk
 
 TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c
 
@@ -6,20 +6,20 @@ TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal uni
 
 all:
 
-/tmp/macports-tests/opt/local/etc/ports/sources.conf: sources.conf
+/tmp/macports-tests/opt/local/etc/macports/sources.conf: sources.conf
 	@echo setting up test installation
 	rm -rf /tmp/macports-tests/
-	mkdir -p /tmp/macports-tests/dports
-	mkdir -p /tmp/macports-tests/opt/local/etc/ports/
+	mkdir -p /tmp/macports-tests/ports
+	mkdir -p /tmp/macports-tests/opt/local/etc/macports/
 	mkdir -p /tmp/macports-tests/opt/local/share/
-	mkdir -p /tmp/macports-tests/opt/local/var/db/dports/receipts/
-	mkdir -p /tmp/macports-tests/opt/local/var/db/dports/build/
-	ln -s $(datadir)/darwinports /tmp/macports-tests/opt/local/share/
-	ln -s $(PWD)/test /tmp/macports-tests/dports/
-	cp sources.conf /tmp/macports-tests/opt/local/etc/ports/
+	mkdir -p /tmp/macports-tests/opt/local/var/macports/receipts/
+	mkdir -p /tmp/macports-tests/opt/local/var/macports/build/
+	ln -s $(datadir)/macports /tmp/macports-tests/opt/local/share/
+	ln -s $(PWD)/test /tmp/macports-tests/ports/
+	cp sources.conf /tmp/macports-tests/opt/local/etc/macports/
 
-/tmp/macports-tests/dports/PortIndex: /tmp/macports-tests/opt/local/etc/ports/sources.conf PortIndex
-	cp PortIndex /tmp/macports-tests/dports/PortIndex
+/tmp/macports-tests/ports/PortIndex: /tmp/macports-tests/opt/local/etc/macports/sources.conf PortIndex
+	cp PortIndex /tmp/macports-tests/ports/PortIndex
 
 PortIndex:
 	portindex
@@ -29,10 +29,10 @@ clean:
 	rm -f PortIndex
 
 $(bindir)/port:
-	@echo "Please install macports before running these tests"
+	@echo "Please install MacPorts before running these tests"
 	@exit 1
-	
-test: clean /tmp/macports-tests/dports/PortIndex /tmp/macports-tests/opt/local/etc/ports/sources.conf
+
+test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
 	@for testname in $(TESTS); do\
 	    subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \

@@ -7,8 +7,8 @@ exec @TCLSH@ "$0" "$@"
 # $Id$
 
 catch {source \
-	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
-package require darwinports
+	[file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+package require macports
 package require Pextlib
 
 # Globals
@@ -19,8 +19,8 @@ array set ui_options		[list]
 array set global_options 	[list]
 array set global_variations [list]
 
-# Pass global options into dportinit
-dportinit ui_options global_options global_variations
+# Pass global options into mportinit
+mportinit ui_options global_options global_variations
 
 
 
@@ -102,10 +102,10 @@ proc print_usage args {
 proc pindex {portdir} {	
     global target fd directory archive outdir stats 
     incr stats(total)
-	global darwinports::prefix
+	global macports::prefix
 	set save_prefix $prefix
 	set prefix {\${prefix}}
-    if {[catch {set interp [dportopen file://[file join $directory $portdir]]} result]} {
+    if {[catch {set interp [mportopen file://[file join $directory $portdir]]} result]} {
 		puts stderr "Failed to parse file $portdir/Portfile: $result"
 		# revert the prefix.
 		set prefix $save_prefix
@@ -113,8 +113,8 @@ proc pindex {portdir} {
     } else {
 		# revert the prefix.
         set prefix $save_prefix
-        array set portinfo [dportinfo $interp]
-        dportclose $interp
+        array set portinfo [mportinfo $interp]
+        mportclose $interp
         set portinfo(portdir) $portdir
         puts "Adding port $portdir"
         if {$archive == "1"} {
@@ -202,7 +202,7 @@ if {[info exists outdir]} {
 
 puts "Creating software index in $outdir"
 set fd [open [file join $outdir PortIndex] w]
-dporttraverse pindex $directory
+mporttraverse pindex $directory
 close $fd
 puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\t\

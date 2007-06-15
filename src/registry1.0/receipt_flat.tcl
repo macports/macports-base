@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
-# Copyright (c) 2004 Paul Guyot, DarwinPorts Team.
+# Copyright (c) 2004 Paul Guyot, MacPorts Team.
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #
@@ -33,7 +33,7 @@
 
 package provide receipt_flat 1.0
 
-package require darwinports 1.0
+package require macports 1.0
 package require Pextlib 1.0
 
 ##
@@ -68,41 +68,41 @@ proc new_entry {} {
 # portversion		the version for this port, 0 if unknown.
 # return the path to the file or "" if the file couldn't be found.
 proc get_head_entry_receipt_path {portname portversion} {
-	global darwinports::registry.path
+    global macports::registry.path
 
-	# regex match case
-	if {$portversion == 0} {
-	set x [glob -nocomplain [file join ${darwinports::registry.path} receipts ${portname}-*]]
+    # regex match case
+    if {$portversion == 0} {
+	set x [glob -nocomplain [file join ${macports::registry.path} receipts ${portname}-*]]
 	if {[string length $x]} {
-		set matchfile [lindex $x 0]
+	    set matchfile [lindex $x 0]
 		# Remove trailing .bz2, if any.
 		regexp {(.*)\.bz2$} $matchfile match matchfile
 	} else {
-		set matchfile ""
+	    set matchfile ""
 	}
-	} else {
-	set matchfile [file join ${darwinports::registry.path} receipts ${portname}-${portversion}]
-	}
+    } else {
+	set matchfile [file join ${macports::registry.path} receipts ${portname}-${portversion}]
+    }
 
-	# Might as well bail out early if no file to match
-	if {![string length $matchfile]} {
+    # Might as well bail out early if no file to match
+    if {![string length $matchfile]} {
 		return ""
-	}
+    }
 
-	if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
+    if {[file exists $matchfile] || [file exists ${matchfile}.bz2]} {
 		return $matchfile
-	}
-	return ""
+    }
+    return ""
 }
 
 ##
 #
 # Open an existing entry and return its reference number.
 proc open_entry {name {version 0} {revision 0} {variants ""}} {
-	global darwinports::registry.installtype
-	global darwinports::registry.path
+	global macports::registry.installtype
+	global macports::registry.path
 
-	set receipt_path [file join ${darwinports::registry.path} receipts ${name}]
+	set receipt_path [file join ${macports::registry.path} receipts ${name}]
 
 	# If the receipt path ${name} doesn't exist, then the receipt probably is
 	# in the old HEAD format.
@@ -141,7 +141,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 			return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 		}
 	
-		set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+		set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	
 		set receipt_file [file join ${receipt_path} receipt]
 	}
@@ -170,7 +170,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		convert_entry_from_HEAD $name $version $revision $variants $receipt_contents $ref
 		
 		# move the old receipt
-		set convertedDirPath [file join ${darwinports::registry.path} receipts_converted]
+		set convertedDirPath [file join ${macports::registry.path} receipts_converted]
 		file mkdir $convertedDirPath
 		file rename $receipt_file $convertedDirPath
 	} elseif {[string match "# Version: *" $receipt_contents]} {
@@ -296,12 +296,12 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 # version			the version of the port.
 # variants			the variants of the port.
 proc write_entry {ref name version {revision 0} {variants ""}} {
-	global darwinports::registry.installtype
+	global macports::registry.installtype
 	variable receipt_$ref
 
 	set receipt_contents [array get receipt_$ref]
 
-	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [file join ${receipt_path} receipt]
 
 	if { ![file isdirectory ${receipt_path}] } {
@@ -330,12 +330,12 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 
 # Check to see if an entry exists
 proc entry_exists {name version {revision 0} {variants ""}} {
-	global darwinports::registry.path
+	global macports::registry.path
 	variable receipt_handle 
 	variable receipt_file 
 	variable receipt_path
 
-	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [file join ${receipt_path} receipt]
 
 	if { [file exists $receipt_file] } {
@@ -383,15 +383,15 @@ proc property_retrieve {ref property} {
 
 # Delete an entry
 proc delete_entry {name version {revision 0} {variants ""}} {
-	global darwinports::registry.path
+	global macports::registry.path
 
-	set receipt_path [file join ${darwinports::registry.path} receipts ${name} ${version}_${revision}${variants}]
+	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	if { [file exists ${receipt_path}] } {
 		# remove port receipt directory
 		ui_debug "deleting directory: ${receipt_path}"
 		file delete -force ${receipt_path}
 		# remove port receipt parent directory (if empty)
-		set receipt_dir [file join ${darwinports::registry.path} receipts ${name}]
+		set receipt_dir [file join ${macports::registry.path} receipts ${name}]
 		if { [file isdirectory ${receipt_dir}] } {
 			# 0 item means empty.
 			if { [llength [readdir ${receipt_dir}]] == 0 } {
@@ -415,9 +415,9 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 # Note: at some point we need to change these APIs and support something
 # like selecting on the version or selecting variants in any order.
 proc installed {{name ""} {version ""}} {
-	global darwinports::registry.path
+	global macports::registry.path
 
-	set query_path [file join ${darwinports::registry.path} receipts]
+	set query_path [file join ${macports::registry.path} receipts]
 	
 	if { $name == "" } {
 		set query_path [file join ${query_path} *]
@@ -448,19 +448,19 @@ proc installed {{name ""} {version ""}} {
 
 	# append the ports in old HEAD format.
 	if { $name == "" } {
-		set query_path [file join ${darwinports::registry.path} receipts *]
+		set query_path [file join ${macports::registry.path} receipts *]
 	} else {
-		set query_path [file join ${darwinports::registry.path} receipts ${name}-*]
+		set query_path [file join ${macports::registry.path} receipts ${name}-*]
 	}
-	set receiptglob [glob -nocomplain -types f ${query_path}]
-	foreach receipt_file $receiptglob {
+    set receiptglob [glob -nocomplain -types f ${query_path}]
+    foreach receipt_file $receiptglob {
 		set theFileName [file tail $receipt_file]
 
-		# Remark: these regexes do not always work.
-		set theName ""
-		if { $name == "" } {
+    	# Remark: these regexes do not always work.
+   		set theName ""
+    	if { $name == "" } {
 			regexp {^(.*)-(.*)$} $theFileName match theName version
-		} else {
+    	} else {
 			regexp "^($name)-(.*)\$" $theFileName match theName version
 		}
 		
@@ -488,10 +488,10 @@ proc installed {{name ""} {version ""}} {
 # convert from the old format if required.
 #
 proc open_file_map {{readonly 0}} {
-	global darwinports::registry.path
+	global macports::registry.path
 	variable file_map
 
-	set receipt_path [file join ${darwinports::registry.path} receipts]
+	set receipt_path [file join ${macports::registry.path} receipts]
 	set map_file [file join ${receipt_path} file_map]
 
 	# Don't reopen it (it actually would deadlock us), unless it was open r/o.
@@ -679,10 +679,10 @@ proc write_file_map {args} {
 
 # Dependency Map Code
 proc open_dep_map {args} {
-	global darwinports::registry.path
+	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [file join ${darwinports::registry.path} receipts]
+	set receipt_path [file join ${macports::registry.path} receipts]
 
 	set map_file [file join ${receipt_path} dep_map]
 
@@ -693,7 +693,7 @@ proc open_dep_map {args} {
 		set dep_map [read $map_handle]
 		close $map_handle
 	} else {
-		set dep_map [list]
+	    set dep_map [list]
 	}
 	if { ![llength $dep_map] > 0 } {
 		set dep_map [list]
@@ -747,10 +747,10 @@ proc unregister_dep {dep type port} {
 }
 
 proc write_dep_map {args} {
-	global darwinports::registry.path
+	global macports::registry.path
 	variable dep_map
 
-	set receipt_path [file join ${darwinports::registry.path} receipts]
+	set receipt_path [file join ${macports::registry.path} receipts]
 
 	set map_file [file join ${receipt_path} dep_map]
 
@@ -758,10 +758,10 @@ proc write_dep_map {args} {
 	puts $map_handle $dep_map
 	close $map_handle
 
-	# don't both checking for presence, file delete doesn't error if file doesn't exist
-	file delete ${map_file} ${map_file}.bz2
+    # don't both checking for presence, file delete doesn't error if file doesn't exist
+    file delete ${map_file} ${map_file}.bz2
 
-	file rename ${map_file}.tmp ${map_file}
+    file rename ${map_file}.tmp ${map_file}
 
 	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${map_file}"

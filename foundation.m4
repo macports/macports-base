@@ -111,7 +111,7 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 	# libobjc - this is the case on FreeBSD.
 
 	AC_MSG_CHECKING([if linking libobjc requires pthreads])
-	AC_CACHE_VAL(od_cv_objc_req_pthread, [
+	AC_CACHE_VAL(mp_cv_objc_req_pthread, [
 		# First, test if objc links without pthreads
 		# The following uses quadrigraphs
 		# '@<:@' = '['
@@ -126,15 +126,15 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 					])
 				], [
 					# Linked without -pthread
-					od_cv_objc_req_pthread="no"
+					mp_cv_objc_req_pthread="no"
 				], [
 					# Failed to link without -pthread
-					od_cv_objc_req_pthread="yes"
+					mp_cv_objc_req_pthread="yes"
 				]
 		)
 
 		# If the above failed, try with pthreads
-		if test x"${od_cv_objc_req_pthread}" = x"yes"; then
+		if test x"${mp_cv_objc_req_pthread}" = x"yes"; then
 			LIBS="${LIBS} ${PTHREAD_LIBS}"
 			OBJCFLAGS="${OBJCFLAGS} ${PTHREAD_CFLAGS}"
 			AC_LINK_IFELSE([
@@ -147,30 +147,30 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 						])
 					], [
 						# Linked with -lpthread 
-						od_cv_objc_req_pthread="yes"
+						mp_cv_objc_req_pthread="yes"
 					], [
 						# Failed to link against objc at all
 						# This will be caught in the runtime
 						# checks below
-						od_cv_objc_req_pthread="no"
+						mp_cv_objc_req_pthread="no"
 					]
 			)
 		fi
 	])
-	AC_MSG_RESULT(${od_cv_objc_req_pthread})
+	AC_MSG_RESULT(${mp_cv_objc_req_pthread})
 
-	if test x"${od_cv_objc_req_pthread}" = x"no"; then
+	if test x"${mp_cv_objc_req_pthread}" = x"no"; then
 		OBJC_LIBS="-lobjc"
 		OBJC_PTHREAD_LIBS="${PTHREAD_LIBS}"
 		OBJC_PTHREAD_CFLAGS="${PTHREAD_CFLAGS}"
-	elif test x"${od_cv_objc_req_pthread}" = x"yes"; then
+	elif test x"${mp_cv_objc_req_pthread}" = x"yes"; then
 		OBJC_LIBS="-lobjc ${PTHREAD_LIBS}"
 		OBJCFLAGS="${OBJCFLAGS} ${PTHREAD_CFLAGS}"
 	fi
 
 	if test x"${with_objc_runtime}" = x || test x"${with_objc_runtime}" = x"apple"; then
 		AC_MSG_CHECKING([for Apple Objective-C runtime])
-		AC_CACHE_VAL(od_cv_objc_runtime_apple, [
+		AC_CACHE_VAL(mp_cv_objc_runtime_apple, [
 			# The following uses quadrigraphs
 			# '@<:@' = '['
 			# '@:>@' = ']'
@@ -184,20 +184,20 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 							puts(@<:@obj name@:>@);
 						])
 					], [
-						od_cv_objc_runtime_apple="yes"
+						mp_cv_objc_runtime_apple="yes"
 					], [
-						od_cv_objc_runtime_apple="no"
+						mp_cv_objc_runtime_apple="no"
 					]
 			)
 		])
-		AC_MSG_RESULT(${od_cv_objc_runtime_apple})
+		AC_MSG_RESULT(${mp_cv_objc_runtime_apple})
 	else
-		od_cv_objc_runtime_apple="no"
+		mp_cv_objc_runtime_apple="no"
 	fi
 
 	if test x"${with_objc_runtime}" = x || test x"${with_objc_runtime}" = x"GNU"; then
 		AC_MSG_CHECKING([for GNU Objective C runtime])
-		AC_CACHE_VAL(od_cv_objc_runtime_gnu, [
+		AC_CACHE_VAL(mp_cv_objc_runtime_gnu, [
 			# The following uses quadrigraphs
 			# '@<:@' = '['
 			# '@:>@' = ']'
@@ -211,24 +211,24 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 							puts(@<:@obj name@:>@);
 						])
 					], [
-						od_cv_objc_runtime_gnu="yes"
+						mp_cv_objc_runtime_gnu="yes"
 					], [
-						od_cv_objc_runtime_gnu="no"
+						mp_cv_objc_runtime_gnu="no"
 					]
 			)
 		])
-		AC_MSG_RESULT(${od_cv_objc_runtime_gnu})
+		AC_MSG_RESULT(${mp_cv_objc_runtime_gnu})
 	else
-		od_cv_objc_runtime_gnu="no"
+		mp_cv_objc_runtime_gnu="no"
 	fi
 
 	# Apple runtime is prefered
-	if test x"${od_cv_objc_runtime_apple}" = x"yes"; then
+	if test x"${mp_cv_objc_runtime_apple}" = x"yes"; then
 			OBJC_RUNTIME="APPLE_RUNTIME"
 			OBJC_RUNTIME_FLAGS="-fnext-runtime"
 			AC_MSG_NOTICE([Using Apple Objective-C runtime])
 			AC_DEFINE([APPLE_RUNTIME], 1, [Define if using the Apple Objective-C runtime and compiler.]) 
-	elif test x"${od_cv_objc_runtime_gnu}" = x"yes"; then
+	elif test x"${mp_cv_objc_runtime_gnu}" = x"yes"; then
 			OBJC_RUNTIME="GNU_RUNTIME"
 			OBJC_RUNTIME_FLAGS="-fgnu-runtime"
 			AC_MSG_NOTICE([Using GNU Objective-C runtime])

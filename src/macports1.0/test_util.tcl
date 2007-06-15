@@ -1,10 +1,10 @@
 # test_util.tcl
 # $Id$
 #
-# Comprehensive test file for darwinports_util.tcl
+# Comprehensive test file for macports_util.tcl
 # Written by Kevin Ballard <eridius@macports.org>
 
-source ./darwinports_util.tcl
+source ./macports_util.tcl
 
 array set options {t 0 w 0}
 

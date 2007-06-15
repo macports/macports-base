@@ -5,10 +5,10 @@
 package provide porttest 1.0
 package require portutil 1.0
 
-set com.apple.test [target_new com.apple.test test_main]
-target_provides ${com.apple.test} test
-target_requires ${com.apple.test} main fetch extract checksum patch configure build
-target_prerun ${com.apple.test} test_start
+set org.macports.test [target_new org.macports.test test_main]
+target_provides ${org.macports.test} test
+target_requires ${org.macports.test} main fetch extract checksum patch configure build
+target_prerun ${org.macports.test} test_start
 
 # define options
 options test.run test.target 

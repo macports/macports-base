@@ -2,8 +2,8 @@
 # Requires r/w access to /tmp
 # MacPorts must be installed for this to work
 
-package require darwinports
-dportinit
+package require macports
+mportinit
 
 # load the current copy of portutil instead of the installed one
 source [file dirname [info script]]/../portutil.tcl
@@ -67,7 +67,7 @@ proc test_depends_lib-delete {} {
     # depends_lib is intended to work from within a worker thread
     # so we shall oblige
     set workername [interp create]
-    darwinports::worker_init $workername {} [darwinports::getportbuildpath {}] {} {}
+    macports::worker_init $workername {} [macports::getportbuildpath {}] {} {}
     set body {
         # load the current copy of portutil instead of the installed one
         source [file dirname [info script]]/../portutil.tcl

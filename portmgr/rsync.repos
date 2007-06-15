@@ -1,0 +1,73 @@
+#######
+# MacPorts rsync repos feeding the sync & selfupdate procedures, created and
+# maintained by the base/portmgr/mprsyncup.new script.
+# 
+# Two main modules are supplied for current installations off the dp2mp-move
+# branch (intended to become mainstream moving forwad)
+# and two for backwards compatibility (legacy DarwinPorts namespace). Assuming
+# an example REPOROOT path of /usr/local/repos/macports, this file is organized
+# in the following four modules and filesystem level paths (server side):
+#
+#
+# PATHS:
+#
+# ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's
+# trunk/dports dir (ToT), and the current release base dir, as determined by
+# the base/config/RELEASE_URL file read by the base/portmgr/mprsyncup.new
+# script;
+#
+# ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk/base
+# dir (ToT);
+#
+# ${REPOROOT}/dpupdate: backwards compatible path & module, a filesystem
+# level (relative) symlink to the trunk path above
+#    (relative to ${REPOROOT}: dpupdate --> trunk);
+#
+# ${REPOROOT}/dpupdate1: backwards compatible path & module, a filesystem
+# level (relative) symlink to the release path
+#    (relative to ${REPOROOT}: dpupdate1 --> release).
+#
+# 
+# Futhermore the ${REPOROOT}/trunk path must also hold a (relative) `dports'
+# symlink to `../release/ports', so that a sync operation against
+# `dpupdate/ports' for the ports tree works on legacy MacPorts installations
+# (DarwinPorts namespace). Overall, the ${REPOROOT} skeleton should look like:
+#
+# release/
+# release/base/
+# release/ports/
+# trunk/
+# trunk/base/
+# trunk/dports --> ../release/ports
+# dpupdate --> trunk
+# dpupdate1 --> release
+#
+#
+# Whatever server uses this file should simply add the modules listed here to
+# an already tailored rsyncd.conf file, as no other particular config options
+# are supplied. Repositories themselves are created and maintained by the
+# base/portmgr/mprsyncup.new script, as stated above (that is, no manual
+# intervention what-so-ever is needed, other than adding the repos to the local
+# rsyncd.conf file).
+#
+# Created by Juan Manuel Palacios,
+# e-mail: jmpp@macports.org
+# $Id$
+#######
+
+
+[release]
+	comment = MacPorts rsync release repo, ports tree and base sources.
+	path = /Volumes/data/rsync/macports/release
+
+[trunk]
+	comment = MacPorts ToT rsync repo, base component.
+	path = /Volumes/data/rsync/macports/trunk
+
+[dpupdate]
+	comment = Legacy MacPorts ToT rsync repo, ports tree and base component (solely for backwards compatibility purposes).
+	path = /Volumes/data/rsync/macports/dpupdate
+
+[dpupdate1]
+	comment = Legacy MacPorts rsync dpupdate1 repo, release base component (solely for backwards compatibility purposes).
+	path = /Volumes/data/rsync/macports/dpupdate1

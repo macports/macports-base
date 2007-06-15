@@ -1,8 +1,8 @@
-INSTALLDIR=	${DESTDIR}${prefix}/share/darwinports/resources/port1.0/fetch
+INSTALLDIR=	${DESTDIR}${prefix}/share/macports/resources/port1.0/fetch
 
 RSRCS=		mirror_sites.tcl
 
-include ../../../../Mk/dports.autoconf.mk
+include ../../../../Mk/macports.autoconf.mk
 
 all:
 

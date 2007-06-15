@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 # port.tcl
 # $Id$
 #
-# Copyright (c) 2002-2006 DarwinPorts organization
+# Copyright (c) 2002-2006 MacPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
@@ -38,8 +38,8 @@ exec @TCLSH@ "$0" "$@"
 #
 
 catch {source \
-	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
-package require darwinports
+	[file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+package require macports
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -362,18 +362,18 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
 
 
 proc url_to_portname { url {quiet 0} } {
-	# Save directory and restore the directory, since dportopen changes it
+	# Save directory and restore the directory, since mportopen changes it
 	set savedir [pwd]
 	set portname ""
-	if {[catch {set ctx [dportopen $url]} result]} {
+	if {[catch {set ctx [mportopen $url]} result]} {
 		if {!$quiet} {
 			ui_msg "Can't map the URL '$url' to a port description file (\"${result}\")."
 			ui_msg "Please verify that the directory and portfile syntax are correct."
 		}
 	} else {
-		array set portinfo [dportinfo $ctx]
+		array set portinfo [mportinfo $ctx]
 		set portname $portinfo(name)
-		dportclose $ctx
+		mportclose $ctx
 	}
 	cd $savedir
 	return $portname
@@ -394,7 +394,7 @@ proc require_portlist { nameportlist } {
 # When the block is entered, the variables portname, portversion, options, and variations
 # will have been set
 proc foreachport {portlist block} {
-	# Restore cwd after each port, since dportopen changes it, and relative
+	# Restore cwd after each port, since mportopen changes it, and relative
 	# urls will break on subsequent passes
 	set savedir [pwd]
 	foreach portspec $portlist {
@@ -452,7 +452,7 @@ proc unobscure_maintainers { list } {
 # Port selection
 ##########################################
 proc get_matching_ports {pattern {casesensitive no} {matchstyle glob} {field name}} {
-	if {[catch {set res [dportsearch $pattern $casesensitive $matchstyle $field]} result]} {
+	if {[catch {set res [mportsearch $pattern $casesensitive $matchstyle $field]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "search for portname $pattern failed: $result"
@@ -559,8 +559,8 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
-	global darwinports::registry.installtype
-	set is_image_mode [expr 0 == [string compare "image" ${darwinports::registry.installtype}]]
+	global macports::registry.installtype
+	set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 	
 	# Get the list of installed ports
 	set ilist {}
@@ -590,7 +590,7 @@ proc get_outdated_ports {} {
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
-			if {[catch {set res [dportsearch $portname no exact]} result]} {
+			if {[catch {set res [mportsearch $portname no exact]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				fatal "search for portname $portname failed: $result"
@@ -1151,18 +1151,18 @@ proc action_info { action portlist opts } {
     set status 0
     require_portlist portlist
     foreachport $portlist {
-        # If we have a url, use that, since it's most specific
-        # otherwise try to map the portname to a url
+    # If we have a url, use that, since it's most specific
+    # otherwise try to map the portname to a url
         if {$porturl eq ""} {
-            # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {dportsearch $portname no exact} result]} {
-                ui_debug "$::errorInfo"
-                break_softcontinue "search for portname $portname failed: $result" 1 status
+        # Verify the portname, getting portinfo to map to a porturl
+	    if {[catch {mportsearch $portname no exact} result]} {
+		ui_debug "$::errorInfo"
+		break_softcontinue "search for portname $portname failed: $result" 1 status
+	    }
+	    if {[llength $result] < 2} {
+		break_softcontinue "Port $portname not found" 1 status
             }
-            if {[llength $result] < 2} {
-                break_softcontinue "Port $portname not found" 1 status
-            }
-            set found [expr [llength $result] / 2]
+	    set found [expr [llength $result] / 2]
             if {$found > 1} {
                 ui_warn "Found $found port $portname definitions, displaying first one."
             }
@@ -1171,15 +1171,15 @@ proc action_info { action portlist opts } {
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
         }
-        
+
         if {!([info exists options(ports_info_index)] && $options(ports_info_index) eq "yes")} {
-            if {[catch {set dport [dportopen $porturl [array get options] [array get variations]]} result]} {
+            if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
             array unset portinfo
-            array set portinfo [dportinfo $dport]
-            dportclose $dport
+            array set portinfo [mportinfo $mport]
+            mportclose $mport
             if {[info exists portdir]} {
                 set portinfo(portdir) $portdir
             }
@@ -1220,11 +1220,11 @@ proc action_info { action portlist opts } {
             set field_sep "\t"
             set subfield_sep ","
         }
-
+	
         # Figure out whether to show field name
-        set quiet [ui_isset ports_quiet]
+	set quiet [ui_isset ports_quiet]
         if {$quiet} {
-            set show_label 0
+	    set show_label 0
         }
         
         # Spin through action options, emitting information for any found
@@ -1413,7 +1413,7 @@ proc action_deactivate { action portlist opts } {
 
 proc action_selfupdate { action portlist opts } {
 	global global_options
-	if { [catch {darwinports::selfupdate [array get global_options]} result ] } {
+	if { [catch {macports::selfupdate [array get global_options]} result ] } {
 		global errorInfo
 		ui_debug "$errorInfo"
 		fatal "selfupdate failed: $result"
@@ -1434,7 +1434,7 @@ proc action_upgrade { action portlist opts } {
 			}
 		}
 		
-		darwinports::upgrade $portname "port:$portname" [array get variations] [array get options]
+		macports::upgrade $portname "port:$portname" [array get variations] [array get options]
 	}
 	
 	return 0
@@ -1442,7 +1442,7 @@ proc action_upgrade { action portlist opts } {
 
 
 proc action_version { action portlist opts } {
-	puts "Version: [darwinports::version]"
+	puts "Version: [macports::version]"
 	return 0
 }
 
@@ -1574,8 +1574,8 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
-	global darwinports::registry.installtype
-	set is_image_mode [expr 0 == [string compare "image" ${darwinports::registry.installtype}]]
+	global macports::registry.installtype
+	set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 
 	set status 0
 
@@ -1624,7 +1624,7 @@ proc action_outdated { action portlist opts } {
 			set installed_epoch		[lindex $i 5]
 
 			# Get info about the port from the index
-			if {[catch {set res [dportsearch $portname no exact]} result]} {
+			if {[catch {set res [mportsearch $portname no exact]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -1726,7 +1726,7 @@ proc action_deps { action portlist opts } {
 	require_portlist portlist
 	foreachport $portlist {
 		# Get info about the port
-		if {[catch {dportsearch $portname no exact} result]} {
+		if {[catch {mportsearch $portname no exact} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -1769,7 +1769,7 @@ proc action_variants { action portlist opts } {
 	require_portlist portlist
 	foreachport $portlist {
 		# search for port
-		if {[catch {dportsearch $portname no exact} result]} {
+		if {[catch {mportsearch $portname no exact} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -1818,7 +1818,7 @@ proc action_search { action portlist opts } {
 	
 	foreachport $portlist {
 		set portfound 0
-		if {[catch {set res [dportsearch $portname no]} result]} {
+		if {[catch {set res [mportsearch $portname no]} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -1872,7 +1872,7 @@ proc action_list { action portlist opts } {
 			set search_string [regex_pat_sanitize $portname]
 		}
 		
-		if {[catch {set res [dportsearch ^$search_string\$ no]} result]} {
+		if {[catch {set res [mportsearch ^$search_string\$ no]} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "search for portname $search_string failed: $result" 1 status
@@ -1923,7 +1923,7 @@ proc action_portcmds { action portlist opts } {
 	require_portlist portlist
 	foreachport $portlist {
 		# Verify the portname, getting portinfo to map to a porturl
-		if {[catch {set res [dportsearch $portname no exact]} result]} {
+		if {[catch {set res [mportsearch $portname no exact]} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -1939,7 +1939,7 @@ proc action_portcmds { action portlist opts } {
 			set porturl $portinfo(porturl)
 		}
 		
-		set portdir [file normalize [darwinports::getportdir $porturl]]
+		set portdir [file normalize [macports::getportdir $porturl]]
 		set porturl "file://${portdir}";	# Rebuild url so it's fully qualified
 		set portfile "${portdir}/Portfile"
 		
@@ -1983,7 +1983,7 @@ proc action_portcmds { action portlist opts } {
 						}
 					}
 					
-					# Restore internal dp environment
+					# Restore internal MacPorts environment
 					array unset env *; array set env [array get env_save]
 				}
 				
@@ -1994,7 +1994,7 @@ proc action_portcmds { action portlist opts } {
 				
 				work {
 					# output the path to the port's work directory
-					set workpath [darwinports::getportworkpath_from_portdir $portdir]
+					set workpath [macports::getportworkpath_from_portdir $portdir]
 					if {[file exists $workpath]} {
 						puts $workpath
 					}
@@ -2019,7 +2019,7 @@ proc action_portcmds { action portlist opts } {
 				gohome {
 					set homepage $portinfo(homepage)
 					if { $homepage != "" } {
-						system "${darwinports::autoconf::open_path} $homepage"
+						system "${macports::autoconf::open_path} $homepage"
 					} else {
 						puts "(no homepage)"
 					}
@@ -2036,7 +2036,7 @@ proc action_portcmds { action portlist opts } {
 
 proc action_sync { action portlist opts } {
 	set status 0
-	if {[catch {dportsync} result]} {
+	if {[catch {mportsync} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_msg "port sync failed: $result"
@@ -2058,7 +2058,7 @@ proc action_target { action portlist opts } {
 		# otherwise try to map the portname to a url
 		if {$porturl == ""} {
 			# Verify the portname, getting portinfo to map to a porturl
-			if {[catch {set res [dportsearch $portname no exact]} result]} {
+			if {[catch {set res [mportsearch $portname no exact]} result]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -2086,19 +2086,19 @@ proc action_target { action portlist opts } {
 		if {[string length $portversion]} {
 			set options(ports_version_glob) $portversion
 		}
-		if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
+		if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			break_softcontinue "Unable to open port: $result" 1 status
 		}
-		if {[catch {set result [dportexec $workername $target]} result]} {
+		if {[catch {set result [mportexec $workername $target]} result]} {
 			global errorInfo
-			dportclose $workername
+			mportclose $workername
 			ui_debug "$errorInfo"
 			break_softcontinue "Unable to execute port: $result" 1 status
 		}
 
-		dportclose $workername
+		mportclose $workername
 		
 		# Process any error that wasn't thrown and handled already
 		if {$result} {
@@ -2406,7 +2406,7 @@ proc complete_portname { text state } {
 		set complete_choices {}
 
 		# Build a list of ports with text as their prefix
-		if {[catch {set res [dportsearch "${text}*" false glob]} result]} {
+		if {[catch {set res [mportsearch "${text}*" false glob]} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			fatal "search for portname $pattern failed: $result"
@@ -2496,10 +2496,10 @@ proc process_command_file { in } {
 	set isstdin [string match $in "stdin"]
 	set name "port"
 	set use_readline [expr $isstdin && [readline init $name]]
-	set history_file [file normalize "${darwinports::macports_user_dir}/history"]
+	set history_file [file normalize "${macports::macports_user_dir}/history"]
 
 	# Read readline history
-	if {$use_readline && [file isdirectory $darwinports::macports_user_dir]} {
+	if {$use_readline && [file isdirectory $macports::macports_user_dir]} {
 		rl_history read $history_file
 		rl_history stifle 100
 	}
@@ -2507,7 +2507,7 @@ proc process_command_file { in } {
 	# Be noisy, if appropriate
 	set noisy [expr $isstdin && ![ui_isset ports_quiet]]
 	if { $noisy } {
-		puts "MacPorts [darwinports::version]"
+		puts "MacPorts [macports::version]"
 		puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
 	}
 	
@@ -2542,7 +2542,7 @@ proc process_command_file { in } {
 	}
 	
 	# Save readine history
-	if {$use_readline && [file isdirectory $darwinports::macports_user_dir]} {
+	if {$use_readline && [file isdirectory $macports::macports_user_dir]} {
 		rl_history write $history_file
 	}
 	
@@ -2602,7 +2602,7 @@ array set ui_options 		{}
 array set global_options	{}
 array set global_variations	{}
 
-# Save off a copy of the environment before dportinit monkeys with it
+# Save off a copy of the environment before mportinit monkeys with it
 global env boot_env
 array set boot_env [array get env]
 
@@ -2631,10 +2631,10 @@ parse_options "global" ui_options global_options
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
 
-# Initialize dport
+# Initialize mport
 # This must be done following parse of global options, as some options are
-# evaluated by dportinit.
-if {[catch {dportinit ui_options global_options global_variations} result]} {
+# evaluated by mportinit.
+if {[catch {mportinit ui_options global_options global_variations} result]} {
 	global errorInfo
 	puts "$errorInfo"
 	fatal "Failed to initialize ports system, $result"

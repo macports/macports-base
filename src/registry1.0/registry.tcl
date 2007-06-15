@@ -31,7 +31,7 @@
 
 package provide registry 1.0
 
-package require darwinports 1.0
+package require macports 1.0
 package require receipt_flat 1.0
 package require receipt_sqlite 1.0
 package require portimage 1.0
@@ -43,14 +43,14 @@ namespace eval registry {
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global darwinports::registry.path darwinports::registry.format darwinports::registry.installtype darwinports::prefix
+	global macports::registry.path macports::registry.format macports::registry.installtype macports::prefix
 
 	
 	# Make sure we don't already have an entry in the Registry for this
 	# port version_revision+variants
 	if {![entry_exists $name $version $revision $variants] } {
 
-		set ref [${darwinports::registry.format}::new_entry]
+		set ref [${macports::registry.format}::new_entry]
 
 		property_store $ref name $name
 		property_store $ref version $version
@@ -60,10 +60,10 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		# Trick to have a portable GMT-POSIX epoch-based time.
 		# (because we'll compare this with a file mtime).
 		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-		property_store $ref installtype ${darwinports::registry.installtype}
-		property_store $ref receipt_f ${darwinports::registry.format}
-		if { ${darwinports::registry.installtype} == "image" } {
-			set imagedir [file join ${darwinports::registry.path} software ${name} ${version}_${revision}${variants}]
+		property_store $ref installtype ${macports::registry.installtype}
+		property_store $ref receipt_f ${macports::registry.format}
+		if { ${macports::registry.installtype} == "image" } {
+			set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
 			property_store $ref imagedir $imagedir
 			property_store $ref active 0
 			property_store $ref compact 0
@@ -78,13 +78,13 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 # Check to see if an entry exists in the registry.  This is passed straight 
 # through to the receipts system
 proc entry_exists {name version {revision 0} {variants ""}} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::entry_exists $name $version $revision $variants] 
+	global macports::registry.format
+	return [${macports::registry.format}::entry_exists $name $version $revision $variants] 
 }
 
 # Close the registry... basically wrap the receipts systems's write process
 proc write_entry {ref} {
-	global darwinports::registry.format
+	global macports::registry.format
 	
 	set name [property_retrieve $ref name]
 	set version [property_retrieve $ref version]
@@ -93,49 +93,49 @@ proc write_entry {ref} {
 	set epoch [property_retrieve $ref epoch]
 	set contents [property_retrieve $ref contents]
 
-	${darwinports::registry.format}::write_entry $ref $name $version $revision $variants
+	${macports::registry.format}::write_entry $ref $name $version $revision $variants
 
 }
 
 # Delete an entry from the registry.
 proc delete_entry {ref} {
-	global darwinports::registry.format
+	global macports::registry.format
 	
 	set name [property_retrieve $ref name]
 	set version [property_retrieve $ref version]
 	set revision [property_retrieve $ref revision]
 	set variants [property_retrieve $ref variants]
 	
-	${darwinports::registry.format}::delete_entry $name $version $revision $variants
+	${macports::registry.format}::delete_entry $name $version $revision $variants
 	
 }
 
 # Open a registry entry.
 proc open_entry {name {version 0} {revision 0} {variants ""}} {
-	global darwinports::registry.format
+	global macports::registry.format
 
-	return [${darwinports::registry.format}::open_entry $name $version $revision $variants]
+	return [${macports::registry.format}::open_entry $name $version $revision $variants]
 
 }
 
 # Store a property with the open registry entry.
 proc property_store {ref property value} {
-	global darwinports::registry.format
-	${darwinports::registry.format}::property_store $ref $property $value
+	global macports::registry.format
+	${macports::registry.format}::property_store $ref $property $value
 }
 
 # Retrieve a property from the open registry entry.
 proc property_retrieve {ref property} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::property_retrieve $ref $property]
+	global macports::registry.format
+	return [${macports::registry.format}::property_retrieve $ref $property]
 }
 
 # If only one version of the port is installed, this process returns that
 # version's parts.  Otherwise, it lists the versions installed and exists.
 proc installed {{name ""} {version ""}} {
-	global darwinports::registry.format
+	global macports::registry.format
 
-	set ilist [${darwinports::registry.format}::installed $name $version]
+	set ilist [${macports::registry.format}::installed $name $version]
 	set rlist [list]
 
 	if { [llength $ilist] > 1 } {
@@ -175,9 +175,9 @@ proc installed {{name ""} {version ""}} {
 # Return a list with the active version of a port (or the active versions of
 # all ports if name is "").
 proc active {{name ""}} {
-	global darwinports::registry.format
+	global macports::registry.format
 
-	set ilist [${darwinports::registry.format}::installed $name]
+	set ilist [${macports::registry.format}::installed $name]
 	set rlist [list]
 
 	if { [llength $ilist] > 0 } {
@@ -231,41 +231,41 @@ proc location {portname portversion} {
 
 # File Map Code
 proc open_file_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::open_file_map $args]
+	global macports::registry.format
+	return [${macports::registry.format}::open_file_map $args]
 }
 
 proc file_registered {file} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::file_registered $file]
+	global macports::registry.format
+	return [${macports::registry.format}::file_registered $file]
 }
 
 proc port_registered {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::port_registered $name]
+	global macports::registry.format
+	return [${macports::registry.format}::port_registered $name]
 }
 
 proc register_file {file port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::register_file $file $port]
+	global macports::registry.format
+	return [${macports::registry.format}::register_file $file $port]
 }
 
 proc register_bulk_files {files port} {
-	global darwinports::registry.format
+	global macports::registry.format
 	open_file_map
-	set r [${darwinports::registry.format}::register_bulk_files $files $port]
+        set r [${macports::registry.format}::register_bulk_files $files $port]
 	write_file_map
 	return $r
 }
 
 proc unregister_file {file} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::unregister_file $file]
+	global macports::registry.format
+	return [${macports::registry.format}::unregister_file $file]
 }
 
 proc write_file_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::write_file_map $args]
+	global macports::registry.format
+	return [${macports::registry.format}::write_file_map $args]
 }
 
 # Dependency Map Code
@@ -292,8 +292,8 @@ proc unregister_dependencies {name} {
 }
 
 proc open_dep_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::open_dep_map $args]
+	global macports::registry.format
+	return [${macports::registry.format}::open_dep_map $args]
 }
 
 ##
@@ -350,29 +350,29 @@ proc fileinfo_for_index {flist} {
 
 # List all ports this one depends on
 proc list_depends {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_depends $name]
+	global macports::registry.format
+	return [${macports::registry.format}::list_depends $name]
 }
 
 # List all the ports that depend on this port
 proc list_dependents {name} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::list_dependents $name]
+	global macports::registry.format
+	return [${macports::registry.format}::list_dependents $name]
 }
 
 proc register_dep {dep type port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::register_dep $dep $type $port]
+	global macports::registry.format
+	return [${macports::registry.format}::register_dep $dep $type $port]
 }
 
 proc unregister_dep {dep type port} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::unregister_dep $dep $type $port]
+	global macports::registry.format
+	return [${macports::registry.format}::unregister_dep $dep $type $port]
 }
 
 proc write_dep_map {args} {
-	global darwinports::registry.format
-	return [${darwinports::registry.format}::write_dep_map $args]
+	global macports::registry.format
+	return [${macports::registry.format}::write_dep_map $args]
 }
 
 

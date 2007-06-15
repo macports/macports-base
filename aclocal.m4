@@ -3,7 +3,7 @@ builtin(include,objc.m4)
 builtin(include,foundation.m4)
 
 #------------------------------------------------------------------------
-# OD_CHECK_FRAMEWORK_COREFOUNDATION --
+# MP_CHECK_FRAMEWORK_COREFOUNDATION --
 #
 #	Check if CoreFoundation framework is available, define HAVE_FRAMEWORK_COREFOUNDATION if so.
 #
@@ -23,12 +23,12 @@ builtin(include,foundation.m4)
 #		HAVE_FRAMEWORK_COREFOUNDATION
 #
 #------------------------------------------------------------------------
-AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
+AC_DEFUN(MP_CHECK_FRAMEWORK_COREFOUNDATION, [
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
 	AC_MSG_CHECKING([for CoreFoundation framework])
 
-	AC_CACHE_VAL(od_cv_have_framework_corefoundation, [
+	AC_CACHE_VAL(mp_cv_have_framework_corefoundation, [
 		ac_save_LIBS="$LIBS"
 		LIBS="$FRAMEWORK_LIBS $LIBS"
 		
@@ -40,18 +40,18 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
 					CFArrayRef bundles = CFBundleCreateBundlesFromDirectory(NULL, url, CFSTR("pkg"));
 			])
 			], [
-				od_cv_have_framework_corefoundation="yes"
+				mp_cv_have_framework_corefoundation="yes"
 			], [
-				od_cv_have_framework_corefoundation="no"
+				mp_cv_have_framework_corefoundation="no"
 			]
 		)
 
 		LIBS="$ac_save_LIBS"
 	])
 
-	AC_MSG_RESULT(${od_cv_have_framework_corefoundation})
+	AC_MSG_RESULT(${mp_cv_have_framework_corefoundation})
 
-	if test x"${od_cv_have_framework_corefoundation}" = "xyes"; then
+	if test x"${mp_cv_have_framework_corefoundation}" = "xyes"; then
 		AC_DEFINE([HAVE_FRAMEWORK_COREFOUNDATION], [], [Define if CoreFoundation framework is available])
 	fi
 
@@ -60,7 +60,7 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
 
 
 #------------------------------------------------------------------------
-# OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER --
+# MP_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER --
 #
 #	Check if if the routine CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 #	is available in CoreFoundation.
@@ -81,12 +81,12 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_COREFOUNDATION, [
 #		HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 #
 #------------------------------------------------------------------------
-AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
+AC_DEFUN(MP_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
 	AC_MSG_CHECKING([for CFNotificationCenterGetDarwinNotifyCenter])
 
-	AC_CACHE_VAL(od_cv_have_function_cfnotificationcentergetdarwinnotifycenter, [
+	AC_CACHE_VAL(mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter, [
 		ac_save_LIBS="$LIBS"
 		LIBS="$FRAMEWORK_LIBS $LIBS"
 		
@@ -97,18 +97,18 @@ AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
 					CFNotificationCenterRef ref = CFNotificationCenterGetDarwinNotifyCenter();
 			])
 			], [
-				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="yes"
+				mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter="yes"
 			], [
-				od_cv_have_function_cfnotificationcentergetdarwinnotifycenter="no"
+				mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter="no"
 			]
 		)
 
 		LIBS="$ac_save_LIBS"
 	])
 
-	AC_MSG_RESULT(${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter})
+	AC_MSG_RESULT(${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter})
 
-	if test x"${od_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" = "xyes"; then
+	if test x"${mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter}" = "xyes"; then
 		AC_DEFINE([HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER], [], [Define if function CFNotificationCenterGetDarwinNotifyCenter in CoreFoundation framework])
 	fi
 
@@ -117,7 +117,7 @@ AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
 
 
 #------------------------------------------------------------------------
-# OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION --
+# MP_CHECK_FRAMEWORK_SYSTEMCONFIGURATION --
 #
 #	Check if SystemConfiguration framework is available, define HAVE_FRAMEWORK_SYSTEMCONFIGURATION if so.
 #
@@ -137,12 +137,12 @@ AC_DEFUN(OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER, [
 #		HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 #
 #------------------------------------------------------------------------
-AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
+AC_DEFUN(MP_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
 	FRAMEWORK_LIBS="-framework SystemConfiguration"
 
 	AC_MSG_CHECKING([for SystemConfiguration framework])
 
-	AC_CACHE_VAL(od_cv_have_framework_systemconfiguration, [
+	AC_CACHE_VAL(mp_cv_have_framework_systemconfiguration, [
 		ac_save_LIBS="$LIBS"
 		LIBS="$FRAMEWORK_LIBS $LIBS"
 		
@@ -154,18 +154,18 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
 					SCDynamicStoreRef dsRef = SCDynamicStoreCreate(NULL, NULL, NULL, NULL);
 			])
 			], [
-				od_cv_have_framework_systemconfiguration="yes"
+				mp_cv_have_framework_systemconfiguration="yes"
 			], [
-				od_cv_have_framework_systemconfiguration="no"
+				mp_cv_have_framework_systemconfiguration="no"
 			]
 		)
 
 		LIBS="$ac_save_LIBS"
 	])
 
-	AC_MSG_RESULT(${od_cv_have_framework_systemconfiguration})
+	AC_MSG_RESULT(${mp_cv_have_framework_systemconfiguration})
 
-	if test x"${od_cv_have_framework_systemconfiguration}" = "xyes"; then
+	if test x"${mp_cv_have_framework_systemconfiguration}" = "xyes"; then
 		AC_DEFINE([HAVE_FRAMEWORK_SYSTEMCONFIGURATION], [], [Define if SystemConfiguration framework is available])
 	fi
 
@@ -174,7 +174,7 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
 
 
 #------------------------------------------------------------------------
-# OD_CHECK_FRAMEWORK_IOKIT --
+# MP_CHECK_FRAMEWORK_IOKIT --
 #
 #	Check if IOKit framework is available, define HAVE_FRAMEWORK_IOKIT if so.
 #
@@ -194,12 +194,12 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION, [
 #		HAVE_FRAMEWORK_IOKIT
 #
 #------------------------------------------------------------------------
-AC_DEFUN(OD_CHECK_FRAMEWORK_IOKIT, [
+AC_DEFUN(MP_CHECK_FRAMEWORK_IOKIT, [
 	FRAMEWORK_LIBS="-framework IOKit"
 
 	AC_MSG_CHECKING([for IOKit framework])
 
-	AC_CACHE_VAL(od_cv_have_framework_iokit, [
+	AC_CACHE_VAL(mp_cv_have_framework_iokit, [
 		ac_save_LIBS="$LIBS"
 		LIBS="$FRAMEWORK_LIBS $LIBS"
 		
@@ -211,18 +211,18 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_IOKIT, [
 					IORegisterForSystemPower(0, NULL, NULL, NULL);
 			])
 			], [
-				od_cv_have_framework_iokit="yes"
+				mp_cv_have_framework_iokit="yes"
 			], [
-				od_cv_have_framework_iokit="no"
+				mp_cv_have_framework_iokit="no"
 			]
 		)
 
 		LIBS="$ac_save_LIBS"
 	])
 
-	AC_MSG_RESULT(${od_cv_have_framework_iokit})
+	AC_MSG_RESULT(${mp_cv_have_framework_iokit})
 
-	if test x"${od_cv_have_framework_iokit}" = "xyes"; then
+	if test x"${mp_cv_have_framework_iokit}" = "xyes"; then
 		AC_DEFINE([HAVE_FRAMEWORK_IOKIT], [], [Define if IOKit framework is available])
 	fi
 
@@ -230,68 +230,68 @@ AC_DEFUN(OD_CHECK_FRAMEWORK_IOKIT, [
 ])
 
 
-dnl This macro checks if the user specified a dports tree
+dnl This macro checks if the user specified a ports tree
 dnl explicitly. If not, search for it
 
-# OD_PATH_DPORTSDIR(DEFAULT_DPORTSDIR)
+# MP_PATH_PORTSDIR(DEFAULT_PORTSDIR)
 #---------------------------------------
- AC_DEFUN([OD_PATH_DPORTSDIR],[
+ AC_DEFUN([MP_PATH_PORTSDIR],[
  	dnl For ease of reading, run after gcc has been found/configured
  	AC_REQUIRE([AC_PROG_CC])
 
- 	AC_ARG_WITH(dports-dir, [AC_HELP_STRING([--with-dports-dir=DIR], [Specify alternate dports directory])], [ dportsdir="$withval" ] )
+ 	AC_ARG_WITH(ports-dir, [AC_HELP_STRING([--with-ports-dir=DIR], [Specify alternate ports directory])], [ portsdir="$withval" ] )
 
 
- 	AC_MSG_CHECKING([for dports tree])
- 	if test "x$dportsdir" != "x" ; then
- 	  if test -d "$dportsdir" -a -e "$dportsdir/PortIndex" ; then
+ 	AC_MSG_CHECKING([for ports tree])
+ 	if test "x$portsdir" != "x" ; then
+ 	  if test -d "$portsdir" -a -e "$portsdir/PortIndex" ; then
  		:
  	  else
- 		AC_MSG_ERROR([$dportsdir not a valid dports tree])
+ 		AC_MSG_ERROR([$portsdir not a valid ports tree])
  	  fi
  	else
  		dnl If the user didn't give a path, look for default
  		if test "x$1" != "x" ; then
  		  if test -d "$1" -a -e "$1/PortIndex" ; then
- 			dportsdir=$1
+ 			portsdir=$1
  		  fi
  		fi
  	fi
 
- 	if test "x$dportsdir" != "x" ; then
- 		AC_MSG_RESULT($dportsdir)
- 		DPORTSDIR="$dportsdir"
- 		AC_SUBST(DPORTSDIR)
+ 	if test "x$portsdir" != "x" ; then
+ 		AC_MSG_RESULT($portsdir)
+ 		PORTSDIR="$portsdir"
+ 		AC_SUBST(PORTSDIR)
  	else
- 		AC_MSG_WARN([No dports tree found])
+ 		AC_MSG_WARN([No ports tree found])
  	fi
 
          ])
 
 
-# OD_PATH_PORTCONFIGDIR
+# MP_PATH_MPCONFIGDIR
 #---------------------------------------
-AC_DEFUN([OD_PATH_PORTCONFIGDIR],[
+AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 	dnl if the user actually specified --prefix, shift
-	dnl portconfigdir to $prefix/etc/ports
-	dnl 	AC_REQUIRE([OD_PATH_DPORTSDIR])
+	dnl mpconfigdir to $prefix/etc/macports
+	dnl 	AC_REQUIRE([MP_PATH_PORTSDIR])
 	
-        AC_MSG_CHECKING([for ports config directory])
+        AC_MSG_CHECKING([for MacPorts config directory])
 
-	portconfigdir='${sysconfdir}/ports'
+	mpconfigdir='${sysconfdir}/macports'
 
-	AC_MSG_RESULT([$portconfigdir])
-	PORTCONFIGDIR="$portconfigdir"
-        AC_SUBST(PORTCONFIGDIR)
+	AC_MSG_RESULT([$mpconfigdir])
+	MPCONFIGDIR="$mpconfigdir"
+        AC_SUBST(MPCONFIGDIR)
 
 	])
 
-# OD_CHECK_INSTALLUSER
+# MP_CHECK_INSTALLUSER
 #-------------------------------------------------
-AC_DEFUN([OD_CHECK_INSTALLUSER],[
+AC_DEFUN([MP_CHECK_INSTALLUSER],[
 	dnl if with user specifies --with-install-user,
 	dnl use it. otherwise default to platform defaults
-        AC_REQUIRE([OD_PATH_PORTCONFIGDIR])
+        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(install-user, [AC_HELP_STRING([--with-install-user=USER], [Specify user ownership of installed files])], [ DSTUSR=$withval ] )
 	
@@ -304,12 +304,12 @@ AC_DEFUN([OD_CHECK_INSTALLUSER],[
 	AC_SUBST(DSTUSR)
 ])
 
-# OD_CHECK_INSTALLGROUP
+# MP_CHECK_INSTALLGROUP
 #-------------------------------------------------
-AC_DEFUN([OD_CHECK_INSTALLGROUP],[
+AC_DEFUN([MP_CHECK_INSTALLGROUP],[
 	dnl if with user specifies --with-install-group,
 	dnl use it. otherwise default to platform defaults
-        AC_REQUIRE([OD_CHECK_INSTALLUSER])
+        AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
 	AC_ARG_WITH(install-group, [AC_HELP_STRING([--with-install-group=GROUP], [Specify group ownership of installed files])], [ DSTGRP=$withval ] )
 
@@ -330,13 +330,13 @@ AC_DEFUN([OD_CHECK_INSTALLGROUP],[
 	AC_SUBST(DSTGRP)
 ])
 
-# OD_DIRECTORY_MODE
+# MP_DIRECTORY_MODE
 #-------------------------------------------------
-AC_DEFUN([OD_DIRECTORY_MODE],[
+AC_DEFUN([MP_DIRECTORY_MODE],[
 	dnl if with user specifies --with-directory-mode,
 	dnl use the specified permissions for ${prefix} directories
 	dnl otherwise use 0775
-        AC_REQUIRE([OD_PATH_PORTCONFIGDIR])
+        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(directory-mode, [AC_HELP_STRING([--with-directory-mode=MODE], [Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
 	
@@ -349,10 +349,10 @@ AC_DEFUN([OD_DIRECTORY_MODE],[
 	AC_SUBST(DSTMODE)
 ])
 
-# OD_LIB_MD5
+# MP_LIB_MD5
 #---------------------------------------
 # Check for an md5 implementation
-AC_DEFUN([OD_LIB_MD5],[
+AC_DEFUN([MP_LIB_MD5],[
 
 	# Check for libmd, which is prefered
 	AC_CHECK_LIB([md], [MD5Update],[
@@ -400,9 +400,9 @@ dnl This macro checks for X11 presence. If the libraries are
 dnl present, so must the headers be. If nothing is present,
 dnl print a warning
 
-# OD_CHECK_X11
+# MP_CHECK_X11
 # ---------------------
-AC_DEFUN([OD_CHECK_X11], [
+AC_DEFUN([MP_CHECK_X11], [
 
 	AC_PATH_XTRA
 
@@ -428,7 +428,7 @@ AC_DEFUN([OD_CHECK_X11], [
 		"__no__yes__")
 		# either the user said --without-x, or it was not found
 		# at all (runtime or headers)
-			AC_MSG_WARN([X11 not available. You will not be able to use dports that use X11])
+			AC_MSG_WARN([X11 not available. You will not be able to use ports that use X11])
 			state=0
 			;;
 		"__yes__yes__")
@@ -484,9 +484,9 @@ EOF
 
 ])
 
-# OD_PROG_XAR
+# MP_PROG_XAR
 #---------------------------------------
-AC_DEFUN([OD_PROG_XAR],[
+AC_DEFUN([MP_PROG_XAR],[
 
 	AC_PATH_PROG([XAR], [xar], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
 
@@ -499,22 +499,22 @@ AC_DEFUN([OD_PROG_XAR],[
 	AC_SUBST(XAR)
 ])
 
-# OD_PROG_DAEMONDO
+# MP_PROG_DAEMONDO
 #---------------------------------------
-AC_DEFUN([OD_PROG_DAEMONDO],[
-	AC_REQUIRE([OD_CHECK_FRAMEWORK_COREFOUNDATION])
-	AC_REQUIRE([OD_CHECK_FRAMEWORK_SYSTEMCONFIGURATION])
-	AC_REQUIRE([OD_CHECK_FRAMEWORK_IOKIT])
-	AC_REQUIRE([OD_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER])
+AC_DEFUN([MP_PROG_DAEMONDO],[
+	AC_REQUIRE([MP_CHECK_FRAMEWORK_COREFOUNDATION])
+	AC_REQUIRE([MP_CHECK_FRAMEWORK_SYSTEMCONFIGURATION])
+	AC_REQUIRE([MP_CHECK_FRAMEWORK_IOKIT])
+	AC_REQUIRE([MP_CHECK_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER])
 	
     AC_MSG_CHECKING(for whether we will build daemondo)
     result=no
 	case $host_os in
 	darwin*)
-		if test "x$od_cv_have_framework_corefoundation" == "xyes" &&
-		   test "x$od_cv_have_framework_systemconfiguration" == "xyes" &&
-		   test "x$od_cv_have_framework_iokit" == "xyes" &&
-		   test "x$od_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
+		if test "x$mp_cv_have_framework_corefoundation" == "xyes" &&
+		   test "x$mp_cv_have_framework_systemconfiguration" == "xyes" &&
+		   test "x$mp_cv_have_framework_iokit" == "xyes" &&
+		   test "x$mp_cv_have_function_cfnotificationcentergetdarwinnotifycenter" == "xyes"; then
 			result=yes
 			EXTRA_PROGS="$EXTRA_PROGS daemondo"
 			AC_CONFIG_FILES([src/programs/daemondo/Makefile])
@@ -526,7 +526,7 @@ AC_DEFUN([OD_PROG_DAEMONDO],[
 ])
 
 #------------------------------------------------------------------------
-# OD_TCL_PACKAGE_DIR --
+# MP_TCL_PACKAGE_DIR --
 #
 #	Locate the correct directory for Tcl package installation
 #
@@ -547,7 +547,7 @@ AC_DEFUN([OD_PROG_DAEMONDO],[
 #		TCL_PACKAGE_DIR
 #------------------------------------------------------------------------
 
-AC_DEFUN(OD_TCL_PACKAGE_DIR, [
+AC_DEFUN(MP_TCL_PACKAGE_DIR, [
     AC_MSG_CHECKING(for Tcl package directory)
 
     AC_ARG_WITH(tclpackage, [  --with-tclpackage       Tcl package installation directory.], with_tclpackagedir=${withval})
@@ -607,17 +607,12 @@ AC_DEFUN(OD_TCL_PACKAGE_DIR, [
     AC_SUBST(TCL_PACKAGE_DIR)
 ])
 
-# OD_PROG_TCLSH
+# MP_PROG_TCLSH
 #---------------------------------------
-AC_DEFUN([OD_PROG_TCLSH],[
+AC_DEFUN([MP_PROG_TCLSH],[
 
 
 	case $host_os in
-		freebsd*)
-			# FreeBSD installs a dummy tclsh (annoying)
-			# Look for a real versioned tclsh first
-			AC_PATH_PROG([TCLSH], [tclsh${TCL_VERSION} tclsh])
-			;;
 		*)
 			# Otherwise, look for a non-versioned tclsh
 			AC_PATH_PROG([TCLSH], [tclsh tclsh${TCL_VERSION}])
@@ -630,14 +625,14 @@ AC_DEFUN([OD_PROG_TCLSH],[
 	AC_SUBST(TCLSH)
 ])
 
-# OD_TCL_PACKAGE
+# MP_TCL_PACKAGE
 #	Determine if a Tcl package is present.
 #
 # Arguments:
 #	Package name (may include the version)
 #
 # Syntax:
-#   OD_TCL_PACKAGE (package, [action-if-found], [action-if-not-found])
+#   MP_TCL_PACKAGE (package, [action-if-found], [action-if-not-found])
 #
 # Requires:
 #	TCLSH must be set
@@ -645,13 +640,13 @@ AC_DEFUN([OD_PROG_TCLSH],[
 # Results:
 #	Execute action-if-found or action-if-not-found
 #---------------------------------------
-AC_DEFUN([OD_TCL_PACKAGE],[
+AC_DEFUN([MP_TCL_PACKAGE],[
 	AC_MSG_CHECKING([for Tcl $1 package])
 	package_present=`echo 'if {[[catch {package require $1}]]} {puts -nonewline 0} else {puts -nonewline 1}' | $TCLSH`
 	AS_IF([test "$package_present" = "1"], [$2], [$3])[]
 ])
 
-# OD_TCL_THREAD_SUPPORT
+# MP_TCL_THREAD_SUPPORT
 #	Determine if thread support is available in tclsh.
 #
 # Arguments:
@@ -663,7 +658,7 @@ AC_DEFUN([OD_TCL_PACKAGE],[
 # Results:
 #   Fails if thread support isn't available.
 #---------------------------------------
-AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
+AC_DEFUN([MP_TCL_THREAD_SUPPORT],[
 	AC_MSG_CHECKING([whether tclsh was compiled with threads])
 	tcl_threadenabled=`echo 'puts -nonewline [[info exists tcl_platform(threaded)]]' | $TCLSH`
 	if test "$tcl_threadenabled" = "1" ; then
@@ -674,7 +669,7 @@ AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
 	fi
 ])
 
-# OD_LIBCURL_FLAGS
+# MP_LIBCURL_FLAGS
 #	Sets the flags to compile with libcurl.
 #
 # Arguments:
@@ -687,7 +682,7 @@ AC_DEFUN([OD_TCL_THREAD_SUPPORT],[
 #   defines some help strings.
 #   sets CFLAGS_LIBCURL and LDFLAGS_LIBCURL
 #---------------------------------------
-AC_DEFUN([OD_LIBCURL_FLAGS],[
+AC_DEFUN([MP_LIBCURL_FLAGS],[
 	AC_ARG_WITH(curlprefix,
 		   [  --with-curlprefix       base directory for the cURL install '/usr', '/usr/local',...],
 		   [  curlprefix=$withval ])
@@ -711,7 +706,7 @@ AC_DEFUN([OD_LIBCURL_FLAGS],[
 	AC_SUBST(LDFLAGS_LIBCURL)
 ])
 
-# OD_LIBCURL_VERSION
+# MP_LIBCURL_VERSION
 #	Determine the version of libcurl.
 #
 # Arguments:
@@ -723,7 +718,7 @@ AC_DEFUN([OD_LIBCURL_FLAGS],[
 # Results:
 #   sets libcurl_version to "0" or some number
 #---------------------------------------
-AC_DEFUN([OD_LIBCURL_VERSION],[
+AC_DEFUN([MP_LIBCURL_VERSION],[
 	if test "x$CURL" = "x"; then
 		libcurl_version="0"
 	else
@@ -736,7 +731,7 @@ AC_DEFUN([OD_LIBCURL_VERSION],[
 
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters
-AC_DEFUN([OD_COMPILER_ATTRIBUTE_UNUSED], [
+AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
 	AC_MSG_CHECKING([how to mark unused variables])
 	AC_COMPILE_IFELSE(
 		[AC_LANG_SOURCE([[int a __attribute__ ((unused));]])],
@@ -747,10 +742,10 @@ AC_DEFUN([OD_COMPILER_ATTRIBUTE_UNUSED], [
 	
 ])
 
-dnl This macro ensures DP installation prefix bin/sbin paths are NOT in PATH
+dnl This macro ensures MP installation prefix bin/sbin paths are NOT in PATH
 dnl for configure to prevent potential problems when base/ code is updated
 dnl and ports are installed that would match needed items.
-AC_DEFUN([OD_PATH_SCAN],[
+AC_DEFUN([MP_PATH_SCAN],[
 	oldprefix=$prefix
 	if test "x$prefix" = "xNONE" ; then
 		prefix=$ac_default_prefix
@@ -775,7 +770,7 @@ AC_DEFUN([OD_PATH_SCAN],[
 ])
 
 dnl This macro tests for tar support of --no-same-owner
-AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
+AC_DEFUN([MP_TAR_NO_SAME_OWNER],[
 	AC_PATH_PROG(TAR, [tar])
 	AC_PATH_PROG(GNUTAR, [gnutar])
 	
@@ -795,7 +790,7 @@ AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
 ])
 
 #------------------------------------------------------------------------
-# DP_CHECK_READLINK_IS_P1003_1A --
+# MP_CHECK_READLINK_IS_P1003_1A --
 #
 #	Check if readlink conforms to POSIX 1003.1a standard, define
 #	READLINK_IS_NOT_P1003_1A if it doesn't.
@@ -816,10 +811,10 @@ AC_DEFUN([OD_TAR_NO_SAME_OWNER],[
 #		READLINK_IS_NOT_P1003_1A
 #
 #------------------------------------------------------------------------
-AC_DEFUN(DP_CHECK_READLINK_IS_P1003_1A, [
+AC_DEFUN(MP_CHECK_READLINK_IS_P1003_1A, [
 	AC_MSG_CHECKING([if readlink conforms to POSIX 1003.1a])
 
-	AC_CACHE_VAL(dp_cv_readlink_is_posix_1003_1a, [
+	AC_CACHE_VAL(mp_cv_readlink_is_posix_1003_1a, [
 		AC_COMPILE_IFELSE([
 			AC_LANG_PROGRAM([
 					#include <unistd.h>
@@ -827,16 +822,16 @@ AC_DEFUN(DP_CHECK_READLINK_IS_P1003_1A, [
 				], [
 			])
 			], [
-				dp_cv_readlink_is_posix_1003_1a="yes"
+				mp_cv_readlink_is_posix_1003_1a="yes"
 			], [
-				dp_cv_readlink_is_posix_1003_1a="no"
+				mp_cv_readlink_is_posix_1003_1a="no"
 			]
 		)
 	])
 
-	AC_MSG_RESULT(${dp_cv_readlink_is_posix_1003_1a})
+	AC_MSG_RESULT(${mp_cv_readlink_is_posix_1003_1a})
 
-	if test x"${dp_cv_readlink_is_posix_1003_1a}" = "xno"; then
+	if test x"${mp_cv_readlink_is_posix_1003_1a}" = "xno"; then
 		AC_DEFINE([READLINK_IS_NOT_P1003_1A], [], [Define to 1 if readlink does not conform with POSIX 1003.1a (where third argument is a size_t and return value is a ssize_t)])
 	fi
 

@@ -1,5 +1,5 @@
 /*
- * darwinports.h
+ * portconf.c
  * $Id$
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -30,31 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef __DARWINPORTS_H__
-#define __DARWINPORTS_H__
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
 
-typedef void* dp_session_t;
-typedef void* dp_software_t;
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-typedef void* dp_array_t;
-dp_array_t dp_array_create();
-dp_array_t dp_array_create_copy(dp_array_t a);
-dp_array_t dp_array_retain(dp_array_t a);
-void dp_array_release(dp_array_t a);
-void dp_array_append(dp_array_t a, const void* data);
-int dp_array_get_count(dp_array_t a);
-const void* dp_array_get_index(dp_array_t a, int index);
-/* something for delete */
+#include "macports.h"
 
-dp_session_t dp_session_open();
-int dp_session_sync_index();
+#include <tcl.h>
 
-int dp_software_search(dp_session_t dp, const char* regexp, dp_software_t* out_matches, int* out_count);
-dp_software_t dp_software_open_portfile(dp_session_t dp, const char* path, const char** options);
-dp_session_t dp_software_get_session(dp_software_t sw);
-dp_software_t dp_software_exec(dp_software_t sw, const char* target);
-int dp_softare_close(dp_software_t sw);
+static int set_session_option(ClientData clientData UNUSED, Tcl_Interp *interp UNUSED, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED) {
+    return TCL_OK;
+}
 
-int dp_session_close();
-
-#endif /* __DARWINPORTS_H__ */
+void parse_port_conf(mp_session_t mp UNUSED, char* path) {
+    int fd = open(path, O_RDONLY, 0);
+    if (fd != -1) {
+        Tcl_Interp* interp = Tcl_CreateInterp();
+        char* bootstrap_options[] = {"portdbpath", "libpath", "binpath", "master_site_local",
+				     "auto_path", "sources_conf", "prefix", NULL};
+        char** option = bootstrap_options;
+        while (*option != NULL) {
+            Tcl_CreateObjCommand(interp, *option, &set_session_option, NULL, NULL);
+            ++option;
+        }
+        /* XXX: parse config file */
+    }
+}

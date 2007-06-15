@@ -1,5 +1,5 @@
 /*
- * darwinports.c
+ * macports.h
  * $Id$
  *
  * Copyright (c) 2003 Apple Computer, Inc.
@@ -30,17 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
+#ifndef __MACPORTS_H__
+#define __MACPORTS_H__
 
-#include <tcl.h>
+typedef void* mp_session_t;
+typedef void* mp_software_t;
 
-int darwinports_Init(Tcl_Interp *interp)
-{
-	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
-		return TCL_ERROR;
-	if(Tcl_PkgProvide(interp, "darwinports", "1.0") != TCL_OK)
-		return TCL_ERROR;
-	return TCL_OK;
-}
+typedef void* mp_array_t;
+mp_array_t mp_array_create();
+mp_array_t mp_array_create_copy(mp_array_t a);
+mp_array_t mp_array_retain(mp_array_t a);
+void mp_array_release(mp_array_t a);
+void mp_array_append(mp_array_t a, const void* data);
+int mp_array_get_count(mp_array_t a);
+const void* mp_array_get_index(mp_array_t a, int index);
+/* something for delete */
+
+mp_session_t mp_session_open();
+int mp_session_sync_index();
+
+int mp_software_search(mp_session_t mp, const char* regexp, mp_software_t* out_matches, int* out_count);
+mp_software_t mp_software_open_portfile(mp_session_t mp, const char* path, const char** options);
+mp_session_t mp_software_get_session(mp_software_t sw);
+mp_software_t mp_software_exec(mp_software_t sw, const char* target);
+int mp_softare_close(mp_software_t sw);
+
+int mp_session_close();
+
+#endif /* __MACPORTS_H__ */

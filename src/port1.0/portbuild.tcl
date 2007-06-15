@@ -33,10 +33,10 @@
 package provide portbuild 1.0
 package require portutil 1.0
 
-set com.apple.build [target_new com.apple.build build_main]
-target_provides ${com.apple.build} build
-target_requires ${com.apple.build} main fetch extract checksum patch configure
-target_prerun ${com.apple.build} build_start
+set org.macports.build [target_new org.macports.build build_main]
+target_provides ${org.macports.build} build
+target_requires ${org.macports.build} main fetch extract checksum patch configure
+target_prerun ${org.macports.build} build_start
 
 # define options
 options build.target

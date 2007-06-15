@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2006 Yves de Champlain <yves@opendarwin.org>,
+# Copyright (c) 2006 Yves de Champlain <yves@macports.org>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@
 #                               }
 #                                
 # default use_configure         no
-# default configure.args        CC=gcc-dp-4.1
+# default configure.args        CC=gcc-mp-4.1
 #
 # default build.type            gnu
 # default build.args            messages=yes
@@ -82,7 +82,7 @@ default depends_build       port:gnustep-make
 default depends_lib         port:gnustep-back
 
 default use_configure		no
-default configure.args      CC=gcc-dp-4.1
+default configure.args      CC=gcc-mp-4.1
 
 default build.type          gnu
 default build.args          messages=yes

@@ -30,7 +30,7 @@
 .\" $Id$
 .\"
 .\" Take from FreeBSD and adjusted to MacPortss' needs.
-.Dd August 31, 2005
+.Dd June 1, 2007
 .Dt PORTHIER 7
 .Os
 .Sh NAME
@@ -39,7 +39,7 @@
 .Sh DESCRIPTION
 A sketch of the filesystem hierarchy as it is applied on ports being distributed by MacPorts.
 .Bl -tag -width "/Applications/"
-.It Pa /${prefix}/
+.It Pa ${prefix}/
 The base of the MacPorts filesystem hierarchy. By default set to "/opt/local/"
 .Pp
 .Bl -tag -width "include/"
@@ -81,10 +81,9 @@ multi-purpose log, temporary, transient, and spool files
 .Bl -tag -width "spool/" -compact
 .It Pa db/
 misc. automatically generated system-specific database files
-.Bl -tag -width "dports/"
-.It Pa dports/
+.It Pa macports/
 MacPorts runtime data
-.Bl -tag -width "build/"
+.Bl -tag -width "build/" -compact
 .It Pa build/
 Where ports are build and destrooted
 .It Pa distfiles/
@@ -127,7 +126,7 @@ Native Mac OS X Library Frameworks
 .El
 .Sh SEE ALSO
 .Xr port 1 ,
-.Xr ports.conf 5 ,
+.Xr macports.conf 5 ,
 .Xr portfile 7 ,
 .Xr portgroup 7 ,
 .Xr portstyle 7 ,
@@ -138,3 +137,4 @@ The
 manual page appeared first in MacPorts. Lots of it is based on hier(7).
 .Sh AUTHORS
 .An "Felix Kronlage" Aq fkr@opendarwin.org
+.An "Juan Manuel Palacios" Aq jmpp@macports.org

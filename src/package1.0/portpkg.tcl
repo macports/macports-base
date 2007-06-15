@@ -33,13 +33,13 @@
 package provide portpkg 1.0
 package require portutil 1.0
 
-set com.apple.pkg [target_new com.apple.pkg pkg_main]
-target_runtype ${com.apple.pkg} always
-target_provides ${com.apple.pkg} pkg
+set org.macports.pkg [target_new org.macports.pkg pkg_main]
+target_runtype ${org.macports.pkg} always
+target_provides ${org.macports.pkg} pkg
 if {[option portarchivemode] == "yes"} {
-	target_requires ${com.apple.pkg} unarchive destroot
+	target_requires ${org.macports.pkg} unarchive destroot
 } else {
-	target_requires ${com.apple.pkg} destroot
+	target_requires ${org.macports.pkg} destroot
 }
 
 # define options
@@ -141,7 +141,7 @@ proc write_info_plist {infofile portname portversion portrevision} {
 	<key>CFBundleGetInfoString</key>
 	<string>${portname} ${portversion}</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.opendarwin.darwinports.${portname}</string>
+	<string>org.macports.${portname}</string>
 	<key>CFBundleName</key>
 	<string>${portname}</string>
 	<key>CFBundleShortVersionString</key>

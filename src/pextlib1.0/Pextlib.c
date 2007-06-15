@@ -4,7 +4,7 @@
  *
  * Copyright (c) 2002 - 2003 Apple Computer, Inc.
  * Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
- * Copyright (c) 2004 Landon Fuller <landonf@opendarwin.org>
+ * Copyright (c) 2004 Landon Fuller <landonf@macports.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -657,7 +657,7 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	DIR *dirp;
-	struct dirent *dp;
+	struct dirent *mp;
 	Tcl_Obj *tcl_result;
 	char *path;
 
@@ -673,13 +673,13 @@ int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 		return TCL_ERROR;
 	}
 	tcl_result = Tcl_NewListObj(0, NULL);
-	while ((dp = readdir(dirp))) {
+	while ((mp = readdir(dirp))) {
 		/* Skip . and .. */
-		if ((dp->d_name[0] != '.') ||
-			((dp->d_name[1] != 0)	/* "." */
+		if ((mp->d_name[0] != '.') ||
+			((mp->d_name[1] != 0)	/* "." */
 				&&
-			((dp->d_name[1] != '.') || (dp->d_name[2] != 0)))) /* ".." */ {
-			Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(dp->d_name, -1));
+			((mp->d_name[1] != '.') || (mp->d_name[2] != 0)))) /* ".." */ {
+			Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(mp->d_name, -1));
 		}
 	}
 	closedir(dirp);

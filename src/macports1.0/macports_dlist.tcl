@@ -1,4 +1,4 @@
-# darwinports1.0/darwinports_dlist.tcl
+# macports1.0/macports_dlist.tcl
 # $Id$
 #
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
@@ -29,7 +29,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-package provide darwinports_dlist 1.0
+package provide macports_dlist 1.0
 
 # dependency dependency list evaluation package
 #
@@ -46,7 +46,7 @@ package provide darwinports_dlist 1.0
 # A dlist is an ordinary TCL list.
 # A ditem should be created with the [ditem_create] procedure,
 # and treated as an opaque reference.
-# A statusdict is an ordinary TCL array, though darwinports_dlist
+# A statusdict is an ordinary TCL array, though macports_dlist
 # should be given complete domain over its contents.
 # XXX: should statusdict and dlist be part of a ditem tuple?
 # Values in the status dict will be {-1, 0, 1} for {failure,
@@ -116,12 +116,12 @@ proc dlist_count_unmet {dlist statusdict tokens} {
 }
 
 # ditem_create
-# Create a new array in the darwinports_dlist namespace
+# Create a new array in the macports_dlist namespace
 # returns the name of the array.  This should be used as
 # the ditem handle.
 
 proc ditem_create {} {
-	return [darwinports_dlist::ditem_create]
+	return [macports_dlist::ditem_create]
 }
 
 # ditem_key
@@ -133,11 +133,11 @@ proc ditem_create {} {
 proc ditem_key {ditem args} {
 	set nbargs [llength $args]
 	if {$nbargs > 1} {
-		return [darwinports_dlist::ditem_key $ditem [lindex $args 0] [lindex $args 1]]
+		return [macports_dlist::ditem_key $ditem [lindex $args 0] [lindex $args 1]]
 	} elseif {$nbargs == 1} {
-		return [darwinports_dlist::ditem_key $ditem [lindex $args 0]]
+		return [macports_dlist::ditem_key $ditem [lindex $args 0]]
 	} else {
-		return [darwinports_dlist::ditem_key $ditem]
+		return [macports_dlist::ditem_key $ditem]
 	}
 }
 
@@ -148,7 +148,7 @@ proc ditem_key {ditem args} {
 #	value - the value to append to the key
 
 proc ditem_append {ditem key args} {
-	eval "return \[darwinports_dlist::ditem_append $ditem $key $args\]"
+	eval "return \[macports_dlist::ditem_append $ditem $key $args\]"
 }
 
 # ditem_append_unique
@@ -159,7 +159,7 @@ proc ditem_append {ditem key args} {
 #	value - the value to append to the key
 
 proc ditem_append_unique {ditem key args} {
-	eval "return \[darwinports_dlist::ditem_append_unique $ditem $key $args\]"
+	eval "return \[macports_dlist::ditem_append_unique $ditem $key $args\]"
 }
 
 # ditem_contains
@@ -169,7 +169,7 @@ proc ditem_append_unique {ditem key args} {
 #	key   - the key to examine
 #	value - optional value to search for in the key
 proc ditem_contains {ditem key args} {
-	eval "return \[darwinports_dlist::ditem_contains $ditem $key $args\]"
+	eval "return \[macports_dlist::ditem_contains $ditem $key $args\]"
 }
 
 # dlist_append_dependents
@@ -315,13 +315,13 @@ proc dlist_eval {dlist testcond handler {canfail "0"} {selector "dlist_get_next"
 # Anything below this point is subject to change without notice.
 #####
 
-# Each ditem is actually an array in the darwinports_dlist
+# Each ditem is actually an array in the macports_dlist
 # namespace.  ditem keys correspond to the equivalent array
 # key.  A dlist is simply a list of names of ditem arrays.
-# All private API functions exist in the darwinports_dlist
+# All private API functions exist in the macports_dlist
 # namespace.
 
-namespace eval darwinports_dlist {
+namespace eval macports_dlist {
 
 variable ditem_uniqid 0
 
@@ -388,6 +388,6 @@ proc ditem_contains {ditem key args} {
 	}
 }
 
-# End of darwinports_dlist namespace
+# End of macports_dlist namespace
 }
 

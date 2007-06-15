@@ -1,0 +1,90 @@
+#!/bin/sh
+####
+# Script to checkout/update base sources from both trunk (ToT) and the current
+# release tag (as determined by the base/config/RELEASE_URL file) and a ports
+# tree from trunk (ToT), and then export and sync all of them to the
+# ${REPOROOT} location, wherefrom the rsync modules are fed to the `sync'
+# and `selfupdate' routines in port(1).
+# Read the base/portmgr/rsync.repos file for more information on both the
+# necessary rsync modules and filesystem level paths, which this script
+# bootstraps.
+#
+# Created by fkr@opendarwin.org, jberry@macports.org and yeled@macports.org,
+# Updated by jmpp@macports.org
+# $Id$
+####
+
+set -e
+
+# Commands we need:
+SVN="/opt/local/bin/svn -q --non-interactive"
+RSYNC="/usr/bin/rsync -q"
+
+# Paths we'll work on:
+SVNROOT=/tmp/macports
+TBASE=${SVNROOT}/trunk/base
+RBASE=${SVNROOT}/release/base
+PORTS=${SVNROOT}/release/ports
+RSYNCROOT=/Volumes/data/rsync/macports
+
+# Sources information:
+SVNURL=http://svn.macports.org/repository/macports
+RELEASE_URL_FILE=config/RELEASE_URL
+
+
+# Update/checkout trunk's base, export and rsync it to the rsync repos location (${REPOROOT}):
+if [ -d ${TBASE}/.svn ]; then
+    ${SVN} update ${TBASE}
+else
+    ${SVN} checkout ${SVNURL}/trunk/base ${TBASE}
+fi
+${SVN} export ${TBASE} ${TBASE}-export
+if [ ! -d ${RSYNCROOT}/trunk/base ]; then
+    mkdir -p ${RSYNCROOT}/trunk
+fi
+${RSYNC} -a -I --delete ${TBASE}-export/ ${RSYNCROOT}/trunk/base && rm -rf ${TBASE}-export
+
+
+# Read what tag we're releasing from, switch to/checkout a copy, export and rsync it to ${REPOROOT}/release/base:
+read RELEASE_URL < ${TBASE}/${RELEASE_URL_FILE}
+if [ ! -n ${RELEASE_URL} ]; then
+    echo "no RELEASE_URL specified in svn trunk, baling out"
+    exit 1
+fi
+if [ -d ${RBASE}/.svn ]; then
+    ${SVN} switch ${RELEASE_URL} ${RBASE}
+else
+    ${SVN} checkout ${RELEASE_URL} ${RBASE}
+fi
+${SVN} export ${RBASE} ${RBASE}-export
+if [ ! -d ${RSYNCROOT}/release/base ]; then
+    mkdir -p ${RSYNCROOT}/release/base
+fi
+${RSYNC} -a -I --delete ${RBASE}-export/ ${RSYNCROOT}/release/base && rm -rf ${RBASE}-export
+
+
+# Update/checkout the ports tree, export it and rsync it to ${REPOROOT}/release/ports:
+if [ -d ${PORTS}/.svn ]; then
+  ${SVN} update ${PORTS}  
+else
+    ${SVN} checkout ${SVNURL}/trunk/dports ${PORTS}
+fi
+${SVN} export ${PORTS} ${PORTS}-export
+if [ ! -d ${RSYNCROOT}/release/ports ]; then
+    mkdir -p ${RSYNCROOT}/release/ports
+fi
+${RSYNC} -a -I --delete ${PORTS}-export/ ${RSYNCROOT}/release/ports && rm -rf ${PORTS}-export
+
+
+# Compatibility checks:
+cd ${RSYNCROOT}
+if [ ! -h dpupdate ]; then
+    rm -rf dpupdate && ln -s trunk dpupdate
+fi
+if [ ! -h dpupdate1 ]; then
+    rm -rf dpupdate1 && ln -s release dpupdate1
+fi
+if [ ! -h trunk/dports ]; then
+    cd trunk
+    rm -rf dports && ln -s ../release/ports dports
+fi

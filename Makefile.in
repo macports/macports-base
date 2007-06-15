@@ -1,4 +1,6 @@
-SUBDIR		= config doc src portmgr
+# $Id$
+
+SUBDIR		= config doc src
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}
@@ -7,11 +9,11 @@ DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
 SVNURL		= http://svn.macports.org/repository/macports
 
-include Mk/dports.autoconf.mk
+include Mk/macports.autoconf.mk
 
-all:: Mk/dports.autoconf.mk
+all:: Mk/macports.autoconf.mk
 
-Mk/dports.autoconf.mk: Mk/dports.autoconf.mk.in src/config.h.in Makefile.in config.status
+Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in config.status
 	./config.status
 	make clean
 
@@ -24,23 +26,143 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-include Mk/dports.subdir.mk
+upgrade:
+	@echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
+
+# We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
+# ${TCL_PACKAGE_DIR}/macports1.0 with new names:
+	[ ! -d ${TCL_PACKAGE_DIR}/darwinports1.0 ] || rm -rf ${TCL_PACKAGE_DIR}/darwinports1.0
+
+# MacPorts base files in ${datadir} are also safely removed as new ones are always installed, and onto a their new location in this case too:
+	[ ! -d ${datadir}/darwinports ] || rm -rf ${datadir}/darwinports
+
+# Old version file can be safely deleted, as it was already used to start this upgrade and a new one will be installed into the new location:
+	[ ! -f ${sysconfdir}/ports/dp_version ] || rm -vf ${sysconfdir}/ports/dp_version
+
+# Old ports.conf(5) man page is removed:
+	[ ! -f ${prefix}/share/man/man5/ports.conf.5 ] || rm -vf ${prefix}/share/man/man5/ports.conf.5
+
+# Conf files directory is renamed:
+	[ ! -d ${sysconfdir}/ports ] || mv -v ${sysconfdir}/ports ${sysconfdir}/macports
+
+# Important directories inside ${localstatedir}/db/dports are moved to their new location, creating it first:
+	[ -d ${localstatedir}/macports ] || mkdir -vp ${localstatedir}/macports
+	for dir in distfiles packages receipts software; do \
+		[ ! -d ${localstatedir}/db/dports/$${dir} ] || mv -v ${localstatedir}/db/dports/$${dir} ${localstatedir}/macports ; \
+	done
+
+# Move the default ports tree to the new layout:
+	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || { mkdir -vp \
+	${localstatedir}/macports/sources/rsync.macports.org/release && mv -v \
+	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports ; }
+
+# Open up receipts and upgrade any paths in them containing old conventions to the new namespace:
+	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do [ ! \( -f $${receipt} -a ! -f $${receipt}.mpsaved \) ] || { \
+		cp -v $${receipt} $${receipt}.mpsaved && { \
+			$(BZIP2) -q -dc $${receipt} | sed 's/db\/dports/macports/g' | $(BZIP2) -q -zf > $${receipt}.new ; \
+		} && mv -v $${receipt}.new $${receipt} ; \
+	}; done
+
+# Check for existance of the main configuration file and perform a couple of replacements on it, backing it up first:
+## 1) new default path up to our configuration files (referenced through other variables);
+## 2) new default value for the portdbpath variable;
+## 3) new MacPorts rsync server;
+## 4) new default value for the base tree;
+## 5) new default value for trunk's base sources for users who have it (some do);
+## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
+## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
+## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
+	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${sysconfdir}/macports/macports.conf.mpsaved \) ] || { \
+		mv -v ${sysconfdir}/macports/ports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
+		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf.mpsaved > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/db\/dports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/darwinports/macports/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/dpupdate1\/base/release\/base/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/dpupdate\/base\/\{0,1\}/trunk\/base\//g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/ ports.conf(5)/ macports.conf(5)/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+	}
+
+# Check for existance of the main sources file and perform a couple of replacements on it, backing it up first:
+## 1) new MacPorts rsync server;
+## 2) new default value for the ports tree.
+	[ ! \( -f ${sysconfdir}/macports/sources.conf -a ! -f ${sysconfdir}/macports/sources.conf.mpsaved \) ] || { \
+		cp -v ${sysconfdir}/macports/sources.conf ${sysconfdir}/macports/sources.conf.mpsaved; \
+		sed 's/darwinports/macports/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
+		sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
+			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
+	}
+
+# Check for existance of a personal configuration file and perform a couple of replacements on it, backing it up first:
+## 1) new default path up to our configuration files (referenced through other variables);
+## 2) new default value for the portdbpath variable;
+## 3) new MacPorts rsync server;
+## 4) new default value for the base tree;
+## 5) new default value for trunk's base sources for users who have it (some do);
+## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
+## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
+## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
+	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f $${HOME}/.macports/macports.conf.mpsaved \) ] || { \
+		mv -v $${HOME}/.macports/ports.conf $${HOME}/.macports/macports.conf.mpsaved; \
+		sed 's/etc\/ports/etc\/macports/g' $${HOME}/.macports/macports.conf.mpsaved > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/db\/dports/macports/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/darwinports/macports/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/dpupdate1\/base/release\/base/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/dpupdate\/base\/\{0,1\}/trunk\/base\//g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed '/^rsync_options/s/"\(.*\)"/\1/' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/ ports.conf(5)/ macports.conf(5)/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+	}
+
+
+#something more?
+
+# Upgrade success announcement (meaning we're done ;):
+	@echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"
+
+####
+# NOTES:
+#    -) should we use the ${DESTDIR} sandbox?
+#    -) should we force moves?
+#    -) maybe I can regroup at least some of the sed calls?
+#    -) 
+####
+
+install:: upgrade
+
+include Mk/macports.subdir.mk
 
 install::
-	@echo ""
-	@echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"
-	@echo ""
-	@echo "sudo port selfupdate"
-	@echo ""
-	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."
-	@echo ""
+	@echo -e "\nCongratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:\n"
+	@echo -e "sudo port selfupdate\n"
+	@echo -e "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation.\n"
+	@echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade,"
+	@echo -e "which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
 
 clean::
 
 distclean::
 	rm -f config.log config.status configure.lineno
 	rm -rf autom4te.cache ${DISTDIR}
-	rm -f Makefile Mk/dports.autoconf.mk
+	rm -f Makefile Mk/macports.autoconf.mk
 
 _gettag:
 	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn

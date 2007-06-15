@@ -2,7 +2,7 @@
  * readline.c
  *
  * Some basic readline support callable from Tcl
- * By James D. Berry <jberry@opendarwin.org> 10/27/05
+ * By James D. Berry <jberry@macports.org> 10/27/05
  *
  * $Id$
  *

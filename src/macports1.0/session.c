@@ -42,72 +42,72 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "darwinports.h"
+#include "macports.h"
 
 #include <tcl.h>
 
 /*
  *
- * dp_session_t
+ * mp_session_t
  *
  */
 struct session {
     char* portdbpath;
     char* portconf;
     char* sources_conf;
-    dp_array_t sources;
+    mp_array_t sources;
     char* portsharepath;
     char* registry_path;
 };
 
-dp_session_t dp_session_open() {
-    struct session* dp = (struct session*)malloc(sizeof(struct session));
+mp_session_t mp_session_open() {
+    struct session* mp = malloc(sizeof(struct session));
     char* path;
-    /* dp_array_t conf_files = dp_array_create(); */
+    /* mp_array_t conf_files = mp_array_create(); */
     
-    dp->portconf = NULL;
+    mp->portconf = NULL;
     
     /* first look at PORTSRC for testing/debugging */
     path = getenv("PORTSRC");
     if (path != NULL && access(path, R_OK) == 0) {
-        dp->portconf = strdup(path);
-        /* dp_array_append(conf_files, dp->portconf); */
+        mp->portconf = strdup(path);
+        /* mp_array_append(conf_files, mp->portconf); */
     }
 
-    /* then look in ~/.portsrc */
-    if (dp->portconf == NULL) {
+    /* then look in ~/.macports/macports.conf */
+    if (mp->portconf == NULL) {
         char* home = getenv("HOME");
         if (home != NULL) {
             char path[PATH_MAX];
-            snprintf(path, sizeof(path), "%s/.portsrc", home);
+            snprintf(path, sizeof(path), "%s/.macports/macports.conf", home);
             if (access(path, R_OK) == 0) {
-                dp->portconf = strdup(path);
-                /* dp_array_append(conf_files, dp->portconf); */
+                mp->portconf = strdup(path);
+                /* mp_array_append(conf_files, mp->portconf); */
             }
         }
     }
 
-    /* finally /etc/ports/ports.conf, or whatever path was configured */
-    if (dp->portconf == NULL) {
-      /* XXX: honor autoconf setting ($dports_conf_path) */
-        char* path = "/etc/ports/ports.conf";
+    /* finally ${prefix}/etc/macports/macports.conf, or whatever path was configured */
+    if (mp->portconf == NULL) {
+      /* XXX: honor autoconf setting ($macports_conf_path) */
+        char* path = "${prefix}/etc/macports/macports.conf";
         if (access(path, R_OK) == 0) {
-            dp->portconf = strdup(path);
-            /* dp_array_append(conf_files, dp->portconf); */
+            mp->portconf = strdup(path);
+            /* mp_array_append(conf_files, mp->portconf); */
         }
     }
     
     /* foreach conf_files */
     {
-        int fd = open(dp->portconf, O_RDONLY, 0);
+        int fd = open(mp->portconf, O_RDONLY, 0);
         if (fd != -1) {
 	  /* XXX: parse config file */
         }
     }
     
-    if (dp->sources_conf == NULL) {
-        fprintf(stderr, "sources_conf must be set in /etc/ports/ports.conf or in your ~/.portsrc\n");
+    if (mp->sources_conf == NULL) {
+        fprintf(stderr, "sources_conf must be set in ${prefix}/etc/macports/macports.conf or in your ~/.macports/macports.conf file\n");
     }
-    return (dp_session_t)dp;
+    return (mp_session_t)mp;
 }
 

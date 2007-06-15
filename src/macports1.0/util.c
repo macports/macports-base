@@ -33,7 +33,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "darwinports.h"
+#include "macports.h"
 #include "util.h"
 
 #include <tcl.h>
@@ -42,47 +42,47 @@ static Tcl_Interp* _util_interp = NULL;
 
 /*
  *
- * dp_array_t
+ * mp_array_t
  *
  */
 
-dp_array_t dp_array_create() {
+mp_array_t mp_array_create() {
     Tcl_Obj* res = Tcl_NewListObj(0, NULL);
     if (_util_interp == NULL) _util_interp = Tcl_CreateInterp();
     return res;
 }
 
-dp_array_t dp_array_create_copy(dp_array_t a) {
+mp_array_t mp_array_create_copy(mp_array_t a) {
     Tcl_Obj* array = (Tcl_Obj*)a;
     Tcl_Obj* res = Tcl_DuplicateObj(array);
     return res;
 }
 
-dp_array_t dp_array_retain(dp_array_t a) {
+mp_array_t mp_array_retain(mp_array_t a) {
     Tcl_Obj* array = (Tcl_Obj*)a;
     Tcl_IncrRefCount(array);
-    return (dp_array_t)array;
+    return (mp_array_t)array;
 }
 
-void dp_array_release(dp_array_t a) {
+void mp_array_release(mp_array_t a) {
     Tcl_Obj* array = (Tcl_Obj*)a;
     Tcl_DecrRefCount(array);
 }
 
-void dp_array_append(dp_array_t a, const void* data) {
+void mp_array_append(mp_array_t a, const void* data) {
     Tcl_Obj* array = (Tcl_Obj*)a;
     Tcl_Obj* obj = Tcl_NewByteArrayObj((unsigned char*)&data, sizeof(void*));
     Tcl_ListObjAppendElement(_util_interp, array, obj);
 }
 
-int dp_array_get_count(dp_array_t a) {
+int mp_array_get_count(mp_array_t a) {
     int result;
     Tcl_Obj* array = (Tcl_Obj*)a;
     Tcl_ListObjLength(_util_interp, array, &result);
     return result;
 }
 
-const void* dp_array_get_index(dp_array_t a, int index) {
+const void* mp_array_get_index(mp_array_t a, int index) {
     void** resultPtr;
     int size;
     Tcl_Obj* array = (Tcl_Obj*)a;
@@ -96,7 +96,7 @@ const void* dp_array_get_index(dp_array_t a, int index) {
 
 /*
  *
- * dp_hash_t
+ * mp_hash_t
  *
  */
 struct hashtable {
@@ -104,20 +104,20 @@ struct hashtable {
     int refcount;
 };
 
-dp_hash_t dp_hash_create() {
-    struct hashtable* hash = (struct hashtable*)malloc(sizeof(struct hashtable));
+mp_hash_t mp_hash_create() {
+    struct hashtable* hash = malloc(sizeof(struct hashtable));
     Tcl_InitHashTable(&hash->table, TCL_STRING_KEYS);
     hash->refcount = 1;
-    return (dp_hash_t)hash;
+    return (mp_hash_t)hash;
 }
 
-dp_hash_t dp_hash_retain(dp_hash_t h) {
+mp_hash_t mp_hash_retain(mp_hash_t h) {
     struct hashtable* hash = (struct hashtable*)h;
     ++hash->refcount;
     return h;
 }
 
-void dp_hash_release(dp_hash_t h) {
+void mp_hash_release(mp_hash_t h) {
     struct hashtable* hash = (struct hashtable*)h;
     --hash->refcount;
     if (hash->refcount == 0) {
@@ -126,14 +126,14 @@ void dp_hash_release(dp_hash_t h) {
     }
 }
 
-void dp_hash_set_value(dp_hash_t h, const void* key, const void* data) {
+void mp_hash_set_value(mp_hash_t h, const void* key, const void* data) {
     struct hashtable* hash = (struct hashtable*)h;
     int created;
     Tcl_HashEntry* entry = Tcl_CreateHashEntry(&hash->table, key, &created);
     Tcl_SetHashValue(entry, (ClientData)data);
 }
 
-const void* dp_hash_get_value(dp_hash_t h, const void* key) {
+const void* mp_hash_get_value(mp_hash_t h, const void* key) {
     struct hashtable* hash = (struct hashtable*)h;
     Tcl_HashEntry* entry = Tcl_FindHashEntry(&hash->table, key);
     if (entry != NULL) {

@@ -7,8 +7,8 @@ exec @TCLSH@ "$0" "$@"
 # $Id$
 
 catch {source \
-	[file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
-package require darwinports
+	[file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+package require macports
 package require Pextlib
 
 # Globals
@@ -17,8 +17,8 @@ array set ui_options		[list]
 array set global_options 	[list]
 array set global_variations [list]
 
-# Pass global options into dportinit
-dportinit ui_options global_options global_variations
+# Pass global options into mportinit
+mportinit ui_options global_options global_variations
 
 # UI Instantiations
 # ui_options(ports_debug) - If set, output debugging messages.
@@ -107,8 +107,8 @@ proc iterate_distfiles_r {func root} {
 # func:		function to call on every dist file (it is passed
 #			the path as its parameter)
 proc iterate_distfiles {func} {
-	global darwinports::portdbpath
-	iterate_distfiles_r $func [file join ${darwinports::portdbpath} distfiles]
+	global macports::portdbpath
+	iterate_distfiles_r $func [file join ${macports::portdbpath} distfiles]
 }
 
 # Check if the file is in the map and delete it otherwise.
@@ -122,8 +122,8 @@ proc iterate_walker {path} {
 
 # Open the database
 proc open_database args {
-	global darwinports::portdbpath distfiles_filemap
-	set path [file join ${darwinports::portdbpath} distfiles_mirror.db]
+	global macports::portdbpath distfiles_filemap
+	set path [file join ${macports::portdbpath} distfiles_mirror.db]
 	if {[file exists $path]} {
 		filemap open distfiles_filemap $path readonly
 	} else {

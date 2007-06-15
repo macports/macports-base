@@ -236,12 +236,10 @@
         ..
     ..
     var
-        db
-            dports
-                distfiles
-                ..
-                receipts
-                ..
+        macports
+            distfiles
+	    ..
+            receipts
             ..
         ..
     ..

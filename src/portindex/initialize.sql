@@ -3,7 +3,7 @@
 -- 29-Jan-2004
 -- kevin@opendarwin.org
 --
--- This file creates the tables for the DarwinPorts port index and should
+-- This file creates the tables for the MacPorts port index and should
 -- be executed before any subsequent portindex sql update files.
 
 CREATE TABLE ports (

@@ -1,9 +1,9 @@
-INSTALLDIR=	${DESTDIR}${prefix}/share/darwinports/resources/port1.0/group
+INSTALLDIR=	${DESTDIR}${prefix}/share/macports/resources/port1.0/group
 
 RSRCS=		gnustep-1.0.tcl perl5-1.0.tcl python-1.0.tcl python24-1.0.tcl python25-1.0.tcl ruby-1.0.tcl \
 		xcode-1.0.tcl zope-1.0.tcl
 
-include ../../../../Mk/dports.autoconf.mk
+include ../../../../Mk/macports.autoconf.mk
 
 all:
 

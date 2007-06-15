@@ -1,7 +1,7 @@
-DARWIN PORTS INTERNALS
+MacPorts Internals:
 
-The DarwinPorts system is composed of three TCL libraries:
-	darwinports - public API
+The MacPorts system is composed of three TCL libraries:
+	macports - public API
 	port - portfile parsing and execution
 	pextlib - necessary C extensions to TCL
 
@@ -9,36 +9,36 @@ The DarwinPorts system is composed of three TCL libraries:
 for complex versioning and have a provide/require model of use, making
 them well suited for maintaining a backwards compatable ports system.
 
-    The "darwinports" TCL Library provides a public API into the MarwinPorts
+    The "macports" TCL Library provides a public API into the MacPorts
 system. Any external application wishing to manipulate a port can
-load the "darwinports" TCL library. 'port', the included command line port
-utility, uses only the exported "darwinports" API.
+load the "macports" TCL library. 'port', the included command line port
+utility, uses only the exported "macports" API.
 
-    The "darwinports" API provides very simple primitives for dealing with
-ports (ie, dportexec/dportopen/dportget). Also, the API has very little
+    The "macports" API provides very simple primitives for dealing with
+ports (ie, mportexec/mportopen/mportget). Also, the API has very little
 knowledge of the contents of a portfile; instead, it relies entirely upon
 the "port" TCL library. By keeping the high level API simple and generic,
 a revision of the underlying ports system will not necessarily require
-a revision of the high level "darwinports" API.
+a revision of the high level "macports" API.
 
     TCL packages allow for complex versioning with a strong requires/provides
 model; this means that a revision of the API at any level will not break
 backwards compatibility.
 
-    When parsing a port, the "darwinports" library loads the Portfile into a
+    When parsing a port, the "macports" library loads the Portfile into a
 sub-interpreter. The "port" library and all port-specific code is run
 entirely within this sub-interpreter, and thus can never pollute the TCL
-space of other ports, the "darwinports" library, or the calling application.
+space of other ports, the "macports" library, or the calling application.
 
-    The "darwinports" library is also responsible for loading user specified
+    The "macports" library is also responsible for loading user specified
 options into the sub-interpreter to be evaluated by the "ports" library. In
 that case it sets the variable name in the sub-interpreter and adds the
 option to the sub-interpreter's global array user_options(). User options
-are passed as part of the call to dportopen.
+are passed as part of the call to mportopen.
 
-    The "port" TCL package provides all the primitives required for a darwin
+    The "port" TCL package provides all the primitives required for a mac
 portfile to be parsed, queried, and its actions executed. It also provides
-a single procedure call that the "darwinports" TCL package uses to kick off
+a single procedure call that the "macports" TCL package uses to kick off
 execution: "eval_targets".
 
     The port TCL package is loaded by every Portfile with the following line

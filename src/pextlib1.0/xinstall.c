@@ -33,7 +33,7 @@
  * 2003/12/29:
  *
  * Substantially revamped from original BSD source to become a Tcl builtin
- * procedure for the Opendarwin Project.
+ * procedure for the MacPorts Project.
  * Author: Jordan K. Hubbard
  */
 

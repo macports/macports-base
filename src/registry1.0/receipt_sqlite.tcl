@@ -32,7 +32,7 @@
 
 package provide receipt_sqlite 1.0
 
-package require darwinports 1.0
+package require macports 1.0
 
 ##
 # Receipts Code supporting flat-files

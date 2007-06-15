@@ -29,7 +29,7 @@ SVN="/opt/local/bin/svn -q --non-interactive --config-dir $SVN_CONFIG_DIR"
 SRCTREE=${ROOT}/source
 # Where MP will install its world. This gets created.
 PREFIX=${ROOT}/opt/local
-# Where MP installs darwinports1.0. This gets created.
+# Where MP installs macports1.0. This gets created.
 TCLPKG=${PREFIX}/lib/tcl
 # Path.
 PATH=${PREFIX}/bin:/bin:/usr/bin:/usr/sbin:/opt/local/bin
@@ -61,25 +61,25 @@ else
     exit 1
 fi
 
-# Checkout/update the dports tree
+# Checkout/update the ports tree
 if [ -d ${SRCTREE}/dports ]; then
     $SVN update ${SRCTREE}/dports > $FAILURE_LOG 2>&1 \
-        || { echo "Updating the dports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG; bail ; }
+	|| { echo "Updating the ports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG; bail ; }
 else
     $SVN checkout ${REPO_BASE}/trunk/dports ${SRCTREE}/dports > $FAILURE_LOG 2>&1 \
-        || { echo "Checking out the dports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG; bail ; }
+	|| { echo "Checking out the ports tree from $REPO_BASE/trunk/dports failed." >> $FAILURE_LOG ; bail ; }
 fi
+echo `date -u +%s` > ${ROOT}/PORTS-TIMESTAMP
 
 # Checkout/update HEAD
 TMPDIR=mp_trunk/base
 if [ -d ${ROOT}/${TMPDIR} ]; then
     $SVN update ${ROOT}/${TMPDIR} > $FAILURE_LOG 2>&1 \
-        || { echo "Updating the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
+	|| { echo "Updating the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
 else
     $SVN checkout ${REPO_BASE}/trunk/base ${ROOT}/${TMPDIR} > $FAILURE_LOG 2>&1 \
-        || { echo "Checking out the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
+       || { echo "Checking out the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG ; bail ; }
 fi
-echo `date -u +%s` > ${ROOT}/DPORTS-TIMESTAMP
 
 # Extract the release URL from HEAD
 read RELEASE_URL < ${ROOT}/${TMPDIR}/${RELEASE_URL_FILE}
@@ -87,11 +87,11 @@ read RELEASE_URL < ${ROOT}/${TMPDIR}/${RELEASE_URL_FILE}
 
 # Checkout/update the release base
 if [ -d ${SRCTREE}/base ]; then
-    $SVN switch ${RELEASE_URL}/base ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
-        || { echo "Updating base from ${RELEASE_URL}/base failed." >> $FAILURE_LOG; bail ; }
+    $SVN switch ${RELEASE_URL} ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
+	|| { echo "Updating base from ${RELEASE_URL} failed." >> $FAILURE_LOG; bail ; }
 else
-    $SVN checkout $RELEASE_URL/base ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
-        || { echo "Checking out base from ${RELEASE_URL}/base failed." >> $FAILURE_LOG ; bail ; }
+    $SVN checkout ${RELEASE_URL} ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
+	|| { echo "Checking out base from ${RELEASE_URL} failed." >> $FAILURE_LOG ; bail ; }
 fi
 echo `date -u +%s` > ${ROOT}/BASE-TIMESTAMP
 
@@ -132,4 +132,4 @@ grep Failed $FAILURE_LOG >> $COMMIT_MSG
     || { echo "SVN commit failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the index was committed successfuly, so we cleanup before we exit.
-cleanup
+cleanup && exit 0

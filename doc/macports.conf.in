@@ -1,30 +1,33 @@
-# Set the directory in which to install ports
-prefix			/tmp/macports-tests/opt/local
+# MacPorts system wide configuration file
+# $Id$
 
-# Where to store ports specific database files
-portdbpath		/tmp/macports-tests/opt/local/var/db/dports
+# Set the directory in which to install ports
+prefix			@prefix_expanded@
+
+# Where to store MacPorts working data
+portdbpath		@localstatedir_expanded@/macports
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"
 # NOTE: sqlite not yet supported.
 portdbformat		flat
 
-# Type of installation to do for ports, "direct" or "image".  See documentation.
+# Type of installation to do for ports, "direct" or "image".  See macports.conf(5) and online documentation.
 portinstalltype		image
 
 # Directory containing the X11 installation.
-x11prefix		/tmp/macports-tests/usr/X11R6
+x11prefix		/usr/X11R6
 
 # Where to find the sources list.
-sources_conf		/tmp/macports-tests/opt/local/etc/ports/sources.conf
+sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
 
 # Where to find global variants definition file (optional)
-#variants_conf		/opt/local/etc/ports/variants.conf
+variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 
 # Create and use binary archive packages for installation/reinstallation ease
 portarchivemode		no
 
 # Where to store/retrieve ports binary archive files
-portarchivepath		/tmp/macports-tests/opt/local/var/db/dports/packages
+portarchivepath		@localstatedir_expanded@/macports/packages
 
 # Type of binary archive packages to create when using archive mode
 #
@@ -34,23 +37,29 @@ portarchivepath		/tmp/macports-tests/opt/local/var/db/dports/packages
 # Unarchive uses multiple types as a search list to locate the archive,
 # first archive to match one of the specified types in order is used.
 #
-# Supported types: tgz (default), tar, tbz, xar, zip, cpgz, cpio
-portarchivetype		tbz
+# Supported types: tgz (default), tar, tbz, tbz2, xar, zip, cpgz, cpio
+portarchivetype		tgz
 
 # Set whether to automatically execute "clean" after "install" of ports
 portautoclean		yes
 
-# Rsync server to use
-rsync_server		rsync.opendarwin.org
+# Rsync server to fetch MacPorts sources from
+rsync_server		rsync.macports.org
 
-# Rsync directory from which to pull the base/ component (infrastructure) of DP
-rsync_dir			dpupdate1/base/
+# Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
+rsync_dir			release/base/
 
 # Rsync options
-rsync_options		"-rtzv --delete --delete-after"
+rsync_options		-rtzv --delete-after
+
+# Options for generated startup items
+# startupitem_type may be "default", "systemstarter", or "launchd";
+# if the option is empty or "default" then a startupitem type appropriate
+# to the platform will be chosen. Tiger will default to launchd, while
+# older Mac OS X systems will default to systemstarter.
+startupitem_type	default
 
 # Extra environment variables to keep. Any variables listed here are added
 # to the list of variables that are not removed from the environment used
 # while processing ports
-# extra_env                     KEEP_THIS THIS_TOO
-extra_env			ENVA ENVB
+# extra_env			KEEP_THIS THIS_TOO

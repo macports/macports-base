@@ -1,4 +1,4 @@
-# darwinports.tcl
+# macports.tcl
 # $Id$
 #
 # Copyright (c) 2002 Apple Computer, Inc.
@@ -31,26 +31,26 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-package provide darwinports 1.0
-package require darwinports_dlist 1.0
-package require darwinports_index 1.0
-package require darwinports_util 1.0
+package provide macports 1.0
+package require macports_dlist 1.0
+package require macports_index 1.0
+package require macports_util 1.0
 
-namespace eval darwinports {
-    namespace export bootstrap_options user_options portinterp_options open_dports ui_priorities
+namespace eval macports {
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
     	portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
     	rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
-    	mp_remote_url mp_remote_submit_url"
+        mp_remote_url mp_remote_submit_url"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
     	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type place_worksymlink \
-    	mp_remote_url mp_remote_submit_url \
+        mp_remote_url mp_remote_submit_url \
     	$user_options"
     
     # deferred options are only computed when needed.
@@ -58,7 +58,7 @@ namespace eval darwinports {
     # they are not exported to the interpreter in system_options array.
     variable portinterp_deferred_options "xcodeversion xcodebuildcmd"
 	
-    variable open_dports {}
+    variable open_mports {}
     
     variable ui_priorities "debug info msg error warn"
 }
@@ -76,7 +76,7 @@ namespace eval darwinports {
 # if these functions are not provided, defaults are used, but this should
 # not be relied upon for production code
 
-proc darwinports::ui_init {priority message} {
+proc macports::ui_init {priority message} {
 	# Get the list of channels.
 	if {[llength [info commands ui_channels]] > 0} {
 		set channels [ui_channels $priority]
@@ -112,7 +112,7 @@ proc darwinports::ui_init {priority message} {
 }
 
 # Defult implementation of ui_prefix
-proc darwinports::ui_prefix_default {priority} {
+proc macports::ui_prefix_default {priority} {
 	switch $priority {
 		debug {
 			return "DEBUG: "
@@ -130,7 +130,7 @@ proc darwinports::ui_prefix_default {priority} {
 }
 
 # Default implementation of ui_channels
-proc darwinports::ui_channels_default {priority} {
+proc macports::ui_channels_default {priority} {
     switch $priority {
         debug -
         info {
@@ -148,8 +148,8 @@ proc darwinports::ui_channels_default {priority} {
     }
 }
 
-foreach priority ${darwinports::ui_priorities} {
-    proc ui_$priority {str} [subst { darwinports::ui_init $priority \$str }]
+foreach priority ${macports::ui_priorities} {
+    proc ui_$priority {str} [subst { macports::ui_init $priority \$str }]
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
@@ -158,33 +158,45 @@ proc puts {args} {
 	catch "tcl::puts $args"
 }
 
-# check for a binary in the path
-# returns an error code if it can not be found
-# copied from portutil.tcl
-proc darwinports::binaryInPath {binary} {
-    global env
-    foreach dir [split $env(PATH) :] { 
-	if {[file executable [file join $dir $binary]]} {
-	    return [file join $dir $binary]
+# find a binary either in a path defined at MacPorts' configuration time
+# or in the PATH environment variable through macports::binaryInPath (fallback)
+proc macports::findBinary {prog {autoconf_hint ""}} {
+    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
+	return ${autoconf_hint}
+    } else {
+	if {[catch {set cmd_path [macports::binaryInPath ${prog}]} result] == 0} {
+	    return ${cmd_path}
+	} else {
+	    return -code error "${result} or at its MacPorts configuration time location, did you move it?"
 	}
     }
-    
-    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
+}
+
+# check for a binary in the path
+# returns an error code if it can not be found
+proc macports::binaryInPath {prog} {
+    global env
+    foreach dir [split $env(PATH) :] { 
+	if {[file executable [file join $dir $prog]]} {
+	    return [file join $dir $prog]
+	}
+    }
+    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $prog $env(PATH)];
 }
 
 # deferred option processing
-proc darwinports::getoption {name} {
-	global darwinports::$name
+proc macports::getoption {name} {
+	global macports::$name
 	return [expr $$name]
 }
 
 # deferred and on-need extraction of xcodeversion and xcodebuildcmd.
-proc darwinports::setxcodeinfo {name1 name2 op} {
-	global darwinports::xcodeversion
-	global darwinports::xcodebuildcmd
+proc macports::setxcodeinfo {name1 name2 op} {
+	global macports::xcodeversion
+	global macports::xcodebuildcmd
 	
-	trace remove variable darwinports::xcodeversion read darwinports::setxcodeinfo
-	trace remove variable darwinports::xcodebuildcmd read darwinports::setxcodeinfo
+	trace remove variable macports::xcodeversion read macports::setxcodeinfo
+	trace remove variable macports::xcodebuildcmd read macports::setxcodeinfo
 
 	if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
 		if {![info exists xcodeversion]} {
@@ -193,40 +205,40 @@ proc darwinports::setxcodeinfo {name1 name2 op} {
 				if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
 					if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
 						# for now, we don't need to distinguish 2.1 from 2.1 or higher.
-						set darwinports::xcodeversion "2.1"
+						set macports::xcodeversion "2.1"
 					} else {
-						set darwinports::xcodeversion "2.0orlower"
+						set macports::xcodeversion "2.0orlower"
 					}
 				} else {
-					set darwinports::xcodeversion "2.0orlower"
+					set macports::xcodeversion "2.0orlower"
 				}
 			} else {
-				set darwinports::xcodeversion "2.0orlower"
+				set macports::xcodeversion "2.0orlower"
 			}
 		}
 		
 		if {![info exists xcodebuildcmd]} {
-			set darwinports::xcodebuildcmd "xcodebuild"
+			set macports::xcodebuildcmd "xcodebuild"
 		}
 	} elseif {[catch {set pbxbuild [binaryInPath "pbxbuild"]}] == 0} {
 		if {![info exists xcodeversion]} {
-			set darwinports::xcodeversion "pb"
+			set macports::xcodeversion "pb"
 		}
 		if {![info exists xcodebuildcmd]} {
-			set darwinports::xcodebuildcmd "pbxbuild"
+			set macports::xcodebuildcmd "pbxbuild"
 		}
 	} else {
 		if {![info exists xcodeversion]} {
-			set darwinports::xcodeversion "none"
+			set macports::xcodeversion "none"
 		}
 		if {![info exists xcodebuildcmd]} {
-			set darwinports::xcodebuildcmd "none"
+			set macports::xcodebuildcmd "none"
 		}
 	}
 }
 
 
-proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	if {$up_ui_options eq ""} {
 		array set ui_options {}
 	} else {
@@ -244,58 +256,58 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
 	global auto_path env
-	global darwinports::autoconf::dports_conf_path
-	global darwinports::macports_user_dir
-	global darwinports::bootstrap_options
-	global darwinports::user_options
-	global darwinports::extra_env
-	global darwinports::portconf
-	global darwinports::portdbpath
-	global darwinports::portsharepath
-	global darwinports::registry.format
-	global darwinports::registry.path
-	global darwinports::sources
-	global darwinports::sources_conf
-   	global darwinports::destroot_umask
-   	global darwinports::libpath
-   	global darwinports::prefix
-   	global darwinports::prefix_frozen
-   	global darwinports::registry.installtype
-   	global darwinports::rsync_dir
-   	global darwinports::rsync_options
-   	global darwinports::rsync_server
-   	global darwinports::variants_conf
-   	global darwinports::xcodebuildcmd
-   	global darwinports::xcodeversion
-    
-    # Set the system encoding to utf-8
-    encoding system utf-8
-   	
-    # Ensure that the macports user directory exists if HOME is defined
-    if {[info exists env(HOME)]} {
-	    set darwinports::macports_user_dir [file normalize $darwinports::autoconf::macports_user_dir]
-		if { ![file exists $macports_user_dir] } {
-			# If not, create it with ownership of the enclosing directory, rwx by the user only
-			file mkdir $macports_user_dir 
-			file attributes $macports_user_dir -permissions u=rwx,go= \
-											   -owner [file attributes $macports_user_dir/.. -owner] \
-											   -group [file attributes $macports_user_dir/.. -group]
-		}
+	global macports::autoconf::macports_conf_path
+        global macports::macports_user_dir
+	global macports::bootstrap_options
+	global macports::user_options
+	global macports::extra_env
+	global macports::portconf
+	global macports::portdbpath
+	global macports::portsharepath
+	global macports::registry.format
+	global macports::registry.path
+	global macports::sources
+	global macports::sources_conf
+   	global macports::destroot_umask
+   	global macports::libpath
+   	global macports::prefix
+        global macports::prefix_frozen
+   	global macports::registry.installtype
+   	global macports::rsync_dir
+   	global macports::rsync_options
+   	global macports::rsync_server
+   	global macports::variants_conf
+   	global macports::xcodebuildcmd
+   	global macports::xcodeversion
+
+        # Set the system encoding to utf-8
+        encoding system utf-8
+
+        # Ensure that the macports user directory exists if HOME is defined
+        if {[info exists env(HOME)]} {
+	    set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
+	    if { ![file exists $macports_user_dir] } {
+		# If not, create it with ownership of the enclosing directory, rwx by the user only
+		file mkdir $macports_user_dir
+		file attributes $macports_user_dir -permissions u=rwx,go= \
+		    -owner [file attributes $macports_user_dir/.. -owner] \
+		    -group [file attributes $macports_user_dir/.. -group]
+	    }
 	} else {
-		# Otherwise define the user directory as a direcotory that will never exist
-		set darwinports::macports_user_dir "/dev/null/NO_HOME_DIR" 
+	    # Otherwise define the user directory as a direcotory that will never exist
+	    set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
 	}
-	
+   	
    	# Configure the search path for configuration files
    	set conf_files ""
-    if {[info exists env(PORTSRC)]} {
-		set PORTSRC $env(PORTSRC)
-		lappend conf_files ${PORTSRC}
-    }
+        if {[info exists env(PORTSRC)]} {
+	    set PORTSRC $env(PORTSRC)
+	    lappend conf_files ${PORTSRC}
+	}
     if { [file isdirectory macports_user_dir] } {
- 		lappend conf_files "${macports_user_dir}/ports.conf"
- 	}
-    lappend conf_files "${dports_conf_path}/ports.conf"
+	lappend conf_files "${macports_user_dir}/macports.conf"
+    }
+    lappend conf_files "${macports_conf_path}/macports.conf"
     
     # Process the first configuration file we find on conf_files list
 	foreach file $conf_files {
@@ -304,13 +316,9 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 			set fd [open $file r]
 			while {[gets $fd line] >= 0} {
 				if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
-					if {[regexp {^"(.*)"[ \t]*$} $val match val2] == 1} {
-						# Nasty hack for malformed rsync_options in ports.conf
-						set val $val2
-					}
 					if {[lsearch $bootstrap_options $option] >= 0} {
-						set darwinports::$option $val
-						global darwinports::$option
+						set macports::$option $val
+						global macports::$option
 					}
 				}
 			}
@@ -320,42 +328,42 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 	
 	# Process per-user only settings
-	set per_user "${macports_user_dir}/user.conf"
+        set per_user "${macports_user_dir}/user.conf"
 	if [file exists $per_user] {
 		set fd [open $per_user r]
 		while {[gets $fd line] >= 0} {
 			if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
 				if {[lsearch $user_options $option] >= 0} {
-					set darwinports::$option $val
-					global darwinports::$option
+					set macports::$option $val
+					global macports::$option
 				}
 			}
 		}
 	}
 	
     if {![info exists sources_conf]} {
-        return -code error "sources_conf must be set in $dports_conf_path/ports.conf or in $macports_user_dir/ports.conf"
+        return -code error "sources_conf must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf file"
     }
     set fd [open $sources_conf r]
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-        if {![regexp {^\s*#|^$} $line]} {
-            if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
-                set flags [split $flags ,]
-                foreach flag $flags {
-                    if {[lsearch -exact [list nosync] $flag] == -1} {
-                        ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
-                    }
-                }
-                lappend sources [concat [list $url] $flags]
-            } else {
-                ui_warn "$sources_conf specifies invalid source '$line', ignored."
-            }
-        }
+	if {![regexp {^\s*#|^$} $line]} {
+	    if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+		set flags [split $flags ,]
+		foreach flag $flags {
+		    if {[lsearch -exact [list nosync] $flag] == -1} {
+			ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+		    }
+		}
+		lappend sources [concat [list $url] $flags]
+	    } else {
+		ui_warn "$sources_conf specifies invalid source '$line', ignored."
+	    }
+	}
     }
     if {![info exists sources]} {
-	if {[file isdirectory dports]} {
-	    set sources "file://[pwd]/dports"
+	if {[file isdirectory ports]} {
+	    set sources "file://[pwd]/ports"
 	} else {
 	    return -code error "No sources defined in $sources_conf"
 	}
@@ -363,7 +371,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 	if {[info exists variants_conf]} {
 		if {[file exist $variants_conf]} {
-			set fd [open $variants_conf r]
+		        set fd [open $variants_conf r]
 			while {[gets $fd line] >= 0} {
 				set line [string trimright $line]
 				if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -384,7 +392,7 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	}
 
     if {![info exists portdbpath]} {
-	return -code error "portdbpath must be set in $dports_conf_path/ports.conf or in your $macports_user_dir/ports.conf"
+	return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
     }
     if {![file isdirectory $portdbpath]} {
 	if {![file exists $portdbpath]} {
@@ -405,8 +413,8 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	    }
 	}
     }
-    if {![file isdirectory ${darwinports::registry.path}]} {
-	return -code error "${darwinports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
+    if {![file isdirectory ${macports::registry.path}]} {
+	return -code error "${macports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
     }
 
 	# Format for receipts, can currently be either "flat" or "sqlite"
@@ -428,52 +436,52 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
 	# Autoclean mode, whether to automatically call clean after "install"
 	if {![info exists portautoclean]} {
-		set darwinports::portautoclean "yes"
-		global darwinports::portautoclean
+		set macports::portautoclean "yes"
+		global macports::portautoclean
 	}
 	# Check command line override for autoclean
 	if {[info exists options(ports_autoclean)]} {
 		if {![string equal $options(ports_autoclean) $portautoclean]} {
-			set darwinports::portautoclean $options(ports_autoclean)
+			set macports::portautoclean $options(ports_autoclean)
 		}
 	}
 	# Trace mode, whether to use darwintrace to debug ports.
 	if {![info exists porttrace]} {
-		set darwinports::porttrace "no"
-		global darwinports::porttrace
+		set macports::porttrace "no"
+		global macports::porttrace
 	}
 	# Check command line override for trace
 	if {[info exists options(ports_trace)]} {
 		if {![string equal $options(ports_trace) $porttrace]} {
-			set darwinports::porttrace $options(ports_trace)
+			set macports::porttrace $options(ports_trace)
 		}
 	}
 
-    # Duplicate prefix into prefix_frozen, to that port actions
-    # can always get to the original prefix, even if a portfile overrides prefix
-    set darwinports::prefix_frozen $prefix
-    
+        # Duplicate prefix into prefix_frozen, so that port actions
+        # can always get to the original prefix, even if a portfile overrides prefix
+        set macports::prefix_frozen $prefix
+
 	# Export verbosity.
 	if {![info exists portverbose]} {
-		set darwinports::portverbose "no"
-		global darwinports::portverbose
+		set macports::portverbose "no"
+		global macports::portverbose
 	}
 	if {[info exists ui_options(ports_verbose)]} {
 		if {![string equal $ui_options(ports_verbose) $portverbose]} {
-			set darwinports::portverbose $ui_options(ports_verbose)
+			set macports::portverbose $ui_options(ports_verbose)
 		}
 	}
 
 	# Archive mode, whether to create/use binary archive packages
 	if {![info exists portarchivemode]} {
-		set darwinports::portarchivemode "yes"
-		global darwinports::portarchivemode
+		set macports::portarchivemode "yes"
+		global macports::portarchivemode
 	}
 
 	# Archive path, where to store/retrieve binary archive packages
 	if {![info exists portarchivepath]} {
-		set darwinports::portarchivepath [file join $portdbpath packages]
-		global darwinports::portarchivepath
+		set macports::portarchivepath [file join $portdbpath packages]
+		global macports::portarchivepath
 	}
 	if {$portarchivemode == "yes"} {
 		if {![file isdirectory $portarchivepath]} {
@@ -491,35 +499,35 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	# Archive type, what type of binary archive to use (CPIO, gzipped
 	# CPIO, XAR, etc.)
 	if {![info exists portarchivetype]} {
-		set darwinports::portarchivetype "cpgz"
-		global darwinports::portarchivetype
+		set macports::portarchivetype "cpgz"
+		global macports::portarchivetype
 	}
 	# Convert archive type to a list for multi-archive support, colon or
 	# comma separators indicates to use multiple archive formats
 	# (reading and writing)
-	set darwinports::portarchivetype [split $portarchivetype {:,}]
+	set macports::portarchivetype [split $portarchivetype {:,}]
 
 	# Set rync options
 	if {![info exists rsync_server]} {
-		set darwinports::rsync_server rsync.darwinports.org
-		global darwinports::rsync_server
+		set macports::rsync_server rsync.macports.org
+		global macports::rsync_server
 	}
 	if {![info exists rsync_dir]} {
-		set darwinports::rsync_dir dpupdate1/base/
-		global darwinports::rsync_dir
+		set macports::rsync_dir release/base/
+		global macports::rsync_dir
 	}
 	if {![info exists rsync_options]} {
-		set rsync_options "-rtzv --delete --delete-after"
-		global darwinports::rsync_options
+		set rsync_options "-rtzv --delete-after"
+		global macports::rsync_options
 	}
 
-    set portsharepath ${prefix}/share/darwinports
+    set portsharepath ${prefix}/share/macports
     if {![file isdirectory $portsharepath]} {
 	return -code error "Data files directory '$portsharepath' must exist"
     }
     
     if {![info exists libpath]} {
-	set libpath "${prefix}/share/darwinports/Tcl"
+	set libpath "${prefix}/share/macports/Tcl"
     }
 
     if {![info exists binpath]} {
@@ -529,21 +537,21 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # Set startupitem default type (can be overridden by portfile)
-    if {![info exists darwinports::startupitem_type]} {
-    	set darwinports::startupitem_type "default"
+    if {![info exists macports::startupitem_type]} {
+    	set macports::startupitem_type "default"
     }
-    
+
     # Default place_worksymlink
-    if {![info exists darwinports::place_worksymlink]} {
-    	set darwinports::place_worksymlink yes
+    if {![info exists macports::place_worksymlink]} {
+	set macports::place_worksymlink yes
     }
-    
+
     # Default mp remote options
-    if {![info exists darwinports::mp_remote_url]} {
-    	set darwinports::mp_remote_url "http://db.macports.org"
+    if {![info exists macports::mp_remote_url]} {
+	set macports::mp_remote_url "http://db.macports.org"
     }
-    if {![info exists darwinports::mp_remote_submit_url]} {
-    	set darwinports::mp_remote_submit_url "${darwinports::mp_remote_url}/submit"
+    if {![info exists macports::mp_remote_submit_url]} {
+	set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
     }
     
     # ENV cleanup.
@@ -568,8 +576,8 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 	if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
 		# We'll resolve these later (if needed)
-		trace add variable darwinports::xcodeversion read darwinports::setxcodeinfo
-		trace add variable darwinports::xcodebuildcmd read darwinports::setxcodeinfo
+		trace add variable macports::xcodeversion read macports::setxcodeinfo
+		trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
 	}
 
     # Set the default umask
@@ -591,11 +599,11 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     if {[file isdirectory $libpath]} {
 		lappend auto_path $libpath
-		set darwinports::auto_path $auto_path
+		set macports::auto_path $auto_path
 
 		# XXX: not sure if this the best place, but it needs to happen
 		# early, and after auto_path has been set.  Or maybe Pextlib
-		# should ship with darwinports1.0 API?
+		# should ship with macports1.0 API?
 		package require Pextlib 1.0
 		package require registry 1.0
     } else {
@@ -603,8 +611,8 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 }
 
-proc darwinports::worker_init {workername portpath portbuildpath options variations} {
-    global darwinports::portinterp_options darwinports::portinterp_deferred_options registry.installtype
+proc macports::worker_init {workername portpath portbuildpath options variations} {
+    global macports::portinterp_options macports::portinterp_deferred_options registry.installtype
 
 	# Tell the sub interpreter about all the Tcl packages we already
 	# know about so it won't glob for packages.
@@ -620,21 +628,21 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 			package require port \$version \}"
 
     # Clearly separate slave interpreters and the master interpreter.
-	$workername alias dport_exec dportexec
-	$workername alias dport_open dportopen
-	$workername alias dport_close dportclose
-	$workername alias dport_search dportsearch
+	$workername alias mport_exec mportexec
+	$workername alias mport_open mportopen
+	$workername alias mport_close mportclose
+	$workername alias mport_search mportsearch
 
     # instantiate the UI call-backs
-	foreach priority ${darwinports::ui_priorities} {
+	foreach priority ${macports::ui_priorities} {
 		$workername alias ui_$priority ui_$priority
 	}
 	$workername alias ui_prefix ui_prefix
 	$workername alias ui_channels ui_channels
     
     # Export some utility functions defined here.
-    $workername alias darwinports_create_thread darwinports::create_thread
-    $workername alias getportworkpath_from_buildpath darwinports::getportworkpath_from_buildpath
+    $workername alias macports_create_thread macports::create_thread
+    $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
 
 	# New Registry/Receipts stuff
 	$workername alias registry_new registry::new_entry
@@ -653,11 +661,11 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 	$workername alias registry_active registry::active
 
 	# deferred options processing.
-	$workername alias getoption darwinports::getoption
+	$workername alias getoption macports::getoption
 
     foreach opt $portinterp_options {
 		if {![info exists $opt]} {
-		    global darwinports::$opt
+		    global macports::$opt
 		}
         if {[info exists $opt]} {
             $workername eval set system_options($opt) \{[set $opt]\}
@@ -666,7 +674,7 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
     }
     
 	foreach opt $portinterp_deferred_options {
-		global darwinports::$opt
+		global macports::$opt
 		# define the trace hook.
 		$workername eval \
 			"proc trace_$opt {name1 name2 op} { \n\
@@ -697,10 +705,10 @@ proc darwinports::worker_init {workername portpath portbuildpath options variati
 # Create a thread with most configuration options set.
 # The newly created thread is sent portinterp_options vars and knows where to
 # find all packages we know.
-proc darwinports::create_thread {} {
+proc macports::create_thread {} {
     package require Thread
 
-    global darwinports::portinterp_options
+    global macports::portinterp_options
 
 	# Create the thread.
 	set result [thread::create -preserved {thread::wait}]
@@ -715,23 +723,23 @@ proc darwinports::create_thread {} {
 	}
 
 	# inherit configuration variables.
-	thread::send -async $result "namespace eval darwinports {}"
+	thread::send -async $result "namespace eval macports {}"
 	foreach opt $portinterp_options {
 		if {![info exists $opt]} {
-			global darwinports::$opt
+			global macports::$opt
 		}
         if {[info exists $opt]} {
-			thread::send -async $result "global darwinports::$opt"
-			set val [set darwinports::$opt]
-			thread::send -async $result "set darwinports::$opt \"$val\""
+			thread::send -async $result "global macports::$opt"
+			set val [set macports::$opt]
+			thread::send -async $result "set macports::$opt \"$val\""
 		}
 	}
 	
 	return $result
 }
 
-proc darwinports::fetch_port {url} {
-    global darwinports::portdbpath tcl_platform
+proc macports::fetch_port {url} {
+    global macports::portdbpath tcl_platform
     set fetchdir [file join $portdbpath portdirs]
     set fetchfile [file tail $url]
     file mkdir $fetchdir
@@ -751,7 +759,7 @@ proc darwinports::fetch_port {url} {
     return [file join $fetchdir $portdir]
 }
 
-proc darwinports::getprotocol {url} {
+proc macports::getprotocol {url} {
     if {[regexp {(?x)([^:]+)://.+} $url match protocol] == 1} {
         return ${protocol}
     } else {
@@ -762,18 +770,18 @@ proc darwinports::getprotocol {url} {
 # XXX: this really needs to be rethought in light of the remote index
 # I've added the destdir parameter.  This is the location a remotely
 # fetched port will be downloaded to (currently only applies to
-# dports:// sources).
-proc darwinports::getportdir {url {destdir "."}} {
+# mports:// sources).
+proc macports::getportdir {url {destdir "."}} {
 	if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
 		switch -regexp -- ${protocol} {
 			{^file$} {
-				return [file normalize $string]
+			    return [file normalize $string]
 			}
-			{^dports$} {
-				return [darwinports::index::fetch_port $url $destdir]
+			{^mports$} {
+				return [macports::index::fetch_port $url $destdir]
 			}
 			{^https?$|^ftp$} {
-				return [darwinports::fetch_port $url]
+				return [macports::fetch_port $url]
 			}
 			default {
 				return -code error "Unsupported protocol $protocol"
@@ -784,28 +792,28 @@ proc darwinports::getportdir {url {destdir "."}} {
 	}
 }
 
-# dportopen
-# Opens a DarwinPorts portfile specified by a URL.  The portfile is
+# mportopen
+# Opens a MacPorts portfile specified by a URL.  The Portfile is
 # opened with the given list of options and variations.  The result
 # of this function should be treated as an opaque handle to a
-# DarwinPorts Portfile.
+# MacPorts Portfile.
 
-proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
-    global darwinports::portdbpath darwinports::portconf darwinports::open_dports auto_path
+proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
+    global macports::portdbpath macports::portconf macports::open_mports auto_path
 
-	# Look for an already-open DPort with the same URL.
+	# Look for an already-open MPort with the same URL.
 	# XXX: should compare options and variations here too.
 	# if found, return the existing reference and bump the refcount.
 	if {$nocache != ""} {
-		set dport {}
+		set mport {}
 	} else {
-		set dport [dlist_search $darwinports::open_dports porturl $porturl]
+		set mport [dlist_search $macports::open_mports porturl $porturl]
 	}
-	if {$dport != {}} {
-		set refcnt [ditem_key $dport refcnt]
+	if {$mport != {}} {
+		set refcnt [ditem_key $mport refcnt]
 		incr refcnt
-		ditem_key $dport refcnt $refcnt
-		return $dport
+		ditem_key $mport refcnt $refcnt
+		return $mport
 	}
 
 	array set options_array $options
@@ -815,7 +823,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 		set portdir ""
 	}
 
-	set portpath [darwinports::getportdir $porturl $portdir]
+	set portpath [macports::getportdir $porturl $portdir]
 	ui_debug "Changing to port directory: $portpath"
 	cd $portpath
     if {![file isfile Portfile]} {
@@ -824,28 +832,28 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 
 	set workername [interp create]
 
-	set dport [ditem_create]
-	lappend darwinports::open_dports $dport
-	ditem_key $dport porturl $porturl
-	ditem_key $dport portpath $portpath
-	ditem_key $dport workername $workername
-	ditem_key $dport options $options
-	ditem_key $dport variations $variations
-	ditem_key $dport refcnt 1
+	set mport [ditem_create]
+	lappend macports::open_mports $mport
+	ditem_key $mport porturl $porturl
+	ditem_key $mport portpath $portpath
+	ditem_key $mport workername $workername
+	ditem_key $mport options $options
+	ditem_key $mport variations $variations
+	ditem_key $mport refcnt 1
 	
-    darwinports::worker_init $workername $portpath [darwinports::getportbuildpath $portpath] $options $variations
+    macports::worker_init $workername $portpath [macports::getportbuildpath $portpath] $options $variations
 
     $workername eval source Portfile
-    
+
     # evaluate the variants
-	if {[$workername eval eval_variants variations] != 0} {
-	    dportclose $dport
-		error "Error evaluating variants"
-	}
+    if {[$workername eval eval_variants variations] != 0} {
+	mportclose $mport
+	error "Error evaluating variants"
+    }
 
-    ditem_key $dport provides [$workername eval return \$portname]
+    ditem_key $mport provides [$workername eval return \$portname]
 
-    return $dport
+    return $mport
 }
 
 # Traverse a directory with ports, calling a function on the path of ports
@@ -857,7 +865,7 @@ proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
 # func:		function to call on every port directory (it is passed
 #			category/port/ as its parameter)
 # root:		the directory with all the categories directories.
-proc dporttraverse {func {root .}} {
+proc mporttraverse {func {root .}} {
 	# Save the current directory
 	set pwd [pwd]
 	
@@ -890,13 +898,13 @@ proc dporttraverse {func {root .}} {
 	cd $pwd
 }
 
-### _dportsearchpath is private; subject to change without notice
+### _mportsearchpath is private; subject to change without notice
 
 # depregex -> regex on the filename to find.
 # search_path -> directories to search
 # executable -> whether we want to check that the file is executable by current
 #				user or not.
-proc _dportsearchpath {depregex search_path {executable 0}} {
+proc _mportsearchpath {depregex search_path {executable 0}} {
     set found 0
     foreach path $search_path {
 	if {![file isdirectory $path]} {
@@ -930,10 +938,10 @@ proc _dportsearchpath {depregex search_path {executable 0}} {
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
-proc _libtest {dport depspec} {
+proc _libtest {mport depspec} {
     global env tcl_platform
 	set depline [lindex [split $depspec :] 1]
-	set prefix [_dportkey $dport prefix]
+	set prefix [_mportkey $mport prefix]
 	
 	if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
 	    lappend search_path $env(DYLD_FRAMEWORK_PATH)
@@ -962,29 +970,29 @@ proc _libtest {dport depspec} {
 		set depregex \^${depname}\\.so${depversion}\$
 	}
 
-	return [_dportsearchpath $depregex $search_path]
+	return [_mportsearchpath $depregex $search_path]
 }
 
 ### _bintest is private; subject to change without notice
 
-proc _bintest {dport depspec} {
+proc _bintest {mport depspec} {
     global env
 	set depregex [lindex [split $depspec :] 1]
-	set prefix [_dportkey $dport prefix] 
+	set prefix [_mportkey $mport prefix] 
 	
 	set search_path [split $env(PATH) :]
 	
 	set depregex \^$depregex\$
 	
-	return [_dportsearchpath $depregex $search_path 1]
+	return [_mportsearchpath $depregex $search_path 1]
 }
 
 ### _pathtest is private; subject to change without notice
 
-proc _pathtest {dport depspec} {
+proc _pathtest {mport depspec} {
     global env
 	set depregex [lindex [split $depspec :] 1]
-	set prefix [_dportkey $dport prefix] 
+	set prefix [_mportkey $mport prefix] 
     
 	# separate directory from regex
 	set fullname $depregex
@@ -998,81 +1006,81 @@ proc _pathtest {dport depspec} {
 
 	set depregex \^$depregex\$
 
-	return [_dportsearchpath $depregex $search_path]
+	return [_mportsearchpath $depregex $search_path]
 }
 
 ### _porttest is private; subject to change without notice
 
-proc _porttest {dport depspec} {
+proc _porttest {mport depspec} {
 	# We don't actually look for the port, but just return false
-	# in order to let the dportdepends handle the dependency
+	# in order to let the mportdepends handle the dependency
 	return 0
 }
 
-### _dportinstalled is private; may change without notice
+### _mportinstalled is private; may change without notice
 
 # Determine if a port is already *installed*, as in "in the registry".
-proc _dportinstalled {dport} {
+proc _mportinstalled {mport} {
 	# Check for the presense of the port in the registry
-	set workername [ditem_key $dport workername]
+	set workername [ditem_key $mport workername]
 	set res [$workername eval registry_exists \${portname} \${portversion}]
 	if {$res != 0} {
-		ui_debug "[ditem_key $dport provides] is installed"
+		ui_debug "[ditem_key $mport provides] is installed"
 		return 1
 	} else {
 		return 0
 	}
 }
 
-### _dportispresent is private; may change without notice
+### _mportispresent is private; may change without notice
 
 # Determine if some depspec is satisfied or if the given port is installed.
 # We actually start with the registry (faster?)
 #
-# dport		the port to test (to figure out if it's present)
+# mport		the port to test (to figure out if it's present)
 # depspec	the dependency test specification (path, bin, lib, etc.)
-proc _dportispresent {dport depspec} {
+proc _mportispresent {mport depspec} {
 	# Check for the presense of the port in the registry
-	set workername [ditem_key $dport workername]
-	ui_debug "Searching for dependency: [ditem_key $dport provides]"
+	set workername [ditem_key $mport workername]
+	ui_debug "Searching for dependency: [ditem_key $mport provides]"
 	if {[catch {set reslist [$workername eval registry_installed \${portname}]} res]} {
 		set res 0
 	} else {
 		set res [llength $reslist]
 	}
 	if {$res != 0} {
-		ui_debug "Found Dependency: receipt exists for [ditem_key $dport provides]"
+		ui_debug "Found Dependency: receipt exists for [ditem_key $mport provides]"
 		return 1
 	} else {
 		# The receipt test failed, use one of the depspec regex mechanisms
-		ui_debug "Didn't find receipt, going to depspec regex for: [ditem_key $dport provides]"
+		ui_debug "Didn't find receipt, going to depspec regex for: [ditem_key $mport provides]"
 		set type [lindex [split $depspec :] 0]
 		switch $type {
-			lib { return [_libtest $dport $depspec] }
-			bin { return [_bintest $dport $depspec] }
-			path { return [_pathtest $dport $depspec] }
-			port { return [_porttest $dport $depspec] }
+			lib { return [_libtest $mport $depspec] }
+			bin { return [_bintest $mport $depspec] }
+			path { return [_pathtest $mport $depspec] }
+			port { return [_porttest $mport $depspec] }
 			default {return -code error "unknown depspec type: $type"}
 		}
 		return 0
 	}
 }
 
-### _dportexec is private; may change without notice
+### _mportexec is private; may change without notice
 
-proc _dportexec {target dport} {
+proc _mportexec {target mport} {
 	# xxx: set the work path?
-	set workername [ditem_key $dport workername]
+	set workername [ditem_key $mport workername]
 	if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
 		![catch {$workername eval eval_targets $target} result] && $result == 0} {
 		# If auto-clean mode, clean-up after dependency install
-		if {[string equal ${darwinports::portautoclean} "yes"]} {
+		if {[string equal ${macports::portautoclean} "yes"]} {
 			# Make sure we are back in the port path before clean
 			# otherwise if the current directory had been changed to
 			# inside the port,  the next port may fail when trying to
 			# install because [pwd] will return a "no file or directory"
 			# error since the directory it was in is now gone.
-			set portpath [ditem_key $dport portpath]
+			set portpath [ditem_key $mport portpath]
 			catch {cd $portpath}
 			$workername eval eval_targets clean
 		}
@@ -1083,14 +1091,14 @@ proc _dportexec {target dport} {
 	}
 }
 
-# dportexec
-# Execute the specified target of the given dport.
+# mportexec
+# Execute the specified target of the given mport.
 
-proc dportexec {dport target} {
-    global darwinports::registry.installtype
+proc mportexec {mport target} {
+    global macports::registry.installtype
 
-	set workername [ditem_key $dport workername]
-	
+	set workername [ditem_key $mport workername]
+
 	# check variants
 	if {[$workername eval check_variants variations $target] != 0} {
 		return 1
@@ -1110,23 +1118,23 @@ proc dportexec {dport target} {
 		|| $target == "pkg" || $target == "mpkg"
 		|| $target == "rpmpackage" || $target == "dpkg" } {
 
-		if {[dportdepends $dport $target] != 0} {
+		if {[mportdepends $mport $target] != 0} {
 			return 1
 		}
 		
 		# Select out the dependents along the critical path,
-		# but exclude this dport, we might not be installing it.
-		set dlist [dlist_append_dependents $darwinports::open_dports $dport {}]
+		# but exclude this mport, we might not be installing it.
+		set dlist [dlist_append_dependents $macports::open_mports $mport {}]
 		
-		dlist_delete dlist $dport
+		dlist_delete dlist $mport
 
 		# install them
 		# xxx: as with below, this is ugly.  and deps need to be fixed to
 		# understand Port Images before this can get prettier
-		if { [string equal ${darwinports::registry.installtype} "image"] } {
-			set result [dlist_eval $dlist _dportinstalled [list _dportexec "activate"]]
+		if { [string equal ${macports::registry.installtype} "image"] } {
+			set result [dlist_eval $dlist _mportinstalled [list _mportexec "activate"]]
 		} else {
-			set result [dlist_eval $dlist _dportinstalled [list _dportexec "install"]]
+			set result [dlist_eval $dlist _mportinstalled [list _mportexec "install"]]
 		}
 		
 		if {$result != {}} {
@@ -1140,19 +1148,19 @@ proc dportexec {dport target} {
 		
 		# Close the dependencies, we're done installing them.
 		foreach ditem $dlist {
-			dportclose $ditem
+			mportclose $ditem
 		}
 	}
 
 	# If we're doing an install, check if we should clean after
 	set clean 0
-	if {[string equal ${darwinports::portautoclean} "yes"] && [string equal $target "install"] } {
+	if {[string equal ${macports::portautoclean} "yes"] && [string equal $target "install"] } {
 		set clean 1
 	}
 
 	# If we're doing image installs, then we should activate after install
 	# xxx: This isn't pretty
-	if { [string equal ${darwinports::registry.installtype} "image"] && [string equal $target "install"] } {
+	if { [string equal ${macports::registry.installtype} "image"] && [string equal $target "install"] } {
 		set target activate
 	}
 	
@@ -1162,7 +1170,7 @@ proc dportexec {dport target} {
 	# If auto-clean mode and successful install, clean-up after install
 	if {$result == 0 && $clean == 1} {
 		# Make sure we are back in the port path, just in case
-		set portpath [ditem_key $dport portpath]
+		set portpath [ditem_key $mport portpath]
 		catch {cd $portpath}
 		$workername eval eval_targets clean
 	}
@@ -1170,183 +1178,180 @@ proc dportexec {dport target} {
 	return $result
 }
 
-proc darwinports::getsourcepath {url} {
-	global darwinports::portdbpath
-	regsub {://} $url {.} source_path
-	regsub -all {/} $source_path {_} source_path
-	return [file join $portdbpath sources $source_path]
+proc macports::getsourcepath {url} {
+    global macports::portdbpath
+    set source_path [split $url ://]
+    return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
 }
 
-proc darwinports::getportbuildpath {id} {
-	global darwinports::portdbpath
+proc macports::getportbuildpath {id} {
+	global macports::portdbpath
 	regsub {://} $id {.} port_path
 	regsub -all {/} $port_path {_} port_path
 	return [file join $portdbpath build $port_path]
 }
 
-proc darwinports::getportworkpath_from_buildpath {portbuildpath} {
-	return [file join $portbuildpath work]
+proc macports::getportworkpath_from_buildpath {portbuildpath} {
+    return [file join $portbuildpath work]
 }
 
-proc darwinports::getportworkpath_from_portdir {portpath} {
-	return [darwinports::getportworkpath_from_buildpath [darwinports::getportbuildpath $portpath]]
+proc macports::getportworkpath_from_portdir {portpath} {
+    return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath]]
 }
 
-proc darwinports::getindex {source} {
+proc macports::getindex {source} {
 	# Special case file:// sources
-	if {[darwinports::getprotocol $source] == "file"} {
-		return [file join [darwinports::getportdir $source] PortIndex]
+	if {[macports::getprotocol $source] == "file"} {
+		return [file join [macports::getportdir $source] PortIndex]
 	}
 
-	return [file join [darwinports::getsourcepath $source] PortIndex]
+	return [file join [macports::getsourcepath $source] PortIndex]
 }
 
-proc dportsync {} {
-	global darwinports::sources darwinports::portdbpath tcl_platform
-	global darwinports::autoconf::rsync_path
-
-    ui_debug "Synchronizing dports tree(s)"
-	foreach source $sources {
-	    set flags [lrange $source 1 end]
-	    set source [lindex $source 0]
-	    if {[lsearch -exact $flags nosync] != -1} {
-	        ui_debug "Skipping $source"
-	        continue
-	    }
-		ui_info "Synchronizing from $source"
-		switch -regexp -- [darwinports::getprotocol $source] {
-			{^file$} {
-			    set portdir [darwinports::getportdir $source]
-				if {[file exists $portdir/.svn]} {
-				    if {[catch {set svncmd [darwinports::binaryInPath "svn"]}] == 0} {
-				        set svn_commandline "${svncmd} update --non-interactive \"${portdir}\""
-				        ui_debug $svn_commandline
-				        if {[catch {
-				            set euid [geteuid]
-				            set egid [getegid]
-				            ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-				            setegid [name_to_gid [file attributes $portdir -group]]
-				            seteuid [name_to_uid [file attributes $portdir -owner]]
-				            system $svn_commandline
-				            seteuid $euid
-				            setegid $egid
-				        }]} {
-				            ui_debug "$::errorInfo"
-				            return -code error "sync failed doing svn update"
-				        }
-				    } else {
-				        return -code error "svn command not found"
-				    }
-				}
-			}
-			{^dports$} {
-				darwinports::index::sync $darwinports::portdbpath $source
-			}
-			{^rsync$} {
-				# Where to, boss?
-				set destdir [file dirname [darwinports::getindex $source]]
-
-				file mkdir $destdir
-
-				# Keep rsync happy with a trailing slash
-				if {[string index $source end] != "/"} {
-					set source "${source}/"
-				}
-
-				# Do rsync fetch
-				if {[catch {system "${darwinports::autoconf::rsync_path} -rtzv --delete-after --delete \"$source\" \"$destdir\""}]} {
-					return -code error "sync failed doing rsync"
-				}
-				if {[catch {system "chmod -R a+r \"$destdir\""}]} {
-				    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-				}
-			}
-			{^https?$|^ftp$} {
-				set indexfile [darwinports::getindex $source]
-				file mkdir [file dirname $indexfile]
-				exec curl -L -s -S -o $indexfile $source/PortIndex
-			}
-			default {
-			    ui_warn "Unknown protocol for $source"
-			}
+proc mportsync {} {
+    global macports::sources macports::portdbpath macports::rsync_options tcl_platform
+    global macports::autoconf::rsync_path 
+    
+    ui_debug "Synchronizing ports tree(s)"
+    foreach source $sources {
+	set flags [lrange $source 1 end]
+	set source [lindex $source 0]
+	if {[lsearch -exact $flags nosync] != -1} {
+	    ui_debug "Skipping $source"
+	    continue
+	}
+	ui_info "Synchronizing from $source"
+	switch -regexp -- [macports::getprotocol $source] {
+	    {^file$} {
+		set portdir [macports::getportdir $source]
+		if {[file exists $portdir/.svn]} {
+		    set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
+		    ui_debug $svn_commandline
+		    if {[catch {
+			set euid [geteuid]
+			set egid [getegid]
+			ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+			setegid [name_to_gid [file attributes $portdir -group]]
+			seteuid [name_to_uid [file attributes $portdir -owner]]
+			system $svn_commandline
+			seteuid $euid
+			setegid $egid
+		    }]} {
+			ui_debug "$::errorInfo"
+			return -code error "sync failed doing svn update"
+		    }
 		}
+	    }
+	    {^mports$} {
+		macports::index::sync $macports::portdbpath $source
+	    }
+	    {^rsync$} {
+		# Where to, boss?
+		set destdir [file dirname [macports::getindex $source]]
+
+		file mkdir $destdir
+		
+		# Keep rsync happy with a trailing slash
+		if {[string index $source end] != "/"} {
+		    set source "${source}/"
+		}
+
+		# Do rsync fetch
+		set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
+		ui_debug $rsync_commandline
+		if {[catch {system $rsync_commandline}]} {
+		    return -code error "sync failed doing rsync"
+		}
+		if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+		    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+		}
+	    }
+	    {^https?$|^ftp$} {
+		set indexfile [macports::getindex $source]
+		file mkdir [file dirname $indexfile]
+		exec curl -L -s -S -o $indexfile $source/PortIndex
+	    }
+	    default {
+		ui_warn "Unknown protocol for $source"
+	    }
 	}
+    }
 }
 
-proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
-	global darwinports::portdbpath darwinports::sources
+proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
+	global macports::portdbpath macports::sources
 	set matches [list]
 	set easy [expr { $field == "name" }]
 	
 	set found 0
 	foreach source $sources {
-	    set flags [lrange $source 1 end]
-	    set source [lindex $source 0]
-		if {[darwinports::getprotocol $source] == "dports"} {
+	        set flags [lrange $source 1 end]
+	        set source [lindex $source 0]
+		if {[macports::getprotocol $source] == "mports"} {
 			array set attrs [list name $pattern]
-			set res [darwinports::index::search $darwinports::portdbpath $source [array get attrs]]
+			set res [macports::index::search $macports::portdbpath $source [array get attrs]]
 			eval lappend matches $res
 		} else {
-			if {[catch {set fd [open [darwinports::getindex $source] r]} result]} {
+			if {[catch {set fd [open [macports::getindex $source] r]} result]} {
 				ui_warn "Can't open index file for source: $source"
 			} else {
 			    try {
-					incr found 1
-					while {[gets $fd line] >= 0} {
-						array unset portinfo
-						set name [lindex $line 0]
-						set len [lindex $line 1]
-						set line [read $fd $len]
-						
+				incr found 1
+				while {[gets $fd line] >= 0} {
+					array unset portinfo
+					set name [lindex $line 0]
+				        set len [lindex $line 1]
+				        set line [read $fd $len]
+
 						if {$easy} {
-							set target $name
+						    set target $name
 						} else {
 							array set portinfo $line
-							if {![info exists portinfo($field)]} continue
-							set target $portinfo($field)
+						    if {![info exists portinfo($field)]} continue
+						    set target $portinfo($field)
 						}
-					
-						switch $matchstyle {
-							exact	{ set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
-							glob	{ set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
-							regexp	-
-							default	{ set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
-						}
-					
-						if {$matchres == 1} {
-							if {$easy} {
-								array set portinfo $line
-							}
-							switch -regexp -- [darwinports::getprotocol ${source}] {
-								{^rsync$} {
-									# Rsync files are local
-									set source_url "file://[darwinports::getsourcepath $source]"
-								}
-								default {
-									set source_url $source
-								}
-							}
-							if {[info exists portinfo(portarchive)]} {
-								set porturl ${source_url}/$portinfo(portarchive)
-							} elseif {[info exists portinfo(portdir)]} {
-								set porturl ${source_url}/$portinfo(portdir)
-							}
-							if {[info exists porturl]} {
-								lappend line porturl $porturl
-								ui_debug "Found port in $porturl"
-							} else {
-								ui_debug "Found port info: $line"
-							}
-							lappend matches $name
-							lappend matches $line
-						}
+
+				    switch $matchstyle {
+					exact { set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
+					glob { set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
+					regexp -
+					default { set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
+				    }
+
+				    if {$matchres == 1} {
+					if {$easy} {
+					    array set portinfo $line
 					}
-				} catch {*} {
-				    ui_warn "It looks like your PortIndex file may be corrupt."
-				    throw
-				} finally {
-					close $fd
+					switch -regexp -- [macports::getprotocol ${source}] {
+					    {^rsync$} {
+						# Rsync files are local
+						set source_url "file://[macports::getsourcepath $source]"
+					    }
+					    default {
+						set source_url $source
+					    }
+					}
+					if {[info exists portinfo(portarchive)]} {
+					    set porturl ${source_url}/$portinfo(portarchive)
+					} elseif {[info exists portinfo(portdir)]} {
+					    set porturl ${source_url}/$portinfo(portdir)
+					}
+					if {[info exists porturl]} {
+					    lappend line porturl $porturl
+					    ui_debug "Found port in $porturl"
+					} else {
+					    ui_debug "Found port info: $line"
+					}
+					lappend matches $name
+					lappend matches $line
+				    }
 				}
+			    } catch {*} {
+				ui_warn "It looks like your PortIndex file may be corrupt."
+				throw
+			    } finally {
+				close $fd
+			    }
 			}
 		}
 	}
@@ -1357,19 +1362,19 @@ proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 	return $matches
 }
 
-proc dportinfo {dport} {
-	set workername [ditem_key $dport workername]
+proc mportinfo {mport} {
+	set workername [ditem_key $mport workername]
     return [$workername eval array get PortInfo]
 }
 
-proc dportclose {dport} {
-	global darwinports::open_dports
-	set refcnt [ditem_key $dport refcnt]
+proc mportclose {mport} {
+	global macports::open_mports
+	set refcnt [ditem_key $mport refcnt]
 	incr refcnt -1
-	ditem_key $dport refcnt $refcnt
+	ditem_key $mport refcnt $refcnt
 	if {$refcnt == 0} {
-		dlist_delete darwinports::open_dports $dport
-		set workername [ditem_key $dport workername]
+		dlist_delete macports::open_mports $mport
+		set workername [ditem_key $mport workername]
 		interp delete $workername
 	}
 }
@@ -1378,32 +1383,32 @@ proc dportclose {dport} {
 # This API should be considered work in progress and subject to change without notice.
 ##### "
 
-# _dportkey
+# _mportkey
 # - returns a variable from the port's interpreter
 
-proc _dportkey {dport key} {
-	set workername [ditem_key $dport workername]
+proc _mportkey {mport key} {
+	set workername [ditem_key $mport workername]
 	return [$workername eval "return \$${key}"]
 }
 
-# dportdepends builds the list of dports which the given port depends on.
-# This list is added to $dport.
+# mportdepends builds the list of mports which the given port depends on.
+# This list is added to $mport.
 # This list actually depends on the target.
 # This method can optionally recurse through the dependencies, looking for
 #   dependencies of dependencies.
 # This method can optionally cut the search when ports are already installed or
 #   the dependencies are satisfied.
 #
-# dport -> dport item
+# mport -> mport item
 # target -> target to consider the dependency for
 # recurseDeps -> if the search should be recursive
 # skipSatisfied -> cut the search tree when encountering installed/satisfied
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
-proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps {}}} {
+proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps {}}} {
 
-	array set portinfo [dportinfo $dport]
+	array set portinfo [mportinfo $mport]
 	set depends {}
 	set deptypes {}
 		
@@ -1439,7 +1444,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		set dep_portname [lindex [split $depspec :] end]
 		
 		# Find the porturl
-		if {[catch {set res [dportsearch $dep_portname false exact]} error]} {
+		if {[catch {set res [mportsearch $dep_portname false exact]} error]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_error "Internal error: port search failed: $error"
@@ -1458,17 +1463,17 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 			return 1
 		}
 
-		set options [ditem_key $dport options]
-		set variations [ditem_key $dport variations]
+		set options [ditem_key $mport options]
+		set variations [ditem_key $mport variations]
 
 		# Figure out the subport.	
-		set subport [dportopen $porturl $options $variations]
+		set subport [mportopen $porturl $options $variations]
 
 		# Is that dependency satisfied or this port installed?
 		# If we don't skip or if it is not, add it to the list.
-		if {!$skipSatisfied || ![_dportispresent $subport $depspec]} {
+		if {!$skipSatisfied || ![_mportispresent $subport $depspec]} {
 			# Append the sub-port's provides to the port's requirements list.
-			ditem_append_unique $dport requires "[ditem_key $subport provides]"
+			ditem_append_unique $mport requires "[ditem_key $subport provides]"
 	
 			if {$recurseDeps} {
 				# Skip the port if it's already in the accumulated list.
@@ -1487,7 +1492,7 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 	if {$recurseDeps} {
 		foreach subport $subPorts {
 			# Sub ports should be installed (all dependencies must be satisfied).
-			set res [dportdepends $subport "" $recurseDeps $skipSatisfied $accDeps]
+			set res [mportdepends $subport "" $recurseDeps $skipSatisfied $accDeps]
 			if {$res != 0} {
 				return $res
 			}
@@ -1498,9 +1503,9 @@ proc dportdepends {dport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 }
 
 # selfupdate procedure
-proc darwinports::selfupdate {optionslist} {
-	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir darwinports::rsync_options
-	global darwinports::autoconf::rsync_path
+proc macports::selfupdate {optionslist} {
+	global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir macports::rsync_options
+	global macports::autoconf::macports_conf_path macports::autoconf::rsync_path
 	array set options $optionslist
 	
 	if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
@@ -1511,83 +1516,84 @@ proc darwinports::selfupdate {optionslist} {
 		ui_debug "Rebuilding the MacPorts base system if needed."
 	}
 	# syncing ports tree. We expect the user have rsync:// in the sources.conf
-	if {[catch {dportsync} result]} {
-		return -code error "Couldn't sync dports tree: $result"
+	if {[catch {mportsync} result]} {
+		return -code error "Couldn't sync the ports tree: $result"
 	}
 
-	set dp_base_path [file join $prefix var/db/dports/sources/rsync.${rsync_server}_${rsync_dir}/]
-	if {![file exists $dp_base_path]} {
-		file mkdir $dp_base_path
+	set mp_base_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
+	if {![file exists $mp_base_path]} {
+		file mkdir $mp_base_path
 	}
-	ui_debug "MacPorts base dir: $dp_base_path"
+	ui_debug "MacPorts base dir: $mp_base_path"
 
-	# get user of the darwinports system
-	set user [file attributes [file join $prefix var/db/dports/sources/] -owner]
+	# get user of the MacPorts system
+	set user [file attributes [file join $portdbpath sources/] -owner]
 	ui_debug "Setting user: $user"
 
-	# get darwinports version 
-	set dp_version_path [file join ${prefix}/etc/ports/ dp_version]
-	if { [file exists $dp_version_path]} {
-		set fd [open $dp_version_path r]
-		gets $fd dp_version_old
+	# get MacPorts version 
+    set mp_version_path [file join ${macports_conf_path} mp_version]
+	if { [file exists $mp_version_path]} {
+		set fd [open $mp_version_path r]
+		gets $fd mp_version_old
 		close $fd
 	} else {
-		set dp_version_old 0
+		set mp_version_old 0
 	}
-	ui_msg "MacPorts base version $dp_version_old installed"
+	ui_msg "MacPorts base version $mp_version_old installed"
 
 	ui_debug "Updating using rsync"
-	if { [catch { system "${darwinports::autoconf::rsync_path} $rsync_options rsync://${rsync_server}/${rsync_dir} $dp_base_path" } ] } {
+	if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_base_path" } ] } {
 		return -code error "Error: rsync failed in selfupdate"
 	}
 
-	# get downloaded darwinports version and write the old version back
-	set fd [open [file join $dp_base_path config/dp_version] r]
-	gets $fd dp_version_new
+	# get downloaded macports version and write the old version back
+	set fd [open [file join $mp_base_path config mp_version] r]
+	gets $fd mp_version_new
 	close $fd
-	ui_msg "Downloaded MacPorts base version $dp_version_new"
+	ui_msg "Downloaded MacPorts base version $mp_version_new"
 
 	# check if we we need to rebuild base
-	if {$dp_version_new > $dp_version_old || $use_the_force_luke == "yes"} {
+	if {$mp_version_new > $mp_version_old || $use_the_force_luke == "yes"} {
 		ui_msg "Configuring, Building and Installing new MacPorts base"
 		# check if $prefix/bin/port is writable, if so we go !
 		# get installation user / group 
 		set owner root
 		set group admin
-		if {[file exists [file join $prefix bin/port] ]} {
+	        set portprog [file join $prefix bin port]
+		if {[file exists $portprog ]} {
 			# set owner
-			set owner [file attributes [file join $prefix bin/port] -owner]
+			set owner [file attributes $portprog -owner]
 			# set group
-			set group [file attributes [file join $prefix bin/port] -group]
+			set group [file attributes $portprog -group]
 		}
 		set p_user [exec /usr/bin/whoami]
-		if {[file writable ${prefix}/bin/port] || [string equal $p_user $owner] } {
+		if {[file writable $portprog] || [string equal $p_user $owner] } {
 			ui_debug "permissions OK"
 		} else {
 			return -code error "Error: $p_user cannot write to ${prefix}/bin - try using sudo"
 		}
 		ui_debug "Setting owner: $owner group: $group"
 
-		set dp_tclpackage_path [file join $prefix var/db/dports/ .tclpackage]
-		if { [file exists $dp_tclpackage_path]} {
-			set fd [open $dp_tclpackage_path r]
+		set mp_tclpackage_path [file join $portdbpath .tclpackage]
+		if { [file exists $mp_tclpackage_path]} {
+			set fd [open $mp_tclpackage_path r]
 			gets $fd tclpackage
 			close $fd
 		} else {
-			set tclpackage [file join ${prefix} share/darwinports/Tcl]
+			set tclpackage [file join ${prefix} share macports Tcl]
 		}
 		# do the actual installation of new base
 		ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
-		if { [catch { system "cd $dp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
+		if { [catch { system "cd $mp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
 			return -code error "Error installing new MacPorts base: $result"
 		}
 	} else {
 		ui_msg "The MacPorts installation is not outdated and so was not updated"
 	}
 
-	# set the darwinports system to the right owner 
+	# set the macports system to the right owner 
 	ui_debug "Setting ownership to $user"
-	if { [catch { exec chown -R $user [file join $prefix var/db/dports/sources/] } result] } {
+	if { [catch { exec chown -R $user [file join $portdbpath sources/] } result] } {
 		return -code error "Couldn't change permissions: $result"
 	}
 
@@ -1597,14 +1603,16 @@ proc darwinports::selfupdate {optionslist} {
 	return 0
 }
 
-proc darwinports::version {} {
-	global darwinports::prefix darwinports::rsync_server darwinports::rsync_dir
+proc macports::version {} {
+	global macports::rsync_server macports::rsync_dir
+        global macports::autoconf::macports_conf_path
 	
-	set dp_version_path [file join $prefix etc/ports/ dp_version]
+    set mp_version_path [file join ${macports_conf_path} mp_version]
 
-	if [file exists $dp_version_path] {
-		set fd [open $dp_version_path r]
+	if [file exists $mp_version_path] {
+		set fd [open $mp_version_path r]
 		gets $fd retval
+	        close $fd
 		return $retval
 	} else {
 		return -1
@@ -1612,9 +1620,9 @@ proc darwinports::version {} {
 }
 
 # upgrade procedure
-proc darwinports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
-	global darwinports::registry.installtype
-	global darwinports::portarchivemode
+proc macports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
+	global macports::registry.installtype
+	global macports::portarchivemode
 	array set options $optionslist
 	array set variations $variationslist
 	if {![string match "" $depscachename]} {
@@ -1625,7 +1633,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	set epoch_override 0
 
 	# check if the port is in tree
-	if {[catch {dportsearch $portname false exact} result]} {
+	if {[catch {mportsearch $portname false exact} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"
@@ -1647,7 +1655,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	set version_in_tree "$portinfo(version)_$portinfo(revision)"
 	set epoch_in_tree "$portinfo(epoch)"
 
-	# the depflag tells us if we should follow deps (this is for stuff installed outside DP)
+	# the depflag tells us if we should follow deps (this is for stuff installed outside MacPorts)
 	# if this is set (not 0) we dont follow the deps
 	set depflag 0
 
@@ -1661,23 +1669,23 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 		    if {![info exists porturl]} {
 		        set porturl file://./    
 			}    
-			if {[catch {set workername [dportopen $porturl [array get options] ]} result]} {
+			if {[catch {set workername [mportopen $porturl [array get options] ]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
 			        ui_error "Unable to open port: $result"        
 					return 1
 		    }
 
-			if {![_dportispresent $workername $dspec ] } {
+			if {![_mportispresent $workername $dspec ] } {
 				# port in not installed - install it!
-				if {[catch {set result [dportexec $workername install]} result]} {
+				if {[catch {set result [mportexec $workername install]} result]} {
 					global errorInfo
 					ui_debug "$errorInfo"
 					ui_error "Unable to exec port: $result"
 					return 1
 				}
 			} else {
-				# port installed outside DP
+				# port installed outside MacPorts
 				ui_debug "$portname installed outside the MacPorts system"
 				set depflag 1
 			}
@@ -1722,7 +1730,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
     			}
 			}
 		}
-        if { [lindex $num 4] == 0 && 0 == [string compare "image" ${darwinports::registry.installtype}] } {
+        if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
 			# activate the latest installed version
 			if {[catch {portimage::activate $portname $version_installed$variant $optionslist} result]} {
 				global errorInfo
@@ -1795,8 +1803,8 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 
 				if { [llength deplist] > 0 } {
 					foreach dep $deplist {
-						set dpname [lindex $dep 2] 
-						darwinports::upgrade $dpname "port:$dpname" [array get variations] [array get options]
+						set mpname [lindex $dep 2] 
+						macports::upgrade $mpname "port:$mpname" [array get variations] [array get options]
 					}
 				}
 			}
@@ -1833,7 +1841,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	}
 	ui_debug "new portvariants: [array get variations]"
 	
-	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result]} {
+	if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Unable to open port: $result"
@@ -1841,13 +1849,13 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	}
 
 	# install version_in_tree
-	if {0 == [string compare "yes" ${darwinports::portarchivemode}]} {
+	if {0 == [string compare "yes" ${macports::portarchivemode}]} {
 		set upgrade_action "archive"
 	} else {
 		set upgrade_action "destroot"
 	}
 
-	if {[catch {set result [dportexec $workername $upgrade_action]} result] || $result != 0} {
+	if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Unable to upgrade port: $result"
@@ -1855,7 +1863,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 	}
 
 	# uninstall old ports
-    if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${darwinports::registry.installtype}] } {
+    if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
 		# uninstall old
 		ui_debug "Uninstalling $portname $version_installed$oldvariant"
 		if {[catch {portuninstall::uninstall $portname $version_installed$oldvariant $optionslist} result]} {
@@ -1874,7 +1882,7 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 		}
 	}
 
-	if {[catch {set result [dportexec $workername install]} result]} {
+	if {[catch {set result [mportexec $workername install]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Couldn't activate $portname $version_in_tree$oldvariant: $result"
@@ -1891,13 +1899,13 @@ proc darwinports::upgrade {portname dspec variationslist optionslist {depscachen
 
 		if { [llength deplist] > 0 } {
 			foreach dep $deplist {
-				set dpname [lindex $dep 2] 
-				darwinports::upgrade $dpname "port:$dpname" [array get variations] [array get options]
+				set mpname [lindex $dep 2] 
+				macports::upgrade $mpname "port:$mpname" [array get variations] [array get options]
 			}
 		}
 	}
 
 	
 	# close the port handle
-	dportclose $workername
+	mportclose $workername
 }

@@ -33,10 +33,10 @@
 package provide portsubmit 1.0
 package require portutil 1.0
 
-set com.apple.submit [target_new com.apple.submit submit_main]
-target_runtype ${com.apple.submit} always
-target_provides ${com.apple.submit} submit 
-target_requires ${com.apple.submit} main
+set org.macports.submit [target_new org.macports.submit submit_main]
+target_runtype ${org.macports.submit} always
+target_provides ${org.macports.submit} submit 
+target_requires ${org.macports.submit} main
 
 set_ui_prefix
 
@@ -278,7 +278,7 @@ proc submit_main {args} {
 
 	set portsource ""
 	set base_rev ""
-	if {![catch {set fd [open ".dports_source" r]}]} {
+	if {![catch {set fd [open ".mports_source" r]}]} {
 		while {[gets $fd line] != -1} {
 			regexp -- {^(.*): (.*)$} $line unused key value
 			switch -- $key {
@@ -316,7 +316,7 @@ proc submit_main {args} {
 
     set cmd "curl "
     append cmd "--silent "
-    append cmd "--url [regsub -- {^dports} $portsource {http}]/cgi-bin/portsubmit.cgi "
+    append cmd "--url [regsub -- {^mports} $portsource {http}]/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
     append cmd "-F name=${portname} "
     append cmd "-F version=${portversion} "
@@ -352,7 +352,7 @@ proc submit_main {args} {
 	close $fd
 
 	if {[info exists result(OK)]} {
-		set fd [open ".dports_source" w]
+		set fd [open ".mports_source" w]
 		puts $fd "source: $portsource"
 		puts $fd "port: $portname"
 		puts $fd "version: $portversion"
@@ -366,24 +366,24 @@ proc submit_main {args} {
 	} elseif {[info exists result(CONFLICT)]} {
 		# Fetch the newer revision from the index.
 		# XXX: many gross hacks here regarding paths, urls, etc.
-		set tmpdir [mktemp "/tmp/dports.XXXXXXXX"]
+		set tmpdir [mktemp "/tmp/mports.XXXXXXXX"]
 		file mkdir $tmpdir/new
 		file mkdir $tmpdir/old
-		set worker [dport_open $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
+		set worker [mport_open $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
 		if {$base_rev != ""} {
-			set worker2 [dport_open $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
+			set worker2 [mport_open $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
 			catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$portname-$portversion/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
 			system "mv $tmpdir/Portfile $portpath/Portfile"
-			dport_close $worker2
+			mport_close $worker2
 		} else {
 			catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
 			system "mv $tmpdir/Portfile $portpath/Portfile"
 		}
-		dport_close $worker
+		mport_close $worker
 		catch {system "rm -Rf $tmpdir"}
 		catch {system "rm -Rf $tmpdir"}
 
-		set fd [open [file join "$portpath" ".dports_source"] w]
+		set fd [open [file join "$portpath" ".mports_source"] w]
 		puts $fd "source: $portsource"
 		puts $fd "port: $portname"
 		puts $fd "version: $portversion"

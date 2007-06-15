@@ -1,8 +1,8 @@
-INSTALLDIR=	${DESTDIR}${datadir}/darwinports/Tcl/registry1.0
+INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/registry1.0
 
 SRCS= registry.tcl registry_autoconf.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
 
-include ../../Mk/dports.autoconf.mk
+include ../../Mk/macports.autoconf.mk
 
 all::
 

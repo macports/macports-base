@@ -2,11 +2,11 @@ OBJS=		Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
 		fs-traverse.o strcasecmp.o vercomp.o filemap.o \
 		sha1cmd.o compat.o curl.o rmd160cmd.o readline.o uid.o
 SHLIB_NAME=	Pextlib${SHLIB_SUFFIX}
-INSTALLDIR= ${DESTDIR}${datadir}/darwinports/Tcl/pextlib1.0
+INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
 export MACOSX_DEPLOYMENT_TARGET=10.3
 
-include ../../Mk/dports.autoconf.mk
-include ../../Mk/dports.tea.mk
+include ../../Mk/macports.autoconf.mk
+include ../../Mk/macports.tea.mk
 
 .PHONY: test
 

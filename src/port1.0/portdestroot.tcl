@@ -34,11 +34,11 @@
 package provide portdestroot 1.0
 package require portutil 1.0
 
-set com.apple.destroot [target_new com.apple.destroot destroot_main]
-target_provides ${com.apple.destroot} destroot
-target_requires ${com.apple.destroot} main fetch extract checksum patch configure build
-target_prerun ${com.apple.destroot} destroot_start
-target_postrun ${com.apple.destroot} destroot_finish
+set org.macports.destroot [target_new org.macports.destroot destroot_main]
+target_provides ${org.macports.destroot} destroot
+target_requires ${org.macports.destroot} main fetch extract checksum patch configure build
+target_prerun ${org.macports.destroot} destroot_start
+target_postrun ${org.macports.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask

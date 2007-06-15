@@ -27,8 +27,8 @@
 .\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd December 13, 2005
-.Dt PORT 1 "Apple Computer, Inc."
+.Dd April 29, 2007
+.Dt PORT 1 "MacPorts"
 .Os
 .Sh NAME
 .Nm port
@@ -81,14 +81,14 @@ The
 .Nm
 command knows various
 .Ar pseudo-portnames
-that will expand to the specified set of ports from the available dports tree(s). These may be used in place of a
+that will expand to the specified set of ports from the available ports tree(s). These may be used in place of a
 .Ar portname .
 Common options are:
 .Pp
 .Bl -bullet -offset indent -compact
 .It
 .Ar all :
-all the ports in each dports tree listed in
+all the ports in each ports tree listed in
 .Ar sources.conf
 .Pp
 .It
@@ -109,11 +109,11 @@ set of all installed ports.
 .Pp
 .It
 .Ar uninstalled :
-ports in the dports tree(s) that aren't installed.
+ports in the ports tree(s) that aren't installed.
 .Pp
 .It
 .Ar outdated :
-installed ports that are out of date with respect to their current version/revision in the dports tree(s)
+installed ports that are out of date with respect to their current version/revision in the ports tree(s)
 .Pp
 .El
 Other options, also known as
@@ -252,7 +252,7 @@ Specific meta-information may be requested through an option such as
 .Fl -maintainer
 or
 .Fl -category
-(recognized field names are those from the portindex). If the global option
+(recognized field names are those from the PortIndex). If the global option
 .Fl q
 is in effect, the meta-info fields will not be labeled.
 If the option
@@ -312,14 +312,14 @@ Determines which port owns a given file and can take either a relative or absolu
 .Dl "port provides /opt/local/etc/irssi.conf"
 .Dl "port provides include/tiff.h"
 .Ss sync
-Performs a sync operation only on the dports tree of a MacPorts installation, pulling in the latest
+Performs a sync operation only on the ports tree of a MacPorts installation, pulling in the latest
 revision available of the
 .Ar Portfiles
 from the MacPorts rsync server. To update you would normally do:
 .Pp
 .Dl "sudo port -d sync"
 .Pp
-If any of the dports tree(s) uses a file: URL that points to a local subversion working copy,
+If any of the ports tree(s) uses a file: URL that points to a local subversion working copy,
 .Ic sync
 will perform an
 .Ic "svn update"
@@ -405,14 +405,14 @@ If portname(s) are given as arguments, display a list of the latest version of e
 .Ss version
 Display the release number of the installed MacPorts infrastructure.
 .Ss selfupdate
-Updates the MacPorts system, dports tree(s) and base tools if needed, from the MacPorts rsync server,
+Updates the MacPorts system, ports tree(s) and base tools if needed, from the MacPorts rsync server,
 installing the newest infrastructure available. To update you would typically do:
 .Pp
 .Dl "sudo port -d selfupdate"
 .Pp
 See
 .Ic sync
-for more information about updating dports tree(s).
+for more information about updating ports tree(s).
 .Ss help
 Displays a summary of all available actions and port command syntax on stdout.
 .Sh DEVELOPER TARGETS
@@ -503,13 +503,13 @@ target on
 .Pp
 .Sh FILES
 .Bl -tag -width
-.It Va ${prefix}/etc/ports/ports.conf
+.It Va ${prefix}/etc/macports/macports.conf
 Global configuration file for the MacPorts system.
-.It Va ${prefix}/etc/ports/sources.conf
-Global listing of the dports/ trees used by MacPorts. This file also enables rsync synchronization.
-.It Va ${prefix}/etc/ports/variants.conf
+.It Va ${prefix}/etc/macports/sources.conf
+Global listing of the ports trees used by MacPorts. This file also enables rsync synchronization.
+.It Va ${prefix}/etc/macports/variants.conf
 Global variants used when a port is installed.
-.It Va ~/.portsrc
+.It Va ~/.macports/macports.conf
 User configuration file for the MacPorts system. It overrides the global
 .Ar ports.conf
 file.
@@ -517,7 +517,7 @@ file.
 .Sh DIAGNOSTICS
 .Ex -std
 .Sh SEE ALSO
-.Xr ports.conf 5 ,
+.Xr macports.conf 5 ,
 .Xr portfile 7 ,
 .Xr portgroup 7 ,
 .Xr portstyle 7 ,

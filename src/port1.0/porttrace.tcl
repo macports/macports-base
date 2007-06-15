@@ -52,7 +52,7 @@ proc trace_start {workpath} {
 					
 			# Launch darwintrace.dylib.
 			
-			set tracelib_path [file join ${portutil::autoconf::prefix} share darwinports Tcl darwintrace1.0 darwintrace.dylib]
+			set tracelib_path [file join ${portutil::autoconf::prefix} share macports Tcl darwintrace1.0 darwintrace.dylib]
 
 			if {[info exists env(DYLD_INSERT_LIBRARIES)]} {
 				set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib_path}"
@@ -157,7 +157,7 @@ proc trace_stop {} {
 proc create_slave {workpath trace_fifo} {
 	global trace_thread
 	# Create the thread.
-	set trace_thread [darwinports_create_thread]
+	set trace_thread [macports_create_thread]
 	
 	# The slave thread requires the registry package.
 	thread::send -async $trace_thread "package require registry 1.0"

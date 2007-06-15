@@ -1,6 +1,6 @@
 #!/usr/bin/env tclsh
 
-package require darwinports
+package require macports
 package require sqlite3
 
 proc open_db { db_file } {
@@ -34,7 +34,7 @@ proc sql_date { datetime } {
 proc submit_ports {} {
 	global prefix submit_options verbose
 
-	if {[catch {set res [dportsearch "^.*\$"]} result]} {
+	if {[catch {set res [mportsearch "^.*\$"]} result]} {
 		puts "port search failed: $result"
 		exit 1
 	}
@@ -52,7 +52,7 @@ proc submit_ports {} {
 		if { 0 != [regexp {file://(.*)} $porturl match path] } {
 			set portdir [file normalize $path]
 		} else {
-			set portdir [file normalize [darwinports::getportdir $porturl]]
+			set portdir [file normalize [macports::getportdir $porturl]]
 		}
 		set portfile "${portdir}/Portfile"
 		if { $verbose } { puts "checking ${name}" }
@@ -80,7 +80,7 @@ proc submit_ports {} {
 	
 					# Open the port
 					set err 0
-					if {[catch {set workername [dportopen $porturl [array get submit_options]]} result]} {
+					if {[catch {set workername [mportopen $porturl [array get submit_options]]} result]} {
 						global errorInfo
 						ui_debug "$errorInfo"
 						puts "Unable to open port: $result"
@@ -88,7 +88,7 @@ proc submit_ports {} {
 					}
 	
 					# Submit the port
-					if { !$err && [catch {set result [dportexec $workername submit]} result]} {
+					if { !$err && [catch {set result [mportexec $workername submit]} result]} {
 						global errorInfo
 						ui_debug "$errorInfo"
 						puts "Unable to execute port: $result"
@@ -96,7 +96,7 @@ proc submit_ports {} {
 					}
 			
 					# Close the port
-					dportclose $workername
+					mportclose $workername
 					
 					# Update the date in the database for this item
 					if { !$err && !$result } {
@@ -138,11 +138,11 @@ if { [lsearch $argv -v] >= 0 } {
 	set verbose 1
 }
 
-# Initialize dports api
-dportinit
+# Initialize mports api
+mportinit
 
 # Submit ports
-set db_file [file normalize "${darwinports::macports_user_dir}/autosubmit.db"]
+set db_file [file normalize "${macports::macports_user_dir}/autosubmit.db"]
 if { $verbose } { puts "Using database at $db_file" }
 open_db $db_file
 submit_ports
