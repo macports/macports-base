@@ -1,11 +1,10 @@
 #######
 # MacPorts rsync repos feeding the sync & selfupdate procedures, created and
-# maintained by the base/portmgr/mprsyncup.new script.
+# maintained by the base/portmgr/mprsyncup script.
 # 
-# Two main modules are supplied for current installations off the dp2mp-move
-# branch (intended to become mainstream moving forwad)
-# and two for backwards compatibility (legacy DarwinPorts namespace). Assuming
-# an example REPOROOT path of /usr/local/repos/macports, this file is organized
+# Two main modules are supplied for current installations off trunk and
+# two for backwards compatibility (legacy DarwinPorts namespace). Assuming
+# a REPOROOT path of /Volumes/data/rsync/macports/, this file is organized
 # in the following four modules and filesystem level paths (server side):
 #
 #
@@ -13,7 +12,7 @@
 #
 # ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's
 # trunk/dports dir (ToT), and the current release base dir, as determined by
-# the base/config/RELEASE_URL file read by the base/portmgr/mprsyncup.new
+# the base/config/RELEASE_URL file read by the base/portmgr/mprsyncup
 # script;
 #
 # ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk/base
@@ -46,7 +45,7 @@
 # Whatever server uses this file should simply add the modules listed here to
 # an already tailored rsyncd.conf file, as no other particular config options
 # are supplied. Repositories themselves are created and maintained by the
-# base/portmgr/mprsyncup.new script, as stated above (that is, no manual
+# base/portmgr/mprsyncup script, as stated above (that is, no manual
 # intervention what-so-ever is needed, other than adding the repos to the local
 # rsyncd.conf file).
 #
