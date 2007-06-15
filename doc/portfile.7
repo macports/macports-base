@@ -1694,6 +1694,131 @@ Execute
 using
 .Cm sudo
 with the provided password.
+.It Xo
+.Ic lpush
+.Ar varName
+.Op Ar value \&...
+.Xc
+Treats the variable given by
+.Ar varName
+as a list and appends each of the
+.Ar value
+arguments to that list as a separate element. If
+.Ar varName
+doesn't exist, it is created as a list with elements
+given by the
+.Ar value
+arguments.
+Really just an alias for
+.Xr lappend n .
+.It Ic lpop Ar varName
+Removes the last element from the list given by
+.Ar varName
+and returns it. If there are no elements in the list,
+the empty string is returned. If
+.Ar varName
+doesn't exist, an exception is raised.
+.It Xo
+.Ic lunshift
+.Ar varName
+.Op Ar value \&...
+.Xc
+Treats the variable given by
+.Ar varName
+as a list and prepends each of the
+.Ar value
+arguments to that list as a separate element. If
+.Ar varName
+doesn't exist, it is created as a list with elements
+given by the
+.Ar value
+arguments.
+.It Ic lshift Ar varName
+Removes the first element from the list given by
+.Ar varName
+and returns it. If there are no elements in the list,
+the empty string is returned. If
+.Ar varName
+doesn't exist, an exception is raised.
+.It Xo
+.Ic ldindex
+.Ar varName
+.Op Ar index \&...
+.Xc
+Treats the variable given by
+.Ar varName
+as a list and removes the element pointed to by the sequence of
+.Ar index
+arguments and returns it. If no
+.Ar index
+arguments are provided,
+.Ar varName
+is set to the empty string and the entire former value is returned.
+Has the same usage semantics as
+.Xr lindex n .
+.It Xo
+.Ic try
+.Ar body
+.Oo
+.Nm catch Nm {
+.Ar type-list
+.Op Ar ecvar
+.Op Ar msgvar
+.Op Ar infovar
+.Nm }
+.Ar body Ar \&...
+.Oc
+.Op Nm finally Ar body
+.Xc
+Implements a try-catch-finally block as defined in TIP #89.
+.br
+.Sy Example:
+Basic try-finally construct.
+.Bd -literal -offset indent -compact
+try {
+    set fd [open $file r]
+    # do stuff here
+} finally {
+    close $fd
+}
+.Ed
+.Sy Example:
+Basic try-catch construct
+.Bd -literal -offset indent -compact
+try {
+    set result [expr $num / $div]
+} catch {{ARITH DIVZERO}} {
+    set result -1
+}
+.Ed
+.Sy Example:
+Basic try with multiple catches construct
+.Bd -literal -offset indent -compact
+try {
+    set fd [open $file r]
+    # do stuff here
+} catch {{POSIX ENOENT} {} msgvar} {
+    puts stderr $msgvar
+} catch {*} {
+    puts stderr "An error occurred while processing the file"
+    close $fd
+    throw
+}
+.Ed
+.It Xo
+.Ic throw
+.Op Ar type
+.Op Ar message
+.Op Ar info
+.Xc
+Throws an exception. If given arguments, works just like
+.Ic error
+.Ar message
+.Ar info
+.Ar type .
+If called with no arguments from within a
+.Ic catch
+block, re-throws the caught exception.
 .El
 .Pp
 .Bl -tag -width lc -compact
