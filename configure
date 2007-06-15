@@ -11249,7 +11249,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl"
+ac_config_files="$ac_config_files Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl"
 
 
 cat >confcache <<\_ACEOF
@@ -11814,6 +11814,7 @@ do
     "doc/macports.conf") CONFIG_FILES="$CONFIG_FILES doc/macports.conf" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
+    "src/tclobjc1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tclobjc1.0/Makefile" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
