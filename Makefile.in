@@ -72,7 +72,7 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
 ## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
-	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${sysconfdir}/macports/macports.conf.mpsaved \) ] || { \
+	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${sysconfdir}/macports/.mprename_update \) ] || { \
 		mv -v ${sysconfdir}/macports/ports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf.mpsaved > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
@@ -90,17 +90,19 @@ upgrade:
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
+		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
 # Check for existance of the main sources file and perform a couple of replacements on it, backing it up first:
 ## 1) new MacPorts rsync server;
 ## 2) new default value for the ports tree.
-	[ ! \( -f ${sysconfdir}/macports/sources.conf -a ! -f ${sysconfdir}/macports/sources.conf.mpsaved \) ] || { \
+	[ ! \( -f ${sysconfdir}/macports/sources.conf -a ! -f ${sysconfdir}/macports/.mprename_update \) ] || { \
 		cp -v ${sysconfdir}/macports/sources.conf ${sysconfdir}/macports/sources.conf.mpsaved; \
 		sed 's/darwinports/macports/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
 		sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
+		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
 # Check for existance of a personal configuration file and perform a couple of replacements on it, backing it up first:
@@ -112,7 +114,7 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
 ## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
-	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f $${HOME}/.macports/macports.conf.mpsaved \) ] || { \
+	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f $${HOME}/.macports/.mprename_update \) ] || { \
 		mv -v $${HOME}/.macports/ports.conf $${HOME}/.macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' $${HOME}/.macports/macports.conf.mpsaved > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
@@ -130,6 +132,7 @@ upgrade:
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
 
