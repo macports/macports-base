@@ -8,6 +8,7 @@ DISTNAME	= MacPorts-${DISTVER}
 DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
 SVNURL		= http://svn.macports.org/repository/macports
+UPGRADECHECK	= ${localstatedir}/macports/.mprename
 
 include Mk/macports.autoconf.mk
 
@@ -27,7 +28,7 @@ config.status: configure
 	fi
 
 upgrade:
-	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
+	@[ -f ${UPGRADECHECK} ] || echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
 
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
 # ${TCL_PACKAGE_DIR}/macports1.0 with new names:
@@ -72,7 +73,7 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
 ## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
-	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${sysconfdir}/macports/.mprename_update \) ] || { \
+	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${UPGRADECHECK} \) ] || { \
 		mv -v ${sysconfdir}/macports/ports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf.mpsaved > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
@@ -90,19 +91,17 @@ upgrade:
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
-		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
 # Check for existance of the main sources file and perform a couple of replacements on it, backing it up first:
 ## 1) new MacPorts rsync server;
 ## 2) new default value for the ports tree.
-	[ ! \( -f ${sysconfdir}/macports/sources.conf -a ! -f ${sysconfdir}/macports/.mprename_update \) ] || { \
+	[ ! \( -f ${sysconfdir}/macports/sources.conf -a ! -f ${UPGRADECHECK} \) ] || { \
 		cp -v ${sysconfdir}/macports/sources.conf ${sysconfdir}/macports/sources.conf.mpsaved; \
 		sed 's/darwinports/macports/g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
 		sed 's/dpupdate\/dports/release\/ports\//g' ${sysconfdir}/macports/sources.conf > ${sysconfdir}/macports/sources.conf.tmp && \
 			mv -v ${sysconfdir}/macports/sources.conf.tmp ${sysconfdir}/macports/sources.conf; \
-		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
 # Check for existance of a personal configuration file and perform a couple of replacements on it, backing it up first:
@@ -114,7 +113,7 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
 ## 8) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
-	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f $${HOME}/.macports/.mprename_update \) ] || { \
+	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f ${UPGRADECHECK} \) ] || { \
 		mv -v $${HOME}/.macports/ports.conf $${HOME}/.macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' $${HOME}/.macports/macports.conf.mpsaved > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
@@ -132,14 +131,11 @@ upgrade:
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		echo "MacPorts rename update done!" > ${sysconfdir}/macports/.mprename_update; \
 	}
 
-
-#something more?
-
 # Upgrade success announcement (meaning we're done ;):
-	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"
+	@[ -f ${UPGRADECHECK} ] || { echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"; \
+	echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
 
 ####
 # NOTES:
@@ -157,7 +153,7 @@ install::
 	@echo -e "\nCongratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:\n"
 	@echo -e "sudo port selfupdate\n"
 	@echo -e "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation.\n"
-	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
+	@[ -f ${UPGRADECHECK} ] || echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
 
 clean::
 
