@@ -28,7 +28,7 @@ config.status: configure
 	fi
 
 upgrade:
-	@[ -f ${UPGRADECHECK} ] || echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
+	echo -e "\nUpgrading your existing MacPorts installation to the new namespace if necessary:\n"
 
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
 # ${TCL_PACKAGE_DIR}/macports1.0 with new names:
