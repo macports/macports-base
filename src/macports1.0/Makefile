@@ -9,6 +9,8 @@ include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
 test::
+	${TCLSH} tests/macports_dlist.tcl
+	${TCLSH} tests/macports_util.tcl
 
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
