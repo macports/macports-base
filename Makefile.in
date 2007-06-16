@@ -27,7 +27,7 @@ config.status: configure
 	fi
 
 upgrade:
-	@echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
+	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "\nUpgrading your existing MacPorts installation to the new layout:\n"
 
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
 # ${TCL_PACKAGE_DIR}/macports1.0 with new names:
@@ -139,7 +139,7 @@ upgrade:
 #something more?
 
 # Upgrade success announcement (meaning we're done ;):
-	@echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"
+	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"
 
 ####
 # NOTES:
@@ -157,8 +157,7 @@ install::
 	@echo -e "\nCongratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:\n"
 	@echo -e "sudo port selfupdate\n"
 	@echo -e "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation.\n"
-	@echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade,"
-	@echo -e "which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
+	@[ -f ${sysconfdir}/macports/.mprename_update ] || echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
 
 clean::
 
