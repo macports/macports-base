@@ -68,9 +68,10 @@ proc test_depends_lib-delete {} {
     # so we shall oblige
     set workername [interp create]
     macports::worker_init $workername {} [macports::getportbuildpath {}] {} {}
+    $workername alias scriptname info script
     set body {
         # load the current copy of portutil instead of the installed one
-        source [file dirname [info script]]/../portutil.tcl
+        source [file dirname [scriptname]]/../portutil.tcl
         package require port
         
         depends_lib port:foo port:bar port:blah
