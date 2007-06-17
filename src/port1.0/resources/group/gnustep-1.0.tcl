@@ -3,7 +3,7 @@
 #
 # $Id$
 #
-# Copyright (c) 2006 Yves de Champlain <yves@macports.org>,
+# Copyright (c) 2006 Yves de Champlain <yves@opendarwin.org>,
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,19 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
 # Group code for GNUstep ports.
+#
 
 #
-# Overview of gnustep 1.0 PortGroup
+# Overview of gnustep 1.0 PortGroup :
+#
+
 #
 # default categories            gnustep
 # default homepage              http://www.gnustep.org/
 # default master_sites          gnustep:core
+# default depends_lib           port:gnustep-core
 #
 # array set gnustep.post_flags  Apple CC two-level namespaces requires all 
 #                               symbols to be resolved at link time, 
@@ -52,140 +57,181 @@
 #                                       BundleSubDir  "-lfoo -lbar"
 #                                   }
 #                               }
-#                                
+#
+#
+# proc set_gnustep_make         Sets GNUSTEP_MAKEFILES 
+#                               according to the FilesystemLayout 
+#
+# proc set_gnustep_env          Sets DYLD_LIBRARY_PATH and PATH 
+#                               for the gnustep FilesystemLayout
+#
+#
+# default gnustep.cc            CC=gcc-dp-4.2
+#
 # default use_configure         no
-# default configure.args        CC=gcc-mp-4.1
+# default configure.env         Sets the environment for the gnustep FilesystemLayout
+# configure.pre_args-append     ${gnustep.cc} [set_gnustep_make]"
 #
+# default build.env             {[set_gnustep_env]}
 # default build.type            gnu
-# default build.args            messages=yes
+# build.pre_args-append         "messages=yes [set_gnustep_make]"
 #
-# default gnustep.domain        As provided by the current package or Local
-# default destroot.args         messages=yes
-# default destroot.destdir      GNUSTEP_INSTALLATION_DIR=${destroot}${prefix}/GNUstep/$gnustep.domain
-# variant with_docs             GNUstep programs providing documentation should
-#                               all follow the same pattern
+# default destroot.env          {[set_gnustep_env]}
+# destroot.pre_args-append      "messages=yes [set_gnustep_make] [set_gnustep_domain]"
+#
+# variant with_docs             Most GNUstep programs providing documentation
+#                               follow the same pattern
 #
 
+#
+# GNUstep utilities
+#
 
-# Options this group provides :
-
-options gnustep.domain
-default gnustep.domain      ""
-
-# Default values for this group :
-
-default categories			gnustep
-default homepage            http://www.gnustep.org/
-
-default master_sites        gnustep:core
-default depends_build       port:gnustep-make
-default depends_lib         port:gnustep-back
-
-default use_configure		no
-default configure.args      CC=gcc-mp-4.1
-
-default build.type          gnu
-default build.args          messages=yes
-
-default destroot.args       messages=yes
-
-
-# for Darwin's linker
+#
+# Adds SHARED_LD_POSTFLAGS for Darwin's linker 
+#
+# Sets GNUSTEP_INSTALLATION_DOMAIN for ports using the 
+# deprecated GNUSTEP_SYSTEM_ROOT variable
+#
 
 array set gnustep.post_flags {}
+
 post-patch {
     foreach {src_subdir post_libs} [array get gnustep.post_flags] {
         set fl [ open ${worksrcpath}/$src_subdir/GNUmakefile.preamble a ]
         puts $fl "\nSHARED_LD_POSTFLAGS += $post_libs"
         close $fl
     }
-}
-
-# try to guess installation directory if not specified in the Portfile
-# defaults to Local
-
-proc set_gnustep_domain {} {
-    global gnustep.domain worksrcpath
-    
-    if {${gnustep.domain} == ""} {
-        set gnustep.domain Local
-        ui_debug "No gnustep.domain provided"
-        if {[file exists $worksrcpath/GNUmakefile]} {
-            set root_makefile "GNUmakefile"
-        } elseif {[file exists $worksrcpath/GNUmakefile.in]} {
-            set root_makefile "GNUmakefile.in"
-        } else {
-            ui_debug "no GNUmakefile ? ... hum !"
-            return 1
-        }
-        ui_debug "Checking installation directory in $worksrcpath/$root_makefile"
-        set fl [open "| grep \"^GNUSTEP_INSTALLATION_DIR = \" $worksrcpath/$root_makefile"]
-        set data [read $fl]
-        if {! [catch {close $fl} err] && [regexp SYSTEM $data]} {
-            ui_debug "Data read : $data"
-            set gnustep.domain System
-        } else {
-            ui_debug "$err"
-        }
-    }
-    ui_debug "Using ${gnustep.domain}"
-}
-
-
-# GNUstep stages commands
-
-configure {
-    if { ${use_configure} == "yes" } {
-        cd ${worksrcpath}
-        ui_debug "./configure ${configure.pre_args} ${configure.args}"
-        system "\
-            . ${prefix}/GNUstep/System/Library/Makefiles/GNUstep.sh \
-            && \
-            ./configure ${configure.pre_args} ${configure.args}"
+    foreach gmf [glob -nocomplain -directory ${worksrcpath} GNUmakefile*] {
+        reinplace \
+            "s|GNUSTEP_INSTALLATION_DIR = \$\(GNUSTEP_SYSTEM_ROOT\)|GNUSTEP_INSTALLATION_DOMAIN=SYSTEM|g" \
+                $gmf
     }
 }
+
+#
+# Returns true (1) if current file layout is gnustep
+# Returns false (0) otherwise
+#
+
+proc gnustep_layout {} {
+    global prefix
     
-build {
-    cd ${worksrcpath}
-    ui_debug "${build.cmd} ${build.target} ${build.args}"
-    system "\
-        . ${prefix}/GNUstep/System/Library/Makefiles/GNUstep.sh \
-        && \
-        ${build.cmd} ${build.target} ${build.args}"
+    if {[file exists ${prefix}/GNUstep/System/Library/Makefiles]} {
+        return 1
+    }
+    return 0
 }
 
-destroot {
-    set_gnustep_domain
-    set destroot.destdir \
-        GNUSTEP_INSTALLATION_DIR=${destroot}${prefix}/GNUstep/${gnustep.domain}
-    cd ${worksrcpath}
-    ui_debug "${destroot.cmd} ${destroot.target} \
-            ${destroot.args} ${destroot.destdir}"
-    system "\
-        . ${prefix}/GNUstep/System/Library/Makefiles/GNUstep.sh \
-        && \
-        ${destroot.cmd} ${destroot.target} \
-            ${destroot.args} ${destroot.destdir}"
+#
+# Sets GNUSTEP_SYSTEM_LIBRARY according to the FilesystemLayout
+#
+
+proc set_system_library {} {
+    global prefix
+    
+    if {[gnustep_layout]} {
+        return "${prefix}/GNUstep/System/Library"
+    }
+    return "${prefix}/lib/GNUstep"
 }
 
+#
+# Sets GNUSTEP_LOCAL_LIBRARY according to the FilesystemLayout
+#
+
+proc set_local_library {} {
+    global prefix
+    
+    if {[gnustep_layout]} {
+        return "${prefix}/GNUstep/Local/Library"
+    }
+    return "${prefix}/lib/GNUstep"
+}
+
+#
+# Sets GNUSTEP_MAKEFILES according to the FilesystemLayout
+#
+
+proc set_gnustep_make {} {
+    global prefix
+    
+    if {[gnustep_layout]} {
+        return "GNUSTEP_MAKEFILES=${prefix}/GNUstep/System/Library/Makefiles"
+    }
+    return "GNUSTEP_MAKEFILES=${prefix}/share/GNUstep/Makefiles"
+}
+
+#
+# Sets DYLD_LIBRARY_PATH and PATH for the gnustep FilesystemLayout
+#
+
+proc set_gnustep_env {} {
+    global env prefix
+    
+    if {[gnustep_layout]} {
+        return "\
+            DYLD_LIBRARY_PATH=${prefix}/GNUstep/Local/Library/Libraries:${prefix}/GNUstep/System/Library/Libraries \
+            PATH=${prefix}/GNUstep/Local/Tools:${prefix}/GNUstep/System/Tools:$env(PATH) \
+        "
+    }
+    return
+}
+
+#
+# Options this group provides :
+#
+
+options gnustep.cc
+default gnustep.cc          CC=gcc-mp-4.2
+
+options system_library
+options local_library
+default system_library      [set_system_library]
+default local_library       [set_local_library]
+
+#
+# Default values for this group :
+#
+
+default categories          gnustep
+default homepage            http://www.gnustep.org/
+
+default master_sites        gnustep:core
+default depends_lib         port:gnustep-core
+
+default use_configure       no
+default configure.env       {[set_gnustep_env]}
+configure.pre_args-append   "${gnustep.cc} [set_gnustep_make]"
+
+default build.env           {[set_gnustep_env]}
+default build.type          gnu
+build.pre_args-append       "messages=yes [set_gnustep_make]"
+
+default destroot.env        {[set_gnustep_env]}
+destroot.pre_args-append    "messages=yes [set_gnustep_make]"
+
+#
 # To build and install documentation provided by the port
+#
 
 variant with_docs {
-    depends_build-append \
-       bin:latex2html:latex2html \
-        bin:texi2pdf:texinfo \
-        bin:texi2html:texi2html \
-        bin:pdftex:teTeX \
-        port:gnustep-base
+    depends_build-append    bin:latex2html:latex2html \
+                            bin:texi2pdf:texinfo \
+                            bin:texi2html:texi2html \
+                            bin:pdftex:teTeX \
+                            port:gnustep-base
+
     post-destroot {
+        
         if {[file exists ${worksrcpath}/Documentation/GNUmakefile]} {
+            
             ui_msg "--->  Making Documentation for ${name}"
+            
             cd ${worksrcpath}/Documentation
-            system "\
-                . ${prefix}/GNUstep/System/Library/Makefiles/GNUstep.sh \
-                && \
-                ${destroot.cmd} ${destroot.target} \
-                    ${destroot.args} ${destroot.destdir}"
+            system "${destroot.env} ${destroot.cmd} \
+                    ${destroot.pre_args} ${destroot.destdir}"
+            
             set info_dir \
                 ${destroot}${prefix}/GNUstep/System/Library/Documentation/info
             if {[file exists ${info_dir}/manual.info]} {
