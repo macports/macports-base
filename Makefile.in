@@ -28,7 +28,7 @@ config.status: configure
 	fi
 
 upgrade:
-	echo -e "\nUpgrading your existing MacPorts installation to the new namespace if necessary:\n"
+	@echo "Upgrading your existing MacPorts installation to the new namespace if necessary:"; echo ""
 
 # We can safely delete the ${TCL_PACKAGE_DIR}/darwinports1.0 dir as files in it are always overwritten and will now be installed onto
 # ${TCL_PACKAGE_DIR}/macports1.0 with new names:
@@ -134,7 +134,7 @@ upgrade:
 	}
 
 # Upgrade success announcement (meaning we're done ;):
-	@[ -f ${UPGRADECHECK} ] || { echo -e "\nMacPorts installation successfully upgraded from the old DarwinPorts namespace!\n"; \
+	@[ -f ${UPGRADECHECK} ] || { echo ""; "MacPorts installation successfully upgraded from the old DarwinPorts namespace!"; echo ""; \
 	echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
 
 ####
@@ -150,10 +150,10 @@ install:: upgrade
 include Mk/macports.subdir.mk
 
 install::
-	@echo -e "\nCongratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:\n"
-	@echo -e "sudo port selfupdate\n"
-	@echo -e "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation.\n"
-	@[ -f ${UPGRADECHECK} ] || echo -e "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually.\n"
+	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"; echo ""
+	@echo "sudo port selfupdate"; echo ""
+	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."; echo ""
+	@[ -f ${UPGRADECHECK} ] || echo "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually."; echo ""
 
 clean::
 
