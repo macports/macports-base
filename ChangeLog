@@ -6,6 +6,8 @@
 
 (unreleased)
 
+    - gnustep portgroup for gnustep-make-2.0 (yves r26266).
+
     - Merged the dp2mp-move branch into trunk to finally move away from all
       DarwinPorts related strings and conventions both internally and externally
       (jmpp r26177).
