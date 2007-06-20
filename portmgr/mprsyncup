@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ####
 # Script to checkout/update base sources from both trunk (ToT) and the current
 # release tag (as determined by the base/config/RELEASE_URL file) and a ports
@@ -21,7 +22,7 @@ SVN="/opt/local/bin/svn -q --non-interactive"
 RSYNC="/usr/bin/rsync -q"
 
 # Paths we'll work on:
-SVNROOT=/tmp/macports
+SVNROOT=/var/tmp/macports
 TBASE=${SVNROOT}/trunk/base
 RBASE=${SVNROOT}/release/base
 PORTS=${SVNROOT}/release/ports
