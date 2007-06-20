@@ -15,7 +15,7 @@ load the "macports" TCL library. 'port', the included command line port
 utility, uses only the exported "macports" API.
 
     The "macports" API provides very simple primitives for dealing with
-ports (ie, mportexec/mportopen/mportget). Also, the API has very little
+ports (ie, mportexec/mportopen/mportinit). Also, the API has very little
 knowledge of the contents of a portfile; instead, it relies entirely upon
 the "port" TCL library. By keeping the high level API simple and generic,
 a revision of the underlying ports system will not necessarily require
