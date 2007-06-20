@@ -241,7 +241,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
 # Deprecated version of the new mportinit proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
-    ui_warn "The dportinit proc is deprecated and will be going away soon, please use mportinit in the future"
+    ui_warn "The dportinit proc is deprecated and will be going away soon, please use mportinit in the future!"
     mportinit $up_ui_options $up_options $up_variations
 }
 
@@ -803,7 +803,7 @@ proc macports::getportdir {url {destdir "."}} {
 # Deprecated version of the new mportopen proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
-    ui_warn "The dportopen proc is deprecated and will be going away soon, please use mportopen in the future"
+    ui_warn "The dportopen proc is deprecated and will be going away soon, please use mportopen in the future!"
     mportopen $porturl $options $variations $nocache
 }
 
@@ -1110,7 +1110,7 @@ proc _mportexec {target mport} {
 # Deprecated version of the new mportexec proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportexec {mport target} {
-    ui_warn "The dportexec proc is deprecated and will be going away soon, please use mportexec in the future"
+    ui_warn "The dportexec proc is deprecated and will be going away soon, please use mportexec in the future!"
     mportexec $mport $target
 }
 
@@ -1234,7 +1234,7 @@ proc macports::getindex {source} {
 # Deprecated version of the new mportsync proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportsync {} {
-    ui_warn "The dportsync proc is deprecated and will be going away soon, please use mportsync in the future"
+    ui_warn "The dportsync proc is deprecated and will be going away soon, please use mportsync in the future!"
     mportsync
 }
 
@@ -1312,7 +1312,7 @@ proc mportsync {} {
 # Deprecated version of the new mportsearch proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
-    ui_warn "The dportsearch proc is deprecated and will be going away soon, please use mportsearch in the future"
+    ui_warn "The dportsearch proc is deprecated and will be going away soon, please use mportsearch in the future!"
     mportsearch $pattern $case_sensitive $matchstyle $field
 }
 
@@ -1404,7 +1404,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 # Deprecated version of the new mportinfo proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportinfo {mport} {
-    ui_warn "The dportinfo proc is deprecated and will be going away soon, please use mportinfo in the future"
+    ui_warn "The dportinfo proc is deprecated and will be going away soon, please use mportinfo in the future!"
     mport info $mport
 }
 
@@ -1417,7 +1417,7 @@ proc mportinfo {mport} {
 # Deprecated version of the new mportclose proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
 proc dportclose {mport} {
-    ui_warn "The dportclose proc is deprecated and will be going away soon, please use mportclose in the future"
+    ui_warn "The dportclose proc is deprecated and will be going away soon, please use mportclose in the future!"
     mportclose $mport
 }
 
