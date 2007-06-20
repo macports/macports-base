@@ -237,6 +237,13 @@ proc macports::setxcodeinfo {name1 name2 op} {
 	}
 }
 
+# dportinit
+# Deprecated version of the new mportinit proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
+    ui_warn "The dportinit proc is deprecated and will be going away soon, please use mportinit in the future"
+    mportinit $up_ui_options $up_options $up_variations
+}
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	if {$up_ui_options eq ""} {
@@ -792,6 +799,14 @@ proc macports::getportdir {url {destdir "."}} {
 	}
 }
 
+# dportopen
+# Deprecated version of the new mportopen proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportopen {porturl {options ""} {variations ""} {nocache ""}} {
+    ui_warn "The dportopen proc is deprecated and will be going away soon, please use mportopen in the future"
+    mportopen $porturl $options $variations $nocache
+}
+
 # mportopen
 # Opens a MacPorts portfile specified by a URL.  The Portfile is
 # opened with the given list of options and variations.  The result
@@ -1091,9 +1106,16 @@ proc _mportexec {target mport} {
 	}
 }
 
+# dportexec
+# Deprecated version of the new mportexec proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportexec {mport target} {
+    ui_warn "The dportexec proc is deprecated and will be going away soon, please use mportexec in the future"
+    mportexec $mport $target
+}
+
 # mportexec
 # Execute the specified target of the given mport.
-
 proc mportexec {mport target} {
     global macports::registry.installtype
 
@@ -1208,6 +1230,14 @@ proc macports::getindex {source} {
 	return [file join [macports::getsourcepath $source] PortIndex]
 }
 
+# dportsync
+# Deprecated version of the new mportsync proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportsync {} {
+    ui_warn "The dportsync proc is deprecated and will be going away soon, please use mportsync in the future"
+    mportsync
+}
+
 proc mportsync {} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::autoconf::rsync_path 
@@ -1276,6 +1306,14 @@ proc mportsync {} {
 	    }
 	}
     }
+}
+
+# dportsearch
+# Deprecated version of the new mportsearch proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
+    ui_warn "The dportsearch proc is deprecated and will be going away soon, please use mportsearch in the future"
+    mportsearch $pattern $case_sensitive $matchstyle $field
 }
 
 proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}} {
@@ -1362,9 +1400,25 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 	return $matches
 }
 
+# dportinfo
+# Deprecated version of the new mportinfo proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportinfo {mport} {
+    ui_warn "The dportinfo proc is deprecated and will be going away soon, please use mportinfo in the future"
+    mport info $mport
+}
+
 proc mportinfo {mport} {
 	set workername [ditem_key $mport workername]
     return [$workername eval array get PortInfo]
+}
+
+# dportclose
+# Deprecated version of the new mportclose proc, listed here as backwards
+# compatibility glue for API clients that haven't updated to the new naming
+proc dportclose {mport} {
+    ui_warn "The dportclose proc is deprecated and will be going away soon, please use mportclose in the future"
+    mportclose $mport
 }
 
 proc mportclose {mport} {
