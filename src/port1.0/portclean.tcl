@@ -70,7 +70,7 @@ proc clean_main {args} {
 		[info exists ports_clean_work] && $ports_clean_work == "yes" || \
 		(!([info exists ports_clean_dist] && $ports_clean_dist == "yes") && \
 		 !([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
-		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing workpath for %s"] [option portname]]"
+		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option portname]]"
 		 clean_work
 	}
 
