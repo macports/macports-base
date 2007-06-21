@@ -114,12 +114,13 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     body = *objv;
     
     if ((rval = Tcl_ListObjGetElements(interp, listPtr, &lobjc, &lobjv)) == TCL_OK) {
-        char **entries = calloc(objc, sizeof(char *));
+        char **entries = calloc(lobjc+1, sizeof(char *));
         char **iter = (char **)entries;
-        while (lobjc) {
+        while (lobjc > 0) {
             *iter++ = Tcl_GetString(*lobjv);
             --lobjc, ++lobjv;
         }
+        *iter = NULL;
         rval = do_traverse(interp, flags, entries, varname, body);
         free(entries);
     }
