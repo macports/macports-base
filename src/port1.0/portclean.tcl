@@ -149,11 +149,11 @@ proc clean_dist {args} {
 }
 
 proc clean_work {args} {
-	global workpath worksymlink
+    global portbuildpath worksymlink
 
-	if {[file isdirectory $workpath]} {
-		ui_debug "Removing directory: ${workpath}"
-		if {[catch {delete $workpath} result]} {
+	if {[file isdirectory $portbuildpath]} {
+		ui_debug "Removing directory: ${portbuildpath}"
+		if {[catch {delete $portbuildpath} result]} {
 			ui_debug "$::errorInfo"
 			ui_error "$result"
 		}
