@@ -6,6 +6,8 @@
 
 (unreleased)
 
+    - Fixed a potential crasher in the delete command (ticket #12149, eridius r26397).
+
     - gnustep portgroup for gnustep-make-2.0 (yves r26266).
 
     - Merged the dp2mp-move branch into trunk to finally move away from all
