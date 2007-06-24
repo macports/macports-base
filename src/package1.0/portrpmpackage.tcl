@@ -65,7 +65,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
         set rpmdestpath "--define '_topdir ${pkgpath}'"
     }
     
-    foreach dir { "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"} {
+    foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
         foreach arch {"ppc" "i386" "fat"} {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
@@ -159,6 +159,11 @@ proc write_spec {specfile portname portversion portrevision description long_des
 %define vendor MacPorts
 %define packager ${maintainer}
 
+%define buildroot ${destroot}
+# Avoid cleaning BuildRoot in the pre-install:
+%define __spec_install_pre     %{___build_pre}
+%define __spec_clean_body      %{nil}
+
 Summary: ${description}
 Name: ${portname}
 Version: ${portversion}
@@ -178,7 +183,6 @@ AutoReqProv: no"
 ${long_description}
 %prep
 %build
-echo \"Go MacPorts\"
 %install
 %clean
 %files -f ${destroot}/../${origportname}.filelist
