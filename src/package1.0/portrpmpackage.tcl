@@ -91,6 +91,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
         }
     }
     set category   [lindex [split $categories " "] 0]
+    set license    "Unknown"
     set maintainer $maintainers
     
     set dependencies {}
@@ -111,11 +112,12 @@ proc rpmpackage_pkg {portname portversion portrevision} {
 	lappend dependencies "org.macports.${os.arch}"
 	lappend dependencies "org.macports.${os.platform}${major}"
     
+    set listpath ${workpath}/${portname}.filelist
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"
     #system "cd '${destpath}' && find . -type d | grep -v -E '^.$' | sed -e 's/\"/\\\"/g' -e 's/^./%dir \"/' -e 's/$/\"/' > '${workpath}/${portname}.filelist'"
     system "cd '${destpath}' && find . ! -type d | grep -v /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./\"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     system "cd '${destpath}' && find . ! -type d | grep /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./%config \"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
-    write_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $category $maintainer $destpath $dependencies $epoch
+    write_spec ${specpath} ${destpath} ${listpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $pkg_homepage $category $license $maintainer $dependencies $epoch
     system "MP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmbuildarch} ${rpmdestpath} ${specpath}"
     
     return 0
@@ -155,7 +157,7 @@ proc make_dependency_list {portname} {
     return $result
 }
 
-proc write_spec {specfile portname portversion portrevision description long_description category maintainer destroot dependencies epoch} {
+proc write_spec {specfile destroot filelist portname portversion portrevision description long_description homepage category license maintainer dependencies epoch} {
     set specfd [open ${specfile} w+]
     set origportname ${portname}
     regsub -all -- "\-" $portversion "_" portversion
@@ -175,7 +177,8 @@ Name: ${portname}
 Version: ${portversion}
 Release: ${portrevision}
 Group: ${category}
-License: Unknown
+License: ${license}
+URL: ${homepage}
 BuildRoot: ${destroot}
 Epoch: ${epoch}
 AutoReqProv: no"
@@ -193,6 +196,6 @@ ${long_description}
 %install
 %clean
 
-%files -f ${destroot}/../${origportname}.filelist"
+%files -f ${filelist}"
     close $specfd
 }
