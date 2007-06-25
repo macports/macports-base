@@ -65,10 +65,16 @@ proc rpmpackage_pkg {portname portversion portrevision} {
         set rpmdestpath "--define '_topdir ${pkgpath}'"
     }
     
+    set rpmbuildarch ""
+    if {[variant_isset "universal"]} {
+        set rpmbuildarch "--target fat"
+    }
+    
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
         foreach arch {"ppc" "i386" "fat"} {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
+                ui_debug "$rpmpath"
                 ui_msg "$UI_PREFIX [format [msgcat::mc "RPM package for %s-%s is up-to-date"] ${portname} ${portversion}]"
                 return 0
             }
@@ -110,7 +116,7 @@ proc rpmpackage_pkg {portname portversion portrevision} {
     system "cd '${destpath}' && find . ! -type d | grep -v /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./\"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     system "cd '${destpath}' && find . ! -type d | grep /etc/ | sed -e 's/\"/\\\"/g' -e 's/^./%config \"/' -e 's/$/\"/' >> '${workpath}/${portname}.filelist'"
     write_spec ${specpath} $portname $portversion $portrevision $pkg_description $pkg_long_description $category $maintainer $destpath $dependencies $epoch
-    system "MP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmdestpath} ${specpath}"
+    system "MP_USERECEIPTS='${portdbpath}/receipts' rpmbuild -bb -v ${rpmbuildarch} ${rpmdestpath} ${specpath}"
     
     return 0
 }
@@ -181,11 +187,12 @@ AutoReqProv: no"
     puts $specfd "
 %description
 ${long_description}
+
 %prep
 %build
 %install
 %clean
-%files -f ${destroot}/../${origportname}.filelist
-"
+
+%files -f ${destroot}/../${origportname}.filelist"
     close $specfd
 }
