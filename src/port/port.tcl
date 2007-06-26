@@ -190,7 +190,7 @@ combined using expressions consisting of and, or, not, !, (, and ).
 	
 For more information
 --------------------
-See man pages: port(1), ports.conf(5), portfile(7), portgroup(7),
+See man pages: port(1), macports.conf(5), portfile(7), portgroup(7),
 porthier(7), portstyle(7). Also, see http://www.macports.org.
 }
 
