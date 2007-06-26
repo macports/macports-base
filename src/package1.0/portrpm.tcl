@@ -1,5 +1,5 @@
 # et:ts=4
-# portrpmpackage.tcl
+# portrpm.tcl
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
@@ -30,27 +30,27 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portrpmpackage 1.0
+package provide portrpm 1.0
 package require portutil 1.0
 
-set org.macports.rpmpackage [target_new org.macports.rpmpackage rpmpackage_main]
-target_runtype ${org.macports.rpmpackage} always
-target_provides ${org.macports.rpmpackage} rpmpackage
-target_requires ${org.macports.rpmpackage} destroot
+set org.macports.rpm [target_new org.macports.rpm rpm_main]
+target_runtype ${org.macports.rpm} always
+target_provides ${org.macports.rpm} rpm
+target_requires ${org.macports.rpm} destroot
 
 options package.destpath
 
 set_ui_prefix
 
-proc rpmpackage_main {args} {
+proc rpm_main {args} {
     global portname portversion portrevision UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${portname} ${portversion}]"
     
-    return [rpmpackage_pkg $portname $portversion $portrevision]
+    return [rpm_pkg $portname $portversion $portrevision]
 }
 
-proc rpmpackage_pkg {portname portversion portrevision} {
+proc rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
 	global os.platform os.arch os.version
     

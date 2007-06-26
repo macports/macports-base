@@ -1138,7 +1138,7 @@ proc mportexec {mport target} {
 		|| $target == "destroot" || $target == "install"
 		|| $target == "archive"
 		|| $target == "pkg" || $target == "mpkg"
-		|| $target == "rpmpackage" || $target == "dpkg" } {
+		|| $target == "rpm" || $target == "dpkg" } {
 
 		if {[mportdepends $mport $target] != 0} {
 			return 1
@@ -1478,7 +1478,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 		archive		-
 		pkg			-
 		mpkg		-
-		rpmpackage	-
+                rpm	        -
 		dpkg		-
 		""			{ set deptypes "depends_lib depends_build depends_run" }
 	}

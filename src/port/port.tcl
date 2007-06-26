@@ -2218,7 +2218,7 @@ array set action_array {
 	dpkg		action_target
 	mpkg		action_target
 	pkg			action_target
-	rpmpackage	action_target
+	rpm	        action_target
 
 	quit		action_exit
 	exit		action_exit

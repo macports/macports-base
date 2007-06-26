@@ -1,6 +1,6 @@
 INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/package1.0
 
-SRCS=	package.tcl portdmg.tcl portmpkg.tcl portpkg.tcl portrpmpackage.tcl \
+SRCS=	package.tcl portdmg.tcl portmpkg.tcl portpkg.tcl portrpm.tcl \
 	portdpkg.tcl portunarchive.tcl portarchive.tcl
 
 include ../../Mk/macports.autoconf.mk
