@@ -56,17 +56,17 @@
 
 
 [release]
-	comment = MacPorts rsync release repo, ports tree and base sources.
-	path = /Volumes/data/rsync/macports/release
+    comment = MacPorts rsync release repository, providing the current MacPorts "released" sources and the ports tree.
+    path = /Volumes/data/rsync/macports/release
 
 [trunk]
-	comment = MacPorts ToT rsync repo, base component.
-	path = /Volumes/data/rsync/macports/trunk
+    comment = MacPorts rsync "trunk" repository, providing experimental MacPorts sources in svn's trunk/base.
+    path = /Volumes/data/rsync/macports/trunk
 
 [dpupdate]
-	comment = Legacy MacPorts ToT rsync repo, ports tree and base component (solely for backwards compatibility purposes).
-	path = /Volumes/data/rsync/macports/dpupdate
+    comment = Legacy MacPorts rsync repository for backwards compatibility with 1.4.x releases, providing svn's trunk/base and the ports tree.
+    path = /Volumes/data/rsync/macports/dpupdate
 
 [dpupdate1]
-	comment = Legacy MacPorts rsync dpupdate1 repo, release base component (solely for backwards compatibility purposes).
-	path = /Volumes/data/rsync/macports/dpupdate1
+    comment = Legacy MacPorts rsync repository for backwards compatibility with 1.4.x releases, providing the current MacPorts "released" sources.
+    path = /Volumes/data/rsync/macports/dpupdate1
