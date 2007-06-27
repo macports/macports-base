@@ -28,7 +28,7 @@
 # SUCH DAMAGE.
 #
 # postfligt
-# $Id $
+# $Id$
 
 echo ""
 echo "Checking the PATH variable for $USER..."
