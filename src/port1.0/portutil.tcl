@@ -1166,7 +1166,8 @@ proc target_run {ditem} {
 						archive		-
 						pkg			-
 						mpkg		-
-                                                rpm	        -
+						rpm			-
+						srpm		-
 						dpkg		-
 						activate    -
 						""			{ set deptypes "depends_lib depends_build depends_run" }
