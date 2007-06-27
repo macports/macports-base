@@ -27,18 +27,15 @@ SVN="/opt/local/bin/svn -q --non-interactive --config-dir $SVN_CONFIG_DIR"
 SRCTREE=${ROOT}/source
 # Where MP will install its world. This gets created.
 PREFIX=/opt/local
-# Where MP installs darwinports1.0. This gets created.
 # Path.
 PATH=${PREFIX}/bin:/bin:/usr/bin:/usr/sbin:/opt/local/bin
 # Log for the e-mail in case of failure.
 FAILURE_LOG=${ROOT}/guide_failure.log
-# Commit message.
-COMMIT_MSG=${ROOT}/commit.msg
 # The date.
 DATE=$(date +'%A %Y-%m-%d at %H:%M:%S')
 
 
-# Function to spam people in charge if something goes wrong during indexing.
+# Function to spam people in charge if something goes wrong during guide regen.
 bail () {
     mail -s "Guide regen Failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
     cleanup; exit 1
@@ -46,15 +43,14 @@ bail () {
 
 # Cleanup fuction for runtime files.
 cleanup () {
-    rm -f $COMMIT_MSG $FAILURE_LOG
-    rm -f $LOCKFILE
+    rm -f $FAILURE_LOG $LOCKFILE
 }
 
 
 if [ ! -e $LOCKFILE ]; then
     touch $LOCKFILE
 else
-    echo "Guide regen lockfile found, is another index regen running?"
+    echo "Guide regen lockfile found, is another job running?"
     exit 1
 fi
 
@@ -89,4 +85,4 @@ cd ${SRCTREE}/base/ && \
     || { echo "make failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the guide was regen'd successfuly, so we cleanup before we exit.
-cleanup
+cleanup && exit 0
