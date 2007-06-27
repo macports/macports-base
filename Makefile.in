@@ -88,7 +88,7 @@ upgrade:
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed '/^rsync_options/s/"\(.*\)"/\1/' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
-		sed 's/ --delete //' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
+		sed 's/ --delete / /' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/ ports.conf(5)/ macports.conf(5)/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
@@ -131,7 +131,7 @@ upgrade:
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 		sed '/^rsync_options/s/"\(.*\)"/\1/' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/ --delete //' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
+		sed 's/ --delete / /' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 		sed 's/ ports.conf(5)/ macports.conf(5)/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \

@@ -82,7 +82,7 @@ for receipt in /opt/local/var/macports/receipts/*/*/receipt.bz2 ; do
     mv -v /opt/local/etc/macports/macports.conf.tmp /opt/local/etc/macports/macports.conf
   sed '/^rsync_options/s/"\(.*\)"/\1/' /opt/local/etc/macports/macports.conf > /opt/local/etc/macports/macports.conf.tmp && \
     mv -v /opt/local/etc/macports/macports.conf.tmp /opt/local/etc/macports/macports.conf
-  sed 's/ --delete //' /opt/local/etc/macports/macports.conf > /opt/local/etc/macports/macports.conf.tmp && \
+  sed 's/ --delete / /' /opt/local/etc/macports/macports.conf > /opt/local/etc/macports/macports.conf.tmp && \
     mv -v /opt/local/etc/macports/macports.conf.tmp /opt/local/etc/macports/macports.conf
   sed 's/ ports.conf(5)/ macports.conf(5)/g' /opt/local/etc/macports/macports.conf > /opt/local/etc/macports/macports.conf.tmp && \
     mv -v /opt/local/etc/macports/macports.conf.tmp /opt/local/etc/macports/macports.conf
@@ -112,7 +112,7 @@ for receipt in /opt/local/var/macports/receipts/*/*/receipt.bz2 ; do
     mv -v ${HOME}/.macports/macports.conf.tmp ${HOME}/.macports/macports.conf
   sed '/^rsync_options/s/"\(.*\)"/\1/' ${HOME}/.macports/macports.conf > ${HOME}/.macports/macports.conf.tmp && \
     mv -v ${HOME}/.macports/macports.conf.tmp ${HOME}/.macports/macports.conf
-  sed 's/ --delete //' ${HOME}/.macports/macports.conf > ${HOME}/.macports/macports.conf.tmp && \
+  sed 's/ --delete / /' ${HOME}/.macports/macports.conf > ${HOME}/.macports/macports.conf.tmp && \
     mv -v ${HOME}/.macports/macports.conf.tmp ${HOME}/.macports/macports.conf
   sed 's/ ports.conf(5)/ macports.conf(5)/g' ${HOME}/.macports/macports.conf > ${HOME}/.macports/macports.conf.tmp && \
     mv -v ${HOME}/.macports/macports.conf.tmp ${HOME}/.macports/macports.conf
