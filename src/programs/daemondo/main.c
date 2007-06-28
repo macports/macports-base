@@ -1126,7 +1126,9 @@ main(int argc, char* argv[])
 			break;
 			
 		case kRestartHysteresisOpt:
-			AddSingleArrayArg("com.apple.system.config.network_change", darwinNotifyNames);
+			restartHysteresis = strtof(optarg, NULL);
+			if (restartHysteresis < 0)
+				restartHysteresis = 0;
 			break;
 			
 		case kPidOpt:
@@ -1163,7 +1165,7 @@ main(int argc, char* argv[])
 		
 		case kVerbosityOpt:
 			if (optarg)
-				verbosity = atoi(optarg);
+				verbosity = strtol(optarg, NULL,  10);
 			else
 				++verbosity;
 			break;
