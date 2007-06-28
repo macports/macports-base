@@ -77,7 +77,6 @@
 #include <IOKit/IOMessage.h>
 
 // Constants
-const CFTimeInterval kRestartHysteresis	= 5.0;		// Five seconds of hysteresis
 const CFTimeInterval kChildDeathTimeout = 20.0;
 const CFTimeInterval kChildStartPidTimeout = 30.0;
 
@@ -116,6 +115,7 @@ CFMutableArrayRef	darwinNotifyNames	= NULL;		// Array of darwin notification nam
 io_connect_t		pwrRootPort			= 0;
 int					restartOnWakeup		= 0;		// TRUE to restart daemon on wake from sleep
 CFRunLoopTimerRef	restartTimer		= NULL;		// Timer for scheduled restart
+CFTimeInterval		restartHysteresis	= 5.0;		// Default hysteresis is 5 seconds
 
 
 void
@@ -140,15 +140,30 @@ LogMessage(const char* fmt, ...)
 	va_start(ap, fmt);
 	vprintf(fmt, ap);
 	va_end(ap);
-	
-	printf("\n");
+}
+
+
+const char*
+CatArray(const char* const* strarray, char* buf, size_t size)
+{
+	const char* sep = " ";
+	int cnt = 0;
+	if (size == 0)
+		return NULL;
+	*buf = '\0';
+	for (cnt = 0; *strarray; ++strarray) {
+		if (cnt++ > 0)
+			strlcat(buf, sep, size);
+		strlcat(buf, *strarray, size);
+	}
+	return buf;
 }
 
 
 void
 DoVersion(void)
 {
-	printf("daemondo, version 1.0d2\n\n");
+	printf("daemondo, version 1.0d3\n\n");
 }
 
 
@@ -330,7 +345,7 @@ ProcessChildDeath(pid_t childPid)
 	if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
 	{
 		if (verbosity >= 3)
-			printf("Running process id %d has died.\n", childPid);
+			LogMessage("Running process id %d has died.\n", childPid);
 			
 		DestroyPidFile();
 
@@ -363,12 +378,12 @@ WaitChildDeath(pid_t childPid)
 		{
 			// We've run out of patience; kill the child with SIGKILL
 			if (verbosity >= 3)
-				printf("Child %d didn't die; Killing with SIGKILL.\n", childPid);
+				LogMessage("Child %d didn't die; Killing with SIGKILL.\n", childPid);
 			
 			if (0 != kill(childPid, SIGKILL))
 			{
 				if (verbosity >= 3)
-					printf("Attempt to kill process %d failed.\n", childPid);
+					LogMessage("Attempt to kill process %d failed.\n", childPid);
 			}
 		}
 	}
@@ -412,14 +427,14 @@ Exec(const char* const argv[], int sync)
 			execvp(argv[0], (char* const*)argv);
 			
 			// We get here only if the exec fails.
-			printf("Unable to launch process %s.\n", argv[0]);
+			LogMessage("Unable to launch process %s.\n", argv[0]);
 			_exit(1);
 		}
 		break;
 	
 	case -1:
 		// error starting child process
-		printf("Unable to fork child process %s.\n", argv[0]);
+		LogMessage("Unable to fork child process %s.\n", argv[0]);
 		break;
 	
 	default:
@@ -440,16 +455,18 @@ Exec(const char* const argv[], int sync)
 int
 Start(void)
 {	
+	char buf[1024];
+	
 	if (!startArgs || !startArgs[0])
 	{
-		printf("There is nothing to start. No start-cmd was specified.\n");
+		LogMessage("There is nothing to start. No start-cmd was specified.\n");
 		return 2;
 	}
 	
 	if (verbosity >= 1)
-		LogMessage("starting process");
+		LogMessage("starting process\n");
 	if (verbosity >= 2)
-		printf("Running start-cmd %s.\n", startArgs[0]);
+		LogMessage("Running start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
 		
 	// Exec the start-cmd
 	pid_t pid = Exec(startArgs, pidStyle == kPidStyleNone);
@@ -458,9 +475,9 @@ Start(void)
 	if (pid == -1)
 	{
 		if (verbosity >= 2)
-			printf("Error running start-cmd %s.\n", startArgs[0]);
+			LogMessage("Error running start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
 		if (verbosity >= 1)
-			LogMessage("error while starting");
+			LogMessage("error while starting\n");
 		return 2;
 	}
 	
@@ -480,9 +497,9 @@ Start(void)
 		if (pid == -1)
 		{
 			if (verbosity >= 2)
-				printf("Error; expected pidfile not found following Exec of start-cmd %s.\n", startArgs[0]);
+				LogMessage("Error; expected pidfile not found following Exec of start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
 			if (verbosity >= 1)
-				LogMessage("error while starting");
+				LogMessage("error while starting\n");
 			return 2;
 		}
 		break;
@@ -496,7 +513,7 @@ Start(void)
 	if (pid != 0 && pid != -1)
 	{
 		if (verbosity >= 1)
-			LogMessage("process id %d", pid);
+			LogMessage("process id %d\n", pid);
 
 		// Create a pid file if we need to		
 		CreatePidFile();
@@ -509,6 +526,8 @@ Start(void)
 int
 Stop(void)
 {
+	char buf[1024];
+
 	pid_t pid;
 	if (!stopArgs || !stopArgs[0])
 	{
@@ -528,7 +547,7 @@ Stop(void)
 		else
 		{
 			if (verbosity >= 1)
-				LogMessage("process was already stopped");
+				LogMessage("process was already stopped\n");
 		}
 	}
 	else
@@ -536,16 +555,16 @@ Stop(void)
 		// We have a stop-cmd to use. We execute it synchronously,
 		// and trust it to do the job.
 		if (verbosity >= 1)
-			LogMessage("stopping process");
+			LogMessage("stopping process\n");
 		if (verbosity >= 2)
-			printf("Running stop-cmd %s.\n", stopArgs[0]);
+			LogMessage("Running stop-cmd %s.\n", CatArray(stopArgs, buf, sizeof(buf)));
 		pid = Exec(stopArgs, TRUE);
 		if (pid == -1)
 		{
 			if (verbosity >= 2)
-				printf("Error while running stop-cmd %s\n", stopArgs[0]);
+				LogMessage("Error while running stop-cmd %s\n", CatArray(stopArgs, buf, sizeof(buf)));
 			if (verbosity >= 1)
-				LogMessage("error stopping process");
+				LogMessage("error stopping process\n");
 			return 2;
 		}
 
@@ -561,11 +580,13 @@ Stop(void)
 int
 Restart(void)
 {
+	char buf[1024];
+
 	if (!restartArgs || !restartArgs[0])
 	{
 		// We weren't given a restart command, so just use stop/start
 		if (verbosity >= 1)
-			LogMessage("restarting process");
+			LogMessage("restarting process\n");
 		Stop();
 		Start();
 	}
@@ -573,16 +594,16 @@ Restart(void)
 	{
 		// Execute the restart-cmd and trust it to do the job
 		if (verbosity >= 1)
-			LogMessage("restarting process");
+			LogMessage("restarting process\n");
 		if (verbosity >= 2)
-			printf("Running restart-cmd %s.\n", restartArgs[0]);
+			LogMessage("Running restart-cmd %s.\n", CatArray(restartArgs, buf, sizeof(buf)));
 		pid_t pid = Exec(restartArgs, TRUE);
 		if (pid == -1)
 		{
 			if (verbosity >= 2)
-				printf("Error running restart-cmd %s\n", restartArgs[0]);
+				LogMessage("Error running restart-cmd %s\n", CatArray(restartArgs, buf, sizeof(buf)));
 			if (verbosity >= 1)
-				LogMessage("error restarting process");
+				LogMessage("error restarting process\n");
 			return 2;
 		}
 	}
@@ -595,7 +616,7 @@ void
 ScheduledRestartCallback(CFRunLoopTimerRef timer, void *info)
 {
 	if (verbosity >= 3)
-		printf("Scheduled restart time has arrived.\n");
+		LogMessage("Scheduled restart time has arrived.\n");
 		
 	// Our scheduled restart fired, so restart now
 	Restart();
@@ -637,8 +658,8 @@ ScheduleDelayedRestart(void)
 	// a certain amount of "slop time" for things to stabilize following whatever
 	// event is triggering the restart.
 	if (verbosity >= 3)
-		printf("Scheduling restart %f seconds in future.\n", kRestartHysteresis);
-	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + kRestartHysteresis);
+		LogMessage("Scheduling restart %f seconds in future.\n", restartHysteresis);
+	ScheduleRestartForTime(CFAbsoluteTimeGetCurrent() + restartHysteresis);
 }
 
 
@@ -651,14 +672,22 @@ DynamicStoreChanged(
 {
 	if (verbosity >= 3)
 	{
-		CFShow(CFSTR("Restarting daemon because of the following changes in the dynamic store:"));
+		char bigBuf[1024];
+		*bigBuf = '\0';
+		
 		CFIndex cnt = CFArrayGetCount(changedKeys);
 		CFIndex i;
 		for (i = 0; i < cnt; ++i)
 		{
+			char buf[256];
 			CFStringRef value = CFArrayGetValueAtIndex(changedKeys, i);
-			CFShow(value);
+			CFStringGetCString(value, buf, sizeof(buf), kCFStringEncodingUTF8);
+			if (i > 0)
+				strlcat(bigBuf, ", ", sizeof(bigBuf));
+			strlcat(bigBuf, buf, sizeof(bigBuf));
 		}
+
+		LogMessage("Restarting daemon because of the following changes in the dynamic store: %s\n", bigBuf);
 	}
 	
 	ScheduleDelayedRestart();
@@ -681,7 +710,7 @@ PowerCallBack(void *x, io_service_t y, natural_t messageType, void *messageArgum
 		if (restartOnWakeup)
 		{
 			if (verbosity >= 3)
-				printf("Restarting daemon because of system wake from sleep\n");
+				LogMessage("Restarting daemon because of system wake from sleep\n");
 			ScheduleDelayedRestart();
 		}
 		break;
@@ -699,8 +728,9 @@ NotificationCenterCallback(
 {
 	if (verbosity >= 3)
 	{
-		CFShow(CFSTR("Restarting daemon due to receipt of the following notification:"));
-		CFShow(name);
+		char buf[256];
+		CFStringGetCString(name, buf, sizeof(buf), kCFStringEncodingUTF8);
+		LogMessage("Restarting daemon due to receipt of the notification %s\n", buf);
 	}
 		
 	ScheduleDelayedRestart();
@@ -961,7 +991,8 @@ enum {
 	kRestartWakeupOpt,
 	kRestartNetChangeOpt,
 	kPidOpt,
-	kPidFileOpt
+	kPidFileOpt,
+	kRestartHysteresisOpt
 };
 
 
@@ -972,7 +1003,7 @@ main(int argc, char* argv[])
 	
 	// Initialization
 	kProgramName		= CFSTR("daemondo");
-	kChildWatchMode		= CFSTR("ChildWatch");
+	kChildWatchMode		= CFSTR("ChildWatch");		// A runloop mode
 	
 	scRestartPatterns	= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
 	distNotifyNames		= CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
@@ -1014,6 +1045,8 @@ main(int argc, char* argv[])
 		{ "verbosity",		optional_argument,		0,				kVerbosityOpt },
 		{ "version",		no_argument,			0,				'V' },
 		{ "label",			required_argument,		0,				'l' },
+		{ "restart-hysteresis",
+							required_argument,		0,				kRestartHysteresisOpt },
 		
 		{ 0,				0,                      0,              0 }
 	};
@@ -1089,6 +1122,10 @@ main(int argc, char* argv[])
 			break;
 			
 		case kRestartNetChangeOpt:
+			AddSingleArrayArg("com.apple.system.config.network_change", darwinNotifyNames);
+			break;
+			
+		case kRestartHysteresisOpt:
 			AddSingleArrayArg("com.apple.system.config.network_change", darwinNotifyNames);
 			break;
 			
