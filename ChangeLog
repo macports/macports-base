@@ -6,6 +6,11 @@
 
 (unreleased)
 
+    - The "rpmpackage" target was renamed to "rpm", and a new target "srpm" added
+      that allows packaging a Portfile (and files/distfiles) up as a source package.
+      Upgraded RPM to version 4.4.9 and changed OpenDarwin/DarwinPorts to MacPorts.
+      The default build location is now /opt/local/src/macports instead of "apple".
+
     - Fixed a potential crasher in the delete command (ticket #12149, eridius r26397).
 
     - gnustep portgroup for gnustep-make-2.0 (yves r26266).
