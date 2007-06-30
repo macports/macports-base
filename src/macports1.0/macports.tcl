@@ -621,6 +621,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 proc macports::worker_init {workername portpath portbuildpath options variations} {
     global macports::portinterp_options macports::portinterp_deferred_options registry.installtype
 
+    # Hide any Tcl commands that should be inaccessible to port1.0 and Portfiles
+    # exit: It should not be possible to exit the interpreter
+    interp hide $workername exit
+
 	# Tell the sub interpreter about all the Tcl packages we already
 	# know about so it won't glob for packages.
 	foreach pkgName [package names] {
