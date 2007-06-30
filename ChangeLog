@@ -1,23 +1,49 @@
-#
-#   $Id$
-#
-#   This is a log of major user-visible changes in each release
-#
+###
+# This is a log of major user-visible changes in each MacPorts release.
+# $Id$
+###
 
-(unreleased)
+
+Release 1.5 (unreleased):
+
+    - Many documentation updates and improvements, mostly thanks to Maun Suang and Brian
+      Campbell who both started work on both improving our man pages and reviving the
+      long forgotten MacPorts official guide, now nightly regen'd on an automated basis
+      and hosted at a temporary location, http://geeklair.net/macports_guide/, all
+      thanks to Daniel J. Luke (dluke).
+
+    - Improve built-in "daemondo" program logging (jberry r26537 & r26569).
+
+    - rpm target now knows how to also build universal packages if requested (afb r26470).
 
     - The "rpmpackage" target was renamed to "rpm", and a new target "srpm" added
       that allows packaging a Portfile (and files/distfiles) up as a source package.
       Upgraded RPM to version 4.4.9 and changed OpenDarwin/DarwinPorts to MacPorts.
-      The default build location is now /opt/local/src/macports instead of "apple".
+      The default build location is now ${prefix}/src/macports instead of ${prefix}/src/apple
+      (jmpp & afb in r26465, r26496, r26536, r26543).
 
     - Fixed a potential crasher in the delete command (ticket #12149, eridius r26397).
 
+    - 'port delete --work' now removes $portbuiltpath instead of $workpath, effectively prunning
+      empty dirs that up until now were left behind in the build directory (jmpp r26394).
+
     - gnustep portgroup for gnustep-make-2.0 (yves r26266).
 
+    - Adding backwards compatibility glue for clients of the public (darwin|mac)ports1.0 API
+      that use now deprecated procs naming (DarwinPorts namespace) (jmpp r26392).
+
     - Merged the dp2mp-move branch into trunk to finally move away from all
-      DarwinPorts related strings and conventions both internally and externally
-      (jmpp r26177).
+      DarwinPorts related strings and conventions both internally and externally,
+      implying big changes in MacPorts pathnames with respect to user visible stuff.
+      Read http://trac.macports.org/projects/macports/wiki/MacPortsRenaming and
+      http://trac.macports.org/projects/macports/log/branches/dp2mp-move/base for
+      more full details and information (jmpp r26177).
+
+    - Fix livecheck to properly de-escape livecheck.url (eridius r26041).
+
+    - Add warning when it looks like PortIndex file is corrupt (eridius r26040).
+
+    - Make portindex use stderr for errors (eridius r26038, ticket #11585).
 
     - Fix port variants calculation to properly account for negated variants and
       to detect problems between required and negated variants
@@ -29,23 +55,7 @@
       Documented in portfile.7 (eridius r26034).
     
     - Add global methods try and throw. Implemented based on the specification
-      in TIP #89. Documented in portfile.7 (eridius r26034).
-
-    - Handle encodings properly now. All Portfiles and .conf files are assumed
-      to be utf-8, and reading them or calling portindex(1) should now work
-      the same on all locales (ticket #11978, eridius r25975).
-
-    - Fix port variants calculation to properly account for negated variants and
-      to detect problems between required and negated variants
-      (ticket #11920, eridius r26036, patch by gwhitney).
-
-    - Add global methods lpush, lpop, lshift, and lunshift. Works similar to
-      lappend (in fact lpush is just lappend) and do what they sound like.
-      Also add ldindex. Works like lindex, but deletes the element from the list.
-      Documented in portfile.7 (eridius r26034).
-    
-    - Add global methods try and throw. Implemented based on the specification
-      in TIP #89. Documented in portfile.7 (eridius r26034).
+      in TIP #89. Documented in portfile.7 (eridius r25979).
 
     - Handle encodings properly now. All Portfiles and .conf files are assumed
       to be utf-8, and reading them or calling portindex(1) should now work
@@ -58,6 +68,12 @@
       These are unobscured by port info, and by port submit during the submission process,
       but are left obscured in the Portfile to avoid accidental disclosure.
       (jberry r25795).
+
+    - Update port.1 to reflect what "port dependents" really does (markd r25787, ticket #11898).
+
+    - Distinguish a pseudo portname that evaluates to nothing from no arguments at all,
+      improving behavior of 'installed', 'active', 'list', and 'search' pseudo portnames.
+      (jberry in r25789, ticket #10674).
 
     - Bugfix startup item generation so that launchd.plists are disabled
       by default, as we claim they are in our documentation. (jberry r25785).
@@ -72,7 +88,7 @@
       character, `_' comes after `.' in ASCII lexicographic order.
       (boeyms in r25310)
 
-Release 1.4.42 (17-May-2007 tagged at r25296 by jberry)
+Release 1.4.42 (17-May-2007 tagged at r25296 by jberry):
 
     - Fix reinplace, broken in 1.4.41 (eridius r25285).
 
