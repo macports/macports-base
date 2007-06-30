@@ -36,7 +36,7 @@ For each major release (i.e. 1.3.x, 1.4.x, etc.) an appropriate branch is create
 * Create the branch (e.g. release_1_4) through the svn "copy" command for history preservation, first creating the needed branch dir to preserve the needed directory structure (the 'base' directory level *needs* to exist int the branches tree for release branches, otherwise selfupdate breaks):
 
  svn mkdir -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_4
- svn cp -r<rev> -m "commit-message" http://svn.macports.org/repository/macports/trunk/base http://svn.macports.org/repository/macports/branches/release_1_4
+ svn cp [-r<rev>] -m "commit-message" http://svn.macports.org/repository/macports/trunk/base http://svn.macports.org/repository/macports/branches/release_1_4
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all live on this branch, and tagged appropriately and if necessary (a must for the actual releases, optional for beta snapshots) into the /tags svn directory.
 
@@ -73,7 +73,7 @@ Although only the base subdirectory is branched and tagged for a given major rel
 
 The necessary working copy to create such a tag is created by checking out all of trunk at the specific revision of the final tagging of base and then switching the base directory inturn to the appropriate release tag URL. For instance:
 
- svn co -r<rev> http://svn.macports.org/repository/macports/trunk macports/release-1.4.0
+ svn co [-r<rev>] http://svn.macports.org/repository/macports/trunk macports/release-1.4.0
  cd macports/release-1.4.0/base
  svn switch http://svn.macports.org/repository/macports/tags/release_1_4_0/base
 
