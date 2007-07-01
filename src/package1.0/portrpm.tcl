@@ -69,9 +69,12 @@ proc rpm_pkg {portname portversion portrevision} {
     if {[variant_isset "universal"]} {
         set rpmbuildarch "--target fat"
     }
+    if {false} {
+        set rpmbuildarch "--target noarch"
+    }
     
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
-        foreach arch {"ppc" "i386" "fat"} {
+        foreach arch {"ppc" "i386" "fat" "noarch"} {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
