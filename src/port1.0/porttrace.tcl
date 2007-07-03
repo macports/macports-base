@@ -43,9 +43,11 @@ proc trace_start {workpath} {
 		} else {
 			global env trace_fifo trace_sandboxbounds
 			# Create a fifo.
-			set trace_fifo "$workpath/trace_fifo"
+			# path in unix socket limited to 109 chars
+			# # set trace_fifo "$workpath/trace_fifo"
+			set trace_fifo "/tmp/macports/[pid]" 
+			file mkdir "/tmp/macports"
 			file delete -force $trace_fifo
-			mkfifo $trace_fifo 0600
 			
 			# Create the thread/process.
 			create_slave $workpath $trace_fifo
@@ -75,6 +77,7 @@ proc trace_start {workpath} {
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
+			tracelib setsandbox $trace_sandboxbounds
 		}
 	}
 }
@@ -141,6 +144,9 @@ proc trace_stop {} {
 		if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
 			unset env(DARWINTRACE_SANDBOX_BOUNDS)
 		}
+		
+		#kill socket
+		tracelib clean
 
 		# Clean up.
 		slave_send slave_stop
@@ -180,6 +186,8 @@ proc slave_send_async {command} {
 # Send a command to the thread.
 proc slave_send {command} {
 	global trace_thread
+
+	# ui_warn "slave send $command ?"
 
 	thread::send $trace_thread "$command" result
 	return $result
@@ -258,24 +266,15 @@ proc slave_read_line {chan} {
 # Private.
 # Slave init method.
 proc slave_start {fifo p_workpath} {
-	global ports_list trace_filemap sandbox_violation_list trace_fifo_r_chan \
-		trace_fifo_w_chan workpath
+	global ports_list trace_filemap sandbox_violation_list 
 	# Save the workpath.
 	set workpath $p_workpath
 	# Create a virtual filemap.
 	filemap create trace_filemap
 	set ports_list {}
 	set sandbox_violation_list {}
-	set trace_fifo_r_chan [open $fifo {RDONLY NONBLOCK}]
-	# To prevent EOF when darwintrace closes the file, I also open the pipe
-	# myself as write only.
-	# This is quite ugly. The clean way to do would be to only install the
-	# fileevent handler when the pipe is opened on the other end, but I don't
-	# know how to wait for this while still being interruptable (i.e. while
-	# still being able to get commands thru thread::send). Thoughts, anyone?
-	set trace_fifo_w_chan [open $fifo w]
-	fconfigure $trace_fifo_r_chan -blocking 0 -buffering line
-	fileevent $trace_fifo_r_chan readable [list slave_read_line $trace_fifo_r_chan]
+	tracelib setname $fifo
+	tracelib run
 }
 
 # Private.
@@ -285,8 +284,6 @@ proc slave_stop {} {
 	# Close the virtual filemap.
 	filemap close trace_filemap
 	# Close the pipe (both ends).
-	close $trace_fifo_r_chan
-	close $trace_fifo_w_chan
 }
 
 # Private.
@@ -301,4 +298,9 @@ proc slave_get_ports {} {
 proc slave_get_sandbox_violations {} {
 	global sandbox_violation_list
 	return $sandbox_violation_list
+}
+
+proc slave_add_sandbox_violation {path} {
+	global sandbox_violation_list
+	lappend sandbox_violation_list $path
 }

@@ -1143,6 +1143,11 @@ proc target_run {ditem} {
 			set result [catch {$postrun $name} errstr]
 			}
 
+			# *** move it to good position
+			#   Why do we need it? It closes socket, and exit from our C thread
+			tracelib closesocket
+			# ***
+			
 			# Check dependencies & file creations outside workpath.
 			if {[info exists ports_trace]
 				&& $ports_trace == "yes"
