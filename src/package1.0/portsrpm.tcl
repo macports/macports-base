@@ -53,7 +53,7 @@ proc srpm_main {args} {
 
 proc srpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath distfiles fetch_urls
-	global os.platform os.arch os.version
+	global os.platform os.arch os.version os.major
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {

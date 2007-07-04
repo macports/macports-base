@@ -52,7 +52,7 @@ proc rpm_main {args} {
 
 proc rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
-	global os.platform os.arch os.version
+	global os.platform os.arch os.version os.major
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -111,8 +111,7 @@ proc rpm_pkg {portname portversion portrevision} {
     }
 
 	# depend on system (virtual packages for apple stuff)
-	regexp {[0-9]+} ${os.version} major
-	lappend dependencies "org.macports.${os.platform}${major}"
+	lappend dependencies "org.macports.${os.platform}${os.major}"
     
     set listpath ${workpath}/${portname}.filelist
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"

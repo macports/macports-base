@@ -485,7 +485,7 @@ proc variant_exists {name} {
 # Basically, just wrap 'variant', so that Portfiles' platform declarations can
 # be more readable, and support arch and version specifics
 proc platform {args} {
-    global all_variants PortInfo os.platform os.arch os.version
+    global all_variants PortInfo os.platform os.arch os.version os.major
     
     set len [llength $args]
     set code [lindex $args end]
@@ -522,9 +522,8 @@ proc platform {args} {
     set matches 1
     if {[info exists os.platform] && ${os.platform} == $os} { 
 	set sel_platform $os
-	if {[info exists os.version] && [info exists release]} {
-	    regexp {([0-9]*)[0-9\.]?} ${os.version} match major
-	    if {$major == $release } { 
+	if {[info exists os.major] && [info exists release]} {
+	    if {${os.major} == $release } { 
 	    	set sel_platform ${sel_platform}_${release} 
 	    } else {
 		    set matches 0
