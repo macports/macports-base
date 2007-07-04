@@ -703,6 +703,10 @@ OBJC_RUNTIME_FLAGS
 OBJC_LIBS
 OBJC_PTHREAD_LIBS
 OBJC_PTHREAD_CFLAGS
+OBJC_FOUNDATION
+OBJC_FOUNDATION_LDFLAGS
+OBJC_FOUNDATION_CPPFLAGS
+OBJC_FOUNDATION_LIBS
 HAVE_FRAMEWORK_COREFOUNDATION
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
 HAVE_FRAMEWORK_IOKIT
@@ -5386,8 +5390,9 @@ echo "${ECHO_T}${ac_cv_objc_foundation_gnustep}" >&6; }
 	# NeXT Foundation is prefered
 	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
 		OBJC_FOUNDATION="Apple"
-		CPPFLAGS="${APPLE_FOUNDATION_CPPFLAGS} ${CPPFLAGS}"
-		LIBS="${APPLE_FOUNDATION_LIBS} ${LIBS}"
+		OBJC_FOUNDATION_CPPFLAGS="${APPLE_FOUNDATION_CFLAGS}"
+		OBJC_FOUNDATION_LIBS="${APPLE_FOUNDATION_LIBS}"
+		OBJC_FOUNDATION_LDFLAGS=""
 
 cat >>confdefs.h <<\_ACEOF
 #define APPLE_FOUNDATION 1
@@ -5397,9 +5402,9 @@ _ACEOF
 echo "$as_me: Using Apple Foundation library" >&6;}
 	elif test x"${ac_cv_objc_foundation_gnustep}" == x"yes"; then
 		OBJC_FOUNDATION="GNUstep"
-		CPPFLAGS="${GNUSTEP_CPPFLAGS} ${CPPFLAGS}"
-		LIBS="${GNUSTEP_LIBS} ${LIBS}"
-		LDFLAGS="${GNUSTEP_LDFLAGS} ${LDFLAGS}"
+		OBJC_FOUNDATION_CPPFLAGS="${GNUSTEP_CPPFLAGS}"
+		OBJC_FOUNDATION_LIBS="${GNUSTEP_LIBS}"
+		OBJC_FOUNDATION_LDFLAGS="${GNUSTEP_LDFLAGS}"
 
 cat >>confdefs.h <<\_ACEOF
 #define GNUSTEP_FOUNDATION 1
@@ -5412,6 +5417,11 @@ echo "$as_me: Using GNUstep Foundation library" >&6;}
 echo "$as_me: error: Could not find a working Foundation implementation" >&2;}
    { (exit 1); exit 1; }; }
 	fi
+
+
+
+
+
 
 	ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -11967,16 +11977,16 @@ OBJC_RUNTIME_FLAGS!$OBJC_RUNTIME_FLAGS$ac_delim
 OBJC_LIBS!$OBJC_LIBS$ac_delim
 OBJC_PTHREAD_LIBS!$OBJC_PTHREAD_LIBS$ac_delim
 OBJC_PTHREAD_CFLAGS!$OBJC_PTHREAD_CFLAGS$ac_delim
+OBJC_FOUNDATION!$OBJC_FOUNDATION$ac_delim
+OBJC_FOUNDATION_LDFLAGS!$OBJC_FOUNDATION_LDFLAGS$ac_delim
+OBJC_FOUNDATION_CPPFLAGS!$OBJC_FOUNDATION_CPPFLAGS$ac_delim
+OBJC_FOUNDATION_LIBS!$OBJC_FOUNDATION_LIBS$ac_delim
 HAVE_FRAMEWORK_COREFOUNDATION!$HAVE_FRAMEWORK_COREFOUNDATION$ac_delim
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION!$HAVE_FRAMEWORK_SYSTEMCONFIGURATION$ac_delim
 HAVE_FRAMEWORK_IOKIT!$HAVE_FRAMEWORK_IOKIT$ac_delim
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER!$HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER$ac_delim
 REPLACEMENT_PROGS!$REPLACEMENT_PROGS$ac_delim
 EXTRA_PROGS!$EXTRA_PROGS$ac_delim
-PORTSDIR!$PORTSDIR$ac_delim
-MPCONFIGDIR!$MPCONFIGDIR$ac_delim
-DSTUSR!$DSTUSR$ac_delim
-DSTGRP!$DSTGRP$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -12018,6 +12028,10 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+PORTSDIR!$PORTSDIR$ac_delim
+MPCONFIGDIR!$MPCONFIGDIR$ac_delim
+DSTUSR!$DSTUSR$ac_delim
+DSTGRP!$DSTGRP$ac_delim
 DSTMODE!$DSTMODE$ac_delim
 CPP!$CPP$ac_delim
 READLINK_IS_NOT_P1003_1A!$READLINK_IS_NOT_P1003_1A$ac_delim
@@ -12063,7 +12077,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 43; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 47; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
