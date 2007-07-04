@@ -1,5 +1,6 @@
 builtin(include,tcl.m4)
 builtin(include,objc.m4)
+builtin(include,pthread.m4)
 builtin(include,foundation.m4)
 
 #------------------------------------------------------------------------
