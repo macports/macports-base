@@ -614,6 +614,12 @@ AC_DEFUN([MP_PROG_TCLSH],[
 
 
 	case $host_os in
+		freebsd*)
+			# FreeBSD installs a dummy tclsh (annoying)
+			# Look for a real versioned tclsh with threads first
+			# Look for a real versioned tclsh without threads second
+			AC_PATH_PROG([TCLSH], [tclsh${TCL_VERSION}-threads tclsh${TCL_VERSION} tclsh])
+			;;
 		*)
 			# Otherwise, look for a non-versioned tclsh
 			AC_PATH_PROG([TCLSH], [tclsh tclsh${TCL_VERSION}])
