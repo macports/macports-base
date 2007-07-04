@@ -109,7 +109,6 @@ proc rpm_pkg {portname portversion portrevision} {
 
 	# depend on system (virtual packages for apple stuff)
 	regexp {[0-9]+} ${os.version} major
-	lappend dependencies "org.macports.${os.arch}"
 	lappend dependencies "org.macports.${os.platform}${major}"
     
     set listpath ${workpath}/${portname}.filelist
