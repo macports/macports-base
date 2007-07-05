@@ -6,6 +6,8 @@
 proc main {pextlibname} {
 	load $pextlibname
 	
+	encoding system utf-8
+	
 	set testfile "/tmp/macports-pextlib-testchecksums"
 	file delete -force $testfile
 
