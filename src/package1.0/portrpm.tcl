@@ -181,8 +181,10 @@ Group: ${category}
 License: ${license}
 URL: ${homepage}
 BuildRoot: ${destroot}
-Epoch: ${epoch}
-AutoReqProv: no"
+AutoReq: no"
+    if {[expr ${epoch} != 0]} {
+	    puts $specfd "Epoch: ${epoch}"
+    }
     if {[llength ${dependencies}] != 0} {
 	foreach require ${dependencies} {
 	    puts $specfd "Requires: [regsub -all -- "\-" $require "_"]"
