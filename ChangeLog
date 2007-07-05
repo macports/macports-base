@@ -5,7 +5,7 @@
 
 Unreleased:
 
-    - Added new variable ${os.major} that contains the Tcl major version (eridius r26693, ticket #12224).
+    - Added new variable ${os.major} that contains the Darwin major version (eridius r26693, ticket #12224).
 
 Release 1.5 (unreleased):
 
