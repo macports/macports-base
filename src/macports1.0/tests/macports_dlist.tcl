@@ -97,7 +97,7 @@ if {[catch {dlist_get_next [list $A $B $C] status} value] || $value != $C} {
 
 puts -nonewline "Checking dlist_eval... "
 proc handler {ditem} { puts -nonewline "[ditem_key $ditem provides] " }
-if {[catch {dlist_eval [list $A $B $C] handler} value] || $value != {}} {
+if {[catch {dlist_eval [list $A $B $C] {} handler} value] || $value != {}} {
 	puts "failed: ${value}"
 } else {
 	puts "ok"
