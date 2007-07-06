@@ -6,5 +6,9 @@ export MACOSX_DEPLOYMENT_TARGET=10.3
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
+LDFLAGS+=	${OBJC_FOUNDATION_LDFLAGS}
+CPPFLAGS+=	${OBJC_FOUNDATION_CPPFLAGS}
+LIBS+=	${OBJC_FOUNDATION_LIBS}
+
 distclean::
 	rm -f Makefile

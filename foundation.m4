@@ -275,6 +275,10 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 #
 #	Defines one of the following preprocessor macros:
 #		APPLE_FOUNDATION GNUSTEP_FOUNDATION
+#
+#	Substitutes the following variables:
+#		OBJC_FOUNDATION OBJC_FOUNDATION_LDFLAGS
+#		OBJC_FOUNDATION_CPPFLAGS OBJC_FOUNDATION_LIBS
 #------------------------------------------------------------------------
 AC_DEFUN([MP_OBJC_FOUNDATION],[
 	AC_REQUIRE([AC_PROG_OBJC])
@@ -389,20 +393,26 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 	# NeXT Foundation is prefered
 	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
 		OBJC_FOUNDATION="Apple"
-		CPPFLAGS="${APPLE_FOUNDATION_CPPFLAGS} ${CPPFLAGS}"
-		LIBS="${APPLE_FOUNDATION_LIBS} ${LIBS}"
+		OBJC_FOUNDATION_CPPFLAGS="${APPLE_FOUNDATION_CFLAGS}"
+		OBJC_FOUNDATION_LIBS="${APPLE_FOUNDATION_LIBS}"
+		OBJC_FOUNDATION_LDFLAGS=""
 		AC_DEFINE([APPLE_FOUNDATION], 1, [Define if using the Apple Foundation framework]) 
 		AC_MSG_NOTICE([Using Apple Foundation library])
 	elif test x"${ac_cv_objc_foundation_gnustep}" == x"yes"; then
 		OBJC_FOUNDATION="GNUstep"
-		CPPFLAGS="${GNUSTEP_CPPFLAGS} ${CPPFLAGS}"
-		LIBS="${GNUSTEP_LIBS} ${LIBS}"
-		LDFLAGS="${GNUSTEP_LDFLAGS} ${LDFLAGS}"
+		OBJC_FOUNDATION_CPPFLAGS="${GNUSTEP_CPPFLAGS}"
+		OBJC_FOUNDATION_LIBS="${GNUSTEP_LIBS}"
+		OBJC_FOUNDATION_LDFLAGS="${GNUSTEP_LDFLAGS}"
 		AC_DEFINE([GNUSTEP_FOUNDATION], 1, [Define if using the GNUstep Foundation library]) 
 		AC_MSG_NOTICE([Using GNUstep Foundation library])
 	else
 		AC_MSG_ERROR([Could not find a working Foundation implementation])
 	fi
+
+	AC_SUBST([OBJC_FOUNDATION])
+	AC_SUBST([OBJC_FOUNDATION_LDFLAGS])
+	AC_SUBST([OBJC_FOUNDATION_CPPFLAGS])
+	AC_SUBST([OBJC_FOUNDATION_LIBS])
 
 	AC_LANG_POP([Objective C])
 ])
