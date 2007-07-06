@@ -173,9 +173,11 @@ Group: ${category}
 License: ${license}
 URL: ${homepage}
 BuildRoot: %{_tmppath}/%{name}-%{version}-root
-Epoch: ${epoch}
 Source0: ${portname}-Portfile
 Source1: ${portname}-files.zip"
+    if {[expr ${epoch} != 0]} {
+	    puts $specfd "Epoch: ${epoch}"
+    }
     set first 2
     set count $first
     puts $specfd "#distfiles"
@@ -198,8 +200,7 @@ Source1: ${portname}-files.zip"
         }
         incr count
     }
-    puts $specfd ""
-    puts $specfd "AutoReqProv: no"
+    puts $specfd "AutoReq: no"
     if {[llength ${dependencies}] != 0} {
 	foreach require ${dependencies} {
 	    puts $specfd "BuildRequires: [regsub -all -- "\-" $require "_"]"
