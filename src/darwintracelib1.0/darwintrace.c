@@ -471,7 +471,7 @@ static int ask_for_dependency(char * path)
  *   answer -- 1 (yes, I want to receive answer) and 0 (no, thanks, just send)
  * Return value:
  *    -1     -- something went wrong
- *    0      -- data successful sended
+ *    0      -- data successful sent
  *    string -- answer (caller shoud free it)
  */
 static char * exchange_with_port(const char * buf, size_t len, int answer)
