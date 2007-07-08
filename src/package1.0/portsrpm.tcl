@@ -155,6 +155,36 @@ proc make_dependency_list {portname} {
     return $result
 }
 
+proc word_wrap {orig Length} {
+    set pos 0
+    set line ""
+    set text ""
+
+    set words [split $orig]
+    set numWords [llength $words]
+    for {set cnt 0} {$cnt < $numWords} {incr cnt} {
+	set w [lindex $words $cnt]
+	set wLen [string length $w]
+
+	if {($pos+$wLen < $Length)} {
+	    # append word to current line
+	    if {$pos} {append line " "; incr pos}
+	    append line $w
+	    incr pos $wLen
+	} else {
+	    # line full => write buffer and  begin a new line
+	    if {[string length $text]} {append text "\n"}
+	    append text $line
+	    set line $w
+	    set pos $wLen
+	}
+    }
+
+    if {[string length $text]} {append text "\n"}
+    if {[string length $line]} {append text $line}
+    return $text
+}
+
 proc write_port_spec {specfile portname portversion portrevision description long_description homepage category license maintainer distfiles fetch_urls dependencies epoch src} {
     set specfd [open ${specfile} w+]
     set origportname ${portname}
@@ -206,9 +236,10 @@ Source1: ${portname}-files.zip"
 	    puts $specfd "BuildRequires: [regsub -all -- "\-" $require "_"]"
 	}
     }
+    set wrap_description [word_wrap ${long_description} 72]
     puts $specfd "
 %description
-${long_description}
+$wrap_description
 
 %prep
 %setup -c -a 1 -T
