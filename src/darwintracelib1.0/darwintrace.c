@@ -471,7 +471,7 @@ static int ask_for_dependency(char * path)
  *   answer -- 1 (yes, I want to receive answer) and 0 (no, thanks, just send)
  * Return value:
  *    -1     -- something went wrong
- *    0      -- data successful sent
+ *    0      -- data successfully sent
  *    string -- answer (caller shoud free it)
  */
 static char * exchange_with_port(const char * buf, size_t len, int answer)
@@ -648,7 +648,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	__darwintrace_setup();
 	if (__darwintrace_fd >= 0) {
 	  struct stat sb;
-	  /* for symlinks, we wan't to capture
+	  /* for symlinks, we want to capture
 	   * both the original path and the modified one,
 	   * since for /usr/bin/gcc -> gcc-4.0,
 	   * both "gcc_select" and "gcc" are contributors
@@ -711,7 +711,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 #undef execve
 }
 
-/* if darwintrace has  been initialized, trap
+/* if darwintrace has been initialized, trap
    attempts to close our file descriptor
 */
 int close(int fd) {
