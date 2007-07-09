@@ -143,13 +143,6 @@ upgrade:
 	@[ -f ${UPGRADECHECK} ] || { echo ""; echo "MacPorts installation successfully upgraded from the old DarwinPorts namespace!"; echo ""; \
 	echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
 
-####
-# NOTES:
-#    -) should we use the ${DESTDIR} sandbox?
-#    -) should we force moves?
-#    -) maybe I can regroup at least some of the sed calls?
-#    -) 
-####
 
 install:: upgrade
 
