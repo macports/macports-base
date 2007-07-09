@@ -2,6 +2,7 @@
 = MacPorts Release Process =
 
 This file documents the evolving MacPorts release process.
+$Id$
 
 
 == Goals of a Release ==
