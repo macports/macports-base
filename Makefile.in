@@ -175,7 +175,7 @@ _dopkg: _gettag _pkgdist
 
 # This target fetches a tagged distribution from svn, and generates tarballs and checksums for it
 distfromsvn:
-	@[ -n "${DISTVER}" ] || ( echo Must specify DISTVER, like: make DISTVER=1.4.0 dist; exit 1 )
+	@[ -n "${DISTVER}" ] || { echo Must specify DISTVER, like: make DISTVER=1.4.0 distfromsvn; exit 1; }
 	[ -d ${DISTDIR} ] || mkdir ${DISTDIR}
 	rm -f ${DISTDIR}/${DISTNAME}.chk.txt
 	${MAKE} SVNTAG=${DISTTAG}/base/ PKGNAME=${DISTNAME} _dopkg
