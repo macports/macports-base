@@ -132,30 +132,54 @@ for each of the files:
 
 === Create Release Disk Image(s) ===
 
-The dmg is a Mac OS X disk image that contains a standalone installer for major MacPorts releases (1.x.0),
-named in a consistent fashion and incorporating the OS version for which it was built.
+The dmg is a Mac OS X disk image that contains a standalone and default configured installer for major
+MacPorts releases (1.x.0), named in a consistent fashion and incorporating the OS version for which it
+was built.
 
  MacPorts-1.4.0-10.3.dmg
  MacPorts-1.4.0-10.4.dmg
 
-To create the disk image, use the MacPorts port; the Portfile will need to be updated to incorporate the
-proper release version and the release tarballs will need to be already uploaded to the downloads section
-of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg for the release).
-Checksums need to be adapted likewise.
+To create the disk image use the MacPorts port. The Portfile will need to be updated to incorporate the
+proper release version and checksums, and the release tarballs will need to be already uploaded to the
+downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
+for the release). Resource files in the files/ directory of the MacPorts port will also have to be fully
+up to date, in sync with their copies in the base/portmgr/dmg svn directory.
 
- port dmg MacPorts
+ sudo port -d dmg MacPorts
 
-Name the dmg appropriately, and generate checksums, which will need to be added to the checksum file:
+Name the dmg appropriately, and generate checksums, which will need to be added to the existing checksums
+file up at the downloads directory:
 
  cd work
  mv MacPorts-1.4.0.dmg MacPorts-1.4.0-10.4.dmg
  for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.4.0-10.4.dmg; done
 
-These new products, along with the new checksums file, also have to be posted to the appropriate downloads
+These new products, along with the new checksums, also have to be posted to the appropriate downloads
 directory of the MacPorts svn repository. Developers are required to validate the generated installer as
-thoroughly as possible through extensive testing (primarily done by inspecting the destroot of the MacPorts
-built port, validating library and executables linking, tclsh binary invoked by our scripts, etc.),
-which is mainly why this step of the release process is not automated through a Makefile or similar.
+thoroughly as possible through extensive testing, which is mainly why this step of the release process
+is not automated through a Makefile target or similar. A good way of validating the installer is to first
+create the destroot of the port and examine it for:
+
+ * Linking: libraries and binaries should not be linked against anything that's not present by default
+   on a vanilla Mac OS X installation + developer tools, excluding even the MacPorts installation prefix;
+   this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
+   of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${dstroot}/opt/local/bin/daemondo
+   ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib, ${destroot}/opt/local/share/macports/\
+   Tcl/pextlib1.0/Pextlib.dylib and ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
+ * tclsh shell invoked by our scripts: all scripts installed in ${destroot}/opt/local/bin (that is port,
+   portindex and portmirror) should invoke the tclsh shell through a call like:
+             #!/bin/sh
+             #\
+             exec /usr/bin/tclsh "$0" "$@"
+   thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
+ * macports1.0 Tcl package: The macports1.0 Tcl package should be source off its default location in /Library/Tcl/macports1.0
+   in every single one of our scripts in ${destroot}/opt/local/bin.
+ * Miscellaneous: anything else that might seem out of the ordinary for a fully default configured MacPorts
+   installation.
+
+Once the above requirements have been possitively asserted, the one remaining test is to make sure that, both,
+the dmg mounts on the Finder when double clicking it and the pkg cointained therein properly starts up Installer.app
+when double clicked in turn.
 
 
 === Make the Release Available through Self-Update ===
