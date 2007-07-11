@@ -129,13 +129,6 @@ set portfetch::mirror_sites::sites(macports) {
     http://svn.macports.org/repository/macports/downloads/
 }
 
-set portfetch::mirror_sites::sites(opendarwin) {
-    http://distfiles-od.opendarwin.org/:mirror
-    http://distfiles-msn.opendarwin.org/:mirror
-    http://distfiles-od.opendarwin.org/:nosubdir
-    http://distfiles-msn.opendarwin.org/:nosubdir
-}
-
 set portfetch::mirror_sites::sites(perl_cpan) {
     http://ftp.ucr.ac.cr/Unix/CPAN/modules/by-module/
     ftp://ftp.funet.fi/pub/languages/perl/CPAN/modules/by-module/
