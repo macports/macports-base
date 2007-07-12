@@ -1781,7 +1781,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 			}
 
 			set isactive [lindex $i 4]
-			if {$isactive == 1}
+			if {$isactive == 1} {
 				if { [rpm-vercomp $version_installed $version] < 0
 						|| ([rpm-vercomp $version_installed $version] == 0
 							&& [rpm-vercomp $revision_installed $revision] < 0)} {
@@ -1814,7 +1814,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 	# set the nodeps option  
 	if {![info exists options(ports_nodeps)]} {
 		set nodeps no
-	} else {	
+	} else {
 		set nodeps yes
 	}
 
