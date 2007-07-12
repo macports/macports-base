@@ -729,7 +729,10 @@ Specify the url from which to fetch files.
       svn.url svn://www.domain.com/svn-repo/mydirectory
 .It Ic svn.tag
 Specify the a tag from which svn should fetch files. This
-corresponds to the -r option to the svn cli.
+corresponds to the -r option to the svn cli.  Note that you
+will need to use backslashes to escape characters that have
+meaning to the Tcl interpreter, such as braces and double
+quotes.
 .br
 .Sy Type:
 .Em optional
@@ -738,8 +741,8 @@ corresponds to the -r option to the svn cli.
 .Em none
 .br
 .Sy Example:
-.Dl svn.url http://www.domain.com/svn-repo/mydirectory
-      svn.url svn://www.domain.com/svn-repo/mydirectory
+.Dl svn.tag 37192
+      svn.tag \\{\\"2006-02-17 15:30 +0230\\"\\}
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.
