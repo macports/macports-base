@@ -1,4 +1,3 @@
-MAN1=		port.1
 INSTALLDIR=	${DESTDIR}${prefix}
 TOPSRCDIR=	../..
 SCRIPTS=	portmirror portindex port
@@ -31,7 +30,6 @@ test:
 distclean: clean
 
 install: mkdirs
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1 ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf
