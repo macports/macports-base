@@ -780,7 +780,7 @@ Command to perform the extraction.
 .Dl extract.cmd bzip2
 .El
 .Sh CONFIGURE OPTIONS
-MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
+MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
 .Bl -tag -width lc
 .It Ic configure.cflags
 Flags to put in the CFLAGS environment variable when invoking the configure script.
@@ -817,6 +817,51 @@ Flags to put in the LDFLAGS environment variable when invoking the configure scr
 .br
 .Sy Default:
 .Em -L${prefix}/lib
+.It Ic configure.cc
+C-compiler to put in the CC environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl configure.cc /usr/bin/gcc
+.It Ic configure.cpp
+C-preprocessor to put in the CPP environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.cxx
+C++-compiler to put in the CXX environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.fc
+Fortran-compiler to put in the FC environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.f77
+Fortran-77-compiler to put in the F77 environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.f90
+Fortran-90-compiler to put in the F90 environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.compiler
+Selects a complete compiler suite to use. This option will override the compiler environment variable for all compilers the named suite features.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em gcc-3.3 gcc-4.0 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2
+.br
+.Sy Example:
+.Dl configure.compiler gcc-4.0
+.\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
 For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.
@@ -1860,3 +1905,4 @@ to the user, at various different levels.
 .An "Jordan K. Hubbard" Aq jkh@macports.org
 .An "Chris Ridd" Aq cjr@opendarwin.org
 .An "Kevin Ballard" Aq eridius@macports.org
+.An "Markus W. Weissmann" Aq mww@macports.org
