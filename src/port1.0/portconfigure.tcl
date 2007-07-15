@@ -106,7 +106,7 @@ proc configure_main {args} {
 	}
     }
 
-    # select a compiler collections
+    # select a compiler collection
     switch -exact ${configure.compiler} {
         gcc-3.3 {
             ui_debug "Using Mac OS X gcc 3.3"
@@ -171,6 +171,9 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "CC" ${configure.cc}
 		append_list_to_environment_value configure "CPP" ${configure.cpp}
 		append_list_to_environment_value configure "CXX" ${configure.cxx}
+		append_list_to_environment_value configure "FC" ${configure.fc}
+		append_list_to_environment_value configure "F77" ${configure.f77}
+		append_list_to_environment_value configure "F90" ${configure.f90}
 		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
 		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
 		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
