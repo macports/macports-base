@@ -3,6 +3,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -67,6 +68,16 @@ default configure.universal_cppflags	{}
 default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
 default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
+# Select a distinct compiler (C, C preprocessor, C++)
+options configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.compiler
+default configure.cc			{}
+default configure.cxx			{}
+default configure.cpp			{}
+default configure.f77			{}
+default configure.f90			{}
+default configure.fc			{}
+default configure.compiler		{}
+
 set_ui_prefix
 
 proc configure_start {args} {
@@ -79,6 +90,7 @@ proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
     global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags
+    global configure.cc configure.cxx configure.cpp configure.compiler prefix
     
     if {[tbool use_automake]} {
 	# XXX depend on automake
@@ -92,6 +104,54 @@ proc configure_main {args} {
 	if {[catch {command_exec autoconf} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
+    }
+
+    # select a compiler collections
+    switch -exact ${configure.compiler} {
+        gcc-3.3 {
+            ui_debug "Using Mac OS X gcc 3.3"
+            set configure.cc "/usr/bin/gcc-3.3"
+            set configure.cxx "/usr/bin/g++-3.3"
+            set configure.cpp "/usr/bin/cpp-3.3" }
+        gcc-4.0 {
+            ui_debug "Using Mac OS X gcc 4.0"
+            set configure.cc "/usr/bin/gcc-4.0"
+            set configure.cxx "/usr/bin/g++-4.0"
+            set configure.cpp "/usr/bin/cpp-4.0" }
+        macports-gcc-4.0 {
+            ui_debug "Using MacPorts gcc 4.0"
+            set configure.cc "${prefix}/bin/gcc-mp-4.0"
+            set configure.cxx "${prefix}/bin/g++-mp-4.0"
+            set configure.cpp "${prefix}/bin/cpp-mp-4.0"
+            set configure.fc "${prefix}/bin/gfortran-mp-4.0"
+            set configure.f77 "${prefix}/bin/gfortran-mp-4.0"
+            set configure.f90 "${prefix}/bin/gfortran-mp-4.0" }
+        macports-gcc-4.1 {
+            ui_debug "Using MacPorts gcc 4.1"
+            set configure.cc "${prefix}/bin/gcc-mp-4.1"
+            set configure.cxx "${prefix}/bin/g++-mp-4.1"
+            set configure.cpp "${prefix}/bin/cpp-mp-4.1"
+            set configure.fc "${prefix}/bin/gfortran-mp-4.1"
+            set configure.f77 "${prefix}/bin/gfortran-mp-4.1"
+            set configure.f90 "${prefix}/bin/gfortran-mp-4.1" }
+        macports-gcc-4.2 {
+            ui_debug "Using MacPorts gcc 4.2"
+            set configure.cc "${prefix}/bin/gcc-mp-4.2"
+            set configure.cxx "${prefix}/bin/g++-mp-4.2"
+            set configure.cpp "${prefix}/bin/cpp-mp-4.2"
+            set configure.fc "${prefix}/bin/gfortran-mp-4.2"
+            set configure.f77 "${prefix}/bin/gfortran-mp-4.2"
+            set configure.f90 "${prefix}/bin/gfortran-mp-4.2" }
+        macports-gcc-4.3 {
+            ui_debug "Using MacPorts gcc 4.3"
+            set configure.cc "${prefix}/bin/gcc-mp-4.3"
+            set configure.cxx "${prefix}/bin/g++-mp-4.3"
+            set configure.cpp "${prefix}/bin/cpp-mp-4.3"
+            set configure.fc "${prefix}/bin/gfortran-mp-4.3"
+            set configure.f77 "${prefix}/bin/gfortran-mp-4.3"
+            set configure.f90 "${prefix}/bin/gfortran-mp-4.3" }
+        default {
+            ui_debug "No compiler collection selected explicitely" }
     }
     
     if {[tbool use_xmkmf]} {
@@ -108,6 +168,9 @@ proc configure_main {args} {
     	parse_environment configure
 
     	# Append configure flags.
+		append_list_to_environment_value configure "CC" ${configure.cc}
+		append_list_to_environment_value configure "CPP" ${configure.cpp}
+		append_list_to_environment_value configure "CXX" ${configure.cxx}
 		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
 		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
 		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
