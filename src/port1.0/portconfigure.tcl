@@ -151,7 +151,7 @@ proc configure_main {args} {
             set configure.f77 "${prefix}/bin/gfortran-mp-4.3"
             set configure.f90 "${prefix}/bin/gfortran-mp-4.3" }
         default {
-            ui_debug "No compiler collection selected explicitely" }
+            ui_debug "No compiler collection selected explicitly" }
     }
     
     if {[tbool use_xmkmf]} {
