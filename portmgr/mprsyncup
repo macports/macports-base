@@ -5,10 +5,24 @@
 # release tag (as determined by the base/config/RELEASE_URL file) and a ports
 # tree from trunk (ToT), and then export and sync all of them to the
 # ${REPOROOT} location, wherefrom the rsync modules are fed to the `sync'
-# and `selfupdate' routines in port(1).
-# Read the base/portmgr/rsync.repos file for more information on both the
-# necessary rsync modules and filesystem level paths, which this script
-# bootstraps.
+# and `selfupdate' routines in port(1). Read the base/portmgr/rsync.repos
+# file for more information on both the necessary rsync modules and filesystem
+# level paths, which this script bootstraps.
+#
+# Whatever server uses this script to mirror the MacPorts rsync repositories
+# should simply adapt the ${REPOROOT} path variable as necessary (keeping it
+# in sync with the equally named variable in base/portmgr/rsync.repos) and
+# install it on cron/launchd with a suitable periodicity, previously discussed
+# with the portmgr@ team (macports-mgr@lists.macosforge.org). Repositories
+# themselves are detailed & served by base/portmgr/rsync.repos, as stated above
+# (that is, no manual intervention what-so-ever is needed, other than installing
+# this script and adding the repositories detailed in base/portmgr/rsync.repos
+# to a local rsyncd.conf file).
+#
+# Lastly, it is required of every 3rd party mirrors to keep track of this script
+# and the base/portmgr/rsync.repos file and always maintain local copies in as
+# close sync as possible. 
+#
 #
 # Created by fkr@opendarwin.org, jberry@macports.org and yeled@macports.org,
 # Updated by jmpp@macports.org

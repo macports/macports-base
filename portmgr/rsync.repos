@@ -2,8 +2,8 @@
 # MacPorts rsync repos feeding the sync & selfupdate procedures, created and
 # maintained by the base/portmgr/mprsyncup script.
 # 
-# Two main modules are supplied for current installations off trunk and
-# two for backwards compatibility (legacy DarwinPorts namespace). Assuming
+# Two main modules are supplied for current installations off the relase barnch
+# and two for backwards compatibility (legacy DarwinPorts namespace). Assuming
 # a REPOROOT path of /Volumes/data/rsync/macports/, this file is organized
 # in the following four modules and filesystem level paths (server side):
 #
@@ -12,8 +12,7 @@
 #
 # ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's
 # trunk/dports dir (ToT), and the current release base dir, as determined by
-# the base/config/RELEASE_URL file read by the base/portmgr/mprsyncup
-# script;
+# the base/config/RELEASE_URL file that's read by base/portmgr/mprsyncup;
 #
 # ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk/base
 # dir (ToT);
@@ -42,12 +41,20 @@
 # dpupdate1 --> release
 #
 #
-# Whatever server uses this file should simply add the modules listed here to
-# an already tailored rsyncd.conf file, as no other particular config options
-# are supplied. Repositories themselves are created and maintained by the
-# base/portmgr/mprsyncup script, as stated above (that is, no manual
-# intervention what-so-ever is needed, other than adding the repos to the local
-# rsyncd.conf file).
+# Whatever server uses this file to mirror MacPorts rsync repositories
+# should simply adapt the ${REPOROOT} path variable as necessary (keeping
+# it in sync with the equally named variable in base/portmgr/mprsyncup)
+# and add the listed modules to an already tailored rsyncd.conf file,
+# as no other particular configuration options are supplied. Repositories
+# themselves are created and maintained by base/portmgr/mprsyncup, as stated
+# above (that is, no manual intervention what-so-ever is needed, other than
+# adding the repositories to the local rsyncd.conf file and installing
+# base/portmgr/mprsyncup on cron/launchd).
+#
+# Lastly, it is required of every 3rd party mirrors to keep track of this script
+# and the base/portmgr/rsync.repos file and always maintain local copies in as
+# close sync as possible.
+#
 #
 # Created by Juan Manuel Palacios,
 # e-mail: jmpp@macports.org
