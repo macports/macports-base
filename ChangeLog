@@ -5,6 +5,8 @@
 
 Unreleased:
 
+    - Added new options to configure for selecting compiler(s)
+
     - Added new variable ${os.major} that contains the Darwin major version (eridius r26693, ticket #12224).
 
 Release 1.5.0 (09-July-2007 tagged at r26818 by jmpp):
