@@ -2,7 +2,7 @@
 # MacPorts rsync repos feeding the sync & selfupdate procedures, created and
 # maintained by the base/portmgr/mprsyncup script.
 # 
-# Two main modules are supplied for current installations off the relase barnch
+# Two main modules are supplied for current installations off the release branch
 # and two for backwards compatibility (legacy DarwinPorts namespace). Assuming
 # a REPOROOT path of /Volumes/data/rsync/macports/, this file is organized
 # in the following four modules and filesystem level paths (server side):
