@@ -90,7 +90,7 @@ proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
     global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags
-    global configure.cc configure.cxx configure.cpp configure.compiler prefix
+    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.compiler prefix
     
     if {[tbool use_automake]} {
 	# XXX depend on automake
