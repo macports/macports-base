@@ -4,32 +4,32 @@
 # 
 # Two main modules are supplied for current installations off the release branch
 # and two for backwards compatibility (legacy DarwinPorts namespace). Assuming
-# a REPOROOT path of /Volumes/data/rsync/macports/, this file is organized
+# an RSYNCROOT path of /Volumes/data/rsync/macports/, this file is organized
 # in the following four modules and filesystem level paths (server side):
 #
 #
 # PATHS:
 #
-# ${REPOROOT}/release: holding a ports tree, exported from a checkout of svn's
+# ${RSYNCROOT}/release: holding a ports tree, exported from a checkout of svn's
 # trunk/dports dir (ToT), and the current release base dir, as determined by
 # the base/config/RELEASE_URL file that's read by base/portmgr/mprsyncup;
 #
-# ${REPOROOT}/trunk: holding an export of a checkout from svn's trunk/base
+# ${RSYNCROOT}/trunk: holding an export of a checkout from svn's trunk/base
 # dir (ToT);
 #
-# ${REPOROOT}/dpupdate: backwards compatible path & module, a filesystem
+# ${RSYNCROOT}/dpupdate: backwards compatible path & module, a filesystem
 # level (relative) symlink to the trunk path above
-#    (relative to ${REPOROOT}: dpupdate --> trunk);
+#    (relative to ${RSYNCROOT}: dpupdate --> trunk);
 #
-# ${REPOROOT}/dpupdate1: backwards compatible path & module, a filesystem
+# ${RSYNCROOT}/dpupdate1: backwards compatible path & module, a filesystem
 # level (relative) symlink to the release path
-#    (relative to ${REPOROOT}: dpupdate1 --> release).
+#    (relative to ${RSYNCROOT}: dpupdate1 --> release).
 #
 # 
-# Futhermore the ${REPOROOT}/trunk path must also hold a (relative) `dports'
+# Futhermore the ${RSYNCROOT}/trunk path must also hold a (relative) `dports'
 # symlink to `../release/ports', so that a sync operation against
 # `dpupdate/ports' for the ports tree works on legacy MacPorts installations
-# (DarwinPorts namespace). Overall, the ${REPOROOT} skeleton should look like:
+# (DarwinPorts namespace). Overall, the ${RSYNCROOT} skeleton should look like:
 #
 # release/
 # release/base/
@@ -42,7 +42,7 @@
 #
 #
 # Whatever server uses this file to mirror MacPorts rsync repositories
-# should simply adapt the ${REPOROOT} path variable as necessary (keeping
+# should simply adapt the ${RSYNCROOT} path variable as necessary (keeping
 # it in sync with the equally named variable in base/portmgr/mprsyncup)
 # and add the listed modules to an already tailored rsyncd.conf file,
 # as no other particular configuration options are supplied. Repositories

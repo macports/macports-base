@@ -4,13 +4,13 @@
 # Script to checkout/update base sources from both trunk (ToT) and the current
 # release tag (as determined by the base/config/RELEASE_URL file) and a ports
 # tree from trunk (ToT), and then export and sync all of them to the
-# ${REPOROOT} location, wherefrom the rsync modules are fed to the `sync'
+# ${RSYNCROOT} location, wherefrom the rsync modules are fed to the `sync'
 # and `selfupdate' routines in port(1). Read the base/portmgr/rsync.repos
 # file for more information on both the necessary rsync modules and filesystem
 # level paths, which this script bootstraps.
 #
 # Whatever server uses this script to mirror the MacPorts rsync repositories
-# should simply adapt the ${REPOROOT} path variable as necessary (keeping it
+# should simply adapt the ${RSYNCROOT} path variable as necessary (keeping it
 # in sync with the equally named variable in base/portmgr/rsync.repos) and
 # install it on cron/launchd with a suitable periodicity, previously discussed
 # with the portmgr@ team (macports-mgr@lists.macosforge.org). Repositories
@@ -47,7 +47,7 @@ SVNURL=http://svn.macports.org/repository/macports
 RELEASE_URL_FILE=config/RELEASE_URL
 
 
-# Update/checkout trunk's base, export and rsync it to the rsync repos location (${REPOROOT}):
+# Update/checkout trunk's base, export and rsync it to the rsync repos location (${RSYNCROOT}):
 if [ -d ${TBASE}/.svn ]; then
     ${SVN} update ${TBASE}
 else
@@ -60,7 +60,7 @@ fi
 ${RSYNC} -a -I --delete ${TBASE}-export/ ${RSYNCROOT}/trunk/base && rm -rf ${TBASE}-export
 
 
-# Read what tag we're releasing from, switch to/checkout a copy, export and rsync it to ${REPOROOT}/release/base:
+# Read what tag we're releasing from, switch to/checkout a copy, export and rsync it to ${RSYNCROOT}/release/base:
 read RELEASE_URL < ${TBASE}/${RELEASE_URL_FILE}
 if [ ! -n ${RELEASE_URL} ]; then
     echo "no RELEASE_URL specified in svn trunk, baling out"
@@ -78,7 +78,7 @@ fi
 ${RSYNC} -a -I --delete ${RBASE}-export/ ${RSYNCROOT}/release/base && rm -rf ${RBASE}-export
 
 
-# Update/checkout the ports tree, export it and rsync it to ${REPOROOT}/release/ports:
+# Update/checkout the ports tree, export it and rsync it to ${RSYNCROOT}/release/ports:
 if [ -d ${PORTS}/.svn ]; then
   ${SVN} update ${PORTS}  
 else
