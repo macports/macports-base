@@ -128,7 +128,7 @@ proc livecheck_main {args} {
 		}
 	}
 	
-	# de-escape livehcheck.url
+	# de-escape livecheck.url
 	set livecheck.url [join ${livecheck.url}]
 	
 	switch ${livecheck.check} {
