@@ -142,7 +142,7 @@ proc livecheck_main {args} {
 				# let's extract the version from the file.
 				set chan [open $tempfile "r"]
 				set updated -1
-				set the_re [subst -nocommands [join ${livecheck.regex}]]
+				set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
 				if {${livecheck.check} == "regexm"} {
 					set data [read $chan]
 					if {[regexp $the_re $data matched updated_version]} {
