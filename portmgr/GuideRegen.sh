@@ -81,7 +81,7 @@ cd ${SRCTREE}/base/ && \
     || { echo "./configure script failed." >> $FAILURE_LOG ; bail ; }
 
 # (re)build
-{ cd ${SRCTREE}/doc/guide && make xhtml > $FAILURE_LOG 2>&1 ; } \
+{ cd ${SRCTREE}/doc/guide && make xhtml new > $FAILURE_LOG 2>&1 ; } \
     || { echo "make failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the guide was regen'd successfuly, so we cleanup before we exit.
