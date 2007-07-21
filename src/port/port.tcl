@@ -2195,7 +2195,6 @@ array set action_array {
 	file		action_portcmds
 	gohome		action_portcmds
 	
-	depends		action_target
 	fetch		action_target
 	checksum	action_target
 	extract		action_target
