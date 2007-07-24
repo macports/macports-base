@@ -5,6 +5,8 @@
 
 Unreleased:
 
+    - New tests for violations of common directory structure (and option to override them for special cases)
+
     - Added new options to configure for selecting compiler(s)
 
     - Added new variable ${os.major} that contains the Darwin major version (eridius r26693, ticket #12224).
