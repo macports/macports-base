@@ -42,6 +42,7 @@ target_postrun ${org.macports.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
+options destroot.violate_mtree
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
@@ -58,6 +59,7 @@ default destroot.destdir {DESTDIR=${destroot}}
 default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
+default destroot.violate_mtree no
 
 default startupitem.name		{${portname}}
 default startupitem.init		""
@@ -105,7 +107,7 @@ proc destroot_main {args} {
 }
 
 proc destroot_finish {args} {
-    global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask
+    global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask destroot.violate_mtree
 	global os.platform os.version
 
     # Create startup-scripts/items
@@ -221,6 +223,39 @@ proc destroot_finish {args} {
 		ui_debug "Deleting stray info/dir file."
 	    file delete "${destroot}${prefix}/share/info/dir"
 	}
+
+	# test for violations of mtree
+	if { ${destroot.violate_mtree} != "yes" } {
+		ui_debug "checking for mtree violations"
+		set mtree_violation "no"
+
+		# test files in ${prefix}
+		foreach f [glob -directory "${destroot}${prefix}" *] {
+			set c [file tail ${f}]
+			# ignore bin, sbin, ... and only fail on other names
+			switch ${c} {
+				bin { }
+				etc { }
+				include { }
+				lib { }
+				libexec { }
+				sbin { }
+				share { }
+				var { }
+				www { }
+				Applications { }
+				Library { }
+				default { ui_error "violation by ${prefix}/${c}"
+					set mtree_violation "yes" }
+			}
+		}
+
+		# abort here only so all violations can be observed
+		if { ${mtree_violation} != "no" } {
+			error "mtree violation!"
+		}
+	}
+
     # Restore umask
     umask $oldmask
 
