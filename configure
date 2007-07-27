@@ -729,6 +729,7 @@ X_CFLAGS
 X_PRE_LIBS
 X_LIBS
 X_EXTRA_LIBS
+READLINE_LIBS
 TCL_VERSION
 TCL_BIN_DIR
 TCL_SRC_DIR
@@ -10326,7 +10327,6 @@ echo "$as_me: error: Broken X11 install" >&2;}
 
 
 # Check for readline
-
 { echo "$as_me:$LINENO: checking for readline in -lreadline" >&5
 echo $ECHO_N "checking for readline in -lreadline... $ECHO_C" >&6; }
 if test "${ac_cv_lib_readline_readline+set}" = set; then
@@ -10389,12 +10389,7 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_lib_readline_readline" >&5
 echo "${ECHO_T}$ac_cv_lib_readline_readline" >&6; }
 if test $ac_cv_lib_readline_readline = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBREADLINE 1
-_ACEOF
-
-  LIBS="-lreadline $LIBS"
-
+  READLINE_LIBS=-lreadline
 fi
 
 { echo "$as_me:$LINENO: checking whether rl_username_completion_function is declared" >&5
@@ -10829,6 +10824,7 @@ _ACEOF
 
 
 fi
+
 
 
 
@@ -12474,6 +12470,7 @@ X_CFLAGS!$X_CFLAGS$ac_delim
 X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
+READLINE_LIBS!$READLINE_LIBS$ac_delim
 TCL_VERSION!$TCL_VERSION$ac_delim
 TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
 TCL_SRC_DIR!$TCL_SRC_DIR$ac_delim
@@ -12510,7 +12507,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 50; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 51; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

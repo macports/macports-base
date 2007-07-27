@@ -9,6 +9,8 @@ export MACOSX_DEPLOYMENT_TARGET=10.3
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
+LIBS+= ${CURL_LIBS} ${MD5_LIBS}
+
 .PHONY: test
 
 test:: ${SHLIB_NAME}

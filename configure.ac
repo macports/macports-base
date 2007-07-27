@@ -95,7 +95,7 @@ MP_LIB_MD5
 MP_CHECK_X11
 
 # Check for readline
-AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([readline], [readline], [READLINE_LIBS=-lreadline])
 AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
 [
 #include <stdio.h>
@@ -103,6 +103,7 @@ AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,
 # include <readline/readline.h>
 #endif
 ])
+AC_SUBST(READLINE_LIBS)
 
 # Lowest non-system-reserved uid and gid (Apple claims <500)
 AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])

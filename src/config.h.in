@@ -102,9 +102,6 @@
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
-/* Define to 1 if you have the `readline' library (-lreadline). */
-#undef HAVE_LIBREADLINE
-
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
