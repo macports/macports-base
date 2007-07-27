@@ -9,6 +9,7 @@ export MACOSX_DEPLOYMENT_TARGET=10.3
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
+CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
 
 .PHONY: test
