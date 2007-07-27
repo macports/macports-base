@@ -10389,7 +10389,14 @@ fi
 { echo "$as_me:$LINENO: result: $ac_cv_lib_readline_readline" >&5
 echo "${ECHO_T}$ac_cv_lib_readline_readline" >&6; }
 if test $ac_cv_lib_readline_readline = yes; then
-  READLINE_LIBS=-lreadline
+
+              READLINE_LIBS=-lreadline
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_LIBREADLINE 1
+_ACEOF
+
+
 fi
 
 { echo "$as_me:$LINENO: checking whether rl_username_completion_function is declared" >&5
