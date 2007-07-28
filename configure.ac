@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [1.6.0], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts], [esyscmd(cat config/mp_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
