@@ -143,6 +143,7 @@ proc livecheck_main {args} {
 				set chan [open $tempfile "r"]
 				set updated -1
 				set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
+				ui_debug "The regex is >$the_re<"
 				if {${livecheck.check} == "regexm"} {
 					set data [read $chan]
 					if {[regexp $the_re $data matched updated_version]} {
@@ -171,8 +172,6 @@ proc livecheck_main {args} {
 				}
 				close $chan
 				if {$updated < 0} {
-					ui_debug "regex is >$the_re<"
-					ui_debug "url is >${livecheck.url}<"
 					ui_error "cannot check if $portname was updated (regex didn't match)"
 				}
 			}
