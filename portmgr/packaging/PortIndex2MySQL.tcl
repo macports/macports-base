@@ -1,9 +1,13 @@
 #!/usr/bin/env tclsh
+#
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
 # 3-Oct-2002
+# Juan Manuel Palacios | jmpp@macports.org
+# 30-Jul-2007
 # $Id$
 #
+# Copyright (c) 2007 Juan Manuel Palacios, MacPorts Team.
 # Copyright (c) 2003 Apple Computer, Inc.
 # Copyright (c) 2002 Kevin Van Vechten. 
 # All rights reserved.
@@ -34,97 +38,88 @@
 
 
 catch {source \
-	   [file join "@TCL_PACKAGE_DIR@" darwinports1.0 darwinports_fastload.tcl]}
-package require darwinports
+	   [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+package require macports
 
-proc ui_prefix {priority} {
-	return ""
-}
+# Initialize the MacPorts system to find the sources.conf file, wherefrom we'll be
+# getting the PortIndex file that'll feed the database, and initialize the portinfo
+# array for each port.
+mportinit
 
-proc ui_channels {priority} {
-	return {}
-}
-
-# This should be a command line argument.
-# if true, use_db insructs the script to insert directly into a database
-# otherwise, sql statements will be printed to stdout.
-set use_db ""
-
-array set ui_options {}
-array set global_options {}
-array set global_variations {}
-dportinit ui_options global_options global_variations
-
-if {$use_db != ""} {
-    load @PREFIX@/lib/libmysqltcl.dylib
-    set db [mysqlconnect -user darwinports -password woot -db darwinports]
-} else {
-    set db ""
-}
-
-proc sql_exec {db sql} {
-    if {$db != ""} {
-        mysqlexec $db $sql
-    } else {
-        puts "${sql};"
+# Procedure to catch the database password from a protected file.
+proc getpasswd {passwdfile} {
+    if {[catch {open $passwdfile r} passwdfile_fd]} {
+        ui_error "${::errorCode}: $passwdfile_fd"
+        exit 1
     }
+    if {[gets $passwdfile_fd passwd] <= 0} {
+        ui_error "No password found in $passwdfile!"
+        exit 1
+    }
+    close $passwdfile_fd
+    return $passwd
 }
 
+
+# Needed escaping for some strings output as sql statements.
 proc sql_escape {str} {
-    global use_db
-    if {$use_db != ""} {
-        return [msyqlescape $str]
-    } else {
         regsub -all -- {'} $str {\\'} str
         regsub -all -- {"} $str {\\"} str
         regsub -all -- {\n} $str {\\n} str
         return $str
-    }
 }
 
-# CREATE TABLE portfiles (name VARCHAR(255) PRIMARY KEY NOT NULL, 
-#  path VARCHAR(255),
-#  version VARCHAR(255),
-#  description TEXT);
 
-# CREATE TABLE categories (portfile VARCHAR(255), 
-#  category VARCHAR(255), 
-#  primary INTEGER);
+# Abstraction variables:
+set sqlfile [file join /tmp ports.sql]
+set dbcmd [macports::findBinary mysql5]
+set dbname macports
+set passwdfile [file join . password_file]
+set dbpasswd [getpasswd $passwdfile]
+set dbcmdargs "$dbname --password=$dbpasswd"
 
-# CREATE TABLE maintainers (portfile VARCHAR(255),
-#  maintainer VARCHAR(255),
-#  primary INTEGER);
 
-sql_exec $db "DROP TABLE log"
-sql_exec $db "CREATE TABLE IF NOT EXISTS log (activity VARCHAR(255), activity_time TIMESTAMP(14))"
-sql_exec $db "INSERT INTO log VALUES ('update', NOW())"
+# Flat text file to which sql statements are written.
+if {[catch {open $sqlfile w+} sqlfile_fd]} {
+    ui_error "${::errorCode}: $sqlfile_fd"
+    exit 1
+}
 
-sql_exec $db "DROP TABLE portfiles"
-sql_exec $db "CREATE TABLE portfiles (name VARCHAR(255) PRIMARY KEY NOT NULL, path VARCHAR(255), version VARCHAR(255),  description TEXT)"
 
-sql_exec $db "DROP TABLE IF EXISTS categories"
-sql_exec $db "CREATE TABLE categories (portfile VARCHAR(255), category VARCHAR(255), is_primary INTEGER)"
+# Initial creation of database tables: log, portfiles, categories, maintainers, dependencies, variants and platforms.
+# Do we need any other?
+puts $sqlfile_fd "DROP TABLE log"
+puts $sqlfile_fd "CREATE TABLE IF NOT EXISTS log (activity VARCHAR(255), activity_time TIMESTAMP(14))"
+puts $sqlfile_fd "INSERT INTO log VALUES ('update', NOW())"
 
-sql_exec $db "DROP TABLE IF EXISTS maintainers"
-sql_exec $db "CREATE TABLE maintainers (portfile VARCHAR(255), maintainer VARCHAR(255), is_primary INTEGER)"
+puts $sqlfile_fd "DROP TABLE portfiles"
+puts $sqlfile_fd "CREATE TABLE portfiles (name VARCHAR(255) PRIMARY KEY NOT NULL, path VARCHAR(255), version VARCHAR(255),  description TEXT)"
 
-sql_exec $db "DROP TABLE IF EXISTS dependencies"
-sql_exec $db "CREATE TABLE dependencies (portfile VARCHAR(255), library VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS categories"
+puts $sqlfile_fd "CREATE TABLE categories (portfile VARCHAR(255), category VARCHAR(255), is_primary INTEGER)"
 
-sql_exec $db "DROP TABLE IF EXISTS variants"
-sql_exec $db "CREATE TABLE variants (portfile VARCHAR(255), variant VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS maintainers"
+puts $sqlfile_fd "CREATE TABLE maintainers (portfile VARCHAR(255), maintainer VARCHAR(255), is_primary INTEGER)"
 
-sql_exec $db "DROP TABLE IF EXISTS platforms"
-sql_exec $db "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS dependencies"
+puts $sqlfile_fd "CREATE TABLE dependencies (portfile VARCHAR(255), library VARCHAR(255))"
 
-if {[catch {set ports [dportsearch ".+"]} errstr]} {
-	puts "port search failed: $errstr"
+puts $sqlfile_fd "DROP TABLE IF EXISTS variants"
+puts $sqlfile_fd "CREATE TABLE variants (portfile VARCHAR(255), variant VARCHAR(255))"
+
+puts $sqlfile_fd "DROP TABLE IF EXISTS platforms"
+puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255))"
+
+if {[catch {set ports [mportsearch ".+"]} errstr]} {
+	ui_error "port search failed: $errstr"
 	exit 1
 }
 
 foreach {name array} $ports {
+
 	array unset portinfo
 	array set portinfo $array
+
 	set portname [sql_escape $portinfo(name)]
 	if {[info exists portinfo(version)]} {
 		set portversion [sql_escape $portinfo(version)]
@@ -152,63 +147,82 @@ foreach {name array} $ports {
 	} else {
 		set variants ""
 	}
+        if {[info exists portinfo(depends_build)]} {
+                set depends_build $portinfo(depends_build)
+        } else {
+                set depends_build ""
+        }
 	if {[info exists portinfo(depends_lib)]} {
 		set depends_lib $portinfo(depends_lib)
 	} else {
 		set depends_lib ""
 	}
+        if {[info exists portinfo(depends_run)]} {
+                set depends_run $portinfo(depends_run)
+        } else {
+                set depends_run ""
+        }
 	if {[info exists portinfo(platforms)]} {
 		set platforms $portinfo(platforms)
 	} else {
 		set platforms ""
 	}
-		
-	set sql "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description')"
-	#puts "$sql"
-	sql_exec $db $sql
+
+	puts $sqlfile_fd "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description')"
 
 	set primary 1
 	foreach category $categories {
 		set category [sql_escape $category]
-		set sql "INSERT INTO categories VALUES ('$portname', '$category', $primary)"
-		#puts "$sql"
-		sql_exec $db $sql
-		set primary 0
+		puts $sqlfile_fd "INSERT INTO categories VALUES ('$portname', '$category', $primary)"
+		incr primary
 	}
 	
 	set primary 1
 	foreach maintainer $maintainers {
 		set maintainer [sql_escape $maintainer]
-		set sql "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary)"
-		#puts "$sql"
-		sql_exec $db $sql
-		set primary 0
+		puts $sqlfile_fd "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary)"
+		incr primary
 	}
+
+        foreach build_dep $depends_build {
+            set build_dep [sql_escape $build_dep]
+            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$build_dep')"
+        }
 
 	foreach lib $depends_lib {
 		set lib [sql_escape $lib]
-		set sql "INSERT INTO dependencies VALUES ('$portname', '$lib')"
-		#puts "$sql"
-		sql_exec $db $sql
+		puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$lib')"
 	}
+
+        foreach run_dep $depends_run {
+            set run_dep [sql_escape $run_dep]
+            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$run_dep')"
+        }
 
 	foreach variant $variants {
 		set variant [sql_escape $variant]
-		set sql "INSERT INTO variants VALUES ('$portname', '$variant')"
-		#puts "$sql"
-		sql_exec $db $sql
+		puts $sqlfile_fd "INSERT INTO variants VALUES ('$portname', '$variant')"
 	}
 
 	foreach platform $platforms {
 		set platform [sql_escape $platform]
-		set sql "INSERT INTO platforms VALUES ('$portname', '$platform')"
-		#puts "$sql"
-		sql_exec $db $sql
+		puts $sqlfile_fd "INSERT INTO platforms VALUES ('$portname', '$platform')"
 	}
 
 }
 
-if {$db != ""} {
-    mysqlclose $db
-    mysqlclose
+
+# Pipe the contents of the generated sql file to the database command:
+if {[catch {seek $sqlfile_fd 0 start} errstr]} {
+    ui_error "${::errorCode}: $errstr"
+    exit 1
 }
+if {[catch {exec $dbcmd $dbcmdargs <@ $sqlfile_fd} errstr]} {
+    ui_error "${::errorCode}: $errstr"
+    exit 1
+}
+
+
+# And we're done regen'ing the MacPorts dabase! (cleanup)
+close $sqlfile_fd
+file delete -force $sqlfile
