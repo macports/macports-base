@@ -59,21 +59,22 @@ const char* entry_props[] = {
 static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     int index;
-    sqlite3* db = registry_db(interp, 1);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?value?");
-        return TCL_ERROR;
-    } else if (db == NULL) {
         return TCL_ERROR;
     }
     if (objc == 2) {
         /* ${entry} prop; return the current value */
+        reg_registry* reg = registry_for(interp, reg_attached);
+        if (reg == NULL) {
+            return TCL_ERROR;
+        }
         if (Tcl_GetIndexFromObj(interp, objv[1], entry_props, "prop", 0, &index)
                 == TCL_OK) {
             char* key = Tcl_GetString(objv[1]);
             char* value;
             reg_error error;
-            if (reg_entry_propget(db, entry, key, &value, &error)) {
+            if (reg_entry_propget(reg, entry, key, &value, &error)) {
                 Tcl_Obj* result = Tcl_NewStringObj(value, -1);
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
@@ -83,12 +84,16 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
         return TCL_ERROR;
     } else {
         /* ${entry} prop name value; set a new value */
+        reg_registry* reg = registry_for(interp, reg_attached | reg_can_write);
+        if (reg == NULL) {
+            return TCL_ERROR;
+        }
         if (Tcl_GetIndexFromObj(interp, objv[1], entry_props, "prop", 0, &index)
                 == TCL_OK) {
             char* key = Tcl_GetString(objv[1]);
             char* value = Tcl_GetString(objv[2]);
             reg_error error;
-            if (reg_entry_propset(db, entry, key, value, &error)) {
+            if (reg_entry_propset(reg, entry, key, value, &error)) {
                 return TCL_OK;
             }
             return registry_failed(interp, &error);
@@ -98,7 +103,7 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
 }
 
 /*
- * ${entry} map ?file ...?
+ * ${entry} map file-list
  *
  * Maps the listed files to the port represented by ${entry}. This will throw an
  * error if a file is mapped to an already-existing file, but not a very
@@ -108,14 +113,22 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
  */
 static int entry_obj_map(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
-    if (db == NULL) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "map file-list");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char** files;
         reg_error error;
-        if (list_obj_to_string(&files, objv+2, objc-2, &error)) {
-            if (reg_entry_map(db, entry, files, objc-2, &error) == objc-2) {
+        Tcl_Obj** listv;
+        int listc;
+        if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (list_obj_to_string(&files, listv, listc, &error)) {
+            if (reg_entry_map(reg, entry, files, listc, &error) == listc) {
                 return TCL_OK;
             }
         }
@@ -124,21 +137,29 @@ static int entry_obj_map(Tcl_Interp* interp, reg_entry* entry, int objc,
 }
 
 /*
- * ${entry} unmap ?file ...?
+ * ${entry} unmap file-list
  *
  * Unmaps the listed files from the given port. Will throw an error if a file
  * that is not mapped to the port is attempted to be unmapped.
  */
 static int entry_obj_unmap(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
-    if (db == NULL) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "map file-list");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char** files;
         reg_error error;
-        if (list_obj_to_string(&files, objv+2, objc-2, &error)) {
-            if (reg_entry_unmap(db, entry, files, objc-2, &error) == objc-2) {
+        Tcl_Obj** listv;
+        int listc;
+        if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (list_obj_to_string(&files, listv, listc, &error)) {
+            if (reg_entry_unmap(reg, entry, files, listc, &error) == listc) {
                 return TCL_OK;
             }
         }
@@ -148,26 +169,26 @@ static int entry_obj_unmap(Tcl_Interp* interp, reg_entry* entry, int objc,
 
 static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "files");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char** files;
         reg_error error;
-        int file_count = reg_entry_files(db, entry, &files, &error);
+        int file_count = reg_entry_files(reg, entry, &files, &error);
         if (file_count >= 0) {
             int i;
             Tcl_Obj** objs;
             if (list_string_to_obj(&objs, files, file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+                Tcl_SetObjResult(interp, result);
                 for (i=0; i<file_count; i++) {
                     free(files[i]);
                 }
                 free(files);
-                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
-                Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
             for (i=0; i<file_count; i++) {

@@ -134,12 +134,12 @@ static int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
  * and it's called with all of them there.
  */
 static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 7) {
         Tcl_WrongNumArgs(interp, 2, objv, "name version revision variants "
                 "epoch");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* name = Tcl_GetString(objv[2]);
@@ -148,7 +148,7 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         char* variants = Tcl_GetString(objv[5]);
         char* epoch = Tcl_GetString(objv[6]);
         reg_error error;
-        reg_entry* entry = reg_entry_create(db, name, version, revision,
+        reg_entry* entry = reg_entry_create(reg, name, version, revision,
                 variants, epoch, &error);
         if (entry != NULL) {
             Tcl_Obj* result;
@@ -167,17 +167,17 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * Deletes an entry from the registry (then closes it).
  */
 static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "delete entry");
         return TCL_ERROR;
-    } if (db == NULL) {
+    } if (reg == NULL) {
         return TCL_ERROR;
     } else {
         reg_entry* entry;
         reg_error error;
         if (obj_to_entry(interp, &entry, objv[2], &error)) {
-            if (reg_entry_delete(db, entry, &error)) {
+            if (reg_entry_delete(reg, entry, &error)) {
                 Tcl_DeleteCommand(interp, Tcl_GetString(objv[2]));
                 return TCL_OK;
             }
@@ -192,12 +192,12 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * Opens an entry matching the given parameters.
  */
 static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 7) {
         Tcl_WrongNumArgs(interp, 1, objv, "open portname version revision "
                 "variants epoch");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* name = Tcl_GetString(objv[2]);
@@ -206,8 +206,8 @@ static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         char* variants = Tcl_GetString(objv[5]);
         char* epoch = Tcl_GetString(objv[6]);
         reg_error error;
-        reg_entry* entry = reg_entry_open(db, name, version, revision, variants,
-                epoch, &error);
+        reg_entry* entry = reg_entry_open(reg, name, version, revision,
+                variants, epoch, &error);
         if (entry != NULL) {
             Tcl_Obj* result;
             if (entry_to_obj(interp, &result, entry, &error)) {
@@ -252,11 +252,11 @@ static int entry_close(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  */
 static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     int i;
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc % 2 == 1) {
         Tcl_WrongNumArgs(interp, 2, objv, "search ?key value ...?");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char** keys;
@@ -279,7 +279,7 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             keys[i] = Tcl_GetString(objv[2*i+2]);
             vals[i] = Tcl_GetString(objv[2*i+3]);
         }
-        entry_count = reg_entry_search(db, keys, vals, key_count,
+        entry_count = reg_entry_search(reg, keys, vals, key_count,
                 reg_strategy_equal, &entries, &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
@@ -333,17 +333,18 @@ static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * TODO: add more arguments (epoch, revision, variants), maybe
  */
 static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name? ?version?");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* name = (objc >= 3) ? Tcl_GetString(objv[2]) : NULL;
         char* version = (objc == 4) ? Tcl_GetString(objv[3]) : NULL;
         reg_entry** entries;
         reg_error error;
+        int entry_count;
         /* name or version of "" means not specified */
         if (name != NULL && *name == '\0') {
             name = NULL;
@@ -351,13 +352,11 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         if (version != NULL && *version == '\0') {
             version = NULL;
         }
-        int entry_count = reg_entry_imaged(db, name, version, &entries,
-                &error);
+        entry_count = reg_entry_imaged(reg, name, version, &entries, &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
             Tcl_Obj** objs;
-            list_entry_to_obj(interp, &objs, entries, entry_count,
-                        &error);
+            list_entry_to_obj(interp, &objs, entries, entry_count, &error);
             resultObj = Tcl_NewListObj(entry_count, objs);
             Tcl_SetObjResult(interp, resultObj);
             free(entries);
@@ -379,27 +378,26 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * satisfying a dependency.
  */
 static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name?");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* name = (objc == 3) ? Tcl_GetString(objv[2]) : NULL;
         reg_entry** entries;
         reg_error error;
+        int entry_count;
         /* name of "" means not specified */
         if (name != NULL && *name == '\0') {
             name = NULL;
         }
-        int entry_count = reg_entry_installed(db, name, &entries,
-                &error);
+        entry_count = reg_entry_installed(reg, name, &entries, &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
             Tcl_Obj** objs;
-            list_entry_to_obj(interp, &objs, entries, entry_count,
-                        &error);
+            list_entry_to_obj(interp, &objs, entries, entry_count, &error);
             resultObj = Tcl_NewListObj(entry_count, objs);
             Tcl_SetObjResult(interp, resultObj);
             free(entries);
@@ -413,17 +411,17 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
 /**
  */
 static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
-    sqlite3* db = registry_db(interp, 1);
+    reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "path");
         return TCL_ERROR;
-    } else if (db == NULL) {
+    } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
         char* path = Tcl_GetString(objv[2]);
         reg_entry* entry;
         reg_error error;
-        if (reg_entry_owner(db, path, &entry, &error)) {
+        if (reg_entry_owner(reg, path, &entry, &error)) {
             if (entry == NULL) {
                 return TCL_OK;
             } else {

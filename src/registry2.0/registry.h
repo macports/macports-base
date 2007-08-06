@@ -36,7 +36,7 @@
 #include <sqlite3.h>
 #include <cregistry/entry.h>
 
-sqlite3* registry_db(Tcl_Interp* interp, int attached);
+reg_registry* registry_for(Tcl_Interp* interp, int status);
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr);
 
 #endif /* _REGISTRY_H */

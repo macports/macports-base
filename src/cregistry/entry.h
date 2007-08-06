@@ -48,38 +48,38 @@ typedef struct {
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_entry;
 
-reg_entry* reg_entry_create(sqlite3* db, char* name, char* version,
+reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
-reg_entry* reg_entry_open(sqlite3* db, char* name, char* version,
+reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
-int reg_entry_delete(sqlite3* db, reg_entry* entry, reg_error* errPtr);
+int reg_entry_delete(reg_registry* reg, reg_entry* entry, reg_error* errPtr);
 
-int reg_entry_search(sqlite3* db, char** keys, char** vals, int key_count,
+int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         int strategy, reg_entry*** entries, reg_error* errPtr);
 
-int reg_entry_imaged(sqlite3* db, char* name, char* version, 
+int reg_entry_imaged(reg_registry* reg, char* name, char* version, 
         reg_entry*** entries, reg_error* errPtr);
-int reg_entry_installed(sqlite3* db, char* name, reg_entry*** entries,
+int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         reg_error* errPtr);
 
-int reg_entry_owner(sqlite3* db, char* path, reg_entry** entry,
+int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
         reg_error* errPtr);
 
-int reg_entry_propget(sqlite3* db, reg_entry* entry, char* key, char** value,
+int reg_entry_propget(reg_registry* reg, reg_entry* entry, char* key,
+        char** value, reg_error* errPtr);
+int reg_entry_propset(reg_registry* reg, reg_entry* entry, char* key,
+        char* value, reg_error* errPtr);
+
+int reg_entry_map(reg_registry* reg, reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
-int reg_entry_propset(sqlite3* db, reg_entry* entry, char* key, char* value,
+int reg_entry_unmap(reg_registry* reg, reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 
-int reg_entry_map(sqlite3* db, reg_entry* entry, char** files, int file_count,
-        reg_error* errPtr);
-int reg_entry_unmap(sqlite3* db, reg_entry* entry, char** files, int file_count,
+int reg_entry_files(reg_registry* reg, reg_entry* entry, char*** files,
         reg_error* errPtr);
 
-int reg_entry_files(sqlite3* db, reg_entry* entry, char*** files,
-        reg_error* errPtr);
-
-int reg_all_entries(sqlite3* db, reg_entry*** entries, reg_error* errPtr);
+int reg_all_entries(reg_registry*, reg_entry*** entries, reg_error* errPtr);
 
 #endif /* _CENTRY_H */

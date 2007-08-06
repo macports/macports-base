@@ -61,47 +61,6 @@ int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
 }
 
 /**
- * Acquires an exclusive lock on the database.
- */
-void begin_exclusive(sqlite3* db) {
-    int status;
-    do {
-        status = sqlite3_exec(db, "BEGIN EXCLUSIVE", NULL, NULL, NULL);
-    } while (status != SQLITE_OK);
-}
-
-/**
- * Acquires a shared lock on the database.
- */
-void begin_shared(sqlite3* db) {
-    int status;
-    do {
-        status = sqlite3_exec(db, "BEGIN", NULL, NULL, NULL);
-    } while (status != SQLITE_OK);
-}
-
-/**
- * Releases a shared or exclusive lock on the database and rolls back changes
- */
-void rollback_transaction(sqlite3* db) {
-    int status;
-    char* err;
-    do {
-        status = sqlite3_exec(db, "ROLLBACK", NULL, NULL, &err);
-    } while (status != SQLITE_OK);
-}
-
-/**
- * Releases a shared or exclusive lock on the database and commits changes
- */
-void commit_transaction(sqlite3* db) {
-    int status;
-    do {
-        status = sqlite3_exec(db, "COMMIT", NULL, NULL, NULL);
-    } while (status != SQLITE_OK);
-}
-
-/**
  * REGEXP function for sqlite3.
  *
  * Takes two arguments; the first is the value and the second the pattern. If
@@ -112,8 +71,8 @@ void commit_transaction(sqlite3* db) {
  */
 static void sql_regexp(sqlite3_context* context, int argc UNUSED,
         sqlite3_value** argv) {
-    const char* value = sqlite3_value_text(argv[0]);
-    const char* pattern = sqlite3_value_text(argv[1]);
+    const char* value = (const char*)sqlite3_value_text(argv[0]);
+    const char* pattern = (const char*)sqlite3_value_text(argv[1]);
     switch (Tcl_RegExpMatch(NULL, value, pattern)) {
         case 0:
             sqlite3_result_int(context, 0);
@@ -298,7 +257,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE TABLE registry.files (id, path, mtime)",
         "CREATE INDEX registry.file_port ON files (id)",
 
-        "END",
+        "COMMIT",
         NULL
     };
     return do_queries(db, queries, errPtr);
@@ -325,7 +284,7 @@ int init_db(sqlite3* db, reg_error* errPtr) {
         /* entry addresses */
         "CREATE TEMPORARY TABLE entries (id, address)",
 
-        "END",
+        "COMMIT",
         NULL
     };
 

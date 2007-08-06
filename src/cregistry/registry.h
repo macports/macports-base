@@ -49,10 +49,29 @@ typedef int (cast_function)(void* userdata, void** dst, void* src,
         reg_error* errPtr);
 typedef void (free_function)(void* userdata, void* item);
 
-int reg_open(sqlite3** dbPtr, reg_error* errPtr);
-int reg_close(sqlite3* db, reg_error* errPtr);
+enum {
+    reg_none = 0,
+    reg_attached = 1,
+    reg_transacting = 2,
+    reg_can_write = 4
+};
 
-int reg_attach(sqlite3* db, const char* path, reg_error* errPtr);
-int reg_detach(sqlite3* db, reg_error* errPtr);
+typedef struct {
+    sqlite3* db;
+    int status;
+} reg_registry;
+
+int reg_open(reg_registry** regPtr, reg_error* errPtr);
+int reg_close(reg_registry* reg, reg_error* errPtr);
+
+int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr);
+int reg_detach(reg_registry* reg, reg_error* errPtr);
+
+int reg_start_read(reg_registry* reg, reg_error* errPtr);
+int reg_start_write(reg_registry* reg, reg_error* errPtr);
+int reg_commit(reg_registry* reg, reg_error* errPtr);
+int reg_rollback(reg_registry* reg, reg_error* errPtr);
+
+int reg_test_writable(reg_registry* reg, reg_error* errPtr);
 
 #endif /* _CREG_H */

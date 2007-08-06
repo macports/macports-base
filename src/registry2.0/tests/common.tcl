@@ -35,7 +35,7 @@ proc test_equal {statement value} {
 
 proc test_throws {statement error} {
     uplevel 1 "\
-        puts -nonewline {checking if $statement throws $error... }
+        puts -nonewline {checking if \[$statement\] throws $error... }
         if {\[catch {$statement} error\]} { \n\
             if {\$::errorCode == {$error}} {
                 puts yes

@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <tcl.h>
-#include <sqlite3.h>
 
 #include <cregistry/registry.h>
 #include <cregistry/entry.h>
@@ -51,9 +50,10 @@ int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
     return TCL_ERROR;
 }
 
-int registry_tcl_detach(Tcl_Interp* interp, sqlite3* db, reg_error* errPtr) {
+int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
+        reg_error* errPtr) {
     reg_entry** entries;
-    int entry_count = reg_all_entries(db, &entries, errPtr);
+    int entry_count = reg_all_entries(reg, &entries, errPtr);
     if (entry_count >= 0) {
         int i;
         for (i=0; i<entry_count; i++) {
@@ -61,8 +61,7 @@ int registry_tcl_detach(Tcl_Interp* interp, sqlite3* db, reg_error* errPtr) {
                 Tcl_DeleteCommand(interp, entries[i]->proc);
             }
         }
-        if (reg_detach(db, errPtr)) {
-            Tcl_SetAssocData(interp, "registry::attached", NULL, (void*)0);
+        if (reg_detach(reg, errPtr)) {
             return 1;
         }
     }
@@ -73,21 +72,21 @@ int registry_tcl_detach(Tcl_Interp* interp, sqlite3* db, reg_error* errPtr) {
  * Deletes the sqlite3 DB associated with interp.
  *
  * This function will close an interp's associated DB, although there doesn't
- * seem to be a way of verifying that it happened properly. This will be a
- * problem if we get lazy and forget to finalize a sqlite3_stmt somewhere, so
- * this function will be noisy and complain if we do.
+ * seem to be a way of ensuring that it happened properly. This will be a
+ * problem if we get lazy and forget to finish a sqlite3_stmt somewhere, so this
+ * function will be noisy and complain if we do.
  *
  * Then it will leak memory :(
  */
-static void delete_db(ClientData db, Tcl_Interp* interp) {
+static void delete_reg(ClientData reg, Tcl_Interp* interp UNUSED) {
     reg_error error;
-    if (Tcl_GetAssocData(interp, "registry::attached", NULL)) {
-        if (!registry_tcl_detach(interp, (sqlite3*)db, &error)) {
+    if (((reg_registry*)reg)->status & reg_attached) {
+        if (!registry_tcl_detach(interp, (reg_registry*)reg, &error)) {
             fprintf(stderr, error.description);
             reg_error_destruct(&error);
         }
     }
-    if (!reg_close((sqlite3*)db, &error)) {
+    if (!reg_close((reg_registry*)reg, &error)) {
         fprintf(stderr, error.description);
         reg_error_destruct(&error);
     }
@@ -108,25 +107,29 @@ static void delete_db(ClientData db, Tcl_Interp* interp) {
  *
  * This function sets its own Tcl result.
  */
-sqlite3* registry_db(Tcl_Interp* interp, int attached) {
-    sqlite3* db = Tcl_GetAssocData(interp, "registry::db", NULL);
-    if (db == NULL) {
+reg_registry* registry_for(Tcl_Interp* interp, int status) {
+    reg_registry* reg = Tcl_GetAssocData(interp, "registry::reg", NULL);
+    if (reg == NULL) {
         reg_error error;
-        if (reg_open(&db, &error)) {
-            Tcl_SetAssocData(interp, "registry::db", delete_db, db);
+        if (reg_open(&reg, &error)) {
+            Tcl_SetAssocData(interp, "registry::reg", delete_reg, reg);
         } else {
             registry_failed(interp, &error);
             return NULL;
         }
     }
-    if (attached) {
-        if (!Tcl_GetAssocData(interp, "registry::attached", NULL)) {
+    if ((reg->status & status) != status) {
+        if (status & reg_can_write) {
+            Tcl_SetErrorCode(interp, "registry::no-write", NULL);
+            Tcl_SetResult(interp, "a write transaction has not been started",
+                    TCL_STATIC);
+        } else {
             Tcl_SetErrorCode(interp, "registry::not-open", NULL);
             Tcl_SetResult(interp, "registry is not open", TCL_STATIC);
-            db = NULL;
         }
+        reg = NULL;
     }
-    return db;
+    return reg;
 }
 
 static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
@@ -136,11 +139,11 @@ static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
         return TCL_ERROR;
     } else {
         char* path = Tcl_GetString(objv[1]);
-        sqlite3* db = registry_db(interp, 0);
+        reg_registry* reg = registry_for(interp, 0);
         reg_error error;
-        if (reg_attach(db, path, &error)) {
-            Tcl_SetAssocData(interp, "registry::attached", NULL,
-                    (void*)1);
+        if (reg == NULL) {
+            return TCL_ERROR;
+        } else if (reg_attach(reg, path, &error)) {
             return TCL_OK;
         } else {
             return registry_failed(interp, &error);
@@ -154,18 +157,90 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
         Tcl_WrongNumArgs(interp, 1, objv, NULL);
         return TCL_ERROR;
     } else {
-        sqlite3* db = registry_db(interp, 1);
-        if (db == NULL) {
+        reg_registry* reg = registry_for(interp, reg_attached);
+        if (reg == NULL) {
             return TCL_ERROR;
         } else {
             reg_error error;
-            if (registry_tcl_detach(interp, db, &error)) {
+            if (registry_tcl_detach(interp, reg, &error)) {
                 return TCL_OK;
             }
             return registry_failed(interp, &error);
         }
     }
     return TCL_ERROR;
+}
+
+static int registry_read(ClientData clientData UNUSED, Tcl_Interp* interp,
+        int objc, Tcl_Obj* CONST objv[]) {
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "command");
+        return TCL_ERROR;
+    } else {
+        reg_registry* reg = registry_for(interp, reg_attached);
+        if (reg == NULL) {
+            return TCL_ERROR;
+        } else {
+            reg_error error;
+            if (reg_start_read(reg, &error)) {
+                int status = Tcl_EvalObjEx(interp, objv[1], 0);
+                switch (status) {
+                    case TCL_OK:
+                        if (reg_commit(reg, &error)) {
+                            return TCL_OK;
+                        }
+                        break;
+                    case TCL_BREAK:
+                        if (reg_rollback(reg, &error)) {
+                            return TCL_OK;
+                        }
+                        break;
+                    default:
+                        if (reg_rollback(reg, &error)) {
+                            return status;
+                        }
+                        break;
+                }
+            }
+            return registry_failed(interp, &error);
+        }
+    }
+}
+
+static int registry_write(ClientData clientData UNUSED, Tcl_Interp* interp,
+        int objc, Tcl_Obj* CONST objv[]) {
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "command");
+        return TCL_ERROR;
+    } else {
+        reg_registry* reg = registry_for(interp, reg_attached);
+        if (reg == NULL) {
+            return TCL_ERROR;
+        } else {
+            reg_error error;
+            if (reg_start_write(reg, &error)) {
+                int status = Tcl_EvalObjEx(interp, objv[1], 0);
+                switch (status) {
+                    case TCL_OK:
+                        if (reg_commit(reg, &error)) {
+                            return TCL_OK;
+                        }
+                        break;
+                    case TCL_BREAK:
+                        if (reg_rollback(reg, &error)) {
+                            return TCL_OK;
+                        }
+                        break;
+                    default:
+                        if (reg_rollback(reg, &error)) {
+                            return status;
+                        }
+                        break;
+                }
+            }
+            return registry_failed(interp, &error);
+        }
+    }
 }
 
 /**
@@ -178,10 +253,10 @@ int Registry_Init(Tcl_Interp* interp) {
     if (Tcl_InitStubs(interp, "8.3", 0) == NULL) {
         return TCL_ERROR;
     }
-    Tcl_CreateObjCommand(interp, "registry::open", registry_open, NULL,
-            NULL);
-    Tcl_CreateObjCommand(interp, "registry::close", registry_close, NULL,
-            NULL);
+    Tcl_CreateObjCommand(interp, "registry::open", registry_open, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::close", registry_close, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::read", registry_read, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "registry::write", registry_write, NULL, NULL);
     /* Tcl_CreateObjCommand(interp, "registry::graph", GraphCmd, NULL, NULL); */
     /* Tcl_CreateObjCommand(interp, "registry::item", item_cmd, NULL, NULL); */
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);

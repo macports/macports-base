@@ -36,11 +36,6 @@
 
 #include <cregistry/registry.h>
 
-void begin_exclusive(sqlite3* db);
-void begin_shared(sqlite3* db);
-void rollback_transaction(sqlite3* db);
-void commit_transaction(sqlite3* db);
-
 int create_tables(sqlite3* db, reg_error* errPtr);
 int init_db(sqlite3* db, reg_error* errPtr);
 
