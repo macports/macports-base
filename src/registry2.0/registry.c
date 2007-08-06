@@ -57,7 +57,9 @@ int registry_tcl_detach(Tcl_Interp* interp, sqlite3* db, reg_error* errPtr) {
     if (entry_count >= 0) {
         int i;
         for (i=0; i<entry_count; i++) {
-            Tcl_DeleteCommand(interp, entries[i]->proc);
+            if (entries[i]->proc) {
+                Tcl_DeleteCommand(interp, entries[i]->proc);
+            }
         }
         if (reg_detach(db, errPtr)) {
             Tcl_SetAssocData(interp, "registry::attached", NULL, (void*)0);

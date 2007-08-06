@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sqlite3.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -135,7 +136,11 @@ int reg_detach(sqlite3* db, reg_error* errPtr) {
                 switch (r) {
                     case SQLITE_ROW:
                         entry = *(reg_entry**)sqlite3_column_blob(stmt, 0);
-                        reg_entry_free(db, entry);
+                        if (entry->proc != NULL) {
+                            free(entry->proc);
+                        }
+                        free(entry);
+                        /* reg_entry_free(db, entry); */
                         break;
                     case SQLITE_DONE:
                         break;

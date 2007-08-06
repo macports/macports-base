@@ -19,11 +19,11 @@ proc main {pextlibname} {
     set pcre [registry::entry create pcre 7.1 1 {utf8 +} 0]
 
     # check that their properties can be set
-    $vim1 state installed
-    $vim2 state installed
-    $vim3 state active
-    $zlib state active
-    $pcre state installed
+    $vim1 state imaged
+    $vim2 state imaged
+    $vim3 state installed
+    $zlib state installed
+    $pcre state imaged
 
     # check that their properties can be retrieved
     test_equal {[$vim1 name]} vim
@@ -32,13 +32,19 @@ proc main {pextlibname} {
     test_equal {[$zlib revision]} 1
     test_equal {[$pcre variants]} {utf8 +}
     
+    set imaged [registry::entry imaged]
     set installed [registry::entry installed]
-    set active [registry::entry active]
 
-    # check that installed and active give correct results
+    # check that imaged and installed give correct results
     # have to sort these because their orders aren't defined
-    test_equal {[lsort $installed]} {[lsort "$vim1 $vim2 $vim3 $zlib $pcre"]}
-    test_equal {[lsort $active]} {[lsort "$vim3 $zlib"]}
+    test_equal {[lsort $imaged]} {[lsort "$vim1 $vim2 $vim3 $zlib $pcre"]}
+    test_equal {[lsort $installed]} {[lsort "$vim3 $zlib"]}
+
+    # try searching for ports
+    set no_variants [registry::entry search variants {}]
+    set vim71002 [registry::entry search name vim version 7.1.002]
+    test_equal {[lsort $no_variants]} {[lsort "$vim2 $zlib"]}
+    test_equal {[lsort $vim71002]} {[lsort "$vim2 $vim3"]}
 
     # try mapping files and checking their owners
     $vim3 map
@@ -62,7 +68,7 @@ proc main {pextlibname} {
     test_throws {$zlib unmap /opt/local/bin/emacs} registry::not-owned
 
     # delete pcre
-    test_equal {[registry::entry installed pcre]} {$pcre}
+    test_equal {[registry::entry imaged pcre]} {$pcre}
     registry::entry delete $pcre
     test_throws {[registry::entry open pcre 7.1 1 {utf8 +} 0]} registry::not-found
     test {![registry::entry exists $pcre]}
@@ -79,8 +85,8 @@ proc main {pextlibname} {
     test {![registry::entry exists $vim3]}
     registry::open test.db
 
-    # check that the same vim is active from before
-    set vim3 [registry::entry active vim]
+    # check that the same vim is installed from before
+    set vim3 [registry::entry installed vim]
     test_equal {[$vim3 version]} 7.1.002
 
     # find the zlib we inserted before

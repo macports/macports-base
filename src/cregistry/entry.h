@@ -35,6 +35,12 @@
 #include <sqlite3.h>
 #include <cregistry/registry.h>
 
+typedef enum {
+    reg_strategy_equal = 1,
+    reg_strategy_glob = 2,
+    reg_strategy_regexp = 3
+} reg_strategy;
+
 typedef struct {
     sqlite_int64 id; /* rowid in database */
     sqlite3* db; /* database */
@@ -50,15 +56,12 @@ reg_entry* reg_entry_open(sqlite3* db, char* name, char* version,
 
 int reg_entry_delete(sqlite3* db, reg_entry* entry, reg_error* errPtr);
 
-void reg_entry_free(sqlite3* db, reg_entry* entry);
-
 int reg_entry_search(sqlite3* db, char** keys, char** vals, int key_count,
         int strategy, reg_entry*** entries, reg_error* errPtr);
 
-int reg_entry_installed(sqlite3* db, char* name, char* version, 
+int reg_entry_imaged(sqlite3* db, char* name, char* version, 
         reg_entry*** entries, reg_error* errPtr);
-
-int reg_entry_active(sqlite3* db, char* name, reg_entry*** entries,
+int reg_entry_installed(sqlite3* db, char* name, reg_entry*** entries,
         reg_error* errPtr);
 
 int reg_entry_owner(sqlite3* db, char* path, reg_entry** entry,

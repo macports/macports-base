@@ -44,22 +44,23 @@
  * Simple concatenation. Only guaranteed to work with strings that have been
  * allocated with `malloc`. Amortizes cost of expanding string buffer for O(N)
  * concatenation and such. Uses `memcpy` in favor of `strcpy` in hopes it will
- * perform a bit better. If passing in a static string to dst, make sure
- * dst_space starts at dst_len. Also make sure dst_space is never 0 (so don't
- * use "" as the starter string, allocate some space);
+ * perform a bit better.
  */
 void reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
     int src_len = strlen(src);
-    if (*dst_len + src_len >= *dst_space) {
+    int result_len = *dst_len + src_len;
+    if (result_len >= *dst_space) {
         char* old_dst = *dst;
-        char* new_dst = malloc(*dst_space * 2 * sizeof(char));
         *dst_space *= 2;
-        memcpy(new_dst, old_dst, *dst_len);
-        *dst = new_dst;
+        if (*dst_space < result_len) {
+            *dst_space = result_len;
+        }
+        *dst = malloc(*dst_space * sizeof(char) + 1);
+        memcpy(*dst, old_dst, *dst_len);
         free(old_dst);
     }
-    memcpy(&((*dst)[*dst_len]), src, src_len+1);
-    *dst_len += src_len;
+    memcpy(*dst + *dst_len, src, src_len+1);
+    *dst_len = result_len;
 }
 
 /**
@@ -84,13 +85,13 @@ static void reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
 /**
  * Returns the operator to use for the given strategy.
  */
-static char* reg_strategy_op(int strategy, reg_error* errPtr) {
+static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
     switch (strategy) {
-        case 0:
+        case reg_strategy_equal:
             return "=";
-        case 1:
+        case reg_strategy_glob:
             return " GLOB ";
-        case 2:
+        case reg_strategy_regexp:
             return " REGEXP ";
         default:
             errPtr->code = "registry::invalid-strategy";
@@ -100,6 +101,11 @@ static char* reg_strategy_op(int strategy, reg_error* errPtr) {
     }
 }
 
+/**
+ * Converts a `sqlite3_stmt` into a `reg_entry`. The first column of the stmt's
+ * row must be the id of an entry; the second either `SQLITE_NUL`L or the
+ * address of the entry in memory.
+ */
 static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
         reg_error* errPtr UNUSED) {
     if (sqlite3_column_type(stmt, 1) == SQLITE_NULL) {
@@ -115,12 +121,18 @@ static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
     return 1;
 }
 
+/**
+ * Saves the addresses of existing `reg_entry` items into the temporary sqlite3
+ * table `entries`. These addresses will be retrieved by anything else that
+ * needs to get entries, so only one `reg_entry` will exist in memory for any
+ * given id. They will be freed when the registry is closed.
+ */
 static int reg_save_addresses(sqlite3* db, reg_entry** entries,
         int entry_count, reg_error* errPtr) {
     sqlite3_stmt* stmt;
     int i;
     char* query = "INSERT INTO entries (id, address) VALUES (?, ?)";
-    /* avoid unnecessarily making queries */
+    /* avoid preparing the statement if unnecessary */
     for (i=0; i<entry_count; i++) {
         if (!entries[i]->saved) {
             break;
@@ -129,7 +141,7 @@ static int reg_save_addresses(sqlite3* db, reg_entry** entries,
     if (i == entry_count) {
         return 1;
     }
-    /* BEGIN */
+    begin_exclusive(db);
     if (sqlite3_prepare(db, query, -1, &stmt, NULL)
                 == SQLITE_OK) {
         for (i=0; i<entry_count; i++) {
@@ -144,13 +156,17 @@ static int reg_save_addresses(sqlite3* db, reg_entry** entries,
             } else {
                 sqlite3_finalize(stmt);
                 reg_sqlite_error(db, errPtr, query);
+                commit_transaction(db);
+                return 0;
             }
         }
         sqlite3_finalize(stmt);
+        commit_transaction(db);
         return 1;
     } else {
         sqlite3_finalize(stmt);
         reg_sqlite_error(db, errPtr, query);
+        commit_transaction(db);
     }
     return 0;
 }
@@ -280,9 +296,9 @@ int reg_entry_delete(sqlite3* db, reg_entry* entry, reg_error* errPtr) {
 }
 
 /*
- * Frees the given entry
+ * Frees the given entry - not good to expose?
  */
-void reg_entry_free(sqlite3* db UNUSED, reg_entry* entry) {
+static void reg_entry_free(sqlite3* db UNUSED, reg_entry* entry) {
     sqlite3_stmt* stmt;
     if (entry->proc != NULL) {
         free(entry->proc);
@@ -355,8 +371,8 @@ int reg_entry_search(sqlite3* db, char** keys, char** vals, int key_count,
     int i;
     char* kwd = " WHERE ";
     char* query;
-    int query_len = 32;
-    int query_space = 32;
+    int query_len = 96;
+    int query_space = 96;
     int result;
     /* get the strategy */
     char* op = reg_strategy_op(strategy, errPtr);
@@ -386,10 +402,19 @@ int reg_entry_search(sqlite3* db, char** keys, char** vals, int key_count,
 }
 
 /**
- * TODO: fix this to return ports where state=active too
- * TODO: add more arguments (epoch, revision, variants), maybe
+ * Finds ports which are installed as an image, and/or those which are active
+ * in the filesystem. When the install mode is 'direct', this will be equivalent
+ * to `reg_entry_installed`.
+ * @todo add more arguments (epoch, revision, variants), maybe
+ *
+ * @param [in] db       registry database as created by `registry_open`
+ * @param [in] name     specific port to find (NULL for any)
+ * @param [in] version  specific version to find (NULL for any)
+ * @param [out] entries list of ports meeting the criteria
+ * @param [out] errPtr  description of error encountered, if any
+ * @return              the number of such ports found
  */
-int reg_entry_installed(sqlite3* db, char* name, char* version, 
+int reg_entry_imaged(sqlite3* db, char* name, char* version, 
         reg_entry*** entries, reg_error* errPtr) {
     char* format;
     char* query;
@@ -397,11 +422,11 @@ int reg_entry_installed(sqlite3* db, char* name, char* version,
     char* select = "SELECT registry.ports.id, entries.address FROM "
         "registry.ports LEFT OUTER JOIN entries USING (id)";
     if (name == NULL) {
-        format = "%s WHERE (state='installed' OR state='active')";
+        format = "%s WHERE (state='imaged' OR state='installed')";
     } else if (version == NULL) {
-        format = "%s WHERE (state='installed' OR state='active') AND name='%q'";
+        format = "%s WHERE (state='imaged' OR state='installed') AND name='%q'";
     } else {
-        format = "%s WHERE (state='installed' OR state='active') AND name='%q' "
+        format = "%s WHERE (state='imaged' OR state='installed') AND name='%q' "
             "AND version='%q'";
     }
     query = sqlite3_mprintf(format, select, name, version);
@@ -418,8 +443,17 @@ int reg_entry_installed(sqlite3* db, char* name, char* version,
 }
 
 /**
+ * Finds ports which are active in the filesystem. These ports are able to fill
+ * dependencies, and properly own the files they map.
+ * @todo add more arguments (epoch, revision, variants), maybe
+ *
+ * @param [in] db       registry database as created by `registry_open`
+ * @param [in] name     specific port to find (NULL for any)
+ * @param [out] entries list of ports meeting the criteria
+ * @param [out] errPtr  description of error encountered, if any
+ * @return              the number of such ports found
  */
-int reg_entry_active(sqlite3* db, char* name, reg_entry*** entries,
+int reg_entry_installed(sqlite3* db, char* name, reg_entry*** entries,
         reg_error* errPtr) {
     char* format;
     char* query;
@@ -427,9 +461,9 @@ int reg_entry_active(sqlite3* db, char* name, reg_entry*** entries,
     char* select = "SELECT registry.ports.id, entries.address FROM "
         "registry.ports LEFT OUTER JOIN entries USING (id)";
     if (name == NULL) {
-        format = "%s WHERE state='active'";
+        format = "%s WHERE state='installed'";
     } else {
-        format = "%s WHERE state='active' AND name='%q'";
+        format = "%s WHERE state='installed' AND name='%q'";
     }
     query = sqlite3_mprintf(format, select, name);
     result = reg_all_objects(db, query, -1, (void***)entries,
@@ -449,8 +483,9 @@ int reg_entry_owner(sqlite3* db, char* path, reg_entry** entry,
     sqlite3_stmt* stmt;
     reg_entry* result;
     char* query = "SELECT registry.files.id, entries.address "
-        "FROM registry.files LEFT OUTER JOIN entries USING (id) "
-        "WHERE path=?";
+        "FROM registry.files INNER JOIN registry.ports USING(id)"
+        " LEFT OUTER JOIN entries USING(id) "
+        "WHERE path=? AND registry.ports.state = 'installed'";
     if ((sqlite3_prepare(db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
@@ -546,7 +581,8 @@ int reg_entry_map(sqlite3* db, reg_entry* entry, char** files, int file_count,
     sqlite3_stmt* stmt2 = NULL;
     char* insert = "INSERT INTO registry.files (id, path) VALUES (?, ?)";
     char* select = "SELECT registry.ports.name FROM registry.files "
-        "INNER JOIN registry.ports USING(id) WHERE registry.files.path=?";
+        "INNER JOIN registry.ports USING(id) WHERE registry.files.path=? AND "
+        "registry.ports.state = 'installed'";
     begin_exclusive(db);
     if ((sqlite3_prepare(db, insert, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
@@ -556,11 +592,11 @@ int reg_entry_map(sqlite3* db, reg_entry* entry, char** files, int file_count,
             if ((sqlite3_bind_text(stmt2, 1, files[i], -1, SQLITE_STATIC)
                     == SQLITE_OK)
                     && (sqlite3_step(stmt2) == SQLITE_ROW)) {
-                char* port = sqlite3_column_text(stmt2, 0);
+                const char* port = sqlite3_column_text(stmt2, 0);
                 errPtr->code = "registry::already-owned";
                 errPtr->description = sqlite3_mprintf("file at path \"%s\" is "
                         "already owned by port %s", files[i], port);
-                errPtr->free = sqlite3_free;
+                errPtr->free = (reg_error_destructor*)sqlite3_free;
                 sqlite3_finalize(stmt);
                 sqlite3_finalize(stmt2);
                 rollback_transaction(db);

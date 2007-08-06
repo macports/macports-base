@@ -40,14 +40,42 @@
 #include "registry.h"
 #include "util.h"
 
+/**
+ * Converts a command name into a `reg_entry`.
+ *
+ * @param [in] interp  Tcl interpreter to check within
+ * @param [in] name    name of entry to get
+ * @param [out] errPtr description of error if the entry can't be found
+ * @return             an entry, or NULL if one couldn't be found
+ * @see get_object
+ */
 static reg_entry* get_entry(Tcl_Interp* interp, char* name, reg_error* errPtr) {
     return (reg_entry*)get_object(interp, name, "entry", entry_obj_cmd, errPtr);
 }
 
+/**
+ * Removes the entry from the Tcl interpreter. Doesn't actually delete it since
+ * that's the registry's job. This is written to be used as the
+ * `Tcl_CmdDeleteProc` for an entry object command.
+ *
+ * @param [in] clientData address of a reg_entry to remove
+ */
 static void delete_entry(ClientData clientData) {
-    reg_entry_free(NULL, (reg_entry*)clientData);
+    reg_entry* entry = (reg_entry*)clientData;
+    free(entry->proc);
+    entry->proc = NULL;
 }
 
+/**
+ * Sets a given name to be an entry object.
+ *
+ * @param [in] interp  Tcl interpreter to create the entry within
+ * @param [in] name    name to associate the given entry with
+ * @param [in] entry   entry to associate with the given name
+ * @param [out] errPtr description of error if it couldn't be set
+ * @return             true if success; false if failure
+ * @see set_object
+ */
 static int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr) {
     if (set_object(interp, name, entry, "entry", entry_obj_cmd, delete_entry,
@@ -128,7 +156,6 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                 Tcl_SetObjResult(interp, result);
                 return TCL_OK;
             }
-            reg_entry_free(db, entry);
         }
         return registry_failed(interp, &error);
     }
@@ -162,7 +189,7 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 /**
  * registry::entry open portname version revision variants epoch ?name?
  *
- *
+ * Opens an entry matching the given parameters.
  */
 static int entry_open(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     sqlite3* db = registry_db(interp, 1);
@@ -252,8 +279,8 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             keys[i] = Tcl_GetString(objv[2*i+2]);
             vals[i] = Tcl_GetString(objv[2*i+3]);
         }
-        entry_count = reg_entry_search(db, keys, vals, key_count, 0, &entries,
-                &error);
+        entry_count = reg_entry_search(db, keys, vals, key_count,
+                reg_strategy_equal, &entries, &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
             Tcl_Obj** objs;
@@ -291,15 +318,21 @@ static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 }
 
 /**
- * registry::entry installed ?name? ?version?
+ * registry::entry imaged ?name? ?version?
  *
- * Returns a list of all installed ports. If `name` is specified, only returns
- * ports with that name, and if `version` is specified, only with that version.
- * Remember, the variants can still be different.
+ * Returns a list of all ports installed as images and/or active in the
+ * filesystem. If `name` is specified, only returns ports with that name, and if
+ * `version` is specified, only with that version. Remember, the variants can
+ * still be different, so specifying both places no constraints on the number
+ * of returned values.
+ *
+ * Note that this command corresponds to installed ports in 'image' mode and has
+ * no analogue in 'direct' mode (it will be equivalent to `registry::entry
+ * installed`). That is, these ports are available but cannot meet dependencies.
  *
  * TODO: add more arguments (epoch, revision, variants), maybe
  */
-static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
+static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     sqlite3* db = registry_db(interp, 1);
     if (objc > 4) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name? ?version?");
@@ -311,7 +344,14 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
         char* version = (objc == 4) ? Tcl_GetString(objv[3]) : NULL;
         reg_entry** entries;
         reg_error error;
-        int entry_count = reg_entry_installed(db, name, version, &entries,
+        /* name or version of "" means not specified */
+        if (name != NULL && *name == '\0') {
+            name = NULL;
+        }
+        if (version != NULL && *version == '\0') {
+            version = NULL;
+        }
+        int entry_count = reg_entry_imaged(db, name, version, &entries,
                 &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
@@ -328,12 +368,17 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
 }
 
 /**
- * registry::entry active ?name?
+ * registry::entry installed ?name?
  *
- * Returns a list of all active ports. If `name` is specified, only returns the
- * active port named, still in a list.
+ * Returns a list of all installed and active ports. If `name` is specified,
+ * only returns the active port named, but still in a list. Treating it as
+ * a single item will probably work but is bad form.
+ *
+ * Note that this command corresponds to active ports in 'image' mode and
+ * installed ports in 'direct' mode. That is, any port which is capable of
+ * satisfying a dependency.
  */
-static int entry_active(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
+static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
     sqlite3* db = registry_db(interp, 1);
     if (objc > 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "?name?");
@@ -344,7 +389,11 @@ static int entry_active(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
         char* name = (objc == 3) ? Tcl_GetString(objv[2]) : NULL;
         reg_entry** entries;
         reg_error error;
-        int entry_count = reg_entry_active(db, name, &entries,
+        /* name of "" means not specified */
+        if (name != NULL && *name == '\0') {
+            name = NULL;
+        }
+        int entry_count = reg_entry_installed(db, name, &entries,
                 &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
@@ -402,8 +451,8 @@ static entry_cmd_type entry_cmds[] = {
     { "close", entry_close },
     { "search", entry_search },
     { "exists", entry_exists },
+    { "imaged", entry_imaged },
     { "installed", entry_installed },
-    { "active", entry_active },
     { "owner", entry_owner },
     { NULL, NULL }
 };
