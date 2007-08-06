@@ -40,6 +40,13 @@
 #include <cregistry/entry.h>
 #include <cregistry/sql.h>
 
+/**
+ * Destroys a `reg_error` object. This should be called on any reg_error when a
+ * registry function returns a failure condition; depending on the function,
+ * failure could be false, negative, or null.
+ *
+ * @param [in] errPtr the error to destroy
+ */
 void reg_error_destruct(reg_error* errPtr) {
     if (errPtr->free) {
         errPtr->free(errPtr->description);
@@ -47,7 +54,13 @@ void reg_error_destruct(reg_error* errPtr) {
 }
 
 /**
- * Sets `errPtr` according to the last error in `db`.
+ * Sets `errPtr` according to the last error in `db`. Convenience function for
+ * internal use only. Sets the error code to "registry::sqlite-error" and sets
+ * an appropriate error description (including a query if non-NULL).
+ *
+ * @param [in] db      sqlite3 database connection which had the error
+ * @param [out] errPtr an error to write to
+ * @param [in] query   the query that this error occurred during
  */
 void reg_sqlite_error(sqlite3* db, reg_error* errPtr, char* query) {
     errPtr->code = "registry::sqlite-error";
@@ -100,8 +113,8 @@ int reg_close(reg_registry* reg, reg_error* errPtr) {
         free(reg);
         return 1;
     } else {
-        errPtr->code = "registry::not-closed";
-        errPtr->description = sqlite3_mprintf("error: registry db not closed "
+        errPtr->code = "registry::sqlite-error";
+        errPtr->description = sqlite3_mprintf("registry db not closed "
                 "correctly (%s)\n", sqlite3_errmsg(reg->db));
         errPtr->free = (reg_error_destructor*)sqlite3_free;
         return 0;
@@ -123,7 +136,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     int needsInit = 0; /* registry doesn't yet exist */
     int canWrite = 1; /* can write to this location */
     if (reg->status & reg_attached) {
-        errPtr->code = "registry::already-attached";
+        errPtr->code = "registry::misuse";
         errPtr->description = "a database is already attached to this registry";
         errPtr->free = NULL;
         return 0;
@@ -141,6 +154,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
                 && (sqlite3_step(stmt) == SQLITE_DONE)) {
             sqlite3_finalize(stmt);
+            sqlite3_free(query);
             if (!needsInit || (create_tables(reg->db, errPtr))) {
                 reg->status |= reg_attached;
                 return 1;
@@ -148,6 +162,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         } else {
             reg_sqlite_error(reg->db, errPtr, query);
             sqlite3_finalize(stmt);
+            sqlite3_free(query);
         }
     } else {
         errPtr->code = "registry::cannot-init";
@@ -170,7 +185,7 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
     sqlite3_stmt* stmt;
     char* query = "DETACH DATABASE registry";
     if (!(reg->status & reg_attached)) {
-        errPtr->code = "registry::not-attached";
+        errPtr->code = "registry::misuse";
         errPtr->description = "no database is attached to this registry";
         errPtr->free = NULL;
         return 0;
@@ -218,9 +233,12 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
     }
 }
 
+/**
+ * Helper function for `reg_start_read` and `reg_start_write`.
+ */
 static int reg_start(reg_registry* reg, const char* query, reg_error* errPtr) {
     if (reg->status & reg_transacting) {
-        errPtr->code = "registry::cant-start";
+        errPtr->code = "registry::misuse";
         errPtr->description = "couldn't start transaction because a "
             "transaction is already open";
         errPtr->free = NULL;
@@ -238,6 +256,15 @@ static int reg_start(reg_registry* reg, const char* query, reg_error* errPtr) {
     }
 }
 
+/**
+ * Starts a read transaction on registry. This acquires a shared lock on the
+ * database. It must be released with `reg_commit` or `reg_rollback` (it doesn't
+ * actually matter which, since the transaction won't have changed any values).
+ *
+ * @param [in] reg     registry to start transaction on
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
 int reg_start_read(reg_registry* reg, reg_error* errPtr) {
     if (reg_start(reg, "BEGIN", errPtr)) {
         reg->status |= reg_transacting;
@@ -247,6 +274,14 @@ int reg_start_read(reg_registry* reg, reg_error* errPtr) {
     }
 }
 
+/**
+ * Starts a write transaction on registry. This acquires an exclusive lock on
+ * the database. It must be released with `reg_commit` or `reg_rollback`.
+ *
+ * @param [in] reg     registry to start transaction on
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
 int reg_start_write(reg_registry* reg, reg_error* errPtr) {
     if (reg_start(reg, "BEGIN EXCLUSIVE", errPtr)) {
         reg->status |= reg_transacting | reg_can_write;
@@ -256,9 +291,12 @@ int reg_start_write(reg_registry* reg, reg_error* errPtr) {
     }
 }
 
+/**
+ * Helper function for `reg_commit` and `reg_rollback`.
+ */
 static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
     if (!(reg->status & reg_transacting)) {
-        errPtr->code = "registry::cant-end";
+        errPtr->code = "registry::misuse";
         errPtr->description = "couldn't end transaction because no transaction "
             "is open";
         errPtr->free = NULL;
@@ -276,6 +314,14 @@ static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
     }
 }
 
+/**
+ * Commits the current transaction. All values written since `reg_start_*` was
+ * called will be written to the database.
+ *
+ * @param [in] reg     registry to commit transaction to
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
 int reg_commit(reg_registry* reg, reg_error* errPtr) {
     if (reg_end(reg, "COMMIT", errPtr)) {
         reg->status &= ~(reg_transacting | reg_can_write);
@@ -285,6 +331,14 @@ int reg_commit(reg_registry* reg, reg_error* errPtr) {
     }
 }
 
+/**
+ * Rolls back the current transaction. All values written since `reg_start_*`
+ * was called will be reverted, and no changes will be written to the database.
+ *
+ * @param [in] reg     registry to roll back transaction from
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
 int reg_rollback(reg_registry* reg, reg_error* errPtr) {
     if (reg_end(reg, "ROLLBACK", errPtr)) {
         reg->status &= ~(reg_transacting | reg_can_write);
@@ -294,11 +348,20 @@ int reg_rollback(reg_registry* reg, reg_error* errPtr) {
     }
 }
 
+/**
+ * Ensures the registry has a write transaction open. If it doesn't, returns
+ * false and sets an appropriate error. Mainly intended for internal use, though
+ * there's no reason it couldn't be used externally.
+ *
+ * @param [in] reg     registry to check writability of
+ * @param [out] errPtr if not writable, an error describing that situation
+ * @return             true if writable; false if not
+ */
 int reg_test_writable(reg_registry* reg, reg_error* errPtr) {
     if (reg->status & reg_can_write) {
         return 1;
     } else {
-        errPtr->code = "registry::no-write";
+        errPtr->code = "registry::misuse";
         errPtr->description = "a write transaction has not been started";
         errPtr->free = NULL;
         return 0;

@@ -237,7 +237,8 @@ static int obj_to_string(void* userdata UNUSED, char** string, Tcl_Obj* obj,
     int length;
     char* value = Tcl_GetStringFromObj(obj, &length);
     *string = malloc((length+1)*sizeof(char));
-    memcpy(*string, value, length+1);
+    memcpy(*string, value, length);
+    (*string)[length] = '\0';
     return 1;
 }
 

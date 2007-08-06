@@ -40,10 +40,14 @@
 #include <cregistry/sql.h>
 
 /**
- * Executes a null-terminated list of queries.
+ * Executes a null-terminated list of queries. Pass it a list of queries, it'll
+ * execute them. This is mainly intended for initialization, when you have a
+ * number of standard queries to execute.
  *
- * Pass it a list of queries, it'll execute them. This is mainly intended for
- * initialization, when you have a number of standard queries to execute.
+ * @param [in] db      database to execute queries on
+ * @param [in] queries NULL-terminated list of queries
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
  */
 int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
     char** query;
@@ -61,13 +65,15 @@ int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
 }
 
 /**
- * REGEXP function for sqlite3.
+ * REGEXP function for sqlite3. Takes two arguments; the first is the value and
+ * the second the pattern. If the pattern is invalid, errors out. Otherwise,
+ * returns true if the value matches the pattern and false otherwise.
  *
- * Takes two arguments; the first is the value and the second the pattern. If
- * the pattern is invalid, errors out. Otherwise, returns true if the value
- * matches the pattern and false otherwise.
+ * This function is made available in sqlite3 as the REGEXP operator.
  *
- * This function is available in sqlite3 as the REGEXP operator.
+ * @param [in] context sqlite3-defined structure
+ * @param [in] argc    number of arguments - always 2 and hence unused
+ * @param [in] argv    0: value to match; 1: pattern to match against
  */
 static void sql_regexp(sqlite3_context* context, int argc UNUSED,
         sqlite3_value** argv) {
@@ -87,15 +93,30 @@ static void sql_regexp(sqlite3_context* context, int argc UNUSED,
 }
 
 /**
- * NOW function for sqlite3.
+ * NOW function for sqlite3. Takes no arguments. Returns the unix timestamp of
+ * the current time.
  *
- * Takes no arguments. Returns the unix timestamp of now.
+ * @param [in] context sqlite3-defined structure
+ * @param [in] argc    number of arguments - always 2 and hence unused
+ * @param [in] argv    0: value to match; 1: pattern to match against
  */
 static void sql_now(sqlite3_context* context, int argc UNUSED,
         sqlite3_value** argv UNUSED) {
     sqlite3_result_int(context, time(NULL));
 }
 
+/**
+ * RPM version comparison. Shamelessly copied from Pextlib, with some changes to
+ * use string lengths instead of strlen by default. That's necessary to make it
+ * work with sqlite3 collations. It should be shared with Pextlib, rather than
+ * just copied though.
+ *
+ * @param [in] versionA first version string, i.e. "1.4.1"
+ * @param [in] lengthA  length of first version string, or -1 to use strlen
+ * @param [in] versionB second version string, i.e. "1.4.2"
+ * @param [in] lengthA  length of second version string, or -1 to use strlen
+ * @return              -1 if A < B; 0 if A = B; 1 if A > B
+ */
 static int rpm_vercomp (const char *versionA, int lengthA, const char *versionB,
         int lengthB) {
     const char *endA, *endB;
@@ -210,13 +231,16 @@ static int rpm_vercomp (const char *versionA, int lengthA, const char *versionB,
 }
 
 /**
- * VERSION collation for sqlite3.
+ * VERSION collation for sqlite3. This function collates text according to
+ * pextlib's rpm-vercomp function. This allows direct comparison and sorting of
+ * version columns, such as port.version and port.revision.
  *
- * This function collates text according to pextlib's rpm-vercomp function. This
- * allows direct comparison and sorting of version columns, such as port.version
- * and port.revision.
- *
- * TODO: share rpm-vercomp properly with pextlib. Currently it's copy-pasted in.
+ * @param [in] userdata unused
+ * @param [in] alen     length of first string
+ * @param [in] a        first string
+ * @param [in] blen     length of second string
+ * @param [in] b        second string
+ * @return              -1 if a < b; 0 if a = b; 1 if a > b
  */
 static int sql_version(void* userdata UNUSED, int alen, const void* a, int blen,
         const void* b) {
@@ -224,10 +248,13 @@ static int sql_version(void* userdata UNUSED, int alen, const void* a, int blen,
 }
 
 /**
- * Creates tables in the registry.
+ * Creates tables in the registry. This function is called upon an uninitialized
+ * database to create the tables needed to record state between invocations of
+ * `port`.
  *
- * This function is called upon an uninitialized database to create the tables
- * needed to record state between invocations of `port`.
+ * @param [in] db      database with an attached registry db
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
  */
 int create_tables(sqlite3* db, reg_error* errPtr) {
     static char* queries[] = {
@@ -264,11 +291,13 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 }
 
 /**
- * Initializes database connection.
+ * Initializes database connection. This function creates all the temporary
+ * tables used by the registry. It also registers the user functions and
+ * collations declared here, making them available.
  *
- * This function creates all the temporary tables used by the registry. It also
- * registers the user functions and collations declared in "sql.h", making them
- * available.
+ * @param [in] db      database to initialize
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
  */
 int init_db(sqlite3* db, reg_error* errPtr) {
     static char* queries[] = {

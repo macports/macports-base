@@ -8,11 +8,16 @@ proc main {pextlibname} {
 	file delete [glob -nocomplain test.db*]
 
     # can't use registry before it's opened
-    test_throws {registry::write {}} registry::not-open
+    test_throws {registry::write {}} registry::misuse
     registry::open test.db
 
     test_throws {registry::entry create vim 7.1.000 0 {multibyte +} 0} \
-        registry::no-write
+        registry::misuse
+
+    # no nested transactions
+    registry::write {
+        test_throws {registry::read {}} registry::misuse
+    }
 
     # write transaction
     registry::write {
@@ -77,9 +82,9 @@ proc main {pextlibname} {
 
         # make sure you can't unmap a file you don't own
         test_throws {$zlib unmap [list /opt/local/bin/vim]} \
-            registry::not-owned
+            registry::invalid
         test_throws {$zlib unmap [list /opt/local/bin/emacs]} \
-            registry::not-owned
+            registry::invalid
     }
 
     # delete pcre
@@ -106,7 +111,7 @@ proc main {pextlibname} {
     # close the registry; make sure the registry isn't usable after being
     # closed, then ensure state persists between open sessions
     registry::close
-    test_throws {registry::entry search} registry::not-open
+    test_throws {registry::entry search} registry::misuse
     test {![registry::entry exists $vim3]}
     registry::open test.db
 

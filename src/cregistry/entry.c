@@ -39,12 +39,15 @@
 #include <cregistry/sql.h>
 
 /**
- * Concatenates `src` to string `dst`.
+ * Concatenates `src` to string `dst`. Simple concatenation. Only guaranteed to
+ * work with strings that have been allocated with `malloc`. Amortizes cost of
+ * expanding string buffer for O(N) concatenation and such. Uses `memcpy` in
+ * favor of `strcpy` in hopes it will perform a bit better.
  *
- * Simple concatenation. Only guaranteed to work with strings that have been
- * allocated with `malloc`. Amortizes cost of expanding string buffer for O(N)
- * concatenation and such. Uses `memcpy` in favor of `strcpy` in hopes it will
- * perform a bit better.
+ * @param [in,out] dst       a reference to a null-terminated string
+ * @param [in,out] dst_len   number of characters currently in `dst`
+ * @param [in,out] dst_space number of characters `dst` can hold
+ * @param [in] src           string to concatenate to `dst`
  */
 void reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
     int src_len = strlen(src);
@@ -64,18 +67,20 @@ void reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
 }
 
 /**
- * Appends `src` to the list `dst`.
+ * Appends element `src` to the list `dst`. It's like `reg_strcat`, except `src`
+ * represents a single element and not a sequence of `char`s.
  *
- * It's like `reg_strcat`, except `src` represents an element and not a sequence
- * of `char`s.
+ * @param [in,out] dst       a reference to a list of pointers
+ * @param [in,out] dst_len   number of elements currently in `dst`
+ * @param [in,out] dst_space number of elements `dst` can hold
+ * @param [in] src           elements to append to `dst`
  */
 static void reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
     if (*dst_len == *dst_space) {
         void** old_dst = *dst;
-        void** new_dst = malloc(*dst_space * 2 * sizeof(void*));
         *dst_space *= 2;
-        memcpy(new_dst, old_dst, *dst_len);
-        *dst = new_dst;
+        *dst = malloc(*dst_space * sizeof(void*));
+        memcpy(*dst, old_dst, *dst_len);
         free(old_dst);
     }
     (*dst)[*dst_len] = src;
@@ -84,6 +89,10 @@ static void reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
 
 /**
  * Returns the operator to use for the given strategy.
+ *
+ * @param [in] strategy a strategy (one of the `reg_strategy_*` constants)
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              a sqlite3 operator if successful; NULL otherwise
  */
 static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
     switch (strategy) {
@@ -94,7 +103,7 @@ static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
         case reg_strategy_regexp:
             return " REGEXP ";
         default:
-            errPtr->code = "registry::invalid-strategy";
+            errPtr->code = "registry::invalid";
             errPtr->description = "invalid matching strategy specified";
             errPtr->free = NULL;
             return NULL;
@@ -103,8 +112,14 @@ static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
 
 /**
  * Converts a `sqlite3_stmt` into a `reg_entry`. The first column of the stmt's
- * row must be the id of an entry; the second either `SQLITE_NUL`L or the
+ * row must be the id of an entry; the second either `SQLITE_NULL` or the
  * address of the entry in memory.
+ *
+ * @param [in] userdata sqlite3 database
+ * @param [out] entry   entry described by `stmt`
+ * @param [in] stmt     `sqlite3_stmt` with appropriate columns
+ * @param [out] errPtr  unused, since this function doesn't fail
+ * @return              true, since this function doesn't fail
  */
 static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
         reg_error* errPtr UNUSED) {
@@ -126,6 +141,11 @@ static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
  * table `entries`. These addresses will be retrieved by anything else that
  * needs to get entries, so only one `reg_entry` will exist in memory for any
  * given id. They will be freed when the registry is closed.
+ *
+ * @param [in] db          sqlite3 database to save entries into
+ * @param [in] entries     list of entries to save
+ * @param [in] entry_count number of entries to save
+ * @param [out] errPtr     on error, a description of the error that occurred
  */
 static int reg_save_addresses(sqlite3* db, reg_entry** entries,
         int entry_count, reg_error* errPtr) {
@@ -168,8 +188,6 @@ static int reg_save_addresses(sqlite3* db, reg_entry** entries,
 }
 
 /**
- * registry::entry create portname version revision variants epoch ?name?
- *
  * Unlike the old registry::new_entry, revision, variants, and epoch are all
  * required. That's OK because there's only one place this function is called,
  * and it's called with all of them there.
@@ -219,6 +237,8 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
     }
 }
 
+/**
+ */
 reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
     sqlite3_stmt* stmt;
@@ -265,7 +285,7 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
 }
 
 /**
- * deletes an entry; still needs to be freed
+ * Deletes and frees an entry.
  */
 int reg_entry_delete(reg_registry* reg, reg_entry* entry, reg_error* errPtr) {
     sqlite3_stmt* stmt;
@@ -284,9 +304,11 @@ int reg_entry_delete(reg_registry* reg, reg_entry* entry, reg_error* errPtr) {
                     && (sqlite3_step(stmt) == SQLITE_DONE)) {
                 sqlite3_finalize(stmt);
                 return 1;
+            } else {
+                reg_sqlite_error(reg->db, errPtr, query);
             }
         } else {
-            errPtr->code = "registry::invalid-entry";
+            errPtr->code = "registry::invalid";
             errPtr->description = "an invalid entry was passed";
             errPtr->free = NULL;
         }
@@ -396,7 +418,7 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     if (result > 0) {
         if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
             free(entries);
-            return 0;
+            return -1;
         }
     }
     free(query);
@@ -437,7 +459,7 @@ int reg_entry_imaged(reg_registry* reg, char* name, char* version,
     if (result > 0) {
         if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
             free(entries);
-            return 0;
+            return -1;
         }
     }
     sqlite3_free(query);
@@ -473,7 +495,7 @@ int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
     if (result > 0) {
         if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
             free(entries);
-            return 0;
+            return -1;
         }
     }
     sqlite3_free(query);
@@ -529,20 +551,24 @@ int reg_entry_propget(reg_registry* reg, reg_entry* entry, char* key,
             case SQLITE_ROW:
                 *value = strdup((const char*)sqlite3_column_text(stmt, 0));
                 sqlite3_finalize(stmt);
+                sqlite3_free(query);
                 return 1;
             case SQLITE_DONE:
-                errPtr->code = "registry::invalid-entry";
+                errPtr->code = "registry::invalid";
                 errPtr->description = "an invalid entry was passed";
                 errPtr->free = NULL;
                 sqlite3_finalize(stmt);
+                sqlite3_free(query);
                 return 0;
             default:
                 reg_sqlite_error(reg->db, errPtr, query);
                 sqlite3_finalize(stmt);
+                sqlite3_free(query);
                 return 0;
         }
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
+        sqlite3_free(query);
         return 0;
     }
 }
@@ -560,6 +586,7 @@ int reg_entry_propset(reg_registry* reg, reg_entry* entry, char* key,
         int r = sqlite3_step(stmt);
         switch (r) {
             case SQLITE_DONE:
+                sqlite3_free(query);
                 sqlite3_finalize(stmt);
                 return 1;
             default:
@@ -569,15 +596,18 @@ int reg_entry_propset(reg_registry* reg, reg_entry* entry, char* key,
                         errPtr->description = "a constraint was disobeyed";
                         errPtr->free = NULL;
                         sqlite3_finalize(stmt);
+                        sqlite3_free(query);
                         return 0;
                     default:
                         reg_sqlite_error(reg->db, errPtr, query);
                         sqlite3_finalize(stmt);
+                        sqlite3_free(query);
                         return 0;
                 }
         }
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
+        sqlite3_free(query);
         return 0;
     }
 }
@@ -637,7 +667,7 @@ int reg_entry_unmap(reg_registry* reg, reg_entry* entry, char** files,
                 switch (r) {
                     case SQLITE_DONE:
                         if (sqlite3_changes(reg->db) == 0) {
-                            errPtr->code = "registry::not-owned";
+                            errPtr->code = "registry::invalid";
                             errPtr->description = "this entry does not own the "
                                 "given file";
                             errPtr->free = NULL;

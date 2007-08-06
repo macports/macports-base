@@ -119,12 +119,11 @@ reg_registry* registry_for(Tcl_Interp* interp, int status) {
         }
     }
     if ((reg->status & status) != status) {
+        Tcl_SetErrorCode(interp, "registry::misuse", NULL);
         if (status & reg_can_write) {
-            Tcl_SetErrorCode(interp, "registry::no-write", NULL);
             Tcl_SetResult(interp, "a write transaction has not been started",
                     TCL_STATIC);
         } else {
-            Tcl_SetErrorCode(interp, "registry::not-open", NULL);
             Tcl_SetResult(interp, "registry is not open", TCL_STATIC);
         }
         reg = NULL;

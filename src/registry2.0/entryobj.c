@@ -77,6 +77,7 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
             if (reg_entry_propget(reg, entry, key, &value, &error)) {
                 Tcl_Obj* result = Tcl_NewStringObj(value, -1);
                 Tcl_SetObjResult(interp, result);
+                free(value);
                 return TCL_OK;
             }
             return registry_failed(interp, &error);
