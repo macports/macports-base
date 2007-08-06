@@ -8,6 +8,8 @@ export MACOSX_DEPLOYMENT_TARGET=10.3
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
+LIBS+=	../cregistry/cregistry.a ${SQLITE3_LIBS}
+
 .PHONY: test
 
 test:: ${SHLIB_NAME}

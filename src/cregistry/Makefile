@@ -1,16 +1,19 @@
 OBJS=       registry.o entry.o sql.o
+STLIB_NAME=	cregistry.a
 
 include ../../Mk/macports.autoconf.mk
-include ../../Mk/macports.tea.mk
 
-.PHONY: test
+all:: ${STLIB_NAME}
 
-test:: ${SHLIB_NAME}
-	${TCLSH} tests/entry.tcl ${SHLIB_NAME}
+.c.o:
+	${CC} -c -DUSE_TCL_STUBS ${CFLAGS} ${TCL_DEFS} ${SHLIB_CFLAGS} $< -o $@
 
-all:: ${OBJS}
+${STLIB_NAME}:: ${OBJS}
+	${STLIB_LD} ${STLIB_NAME} ${OBJS}
 
 clean::
-	rm -f ${OBJS} so_locations
+	rm -f ${STLIB_NAME} ${OBJS}
 
 distclean:: clean
+
+install:: ${STLIB_NAME}
