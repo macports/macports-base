@@ -35,11 +35,13 @@
 #include <tcl.h>
 #include <sqlite3.h>
 
+#include <cregistry/registry.h>
+#include <cregistry/entry.h>
+
 #include "graph.h"
 #include "item.h"
 #include "entry.h"
 #include "util.h"
-#include "sql.h"
 
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
     Tcl_Obj* result = Tcl_NewStringObj(errPtr->description, -1);

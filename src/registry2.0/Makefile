@@ -1,5 +1,4 @@
-OBJS=       registry.o util.o sql.o \
-			creg.o centry.o \
+OBJS=       registry.o util.o \
 			entry.o entryobj.o
 			#graph.o graphobj.o
 SHLIB_NAME= registry${SHLIB_SUFFIX}

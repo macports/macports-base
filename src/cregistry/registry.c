@@ -1,5 +1,5 @@
 /*
- * reg.c
+ * registry.c
  * $Id: $
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
@@ -36,11 +36,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "graph.h"
-#include "item.h"
-#include "entry.h"
-#include "util.h"
-#include "sql.h"
+#include <cregistry/entry.h>
+#include <cregistry/sql.h>
 
 void reg_error_destruct(reg_error* errPtr) {
     if (errPtr->free) {

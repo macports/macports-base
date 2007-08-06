@@ -34,7 +34,7 @@
 
 #include <tcl.h>
 #include <sqlite3.h>
-#include <centry.h>
+#include <cregistry/entry.h>
 
 sqlite3* registry_db(Tcl_Interp* interp, int attached);
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr);

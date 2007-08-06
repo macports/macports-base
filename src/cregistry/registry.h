@@ -1,5 +1,5 @@
 /*
- * creg.h
+ * registry.h
  * $Id: $
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
@@ -43,8 +43,11 @@ typedef struct {
 } reg_error;
 
 void reg_sqlite_error(sqlite3* db, reg_error* errPtr, char* query);
-
 void reg_error_destruct(reg_error* errPtr);
+
+typedef int (cast_function)(void* userdata, void** dst, void* src,
+        reg_error* errPtr);
+typedef void (free_function)(void* userdata, void* item);
 
 int reg_open(sqlite3** dbPtr, reg_error* errPtr);
 int reg_close(sqlite3* db, reg_error* errPtr);

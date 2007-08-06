@@ -1,4 +1,5 @@
 TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
+			cregistry \
 			macports1.0 \
 			port1.0 \
 			package1.0 \

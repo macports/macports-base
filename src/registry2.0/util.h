@@ -35,7 +35,7 @@
 #include <tcl.h>
 #include <sqlite3.h>
 
-#include "centry.h"
+#include <cregistry/registry.h>
 
 typedef struct {
     char* option;

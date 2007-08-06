@@ -36,8 +36,8 @@
 #include <time.h>
 #include <ctype.h>
 
-#include "creg.h"
-#include "util.h"
+#include <cregistry/registry.h>
+#include <cregistry/sql.h>
 
 /**
  * Executes a null-terminated list of queries.

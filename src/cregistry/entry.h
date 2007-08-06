@@ -1,5 +1,5 @@
 /*
- * centry.h
+ * entry.h
  * $Id: $
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
@@ -33,7 +33,7 @@
 #endif
 
 #include <sqlite3.h>
-#include "creg.h"
+#include <cregistry/registry.h>
 
 typedef struct {
     sqlite_int64 id; /* rowid in database */
@@ -41,10 +41,6 @@ typedef struct {
     int saved; /* have we recorded &entry in database? */
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_entry;
-
-typedef int (cast_function)(void* userdata, void** dst, void* src,
-        reg_error* errPtr);
-typedef void (free_function)(void* userdata, void* item);
 
 reg_entry* reg_entry_create(sqlite3* db, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);

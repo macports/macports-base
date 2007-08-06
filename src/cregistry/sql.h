@@ -34,7 +34,7 @@
 
 #include <sqlite3.h>
 
-#include "creg.h"
+#include <cregistry/registry.h>
 
 int create_tables(sqlite3* db, reg_error* errPtr);
 int init_db(sqlite3* db, reg_error* errPtr);

@@ -1,5 +1,5 @@
 /*
- * centry.c
+ * entry.c
  * $Id: $
  *
  * Copyright (c) 2007 Chris Pickel <sfiera@macports.org>
@@ -34,8 +34,8 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 
-#include "centry.h"
-#include "creg.h"
+#include <cregistry/entry.h>
+#include <cregistry/registry.h>
 
 /**
  * Concatenates `src` to string `dst`.
