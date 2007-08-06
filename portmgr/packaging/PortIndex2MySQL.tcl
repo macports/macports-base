@@ -37,14 +37,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
+# Load macports1.0 so that we can use some of its procs and the portinfo array.
 catch {source \
 	   [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
 
-# Initialize the MacPorts system to find the sources.conf file, wherefrom we'll be
-# getting the PortIndex file that'll feed the database, and initialize the portinfo
-# array for each port.
+# Initialize MacPorts to find the sources.conf file, wherefrom we'll
+# get the PortIndex that'll feed the database.
 mportinit
+
 
 # Procedure to catch the database password from a protected file.
 proc getpasswd {passwdfile} {
@@ -59,7 +60,6 @@ proc getpasswd {passwdfile} {
     close $passwdfile_fd
     return $passwd
 }
-
 
 # Needed escaping for some strings output as sql statements.
 proc sql_escape {str} {
@@ -110,11 +110,15 @@ puts $sqlfile_fd "CREATE TABLE variants (portfile VARCHAR(255), variant VARCHAR(
 puts $sqlfile_fd "DROP TABLE IF EXISTS platforms"
 puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255))"
 
+
+# Load every port in the index through a search matching everything.
 if {[catch {set ports [mportsearch ".+"]} errstr]} {
 	ui_error "port search failed: $errstr"
 	exit 1
 }
 
+# Iterate over each matching port, extracting its information from the
+# portinfo array.
 foreach {name array} $ports {
 
 	array unset portinfo
@@ -212,7 +216,8 @@ foreach {name array} $ports {
 }
 
 
-# Pipe the contents of the generated sql file to the database command:
+# Pipe the contents of the generated sql file to the database command,
+# reading from the file descriptor for the raw sql file to assure completeness.
 if {[catch {seek $sqlfile_fd 0 start} errstr]} {
     ui_error "${::errorCode}: $errstr"
     exit 1
