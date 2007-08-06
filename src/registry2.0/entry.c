@@ -60,7 +60,7 @@ static reg_entry* get_entry(Tcl_Interp* interp, char* name, reg_error* errPtr) {
  *
  * @param [in] clientData address of a reg_entry to remove
  */
-static void delete_entry(ClientData clientData) {
+void delete_entry(ClientData clientData) {
     reg_entry* entry = (reg_entry*)clientData;
     free(entry->proc);
     entry->proc = NULL;
@@ -78,7 +78,7 @@ static void delete_entry(ClientData clientData) {
  */
 static int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
         reg_error* errPtr) {
-    if (set_object(interp, name, entry, "entry", entry_obj_cmd, delete_entry,
+    if (set_object(interp, name, entry, "entry", entry_obj_cmd, NULL,
                 errPtr)) {
         int size = strlen(name) + 1;
         entry->proc = malloc(size*sizeof(char));
@@ -164,7 +164,8 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
 /**
  * registry::entry delete entry
  *
- * Deletes an entry from the registry (then closes it).
+ * Deletes an entry from the registry (then closes it). If this is done within a
+ * transaction and the transaction is rolled back, the entry will remain valid.
  */
 static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -174,15 +175,29 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     } if (reg == NULL) {
         return TCL_ERROR;
     } else {
-        reg_entry* entry;
         reg_error error;
-        if (obj_to_entry(interp, &entry, objv[2], &error)) {
-            if (reg_entry_delete(reg, entry, &error)) {
-                Tcl_DeleteCommand(interp, Tcl_GetString(objv[2]));
-                return TCL_OK;
-            }
+        reg_entry* entry = get_entry(interp, Tcl_GetString(objv[2]), &error);
+        entry_list** list_handle;
+        if (entry == NULL) {
+            return registry_failed(interp, &error);
         }
-        return registry_failed(interp, &error);
+        if (!reg_entry_delete(entry, &error)) {
+            return registry_failed(interp, &error);
+        }
+        /* if there's a transaction going on, record this entry in a list so we
+         * can roll it back if necessary
+         */
+        list_handle = Tcl_GetAssocData(interp, "registry::deleted", NULL);
+        if (list_handle) {
+            entry_list* list = *list_handle;
+            *list_handle = malloc(sizeof(entry_list*));
+            (*list_handle)->entry = entry;
+            (*list_handle)->next = list;
+        } else {
+            reg_entry_free(entry);
+        }
+        Tcl_DeleteCommand(interp, Tcl_GetString(objv[2]));
+        return TCL_OK;
     }
 }
 
@@ -242,19 +257,33 @@ static int entry_close(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
+typedef struct {
+    char* name;
+    reg_strategy strategy;
+} strategy_type;
+
+static strategy_type strategies[] = {
+    { "-exact",  reg_strategy_exact },
+    { "-glob",   reg_strategy_glob },
+    { "-regexp", reg_strategy_regexp },
+    { "--",      reg_strategy_exact },
+    { NULL, 0 }
+};
+
 /*
  * registry::entry search ?key value ...?
  *
  * Searches the registry for ports for which each key's value is equal to the
  * given value. To find all ports, call `entry search` with no key-value pairs.
- *
- * TODO: allow selection of -exact, -glob, and -regexp matching.
+ * Can be given an option of -exact, -glob, or -regexp to specify the matching
+ * strategy; defaults to exact.
  */
 static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     int i;
     reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc % 2 == 1) {
-        Tcl_WrongNumArgs(interp, 2, objv, "search ?key value ...?");
+    if ((objc > 2) && ((Tcl_GetString(objv[2])[0] == '-')
+                ? (objc % 2 == 0) : (objc % 2 == 1))) {
+        Tcl_WrongNumArgs(interp, 2, objv, "search ?options? ?key value ...?");
         return TCL_ERROR;
     } else if (reg == NULL) {
         return TCL_ERROR;
@@ -265,8 +294,24 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         reg_entry** entries;
         reg_error error;
         int entry_count;
+        int start;
+        int strategy;
+        /* try to use strategy */
+        if (objc > 2 && Tcl_GetString(objv[2])[0] == '-') {
+            int strat_index;
+            if (Tcl_GetIndexFromObjStruct(interp, objv[2], strategies,
+                        sizeof(strategy_type), "option", 0, &strat_index)
+                    == TCL_ERROR) {
+                return TCL_ERROR;
+            }
+            strategy = strategies[strat_index].strategy;
+            start = 3;
+        } else {
+            strategy = reg_strategy_exact;
+            start = 2;
+        }
         /* ensure that valid search keys were used */
-        for (i=2; i<objc; i+=2) {
+        for (i=start; i<objc; i+=2) {
             int index;
             if (Tcl_GetIndexFromObj(interp, objv[i], entry_props, "search key",
                         0, &index) != TCL_OK) {
@@ -276,20 +321,27 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         keys = malloc(key_count * sizeof(char*));
         vals = malloc(key_count * sizeof(char*));
         for (i=0; i<key_count; i+=1) {
-            keys[i] = Tcl_GetString(objv[2*i+2]);
-            vals[i] = Tcl_GetString(objv[2*i+3]);
+            keys[i] = Tcl_GetString(objv[2*i+start]);
+            vals[i] = Tcl_GetString(objv[2*i+start+1]);
         }
         entry_count = reg_entry_search(reg, keys, vals, key_count,
-                reg_strategy_equal, &entries, &error);
+                strategy, &entries, &error);
+        free(keys);
+        free(vals);
         if (entry_count >= 0) {
+            int retval;
             Tcl_Obj* resultObj;
             Tcl_Obj** objs;
-            list_entry_to_obj(interp, &objs, entries, entry_count,
-                        &error);
-            resultObj = Tcl_NewListObj(entry_count, objs);
-            Tcl_SetObjResult(interp, resultObj);
+            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
+                resultObj = Tcl_NewListObj(entry_count, objs);
+                Tcl_SetObjResult(interp, resultObj);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
             free(entries);
-            return TCL_OK;
+            return retval;
         }
         return registry_failed(interp, &error);
     }
@@ -360,6 +412,7 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             resultObj = Tcl_NewListObj(entry_count, objs);
             Tcl_SetObjResult(interp, resultObj);
             free(entries);
+            free(objs);
             return TCL_OK;
         }
         return registry_failed(interp, &error);
@@ -401,6 +454,7 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
             resultObj = Tcl_NewListObj(entry_count, objs);
             Tcl_SetObjResult(interp, resultObj);
             free(entries);
+            free(objs);
             return TCL_OK;
         }
         return registry_failed(interp, &error);

@@ -39,6 +39,20 @@
 #include <cregistry/registry.h>
 #include <cregistry/sql.h>
 
+/*
+ * TODO: maybe this could be made into something that could be separately loaded
+ *       by sqlite3? It's a bit hard to query the registry with the command-line
+ *       sqlite3 tool because of the missing VERSION collation. My understanding
+ *       is that you can make a dylib that can be loaded using an sql statement,
+ *       which is less than transparent, but certainly reasonable.
+ *
+ * TODO: break out rpm_vercomp into a separate file which can be shared by
+ *       pextlib and cregistry. The version here is slightly modified so as to
+ *       take explicit string lengths. Since these are available in Tcl it's an
+ *       easy change and might be a tiny bit faster; it's necessary for the
+ *       application here.
+ */
+
 /**
  * Executes a null-terminated list of queries. Pass it a list of queries, it'll
  * execute them. This is mainly intended for initialization, when you have a
@@ -309,9 +323,6 @@ int init_db(sqlite3* db, reg_error* errPtr) {
 
         /* indexes list */
         "CREATE TEMPORARY TABLE indexes (file, name, attached)",
-
-        /* entry addresses */
-        "CREATE TEMPORARY TABLE entries (id, address)",
 
         "COMMIT",
         NULL

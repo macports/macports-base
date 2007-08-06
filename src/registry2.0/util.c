@@ -234,23 +234,14 @@ int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
 
 static int obj_to_string(void* userdata UNUSED, char** string, Tcl_Obj* obj,
         reg_error* errPtr UNUSED) {
-    int length;
-    char* value = Tcl_GetStringFromObj(obj, &length);
-    *string = malloc((length+1)*sizeof(char));
-    memcpy(*string, value, length);
-    (*string)[length] = '\0';
+    *string = Tcl_GetString(obj);
     return 1;
-}
-
-void free_string(void* userdata UNUSED, char* string) {
-    free(string);
 }
 
 int list_obj_to_string(char*** strings, const Tcl_Obj** objv, int objc,
         reg_error* errPtr) {
-    return recast(NULL, (cast_function*)obj_to_string,
-            (free_function*)free_string, (void***)strings, (void**)objv, objc,
-            errPtr);
+    return recast(NULL, (cast_function*)obj_to_string, NULL, (void***)strings,
+            (void**)objv, objc, errPtr);
 }
 
 static int string_to_obj(void* userdata UNUSED, Tcl_Obj** obj, char* string,
@@ -265,7 +256,6 @@ static void free_obj(void* userdata UNUSED, Tcl_Obj* obj) {
 
 int list_string_to_obj(Tcl_Obj*** objv, const char** strings, int objc,
         reg_error* errPtr) {
-    return recast(NULL, (cast_function*)string_to_obj,
-            (free_function*)free_obj, (void***)objv, (void**)strings, objc,
-            errPtr);
+    return recast(NULL, (cast_function*)string_to_obj, (free_function*)free_obj,
+            (void***)objv, (void**)strings, objc, errPtr);
 }

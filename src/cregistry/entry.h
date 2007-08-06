@@ -36,15 +36,14 @@
 #include <cregistry/registry.h>
 
 typedef enum {
-    reg_strategy_equal = 1,
+    reg_strategy_exact = 1,
     reg_strategy_glob = 2,
     reg_strategy_regexp = 3
 } reg_strategy;
 
 typedef struct {
     sqlite_int64 id; /* rowid in database */
-    sqlite3* db; /* database */
-    int saved; /* have we recorded &entry in database? */
+    reg_registry* reg; /* associated registry */
     char* proc; /* name of Tcl proc, if using Tcl */
 } reg_entry;
 
@@ -54,7 +53,9 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
 reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr);
 
-int reg_entry_delete(reg_registry* reg, reg_entry* entry, reg_error* errPtr);
+int reg_entry_delete(reg_entry* entry, reg_error* errPtr);
+
+void reg_entry_free(reg_entry* entry);
 
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         int strategy, reg_entry*** entries, reg_error* errPtr);
@@ -67,19 +68,18 @@ int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
 int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
         reg_error* errPtr);
 
-int reg_entry_propget(reg_registry* reg, reg_entry* entry, char* key,
-        char** value, reg_error* errPtr);
-int reg_entry_propset(reg_registry* reg, reg_entry* entry, char* key,
-        char* value, reg_error* errPtr);
-
-int reg_entry_map(reg_registry* reg, reg_entry* entry, char** files, int file_count,
+int reg_entry_propget(reg_entry* entry, char* key, char** value,
         reg_error* errPtr);
-int reg_entry_unmap(reg_registry* reg, reg_entry* entry, char** files, int file_count,
+int reg_entry_propset(reg_entry* entry, char* key, char* value,
         reg_error* errPtr);
 
-int reg_entry_files(reg_registry* reg, reg_entry* entry, char*** files,
+int reg_entry_map(reg_entry* entry, char** files, int file_count,
+        reg_error* errPtr);
+int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 
-int reg_all_entries(reg_registry*, reg_entry*** entries, reg_error* errPtr);
+int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr);
+
+int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 
 #endif /* _CENTRY_H */

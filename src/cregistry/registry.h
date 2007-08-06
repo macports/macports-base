@@ -33,6 +33,14 @@
 #endif
 
 #include <sqlite3.h>
+#include <tcl.h>
+
+#define REG_NOT_FOUND       "registry::not-found"
+#define REG_INVALID         "registry::invalid"
+#define REG_CONSTRAINT      "registry::constraint"
+#define REG_SQLITE_ERROR    "registry::sqlite-error"
+#define REG_MISUSE          "registry::misuse"
+#define REG_CANNOT_INIT     "registry::cannot-init"
 
 typedef void reg_error_destructor(const char* description);
 
@@ -59,6 +67,7 @@ enum {
 typedef struct {
     sqlite3* db;
     int status;
+    Tcl_HashTable open_entries;
 } reg_registry;
 
 int reg_open(reg_registry** regPtr, reg_error* errPtr);
@@ -71,7 +80,5 @@ int reg_start_read(reg_registry* reg, reg_error* errPtr);
 int reg_start_write(reg_registry* reg, reg_error* errPtr);
 int reg_commit(reg_registry* reg, reg_error* errPtr);
 int reg_rollback(reg_registry* reg, reg_error* errPtr);
-
-int reg_test_writable(reg_registry* reg, reg_error* errPtr);
 
 #endif /* _CREG_H */

@@ -31,15 +31,18 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <tcl.h>
 
 #include <cregistry/registry.h>
 #include <cregistry/entry.h>
 
+#include "registry.h"
 #include "graph.h"
 #include "item.h"
 #include "entry.h"
+#include "entryobj.h"
 #include "util.h"
 
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
@@ -50,22 +53,44 @@ int registry_failed(Tcl_Interp* interp, reg_error* errPtr) {
     return TCL_ERROR;
 }
 
+static void delete_entry_list(ClientData list, Tcl_Interp* interp UNUSED) {
+    entry_list* curr = *(entry_list**)list;
+    while (curr) {
+        entry_list* save = curr;
+        reg_entry_free(curr->entry);
+        curr = curr->next;
+        free(save);
+    }
+    *(entry_list**)list = NULL;
+}
+
+static void restore_entry_list(ClientData list, Tcl_Interp* interp) {
+    entry_list* curr = *(entry_list**)list;
+    while (curr) {
+        entry_list* save = curr;
+        Tcl_CreateObjCommand(interp, curr->entry->proc, entry_obj_cmd,
+                curr->entry, delete_entry);
+        curr = curr->next;
+        free(save);
+    }
+    *(entry_list**)list = NULL;
+}
+
 int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
         reg_error* errPtr) {
     reg_entry** entries;
-    int entry_count = reg_all_entries(reg, &entries, errPtr);
-    if (entry_count >= 0) {
-        int i;
-        for (i=0; i<entry_count; i++) {
-            if (entries[i]->proc) {
-                Tcl_DeleteCommand(interp, entries[i]->proc);
-            }
-        }
-        if (reg_detach(reg, errPtr)) {
-            return 1;
+    int entry_count = reg_all_open_entries(reg, &entries);
+    int i;
+    for (i=0; i<entry_count; i++) {
+        if (entries[i]->proc) {
+            Tcl_DeleteCommand(interp, entries[i]->proc);
         }
     }
-    return registry_failed(interp, errPtr);
+    free(entries);
+    if (!reg_detach(reg, errPtr)) {
+        return registry_failed(interp, errPtr);
+    }
+    return 1;
 }
 
 /**
@@ -216,28 +241,42 @@ static int registry_write(ClientData clientData UNUSED, Tcl_Interp* interp,
         if (reg == NULL) {
             return TCL_ERROR;
         } else {
+            int result;
             reg_error error;
             if (reg_start_write(reg, &error)) {
-                int status = Tcl_EvalObjEx(interp, objv[1], 0);
-                switch (status) {
+                entry_list* list = NULL;
+                Tcl_SetAssocData(interp, "registry::deleted", delete_entry_list,
+                        &list);
+                result = Tcl_EvalObjEx(interp, objv[1], 0);
+                switch (result) {
                     case TCL_OK:
                         if (reg_commit(reg, &error)) {
-                            return TCL_OK;
+                            delete_entry_list(&list, interp);
+                        } else {
+                            result = registry_failed(interp, &error);
                         }
                         break;
                     case TCL_BREAK:
                         if (reg_rollback(reg, &error)) {
-                            return TCL_OK;
+                            restore_entry_list(&list, interp);
+                            result = TCL_OK;
+                        } else {
+                            result = registry_failed(interp, &error);
                         }
                         break;
                     default:
                         if (reg_rollback(reg, &error)) {
-                            return status;
+                            restore_entry_list(&list, interp);
+                        } else {
+                            result = registry_failed(interp, &error);
                         }
                         break;
                 }
+                Tcl_DeleteAssocData(interp, "registry::deleted");
+            } else {
+                result = registry_failed(interp, &error);
             }
-            return registry_failed(interp, &error);
+            return result;
         }
     }
 }

@@ -36,6 +36,11 @@
 #include <sqlite3.h>
 #include <cregistry/entry.h>
 
+typedef struct _entry_list {
+    reg_entry* entry;
+    struct _entry_list* next;
+} entry_list;
+
 reg_registry* registry_for(Tcl_Interp* interp, int status);
 int registry_failed(Tcl_Interp* interp, reg_error* errPtr);
 

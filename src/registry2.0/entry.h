@@ -34,6 +34,8 @@
 
 #include <tcl.h>
 
+void delete_entry(ClientData clientData);
+
 int entry_cmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc,
         Tcl_Obj* CONST objv[]);
 

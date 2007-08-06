@@ -38,6 +38,23 @@
 #include <cregistry/registry.h>
 #include <cregistry/sql.h>
 
+/*
+ * TODO: possibly, allow reg_entry_search to take different matching strategies
+ *       for different keys. I don't know of an application for this feature
+ *       yet, so no reason to bother for now.
+ *
+ * TODO: reg_entry_installed and reg_entry_imaged could benefit from the added
+ *       flexibility of -glob and -regexp too. Not a high priority, though.
+ *
+ * TODO: process the 'state' keyword in a more efficient way. I still believe
+ *       there could be benefits to be reaped in the future by allowing
+ *       arbitrary values but at the same time it will always have very discrete
+ *       values. These could be more efficiently dealt with as integers.
+ *
+ * TODO: move the utility functions to util.h or something. Not important until
+ *       there are more types in the registry than entry, though.
+ */
+
 /**
  * Concatenates `src` to string `dst`. Simple concatenation. Only guaranteed to
  * work with strings that have been allocated with `malloc`. Amortizes cost of
@@ -88,22 +105,23 @@ static void reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
 }
 
 /**
- * Returns the operator to use for the given strategy.
+ * Returns an expression to use for the given strategy. This should be passed as
+ * the `fmt` argument of `sqlite3_mprintf`, with the key and value following.
  *
  * @param [in] strategy a strategy (one of the `reg_strategy_*` constants)
  * @param [out] errPtr  on error, a description of the error that occurred
- * @return              a sqlite3 operator if successful; NULL otherwise
+ * @return              a sqlite3 expression if success; NULL if failure
  */
 static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
     switch (strategy) {
-        case reg_strategy_equal:
-            return "=";
+        case reg_strategy_exact:
+            return "%q = '%q'";
         case reg_strategy_glob:
-            return " GLOB ";
+            return "%q GLOB '%q'";
         case reg_strategy_regexp:
-            return " REGEXP ";
+            return "REGEXP(%q, '%q')";
         default:
-            errPtr->code = "registry::invalid";
+            errPtr->code = REG_INVALID;
             errPtr->description = "invalid matching strategy specified";
             errPtr->free = NULL;
             return NULL;
@@ -123,83 +141,45 @@ static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
  */
 static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
         reg_error* errPtr UNUSED) {
-    if (sqlite3_column_type(stmt, 1) == SQLITE_NULL) {
+    int is_new;
+    reg_registry* reg = (reg_registry*)userdata;
+    sqlite_int64 id = sqlite3_column_int64(stmt, 0);
+    Tcl_HashEntry* hash = Tcl_CreateHashEntry(&reg->open_entries,
+            (const char*)&id, &is_new);
+    if (is_new) {
         reg_entry* e = malloc(sizeof(reg_entry));
-        e->db = (sqlite3*)userdata;
-        e->id = sqlite3_column_int64(stmt, 0);
-        e->saved = 0;
+        e->reg = reg;
+        e->id = id;
         e->proc = NULL;
         *entry = e;
+        Tcl_SetHashValue(hash, e);
     } else {
-        *entry = *(reg_entry**)sqlite3_column_blob(stmt, 1);
+        *entry = Tcl_GetHashValue(hash);
     }
     return 1;
 }
 
 /**
- * Saves the addresses of existing `reg_entry` items into the temporary sqlite3
- * table `entries`. These addresses will be retrieved by anything else that
- * needs to get entries, so only one `reg_entry` will exist in memory for any
- * given id. They will be freed when the registry is closed.
+ * Creates a new entry in the ports registry. Unlike the old
+ * `registry::new_entry`, revision, variants, and epoch are all required. That's
+ * OK because there's only one place this function is called, and it's called
+ * with all of them there.
  *
- * @param [in] db          sqlite3 database to save entries into
- * @param [in] entries     list of entries to save
- * @param [in] entry_count number of entries to save
- * @param [out] errPtr     on error, a description of the error that occurred
- */
-static int reg_save_addresses(sqlite3* db, reg_entry** entries,
-        int entry_count, reg_error* errPtr) {
-    sqlite3_stmt* stmt;
-    int i;
-    char* query = "INSERT INTO entries (id, address) VALUES (?, ?)";
-    /* avoid preparing the statement if unnecessary */
-    for (i=0; i<entry_count; i++) {
-        if (!entries[i]->saved) {
-            break;
-        }
-    }
-    if (i == entry_count) {
-        return 1;
-    }
-    if (sqlite3_prepare(db, query, -1, &stmt, NULL)
-                == SQLITE_OK) {
-        for (i=0; i<entry_count; i++) {
-            if (entries[i]->saved) {
-                continue;
-            }
-            if ((sqlite3_bind_int64(stmt, 1, entries[i]->id) == SQLITE_OK)
-                    && (sqlite3_bind_blob(stmt, 2, &entries[i],
-                            sizeof(reg_entry*), SQLITE_TRANSIENT) == SQLITE_OK)
-                    && (sqlite3_step(stmt) == SQLITE_DONE)) {
-                sqlite3_reset(stmt);
-            } else {
-                sqlite3_finalize(stmt);
-                reg_sqlite_error(db, errPtr, query);
-                return 0;
-            }
-        }
-        sqlite3_finalize(stmt);
-        return 1;
-    } else {
-        sqlite3_finalize(stmt);
-        reg_sqlite_error(db, errPtr, query);
-    }
-    return 0;
-}
-
-/**
- * Unlike the old registry::new_entry, revision, variants, and epoch are all
- * required. That's OK because there's only one place this function is called,
- * and it's called with all of them there.
+ * @param [in] reg      the registry to create the entry in
+ * @param [in] name     name of port
+ * @param [in] version  version of port
+ * @param [in] revision revision of port
+ * @param [in] variants variants to record
+ * @param [in] epoch    epoch of port
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              the entry if success; NULL if failure
  */
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
     sqlite3_stmt* stmt;
+    reg_entry* entry = NULL;
     char* query = "INSERT INTO registry.ports "
         "(name, version, revision, variants, epoch) VALUES (?, ?, ?, ?, ?)";
-    if (!reg_test_writable(reg, errPtr)) {
-        return NULL;
-    }
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC)
                 == SQLITE_OK)
@@ -210,40 +190,53 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
             && (sqlite3_bind_text(stmt, 4, variants, -1, SQLITE_STATIC)
                 == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 5, epoch, -1, SQLITE_STATIC)
-                == SQLITE_OK)
-            && (sqlite3_step(stmt) == SQLITE_DONE)) {
-        char* query = "INSERT INTO entries (id, address) VALUES (?, ?)";
-        reg_entry* entry = malloc(sizeof(reg_entry));
-        entry->id = sqlite3_last_insert_rowid(reg->db);
-        entry->db = reg->db;
-        entry->proc = NULL;
-        sqlite3_finalize(stmt);
-        if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL)
-                == SQLITE_OK)
-                && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
-                && (sqlite3_bind_blob(stmt, 2, &entry, sizeof(reg_entry*),
-                        SQLITE_TRANSIENT) == SQLITE_OK)
-                && (sqlite3_step(stmt) == SQLITE_DONE)) {
-            return entry;
-        } else {
-            reg_sqlite_error(reg->db, errPtr, query);
-        }
-        free(entry);
-        return NULL;
+                == SQLITE_OK)) {
+        int r;
+        do {
+            Tcl_HashEntry* hash;
+            int is_new;
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    entry = malloc(sizeof(reg_entry));
+                    entry->id = sqlite3_last_insert_rowid(reg->db);
+                    entry->reg = reg;
+                    entry->proc = NULL;
+                    hash = Tcl_CreateHashEntry(&reg->open_entries,
+                            (const char*)&entry->id, &is_new);
+                    Tcl_SetHashValue(hash, entry);
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_finalize(stmt);
-        return NULL;
     }
+    sqlite3_finalize(stmt);
+    return entry;
 }
 
 /**
+ * Opens an existing entry in the registry.
+ *
+ * @param [in] reg      registry to open entry in
+ * @param [in] name     name of port
+ * @param [in] version  version of port
+ * @param [in] revision revision of port
+ * @param [in] variants variants to record
+ * @param [in] epoch    epoch of port
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              the entry if success; NULL if failure
  */
 reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
     sqlite3_stmt* stmt;
-    char* query = "SELECT registry.ports.id, entries.address "
-        "FROM registry.ports LEFT OUTER JOIN entries USING (id) "
+    reg_entry* entry = NULL;
+    char* query = "SELECT registry.ports.id FROM registry.ports "
         "WHERE name=? AND version=? AND revision=? AND variants=? AND epoch=?";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, name, -1, SQLITE_STATIC)
@@ -256,147 +249,191 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
                 == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 5, epoch, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
-        int r = sqlite3_step(stmt);
-        reg_entry* entry;
-        switch (r) {
-            case SQLITE_ROW:
-                if (reg_stmt_to_entry(reg->db, (void**)&entry, stmt, errPtr)) {
-                    sqlite3_finalize(stmt);
-                    if (reg_save_addresses(reg->db, &entry, 1, errPtr)) {
-                        return entry;
-                    }
-                }
-            case SQLITE_DONE:
-                errPtr->code = "registry::not-found";
-                errPtr->description = "no matching port found";
-                errPtr->free = NULL;
-                break;
-            default:
-                reg_sqlite_error(reg->db, errPtr, query);
-                break;
-        }
-        sqlite3_finalize(stmt);
-        return NULL;
-    } else {
-        reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_finalize(stmt);
-        return NULL;
-    }
-}
-
-/**
- * Deletes and frees an entry.
- */
-int reg_entry_delete(reg_registry* reg, reg_entry* entry, reg_error* errPtr) {
-    sqlite3_stmt* stmt;
-    char* query = "DELETE FROM registry.ports WHERE id=?";
-    if (!reg_test_writable(reg, errPtr)) {
-        return 0;
-    }
-    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
-            && (sqlite3_step(stmt) == SQLITE_DONE)) {
-        if (sqlite3_changes(reg->db) > 0) {
-            sqlite3_finalize(stmt);
-            query = "DELETE FROM entries WHERE id=?";
-            if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
-                    && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
-                    && (sqlite3_step(stmt) == SQLITE_DONE)) {
-                sqlite3_finalize(stmt);
-                return 1;
-            } else {
-                reg_sqlite_error(reg->db, errPtr, query);
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    reg_stmt_to_entry(reg, (void**)&entry, stmt, errPtr);
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_NOT_FOUND;
+                    errPtr->description = "no matching port found";
+                    errPtr->free = NULL;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
             }
-        } else {
-            errPtr->code = "registry::invalid";
-            errPtr->description = "an invalid entry was passed";
-            errPtr->free = NULL;
-        }
+        } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
     sqlite3_finalize(stmt);
-    return 0;
+    return entry;
 }
 
-/*
- * Frees the given entry - not good to expose?
+/**
+ * Deletes an entry. After calling this, `reg_entry_free` needs to be called
+ * manually on the entry. Care should be taken to not free the entry if this
+ * deletion is rolled back.
+ *
+ * @param [in] entry   the entry to delete
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
  */
-static void reg_entry_free(reg_registry* reg UNUSED, reg_entry* entry) {
+int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 0;
     sqlite3_stmt* stmt;
+    char* query = "DELETE FROM registry.ports WHERE id=?";
+    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    if (sqlite3_changes(reg->db) > 0) {
+                        result = 1;
+                    } else {
+                        errPtr->code = REG_INVALID;
+                        errPtr->description = "an invalid entry was passed";
+                        errPtr->free = NULL;
+                    }
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                case SQLITE_ERROR:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+    }
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+/**
+ * Frees an entry. Normally this is unnecessary, as open entries will be
+ * automatically freed when the registry is detached. Calling this method
+ * externally should only be necessary following `reg_entry_delete`.
+ *
+ * @param [in] entry the entry to free
+ */
+void reg_entry_free(reg_entry* entry) {
+    Tcl_HashEntry* hash = Tcl_FindHashEntry(&entry->reg->open_entries,
+                            (const char*)&entry->id);
+    Tcl_DeleteHashEntry(hash);
     if (entry->proc != NULL) {
         free(entry->proc);
     }
     free(entry);
-    sqlite3_prepare(entry->db, "DELETE FROM entries WHERE address=?", -1, &stmt,
-            NULL);
-    sqlite3_bind_blob(stmt, 1, &entry, sizeof(reg_entry*), SQLITE_TRANSIENT);
-    sqlite3_step(stmt);
 }
 
-static int reg_all_objects(sqlite3* db, char* query, int query_len,
+/**
+ * Convenience method for returning all objects of a given type from the
+ * registry.
+ *
+ * @param [in] reg       registry to select objects from
+ * @param [in] query     the select query to execute
+ * @param [in] query_len length of the query (or -1 for automatic)
+ * @param [out] objects  the objects selected
+ * @param [in] fn        a function to convert sqlite3_stmts to the desired type
+ * @param [in] del       a function to delete the desired type of object
+ * @param [out] errPtr   on error, a description of the error that occurred
+ * @return               the number of objects if success; negative if failure
+ */
+static int reg_all_objects(reg_registry* reg, char* query, int query_len,
         void*** objects, cast_function* fn, free_function* del,
         reg_error* errPtr) {
-    int r;
-    reg_entry* entry;
     void** results = malloc(10*sizeof(void*));
     int result_count = 0;
     int result_space = 10;
     sqlite3_stmt* stmt;
-    if (sqlite3_prepare(db, query, query_len, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
+        int r;
+        reg_entry* entry;
         do {
-            int i;
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
-                    if (fn(db, (void**)&entry, stmt, errPtr)) {
+                    if (fn(reg, (void**)&entry, stmt, errPtr)) {
                         reg_listcat(&results, &result_count, &result_space,
                                 entry);
-                        continue;
                     } else {
-                        int i;
-                        sqlite3_finalize(stmt);
-                        for (i=0; i<result_count; i++) {
-                            del(NULL, results[i]);
-                        }
-                        free(results);
-                        return -1;
+                        r = SQLITE_ERROR;
                     }
+                    break;
                 case SQLITE_DONE:
+                case SQLITE_BUSY:
                     break;
                 default:
-                    for (i=0; i<result_count; i++) {
-                        del(NULL, results[i]);
-                    }
-                    free(results);
-                    sqlite3_finalize(stmt);
-                    reg_sqlite_error(db, errPtr, query);
-                    return -1;
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
             }
-        } while (r != SQLITE_DONE);
-        *objects = results;
-        return result_count;
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+        sqlite3_finalize(stmt);
+        if (r == SQLITE_DONE) {
+            *objects = results;
+            return result_count;
+        } else {
+            int i;
+            for (i=0; i<result_count; i++) {
+                del(NULL, results[i]);
+            }
+        }
     } else {
-        reg_sqlite_error(db, errPtr, query);
-        free(results);
-        return -1;
+        sqlite3_finalize(stmt);
+        reg_sqlite_error(reg->db, errPtr, query);
     }
+    free(results);
+    return -1;
 }
 
-/*
- * Searches the registry for ports for which each key's value is equal to the
- * given value. To find all ports, pass 0 key-value pairs.
+/**
+ * Type-safe version of `reg_all_objects` for `reg_entry`.
  *
- * Vulnerable to SQL-injection attacks in the `keys` field. Pass it valid keys,
- * please.
+ * @param [in] reg       registry to select entries from
+ * @param [in] query     the select query to execute
+ * @param [in] query_len length of the query (or -1 for automatic)
+ * @param [out] objects  the entries selected
+ * @param [out] errPtr   on error, a description of the error that occurred
+ * @return               the number of entries if success; negative if failure
+ */
+static int reg_all_entries(reg_registry* reg, char* query, int query_len,
+        reg_entry*** objects, reg_error* errPtr) {
+    return reg_all_objects(reg, query, query_len, (void***)objects,
+            reg_stmt_to_entry, NULL, errPtr);
+}
+
+/**
+ * Searches the registry for ports for which each key's value is equal to the
+ * given value. To find all ports, pass a key_count of 0.
+ *
+ * Bad keys should cause sqlite3 errors but not permit SQL injection attacks.
+ * Pass it good keys anyway.
+ *
+ * @param [in] reg       registry to search in
+ * @param [in] keys      a list of keys to search by
+ * @param [in] vals      a list of values to search by, matching keys
+ * @param [in] key_count the number of key/value pairs passed
+ * @param [in] strategy  strategy to use (one of the `reg_strategy_*` constants)
+ * @param [out] entries  a list of matching entries
+ * @param [out] errPtr   on error, a description of the error that occurred
+ * @return               the number of entries if success; false if failure
  */
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         int strategy, reg_entry*** entries, reg_error* errPtr) {
     int i;
     char* kwd = " WHERE ";
     char* query;
-    int query_len = 96;
-    int query_space = 96;
+    int query_len = 44;
+    int query_space = 44;
     int result;
     /* get the strategy */
     char* op = reg_strategy_op(strategy, errPtr);
@@ -404,23 +441,16 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         return -1;
     }
     /* build the query */
-    query = strdup("SELECT registry.ports.id, entries.address "
-            "FROM registry.ports LEFT OUTER JOIN entries USING (id)");
-    for (i=0; i<key_count; i+=1) {
-        char* cond = sqlite3_mprintf("%s%s%s'%q'", kwd, keys[i], op, vals[i]);
+    query = strdup("SELECT registry.ports.id FROM registry.ports");
+    for (i=0; i<key_count; i++) {
+        char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
+        reg_strcat(&query, &query_len, &query_space, kwd);
         reg_strcat(&query, &query_len, &query_space, cond);
         sqlite3_free(cond);
         kwd = " AND ";
     }
     /* do the query */
-    result = reg_all_objects(reg->db, query, query_len, (void***)entries,
-            reg_stmt_to_entry, (free_function*)reg_entry_free, errPtr);
-    if (result > 0) {
-        if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
-            free(entries);
-            return -1;
-        }
-    }
+    result = reg_all_entries(reg, query, query_len, entries, errPtr);
     free(query);
     return result;
 }
@@ -436,15 +466,14 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
  * @param [in] version  specific version to find (NULL for any)
  * @param [out] entries list of ports meeting the criteria
  * @param [out] errPtr  description of error encountered, if any
- * @return              the number of such ports found
+ * @return              the number of entries if success; false if failure
  */
 int reg_entry_imaged(reg_registry* reg, char* name, char* version, 
         reg_entry*** entries, reg_error* errPtr) {
     char* format;
     char* query;
     int result;
-    char* select = "SELECT registry.ports.id, entries.address FROM "
-        "registry.ports LEFT OUTER JOIN entries USING (id)";
+    char* select = "SELECT registry.ports.id FROM registry.ports";
     if (name == NULL) {
         format = "%s WHERE (state='imaged' OR state='installed')";
     } else if (version == NULL) {
@@ -454,20 +483,13 @@ int reg_entry_imaged(reg_registry* reg, char* name, char* version,
             "AND version='%q'";
     }
     query = sqlite3_mprintf(format, select, name, version);
-    result = reg_all_objects(reg->db, query, -1, (void***)entries,
-            reg_stmt_to_entry, (free_function*)reg_entry_free, errPtr);
-    if (result > 0) {
-        if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
-            free(entries);
-            return -1;
-        }
-    }
+    result = reg_all_entries(reg, query, -1, entries, errPtr);
     sqlite3_free(query);
     return result;
 }
 
 /**
- * Finds ports which are active in the filesystem. These ports are able to fill
+ * Finds ports which are active in the filesystem. These ports are able to meet
  * dependencies, and properly own the files they map.
  * @todo add more arguments (epoch, revision, variants), maybe
  *
@@ -475,166 +497,238 @@ int reg_entry_imaged(reg_registry* reg, char* name, char* version,
  * @param [in] name     specific port to find (NULL for any)
  * @param [out] entries list of ports meeting the criteria
  * @param [out] errPtr  description of error encountered, if any
- * @return              the number of such ports found
+ * @return              the number of entries if success; false if failure
  */
 int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         reg_error* errPtr) {
     char* format;
     char* query;
     int result;
-    char* select = "SELECT registry.ports.id, entries.address FROM "
-        "registry.ports LEFT OUTER JOIN entries USING (id)";
+    char* select = "SELECT registry.ports.id FROM registry.ports";
     if (name == NULL) {
         format = "%s WHERE state='installed'";
     } else {
         format = "%s WHERE state='installed' AND name='%q'";
     }
     query = sqlite3_mprintf(format, select, name);
-    result = reg_all_objects(reg->db, query, -1, (void***)entries,
-            reg_stmt_to_entry, (free_function*)reg_entry_free, errPtr);
-    if (result > 0) {
-        if (!reg_save_addresses(reg->db, *entries, result, errPtr)) {
-            free(entries);
-            return -1;
-        }
-    }
+    result = reg_all_entries(reg, query, -1, entries, errPtr);
     sqlite3_free(query);
     return result;
 }
 
+/**
+ * Finds the owner of a given file. Only ports active in the filesystem will be
+ * returned.
+ *
+ * @param [in] reg     registry to search in
+ * @param [in] path    path of the file to check ownership of
+ * @param [out] entry  the owner, or NULL if no active port owns the file
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
 int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
         reg_error* errPtr) {
+    int result = 0;
     sqlite3_stmt* stmt;
-    reg_entry* result;
-    char* query = "SELECT registry.files.id, entries.address "
-        "FROM registry.files INNER JOIN registry.ports USING(id)"
-        " LEFT OUTER JOIN entries USING(id) "
-        "WHERE path=? AND registry.ports.state = 'installed'";
+    char* query = "SELECT registry.files.id FROM registry.files INNER JOIN "
+        "registry.ports USING(id) WHERE  registry.ports.state = 'installed' "
+        "AND registry.files.path=?";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
-        int r = sqlite3_step(stmt);
-        switch (r) {
-            case SQLITE_ROW:
-                if (reg_stmt_to_entry(reg->db, (void**)&result, stmt, errPtr)) {
-                    sqlite3_finalize(stmt);
-                    if (reg_save_addresses(reg->db, &result, 1, errPtr)) {
-                        *entry = result;
-                        return 1;
-                    }
-                }
-            case SQLITE_DONE:
-                sqlite3_finalize(stmt);
-                *entry = NULL;
-                return 1;
-            default:
-                /* barf */
-                sqlite3_finalize(stmt);
-                return 0;
-        }
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    result = reg_stmt_to_entry(reg, (void**)entry, stmt,
+                            errPtr);
+                    break;
+                case SQLITE_DONE:
+                    *entry = NULL;
+                    result = 1;
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_finalize(stmt);
-        return 0;
     }
+    sqlite3_finalize(stmt);
+    return result;
 }
 
-int reg_entry_propget(reg_registry* reg, reg_entry* entry, char* key,
-        char** value, reg_error* errPtr) {
+/**
+ * Shortcut to retrieve a file's owner's id directly. This should be a bit
+ * faster than `reg_entry_owner` because it doesn't have to check the hash table
+ * of open entries. It might still be slower than necessary because it's doing
+ * a join of two tables, but the only way to improve that would be to cache a
+ * file's active state in registry.files itself, which I'd rather not do unless
+ * absolutely necessary.
+ *
+ * @param [in] reg  registry to find file in
+ * @param [in] path path of file to get owner of
+ * @return          id of owner, or 0 for none
+ */
+sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path) {
+    sqlite3_stmt* stmt;
+    sqlite_int64 result = 0;
+    char* query = "SELECT registry.files.id FROM registry.files INNER JOIN "
+        "registry.ports USING(id) WHERE  registry.ports.state = 'installed' "
+        "AND registry.files.path=?";
+    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
+                == SQLITE_OK)) {
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            if (r == SQLITE_ROW) {
+                result = sqlite3_column_int64(stmt, 0);
+            }
+        } while (r == SQLITE_BUSY);
+    }
+    sqlite3_finalize(stmt);
+    return result;
+}
+
+/**
+ * Gets a named property of an entry. That property can be set using
+ * `reg_entry_propset`. The property named must be one that exists in the table
+ * and must not be one with internal meaning such as `id` or `state`.
+ *
+ * @param [in] entry   entry to get property from
+ * @param [in] key     property to get
+ * @param [out] value  the value of the property
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
+int reg_entry_propget(reg_entry* entry, char* key, char** value,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 0;
     sqlite3_stmt* stmt;
     char* query;
     query = sqlite3_mprintf("SELECT %q FROM registry.ports WHERE id=%lld", key,
             entry->id);
     if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r = sqlite3_step(stmt);
-        switch (r) {
-            case SQLITE_ROW:
-                *value = strdup((const char*)sqlite3_column_text(stmt, 0));
-                sqlite3_finalize(stmt);
-                sqlite3_free(query);
-                return 1;
-            case SQLITE_DONE:
-                errPtr->code = "registry::invalid";
-                errPtr->description = "an invalid entry was passed";
-                errPtr->free = NULL;
-                sqlite3_finalize(stmt);
-                sqlite3_free(query);
-                return 0;
-            default:
-                reg_sqlite_error(reg->db, errPtr, query);
-                sqlite3_finalize(stmt);
-                sqlite3_free(query);
-                return 0;
-        }
+        do {
+            switch (r) {
+                case SQLITE_ROW:
+                    *value = strdup((const char*)sqlite3_column_text(stmt, 0));
+                    result = 1;
+                    break;
+                case SQLITE_DONE:
+                    errPtr->code = REG_INVALID;
+                    errPtr->description = "an invalid entry was passed";
+                    errPtr->free = NULL;
+                    break;
+                case SQLITE_BUSY:
+                    continue;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_free(query);
-        return 0;
     }
+    sqlite3_finalize(stmt);
+    sqlite3_free(query);
+    return result;
 }
 
-int reg_entry_propset(reg_registry* reg, reg_entry* entry, char* key,
-        char* value, reg_error* errPtr) {
+/**
+ * Sets a named property of an entry. That property can be later retrieved using
+ * `reg_entry_propget`. The property named must be one that exists in the table
+ * and must not be one with internal meaning such as `id` or `state`. If `name`,
+ * `epoch`, `version`, `revision`, or `variants` is set, it could trigger a
+ * conflict if another port with the same combination of values for those
+ * columns exists.
+ *
+ * @param [in] entry   entry to set property for
+ * @param [in] key     property to set
+ * @param [in] value   the desired value of the property
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             true if success; false if failure
+ */
+int reg_entry_propset(reg_entry* entry, char* key, char* value,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 0;
     sqlite3_stmt* stmt;
     char* query;
-    if (!reg_test_writable(reg, errPtr)) {
-        return -1;
-    }
     query = sqlite3_mprintf("UPDATE registry.ports SET %q = '%q' WHERE id=%lld",
             key, value, entry->id);
     if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
-        int r = sqlite3_step(stmt);
-        switch (r) {
-            case SQLITE_DONE:
-                sqlite3_free(query);
-                sqlite3_finalize(stmt);
-                return 1;
-            default:
-                switch (sqlite3_reset(stmt)) {
-                    case SQLITE_CONSTRAINT:
-                        errPtr->code = "registry::constraint";
+        int r;
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_DONE:
+                    result = 1;
+                    break;
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    if (sqlite3_reset(stmt) == SQLITE_CONSTRAINT) {
+                        errPtr->code = REG_CONSTRAINT;
                         errPtr->description = "a constraint was disobeyed";
                         errPtr->free = NULL;
-                        sqlite3_finalize(stmt);
-                        sqlite3_free(query);
-                        return 0;
-                    default:
+                    } else {
                         reg_sqlite_error(reg->db, errPtr, query);
-                        sqlite3_finalize(stmt);
-                        sqlite3_free(query);
-                        return 0;
-                }
-        }
+                    }
+                    break;
+            }
+        } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_free(query);
-        return 0;
     }
+    sqlite3_finalize(stmt);
+    sqlite3_free(query);
+    return result;
 }
 
-int reg_entry_map(reg_registry* reg, reg_entry* entry, char** files,
-        int file_count, reg_error* errPtr) {
+/**
+ * Maps files to the given port in the filemap. The list of files must not
+ * contain files that are already mapped to the given port.
+ *
+ * @param [in] entry      the entry to map the files to
+ * @param [in] files      a list of files to map
+ * @param [in] file_count the number of files
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_map(reg_entry* entry, char** files, int file_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
     sqlite3_stmt* stmt;
     char* insert = "INSERT INTO registry.files (id, path) VALUES (?, ?)";
-    if (!reg_test_writable(reg, errPtr)) {
-        return -1;
-    }
     if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;
         for (i=0; i<file_count; i++) {
             if (sqlite3_bind_text(stmt, 2, files[i], -1, SQLITE_STATIC)
                     == SQLITE_OK) {
-                int r = sqlite3_step(stmt);
-                switch (r) {
-                    case SQLITE_DONE:
-                        sqlite3_reset(stmt);
-                        continue;
-                    default:
-                        reg_sqlite_error(reg->db, errPtr, insert);
-                        sqlite3_finalize(stmt);
-                        return i;
-                }
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            sqlite3_reset(stmt);
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, insert);
+                            sqlite3_finalize(stmt);
+                            return i;
+                    }
+                } while (r == SQLITE_BUSY);
             } else {
                 reg_sqlite_error(reg->db, errPtr, insert);
                 sqlite3_finalize(stmt);
@@ -650,38 +744,50 @@ int reg_entry_map(reg_registry* reg, reg_entry* entry, char** files,
     }
 }
 
-int reg_entry_unmap(reg_registry* reg, reg_entry* entry, char** files,
-        int file_count, reg_error* errPtr) {
+/**
+ * Unaps files from the given port in the filemap. The files must be owned by
+ * the given entry.
+ *
+ * @param [in] entry      the entry to unmap the files from
+ * @param [in] files      a list of files to unmap
+ * @param [in] file_count the number of files
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
     sqlite3_stmt* stmt;
     char* query = "DELETE FROM registry.files WHERE id=? AND path=?";
-    if (!reg_test_writable(reg, errPtr)) {
-        return -1;
-    }
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;
         for (i=0; i<file_count; i++) {
             if (sqlite3_bind_text(stmt, 2, files[i], -1, SQLITE_STATIC)
                     == SQLITE_OK) {
-                int r = sqlite3_step(stmt);
-                switch (r) {
-                    case SQLITE_DONE:
-                        if (sqlite3_changes(reg->db) == 0) {
-                            errPtr->code = "registry::invalid";
-                            errPtr->description = "this entry does not own the "
-                                "given file";
-                            errPtr->free = NULL;
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            if (sqlite3_changes(reg->db) == 0) {
+                                errPtr->code = REG_INVALID;
+                                errPtr->description = "this entry does not own "
+                                    "the given file";
+                                errPtr->free = NULL;
+                                sqlite3_finalize(stmt);
+                                return i;
+                            }
+                            sqlite3_reset(stmt);
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, query);
                             sqlite3_finalize(stmt);
                             return i;
-                        } else {
-                            sqlite3_reset(stmt);
-                            continue;
-                        }
-                    default:
-                        reg_sqlite_error(reg->db, errPtr, query);
-                        sqlite3_finalize(stmt);
-                        return i;
-                }
+                    }
+                } while (r == SQLITE_BUSY);
             } else {
                 reg_sqlite_error(reg->db, errPtr, query);
                 sqlite3_finalize(stmt);
@@ -697,8 +803,16 @@ int reg_entry_unmap(reg_registry* reg, reg_entry* entry, char** files,
     }
 }
 
-int reg_entry_files(reg_registry* reg, reg_entry* entry, char*** files,
-        reg_error* errPtr) {
+/**
+ * Gets a list of files owned by the given port.
+ *
+ * @param [in] entry   entry to get the list for
+ * @param [out] files  a list of files owned by the port
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             the number of files if success; negative if failure
+ */
+int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
     sqlite3_stmt* stmt;
     char* query = "SELECT path FROM registry.files WHERE id=? ORDER BY path";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
@@ -709,29 +823,33 @@ int reg_entry_files(reg_registry* reg, reg_entry* entry, char*** files,
         int r;
         do {
             char* element;
-            int i;
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
                     element = strdup((const char*)sqlite3_column_text(stmt, 0));
-                    reg_listcat((void*)&result, &result_count, &result_space,
+                    reg_listcat((void***)&result, &result_count, &result_space,
                             element);
                     break;
                 case SQLITE_DONE:
+                case SQLITE_BUSY:
                     break;
                 default:
-                    for (i=0; i<result_count; i++) {
-                        free(result[i]);
-                    }
-                    free(result);
                     reg_sqlite_error(reg->db, errPtr, query);
-                    sqlite3_finalize(stmt);
-                    return -1;
+                    break;
             }
-        } while (r != SQLITE_DONE);
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
         sqlite3_finalize(stmt);
-        *files = result;
-        return result_count;
+        if (r == SQLITE_DONE) {
+            *files = result;
+            return result_count;
+        } else {
+            int i;
+            for (i=0; i<result_count; i++) {
+                free(result[i]);
+            }
+            free(result);
+            return -1;
+        }
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
         sqlite3_finalize(stmt);
@@ -739,31 +857,25 @@ int reg_entry_files(reg_registry* reg, reg_entry* entry, char*** files,
     }
 }
 
-int reg_all_entries(reg_registry* reg, reg_entry*** entries, reg_error* errPtr){
+/**
+ * Fetches a list of all open entries.
+ *
+ * @param [in] reg      registry to fetch entries from
+ * @param [out] entries a list of open entries
+ * @return              the number of open entries
+ */
+int reg_all_open_entries(reg_registry* reg, reg_entry*** entries) {
     reg_entry* entry;
-    void** results = malloc(10*sizeof(void*));
-    int result_count = 0;
-    int result_space = 10;
-    sqlite3_stmt* stmt;
-    char* query = "SELECT address FROM entries";
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
-        int r;
-        do {
-            r = sqlite3_step(stmt);
-            switch (r) {
-                case SQLITE_ROW:
-                    entry = *(reg_entry**)sqlite3_column_blob(stmt, 0);
-                    reg_listcat(&results, &result_count, &result_space, entry);
-                    break;
-                case SQLITE_DONE:
-                    break;
-                default:
-                    reg_sqlite_error(reg->db, errPtr, query);
-                    free(results);
-                    return -1;
-            }
-        } while (r != SQLITE_DONE);
+    int entry_count = 0;
+    int entry_space = 10;
+    Tcl_HashEntry* hash;
+    Tcl_HashSearch search;
+    *entries = malloc(10*sizeof(void*));
+    for (hash = Tcl_FirstHashEntry(&reg->open_entries, &search); hash != NULL;
+            hash = Tcl_NextHashEntry(&search)) {
+        entry = Tcl_GetHashValue(hash);
+        reg_listcat((void***)entries, &entry_count, &entry_space, entry);
     }
-    *entries = (reg_entry**)results;
-    return result_count;
+    return entry_count;
 }
+

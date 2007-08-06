@@ -74,7 +74,7 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
             char* key = Tcl_GetString(objv[1]);
             char* value;
             reg_error error;
-            if (reg_entry_propget(reg, entry, key, &value, &error)) {
+            if (reg_entry_propget(entry, key, &value, &error)) {
                 Tcl_Obj* result = Tcl_NewStringObj(value, -1);
                 Tcl_SetObjResult(interp, result);
                 free(value);
@@ -94,7 +94,7 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
             char* key = Tcl_GetString(objv[1]);
             char* value = Tcl_GetString(objv[2]);
             reg_error error;
-            if (reg_entry_propset(reg, entry, key, value, &error)) {
+            if (reg_entry_propset(entry, key, value, &error)) {
                 return TCL_OK;
             }
             return registry_failed(interp, &error);
@@ -125,15 +125,22 @@ static int entry_obj_map(Tcl_Interp* interp, reg_entry* entry, int objc,
         reg_error error;
         Tcl_Obj** listv;
         int listc;
+        int i;
+        int result = TCL_ERROR;
         if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
             return TCL_ERROR;
         }
         if (list_obj_to_string(&files, listv, listc, &error)) {
-            if (reg_entry_map(reg, entry, files, listc, &error) == listc) {
-                return TCL_OK;
+            if (reg_entry_map(entry, files, listc, &error) == listc) {
+                result = TCL_OK;
+            } else {
+                result = registry_failed(interp, &error);
             }
+            free(files);
+        } else {
+            result = registry_failed(interp, &error);
         }
-        return registry_failed(interp, &error);
+        return result;
     }
 }
 
@@ -156,15 +163,22 @@ static int entry_obj_unmap(Tcl_Interp* interp, reg_entry* entry, int objc,
         reg_error error;
         Tcl_Obj** listv;
         int listc;
+        int i;
+        int result = TCL_ERROR;
         if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
             return TCL_ERROR;
         }
         if (list_obj_to_string(&files, listv, listc, &error)) {
-            if (reg_entry_unmap(reg, entry, files, listc, &error) == listc) {
-                return TCL_OK;
+            if (reg_entry_unmap(entry, files, listc, &error) == listc) {
+                result = TCL_OK;
+            } else {
+                result = registry_failed(interp, &error);
             }
+            free(files);
+        } else {
+            result = registry_failed(interp, &error);
         }
-        return registry_failed(interp, &error);
+        return result;
     }
 }
 
@@ -179,23 +193,24 @@ static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
     } else {
         char** files;
         reg_error error;
-        int file_count = reg_entry_files(reg, entry, &files, &error);
+        int file_count = reg_entry_files(entry, &files, &error);
         if (file_count >= 0) {
             int i;
             Tcl_Obj** objs;
+            int retval = TCL_ERROR;
             if (list_string_to_obj(&objs, files, file_count, &error)) {
                 Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
                 Tcl_SetObjResult(interp, result);
-                for (i=0; i<file_count; i++) {
-                    free(files[i]);
-                }
-                free(files);
-                return TCL_OK;
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
             }
             for (i=0; i<file_count; i++) {
                 free(files[i]);
             }
             free(files);
+            return retval;
         }
         return registry_failed(interp, &error);
     }
