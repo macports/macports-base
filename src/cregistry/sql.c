@@ -61,6 +61,47 @@ int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
 }
 
 /**
+ * Acquires an exclusive lock on the database.
+ */
+void begin_exclusive(sqlite3* db) {
+    int status;
+    do {
+        status = sqlite3_exec(db, "BEGIN EXCLUSIVE", NULL, NULL, NULL);
+    } while (status != SQLITE_OK);
+}
+
+/**
+ * Acquires a shared lock on the database.
+ */
+void begin_shared(sqlite3* db) {
+    int status;
+    do {
+        status = sqlite3_exec(db, "BEGIN", NULL, NULL, NULL);
+    } while (status != SQLITE_OK);
+}
+
+/**
+ * Releases a shared or exclusive lock on the database and rolls back changes
+ */
+void rollback_transaction(sqlite3* db) {
+    int status;
+    char* err;
+    do {
+        status = sqlite3_exec(db, "ROLLBACK", NULL, NULL, &err);
+    } while (status != SQLITE_OK);
+}
+
+/**
+ * Releases a shared or exclusive lock on the database and commits changes
+ */
+void commit_transaction(sqlite3* db) {
+    int status;
+    do {
+        status = sqlite3_exec(db, "COMMIT", NULL, NULL, NULL);
+    } while (status != SQLITE_OK);
+}
+
+/**
  * REGEXP function for sqlite3.
  *
  * Takes two arguments; the first is the value and the second the pattern. If

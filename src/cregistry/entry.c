@@ -36,6 +36,7 @@
 
 #include <cregistry/entry.h>
 #include <cregistry/registry.h>
+#include <cregistry/sql.h>
 
 /**
  * Concatenates `src` to string `dst`.
@@ -279,7 +280,7 @@ int reg_entry_delete(sqlite3* db, reg_entry* entry, reg_error* errPtr) {
 }
 
 /*
- * Frees the entries in `entries`.
+ * Frees the given entry
  */
 void reg_entry_free(sqlite3* db UNUSED, reg_entry* entry) {
     sqlite3_stmt* stmt;
@@ -542,34 +543,61 @@ int reg_entry_propset(sqlite3* db, reg_entry* entry, char* key, char* value,
 int reg_entry_map(sqlite3* db, reg_entry* entry, char** files, int file_count,
         reg_error* errPtr) {
     sqlite3_stmt* stmt;
-    char* query = "INSERT INTO registry.files (id, path) VALUES (?, ?)";
-    if ((sqlite3_prepare(db, query, -1, &stmt, NULL) == SQLITE_OK)
-            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+    sqlite3_stmt* stmt2 = NULL;
+    char* insert = "INSERT INTO registry.files (id, path) VALUES (?, ?)";
+    char* select = "SELECT registry.ports.name FROM registry.files "
+        "INNER JOIN registry.ports USING(id) WHERE registry.files.path=?";
+    begin_exclusive(db);
+    if ((sqlite3_prepare(db, insert, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
+            && (sqlite3_prepare(db, select, -1, &stmt2, NULL) == SQLITE_OK)) {
         int i;
         for (i=0; i<file_count; i++) {
+            if ((sqlite3_bind_text(stmt2, 1, files[i], -1, SQLITE_STATIC)
+                    == SQLITE_OK)
+                    && (sqlite3_step(stmt2) == SQLITE_ROW)) {
+                char* port = sqlite3_column_text(stmt2, 0);
+                errPtr->code = "registry::already-owned";
+                errPtr->description = sqlite3_mprintf("file at path \"%s\" is "
+                        "already owned by port %s", files[i], port);
+                errPtr->free = sqlite3_free;
+                sqlite3_finalize(stmt);
+                sqlite3_finalize(stmt2);
+                rollback_transaction(db);
+                return -1;
+            }
             if (sqlite3_bind_text(stmt, 2, files[i], -1, SQLITE_STATIC)
                     == SQLITE_OK) {
                 int r = sqlite3_step(stmt);
                 switch (r) {
                     case SQLITE_DONE:
                         sqlite3_reset(stmt);
+                        sqlite3_reset(stmt2);
                         continue;
                     default:
-                        reg_sqlite_error(db, errPtr, query);
+                        reg_sqlite_error(db, errPtr, insert);
                         sqlite3_finalize(stmt);
+                        sqlite3_finalize(stmt2);
+                        rollback_transaction(db);
                         return i;
                 }
             } else {
-                reg_sqlite_error(db, errPtr, query);
+                reg_sqlite_error(db, errPtr, insert);
                 sqlite3_finalize(stmt);
+                sqlite3_finalize(stmt2);
+                rollback_transaction(db);
                 return i;
             }
         }
         sqlite3_finalize(stmt);
+        sqlite3_finalize(stmt2);
+        commit_transaction(db);
         return file_count;
     } else {
-        reg_sqlite_error(db, errPtr, query);
+        reg_sqlite_error(db, errPtr, insert);
         sqlite3_finalize(stmt);
+        sqlite3_finalize(stmt2);
+        commit_transaction(db);
         return 0;
     }
 }
@@ -578,6 +606,7 @@ int reg_entry_unmap(sqlite3* db, reg_entry* entry, char** files, int file_count,
         reg_error* errPtr) {
     sqlite3_stmt* stmt;
     char* query = "DELETE FROM registry.files WHERE id=? AND path=?";
+    begin_exclusive(db);
     if ((sqlite3_prepare(db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;
@@ -593,6 +622,7 @@ int reg_entry_unmap(sqlite3* db, reg_entry* entry, char** files, int file_count,
                                 "given file";
                             errPtr->free = NULL;
                             sqlite3_finalize(stmt);
+                            rollback_transaction(db);
                             return i;
                         } else {
                             sqlite3_reset(stmt);
@@ -601,19 +631,23 @@ int reg_entry_unmap(sqlite3* db, reg_entry* entry, char** files, int file_count,
                     default:
                         reg_sqlite_error(db, errPtr, query);
                         sqlite3_finalize(stmt);
+                        rollback_transaction(db);
                         return i;
                 }
             } else {
                 reg_sqlite_error(db, errPtr, query);
                 sqlite3_finalize(stmt);
+                rollback_transaction(db);
                 return i;
             }
         }
         sqlite3_finalize(stmt);
+        commit_transaction(db);
         return file_count;
     } else {
         reg_sqlite_error(db, errPtr, query);
         sqlite3_finalize(stmt);
+        commit_transaction(db);
         return 0;
     }
 }
