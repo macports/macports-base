@@ -48,8 +48,10 @@ const char* entry_props[] = {
     "version",
     "revision",
     "variants",
+    "default_variants",
     "date",
     "state",
+    "installtype",
     NULL
 };
 
@@ -192,8 +194,10 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "version", entry_obj_prop },
     { "revision", entry_obj_prop },
     { "variants", entry_obj_prop },
+    { "default_variants", entry_obj_prop },
     { "date", entry_obj_prop },
     { "state", entry_obj_prop },
+    { "installtype", entry_obj_prop },
     { "map", entry_obj_map },
     { "unmap", entry_obj_unmap },
     { "files", entry_obj_files },

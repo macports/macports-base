@@ -554,20 +554,10 @@ int reg_entry_map(sqlite3* db, reg_entry* entry, char** files, int file_count,
                     case SQLITE_DONE:
                         sqlite3_reset(stmt);
                         continue;
-                    case SQLITE_ERROR:
-                        switch (sqlite3_reset(stmt)) {
-                            case SQLITE_CONSTRAINT:
-                                errPtr->code = "registry::already-owned";
-                                errPtr->description = "mapped file is already "
-                                    "owned by another entry";
-                                errPtr->free = NULL;
-                                sqlite3_finalize(stmt);
-                                return i;
-                            default:
-                                reg_sqlite_error(db, errPtr, query);
-                                sqlite3_finalize(stmt);
-                                return i;
-                        }
+                    default:
+                        reg_sqlite_error(db, errPtr, query);
+                        sqlite3_finalize(stmt);
+                        return i;
                 }
             } else {
                 reg_sqlite_error(db, errPtr, query);

@@ -242,7 +242,8 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE TABLE registry.ports ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "name, portfile, url, location, epoch, version COLLATE VERSION, "
-            "revision COLLATE VERSION, variants, state, date, "
+            "revision COLLATE VERSION, variants, default_variants, state, "
+            "date, installtype, "
             "UNIQUE (name, epoch, version, revision, variants), "
             "UNIQUE (url, epoch, version, revision, variants)"
             ")",
@@ -253,7 +254,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.port_state ON ports (state)",
 
         /* file map */
-        "CREATE TABLE registry.files (id, path UNIQUE, mtime)",
+        "CREATE TABLE registry.files (id, path, mtime)",
         "CREATE INDEX registry.file_port ON files (id)",
 
         "END",
