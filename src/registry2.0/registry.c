@@ -183,7 +183,7 @@ int Registry_Init(Tcl_Interp* interp) {
     /* Tcl_CreateObjCommand(interp, "registry::graph", GraphCmd, NULL, NULL); */
     /* Tcl_CreateObjCommand(interp, "registry::item", item_cmd, NULL, NULL); */
     Tcl_CreateObjCommand(interp, "registry::entry", entry_cmd, NULL, NULL);
-    if (Tcl_PkgProvide(interp, "registry", "2.0") != TCL_OK) {
+    if (Tcl_PkgProvide(interp, "registry2", "2.0") != TCL_OK) {
         return TCL_ERROR;
     }
     return TCL_OK;
