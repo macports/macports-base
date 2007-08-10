@@ -12,3 +12,5 @@ LIBS+=	${OBJC_FOUNDATION_LIBS}
 
 distclean::
 	rm -f Makefile
+
+test:

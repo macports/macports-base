@@ -73,7 +73,6 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) useless --delete option is removed from the default rsync flags (--delete is implied by --delete-after);
 ## 8) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
-## 9) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
 	[ ! \( -f ${sysconfdir}/macports/ports.conf -a ! -f ${UPGRADECHECK} \) ] || { \
 		mv -v ${sysconfdir}/macports/ports.conf ${sysconfdir}/macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' ${sysconfdir}/macports/macports.conf.mpsaved > ${sysconfdir}/macports/macports.conf.tmp && \
@@ -91,8 +90,6 @@ upgrade:
 		sed 's/ --delete / /' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 		sed 's/ ports.conf(5)/ macports.conf(5)/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
-			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
-		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' ${sysconfdir}/macports/macports.conf > ${sysconfdir}/macports/macports.conf.tmp && \
 			mv -v ${sysconfdir}/macports/macports.conf.tmp ${sysconfdir}/macports/macports.conf; \
 	}
 
@@ -116,7 +113,6 @@ upgrade:
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) useless --delete option is removed from the default rsync flags (--delete is implied by --delete-after);
 ## 8) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
-## 9) finally, move remaining instances of any form of our new name (which by this time should only remain in comments, if at all) to our new name.
 	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f ${UPGRADECHECK} \) ] || { \
 		mv -v $${HOME}/.macports/ports.conf $${HOME}/.macports/macports.conf.mpsaved; \
 		sed 's/etc\/ports/etc\/macports/g' $${HOME}/.macports/macports.conf.mpsaved > $${HOME}/.macports/macports.conf.tmp && \
@@ -134,8 +130,6 @@ upgrade:
 		sed 's/ --delete / /' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 		sed 's/ ports.conf(5)/ macports.conf(5)/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/[Dd]\(arwin\)\{0,1\}[Pp]\(orts\)\{0,1\}/MacPorts/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
 			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
 	}
 
