@@ -3,13 +3,40 @@
 # $Id$
 ###
 
+
 Unreleased:
+
+    - 
+
+
+Release 1.5.1 (DAY-August-2007 at rREV by jmpp):
+
+    - Remove sed rules taking care of dp based comments in the macports.conf file from the upgrade target in base/Makefile.in,
+      they were causing problems for people with /opt/dports or similar prefixes (jmpp in r27618).
+
+    - Facelift to the PortIndex2MySQL.tcl script to make it selfcontained and work with the new macports1.0 api to
+      generate SQL statements with information extracted from Portfiles (jmpp in r27415).
+
+    - Always print the livecheck regex in debug mode, not only when it fails (ryandesign in r27379).
+
+    - Detect some mtree violations within ${prefix}. Test can be overriden by "destroot.violate_mtree yes" in a Portfile
+      (mww in r27199).
+
+    - Fix version comparison in MacPorts initialization to properly detect Tcl versions 8.4.7 and later (sfiera in r27127).
+
+    - Fix double de-escaping of livecheck.regex inadvertently introduced in r26041 (eridius in r27079).
+
+    - Added new Portfile options to the configure stage for selecting compiler(s) (mww in r27018, r27021, r27022 and r27053)
+
+    - New logic in the upgrade target to account for cases where the old and new versions consist of different
+      numbers of segments (sfiera in r26921).
+
+    - Remove dead OpenDarwin mirrors from our mirrors list (jmpp in r26903)
 
     - New tests for violations of common directory structure (and option to override them for special cases)
 
-    - Added new options to configure for selecting compiler(s)
-
     - Added new variable ${os.major} that contains the Darwin major version (eridius r26693, ticket #12224).
+
 
 Release 1.5.0 (09-July-2007 tagged at r26818 by jmpp):
 
