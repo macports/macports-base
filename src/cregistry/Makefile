@@ -16,4 +16,6 @@ clean::
 
 distclean:: clean
 
+test:
+
 install:: ${STLIB_NAME}
