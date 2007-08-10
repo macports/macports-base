@@ -42,7 +42,7 @@ target_provides ${org.macports.main} main
 # define options
 options prefix name version revision epoch categories maintainers
 options long_description description homepage
-options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.arch os.endian platforms default_variants install.user install.group
+options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage
@@ -82,9 +82,11 @@ default portepoch {$epoch}
 # Platform Settings
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+set os_major [lindex [split $tcl_platform(osVersion) .] 0]
 
 default os.platform {[string tolower $tcl_platform(os)]}
 default os.version {$tcl_platform(osVersion)}
+default os.major {$os_major}
 default os.arch {$os_arch}
 # Remove trailing "Endian"
 default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}

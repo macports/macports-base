@@ -236,7 +236,7 @@ In batch and interactive mode, exit on the first error encountered. Otherwise, e
 .It Fl p
 Despite any errors encountered, proceed to process multiple ports and commands.
 .It Fl t
-enable trace mode debug facilities on platforms that support it (MacOS X). This feature is two-folded. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes. In verbose mode, it will also report unused dependencies for each stage of the port installation. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${workpath}).
+enable trace mode debug facilities on platforms that support it (Mac OS X). This feature is two-folded. It consists in automatically detecting and reporting undeclared dependencies based on what files the port reads or what programs the port executes. In verbose mode, it will also report unused dependencies for each stage of the port installation. It also consists in forbidding and reporting file creation and file writes outside allowed directories (temporary directories and ${workpath}).
 .El
 .Sh USER TARGETS
 Targets most commonly used by regular MacPorts users are:
@@ -524,7 +524,7 @@ Global listing of the ports trees used by MacPorts. This file also enables rsync
 Global variants used when a port is installed.
 .It Va ~/.macports/macports.conf
 User configuration file for the MacPorts system. It overrides the global
-.Ar ports.conf
+.Ar macports.conf
 file.
 .El
 .Sh DIAGNOSTICS

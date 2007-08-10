@@ -17,7 +17,7 @@ MP_USER=mp-user
 # MP group.
 MP_GROUP=mp-user
 # e-mail address to spam in case of failure.
-SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
+SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net,markd@macports.org
 
 # Other settings (probably don't need to be changed).
 SVN_CONFIG_DIR=${ROOT}/svnconfig
@@ -81,7 +81,7 @@ cd ${SRCTREE}/base/ && \
     || { echo "./configure script failed." >> $FAILURE_LOG ; bail ; }
 
 # (re)build
-{ cd ${SRCTREE}/doc/guide && make xhtml > $FAILURE_LOG 2>&1 ; } \
+{ cd ${SRCTREE}/doc/guide && make xhtml new > $FAILURE_LOG 2>&1 ; } \
     || { echo "make failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the guide was regen'd successfuly, so we cleanup before we exit.

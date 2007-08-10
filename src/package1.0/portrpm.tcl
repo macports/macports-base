@@ -52,7 +52,7 @@ proc rpm_main {args} {
 
 proc rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
-	global os.platform os.arch os.version
+	global os.platform os.arch os.version os.major
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -69,9 +69,12 @@ proc rpm_pkg {portname portversion portrevision} {
     if {[variant_isset "universal"]} {
         set rpmbuildarch "--target fat"
     }
+    if {false} {
+        set rpmbuildarch "--target noarch"
+    }
     
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
-        foreach arch {"ppc" "i386" "fat"} {
+        foreach arch {"ppc" "i386" "fat" "noarch"} {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
@@ -108,8 +111,7 @@ proc rpm_pkg {portname portversion portrevision} {
     }
 
 	# depend on system (virtual packages for apple stuff)
-	regexp {[0-9]+} ${os.version} major
-	lappend dependencies "org.macports.${os.platform}${major}"
+	lappend dependencies "org.macports.${os.platform}${os.major}"
     
     set listpath ${workpath}/${portname}.filelist
     system "rm -f '${workpath}/${portname}.filelist' && touch '${workpath}/${portname}.filelist'"

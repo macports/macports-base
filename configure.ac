@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [1.5], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts], [esyscmd(cat config/mp_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
@@ -95,7 +95,10 @@ MP_LIB_MD5
 MP_CHECK_X11
 
 # Check for readline
-AC_CHECK_LIB([readline], [readline])
+AC_CHECK_LIB([readline], [readline], [
+              READLINE_LIBS=-lreadline
+              AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the `readline' library (-lreadline).])
+              ])
 AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
 [
 #include <stdio.h>
@@ -103,6 +106,7 @@ AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,
 # include <readline/readline.h>
 #endif
 ])
+AC_SUBST(READLINE_LIBS)
 
 # Lowest non-system-reserved uid and gid (Apple claims <500)
 AC_DEFINE([MIN_USABLE_UID], [500], [Lowest non-system-reserved UID.])

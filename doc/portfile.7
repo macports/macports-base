@@ -394,6 +394,14 @@ Path to port files relative to
 .br
 .Sy Default:
 .Em files
+.It Ic filespath
+Full path to the port files location.
+.br
+.Sy Type:
+.Em read-only
+.br
+.Sy Default:
+.Em ${portpath}/${filesdir}
 .It Ic distpath
 Location to store downloaded distfiles.
 .br
@@ -729,7 +737,10 @@ Specify the url from which to fetch files.
       svn.url svn://www.domain.com/svn-repo/mydirectory
 .It Ic svn.tag
 Specify the a tag from which svn should fetch files. This
-corresponds to the -r option to the svn cli.
+corresponds to the -r option to the svn cli.  Note that you
+will need to use backslashes to escape characters that have
+meaning to the Tcl interpreter, such as braces and double
+quotes.
 .br
 .Sy Type:
 .Em optional
@@ -738,8 +749,8 @@ corresponds to the -r option to the svn cli.
 .Em none
 .br
 .Sy Example:
-.Dl svn.url http://www.domain.com/svn-repo/mydirectory
-      svn.url svn://www.domain.com/svn-repo/mydirectory
+.Dl svn.tag 37192
+      svn.tag \\{\\"2006-02-17 15:30 +0230\\"\\}
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.
@@ -769,7 +780,7 @@ Command to perform the extraction.
 .Dl extract.cmd bzip2
 .El
 .Sh CONFIGURE OPTIONS
-MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
+MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
 .Bl -tag -width lc
 .It Ic configure.cflags
 Flags to put in the CFLAGS environment variable when invoking the configure script.
@@ -806,6 +817,51 @@ Flags to put in the LDFLAGS environment variable when invoking the configure scr
 .br
 .Sy Default:
 .Em -L${prefix}/lib
+.It Ic configure.cc
+C-compiler to put in the CC environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl configure.cc /usr/bin/gcc
+.It Ic configure.cpp
+C-preprocessor to put in the CPP environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.cxx
+C++-compiler to put in the CXX environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.fc
+Fortran-compiler to put in the FC environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.f77
+Fortran-77-compiler to put in the F77 environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.f90
+Fortran-90-compiler to put in the F90 environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.It Ic configure.compiler
+Selects a complete compiler suite to use. This option will override the compiler environment variable for all compilers the named suite features. Please note that this option will intentionally not set any dependencies on the selected compiler suite!
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em gcc-3.3 gcc-4.0 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2
+.br
+.Sy Example:
+.Dl configure.compiler gcc-4.0
+.\" FOOBAR
 .El
 .Ss UNIVERSAL TARGET HOOKS
 For universal builds of configure-based ports, we also define specific target hooks. These can be overridden for specific ports. Please note that these hooks are used by the default universal variant and redefining the variant will make them useless.
@@ -975,6 +1031,17 @@ completion.
 .br
 .Sy Example:
 .Dl destroot.keepdirs ${destroot}${prefix}/var/log/mysql
+.It Ic destroot.violate_mtree
+Indicates if a port will violate the common directory structure. Enables or disables tests for violations of mtree (e. g. non-standard directories in ${prefix})
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Values:
+.Em yes no
+.br
+.Sy Default:
+.Em no
 .El
 .Sh TEST OPTIONS
 Execute commands to run test suites bundled with a port.
@@ -1849,3 +1916,4 @@ to the user, at various different levels.
 .An "Jordan K. Hubbard" Aq jkh@macports.org
 .An "Chris Ridd" Aq cjr@opendarwin.org
 .An "Kevin Ballard" Aq eridius@macports.org
+.An "Markus W. Weissmann" Aq mww@macports.org

@@ -43,8 +43,8 @@
 # installations) may experience problems due to different package loading
 # behavior.
 #
-if { ($tcl_version < 8.4) ||
-	(($tcl_version == 8.4) && ([lindex [split [info patchlevel] .] 3] < 7))} {
+if { [regexp {\d+\.\d+\.\d+} [info patchlevel]] &&
+        ([package vcompare [info patchlevel] 8.4.7] < 0) } {
 	global allpackages
 	if {![info exists allpackages]} {
 		# Only patch once.

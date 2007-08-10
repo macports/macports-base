@@ -128,7 +128,7 @@ proc livecheck_main {args} {
 		}
 	}
 	
-	# de-escape livehcheck.url
+	# de-escape livecheck.url
 	set livecheck.url [join ${livecheck.url}]
 	
 	switch ${livecheck.check} {
@@ -142,7 +142,8 @@ proc livecheck_main {args} {
 				# let's extract the version from the file.
 				set chan [open $tempfile "r"]
 				set updated -1
-				set the_re [subst -nocommands [join ${livecheck.regex}]]
+				set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
+				ui_debug "The regex is >$the_re<"
 				if {${livecheck.check} == "regexm"} {
 					set data [read $chan]
 					if {[regexp $the_re $data matched updated_version]} {
@@ -171,8 +172,6 @@ proc livecheck_main {args} {
 				}
 				close $chan
 				if {$updated < 0} {
-					ui_debug "regex is >$the_re<"
-					ui_debug "url is >${livecheck.url}<"
 					ui_error "cannot check if $portname was updated (regex didn't match)"
 				}
 			}
