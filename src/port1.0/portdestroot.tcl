@@ -251,6 +251,7 @@ proc destroot_finish {args} {
 						var { }
 						www { }
 						Applications { }
+						Developer { }
 						Library { }
 						default { ui_warn "violation by ${prefix}/${c}"
 							set mtree_violation "yes" }
@@ -260,6 +261,7 @@ proc destroot_finish {args} {
 				# these files are outside $prefix
 				switch ${b} {
 					Applications { ui_debug "port installs files in /Applications" }
+					Developer { ui_debug "port installs files in /Developer" }
 					Library { ui_debug "port installs files in /Library" }
 				default { ui_warn "violation by /${b}"
 					set mtree_violation "yes" }
