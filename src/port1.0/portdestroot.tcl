@@ -229,24 +229,41 @@ proc destroot_finish {args} {
 		ui_debug "checking for mtree violations"
 		set mtree_violation "no"
 
-		# test files in ${prefix}
-		foreach f [glob -directory "${destroot}${prefix}" *] {
-			set c [file tail ${f}]
-			# ignore bin, sbin, ... and only fail on other names
-			switch ${c} {
-				bin { }
-				etc { }
-				include { }
-				lib { }
-				libexec { }
-				sbin { }
-				share { }
-				var { }
-				www { }
-				Applications { }
-				Library { }
-				default { ui_error "violation by ${prefix}/${c}"
+		# prepare the 1st directory name from prefix (e. g. "opt")
+		set dprefix [file tail [file dirname ${prefix}]]
+
+		# look at files in ${destroot}
+		foreach g [glob -directory "${destroot}" *] {
+			set b [file tail ${g}]
+			if { "${b}" == "${dprefix}" } {
+				# this is the normal $prefix-tree
+				foreach f [glob -directory "${destroot}${prefix}" *] {
+					set c [file tail ${f}]
+					# ignore bin, sbin, ... and only fail on other names
+					switch ${c} {
+						bin { }
+						etc { }
+						include { }
+						lib { }
+						libexec { }
+						sbin { }
+						share { }
+						var { }
+						www { }
+						Applications { }
+						Library { }
+						default { ui_error "violation by ${prefix}/${c}"
+							set mtree_violation "yes" }
+					}
+				}
+			} else {
+				# these files are outside $prefix
+				switch ${b} {
+					Applications { ui_debug "port installs files in /Applications" }
+					Library { ui_debug "port installs files in /Library" }
+				default { ui_error "violation by /${b}"
 					set mtree_violation "yes" }
+				}
 			}
 		}
 
