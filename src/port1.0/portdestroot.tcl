@@ -252,7 +252,7 @@ proc destroot_finish {args} {
 						www { }
 						Applications { }
 						Library { }
-						default { ui_error "violation by ${prefix}/${c}"
+						default { ui_warn "violation by ${prefix}/${c}"
 							set mtree_violation "yes" }
 					}
 				}
@@ -261,7 +261,7 @@ proc destroot_finish {args} {
 				switch ${b} {
 					Applications { ui_debug "port installs files in /Applications" }
 					Library { ui_debug "port installs files in /Library" }
-				default { ui_error "violation by /${b}"
+				default { ui_warn "violation by /${b}"
 					set mtree_violation "yes" }
 				}
 			}
@@ -269,7 +269,9 @@ proc destroot_finish {args} {
 
 		# abort here only so all violations can be observed
 		if { ${mtree_violation} != "no" } {
-			error "mtree violation!"
+			ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option portname]]"
+			ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
+			# error "mtree violation!"
 		}
 	} else {
 		ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option portname]]"
