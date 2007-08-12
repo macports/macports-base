@@ -271,6 +271,8 @@ proc destroot_finish {args} {
 		if { ${mtree_violation} != "no" } {
 			error "mtree violation!"
 		}
+	} else {
+		ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option portname]]"
 	}
 
     # Restore umask
