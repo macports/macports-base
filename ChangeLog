@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Fix mtree checks which inaccurately complained about files in /Applications; mtree checks now also warn the user if a port indicates an intended violation;
+
     - Chris Pickel's GSoC2007 work: registry2.0 & cregistry (mainly r27518 & r27520)
 
     - Eugene Pimenov's GSoC2007 work: Trace lib on unix sockets (r26682).
