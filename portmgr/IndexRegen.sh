@@ -18,7 +18,7 @@ MP_USER=mp-user
 # MP group.
 MP_GROUP=mp-user
 # e-mail address to spam in case of failure.
-SPAM_LOVERS=macports-mgr@lists.macosforge.org,dluke@geeklair.net
+SPAM_LOVERS=macports-dev@lists.macosforge.org,dluke@geeklair.net
 
 # Other settings (probably don't need to be changed).
 SVN_CONFIG_DIR=${ROOT}/svnconfig
