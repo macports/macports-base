@@ -229,42 +229,46 @@ proc destroot_finish {args} {
 		ui_debug "checking for mtree violations"
 		set mtree_violation "no"
 
-		# prepare the 1st directory name from prefix (e. g. "opt")
-		set dprefix [file tail [file dirname ${prefix}]]
+		set prefixPaths [list bin etc include lib libexec sbin share var www Applications Developer Library]
 
-		# look at files in ${destroot}
-		foreach g [glob -directory "${destroot}" *] {
-			set b [file tail ${g}]
-			if { "${b}" == "${dprefix}" } {
-				# this is the normal $prefix-tree
-				foreach f [glob -directory "${destroot}${prefix}" *] {
-					set c [file tail ${f}]
-					# ignore bin, sbin, ... and only fail on other names
-					switch ${c} {
-						bin { }
-						etc { }
-						include { }
-						lib { }
-						libexec { }
-						sbin { }
-						share { }
-						var { }
-						www { }
-						Applications { }
-						Developer { }
-						Library { }
-						default { ui_warn "violation by ${prefix}/${c}"
-							set mtree_violation "yes" }
-					}
+		set pathsToCheck [list /]
+		while {[llength $pathsToCheck] > 0} {
+			set pathToCheck [lshift pathsToCheck]
+			foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
+				if {[file tail $file] eq "." || [file tail $file] eq ".."} {
+					continue
 				}
-			} else {
-				# these files are outside $prefix
-				switch ${b} {
-					Applications { ui_debug "port installs files in /Applications" }
-					Developer { ui_debug "port installs files in /Developer" }
-					Library { ui_debug "port installs files in /Library" }
-				default { ui_warn "violation by /${b}"
-					set mtree_violation "yes" }
+				if {[string equal -length [string length $destroot] $destroot $file]} {
+					# just double-checking that $destroot is a prefix, as is appropriate
+					set dfile [file join / [string range $file [string length $destroot] end]]
+				} else {
+					throw MACPORTS "Unexpected filepath `${file}' while checking for mtree violations"
+				}
+				if {$dfile eq $prefix} {
+					# we've found our prefix
+					foreach pfile [glob -nocomplain -tails -directory $file .* *] {
+						if {$pfile eq "." || $pfile eq ".."} {
+							continue
+						}
+						if {[lsearch -exact $prefixPaths $pfile] == -1} {
+							ui_warn "violation by [file join $dfile $pfile]"
+							set mtree_violation "yes"
+						}
+					}
+				} elseif {[string equal -length [expr [string length $dfile] + 1] $dfile/ $prefix]} {
+					# we've found a subpath of our prefix
+					lpush pathsToCheck $dfile
+				} else {
+					# these files are outside of the prefix
+					switch $dfile {
+						/Applications -
+						/Developer -
+						/Library { ui_debug "port installs files in $dfile" }
+						default {
+							ui_warn "violation by $dfile"
+							set mtree_violation "yes"
+						}
+					}
 				}
 			}
 		}
