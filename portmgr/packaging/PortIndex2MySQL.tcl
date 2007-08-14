@@ -37,6 +37,15 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
+# Error messages reciepient.
+set SPAM_LOVERS macports-dev@lists.macosforge.org
+
+# Place holder proc for error catching and processing.
+proc bail_on_error {error_log} {
+    
+}
+
+
 # Load macports1.0 so that we can use some of its procs and the portinfo array.
 catch {source \
 	   [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
@@ -44,7 +53,15 @@ package require macports
 
 # Initialize MacPorts to find the sources.conf file, wherefrom we'll
 # get the PortIndex that'll feed the database.
+#more work needs to be done than just initializing and passing the
+#ui_options array to get mportinit to output verbose/debugging info;
+#I'm currently looking into this.
+array set ui_options {ports_verbose yes}
 mportinit
+
+# Call the selfupdate procedure to make sure the MacPorts installation
+# is up-to-date and with a fresh ports tree.
+macports::selfupdate
 
 
 # Procedure to catch the database password from a protected file.
@@ -61,23 +78,15 @@ proc getpasswd {passwdfile} {
     return $passwd
 }
 
-# Needed escaping for some strings output as sql statements.
-proc sql_escape {str} {
-        regsub -all -- {'} $str {\\'} str
-        regsub -all -- {"} $str {\\"} str
-        regsub -all -- {\n} $str {\\n} str
-        return $str
-}
-
-
-# Abstraction variables:
+# Database abstraction variables:
 set sqlfile [file join /tmp ports.sql]
 set dbcmd [macports::findBinary mysql5]
+set dbhost 127.0.0.1
 set dbname macports
+set dbuser macports
 set passwdfile [file join . password_file]
 set dbpasswd [getpasswd $passwdfile]
-set dbcmdargs "$dbname --password=$dbpasswd"
-
+set dbcmdargs "-h $dbhost -u $dbuser -p$dbpasswd $dbname"
 
 # Flat text file to which sql statements are written.
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
@@ -85,6 +94,14 @@ if {[catch {open $sqlfile w+} sqlfile_fd]} {
     exit 1
 }
 
+
+# SQL string escaping.
+proc sql_escape {str} {
+        regsub -all -- {'} $str {\\'} str
+        regsub -all -- {"} $str {\\"} str
+        regsub -all -- {\n} $str {\\n} str
+        return $str
+}
 
 # Initial creation of database tables: log, portfiles, categories, maintainers, dependencies, variants and platforms.
 # Do we need any other?
