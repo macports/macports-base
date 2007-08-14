@@ -2637,7 +2637,7 @@ set remaining_args [lrange $cmd_argv $cmd_argn end]
 if {[catch {mportinit ui_options global_options global_variations} result]} {
 	global errorInfo
 	puts "$errorInfo"
-	fatal "Failed to initialize ports system, $result"
+	fatal "Failed to initialize MacPorts, $result"
 }
 
 # If we have no arguments remaining after option processing then force
