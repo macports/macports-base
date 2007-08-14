@@ -1557,7 +1557,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 }
 
 # selfupdate procedure
-proc macports::selfupdate {optionslist} {
+proc macports::selfupdate {{optionslist {}}} {
 	global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir macports::rsync_options
 	global macports::autoconf::macports_conf_path macports::autoconf::rsync_path
 	array set options $optionslist
