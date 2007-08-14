@@ -4,6 +4,13 @@
 ###
 
 
+Release 1.5.11 (DAY-August-2007 at branches/release_1_5's rREV, by jmpp):
+
+    - Fix mtree checks which inaccurately complained about files in /Applications, /Library & /Developer;
+      mtree checks now also warn the user if a port indicates an intended violation and errors are
+      temporarily non-fatal (mww & eridius in r27709, r27710, r27719, r27720 & r27773).
+
+
 Release 1.5.1 (11-August-2007 at branches/release_1_5/base's r27646, by jmpp):
 
     - Remove sed rules taking care of dp based comments in the macports.conf file from the upgrade target in base/Makefile.in,

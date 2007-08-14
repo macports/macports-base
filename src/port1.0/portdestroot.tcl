@@ -229,31 +229,58 @@ proc destroot_finish {args} {
 		ui_debug "checking for mtree violations"
 		set mtree_violation "no"
 
-		# test files in ${prefix}
-		foreach f [glob -directory "${destroot}${prefix}" *] {
-			set c [file tail ${f}]
-			# ignore bin, sbin, ... and only fail on other names
-			switch ${c} {
-				bin { }
-				etc { }
-				include { }
-				lib { }
-				libexec { }
-				sbin { }
-				share { }
-				var { }
-				www { }
-				Applications { }
-				Library { }
-				default { ui_error "violation by ${prefix}/${c}"
-					set mtree_violation "yes" }
+		set prefixPaths [list bin etc include lib libexec sbin share var www Applications Developer Library]
+
+		set pathsToCheck [list /]
+		while {[llength $pathsToCheck] > 0} {
+			set pathToCheck [lshift pathsToCheck]
+			foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
+				if {[file tail $file] eq "." || [file tail $file] eq ".."} {
+					continue
+				}
+				if {[string equal -length [string length $destroot] $destroot $file]} {
+					# just double-checking that $destroot is a prefix, as is appropriate
+					set dfile [file join / [string range $file [string length $destroot] end]]
+				} else {
+					throw MACPORTS "Unexpected filepath `${file}' while checking for mtree violations"
+				}
+				if {$dfile eq $prefix} {
+					# we've found our prefix
+					foreach pfile [glob -nocomplain -tails -directory $file .* *] {
+						if {$pfile eq "." || $pfile eq ".."} {
+							continue
+						}
+						if {[lsearch -exact $prefixPaths $pfile] == -1} {
+							ui_warn "violation by [file join $dfile $pfile]"
+							set mtree_violation "yes"
+						}
+					}
+				} elseif {[string equal -length [expr [string length $dfile] + 1] $dfile/ $prefix]} {
+					# we've found a subpath of our prefix
+					lpush pathsToCheck $dfile
+				} else {
+					# these files are outside of the prefix
+					switch $dfile {
+						/Applications -
+						/Developer -
+						/Library { ui_debug "port installs files in $dfile" }
+						default {
+							ui_warn "violation by $dfile"
+							set mtree_violation "yes"
+						}
+					}
+				}
 			}
 		}
 
 		# abort here only so all violations can be observed
 		if { ${mtree_violation} != "no" } {
-			error "mtree violation!"
+			ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option portname]]"
+			ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
+			# error "mtree violation!"
 		}
+	} else {
+		ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option portname]]"
 	}
 
     # Restore umask
