@@ -229,7 +229,7 @@ proc destroot_finish {args} {
 		ui_debug "checking for mtree violations"
 		set mtree_violation "no"
 
-		set prefixPaths [list bin etc include lib libexec sbin share var www Applications Developer Library]
+		set prefixPaths [list bin etc include lib libexec sbin share src var www Applications Developer Library]
 
 		set pathsToCheck [list /]
 		while {[llength $pathsToCheck] > 0} {
