@@ -49,9 +49,9 @@ optional for beta snapshots) into the /tags svn directory.
 
 Only the base subdirectory, not the ports subdirectory, is branched for a given release.
 
-It is strongly recommended to use the svnmerge.py tool provided by the subversion project to
-maintain release branches if you pretend to merge revisions back and forth between them and
-trunk/base, which is a very likely scenario.
+It is strongly recommended to use the svnmerge.py tool (provided by the subversion port) to
+maintain merge tracking information between release branches and trunk/base if you pretend to
+merge revisions back and forth between them, which is a very likely scenario.
 
 
 === Prepare the code for Release ===
