@@ -235,6 +235,8 @@
         skel
         ..
     ..
+    src
+    ..
     var
         macports
             distfiles
