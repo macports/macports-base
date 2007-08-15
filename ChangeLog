@@ -13,7 +13,7 @@ Unreleased:
     - Elias Pipping's GSoC2007 work: merge.rb on his personal /users/pipping svn dir.
 
 
-Release 1.5.2 (DAY-August-2007 at branches/release_1_5's rREV, by jmpp):
+Release 1.5.2 (15-August-2007 at branches/release_1_5's r27896, by jmpp):
 
     - Fix mtree checks which inaccurately complained about files in /Applications, /Library & /Developer;
       mtree checks now also warn the user if a port indicates an intended violation and errors are
