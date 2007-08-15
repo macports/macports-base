@@ -1751,8 +1751,8 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 		}
 	}
 	set anyactive 0
-	set version_installed 0
-	set revision_installed 0
+	set version_installed {}
+	set revision_installed {}
 	set epoch_installed 0
 	if {$ilist == ""} {
 		# XXX  this sets $version_installed to $version_in_tree even if not installed!!
@@ -1771,7 +1771,8 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 			set variant [lindex $i 3]
 			set version [lindex $i 1]
 			set revision [lindex $i 2]
-			if { [rpm-vercomp $version $version_installed] > 0
+			if { $version_installed == {} ||
+					[rpm-vercomp $version $version_installed] > 0
 					|| ([rpm-vercomp $version $version_installed] == 0
 						&& [rpm-vercomp $revision $revision_installed] > 0)} {
 				set version_installed $version
