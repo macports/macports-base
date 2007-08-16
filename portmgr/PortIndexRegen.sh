@@ -43,7 +43,7 @@ DATE=$(date +'%A %Y-%m-%d at %H:%M:%S')
 
 # Function to spam people in charge if something goes wrong during indexing.
 bail () {
-    mail -s "AutoIndex Failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
+    mail -s "PortIndex Regen failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
     cleanup; exit 1
 }
 
@@ -57,7 +57,7 @@ cleanup () {
 if [ ! -e $LOCKFILE ]; then
     touch $LOCKFILE
 else
-    echo "Index Regen lockfile found, is another index regen running?"
+    echo "PortIndex Regen lockfile found, is another regen job running?"
     exit 1
 fi
 
