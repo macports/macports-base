@@ -6,6 +6,9 @@
 
 Unreleased:
 
+    - `port variants` behaves like `port info` in that it parses the Portfile for up-to-date info.
+      `port variants` also supports the --index flag (eridius in r27919).
+
     - Fix upgrade to properly handle installed versions beginning with letters (eridius in r27900).
 
     - Chris Pickel's GSoC2007 work: registry2.0 & cregistry (mainly r27518 & r27520)
