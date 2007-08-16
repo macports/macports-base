@@ -1,3 +1,4 @@
+# $Id$
 # Test file for registry::item
 # Syntax:
 # tclsh item.tcl <Pextlib name>

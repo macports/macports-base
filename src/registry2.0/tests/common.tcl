@@ -1,3 +1,4 @@
+# $Id$
 # Common functions for test cases
 
 proc test {condition} {

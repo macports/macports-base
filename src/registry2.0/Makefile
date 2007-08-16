@@ -1,3 +1,4 @@
+# $Id$
 OBJS=       registry.o util.o \
 			entry.o entryobj.o
 			#graph.o graphobj.o

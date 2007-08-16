@@ -1,3 +1,4 @@
+# $Id$
 OBJS=       registry.o entry.o sql.o
 STLIB_NAME=	cregistry.a
 
