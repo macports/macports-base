@@ -50,7 +50,7 @@ cleanup () {
 if [ ! -e $LOCKFILE ]; then
     touch $LOCKFILE
 else
-    echo "Guide regen lockfile found, is another regen job running?"
+    echo "Guide Regen lockfile found, is another regen job running?"
     exit 1
 fi
 
