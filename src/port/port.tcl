@@ -1781,6 +1781,24 @@ proc action_variants { action portlist opts } {
 	
 		array unset portinfo
 		array set portinfo [lindex $result 1]
+		set porturl $portinfo(porturl)
+		set portdir $portinfo(portdir)
+
+		if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
+			if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
+				ui_debug "$::errorInfo"
+				break_softcontinue "Unable to open port: $result" 1 status
+			}
+			array unset portinfo
+			array set portinfo [mportinfo $mport]
+			mportclose $mport
+			if {[info exists portdir]} {
+				set portinfo(portdir) $portdir
+			}
+		} elseif {![info exists portinfo]} {
+			ui_warn "port variants --index does not work with 'current' pseudo-port"
+			continue
+		}
 	
 		# if this fails the port doesn't have any variants
 		if {![info exists portinfo(variants)]} {
