@@ -37,7 +37,7 @@ DATE=$(date +'%A %Y-%m-%d at %H:%M:%S')
 
 # Function to spam people in charge if something goes wrong during guide regen.
 bail () {
-    mail -s "Guide regen Failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
+    mail -s "Guide Regen failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
     cleanup; exit 1
 }
 
@@ -50,7 +50,7 @@ cleanup () {
 if [ ! -e $LOCKFILE ]; then
     touch $LOCKFILE
 else
-    echo "Guide regen lockfile found, is another job running?"
+    echo "Guide regen lockfile found, is another regen job running?"
     exit 1
 fi
 
