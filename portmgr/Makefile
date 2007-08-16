@@ -6,7 +6,7 @@ edit = sed \
 	-e 's,@TCL_PACKAGE_DIR@,$(TCL_PACKAGE_DIR),g'
 
 
-include ../../Mk/macports.autoconf.mk
+include ../Mk/macports.autoconf.mk
 
 
 all: ${SCRIPTS}
