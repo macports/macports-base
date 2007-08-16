@@ -1155,14 +1155,14 @@ proc action_info { action portlist opts } {
     # otherwise try to map the portname to a url
         if {$porturl eq ""} {
         # Verify the portname, getting portinfo to map to a porturl
-	    if {[catch {mportsearch $portname no exact} result]} {
-		ui_debug "$::errorInfo"
-		break_softcontinue "search for portname $portname failed: $result" 1 status
-	    }
-	    if {[llength $result] < 2} {
-		break_softcontinue "Port $portname not found" 1 status
+            if {[catch {mportsearch $portname no exact} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "search for portname $portname failed: $result" 1 status
             }
-	    set found [expr [llength $result] / 2]
+            if {[llength $result] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+            set found [expr [llength $result] / 2]
             if {$found > 1} {
                 ui_warn "Found $found port $portname definitions, displaying first one."
             }
@@ -1220,11 +1220,11 @@ proc action_info { action portlist opts } {
             set field_sep "\t"
             set subfield_sep ","
         }
-	
+        
         # Figure out whether to show field name
-	set quiet [ui_isset ports_quiet]
+        set quiet [ui_isset ports_quiet]
         if {$quiet} {
-	    set show_label 0
+            set show_label 0
         }
         
         # Spin through action options, emitting information for any found
@@ -1258,7 +1258,7 @@ proc action_info { action portlist opts } {
             # Format the data
             set inf $portinfo($ropt)
             if { $ropt eq "maintainers" } {
-            	set inf [unobscure_maintainers $inf]
+                set inf [unobscure_maintainers $inf]
             }
             if [info exists list_map($ropt)] {
                 set field [join $inf $subfield_sep]
@@ -1314,7 +1314,7 @@ proc action_info { action portlist opts } {
                 
             if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
             if {[info exists portinfo(maintainers)]} {
-            	puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
+                puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
             }
         }
     }
