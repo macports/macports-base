@@ -34,6 +34,23 @@ proc test_equal {statement value} {
             }"
 }
 
+proc test_set {statement value} {
+    uplevel 1 "\
+        puts -nonewline {checking if $statement is \[list $value\]... }
+        if {\[catch {
+                set actual \[lsort $statement\]
+                if {\$actual == \[lsort \[subst {\[list $value\]}\]\]} { \n\
+                    puts yes
+                } else { \n\
+                    puts \"no (was \$actual)\" \n\
+                    exit 1 \n\
+                } \n\
+            } msg\]} { \n\
+                puts \"caught error: \$msg\" \n\
+                exit 1 \n\
+            }"
+}
+
 proc test_throws {statement error} {
     uplevel 1 "\
         puts -nonewline {checking if \[$statement\] throws $error... }

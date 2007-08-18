@@ -1,4 +1,5 @@
 # $Id$
+SRCS=		registry_util.tcl portimage.tcl portuninstall.tcl
 OBJS=       registry.o util.o \
 			entry.o entryobj.o
 			#graph.o graphobj.o
@@ -15,3 +16,12 @@ LIBS+=	../cregistry/cregistry.a ${SQLITE3_LIBS}
 
 test:: ${SHLIB_NAME}
 	${TCLSH} tests/entry.tcl ${SHLIB_NAME}
+	${TCLSH} tests/depends.tcl ${SHLIB_NAME}
+
+install::
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
+	$(SILENT) set -x; for file in ${SRCS}; do \
+		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
+	done
+	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}

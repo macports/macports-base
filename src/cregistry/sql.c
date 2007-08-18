@@ -295,8 +295,15 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.port_state ON ports (state)",
 
         /* file map */
-        "CREATE TABLE registry.files (id, path, mtime)",
+        "CREATE TABLE registry.files (id, path, actual_path, active, mtime, "
+            "md5sum, editable)",
         "CREATE INDEX registry.file_port ON files (id)",
+        "CREATE INDEX registry.file_path ON files(path)",
+        "CREATE INDEX registry.file_actual ON files(actual_path)",
+
+        /* dependency map */
+        "CREATE TABLE registry.dependencies (id, name)",
+        "CREATE INDEX registry.dep_name ON dependencies (name)",
 
         "COMMIT",
         NULL

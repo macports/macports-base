@@ -35,6 +35,7 @@
 #include <tcl.h>
 
 #include "util.h"
+#include "entryobj.h"
 
 /**
  * Generates a unique proc name starting with prefix.
@@ -158,6 +159,28 @@ int set_object(Tcl_Interp* interp, char* name, void* value, char* type,
 }
 
 /**
+ * Sets a given name to be an entry object.
+ *
+ * @param [in] interp  Tcl interpreter to create the entry within
+ * @param [in] name    name to associate the given entry with
+ * @param [in] entry   entry to associate with the given name
+ * @param [out] errPtr description of error if it couldn't be set
+ * @return             true if success; false if failure
+ * @see set_object
+ */
+int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
+        reg_error* errPtr) {
+    if (set_object(interp, name, entry, "entry", entry_obj_cmd, NULL,
+                errPtr)) {
+        int size = strlen(name) + 1;
+        entry->proc = malloc(size*sizeof(char));
+        memcpy(entry->proc, name, size);
+        return 1;
+    }
+    return 0;
+}
+
+/**
  * Reports a sqlite3 error to Tcl.
  *
  * Queries the database for the most recent error message and sets it as the
@@ -213,6 +236,15 @@ int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
     return TCL_ERROR;
 }
 
+const char* string_or_null(Tcl_Obj* obj) {
+    const char* string = Tcl_GetString(obj);
+    if (string[0] == '\0') {
+        return NULL;
+    } else {
+        return string;
+    }
+}
+
 int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
         void** inv, int inc, reg_error* errPtr) {
     void** result = malloc(inc*sizeof(void*));
@@ -232,13 +264,33 @@ int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
     return 1;
 }
 
+int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
+        reg_error* errPtr) {
+    if (entry->proc == NULL) {
+        char* name = unique_name(interp, "registry::entry");
+        if (!set_entry(interp, name, entry, errPtr)) {
+            free(name);
+            return 0;
+        }
+        free(name);
+    }
+    *obj = Tcl_NewStringObj(entry->proc, -1);
+    return 1;
+}
+
+int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_entry** entries, int entry_count, reg_error* errPtr) {
+    return recast(interp, (cast_function*)entry_to_obj, NULL, (void***)objs,
+            (void**)entries, entry_count, errPtr);
+}
+
 static int obj_to_string(void* userdata UNUSED, char** string, Tcl_Obj* obj,
         reg_error* errPtr UNUSED) {
     *string = Tcl_GetString(obj);
     return 1;
 }
 
-int list_obj_to_string(char*** strings, const Tcl_Obj** objv, int objc,
+int list_obj_to_string(char*** strings, Tcl_Obj** objv, int objc,
         reg_error* errPtr) {
     return recast(NULL, (cast_function*)obj_to_string, NULL, (void***)strings,
             (void**)objv, objc, errPtr);
@@ -254,7 +306,7 @@ static void free_obj(void* userdata UNUSED, Tcl_Obj* obj) {
     Tcl_DecrRefCount(obj);
 }
 
-int list_string_to_obj(Tcl_Obj*** objv, const char** strings, int objc,
+int list_string_to_obj(Tcl_Obj*** objv, char** strings, int objc,
         reg_error* errPtr) {
     return recast(NULL, (cast_function*)string_to_obj, (free_function*)free_obj,
             (void***)objv, (void**)strings, objc, errPtr);

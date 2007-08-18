@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <stdarg.h>
 #include <sqlite3.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -42,10 +43,6 @@
 #include <cregistry/sql.h>
 
 /*
- * TODO: create a better system for throwing errors. It'd be really awesome to
- *       have e.g. `reg_throw_error(code, fmt, ...)` but I don't feel like
- *       messing with varargs right now.
- *
  * TODO: maybe all the errPtrs could be made a property of `reg_registry`
  *       instead, and be destroyed with it? That would make memory-management
  *       much easier for errors, and there's no need to have more than one error
@@ -84,6 +81,16 @@ void reg_sqlite_error(sqlite3* db, reg_error* errPtr, char* query) {
         errPtr->description = sqlite3_mprintf("sqlite error: %s while "
                 "executing query: %s", sqlite3_errmsg(db), query);
     }
+}
+
+void reg_throw(reg_error* errPtr, char* code, char* fmt, ...) {
+    va_list list;
+    va_start(list, fmt);
+    errPtr->description = sqlite3_vmprintf(fmt, list);
+    va_end(list);
+
+    errPtr->code = code;
+    errPtr->free = (reg_error_destructor*)sqlite3_free;
 }
 
 /**
@@ -125,10 +132,8 @@ int reg_close(reg_registry* reg, reg_error* errPtr) {
         free(reg);
         return 1;
     } else {
-        errPtr->code = REG_SQLITE_ERROR;
-        errPtr->description = sqlite3_mprintf("registry db not closed "
-                "correctly (%s)\n", sqlite3_errmsg(reg->db));
-        errPtr->free = (reg_error_destructor*)sqlite3_free;
+        reg_throw(errPtr, REG_SQLITE_ERROR, "registry db not closed correctly "
+                "(%s)\n", sqlite3_errmsg(reg->db));
         return 0;
     }
 }
@@ -149,9 +154,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     int can_write = 1; /* can write to this location */
     int result = 0;
     if (reg->status & reg_attached) {
-        errPtr->code = REG_MISUSE;
-        errPtr->description = "a database is already attached to this registry";
-        errPtr->free = NULL;
+        reg_throw(errPtr, REG_MISUSE, "a database is already attached to this "
+                "registry");
         return 0;
     }
     if (stat(path, &sb) != 0) {
@@ -208,10 +212,8 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         sqlite3_finalize(stmt);
         sqlite3_free(query);
     } else {
-        errPtr->code = REG_CANNOT_INIT;
-        errPtr->description = sqlite3_mprintf("port registry doesn't exist at "
+        reg_throw(errPtr, REG_CANNOT_INIT, "port registry doesn't exist at "
                 "\"%q\" and couldn't write to this location", path);
-        errPtr->free = (reg_error_destructor*)sqlite3_free;
     }
     return result;
 }
@@ -230,9 +232,7 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
     int result = 0;
     char* query = "DETACH DATABASE registry";
     if (!(reg->status & reg_attached)) {
-        errPtr->code = REG_MISUSE;
-        errPtr->description = "no database is attached to this registry";
-        errPtr->free = NULL;
+        reg_throw(errPtr,REG_MISUSE,"no database is attached to this registry");
         return 0;
     }
     if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
@@ -275,9 +275,8 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
  */
 static int reg_start(reg_registry* reg, const char* query, reg_error* errPtr) {
     if (reg->status & reg_transacting) {
-        errPtr->code = REG_MISUSE;
-        errPtr->description = "couldn't start transaction because a "
-            "transaction is already open";
+        reg_throw(errPtr, REG_MISUSE, "couldn't start transaction because a "
+                "transaction is already open");
         errPtr->free = NULL;
         return 0;
     } else {
@@ -333,10 +332,8 @@ int reg_start_write(reg_registry* reg, reg_error* errPtr) {
  */
 static int reg_end(reg_registry* reg, const char* query, reg_error* errPtr) {
     if (!(reg->status & reg_transacting)) {
-        errPtr->code = REG_MISUSE;
-        errPtr->description = "couldn't end transaction because no transaction "
-            "is open";
-        errPtr->free = NULL;
+        reg_throw(errPtr, REG_MISUSE, "couldn't end transaction because no "
+                "transaction is open");
         return 0;
     } else {
         int r;

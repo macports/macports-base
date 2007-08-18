@@ -36,6 +36,7 @@
 #include <sqlite3.h>
 
 #include <cregistry/registry.h>
+#include <cregistry/entry.h>
 
 typedef struct {
     char* option;
@@ -53,6 +54,8 @@ void* get_object(Tcl_Interp* interp, char* name, char* type,
         Tcl_ObjCmdProc* proc, reg_error* errPtr);
 int set_object(Tcl_Interp* interp, char* name, void* value, char* type,
         Tcl_ObjCmdProc* proc, Tcl_CmdDeleteProc* deleteProc, reg_error* errPtr);
+int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
+        reg_error* errPtr);
 
 void set_sqlite_result(Tcl_Interp* interp, sqlite3* db, const char* query);
 
@@ -61,14 +64,21 @@ typedef int set_object_function(Tcl_Interp* interp, char* name,
 int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
         set_object_function* setter);
 
+const char* string_or_null(Tcl_Obj* obj);
+
 int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
         void** inv, int inc, reg_error* errPtr);
 
+int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
+        reg_error* errPtr);
+int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
+        reg_entry** entries, int entry_count, reg_error* errPtr);
+
 void free_strings(void* userdata UNUSED, char** strings, int count);
 
-int list_obj_to_string(char*** strings, const Tcl_Obj** objv, int objc,
+int list_obj_to_string(char*** strings, Tcl_Obj** objv, int objc,
         reg_error* errPtr);
-int list_string_to_obj(Tcl_Obj*** objv, const char** strings, int objc,
+int list_string_to_obj(Tcl_Obj*** objv, char** strings, int objc,
         reg_error* errPtr);
 
 #endif /* _UTIL_H */

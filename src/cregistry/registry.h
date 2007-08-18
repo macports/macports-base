@@ -41,6 +41,7 @@
 #define REG_SQLITE_ERROR    "registry::sqlite-error"
 #define REG_MISUSE          "registry::misuse"
 #define REG_CANNOT_INIT     "registry::cannot-init"
+#define REG_ALREADY_ACTIVE  "registry::already-active"
 
 typedef void reg_error_destructor(const char* description);
 
@@ -52,6 +53,7 @@ typedef struct {
 
 void reg_sqlite_error(sqlite3* db, reg_error* errPtr, char* query);
 void reg_error_destruct(reg_error* errPtr);
+void reg_throw(reg_error* errPtr, char* code, char* fmt, ...);
 
 typedef int (cast_function)(void* userdata, void** dst, void* src,
         reg_error* errPtr);

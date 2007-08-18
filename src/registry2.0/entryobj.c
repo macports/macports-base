@@ -85,7 +85,7 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
         return TCL_ERROR;
     } else {
         /* ${entry} prop name value; set a new value */
-        reg_registry* reg = registry_for(interp, reg_attached | reg_can_write);
+        reg_registry* reg = registry_for(interp, reg_attached);
         if (reg == NULL) {
             return TCL_ERROR;
         }
@@ -103,73 +103,42 @@ static int entry_obj_prop(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
-/*
- * ${entry} map file-list
- *
- * Maps the listed files to the port represented by ${entry}. This will throw an
- * error if a file is mapped to an already-existing file, but not a very
- * descriptive one.
- *
- * TODO: more descriptive error on duplicated file
- */
-static int entry_obj_map(Tcl_Interp* interp, reg_entry* entry, int objc,
-        Tcl_Obj* CONST objv[]) {
-    reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv, "map file-list");
-        return TCL_ERROR;
-    } else if (reg == NULL) {
-        return TCL_ERROR;
-    } else {
-        char** files;
-        reg_error error;
-        Tcl_Obj** listv;
-        int listc;
-        int i;
-        int result = TCL_ERROR;
-        if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
-            return TCL_ERROR;
-        }
-        if (list_obj_to_string(&files, listv, listc, &error)) {
-            if (reg_entry_map(entry, files, listc, &error) == listc) {
-                result = TCL_OK;
-            } else {
-                result = registry_failed(interp, &error);
-            }
-            free(files);
-        } else {
-            result = registry_failed(interp, &error);
-        }
-        return result;
-    }
-}
+typedef struct {
+    char* name;
+    int (*function)(reg_entry* entry, char** files, int file_count,
+            reg_error* errPtr);
+} filemap_op;
 
-/*
- * ${entry} unmap file-list
- *
- * Unmaps the listed files from the given port. Will throw an error if a file
- * that is not mapped to the port is attempted to be unmapped.
- */
-static int entry_obj_unmap(Tcl_Interp* interp, reg_entry* entry, int objc,
+static filemap_op filemap_cmds[] = {
+    { "map", reg_entry_map },
+    { "unmap", reg_entry_unmap },
+    { "deactivate", reg_entry_deactivate },
+    { NULL, NULL }
+};
+
+static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
+    int op;
     if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv, "map file-list");
+        Tcl_WrongNumArgs(interp, 2, objv, "file-list");
         return TCL_ERROR;
     } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else if (Tcl_GetIndexFromObjStruct(interp, objv[1], filemap_cmds,
+                sizeof(filemap_op), "cmd", 0, &op) != TCL_OK) {
         return TCL_ERROR;
     } else {
         char** files;
         reg_error error;
         Tcl_Obj** listv;
         int listc;
-        int i;
         int result = TCL_ERROR;
         if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
             return TCL_ERROR;
         }
         if (list_obj_to_string(&files, listv, listc, &error)) {
-            if (reg_entry_unmap(entry, files, listc, &error) == listc) {
+            if (filemap_cmds[op].function(entry, files, listc, &error)) {
                 result = TCL_OK;
             } else {
                 result = registry_failed(interp, &error);
@@ -194,8 +163,8 @@ static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
         char** files;
         reg_error error;
         int file_count = reg_entry_files(entry, &files, &error);
+        int i;
         if (file_count >= 0) {
-            int i;
             Tcl_Obj** objs;
             int retval = TCL_ERROR;
             if (list_string_to_obj(&objs, files, file_count, &error)) {
@@ -216,6 +185,173 @@ static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
+static int entry_obj_imagefiles(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "files");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** files;
+        reg_error error;
+        int file_count = reg_entry_imagefiles(entry, &files, &error);
+        int i;
+        if (file_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_string_to_obj(&objs, files, file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            for (i=0; i<file_count; i++) {
+                free(files[i]);
+            }
+            free(files);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int entry_obj_activate(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc > 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "activate file-list ?as-file-list?");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** files;
+        char** as_files = NULL;
+        reg_error error;
+        Tcl_Obj* as;
+        Tcl_Obj** as_listv;
+        Tcl_Obj** listv;
+        int listc;
+        int as_listc;
+        int result = TCL_ERROR;
+        if (objc >= 4) {
+            as = objv[3];
+        } else {
+            as = NULL;
+            as_listv = NULL;
+        }
+        if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        if (as != NULL) {
+            if (Tcl_ListObjGetElements(interp, as, &as_listc, &as_listv)
+                    != TCL_OK) {
+                return TCL_ERROR;
+            }
+            if (listc != as_listc) {
+                /* TODO: set an error code */
+                Tcl_SetResult(interp, "list and as_list must be of equal "
+                        "length", TCL_STATIC);
+                return TCL_ERROR;
+            }
+        }
+        if (list_obj_to_string(&files, listv, listc, &error)
+                && (as_listv == NULL || list_obj_to_string(&as_files, as_listv,
+                        as_listc, &error))) {
+            if (reg_entry_activate(entry, files, as_files, listc, &error)) {
+                result = TCL_OK;
+            } else {
+                result = registry_failed(interp, &error);
+            }
+            free(files);
+        } else {
+            result = registry_failed(interp, &error);
+        }
+        return result;
+    }
+}
+
+static int entry_obj_dependencies(Tcl_Interp* interp, reg_entry* entry,
+        int objc, Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "dependents");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_entry** entries;
+        reg_error error;
+        int entry_count = reg_entry_dependencies(entry, &entries, &error);
+        if (entry_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
+                Tcl_Obj* result = Tcl_NewListObj(entry_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            free(entries);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int entry_obj_dependents(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "dependents");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        reg_entry** entries;
+        reg_error error;
+        int entry_count = reg_entry_dependents(entry, &entries, &error);
+        if (entry_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)){
+                Tcl_Obj* result = Tcl_NewListObj(entry_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            free(entries);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int entry_obj_depends(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 1, objv, "depends portname");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char* port = Tcl_GetString(objv[2]);
+        reg_error error;
+        if (reg_entry_depends(entry, port, &error)) {
+            return TCL_OK;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 typedef struct {
     char* name;
     int (*function)(Tcl_Interp* interp, reg_entry* entry, int objc,
@@ -223,6 +359,7 @@ typedef struct {
 } entry_obj_cmd_type;
 
 static entry_obj_cmd_type entry_cmds[] = {
+    /* keys */
     { "name", entry_obj_prop },
     { "portfile", entry_obj_prop },
     { "url", entry_obj_prop },
@@ -235,9 +372,17 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "date", entry_obj_prop },
     { "state", entry_obj_prop },
     { "installtype", entry_obj_prop },
-    { "map", entry_obj_map },
-    { "unmap", entry_obj_unmap },
+    /* filemap */
+    { "map", entry_obj_filemap },
+    { "unmap", entry_obj_filemap },
     { "files", entry_obj_files },
+    { "imagefiles", entry_obj_imagefiles },
+    { "activate", entry_obj_activate },
+    { "deactivate", entry_obj_filemap },
+    /* dep map */
+    { "dependents", entry_obj_dependents },
+    { "dependencies", entry_obj_dependencies },
+    { "depends", entry_obj_depends },
     { NULL, NULL }
 };
 

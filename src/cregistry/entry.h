@@ -60,8 +60,9 @@ void reg_entry_free(reg_entry* entry);
 int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         int strategy, reg_entry*** entries, reg_error* errPtr);
 
-int reg_entry_imaged(reg_registry* reg, char* name, char* version, 
-        reg_entry*** entries, reg_error* errPtr);
+int reg_entry_imaged(reg_registry* reg, const char* name, const char* version,
+        const char* revision, const char* variants, reg_entry*** entries,
+        reg_error* errPtr);
 int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
         reg_error* errPtr);
 
@@ -79,6 +80,18 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 
 int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr);
+int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr);
+
+int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
+        int file_count, reg_error* errPtr);
+int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
+        reg_error* errPtr);
+
+int reg_entry_dependents(reg_entry* entry, reg_entry*** dependents,
+        reg_error* errPtr);
+int reg_entry_dependencies(reg_entry* entry, reg_entry*** dependencies,
+        reg_error* errPtr);
+int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr);
 
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries);
 

@@ -66,28 +66,6 @@ void delete_entry(ClientData clientData) {
     entry->proc = NULL;
 }
 
-/**
- * Sets a given name to be an entry object.
- *
- * @param [in] interp  Tcl interpreter to create the entry within
- * @param [in] name    name to associate the given entry with
- * @param [in] entry   entry to associate with the given name
- * @param [out] errPtr description of error if it couldn't be set
- * @return             true if success; false if failure
- * @see set_object
- */
-static int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
-        reg_error* errPtr) {
-    if (set_object(interp, name, entry, "entry", entry_obj_cmd, NULL,
-                errPtr)) {
-        int size = strlen(name) + 1;
-        entry->proc = malloc(size*sizeof(char));
-        memcpy(entry->proc, name, size);
-        return 1;
-    }
-    return 0;
-}
-
 static int obj_to_entry(Tcl_Interp* interp, reg_entry** entry, Tcl_Obj* obj,
         reg_error* errPtr) {
     reg_entry* result = get_entry(interp, Tcl_GetString(obj), errPtr);
@@ -99,34 +77,16 @@ static int obj_to_entry(Tcl_Interp* interp, reg_entry** entry, Tcl_Obj* obj,
     }
 }
 
+/*
 static int list_obj_to_entry(Tcl_Interp* interp, reg_entry*** entries,
         const Tcl_Obj** objv, int objc, reg_error* errPtr) {
     return recast(interp, (cast_function*)obj_to_entry, NULL, (void***)entries,
             (void**)objv, objc, errPtr);
 }
-
-static int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
-        reg_error* errPtr) {
-    if (entry->proc == NULL) {
-        char* name = unique_name(interp, "registry::entry");
-        if (!set_entry(interp, name, entry, errPtr)) {
-            free(name);
-            return 0;
-        }
-        free(name);
-    }
-    *obj = Tcl_NewStringObj(entry->proc, -1);
-    return 1;
-}
-
-static int list_entry_to_obj(Tcl_Interp* interp, Tcl_Obj*** objs,
-        reg_entry** entries, int entry_count, reg_error* errPtr) {
-    return recast(interp, (cast_function*)entry_to_obj, NULL, (void***)objs,
-            (void**)entries, entry_count, errPtr);
-}
+*/
 
 
-/**
+/*
  * registry::entry create portname version revision variants epoch
  *
  * Unlike the old registry::new_entry, revision, variants, and epoch are all
@@ -161,7 +121,7 @@ static int entry_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-/**
+/*
  * registry::entry delete entry
  *
  * Deletes an entry from the registry (then closes it). If this is done within a
@@ -201,7 +161,7 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-/**
+/*
  * registry::entry open portname version revision variants epoch ?name?
  *
  * Opens an entry matching the given parameters.
@@ -347,7 +307,7 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-/**
+/*
  * registry::entry exists name
  *
  * Note that this is <i>not</i> the same as entry_exists from registry1.0. This
@@ -369,7 +329,7 @@ static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     return TCL_OK;
 }
 
-/**
+/*
  * registry::entry imaged ?name? ?version?
  *
  * Returns a list of all ports installed as images and/or active in the
@@ -382,29 +342,29 @@ static int entry_exists(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
  * no analogue in 'direct' mode (it will be equivalent to `registry::entry
  * installed`). That is, these ports are available but cannot meet dependencies.
  *
+ * I would have liked to allow implicit variants, but there's no convenient way
+ * to distinguish between variants not being specified and being specified as
+ * empty. So, if a revision is specified, so must variants be.
+ *
  * TODO: add more arguments (epoch, revision, variants), maybe
  */
 static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
-    if (objc > 4) {
-        Tcl_WrongNumArgs(interp, 2, objv, "?name? ?version?");
+    if (objc == 5 || objc > 6) {
+        Tcl_WrongNumArgs(interp, 2, objv, "?name ?version ?revision variants???");
         return TCL_ERROR;
     } else if (reg == NULL) {
         return TCL_ERROR;
     } else {
-        char* name = (objc >= 3) ? Tcl_GetString(objv[2]) : NULL;
-        char* version = (objc == 4) ? Tcl_GetString(objv[3]) : NULL;
+        const char* name = (objc >= 3) ? string_or_null(objv[2]) : NULL;
+        const char* version = (objc >= 4) ? string_or_null(objv[3]) : NULL;
+        const char* revision = (objc >= 6) ? string_or_null(objv[4]) : NULL;
+        const char* variants = (revision != 0) ? Tcl_GetString(objv[5]) : NULL;
         reg_entry** entries;
         reg_error error;
         int entry_count;
-        /* name or version of "" means not specified */
-        if (name != NULL && *name == '\0') {
-            name = NULL;
-        }
-        if (version != NULL && *version == '\0') {
-            version = NULL;
-        }
-        entry_count = reg_entry_imaged(reg, name, version, &entries, &error);
+        entry_count = reg_entry_imaged(reg, name, version, revision, variants,
+                &entries, &error);
         if (entry_count >= 0) {
             Tcl_Obj* resultObj;
             Tcl_Obj** objs;
@@ -419,7 +379,7 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     }
 }
 
-/**
+/*
  * registry::entry installed ?name?
  *
  * Returns a list of all installed and active ports. If `name` is specified,
@@ -462,7 +422,7 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
 }
 
 
-/**
+/*
  */
 static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -509,7 +469,7 @@ static entry_cmd_type entry_cmds[] = {
     { NULL, NULL }
 };
 
-/**
+/*
  * registry::entry cmd ?arg ...?
  *
  * Commands manipulating port entries in the registry. This could be called

@@ -1,16 +1,17 @@
 # $Id$
-# Test file for registry::item
+# Test file for registry::entry
 # Syntax:
-# tclsh item.tcl <Pextlib name>
+# tclsh entry.tcl <Pextlib name>
 
 proc main {pextlibname} {
     load $pextlibname
 
-	file delete [glob -nocomplain test.db*]
+    # totally lame that file delete won't do it
+	eval exec rm -f [glob -nocomplain test.db*]
 
     # can't create registry in some brain-dead place or in protected place
     test_throws {registry::open /some/brain/dead/place} registry::cannot-init
-    test_throws {registry::open /etc/macports_test~} registry::cannot-init
+    test_throws {registry::open /etc/macports_test_prot~} registry::cannot-init
 
     # can't use registry before it's opened
     test_throws {registry::write {}} registry::misuse
@@ -25,11 +26,11 @@ proc main {pextlibname} {
     registry::write {
 
         # create some (somewhat contrived) ports to play with
-        set vim1 [registry::entry create vim 7.1.000 0 {multibyte +} 0]
+        set vim1 [registry::entry create vim 7.1.000 0 +cscope+multibyte 0]
         set vim2 [registry::entry create vim 7.1.002 0 {} 0]
-        set vim3 [registry::entry create vim 7.1.002 0 {multibyte +} 0]
+        set vim3 [registry::entry create vim 7.1.002 0 +cscope+multibyte 0]
         set zlib [registry::entry create zlib 1.2.3 1 {} 0]
-        set pcre [registry::entry create pcre 7.1 1 {utf8 +} 0]
+        set pcre [registry::entry create pcre 7.1 1 +utf8 0]
 
         # check that their properties can be set
         $vim1 state imaged
@@ -37,6 +38,12 @@ proc main {pextlibname} {
         $vim3 state installed
         $zlib state installed
         $pcre state imaged
+
+        $vim1 installtype image
+        $vim2 installtype image
+        $vim3 installtype image
+        $zlib installtype direct
+        $pcre installtype image
 
     }
 
@@ -47,59 +54,90 @@ proc main {pextlibname} {
         test_equal {[$vim2 epoch]} 0
         test_equal {[$vim3 version]} 7.1.002
         test_equal {[$zlib revision]} 1
-        test_equal {[$pcre variants]} {utf8 +}
+        test_equal {[$pcre variants]} +utf8
     
         # check that imaged and installed give correct results
-        # have to sort these because their orders aren't defined
-        set imaged [registry::entry imaged]
-        test_equal {[lsort $imaged]} {[lsort "$vim1 $vim2 $vim3 $zlib $pcre"]}
+        test_set {[registry::entry imaged]} {$vim1 $vim2 $vim3 $zlib $pcre}
+        test_set {[registry::entry installed]} {$vim3 $zlib}
+        test_set {[registry::entry imaged vim]} {$vim1 $vim2 $vim3}
+        test_set {[registry::entry imaged vim 7.1.000]} {$vim1}
+        test_set {[registry::entry imaged vim 7.1.002]} {$vim2 $vim3}
+        test_set {[registry::entry imaged vim 7.1.002 0 {}]} {$vim2}
+        test_set {[registry::entry imaged vim 7.1.002 0 +cscope+multibyte]} \
+            {$vim3}
 
-        set installed [registry::entry installed]
-        test_equal {[lsort $installed]} {[lsort "$vim3 $zlib"]}
+        # try searching for ports
+        # note that 7.1.2 != 7.1.002 but the VERSION collation should be smart
+        # enough to ignore the zeroes
+        test_set {[registry::entry search name vim version 7.1.2]} {$vim2 $vim3}
+        test_set {[registry::entry search variants {}]} {$vim2 $zlib}
+        test_set {[registry::entry search -glob name vi*]} {$vim1 $vim2 $vim3}
+        test_set {[registry::entry search -regexp name {zlib|pcre}]} \
+            {$zlib $pcre}
     }
-
-
-    # try searching for ports
-    # note that 7.1.2 != 7.1.002 but the VERSION collation should be smart
-    # enough to ignore the zeroes
-    set vim71002 [registry::entry search name vim version 7.1.2]
-    test_equal {[lsort $vim71002]} {[lsort "$vim2 $vim3"]}
-
-    set no_variants [registry::entry search variants {}]
-    test_equal {[lsort $no_variants]} {[lsort "$vim2 $zlib"]}
-
-    set vistar [registry::entry search -glob name vi*]
-    test_equal {[lsort $vistar]} {[lsort "$vim1 $vim2 $vim3"]}
-
-    set zlibpcre [registry::entry search -regexp name {zlib|pcre}]
-    test_equal {[lsort $zlibpcre]} {[lsort "$zlib $pcre"]}
 
     # try mapping files and checking their owners
     registry::write {
-        $vim3 map [list /opt/local/bin/vim]
-        $vim3 map [list /opt/local/bin/vimdiff /opt/local/bin/vimtutor]
+
+        test_equal {[registry::entry owner /opt/local/bin/vimtutor]} {}
+        test_equal {[$vim3 files]} {}
+
+        $vim1 map {}
+        $vim1 map /opt/local/bin/vim
+        $vim1 map [list /opt/local/bin/vimdiff /opt/local/bin/vimtutor]
+        $vim2 map [$vim1 imagefiles]
+        $vim3 map [$vim1 imagefiles]
+        test_equal {[registry::entry owner /opt/local/bin/vimtutor]} {}
+        test_equal {[$vim3 files]} {}
+
+        $vim3 activate [$vim3 imagefiles]
         test_equal {[registry::entry owner /opt/local/bin/vimtutor]} {$vim3}
         test_equal {[registry::entry owner /opt/local/bin/emacs]} {}
 
-        # don't have to sort because order is defined as alpha
-        test_equal {[$vim3 files]} {[list /opt/local/bin/vim \
-            /opt/local/bin/vimdiff /opt/local/bin/vimtutor]}
-        test_equal {[$zlib files]} {[list]}
+        test_set {[$vim3 imagefiles]} {/opt/local/bin/vim \
+            /opt/local/bin/vimdiff /opt/local/bin/vimtutor}
+        test_set {[$vim3 files]} [$vim3 imagefiles]
+        test_set {[$zlib imagefiles]} {}
+
+        # try activating over files
+        test_throws {$vim2 activate [$vim2 imagefiles]} registry::already-active
 
         # try unmapping and remapping
-        $vim3 unmap {/opt/local/bin/vim}
+        $vim3 unmap /opt/local/bin/vimtutor
+        test_equal {[registry::entry owner /opt/local/bin/vimtutor]} {}
+
+        $vim3 deactivate /opt/local/bin/vim
         test_equal {[registry::entry owner /opt/local/bin/vim]} {}
-        $vim3 map {/opt/local/bin/vim}
+        $vim3 unmap /opt/local/bin/vim
+        test_equal {[registry::entry owner /opt/local/bin/vim]} {}
+        $vim3 map /opt/local/bin/vim
+        test_equal {[registry::entry owner /opt/local/bin/vim]} {}
+        $vim3 activate /opt/local/bin/vim
+        puts [$vim3 files]
+        puts [registry::entry owner /opt/local/bin/vim]
         test_equal {[registry::entry owner /opt/local/bin/vim]} {$vim3}
+
+        # activate to a different location
+        $vim3 deactivate /opt/local/bin/vimdiff
+        $vim3 activate /opt/local/bin/vimdiff /opt/local/bin/vimdiff.0
+        $vim2 activate /opt/local/bin/vimdiff
+        test_set {[$vim3 files]} {/opt/local/bin/vim /opt/local/bin/vimdiff.0}
+        test_set {[$vim3 imagefiles]} {/opt/local/bin/vim \
+            /opt/local/bin/vimdiff}
+        test_equal {[registry::entry owner /opt/local/bin/vimdiff]} {$vim2}
+        test_equal {[registry::entry owner /opt/local/bin/vimdiff.0]} {$vim3}
 
         # make sure you can't unmap a file you don't own
         test_throws {$zlib unmap [list /opt/local/bin/vim]} registry::invalid
         test_throws {$zlib unmap [list /opt/local/bin/emacs]} registry::invalid
     }
 
+    test_set {[$vim3 imagefiles]} {/opt/local/bin/vim /opt/local/bin/vimdiff}
+    test_set {[$vim3 files]} {/opt/local/bin/vim /opt/local/bin/vimdiff.0}
+
     # try some deletions
-    test_equal {[registry::entry installed zlib]} {$zlib}
-    test_equal {[registry::entry imaged pcre]} {$pcre}
+    test_set {[registry::entry installed zlib]} {$zlib}
+    test_set {[registry::entry imaged pcre]} {$pcre}
 
     # try rolling a deletion back
     registry::write {
@@ -110,7 +148,7 @@ proc main {pextlibname} {
 
     # try actually deleting something
     registry::entry delete $pcre
-    test_throws {registry::entry open pcre 7.1 1 {utf8 +} 0} \
+    test_throws {registry::entry open pcre 7.1 1 +utf8 0} \
         registry::not-found
     test {![registry::entry exists $pcre]}
 
@@ -135,12 +173,12 @@ proc main {pextlibname} {
     test {[registry::entry exists $zlib]}
 
     # check that pcre is still gone
-    test_throws {registry::entry open pcre 7.1 1 {utf8 +} 0} \
+    test_throws {registry::entry open pcre 7.1 1 +utf8 0} \
         registry::not-found
 
     registry::close
 
-	file delete [glob -nocomplain test.db*]
+    file delete test.db
 }
 
 source tests/common.tcl

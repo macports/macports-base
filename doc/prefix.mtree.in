@@ -242,6 +242,8 @@
             distfiles
 	    ..
             receipts
+        ..
+            registry
             ..
         ..
     ..
