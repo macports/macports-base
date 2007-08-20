@@ -443,6 +443,23 @@ inline void __darwintrace_cleanup_path(char *path) {
 }
 
 /*
+ * return 1 if path is directory or not exists
+ * return 0 otherwise
+ */
+static int is_directory(const char * path)
+{
+#define stat(path, sb) syscall(SYS_stat, path, sb)
+	struct stat s;
+	if(stat(path, &s)==-1)
+		/* Actually is not directory, but anyway, we shouldn't test a dependency unless file exists */
+		return 1;
+	
+	return S_ISDIR(s.st_mode);
+#undef stat
+}
+
+
+/*
  * return 1 if path allowed, 0 otherwise
  */
 static int ask_for_dependency(char * path)
@@ -450,9 +467,12 @@ static int ask_for_dependency(char * path)
 	char buffer[BUFFER_SIZE], *p;
 	int result=0;
 	
+	if(is_directory(path))
+		return 1;
+	
 	strcpy(buffer, "dep_check\t");
 	strcat(buffer, path);
-	p=exchange_with_port(buffer, strlen(buffer), 1);
+	p=exchange_with_port(buffer, strlen(buffer)+1, 1);
 	if((int)p==-1||!p)
 		return 0;
 	
@@ -504,6 +524,10 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 	int result=-1;
 	
 	__darwintrace_setup();
+	
+	if(!filemap)
+		return 1;
+	
 	if(*path=='/')
 		p=strdup(path);
 	else
@@ -516,15 +540,14 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 		strncpy(_, path, BUFFER_SIZE-(_-p));
 	}
 	__darwintrace_cleanup_path(p);
-	if(!filemap)
-		return 1;
+			
 	do
 	{
 		for(t=filemap; *t;)
 		{
 			if(__darwintrace_strbeginswith(p, t))
 			{
-				t+=strlen(t);
+				t+=strlen(t)+1;
 				switch(*t)
 				{
 				case 0:
@@ -536,7 +559,7 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 						result=0;
 						break;
 					}
-					strcpy(newpath, p+1);
+					strcpy(newpath, t+1);
 					_=newpath+strlen(newpath);
 					if(_[-1]!='/')
 						*_++='/';
@@ -581,6 +604,9 @@ int open(const char* path, int flags, ...) {
 	mode_t mode;
 	int result;
 	va_list args;
+	struct stat sb;
+	char newpath[MAXPATHLEN];
+	int isInSandbox;	
 
 	/* Why mode here ? */
 	va_start(args, flags);
@@ -588,10 +614,9 @@ int open(const char* path, int flags, ...) {
 	va_end(args);
 	
 	result = 0;
-	if (flags & (O_CREAT | O_APPEND | O_RDWR | O_WRONLY | O_TRUNC)) {
-		char newpath[MAXPATHLEN];
-		int isInSandbox;
-		
+	
+	if((stat(path, &sb)!=-1 && !(sb.st_mode&S_IFDIR)) || flags & O_CREAT )
+	{
 		*newpath=0;
 		__darwintrace_setup();
 		isInSandbox = __darwintrace_is_in_sandbox(path, newpath);
@@ -641,10 +666,8 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 #define __execve(x,y,z) syscall(SYS_execve, (x), (y), (z))
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
+#define lstat(x, y) syscall(SYS_lstat, (x), (y))
 	int result;
-#if DARWINTRACE_SHOW_PROCESS
-	int saved_pid;
-#endif
 	__darwintrace_setup();
 	if (__darwintrace_fd >= 0) {
 	  struct stat sb;
@@ -663,8 +686,18 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 		
 		fd = open(path, O_RDONLY, 0);
 		if (fd > 0) {
-		  char buffer[MAXPATHLEN+1];
+		  char buffer[MAXPATHLEN+1], newpath[MAXPATHLEN+1];
 		  ssize_t bytes_read;
+		
+		  *newpath=0;
+		  if(__darwintrace_is_in_sandbox(path, newpath)==0)
+		  {
+			close(fd);
+			errno=ENOENT;
+		    return -1;
+		  }
+		  if(*newpath)
+		    path=newpath;
 	
 		  /* once we have an open fd, if a full path was requested, do it */
 		  __darwintrace_log_op("execve", path, fd);
@@ -706,6 +739,7 @@ int execve(const char* path, char* const argv[], char* const envp[]) {
 	/* call the original execve function, but fix the environment if required. */
 	result = __execve(path, argv, __darwintrace_restore_env(envp));
 	return result;
+#undef lstat
 #undef close
 #undef open
 #undef execve
@@ -726,7 +760,6 @@ int close(int fd) {
 #undef close
 }
 
-#if DARWINTRACE_SANDBOX
 /* Trap attempts to unlink a file outside the sandbox.
  */
 int unlink(const char* path) {
@@ -748,9 +781,7 @@ int unlink(const char* path) {
 	
 	return result;
 }
-#endif
 
-#if DARWINTRACE_SANDBOX
 /* Trap attempts to create directories outside the sandbox.
  */
 int mkdir(const char* path, mode_t mode) {
@@ -780,9 +811,7 @@ int mkdir(const char* path, mode_t mode) {
 	
 	return result;
 }
-#endif
 
-#if DARWINTRACE_SANDBOX
 /* Trap attempts to remove directories outside the sandbox.
  */
 int rmdir(const char* path) {
@@ -804,9 +833,7 @@ int rmdir(const char* path) {
 	
 	return result;
 }
-#endif
 
-#if DARWINTRACE_SANDBOX
 /* Trap attempts to rename files/directories outside the sandbox.
  */
 int rename(const char* from, const char* to) {
@@ -840,4 +867,49 @@ int rename(const char* from, const char* to) {
 	
 	return result;
 }
-#endif
+
+int stat(const char * path, struct stat * sb)
+{
+#define stat(path, sb) syscall(SYS_stat, path, sb)
+	int result=0;
+	char newpath[260];
+		
+	*newpath=0;
+	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
+	{
+		errno=ENOENT;
+		result=-1;
+	}else
+	{
+		if(*newpath)
+			path=newpath;
+			
+		result=stat(path, sb);
+	}
+	
+	return result;
+#undef stat
+}
+
+int lstat(const char * path, struct stat * sb)
+{
+#define stat(path, sb) syscall(SYS_lstat, path, sb)
+	int result=0;
+	char newpath[260];
+	
+	*newpath=0;
+	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
+	{
+		errno=ENOENT;
+		result=-1;
+	}else
+	{
+		if(*newpath)
+			path=newpath;
+			
+		result=stat(path, sb);
+	}
+	
+	return result;
+#undef stat
+}

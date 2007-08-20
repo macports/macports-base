@@ -48,6 +48,14 @@
  *			- run select, create a socket
  *		tracelib clean
  *			- cleanup everything
+ * 		tracelib setsandbox
+ *			- set sandbox bounds
+ *  	tracelib closesocket
+ *			- close socket. This makes main thread to quit from it's loop
+ *		tracelib setdeps
+ * 			- set deps for current port
+ * 		tracelib enablefence
+ *			- enable dep/sandbox checking
  */
 int TracelibCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 

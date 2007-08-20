@@ -1095,7 +1095,15 @@ proc target_run {ditem} {
 		# otherwise execute the task.
 		if {$skipped == 0} {
 			set target [ditem_key $ditem provides]
-			if {([info exists ports_trace]
+			
+			# Execute pre-run procedure
+			if {[ditem_contains $ditem prerun]} {
+			set result [catch {[ditem_key $ditem prerun] $name} errstr]
+			}		
+			
+			#start tracelib
+			if {($result ==0 
+			    && [info exists ports_trace]
 				&& $ports_trace == "yes"
 				&& $target != "clean")} {
 				trace_start $workpath
@@ -1108,49 +1116,8 @@ proc target_run {ditem} {
 					&& $target != "install"} {
 					trace_enable_fence
 				}
-			}
-
-			# Execute pre-run procedure
-			if {[ditem_contains $ditem prerun]} {
-			set result [catch {[ditem_key $ditem prerun] $name} errstr]
-			}
 			
-			if {$result == 0} {
-			foreach pre [ditem_key $ditem pre] {
-				ui_debug "Executing $pre"
-				set result [catch {$pre $name} errstr]
-				if {$result != 0} { break }
-			}
-			}
-			
-			if {$result == 0} {
-			ui_debug "Executing $name ($portname)"
-			set result [catch {$procedure $name} errstr]
-			}
-			
-			if {$result == 0} {
-			foreach post [ditem_key $ditem post] {
-				ui_debug "Executing $post"
-				set result [catch {$post $name} errstr]
-				if {$result != 0} { break }
-			}
-			}
-			# Execute post-run procedure
-			if {[ditem_contains $ditem postrun] && $result == 0} {
-			set postrun [ditem_key $ditem postrun]
-			ui_debug "Executing $postrun"
-			set result [catch {$postrun $name} errstr]
-			}
-
-			# *** move it to good position
-			#   Why do we need it? It closes socket, and exit from our C thread
-			tracelib closesocket
-			# ***
-			
-			# Check dependencies & file creations outside workpath.
-			if {[info exists ports_trace]
-				&& $ports_trace == "yes"
-				&& $target != "clean"} {
+				# collect deps
 				
 				# Don't check dependencies for extract (they're not honored
 				# anyway). This avoids warnings about bzip2.
@@ -1192,8 +1159,49 @@ proc target_run {ditem} {
 						set dep_portname [lindex [split $depspec :] end]
 						lappend depsPorts $dep_portname
 					}
-					trace_check_deps $target $depsPorts
+					
+					set portlist [recursive_collect_deps $portname $deptypes]
+					#uniquer from http://aspn.activestate.com/ASPN/Cookbook/Tcl/Recipe/147663
+					array set a [split "[join $portlist {::}]:" {:}]
+					set depsPorts [array names a]
+					
+					if {[llength $deptypes] > 0} {tracelib setdeps $depsPorts}
 				}
+			}
+			
+			if {$result == 0} {
+			foreach pre [ditem_key $ditem pre] {
+				ui_debug "Executing $pre"
+				set result [catch {$pre $name} errstr]
+				if {$result != 0} { break }
+			}
+			}
+			
+			if {$result == 0} {
+			ui_debug "Executing $name ($portname)"
+			set result [catch {$procedure $name} errstr]
+			}
+			
+			if {$result == 0} {
+			foreach post [ditem_key $ditem post] {
+				ui_debug "Executing $post"
+				set result [catch {$post $name} errstr]
+				if {$result != 0} { break }
+			}
+			}
+			# Execute post-run procedure
+			if {[ditem_contains $ditem postrun] && $result == 0} {
+			set postrun [ditem_key $ditem postrun]
+			ui_debug "Executing $postrun"
+			set result [catch {$postrun $name} errstr]
+			}
+
+			# Check dependencies & file creations outside workpath.
+			if {[info exists ports_trace]
+				&& $ports_trace == "yes"
+				&& $target!="clean"} {
+				
+				tracelib closesocket
 				
 				trace_check_violations
 				
@@ -1224,6 +1232,38 @@ proc target_run {ditem} {
     
     return $result
 }
+
+# recursive found depends for portname
+# It isn't ideal, because it scan many ports multiple time
+proc recursive_collect_deps {portname deptypes} \
+{
+	set res [mport_search ^$portname\$]
+    if {[llength $res] < 2} \
+	{
+        return {}
+    }
+
+	set depends {}
+
+	array set portinfo [lindex $res 1]
+	foreach deptype $deptypes \
+	{
+		if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} \
+		{
+			set depends [concat $depends $portinfo($deptype)]
+		}
+	}
+	
+	set portdeps {}
+	foreach depspec $depends \
+	{
+		set portname [lindex [split $depspec :] end]
+		lappend portdeps $portname
+		set portdeps [concat $portdeps [recursive_collect_deps $portname $deptypes]]
+	}
+	return $portdeps
+}
+
 
 proc eval_targets {target} {
     global targets target_state_fd portname

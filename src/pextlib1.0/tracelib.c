@@ -50,14 +50,24 @@ static char * sandbox;
 static char * filemap, * filemap_end;
 static char * depends;	
 static int sock=-1;
+static int enable_fence=0;
 static Tcl_Interp * interp;
 static pthread_mutex_t sock_mutex=PTHREAD_MUTEX_INITIALIZER;
 static int cleanuping=0;
+static char * sdk=
+#ifdef TRACE_SDK
+	/*"MacOSX10.4u.sdk"*/
+	TRACE_SDK
+#else
+	0
+#endif
+;
 
 static void send_file_map(int sock);
 static void dep_check(int sock, const char * path);
 static void sandbox_violation(int sock, const char * path);
 static void ui_warn(const char * format, ...);
+static void ui_info(const char * format, ...);
 
 #define MAX_SOCKETS ((FD_SETSIZE)-1)
 
@@ -112,27 +122,6 @@ static int TracelibSetSandboxCmd(Tcl_Interp * interp, int objc, Tcl_Obj *CONST o
 }
 
 /*
- * Check if file in sandbox or not
- * Return:
- *  0 - not in sandbox
- *  1 - in sandbox
- */
-static char is_in_sandbox(char * file)
-{
-	char * t;
-	int flen=strlen(file);
-	
-	for(t=sandbox; *t; t+=strlen(t)+1)
-	{
-		int tlen=strlen(t);
-		if(!strncmp(file, t, tlen<flen?tlen:flen))
-			return 1;
-	}
-	return 0;
-}
-
-
-/*
  * receive line from socket, parse it and send answer
  */
 static char process_line(int sock)
@@ -146,11 +135,14 @@ static char process_line(int sock)
 		return 0;
 	buf[len]=0;
 	/* sometimes two messages come in one recv.. I ain't caring about it now, but it can be a problem */
-	for(t=buf;*t&&t-buf<sizeof(buf);t+=strlen(f)+1)
+	for(t=buf;*t&&t-buf<(int)sizeof(buf);t=f+strlen(f)+1)
 	{
 		f=strchr(t, '\t');
 		if(!f)
+		{
+			ui_warn("malformed command %s", t);
 			break;
+		}
 		*f++=0;
 		if(!strcmp(t, "filemap"))
 		{
@@ -176,24 +168,44 @@ static char process_line(int sock)
 
 static void send_file_map(int sock)
 {
-	/*
-	 * TODO: redirect for SDK here 
-	 * TODO: /opt -> path from config
-	 */
 	if(!filemap)
 	{
-		char * t;
-		char * _;
+		char * t, * _;
 		
 		filemap=(char*)malloc(1024);
 		t=filemap;
 		
 		#define append_allow(path, resolution) do{strcpy(t, path); t+=strlen(t)+1; *t++=resolution; *t++=0;}while(0);
-		for(_=sandbox; *_; _+=strlen(_)+1)
-			append_allow(_, 0);
-		append_allow("/opt", 2);
-		/*Allow /usr for now*/
-		append_allow("/usr", 0);
+		if(enable_fence)
+		{
+			for(_=sandbox; *_; _+=strlen(_)+1)
+				append_allow(_, 0);
+			
+			append_allow("/bin", 0);
+			append_allow("/sbin", 0);
+			append_allow("/dev", 0)
+			append_allow(Tcl_GetVar(interp, "macports::prefix", TCL_GLOBAL_ONLY), 2);
+			/* If there is no SDK we will allow everything in /usr /System/Library etc, else add binaries to allow, and redirect root to SDK. */
+			if(sdk&&*sdk)
+			{
+				char buf[260]="/Developer/SDKs/";
+				strcat(buf, sdk);
+			
+				append_allow("/usr/bin", 0);
+				append_allow("/usr/sbin", 0);
+				append_allow("/usr/libexec/gcc", 0);
+				append_allow("/", 1);
+				strcpy(t-1, buf);
+				t+=strlen(t)+1;
+			}else
+			{
+				append_allow("/usr", 0);
+				append_allow("/System/Library", 0);
+				append_allow("/Library", 0);
+				append_allow("/Developer/Headers", 0);
+			}
+		}else
+			append_allow("/", 0);
 		filemap_end=t;
 		#undef append_allow
 	}
@@ -205,32 +217,90 @@ static void send_file_map(int sock)
 	}
 }
 
-static void sandbox_violation(int sock, const char * path)
+static void sandbox_violation(int sock UNUSED, const char * path)
 {
-	char buf[1024];
-	sprintf(buf, "slave_add_sandbox_violation {%s}", path);
-	Tcl_Eval(interp, buf);
+	Tcl_SetVar(interp, "path", path, 0);
+	Tcl_Eval(interp, "slave_add_sandbox_violation $path");
+	Tcl_UnsetVar(interp, "path", 0);
 }
 
 static void dep_check(int sock, const char * path)
 {
+	char * port=0;
 	size_t len=1;
-	send(sock, &len, sizeof(len), 0);
-	send(sock, "+", 1, 0);
+	char resolution; 
+	
+	/* If there aren't deps then allow anything. (Useful for extract) */
+	if(!depends)
+		resolution='+';
+	else
+	{
+		resolution='!';
+		
+		Tcl_SetVar(interp, "path", path, 0);
+		Tcl_Eval(interp, "registry::file_registered $path");
+		port=strdup(Tcl_GetStringResult(interp));
+		Tcl_UnsetVar(interp, "path", 0);
+	
+		if(*port!='0'||port[1])
+		{
+			char * t;
+		
+			t=depends;
+			for(;*t;t+=strlen(t)+1)
+			{
+				if(!strcmp(t, port))
+				{
+					resolution='+';
+					break;
+				}
+			}
+		}
+	}
+	
+	if(resolution!='+')
+		ui_info("trace: access denied to %s (%s)", path, port);
+
+	if(port)
+		free(port);
+	
+	if(send(sock, &len, sizeof(len), 0)==-1)
+		ui_warn("tracelib send failed");
+	if(send(sock, &resolution, 1, 0)==-1)
+		ui_warn("tracelib send failed");
+}
+
+static void ui_msg(const char * severity, const char * format, va_list va)
+{
+	char buf[1024], tclcmd[32];
+	
+	vsprintf(buf, format, va);
+	
+	sprintf(tclcmd, "ui_%s $warn", severity);
+	
+	Tcl_SetVar(interp, "warn", buf, 0);
+	
+	Tcl_Eval(interp, tclcmd);
+	Tcl_UnsetVar(interp, "warn", 0);
+	
 }
 
 static void ui_warn(const char * format, ...)
 {
-	char buf[1024];
 	va_list va;
 	
-	strcpy(buf, "ui_warn {");
 	va_start(va, format);
-		vsprintf(buf+strlen(buf), format, va);
+		ui_msg("warn", format, va);
 	va_end(va);
-	strcat(buf, "}");
+}
+
+static void ui_info(const char * format, ...)
+{
+	va_list va;
 	
-	Tcl_Eval(interp, buf);
+	va_start(va, format);
+		ui_msg("msg", format, va);
+	va_end(va);
 }
 
 static int TracelibRunCmd(Tcl_Interp * in)
@@ -257,6 +327,7 @@ static int TracelibRunCmd(Tcl_Interp * in)
 	{
 		ui_warn("setrlimit failed (%d)", errno);
 	}
+
 	
 	sun.sun_family=AF_UNIX;
 	strcpy(sun.sun_path, name);
@@ -311,7 +382,10 @@ static int TracelibRunCmd(Tcl_Interp * in)
 			if(i==max_used)
 			{
 				if(max_used==MAX_SOCKETS-1)
+				{
+					ui_warn("There is no place to store socket");
 					close(s);
+				}
 				else
 					socks[max_used++]=s;
 			}
@@ -352,7 +426,7 @@ static int TracelibCleanCmd(Tcl_Interp * interp UNUSED)
 	pthread_mutex_lock(&sock_mutex);
 	if(sock!=-1)
 	{
-		shutdown(sock, SHUT_RDWR);
+		/* shutdown(sock, SHUT_RDWR);*/
 		close(sock);
 		sock=-1;
 	}
@@ -364,6 +438,7 @@ static int TracelibCleanCmd(Tcl_Interp * interp UNUSED)
 	}
 	if(filemap)
 		safe_free(filemap);
+	enable_fence=0;
 	#undef safe_free
 	cleanuping=0;
 	return TCL_OK;
@@ -375,7 +450,7 @@ static int TracelibCloseSocketCmd(Tcl_Interp * interp UNUSED)
 	pthread_mutex_lock(&sock_mutex);
 	if(sock!=-1)
 	{
-		shutdown(sock, SHUT_RDWR);
+		/*shutdown(sock, SHUT_RDWR);*/
 		close(sock);
 		sock=-1;
 	}
@@ -383,17 +458,50 @@ static int TracelibCloseSocketCmd(Tcl_Interp * interp UNUSED)
 	return TCL_OK;
 }
 
+static int TracelibSetDeps(Tcl_Interp * interp UNUSED, int objc, Tcl_Obj* CONST objv[])
+{
+	char * t, * d;
+	size_t l;
+	if(objc!=3)
+	{
+		Tcl_WrongNumArgs(interp, 2, objv, "number of arguments should be exactly 3");
+		return TCL_ERROR;
+	}
+	
+	d=Tcl_GetString(objv[2]);
+	l=strlen(d);
+	depends=malloc(l+2);
+	depends[l+1]=0;
+	strcpy(depends, d);
+	for(t=depends;*t;++t)
+		if(*t==' ')
+			*t++=0;
+	
+	return TCL_OK;
+}
+
+static int TracelibEnableFence(Tcl_Interp * interp UNUSED)
+{
+	enable_fence=1;
+	if(filemap)
+		free(filemap);
+	filemap=0;
+	return TCL_OK;
+}
+
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int result=TCL_OK;
-	static const char * options[]={"setname", "run", "clean", "setsandbox", "closesocket", 0};
+	static const char * options[]={"setname", "run", "clean", "setsandbox", "closesocket", "setdeps", "enablefence", 0};
 	typedef enum 
 	{
 		kSetName,
 		kRun,
 		kClean,
 		kSetSandbox,
-		kCloseSocket
+		kCloseSocket,
+		kSetDeps,
+		kEnableFence
 	} EOptions;
 	EOptions current_option;
 	
@@ -423,6 +531,12 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc, Tcl_
 			break;
 		case kSetSandbox:
 			result=TracelibSetSandboxCmd(interp, objc, objv);
+			break;
+		case kSetDeps:
+			result=TracelibSetDeps(interp, objc, objv);
+			break;
+		case kEnableFence:
+			result=TracelibEnableFence(interp);
 			break;
 		}
 	}

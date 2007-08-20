@@ -45,7 +45,7 @@ proc trace_start {workpath} {
 			# Create a fifo.
 			# path in unix socket limited to 109 chars
 			# # set trace_fifo "$workpath/trace_fifo"
-			set trace_fifo "/tmp/macports/[pid]" 
+			set trace_fifo "/tmp/macports/[pid]_[expr {int(rand()*1000)}]" 
 			file mkdir "/tmp/macports"
 			file delete -force $trace_fifo
 			
@@ -86,7 +86,8 @@ proc trace_start {workpath} {
 # Only done for targets that should only happen in the sandbox.
 proc trace_enable_fence {} {
 	global env trace_sandboxbounds
-	set env(DARWINTRACE_SANDBOX_BOUNDS) $trace_sandboxbounds	
+	set env(DARWINTRACE_SANDBOX_BOUNDS) $trace_sandboxbounds
+	tracelib enablefence
 }
 
 # Disable the fence.
