@@ -274,6 +274,9 @@
 /* Define to 1 if strerror_r returns char *. */
 #undef STRERROR_R_CHAR_P
 
+/* SDK for SDK redirect in tracelib */
+#undef TRACE_SDK
+
 /* Attribute to mark unused variables */
 #undef UNUSED
 

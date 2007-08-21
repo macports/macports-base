@@ -224,6 +224,13 @@ AC_SUBST(SQLITE3_DIR)
 
 AC_SUBST(OUR_INCLUDED_PACKAGES)
 
+AH_TEMPLATE([TRACE_SDK], [SDK for SDK redirect in tracelib])
+AC_ARG_WITH(
+	trace-sdk,
+	AS_HELP_STRING([--with-trace-sdk=SDK],
+		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
+	[test -d /Developer/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
+
 # Allows building of shared libraries
 SC_ENABLE_SHARED
 
