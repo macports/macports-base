@@ -194,6 +194,8 @@ static void send_file_map(int sock)
 				append_allow("/usr/bin", 0);
 				append_allow("/usr/sbin", 0);
 				append_allow("/usr/libexec/gcc", 0);
+				append_allow("/System/Library/Perl", 0);
+				append_allow("/usr/X11R6/bin", 0);
 				append_allow("/", 1);
 				strcpy(t-1, buf);
 				t+=strlen(t)+1;
