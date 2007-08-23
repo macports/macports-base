@@ -2223,6 +2223,7 @@ array set action_array {
 	install		action_target
 	clean		action_target
 	test		action_target
+	lint		action_target
 	submit		action_target
 	trace		action_target
 	livecheck	action_target
