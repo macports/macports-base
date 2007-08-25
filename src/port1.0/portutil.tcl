@@ -1939,3 +1939,37 @@ proc archiveTypeIsSupported {type} {
 	return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
+
+# simple wrapper for calling merge.rb - for creating universal binaries (etc.)
+# this is intended to be called during destroot, e.g. 'merge i386 ppc'
+# this will merge the directories $destroot/i386 & $destroot/ppc into $destroot
+proc merge args {
+	global workpath prefix destroot
+	set all_args "-i ${destroot} -o ${destroot} -v debug"
+	set architectures ""
+
+	# check existance of given architectures in $destroot
+	foreach arg $args {
+		if [file exists ${destroot}/${arg}] {
+			ui_debug "found architecture '${arg}'"
+			set architectures "${architectures} $arg"
+		} else {
+			ui_error "could not find directory for architecture '${arg}'"
+		}
+	}
+	set all_args "${all_args} ${architectures}"
+
+	# call merge.rb
+	ui_debug "executing merge.rb with '${all_args}'"
+	set fullcmdstring "${prefix}/bin/merge.rb $all_args"
+	set code [catch {system $fullcmdstring} result]
+	ui_debug "merge returned: '${result}'"
+
+	foreach arg ${architectures} {
+		ui_debug "removing arch directory \"$arg\""
+		file delete -force ${destroot}/${arg}
+	}
+
+	return -code $code $result
+}
+
