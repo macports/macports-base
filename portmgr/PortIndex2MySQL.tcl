@@ -82,11 +82,10 @@ proc getpasswd {passwdfile} {
 set sqlfile [file join /tmp ports.sql]
 set dbcmd [macports::findBinary mysql5]
 set dbhost 127.0.0.1
-set dbname macports
 set dbuser macports
 set passwdfile [file join . password_file]
 set dbpasswd [getpasswd $passwdfile]
-set dbcmdargs "-h $dbhost -u $dbuser -p$dbpasswd $dbname"
+set dbname macports
 
 # Flat text file to which sql statements are written.
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
@@ -105,27 +104,27 @@ proc sql_escape {str} {
 
 # Initial creation of database tables: log, portfiles, categories, maintainers, dependencies, variants and platforms.
 # Do we need any other?
-puts $sqlfile_fd "DROP TABLE log"
-puts $sqlfile_fd "CREATE TABLE IF NOT EXISTS log (activity VARCHAR(255), activity_time TIMESTAMP(14))"
-puts $sqlfile_fd "INSERT INTO log VALUES ('update', NOW())"
+puts $sqlfile_fd "DROP TABLE IF EXISTS log;"
+puts $sqlfile_fd "CREATE TABLE IF NOT EXISTS log (activity VARCHAR(255), activity_time TIMESTAMP(14));"
+puts $sqlfile_fd "INSERT INTO log VALUES ('update', NOW());"
 
-puts $sqlfile_fd "DROP TABLE portfiles"
-puts $sqlfile_fd "CREATE TABLE portfiles (name VARCHAR(255) PRIMARY KEY NOT NULL, path VARCHAR(255), version VARCHAR(255),  description TEXT)"
+puts $sqlfile_fd "DROP TABLE IF EXISTS portfiles;"
+puts $sqlfile_fd "CREATE TABLE portfiles (name VARCHAR(255) PRIMARY KEY NOT NULL, path VARCHAR(255), version VARCHAR(255),  description TEXT);"
 
-puts $sqlfile_fd "DROP TABLE IF EXISTS categories"
-puts $sqlfile_fd "CREATE TABLE categories (portfile VARCHAR(255), category VARCHAR(255), is_primary INTEGER)"
+puts $sqlfile_fd "DROP TABLE IF EXISTS categories;"
+puts $sqlfile_fd "CREATE TABLE categories (portfile VARCHAR(255), category VARCHAR(255), is_primary INTEGER);"
 
-puts $sqlfile_fd "DROP TABLE IF EXISTS maintainers"
-puts $sqlfile_fd "CREATE TABLE maintainers (portfile VARCHAR(255), maintainer VARCHAR(255), is_primary INTEGER)"
+puts $sqlfile_fd "DROP TABLE IF EXISTS maintainers;"
+puts $sqlfile_fd "CREATE TABLE maintainers (portfile VARCHAR(255), maintainer VARCHAR(255), is_primary INTEGER);"
 
-puts $sqlfile_fd "DROP TABLE IF EXISTS dependencies"
-puts $sqlfile_fd "CREATE TABLE dependencies (portfile VARCHAR(255), library VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS dependencies;"
+puts $sqlfile_fd "CREATE TABLE dependencies (portfile VARCHAR(255), library VARCHAR(255));"
 
-puts $sqlfile_fd "DROP TABLE IF EXISTS variants"
-puts $sqlfile_fd "CREATE TABLE variants (portfile VARCHAR(255), variant VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS variants;"
+puts $sqlfile_fd "CREATE TABLE variants (portfile VARCHAR(255), variant VARCHAR(255));"
 
-puts $sqlfile_fd "DROP TABLE IF EXISTS platforms"
-puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255))"
+puts $sqlfile_fd "DROP TABLE IF EXISTS platforms;"
+puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255));"
 
 
 # Load every port in the index through a search matching everything.
@@ -189,45 +188,45 @@ foreach {name array} $ports {
 		set platforms ""
 	}
 
-	puts $sqlfile_fd "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description')"
+	puts $sqlfile_fd "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description');"
 
 	set primary 1
 	foreach category $categories {
-		set category [sql_escape $category]
-		puts $sqlfile_fd "INSERT INTO categories VALUES ('$portname', '$category', $primary)"
-		incr primary
+            set category [sql_escape $category]
+            puts $sqlfile_fd "INSERT INTO categories VALUES ('$portname', '$category', $primary);"
+            incr primary
 	}
 	
 	set primary 1
 	foreach maintainer $maintainers {
-		set maintainer [sql_escape $maintainer]
-		puts $sqlfile_fd "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary)"
-		incr primary
+            set maintainer [sql_escape $maintainer]
+            puts $sqlfile_fd "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary);"
+            incr primary
 	}
 
         foreach build_dep $depends_build {
             set build_dep [sql_escape $build_dep]
-            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$build_dep')"
+            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$build_dep');"
         }
 
 	foreach lib $depends_lib {
-		set lib [sql_escape $lib]
-		puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$lib')"
+            set lib [sql_escape $lib]
+            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$lib');"
 	}
 
         foreach run_dep $depends_run {
             set run_dep [sql_escape $run_dep]
-            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$run_dep')"
+            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$run_dep');"
         }
 
 	foreach variant $variants {
-		set variant [sql_escape $variant]
-		puts $sqlfile_fd "INSERT INTO variants VALUES ('$portname', '$variant')"
+            set variant [sql_escape $variant]
+            puts $sqlfile_fd "INSERT INTO variants VALUES ('$portname', '$variant');"
 	}
 
 	foreach platform $platforms {
-		set platform [sql_escape $platform]
-		puts $sqlfile_fd "INSERT INTO platforms VALUES ('$portname', '$platform')"
+            set platform [sql_escape $platform]
+            puts $sqlfile_fd "INSERT INTO platforms VALUES ('$portname', '$platform');"
 	}
 
 }
@@ -239,7 +238,7 @@ if {[catch {seek $sqlfile_fd 0 start} errstr]} {
     ui_error "${::errorCode}: $errstr"
     exit 1
 }
-if {[catch {exec $dbcmd $dbcmdargs <@ $sqlfile_fd} errstr]} {
+if {[catch {exec -- $dbcmd --host=$dbhost --user=$dbuser --password=$dbpasswd --database=$dbname <@ $sqlfile_fd} errstr]} {
     ui_error "${::errorCode}: $errstr"
     exit 1
 }
