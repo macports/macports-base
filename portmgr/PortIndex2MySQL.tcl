@@ -36,6 +36,24 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+#####
+# The PortIndex2MySQL script populates a database with key information extracted
+# from the Portfiles in the ports tree pointed to by the sources.conf file in a
+# MacPorts installation, found by loading its macports1.0 tcl package and initializing
+# it with 'mportinit' below. Main use of the resulting database is providing live
+# information to the ports.php page, a client tailored to poll it. For this very reason,
+# information fed to the database always has to be kept up to date in order to remain
+# meaningful, which is accomplished simply by calling 'macports::selfupdate' (which
+# updates the ports tree in use) and by installing the script on cron/launchd to be run
+# on a timely schedule (not any more frequent than the run of the mprsyncup script on
+# the MacPorts server, which is every half hour).
+#
+# Remaining requirement to successfully run this script is performing the necessary
+# MySQL admin tasks to create the database in the first place and the MySQL user that
+# will be given enough privileges to alter it. Values in the database related variables
+# provided below have to be adapted accordingly to match the chosen setup.
+#####
+
 
 # Error messages reciepient.
 set SPAM_LOVERS macports-dev@lists.macosforge.org
