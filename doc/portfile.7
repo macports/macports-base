@@ -1045,7 +1045,8 @@ completion.
 .Sy Example:
 .Dl destroot.keepdirs ${destroot}${prefix}/var/log/mysql
 .It Ic destroot.violate_mtree
-Indicates if a port will violate the common directory structure. Enables or disables tests for violations of mtree (e. g. non-standard directories in ${prefix})
+Indicates if a port will violate the common directory structure. Enables or disables tests for violations of mtree (e. g. non-standard directories in ${prefix}). The standard mtree can be found in
+.Xr porthier 7 .
 .br
 .Sy Type:
 .Em optional
