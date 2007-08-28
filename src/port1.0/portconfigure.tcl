@@ -119,11 +119,11 @@ proc configure_main {args} {
             set configure.cxx "/usr/bin/g++-4.0"
             set configure.cpp "/usr/bin/cpp-4.0" }
         apple-gcc-3.3 {
-            ui_debug "Using Macports Apple gcc 3.3"
+            ui_debug "Using MacPorts Apple gcc 3.3"
             set configure.cc "${prefix}/bin/gcc-apple-3.3"
             set configure.cpp "${prefix}/bin/cpp-apple-3.3" }
         apple-gcc-4.0 {
-            ui_debug "Using Macports Apple gcc 4.0"
+            ui_debug "Using MacPorts Apple gcc 4.0"
             set configure.cc "${prefix}/bin/gcc-apple-4.0"
             set configure.cpp "${prefix}/bin/cpp-apple-4.0" }
         macports-gcc-3.3 {
