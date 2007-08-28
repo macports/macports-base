@@ -852,12 +852,25 @@ Fortran-90-compiler to put in the F90 environment variable when invoking the con
 .Em optional
 .It Ic configure.compiler
 Selects a complete compiler suite to use. This option will override the compiler environment variable for all compilers the named suite features. Please note that this option will intentionally not set any dependencies on the selected compiler suite!
+.Em gcc-3.3
+.Em gcc-4.0
+use the standard system compiler suites,
+.Em apple-gcc-3.3
+.Em apple-gcc-4.0
+use Apple's gcc suite installed via MacPorts,
+.Em macports-gcc-3.3
+.Em macports-gcc-3.4
+.Em macports-gcc-4.0
+.Em macports-gcc-4.1
+.Em macports-gcc-4.2
+.Em macports-gcc-4.3
+use the vanilla gcc installed via MacPorts.
 .br
 .Sy Type:
 .Em optional
 .br
 .Sy Values:
-.Em gcc-3.3 gcc-4.0 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2
+.Em gcc-3.3 gcc-4.0 apple-gcc-3.3 apple-gcc-4.0 macports-gcc-3.3 macports-gcc-3.4 macports-gcc-4.0 macports-gcc-4.1 macports-gcc-4.2 macports-gcc-4.3
 .br
 .Sy Example:
 .Dl configure.compiler gcc-4.0

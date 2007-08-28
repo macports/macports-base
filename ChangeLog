@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Add more compiler suites for the 'configure.compiler' option
+
     - `port variants` behaves like `port info` in that it parses the Portfile for up-to-date info.
       `port variants` also supports the --index flag (eridius in r27919).
 
