@@ -49,9 +49,10 @@
 # the MacPorts server, which is every half hour).
 #
 # Remaining requirement to successfully run this script is performing the necessary
-# MySQL admin tasks to create the database in the first place and the MySQL user that
-# will be given enough privileges to alter it. Values in the database related variables
-# provided below have to be adapted accordingly to match the chosen setup.
+# MySQL admin tasks on the host box to create the database in the first place and the
+# MySQL user that will be given enough privileges to alter it. Values in the database
+# related variables provided below have to be adapted accordingly to match the chosen
+# setup.
 #####
 
 
