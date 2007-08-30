@@ -104,7 +104,7 @@ set dbhost 127.0.0.1
 set dbuser macports
 set passwdfile [file join . password_file]
 set dbpasswd [getpasswd $passwdfile]
-set dbname macports
+set dbname macports_ports
 
 # Flat text file to which sql statements are written.
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
