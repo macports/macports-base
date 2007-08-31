@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Mark "python" group code as deprecated
+
     - Add group code for Python 3.0
 
     - Add more compiler suites for the 'configure.compiler' option

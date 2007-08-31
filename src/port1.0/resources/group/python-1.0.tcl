@@ -31,6 +31,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+ui_warn "This portgroup is deprecated and will be removed in a future version!"
 
 set python.bin ${prefix}/bin/python2.3
 
