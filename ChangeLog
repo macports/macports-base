@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Add group code for Python 3.0
+
     - Add more compiler suites for the 'configure.compiler' option
 
     - `port variants` behaves like `port info` in that it parses the Portfile for up-to-date info.
