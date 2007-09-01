@@ -160,6 +160,16 @@ proc configure_main {args} {
             select_compiler "MacPorts Apple gcc 4.0" \
                 cc  ${prefix}/bin/gcc-apple-4.0 \
                 cpp ${prefix}/bin/cpp-apple-4.0 }
+        macports-gcc-3.3 {
+            select_compiler "MacPorts gcc 3.3" \
+                cc  ${prefix}/bin/gcc-mp-3.3 \
+                cxx ${prefix}/bin/g++-mp-3.3 \
+                cpp ${prefix}/bin/cpp-mp-3.3 }
+        macports-gcc-3.4 {
+            select_compiler "MacPorts gcc 3.4" \
+                cc  ${prefix}/bin/gcc-mp-3.4 \
+                cxx ${prefix}/bin/g++-mp-3.4 \
+                cpp ${prefix}/bin/cpp-mp-3.4 }
         macports-gcc-4.0 {
             select_compiler "MacPorts gcc 4.0" \
                 cc  ${prefix}/bin/gcc-mp-4.0 \
