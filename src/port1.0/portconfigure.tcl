@@ -86,6 +86,30 @@ proc configure_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
+# internal function for setting compiler variables; use like "_set_compiler string var val var val .."
+# this function will NOT override explicitely set variables from the portfile
+proc select_compiler {info args} {
+    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc
+    ui_debug "Using compiler '$info'"
+    set i 0
+    foreach value $args {
+        if {0==$i} {
+            set comp $value
+            set i 1
+        } else {
+            switch -exact $comp {
+                cc  { if {""==${configure.cc}}  { set configure.cc $value } }
+                cxx { if {""==${configure.cxx}} { set configure.cxx $value } }
+                cpp { if {""==${configure.cpp}} { set configure.cpp $value } }
+                fc  { if {""==${configure.fc}}  { set configure.fc $value } }
+                f77 { if {""==${configure.f77}} { set configure.f77 $value } }
+                f90 { if {""==${configure.f90}} { set configure.f90 $value } }
+            }
+            set i 0
+        }
+    }
+}
+
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
@@ -109,65 +133,55 @@ proc configure_main {args} {
     # select a compiler collection
     switch -exact ${configure.compiler} {
         gcc-3.3 {
-            ui_debug "Using Mac OS X gcc 3.3"
-            set configure.cc "/usr/bin/gcc-3.3"
-            set configure.cxx "/usr/bin/g++-3.3"
-            set configure.cpp "/usr/bin/cpp-3.3" }
+            select_compiler "Mac OS X gcc 3.3" \
+                cc  /usr/bin/gcc-3.3 \
+                cxx /usr/bin/g++-3.3 \
+                cpp /usr/bin/cpp-3.3 }
         gcc-4.0 {
-            ui_debug "Using Mac OS X gcc 4.0"
-            set configure.cc "/usr/bin/gcc-4.0"
-            set configure.cxx "/usr/bin/g++-4.0"
-            set configure.cpp "/usr/bin/cpp-4.0" }
+            select_compiler "Mac OS X gcc 4.0" \
+                cc  /usr/bin/gcc-4.0 \
+                cxx /usr/bin/g++-4.0 \
+                cpp /usr/bin/cpp-4.0 }
         apple-gcc-3.3 {
-            ui_debug "Using MacPorts Apple gcc 3.3"
-            set configure.cc "${prefix}/bin/gcc-apple-3.3"
-            set configure.cpp "${prefix}/bin/cpp-apple-3.3" }
+            select_compiler "MacPorts Apple gcc 3.3" \
+                cc  ${prefix}/bin/gcc-apple-3.3 \
+                cpp ${prefix}/bin/cpp-apple-3.3 }
         apple-gcc-4.0 {
-            ui_debug "Using MacPorts Apple gcc 4.0"
-            set configure.cc "${prefix}/bin/gcc-apple-4.0"
-            set configure.cpp "${prefix}/bin/cpp-apple-4.0" }
-        macports-gcc-3.3 {
-            ui_debug "Using MacPorts gcc 3.3"
-            set configure.cc "${prefix}/bin/gcc-mp-3.3"
-            set configure.cxx "${prefix}/bin/g++-mp-3.3"
-            set configure.cpp "${prefix}/bin/cpp-mp-3.3" }
-        macports-gcc-3.4 {
-            ui_debug "Using MacPorts gcc 3.4"
-            set configure.cc "${prefix}/bin/gcc-mp-3.4"
-            set configure.cxx "${prefix}/bin/g++-mp-3.4"
-            set configure.cpp "${prefix}/bin/cpp-mp-3.4" }
+            select_compiler "MacPorts Apple gcc 4.0" \
+                cc  ${prefix}/bin/gcc-apple-4.0 \
+                cpp ${prefix}/bin/cpp-apple-4.0 }
         macports-gcc-4.0 {
-            ui_debug "Using MacPorts gcc 4.0"
-            set configure.cc "${prefix}/bin/gcc-mp-4.0"
-            set configure.cxx "${prefix}/bin/g++-mp-4.0"
-            set configure.cpp "${prefix}/bin/cpp-mp-4.0"
-            set configure.fc "${prefix}/bin/gfortran-mp-4.0"
-            set configure.f77 "${prefix}/bin/gfortran-mp-4.0"
-            set configure.f90 "${prefix}/bin/gfortran-mp-4.0" }
+            select_compiler "MacPorts gcc 4.0" \
+                cc  ${prefix}/bin/gcc-mp-4.0 \
+                cxx ${prefix}/bin/g++-mp-4.0 \
+                cpp ${prefix}/bin/cpp-mp-4.0 \
+                fc  ${prefix}/bin/gfortran-mp-4.0 \
+                f77 ${prefix}/bin/gfortran-mp-4.0 \
+                f90 ${prefix}/bin/gfortran-mp-4.0 }
         macports-gcc-4.1 {
-            ui_debug "Using MacPorts gcc 4.1"
-            set configure.cc "${prefix}/bin/gcc-mp-4.1"
-            set configure.cxx "${prefix}/bin/g++-mp-4.1"
-            set configure.cpp "${prefix}/bin/cpp-mp-4.1"
-            set configure.fc "${prefix}/bin/gfortran-mp-4.1"
-            set configure.f77 "${prefix}/bin/gfortran-mp-4.1"
-            set configure.f90 "${prefix}/bin/gfortran-mp-4.1" }
+            select_compiler "MacPorts gcc 4.1" \
+                cc  ${prefix}/bin/gcc-mp-4.1 \
+                cxx ${prefix}/bin/g++-mp-4.1 \
+                cpp ${prefix}/bin/cpp-mp-4.1 \
+                fc  ${prefix}/bin/gfortran-mp-4.1 \
+                f77 ${prefix}/bin/gfortran-mp-4.1 \
+                f90 ${prefix}/bin/gfortran-mp-4.1 }
         macports-gcc-4.2 {
-            ui_debug "Using MacPorts gcc 4.2"
-            set configure.cc "${prefix}/bin/gcc-mp-4.2"
-            set configure.cxx "${prefix}/bin/g++-mp-4.2"
-            set configure.cpp "${prefix}/bin/cpp-mp-4.2"
-            set configure.fc "${prefix}/bin/gfortran-mp-4.2"
-            set configure.f77 "${prefix}/bin/gfortran-mp-4.2"
-            set configure.f90 "${prefix}/bin/gfortran-mp-4.2" }
+            select_compiler "MacPorts gcc 4.2" \
+                cc  ${prefix}/bin/gcc-mp-4.2 \
+                cxx ${prefix}/bin/g++-mp-4.2 \
+                cpp ${prefix}/bin/cpp-mp-4.2 \
+                fc  ${prefix}/bin/gfortran-mp-4.2 \
+                f77 ${prefix}/bin/gfortran-mp-4.2 \
+                f90 ${prefix}/bin/gfortran-mp-4.2 }
         macports-gcc-4.3 {
-            ui_debug "Using MacPorts gcc 4.3"
-            set configure.cc "${prefix}/bin/gcc-mp-4.3"
-            set configure.cxx "${prefix}/bin/g++-mp-4.3"
-            set configure.cpp "${prefix}/bin/cpp-mp-4.3"
-            set configure.fc "${prefix}/bin/gfortran-mp-4.3"
-            set configure.f77 "${prefix}/bin/gfortran-mp-4.3"
-            set configure.f90 "${prefix}/bin/gfortran-mp-4.3" }
+            select_compiler "MacPorts gcc 4.3" \
+                cc  ${prefix}/bin/gcc-mp-4.3 \
+                cxx ${prefix}/bin/g++-mp-4.3 \
+                cpp ${prefix}/bin/cpp-mp-4.3 \
+                fc  ${prefix}/bin/gfortran-mp-4.3 \
+                f77 ${prefix}/bin/gfortran-mp-4.3 \
+                f90 ${prefix}/bin/gfortran-mp-4.3 }
         default {
             ui_debug "No compiler collection selected explicitly" }
     }
