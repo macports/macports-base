@@ -115,6 +115,7 @@ proc configure_main {args} {
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
     global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags
     global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.compiler prefix
+    global os.platform os.major
     
     if {[tbool use_automake]} {
 	# XXX depend on automake
@@ -128,6 +129,15 @@ proc configure_main {args} {
 	if {[catch {command_exec autoconf} result]} {
 	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
 	}
+    }
+
+    # 1st chose a reasonable default compiler suite for each platform if none was chosen
+    if {""==${configure.compiler}} {
+        switch -exact "${os.platform} ${os.major}" {
+            "darwin 7" { set configure.compiler gcc-3.3 }
+            "darwin 8" { set configure.compiler gcc-4.0 }
+            "darwin 9" { set configure.compiler gcc-4.0 }
+        }
     }
 
     # select a compiler collection
