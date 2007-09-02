@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - add configure.fflags for Fortran flags
+
     - Mark "python" group code as deprecated
 
     - Add group code for Python 3.0

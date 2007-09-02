@@ -59,7 +59,7 @@ default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
 default configure.cxxflags	{-O2}
 default configure.ldflags	{"-L${prefix}/lib"}
-default configure.fflags	{""}
+default configure.fflags	{-O2}
 
 # Universal options & default values.
 options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
