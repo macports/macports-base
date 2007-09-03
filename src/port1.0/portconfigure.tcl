@@ -53,7 +53,7 @@ default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 # Configure special environment variables.
-options configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath
+options configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
 # We could have default debug/optimization flags at some point.
 default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
@@ -63,6 +63,7 @@ default configure.fflags	{-O2}
 default configure.f90flags	{-O2}
 default configure.fcflags	{-O2}
 default configure.classpath	{}
+default configure.macosx_deployment_target	{}
 
 # Universal options & default values.
 options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
@@ -118,7 +119,7 @@ proc select_compiler {info args} {
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
-    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath
+    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
     global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
@@ -240,6 +241,7 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "F90FLAGS" ${configure.f90flags}
 		append_list_to_environment_value configure "FCFLAGS" ${configure.fcflags}
 		append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
+		append_list_to_environment_value configure "MACOSX_DEPLOYMENT_TARGET" ${configure.macosx_deployment_target}
 
 		# Execute the command (with the new environment).
 		if {[catch {command_exec configure} result]} {

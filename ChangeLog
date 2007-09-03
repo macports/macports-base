@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - add configure.macosx_deployment_target for configure flags
+
     - add configure.javac/classpath for Java flags
 
     - add configure.fflags/fcflags/f90flags for Fortran flags
