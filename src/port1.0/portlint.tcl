@@ -119,7 +119,9 @@ proc lint_main {args} {
         }
         set require_blank false
 
-        if {[string match "* " $line] || [string match "*\t" $line]} {
+        if {[string match "* " $line] || [string match "*\t" $line] &&
+            [string trim $line] != "" } {
+            # allow indented blank lines between blocks of code and such
             ui_warn "Line $lineno has trailing whitespace before newline"
             incr warnings
         }
