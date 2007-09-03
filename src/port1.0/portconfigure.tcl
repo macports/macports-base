@@ -53,7 +53,7 @@ default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 # Configure special environment variables.
-options configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags
+options configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath
 # We could have default debug/optimization flags at some point.
 default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
@@ -62,6 +62,7 @@ default configure.ldflags	{"-L${prefix}/lib"}
 default configure.fflags	{-O2}
 default configure.f90flags	{-O2}
 default configure.fcflags	{-O2}
+default configure.classpath	{}
 
 # Universal options & default values.
 options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
@@ -72,13 +73,14 @@ default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk
 default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
 # Select a distinct compiler (C, C preprocessor, C++)
-options configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.compiler
+options configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.javac configure.compiler
 default configure.cc			{}
 default configure.cxx			{}
 default configure.cpp			{}
 default configure.f77			{}
 default configure.f90			{}
 default configure.fc			{}
+default configure.javac			{}
 default configure.compiler		{}
 
 set_ui_prefix
@@ -116,8 +118,8 @@ proc select_compiler {info args} {
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
-    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags
-    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.compiler prefix
+    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath
+    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
     if {[tbool use_automake]} {
@@ -229,6 +231,7 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "FC" ${configure.fc}
 		append_list_to_environment_value configure "F77" ${configure.f77}
 		append_list_to_environment_value configure "F90" ${configure.f90}
+		append_list_to_environment_value configure "JAVAC" ${configure.javac}
 		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
 		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
 		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
@@ -236,6 +239,7 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "FFLAGS" ${configure.fflags}
 		append_list_to_environment_value configure "F90FLAGS" ${configure.f90flags}
 		append_list_to_environment_value configure "FCFLAGS" ${configure.fcflags}
+		append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
 
 		# Execute the command (with the new environment).
 		if {[catch {command_exec configure} result]} {

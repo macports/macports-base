@@ -6,7 +6,9 @@
 
 Unreleased:
 
-    - add configure.fflags for Fortran flags
+    - add configure.javac/classpath for Java flags
+
+    - add configure.fflags/fcflags/f90flags for Fortran flags
 
     - Mark "python" group code as deprecated
 
