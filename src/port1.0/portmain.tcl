@@ -82,6 +82,7 @@ default portepoch {$epoch}
 # Platform Settings
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
 set os_major [lindex [split $tcl_platform(osVersion) .] 0]
 
 default os.platform {[string tolower $tcl_platform(os)]}
