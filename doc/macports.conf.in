@@ -40,6 +40,12 @@ portarchivepath		@localstatedir_expanded@/macports/packages
 # Supported types: tgz (default), tar, tbz, tbz2, xar, zip, cpgz, cpio
 portarchivetype		tgz
 
+# Lowered scheduling priority (0-20) to use for make when building ports
+buildnicevalue		0
+
+# Number of simultaneous make jobs (commands) to use when building ports
+buildmakejobs		1
+
 # Set whether to automatically execute "clean" after "install" of ports
 portautoclean		yes
 

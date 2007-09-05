@@ -43,14 +43,14 @@ namespace eval macports {
     	portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
     	porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
     	rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
-        mp_remote_url mp_remote_submit_url"
+        mp_remote_url mp_remote_submit_url buildnicevalue buildmakejobs"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
     	portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
     	registry.path registry.format registry.installtype portarchivemode portarchivepath \
     	portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
     	rsync_options rsync_dir startupitem_type place_worksymlink \
-        mp_remote_url mp_remote_submit_url \
+        mp_remote_url mp_remote_submit_url buildnicevalue buildmakejobs \
     	$user_options"
     
     # deferred options are only computed when needed.
@@ -286,6 +286,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
    	global macports::variants_conf
    	global macports::xcodebuildcmd
    	global macports::xcodeversion
+   	global macports::buildnicevalue
+   	global macports::buildmakejobs
 
         # Set the system encoding to utf-8
         encoding system utf-8

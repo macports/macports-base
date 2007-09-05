@@ -121,6 +121,16 @@ Supported types are: tgz, tar, tbz, tbz2, xar, zip, cpgz, cpio
 .br
 .Ic Default:
 tgz
+.It Va buildnicevalue
+Lowered scheduling priority (0-20) to use for make when building ports
+.br
+.Ic Default:
+0
+.It Va buildmakejobs
+Number of simultaneous make jobs (commands) to use when building ports
+.br
+.Ic Default:
+1
 .It Va portautoclean
 Automatic cleaning of the build directory of a given port after it has been installed.
 .br

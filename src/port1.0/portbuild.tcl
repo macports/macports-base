@@ -40,10 +40,14 @@ target_prerun ${org.macports.build} build_start
 
 # define options
 options build.target
+options build.nice
+options build.jobs
 commands build
 # defaults
 default build.dir {${workpath}/${worksrcdir}}
-default build.cmd {[build_getmaketype]}
+default build.cmd {[build_getnicevalue][build_getmaketype][build_getmakejobs]}
+default build.nice {${buildnicevalue}}
+default build.jobs {${buildmakejobs}}
 default build.pre_args {${build.target}}
 default build.target "all"
 
@@ -89,6 +93,28 @@ proc build_getmaketype {args} {
 	    return gnumake
 	}
     }
+}
+
+proc build_getnicevalue {args} {
+    if {![exists build.nice]} {
+	return ""
+    }
+    set nice [option build.nice]
+    if {![string is integer -strict $nice] || $nice <= 0} {
+	return ""
+    }
+    return "nice -n $nice "
+}
+
+proc build_getmakejobs {args} {
+    if {![exists build.jobs] || ![string match "*make*" [build_getmaketype]]} {
+	return ""
+    }
+    set jobs [option build.jobs]
+    if {![string is integer -strict $jobs] || $jobs <= 1} {
+	return ""
+    }
+    return " -j$jobs"
 }
 
 proc build_start {args} {
