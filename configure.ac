@@ -15,7 +15,7 @@ AC_PROG_OBJC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
-AC_PATH_PROG(MTREE, [mtree], [])
+AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
