@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - add configure.objc/objcflags for Objective-C
+
     - add optional build.nice (0) and build.jobs (1) modifiers (afb in r28634 & r28673)
 
     - make tclobjc1.0 compile with GNUstep and NXConstantString class (afb in r28668)
@@ -14,7 +16,7 @@ Unreleased:
 
     - add configure.macosx_deployment_target for configure flags
 
-    - add configure.javac/classpath for Java flags
+    - add configure.javac/classpath for Java
 
     - add configure.fflags/fcflags/f90flags for Fortran flags
 

@@ -53,11 +53,12 @@ default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 # Configure special environment variables.
-options configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
+options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
 # We could have default debug/optimization flags at some point.
 default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
 default configure.cxxflags	{-O2}
+default configure.objcflags	{-O2}
 default configure.ldflags	{"-L${prefix}/lib"}
 default configure.fflags	{-O2}
 default configure.f90flags	{-O2}
@@ -74,10 +75,11 @@ default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk
 default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
 # Select a distinct compiler (C, C preprocessor, C++)
-options configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.javac configure.compiler
+options configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
 default configure.cc			{}
 default configure.cxx			{}
 default configure.cpp			{}
+default configure.objc			{}
 default configure.f77			{}
 default configure.f90			{}
 default configure.fc			{}
@@ -95,7 +97,7 @@ proc configure_start {args} {
 # internal function for setting compiler variables; use like "_set_compiler string var val var val .."
 # this function will NOT override explicitely set variables from the portfile
 proc select_compiler {info args} {
-    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc
+    global configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc
     ui_debug "Using compiler '$info'"
     set i 0
     foreach value $args {
@@ -107,6 +109,7 @@ proc select_compiler {info args} {
                 cc  { if {""==${configure.cc}}  { set configure.cc $value } }
                 cxx { if {""==${configure.cxx}} { set configure.cxx $value } }
                 cpp { if {""==${configure.cpp}} { set configure.cpp $value } }
+                objc { if {""==${configure.objc}} { set configure.objc $value } }
                 fc  { if {""==${configure.fc}}  { set configure.fc $value } }
                 f77 { if {""==${configure.f77}} { set configure.f77 $value } }
                 f90 { if {""==${configure.f90}} { set configure.f90 $value } }
@@ -119,8 +122,8 @@ proc select_compiler {info args} {
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
-    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
-    global configure.cc configure.cxx configure.cpp configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
+    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
+    global configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
     if {[tbool use_automake]} {
@@ -151,11 +154,13 @@ proc configure_main {args} {
         gcc-3.3 {
             select_compiler "Mac OS X gcc 3.3" \
                 cc  /usr/bin/gcc-3.3 \
+                objc /usr/bin/gcc-3.3 \
                 cxx /usr/bin/g++-3.3 \
                 cpp /usr/bin/cpp-3.3 }
         gcc-4.0 {
             select_compiler "Mac OS X gcc 4.0" \
                 cc  /usr/bin/gcc-4.0 \
+                objc /usr/bin/gcc-4.0 \
                 cxx /usr/bin/g++-4.0 \
                 cpp /usr/bin/cpp-4.0 }
         apple-gcc-3.3 {
@@ -165,6 +170,7 @@ proc configure_main {args} {
         apple-gcc-4.0 {
             select_compiler "MacPorts Apple gcc 4.0" \
                 cc  ${prefix}/bin/gcc-apple-4.0 \
+                objc ${prefix}/bin/gcc-apple-4.0 \
                 cpp ${prefix}/bin/cpp-apple-4.0 }
         macports-gcc-3.3 {
             select_compiler "MacPorts gcc 3.3" \
@@ -179,6 +185,7 @@ proc configure_main {args} {
         macports-gcc-4.0 {
             select_compiler "MacPorts gcc 4.0" \
                 cc  ${prefix}/bin/gcc-mp-4.0 \
+                objc ${prefix}/bin/gcc-mp-4.0 \
                 cxx ${prefix}/bin/g++-mp-4.0 \
                 cpp ${prefix}/bin/cpp-mp-4.0 \
                 fc  ${prefix}/bin/gfortran-mp-4.0 \
@@ -187,6 +194,7 @@ proc configure_main {args} {
         macports-gcc-4.1 {
             select_compiler "MacPorts gcc 4.1" \
                 cc  ${prefix}/bin/gcc-mp-4.1 \
+                objc ${prefix}/bin/gcc-mp-4.1 \
                 cxx ${prefix}/bin/g++-mp-4.1 \
                 cpp ${prefix}/bin/cpp-mp-4.1 \
                 fc  ${prefix}/bin/gfortran-mp-4.1 \
@@ -195,6 +203,7 @@ proc configure_main {args} {
         macports-gcc-4.2 {
             select_compiler "MacPorts gcc 4.2" \
                 cc  ${prefix}/bin/gcc-mp-4.2 \
+                objc ${prefix}/bin/gcc-mp-4.2 \
                 cxx ${prefix}/bin/g++-mp-4.2 \
                 cpp ${prefix}/bin/cpp-mp-4.2 \
                 fc  ${prefix}/bin/gfortran-mp-4.2 \
@@ -203,6 +212,7 @@ proc configure_main {args} {
         macports-gcc-4.3 {
             select_compiler "MacPorts gcc 4.3" \
                 cc  ${prefix}/bin/gcc-mp-4.3 \
+                objc ${prefix}/bin/gcc-mp-4.3 \
                 cxx ${prefix}/bin/g++-mp-4.3 \
                 cpp ${prefix}/bin/cpp-mp-4.3 \
                 fc  ${prefix}/bin/gfortran-mp-4.3 \
@@ -229,6 +239,7 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "CC" ${configure.cc}
 		append_list_to_environment_value configure "CPP" ${configure.cpp}
 		append_list_to_environment_value configure "CXX" ${configure.cxx}
+		append_list_to_environment_value configure "OBJC" ${configure.objc}
 		append_list_to_environment_value configure "FC" ${configure.fc}
 		append_list_to_environment_value configure "F77" ${configure.f77}
 		append_list_to_environment_value configure "F90" ${configure.f90}
@@ -236,6 +247,7 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
 		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
 		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
+		append_list_to_environment_value configure "OBJCFLAGS" ${configure.objcflags}
 		append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
 		append_list_to_environment_value configure "FFLAGS" ${configure.fflags}
 		append_list_to_environment_value configure "F90FLAGS" ${configure.f90flags}

@@ -809,6 +809,14 @@ Flags to put in the CXXFLAGS environment variable when invoking the configure sc
 .br
 .Sy Default:
 .Em -O2
+.It Ic configure.objcflags
+Flags to put in the OBJCFLAGS environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
 .It Ic configure.ldflags
 Flags to put in the LDFLAGS environment variable when invoking the configure script.
 .br
@@ -872,6 +880,14 @@ C++-compiler to put in the CXX environment variable when invoking the configure 
 .br
 .Sy Type:
 .Em optional
+.It Ic configure.objc
+Objective-C-compiler to put in the OBJC environment variable when invoking the configure script.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl configure.objc ${prefix}/bin/gcc-mp-4.1
 .It Ic configure.fc
 Fortran-compiler to put in the FC environment variable when invoking the configure script.
 .br
