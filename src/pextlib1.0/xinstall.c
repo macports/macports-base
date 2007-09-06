@@ -910,7 +910,7 @@ create_newfile(Tcl_Interp *interp, const char *path, int target, struct stat *sb
 				saved_errno = errno;
 	}
 
-	newfd = open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR, mode);
+	newfd = open(path, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
 	if (newfd < 0 && saved_errno != 0)
 		errno = saved_errno;
 	return newfd;
