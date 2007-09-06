@@ -15,6 +15,9 @@ name		glib2
 # Its version information
 version	      2.12.11
 
+# Supported and tested platforms
+platforms	darwin
+
 # Categories and identifying keywords
 categories	devel
 
@@ -30,7 +33,7 @@ long_description      Glib is a library which includes support routines for \
 		      many other things.
 
 # Homepage for the port:
-http://www.gtk.org/
+homepage	http://www.gtk.org/
 
 # Master download sites for port's distribution file(s)
 master_sites	ftp://ftp.gtk.org/pub/glib/2.12 \
