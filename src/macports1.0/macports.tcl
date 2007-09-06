@@ -563,6 +563,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 	set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
     }
     
+    # Default mp build options
+    if {![info exists macports::buildnicevalue]} {
+	set macports::buildnicevalue 0
+    }
+    if {![info exists macports::buildmakejobs]} {
+	set macports::buildmakejobs 1
+    }
+    
     # ENV cleanup.
 	set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
 	                  DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
