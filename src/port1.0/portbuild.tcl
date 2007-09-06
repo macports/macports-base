@@ -61,13 +61,17 @@ proc build_getmaketype {args} {
 	bsd {
 	    if {[option os.platform] == "darwin"} {
 		return bsdmake
-	    } else {
+	    } elseif {[option os.platform] == "freebsd"} {
 		return make
+	    } else {
+		return pmake
 	    }
 	}
 	gnu {
 	    if {[option os.platform] == "darwin"} {
 		return gnumake
+	    } elseif {[option os.platform] == "linux"} {
+		return make
 	    } else {
 		return gmake
 	    }
