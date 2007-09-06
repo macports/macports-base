@@ -6,7 +6,7 @@
 
 Unreleased:
 
-    - add optional build.nice (+0) and build.jobs (-j1) modifiers (afb in 28634 & r28673)
+    - add optional build.nice (0) and build.jobs (1) modifiers (afb in r28634 & r28673)
 
     - make tclobjc1.0 compile with GNUstep and NXConstantString class (afb in r28668)
 
