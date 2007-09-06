@@ -35,6 +35,10 @@
 #include <config.h>
 #endif
 
+#ifdef GNUSTEP_FOUNDATION
+#include <objc/NXConstStr.h>
+#endif
+
 #include <Foundation/Foundation.h>
 #include <tcl.h>
 
