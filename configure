@@ -1391,6 +1391,8 @@ Optional Packages:
                           install included Thread package.
   --with-included-sqlite3 build using bundled sqlite3 package
   --with-tcl-sqlite3=DIR  directory for Tcl sqlite3 (default /usr/lib/sqlite3)
+  --with-trace-sdk=SDK    SDK for redirection in trace lib (for example
+                          MacOSX10.4u.sdk)
 
 Some influential environment variables:
   CC          C compiler command
@@ -11613,6 +11615,18 @@ fi
 
 
 
+
+
+
+
+
+# Check whether --with-trace-sdk was given.
+if test "${with_trace_sdk+set}" = set; then
+  withval=$with_trace_sdk; test -d /Developer/SDKs/$withval && cat >>confdefs.h <<_ACEOF
+#define TRACE_SDK "${withval}"
+_ACEOF
+
+fi
 
 
 # Allows building of shared libraries
