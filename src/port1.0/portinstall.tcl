@@ -178,7 +178,7 @@ proc install_main {args} {
 
 proc proc_disasm {pname} {
     set p "proc "
-    append p $pname " {"
+    append p $pname " \{"
     set space ""
     foreach arg [info args $pname] {
 	if {[info default $pname $arg value]} {
@@ -188,6 +188,6 @@ proc proc_disasm {pname} {
 	}
 	set space " "
     }
-    append p "} {" [info body $pname] "}"
+    append p "} {" [info body $pname] "\}"
     return $p
 }

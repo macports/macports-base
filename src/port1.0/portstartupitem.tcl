@@ -230,11 +230,11 @@ proc startupitem_create_darwin_systemstarter {args} {
 	# Emit the _Cmds
 	foreach kind { start stop restart } {
 		if {[llength [set "startupitem.$kind"]]} {
-			puts ${item} "${kind}Cmds () {"
+			puts ${item} "${kind}Cmds () \{"
 			foreach line [set "startupitem.$kind"] {
 				puts ${item} "\t${line}"
 			}
-			puts ${item} "}\n"
+			puts ${item} "\}\n"
 		}
 	}
 	
