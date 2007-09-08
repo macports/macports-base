@@ -177,6 +177,9 @@ ifeq ($(ARC),yes)
 	${MAKE} SVNTAG=${DISTARCTAG} PKGNAME=${DISTARCNAME} _dopkg
 endif
 
+tcldoc:
+	find src -name '*.tcl' | xargs tcldoc --verbose --title "MacPorts Documentation" --force tcldoc
+
 test::
 
-.PHONY: dist _gettag _pkgdist _dopkg
+.PHONY: dist _gettag _pkgdist _dopkg tcldoc
