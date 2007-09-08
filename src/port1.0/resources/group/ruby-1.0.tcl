@@ -144,17 +144,17 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			post-patch {
 				# create destroot setup file
 				set fp [open ${worksrcpath}/destroot.rb w]
-				puts $fp {
+				puts $fp "
 					require 'rbconfig'
 					include Config
-					DESTROOT=ENV['DESTROOT'] || ''
+					DESTROOT=ENV\['DESTROOT'\] || ''
 					CONFIG.keys.find_all { |d|
-						d.match(/dir$/) and !d.match(/(src|build|compile)/)
+						d.match(/dir\$/) and !d.match(/(src|build|compile)/)
 					}.each {|confdir|
-						CONFIG[confdir]=DESTROOT+CONFIG[confdir]
+						CONFIG\[confdir\]=DESTROOT+CONFIG\[confdir\]
 					}
-					$:.reverse.each { |d| $:.unshift(DESTROOT+d) }
-				}
+					\$:.reverse.each { |d| \$:.unshift(DESTROOT+d) }
+				"
 				close $fp
 				# adjust basic install.rb script
 				reinplace "s|site_ruby|vendor_ruby|" ${worksrcpath}/install.rb
