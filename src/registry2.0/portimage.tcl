@@ -107,7 +107,7 @@ proc activate {name specifier optionslist} {
             return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
         }
 
-        if { [string equal [$requested state] "active" } {
+        if { [string equal [$requested state] "active"] } {
             return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
         }
 

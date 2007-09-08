@@ -116,7 +116,7 @@ proc uninstall {portname {specifier ""} optionslist} {
         if { !([info exists uninstall.nochecksum]
                 && [string is true $uninstall.nochecksum]) } {
             set sum1 [$port md5sum $file]
-            if {![catch {set sum2 [md5 $file]}] && ![string match $sum1 $sum2]}{
+            if {![catch {set sum2 [md5 $file]}] && ![string match $sum1 $sum2]} {
                 ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $file $file$bak_suffix]"
                 file copy $file $file$bak_suffix
             }
@@ -124,7 +124,7 @@ proc uninstall {portname {specifier ""} optionslist} {
 
         # Normalize the file path to avoid removing the intermediate
         # symlinks (remove the empty directories instead)
-        set theFile [compat filenormalize $file
+        set theFile [compat filenormalize $file]
         lappend files $theFile
 
         # Split out the filename's subpaths and add them to the
