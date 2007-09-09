@@ -190,7 +190,7 @@ proc destroot_finish {args} {
 		    set mandir [file dirname $manlink]
 		    set mandirpath [file join $manpath $mandir]
 		    set pwd [pwd]
-		    if {[catch {cd $mandirpath} err]} {
+		    if {[catch {_cd $mandirpath} err]} {
 			puts $err
 			return
 		    }
@@ -208,7 +208,7 @@ proc destroot_finish {args} {
 			file delete $manlinkpath
 			system "ln -s \"${manlinksrc}.gz\" \"$manlinkpath\""
 		    }
-		    cd $pwd
+		    _cd $pwd
 		}
 	    }
 	} else {

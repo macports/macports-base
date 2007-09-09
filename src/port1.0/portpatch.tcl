@@ -69,7 +69,7 @@ proc patch_main {args} {
     if {![info exists patchlist]} {
 	return -code error [msgcat::mc "Patch files missing"]
     }
-    cd [option worksrcpath]
+    _cd [option worksrcpath]
     foreach patch $patchlist {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
 	if {[option os.platform] == "linux"} {
