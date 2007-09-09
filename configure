@@ -665,6 +665,7 @@ target
 target_cpu
 target_vendor
 target_os
+VER
 CC
 CFLAGS
 LDFLAGS
@@ -2032,6 +2033,14 @@ test -n "$target_alias" &&
 	done
 	PATH=$newPATH; export PATH
 	prefix=$oldprefix
+
+
+# translate mp_version (1.600) to regular version (1.6.0)
+{ echo "$as_me:$LINENO: checking MacPorts version" >&5
+echo $ECHO_N "checking MacPorts version... $ECHO_C" >&6; }
+VER=`cat config/mp_version | tr -d '\n' | sed -E 's/([0-9])\.([0-9])0?([0-9][1-9]?)0?/\1.\2.\3/'`
+{ echo "$as_me:$LINENO: result: $VER" >&5
+echo "${ECHO_T}$VER" >&6; }
 
 
 # Checks for programs.
@@ -12388,6 +12397,7 @@ target!$target$ac_delim
 target_cpu!$target_cpu$ac_delim
 target_vendor!$target_vendor$ac_delim
 target_os!$target_os$ac_delim
+VER!$VER$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -12435,7 +12445,6 @@ OBJC_FOUNDATION_CPPFLAGS!$OBJC_FOUNDATION_CPPFLAGS$ac_delim
 OBJC_FOUNDATION_LIBS!$OBJC_FOUNDATION_LIBS$ac_delim
 HAVE_FRAMEWORK_COREFOUNDATION!$HAVE_FRAMEWORK_COREFOUNDATION$ac_delim
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION!$HAVE_FRAMEWORK_SYSTEMCONFIGURATION$ac_delim
-HAVE_FRAMEWORK_IOKIT!$HAVE_FRAMEWORK_IOKIT$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -12477,6 +12486,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+HAVE_FRAMEWORK_IOKIT!$HAVE_FRAMEWORK_IOKIT$ac_delim
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER!$HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER$ac_delim
 REPLACEMENT_PROGS!$REPLACEMENT_PROGS$ac_delim
 EXTRA_PROGS!$EXTRA_PROGS$ac_delim
@@ -12530,7 +12540,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 51; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 52; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

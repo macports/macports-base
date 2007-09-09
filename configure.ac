@@ -9,6 +9,12 @@ AC_CANONICAL_SYSTEM
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
 
+# translate mp_version (1.600) to regular version (1.6.0)
+AC_MSG_CHECKING(MacPorts version)
+VER=`cat config/mp_version | tr -d '\n' | sed -E 's/([[0-9]])\.([[0-9]])0?([[0-9]][[1-9]]?)0?/\1.\2.\3/'`
+AC_MSG_RESULT([$VER])
+AC_SUBST(VER)
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_OBJC
