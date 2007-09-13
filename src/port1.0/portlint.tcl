@@ -13,6 +13,59 @@ target_prerun ${org.macports.lint} lint_start
 
 set_ui_prefix
 
+set lint_portsystem \
+	"1.0"
+
+set lint_platforms [list \
+	"darwin" \
+	"freebsd" \
+	"linux" \
+	"sunos" \
+	]
+
+set lint_categories [list \
+	"aqua" \
+	"archivers" \
+	"audio" \
+	"benchmarks" \
+	"cad" \
+	"comms" \
+	"cross" \
+	"databases" \
+	"devel" \
+	"editors" \
+	"emulators" \
+	"fuse" \
+	"games" \
+	"genealogy" \
+	"gnome" \
+	"gnustep" \
+	"graphics" \
+	"irc" \
+	"java" \
+	"kde" \
+	"lang" \
+	"mail" \
+	"math" \
+	"multimedia" \
+	"net" \
+	"news" \
+	"palm" \
+	"perl" \
+	"print" \
+	"python" \
+	"ruby" \
+	"science" \
+	"security" \
+	"shells" \
+	"sysutils" \
+	"tex" \
+	"textproc" \
+	"www" \
+	"x11" \
+	"zope" \
+	]
+
 set lint_required [list \
 	"name" \
 	"version" \
@@ -76,8 +129,9 @@ proc lint_start {args} {
 }
 
 proc lint_main {args} {
-	global UI_PREFIX portname portpath
+	global UI_PREFIX portname portpath portresourcepath
 	set portfile ${portpath}/Portfile
+	set groupdir ${portresourcepath}/group
 
 	set warnings 0
 	set errors 0
@@ -136,21 +190,29 @@ proc lint_main {args} {
         }
 
         if {[string match "PortSystem*" $line]} {
-            if ($seen_portsystem) {
+            if {$seen_portsystem} {
                  ui_error "Line $lineno repeats PortSystem information"
                  incr errors
             }
-            ### TODO: check version
+            regexp {PortSystem\s+([0-9.]+)} $line -> portsystem
+            if {![info exists portsystem]} {
+                 ui_error "Line $lineno has unrecognized PortSystem"
+                 incr errors
+            }
             set seen_portsystem true
             set require_blank true
             set require_after "PortSystem"
         }
         if {[string match "PortGroup*" $line]} {
-            if ($seen_portgroup) {
+            if {$seen_portgroup} {
                  ui_error "Line $lineno repeats PortGroup information"
                  incr errors
             }
-            ### TODO: check group
+            regexp {PortGroup\s+([a-z0-9]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
+            if {![info exists portgroup]} {
+                 ui_error "Line $lineno has unrecognized PortGroup"
+                 incr errors
+            }
             set seen_portgroup true
             set require_blank true
             set require_after "PortGroup"
@@ -184,16 +246,24 @@ proc lint_main {args} {
     set portarch ${os.arch}
     global description long_description categories maintainers platforms homepage master_sites checksums
     
-    global lint_required lint_optional
+    global lint_portsystem lint_platforms lint_categories lint_required lint_optional
 
     if (!$seen_portsystem) {
         ui_error "Didn't find PortSystem specification"
         incr errors
-    }  else {
-        ui_info "OK: Found PortSystem specification"
+    }  elseif {$portsystem != $lint_portsystem} {
+        ui_error "Unknown PortSystem: $portsystem"
+        incr errors
+    } else {
+        ui_info "OK: Found PortSystem $portsystem"
     }
-    if ($seen_portgroup) {
-        ui_info "OK: Found PortGroup specification"
+    if (!$seen_portgroup) {
+        # PortGroup is optional, so missing is OK
+    }  elseif {![file exists $groupdir/$portgroup-$portgroupversion.tcl]} {
+        ui_error "Unknown PortGroup: $portgroup-$portgroupversion"
+        incr errors
+    } else {
+        ui_info "OK: Found PortGroup $portgroup-$portgroupversion"
     }
 
     foreach req_var $lint_required {
@@ -212,8 +282,23 @@ proc lint_main {args} {
         }
     }
 
-    # TODO: check platforms against known names
-    # TODO: check categories against known ones
+    foreach platform $platforms {
+       if {[lsearch -exact $lint_platforms $platform] == -1} {
+            ui_error "Unknown platform: $platform"
+            incr errors
+        } else {
+            ui_info "OK: Found platform: $platform"
+        }
+    }
+
+    foreach category $categories {
+       if {[lsearch -exact $lint_categories $category] == -1} {
+            ui_error "Unknown category: $category"
+            incr errors
+        } else {
+            ui_info "OK: Found category: $category"
+        }
+    }
 
     foreach opt_var $lint_optional {
        if {$opt_var == "epoch"} {
@@ -229,8 +314,14 @@ proc lint_main {args} {
        }
     }
 
-    # TODO: check that ports revision is numeric
-    # TODO: check that any port epoch is numeric
+    if {![string is integer -strict $portepoch]} {
+        ui_error "Port epoch is not numeric:  $portepoch"
+        incr errors
+    }
+    if {![string is integer -strict $portrevision]} {
+        ui_error "Port revision is not numeric: $portrevision"
+        incr errors
+    }
 
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
         ui_warn "Using legacy email for no/open maintainer"
