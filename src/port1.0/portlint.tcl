@@ -297,21 +297,25 @@ proc lint_main {args} {
        }
     }
 
-    foreach platform $platforms {
-       if {[lsearch -exact $lint_platforms $platform] == -1} {
-            ui_error "Unknown platform: $platform"
-            incr errors
-        } else {
-            ui_info "OK: Found platform: $platform"
+    if {[info exists platforms]} {
+        foreach platform $platforms {
+           if {[lsearch -exact $lint_platforms $platform] == -1} {
+                ui_error "Unknown platform: $platform"
+                incr errors
+            } else {
+                ui_info "OK: Found platform: $platform"
+            }
         }
     }
 
-    foreach category $categories {
-       if {[lsearch -exact $lint_categories $category] == -1} {
-            ui_error "Unknown category: $category"
-            incr errors
-        } else {
-            ui_info "OK: Found category: $category"
+    if {[info exists categories]} {
+        foreach category $categories {
+           if {[lsearch -exact $lint_categories $category] == -1} {
+                ui_error "Unknown category: $category"
+                incr errors
+            } else {
+                ui_info "OK: Found category: $category"
+            }
         }
     }
 
