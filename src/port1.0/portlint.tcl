@@ -282,6 +282,20 @@ proc lint_main {args} {
         }
     }
 
+    foreach opt_var $lint_optional {
+       if {$opt_var == "epoch"} {
+            set var "portepoch"
+        } elseif {$opt_var == "revision"} {
+            set var "portrevision"
+        } else {
+            set var $opt_var
+       }
+       if {[info exists $var]} {
+            # TODO: check whether it was seen (or default)
+            ui_info "OK: Found optional variable: $opt_var"
+       }
+    }
+
     foreach platform $platforms {
        if {[lsearch -exact $lint_platforms $platform] == -1} {
             ui_error "Unknown platform: $platform"
@@ -298,20 +312,6 @@ proc lint_main {args} {
         } else {
             ui_info "OK: Found category: $category"
         }
-    }
-
-    foreach opt_var $lint_optional {
-       if {$opt_var == "epoch"} {
-            set var "portepoch"
-        } elseif {$opt_var == "revision"} {
-            set var "portrevision"
-        } else {
-            set var $opt_var
-       }
-       if {[info exists $var]} {
-            # TODO: check whether it was seen (or default)
-            ui_info "OK: Found optional variable: $opt_var"
-       }
     }
 
     if {![string is integer -strict $portepoch]} {
