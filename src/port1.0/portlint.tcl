@@ -19,6 +19,7 @@ set lint_portsystem \
 set lint_platforms [list \
 	"darwin" \
 	"freebsd" \
+	"openbsd" \
 	"linux" \
 	"sunos" \
 	]
