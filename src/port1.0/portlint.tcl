@@ -147,6 +147,7 @@ proc lint_main {args} {
     ###################################################################
     ui_debug "$portfile"
 
+    set topline_number 1
     set require_blank false
     set require_after ""
     set seen_portsystem false
@@ -190,11 +191,15 @@ proc lint_main {args} {
             incr warnings
         }
 
-        if {($lineno == 1) && ![string match "*\$Id*" $line]} {
-            ui_warn "Line 1 is missing RCS tag (\$Id)"
+        if {($lineno == $topline_number) && [string match "*-\*- Mode:*" $line]} {
+            ui_info "OK: Line $lineno has emacs/vim Mode"
+            incr topline_number
+        }
+        if {($lineno == $topline_number) && ![string match "*\$Id*" $line]} {
+            ui_warn "Line $lineno is missing RCS tag (\$Id)"
             incr warnings
-        } elseif {($lineno == 1)} {
-            ui_info "OK: Line 1 has RCS tag (\$Id)"
+        } elseif {($lineno == $topline_number)} {
+            ui_info "OK: Line $lineno has RCS tag (\$Id)"
             set require_blank true
             set require_after "RCS tag"
         }
