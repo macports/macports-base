@@ -90,6 +90,12 @@ set lint_optional [list \
 	"use_configure" \
 	]
 
+set lint_variants [list \
+	"universal" \
+	"docs" \
+	"x11" \
+	]
+
 
 proc seems_utf8 {str} {
     set len [string length $str]
@@ -145,6 +151,8 @@ proc lint_main {args} {
     set seen_portsystem false
     set seen_portgroup false
     set in_description false
+
+    set local_variants [list]
 
     set f [open $portfile RDONLY]
     # read binary (to check UTF-8)
@@ -234,6 +242,13 @@ proc lint_main {args} {
             set require_blank false
         }
 
+        if {[string match "variant*" $line]} {
+            regexp {variant\s+(\w+)} $line -> variantname
+            if {[info exists variantname]} {
+                 lappend local_variants $variantname
+            }
+        }
+
         ### TODO: more checks to Portfile syntax
 
         incr lineno
@@ -245,9 +260,11 @@ proc lint_main {args} {
     global portversion portrevision portepoch
     # hoping for "noarch" :
     set portarch ${os.arch}
-    global description long_description categories maintainers platforms homepage master_sites checksums
+    global description long_description platforms categories all_variants
+    global maintainers homepage master_sites checksums
     
-    global lint_portsystem lint_platforms lint_categories lint_required lint_optional
+    global lint_portsystem lint_platforms lint_categories 
+    global lint_required lint_optional lint_variants
 
     if (!$seen_portsystem) {
         ui_error "Didn't find PortSystem specification"
@@ -326,6 +343,27 @@ proc lint_main {args} {
     if {![string is integer -strict $portrevision]} {
         ui_error "Port revision is not numeric: $portrevision"
         incr errors
+    }
+
+    set variantnumber 1
+    foreach variant $all_variants {
+        set variantname [ditem_key $variant name] 
+        set variantdesc [lindex [ditem_key $variant description] 0]
+        if {![info exists variantname] || $variantname == ""} {
+            ui_error "Variant number $variantnumber does not have a name"
+            incr errors
+        } elseif {![info exists variantdesc] || $variantdesc == ""} {
+            ui_info "OK: Found variant: $variantname"
+            # don't warn about missing descriptions for global variants
+            if {[lsearch -exact $local_variants $variantname] != -1 &&
+                [lsearch -exact $lint_variants $variantname] == -1} {
+                ui_warn "Variant $variantname does not have a description"
+                incr warnings
+            }
+        } else {
+            ui_info "OK: Found variant $variantname: $variantdesc"
+        }
+        incr variantnumber
     }
 
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
