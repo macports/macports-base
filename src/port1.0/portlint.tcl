@@ -94,6 +94,7 @@ set lint_optional [list \
 set lint_variants [list \
 	"universal" \
 	"docs" \
+	"aqua" \
 	"x11" \
 	]
 
