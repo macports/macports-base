@@ -26,6 +26,7 @@ AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
+AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(MAKE, [make])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
@@ -42,6 +43,7 @@ AC_ARG_VAR(MTREE, [path to mtree command])
 AC_ARG_VAR(CVS, [path to cvs command])
 AC_ARG_VAR(SVN, [path to svn command])
 AC_ARG_VAR(RSYNC, [path to rsync command])
+AC_ARG_VAR(SED, [path to sed command])
 AC_ARG_VAR(TAR, [path to tar command])
 AC_ARG_VAR(MAKE, [path to make command])
 AC_ARG_VAR(GNUTAR, [path to gnutar command])
@@ -50,6 +52,7 @@ AC_ARG_VAR(BZIP2, [path to bzip2 command])
 AC_ARG_VAR(XAR, [path to xar command])
 AC_ARG_VAR(OPEN, [path to open command])
 
+MP_SED_EXTENDED_REGEXP
 MP_TAR_NO_SAME_OWNER
 
 # Quiche eaters options.
