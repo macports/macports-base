@@ -21,6 +21,7 @@ set lint_platforms [list \
 	"darwin" \
 	"freebsd" \
 	"openbsd" \
+	"netbsd" \
 	"linux" \
 	"sunos" \
 	]
