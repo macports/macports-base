@@ -577,6 +577,155 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 }
 
 /**
+ * curl getsize subcommand entry point.
+ *
+ * @param interp		current interpreter
+ * @param objc			number of parameters
+ * @param objv			parameters
+ */
+int
+CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
+{
+	int theResult = TCL_OK;
+	CURL* theHandle = NULL;
+	FILE* theFile = NULL;
+
+	do {
+		char theSizeString[32];
+		const char* theURL;
+		CURLcode theCurlCode;
+		double theFileSize;
+				
+		/*	first (second) parameter is the url */
+		if (objc != 3) {
+			Tcl_WrongNumArgs(interp, 1, objv, "getsize url");
+			theResult = TCL_ERROR;
+			break;
+		}
+
+		/* Retrieve the url */
+		theURL = Tcl_GetString(objv[2]);
+
+		/* Open the file (dev/null) */
+		theFile = fopen( "/dev/null", "a" );
+		if (theFile == NULL) {
+			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+			theResult = TCL_ERROR;
+		}
+
+		/* Create the CURL handle */
+		theHandle = curl_easy_init();
+		
+		/* Setup the handle */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_URL, theURL);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* -L option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FOLLOWLOCATION, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* -f option */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout on connections */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_TIMEOUT, _CURL_CONNECTION_TIMEOUT);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set minimum connection speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_LIMIT, _CURL_MINIMUM_XFER_SPEED);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* set timeout interval for connections < min xfer speed */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_TIME, _CURL_MINIMUM_XFER_TIMEOUT);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* write to the file */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_WRITEDATA, theFile);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* skip the header data */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HEADER, 0);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* skip the body data */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOBODY, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* we do not want any progress */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROGRESS, 1);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* actually fetch the resource */
+		theCurlCode = curl_easy_perform(theHandle);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
+		/* close the file */
+		(void) fclose( theFile );
+		theFile = NULL;
+
+		theFileSize = 0.0;
+
+		/* get the file size */
+		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &theFileSize);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+	
+		/* clean up */
+		curl_easy_cleanup( theHandle );
+		theHandle = NULL;
+
+		(void) snprintf(theSizeString, sizeof(theSizeString),
+			"%.0f", theFileSize);
+		Tcl_SetResult(interp, theSizeString, TCL_VOLATILE);
+    } while (0);
+    
+    if (theHandle != NULL) {
+    	curl_easy_cleanup( theHandle );
+    }
+    if (theFile != NULL) {
+    	fclose( theFile );
+    }
+    
+	return theResult;
+}
+
+/**
  * curl command entry point.
  *
  * @param clientData	custom data (ignored)
@@ -593,11 +742,12 @@ CurlCmd(
 {
     typedef enum {
     	kCurlFetch,
-    	kCurlIsNewer
+    	kCurlIsNewer,
+    	kCurlGetSize
     } EOption;
     
 	static tableEntryString options[] = {
-		"fetch", "isnewer", NULL
+		"fetch", "isnewer", "getsize", NULL
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
@@ -623,6 +773,10 @@ CurlCmd(
 
 			case kCurlIsNewer:
 				theResult = CurlIsNewerCmd(interp, objc, objv);
+				break;
+
+			case kCurlGetSize:
+				theResult = CurlGetSizeCmd(interp, objc, objv);
 				break;
 		}
 	}
