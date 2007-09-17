@@ -34,7 +34,7 @@ exec @TCLSH@ "$0" "$@"
 # POSSIBILITY OF SUCH DAMAGE.
 
 #
-#   TODO:
+# TODO:
 #
 
 catch {source \
@@ -45,28 +45,6 @@ package require macports
 # ui_options(ports_debug) - If set, output debugging messages.
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
-
-# ui_options accessor
-proc ui_isset {val} {
-    global ui_options
-    if {[info exists ui_options($val)]} {
-        if {$ui_options($val) == "yes"} {
-            return 1
-        }
-    }
-    return 0
-}
-
-# global_options accessor
-proc global_option_isset {val} {
-    global global_options
-    if {[info exists global_options($val)]} {
-        if {$global_options($val) == "yes"} {
-            return 1
-        }
-    }
-    return 0
-}
 
 # UI Callback
 proc ui_prefix {priority} {
@@ -87,24 +65,24 @@ proc ui_prefix {priority} {
 }
 
 proc ui_channels {priority} {
-    global logfd
+    global ui_options
     switch $priority {
         debug {
-            if {[ui_isset ports_debug]} {
+            if {[macports::ui_isset ui_options ports_debug]} {
                 return {stderr}
             } else {
                 return {}
             }
         }
         info {
-            if {[ui_isset ports_verbose]} {
+            if {[macports::ui_isset ui_options ports_verbose]} {
                 return {stdout}
             } else {
                 return {}
             }
         }
         msg {
-            if {[ui_isset ports_quiet]} {
+            if {[macports::ui_isset ui_options ports_quiet]} {
                 return {}
             } else {
                 return {stdout}
@@ -213,7 +191,8 @@ proc fatal s {
 # we're handling errors in a soft fashion, in which
 # case we continue
 proc fatal_softcontinue s {
-    if {[global_option_isset ports_force]} {
+    global global_options
+    if {[macports::global_option_isset global_options ports_force]} {
         ui_error $s
         return -code continue
     } else {
@@ -226,9 +205,10 @@ proc fatal_softcontinue s {
 # we're handling errors in a soft fashion, in which
 # case we continue
 proc break_softcontinue { msg status name_status } {
+    global ui_options
     upvar $name_status status_var 
     ui_error $msg
-    if {[ui_isset ports_processall]} {
+    if {[macports::ui_isset ui_options ports_processall]} {
         set status_var 0
         return -code continue
     } else {
@@ -560,7 +540,7 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
-    global macports::registry.installtype
+    global macports::registry.installtype ui_options
     set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 
     # Get the list of installed ports
@@ -597,7 +577,7 @@ proc get_outdated_ports {} {
                 fatal "search for portname $portname failed: $result"
             }
             if {[llength $res] < 2} {
-                if {[ui_isset ports_debug]} {
+                if {[macports::ui_isset ui_options ports_debug]} {
                     puts "$portname ($installed_compound is installed; the port was not found in the port index)"
                 }
                 continue
@@ -1149,6 +1129,7 @@ proc action_help { action portlist opts } {
 
 
 proc action_info { action portlist opts } {
+    global ui_options
     set status 0
     require_portlist portlist
     foreachport $portlist {
@@ -1223,7 +1204,7 @@ proc action_info { action portlist opts } {
         }
         
         # Figure out whether to show field name
-        set quiet [ui_isset ports_quiet]
+        set quiet [macports::ui_isset ui_options ports_quiet]
         if {$quiet} {
             set show_label 0
         }
@@ -1501,13 +1482,14 @@ proc action_dependents { action portlist opts } {
 
 
 proc action_uninstall { action portlist opts } {
+    global global_options
     set status 0
-    if {[global_option_isset port_uninstall_old]} {
+    if {[macports::global_option_isset global_options port_uninstall_old]} {
         # if -u then uninstall all inactive ports
         # (union these to any other ports user has in the port list)
         set portlist [opUnion $portlist [get_inactive_ports]]
     } else {
-        # Otherwise the user had better have supplied a portlist, or we'll default to the existing directory
+        # Otherwise the user hopefully supplied a portlist, or we'll default to the existing directory
         require_portlist portlist
     }
 
@@ -1524,11 +1506,12 @@ proc action_uninstall { action portlist opts } {
 
 
 proc action_installed { action portlist opts } {
+    global global_options
     set status 0
     set restrictedList 0
     set ilist {}
     
-    if { [llength $portlist] || ![global_option_isset ports_no_args]} {
+    if { [llength $portlist] || ![macports::global_option_isset global_options ports_no_args]} {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion [array get variations]]
@@ -1575,7 +1558,7 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
-    global macports::registry.installtype
+    global macports::registry.installtype ui_options global_options
     set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 
     set status 0
@@ -1583,7 +1566,7 @@ proc action_outdated { action portlist opts } {
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
     set ilist {}
     set restrictedList 0
-    if { [llength $portlist] || ![global_option_isset ports_no_args]} {
+    if { [llength $portlist] || ![macports::global_option_isset global_options ports_no_args]} {
         set restrictedList 1
         foreach portspec $portlist {
             array set port $portspec
@@ -1631,7 +1614,7 @@ proc action_outdated { action portlist opts } {
                 break_softcontinue "search for portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
-                if {[ui_isset ports_debug]} {
+                if {[macports::ui_isset ui_options ports_debug]} {
                     puts "$portname ($installed_compound is installed; the port was not found in the port index)"
                 }
                 continue
@@ -1673,7 +1656,7 @@ proc action_outdated { action portlist opts } {
                 }
                 
                 # Emit information
-                if {$comp_result < 0 || [ui_isset ports_verbose]} {
+                if {$comp_result < 0 || [macports::ui_isset ui_options ports_verbose]} {
                 
                     if { $num_outdated == 0 } {
                         puts "The following installed ports are outdated:"
@@ -1829,8 +1812,9 @@ proc action_variants { action portlist opts } {
 
 
 proc action_search { action portlist opts } {
+    global global_options
     set status 0
-    if {![llength $portlist] && [global_option_isset ports_no_args]} {
+    if {![llength $portlist] && [macports::global_option_isset global_options ports_no_args]} {
         ui_error "You must specify a search pattern"
         return 1
     }
@@ -1877,10 +1861,11 @@ proc action_search { action portlist opts } {
 
 
 proc action_list { action portlist opts } {
+    global global_options
     set status 0
     
     # Default to list all ports if no portnames are supplied
-    if {![llength $portlist] && [global_option_isset ports_no_args]} {
+    if {![llength $portlist] && [macports::global_option_isset global_options ports_no_args]} {
         add_to_portlist portlist [list name "-all-"]
     }
     
@@ -2375,7 +2360,7 @@ proc parse_options { action ui_options_name global_options_name } {
 
 proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn
-    global global_options global_options_base
+    global global_options global_options_base ui_options
     global current_portdir
     set cmd_argv $argv
     set cmd_argc [llength $argv]
@@ -2442,7 +2427,7 @@ proc process_cmd { argv } {
         if {$action_status == -999} break
 
         # If we're not in exit mode then ignore the status from the command
-        if { ![ui_isset ports_exit] } {
+        if { ![macports::ui_isset ui_options ports_exit] } {
             set action_status 0
         }
     }
@@ -2544,7 +2529,7 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 
 
 proc process_command_file { in } {
-    global current_portdir
+    global current_portdir ui_options
 
     # Initialize readline
     set isstdin [string match $in "stdin"]
@@ -2559,7 +2544,7 @@ proc process_command_file { in } {
     }
 
     # Be noisy, if appropriate
-    set noisy [expr $isstdin && ![ui_isset ports_quiet]]
+    set noisy [expr $isstdin && ![macports::ui_isset ui_options ports_quiet]]
     if { $noisy } {
         puts "MacPorts [macports::version]"
         puts "Entering interactive mode... (\"help\" for help, \"quit\" to quit)"
@@ -2590,7 +2575,7 @@ proc process_command_file { in } {
         if {$exit_status == -999} break
         
         # Ignore status unless we're in error-exit mode
-        if { ![ui_isset ports_exit] } {
+        if { ![macports::ui_isset ui_options ports_exit] } {
             set exit_status 0
         }
     }
@@ -2610,6 +2595,7 @@ proc process_command_file { in } {
 
 
 proc process_command_files { filelist } {
+    global ui_options
     set exit_status 0
 
     # For each file in the command list, process commands
@@ -2636,7 +2622,7 @@ proc process_command_files { filelist } {
         }
 
         # Ignore status unless we're in error-exit mode
-        if { ![ui_isset ports_exit] } {
+        if { ![macports::ui_isset ui_options ports_exit] } {
             set exit_status 0
         }
     }

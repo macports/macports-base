@@ -77,6 +77,31 @@ namespace eval macports {
 # if these functions are not provided, defaults are used, but this should
 # not be relied upon for production code
 
+# ui_options accessor
+proc macports::ui_isset {ui_options val} {
+    upvar $ui_options up_ui_options
+    if {[info exists up_ui_options($val)]} {
+        if {$up_ui_options($val) == "yes"} {
+            return 1
+        }
+    }
+    return 0
+}
+
+
+# global_options accessor
+proc macports::global_option_isset {global_options val} {
+    upvar $global_options up_global_options
+    if {[info exists up_global_options($val)]} {
+        if {$up_global_options($val) == "yes"} {
+            puts "Global option \"$val\" in action!"
+            return 1
+        }
+    }
+    return 0
+}
+
+
 proc macports::ui_init {priority message} {
     # Get the list of channels.
     if {[llength [info commands ui_channels]] > 0} {
