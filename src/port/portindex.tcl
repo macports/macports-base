@@ -1,5 +1,5 @@
 #!/bin/sh
-#\
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4 \
 exec @TCLSH@ "$0" "$@"
 
 # Traverse through all ports, creating an index and archiving port directories
@@ -7,7 +7,7 @@ exec @TCLSH@ "$0" "$@"
 # $Id$
 
 catch {source \
-	[file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+    [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
 package require Pextlib
 
@@ -15,13 +15,12 @@ package require Pextlib
 set archive 0
 set stats(total) 0
 set stats(failed) 0
-array set ui_options		[list]
-array set global_options 	[list]
+array set ui_options        [list]
+array set global_options    [list]
 array set global_variations [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
-
 
 
 # UI Instantiations
@@ -33,9 +32,9 @@ mportinit ui_options global_options global_variations
 proc ui_isset {val} {
     global ui_options
     if {[info exists ui_options($val)]} {
-	if {$ui_options($val) == "yes"} {
-	    return 1
-	}
+        if {$ui_options($val) == "yes"} {
+            return 1
+        }
     }
     return 0
 }
@@ -44,16 +43,16 @@ proc ui_isset {val} {
 proc ui_prefix {priority} {
     switch $priority {
         debug {
-        	return "DEBUG: "
+            return "DEBUG: "
         }
         error {
-        	return "Error: "
+            return "Error: "
         }
         warn {
-        	return "Warning: "
+            return "Warning: "
         }
         default {
-        	return ""
+            return ""
         }
     }
 }
@@ -62,9 +61,9 @@ proc ui_channels {priority} {
     switch $priority {
         debug {
             if {[ui_isset ports_debug]} {
-            	return {stderr}
+                return {stderr}
             } else {
-            	return {}
+                return {}
             }
         }
         info {
@@ -72,20 +71,20 @@ proc ui_channels {priority} {
                 return {stdout}
             } else {
                 return {}
-			}
-		}
+            }
+        }
         msg {
             if {[ui_isset ports_quiet]} {
                 return {}
-			} else {
-				return {stdout}
-			}
-		}
+            } else {
+                return {stdout}
+            }
+        }
         error {
-        	return {stderr}
+            return {stderr}
         }
         default {
-        	return {stdout}
+            return {stdout}
         }
     }
 }
@@ -99,19 +98,19 @@ proc print_usage args {
     puts "-d:\tOutput debugging information"
 }
 
-proc pindex {portdir} {	
+proc pindex {portdir} { 
     global target fd directory archive outdir stats 
     incr stats(total)
-	global macports::prefix
-	set save_prefix $prefix
-	set prefix {\${prefix}}
+    global macports::prefix
+    set save_prefix $prefix
+    set prefix {\${prefix}}
     if {[catch {set interp [mportopen file://[file join $directory $portdir]]} result]} {
-		puts stderr "Failed to parse file $portdir/Portfile: $result"
-		# revert the prefix.
-		set prefix $save_prefix
-		incr stats(failed)
+        puts stderr "Failed to parse file $portdir/Portfile: $result"
+        # revert the prefix.
+        set prefix $save_prefix
+        incr stats(failed)
     } else {
-		# revert the prefix.
+        # revert the prefix.
         set prefix $save_prefix
         array set portinfo [mportinfo $interp]
         mportclose $interp
@@ -151,18 +150,18 @@ for {set i 0} {$i < $argc} {incr i} {
         {^-.+} {
             if {$arg == "-a"} { # Turn on archiving
                 set archive 1
-	    } elseif {$arg == "-d"} { # Turn on debug output
-		set ui_options(ports_debug) yes
-	    } elseif {$arg == "-o"} { # Set output directory
-		incr i
-		set outdir [lindex $argv $i]
-	    } else {
-		puts stderr "Unknown option: $arg"
-		print_usage
-		exit 1
-	    }
-	}
-	default { set directory $arg }
+        } elseif {$arg == "-d"} { # Turn on debug output
+            set ui_options(ports_debug) yes
+        } elseif {$arg == "-o"} { # Set output directory
+            incr i
+            set outdir [lindex $argv $i]
+        } else {
+            puts stderr "Unknown option: $arg"
+            print_usage
+            exit 1
+        }
+    }
+    default { set directory $arg }
     }
 }
 
