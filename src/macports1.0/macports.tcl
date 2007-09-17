@@ -94,7 +94,6 @@ proc macports::global_option_isset {global_options val} {
     upvar $global_options up_global_options
     if {[info exists up_global_options($val)]} {
         if {$up_global_options($val) == "yes"} {
-            puts "Global option \"$val\" in action!"
             return 1
         }
     }
