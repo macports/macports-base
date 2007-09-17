@@ -187,13 +187,13 @@ proc puts {args} {
 # or in the PATH environment variable through macports::binaryInPath (fallback)
 proc macports::findBinary {prog {autoconf_hint ""}} {
     if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-    return ${autoconf_hint}
+        return ${autoconf_hint}
     } else {
-    if {[catch {set cmd_path [macports::binaryInPath ${prog}]} result] == 0} {
-        return ${cmd_path}
-    } else {
-        return -code error "${result} or at its MacPorts configuration time location, did you move it?"
-    }
+        if {[catch {set cmd_path [macports::binaryInPath ${prog}]} result] == 0} {
+            return ${cmd_path}
+        } else {
+            return -code error "${result} or at its MacPorts configuration time location, did you move it?"
+        }
     }
 }
 
@@ -201,10 +201,10 @@ proc macports::findBinary {prog {autoconf_hint ""}} {
 # returns an error code if it can not be found
 proc macports::binaryInPath {prog} {
     global env
-    foreach dir [split $env(PATH) :] { 
-    if {[file executable [file join $dir $prog]]} {
-        return [file join $dir $prog]
-    }
+    foreach dir [split $env(PATH) :] {
+        if {[file executable [file join $dir $prog]]} {
+            return [file join $dir $prog]
+        }
     }
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $prog $env(PATH)];
 }
@@ -355,8 +355,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                         global macports::$option
                     }
                 }
-            }
-            
+            }            
             break
         }
     }
