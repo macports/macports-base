@@ -1,4 +1,5 @@
 #!/usr/bin/env tclsh
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4
 #
 # PortIndex2MySQL.tcl
 # Kevin Van Vechten | kevin@opendarwin.org
@@ -67,7 +68,7 @@ proc bail_on_error {error_log} {
 
 # Load macports1.0 so that we can use some of its procs and the portinfo array.
 catch {source \
-	   [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+    [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
 
 # Initialize MacPorts to find the sources.conf file, wherefrom we'll
@@ -115,10 +116,10 @@ if {[catch {open $sqlfile w+} sqlfile_fd]} {
 
 # SQL string escaping.
 proc sql_escape {str} {
-        regsub -all -- {'} $str {\\'} str
-        regsub -all -- {"} $str {\\"} str
-        regsub -all -- {\n} $str {\\n} str
-        return $str
+    regsub -all -- {'} $str {\\'} str
+    regsub -all -- {"} $str {\\"} str
+    regsub -all -- {\n} $str {\\n} str
+    return $str
 }
 
 # Initial creation of database tables: log, portfiles, categories, maintainers, dependencies, variants and platforms.
@@ -148,105 +149,105 @@ puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHA
 
 # Load every port in the index through a search matching everything.
 if {[catch {set ports [mportsearch ".+"]} errstr]} {
-	ui_error "port search failed: $errstr"
-	exit 1
+    ui_error "port search failed: $errstr"
+    exit 1
 }
 
 # Iterate over each matching port, extracting its information from the
 # portinfo array.
 foreach {name array} $ports {
 
-	array unset portinfo
-	array set portinfo $array
+    array unset portinfo
+    array set portinfo $array
 
-	set portname [sql_escape $portinfo(name)]
-	if {[info exists portinfo(version)]} {
-		set portversion [sql_escape $portinfo(version)]
-	} else {
-		set portversion ""
-	}
-	set portdir [sql_escape $portinfo(portdir)]
-	if {[info exists portinfo(description)]} {
-		set description [sql_escape $portinfo(description)]
-	} else {
-		set description ""
-	}
-	if {[info exists portinfo(categories)]} {
-		set categories $portinfo(categories)
-	} else {
-		set categories ""
-	}
-	if {[info exists portinfo(maintainers)]} {
-		set maintainers $portinfo(maintainers)
-	} else {
-		set maintainers ""
-	}
-	if {[info exists portinfo(variants)]} {
-		set variants $portinfo(variants)
-	} else {
-		set variants ""
-	}
-        if {[info exists portinfo(depends_build)]} {
-                set depends_build $portinfo(depends_build)
-        } else {
-                set depends_build ""
-        }
-	if {[info exists portinfo(depends_lib)]} {
-		set depends_lib $portinfo(depends_lib)
-	} else {
-		set depends_lib ""
-	}
-        if {[info exists portinfo(depends_run)]} {
-                set depends_run $portinfo(depends_run)
-        } else {
-                set depends_run ""
-        }
-	if {[info exists portinfo(platforms)]} {
-		set platforms $portinfo(platforms)
-	} else {
-		set platforms ""
-	}
+    set portname [sql_escape $portinfo(name)]
+    if {[info exists portinfo(version)]} {
+        set portversion [sql_escape $portinfo(version)]
+    } else {
+        set portversion ""
+    }
+    set portdir [sql_escape $portinfo(portdir)]
+    if {[info exists portinfo(description)]} {
+        set description [sql_escape $portinfo(description)]
+    } else {
+        set description ""
+    }
+    if {[info exists portinfo(categories)]} {
+        set categories $portinfo(categories)
+    } else {
+        set categories ""
+    }
+    if {[info exists portinfo(maintainers)]} {
+        set maintainers $portinfo(maintainers)
+    } else {
+        set maintainers ""
+    }
+    if {[info exists portinfo(variants)]} {
+        set variants $portinfo(variants)
+    } else {
+        set variants ""
+    }
+    if {[info exists portinfo(depends_build)]} {
+        set depends_build $portinfo(depends_build)
+    } else {
+        set depends_build ""
+    }
+    if {[info exists portinfo(depends_lib)]} {
+        set depends_lib $portinfo(depends_lib)
+    } else {
+        set depends_lib ""
+    }
+    if {[info exists portinfo(depends_run)]} {
+        set depends_run $portinfo(depends_run)
+    } else {
+        set depends_run ""
+    }
+    if {[info exists portinfo(platforms)]} {
+        set platforms $portinfo(platforms)
+    } else {
+        set platforms ""
+    }
 
-	puts $sqlfile_fd "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description');"
+    puts $sqlfile_fd "INSERT INTO portfiles VALUES ('$portname', '$portdir', '$portversion', '$description');"
 
-	set primary 1
-	foreach category $categories {
-            set category [sql_escape $category]
-            puts $sqlfile_fd "INSERT INTO categories VALUES ('$portname', '$category', $primary);"
-            incr primary
-	}
-	
-	set primary 1
-	foreach maintainer $maintainers {
-            set maintainer [sql_escape $maintainer]
-            puts $sqlfile_fd "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary);"
-            incr primary
-	}
+    set primary 1
+    foreach category $categories {
+        set category [sql_escape $category]
+        puts $sqlfile_fd "INSERT INTO categories VALUES ('$portname', '$category', $primary);"
+        incr primary
+    }
+    
+    set primary 1
+    foreach maintainer $maintainers {
+        set maintainer [sql_escape $maintainer]
+        puts $sqlfile_fd "INSERT INTO maintainers VALUES ('$portname', '$maintainer', $primary);"
+        incr primary
+    }
 
-        foreach build_dep $depends_build {
-            set build_dep [sql_escape $build_dep]
-            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$build_dep');"
-        }
+    foreach build_dep $depends_build {
+        set build_dep [sql_escape $build_dep]
+        puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$build_dep');"
+    }
 
-	foreach lib $depends_lib {
-            set lib [sql_escape $lib]
-            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$lib');"
-	}
+    foreach lib $depends_lib {
+        set lib [sql_escape $lib]
+        puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$lib');"
+    }
 
-        foreach run_dep $depends_run {
-            set run_dep [sql_escape $run_dep]
-            puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$run_dep');"
-        }
+    foreach run_dep $depends_run {
+        set run_dep [sql_escape $run_dep]
+        puts $sqlfile_fd "INSERT INTO dependencies VALUES ('$portname', '$run_dep');"
+    }
 
-	foreach variant $variants {
-            set variant [sql_escape $variant]
-            puts $sqlfile_fd "INSERT INTO variants VALUES ('$portname', '$variant');"
-	}
+    foreach variant $variants {
+        set variant [sql_escape $variant]
+        puts $sqlfile_fd "INSERT INTO variants VALUES ('$portname', '$variant');"
+    }
 
-	foreach platform $platforms {
-            set platform [sql_escape $platform]
-            puts $sqlfile_fd "INSERT INTO platforms VALUES ('$portname', '$platform');"
-	}
+    foreach platform $platforms {
+        set platform [sql_escape $platform]
+        puts $sqlfile_fd "INSERT INTO platforms VALUES ('$portname', '$platform');"
+    }
 
 }
 
