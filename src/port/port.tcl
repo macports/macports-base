@@ -46,24 +46,6 @@ package require macports
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
 
-# UI Callback
-proc ui_prefix {priority} {
-    switch $priority {
-        debug {
-            return "DEBUG: "
-        }
-        error {
-            return "Error: "
-        }
-        warn {
-            return "Warning: "
-        }
-        default {
-            return ""
-        }
-    }
-}
-
 proc ui_channels {priority} {
     global ui_options
     switch $priority {
