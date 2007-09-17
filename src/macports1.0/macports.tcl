@@ -289,7 +289,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
     global auto_path env
     global macports::autoconf::macports_conf_path
-        global macports::macports_user_dir
+    global macports::macports_user_dir
     global macports::bootstrap_options
     global macports::user_options
     global macports::extra_env
@@ -303,7 +303,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::destroot_umask
     global macports::libpath
     global macports::prefix
-        global macports::prefix_frozen
+    global macports::prefix_frozen
     global macports::registry.installtype
     global macports::rsync_dir
     global macports::rsync_options
@@ -314,11 +314,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::buildnicevalue
     global macports::buildmakejobs
 
-        # Set the system encoding to utf-8
-        encoding system utf-8
+    # Set the system encoding to utf-8
+    encoding system utf-8
 
-        # Ensure that the macports user directory exists if HOME is defined
-        if {[info exists env(HOME)]} {
+    # Ensure that the macports user directory exists if HOME is defined
+    if {[info exists env(HOME)]} {
         set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
         if { ![file exists $macports_user_dir] } {
         # If not, create it with ownership of the enclosing directory, rwx by the user only
@@ -362,7 +362,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # Process per-user only settings
-        set per_user "${macports_user_dir}/user.conf"
+    set per_user "${macports_user_dir}/user.conf"
     if [file exists $per_user] {
         set fd [open $per_user r]
         while {[gets $fd line] >= 0} {
@@ -381,31 +381,31 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     set fd [open $sources_conf r]
     while {[gets $fd line] >= 0} {
         set line [string trimright $line]
-    if {![regexp {^\s*#|^$} $line]} {
-        if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
-        set flags [split $flags ,]
-        foreach flag $flags {
-            if {[lsearch -exact [list nosync] $flag] == -1} {
-            ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+        if {![regexp {^\s*#|^$} $line]} {
+            if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
+                set flags [split $flags ,]
+                foreach flag $flags {
+                    if {[lsearch -exact [list nosync] $flag] == -1} {
+                        ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+                    }
+                }
+                lappend sources [concat [list $url] $flags]
+            } else {
+                ui_warn "$sources_conf specifies invalid source '$line', ignored."
             }
         }
-        lappend sources [concat [list $url] $flags]
-        } else {
-        ui_warn "$sources_conf specifies invalid source '$line', ignored."
-        }
-    }
     }
     if {![info exists sources]} {
-    if {[file isdirectory ports]} {
-        set sources "file://[pwd]/ports"
-    } else {
-        return -code error "No sources defined in $sources_conf"
-    }
+        if {[file isdirectory ports]} {
+            set sources "file://[pwd]/ports"
+        } else {
+            return -code error "No sources defined in $sources_conf"
+        }
     }
 
     if {[info exists variants_conf]} {
         if {[file exist $variants_conf]} {
-                set fd [open $variants_conf r]
+            set fd [open $variants_conf r]
             while {[gets $fd line] >= 0} {
                 set line [string trimright $line]
                 if {![regexp {^[\ \t]*#.*$|^$} $line]} {
@@ -426,29 +426,29 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {![info exists portdbpath]} {
-    return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
+        return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
     }
     if {![file isdirectory $portdbpath]} {
-    if {![file exists $portdbpath]} {
-        if {[catch {file mkdir $portdbpath} result]} {
-        return -code error "portdbpath $portdbpath does not exist and could not be created: $result"
+        if {![file exists $portdbpath]} {
+            if {[catch {file mkdir $portdbpath} result]} {
+                return -code error "portdbpath $portdbpath does not exist and could not be created: $result"
+            }
         }
     }
-    }
     if {![file isdirectory $portdbpath]} {
-    return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
+        return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
     set registry.path $portdbpath
     if {![file isdirectory ${registry.path}]} {
-    if {![file exists ${registry.path}]} {
-        if {[catch {file mkdir ${registry.path}} result]} {
-        return -code error "portdbpath ${registry.path} does not exist and could not be created: $result"
+        if {![file exists ${registry.path}]} {
+            if {[catch {file mkdir ${registry.path}} result]} {
+                return -code error "portdbpath ${registry.path} does not exist and could not be created: $result"
+            }
         }
     }
-    }
     if {![file isdirectory ${macports::registry.path}]} {
-    return -code error "${macports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
+        return -code error "${macports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
     }
 
     # Format for receipts, can currently be either "flat" or "sqlite"
@@ -491,9 +491,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-        # Duplicate prefix into prefix_frozen, so that port actions
-        # can always get to the original prefix, even if a portfile overrides prefix
-        set macports::prefix_frozen $prefix
+    # Duplicate prefix into prefix_frozen, so that port actions
+    # can always get to the original prefix, even if a portfile overrides prefix
+    set macports::prefix_frozen $prefix
 
     # Export verbosity.
     if {![info exists portverbose]} {
@@ -557,17 +557,17 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     set portsharepath ${prefix}/share/macports
     if {![file isdirectory $portsharepath]} {
-    return -code error "Data files directory '$portsharepath' must exist"
+        return -code error "Data files directory '$portsharepath' must exist"
     }
     
     if {![info exists libpath]} {
-    set libpath "${prefix}/share/macports/Tcl"
+        set libpath "${prefix}/share/macports/Tcl"
     }
 
     if {![info exists binpath]} {
-    set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
+        set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin"
     } else {
-    set env(PATH) "$binpath"
+        set env(PATH) "$binpath"
     }
     
     # Set startupitem default type (can be overridden by portfile)
@@ -577,35 +577,36 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default place_worksymlink
     if {![info exists macports::place_worksymlink]} {
-    set macports::place_worksymlink yes
+        set macports::place_worksymlink yes
     }
 
     # Default mp remote options
     if {![info exists macports::mp_remote_url]} {
-    set macports::mp_remote_url "http://db.macports.org"
+        set macports::mp_remote_url "http://db.macports.org"
     }
     if {![info exists macports::mp_remote_submit_url]} {
-    set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
+        set macports::mp_remote_submit_url "${macports::mp_remote_url}/submit"
     }
     
     # Default mp build options
     if {![info exists macports::buildnicevalue]} {
-    set macports::buildnicevalue 0
+        set macports::buildnicevalue 0
     }
     if {![info exists macports::buildmakejobs]} {
-    set macports::buildmakejobs 1
+        set macports::buildmakejobs 1
     }
     
     # ENV cleanup.
-    set keepenvkeys { DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
-                      DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
-                      DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
-                      HOME JAVA_HOME LD_PREBIND
-                      LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
-                      PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
-                      USER GROUP
-                      http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
-                    }
+    set keepenvkeys {
+        DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
+        DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
+        DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
+        HOME JAVA_HOME LD_PREBIND
+        LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
+        PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
+        USER GROUP
+        http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
+    }
     if {[info exists extra_env]} {
         set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
     }
@@ -628,15 +629,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {[info exists master_site_local] && ![info exists env(MASTER_SITE_LOCAL)]} {
-    set env(MASTER_SITE_LOCAL) "$master_site_local"
+        set env(MASTER_SITE_LOCAL) "$master_site_local"
     }
 
     # Prebinding. useful with MacOS X's ld, harmless elsewhere.
     # With both variables, prebinding will always succeed but we might need
     # to redo it.
     if {![info exists env(LD_PREBIND)] && ![info exists env(LD_PREBIND_ALLOW_OVERLAP)]} {
-    set env(LD_PREBIND) "1"
-    set env(LD_PREBIND_ALLOW_OVERLAP) "1"
+        set env(LD_PREBIND) "1"
+        set env(LD_PREBIND_ALLOW_OVERLAP) "1"
     }
 
     if {[file isdirectory $libpath]} {
