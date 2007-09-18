@@ -157,9 +157,11 @@ proc macports::ui_prefix_default {priority} {
 # Default implementation of ui_channels
 proc macports::ui_channels_default {priority} {
     switch $priority {
-        debug -
+        debug {
+            return {stderr}
+        }
         info {
-            return {}
+            return {stdout}
         }
         msg {
             return {stdout}
@@ -334,12 +336,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
     # Configure the search path for configuration files
     set conf_files ""
-        if {[info exists env(PORTSRC)]} {
+    if {[info exists env(PORTSRC)]} {
         set PORTSRC $env(PORTSRC)
         lappend conf_files ${PORTSRC}
     }
     if { [file isdirectory macports_user_dir] } {
-    lappend conf_files "${macports_user_dir}/macports.conf"
+        lappend conf_files "${macports_user_dir}/macports.conf"
     }
     lappend conf_files "${macports_conf_path}/macports.conf"
     
