@@ -37,7 +37,7 @@ DATE=$(date +'%A %Y-%m-%d at %H:%M:%S')
 
 # Function to spam people in charge if something goes wrong during guide regen.
 bail () {
-    mail -s "Guide Regen failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
+    mail -s "Guide Regen Failure on ${DATE}" $SPAM_LOVERS < $FAILURE_LOG
     cleanup; exit 1
 }
 
@@ -55,33 +55,16 @@ else
 fi
 
 # Checkout/update the doc tree
-if [ -d ${SRCTREE}/doc ]; then
-    $SVN update ${SRCTREE}/doc > $FAILURE_LOG 2>&1 \
-        || { echo "Updating the doc tree from $REPO_BASE/trunk/doc failed." >> $FAILURE_LOG; bail ; }
+if [ -d ${SRCTREE}/doc-new ]; then
+    $SVN update ${SRCTREE}/doc-new > $FAILURE_LOG 2>&1 \
+        || { echo "Updating the doc tree from $REPO_BASE/trunk/doc-new failed." >> $FAILURE_LOG; bail ; }
 else
-    $SVN checkout ${REPO_BASE}/trunk/doc ${SRCTREE}/doc > $FAILURE_LOG 2>&1 \
-        || { echo "Checking out the doc tree from $REPO_BASE/trunk/s failed." >> $FAILURE_LOG; bail ; }
+    $SVN checkout ${REPO_BASE}/trunk/doc-new ${SRCTREE}/doc-new > $FAILURE_LOG 2>&1 \
+        || { echo "Checking out the doc tree from $REPO_BASE/trunk/doc-new failed." >> $FAILURE_LOG; bail ; }
 fi
-
-# Checkout/update HEAD
-if [ -d ${SRCTREE}/base ]; then
-    $SVN update ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
-        || { echo "Updating the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
-else
-    $SVN checkout ${REPO_BASE}/trunk/base ${SRCTREE}/base > $FAILURE_LOG 2>&1 \
-        || { echo "Checking out the trunk from $REPO_BASE/trunk/base failed." >> $FAILURE_LOG; bail ; }
-fi
-
-# (re)configure.
-cd ${SRCTREE}/base/ && \
-    ./configure \
-    --prefix=${PREFIX} \
-    --with-install-user=${MP_USER} \
-    --with-install-group=${MP_GROUP} > $FAILURE_LOG 2>&1 \
-    || { echo "./configure script failed." >> $FAILURE_LOG ; bail ; }
 
 # (re)build
-{ cd ${SRCTREE}/doc/guide && make xhtml new > $FAILURE_LOG 2>&1 ; } \
+{ cd ${SRCTREE}/doc/doc-new && make guide > $FAILURE_LOG 2>&1 ; } \
     || { echo "make failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the guide was regen'd successfuly, so we cleanup before we exit.
