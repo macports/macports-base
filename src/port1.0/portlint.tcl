@@ -66,6 +66,7 @@ set lint_categories [list \
 	"textproc" \
 	"www" \
 	"x11" \
+	"xfce" \
 	"zope" \
 	]
 
