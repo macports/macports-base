@@ -269,6 +269,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
             break;
         }
 
+		/* skip the header data */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_HEADER, 0);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+		
 		/* write to the file */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_WRITEDATA, theFile);
 		if (theCurlCode != CURLE_OK) {
