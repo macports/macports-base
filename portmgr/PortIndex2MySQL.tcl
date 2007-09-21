@@ -145,6 +145,7 @@ array set ui_options {ports_verbose yes}
 if {[catch {mportinit ui_options} errstr]} {
     ui_error "${::errorInfo}"
     ui_error "Failed to initialize MacPorts, $errstr"
+#(BUG: need to cleanup lock file here!)
     terminate 1
 }
 
@@ -153,6 +154,7 @@ if {[catch {mportinit ui_options} errstr]} {
 if {[catch {macports::selfupdate} errstr]} {
     ui_error "${::errorInfo}"
     ui_error "Failed to update the ports tree, $errstr"
+#(BUG: need to cleanup lock file here!)
     terminate 1
 }
 
@@ -161,11 +163,13 @@ if {[catch {macports::selfupdate} errstr]} {
 proc getpasswd {passwdfile} {
     if {[catch {open $passwdfile r} passwdfile_fd]} {
         ui_error "${::errorCode}: $passwdfile_fd"
+#(BUG: need to cleanup lock file here!)
         terminate 1
     }
     if {[gets $passwdfile_fd passwd] <= 0} {
         close $passwdfile_fd
         ui_error "No password found in $passwdfile!"
+#(BUG: need to cleanup lock file here!)
         terminate 1
     }
     close $passwdfile_fd
@@ -183,8 +187,10 @@ set dbname macports_ports
 
 
 # Flat text file to which sql statements are written.
+#(BUG: need to cleanup lock file here!)
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
     ui_error "${::errorCode}: $sqlfile_fd"
+#(BUG: need to cleanup lock file here!)
     terminate 1
 }
 
