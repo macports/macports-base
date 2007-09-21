@@ -64,7 +64,7 @@ else
 fi
 
 # (re)build
-{ cd ${SRCTREE}/doc/doc-new && make guide > $FAILURE_LOG 2>&1 ; } \
+{ cd ${SRCTREE}/doc-new && make guide > $FAILURE_LOG 2>&1 ; } \
     || { echo "make failed." >> $FAILURE_LOG ; bail ; }
 
 # At this point the guide was regen'd successfuly, so we cleanup before we exit.
