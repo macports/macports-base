@@ -4026,12 +4026,16 @@ echo "$as_me: error: cannot find sed. Is sed installed?" >&2;}
    { (exit 1); exit 1; }; }
 	fi
 
-	{ echo "$as_me:$LINENO: checking for which sed flag to use for extended regexp" >&5
-echo $ECHO_N "checking for which sed flag to use for extended regexp... $ECHO_C" >&6; }
+	{ echo "$as_me:$LINENO: checking which sed flag to use for extended regexp" >&5
+echo $ECHO_N "checking which sed flag to use for extended regexp... $ECHO_C" >&6; }
+	any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`
 	bsd_sed_flag=`echo foo | $SED -E -e s/foo+/OK/ 2>&1 | grep OK`
 	gnu_sed_flag=`echo foo | $SED -r -e s/foo+/OK/ 2>&1 | grep OK`
-	any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`
-	if test "x$bsd_sed_flag" = "xOK" ; then
+	if test "x$any_sed_flag" = "xOK" ; then
+		{ echo "$as_me:$LINENO: result: none" >&5
+echo "${ECHO_T}none" >&6; }
+		SED_EXT=
+	elif test "x$bsd_sed_flag" = "xOK" ; then
 		{ echo "$as_me:$LINENO: result: -E (BSD)" >&5
 echo "${ECHO_T}-E (BSD)" >&6; }
 		SED_EXT=-E
@@ -4039,10 +4043,6 @@ echo "${ECHO_T}-E (BSD)" >&6; }
 		{ echo "$as_me:$LINENO: result: -r (GNU)" >&5
 echo "${ECHO_T}-r (GNU)" >&6; }
 		SED_EXT=-r
-	elif test "x$any_sed_flag" = "xOK" ; then
-		{ echo "$as_me:$LINENO: result: none" >&5
-echo "${ECHO_T}none" >&6; }
-		SED_EXT=
 	else
 		{ echo "$as_me:$LINENO: result: no idea" >&5
 echo "${ECHO_T}no idea" >&6; }

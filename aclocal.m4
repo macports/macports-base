@@ -784,19 +784,19 @@ AC_DEFUN([MP_SED_EXTENDED_REGEXP],[
 		AC_MSG_ERROR([cannot find sed. Is sed installed?])
 	fi
 
-	AC_MSG_CHECKING([for which sed flag to use for extended regexp])
+	AC_MSG_CHECKING([which sed flag to use for extended regexp])
+	[any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`]
 	[bsd_sed_flag=`echo foo | $SED -E -e s/foo+/OK/ 2>&1 | grep OK`]
 	[gnu_sed_flag=`echo foo | $SED -r -e s/foo+/OK/ 2>&1 | grep OK`]
-	[any_sed_flag=`echo foo | $SED    -e s/foo+/OK/ 2>&1 | grep OK`]
-	if test "x$bsd_sed_flag" = "xOK" ; then
+	if test "x$any_sed_flag" = "xOK" ; then
+		AC_MSG_RESULT([none])
+		SED_EXT=
+	elif test "x$bsd_sed_flag" = "xOK" ; then
 		AC_MSG_RESULT([-E (BSD)])
 		SED_EXT=-E
 	elif test "x$gnu_sed_flag" = "xOK" ; then
 		AC_MSG_RESULT([-r (GNU)])
 		SED_EXT=-r
-	elif test "x$any_sed_flag" = "xOK" ; then
-		AC_MSG_RESULT([none])
-		SED_EXT=
 	else
 		AC_MSG_RESULT([no idea])
 		AC_MSG_ERROR([cannot determine flag to use for $SED])
