@@ -57,62 +57,136 @@
 #####
 
 
-# Error messages reciepient.
-set SPAM_LOVERS macports-dev@lists.macosforge.org
-
-# Place holder proc for error catching and processing.
-proc bail_on_error {error_log} {
-    
-}
-
-
 # Load macports1.0 so that we can use some of its procs and the portinfo array.
 catch {source \
     [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
 
-# Initialize MacPorts to find the sources.conf file, wherefrom we'll
-# get the PortIndex that'll feed the database.
-#more work needs to be done than just initializing and passing the
-#ui_options array to get mportinit to output verbose/debugging info;
-#I'm currently looking into this.
+
+# Runtime information log file and reciepient.
+set runlog "/tmp/portsdb.log"
+set runlog_fd [open $runlog w+]
+set lockfile "/tmp/portsdb.lock"
+set DATE [clock format [clock seconds] -format "%A %Y-%m-%d at %T"]
+set subject "PortIndex2MySQL run failure on $DATE"
+set SPAM_LOVERS macports-dev@lists.macosforge.org
+
+# House keeping on exit.
+proc cleanup {} {
+    global sqlfile sqlfile_fd
+    global lockfile lockfile_fd
+    close $sqlfile_fd
+    close $lockfile_fd
+    file delete -force $sqlfile $lockfile
+}
+
+# What to do when terminating execution, depending on the $exit_status condition.
+proc terminate {exit_status} {
+    global runlog runlog_fd
+    global subject SPAM_LOVERS
+    if {$exit_status} {
+        seek $runlog_fd 0 start
+        exec -- mail -s $subject $SPAM_LOVERS <@ $runlog_fd
+    }
+    close $runlog_fd
+    file delete -force $runlog
+    exit $exit_status
+}
+
+
+# UI instantiation to route information/error messages wherever we want.
+proc ui_channels {priority} {
+    global ui_options runlog_fd
+    switch $priority {
+        debug {
+            if {[macports::ui_isset ui_options ports_debug]} {
+                return $runlog_fd
+            } else {
+                return {}
+            }
+        }
+        info {
+            if {[macports::ui_isset ui_options ports_verbose]} {
+                return $runlog_fd
+            } else {
+                return {}
+            }
+        }
+        msg {
+            if {[macports::ui_isset ui_options ports_quiet]} {
+                return $runlog_fd
+            } else {
+                return {}
+            }
+        }
+        error {
+            return $runlog_fd
+        }
+        default {
+            return {}
+        }
+    }
+}
+
+
+# Check if there are any stray sibling jobs before moving on, bail in such case.
+if {[file exists $lockfile]} {
+    ui_error "PortIndex2MySQL lock file found, is another job running?"
+    terminate 1
+} else {
+    set lockfile_fd [open $lockfile a]
+}
+
+
+# Initialize macports1.0 and its UI, in order to find the sources.conf file
+# (which is what will point us to the PortIndex we're gonna use) and use
+# the runtime information.
 array set ui_options {ports_verbose yes}
-mportinit
+if {[catch {mportinit ui_options} errstr]} {
+    ui_error "${::errorInfo}"
+    ui_error "Failed to initialize MacPorts, $errstr"
+    terminate 1
+}
 
 # Call the selfupdate procedure to make sure the MacPorts installation
 # is up-to-date and with a fresh ports tree.
-macports::selfupdate
+if {[catch {macports::selfupdate} errstr]} {
+    ui_error "${::errorInfo}"
+    ui_error "Failed to update the ports tree, $errstr"
+    terminate 1
+}
 
 
 # Procedure to catch the database password from a protected file.
 proc getpasswd {passwdfile} {
     if {[catch {open $passwdfile r} passwdfile_fd]} {
         ui_error "${::errorCode}: $passwdfile_fd"
-        exit 1
+        terminate 1
     }
     if {[gets $passwdfile_fd passwd] <= 0} {
+        close $passwdfile_fd
         ui_error "No password found in $passwdfile!"
-        exit 1
+        terminate 1
     }
     close $passwdfile_fd
     return $passwd
 }
 
 # Database abstraction variables:
-set sqlfile [file join /tmp ports.sql]
+set sqlfile "/tmp/portsdb.sql"
 set dbcmd [macports::findBinary mysql5]
 set dbhost 127.0.0.1
 set dbuser macports
-set passwdfile [file join . password_file]
+set passwdfile "./password_file"
 set dbpasswd [getpasswd $passwdfile]
 set dbname macports_ports
+
 
 # Flat text file to which sql statements are written.
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
     ui_error "${::errorCode}: $sqlfile_fd"
-    exit 1
+    terminate 1
 }
-
 
 # SQL string escaping.
 proc sql_escape {str} {
@@ -147,10 +221,12 @@ puts $sqlfile_fd "DROP TABLE IF EXISTS platforms;"
 puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHAR(255));"
 
 
-# Load every port in the index through a search matching everything.
+# Load every port in the index through a search that matches everything.
 if {[catch {set ports [mportsearch ".+"]} errstr]} {
+    ui_error "${::errorInfo}"
     ui_error "port search failed: $errstr"
-    exit 1
+    cleanup
+    terminate 1
 }
 
 # Iterate over each matching port, extracting its information from the
@@ -256,14 +332,16 @@ foreach {name array} $ports {
 # reading from the file descriptor for the raw sql file to assure completeness.
 if {[catch {seek $sqlfile_fd 0 start} errstr]} {
     ui_error "${::errorCode}: $errstr"
-    exit 1
+    cleanup
+    terminate 1
 }
 if {[catch {exec -- $dbcmd --host=$dbhost --user=$dbuser --password=$dbpasswd --database=$dbname <@ $sqlfile_fd} errstr]} {
     ui_error "${::errorCode}: $errstr"
-    exit 1
+    cleanup
+    terminate 1
 }
 
 
-# And we're done regen'ing the MacPorts dabase! (cleanup)
-close $sqlfile_fd
-file delete -force $sqlfile
+# And we're done regen'ing the MacPorts dabase! Cleanup and exit successfully.
+cleanup
+terminate 0
