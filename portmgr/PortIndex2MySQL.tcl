@@ -72,12 +72,13 @@ set subject "PortIndex2MySQL run failure on $DATE"
 set SPAM_LOVERS macports-dev@lists.macosforge.org
 
 # House keeping on exit.
-proc cleanup {} {
-    global sqlfile sqlfile_fd
-    global lockfile lockfile_fd
-    close $sqlfile_fd
-    close $lockfile_fd
-    file delete -force $sqlfile $lockfile
+proc cleanup {args} {
+    foreach file_to_clean $args {
+        upvar $file_to_clean up_file_to_clean
+        upvar ${file_to_clean}_fd up_file_to_clean_fd
+        close $up_file_to_clean_fd
+        file delete -force $up_file_to_clean
+    }
 }
 
 # What to do when terminating execution, depending on the $exit_status condition.
@@ -145,7 +146,7 @@ array set ui_options {ports_verbose yes}
 if {[catch {mportinit ui_options} errstr]} {
     ui_error "${::errorInfo}"
     ui_error "Failed to initialize MacPorts, $errstr"
-#(BUG: need to cleanup lock file here!)
+    cleanup lockfile
     terminate 1
 }
 
@@ -154,7 +155,7 @@ if {[catch {mportinit ui_options} errstr]} {
 if {[catch {macports::selfupdate} errstr]} {
     ui_error "${::errorInfo}"
     ui_error "Failed to update the ports tree, $errstr"
-#(BUG: need to cleanup lock file here!)
+    cleanup lockfile
     terminate 1
 }
 
@@ -163,13 +164,13 @@ if {[catch {macports::selfupdate} errstr]} {
 proc getpasswd {passwdfile} {
     if {[catch {open $passwdfile r} passwdfile_fd]} {
         ui_error "${::errorCode}: $passwdfile_fd"
-#(BUG: need to cleanup lock file here!)
+        cleanup lockfile
         terminate 1
     }
     if {[gets $passwdfile_fd passwd] <= 0} {
         close $passwdfile_fd
         ui_error "No password found in $passwdfile!"
-#(BUG: need to cleanup lock file here!)
+        cleanup lockfile
         terminate 1
     }
     close $passwdfile_fd
@@ -187,10 +188,9 @@ set dbname macports_ports
 
 
 # Flat text file to which sql statements are written.
-#(BUG: need to cleanup lock file here!)
 if {[catch {open $sqlfile w+} sqlfile_fd]} {
     ui_error "${::errorCode}: $sqlfile_fd"
-#(BUG: need to cleanup lock file here!)
+    cleanup lockfile
     terminate 1
 }
 
@@ -231,7 +231,7 @@ puts $sqlfile_fd "CREATE TABLE platforms (portfile VARCHAR(255), platform VARCHA
 if {[catch {set ports [mportsearch ".+"]} errstr]} {
     ui_error "${::errorInfo}"
     ui_error "port search failed: $errstr"
-    cleanup
+    cleanup sqlfile lockfile
     terminate 1
 }
 
@@ -338,16 +338,16 @@ foreach {name array} $ports {
 # reading from the file descriptor for the raw sql file to assure completeness.
 if {[catch {seek $sqlfile_fd 0 start} errstr]} {
     ui_error "${::errorCode}: $errstr"
-    cleanup
+    cleanup sqlfile lockfile
     terminate 1
 }
 if {[catch {exec -- $dbcmd --host=$dbhost --user=$dbuser --password=$dbpasswd --database=$dbname <@ $sqlfile_fd} errstr]} {
     ui_error "${::errorCode}: $errstr"
-    cleanup
+    cleanup sqlfile lockfile
     terminate 1
 }
 
 
 # And we're done regen'ing the MacPorts dabase! Cleanup and exit successfully.
-cleanup
+cleanup sqlfile lockfile
 terminate 0
