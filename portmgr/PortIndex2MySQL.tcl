@@ -84,13 +84,12 @@ proc cleanup {args} {
 # What to do when terminating execution, depending on the $exit_status condition.
 proc terminate {exit_status} {
     global runlog runlog_fd
-    global subject SPAM_LOVERS
     if {$exit_status} {
+        global subject SPAM_LOVERS
         seek $runlog_fd 0 start
         exec -- mail -s $subject $SPAM_LOVERS <@ $runlog_fd
     }
-    close $runlog_fd
-    file delete -force $runlog
+    cleanup runlog
     exit $exit_status
 }
 
