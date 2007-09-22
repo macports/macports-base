@@ -441,6 +441,8 @@ static int TracelibCleanCmd(Tcl_Interp * interp UNUSED)
 	}
 	if(filemap)
 		safe_free(filemap);
+	if(depends)
+		safe_free(depends);
 	enable_fence=0;
 	#undef safe_free
 	cleanuping=0;
