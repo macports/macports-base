@@ -75,7 +75,9 @@ default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk
 default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
 # Select a distinct compiler (C, C preprocessor, C++)
-options configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
+options configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
+default configure.ccache		{${configureccache}}
+default configure.distcc		{${configuredistcc}}
 default configure.cc			{}
 default configure.cxx			{}
 default configure.cpp			{}
@@ -123,7 +125,7 @@ proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
     global configure.env configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
-    global configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
+    global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
     if {[tbool use_automake]} {
@@ -235,11 +237,23 @@ proc configure_main {args} {
     	# Merge (ld|c|cpp|cxx)flags into the environment variable.
     	parse_environment configure
 
+		# Set pre-compiler filter to use (ccache/distcc), if any.
+		if {[tbool configure.ccache] && [tbool configure.distcc]} {
+			set filter "ccache "
+		    append_list_to_environment_value configure "CCACHE_PREFIX" "distcc"
+		} elseif {[tbool configure.ccache]} {
+			set filter "ccache "
+		} elseif {[tbool configure.distcc]} {
+			set filter "distcc "
+		} else {
+			set filter ""
+		}
+
     	# Append configure flags.
-		append_list_to_environment_value configure "CC" ${configure.cc}
-		append_list_to_environment_value configure "CPP" ${configure.cpp}
-		append_list_to_environment_value configure "CXX" ${configure.cxx}
-		append_list_to_environment_value configure "OBJC" ${configure.objc}
+		append_list_to_environment_value configure "CC" ${filter}${configure.cc}
+		append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
+		append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
+		append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
 		append_list_to_environment_value configure "FC" ${configure.fc}
 		append_list_to_environment_value configure "F77" ${configure.f77}
 		append_list_to_environment_value configure "F90" ${configure.f90}

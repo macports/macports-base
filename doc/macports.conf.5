@@ -121,6 +121,16 @@ Supported types are: tgz, tar, tbz, tbz2, xar, zip, cpgz, cpio
 .br
 .Ic Default:
 tgz
+.It Va configureccache
+Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
+.br
+.Ic Default:
+no
+.It Va configuredistcc
+Use distcc (distributed compiler). Requires that distcc has been installed.
+.br
+.Ic Default:
+no
 .It Va buildnicevalue
 Lowered scheduling priority (0-20) to use for make when building ports
 .br

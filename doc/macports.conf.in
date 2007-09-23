@@ -40,6 +40,12 @@ portarchivepath		@localstatedir_expanded@/macports/packages
 # Supported types: tgz (default), tar, tbz, tbz2, xar, zip, cpgz, cpio
 portarchivetype		tgz
 
+# Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
+configureccache		no
+
+# Use distcc (distributed compiler) - see http://distcc.samba.org/
+configuredistcc		no
+
 # Lowered scheduling priority (0-20) to use for make when building ports
 buildnicevalue		0
 
