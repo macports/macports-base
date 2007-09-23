@@ -84,8 +84,20 @@ proc package_pkg {portname portversion portrevision} {
     }
     write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
+    foreach dir {etc var tmp} {
+	if ([file exists "${destpath}/$dir"]) {
+	    # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
+	    system "mkdir -p ${destpath}/private/$dir; mv ${destpath}/$dir/* ${destpath}/private/$dir; rm -r \"${destpath}/$dir\""
+	}
+    }
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
     system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+    foreach dir {etc var tmp} {
+	if ([file exists "${destpath}/private/$dir"]) {
+	    # restore any directories that were moved, to avoid confusing the rest of the ports system.
+	    system "mv ${destpath}/private/$dir ${destpath}/$dir; rmdir ${destpath}/private 2>/dev/null"
+	}
+    }
 
     write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
