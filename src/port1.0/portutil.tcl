@@ -701,9 +701,9 @@ proc reinplace {args}  {
 	    set tmpfile [lindex $tmpfile 1]
 	}
 	
-	set cmdline sed
+	set cmdline $portutil::autoconf::sed_command
 	if {$extended} {
-	    lappend cmdline -E
+	    lappend cmdline $portutil::autoconf::sed_ext_flag
 	}
 	set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
 	if {[catch {eval exec $cmdline} error]} {
