@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Explicitly sort fs-traverse so it behaves predictable on linux systems (#12622, eridius in r29412).
+
     - add configure.objc/objcflags for Objective-C
 
     - add optional build.nice (0) and build.jobs (1) modifiers (afb in r28634 & r28673)

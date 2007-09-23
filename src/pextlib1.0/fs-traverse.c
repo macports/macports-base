@@ -128,13 +128,19 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 }
 
 static int
+do_compare(const FTSENT **a, const FTSENT **b)
+{
+    return strcmp((*a)->fts_name, (*b)->fts_name);
+}
+
+static int
 do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body)
 {
     int rval = TCL_OK;
     FTS *root_fts;
     FTSENT *ent;
     
-    root_fts = fts_open(targets, FTS_PHYSICAL /*| FTS_COMFOLLOW */| FTS_NOCHDIR | FTS_XDEV, NULL);
+    root_fts = fts_open(targets, FTS_PHYSICAL /*| FTS_COMFOLLOW */| FTS_NOCHDIR | FTS_XDEV, &do_compare);
     
     while ((ent = fts_read(root_fts)) != NULL) {
         switch (ent->fts_info) {
