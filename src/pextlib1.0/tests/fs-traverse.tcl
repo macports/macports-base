@@ -36,7 +36,7 @@ proc main {pextlibname} {
         # Test starting with a slash-ended symlink
         set output [list]
         fs-traverse file $root/a/c/a/ {
-            lappend output $file
+            lappend output [string map {// /} $file]
         }
         check_output $output $trees(sub2)
         
@@ -237,10 +237,10 @@ proc setup_trees {root} {
     
     set trees(sub2) "
         $root/a/c/a/     {link ../d}
-        $root/a/c/a//a   file
-        $root/a/c/a//b   {link ../../b/a}
-        $root/a/c/a//c   directory
-        $root/a/c/a//d   file
+        $root/a/c/a/a   file
+        $root/a/c/a/b   {link ../../b/a}
+        $root/a/c/a/c   directory
+        $root/a/c/a/d   file
     "
     
     set trees(2) "
