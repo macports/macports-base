@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - add optional configure.ccache and configure.distcc filters (#5390, afb in 29438)
+
     - Explicitly sort fs-traverse so it behaves predictable on linux systems (#12622, eridius in r29412).
 
     - add configure.objc/objcflags for Objective-C
@@ -16,7 +18,7 @@ Unreleased:
 
     - fix bsdmake/gnumake defaults for FreeBSD and Linux platforms (afb in r28660)
 
-    - port lint command, for Portfile verification (afb, r28170)
+    - port lint command, for Portfile verification (#463, afb in r28170)
 
     - add configure.macosx_deployment_target for configure flags
 
