@@ -99,21 +99,21 @@ proc ui_channels {priority} {
     global ui_options runlog_fd
     switch $priority {
         debug {
-            if {[macports::ui_isset ui_options ports_debug]} {
+            if {[macports::ui_isset ports_debug]} {
                 return $runlog_fd
             } else {
                 return {}
             }
         }
         info {
-            if {[macports::ui_isset ui_options ports_verbose]} {
+            if {[macports::ui_isset ports_verbose]} {
                 return $runlog_fd
             } else {
                 return {}
             }
         }
         msg {
-            if {[macports::ui_isset ui_options ports_quiet]} {
+            if {[macports::ui_isset ports_quiet]} {
                 return $runlog_fd
             } else {
                 return {}
