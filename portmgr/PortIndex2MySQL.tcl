@@ -93,42 +93,6 @@ proc terminate {exit_status} {
     exit $exit_status
 }
 
-
-# UI instantiation to route information/error messages wherever we want.
-proc ui_channels {priority} {
-    global ui_options runlog_fd
-    switch $priority {
-        debug {
-            if {[macports::ui_isset ui_options ports_debug]} {
-                return $runlog_fd
-            } else {
-                return {}
-            }
-        }
-        info {
-            if {[macports::ui_isset ui_options ports_verbose]} {
-                return $runlog_fd
-            } else {
-                return {}
-            }
-        }
-        msg {
-            if {[macports::ui_isset ui_options ports_quiet]} {
-                return $runlog_fd
-            } else {
-                return {}
-            }
-        }
-        error {
-            return $runlog_fd
-        }
-        default {
-            return {}
-        }
-    }
-}
-
-
 # Check if there are any stray sibling jobs before moving on, bail in such case.
 if {[file exists $lockfile]} {
     ui_error "PortIndex2MySQL lock file found, is another job running?"
