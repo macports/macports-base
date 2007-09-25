@@ -28,38 +28,6 @@ mportinit ui_options global_options global_variations
 # ui_options(ports_verbose) - If set, output info messages (ui_info)
 # ui_options(ports_quiet) - If set, don't output "standard messages"
 
-proc ui_channels {priority} {
-    switch $priority {
-        debug {
-            if {[macports::ui_isset ui_options ports_debug]} {
-                return {stderr}
-            } else {
-                return {}
-            }
-        }
-        info {
-            if {[macports::ui_isset ui_options ports_verbose]} {
-                return {stdout}
-            } else {
-                return {}
-            }
-        }
-        msg {
-            if {[macports::ui_isset ui_options ports_quiet]} {
-                return {}
-            } else {
-                return {stdout}
-            }
-        }
-        error {
-            return {stderr}
-        }
-        default {
-            return {stdout}
-        }
-    }
-}
-
 # Standard procedures
 proc print_usage args {
     global argv0

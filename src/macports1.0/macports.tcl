@@ -78,10 +78,9 @@ namespace eval macports {
 # not be relied upon for production code
 
 # ui_options accessor
-proc macports::ui_isset {ui_options val} {
-    upvar $ui_options up_ui_options
-    if {[info exists up_ui_options($val)]} {
-        if {$up_ui_options($val) == "yes"} {
+proc macports::ui_isset {val} {
+    if {[info exists macports::ui_options($val)]} {
+        if {$macports::ui_options($val) == "yes"} {
             return 1
         }
     }
@@ -90,10 +89,9 @@ proc macports::ui_isset {ui_options val} {
 
 
 # global_options accessor
-proc macports::global_option_isset {global_options val} {
-    upvar $global_options up_global_options
-    if {[info exists up_global_options($val)]} {
-        if {$up_global_options($val) == "yes"} {
+proc macports::global_option_isset {val} {
+    if {[info exists macports::global_options($val)]} {
+        if {$macports::global_options($val) == "yes"} {
             return 1
         }
     }
@@ -158,13 +156,25 @@ proc macports::ui_prefix_default {priority} {
 proc macports::ui_channels_default {priority} {
     switch $priority {
         debug {
-            return {stderr}
+            if {[ui_isset ports_debug]} {
+                return {stderr}
+            } else {
+                return {}
+            }
         }
         info {
-            return {stdout}
+            if {[ui_isset ports_verbose]} {
+                return {stdout}
+            } else {
+                return {}
+            }
         }
         msg {
-            return {stdout}
+            if {[ui_isset ports_quiet]} {
+                return {}
+            } else {    
+                return {stdout}
+            }
         }
         error {
             return {stderr}
@@ -274,17 +284,19 @@ proc dportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$up_ui_options eq ""} {
-        array set ui_options {}
+        array set macports::ui_options {}
     } else {
-        upvar $up_ui_options ui_options
+        upvar $up_ui_options temp_ui_options
+        array set macports::ui_options [array get temp_ui_options]
     }
     if {$up_options eq ""} {
-        array set options {}
+        array set macports::global_options {}
     } else {
-        upvar $up_options options
+        upvar $up_options temp_options
+        array set macports::global_options [array get temp_options]
     }
     if {$up_variations eq ""} {
-        array set $up_variations {}
+        array set variations {}
     } else {
         upvar $up_variations variations
     }
@@ -477,9 +489,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         global macports::portautoclean
     }
     # Check command line override for autoclean
-    if {[info exists options(ports_autoclean)]} {
-        if {![string equal $options(ports_autoclean) $portautoclean]} {
-            set macports::portautoclean $options(ports_autoclean)
+    if {[info exists macports::global_options(ports_autoclean)]} {
+        if {![string equal $macports::global_options(ports_autoclean) $portautoclean]} {
+            set macports::portautoclean $macports::global_options(ports_autoclean)
         }
     }
     # Trace mode, whether to use darwintrace to debug ports.
@@ -488,9 +500,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         global macports::porttrace
     }
     # Check command line override for trace
-    if {[info exists options(ports_trace)]} {
-        if {![string equal $options(ports_trace) $porttrace]} {
-            set macports::porttrace $options(ports_trace)
+    if {[info exists macports::global_options(ports_trace)]} {
+        if {![string equal $macports::global_options(ports_trace) $porttrace]} {
+            set macports::porttrace $macports::global_options(ports_trace)
         }
     }
 
@@ -503,9 +515,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portverbose "no"
         global macports::portverbose
     }
-    if {[info exists ui_options(ports_verbose)]} {
-        if {![string equal $ui_options(ports_verbose) $portverbose]} {
-            set macports::portverbose $ui_options(ports_verbose)
+    if {[info exists macports::ui_options(ports_verbose)]} {
+        if {![string equal $macports::ui_options(ports_verbose) $portverbose]} {
+            set macports::portverbose $macports::ui_options(ports_verbose)
         }
     }
 
