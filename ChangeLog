@@ -10,7 +10,7 @@ Unreleased:
 
     - add optional configure.ccache and configure.distcc filters (#5390, afb in 29438)
 
-    - Explicitly sort fs-traverse so it behaves predictable on linux systems (#12622, eridius in r29412).
+    - Explicitly sort fs-traverse so it behaves predictably on Linux systems (#12622, eridius in r29412).
 
     - add configure.objc/objcflags for Objective-C
 
