@@ -144,7 +144,7 @@ proc package_mpkg {portname portversion portrevision} {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.rtf $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${mpkgpath}/Contents/Resources/background.tiff
 
 	return 0
@@ -179,6 +179,7 @@ proc mpkg_write_info_plist {infofile portname portversion portrevision destinati
 	set portname [xml_escape $portname]
 	set portversion [xml_escape $portversion]
 	set portrevision [xml_escape $portrevision]
+
 	set infofd [open ${infofile} w+]
 	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
