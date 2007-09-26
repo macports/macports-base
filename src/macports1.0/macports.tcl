@@ -990,23 +990,23 @@ proc mporttraverse {func {root .}} {
 proc _mportsearchpath {depregex search_path {executable 0}} {
     set found 0
     foreach path $search_path {
-    if {![file isdirectory $path]} {
-        continue
-    }
-
-    if {[catch {set filelist [readdir $path]} result]} {
-        return -code error "$result ($path)"
-        set filelist ""
-    }
-
-    foreach filename $filelist {
-        if {[regexp $depregex $filename] &&
-            (($executable == 0) || [file executable [file join $path $filename]])} {
-        ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
-        set found 1
-        break
+        if {![file isdirectory $path]} {
+            continue
         }
-    }
+
+        if {[catch {set filelist [readdir $path]} result]} {
+            return -code error "$result ($path)"
+            set filelist ""
+        }
+
+        foreach filename $filelist {
+            if {[regexp $depregex $filename] &&
+              (($executable == 0) || [file executable [file join $path $filename]])} {
+                ui_debug "Found Dependency: path: $path filename: $filename regex: $depregex"
+                set found 1
+                break
+            }
+        }
     }
     return $found
 }
@@ -1387,8 +1387,8 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     
     set found 0
     foreach source $sources {
-            set flags [lrange $source 1 end]
-            set source [lindex $source 0]
+        set flags [lrange $source 1 end]
+        set source [lindex $source 0]
         if {[macports::getprotocol $source] == "mports"} {
             array set attrs [list name $pattern]
             set res [macports::index::search $macports::portdbpath $source [array get attrs]]
@@ -1398,13 +1398,13 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                 ui_warn "Can't open index file for source: $source"
             } else {
                 try {
-                incr found 1
-                while {[gets $fd line] >= 0} {
-                    array unset portinfo
-                    set name [lindex $line 0]
+                    incr found 1
+                    while {[gets $fd line] >= 0} {
+                        array unset portinfo
+                        set name [lindex $line 0]
                         set len [lindex $line 1]
                         set line [read $fd $len]
-
+                        
                         if {$easy} {
                             set target $name
                         } else {
@@ -1412,47 +1412,53 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             if {![info exists portinfo($field)]} continue
                             set target $portinfo($field)
                         }
-
-                    switch $matchstyle {
-                    exact { set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )] }
-                    glob { set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]] }
-                    regexp -
-                    default { set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]] }
-                    }
-
-                    if {$matchres == 1} {
-                    if {$easy} {
-                        array set portinfo $line
-                    }
-                    switch -regexp -- [macports::getprotocol ${source}] {
-                        {^rsync$} {
-                        # Rsync files are local
-                        set source_url "file://[macports::getsourcepath $source]"
+                        
+                        switch $matchstyle {
+                            exact {
+                                set matchres [expr 0 == ( {$case_sensitive == "yes"} ? [string compare $pattern $target] : [string compare -nocase $pattern $target] )]
+                            }
+                            glob {
+                                set matchres [expr {$case_sensitive == "yes"} ? [string match $pattern $target] : [string match -nocase $pattern $target]]
+                            }
+                            regexp -
+                            default {
+                                set matchres [expr {$case_sensitive == "yes"} ? [regexp -- $pattern $target] : [regexp -nocase -- $pattern $target]]
+                            }
                         }
-                        default {
-                        set source_url $source
+                        
+                        if {$matchres == 1} {
+                            if {$easy} {
+                                array set portinfo $line
+                            }
+                            switch -regexp -- [macports::getprotocol ${source}] {
+                                {^rsync$} {
+                                    # Rsync files are local
+                                    set source_url "file://[macports::getsourcepath $source]"
+                                }
+                                default {
+                                    set source_url $source
+                                }
+                            }
+                            if {[info exists portinfo(portarchive)]} {
+                                set porturl ${source_url}/$portinfo(portarchive)
+                            } elseif {[info exists portinfo(portdir)]} {
+                                set porturl ${source_url}/$portinfo(portdir)
+                            }
+                            if {[info exists porturl]} {
+                                lappend line porturl $porturl
+                                ui_debug "Found port in $porturl"
+                            } else {
+                                ui_debug "Found port info: $line"
+                            }
+                            lappend matches $name
+                            lappend matches $line
                         }
                     }
-                    if {[info exists portinfo(portarchive)]} {
-                        set porturl ${source_url}/$portinfo(portarchive)
-                    } elseif {[info exists portinfo(portdir)]} {
-                        set porturl ${source_url}/$portinfo(portdir)
-                    }
-                    if {[info exists porturl]} {
-                        lappend line porturl $porturl
-                        ui_debug "Found port in $porturl"
-                    } else {
-                        ui_debug "Found port info: $line"
-                    }
-                    lappend matches $name
-                    lappend matches $line
-                    }
-                }
                 } catch {*} {
-                ui_warn "It looks like your PortIndex file may be corrupt."
-                throw
+                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    throw
                 } finally {
-                close $fd
+                    close $fd
                 }
             }
         }
@@ -1677,7 +1683,7 @@ proc macports::selfupdate {{optionslist {}}} {
         # get installation user / group 
         set owner root
         set group admin
-            set portprog [file join $prefix bin port]
+        set portprog [file join $prefix bin port]
         if {[file exists $portprog ]} {
             # set owner
             set owner [file attributes $portprog -owner]
@@ -1723,14 +1729,14 @@ proc macports::selfupdate {{optionslist {}}} {
 
 proc macports::version {} {
     global macports::rsync_server macports::rsync_dir
-        global macports::autoconf::macports_conf_path
+    global macports::autoconf::macports_conf_path
     
     set mp_version_path [file join ${macports_conf_path} mp_version]
 
     if [file exists $mp_version_path] {
         set fd [open $mp_version_path r]
         gets $fd retval
-            close $fd
+        close $fd
         return $retval
     } else {
         return -1
