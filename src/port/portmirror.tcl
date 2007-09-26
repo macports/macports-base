@@ -20,10 +20,6 @@ array set global_variations [list]
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
 
-# UI Instantiations
-# ui_options(ports_debug) - If set, output debugging messages.
-# ui_options(ports_verbose) - If set, output info messages (ui_info)
-# ui_options(ports_quiet) - If set, don't output "standard messages"
 
 # Iterate on dist files.
 #

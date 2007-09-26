@@ -41,10 +41,6 @@ catch {source \
     [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
 
-# UI Instantiations
-# ui_options(ports_debug) - If set, output debugging messages.
-# ui_options(ports_verbose) - If set, output info messages (ui_info)
-# ui_options(ports_quiet) - If set, don't output "standard messages"
 
 # Standard procedures
 proc print_usage {args} {

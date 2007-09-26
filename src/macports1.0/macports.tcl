@@ -74,8 +74,7 @@ namespace eval macports {
 # ui_prefix returns the prefix for the messages, if any.
 # ui_channels returns a list of channels to output the message to, empty for
 #     no message.
-# if these functions are not provided, defaults are used, but this should
-# not be relied upon for production code
+# if these functions are not provided, defaults are used.
 
 # ui_options accessor
 proc macports::ui_isset {val} {
@@ -152,7 +151,10 @@ proc macports::ui_prefix_default {priority} {
     }
 }
 
-# Default implementation of ui_channels
+# Default implementation of ui_channels:
+# ui_options(ports_debug) - If set, output debugging messages
+# ui_options(ports_verbose) - If set, output info messages (ui_info)
+# ui_options(ports_quiet) - If set, don't output "standard messages"
 proc macports::ui_channels_default {priority} {
     switch $priority {
         debug {
