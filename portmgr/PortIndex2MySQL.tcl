@@ -96,7 +96,7 @@ proc terminate {exit_status} {
 
 # UI instantiation to route information/error messages wherever we want.
 proc ui_channels {priority} {
-    global ui_options runlog_fd
+    global runlog_fd
     switch $priority {
         debug {
             if {[macports::ui_isset ports_debug]} {
@@ -162,13 +162,15 @@ if {[catch {macports::selfupdate} errstr]} {
 # Procedure to catch the database password from a protected file.
 proc getpasswd {passwdfile} {
     if {[catch {open $passwdfile r} passwdfile_fd]} {
+        global lockfile lockfile_fd
         ui_error "${::errorCode}: $passwdfile_fd"
         cleanup lockfile
         terminate 1
     }
     if {[gets $passwdfile_fd passwd] <= 0} {
+        global lockfile lockfile_fd
         close $passwdfile_fd
-        ui_error "No password found in $passwdfile!"
+        ui_error "No password found in password file $passwdfile!"
         cleanup lockfile
         terminate 1
     }
