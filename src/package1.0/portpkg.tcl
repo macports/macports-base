@@ -236,7 +236,7 @@ puts $fd "
 <p>"
 
     if {$homepage != ""} {
-	puts $fd "<font face=\"Helvetica\">${homepage}</font><p>"
+	puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
     puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.</font>
