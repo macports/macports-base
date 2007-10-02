@@ -55,6 +55,7 @@ default use_configure yes
 # Configure special environment variables.
 options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
 # We could have default debug/optimization flags at some point.
+default configure.pipe		no
 default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
 default configure.cxxflags	{-O2}
@@ -124,7 +125,7 @@ proc select_compiler {info args} {
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
-    global configure.env configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
+    global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.fflags configure.f90flags configure.fcflags configure.classpath configure.macosx_deployment_target
     global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
@@ -248,6 +249,13 @@ proc configure_main {args} {
 		} else {
 			set filter ""
 		}
+		
+		# Set flags controlling the kind of compiler output.
+		if {[tbool configure.pipe]} {
+			set output "-pipe "
+		} else {
+			set output ""
+		}
 
     	# Append configure flags.
 		append_list_to_environment_value configure "CC" ${filter}${configure.cc}
@@ -258,14 +266,14 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "F77" ${configure.f77}
 		append_list_to_environment_value configure "F90" ${configure.f90}
 		append_list_to_environment_value configure "JAVAC" ${configure.javac}
-		append_list_to_environment_value configure "CFLAGS" ${configure.cflags}
+		append_list_to_environment_value configure "CFLAGS" ${output}${configure.cflags}
 		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
-		append_list_to_environment_value configure "CXXFLAGS" ${configure.cxxflags}
-		append_list_to_environment_value configure "OBJCFLAGS" ${configure.objcflags}
+		append_list_to_environment_value configure "CXXFLAGS" ${output}${configure.cxxflags}
+		append_list_to_environment_value configure "OBJCFLAGS" ${output}${configure.objcflags}
 		append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
-		append_list_to_environment_value configure "FFLAGS" ${configure.fflags}
-		append_list_to_environment_value configure "F90FLAGS" ${configure.f90flags}
-		append_list_to_environment_value configure "FCFLAGS" ${configure.fcflags}
+		append_list_to_environment_value configure "FFLAGS" ${output}${configure.fflags}
+		append_list_to_environment_value configure "F90FLAGS" ${output}${configure.f90flags}
+		append_list_to_environment_value configure "FCFLAGS" ${output}${configure.fcflags}
 		append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
 		append_list_to_environment_value configure "MACOSX_DEPLOYMENT_TARGET" ${configure.macosx_deployment_target}
 
