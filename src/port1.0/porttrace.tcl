@@ -41,7 +41,7 @@ proc trace_start {workpath} {
 		if {[catch {package require Thread} error]} {
 			ui_warn "trace requires Tcl Thread package ($error)"
 		} else {
-			global env trace_fifo trace_sandboxbounds
+			global env trace_fifo trace_sandboxbounds portpath
 			# Create a fifo.
 			# path in unix socket limited to 109 chars
 			# # set trace_fifo "$workpath/trace_fifo"
@@ -73,7 +73,7 @@ proc trace_start {workpath} {
 			# /dev/null
 			# /dev/tty
 			# /Library/Caches/com.apple.Xcode
-			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/null:/dev/tty:/Library/Caches/com.apple.Xcode:${workpath}"
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:${workpath}:$portpath"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
