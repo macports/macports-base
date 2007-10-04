@@ -356,7 +356,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set PORTSRC $env(PORTSRC)
         lappend conf_files ${PORTSRC}
     }
-    if { [file isdirectory macports_user_dir] } {
+    if { [file isdirectory $macports_user_dir] } {
         lappend conf_files "${macports_user_dir}/macports.conf"
     }
     lappend conf_files "${macports_conf_path}/macports.conf"
