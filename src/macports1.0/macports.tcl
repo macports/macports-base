@@ -1308,67 +1308,66 @@ proc mportsync {} {
     
     ui_debug "Synchronizing ports tree(s)"
     foreach source $sources {
-    set flags [lrange $source 1 end]
-    set source [lindex $source 0]
-    if {[lsearch -exact $flags nosync] != -1} {
-        ui_debug "Skipping $source"
-        continue
-    }
-    ui_info "Synchronizing from $source"
-    switch -regexp -- [macports::getprotocol $source] {
-        {^file$} {
-        set portdir [macports::getportdir $source]
-        if {[file exists $portdir/.svn]} {
-            set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
-            ui_debug $svn_commandline
-            if {[catch {
-            set euid [geteuid]
-            set egid [getegid]
-            ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-            setegid [name_to_gid [file attributes $portdir -group]]
-            seteuid [name_to_uid [file attributes $portdir -owner]]
-            system $svn_commandline
-            seteuid $euid
-            setegid $egid
-            }]} {
-            ui_debug "$::errorInfo"
-            return -code error "sync failed doing svn update"
+        set flags [lrange $source 1 end]
+        set source [lindex $source 0]
+        if {[lsearch -exact $flags nosync] != -1} {
+            ui_debug "Skipping $source"
+            continue
+        }
+        ui_info "Synchronizing from $source"
+        switch -regexp -- [macports::getprotocol $source] {
+            {^file$} {
+                set portdir [macports::getportdir $source]
+                if {[file exists $portdir/.svn]} {
+                    set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
+                    ui_debug $svn_commandline
+                    if {
+                        [catch {
+                            set euid [geteuid]
+                            set egid [getegid]
+                            ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+                            setegid [name_to_gid [file attributes $portdir -group]]
+                            seteuid [name_to_uid [file attributes $portdir -owner]]
+                            system $svn_commandline
+                            seteuid $euid
+                            setegid $egid
+                        }]
+                    } {
+                        ui_debug "$::errorInfo"
+                        return -code error "sync failed doing svn update"
+                    }
+                }
+            }
+            {^mports$} {
+                macports::index::sync $macports::portdbpath $source
+            }
+            {^rsync$} {
+                # Where to, boss?
+                set destdir [file dirname [macports::getindex $source]]
+                file mkdir $destdir
+                # Keep rsync happy with a trailing slash
+                if {[string index $source end] != "/"} {
+                    set source "${source}/"
+                }
+                # Do rsync fetch
+                set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
+                ui_debug $rsync_commandline
+                if {[catch {system $rsync_commandline}]} {
+                    return -code error "sync failed doing rsync"
+                }
+                if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+                    ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+                }
+            }
+            {^https?$|^ftp$} {
+                set indexfile [macports::getindex $source]
+                file mkdir [file dirname $indexfile]
+                exec curl -L -s -S -o $indexfile $source/PortIndex
+            }
+            default {
+                ui_warn "Unknown protocol for $source"
             }
         }
-        }
-        {^mports$} {
-        macports::index::sync $macports::portdbpath $source
-        }
-        {^rsync$} {
-        # Where to, boss?
-        set destdir [file dirname [macports::getindex $source]]
-
-        file mkdir $destdir
-        
-        # Keep rsync happy with a trailing slash
-        if {[string index $source end] != "/"} {
-            set source "${source}/"
-        }
-
-        # Do rsync fetch
-        set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
-        ui_debug $rsync_commandline
-        if {[catch {system $rsync_commandline}]} {
-            return -code error "sync failed doing rsync"
-        }
-        if {[catch {system "chmod -R a+r \"$destdir\""}]} {
-            ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
-        }
-        }
-        {^https?$|^ftp$} {
-        set indexfile [macports::getindex $source]
-        file mkdir [file dirname $indexfile]
-        exec curl -L -s -S -o $indexfile $source/PortIndex
-        }
-        default {
-        ui_warn "Unknown protocol for $source"
-        }
-    }
     }
 }
 
