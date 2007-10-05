@@ -67,7 +67,7 @@ package require macports
 set runlog "/tmp/portsdb.log"
 set runlog_fd [open $runlog w+]
 set lockfile "/tmp/portsdb.lock"
-set mailprog "/usr/bin/mail"
+set mailprog "/usr/sbin/sendmail"
 set DATE [clock format [clock seconds] -format "%A %Y-%m-%d at %T"]
 set subject "PortIndex2MySQL run failure on $DATE"
 set SPAM_LOVERS macports-dev@lists.macosforge.org
@@ -88,7 +88,7 @@ proc terminate {exit_status} {
     if {$exit_status} {
         global subject SPAM_LOVERS mailprog
         seek $runlog_fd 0 start
-        exec -- $mailprog -s $subject $SPAM_LOVERS <@ $runlog_fd
+        exec -- $mailprog $SPAM_LOVERS <@ $runlog_fd
     }
     cleanup runlog
     exit $exit_status
@@ -129,6 +129,9 @@ proc ui_channels {priority} {
     }
 }
 
+
+# We first initialize the runlog with a proper mail subject:
+puts $runlog_fd "Subject: $subject"
 
 # Check if there are any stray sibling jobs before moving on, bail in such case.
 if {[file exists $lockfile]} {
