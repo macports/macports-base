@@ -129,7 +129,7 @@ proc trace_check_violations {} {
 	set violations [slave_send slave_get_sandbox_violations]
 	
 	foreach violation [lsort $violations] {
-		ui_warn "A activity was attempted outside sandbox: $violation"
+		ui_warn "An activity was attempted outside sandbox: $violation"
 	}
 }
 
