@@ -258,7 +258,8 @@ static void dep_check(int sock, const char * path)
 					break;
 				}
 			}
-		}
+		}else if(*port=='0'&&!port[1])
+			strcpy(port, "*unknown*");
 	}
 	
 	if(resolution!='+')
