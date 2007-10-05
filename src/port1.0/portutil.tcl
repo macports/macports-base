@@ -1160,7 +1160,10 @@ proc target_run {ditem} {
 						lappend depsPorts $dep_portname
 					}
 					
-					set portlist [recursive_collect_deps $portname $deptypes]
+					set portlist $depsPorts
+					foreach depName $depsPorts {
+						set portlist [concat $portlist [recursive_collect_deps $depName $deptypes]]
+					}
 					#uniquer from http://aspn.activestate.com/ASPN/Cookbook/Tcl/Recipe/147663
 					array set a [split "[join $portlist {::}]:" {:}]
 					set depsPorts [array names a]
