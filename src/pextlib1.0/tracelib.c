@@ -184,8 +184,9 @@ static void send_file_map(int sock)
 			
 			append_allow("/bin", 0);
 			append_allow("/sbin", 0);
-			append_allow("/dev", 0)
+			append_allow("/dev", 0);
 			append_allow(Tcl_GetVar(interp, "macports::prefix", TCL_GLOBAL_ONLY), 2);
+			append_allow("/Applications/MacPorts", 0);
 			/* If there is no SDK we will allow everything in /usr /System/Library etc, else add binaries to allow, and redirect root to SDK. */
 			if(sdk&&*sdk)
 			{
