@@ -55,166 +55,166 @@ default livecheck.distname default
 default livecheck.version {$version}
 
 proc livecheck_main {args} {
-	global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
-	global homepage portname portpath workpath
-	global master_sites name distfiles
-	
-	set updated 0
-	set updated_version "unknown"
-	set has_master_sites [info exists master_sites]
-	set has_homepage [info exists homepage]
+    global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
+    global homepage portname portpath workpath
+    global master_sites name distfiles
+    
+    set updated 0
+    set updated_version "unknown"
+    set has_master_sites [info exists master_sites]
+    set has_homepage [info exists homepage]
 
-	set tempfile ${workpath}/livecheck.TMP
-	set port_moddate [file mtime ${portpath}/Portfile]
+    set tempfile ${workpath}/livecheck.TMP
+    set port_moddate [file mtime ${portpath}/Portfile]
 
-	ui_debug "Portfile modification date is [clock format $port_moddate]"
-	ui_debug "Port (livecheck) version is ${livecheck.version}"
+    ui_debug "Portfile modification date is [clock format $port_moddate]"
+    ui_debug "Port (livecheck) version is ${livecheck.version}"
 
-	# Determine the default type depending on the mirror.
-	if {${livecheck.check} eq "default"} {
-		if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode)\y(?::(\S+))?} $master_sites _ site tag]} {
-			if {$tag ne "" && ${livecheck.name} eq "default"} {
-				set livecheck.name $tag
-			}
-			set livecheck.check $site
-		} else {
-		    set livecheck.check "freshmeat"
-		}
-		if {$has_homepage && [regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
-		    if {${livecheck.name} eq "default"} {
-		        set livecheck.name $tag
-		    }
-		    set livecheck.check "googlecode"
-		}
-	}
-	if {${livecheck.name} eq "default"} {
-		set livecheck.name $name
-	}
+    # Determine the default type depending on the mirror.
+    if {${livecheck.check} eq "default"} {
+        if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode)\y(?::(\S+))?} $master_sites _ site tag]} {
+            if {$tag ne "" && ${livecheck.name} eq "default"} {
+                set livecheck.name $tag
+            }
+            set livecheck.check $site
+        } else {
+            set livecheck.check "freshmeat"
+        }
+        if {$has_homepage && [regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+            if {${livecheck.name} eq "default"} {
+                set livecheck.name $tag
+            }
+            set livecheck.check "googlecode"
+        }
+    }
+    if {${livecheck.name} eq "default"} {
+        set livecheck.name $name
+    }
 
-	# Perform the check depending on the type.
-	switch ${livecheck.check} {
-	    "freshmeat" {
-    		if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-    			set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
-    		}
-    		if {${livecheck.regex} eq ""} {
-    			set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
-    		}
-    		set livecheck.check "regex"
-		}
-		"sourceforge" {
-    		if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-    			set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
-    		}
-    		if {${livecheck.distname} eq "default"} {
-    		    set livecheck.distname ${livecheck.name}
-    		}
-    		if {${livecheck.regex} eq ""} {
-    			set livecheck.regex "<title>${livecheck.distname} (.*) released.*</title>"
-    		}
-    		set livecheck.check "regex"
-		}
-		"googlecode" {
-		    if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-		        set livecheck.url "http://code.google.com/p/${livecheck.name}/downloads/list"
-		    }
-		    if {${livecheck.distname} eq "default"} {
-		        set livecheck.distname [regsub ***=${livecheck.version} [file tail [lindex ${distfiles} 0]] (.*)]
-		    }
-		    if {${livecheck.regex} eq ""} {
-		        set livecheck.regex {<a href="http://${livecheck.name}.googlecode.com/files/${livecheck.distname}"}
-		    }
-		    set livecheck.check "regex"
-		}
-	}
-	
-	# de-escape livecheck.url
-	set livecheck.url [join ${livecheck.url}]
-	
-	switch ${livecheck.check} {
-		"regex" -
-		"regexm" {
-			# single and multiline regex
-			ui_debug "Fetching ${livecheck.url}"
-			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
-				ui_error "cannot check if $portname was updated ($error)"
-			} else {
-				# let's extract the version from the file.
-				set chan [open $tempfile "r"]
-				set updated -1
-				set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
-				ui_debug "The regex is >$the_re<"
-				if {${livecheck.check} == "regexm"} {
-					set data [read $chan]
-					if {[regexp $the_re $data matched updated_version]} {
-						if {$updated_version != ${livecheck.version}} {
-							set updated 1
-						} else {
-							set updated 0
-						}
-						ui_debug "The regex matched >$matched<"
-					}
-				} else {
-					while {1} {
-						if {[gets $chan line] < 0} {
-							break
-						}
-						if {[regexp $the_re $line matched updated_version]} {
-							if {$updated_version != ${livecheck.version}} {
-								set updated 1
-							} else {
-								set updated 0
-							}
-							ui_debug "The regex matched >$matched<"
-							break
-						}
-					}
-				}
-				close $chan
-				if {$updated < 0} {
-					ui_error "cannot check if $portname was updated (regex didn't match)"
-				}
-			}
-		}
-		"md5" {
-		    ui_debug "Fetching ${livecheck.url}"
-			if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
-				ui_error "cannot check if $portname was updated ($error)"
-				set updated -1
-			} else {
-				# let's compute the md5 sum.
-				set dist_md5 [md5 file $tempfile]
-				if {$dist_md5 != ${livecheck.md5}} {
-					ui_debug "md5sum for ${livecheck.url}: $dist_md5"
-					set updated 1
-				}
-			}
-		}
-		"moddate" {
-			set port_moddate [file mtime ${portpath}/Portfile]
-			if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
-				ui_error "cannot check if $portname was updated ($error)"
-				set updated -1
-			} else {
-				if {!$updated} {
-					ui_debug "${livecheck.url} is older than Portfile"
-				}
-			}
-		}
-		"none" {
-		}
-		default {
-			ui_error "unknown livecheck.check ${livecheck.check}"
-		}
-	}
+    # Perform the check depending on the type.
+    switch ${livecheck.check} {
+        "freshmeat" {
+            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
+                set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
+            }
+            if {${livecheck.regex} eq ""} {
+                set livecheck.regex "<latest_release_version>(.*)</latest_release_version>"
+            }
+            set livecheck.check "regex"
+        }
+        "sourceforge" {
+            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
+                set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
+            }
+            if {${livecheck.distname} eq "default"} {
+                set livecheck.distname ${livecheck.name}
+            }
+            if {${livecheck.regex} eq ""} {
+                set livecheck.regex "<title>${livecheck.distname} (.*) released.*</title>"
+            }
+            set livecheck.check "regex"
+        }
+        "googlecode" {
+            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
+                set livecheck.url "http://code.google.com/p/${livecheck.name}/downloads/list"
+            }
+            if {${livecheck.distname} eq "default"} {
+                set livecheck.distname [regsub ***=${livecheck.version} [file tail [lindex ${distfiles} 0]] (.*)]
+            }
+            if {${livecheck.regex} eq ""} {
+                set livecheck.regex {<a href="http://${livecheck.name}.googlecode.com/files/${livecheck.distname}"}
+            }
+            set livecheck.check "regex"
+        }
+    }
+    
+    # de-escape livecheck.url
+    set livecheck.url [join ${livecheck.url}]
+    
+    switch ${livecheck.check} {
+        "regex" -
+        "regexm" {
+            # single and multiline regex
+            ui_debug "Fetching ${livecheck.url}"
+            if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
+                ui_error "cannot check if $portname was updated ($error)"
+            } else {
+                # let's extract the version from the file.
+                set chan [open $tempfile "r"]
+                set updated -1
+                set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
+                ui_debug "The regex is >$the_re<"
+                if {${livecheck.check} == "regexm"} {
+                    set data [read $chan]
+                    if {[regexp $the_re $data matched updated_version]} {
+                        if {$updated_version != ${livecheck.version}} {
+                            set updated 1
+                        } else {
+                            set updated 0
+                        }
+                        ui_debug "The regex matched >$matched<"
+                    }
+                } else {
+                    while {1} {
+                        if {[gets $chan line] < 0} {
+                            break
+                        }
+                        if {[regexp $the_re $line matched updated_version]} {
+                            if {$updated_version != ${livecheck.version}} {
+                                set updated 1
+                            } else {
+                                set updated 0
+                            }
+                            ui_debug "The regex matched >$matched<"
+                            break
+                        }
+                    }
+                }
+                close $chan
+                if {$updated < 0} {
+                    ui_error "cannot check if $portname was updated (regex didn't match)"
+                }
+            }
+        }
+        "md5" {
+            ui_debug "Fetching ${livecheck.url}"
+            if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
+                ui_error "cannot check if $portname was updated ($error)"
+                set updated -1
+            } else {
+                # let's compute the md5 sum.
+                set dist_md5 [md5 file $tempfile]
+                if {$dist_md5 != ${livecheck.md5}} {
+                    ui_debug "md5sum for ${livecheck.url}: $dist_md5"
+                    set updated 1
+                }
+            }
+        }
+        "moddate" {
+            set port_moddate [file mtime ${portpath}/Portfile]
+            if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
+                ui_error "cannot check if $portname was updated ($error)"
+                set updated -1
+            } else {
+                if {!$updated} {
+                    ui_debug "${livecheck.url} is older than Portfile"
+                }
+            }
+        }
+        "none" {
+        }
+        default {
+            ui_error "unknown livecheck.check ${livecheck.check}"
+        }
+    }
 
-	file delete -force $tempfile
+    file delete -force $tempfile
 
-	if {${livecheck.check} != "none"} {
-		if {$updated > 0} {
-			ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
-		} elseif {$updated == 0} {
-			ui_info "$portname seems to be up to date"
-		}
-	}
+    if {${livecheck.check} != "none"} {
+        if {$updated > 0} {
+            ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
+        } elseif {$updated == 0} {
+            ui_info "$portname seems to be up to date"
+        }
+    }
 }
