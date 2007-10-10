@@ -72,7 +72,7 @@ proc livecheck_main {args} {
 
     # Determine the default type depending on the mirror.
     if {${livecheck.check} eq "default"} {
-        if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode)\y(?::(\S+))?} $master_sites _ site tag]} {
+        if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode|gnu)\y(?::(\S+))?} $master_sites _ site tag]} {
             if {$tag ne "" && ${livecheck.name} eq "default"} {
                 set livecheck.name $tag
             }
@@ -80,11 +80,18 @@ proc livecheck_main {args} {
         } else {
             set livecheck.check "freshmeat"
         }
-        if {$has_homepage && [regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
-            if {${livecheck.name} eq "default"} {
-                set livecheck.name $tag
+        if {$has_homepage} {
+            if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+                if {${livecheck.name} eq "default"} {
+                    set livecheck.name $tag
+                }
+                set livecheck.check "googlecode"
+            } elseif {[regexp {^http://www.gnu.org/software/([^/]+)} $homepage _ tag]} {
+                if {${livecheck.name} eq "default"} {
+                    set livecheck.name $tag
+                }
+                set livecheck.check "gnu"
             }
-            set livecheck.check "googlecode"
         }
     }
     if {${livecheck.name} eq "default"} {
@@ -123,6 +130,18 @@ proc livecheck_main {args} {
             }
             if {${livecheck.regex} eq ""} {
                 set livecheck.regex {<a href="http://${livecheck.name}.googlecode.com/files/${livecheck.distname}"}
+            }
+            set livecheck.check "regex"
+        }
+        "gnu" {
+            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
+                set livecheck.url "http://ftp.gnu.org/gnu/${livecheck.name}/?C=M&O=D"
+            }
+            if {${livecheck.distname} eq "default"} {
+                set livecheck.distname ${livecheck.name}
+            }
+            if {${livecheck.regex} eq ""} {
+                set livecheck.regex {${livecheck.distname}-(\\d+(?:\\.\\d+)*)}
             }
             set livecheck.check "regex"
         }
