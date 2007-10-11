@@ -96,9 +96,11 @@ proc perl5.setup {module vers {cpandir ""}} {
     destroot.target     pure_install
 
     post-destroot {
-        foreach packlist [exec find ${destroot}${perl5.lib} -name .packlist] {
-            ui_info "Fixing packlist ${packlist}"
-            reinplace "s|${destroot}||" ${packlist}
+        fs-traverse file ${destroot}${perl5.lib} {
+            if {[file tail ${file}] eq ".packlist"} {
+                ui_info "Fixing packlist ${file}"
+                reinplace "s|${destroot}||" ${file}
+            }
         }
     }
 
