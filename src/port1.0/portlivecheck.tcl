@@ -72,12 +72,19 @@ proc livecheck_main {args} {
 
     # Determine the default type depending on the mirror.
     if {${livecheck.check} eq "default"} {
-        if {$has_master_sites && [regexp {\y(sourceforge|freshmeat|googlecode|gnu)\y(?::(\S+))?} $master_sites _ site tag]} {
-            if {$tag ne "" && ${livecheck.name} eq "default"} {
-                set livecheck.name $tag
+        if {$has_master_sites} {
+            foreach {master_site} ${master_sites} {
+                if {[regexp {^(sourceforge|freshmeat|googlecode|gnu)(?::([^:]+))?} ${master_site} _ site subdir]} {
+                    if {${subdir} ne "" && ${livecheck.name} eq "default"} {
+                        set livecheck.name ${subdir}
+                    }
+                    set livecheck.check ${site}
+
+                    break
+                }
             }
-            set livecheck.check $site
-        } else {
+        }
+        if {${livecheck.check} eq "default"} {
             set livecheck.check "freshmeat"
         }
         if {$has_homepage} {
