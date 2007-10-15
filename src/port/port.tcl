@@ -1,10 +1,10 @@
 #!/bin/sh
-# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:et:sw=4:ts=4:sts=4 \
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4 \
 exec @TCLSH@ "$0" "$@"
 # port.tcl
 # $Id$
 #
-# Copyright (c) 2002-2006 MacPorts organization
+# Copyright (c) 2002-2007 MacPorts organization
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
