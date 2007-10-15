@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - added generic GNU livecheck (N_Ox in r29812).
+
     - better defaults for implicit ui_channels behaviour (eridius in r29498).
 
     - prevent creating PKG packages with /etc or /var or /tmp (#2102, afb in r29445)
