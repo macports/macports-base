@@ -135,7 +135,6 @@ proc fatal s {
 # we're handling errors in a soft fashion, in which
 # case we continue
 proc fatal_softcontinue s {
-    global global_options
     if {[macports::global_option_isset ports_force]} {
         ui_error $s
         return -code continue
@@ -149,7 +148,6 @@ proc fatal_softcontinue s {
 # we're handling errors in a soft fashion, in which
 # case we continue
 proc break_softcontinue { msg status name_status } {
-    global ui_options
     upvar $name_status status_var 
     ui_error $msg
     if {[macports::ui_isset ports_processall]} {
@@ -484,7 +482,7 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
-    global macports::registry.installtype ui_options
+    global macports::registry.installtype
     set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 
     # Get the list of installed ports
@@ -1073,7 +1071,6 @@ proc action_help { action portlist opts } {
 
 
 proc action_info { action portlist opts } {
-    global ui_options
     set status 0
     require_portlist portlist
     foreachport $portlist {
@@ -1426,7 +1423,6 @@ proc action_dependents { action portlist opts } {
 
 
 proc action_uninstall { action portlist opts } {
-    global global_options
     set status 0
     if {[macports::global_option_isset port_uninstall_old]} {
         # if -u then uninstall all inactive ports
@@ -1450,12 +1446,12 @@ proc action_uninstall { action portlist opts } {
 
 
 proc action_installed { action portlist opts } {
-    global global_options
+    global private_options
     set status 0
     set restrictedList 0
     set ilist {}
     
-    if { [llength $portlist] || ![macports::global_option_isset ports_no_args]} {
+    if { [llength $portlist] || ![info exists private_options(ports_no_args)] } {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion [array get variations]]
@@ -1502,7 +1498,7 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
-    global macports::registry.installtype ui_options global_options
+    global macports::registry.installtype private_options
     set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
 
     set status 0
@@ -1510,7 +1506,7 @@ proc action_outdated { action portlist opts } {
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
     set ilist {}
     set restrictedList 0
-    if { [llength $portlist] || ![macports::global_option_isset ports_no_args]} {
+    if { [llength $portlist] || ![info exists private_options(ports_no_args)] } {
         set restrictedList 1
         foreach portspec $portlist {
             array set port $portspec
@@ -1756,9 +1752,9 @@ proc action_variants { action portlist opts } {
 
 
 proc action_search { action portlist opts } {
-    global global_options
+    global private_options
     set status 0
-    if {![llength $portlist] && [macports::global_option_isset ports_no_args]} {
+    if {![llength $portlist] && [info exists private_options(ports_no_args)]} {
         ui_error "You must specify a search pattern"
         return 1
     }
@@ -1805,11 +1801,11 @@ proc action_search { action portlist opts } {
 
 
 proc action_list { action portlist opts } {
-    global global_options
+    global private_options
     set status 0
     
     # Default to list all ports if no portnames are supplied
-    if {![llength $portlist] && [macports::global_option_isset ports_no_args]} {
+    if { ![llength $portlist] && [info exists private_options(ports_no_args)] } {
         add_to_portlist portlist [list name "-all-"]
     }
     
@@ -2304,7 +2300,7 @@ proc parse_options { action ui_options_name global_options_name } {
 
 proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn
-    global global_options global_options_base ui_options
+    global global_options global_options_base private_options ui_options
     global current_portdir
     set cmd_argv $argv
     set cmd_argc [llength $argv]
@@ -2346,7 +2342,7 @@ proc process_cmd { argv } {
         switch -- [lookahead] {
             ;       -
             _EOF_ {
-                set global_options(ports_no_args) yes
+                set private_options(ports_no_args) yes
             }
             default {
                 # Parse port specifications into portlist
@@ -2473,7 +2469,7 @@ proc get_next_cmdline { in out use_readline prompt linename } {
 
 
 proc process_command_file { in } {
-    global current_portdir ui_options
+    global current_portdir
 
     # Initialize readline
     set isstdin [string match $in "stdin"]
@@ -2539,7 +2535,6 @@ proc process_command_file { in } {
 
 
 proc process_command_files { filelist } {
-    global ui_options
     set exit_status 0
 
     # For each file in the command list, process commands
@@ -2579,10 +2574,13 @@ proc process_command_files { filelist } {
 # Main
 ##########################################
 
-# globals
+# Global arrays used by the macports1.0 layer
 array set ui_options        {}
 array set global_options    {}
 array set global_variations {}
+
+# Global options private to this script
+array set private_options {}
 
 # Save off a copy of the environment before mportinit monkeys with it
 global env boot_env
