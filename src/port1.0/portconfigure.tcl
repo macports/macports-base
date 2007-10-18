@@ -68,11 +68,16 @@ default configure.classpath	{}
 default configure.macosx_deployment_target	{}
 
 # Universal options & default values.
+if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+    set sysroot "/Developer/SDKs/MacOSX10.5.sdk"
+} else {
+    set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+}
 options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
 default configure.universal_args		--disable-dependency-tracking
-default configure.universal_cflags		{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
+default configure.universal_cflags		{"-isysroot $sysroot -arch i386 -arch ppc"}
 default configure.universal_cppflags	{}
-default configure.universal_cxxflags	{"-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc"}
+default configure.universal_cxxflags	{"-isysroot $sysroot -arch i386 -arch ppc"}
 default configure.universal_ldflags		{"-arch i386 -arch ppc"}
 
 # Select a distinct compiler (C, C preprocessor, C++)
