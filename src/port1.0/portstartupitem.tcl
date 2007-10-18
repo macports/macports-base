@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portstartupitem.tcl
 #
 # $Id$
@@ -166,10 +166,10 @@ proc startupitem_create_darwin_systemstarter {args} {
     }
 
     if { [llength ${startupitem.executable}] && 
-            ![llength ${startupitem.init}] &&
-            ![llength ${startupitem.start}] &&
-            ![llength ${startupitem.stop}] &&
-            ![llength ${startupitem.restart}] } {
+      ![llength ${startupitem.init}] &&
+      ![llength ${startupitem.start}] &&
+      ![llength ${startupitem.stop}] &&
+      ![llength ${startupitem.restart}] } {
         # An executable is specified, and there is no init, start, stop, or restart
     } else {
         if { ![llength ${startupitem.start} ] } {
@@ -202,7 +202,7 @@ proc startupitem_create_darwin_systemstarter {args} {
 # MacPorts generated StartupItem
 #
 
-}
+    }
     puts ${item} "prefix=$prefix"
     # Source the utilities package and the MacPorts config file
     puts ${item} {[ -r "/etc/rc.common" ] && . "/etc/rc.common"}
@@ -350,7 +350,7 @@ RestartService () {
 }
 
 RunService "$1"
-}
+    }
     # ^^^^^^ END BOILERPLATE ^^^^^^
     
     close ${item}
@@ -395,18 +395,18 @@ proc startupitem_create_darwin_launchd {args} {
     set daemondest      LaunchDaemons
     set itemdir         ${prefix}/etc/${daemondest}/${uniquename}
     set args            [list \
-                            "${prefix}/bin/daemondo" \
-                            "--label=${itemname}" \
-                            ]
+                          "${prefix}/bin/daemondo" \
+                          "--label=${itemname}" \
+                        ]
     
     file mkdir ${destroot}${itemdir}
     file attributes ${destroot}${itemdir} -owner root -group wheel
         
     if { [llength ${startupitem.executable}] && 
-            ![llength ${startupitem.init}] &&
-            ![llength ${startupitem.start}] &&
-            ![llength ${startupitem.stop}] &&
-            ![llength ${startupitem.restart}] } {
+      ![llength ${startupitem.init}] &&
+      ![llength ${startupitem.start}] &&
+      ![llength ${startupitem.stop}] &&
+      ![llength ${startupitem.restart}] } {
             
         # An executable is specified, and there is no init, start, stop, or restart
         # code; so we don't need a wrapper script
@@ -431,9 +431,9 @@ proc startupitem_create_darwin_launchd {args} {
         }
 
         lappend args \
-            "--start-cmd"   ${wrapper} start   ";" \
-            "--stop-cmd"    ${wrapper} stop    ";" \
-            "--restart-cmd" ${wrapper} restart ";"
+          "--start-cmd"   ${wrapper} start   ";" \
+          "--stop-cmd"    ${wrapper} stop    ";" \
+          "--restart-cmd" ${wrapper} restart ";"
 
         # Create the wrapper script
         set item [open "${destroot}${wrapper}" w 0755]
@@ -635,4 +635,3 @@ proc startupitem_create {args} {
         default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
     }
 }
-
