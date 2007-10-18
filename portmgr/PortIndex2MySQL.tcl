@@ -189,7 +189,7 @@ set dbhost 127.0.0.1
 set dbuser macports
 set passwdfile "./password_file"
 set dbpasswd [getpasswd $passwdfile]
-set dbname macports_ports
+set dbname macports
 
 
 # Flat text file to which sql statements are written.
