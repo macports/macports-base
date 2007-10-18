@@ -2574,7 +2574,7 @@ proc process_command_files { filelist } {
 # Main
 ##########################################
 
-# Global arrays used by the macports1.0 layer
+# Global arrays passed by the macports1.0 layer
 array set ui_options        {}
 array set global_options    {}
 array set global_variations {}
