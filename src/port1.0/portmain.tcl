@@ -96,8 +96,8 @@ default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
 if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(puredarwin)]} { variant_set puredarwin }
-if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} {
-	variant_set macosx
+if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} { variant_set macosx }
+if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
 	# Declare default universal variant, on >10.3
 	variant universal {
 		if {[tbool use_xmkmf] || ![tbool use_configure]} {
