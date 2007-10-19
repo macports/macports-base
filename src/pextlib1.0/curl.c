@@ -150,6 +150,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		const char* theUserPassString = NULL;
 		const char* effectiveURLVarName = NULL;
 		char* effectiveURL = NULL;
+		char* userAgent = "MacPorts libcurl/" LIBCURL_VERSION;
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
@@ -195,6 +196,18 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				} else {
 					Tcl_SetResult(interp,
 						"curl fetch: --effective-url option requires a parameter",
+						TCL_STATIC);
+					theResult = TCL_ERROR;
+					break;					
+				}
+			} else if (strcmp(theOption, "--user-agent") == 0) {
+				/* check we also have the parameter */
+				if (optioncrsr < lastoption) {
+					optioncrsr++;
+					userAgent = Tcl_GetString(objv[optioncrsr]);
+				} else {
+					Tcl_SetResult(interp,
+						"curl fetch: --user-agent option requires a parameter",
 						TCL_STATIC);
 					theResult = TCL_ERROR;
 					break;					
@@ -263,7 +276,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 
         /* -A option */
-        theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERAGENT, "MacPorts libcurl/" LIBCURL_VERSION);
+        theCurlCode = curl_easy_setopt(theHandle, CURLOPT_USERAGENT, userAgent);
         if (theCurlCode != CURLE_OK) {
             theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
             break;
