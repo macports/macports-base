@@ -46,7 +46,7 @@ options destroot.violate_mtree
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
-options startupitem.pidfile startupitem.logfile startupitem.logevents
+options startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
 commands destroot
 
 # Set defaults
@@ -72,6 +72,7 @@ default startupitem.type        {$system_options(startupitem_type)}
 default startupitem.pidfile     ""
 default startupitem.logfile     ""
 default startupitem.logevents   no
+default startupitem.netchange   no
 
 set_ui_prefix
 

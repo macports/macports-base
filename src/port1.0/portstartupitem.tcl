@@ -385,7 +385,7 @@ proc startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs portname os.platform
     global startupitem.name startupitem.requires startupitem.init
     global startupitem.start startupitem.stop startupitem.restart startupitem.executable
-    global startupitem.pidfile startupitem.logfile startupitem.logevents
+    global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
 
     set scriptdir ${prefix}/etc/startup
     
@@ -501,7 +501,11 @@ proc startupitem_create_darwin_launchd {args} {
 
         close ${item}
     }
-        
+    
+    if {[tbool startupitem.netchange]} {
+        lappend args "--restart-netchange"
+    }
+    
     # To log events then tell daemondo to log at verbosity=1
     if { [tbool startupitem.logevents] } {
         lappend args "--verbosity=1"
