@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - added startupitem.netchange boolean flag (#12931, N_Ox in r30086).
+
     - added generic GNU livecheck (N_Ox in r29812).
 
     - better defaults for implicit ui_channels behaviour (eridius in r29498).
