@@ -61,23 +61,23 @@ default destroot.clean no
 default destroot.keepdirs ""
 default destroot.violate_mtree no
 
-default startupitem.name		{${portname}}
-default startupitem.init		""
-default startupitem.start		""
-default startupitem.stop		""
-default startupitem.restart		""
-default startupitem.requires	""
-default startupitem.executable	""
-default startupitem.type		{$system_options(startupitem_type)}
-default startupitem.pidfile		""
-default startupitem.logfile		""
-default startupitem.logevents	no
+default startupitem.name        {${portname}}
+default startupitem.init        ""
+default startupitem.start       ""
+default startupitem.stop        ""
+default startupitem.restart     ""
+default startupitem.requires    ""
+default startupitem.executable  ""
+default startupitem.type        {$system_options(startupitem_type)}
+default startupitem.pidfile     ""
+default startupitem.logfile     ""
+default startupitem.logevents   no
 
 set_ui_prefix
 
 namespace eval destroot {
-	# Save old umask
-	variable oldmask
+    # Save old umask
+    variable oldmask
 }
 
 proc destroot_start {args} {
@@ -90,12 +90,12 @@ proc destroot_start {args} {
     set mtree ${portutil::autoconf::mtree_path}
     
     if { ${destroot.clean} == "yes" } {
-	system "rm -Rf \"${destroot}\""
+        system "rm -Rf \"${destroot}\""
     }
     
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
-	system "cd \"${destroot}\" && ${mtree} -e -U -f ${portresourcepath}/install/macosx.mtree"
+        system "cd \"${destroot}\" && ${mtree} -e -U -f ${portresourcepath}/install/macosx.mtree"
     }
     file mkdir "${destroot}/${prefix}"
     system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f ${portresourcepath}/install/prefix.mtree"
@@ -108,7 +108,7 @@ proc destroot_main {args} {
 
 proc destroot_finish {args} {
     global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask destroot.violate_mtree
-	global os.platform os.version
+    global os.platform os.version
 
     # Create startup-scripts/items
     if {[tbool startupitem.create]} {
@@ -120,168 +120,168 @@ proc destroot_finish {args} {
     set exclude_dirs [list]
     set exclude_phrase ""
     foreach path [option destroot.keepdirs] {
-		if {![file isdirectory ${path}]} {
-			xinstall -m 0755 -d ${path}
-		}
-		if {![file exists ${path}/.turd_${portname}]} {
-			xinstall -c -m 0644 /dev/null ${path}/.turd_${portname}
-		}
-    	lappend exclude_dirs "-path \"${path}\""
+        if {![file isdirectory ${path}]} {
+            xinstall -m 0755 -d ${path}
+        }
+        if {![file exists ${path}/.turd_${portname}]} {
+            xinstall -c -m 0644 /dev/null ${path}/.turd_${portname}
+        }
+        lappend exclude_dirs "-path \"${path}\""
     }
     if { [llength ${exclude_dirs}] > 0 } {
-    	set exclude_phrase "! \\( [join ${exclude_dirs} " -or "] \\)"
+        set exclude_phrase "! \\( [join ${exclude_dirs} " -or "] \\)"
     }
     catch {system "find \"${destroot}\" -depth -type d ${exclude_phrase} -exec rmdir -- \{\} \\; 2>/dev/null"}
 
     # Compress all manpages with gzip (instead)
-	# but NOT on Jaguar (Darwin 6.x)
-	if {![regexp {darwin6} "${os.platform}${os.version}"]} {
-    set manpath "${destroot}${prefix}/share/man"
-    if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
-	ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
-	set found 0
-	set manlinks [list]
-	foreach mandir [readdir "${manpath}"] {
-	    if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
-	    set mandirpath [file join ${manpath} ${mandir}]
-	    if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
-		ui_debug "Scanning ${mandir}"
-		foreach manfile [readdir ${mandirpath}] {
-		    set manfilepath [file join ${mandirpath} ${manfile}]
-		    if {[file isfile ${manfilepath}] && [file type ${manfilepath}] == "file"} {
-			if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
-			    set found 1
-			    system "cd ${manpath} && \
-								gunzip -f [file join ${mandir} ${gzfile}] && \
-								gzip -9vf [file join ${mandir} ${manfile}]"
-			} elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
-			    set found 1
-			    system "cd ${manpath} && \
-								bunzip2 -f [file join ${mandir} ${bz2file}] && \
-								gzip -9vf [file join ${mandir} ${manfile}]"
-			} elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
-			    set found 1
-			    system "cd ${manpath} && \
-								gzip -9vf [file join ${mandir} ${manfile}]"
-			}
-			set gzmanfile ${manfile}.gz
-			set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
-			if {[file exists ${gzmanfilepath}]} {
-			    set desired 00444
-			    set current [file attributes ${gzmanfilepath} -permissions]
-			    if {$current != $desired} {
-				ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
-				file attributes ${gzmanfilepath} -permissions $desired
-			    }
-			}
-		    } elseif {[file type ${manfilepath}] == "link"} {
-			lappend manlinks [file join ${mandir} ${manfile}]
-		    }
-		}
-	    }
-	}
-	if {$found == 1} {
-	    # check man page links and rename/repoint them if necessary
-	    foreach manlink $manlinks {
-		set manlinkpath [file join $manpath $manlink]
-		# if link destination is not gzipped, check it
-		set manlinksrc [file readlink $manlinkpath]
-		if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
-		    set mandir [file dirname $manlink]
-		    set mandirpath [file join $manpath $mandir]
-		    set pwd [pwd]
-		    if {[catch {_cd $mandirpath} err]} {
-			puts $err
-			return
-		    }
-		    # if gzipped destination exists, fix link
-		    if {[file isfile ${manlinksrc}.gz]} {
-			# if actual link name does not end with gz, rename it
-			if {![regexp "\[.\]gz\$" ${manlink}]} {
-			    ui_debug "renaming link: $manlink to ${manlink}.gz"
-			    file rename $manlinkpath ${manlinkpath}.gz
-			    set manlink ${manlink}.gz
-			    set manlinkpath [file join $manpath $manlink]
-			}
-			# repoint the link
-			ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
-			file delete $manlinkpath
-			system "ln -s \"${manlinksrc}.gz\" \"$manlinkpath\""
-		    }
-		    _cd $pwd
-		}
-	    }
-	} else {
-	    ui_debug "No man pages found to compress."
-	}
+    # but NOT on Jaguar (Darwin 6.x)
+    if {![regexp {darwin6} "${os.platform}${os.version}"]} {
+        set manpath "${destroot}${prefix}/share/man"
+        if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
+            ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
+            set found 0
+            set manlinks [list]
+            foreach mandir [readdir "${manpath}"] {
+                if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
+                set mandirpath [file join ${manpath} ${mandir}]
+                if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
+                    ui_debug "Scanning ${mandir}"
+                    foreach manfile [readdir ${mandirpath}] {
+                        set manfilepath [file join ${mandirpath} ${manfile}]
+                        if {[file isfile ${manfilepath}] && [file type ${manfilepath}] == "file"} {
+                            if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+                                set found 1
+                                system "cd ${manpath} && \
+                                gunzip -f [file join ${mandir} ${gzfile}] && \
+                                gzip -9vf [file join ${mandir} ${manfile}]"
+                            } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+                                set found 1
+                                system "cd ${manpath} && \
+                                bunzip2 -f [file join ${mandir} ${bz2file}] && \
+                                gzip -9vf [file join ${mandir} ${manfile}]"
+                            } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+                                set found 1
+                                system "cd ${manpath} && \
+                                gzip -9vf [file join ${mandir} ${manfile}]"
+                            }
+                            set gzmanfile ${manfile}.gz
+                            set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
+                            if {[file exists ${gzmanfilepath}]} {
+                                set desired 00444
+                                set current [file attributes ${gzmanfilepath} -permissions]
+                                if {$current != $desired} {
+                                    ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
+                                    file attributes ${gzmanfilepath} -permissions $desired
+                                }
+                            }
+                        } elseif {[file type ${manfilepath}] == "link"} {
+                            lappend manlinks [file join ${mandir} ${manfile}]
+                        }
+                    }
+                }
+            }
+            if {$found == 1} {
+                # check man page links and rename/repoint them if necessary
+                foreach manlink $manlinks {
+                    set manlinkpath [file join $manpath $manlink]
+                    # if link destination is not gzipped, check it
+                    set manlinksrc [file readlink $manlinkpath]
+                    if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
+                        set mandir [file dirname $manlink]
+                        set mandirpath [file join $manpath $mandir]
+                        set pwd [pwd]
+                        if {[catch {_cd $mandirpath} err]} {
+                            puts $err
+                            return
+                        }
+                        # if gzipped destination exists, fix link
+                        if {[file isfile ${manlinksrc}.gz]} {
+                            # if actual link name does not end with gz, rename it
+                            if {![regexp "\[.\]gz\$" ${manlink}]} {
+                                ui_debug "renaming link: $manlink to ${manlink}.gz"
+                                file rename $manlinkpath ${manlinkpath}.gz
+                                set manlink ${manlink}.gz
+                                set manlinkpath [file join $manpath $manlink]
+                            }
+                            # repoint the link
+                            ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
+                            file delete $manlinkpath
+                            system "ln -s \"${manlinksrc}.gz\" \"$manlinkpath\""
+                        }
+                        _cd $pwd
+                    }
+                }
+            } else {
+                ui_debug "No man pages found to compress."
+            }
+        }
+    } else {
+        ui_debug "No man page compression on ${os.platform}${os.version}."
     }
-	} else {
-	    ui_debug "No man page compression on ${os.platform}${os.version}."
+
+    if [file exists "${destroot}${prefix}/share/info/dir"] {
+        ui_debug "Deleting stray info/dir file."
+        file delete "${destroot}${prefix}/share/info/dir"
     }
 
-	if [file exists "${destroot}${prefix}/share/info/dir"] {
-		ui_debug "Deleting stray info/dir file."
-	    file delete "${destroot}${prefix}/share/info/dir"
-	}
+    # test for violations of mtree
+    if { ${destroot.violate_mtree} != "yes" } {
+        ui_debug "checking for mtree violations"
+        set mtree_violation "no"
 
-	# test for violations of mtree
-	if { ${destroot.violate_mtree} != "yes" } {
-		ui_debug "checking for mtree violations"
-		set mtree_violation "no"
+        set prefixPaths [list bin etc include lib libexec sbin share src var www Applications Developer Library]
 
-		set prefixPaths [list bin etc include lib libexec sbin share src var www Applications Developer Library]
+        set pathsToCheck [list /]
+        while {[llength $pathsToCheck] > 0} {
+            set pathToCheck [lshift pathsToCheck]
+            foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
+                if {[file tail $file] eq "." || [file tail $file] eq ".."} {
+                    continue
+                }
+                if {[string equal -length [string length $destroot] $destroot $file]} {
+                    # just double-checking that $destroot is a prefix, as is appropriate
+                    set dfile [file join / [string range $file [string length $destroot] end]]
+                } else {
+                    throw MACPORTS "Unexpected filepath `${file}' while checking for mtree violations"
+                }
+                if {$dfile eq $prefix} {
+                    # we've found our prefix
+                    foreach pfile [glob -nocomplain -tails -directory $file .* *] {
+                        if {$pfile eq "." || $pfile eq ".."} {
+                            continue
+                        }
+                        if {[lsearch -exact $prefixPaths $pfile] == -1} {
+                            ui_warn "violation by [file join $dfile $pfile]"
+                            set mtree_violation "yes"
+                        }
+                    }
+                } elseif {[string equal -length [expr [string length $dfile] + 1] $dfile/ $prefix]} {
+                    # we've found a subpath of our prefix
+                    lpush pathsToCheck $dfile
+                } else {
+                    # these files are outside of the prefix
+                    switch $dfile {
+                        /Applications -
+                        /Developer -
+                        /Library { ui_debug "port installs files in $dfile" }
+                        default {
+                            ui_warn "violation by $dfile"
+                            set mtree_violation "yes"
+                        }
+                    }
+                }
+            }
+        }
 
-		set pathsToCheck [list /]
-		while {[llength $pathsToCheck] > 0} {
-			set pathToCheck [lshift pathsToCheck]
-			foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
-				if {[file tail $file] eq "." || [file tail $file] eq ".."} {
-					continue
-				}
-				if {[string equal -length [string length $destroot] $destroot $file]} {
-					# just double-checking that $destroot is a prefix, as is appropriate
-					set dfile [file join / [string range $file [string length $destroot] end]]
-				} else {
-					throw MACPORTS "Unexpected filepath `${file}' while checking for mtree violations"
-				}
-				if {$dfile eq $prefix} {
-					# we've found our prefix
-					foreach pfile [glob -nocomplain -tails -directory $file .* *] {
-						if {$pfile eq "." || $pfile eq ".."} {
-							continue
-						}
-						if {[lsearch -exact $prefixPaths $pfile] == -1} {
-							ui_warn "violation by [file join $dfile $pfile]"
-							set mtree_violation "yes"
-						}
-					}
-				} elseif {[string equal -length [expr [string length $dfile] + 1] $dfile/ $prefix]} {
-					# we've found a subpath of our prefix
-					lpush pathsToCheck $dfile
-				} else {
-					# these files are outside of the prefix
-					switch $dfile {
-						/Applications -
-						/Developer -
-						/Library { ui_debug "port installs files in $dfile" }
-						default {
-							ui_warn "violation by $dfile"
-							set mtree_violation "yes"
-						}
-					}
-				}
-			}
-		}
-
-		# abort here only so all violations can be observed
-		if { ${mtree_violation} != "no" } {
-			ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option portname]]"
-			ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
-			# error "mtree violation!"
-		}
-	} else {
-		ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option portname]]"
-	}
+        # abort here only so all violations can be observed
+        if { ${mtree_violation} != "no" } {
+            ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option portname]]"
+            ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
+            # error "mtree violation!"
+        }
+    } else {
+        ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option portname]]"
+    }
 
     # Restore umask
     umask $oldmask
