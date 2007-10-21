@@ -270,7 +270,7 @@ proc lint_main {args} {
     # hoping for "noarch" :
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
-    global maintainers homepage master_sites checksums
+    global maintainers homepage master_sites checksums patchfiles
     
     global lint_portsystem lint_platforms lint_categories 
     global lint_required lint_optional lint_variants
@@ -378,6 +378,15 @@ proc lint_main {args} {
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
         ui_warn "Using legacy email for no/open maintainer"
         incr warnings
+    }
+
+    if {[info exists patchfiles]} {
+        foreach patchfile $patchfiles {
+            if {![string match "patch-*.diff" $patchfile]} {
+                ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"patch-*.file\""
+                incr warnings
+            }
+        }
     }
 
     ### TODO: more checks to Tcl variables/sections
