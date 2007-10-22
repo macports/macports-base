@@ -383,7 +383,7 @@ proc lint_main {args} {
     if {[info exists patchfiles]} {
         foreach patchfile $patchfiles {
             if {![string match "patch-*.diff" $patchfile]} {
-                ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"patch-*.file\""
+                ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"patch-*.diff\""
                 incr warnings
             }
         }
