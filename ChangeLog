@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - add configure.[perl|python|ruby] for interpreters, .install for avoiding breakage due to coreutils, .libs
+
     - added startupitem.netchange boolean flag (#12931, N_Ox in r30086).
 
     - added generic GNU livecheck (N_Ox in r29812).
