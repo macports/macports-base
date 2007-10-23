@@ -380,6 +380,12 @@ proc lint_main {args} {
         incr warnings
     }
 
+    if {[string match "*nomaintainer@macports.org*" $maintainers] ||
+        [string match "*openmaintainer@macports.org*" $maintainers]} {
+        ui_warn "Using full email adress for no/open maintainer"
+        incr warnings
+    }
+
     if {[info exists patchfiles]} {
         foreach patchfile $patchfiles {
             if {![string match "patch-*.diff" $patchfile]} {
