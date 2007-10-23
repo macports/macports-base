@@ -556,7 +556,7 @@ proc parse_environment {command} {
 			set the_environment "$the_environment $str"
 		}
 	
-		while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\].*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
+		while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\]*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
 			set the_environment ${remaining}
 			set ${command}.env_array(${key}) ${value}
 		}
