@@ -166,6 +166,12 @@ proc lint_main {args} {
     while {1} {
         set line [gets $f]
         if {[eof $f]} {
+            seek $f -1 end
+            set last [read $f 1]
+            if {![string match "\n" $last]} {
+                ui_warn "Line $lineno has missing newline (at end of file)"
+                incr warnings
+            }
             close $f
             break
         }
