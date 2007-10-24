@@ -178,15 +178,18 @@ proc archive_command_setup {args} {
 				if {[regexp {z2?$} ${archive.type}]} {
 					if {[regexp {bz2?$} ${archive.type}]} {
 						set gzip "bzip2"
+						set level 9
 					} elseif {[regexp {lz$} ${archive.type}]} {
 						set gzip "lzma"
+						set level 7
 					} else {
 						set gzip "gzip"
+						set level 9
 					}
 					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set archive.args {- .}
-						set archive.post_args "| $gzip -c9 > ${archive.path}"
+						set archive.post_args "| $gzip -c$level > ${archive.path}"
 					} else {
 						ui_debug $errmsg
 						return -code error "No '$gzip' was found on this system!"
