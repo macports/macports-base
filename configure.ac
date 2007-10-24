@@ -9,6 +9,20 @@ AC_CANONICAL_SYSTEM
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
 
+AC_CHECK_PROGS(SW_VERS, sw_vers)
+if test "x$SW_VERS" != "x"; then
+  AC_MSG_CHECKING(Mac OS X version)
+  MACOSX_VERSION=`$SW_VERS -productVersion | cut -f 1-3 -d.`
+  AC_MSG_RESULT([$MACOSX_VERSION])
+fi
+
+XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
+if test -r "$XCODEPLIST"; then
+  AC_MSG_CHECKING(Xcode version)
+  XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
+  AC_MSG_RESULT([$XCODE_VERSION])
+fi
+
 # translate mp_version (1.600) to regular version (1.6.0)
 AC_MSG_CHECKING(MacPorts version)
 MP_VERSION=`cat config/mp_version | tr -d '\n'`
