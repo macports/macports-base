@@ -6,11 +6,15 @@
 
 Unreleased:
 
+    - add support for LZMA compression, for making .tlz archives (afb in r30307)
+
     - add configure.[perl|python|ruby] for interpreters, .install for avoiding breakage due to coreutils, .libs
 
     - added startupitem.netchange boolean flag (#12931, N_Ox in r30086).
 
     - added generic GNU livecheck (N_Ox in r29812).
+
+    - fixed bug where all .mpkg packages were missing their welcome page (afb in r29517)
 
     - better defaults for implicit ui_channels behaviour (eridius in r29498).
 
