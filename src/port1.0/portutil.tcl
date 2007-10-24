@@ -1903,12 +1903,14 @@ proc archiveTypeIsSupported {type} {
 				}
 			}
 		}
-		t(ar|bz|gz) {
+		t(ar|bz|lz|gz) {
 			set tar "tar"
 			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
 				if {[regexp {z2?$} $type]} {
 					if {[regexp {bz2?$} $type]} {
 						set gzip "bzip2"
+					} elseif {[regexp {lz$} $type]} {
+						set gzip "lzma"
 					} else {
 						set gzip "gzip"
 					}

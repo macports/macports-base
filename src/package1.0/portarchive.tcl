@@ -169,7 +169,7 @@ proc archive_command_setup {args} {
 				return -code error "No '$pax' was found on this system!"
 			}
 		}
-		t(ar|bz|gz) {
+		t(ar|bz|lz|gz) {
 			set tar "tar"
 			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
 				ui_debug "Using $tar"
@@ -178,6 +178,8 @@ proc archive_command_setup {args} {
 				if {[regexp {z2?$} ${archive.type}]} {
 					if {[regexp {bz2?$} ${archive.type}]} {
 						set gzip "bzip2"
+					} elseif {[regexp {lz$} ${archive.type}]} {
+						set gzip "lzma"
 					} else {
 						set gzip "gzip"
 					}
