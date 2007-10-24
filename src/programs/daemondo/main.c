@@ -67,6 +67,9 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <mach/mach.h>
 
@@ -104,6 +107,8 @@ const char*			pidFile				= NULL;
 
 int					terminating			= 0;		// TRUE if we're terminating
 pid_t				runningPid			= 0;		// Current running pid (0 while stopped, -1 if we don't know pid)
+
+int					kqfd				= 0;		// Kqueue file descriptor
 
 mach_port_t			sigChild_m_port		= 0;		// Mach port to send signals through
 mach_port_t			sigGeneric_m_port	= 0;		// Mach port to send signals through
@@ -163,7 +168,7 @@ CatArray(const char* const* strarray, char* buf, size_t size)
 void
 DoVersion(void)
 {
-	printf("daemondo, version 1.0d3\n\n");
+	printf("daemondo, version 1.1\n\n");
 }
 
 
@@ -333,8 +338,44 @@ WaitForValidPidFile(void)
 	pid_t pid = -1;
 	while ((pid = CheckForValidPidFile()) == -1 && (patience - CFAbsoluteTimeGetCurrent() > 0))
 		sleep(1);
+		
+	if (verbosity >= 3)
+		LogMessage("Discovered pid %d from pidfile %s\n", pid, pidFile);
 
 	return pid;
+}
+
+
+
+void
+MonitorChild(pid_t childPid)
+{
+	runningPid = childPid;
+	
+	if (runningPid != 0 && runningPid != -1) {
+		if (verbosity >=3 )
+			LogMessage("Start monitoring of pid %d via kevent\n", runningPid);
+		
+		// Monitor the process deaths for that pid
+		struct kevent ke;
+		EV_SET(&ke, childPid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0, NULL);
+		if (-1 == kevent(kqfd, &ke, 1, NULL, 0, NULL))
+			LogMessage("Could not monitor kevent for pid %d (%d)\n", runningPid, errno);
+	}
+}
+
+
+void
+UnmonitorChild()
+{
+	runningPid = 0;
+}
+
+
+int
+MonitoringChild()
+{
+	return runningPid != 0;
 }
 
 
@@ -345,11 +386,11 @@ ProcessChildDeath(pid_t childPid)
 	if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
 	{
 		if (verbosity >= 3)
-			LogMessage("Running process id %d has died.\n", childPid);
+			LogMessage("Target process id %d has died.\n", childPid);
 			
+		UnmonitorChild();
 		DestroyPidFile();
-
-		runningPid = 0;
+		
 		CFRunLoopStop(CFRunLoopGetCurrent());
 	}
 }
@@ -509,11 +550,11 @@ Start(void)
 	}
 	
 	// If we have a pid, then begin tracking it
-	runningPid = pid;
+	MonitorChild(pid);
 	if (pid != 0 && pid != -1)
 	{
 		if (verbosity >= 1)
-			LogMessage("process id %d\n", pid);
+			LogMessage("Target process id is %d\n", pid);
 
 		// Create a pid file if we need to		
 		CreatePidFile();
@@ -569,7 +610,7 @@ Stop(void)
 		}
 
 		// We've executed stop-cmd, so we assume any runningPid process is gone
-		runningPid = 0;
+		UnmonitorChild();
 		DestroyPidFile();
 	}
 	
@@ -767,6 +808,32 @@ SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
 }
 
 
+void KQueueCallBack (CFSocketRef socketRef, CFSocketCallBackType type,
+             CFDataRef address, const void *data, void *context)
+{
+	int fd = CFSocketGetNative(socketRef);
+	
+    struct kevent event;
+	memset(&event, 0x00, sizeof(struct kevent));
+	
+    if (kevent(fd, NULL, 0, &event, 1, NULL) == -1) {
+        LogMessage("Couldn't get kevent.  Error %d/%s\n", errno, strerror(errno));
+    } else {
+    	if (event.fflags & NOTE_EXIT) {
+    	
+    		pid_t pid = event.ident;
+    		
+			if (verbosity >= 3)
+				LogMessage("Received kevent: pid %d has exited\n", pid);
+				
+			ProcessChildDeath(pid);
+    	} else
+    		LogMessage("Unexpected kevent received: %d\n", event.fflags);
+    }
+
+}
+
+
 void
 AddNotificationToCenter(const void* value, void* context)
 {
@@ -822,6 +889,8 @@ MainLoop(void)
 	
 	int status = 0;
 	
+	if (verbosity >= 3)
+		LogMessage("Initializing; daemondo pid is %d\n", getpid());
 	
 	// === Setup Notifications of Changes to System Configuration ===
 	// Create a new SCDynamicStore session and an associated runloop source, adding it default mode
@@ -858,11 +927,21 @@ MainLoop(void)
 	CFRunLoopSourceRef	sigChildSrc		= CFMachPortCreateRunLoopSource(NULL, sigChildPort, 0);
 	CFRunLoopSourceRef	sigGenericSrc	= CFMachPortCreateRunLoopSource(NULL, sigGenericPort, 0);
 	
-	// Add only the child signal source to the childwatch mode
+	
+	// === Setup kevent notifications of process death
+	kqfd = kqueue();
+    CFSocketRef kqSocket	 			= CFSocketCreateWithNative(NULL,  kqfd,
+                         					kCFSocketReadCallBack, KQueueCallBack, NULL);
+    CFRunLoopSourceRef	kqueueSrc		= CFSocketCreateRunLoopSource(NULL, kqSocket, 0);	
+	
+	
+	// Add only the child signal sources to the childwatch mode
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), sigChildSrc, kChildWatchMode);
-
+	CFRunLoopAddSource(CFRunLoopGetCurrent(), kqueueSrc, kChildWatchMode);
+	
 	// Add both child and generic signal sources to the default mode
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), sigChildSrc, kCFRunLoopDefaultMode);
+	CFRunLoopAddSource(CFRunLoopGetCurrent(), kqueueSrc, kCFRunLoopDefaultMode);
 	CFRunLoopAddSource(CFRunLoopGetCurrent(), sigGenericSrc, kCFRunLoopDefaultMode);
 	
 	// Install signal handlers
@@ -878,12 +957,18 @@ MainLoop(void)
 	// Start the daemon
 	status = Start();
 	
+	if (verbosity >= 3)
+		LogMessage("Start event loop\n");
+	
 	// Run the run loop until we stop it, or until the process we're tracking stops
-	while (status == 0 && !terminating && runningPid != 0)
+	while (status == 0 && !terminating && MonitoringChild())
 		CFRunLoopRunInMode(kCFRunLoopDefaultMode, 99999999.0, true);
 		
+	if (verbosity >= 3)
+		LogMessage("End event loop\n");
+	
 		
-	// === Tear Down ==
+	// === Tear Down (we don't really need to do all of this) ===
 	// The daemon should by now have either been stopped, or stopped of its own accord
 		
 	// Remove signal handlers
@@ -894,16 +979,25 @@ MainLoop(void)
 	sigChild_m_port = 0;
 	sigGeneric_m_port = 0;
 	
-	// Tear down signal handling infrastructure
+	// Remove run loop sources
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sigChildSrc, kChildWatchMode);
+	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), kqueueSrc, kChildWatchMode);
+	
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sigChildSrc, kCFRunLoopDefaultMode);
+	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), kqueueSrc, kCFRunLoopDefaultMode);
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), sigGenericSrc, kCFRunLoopDefaultMode);
 	
+	// Tear down signal handling infrastructure
 	CFRelease(sigChildSrc);
 	CFRelease(sigGenericSrc);
 	
 	CFRelease(sigChildPort);
 	CFRelease(sigGenericPort);
+	
+	// Tear down kqueue infrastructure
+	CFRelease(kqueueSrc);
+	CFRelease(kqSocket);
+	close(kqfd);
 
 	// Tear down DynamicStore stuff
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), dsSrc, kCFRunLoopDefaultMode);
@@ -918,6 +1012,9 @@ MainLoop(void)
 	// Tear down power management stuff
 	CFRunLoopRemoveSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(powerRef), kCFRunLoopDefaultMode);
 	IODeregisterForSystemPower(&pwrNotifier);
+	
+	if (verbosity >= 3)
+		LogMessage("Terminating\n");
 	
 	return status;	
 }
@@ -1055,7 +1152,7 @@ main(int argc, char* argv[])
 	{
 		int optindex = 0;
 		int ret = getopt_long(argc, argv, ":s:k:r:l:hvV", longopts, &optindex);
-		int opt = (ret == '?') ? optopt : ret;
+		int opt = ret;
 		switch (opt)
 		{
 		case ':':
@@ -1140,6 +1237,10 @@ main(int argc, char* argv[])
 				pidStyle = kPidStyleFileAuto;
 			else if (0 == strcasecmp(optarg, "fileclean"))
 				pidStyle = kPidStyleFileClean;
+			else {
+				status = 1;
+				LogMessage("Unexpected pid style %s\n", optarg);
+			}
 			break;
 		
 		case kPidFileOpt:
@@ -1172,6 +1273,11 @@ main(int argc, char* argv[])
 	
 		case 'V':
 			DoVersion();
+			break;
+			
+		default:
+			LogMessage("unexpected parameter: %s\n", argv[optind]);
+			status = 1;
 			break;
 		}
 	}
