@@ -56,7 +56,7 @@ proc trace_start {workpath} {
 			
 			set tracelib_path [file join ${portutil::autoconf::prefix} share macports Tcl darwintrace1.0 darwintrace.dylib]
 
-			if {[info exists env(DYLD_INSERT_LIBRARIES)]} {
+			if {[info exists env(DYLD_INSERT_LIBRARIES)] && [string length "$env(DYLD_INSERT_LIBRARIES)"] > 0} {
 				set env(DYLD_INSERT_LIBRARIES) "${env(DYLD_INSERT_LIBRARIES)}:${tracelib_path}"
 			} else {
 				set env(DYLD_INSERT_LIBRARIES) ${tracelib_path}
