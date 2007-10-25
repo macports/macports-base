@@ -379,7 +379,7 @@ ProcessChildDeath(pid_t childPid)
     if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
     {
         if (verbosity >= 1)
-            LogMessage("Target process pid %d has died.\n", childPid);
+            LogMessage("Target process %d has died.\n", childPid);
             
         UnmonitorChild();
         DestroyPidFile();
