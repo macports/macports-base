@@ -16,12 +16,40 @@ if test "x$SW_VERS" != "x"; then
   AC_MSG_RESULT([$MACOSX_VERSION])
 fi
 
+case "$MACOSX_VERSION" in
+  10.0*|10.1*|10.2*)
+    AC_WARN(This version of Mac OS X is not supported)
+    AC_WARN(Please upgrade at http://store.apple.com/)
+    ;;
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-8]])
+    AC_WARN(This version of Mac OS X is out of date)
+    AC_WARN(Please run Software Update to update it)
+    ;;
+  10.3*|10.4*|10.5*)
+    dnl Supported version
+    ;;
+  *)
+    ;;
+esac
+
 XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
   AC_MSG_CHECKING(Xcode version)
   XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
   AC_MSG_RESULT([$XCODE_VERSION])
 fi
+
+case "$XCODE_VERSION" in
+  1.[[0-4]]*|2.[[0-3]]*)
+    AC_WARN(This version of Xcode Tools is not supported)
+    AC_WARN(Please upgrade at http://connect.apple.com/)
+    ;;
+  1.5*|2.4*|3.*)
+    dnl Supported version
+    ;;
+  *)
+    ;;
+esac
 
 # translate mp_version (1.600) to regular version (1.6.0)
 AC_MSG_CHECKING(MacPorts version)

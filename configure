@@ -2096,6 +2096,25 @@ echo $ECHO_N "checking Mac OS X version... $ECHO_C" >&6; }
 echo "${ECHO_T}$MACOSX_VERSION" >&6; }
 fi
 
+case "$MACOSX_VERSION" in
+  10.0*|10.1*|10.2*)
+    { echo "$as_me:$LINENO: WARNING: This version of Mac OS X is not supported" >&5
+echo "$as_me: WARNING: This version of Mac OS X is not supported" >&2;}
+    { echo "$as_me:$LINENO: WARNING: Please upgrade at http://store.apple.com/" >&5
+echo "$as_me: WARNING: Please upgrade at http://store.apple.com/" >&2;}
+    ;;
+  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-8])
+    { echo "$as_me:$LINENO: WARNING: This version of Mac OS X is out of date" >&5
+echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
+    { echo "$as_me:$LINENO: WARNING: Please run Software Update to update it" >&5
+echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
+    ;;
+  10.3*|10.4*|10.5*)
+        ;;
+  *)
+    ;;
+esac
+
 XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
   { echo "$as_me:$LINENO: checking Xcode version" >&5
@@ -2104,6 +2123,19 @@ echo $ECHO_N "checking Xcode version... $ECHO_C" >&6; }
   { echo "$as_me:$LINENO: result: $XCODE_VERSION" >&5
 echo "${ECHO_T}$XCODE_VERSION" >&6; }
 fi
+
+case "$XCODE_VERSION" in
+  1.[0-4]*|2.[0-3]*)
+    { echo "$as_me:$LINENO: WARNING: This version of Xcode Tools is not supported" >&5
+echo "$as_me: WARNING: This version of Xcode Tools is not supported" >&2;}
+    { echo "$as_me:$LINENO: WARNING: Please upgrade at http://connect.apple.com/" >&5
+echo "$as_me: WARNING: Please upgrade at http://connect.apple.com/" >&2;}
+    ;;
+  1.5*|2.4*|3.*)
+        ;;
+  *)
+    ;;
+esac
 
 # translate mp_version (1.600) to regular version (1.6.0)
 { echo "$as_me:$LINENO: checking MacPorts version" >&5
