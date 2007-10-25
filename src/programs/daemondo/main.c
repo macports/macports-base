@@ -378,8 +378,8 @@ ProcessChildDeath(pid_t childPid)
     // Take special note if process runningPid dies
     if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
     {
-        if (verbosity >= 3)
-            LogMessage("Target process id %d has died.\n", childPid);
+        if (verbosity >= 1)
+            LogMessage("Target process pid %d has died.\n", childPid);
             
         UnmonitorChild();
         DestroyPidFile();
@@ -498,7 +498,7 @@ Start(void)
     }
     
     if (verbosity >= 1)
-        LogMessage("starting process\n");
+        LogMessage("Starting process\n");
     if (verbosity >= 2)
         LogMessage("Running start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
         
@@ -570,7 +570,7 @@ Stop(void)
         if ((pid = runningPid) != 0 && pid != -1)
         {
             if (verbosity >= 1)
-                LogMessage("stopping process %d\n", pid);
+                LogMessage("Stopping process %d\n", pid);
             
             // Send the process a SIGTERM to ask it to quit
             kill(pid, SIGTERM);
@@ -589,7 +589,7 @@ Stop(void)
         // We have a stop-cmd to use. We execute it synchronously,
         // and trust it to do the job.
         if (verbosity >= 1)
-            LogMessage("stopping process\n");
+            LogMessage("Stopping process\n");
         if (verbosity >= 2)
             LogMessage("Running stop-cmd %s.\n", CatArray(stopArgs, buf, sizeof(buf)));
         pid = Exec(stopArgs, TRUE);
@@ -620,7 +620,7 @@ Restart(void)
     {
         // We weren't given a restart command, so just use stop/start
         if (verbosity >= 1)
-            LogMessage("restarting process\n");
+            LogMessage("Restarting process\n");
         Stop();
         Start();
     }
@@ -628,7 +628,7 @@ Restart(void)
     {
         // Execute the restart-cmd and trust it to do the job
         if (verbosity >= 1)
-            LogMessage("restarting process\n");
+            LogMessage("Restarting process\n");
         if (verbosity >= 2)
             LogMessage("Running restart-cmd %s.\n", CatArray(restartArgs, buf, sizeof(buf)));
         pid_t pid = Exec(restartArgs, TRUE);
@@ -782,11 +782,15 @@ SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
         if (!terminating)
         {
             terminating = true;
+            if (verbosity >= 1)
+                LogMessage("SIGTERM received\n");
             Stop();
         }
         break;
     
     case SIGHUP:
+        if (verbosity >= 1)
+            LogMessage("SIGHUP received\n");
         if (!terminating)
             Restart();
         break;
