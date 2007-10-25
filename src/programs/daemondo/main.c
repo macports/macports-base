@@ -1,7 +1,7 @@
 /*
     daemondo - main.c
     
-    Copyright (c) 2005 James Berry <jberry@macports.org>
+    Copyright (c) 2005-2007 James Berry <jberry@macports.org>
     All rights reserved.
 
     Redistribution and use in source and binary forms, with or without
@@ -45,19 +45,6 @@
     Potentially useful notifications from Darwin Notify Center:
     
         com.apple.system.config.network_change
-*/
-
-/*
-    New parameters:
-    
-        --pid=none      - no pid is available; we start/stop only through the commands,
-                          and have no real knowledge of whether the process is running
-        --pid=exec      - we track the pid we receive from exec of the start cmd
-        --pid=fileauto  - we track the pid available in first word of pidfile
-        --pid=fileclean - we track the pid available in first word of pidfile,
-                          and clean it up when the process dies
-        
-        --pidfile=name  - the name of the pidfile to use
 */
     
 #include <stdio.h>
@@ -205,6 +192,13 @@ DoHelp(void)
         "  -s, --start-cmd args... ;       Required: command that will start the daemon.\n"
         "  -k, --stop-cmd args... ;        Command that will stop the daemon.\n"
         "  -r, --restart-cmd args... ;     Command that will restart the daemon.\n"
+        "\n"
+        "      --pid=none|exec|fileauto|fileclean\n"
+        "                                  Whether to use/how to treat pid file.\n"
+        "      --pidfile=<pidfile>         A pidfile from which to scavenge the target pid.\n"
+        "\n"
+        "      --restart-wakeup            Restart daemon on wake from sleep.\n"
+        "      --restart-netchange         Restart daemon on a network change.\n"
         "      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
         "      --restart-dist-notify names... ;\n"
         "                                  Distributed Notification Center notifications\n"
@@ -213,8 +207,6 @@ DoHelp(void)
         "                                  Darwin Notification Center notifications\n"
         "                                  on which to restart the daemon.\n"
         "      --restart-config regex... ; SC patterns on which to restart the daemon.\n"
-        "      --restart-wakeup            Restart daemon on wake from sleep.\n"
-        "      --restart-netchange         Restart daemon on a network change.\n"
         "\n"
         "daemondo responds to SIGHUP by restarting the daemon, and to SIGTERM by\n"
         "stopping it. daemondo exits on receipt of SIGTERM, or when it detects\n"
@@ -1295,7 +1287,7 @@ main(int argc, char* argv[])
     if (status == 0 && startArgs)
         status = MainLoop();
     else
-        DoHelp();
+        printf("use option --help for help\n");
         
     return status;
 }
