@@ -44,6 +44,7 @@ set lint_categories [list \
 	"gnome" \
 	"gnustep" \
 	"graphics" \
+	"iphone" \
 	"irc" \
 	"java" \
 	"kde" \
