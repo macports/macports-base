@@ -127,7 +127,7 @@ inline char* __darwintrace_alloc_env(const char* varName, const char* varValue);
 inline char* const* __darwintrace_restore_env(char* const envp[]);
 inline void __darwintrace_setup();
 inline void __darwintrace_cleanup_path(char *path);
-static char * exchange_with_port(const char * buf, size_t len, int answer);
+static char * exchange_with_port(const char * buf, size_t len, int answer, char failures);
 
 #define START_FD 81
 static int __darwintrace_fd = -1;
@@ -319,7 +319,7 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 
 static void ask_for_filemap()
 {
-	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1);
+	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1, 0);
 	if((int)filemap==-1)
 		filemap=0;
 }
@@ -388,7 +388,7 @@ inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 		"%s\t%s",
 		op, somepath );
 
-	exchange_with_port(logbuffer, size+1, 0);
+	exchange_with_port(logbuffer, size+1, 0, 0);
 	
 	return;
 }
@@ -471,8 +471,8 @@ static int ask_for_dependency(char * path)
 		return 1;
 	
 	strcpy(buffer, "dep_check\t");
-	strcat(buffer, path);
-	p=exchange_with_port(buffer, strlen(buffer)+1, 1);
+	strcpy(buffer+10, path);
+	p=exchange_with_port(buffer, strlen(buffer)+1, 1, 0);
 	if((int)p==-1||!p)
 		return 0;
 	
@@ -486,19 +486,28 @@ static int ask_for_dependency(char * path)
 /*
  * exchange_with_port - routine to send/recv from/to socket
  * Parameters:
- *   buf    -- buffer with data to send
- *   len    -- length of data
- *   answer -- 1 (yes, I want to receive answer) and 0 (no, thanks, just send)
+ *   buf      -- buffer with data to send
+ *   len      -- length of data
+ *   answer   -- 1 (yes, I want to receive answer) and 0 (no, thanks, just send)
+ *   failures -- should be setted 0 on external calls (avoid infinite recursion)
  * Return value:
  *    -1     -- something went wrong
  *    0      -- data successfully sent
  *    string -- answer (caller shoud free it)
  */
-static char * exchange_with_port(const char * buf, size_t len, int answer)
+static char * exchange_with_port(const char * buf, size_t len, int answer, char failures)
 {
 	wait_for_socket(__darwintrace_fd, 1);
 	if(send(__darwintrace_fd, buf, len, 0)==-1)
+	{
+		if(errno==ENOTSOCK && failures<3)
+		{
+			__darwintrace_fd=-1;
+			__darwintrace_setup();
+			return exchange_with_port(buf, len, answer, failures+1);
+		}
 		return (char*)-1;
+	}
 	if(!answer)
 		return 0;
 	{
