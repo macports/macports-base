@@ -551,10 +551,7 @@ proc parse_environment {command} {
 
 	if {[info exists ${command}.env]} {
 		# Flatten the environment string.
-		set the_environment ""
-		foreach str [set ${command}.env] {
-			set the_environment "$the_environment $str"
-		}
+		set the_environment [join [set ${command}.env]]
 	
 		while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\]*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
 			set the_environment ${remaining}
