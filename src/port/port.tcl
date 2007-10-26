@@ -2159,6 +2159,7 @@ array set action_array {
     archive     action_target
     unarchive   action_target
     dmg         action_target
+    mdmg        action_target
     dpkg        action_target
     mpkg        action_target
     pkg         action_target
