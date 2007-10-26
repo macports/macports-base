@@ -344,6 +344,8 @@ AC_CONFIG_FILES([
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
+	portmgr/freebsd/Makefile
+	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/tclobjc1.0/Makefile
