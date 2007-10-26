@@ -273,6 +273,9 @@ proc command_exec {command args} {
 	if {![array exists ${command}.env_array]} {
 		parse_environment ${command}
 	}
+	if {[option macosx_deployment_target] ne ""} {
+    	append_list_to_environment_value ${command} "MACOSX_DEPLOYMENT_TARGET" [option macosx_deployment_target]
+	}
 	
 	# Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
