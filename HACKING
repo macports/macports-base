@@ -1,3 +1,14 @@
+Project naming and copyright attribution:
+
+* "The MacPorts Project" is the string that shall be used whereever there's a need to reference our project name, such as in copyright notices.
+* A developer or contributor is adviced to attribute himself a copyright notice if he/she is contributing a full new source file or a full new feature
+  to an already existing source file in the "base" component of our repository.
+* An exception to this rule is our Portfiles, since they are partly meant for human eyes consumption and the boilerplate header comments should be kept
+  down to a minimum
+* A copyright notice attributed to our group name, "The MacPorts Project", should also be added to these source files (if not already there) if they're
+  being uploaded to the "base" component of our repository, since as such they are being contributed to the project.
+
+
 Whitespace rules as discussed on the list:
 
 * All source code files MUST use soft tabs at a tabstop of 4. No hard tabs are allowed.
