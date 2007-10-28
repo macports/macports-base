@@ -516,7 +516,7 @@ proc startupitem_create_darwin_launchd {args} {
     # There are four cases:
     #   (1) none
     #   (2) auto [pidfilename]
-    #   (3) cleanup [pidfilename]
+    #   (3) clean [pidfilename]
     #   (4) manual [pidfilename]
     #
     set pidfileArgCnt [llength ${startupitem.pidfile}]
