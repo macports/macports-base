@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - New SourceForge.jp mirrors list (r30484).
+
     - Remove configure.macosx_deployment_target, add global macosx_deployment_target (eridius in r30396).
 
     - add support for LZMA compression, for making .tlz archives (afb in r30307)
