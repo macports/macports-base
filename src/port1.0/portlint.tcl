@@ -383,13 +383,13 @@ proc lint_main {args} {
     }
 
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
-        ui_warn "Using legacy email for no/open maintainer"
+        ui_warn "Using legacy email address for no/open maintainer"
         incr warnings
     }
 
     if {[string match "*nomaintainer@macports.org*" $maintainers] ||
         [string match "*openmaintainer@macports.org*" $maintainers]} {
-        ui_warn "Using full email adress for no/open maintainer"
+        ui_warn "Using full email address for no/open maintainer"
         incr warnings
     }
 
