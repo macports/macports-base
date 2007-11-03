@@ -101,9 +101,9 @@ for {set i 0} {$i < $argc} {incr i} {
 }
 
 if {$archive == 1 && ![info exists outdir]} {
-   puts stderr "You must specify an output directory with -o when using the -a option"
-   print_usage
-   exit 1
+    puts stderr "You must specify an output directory with -o when using the -a option"
+    print_usage
+    exit 1
 }
 
 if {![info exists directory]} {
