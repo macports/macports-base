@@ -43,15 +43,16 @@ if {[option portarchivemode] == "yes"} {
 }
 
 # define options
-options package.type package.destpath
+options package.type package.destpath package.flat
 
 # Set defaults
 default package.destpath {${workpath}}
+default package.flat     false
 
 set_ui_prefix
 
 proc pkg_main {args} {
-    global portname portversion portrevision package.type package.destpath UI_PREFIX
+    global portname portversion portrevision package.type package.destpath package.flat UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${portname} ${portversion}]"
 
@@ -59,21 +60,26 @@ proc pkg_main {args} {
 }
 
 proc package_pkg {portname portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage portpath
+    global UI_PREFIX portdbpath destpath workpath prefix portresourcepath description package.destpath package.flat long_description homepage portpath
+    global os.version os.major
 
-    set resourcepath ${workpath}/pkg_resources
-    # XXX: we need to support .lproj in resources.
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
        	ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
         return 0
     }
+
+    set packagemaker "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
+    if ([file exists "$packagemaker"]) {
+         set resourcepath ${workpath}/pkg_resources
+    } else {
+        set resourcepath "${pkgpath}/Contents/Resources"
+    }
+
+    set language "English"
+    system "mkdir -p -m 0755 ${resourcepath}/$language.lproj"
 	
-    system "mkdir -p -m 0755 ${pkgpath}/Contents/Resources"
-    write_PkgInfo ${pkgpath}/Contents/PkgInfo
-    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
-    write_description_plist ${pkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
 	if {![info exists $variable]} {
@@ -82,24 +88,57 @@ proc package_pkg {portname portversion portrevision} {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_html ${pkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- ${portresourcepath}/package/background.tiff ${pkgpath}/Contents/Resources/background.tiff
+    write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    file copy -force -- ${portresourcepath}/package/background.tiff ${resourcepath}/${language}.lproj/background.tiff
+
     foreach dir {etc var tmp} {
 	if ([file exists "${destpath}/$dir"]) {
 	    # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
 	    system "mkdir -p ${destpath}/private/$dir; mv ${destpath}/$dir/* ${destpath}/private/$dir; rm -r \"${destpath}/$dir\""
 	}
     }
+
+    if ([file exists "$packagemaker"]) {
+
+    ui_debug "Calling $packagemaker"
+    if {${os.major} >= 9} {
+        if {${package.flat}} {
+            set pkgtarget "10.5"
+            set pkgresources ""
+            set infofile "${workpath}/PackageInfo"
+            write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
+        } else {
+            set pkgtarget "10.3"
+            set pkgresources " --resources ${resourcepath}"
+            set infofile "${workpath}/Info.plist"
+            write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+        }
+        system "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --out ${pkgpath} --root ${destpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+    } else {
+        write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+        write_description_plist ${workpath}/Description.plist $portname $portversion $description
+        system "$packagemaker -AppleLanguages \"(${language})\" -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
+    }
+
+    } else {
+
+    write_PkgInfo ${pkgpath}/Contents/PkgInfo
+    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
+
     system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
     system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+
+    write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
+    write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+
+    }
+
     foreach dir {etc var tmp} {
 	if ([file exists "${destpath}/private/$dir"]) {
 	    # restore any directories that were moved, to avoid confusing the rest of the ports system.
 	    system "mv ${destpath}/private/$dir ${destpath}/$dir; rmdir ${destpath}/private 2>/dev/null"
 	}
     }
-
-    write_sizes_file ${pkgpath}/Contents/Resources/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     return 0
 }
@@ -271,4 +310,16 @@ proc write_sizes_file {sizesfile portname portversion pkgpath destpath} {
 InstalledSize $installedSize
 CompressedSize $compressedSize"
     close $fd
+}
+
+proc write_package_info {infofile portname portversion portrevision} {
+	set portname [xml_escape $portname]
+	set portversion [xml_escape $portversion]
+	set portrevision [xml_escape $portrevision]
+
+	set infofd [open ${infofile} w+]
+	puts $infofd "
+<pkg-info install-location=\"/\" relocatable=\"false\" auth=\"root\">
+</pkg-info>"
+	close $infofd
 }
