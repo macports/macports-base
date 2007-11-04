@@ -50,6 +50,7 @@ proc dmg_main {args} {
 
 proc package_dmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath
+    global os.version os.major
     
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"
@@ -76,10 +77,19 @@ proc package_dmg {portname portversion portrevision} {
         set blocks [expr ($size/512) + ((($size/512)*3)/100)]
     }
     
+    # partition for .dmg
+    if {${os.major} >= 9} {
+	# GUID_partition_scheme
+        set subdev 1
+    } else {
+	# Apple_partition_scheme (Apple_partition_map is at s1)
+        set subdev 2
+    }
+    
     if {[system "hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
-    if {[catch {set devicename [exec hdid ${tmp_image} | grep "s2" | awk "{ print \$1 }"]} error]} {
+    if {[catch {set devicename [exec hdid ${tmp_image} | grep s${subdev} | awk "{ print \$1 }"]} error]} {
         return -code error [format [msgcat::mc "Failed to attach temporary image: %s"] ${error}]
     }
     set mount_point [exec mount | grep "${devicename}"]
