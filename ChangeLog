@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Add option use_parallel_build [yes|no] to declare if a port can be built in parallel (r30714).
+
     - New SourceForge.jp mirrors list (r30484).
 
     - Remove configure.macosx_deployment_target, add global macosx_deployment_target (eridius in r30396).
