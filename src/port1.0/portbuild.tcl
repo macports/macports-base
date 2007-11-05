@@ -42,7 +42,7 @@ target_prerun ${org.macports.build} build_start
 options build.target
 options build.nice
 options build.jobs
-commands build
+commands build parallel_build
 # defaults
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[build_getnicevalue][build_getmaketype][build_getmakejobs]}
@@ -111,6 +111,13 @@ proc build_getnicevalue {args} {
 }
 
 proc build_getmakejobs {args} {
+    # check if port allows a parallel build
+    global use_parallel_build
+    if {![tbool use_parallel_build]} {
+         return ""
+    }
+    ui_debug "port allows a parallel build"
+
     if {![exists build.jobs] || ![string match "*make*" [build_getmaketype]]} {
 	return ""
     }
