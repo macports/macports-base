@@ -5,6 +5,7 @@
 
 
 Unreleased:
+    - Auto-mode for number of parallel build threads (if number of jobs is set to "0") (r30739)
 
     - Add option use_parallel_build [yes|no] to declare if a port can be built in parallel (r30714).
 
