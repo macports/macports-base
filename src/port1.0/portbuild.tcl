@@ -122,6 +122,10 @@ proc build_getmakejobs {args} {
 	return ""
     }
     set jobs [option build.jobs]
+    # if set to '0', use the number of cores for the number of jobs
+    if {$jobs == 0} {
+        set jobs [exec "/usr/sbin/sysctl" "-n" "hw.ncpu"]
+    }
     if {![string is integer -strict $jobs] || $jobs <= 1} {
 	return ""
     }
