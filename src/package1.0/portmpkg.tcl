@@ -39,12 +39,12 @@ target_provides ${org.macports.mpkg} mpkg
 target_requires ${org.macports.mpkg} pkg
 
 # define options
-options package.destpath
+options package.destpath package.flat
 
 set_ui_prefix
 
 proc mpkg_main {args} {
-    global portname portversion portrevision package.destpath UI_PREFIX
+    global portname portversion portrevision package.destpath package.flat UI_PREFIX
 
     # Make sure the destination path exists.
     system "mkdir -p ${package.destpath}"
@@ -87,7 +87,7 @@ proc make_dependency_list {portname} {
 }
 
 proc make_one_package {portname portversion destination} {
-	global prefix package.destpath 
+	global prefix package.destpath package.flat
 	if {[catch {set res [mport_search "^$portname\$"]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -100,7 +100,7 @@ proc make_one_package {portname portversion destination} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination}] {} yes]
+			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat}] {} yes]
 			mport_exec $worker pkg
 			mport_close $worker
 		}
@@ -109,7 +109,7 @@ proc make_one_package {portname portversion destination} {
 }
 
 proc package_mpkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix portresourcepath description package.destpath long_description homepage depends_run depends_lib
+    global portdbpath destpath workpath prefix portresourcepath description package.destpath package.flat long_description homepage depends_run depends_lib
 
 	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
