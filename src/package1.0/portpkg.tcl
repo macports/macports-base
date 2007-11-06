@@ -109,7 +109,7 @@ proc package_pkg {portname portversion portrevision} {
             write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
         } else {
             set pkgtarget "10.3"
-            set pkgresources " --resources ${resourcepath}"
+            set pkgresources " --resources ${resourcepath} --title \"$portname-$portversion\""
             set infofile "${workpath}/Info.plist"
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
         }
