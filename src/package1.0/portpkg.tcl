@@ -113,11 +113,11 @@ proc package_pkg {portname portversion portrevision} {
             set infofile "${workpath}/Info.plist"
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
         }
-        system "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --out ${pkgpath} --root ${destpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
+        system "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
     } else {
         write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
         write_description_plist ${workpath}/Description.plist $portname $portversion $description
-        system "$packagemaker -build -v -p ${pkgpath} -f ${destpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist -AppleLanguages \"(${language})\""
+        system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist -AppleLanguages \"(${language})\""
     }
 
     } else {
