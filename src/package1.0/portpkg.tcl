@@ -117,7 +117,7 @@ proc package_pkg {portname portversion portrevision} {
     } else {
         write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
         write_description_plist ${workpath}/Description.plist $portname $portversion $description
-        system "$packagemaker -AppleLanguages \"(${language})\" -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
+        system "$packagemaker -build -v -p ${pkgpath} -f ${destpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist -AppleLanguages \"(${language})\""
     }
 
     } else {
