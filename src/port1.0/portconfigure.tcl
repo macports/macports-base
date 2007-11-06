@@ -53,8 +53,9 @@ default xmkmf.dir {${worksrcpath}}
 default use_configure yes
 
 # Configure special environment variables.
-options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath configure.perl configure.python configure.ruby configure.install
 # We could have default debug/optimization flags at some point.
+# compiler flags section
+options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
 default configure.pipe		no
 default configure.cflags	{-O2}
 default configure.cppflags	{"-I${prefix}/include"}
@@ -66,10 +67,17 @@ default configure.fflags	{-O2}
 default configure.f90flags	{-O2}
 default configure.fcflags	{-O2}
 default configure.classpath	{}
+
+# tools section
+options configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
 default configure.perl		{}
 default configure.python	{}
 default configure.ruby		{}
 default configure.install	{"/usr/bin/install"}
+default configure.awk		{}
+default configure.bison		{}
+default configure.pkg_config	{}
+default configure.pkg_config_path	{}
 
 # Universal options & default values.
 if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
@@ -134,7 +142,8 @@ proc select_compiler {info args} {
 proc configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoconf use_automake use_xmkmf
-    global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath configure.perl configure.python configure.ruby configure.install
+    global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
+    global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
     global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
     
@@ -289,6 +298,10 @@ proc configure_main {args} {
 		append_list_to_environment_value configure "PYTHON" ${configure.python}
 		append_list_to_environment_value configure "RUBY" ${configure.ruby}
 		append_list_to_environment_value configure "INSTALL" ${configure.install}
+		append_list_to_environment_value configure "AWK" ${configure.awk}
+		append_list_to_environment_value configure "BISON" ${configure.bison}
+		append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
+		append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
 
 		# Execute the command (with the new environment).
 		if {[catch {command_exec configure} result]} {
