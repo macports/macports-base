@@ -100,7 +100,7 @@ proc package_pkg {portname portversion portrevision} {
 
     if ([file exists "$packagemaker"]) {
 
-    ui_debug "Calling $packagemaker"
+    ui_debug "Calling $packagemaker for $portname pkg"
     if {${os.major} >= 9} {
         if {${package.flat}} {
             set pkgtarget "10.5"
@@ -117,7 +117,7 @@ proc package_pkg {portname portversion portrevision} {
     } else {
         write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
         write_description_plist ${workpath}/Description.plist $portname $portversion $description
-        system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist -AppleLanguages \"(${language})\""
+        system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
     }
 
     } else {
