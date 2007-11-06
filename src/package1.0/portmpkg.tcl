@@ -86,7 +86,7 @@ proc make_dependency_list {portname} {
 	return $result
 }
 
-proc make_one_package {portname portversion mpkgpath} {
+proc make_one_package {portname portversion destination} {
 	global prefix package.destpath 
 	if {[catch {set res [mport_search "^$portname\$"]} result]} {
 		global errorInfo
@@ -100,7 +100,7 @@ proc make_one_package {portname portversion mpkgpath} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${mpkgpath}/Contents/Resources] {} yes]
+			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination}] {} yes]
 			mport_exec $worker pkg
 			mport_close $worker
 		}
@@ -114,6 +114,7 @@ proc package_mpkg {portname portversion portrevision} {
 	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
 	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Resources"
+	system "mkdir -p -m 0755 ${mpkgpath}/Contents/Packages"
 
 	set dependencies {}
 	# get deplist
@@ -124,13 +125,13 @@ proc package_mpkg {portname portversion portrevision} {
 		set vers [lindex [split $dep /] 1]
 		# don't re-package ourself
 		if {$name != $portname} {
-			make_one_package $name $vers $mpkgpath
+			make_one_package $name $vers $mpkgpath/Contents/Packages
 			lappend dependencies ${name}-${vers}.pkg
 		}
 	}
 	
 	# copy our own pkg into the mpkg
-	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Resources/"
+	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Packages/"
 	lappend dependencies ${portname}-${portversion}.pkg
 	
     write_PkgInfo ${mpkgpath}/Contents/PkgInfo
@@ -199,7 +200,7 @@ proc mpkg_write_info_plist {infofile portname portversion portrevision destinati
 	<key>IFMinorVersion</key>
 	<integer>0</integer>
 	<key>IFPkgFlagComponentDirectory</key>
-	<string>./Contents/Resources</string>
+	<string>./Contents/Packages</string>
 	<key>IFPkgFlagPackageList</key>
 	<array>
 		${depxml}</array>
