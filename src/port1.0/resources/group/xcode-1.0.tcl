@@ -53,49 +53,49 @@
 #
 # build and destroot parameters use the following parameters:
 #  PortGroup specific parameters:
-#   xcode.project		name (or path relative to build.dir) of the xcode
-#						project. Default is "" meaning let xcodebuild figure it
-#                       out.
-#   xcode.configuration	xcode buildstyle/configuration. Default is Deployment.
-#   xcode.target		if present, overrides build.target and destroot.target
-#   xcode.build.settings	additional settings passed to $xcodebuildcmd (in \
-#						the X=Y form)
-#   xcode.destroot.type	install type (application or framework). Default is
-#                       application. This setting overrides xcode.destroot.path.
-#   xcode.destroot.path	install path (INSTALL_PATH setting value).
-#   xcode.destroot.settings	additional settings passed to $xcodebuildcmd (in \
-#						the X=Y form)
+#   xcode.project           name (or path relative to build.dir) of the xcode
+#                           project. Default is "" meaning let xcodebuild figure it
+#                           out.
+#   xcode.configuration     xcode buildstyle/configuration. Default is Deployment.
+#   xcode.target            if present, overrides build.target and destroot.target
+#   xcode.build.settings    additional settings passed to $xcodebuildcmd (in
+#                           the X=Y form)
+#   xcode.destroot.type     install type (application or framework). Default is
+#                           application. This setting overrides xcode.destroot.path.
+#   xcode.destroot.path     install path (INSTALL_PATH setting value).
+#   xcode.destroot.settings additional settings passed to $xcodebuildcmd (in
+#                           the X=Y form)
 #
 #  Usual parameters:
-#   destroot			where to destroot the project.
-#   build.cmd			normally set to $xcodebuildcmd earlier.
-#   build.target		xcode target(s) to build.
-#   build.pre_args		additional parameters for xcodebuildcmd when building
-#   build.args			normally set to build
-#   build.post_args		additional parameters for xcodebuildcmd when building
-#   build.dir			directory where to build the project (where xcode
-#						project is)
-#   destroot.cmd		normally set to $xcodebuildcmd earlier.
-#   destroot.target		xcode target(s) to install
-#   destroot.pre_args	additional parameters for xcodebuildcmd when installing
-#   destroot.args		normally set to install
-#   destroot.post_args	additional parameters for xcodebuildcmd when installing
-#   destroot.dir		directory where to run destroot command the project
-#						(where xcode project is)
+#   destroot            where to destroot the project.
+#   build.cmd           normally set to $xcodebuildcmd earlier.
+#   build.target        xcode target(s) to build.
+#   build.pre_args      additional parameters for xcodebuildcmd when building
+#   build.args          normally set to build
+#   build.post_args     additional parameters for xcodebuildcmd when building
+#   build.dir           directory where to build the project (where xcode
+#                       project is)
+#   destroot.cmd        normally set to $xcodebuildcmd earlier.
+#   destroot.target     xcode target(s) to install
+#   destroot.pre_args   additional parameters for xcodebuildcmd when installing
+#   destroot.args       normally set to install
+#   destroot.post_args  additional parameters for xcodebuildcmd when installing
+#   destroot.dir        directory where to run destroot command the project
+#                       (where xcode project is)
 
 # Options this group provides:
-default categories			aqua
-default platforms			macosx
-default use_configure		no
-default build.cmd			$xcodebuildcmd
-default build.args			build
-default build.pre_args		{}
-default build.target		""
-default destroot.cmd		$xcodebuildcmd
-default destroot.args		install
-default destroot.pre_args	{}
-default destroot.target		""
-default destroot.destdir	{DSTROOT="${destroot}"}
+default categories          aqua
+default platforms           macosx
+default use_configure       no
+default build.cmd           $xcodebuildcmd
+default build.args          build
+default build.pre_args      {}
+default build.target        ""
+default destroot.cmd        $xcodebuildcmd
+default destroot.args       install
+default destroot.pre_args   {}
+default destroot.target     ""
+default destroot.destdir    {DSTROOT="${destroot}"}
 
 # Default values for parameters.
 options xcode.project
@@ -103,7 +103,7 @@ default xcode.project ""
 options xcode.target
 default xcode.target ""
 options xcode.configuration
-default xcode.configuration	Deployment
+default xcode.configuration Deployment
 options xcode.build.settings
 default xcode.build.settings ""
 options xcode.destroot.type
@@ -118,188 +118,188 @@ namespace eval xcode {}
 # Some utility functions.
 # get the project directory (where build/ is).
 proc xcode::get_project_path {} {
-	global xcode.project worksrcpath
-	if {${xcode.project} == ""} {
-		set suffix ""
-	} else {
-		set suffix [file dirname ${xcode.project}]
-	}
-	return [file normalize "${worksrcpath}/${suffix}"]
+    global xcode.project worksrcpath
+    if {${xcode.project} == ""} {
+        set suffix ""
+    } else {
+        set suffix [file dirname ${xcode.project}]
+    }
+    return [file normalize "${worksrcpath}/${suffix}"]
 }
 
 # fix resource dependencies (with Xcode >= 2.1).
 proc xcode::fix_resource_dependencies {} {
-	global xcodeversion xcode.configuration
-	if {$xcodeversion == "2.1"} {
-		set build_path "[xcode::get_project_path]/build/"
-		set config_build_path "[xcode::get_project_path]/build/${xcode.configuration}/"
-		if {[file isdirectory ${config_build_path}]} {
-			foreach resource [glob "${config_build_path}*"] {
-				set resource_name [file tail $resource]
-				if {![file exists $build_path/$resource_name]} {
-					file link $build_path/$resource_name $config_build_path/$resource_name
-				}
-			}
-		}
-	}
+    global xcodeversion xcode.configuration
+    if {$xcodeversion == "2.1"} {
+        set build_path "[xcode::get_project_path]/build/"
+        set config_build_path "[xcode::get_project_path]/build/${xcode.configuration}/"
+        if {[file isdirectory ${config_build_path}]} {
+            foreach resource [glob "${config_build_path}*"] {
+                set resource_name [file tail $resource]
+                if {![file exists $build_path/$resource_name]} {
+                    file link $build_path/$resource_name $config_build_path/$resource_name
+                }
+            }
+        }
+    }
 }
 
 # get the configuration/buildstyle argument.
 proc xcode::get_configuration_arg { style } {
-	global xcodeversion
-	if {$style != ""} {
-		if {$xcodeversion == "2.1"} {
-			return "-configuration $style"
-		} else {
-			return "-buildstyle $style"
-		}
-	} else {
-		return ""
-	}
+    global xcodeversion
+    if {$style != ""} {
+        if {$xcodeversion == "2.1"} {
+            return "-configuration $style"
+        } else {
+            return "-buildstyle $style"
+        }
+    } else {
+        return ""
+    }
 }
 
 # get the project argument.
 proc xcode::get_project_arg { project } {
-	if {$project != ""} {
-		return "-project $project"
-	} else {
-		return ""
-	}
+    if {$project != ""} {
+        return "-project $project"
+    } else {
+        return ""
+    }
 }
 
 # get the install path setting
 # remark: xcodebuild take care of creating the directory if required.
 proc xcode::get_install_path_setting { path type } {
-	if {$path == ""} {
-		if {$type == "application"} {
-			return "INSTALL_PATH=/Applications/MacPorts"
-		} elseif {$type == "framework"} {
-			return "INSTALL_PATH=/Library/Frameworks"
-		} else {
-			return ""
-		}
-	} else {
-		return "INSTALL_PATH=\"$path\""
-	}
+    if {$path == ""} {
+        if {$type == "application"} {
+            return "INSTALL_PATH=/Applications/MacPorts"
+        } elseif {$type == "framework"} {
+            return "INSTALL_PATH=/Library/Frameworks"
+        } else {
+            return ""
+        }
+    } else {
+        return "INSTALL_PATH=\"$path\""
+    }
 }
 
 # setup command line.
 proc xcode::setup_command_line {command args settings} {
-	global ${command}.dir ${command}.env ${command}.cmd ${command}.pre_args \
-		${command}.args ${command}.post_args
+    global ${command}.dir ${command}.env ${command}.cmd ${command}.pre_args \
+        ${command}.args ${command}.post_args
 
-	# Check that xcode is installed.
-	if {[set ${command}.cmd] == "none"} {
-		return -code error "This port requires 'pbxbuild/xcodebuild', which \
-	couldn't be found (not MacOS X?)"
-	}
+    # Check that xcode is installed.
+    if {[set ${command}.cmd] == "none"} {
+        return -code error "This port requires 'pbxbuild/xcodebuild', which \
+    couldn't be found (not MacOS X?)"
+    }
 
-	set cmdstring ""
-	if {[info exists ${command}.dir]} {
-		set cmdstring "cd \"[set ${command}.dir]\" &&"
-	}
-	if {[info exists ${command}.env]} {
-		foreach string [set ${command}.env] {
-			set cmdstring "$cmdstring $string"
-		}
-	}
-	if {[info exists ${command}.cmd]} {
-		foreach string [set ${command}.cmd] {
-			set cmdstring "$cmdstring $string"
-		}
-	} else {
-		return -code error "No ${command}.cmd was specified"
-	}
-	if {[info exists ${command}.pre_args]} {
-		foreach string [set ${command}.pre_args] {
-			set cmdstring "$cmdstring $string"
-		}
-	}
-	set cmdstring "$cmdstring $args"
-	if {[info exists ${command}.args]} {
-		foreach string [set ${command}.args] {
-			set cmdstring "$cmdstring $string"
-		}
-	}
-	set cmdstring "$cmdstring $settings"
-	if {[info exists ${command}.post_args]} {
-		foreach string [set ${command}.post_args] {
-			set cmdstring "$cmdstring $string"
-		}
-	}
-	ui_debug "Assembled command: '$cmdstring'"
-	return $cmdstring
+    set cmdstring ""
+    if {[info exists ${command}.dir]} {
+        set cmdstring "cd \"[set ${command}.dir]\" &&"
+    }
+    if {[info exists ${command}.env]} {
+        foreach string [set ${command}.env] {
+            set cmdstring "$cmdstring $string"
+        }
+    }
+    if {[info exists ${command}.cmd]} {
+        foreach string [set ${command}.cmd] {
+            set cmdstring "$cmdstring $string"
+        }
+    } else {
+        return -code error "No ${command}.cmd was specified"
+    }
+    if {[info exists ${command}.pre_args]} {
+        foreach string [set ${command}.pre_args] {
+            set cmdstring "$cmdstring $string"
+        }
+    }
+    set cmdstring "$cmdstring $args"
+    if {[info exists ${command}.args]} {
+        foreach string [set ${command}.args] {
+            set cmdstring "$cmdstring $string"
+        }
+    }
+    set cmdstring "$cmdstring $settings"
+    if {[info exists ${command}.post_args]} {
+        foreach string [set ${command}.post_args] {
+            set cmdstring "$cmdstring $string"
+        }
+    }
+    ui_debug "Assembled command: '$cmdstring'"
+    return $cmdstring
 }
 
 # build one target.
 proc xcode::build_one_target {args settings} {
-	set cmdstring [xcode::setup_command_line build $args $settings]
-	system "$cmdstring"
+    set cmdstring [xcode::setup_command_line build $args $settings]
+    system "$cmdstring"
 }
 
 # destroot one target.
 proc xcode::destroot_one_target {args settings} {
-	set cmdstring [xcode::setup_command_line destroot $args $settings]
-	system "$cmdstring"
+    set cmdstring [xcode::setup_command_line destroot $args $settings]
+    system "$cmdstring"
 }
 
 # build procedure.
 build {
-	# determine the targets.
-	if {${xcode.target} != ""} {
-		set xcode_targets ${xcode.target}
-	} else {
-		set xcode_targets ${build.target}
-	}
-	
-	# set some arguments.
-	set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
-	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
-	set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
-	
-	# iterate on targets if there is any, do -alltargets otherwise.
-	if {"$xcode_targets" == ""} {
-		xcode::build_one_target \
-			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
-			"$xcode_build_args ${xcode.build.settings}"
-	} else {
-		foreach target $xcode_targets {
-			xcode::build_one_target \
-				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
-				"$xcode_build_args ${xcode.build.settings}"
-		}
-	}
+    # determine the targets.
+    if {${xcode.target} != ""} {
+        set xcode_targets ${xcode.target}
+    } else {
+        set xcode_targets ${build.target}
+    }
+    
+    # set some arguments.
+    set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
+    set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
+    set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
+    
+    # iterate on targets if there is any, do -alltargets otherwise.
+    if {"$xcode_targets" == ""} {
+        xcode::build_one_target \
+            "$xcode_project_arg -alltargets $xcode_configuration_arg" \
+            "$xcode_build_args ${xcode.build.settings}"
+    } else {
+        foreach target $xcode_targets {
+            xcode::build_one_target \
+                "$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
+                "$xcode_build_args ${xcode.build.settings}"
+        }
+    }
 }
 
 # destroot procedure.
 destroot {
-	# let Xcode 2.1+ find resources.
-	xcode::fix_resource_dependencies
-	
-	# determine the targets.
-	if {${xcode.target} != ""} {
-		set xcode_targets ${xcode.target}
-	} else {
-		set xcode_targets ${destroot.target}
-	}
-	
-	# set some arguments.
-	set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
-	set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
-	set xcode_install_path_setting [xcode::get_install_path_setting \
-		${xcode.destroot.path} ${xcode.destroot.type}]
-	set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
-	
-	# iterate on targets if there is any, do -alltargets otherwise.
-	if {"$xcode_targets" == ""} {
-		xcode::destroot_one_target \
-			"$xcode_project_arg -alltargets $xcode_configuration_arg" \
-			"$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
-	} else {
-		foreach target $xcode_targets {
-			xcode::destroot_one_target \
-				"$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
-				"$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
-		}
-	}
+    # let Xcode 2.1+ find resources.
+    xcode::fix_resource_dependencies
+    
+    # determine the targets.
+    if {${xcode.target} != ""} {
+        set xcode_targets ${xcode.target}
+    } else {
+        set xcode_targets ${destroot.target}
+    }
+    
+    # set some arguments.
+    set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
+    set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
+    set xcode_install_path_setting [xcode::get_install_path_setting \
+                                        ${xcode.destroot.path} ${xcode.destroot.type}]
+    set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
+    
+    # iterate on targets if there is any, do -alltargets otherwise.
+    if {"$xcode_targets" == ""} {
+        xcode::destroot_one_target \
+            "$xcode_project_arg -alltargets $xcode_configuration_arg" \
+            "$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
+    } else {
+        foreach target $xcode_targets {
+            xcode::destroot_one_target \
+                "$xcode_project_arg -target \"$target\" $xcode_configuration_arg" \
+                "$xcode_install_path_setting $xcode_build_args ${xcode.destroot.settings}"
+        }
+    }
 }
