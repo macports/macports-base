@@ -205,11 +205,11 @@ proc lint_main {args} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
         }
-        if {($lineno == $topline_number) && ![string match "*\$Id*" $line]} {
-            ui_warn "Line $lineno is missing RCS tag (\$Id)"
+        if {($lineno == $topline_number) && ![string match "*\$Id*\$" $line]} {
+            ui_warn "Line $lineno is missing RCS tag (\$Id\$)"
             incr warnings
         } elseif {($lineno == $topline_number)} {
-            ui_info "OK: Line $lineno has RCS tag (\$Id)"
+            ui_info "OK: Line $lineno has RCS tag (\$Id\$)"
             set require_blank true
             set require_after "RCS tag"
         }
