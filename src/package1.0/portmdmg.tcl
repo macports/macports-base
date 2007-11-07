@@ -50,7 +50,7 @@ proc mdmg_main {args} {
 
 proc package_mdmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath
-    global os.version os.major
+    global os.platform os.arch os.version os.major
     
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"
@@ -78,7 +78,7 @@ proc package_mdmg {portname portversion portrevision} {
     }
     
     # partition for .dmg
-    if {${os.major} >= 9} {
+    if {${os.major} >= 9 && ${os.arch} == "i386"} {
 	# GUID_partition_scheme
         set subdev 1
     } else {
