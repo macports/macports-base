@@ -630,12 +630,16 @@ proc startupitem_create {args} {
         }
     }
 
-    ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
+    if { ${startupitem.type} == "none" } {
+        ui_msg "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
+    } else {
+        ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
 
-    switch -- ${startupitem.type} {
-        launchd         { startupitem_create_darwin_launchd }
-        systemstarter   { startupitem_create_darwin_systemstarter }
-        rcng            { startupitem_create_rcng }
-        default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
+        switch -- ${startupitem.type} {
+            launchd         { startupitem_create_darwin_launchd }
+            systemstarter   { startupitem_create_darwin_systemstarter }
+            rcng            { startupitem_create_rcng }
+            default         { ui_error "$UI_PREFIX [msgcat::mc "Unrecognized startupitem type %s" ${startupitem.type}]" }
+        }
     }
 }
