@@ -1,3 +1,5 @@
+# $Id$
+
 .SUFFIXES: .m
 
 .m.o:

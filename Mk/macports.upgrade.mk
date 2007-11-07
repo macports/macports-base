@@ -1,4 +1,4 @@
-# $Id: Makefile.in 28761 2007-09-08 13:59:17Z afb@macports.org $
+# $Id$
 
 upgrade::
 	@echo ""; echo "Upgrading your existing MacPorts installation to the new namespace if necessary:"; echo ""
