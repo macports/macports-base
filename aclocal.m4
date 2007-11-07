@@ -336,14 +336,14 @@ AC_DEFUN([MP_CHECK_INSTALLGROUP],[
 AC_DEFUN([MP_DIRECTORY_MODE],[
 	dnl if with user specifies --with-directory-mode,
 	dnl use the specified permissions for ${prefix} directories
-	dnl otherwise use 0775
+	dnl otherwise use 0755
         AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(directory-mode, [AC_HELP_STRING([--with-directory-mode=MODE], [Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
 	
 	AC_MSG_CHECKING([what permissions to use for installation directories])
 	if test "x$DSTMODE" = "x" ; then
-	   DSTMODE=0775
+	   DSTMODE=0755
 	fi
 
 	AC_MSG_RESULT([$DSTMODE])

@@ -6726,7 +6726,7 @@ fi
 	{ echo "$as_me:$LINENO: checking what permissions to use for installation directories" >&5
 echo $ECHO_N "checking what permissions to use for installation directories... $ECHO_C" >&6; }
 	if test "x$DSTMODE" = "x" ; then
-	   DSTMODE=0775
+	   DSTMODE=0755
 	fi
 
 	{ echo "$as_me:$LINENO: result: $DSTMODE" >&5
