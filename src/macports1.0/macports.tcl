@@ -44,14 +44,14 @@ namespace eval macports {
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
-        mp_remote_url mp_remote_submit_url configureccache configuredistcc buildnicevalue buildmakejobs"
+        mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
-        mp_remote_url mp_remote_submit_url configureccache configuredistcc buildnicevalue buildmakejobs \
+        mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         $user_options"
     
     # deferred options are only computed when needed.
@@ -329,6 +329,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::xcodeversion
     global macports::configureccache
     global macports::configuredistcc
+    global macports::configurepipe
     global macports::buildnicevalue
     global macports::buildmakejobs
 
@@ -611,6 +612,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     if {![info exists macports::configuredistcc]} {
         set macports::configuredistcc no
+    }
+    if {![info exists macports::configurepipe]} {
+        set macports::configurepipe no
     }
 
     # Default mp build options

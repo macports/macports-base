@@ -46,6 +46,9 @@ configureccache		no
 # Use distcc (distributed compiler) - see http://distcc.samba.org/
 configuredistcc		no
 
+# Use pipes rather than intermediate files when compiling C/C++/etc
+configurepipe		no
+
 # Lowered scheduling priority (0-20) to use for make when building ports
 buildnicevalue		0
 
