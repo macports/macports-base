@@ -7,6 +7,8 @@
 Unreleased:
     - add optional configure.pipe output (afb in r29604 & r30824)
 
+    - add "startupitem_type none" macports.conf configuration option (#12743, afb in r30823)
+
     - add configure.[awk|bison|pkg_config|pkg_config_path] (r30761)
 
     - Auto-mode for number of parallel build threads (if number of jobs is set to "0") (r30739)
