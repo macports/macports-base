@@ -2,7 +2,7 @@
  * uid.h
  * $Id$
  *
- * Copyright (c) 2005, MacPorts Team.
+ * Copyright (c) 2005, The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

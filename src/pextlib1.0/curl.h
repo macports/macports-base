@@ -2,7 +2,7 @@
  * curl.h
  * $Id$
  *
- * Copyright (c) 2005 Paul Guyot, MacPorts Team.
+ * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

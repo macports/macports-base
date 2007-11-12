@@ -2,7 +2,7 @@
  * compat.c
  * $Id$
  *
- * Copyright (c) 2004 Paul Guyot, MacPorts Team.
+ * Copyright (c) 2004 Paul Guyot, The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

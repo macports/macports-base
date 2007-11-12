@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2004 Will Barton <wbb4@opendarwin.org>
-# Copyright (c) 2004 Paul Guyot, MacPorts Team.
+# Copyright (c) 2004 Paul Guyot, The MacPorts Project.
 # Copyright (c) 2002 Apple Computer, Inc.
 # All rights reserved.
 #

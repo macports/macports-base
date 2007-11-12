@@ -2,7 +2,7 @@
  * tracelib.c
  * $Id$
  *
- * Copyright (c) 2007 Eugene Pimenov (GSoC), MacPorts team
+ * Copyright (c) 2007 Eugene Pimenov (GSoC), The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -4,7 +4,7 @@ exec @TCLSH@ "$0" "$@"
 # portmirror.tcl
 # $Id$
 #
-# Copyright (c) 2002-2007 MacPorts Organization
+# Copyright (c) 2002-2007 The MacPorts Project.
 # All rights reserved.
 #
 # Updates the distfiles to current distfiles by deleting old stuff.
