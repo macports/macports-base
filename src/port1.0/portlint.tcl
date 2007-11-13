@@ -342,14 +342,13 @@ proc lint_main {args} {
     }
 
     if {[info exists categories]} {
-        foreach category $categories {
+        set category [lindex $categories 0]
            if {[lsearch -exact $lint_categories $category] == -1} {
                 ui_error "Unknown category: $category"
                 incr errors
             } else {
                 ui_info "OK: Found category: $category"
             }
-        }
     }
 
     if {![string is integer -strict $portepoch]} {
