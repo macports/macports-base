@@ -143,6 +143,10 @@ proc lint_start {args} {
 proc lint_main {args} {
 	global UI_PREFIX portname portpath portresourcepath
 	set portfile ${portpath}/Portfile
+	set portdirs [split ${portpath} /]
+	set last [llength $portdirs]
+	incr last -2
+	set portdir [lindex $portdirs $last]
 	set groupdir ${portresourcepath}/group
 
 	set warnings 0
@@ -343,12 +347,18 @@ proc lint_main {args} {
 
     if {[info exists categories]} {
         set category [lindex $categories 0]
-           if {[lsearch -exact $lint_categories $category] == -1} {
-                ui_error "Unknown category: $category"
-                incr errors
-            } else {
-                ui_info "OK: Found category: $category"
+        if {[lsearch -exact $lint_categories $category] == -1} {
+            ui_error "Unknown category: $category"
+            incr errors
+        } else {
+            ui_info "OK: Found category: $category"
+        }
+        foreach secondary $categories {
+            if {[string match $secondary $category]} {
+                continue
             }
+            ui_info "OK: Found category: $secondary"
+        }
     }
 
     if {![string is integer -strict $portepoch]} {
@@ -390,6 +400,14 @@ proc lint_main {args} {
         [string match "*openmaintainer@macports.org*" $maintainers]} {
         ui_warn "Using full email address for no/open maintainer"
         incr warnings
+    }
+
+    # this check is only valid for ports stored in the regular tree directories
+    if {$portdir != $category} {
+        ui_error "Portfile directory $portdir does not match primary category $category"
+        incr errors
+    } else {
+        ui_info "OK: Portfile directory matches primary category"
     }
 
     if {[info exists patchfiles]} {
