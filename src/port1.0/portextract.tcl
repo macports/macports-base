@@ -3,6 +3,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2007 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -40,7 +41,7 @@ target_requires ${org.macports.extract} fetch checksum
 target_prerun ${org.macports.extract} extract_start
 
 # define options
-options extract.only
+options extract.only extract.mkdir
 commands extract
 
 # Set up defaults
@@ -52,12 +53,21 @@ default extract.dir {${workpath}}
 default extract.cmd gzip
 default extract.pre_args -dc
 default extract.post_args {"| ${portutil::autoconf::tar_command} -xf -"}
+default extract.mkdir no
 
 set_ui_prefix
 
 proc extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args distfiles use_bzip2 use_zip workpath
-    
+    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_zip workpath
+
+    # should the distfiles be extracted to worksrcpath instead?
+    if {[tbool extract.mkdir]} {
+        global worksrcpath
+        ui_debug "Extracting to subdirectory worksrcdir"
+        file mkdir ${worksrcpath}
+        set extract.dir ${worksrcpath}
+    }
+
     if {[tbool use_bzip2]} {
 	option extract.cmd [binaryInPath "bzip2"]
     } elseif {[tbool use_zip]} {
