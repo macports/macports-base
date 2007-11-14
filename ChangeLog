@@ -5,6 +5,8 @@
 
 
 Unreleased:
+    - add option "extract.mkdir [no|yes]" for distfiles that would pollute ${workpath} with multiple files (mww in r31028)
+
     - add optional configure.pipe output (afb in r29604 & r30824)
 
     - add "startupitem_type none" macports.conf configuration option (#12743, afb in r30823)
