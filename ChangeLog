@@ -5,7 +5,16 @@
 
 
 Unreleased:
-    - add option "extract.mkdir [no|yes]" for distfiles that would pollute ${workpath} with multiple files (mww in r31028)
+
+    - daemondo now monitors kevents for the death of the daemon process, which means that it
+      now detects the death of processes (even those that aren't direct child processes)
+      much more reliably. Plus other daemondo logging and doc cleanups.
+      (jberry in r30313,r30332,r30333,r30334,r30335,r30364).
+
+    - dramatic speedup to file, dir, url, work actions (jberry in r31056)
+
+    - add option "extract.mkdir [no|yes]" for distfiles that would pollute ${workpath} with
+      multiple files (mww in r31028)
 
     - add optional configure.pipe output (afb in r29604 & r30824)
 
@@ -19,13 +28,16 @@ Unreleased:
 
     - New SourceForge.jp mirrors list (r30484).
 
-    - Display warnings when using old versions of Mac OS X and Xcode Tools (#12794, afb in r30338 & r30477)
+    - Display warnings when using old versions of Mac OS X and Xcode Tools 
+      (#12794, afb in r30338 & r30477)
 
-    - Remove configure.macosx_deployment_target, add global macosx_deployment_target (eridius in r30396).
+    - Remove configure.macosx_deployment_target, add global macosx_deployment_target
+      (eridius in r30396).
 
     - add support for LZMA compression, for making .tlz archives (afb in r30307)
 
-    - add configure.[perl|python|ruby] for interpreters, .install for avoiding breakage due to coreutils, .libs
+    - add configure.[perl|python|ruby] for interpreters, .install for avoiding breakage
+      due to coreutils, .libs
 
     - added startupitem.netchange boolean flag (#12931, N_Ox in r30086).
 
@@ -39,7 +51,8 @@ Unreleased:
 
     - add optional configure.ccache and configure.distcc filters (#5390, afb in 29438)
 
-    - Explicitly sort fs-traverse so it behaves predictably on Linux systems (#12622, eridius in r29412).
+    - Explicitly sort fs-traverse so it behaves predictably on Linux systems
+      (#12622, eridius in r29412).
 
     - add configure.objc/objcflags for Objective-C
 
