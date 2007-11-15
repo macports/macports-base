@@ -68,7 +68,7 @@ rsync_dir			release/base/
 rsync_options		-rtzv --delete-after
 
 # Options for generated startup items
-# startupitem_type may be "default", "systemstarter", or "launchd";
+# startupitem_type may be "default", "systemstarter", "launchd", or "none";
 # if the option is empty or "default" then a startupitem type appropriate
 # to the platform will be chosen. Tiger will default to launchd, while
 # older Mac OS X systems will default to systemstarter. If option "none"
