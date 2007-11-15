@@ -1866,27 +1866,29 @@ proc action_portcmds { action portlist opts } {
     set status 0
     require_portlist portlist
     foreachport $portlist {
-        # Verify the portname, getting portinfo to map to a porturl
-        if {[catch {set res [mportsearch $portname no exact]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for portname $portname failed: $result" 1 status
-        }
-        if {[llength $res] < 2} {
-            break_softcontinue "Port $portname not found" 1 status
-        }
-        array set portinfo [lindex $res 1]
-
-        # If we have a url, use that, since it's most specific
-        # otherwise try to map the portname to a url
+        # If we have a url, use that, since it's most specific, otherwise try to map the portname to a url
         if {$porturl == ""} {
+        
+            # Verify the portname, getting portinfo to map to a porturl
+            if {[catch {set res [mportsearch $portname no exact]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "search for portname $portname failed: $result" 1 status
+            }
+            if {[llength $res] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+            array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
         }
         
+        
+        # Calculate portdir, porturl, and portfile from initial porturl
         set portdir [file normalize [macports::getportdir $porturl]]
         set porturl "file://${portdir}";    # Rebuild url so it's fully qualified
         set portfile "${portdir}/Portfile"
         
+        # Now execute the specific action
         if {[file readable $portfile]} {
             switch -- $action {
                 cat {
@@ -1961,6 +1963,14 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 gohome {
+                    # Get the homepage for the port by opening the portfile
+                    if {![catch {set ctx [mportopen $porturl]} result]} {
+                        array set portinfo [mportinfo $ctx]
+                        set homepage $portinfo(homepage)
+                        mportclose $ctx
+                    }
+
+                    # Try to open a browser to the homepage for the given port
                     set homepage $portinfo(homepage)
                     if { $homepage != "" } {
                         system "${macports::autoconf::open_path} $homepage"
