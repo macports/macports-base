@@ -1377,6 +1377,8 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-werror         Add -Werror to CFLAGS. Used for development.
+  --enable-readline       Enable addition of readline support, if readine
+                          present.
   --enable-shared         build and link with shared libraries --enable-shared
 
 Optional Packages:
@@ -10738,7 +10740,10 @@ echo "$as_me: error: Broken X11 install" >&2;}
 
 
 # Check for readline
-{ echo "$as_me:$LINENO: checking for readline in -lreadline" >&5
+# Check whether --enable-readline was given.
+if test "${enable_readline+set}" = set; then
+  enableval=$enable_readline;
+	{ echo "$as_me:$LINENO: checking for readline in -lreadline" >&5
 echo $ECHO_N "checking for readline in -lreadline... $ECHO_C" >&6; }
 if test "${ac_cv_lib_readline_readline+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -10801,7 +10806,7 @@ fi
 echo "${ECHO_T}$ac_cv_lib_readline_readline" >&6; }
 if test $ac_cv_lib_readline_readline = yes; then
 
-              READLINE_LIBS=-lreadline
+				  READLINE_LIBS=-lreadline
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBREADLINE 1
@@ -10810,7 +10815,7 @@ _ACEOF
 
 fi
 
-{ echo "$as_me:$LINENO: checking whether rl_username_completion_function is declared" >&5
+	{ echo "$as_me:$LINENO: checking whether rl_username_completion_function is declared" >&5
 echo $ECHO_N "checking whether rl_username_completion_function is declared... $ECHO_C" >&6; }
 if test "${ac_cv_have_decl_rl_username_completion_function+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -10822,10 +10827,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -10894,10 +10899,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -10966,10 +10971,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -11038,10 +11043,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -11110,10 +11115,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -11182,10 +11187,10 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
 
 
 int
@@ -11243,6 +11248,9 @@ _ACEOF
 
 fi
 
+
+
+fi
 
 
 
