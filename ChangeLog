@@ -6,6 +6,10 @@
 
 Unreleased:
 
+    - readline is now disabled by default, in order to avoid support issues.
+      use --enable-readine parameter to configure to enable support for readine.
+      (jberry r31139, r31140).
+
     - daemondo now monitors kevents for the death of the daemon process, which means that it
       now detects the death of processes (even those that aren't direct child processes)
       much more reliably. Plus other daemondo logging and doc cleanups.
