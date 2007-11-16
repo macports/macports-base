@@ -234,6 +234,10 @@ set portfetch::mirror_sites::sites(openbsd) {
 }
 
 set portfetch::mirror_sites::sites(postgresql) {
+    http://ftp8.us.postgresql.org/postgresql/
+    http://ftp9.us.postgresql.org/pub/mirrors/postgresql/
+    http://ftp7.de.postgresql.org/pub/ftp.postgresql.org/
+    http://ftp2.jp.postgresql.org/pub/postgresql/
     ftp://ftp2.ch.postgresql.org/mirror/postgresql/
     ftp://ftp.postgresql.org/pub/
     ftp://ftp.de.postgresql.org/mirror/postgresql/
