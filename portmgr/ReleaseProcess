@@ -31,17 +31,17 @@ The following steps to a release are documented in more detail below:
 
 === Create a Release Branch ===
 
-For each major release (i.e. 1.3.x, 1.4.x, etc.) an appropriate branch is created with a
+For each major release (i.e. 1.5.x, 1.6.x, etc.) an appropriate branch is created with a
 consistent name. To do this, two things are required:
 
  * Choose the svn revision from which to create the branch, most likely based off trunk.
- * Create the branch (e.g. release_1_4) through the svn "copy" command for history preservation,
+ * Create the branch (e.g. release_1_6) through the svn "copy" command for history preservation,
    first creating the needed branch directory to preserve the required directory structure
    (the 'base' directory level *needs* to exist in each release branch, otherwise selfupdate breaks):
 
- svn mkdir -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_4
+ svn mkdir -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_6
  svn cp [-r<rev>] -m "commit-message" http://svn.macports.org/repository/macports/trunk/base \
-     http://svn.macports.org/repository/macports/branches/release_1_4
+     http://svn.macports.org/repository/macports/branches/release_1_6
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all
 live on this branch, and tagged appropriately and if necessary (a must for the actual releases,
@@ -51,7 +51,14 @@ Only the base subdirectory, not the ports subdirectory, is branched for a given 
 
 It is strongly recommended to use the svnmerge.py tool (provided by the subversion port) to
 maintain merge tracking information between release branches and trunk/base if you pretend to
-merge revisions back and forth between them, which is a very likely scenario.
+merge revisions back and forth between them, which is a very likely scenario. To do this, you
+must initialize the tracking information from within the "base" directory of your checkout of
+the branch you intend to manage:
+
+ svn co http://svn.macports.org/repository/macports/branches/release_1_6 branches/release_1_6
+ cd branches/release_1_6/base
+ svnmerge.py init
+ svn ci -F svnmerge-commit-message.txt
 
 
 === Prepare the code for Release ===
@@ -61,7 +68,7 @@ In preparation for a release, several things should be completed within the code
  * Update the file base/ChangeLog in both trunk and the relase branch to reflect the appropriate changes.
  * Update the file base/config/mp_version with the target release number. Note that this is a floating
    point number that corresponds to the release number; it should correspond roughly to the release number
-   where possible. Release 1.4.1, for instance, would be represented by the floating point number 1.410.
+   where possible. Release 1.6.1, for instance, would be represented by the floating point number 1.610.
    The version number in mp_version is displayed by the port command as the version of MacPorts,
    and is used by the selfupdate command to determine whether a newer version of code is available.
    This number should be different between trunk and a release branch, the former greater to differentiate
@@ -81,15 +88,15 @@ approved as the actual release, an additional tag is created that names the same
 
 Tagging conventions:
 
- * release_1_4_0-rc1 (release candidate 1 for release 1.4.0)
- * release_1_4_0 (tagged release 1.4.0)
- * release_1_4_0-archive (tagged release 1.4.0 -- complete archive)
- * release_1_4_1 (1.4.1 release)
+ * release_1_6_0-rc1 (release candidate 1 for release 1.6.0)
+ * release_1_6_0 (tagged release 1.6.0)
+ * release_1_6_0-archive (tagged release 1.6.0 -- complete archive)
+ * release_1_6_1 (1.6.1 release)
 
 We first tag the branched base directory to make up for the final release:
 
- svn cp -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_4 \
-     http://svn.macports.org/repository/macports/tags/release_1_4_0
+ svn cp -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_6 \
+     http://svn.macports.org/repository/macports/tags/release_1_6_0
 
 Although only the base subdirectory is branched and tagged for a given major release, we also create a 
 separate tag for the entire tree (base sources and full ports tree) at the time the final release tag is
@@ -101,13 +108,14 @@ The necessary working copy to create such a tag is created by checking out all o
 revision of the final tagging of base and then switching the base directory inturn to the appropriate
 release tag URL. For instance:
 
- svn co [-r<rev>] http://svn.macports.org/repository/macports/trunk macports/release-1.4.0
- cd macports/release-1.4.0/base
- svn switch http://svn.macports.org/repository/macports/tags/release_1_4_0/base
+ svn co [-r<rev>] http://svn.macports.org/repository/macports/trunk release_1.6.0-archive
+ cd release_1.6.0-archive/base
+ svn switch http://svn.macports.org/repository/macports/tags/release_1_6_0/base
 
-And finally we tag the entire directory as release_1_4_0-archive:
+And finally we tag the entire directory as release_1_6_0-archive:
 
- svn cp -m "commit-message" macports/release-1.4.0 http://svn.macports.org/repository/tags/release_1_4_0-archive
+ cd ../../
+ svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/tags/release_1_6_0-archive
 
 
 === Create & Post Release Tarballs ===
@@ -115,23 +123,23 @@ And finally we tag the entire directory as release_1_4_0-archive:
 The release tarballs are tar.bz2 and tar.gz archives of the  base directory only and of the entire svn tree
 for a particular release. They are named with the following naming convention:
 
- MacPorts-1.4.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_4_0)
- MacPorts-1.4.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_4_0-archive)
+ MacPorts-1.6.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_6_0)
+ MacPorts-1.6.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_6_0-archive)
 
 The following commands issued to the top level Makefile will generate the archives and checksums:
 
- make DISTVER=1.4.0 distfromsvn
+ make DISTVER=1.6.0 distfromsvn
 
 Note that you need to pass the "ARC=yes" flag on the command line to the "distfromsvn" top-level make target
 if you also wish to produce the full archive tarballs.
 
-All these tarballs are uploaded via svn to the http://svn.macports.org/repository/macports/downloads/MacPorts-1.4.0/
+All these tarballs are uploaded via svn to the http://svn.macports.org/repository/macports/downloads/MacPorts-1.6.0/
 directory.
 
 Additionally, a file is created, and posted to the same location, that contains md5, sha1, and rmd160 checksums
 for each of the files:
 
- MacPorts-1.4.0.chk.txt
+ MacPorts-1.6.0.chk.txt
  (We should have a way to sign these checksums, and have the signer's keys posted somewhere.
  Security experts in the project, would you be interested in leading this effort? Eric? Mark? Anyone else?)
 
@@ -142,8 +150,8 @@ The dmg is a Mac OS X disk image that contains a standalone and default configur
 MacPorts releases (1.x.0), named in a consistent fashion and incorporating the OS version for which it
 was built.
 
- MacPorts-1.4.0-10.3.dmg
- MacPorts-1.4.0-10.4.dmg
+ MacPorts-1.6.0-10.4.dmg
+ MacPorts-1.6.0-10.5.dmg
 
 To create the disk image use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
@@ -157,8 +165,8 @@ Name the dmg appropriately, and generate checksums, which will need to be added 
 file up at the downloads directory:
 
  cd work
- mv MacPorts-1.4.0.dmg MacPorts-1.4.0-10.4.dmg
- for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.4.0-10.4.dmg; done
+ mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5.dmg
+ for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.6.0-10.5.dmg; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate downloads
 directory of the MacPorts svn repository. Developers are required to validate the generated installer as
@@ -201,6 +209,7 @@ practice to update the same file accordingly in its branched guise.
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
  * The macports-users@lists.macosforge.org and macports-dev@lists.macosforge.org mailing lists.
+ * The MacPorts website, by adapting the $mp_version_major and $mp_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
  * Apple's [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Mac OS X software downloads page] (submitter: jmpp@)
  * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
