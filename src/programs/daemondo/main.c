@@ -109,6 +109,7 @@ io_connect_t        pwrRootPort         = 0;
 int                 restartOnWakeup     = 0;        // TRUE to restart daemon on wake from sleep
 CFRunLoopTimerRef   restartTimer        = NULL;     // Timer for scheduled restart
 CFTimeInterval      restartHysteresis   = 5.0;      // Default hysteresis is 5 seconds
+int				    restartWait		   	= 3;      	// Default wait during restart is 3 seconds
 
 
 void
@@ -292,9 +293,15 @@ DestroyPidFile(void)
             break;
         case kPidStyleExec:         // We wrote the file, and we'll remove it
         case kPidStyleFileClean:    // The process wrote the file, but we'll remove it
-            unlink(pidFile);
+			if (verbosity >= 5)
+				LogMessage("Attempting to delete pidfile %s\n", pidFile);
+            if (unlink(pidFile) && verbosity >= 3)
+				LogMessage("Failed attempt to delete pidfile %s (%d)\n", pidFile, errno);            
             break;
         }
+    } else {
+		if (verbosity >= 5)
+			LogMessage("No pidfile to delete: none specified\n");
     }
 }
 
@@ -317,6 +324,45 @@ CheckForValidPidFile(void)
     // Check whether the pid represents a valid process
     if (pid != -1 && 0 != kill(pid, 0))
         pid = -1;
+    
+    return pid;
+}
+
+
+pid_t
+DeletePreexistingPidFile(void)
+{
+    // Try to read the pid from the pid file
+    pid_t pid = -1;
+    FILE* f = fopen(pidFile, "r");
+    if (f != NULL)
+    {
+        if (1 != fscanf(f, "%d", &pid))
+            pid = -1;
+        if (pid == 0)
+            pid = -1;
+        fclose(f);
+    }
+    
+    // Check whether the pid represents a valid process
+    int valid = (pid != -1 && 0 != kill(pid, 0));
+    
+    // Log information about the discovered pid file
+    if (verbosity >= 3 && pid != -1) {
+    	LogMessage("Discovered preexisting pidfile %s containing pid %d which is a %s process\n", pidFile, pid, 
+    		(valid) ? "valid" : "invalid");
+    }
+    
+    // Try to delete the pidfile if it's present
+    if (pid != -1) {
+	    if (unlink(pidFile)) {
+	    	if (verbosity >= 3)
+		  		LogMessage("Error %d while trying to cleanup prexisting pidfile %s\n", errno, pidFile);
+	  	} else {
+ 	  		if (verbosity >= 3)
+		  		LogMessage("Deleted preexisting pidfile %s\n", pidFile);
+		}
+	}
     
     return pid;
 }
@@ -379,7 +425,7 @@ ProcessChildDeath(pid_t childPid)
     if (runningPid != 0 && runningPid != -1 && childPid == runningPid)
     {
         if (verbosity >= 1)
-            LogMessage("Target process %d has died.\n", childPid);
+            LogMessage("Target process %d has died\n", childPid);
             
         UnmonitorChild();
         DestroyPidFile();
@@ -493,14 +539,16 @@ Start(void)
     
     if (!startArgs || !startArgs[0])
     {
-        LogMessage("There is nothing to start. No start-cmd was specified.\n");
+        LogMessage("There is nothing to start. No start-cmd was specified\n");
         return 2;
     }
     
     if (verbosity >= 1)
         LogMessage("Starting process\n");
+	if (pidFile != NULL)
+		DeletePreexistingPidFile();
     if (verbosity >= 2)
-        LogMessage("Running start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
+        LogMessage("Running start-cmd %s\n", CatArray(startArgs, buf, sizeof(buf)));
         
     // Exec the start-cmd
     pid_t pid = Exec(startArgs, pidStyle == kPidStyleNone);
@@ -509,7 +557,7 @@ Start(void)
     if (pid == -1)
     {
         if (verbosity >= 2)
-            LogMessage("Error running start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
+            LogMessage("Error running start-cmd %s\n", CatArray(startArgs, buf, sizeof(buf)));
         if (verbosity >= 1)
             LogMessage("error while starting\n");
         return 2;
@@ -531,7 +579,7 @@ Start(void)
         if (pid == -1)
         {
             if (verbosity >= 2)
-                LogMessage("Error; expected pidfile not found following Exec of start-cmd %s.\n", CatArray(startArgs, buf, sizeof(buf)));
+                LogMessage("Error; expected pidfile not found following Exec of start-cmd %s\n", CatArray(startArgs, buf, sizeof(buf)));
             if (verbosity >= 1)
                 LogMessage("error while starting\n");
             return 2;
@@ -591,7 +639,7 @@ Stop(void)
         if (verbosity >= 1)
             LogMessage("Stopping process\n");
         if (verbosity >= 2)
-            LogMessage("Running stop-cmd %s.\n", CatArray(stopArgs, buf, sizeof(buf)));
+            LogMessage("Running stop-cmd %s\n", CatArray(stopArgs, buf, sizeof(buf)));
         pid = Exec(stopArgs, TRUE);
         if (pid == -1)
         {
@@ -621,16 +669,28 @@ Restart(void)
         // We weren't given a restart command, so just use stop/start
         if (verbosity >= 1)
             LogMessage("Restarting process\n");
+            
+        // Stop the process
         Stop();
+        
+        // Delay for a restartWait seconds to allow other process support to stabilize
+        // (This gives a chance for other processes that might be monitoring the process,
+        // for instance, to detect its death and cleanup).
+        sleep(restartWait);
+        
+        // Start it again
         Start();
     }
     else
     {
+    	// Bug: we should recapture the target process id from the pidfile in this case
+    	
         // Execute the restart-cmd and trust it to do the job
         if (verbosity >= 1)
             LogMessage("Restarting process\n");
         if (verbosity >= 2)
-            LogMessage("Running restart-cmd %s.\n", CatArray(restartArgs, buf, sizeof(buf)));
+            LogMessage("Running restart-cmd %s\n", CatArray(restartArgs, buf, sizeof(buf)));
+            
         pid_t pid = Exec(restartArgs, TRUE);
         if (pid == -1)
         {
@@ -1086,7 +1146,8 @@ enum {
     kRestartNetChangeOpt,
     kPidOpt,
     kPidFileOpt,
-    kRestartHysteresisOpt
+    kRestartHysteresisOpt,
+    kRestartWaitOpt
 };
 
 
@@ -1141,6 +1202,8 @@ main(int argc, char* argv[])
         { "label",          required_argument,      0,              'l' },
         { "restart-hysteresis",
                             required_argument,      0,              kRestartHysteresisOpt },
+        { "restart-wait",
+                            required_argument,      0,              kRestartWaitOpt },
         
         { 0,                0,                      0,              0 }
     };
@@ -1223,6 +1286,12 @@ main(int argc, char* argv[])
             restartHysteresis = strtof(optarg, NULL);
             if (restartHysteresis < 0)
                 restartHysteresis = 0;
+            break;
+            
+        case kRestartWaitOpt:
+            restartWait = strtol(optarg, NULL, 10);
+            if (restartWait < 0)
+                restartWait = 0;
             break;
             
         case kPidOpt:
