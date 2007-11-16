@@ -158,16 +158,19 @@ MP_LIB_MD5
 MP_CHECK_X11
 
 # Check for readline
-AC_CHECK_LIB([readline], [readline], [
-              READLINE_LIBS=-lreadline
-              AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the `readline' library (-lreadline).])
-              ])
-AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
+AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readine present.]),
 [
-#include <stdio.h>
-#if HAVE_READLINE_READLINE_H
-# include <readline/readline.h>
-#endif
+	AC_CHECK_LIB([readline], [readline], [
+				  READLINE_LIBS=-lreadline
+				  AC_DEFINE([HAVE_LIBREADLINE], [1], [Define to 1 if you have the `readline' library (-lreadline).])
+				  ])
+	AC_CHECK_DECLS([rl_username_completion_function,rl_filename_completion_function,rl_completion_matches,username_completion_function,filename_completion_function,completion_matches], [], [],
+	[
+	#include <stdio.h>
+	#if HAVE_READLINE_READLINE_H
+	# include <readline/readline.h>
+	#endif
+	])
 ])
 AC_SUBST(READLINE_LIBS)
 
