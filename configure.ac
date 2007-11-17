@@ -158,7 +158,7 @@ MP_LIB_MD5
 MP_CHECK_X11
 
 # Check for readline
-AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readine present.]),
+AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readline present.]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline

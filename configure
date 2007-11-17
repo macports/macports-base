@@ -1377,7 +1377,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-werror         Add -Werror to CFLAGS. Used for development.
-  --enable-readline       Enable addition of readline support, if readine
+  --enable-readline       Enable addition of readline support, if readline
                           present.
   --enable-shared         build and link with shared libraries --enable-shared
 
