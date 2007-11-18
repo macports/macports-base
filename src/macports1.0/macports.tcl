@@ -691,7 +691,7 @@ proc macports::worker_init {workername portpath portbuildpath options variations
     interp hide $workername exit
 
     # cd: This is necessary for some code in port1.0, but should be hidden
-    interp eval $workername "rename cd _cd"
+    #interp eval $workername "rename cd _cd"
 
     # Tell the sub interpreter about all the Tcl packages we already
     # know about so it won't glob for packages.

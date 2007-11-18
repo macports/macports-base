@@ -228,7 +228,7 @@ variant with_docs {
             
             ui_msg "--->  Making Documentation for ${name}"
             
-            _cd ${worksrcpath}/Documentation
+            cd ${worksrcpath}/Documentation
             system "${destroot.env} ${destroot.cmd} \
                     ${destroot.pre_args} ${destroot.destdir}"
             

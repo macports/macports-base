@@ -78,7 +78,7 @@ proc install_element {src_element dst_element} {
 proc directory_dig {rootdir workdir regref {cwd ""}} {
     global installPlist
     set pwd [pwd]
-    if {[catch {_cd $workdir} err]} {
+    if {[catch {cd $workdir} err]} {
 	puts $err
 	return
     }
@@ -124,7 +124,7 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
 	    directory_dig $rootdir $name $regref [file join $cwd $name]
 	}
     }
-    _cd $pwd
+    cd $pwd
 }
 
 proc install_main {args} {
