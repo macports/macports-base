@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portconfigure.tcl
 # $Id$
 #
@@ -42,42 +42,42 @@ target_prerun ${org.macports.configure} configure_start
 # define options
 commands configure automake autoconf xmkmf libtool
 # defaults
-default configure.env ""
-default configure.pre_args {--prefix=${prefix}}
-default configure.cmd ./configure
-default configure.dir {${worksrcpath}}
-default autoconf.dir {${worksrcpath}}
-default automake.dir {${worksrcpath}}
-default xmkmf.cmd xmkmf
-default xmkmf.dir {${worksrcpath}}
-default use_configure yes
+default configure.env       ""
+default configure.pre_args  {--prefix=${prefix}}
+default configure.cmd       ./configure
+default configure.dir       {${worksrcpath}}
+default autoconf.dir        {${worksrcpath}}
+default automake.dir        {${worksrcpath}}
+default xmkmf.cmd           xmkmf
+default xmkmf.dir           {${worksrcpath}}
+default use_configure       yes
 
 # Configure special environment variables.
 # We could have default debug/optimization flags at some point.
 # compiler flags section
 options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
-default configure.pipe		{${configurepipe}}
-default configure.cflags	{-O2}
-default configure.cppflags	{"-I${prefix}/include"}
-default configure.cxxflags	{-O2}
-default configure.objcflags	{-O2}
-default configure.ldflags	{"-L${prefix}/lib"}
-default configure.libs		{}
-default configure.fflags	{-O2}
-default configure.f90flags	{-O2}
-default configure.fcflags	{-O2}
-default configure.classpath	{}
+default configure.pipe      {${configurepipe}}
+default configure.cflags    {-O2}
+default configure.cppflags  {"-I${prefix}/include"}
+default configure.cxxflags  {-O2}
+default configure.objcflags {-O2}
+default configure.ldflags   {"-L${prefix}/lib"}
+default configure.libs      {}
+default configure.fflags    {-O2}
+default configure.f90flags  {-O2}
+default configure.fcflags   {-O2}
+default configure.classpath {}
 
 # tools section
 options configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-default configure.perl		{}
-default configure.python	{}
-default configure.ruby		{}
-default configure.install	{"/usr/bin/install"}
-default configure.awk		{}
-default configure.bison		{}
-default configure.pkg_config	{}
-default configure.pkg_config_path	{}
+default configure.perl              {}
+default configure.python            {}
+default configure.ruby              {}
+default configure.install           {"/usr/bin/install"}
+default configure.awk               {}
+default configure.bison             {}
+default configure.pkg_config        {}
+default configure.pkg_config_path   {}
 
 # Universal options & default values.
 if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
@@ -85,26 +85,26 @@ if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
 } else {
     set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
 }
-options configure.universal_args		configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
-default configure.universal_args		--disable-dependency-tracking
-default configure.universal_cflags		{"-isysroot $sysroot -arch i386 -arch ppc"}
-default configure.universal_cppflags	{}
-default configure.universal_cxxflags	{"-isysroot $sysroot -arch i386 -arch ppc"}
-default configure.universal_ldflags		{"-arch i386 -arch ppc"}
+options configure.universal_args        configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
+default configure.universal_args        --disable-dependency-tracking
+default configure.universal_cflags      {"-isysroot $sysroot -arch i386 -arch ppc"}
+default configure.universal_cppflags    {}
+default configure.universal_cxxflags    {"-isysroot $sysroot -arch i386 -arch ppc"}
+default configure.universal_ldflags     {"-arch i386 -arch ppc"}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
-default configure.ccache		{${configureccache}}
-default configure.distcc		{${configuredistcc}}
-default configure.cc			{}
-default configure.cxx			{}
-default configure.cpp			{}
-default configure.objc			{}
-default configure.f77			{}
-default configure.f90			{}
-default configure.fc			{}
-default configure.javac			{}
-default configure.compiler		{}
+default configure.ccache        {${configureccache}}
+default configure.distcc        {${configuredistcc}}
+default configure.cc            {}
+default configure.cxx           {}
+default configure.cpp           {}
+default configure.objc          {}
+default configure.f77           {}
+default configure.f90           {}
+default configure.fc            {}
+default configure.javac         {}
+default configure.compiler      {}
 
 set_ui_prefix
 
@@ -148,17 +148,17 @@ proc configure_main {args} {
     global os.platform os.major
     
     if {[tbool use_automake]} {
-	# XXX depend on automake
-	if {[catch {command_exec automake} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
-	}
+        # XXX depend on automake
+        if {[catch {command_exec automake} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
+        }
     }
     
     if {[tbool use_autoconf]} {
-	# XXX depend on autoconf
-	if {[catch {command_exec autoconf} result]} {
-	    return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
-	}
+        # XXX depend on autoconf
+        if {[catch {command_exec autoconf} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
+        }
     }
 
     # 1st chose a reasonable default compiler suite for each platform if none was chosen
@@ -244,69 +244,69 @@ proc configure_main {args} {
     }
     
     if {[tbool use_xmkmf]} {
-		# XXX depend on xmkmf
-		if {[catch {command_exec xmkmf} result]} {
-		    return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
-		} else {
-		    # XXX should probably use make command abstraction but we know that
-		    # X11 will already set things up so that "make Makefiles" always works.
-		    system "cd ${worksrcpath} && make Makefiles"
-		}
-	} elseif {[tbool use_configure]} {
-    	# Merge (ld|c|cpp|cxx)flags into the environment variable.
-    	parse_environment configure
+        # XXX depend on xmkmf
+        if {[catch {command_exec xmkmf} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
+        } else {
+            # XXX should probably use make command abstraction but we know that
+            # X11 will already set things up so that "make Makefiles" always works.
+            system "cd ${worksrcpath} && make Makefiles"
+        }
+    } elseif {[tbool use_configure]} {
+        # Merge (ld|c|cpp|cxx)flags into the environment variable.
+        parse_environment configure
 
-		# Set pre-compiler filter to use (ccache/distcc), if any.
-		if {[tbool configure.ccache] && [tbool configure.distcc]} {
-			set filter "ccache "
-		    append_list_to_environment_value configure "CCACHE_PREFIX" "distcc"
-		} elseif {[tbool configure.ccache]} {
-			set filter "ccache "
-		} elseif {[tbool configure.distcc]} {
-			set filter "distcc "
-		} else {
-			set filter ""
-		}
-		
-		# Set flags controlling the kind of compiler output.
-		if {[tbool configure.pipe]} {
-			set output "-pipe "
-		} else {
-			set output ""
-		}
+        # Set pre-compiler filter to use (ccache/distcc), if any.
+        if {[tbool configure.ccache] && [tbool configure.distcc]} {
+            set filter "ccache "
+            append_list_to_environment_value configure "CCACHE_PREFIX" "distcc"
+        } elseif {[tbool configure.ccache]} {
+            set filter "ccache "
+        } elseif {[tbool configure.distcc]} {
+            set filter "distcc "
+        } else {
+            set filter ""
+        }
+        
+        # Set flags controlling the kind of compiler output.
+        if {[tbool configure.pipe]} {
+            set output "-pipe "
+        } else {
+            set output ""
+        }
 
-    	# Append configure flags.
-		append_list_to_environment_value configure "CC" ${filter}${configure.cc}
-		append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
-		append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
-		append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
-		append_list_to_environment_value configure "FC" ${configure.fc}
-		append_list_to_environment_value configure "F77" ${configure.f77}
-		append_list_to_environment_value configure "F90" ${configure.f90}
-		append_list_to_environment_value configure "JAVAC" ${configure.javac}
-		append_list_to_environment_value configure "CFLAGS" ${output}${configure.cflags}
-		append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
-		append_list_to_environment_value configure "CXXFLAGS" ${output}${configure.cxxflags}
-		append_list_to_environment_value configure "OBJCFLAGS" ${output}${configure.objcflags}
-		append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
-		append_list_to_environment_value configure "LIBS" ${configure.libs}
-		append_list_to_environment_value configure "FFLAGS" ${output}${configure.fflags}
-		append_list_to_environment_value configure "F90FLAGS" ${output}${configure.f90flags}
-		append_list_to_environment_value configure "FCFLAGS" ${output}${configure.fcflags}
-		append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
-		append_list_to_environment_value configure "PERL" ${configure.perl}
-		append_list_to_environment_value configure "PYTHON" ${configure.python}
-		append_list_to_environment_value configure "RUBY" ${configure.ruby}
-		append_list_to_environment_value configure "INSTALL" ${configure.install}
-		append_list_to_environment_value configure "AWK" ${configure.awk}
-		append_list_to_environment_value configure "BISON" ${configure.bison}
-		append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
-		append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        # Append configure flags.
+        append_list_to_environment_value configure "CC" ${filter}${configure.cc}
+        append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
+        append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
+        append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
+        append_list_to_environment_value configure "FC" ${configure.fc}
+        append_list_to_environment_value configure "F77" ${configure.f77}
+        append_list_to_environment_value configure "F90" ${configure.f90}
+        append_list_to_environment_value configure "JAVAC" ${configure.javac}
+        append_list_to_environment_value configure "CFLAGS" ${output}${configure.cflags}
+        append_list_to_environment_value configure "CPPFLAGS" ${configure.cppflags}
+        append_list_to_environment_value configure "CXXFLAGS" ${output}${configure.cxxflags}
+        append_list_to_environment_value configure "OBJCFLAGS" ${output}${configure.objcflags}
+        append_list_to_environment_value configure "LDFLAGS" ${configure.ldflags}
+        append_list_to_environment_value configure "LIBS" ${configure.libs}
+        append_list_to_environment_value configure "FFLAGS" ${output}${configure.fflags}
+        append_list_to_environment_value configure "F90FLAGS" ${output}${configure.f90flags}
+        append_list_to_environment_value configure "FCFLAGS" ${output}${configure.fcflags}
+        append_list_to_environment_value configure "CLASSPATH" ${configure.classpath}
+        append_list_to_environment_value configure "PERL" ${configure.perl}
+        append_list_to_environment_value configure "PYTHON" ${configure.python}
+        append_list_to_environment_value configure "RUBY" ${configure.ruby}
+        append_list_to_environment_value configure "INSTALL" ${configure.install}
+        append_list_to_environment_value configure "AWK" ${configure.awk}
+        append_list_to_environment_value configure "BISON" ${configure.bison}
+        append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
+        append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
 
-		# Execute the command (with the new environment).
-		if {[catch {command_exec configure} result]} {
-			return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
-		}
+        # Execute the command (with the new environment).
+        if {[catch {command_exec configure} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] configure $result]"
+        }
     }
     return 0
 }
