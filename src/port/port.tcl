@@ -2461,6 +2461,7 @@ proc get_next_cmdline { in out use_readline prompt linename } {
             set len [readline read -attempted_completion attempt_completion line $prompt]
         } else {
             puts -nonewline $out $prompt
+            flush $out
             set len [gets $in line]
         }
 
