@@ -6,6 +6,9 @@
 
 Unreleased:
 
+    - Flush port(1) output channel after issuing prompt, when readline is not
+      available, to ensure prompt is displayed at proper time. (jberry r31338).
+      
     - readline is now disabled by default, in order to avoid support issues.
       use --enable-readine parameter to configure to enable support for readine.
       (jberry r31139, r31140).
