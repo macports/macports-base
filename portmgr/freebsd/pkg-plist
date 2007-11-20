@@ -4,7 +4,6 @@ bin/portindex
 bin/portmirror
 etc/macports/mp_version
 etc/macports/macports.conf
-etc/macports/prefix.mtree
 etc/macports/sources.conf
 etc/macports/variants.conf
 share/macports/Tcl/darwintrace1.0/darwintrace.so
