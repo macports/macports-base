@@ -1698,9 +1698,8 @@ proc action_variants { action portlist opts } {
             ui_debug "$errorInfo"
             break_softcontinue "search for portname $portname failed: $result" 1 status
         }
-    
-        if {$result == ""} {
-            puts "No port $portname found."
+        if {[llength $result] < 2} {
+            break_softcontinue "Port $portname not found" 1 status
         }
     
         array unset portinfo
