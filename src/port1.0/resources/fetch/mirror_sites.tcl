@@ -70,6 +70,7 @@ set portfetch::mirror_sites::sites(gnu) {
     ftp://ftp.lip6.fr/pub/gnu/
     ftp://ftp.chg.ru/pub/gnu/
     ftp://ftp.mirror.ac.uk/sites/ftp.gnu.org/gnu/
+    ftp://ftp.gnu.org/old-gnu/
 }
 
 set portfetch::mirror_sites::sites(gnupg) {
