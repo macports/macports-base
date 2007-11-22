@@ -105,14 +105,14 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
         if {[tbool use_xmkmf] || ![tbool use_configure]} {
             return -code error "Default universal variant only works with ports based on configure"
         }
-        configure.args-append ${configure.universal_args}
+        eval configure.args-append ${configure.universal_args}
         if {![file exists /Developer/SDKs/MacOSX10.4u.sdk/]} {
             return -code error "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
         }
-        configure.cflags-append ${configure.universal_cflags}
-        configure.cppflags-append ${configure.universal_cppflags}
-        configure.cxxflags-append ${configure.universal_cxxflags}
-        configure.ldflags-append ${configure.universal_ldflags}
+        eval configure.cflags-append ${configure.universal_cflags}
+        eval configure.cppflags-append ${configure.universal_cppflags}
+        eval configure.cxxflags-append ${configure.universal_cxxflags}
+        eval configure.ldflags-append ${configure.universal_ldflags}
     }
 
     # This is not a standard option, because we need to take an action when it's
