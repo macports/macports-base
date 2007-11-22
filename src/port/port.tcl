@@ -1698,9 +1698,8 @@ proc action_variants { action portlist opts } {
             ui_debug "$errorInfo"
             break_softcontinue "search for portname $portname failed: $result" 1 status
         }
-    
-        if {$result == ""} {
-            puts "No port $portname found."
+        if {[llength $result] < 2} {
+            break_softcontinue "Port $portname not found" 1 status
         }
     
         array unset portinfo
@@ -2461,6 +2460,7 @@ proc get_next_cmdline { in out use_readline prompt linename } {
             set len [readline read -attempted_completion attempt_completion line $prompt]
         } else {
             puts -nonewline $out $prompt
+            flush $out
             set len [gets $in line]
         }
 

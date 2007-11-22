@@ -1,6 +1,6 @@
-# $FreeBSD: src/etc/mtree/BSD.local.dist,v 1.55.2.19 2002/08/17 19:11:15 ache Exp $
+# $Id$
 #
-# Please see the file src/etc/mtree/README before making changes to this file.
+# MacPorts filesystem hierarchy, for internal use only. Changes to this file will not stick across installations.
 #
 
 /set type=dir uname=@DSTUSR@ gname=@DSTGRP@ mode=@DSTMODE@

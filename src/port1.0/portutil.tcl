@@ -215,27 +215,28 @@ proc commands {args} {
 # Given a command name, assemble a command string
 # composed of the command options.
 proc command_string {command} {
-    global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.env ${command}.type ${command}.cmd
+    global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.cmd
     
-    set cmdstring ""
     if {[info exists ${command}.dir]} {
-	set cmdstring "cd \"[set ${command}.dir]\" &&"
+	append cmdstring "cd \"[set ${command}.dir]\" &&"
     }
     
     if {[info exists ${command}.cmd]} {
 	foreach string [set ${command}.cmd] {
-	    set cmdstring "$cmdstring $string"
+	    append cmdstring " $string"
 	}
     } else {
-	set cmdstring "$cmdstring ${command}"
+	append cmdstring " ${command}"
     }
+
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
 	if {[info exists $var]} {
 	    foreach string [set ${var}] {
-		set cmdstring "$cmdstring $string"
+		append cmdstring " ${string}"
 	    }
 	}
     }
+
     ui_debug "Assembled command: '$cmdstring'"
     return $cmdstring
 }
