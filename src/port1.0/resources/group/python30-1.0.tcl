@@ -1,7 +1,7 @@
 # et:ts=4
 # python30-1.0.tcl
 #
-# $Id: $
+# $Id$
 #
 # Copyright (c) 2007 Markus W. Weissman <mww@macports.org>,
 # All rights reserved.
