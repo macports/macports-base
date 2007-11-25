@@ -36,14 +36,9 @@ echo ""
 
 BINPATH=/opt/local/bin
 SBINPATH=/opt/local/sbin
-TMP=`/usr/bin/mktemp /tmp/mp.$$`
-$SHELL -l <<EOF > $TMP
-    /usr/bin/printenv PATH
-    exit
-EOF
 
-if grep $BINPATH $TMP >/dev/null 2>&1; then
-	echo "You already have the right PATH - l337!"
+if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
+    echo "You already have the right PATH - l337!"
 else
     USHELL=`basename $SHELL`
    echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
