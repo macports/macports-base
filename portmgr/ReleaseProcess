@@ -50,7 +50,7 @@ optional for beta snapshots) into the /tags svn directory.
 Only the base subdirectory, not the ports subdirectory, is branched for a given release.
 
 It is strongly recommended to use the svnmerge.py tool (provided by the subversion port) to
-maintain merge tracking information between release branches and trunk/base if you pretend to
+maintain merge tracking information between release branches and trunk/base if you intend to
 merge revisions back and forth between them, which is a very likely scenario. To do this, you
 must initialize the tracking information from within the "base" directory of your checkout of
 the branch you intend to manage:
@@ -65,7 +65,7 @@ the branch you intend to manage:
 
 In preparation for a release, several things should be completed within the code:
 
- * Update the file base/ChangeLog in both trunk and the relase branch to reflect the appropriate changes.
+ * Update the file base/ChangeLog in both trunk and the release branch to reflect the appropriate changes.
  * Update the file base/config/mp_version with the target release number. Note that this is a floating
    point number that corresponds to the release number; it should correspond roughly to the release number
    where possible. Release 1.6.1, for instance, would be represented by the floating point number 1.610.
@@ -75,15 +75,15 @@ In preparation for a release, several things should be completed within the code
    it from the latter.
  * Update the autoconf 'configure' script through the provided base/regen.sh script once the version number
    in mp_version has been changed, since the former reads the latter.
- * Make sure that these, and any other changes or bug fixes are made on and/or merged between the release branch
-   and trunk as needded. For instance, if you've made changes to ChangeLog only on the release branch,
+ * Make sure that these and any other changes or bug fixes are made on and/or merged between the release branch
+   and trunk as needed. For instance, if you've made changes to ChangeLog only on the release branch,
    those changes should be merged back into trunk as well.
 
 
 === Tag the Release ===
 
 Once the release is ready, it must be tagged so that the release components may be fetched in the future,
-to ensure replicatability. Generally, a release candidate is first tagged and built. When and if it is
+to ensure replicability. Generally, a release candidate is first tagged and built. When and if it is
 approved as the actual release, an additional tag is created that names the same sources.
 
 Tagging conventions:
@@ -93,20 +93,20 @@ Tagging conventions:
  * release_1_6_0-archive (tagged release 1.6.0 -- complete archive)
  * release_1_6_1 (1.6.1 release)
 
-We first tag the branched base directory to make up for the final release:
+We first tag the branched base directory to make up the final release:
 
  svn cp -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_6 \
      http://svn.macports.org/repository/macports/tags/release_1_6_0
 
-Although only the base subdirectory is branched and tagged for a given major release, we also create a 
+Although only the base subdirectory is branched and tagged for a given major release, we also create a
 separate tag for the entire tree (base sources and full ports tree) at the time the final release tag is
 created (only for major releases, 1.x.0), in order to provide a stake in the ground that specifies a set
 of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory
 at the revision number at which the final release was tagged.
 
 The necessary working copy to create such a tag is created by checking out all of trunk at the specific
-revision of the final tagging of base and then switching the base directory inturn to the appropriate
-release tag URL. For instance:
+revision of the final tagging of base and then switching the base directory to the appropriate release
+tag URL. For instance:
 
  svn co [-r<rev>] http://svn.macports.org/repository/macports/trunk release_1.6.0-archive
  cd release_1.6.0-archive/base
@@ -120,7 +120,7 @@ And finally we tag the entire directory as release_1_6_0-archive:
 
 === Create & Post Release Tarballs ===
 
-The release tarballs are tar.bz2 and tar.gz archives of the  base directory only and of the entire svn tree
+The release tarballs are tar.bz2 and tar.gz archives of the base directory only and of the entire svn tree
 for a particular release. They are named with the following naming convention:
 
  MacPorts-1.6.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_6_0)
@@ -146,14 +146,14 @@ for each of the files:
 
 === Create Release Disk Image(s) ===
 
-The dmg is a Mac OS X disk image that contains a standalone and default configured installer for major
+The dmg is a Mac OS X disk image that contains a standalone installer, configured in the usual way, for major
 MacPorts releases (1.x.0), named in a consistent fashion and incorporating the OS version for which it
 was built.
 
  MacPorts-1.6.0-10.4.dmg
  MacPorts-1.6.0-10.5.dmg
 
-To create the disk image use the MacPorts port. The Portfile will need to be updated to incorporate the
+To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
 downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
 for the release). Resource files in the files/ directory of the MacPorts port will also have to be fully
@@ -162,7 +162,7 @@ up to date, in sync with their copies in the base/portmgr/dmg svn directory.
  sudo port -d dmg MacPorts
 
 Name the dmg appropriately, and generate checksums, which will need to be added to the existing checksums
-file up at the downloads directory:
+file in the downloads directory:
 
  cd work
  mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5.dmg
@@ -177,7 +177,7 @@ create the destroot of the port and examine it for:
  * Linking: libraries and binaries should not be linked against anything that's not present by default
    on a vanilla Mac OS X installation + developer tools, excluding even the MacPorts installation prefix;
    this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
-   of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${dstroot}/opt/local/bin/daemondo
+   of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${destroot}/opt/local/bin/daemondo
    ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib, ${destroot}/opt/local/share/macports/\
    Tcl/pextlib1.0/Pextlib.dylib and ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
  * tclsh shell invoked by our scripts: all scripts installed in ${destroot}/opt/local/bin (that is port,
@@ -186,14 +186,14 @@ create the destroot of the port and examine it for:
              #\
              exec /usr/bin/tclsh "$0" "$@"
    thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
- * macports1.0 Tcl package: The macports1.0 Tcl package should be source off its default location in /Library/Tcl/macports1.0
+ * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its default location in /Library/Tcl/macports1.0
    in every single one of our scripts in ${destroot}/opt/local/bin.
- * Miscellaneous: anything else that might seem out of the ordinary for a fully default configured MacPorts
+ * Miscellaneous: anything else that might seem out of the ordinary for a fully default-configured MacPorts
    installation.
 
-Once the above requirements have been possitively asserted, the one remaining test is to make sure that, both,
-the dmg mounts on the Finder when double clicking it and the pkg cointained therein properly starts up Installer.app
-when double clicked in turn.
+Once the above requirements have been positively asserted, the one remaining test is to make sure that the
+dmg mounts in the Finder when double-clicked, and that the pkg contained therein properly starts up Installer.app
+when it's double-clicked.
 
 
 === Make the Release Available through Self-Update ===
@@ -213,4 +213,5 @@ Once the release has been posted, notification of the release should be sent/pos
  * Apple's [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Mac OS X software downloads page] (submitter: jmpp@)
  * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
- * (Where else? -- MacUpdate?)
+ * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
+ * (Where else?)
