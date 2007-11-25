@@ -287,14 +287,22 @@ fi
 AC_SUBST(SQLITE3_LIBS)
 AC_SUBST(SQLITE3_DIR)
 
-AC_SUBST(OUR_INCLUDED_PACKAGES)
-
 AH_TEMPLATE([TRACE_SDK], [SDK for SDK redirect in tracelib])
 AC_ARG_WITH(
 	trace-sdk,
 	AS_HELP_STRING([--with-trace-sdk=SDK],
 		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
 	[test -d /Developer/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
+	
+# If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
+AC_MSG_CHECKING(whether /etc/paths.d and /etc/manpaths.d directories exist)
+if test -d /etc/paths.d -a -d /etc/manpaths.d; then
+	PATHCONF=pathconf
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+
 
 # Allows building of shared libraries
 SC_ENABLE_SHARED
@@ -312,14 +320,16 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 AC_SUBST(INCLUDES)
 AC_SUBST(CFLAGS_DEBUG)
 AC_SUBST(CFLAGS_OPTIMIZE)
-AC_SUBST(TCL_DEFS)
+AC_SUBST(PATHCONF)
 AC_SUBST(STLIB_LD)
 AC_SUBST(SHLIB_LD)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(SHLIB_LDFLAGS)
 AC_SUBST(SHLIB_SUFFIX)
+AC_SUBST(TCL_DEFS)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
+AC_SUBST(OUR_INCLUDED_PACKAGES)
 
 # misc variables that need to be expanded for substitution into tcl
 
@@ -356,6 +366,9 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/tclobjc1.0/Makefile
+	src/pathconf/Makefile
+	src/pathconf/paths
+	src/pathconf/manpaths
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
