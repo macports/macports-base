@@ -754,17 +754,18 @@ LDFLAGS_LIBCURL
 subdirs
 SQLITE3_LIBS
 SQLITE3_DIR
-OUR_INCLUDED_PACKAGES
 INCLUDES
 CFLAGS_DEBUG
 CFLAGS_OPTIMIZE
-TCL_DEFS
+PATHCONF
 STLIB_LD
 SHLIB_LD
 SHLIB_CFLAGS
 SHLIB_LDFLAGS
 SHLIB_SUFFIX
+TCL_DEFS
 TCL_CC
+OUR_INCLUDED_PACKAGES
 prefix_expanded
 MPCONFIGDIR_EXPANDED
 localstatedir_expanded
@@ -12034,14 +12035,25 @@ fi
 
 
 
-
-
 # Check whether --with-trace-sdk was given.
 if test "${with_trace_sdk+set}" = set; then
   withval=$with_trace_sdk; test -d /Developer/SDKs/$withval && cat >>confdefs.h <<_ACEOF
 #define TRACE_SDK "${withval}"
 _ACEOF
 
+fi
+
+
+# If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
+{ echo "$as_me:$LINENO: checking whether /etc/paths.d and /etc/manpaths.d exist" >&5
+echo $ECHO_N "checking whether /etc/paths.d and /etc/manpaths.d exist... $ECHO_C" >&6; }
+if test -d /etc/paths.d -a -d /etc/manpaths.d; then
+	PATHCONF=pathconf
+	{ echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+else
+	{ echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
 fi
 
 
@@ -12102,6 +12114,8 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
 
 
+
+
 # misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
@@ -12123,7 +12137,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl"
+ac_config_files="$ac_config_files Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl"
 
 
 cat >confcache <<\_ACEOF
@@ -12691,6 +12705,9 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
     "src/tclobjc1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tclobjc1.0/Makefile" ;;
+    "src/pathconf/Makefile") CONFIG_FILES="$CONFIG_FILES src/pathconf/Makefile" ;;
+    "src/pathconf/paths") CONFIG_FILES="$CONFIG_FILES src/pathconf/paths" ;;
+    "src/pathconf/manpaths") CONFIG_FILES="$CONFIG_FILES src/pathconf/manpaths" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
@@ -12935,17 +12952,18 @@ LDFLAGS_LIBCURL!$LDFLAGS_LIBCURL$ac_delim
 subdirs!$subdirs$ac_delim
 SQLITE3_LIBS!$SQLITE3_LIBS$ac_delim
 SQLITE3_DIR!$SQLITE3_DIR$ac_delim
-OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 INCLUDES!$INCLUDES$ac_delim
 CFLAGS_DEBUG!$CFLAGS_DEBUG$ac_delim
 CFLAGS_OPTIMIZE!$CFLAGS_OPTIMIZE$ac_delim
-TCL_DEFS!$TCL_DEFS$ac_delim
+PATHCONF!$PATHCONF$ac_delim
 STLIB_LD!$STLIB_LD$ac_delim
 SHLIB_LD!$SHLIB_LD$ac_delim
 SHLIB_CFLAGS!$SHLIB_CFLAGS$ac_delim
 SHLIB_LDFLAGS!$SHLIB_LDFLAGS$ac_delim
 SHLIB_SUFFIX!$SHLIB_SUFFIX$ac_delim
+TCL_DEFS!$TCL_DEFS$ac_delim
 TCL_CC!$TCL_CC$ac_delim
+OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 prefix_expanded!$prefix_expanded$ac_delim
 MPCONFIGDIR_EXPANDED!$MPCONFIGDIR_EXPANDED$ac_delim
 localstatedir_expanded!$localstatedir_expanded$ac_delim
@@ -12953,7 +12971,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 57; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 58; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
