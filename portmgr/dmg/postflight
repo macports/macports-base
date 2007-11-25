@@ -41,28 +41,30 @@ if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
     echo "You already have the right PATH - l337!"
 else
     USHELL=`basename $SHELL`
-   echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
+    echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
     case $USHELL in
-      *csh)
-        /bin/cp -fp $HOME/.cshrc $HOME/.cshrc.mpsaved	# we backup the original
-        echo "#" >> $HOME/.cshrc
-        echo "# Your previous .cshrc (if any) is saved as .cshrc.mpsaved" >> $HOME/.cshrc
-        echo "# Setting the path for MacPorts." >> $HOME/.cshrc
-        echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.cshrc
-        chown $USER $HOME/.cshrc
-        echo "Finished modifying $HOME/.cshrc"
-       ;;
-      *sh)
-        /bin/cp -fp $HOME/.profile $HOME/.profile.mpsaved # we backup the original
-        echo "#" >> $HOME/.profile
-        echo "# Your previous .profile  (if any) is saved as .profile.mpsaved" >> $HOME/.profile
-        echo "# Setting the path for MacPorts." >> $HOME/.profile
-        echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.profile
-        chown $USER $HOME/.profile
-        echo "Finished modifying $HOME/.profile"
+        *csh)
+	    # we backup the original
+            /bin/cp -fp $HOME/.cshrc $HOME/.cshrc.mpsaved
+            echo "#" >> $HOME/.cshrc
+            echo "# Your previous .cshrc (if any) is saved as .cshrc.mpsaved" >> $HOME/.cshrc
+            echo "# Setting the path for MacPorts." >> $HOME/.cshrc
+            echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.cshrc
+            chown $USER $HOME/.cshrc
+            echo "Finished modifying $HOME/.cshrc"
         ;;
-      *)
-        echo "Unknown shell! Please set your own PATH manually."
+	*sh)
+	    # we backup the original
+            /bin/cp -fp $HOME/.profile $HOME/.profile.mpsaved
+            echo "#" >> $HOME/.profile
+            echo "# Your previous .profile  (if any) is saved as .profile.mpsaved" >> $HOME/.profile
+            echo "# Setting the path for MacPorts." >> $HOME/.profile
+            echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.profile
+            chown $USER $HOME/.profile
+            echo "Finished modifying $HOME/.profile"
+        ;;
+	*)
+            echo "Unknown shell! Please set your own PATH manually."
         ;;
     esac
 fi
