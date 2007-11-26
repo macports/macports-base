@@ -2164,6 +2164,8 @@ array set action_array {
     livecheck   action_target
     distcheck   action_target
     mirror      action_target
+    load        action_target
+    unload      action_target
 
     archive     action_target
     unarchive   action_target

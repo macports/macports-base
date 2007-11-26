@@ -1,8 +1,9 @@
 # et:ts=4
-# port.tcl
-# $Id$
+# portsubmit.tcl
+# $Id: portsubmit.tcl 26177 2007-06-15 10:11:22Z jmpp@macports.org $
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2007 MacPorts Project
+# Copyright (c) 2007 James D. Berry
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,28 +30,30 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require mp_package 1.0
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portactivate 1.0
-package require portclean 1.0
-package require porttest 1.0
-package require portlint 1.0
-package require portsubmit 1.0
-package require porttrace 1.0
-package require portdistcheck 1.0
-package require portlivecheck 1.0
-package require portmirror 1.0
-package require portload 1.0
-package require portunload 1.0
+package provide portload 1.0
+package require portutil 1.0
+
+set org.macports.load [target_new org.macports.load load_main]
+target_runtype ${org.macports.load} always
+target_provides ${org.macports.load} load 
+target_requires ${org.macports.load} main
+
+set_ui_prefix
+
+proc load_main {args} {
+    global startupitem.type startupitem.name startupitem.location startupitem.plist
+    set launchctl_path ${portutil::autoconf::launchctl_path}
+
+    foreach { path } "/Library/${startupitem.location}/${startupitem.plist}" {
+        if {[string length $launchctl_path] == 0} {
+            return -code error [format [msgcat::mc "launchctl command was not found by configure"]]
+        } elseif {![file exists $path]} {
+            return -code error [format [msgcat::mc "Launchd plist %s was not found"] $path]
+        } else {
+            exec $launchctl_path load -w $path
+        }
+    }
+    
+    return
+}

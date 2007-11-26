@@ -3,8 +3,9 @@
 #
 # $Id$
 #
-# Copyright (c) 2004, 2005 Markus W. Weissman <mww@macports.org>,
-# Copyright (c) 2005 Robert Shaw <rshaw@opendarwin.org>,
+# Copyright (c) 2004-2007 MacPorts Project
+# Copyright (c) 2006-2007 James D. Berry
+# Copyright (c) 2004,2005 Markus W. Weissman <mww@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -390,9 +391,9 @@ proc startupitem_create_darwin_launchd {args} {
     set scriptdir ${prefix}/etc/startup
     
     set itemname        ${startupitem.name}
-    set uniquename      org.macports.${itemname}
-    set plistname       ${uniquename}.plist
-    set daemondest      LaunchDaemons
+    set uniquename      ${startupitem.uniquename}
+    set plistname       ${startupitem.plist}
+    set daemondest      ${startupitem.location}
     set itemdir         ${prefix}/etc/${daemondest}/${uniquename}
     set args            [list \
                           "${prefix}/bin/daemondo" \
