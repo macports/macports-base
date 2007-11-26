@@ -13,3 +13,4 @@ install:
 	${INSTALL} -o root -g wheel -m 644 paths /etc/paths.d/macports
 	${INSTALL} -o root -g wheel -m 644 manpaths /etc/manpaths.d/macports
 	
+clean:
