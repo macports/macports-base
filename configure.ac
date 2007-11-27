@@ -294,9 +294,12 @@ AC_ARG_WITH(
 		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
 	[test -d /Developer/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
 	
+	
 # If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
-AC_MSG_CHECKING(whether /etc/paths.d and /etc/manpaths.d directories exist)
-if test -d /etc/paths.d -a -d /etc/manpaths.d; then
+AC_MSG_CHECKING(whether to install macports paths into /etc/paths.d and /etc/manpaths.d)
+mpprefix=$prefix
+test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
+if test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
 	PATHCONF=pathconf
 	AC_MSG_RESULT([yes])
 else
