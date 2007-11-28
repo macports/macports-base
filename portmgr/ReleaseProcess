@@ -150,8 +150,8 @@ The dmg is a Mac OS X disk image that contains a standalone installer, configure
 MacPorts releases (1.x.0), named in a consistent fashion and incorporating the OS version for which it
 was built.
 
- MacPorts-1.6.0-10.4.dmg
- MacPorts-1.6.0-10.5.dmg
+ MacPorts-1.6.0-10.4-Tiger.dmg
+ MacPorts-1.6.0-10.5-Leopard.dmg
 
 To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
@@ -165,8 +165,8 @@ Name the dmg appropriately, and generate checksums, which will need to be added 
 file in the downloads directory:
 
  cd work
- mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5.dmg
- for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.6.0-10.5.dmg; done
+ mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5-Leopard.dmg
+ for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.6.0-10.5-Leopard.dmg; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate downloads
 directory of the MacPorts svn repository. Developers are required to validate the generated installer as
