@@ -30,15 +30,21 @@
 # postflight
 # $Id$
 
-echo ""
-echo "Checking the PATH variable for $USER..."
-echo ""
 
 BINPATH=/opt/local/bin
 SBINPATH=/opt/local/sbin
 
+
+echo -e "\nChecking the PATH variable for $USER...\n"
+
+# No need to do any path adjustments if we're on Leopard, as we already install our path configs into /etc/paths.d/ and /etc/manpaths.d/
+if [ $(sw_vers -productVersion | awk -F . '{print $2}') -eq 5 ]; then
+    echo "No need to adjust the PATH and MANPATH environment variables on Leopard!"
+    exit 0
+fi
+
 if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
-    echo "You already have the right PATH - l337!"
+    echo "You already have the right PATH!"
 else
     USHELL=`basename $SHELL`
     echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
@@ -73,20 +79,15 @@ export PATH=$BINPATH:$PATH
 
 # run selfupdate
 
-echo""
-echo "Selfupdating The MacPorts system ..."
-echo ""
+echo -e "\nSelfupdating The MacPorts system ...\n"
 
 port -d selfupdate
 if [ $? != 0 ]; then
     echo "An attempt to synchronize your recent MacPorts installation with the rsync server failed, please run 'port -d selfupdate' manually to find out the cause of the error."
-    exit
+    exit 1
 fi
 
-# done !!
-echo ""
-echo "You have succesfully installed the MacPorts system."
-echo ""
+# Postflight script is done with its job!
+echo -e "\nYou have succesfully installed the MacPorts system.\n"
 echo "Launch a terminal and try it out !!"
-echo "Read the port manual page for help."
-echo ""
+echo -e "Read the port manual page for help.\n"
