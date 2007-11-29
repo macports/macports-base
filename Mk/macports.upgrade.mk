@@ -86,24 +86,24 @@ upgrade::
 ## 6) stray quotes are removed from the value of the rsync_options key in old conf files;
 ## 7) useless --delete option is removed from the default rsync flags (--delete is implied by --delete-after);
 ## 8) references to the old ports.conf(5) man page are updated to the new macports.conf(5) page;
-	[ ! \( -f $${HOME}/.macports/ports.conf -a ! -f ${UPGRADECHECK} \) ] || { \
-		mv -v $${HOME}/.macports/ports.conf $${HOME}/.macports/macports.conf.mpsaved; \
-		sed 's/etc\/ports/etc\/macports/g' $${HOME}/.macports/macports.conf.mpsaved > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/db\/dports/macports/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/darwinports/macports/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/dpupdate1\/base/release\/base/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/dpupdate\/base\/\{0,1\}/trunk\/base\//g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed '/^rsync_options/s/"\(.*\)"/\1/' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/ --delete / /' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
-		sed 's/ ports.conf(5)/ macports.conf(5)/g' $${HOME}/.macports/macports.conf > $${HOME}/.macports/macports.conf.tmp && \
-			mv -v $${HOME}/.macports/macports.conf.tmp $${HOME}/.macports/macports.conf; \
+	[ ! \( -f "$${HOME}/.macports/ports.conf" -a ! -f ${UPGRADECHECK} \) ] || { \
+		mv -v "$${HOME}/.macports/ports.conf" "$${HOME}/.macports/macports.conf.mpsaved"; \
+		sed 's/etc\/ports/etc\/macports/g' "$${HOME}/.macports/macports.conf.mpsaved" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/db\/dports/macports/g' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/darwinports/macports/g' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/dpupdate1\/base/release\/base/g' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/dpupdate\/base\/\{0,1\}/trunk\/base\//g' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed '/^rsync_options/s/"\(.*\)"/\1/' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/ --delete / /' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
+		sed 's/ ports.conf(5)/ macports.conf(5)/g' "$${HOME}/.macports/macports.conf" > "$${HOME}/.macports/macports.conf.tmp" && \
+			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
 	}
 
 # Upgrade success announcement (meaning we're done ;):

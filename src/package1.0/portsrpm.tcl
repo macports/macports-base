@@ -1,6 +1,6 @@
 # et:ts=4
 # portsrpm.tcl
-# $Id: portsrpm.tcl $
+# $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Computer, Inc.
 # All rights reserved.
