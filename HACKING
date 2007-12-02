@@ -1,4 +1,4 @@
-Project naming and copyright attribution:
+# Project naming and copyright attribution:
 
 * "The MacPorts Project" is the string that shall be used whereever there's a need to reference our project name, such as in copyright notices.
 * A developer or contributor is advised to attribute himself a copyright notice if he/she is contributing a full new source file or a full new feature
@@ -9,7 +9,19 @@ Project naming and copyright attribution:
   being uploaded to the "base" component of our repository, since as such they are being contributed to the project.
 
 
-Whitespace rules as discussed on the development list (macports-dev):
+# Commits to the "base" component of the repository:
+
+* Any commit made to the "base" component of the repository should be accompanied by a corresponding entry in the base/ChanegeLog file, full with information
+    of the svn revision information of the commit and Trac ticket number the commit references and/or fixes, if any.
+* Such entries to the ChangeLog need not be full duplications of their related commit logs if the latter are thorough explanations of what's involved in the commit.
+    In such cases it's perfectly acceptable to enter just a summary of the commit and point the reader to further information through the related svn revision
+    and Trac ticket number (if applicable).
+* Related commits to "base" may be grouped in a single ChangeLog entry, provided the full list of svn revisions and Trac ticket numbers referenced (if applicable)
+    is included.
+* Commits to "base" need not update the base/NEWS file, as such will be constructed with the relevant information at MacPorts release time by the release engineers.
+
+
+# Whitespace rules as discussed on the development list (macports-dev):
 
 * All source code files MUST use soft tabs at a tabstop of 4. No hard tabs are allowed.
 * All source code files SHOULD have the following as the first line of the file:
