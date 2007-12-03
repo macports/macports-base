@@ -75,19 +75,18 @@ else
     esac
 fi
 
+
+# Run selfupdate:
 export PATH=$BINPATH:$PATH
-
-# run selfupdate
-
-echo -e "\nSelfupdating The MacPorts system ...\n"
-
+echo -e "\nSelfupdating The MacPorts system...\n"
 port -d selfupdate
 if [ $? != 0 ]; then
     echo "An attempt to synchronize your recent MacPorts installation with the rsync server failed, please run 'port -d selfupdate' manually to find out the cause of the error."
     exit 1
 fi
 
+
 # Postflight script is done with its job!
 echo -e "\nYou have succesfully installed the MacPorts system.\n"
-echo "Launch a terminal and try it out !!"
+echo "Launch a terminal and try it out!"
 echo -e "Read the port manual page for help.\n"
