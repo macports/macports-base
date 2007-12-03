@@ -56,7 +56,7 @@ Unreleased:
 
     - prevent creating PKG packages with /etc or /var or /tmp (#2102, afb in r29445)
 
-    - add optional configure.ccache and configure.distcc filters (#5390, afb in 29438)
+    - add optional configure.ccache and configure.distcc filters (#5390, afb in r29438)
 
     - Explicitly sort fs-traverse so it behaves predictably on Linux systems
       (#12622, eridius in r29412).

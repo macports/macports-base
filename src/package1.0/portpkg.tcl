@@ -120,6 +120,11 @@ proc package_pkg {portname portversion portrevision} {
         system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
     }
 
+    file delete ${workpath}/Info.plist
+    file delete ${workpath}/PackageInfo
+    file delete ${workpath}/Description.plist
+    file delete -force ${workpath}/pkg_resources
+
     } else {
 
     write_PkgInfo ${pkgpath}/Contents/PkgInfo
