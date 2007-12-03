@@ -31,14 +31,15 @@
 # $Id$
 
 
-BINPATH=/opt/local/bin
-SBINPATH=/opt/local/sbin
+PREFIX=/opt/local
+BINPATH=$PREFIX/bin
+SBINPATH=$PREFIX/sbin
 
 
-echo -e "\nChecking the PATH variable for $USER...\n"
+echo -e "\nChecking the PATH and MANPATH variables for user $USER...\n"
 
 if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
-    echo "You already have the right PATH!"
+    echo "You already have the right PATH variable!"
 else
     USHELL=`basename $SHELL`
     echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
