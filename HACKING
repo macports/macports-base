@@ -1,35 +1,72 @@
 # Project naming and copyright attribution:
 
-* "The MacPorts Project" is the string that shall be used whereever there's a need to reference our project name, such as in copyright notices.
-* A developer or contributor is advised to attribute himself a copyright notice if he/she is contributing a full new source file or a full new feature
-  to an already existing source file in the "base" component of our repository.
-* An exception to this rule is our Portfiles, since they are partly meant for human eyes consumption and the boilerplate header comments should be kept
-  down to a minimum
-* A copyright notice attributed to our group name, "The MacPorts Project", should also be added to these source files (if not already there) if they're
-  being uploaded to the "base" component of our repository, since as such they are being contributed to the project.
+ *  "The MacPorts Project" is the string that shall be used whereever
+    there's a need to reference our project name, such as in copyright
+    notices.
+
+ *  A developer or contributor is advised to attribute himself a copyright
+    notice if he/she is contributing a full new source file or a full
+    new feature to an already existing source file in the "base"
+    component of our repository.
+
+ *  An exception to this rule is our Portfiles, since they are partly
+    meant for human eyes consumption and the boilerplate header comments
+    should be kept down to a minimum
+
+ *  A copyright notice attributed to our group name, "The MacPorts
+    Project", should also be added to these source files (if not already
+    there) if they're being uploaded to the "base" component of our
+    repository, since as such they are being contributed to the project.
 
 
 # Commits to the "base" component of the repository:
 
-* Commits with user-visible affect made to the "base" component of the repository should be accompanied by a corresponding entry in the base/ChanegeLog file,
-  with references to pertitent Trac ticket numbers and svn commit revisions where appropriate.
-* Such entries to the ChangeLog need not be full duplications of their related commit logs if the latter are thorough explanations of what's involved in the commit.
-  In such cases it's perfectly acceptable to enter just a summary of the commit and point the reader to further information through the related svn revision
-  and Trac ticket number (if applicable).
-* Related commits to "base" should be grouped in a single ChangeLog entry.
-* Commits to "base" need not update the base/NEWS file, as such will be constructed with the relevant information at MacPorts release time by the release engineers.
+ *  Commits with user-visible affect made to the "base" component of the
+    repository should be accompanied by a corresponding entry in the
+    base/ChanegeLog file, with references to pertitent Trac ticket
+    numbers and svn commit revisions where appropriate.
+
+ *  Such entries to the ChangeLog need not be full duplications of their
+    related commit logs if the latter are thorough explanations of
+    what's involved in the commit. In such cases it's perfectly
+    acceptable to enter just a summary of the commit and point the
+    reader to further information through the related svn revision and
+    Trac ticket number (if applicable).
+
+ *  Related commits to "base" should be grouped in a single ChangeLog
+    entry.
+
+ *  Commits to "base" need not update the base/NEWS file, as such will be
+    constructed with the relevant information at MacPorts release time
+    by the release engineers.
 
 
 # Whitespace rules as discussed on the development list (macports-dev):
 
-* All source code files MUST use soft tabs at a tabstop of 4. No hard tabs are allowed.
-* All source code files SHOULD have the following as the first line of the file:
-    # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-  This is a modeline that works for both emacs and vim.
-* Portfiles SHOULD use soft tabs at a tabstop of 4, but implementation of this is left up to the discretion of the maintainer.
-* Portfiles SHOULD use the given modeline
-* Makefiles MUST use tabs as it is required by the syntax. Makefiles SHOULD use a tab stop of 8.
-* Makefiles MAY use a modeline. The following works for emacs and vim:
-    # -*- coding: utf-8; mode: Makefile; tab-width: 8; indent-tabs-mode: t -*- vim:fenc=utf-8:filetype=Makefile:noet:sw=8:ts=8
-* All other files (documentation, etc) SHOULD use soft tabs at a tabstop of 4 if the document format allows.
-* All other files (documentation, etc) SHOULD NOT use a modeline as it is probably meant for human consumption.
+ *  All source code files MUST use soft tabs at a tabstop of 4. No hard
+    tabs are allowed.
+
+ *  All source code files SHOULD have the following as the first line of
+    the file:
+        
+        # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+        
+    This is a modeline that works for both emacs and vim.
+    
+ *  Portfiles SHOULD use soft tabs at a tabstop of 4, but implementation
+    of this is left up to the discretion of the maintainer.
+
+ *  Portfiles SHOULD use the given modeline
+
+ *  Makefiles MUST use tabs as it is required by the syntax. Makefiles
+    SHOULD use a tab stop of 8.
+
+ *  Makefiles MAY use a modeline. The following works for emacs and vim:
+ 
+        # -*- coding: utf-8; mode: Makefile; tab-width: 8; indent-tabs-mode: t -*- vim:fenc=utf-8:filetype=Makefile:noet:sw=8:ts=8
+
+ *  All other files (documentation, etc) SHOULD use soft tabs at a tabstop
+    of 4 if the document format allows.
+
+ *  All other files (documentation, etc) SHOULD NOT use a modeline as it
+    is probably meant for human consumption.
