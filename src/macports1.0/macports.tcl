@@ -630,8 +630,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
         DYLD_FALLBACK_LIBRARY_PATH DYLD_FRAMEWORK_PATH
         DYLD_LIBRARY_PATH DYLD_INSERT_LIBRARIES
-        HOME JAVA_HOME LD_PREBIND
-        LD_PREBIND_ALLOW_OVERLAP MASTER_SITE_LOCAL
+        HOME JAVA_HOME MASTER_SITE_LOCAL
         PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
         USER GROUP
         http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
@@ -659,14 +658,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     if {[info exists master_site_local] && ![info exists env(MASTER_SITE_LOCAL)]} {
         set env(MASTER_SITE_LOCAL) "$master_site_local"
-    }
-
-    # Prebinding. useful with MacOS X's ld, harmless elsewhere.
-    # With both variables, prebinding will always succeed but we might need
-    # to redo it.
-    if {![info exists env(LD_PREBIND)] && ![info exists env(LD_PREBIND_ALLOW_OVERLAP)]} {
-        set env(LD_PREBIND) "1"
-        set env(LD_PREBIND_ALLOW_OVERLAP) "1"
     }
 
     if {[file isdirectory $libpath]} {
