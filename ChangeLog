@@ -6,6 +6,11 @@
 
 Unreleased:
 
+    - 
+
+
+Release 1.6.0 (pending):
+
     - Flush port(1) output channel after issuing prompt, when readline is not
       available, to ensure prompt is displayed at proper time. (jberry r31338).
       
