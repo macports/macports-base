@@ -384,8 +384,8 @@ RunService "$1"
 
 proc startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs portname os.platform
-    global startupitem.name startupitem.requires startupitem.init
-    global startupitem.start startupitem.stop startupitem.restart startupitem.executable
+    global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
+    global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
     global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
 
     set scriptdir ${prefix}/etc/startup
