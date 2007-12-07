@@ -1,9 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
-# Copyright (c) 2005 Ole Guldberg Jensen <olegb@opendarwin.org>
-# Copyright (c) 2005 Dr. Ernie Prabhakar <drernir@opendarwin.org>
-# Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+# Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,11 +11,14 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Apple, Inc., The MacPorts Project nor the
+#    names of its contributors may be used to endorse or promote products
+#    derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
 # OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -31,52 +31,89 @@
 # $Id$
 
 
+# Abstraction variables:
 PREFIX=/opt/local
 BINPATH=$PREFIX/bin
 SBINPATH=$PREFIX/sbin
-
-
-echo -e "\nChecking the PATH and MANPATH variables for user $USER...\n"
-
-if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
-    echo "You already have the right PATH variable!"
-else
-    USHELL=`basename $SHELL`
-    echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
-    case $USHELL in
-        *csh)
-	    # we backup the original
-            /bin/cp -fp $HOME/.cshrc $HOME/.cshrc.mpsaved
-            echo "#" >> $HOME/.cshrc
-            echo "# Your previous .cshrc (if any) is saved as .cshrc.mpsaved" >> $HOME/.cshrc
-            echo "# Setting the path for MacPorts." >> $HOME/.cshrc
-            echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.cshrc
-            chown $USER $HOME/.cshrc
-            echo "Finished modifying $HOME/.cshrc"
+MANPAGES=$PREFIX/share/man
+USHELL=$(basename $SHELL)
+if [ $? != 0 ]; then
+    echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
+    exit 1
+fi
+case $USHELL in
+    *csh)
+        CONF_FILE=.cshrc
         ;;
-	*sh)
-	    # we backup the original
-            /bin/cp -fp $HOME/.profile $HOME/.profile.mpsaved
-            echo "#" >> $HOME/.profile
-            echo "# Your previous .profile  (if any) is saved as .profile.mpsaved" >> $HOME/.profile
-            echo "# Setting the path for MacPorts." >> $HOME/.profile
-            echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.profile
-            chown $USER $HOME/.profile
-            echo "Finished modifying $HOME/.profile"
+    *sh)
+        CONF_FILE=.profile
         ;;
-	*)
-            echo "Unknown shell! Please set your own PATH manually."
+    *)
+        echo "Unknown shell! Please set your MacPorts compatible environment manually."
+        ;;
+esac
+BACKUP_SUFFIX=mpsaved_$(date +"%Y-%m-%d_at_%H:%M:%S")
+OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
+
+
+# Through this command we write an environment variable to an appropriate shell configuration file,
+# backing up the original only if it exists and if it doesn't contain the $OUR_STRING identification string,
+# which hints that we've already tweaked it and therefore already baked it up.
+function write_setting () {
+    if [ -f $HOME/$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/$CONF_FILE; then
+        /bin/cp -fp $HOME/$CONF_FILE $HOME/$CONF_FILE.$BACKUP_SUFFIX
+        if [ $? != 0 ]; then
+            echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
+            exit 1
+        fi
+        echo -e "\n#\n# Your previous $HOME/$CONF_FILE file was backed up as $HOME/$CONF_FILE.$BACKUP_SUFFIX\n#" >> $HOME/$CONF_FILE
+    fi
+    echo -e "\n# $OUR_STRING adding an appropriate $1 variable for use with MacPorts." >> $HOME/$CONF_FILE
+    case $1 in
+        PATH)
+            if [ "$CONF_FILE" == ".profile" ]; then
+                echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/$CONF_FILE
+            elif [ "$CONF_FILE" == ".cshrc" ]; then
+                echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/$CONF_FILE
+            fi
+            ;;
+        MANPATH)
+            if [ "$CONF_FILE" == ".profile" ]; then
+                echo "export MANPATH=$MANPAGES:\$MANPATH" >> $HOME/$CONF_FILE
+            elif [ "$CONF_FILE" == ".cshrc" ]; then
+                echo "set manpath=($MANPAGES" '$manpath'")" >> $HOME/$CONF_FILE
+            fi
         ;;
     esac
+    chown $USER $HOME/$CONF_FILE
+    echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/$CONF_FILE
+}
+
+
+echo -e "\nChecking the shell environment for user \"$USER\"...\n"
+
+# Adding our setting to the PATH variable if not already there:
+if $SHELL -lc "/usr/bin/printenv PATH" | grep $PREFIX > /dev/null 2>&1; then
+    echo "Your shell already has the right PATH environment variable for use with MacPorts!"
+else
+    write_setting PATH
+fi
+
+# Adding out setting to the MANPATH variable only if it exists and, following that, if it doesn't already contain our path:
+if ! $SHELL -lc "/usr/bin/env | grep MANPATH >/dev/null 2>&1" || $SHELL -lc "/usr/bin/printenv MANPATH" | grep $MANPAGES > /dev/null 2>&1; then
+    echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
+else
+    write_setting MANPATH
 fi
 
 
-# Run selfupdate:
+# Update the MacPorts installation through "selfupdate":
+echo -e "\nSynchronizing the MacPorts installation with the project's rsync server...\n"
 export PATH=$BINPATH:$PATH
-echo -e "\nSelfupdating The MacPorts system...\n"
 port -d selfupdate
 if [ $? != 0 ]; then
-    echo "An attempt to synchronize your recent MacPorts installation with the rsync server failed, please run 'port -d selfupdate' manually to find out the cause of the error."
+    echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
+    echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
     exit 1
 fi
 
@@ -84,4 +121,5 @@ fi
 # Postflight script is done with its job!
 echo -e "\nYou have succesfully installed the MacPorts system.\n"
 echo "Launch a terminal and try it out!"
-echo -e "Read the port manual page for help.\n"
+echo -e "Read the port(1) manual page for help.\n"
+exit 0
