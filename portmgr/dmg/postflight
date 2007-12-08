@@ -42,10 +42,10 @@ if [ $? != 0 ]; then
     exit 1
 fi
 case $USHELL in
-    *csh)
+    tcsh)
         CONF_FILE=.cshrc
         ;;
-    *sh)
+    bash)
         CONF_FILE=.profile
         ;;
     *)
