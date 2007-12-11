@@ -36,11 +36,11 @@ PREFIX=/opt/local
 BINPATH=$PREFIX/bin
 SBINPATH=$PREFIX/sbin
 MANPAGES=$PREFIX/share/man
-USHELL=$(basename $SHELL) || {
+USHELL="$(basename "$SHELL")" || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     exit 1
 }
-case $USHELL in
+case "$USHELL" in
     tcsh)
         CONF_FILE=.cshrc
         ;;
@@ -51,7 +51,7 @@ case $USHELL in
         echo "Unknown shell! Please set your MacPorts compatible environment manually."
         ;;
 esac
-BACKUP_SUFFIX=mpsaved_$(date +"%Y-%m-%d_at_%H:%M:%S")
+BACKUP_SUFFIX=mpsaved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
 OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 
 
@@ -60,7 +60,7 @@ OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 # which hints that we've already tweaked it and therefore already baked it up.
 function write_setting () {
     if [ -f $HOME/$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/$CONF_FILE; then
-        /bin/cp -fp $HOME/$CONF_FILE $HOME/$CONF_FILE.$BACKUP_SUFFIX || {
+        /bin/cp -fp $HOME/$CONF_FILE "$HOME/$CONF_FILE.$BACKUP_SUFFIX" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             exit 1
         }
@@ -98,17 +98,17 @@ else
 fi
 
 # We gather the path into a variable of our own for quicker operation:
-ORIGINAL_MANPATH=$($SHELL -lc "/usr/bin/printenv MANPATH")
+ORIGINAL_MANPATH="$($SHELL -lc "/usr/bin/printenv MANPATH")"
 # Adding out setting to the MANPATH variable only if it exists and, following that:
 if ! $SHELL -lc "/usr/bin/env | grep MANPATH > /dev/null 2>&1" || \
 # if it doesn't already contain our path:
-  echo $ORIGINAL_MANPATH | grep $MANPAGES > /dev/null 2>&1 || \
+  echo "$ORIGINAL_MANPATH" | grep $MANPAGES > /dev/null 2>&1 || \
 # if there's no empty component somewhere in the middle of it:
-  echo $ORIGINAL_MANPATH | grep :: || \
+  echo "$ORIGINAL_MANPATH" | grep :: || \
 # or at the start of it:
-  [ -z "$(echo $ORIGINAL_MANPATH | awk -F : '{print $1}')" ] || \
+  [ -z "$(echo "$ORIGINAL_MANPATH" | awk -F : '{print $1}')" ] || \
 # or at the end of it:
-  [ -z "$(echo $ORIGINAL_MANPATH | awk -F : '{print $NF}')" ]; then
+  [ -z "$(echo "$ORIGINAL_MANPATH" | awk -F : '{print $NF}')" ]; then
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
     write_setting MANPATH
