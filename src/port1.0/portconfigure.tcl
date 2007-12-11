@@ -184,6 +184,12 @@ proc configure_main {args} {
                 objc /usr/bin/gcc-4.0 \
                 cxx /usr/bin/g++-4.0 \
                 cpp /usr/bin/cpp-4.0 }
+        gcc-4.2 {
+            select_compiler "Mac OS X gcc 4.2" \
+                cc  /usr/bin/gcc-4.2 \
+                objc /usr/bin/gcc-4.2 \
+                cxx /usr/bin/g++-4.2 \
+                cpp /usr/bin/cpp-4.2 }
         apple-gcc-3.3 {
             select_compiler "MacPorts Apple gcc 3.3" \
                 cc  ${prefix}/bin/gcc-apple-3.3 \
