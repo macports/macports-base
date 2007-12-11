@@ -97,8 +97,18 @@ else
     write_setting PATH
 fi
 
-# Adding out setting to the MANPATH variable only if it exists and, following that, if it doesn't already contain our path:
-if ! $SHELL -lc "/usr/bin/env | grep MANPATH >/dev/null 2>&1" || $SHELL -lc "/usr/bin/printenv MANPATH" | grep $MANPAGES > /dev/null 2>&1; then
+# We gather the path into a variable of our own for quicker operation:
+ORIGINAL_MANPATH=$($SHELL -lc "/usr/bin/printenv MANPATH")
+# Adding out setting to the MANPATH variable only if it exists and, following that:
+if ! $SHELL -lc "/usr/bin/env | grep MANPATH > /dev/null 2>&1" || \
+# if it doesn't already contain our path:
+  echo $ORIGINAL_MANPATH | grep $MANPAGES > /dev/null 2>&1 || \
+# if there's no empty component somewhere in the middle of it:
+  echo $ORIGINAL_MANPATH | grep :: || \
+# or at the start of it:
+  [ -z "$(echo $ORIGINAL_MANPATH | awk -F : '{print $1}')" ] || \
+# or at the end of it:
+  [ -z "$(echo $ORIGINAL_MANPATH | awk -F : '{print $NF}')" ]; then
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
     write_setting MANPATH
