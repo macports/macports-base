@@ -42,10 +42,10 @@ USHELL="$(basename "$SHELL")" || {
 }
 case "$USHELL" in
     tcsh)
-        CONF_FILE=.cshrc
+        CONF_FILE=cshrc
         ;;
     bash)
-        CONF_FILE=.profile
+        CONF_FILE=profile
         ;;
     *)
         echo "Unknown shell! Please set your MacPorts compatible environment manually."
@@ -59,32 +59,32 @@ OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 # backing up the original only if it exists and if it doesn't contain the $OUR_STRING identification string,
 # which hints that we've already tweaked it and therefore already baked it up.
 function write_setting () {
-    if [ -f $HOME/$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/$CONF_FILE; then
-        /bin/cp -fp $HOME/$CONF_FILE "$HOME/$CONF_FILE.$BACKUP_SUFFIX" || {
+    if [ -f $HOME/.$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/.$CONF_FILE; then
+        /bin/cp -fp $HOME/.$CONF_FILE "$HOME/.$CONF_FILE.$BACKUP_SUFFIX" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             exit 1
         }
-        echo -e "\n#\n# Your previous $HOME/$CONF_FILE file was backed up as $HOME/$CONF_FILE.$BACKUP_SUFFIX\n#" >> $HOME/$CONF_FILE
+        echo -e "\n#\n# Your previous $HOME/.$CONF_FILE file was backed up as $HOME/.$CONF_FILE.$BACKUP_SUFFIX\n#" >> $HOME/.$CONF_FILE
     fi
-    echo -e "\n# $OUR_STRING adding an appropriate $1 variable for use with MacPorts." >> $HOME/$CONF_FILE
+    echo -e "\n# $OUR_STRING adding an appropriate $1 variable for use with MacPorts." >> $HOME/.$CONF_FILE
     case $1 in
         PATH)
-            if [ "$CONF_FILE" == ".profile" ]; then
-                echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/$CONF_FILE
-            elif [ "$CONF_FILE" == ".cshrc" ]; then
-                echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/$CONF_FILE
+            if [ "$CONF_FILE" == "profile" ]; then
+                echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.$CONF_FILE
+            elif [ "$CONF_FILE" == "cshrc" ]; then
+                echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.$CONF_FILE
             fi
             ;;
         MANPATH)
-            if [ "$CONF_FILE" == ".profile" ]; then
-                echo "export MANPATH=$MANPAGES:\$MANPATH" >> $HOME/$CONF_FILE
-            elif [ "$CONF_FILE" == ".cshrc" ]; then
-                echo "set manpath=($MANPAGES" '$manpath'")" >> $HOME/$CONF_FILE
+            if [ "$CONF_FILE" == "profile" ]; then
+                echo "export MANPATH=$MANPAGES:\$MANPATH" >> $HOME/.$CONF_FILE
+            elif [ "$CONF_FILE" == "cshrc" ]; then
+                echo "set manpath=($MANPAGES" '$manpath'")" >> $HOME/.$CONF_FILE
             fi
         ;;
     esac
-    chown $USER $HOME/$CONF_FILE
-    echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/$CONF_FILE
+    chown $USER $HOME/.$CONF_FILE
+    echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/.$CONF_FILE
 }
 
 
