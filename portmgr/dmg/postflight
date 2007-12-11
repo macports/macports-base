@@ -43,9 +43,11 @@ USHELL="$(basename "$SHELL")" || {
 case "$USHELL" in
     tcsh)
         CONF_FILE=tcshrc
+        LOGIN_FLAG=""
         ;;
     bash)
         CONF_FILE=profile
+        LOGIN_FLAG="-l"
         ;;
     *)
         echo "Unknown shell! Please set your MacPorts compatible environment manually."
@@ -91,16 +93,16 @@ function write_setting () {
 echo -e "\nChecking the shell environment for user \"$USER\"...\n"
 
 # Adding our setting to the PATH variable if not already there:
-if $SHELL -lc "/usr/bin/printenv PATH" | grep $PREFIX > /dev/null 2>&1; then
+if $SHELL $LOGIN_FLAG -c "/usr/bin/printenv PATH" | grep $PREFIX > /dev/null 2>&1; then
     echo "Your shell already has the right PATH environment variable for use with MacPorts!"
 else
     write_setting PATH
 fi
 
 # We gather the path into a variable of our own for quicker operation:
-ORIGINAL_MANPATH="$($SHELL -lc "/usr/bin/printenv MANPATH")"
+ORIGINAL_MANPATH="$($SHELL $LOGIN_FLAG -c "/usr/bin/printenv MANPATH")"
 # Adding out setting to the MANPATH variable only if it exists and, following that:
-if ! $SHELL -lc "/usr/bin/env | grep MANPATH > /dev/null 2>&1" || \
+if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH > /dev/null 2>&1" || \
 # if it doesn't already contain our path:
   echo "$ORIGINAL_MANPATH" | grep $MANPAGES > /dev/null 2>&1 || \
 # if there's no empty component somewhere in the middle of it:
