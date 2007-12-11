@@ -36,11 +36,10 @@ PREFIX=/opt/local
 BINPATH=$PREFIX/bin
 SBINPATH=$PREFIX/sbin
 MANPAGES=$PREFIX/share/man
-USHELL=$(basename $SHELL)
-if [ $? != 0 ]; then
+USHELL=$(basename $SHELL) || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     exit 1
-fi
+}
 case $USHELL in
     tcsh)
         CONF_FILE=.cshrc
@@ -61,11 +60,10 @@ OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 # which hints that we've already tweaked it and therefore already baked it up.
 function write_setting () {
     if [ -f $HOME/$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/$CONF_FILE; then
-        /bin/cp -fp $HOME/$CONF_FILE $HOME/$CONF_FILE.$BACKUP_SUFFIX
-        if [ $? != 0 ]; then
+        /bin/cp -fp $HOME/$CONF_FILE $HOME/$CONF_FILE.$BACKUP_SUFFIX || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             exit 1
-        fi
+        }
         echo -e "\n#\n# Your previous $HOME/$CONF_FILE file was backed up as $HOME/$CONF_FILE.$BACKUP_SUFFIX\n#" >> $HOME/$CONF_FILE
     fi
     echo -e "\n# $OUR_STRING adding an appropriate $1 variable for use with MacPorts." >> $HOME/$CONF_FILE
@@ -110,12 +108,11 @@ fi
 # Update the MacPorts installation through "selfupdate":
 echo -e "\nSynchronizing the MacPorts installation with the project's rsync server...\n"
 export PATH=$BINPATH:$PATH
-port -d selfupdate
-if [ $? != 0 ]; then
+port -d selfupdate || {
     echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
     echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
     exit 1
-fi
+}
 
 
 # Postflight script is done with its job!
