@@ -31,6 +31,7 @@
 # $Id$
 
 
+set -x
 # Abstraction variables:
 PREFIX=/opt/local
 BINPATH=$PREFIX/bin
@@ -99,13 +100,15 @@ else
     write_setting PATH
 fi
 
-# We gather the path into a variable of our own for quicker operation:
+# We gather the path into a variable of our own for faster operation:
 ORIGINAL_MANPATH="$($SHELL $LOGIN_FLAG -c "/usr/bin/printenv MANPATH")"
-# Adding out setting to the MANPATH variable only if it exists and, following that:
+# Adding out setting to the MANPATH variable only if it exists:
 if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH" > /dev/null 2>&1 || \
-# if it doesn't already contain our path:
+# and following that, if it's not empty:
+  [ -z "$ORIGINAL_MAPNATH" ] || \
+# or if it doesn't already contain our path:
   echo "$ORIGINAL_MANPATH" | grep $MANPAGES > /dev/null 2>&1 || \
-# if there's no empty component somewhere in the middle of it:
+# or if there's no empty component somewhere in the middle of it:
   echo "$ORIGINAL_MANPATH" | grep :: || \
 # or at the start of it:
   [ -z "$(echo "$ORIGINAL_MANPATH" | awk -F : '{print $1}')" ] || \
