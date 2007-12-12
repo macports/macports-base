@@ -62,7 +62,7 @@ OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 # backing up the original only if it exists and if it doesn't contain the $OUR_STRING identification string,
 # which hints that we've already tweaked it and therefore already baked it up.
 function write_setting () {
-    if [ -f $HOME/.$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/.$CONF_FILE; then
+    if [ -f $HOME/.$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/.$CONF_FILE > /dev/null 2>&1; then
         /bin/cp -fp $HOME/.$CONF_FILE "$HOME/.$CONF_FILE.$BACKUP_SUFFIX" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             exit 1
@@ -109,7 +109,7 @@ if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH" > /dev/null 2>&1 || \
 # or if it doesn't already contain our path:
   echo "$ORIGINAL_MANPATH" | grep $MANPAGES > /dev/null 2>&1 || \
 # or if there's no empty component somewhere in the middle of it:
-  echo "$ORIGINAL_MANPATH" | grep :: || \
+  echo "$ORIGINAL_MANPATH" | grep :: > /dev/null 2>&1 || \
 # or at the start of it:
   [ -z "$(echo "$ORIGINAL_MANPATH" | awk -F : '{print $1}')" ] || \
 # or at the end of it:
@@ -123,7 +123,7 @@ fi
 # Update the MacPorts installation through "selfupdate":
 echo -e "\nSynchronizing the MacPorts installation with the project's rsync server...\n"
 export PATH=$BINPATH:$PATH
-port -d selfupdate || {
+port -v selfupdate || {
     echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
     echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
     exit 1
