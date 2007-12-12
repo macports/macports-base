@@ -296,7 +296,7 @@ AC_ARG_WITH(
 	
 	
 # If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
-AC_MSG_CHECKING(whether to install macports paths into /etc/paths.d and /etc/manpaths.d)
+AC_MSG_CHECKING(whether to install MacPorts paths into /etc/paths.d and /etc/manpaths.d)
 mpprefix=$prefix
 test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
 if test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
