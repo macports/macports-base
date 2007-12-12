@@ -31,7 +31,6 @@
 # $Id$
 
 
-set -x
 # Abstraction variables:
 PREFIX=/opt/local
 BINPATH=$PREFIX/bin
@@ -67,7 +66,7 @@ function write_setting () {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
             exit 1
         }
-        echo -e "\n#\n# Your previous $HOME/.$CONF_FILE file was backed up as $HOME/.$CONF_FILE.$BACKUP_SUFFIX\n#" >> $HOME/.$CONF_FILE
+        echo -e "\n##\n# Your previous $HOME/.$CONF_FILE file was backed up as $HOME/.$CONF_FILE.$BACKUP_SUFFIX\n##" >> $HOME/.$CONF_FILE
     fi
     echo -e "\n# $OUR_STRING adding an appropriate $1 variable for use with MacPorts." >> $HOME/.$CONF_FILE
     case $1 in
