@@ -21,7 +21,7 @@ case "$MACOSX_VERSION" in
     AC_WARN(This version of Mac OS X is not supported)
     AC_WARN(Please upgrade at http://store.apple.com/)
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-8]])
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-10]])
     AC_WARN(This version of Mac OS X is out of date)
     AC_WARN(Please run Software Update to update it)
     ;;
@@ -44,11 +44,11 @@ case "$XCODE_VERSION" in
     AC_WARN(This version of Xcode Tools is not supported)
     AC_WARN(Please upgrade at http://connect.apple.com/)
     ;;
-  1.[[2-4]]*|2.[[2-3]]*)
+  1.[[2-4]]*|2.[[2-4]]*)
     AC_WARN(This version of Xcode Tools is out of date)
-    AC_WARN(Please consider upgrading, some ports fail)
+    AC_WARN(Please consider upgrading as some ports fail compiling)
     ;;
-  1.5*|2.4*|3.*)
+  1.5*|2.5*|3.*)
     dnl Supported version
     ;;
   *)

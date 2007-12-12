@@ -1,4 +1,4 @@
-# eti:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portbuild.tcl
 # $Id$
 #
@@ -55,57 +55,57 @@ set_ui_prefix
 
 proc build_getmaketype {args} {
     if {![exists build.type]} {
-	return make
+        return make
     }
     switch -exact -- [option build.type] {
-	bsd {
-	    if {[option os.platform] == "darwin"} {
-		return bsdmake
-	    } elseif {[option os.platform] == "freebsd"} {
-		return make
-	    } else {
-		return pmake
-	    }
-	}
-	gnu {
-	    if {[option os.platform] == "darwin"} {
-		return gnumake
-	    } elseif {[option os.platform] == "linux"} {
-		return make
-	    } else {
-		return gmake
-	    }
-	}
-	pbx {
-	    set pbxbuild "pbxbuild"
-	    set xcodebuild "xcodebuild"
-	    
-	    if {[option os.platform] != "darwin"} {
-		return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
-	    }
-	    
-	    if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
-		return $xcodebuild
-	    } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
-		return $pbxbuild
-	    } else {
-  		return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
-  	    }
-	}
-	default {
-	    ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
-	    return gnumake
-	}
+        bsd {
+            if {[option os.platform] == "darwin"} {
+                return bsdmake
+            } elseif {[option os.platform] == "freebsd"} {
+                return make
+            } else {
+                return pmake
+            }
+        }
+        gnu {
+            if {[option os.platform] == "darwin"} {
+                return gnumake
+            } elseif {[option os.platform] == "linux"} {
+                return make
+            } else {
+                return gmake
+            }
+        }
+        pbx {
+            set pbxbuild "pbxbuild"
+            set xcodebuild "xcodebuild"
+        
+            if {[option os.platform] != "darwin"} {
+                return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
+            }
+        
+            if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
+                return $xcodebuild
+            } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
+                return $pbxbuild
+            } else {
+                return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
+            }
+        }
+        default {
+            ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
+            return gnumake
+        }
     }
 }
 
 proc build_getnicevalue {args} {
     if {![exists build.nice]} {
-	return ""
+        return ""
     }
     set nice [option build.nice]
     if {![string is integer -strict $nice] || $nice <= 0} {
-	return ""
+        return ""
     }
     return "nice -n $nice "
 }
@@ -114,12 +114,12 @@ proc build_getmakejobs {args} {
     # check if port allows a parallel build
     global use_parallel_build
     if {![tbool use_parallel_build]} {
-         return ""
+        return ""
     }
     ui_debug "port allows a parallel build"
 
     if {![exists build.jobs] || ![string match "*make*" [build_getmaketype]]} {
-	return ""
+        return ""
     }
     set jobs [option build.jobs]
     # if set to '0', use the number of cores for the number of jobs
@@ -127,7 +127,7 @@ proc build_getmakejobs {args} {
         set jobs [exec "/usr/sbin/sysctl" "-n" "hw.ncpu"]
     }
     if {![string is integer -strict $jobs] || $jobs <= 1} {
-	return ""
+        return ""
     }
     return " -j$jobs"
 }
@@ -136,9 +136,9 @@ proc build_start {args} {
     global UI_PREFIX
     
     if {[string length [option build.target]]} {
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
     } else {
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
     }
 }
 

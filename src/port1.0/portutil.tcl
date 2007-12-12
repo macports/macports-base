@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portutil.tcl
 # $Id$
 #
@@ -54,8 +54,8 @@ namespace eval options {
 # option
 # This is an accessor for Portfile options.  Targets may use
 # this in the same style as the standard Tcl "set" procedure.
-#	name  - the name of the option to read or write
-#	value - an optional value to assign to the option
+#   name  - the name of the option to read or write
+#   value - an optional value to assign to the option
 
 proc option {name args} {
     # XXX: right now we just transparently use globals
@@ -63,8 +63,8 @@ proc option {name args} {
     # the Portfile's interpreter and the target's interpreters.
     global $name
     if {[llength $args] > 0} {
-	ui_debug "setting option $name to $args"
-	set $name [lindex $args 0]
+        ui_debug "setting option $name to $args"
+        set $name [lindex $args 0]
     }
     return [set $name]
 }
@@ -72,7 +72,7 @@ proc option {name args} {
 # exists
 # This is an accessor for Portfile options.  Targets may use
 # this procedure to test for the existence of a Portfile option.
-#	name - the name of the option to test for existence
+#   name - the name of the option to test for existence
 
 proc exists {name} {
     # XXX: right now we just transparently use globals
@@ -208,7 +208,7 @@ proc option_proc_trace {optionName index op} {
 # and used to form a standard set of command options.
 proc commands {args} {
     foreach option $args {
-	options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.type ${option}.cmd
+        options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.type ${option}.cmd
     }
 }
 
@@ -218,23 +218,23 @@ proc command_string {command} {
     global ${command}.dir ${command}.pre_args ${command}.args ${command}.post_args ${command}.cmd
     
     if {[info exists ${command}.dir]} {
-	append cmdstring "cd \"[set ${command}.dir]\" &&"
+        append cmdstring "cd \"[set ${command}.dir]\" &&"
     }
     
     if {[info exists ${command}.cmd]} {
-	foreach string [set ${command}.cmd] {
-	    append cmdstring " $string"
-	}
+        foreach string [set ${command}.cmd] {
+            append cmdstring " $string"
+        }
     } else {
-	append cmdstring " ${command}"
+        append cmdstring " ${command}"
     }
 
     foreach var "${command}.pre_args ${command}.args ${command}.post_args" {
-	if {[info exists $var]} {
-	    foreach string [set ${var}] {
-		append cmdstring " ${string}"
-	    }
-	}
+        if {[info exists $var]} {
+            foreach string [set ${var}] {
+                append cmdstring " ${string}"
+            }
+        }
     }
 
     ui_debug "Assembled command: '$cmdstring'"
@@ -243,69 +243,69 @@ proc command_string {command} {
 
 # Given a command name, execute it with the options.
 # command_exec command [-notty] [command_prefix [command_suffix]]
-# command			name of the command
-# command_prefix	additional command prefix (typically pipe command)
-# command_suffix	additional command suffix (typically redirection)
+# command           name of the command
+# command_prefix    additional command prefix (typically pipe command)
+# command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-	global ${command}.env ${command}.env_array env
-	set notty 0
-	set command_prefix ""
-	set command_suffix ""
+    global ${command}.env ${command}.env_array env
+    set notty 0
+    set command_prefix ""
+    set command_suffix ""
 
-	if {[llength $args] > 0} {
-		if {[lindex $args 0] == "-notty"} {
-			set notty 1
-			set args [lrange $args 1 end]
-		}
+    if {[llength $args] > 0} {
+        if {[lindex $args 0] == "-notty"} {
+            set notty 1
+            set args [lrange $args 1 end]
+        }
 
-		if {[llength $args] > 0} {
-			set command_prefix [lindex $args 0]
-			if {[llength $args] > 1} {
-				set command_suffix [lindex $args 1]
-			}
-		}
-	}
-	
-	# Set the environment.
-	# If the array doesn't exist, we create it with the value
-	# coming from ${command}.env
-	# Otherwise, it means the caller actually played with the environment
-	# array already (e.g. configure flags).
-	if {![array exists ${command}.env_array]} {
-		parse_environment ${command}
-	}
-	if {[option macosx_deployment_target] ne ""} {
-    	append_list_to_environment_value ${command} "MACOSX_DEPLOYMENT_TARGET" [option macosx_deployment_target]
-	}
-	
-	# Debug that.
+        if {[llength $args] > 0} {
+            set command_prefix [lindex $args 0]
+            if {[llength $args] > 1} {
+                set command_suffix [lindex $args 1]
+            }
+        }
+    }
+    
+    # Set the environment.
+    # If the array doesn't exist, we create it with the value
+    # coming from ${command}.env
+    # Otherwise, it means the caller actually played with the environment
+    # array already (e.g. configure flags).
+    if {![array exists ${command}.env_array]} {
+        parse_environment ${command}
+    }
+    if {[option macosx_deployment_target] ne ""} {
+        append_list_to_environment_value ${command} "MACOSX_DEPLOYMENT_TARGET" [option macosx_deployment_target]
+    }
+    
+    # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
 
-	# Get the command string.
-	set cmdstring [command_string ${command}]
-	
-	# Call this command.
-	# TODO: move that to the system native call?
-	# Save the environment.
-	array set saved_env [array get env]
-	# Set the overriden variables from the portfile.
-	array set env [array get ${command}.env_array]
-	# Call the command.
-	set fullcmdstring "$command_prefix $cmdstring $command_suffix"
-	if {$notty} {
-		set code [catch {system -notty $fullcmdstring} result]
-	} else {
-		set code [catch {system $fullcmdstring} result]
-	}
-	# Unset the command array until next time.
-	array unset ${command}.env_array
-	
-	# Restore the environment.
-	array unset env *
-	array set env [array get saved_env]
+    # Get the command string.
+    set cmdstring [command_string ${command}]
+    
+    # Call this command.
+    # TODO: move that to the system native call?
+    # Save the environment.
+    array set saved_env [array get env]
+    # Set the overriden variables from the portfile.
+    array set env [array get ${command}.env_array]
+    # Call the command.
+    set fullcmdstring "$command_prefix $cmdstring $command_suffix"
+    if {$notty} {
+        set code [catch {system -notty $fullcmdstring} result]
+    } else {
+        set code [catch {system $fullcmdstring} result]
+    }
+    # Unset the command array until next time.
+    array unset ${command}.env_array
+    
+    # Restore the environment.
+    array unset env *
+    array set env [array get saved_env]
 
-	# Return as if system had been called directly.	
-	return -code $code $result
+    # Return as if system had been called directly. 
+    return -code $code $result
 }
 
 # default
@@ -315,15 +315,15 @@ proc command_exec {command args} {
 proc default {option val} {
     global $option option_defaults
     if {[info exists option_defaults($option)]} {
-	ui_debug "Re-registering default for $option"
-	# remove the old trace
-	trace vdelete $option rwu default_check
+        ui_debug "Re-registering default for $option"
+        # remove the old trace
+        trace vdelete $option rwu default_check
     } else {
-	# If option is already set and we did not set it
-	# do not reset the value
-	if {[info exists $option]} {
-	    return
-	}
+        # If option is already set and we did not set it
+        # do not reset the value
+        if {[info exists $option]} {
+            return
+        }
     }
     set option_defaults($option) $val
     set $option $val
@@ -336,21 +336,21 @@ proc default {option val} {
 proc default_check {optionName index op} {
     global option_defaults $optionName
     switch $op {
-	w {
-	    unset option_defaults($optionName)
-	    trace vdelete $optionName rwu default_check
-	    return
-	}
-	r {
-	    upvar $optionName option
-	    uplevel #0 set $optionName $option_defaults($optionName)
-	    return
-	}
-	u {
-	    unset option_defaults($optionName)
-	    trace vdelete $optionName rwu default_check
-	    return
-	}
+        w {
+            unset option_defaults($optionName)
+            trace vdelete $optionName rwu default_check
+            return
+        }
+        r {
+            upvar $optionName option
+            uplevel #0 set $optionName $option_defaults($optionName)
+            return
+        }
+        u {
+            unset option_defaults($optionName)
+            trace vdelete $optionName rwu default_check
+            return
+        }
     }
 }
 
@@ -371,16 +371,16 @@ proc variant {args} {
     # most recently specified mode (left to right).
     set mode "provides"
     foreach arg $args {
-	switch -exact $arg {
-	    description -
-	    provides -
-	    requires -
-	    conflicts { set mode $arg }
-	    default { ditem_append $ditem $mode $arg }		
+        switch -exact $arg {
+            description -
+            provides -
+            requires -
+            conflicts { set mode $arg }
+            default { ditem_append $ditem $mode $arg }      
         }
     }
     ditem_key $ditem name "[join [ditem_key $ditem provides] -]"
-    
+
     # make a user procedure named variant-blah-blah
     # we will call this procedure during variant-run
     makeuserproc "variant-[ditem_key $ditem name]" \{$code\}
@@ -390,17 +390,17 @@ proc variant {args} {
     # with universal or group code).
     set variant_provides [ditem_key $ditem provides]
     if {[variant_exists $variant_provides]} {
-		# This variant was already defined. Remove it from the dlist.
-		variant_remove_ditem $variant_provides
-	} else {
-	    lappend PortInfo(variants) $variant_provides
-	    set vdesc [join [ditem_key $ditem description]]
-	    if {$vdesc != ""} {
-		    lappend PortInfo(variant_desc) $variant_provides $vdesc
-		}
-	}
+        # This variant was already defined. Remove it from the dlist.
+        variant_remove_ditem $variant_provides
+    } else {
+        lappend PortInfo(variants) $variant_provides
+        set vdesc [join [ditem_key $ditem description]]
+        if {$vdesc != ""} {
+            lappend PortInfo(variant_desc) $variant_provides $vdesc
+        }
+    }
 
-	# Finally append the ditem to the dlist.
+    # Finally append the ditem to the dlist.
     lappend all_variants $ditem
 }
 
@@ -410,7 +410,7 @@ proc variant_isset {name} {
     global variations
     
     if {[info exists variations($name)] && $variations($name) == "+"} {
-	return 1
+        return 1
     }
     return 0
 }
@@ -419,7 +419,6 @@ proc variant_isset {name} {
 # Sets variant to run for current portfile
 proc variant_set {name} {
     global variations
-    
     set variations($name) +
 }
 
@@ -439,49 +438,49 @@ proc variant_undef {name} {
     # Remove it from the list of selected variations.
     array unset variations $name
 
-	# Remove the variant from the portinfo.
-	if {[info exists PortInfo(variants)]} {
-		set variant_index [lsearch -exact $PortInfo(variants) $name]
-		if {$variant_index >= 0} {
-			set new_list [lreplace $PortInfo(variants) $variant_index $variant_index]
-			if {"$new_list" == {}} {
-				unset PortInfo(variants) 
-			} else {
-				set PortInfo(variants) $new_list
-			}
-		}
-	}
-	
-	# And from the dlist.
-	variant_remove_ditem $name
+    # Remove the variant from the portinfo.
+    if {[info exists PortInfo(variants)]} {
+        set variant_index [lsearch -exact $PortInfo(variants) $name]
+        if {$variant_index >= 0} {
+            set new_list [lreplace $PortInfo(variants) $variant_index $variant_index]
+            if {"$new_list" == {}} {
+                unset PortInfo(variants) 
+            } else {
+                set PortInfo(variants) $new_list
+            }
+        }
+    }
+    
+    # And from the dlist.
+    variant_remove_ditem $name
 }
 
 # variant_remove_ditem name
 # Remove variant name's ditem from the all_variants dlist
 proc variant_remove_ditem {name} {
-	global all_variants
-	set item_index 0
-	foreach variant_item $all_variants {
-		set item_provides [ditem_key $variant_item provides]
-		if {$item_provides == $name} {
-			set all_variants [lreplace $all_variants $item_index $item_index]
-			break
-		}
-		
-		incr item_index
-	}
+    global all_variants
+    set item_index 0
+    foreach variant_item $all_variants {
+        set item_provides [ditem_key $variant_item provides]
+        if {$item_provides == $name} {
+            set all_variants [lreplace $all_variants $item_index $item_index]
+            break
+        }
+        
+        incr item_index
+    }
 }
 
 # variant_exists name
 # determine if a variant exists.
 proc variant_exists {name} {
-	global PortInfo
-	if {[info exists PortInfo(variants)] &&
-		[lsearch -exact $PortInfo(variants) $name] >= 0} {
-		return 1
-	}
-	
-	return 0
+    global PortInfo
+    if {[info exists PortInfo(variants)] &&
+      [lsearch -exact $PortInfo(variants) $name] >= 0} {
+        return 1
+    }
+
+    return 0
 }
 
 # platform <os> [<release>] [<arch>] 
@@ -499,11 +498,11 @@ proc platform {args} {
     set ditem [variant_new "temp-variant"]
     
     foreach arg $args {
-	if {[regexp {(^[0-9]$)} $arg match result]} {
-	    set release $result
-	} elseif {[regexp {([a-zA-Z0-9]*)} $arg match result]} {
-	    set arch $result
-	}
+        if {[regexp {(^[0-9]$)} $arg match result]} {
+            set release $result
+        } elseif {[regexp {([a-zA-Z0-9]*)} $arg match result]} {
+            set arch $result
+        }
     }
     
     # Add the variant for this platform
@@ -513,36 +512,36 @@ proc platform {args} {
     
     # Pick up a unique name.
     if {[variant_exists $platform]} {
-    	set suffix 1
-    	while {[variant_exists "$platform-$suffix"]} {
-    		incr suffix
-    	}
-    	
-    	set platform "$platform-$suffix"
+        set suffix 1
+        while {[variant_exists "$platform-$suffix"]} {
+            incr suffix
+        }
+        
+        set platform "$platform-$suffix"
     }
     variant $platform $code
     
     # Set the variant if this platform matches the platform we're on
     set matches 1
     if {[info exists os.platform] && ${os.platform} == $os} { 
-	set sel_platform $os
-	if {[info exists os.major] && [info exists release]} {
-	    if {${os.major} == $release } { 
-	    	set sel_platform ${sel_platform}_${release} 
-	    } else {
-		    set matches 0
-	    }
-	}
-	if {$matches == 1 && [info exists arch] && [info exists os.arch]} {
-		if {${os.arch} == $arch} {
-			set sel_platform ${sel_platform}_${arch}
-		} else {
-			set matches 0
-		}
-    }
-    if {$matches == 1} {
-    	variant_set $sel_platform
-    }
+    set sel_platform $os
+        if {[info exists os.major] && [info exists release]} {
+            if {${os.major} == $release } { 
+                set sel_platform ${sel_platform}_${release} 
+            } else {
+                set matches 0
+            }
+        }
+        if {$matches == 1 && [info exists arch] && [info exists os.arch]} {
+            if {${os.arch} == $arch} {
+                set sel_platform ${sel_platform}_${arch}
+            } else {
+                set matches 0
+            }
+        }
+        if {$matches == 1} {
+            variant_set $sel_platform
+        }
     }
 }
 
@@ -551,66 +550,66 @@ proc platform {args} {
 # Parse the environment string of a command, storing the values into the
 # associated environment array.
 proc parse_environment {command} {
-	global ${command}.env ${command}.env_array
+    global ${command}.env ${command}.env_array
 
-	if {[info exists ${command}.env]} {
-		# Flatten the environment string.
-		set the_environment [join [set ${command}.env]]
-	
-		while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\]*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
-			set the_environment ${remaining}
-			set ${command}.env_array(${key}) ${value}
-		}
-	} else {
-		array set ${command}.env_array {}
-	}
+    if {[info exists ${command}.env]} {
+        # Flatten the environment string.
+        set the_environment [join [set ${command}.env]]
+    
+        while {[regexp "^(?: *)(\[^= \]+)=(\"|'|)(\[^\"'\]*?)\\2(?: +|$)(.*)$" ${the_environment} matchVar key delimiter value remaining]} {
+            set the_environment ${remaining}
+            set ${command}.env_array(${key}) ${value}
+        }
+    } else {
+        array set ${command}.env_array {}
+    }
 }
 
 # Append to the value in the parsed environment.
 # Leave the environment untouched if the value is empty.
 proc append_to_environment_value {command key value} {
-	global ${command}.env_array
+    global ${command}.env_array
 
-	if {[string length $value] == 0} {
-		return
-	}
+    if {[string length $value] == 0} {
+        return
+    }
 
-	# Parse out any delimiter.
-	set append_value $value
-	if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
-		set append_value $matchedValue
-	}
+    # Parse out any delimiter.
+    set append_value $value
+    if {[regexp {^("|')(.*)\1$} $append_value matchVar append_delim matchedValue]} {
+        set append_value $matchedValue
+    }
 
-	if {[info exists ${command}.env_array($key)]} {
-		set original_value [set ${command}.env_array($key)]
-		set ${command}.env_array($key) "${original_value} ${append_value}"
-	} else {
-		set ${command}.env_array($key) $append_value
-	}
+    if {[info exists ${command}.env_array($key)]} {
+        set original_value [set ${command}.env_array($key)]
+        set ${command}.env_array($key) "${original_value} ${append_value}"
+    } else {
+        set ${command}.env_array($key) $append_value
+    }
 }
 
 # Append several items to a value in the parsed environment.
 proc append_list_to_environment_value {command key vallist} {
-	foreach {value} $vallist {
-		append_to_environment_value ${command} $key $value
-	}
+    foreach {value} $vallist {
+        append_to_environment_value ${command} $key $value
+    }
 }
 
 # Build the environment as a string.
 # Remark: this method is only used for debugging purposes.
 proc environment_array_to_string {environment_array} {
-	upvar 1 ${environment_array} env_array
-	
-	set theString ""
-	foreach {key value} [array get env_array] {
-		if {$theString == ""} {
-			set theString "$key='$value'"
-		} else {
-			set theString "${theString} $key='$value'"
-		}
-	}
-	
-	return $theString
+    upvar 1 ${environment_array} env_array
+    
+    set theString ""
+    foreach {key value} [array get env_array] {
+        if {$theString == ""} {
+            set theString "$key='$value'"
+        } else {
+            set theString "${theString} $key='$value'"
+        }
+    }
+    
+    return $theString
 }
 
 ########### Distname utility functions ###########
@@ -690,60 +689,60 @@ proc reinplace {args}  {
     set files [lrange $args 1 end]
     
     foreach file $files {
-	if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "reinplace: $error"
-	    return -code error "reinplace failed"
-	} else {
-	    # Extract the Tcl Channel number
-	    set tmpfd [lindex $tmpfile 0]
-	    # Set tmpfile to only the file name
-	    set tmpfile [lindex $tmpfile 1]
-	}
-	
-	set cmdline $portutil::autoconf::sed_command
-	if {$extended} {
-	    lappend cmdline $portutil::autoconf::sed_ext_flag
-	}
-	set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
-	if {[catch {eval exec $cmdline} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "reinplace: $error"
-	    file delete "$tmpfile"
-	    close $tmpfd
-	    return -code error "reinplace sed(1) failed"
-	}
-	
-	close $tmpfd
-	
-	set attributes [file attributes $file]
-	# We need to overwrite this file
-	if {[catch {file attributes $file -permissions u+w} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "reinplace: $error"
-	    file delete "$tmpfile"
-	    return -code error "reinplace permissions failed"
-	}
-	
-	if {[catch {exec cp $tmpfile $file} error]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-	    ui_error "reinplace: $error"
-	    file delete "$tmpfile"
-	    return -code error "reinplace copy failed"
-	}
-	
-	for {set i 0} {$i < [llength attributes]} {incr i} {
-	    set opt [lindex $attributes $i]
-	    incr i
-	    set arg [lindex $attributes $i]
-	    file attributes $file $opt $arg
-	}
-	
-	file delete "$tmpfile"
+        if {[catch {set tmpfile [mkstemp "/tmp/[file tail $file].sed.XXXXXXXX"]} error]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "reinplace: $error"
+            return -code error "reinplace failed"
+        } else {
+            # Extract the Tcl Channel number
+            set tmpfd [lindex $tmpfile 0]
+            # Set tmpfile to only the file name
+            set tmpfile [lindex $tmpfile 1]
+        }
+    
+        set cmdline $portutil::autoconf::sed_command
+        if {$extended} {
+            lappend cmdline $portutil::autoconf::sed_ext_flag
+        }
+        set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
+        if {[catch {eval exec $cmdline} error]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "reinplace: $error"
+            file delete "$tmpfile"
+            close $tmpfd
+            return -code error "reinplace sed(1) failed"
+        }
+    
+        close $tmpfd
+    
+        set attributes [file attributes $file]
+        # We need to overwrite this file
+        if {[catch {file attributes $file -permissions u+w} error]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "reinplace: $error"
+            file delete "$tmpfile"
+            return -code error "reinplace permissions failed"
+        }
+    
+        if {[catch {exec cp $tmpfile $file} error]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "reinplace: $error"
+            file delete "$tmpfile"
+            return -code error "reinplace copy failed"
+        }
+    
+        for {set i 0} {$i < [llength attributes]} {incr i} {
+            set opt [lindex $attributes $i]
+            incr i
+            set arg [lindex $attributes $i]
+            file attributes $file $opt $arg
+        }
+        
+        file delete "$tmpfile"
     }
     return
 }
@@ -945,11 +944,11 @@ proc filefindbypath {fname} {
     global distpath filesdir worksrcdir portpath
     
     if {[file readable $portpath/$fname]} {
-	return $portpath/$fname
+        return $portpath/$fname
     } elseif {[file readable $portpath/$filesdir/$fname]} {
-	return $portpath/$filesdir/$fname
+        return $portpath/$filesdir/$fname
     } elseif {[file readable $distpath/$fname]} {
-	return $distpath/$fname
+        return $distpath/$fname
     }
     return ""
 }
@@ -959,9 +958,9 @@ proc filefindbypath {fname} {
 proc include {fname} {
     set tgt [filefindbypath $fname]
     if {[string length $tgt]} {
-	uplevel "source $tgt"
+        uplevel "source $tgt"
     } else {
-	return -code error "Unable to find include file $fname"
+        return -code error "Unable to find include file $fname"
     }
 }
 
@@ -1009,24 +1008,24 @@ proc lipo {} {
 
 # unobscure maintainer addresses as used in Portfiles
 # We allow two obscured forms:
-#	(1) User name only with no domain:
-#			foo implies foo@macports.org
-#	(2) Mangled name:
-#			subdomain.tld:username implies username@subdomain.tld
+#   (1) User name only with no domain:
+#           foo implies foo@macports.org
+#   (2) Mangled name:
+#           subdomain.tld:username implies username@subdomain.tld
 #
 proc unobscure_maintainers { list } {
-	set result {}
-	foreach m $list {
-		if {[string first "@" $m] < 0} {
-			if {[string first ":" $m] >= 0} {
-				set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
-			} else {
-				set m "$m@macports.org"
-			}
-		}
-		lappend result $m
-	}
-	return $result
+    set result {}
+    foreach m $list {
+        if {[string first "@" $m] < 0} {
+            if {[string first ":" $m] >= 0} {
+                set m [regsub -- "(.*):(.*)" $m "\\2@\\1"] 
+            } else {
+                set m "$m@macports.org"
+            }
+        }
+        lappend result $m
+    }
+    return $result
 }
 
 
@@ -1040,198 +1039,198 @@ proc target_run {ditem} {
     set skipped 0
     set procedure [ditem_key $ditem procedure]
     if {$procedure != ""} {
-	set name [ditem_key $ditem name]
-	
-	if {[ditem_contains $ditem init]} {
-	    set result [catch {[ditem_key $ditem init] $name} errstr]
-	}
-	
-	if {$result == 0} {
-		# Skip the step if required and explain why through ui_debug.
-		# 1st case: the step was already done (as mentioned in the state file)
-		if {[check_statefile target $name $target_state_fd]} {
-		    ui_debug "Skipping completed $name ($portname)"
-		    set skipped 1
-		# 2nd case: the step is not to always be performed
-		# and this exact port/version/revision/variants is already installed
-		# and user didn't mention -f
-		# and portfile didn't change since installation.
-		} elseif {[ditem_key $ditem runtype] != "always"
-			&& [registry_exists $portname $portversion $portrevision $portvariants]
-			&& !([info exists ports_force] && $ports_force == "yes")} {
-						
-			# Did the Portfile change since installation?
-			set regref [registry_open $portname $portversion $portrevision $portvariants]
-			
-			set installdate [registry_prop_retr $regref date]
-			if { $installdate != 0
-				&& $installdate < [file mtime ${portpath}/Portfile]} {
-				ui_debug "Portfile changed since installation"
-			} else {
-				# Say we're skipping.
-				set skipped 1
-				
-				ui_debug "Skipping $name ($portname) since this port is already installed"
-			}
-			
-			# Something to close the registry entry may be called here, if it existed.
-		# 3rd case: the same port/version/revision/Variants is already active
-		# and user didn't mention -f
-		} elseif {$name == "org.macports.activate"
-			&& [registry_exists $portname $portversion $portrevision $portvariants]
-			&& !([info exists ports_force] && $ports_force == "yes")} {
-			
-			# Is port active?
-			set regref [registry_open $portname $portversion $portrevision $portvariants]
-			
-			if { [registry_prop_retr $regref active] != 0 } {
-				# Say we're skipping.
-				set skipped 1
-				
-				ui_msg "Skipping $name ($portname $portvariants) since this port is already active"
-			}
-			
-		}
-			
-		# otherwise execute the task.
-		if {$skipped == 0} {
-			set target [ditem_key $ditem provides]
-			
-			# Execute pre-run procedure
-			if {[ditem_contains $ditem prerun]} {
-			set result [catch {[ditem_key $ditem prerun] $name} errstr]
-			}		
-			
-			#start tracelib
-			if {($result ==0 
-			    && [info exists ports_trace]
-				&& $ports_trace == "yes"
-				&& $target != "clean")} {
-				trace_start $workpath
+        set name [ditem_key $ditem name]
+    
+        if {[ditem_contains $ditem init]} {
+            set result [catch {[ditem_key $ditem init] $name} errstr]
+        }
+    
+        if {$result == 0} {
+            # Skip the step if required and explain why through ui_debug.
+            # 1st case: the step was already done (as mentioned in the state file)
+            if {[check_statefile target $name $target_state_fd]} {
+                ui_debug "Skipping completed $name ($portname)"
+                set skipped 1
+            # 2nd case: the step is not to always be performed
+            # and this exact port/version/revision/variants is already installed
+            # and user didn't mention -f
+            # and portfile didn't change since installation.
+            } elseif {[ditem_key $ditem runtype] != "always"
+              && [registry_exists $portname $portversion $portrevision $portvariants]
+              && !([info exists ports_force] && $ports_force == "yes")} {
+                        
+                # Did the Portfile change since installation?
+                set regref [registry_open $portname $portversion $portrevision $portvariants]
+            
+                set installdate [registry_prop_retr $regref date]
+                if { $installdate != 0
+                  && $installdate < [file mtime ${portpath}/Portfile]} {
+                    ui_debug "Portfile changed since installation"
+                } else {
+                    # Say we're skipping.
+                    set skipped 1
+                
+                    ui_debug "Skipping $name ($portname) since this port is already installed"
+                }
+            
+                # Something to close the registry entry may be called here, if it existed.
+                # 3rd case: the same port/version/revision/Variants is already active
+                # and user didn't mention -f
+            } elseif {$name == "org.macports.activate"
+              && [registry_exists $portname $portversion $portrevision $portvariants]
+              && !([info exists ports_force] && $ports_force == "yes")} {
+            
+                # Is port active?
+                set regref [registry_open $portname $portversion $portrevision $portvariants]
+            
+                if { [registry_prop_retr $regref active] != 0 } {
+                    # Say we're skipping.
+                    set skipped 1
+                
+                    ui_msg "Skipping $name ($portname $portvariants) since this port is already active"
+                }
+                
+            }
+            
+            # otherwise execute the task.
+            if {$skipped == 0} {
+                set target [ditem_key $ditem provides]
+            
+                # Execute pre-run procedure
+                if {[ditem_contains $ditem prerun]} {
+                    set result [catch {[ditem_key $ditem prerun] $name} errstr]
+                }
+            
+                #start tracelib
+                if {($result ==0 
+                  && [info exists ports_trace]
+                  && $ports_trace == "yes"
+                  && $target != "clean")} {
+                    trace_start $workpath
 
-				# Enable the fence to prevent any creation/modification
-				# outside the sandbox.
-				if {$target != "activate"
-					&& $target != "archive"
-					&& $target != "fetch"
-					&& $target != "install"} {
-					trace_enable_fence
-				}
-			
-				# collect deps
-				
-				# Don't check dependencies for extract (they're not honored
-				# anyway). This avoids warnings about bzip2.
-				if {$target != "extract"} {
-					set depends {}
-					set deptypes {}
-					
-					# Determine deptypes to look for based on target
-					switch $target {
-						configure	{ set deptypes "depends_lib depends_build" }
-						
-						build		{ set deptypes "depends_lib depends_build" }
-						
-						test		-
-						destroot	-
-						install		-
-						archive		-
-						pkg			-
-						mpkg		-
-						rpm			-
-						srpm		-
-						dpkg		-
-						activate    -
-						""			{ set deptypes "depends_lib depends_build depends_run" }
-					}
-					
-					# Gather the dependencies for deptypes
-					foreach deptype $deptypes {
-						# Add to the list of dependencies if the option exists and isn't empty.
-						if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
-							set depends [concat $depends $PortInfo($deptype)]
-						}
-					}
-	
-					# Dependencies are in the form verb:[param:]port
-					set depsPorts {}
-					foreach depspec $depends {
-						# grab the portname portion of the depspec
-						set dep_portname [lindex [split $depspec :] end]
-						lappend depsPorts $dep_portname
-					}
-					
-					set portlist $depsPorts
-					foreach depName $depsPorts {
-						set portlist [concat $portlist [recursive_collect_deps $depName $deptypes]]
-					}
-					#uniquer from http://aspn.activestate.com/ASPN/Cookbook/Tcl/Recipe/147663
-					array set a [split "[join $portlist {::}]:" {:}]
-					set depsPorts [array names a]
-					
-					if {[llength $deptypes] > 0} {tracelib setdeps $depsPorts}
-				}
-			}
-			
-			if {$result == 0} {
-			foreach pre [ditem_key $ditem pre] {
-				ui_debug "Executing $pre"
-				set result [catch {$pre $name} errstr]
-				if {$result != 0} { break }
-			}
-			}
-			
-			if {$result == 0} {
-			ui_debug "Executing $name ($portname)"
-			set result [catch {$procedure $name} errstr]
-			}
-			
-			if {$result == 0} {
-			foreach post [ditem_key $ditem post] {
-				ui_debug "Executing $post"
-				set result [catch {$post $name} errstr]
-				if {$result != 0} { break }
-			}
-			}
-			# Execute post-run procedure
-			if {[ditem_contains $ditem postrun] && $result == 0} {
-			set postrun [ditem_key $ditem postrun]
-			ui_debug "Executing $postrun"
-			set result [catch {$postrun $name} errstr]
-			}
+                    # Enable the fence to prevent any creation/modification
+                    # outside the sandbox.
+                    if {$target != "activate"
+                      && $target != "archive"
+                      && $target != "fetch"
+                      && $target != "install"} {
+                        trace_enable_fence
+                    }
+            
+                    # collect deps
+                    
+                    # Don't check dependencies for extract (they're not honored
+                    # anyway). This avoids warnings about bzip2.
+                    if {$target != "extract"} {
+                        set depends {}
+                        set deptypes {}
+                    
+                        # Determine deptypes to look for based on target
+                        switch $target {
+                            configure   { set deptypes "depends_lib depends_build" }
+                            
+                            build       { set deptypes "depends_lib depends_build" }
+                        
+                            test        -
+                            destroot    -
+                            install     -
+                            archive     -
+                            pkg         -
+                            mpkg        -
+                            rpm         -
+                            srpm        -
+                            dpkg        -
+                            activate    -
+                            ""          { set deptypes "depends_lib depends_build depends_run" }
+                        }
+                    
+                        # Gather the dependencies for deptypes
+                        foreach deptype $deptypes {
+                            # Add to the list of dependencies if the option exists and isn't empty.
+                            if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
+                                set depends [concat $depends $PortInfo($deptype)]
+                            }
+                        }
+    
+                        # Dependencies are in the form verb:[param:]port
+                        set depsPorts {}
+                        foreach depspec $depends {
+                            # grab the portname portion of the depspec
+                            set dep_portname [lindex [split $depspec :] end]
+                            lappend depsPorts $dep_portname
+                        }
+                    
+                        set portlist $depsPorts
+                        foreach depName $depsPorts {
+                            set portlist [concat $portlist [recursive_collect_deps $depName $deptypes]]
+                        }
+                        #uniquer from http://aspn.activestate.com/ASPN/Cookbook/Tcl/Recipe/147663
+                        array set a [split "[join $portlist {::}]:" {:}]
+                        set depsPorts [array names a]
+                    
+                        if {[llength $deptypes] > 0} {tracelib setdeps $depsPorts}
+                    }
+                }
+            
+                if {$result == 0} {
+                    foreach pre [ditem_key $ditem pre] {
+                        ui_debug "Executing $pre"
+                        set result [catch {$pre $name} errstr]
+                        if {$result != 0} { break }
+                    }
+                }
+            
+                if {$result == 0} {
+                ui_debug "Executing $name ($portname)"
+                set result [catch {$procedure $name} errstr]
+                }
+            
+                if {$result == 0} {
+                    foreach post [ditem_key $ditem post] {
+                        ui_debug "Executing $post"
+                        set result [catch {$post $name} errstr]
+                        if {$result != 0} { break }
+                    }
+                }
+                # Execute post-run procedure
+                if {[ditem_contains $ditem postrun] && $result == 0} {
+                    set postrun [ditem_key $ditem postrun]
+                    ui_debug "Executing $postrun"
+                    set result [catch {$postrun $name} errstr]
+                }
 
-			# Check dependencies & file creations outside workpath.
-			if {[info exists ports_trace]
-				&& $ports_trace == "yes"
-				&& $target!="clean"} {
-				
-				tracelib closesocket
-				
-				trace_check_violations
-				
-				# End of trace.
-				trace_stop
-			}
-		}
-	}
-	if {$result == 0} {
-		# Only write to state file if:
-		# - we indeed performed this step.
-		# - this step is not to always be performed
-		# - this step must be written to file
-		if {$skipped == 0
-	    && [ditem_key $ditem runtype] != "always"
-	    && [ditem_key $ditem state] != "no"} {
-		write_statefile target $name $target_state_fd
-	    }
-	} else {
-	    ui_error "Target $name returned: $errstr"
-	    set result 1
-	}
-	
+                # Check dependencies & file creations outside workpath.
+                if {[info exists ports_trace]
+                  && $ports_trace == "yes"
+                  && $target!="clean"} {
+                
+                    tracelib closesocket
+                
+                    trace_check_violations
+                
+                    # End of trace.
+                    trace_stop
+                }
+            }
+        }
+        if {$result == 0} {
+            # Only write to state file if:
+            # - we indeed performed this step.
+            # - this step is not to always be performed
+            # - this step must be written to file
+            if {$skipped == 0
+          && [ditem_key $ditem runtype] != "always"
+          && [ditem_key $ditem state] != "no"} {
+            write_statefile target $name $target_state_fd
+            }
+        } else {
+            ui_error "Target $name returned: $errstr"
+            set result 1
+        }
+    
     } else {
-	ui_info "Warning: $name does not have a registered procedure"
-	set result 1
+        ui_info "Warning: $name does not have a registered procedure"
+        set result 1
     }
     
     return $result
@@ -1241,31 +1240,31 @@ proc target_run {ditem} {
 # It isn't ideal, because it scan many ports multiple time
 proc recursive_collect_deps {portname deptypes} \
 {
-	set res [mport_search ^$portname\$]
+    set res [mport_search ^$portname\$]
     if {[llength $res] < 2} \
-	{
+    {
         return {}
     }
 
-	set depends {}
+    set depends {}
 
-	array set portinfo [lindex $res 1]
-	foreach deptype $deptypes \
-	{
-		if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} \
-		{
-			set depends [concat $depends $portinfo($deptype)]
-		}
-	}
-	
-	set portdeps {}
-	foreach depspec $depends \
-	{
-		set portname [lindex [split $depspec :] end]
-		lappend portdeps $portname
-		set portdeps [concat $portdeps [recursive_collect_deps $portname $deptypes]]
-	}
-	return $portdeps
+    array set portinfo [lindex $res 1]
+    foreach deptype $deptypes \
+    {
+        if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} \
+        {
+            set depends [concat $depends $portinfo($deptype)]
+        }
+    }
+    
+    set portdeps {}
+    foreach depspec $depends \
+    {
+        set portname [lindex [split $depspec :] end]
+        lappend portdeps $portname
+        set portdeps [concat $portdeps [recursive_collect_deps $portname $deptypes]]
+    }
+    return $portdeps
 }
 
 
@@ -1276,12 +1275,12 @@ proc eval_targets {target} {
     # Select the subset of targets under $target
     if {$target != ""} {
         set matches [dlist_search $dlist provides $target]
-	
+    
         if {[llength $matches] > 0} {
-	    set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
-	    # Special-case 'all'
-	} elseif {$target != "all"} {
-	    ui_error "unknown target: $target"
+            set dlist [dlist_append_dependents $dlist [lindex $matches 0] [list]]
+            # Special-case 'all'
+        } elseif {$target != "all"} {
+            ui_error "unknown target: $target"
             return 1
         }
     }
@@ -1292,15 +1291,15 @@ proc eval_targets {target} {
     set dlist [dlist_eval $dlist "" target_run]
     
     if {[llength $dlist] > 0} {
-	# somebody broke!
-	set errstring "Warning: the following items did not execute (for $portname):"
-	foreach ditem $dlist {
-	    append errstring " [ditem_key $ditem name]"
-	}
-	ui_info $errstring
-	set result 1
+        # somebody broke!
+        set errstring "Warning: the following items did not execute (for $portname):"
+        foreach ditem $dlist {
+            append errstring " [ditem_key $ditem name]"
+        }
+        ui_info $errstring
+        set result 1
     } else {
-	set result 0
+        set result 0
     }
     
     close $target_state_fd
@@ -1313,34 +1312,34 @@ proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     
     if {![file isdirectory $workpath]} {
-	file mkdir $workpath
+        file mkdir $workpath
     }
     # flock Portfile
     set statefile [file join $workpath .macports.${portname}.state]
     if {[file exists $statefile]} {
-	if {![file writable $statefile]} {
-	    return -code error "$statefile is not writable - check permission on port directory"
-	}
-	if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-	    ui_msg "Portfile changed since last build; discarding previous state."
-	    #file delete $statefile
-	    exec rm -rf [file join $workpath]
-	    exec mkdir [file join $workpath]
-	}
+        if {![file writable $statefile]} {
+            return -code error "$statefile is not writable - check permission on port directory"
+        }
+        if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
+            ui_msg "Portfile changed since last build; discarding previous state."
+            #file delete $statefile
+            exec rm -rf [file join $workpath]
+            exec mkdir [file join $workpath]
+        }
     }
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-	    exec ln -sf $workpath $worksymlink
+        exec ln -sf $workpath $worksymlink
     }
     
     set fd [open $statefile a+]
     if {[catch {flock $fd -exclusive -noblock} result]} {
         if {"$result" == "EAGAIN"} {
             ui_msg "Waiting for lock on $statefile"
-	} elseif {"$result" == "EOPNOTSUPP"} {
-	    # Locking not supported, just return
-	    return $fd
+    } elseif {"$result" == "EOPNOTSUPP"} {
+        # Locking not supported, just return
+        return $fd
         } else {
             return -code error "$result obtaining lock on $statefile"
         }
@@ -1354,9 +1353,9 @@ proc open_statefile {args} {
 proc check_statefile {class name fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
-	if {$line == "$class: $name"} {
-	    return 1
-	}
+        if {$line == "$class: $name"} {
+            return 1
+        }
     }
     return 0
 }
@@ -1365,7 +1364,7 @@ proc check_statefile {class name fd} {
 # Set target $name completed in the state file
 proc write_statefile {class name fd} {
     if {[check_statefile $class $name $fd]} {
-	return 0
+        return 0
     }
     seek $fd 0 end
     puts $fd "$class: $name"
@@ -1379,23 +1378,23 @@ proc check_statefile_variants {variations fd} {
     
     seek $fd 0
     while {[gets $fd line] >= 0} {
-	if {[regexp "variant: (.*)" $line match name]} {
-	    set oldvariations([string range $name 1 end]) [string range $name 0 0]
-	}
+        if {[regexp "variant: (.*)" $line match name]} {
+            set oldvariations([string range $name 1 end]) [string range $name 0 0]
+        }
     }
     
     set mismatch 0
     if {[array size oldvariations] > 0} {
-	if {[array size oldvariations] != [array size upvariations]} {
-	    set mismatch 1
-	} else {
-	    foreach key [array names upvariations *] {
-		if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
-		    set mismatch 1
-		    break
-		}
-	    }
-	}
+        if {[array size oldvariations] != [array size upvariations]} {
+            set mismatch 1
+        } else {
+            foreach key [array names upvariations *] {
+                if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
+                set mismatch 1
+                break
+                }
+            }
+        }
     }
     
     return $mismatch
@@ -1411,27 +1410,27 @@ proc choose_variants {dlist variations} {
     set selected [list]
     
     foreach ditem $dlist {
-	# Enumerate through the provides, tallying the pros and cons.
-	set pros 0
-	set cons 0
-	set ignored 0
-	foreach flavor [ditem_key $ditem provides] {
-	    if {[info exists upvariations($flavor)]} {
-		if {$upvariations($flavor) == "+"} {
-		    incr pros
-		} elseif {$upvariations($flavor) == "-"} {
-		    incr cons
-		}
-	    } else {
-		incr ignored
-	    }
-	}
-	
-	if {$cons > 0} { continue }
-	
-	if {$pros > 0 && $ignored == 0} {
-	    lappend selected $ditem
-	}
+        # Enumerate through the provides, tallying the pros and cons.
+        set pros 0
+        set cons 0
+        set ignored 0
+        foreach flavor [ditem_key $ditem provides] {
+            if {[info exists upvariations($flavor)]} {
+                if {$upvariations($flavor) == "+"} {
+                    incr pros
+                } elseif {$upvariations($flavor) == "-"} {
+                    incr cons
+                }
+            } else {
+                incr ignored
+            }
+        }
+    
+        if {$cons > 0} { continue }
+    
+        if {$pros > 0 && $ignored == 0} {
+            lappend selected $ditem
+        }
     }
     return $selected
 }
@@ -1442,18 +1441,18 @@ proc variant_run {ditem} {
     
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
-	if {[variant_isset $v]} {
-	    ui_error "Variant $name conflicts with $v"
-	    return 1
-	}
+        if {[variant_isset $v]} {
+            ui_error "Variant $name conflicts with $v"
+            return 1
+        }
     }
     
     # execute proc with same name as variant.
     if {[catch "variant-${name}" result]} {
-	global errorInfo
-	ui_debug "$errorInfo"
-	ui_error "Error executing $name: $result"
-	return 1
+        global errorInfo
+        ui_debug "$errorInfo"
+        ui_error "Error executing $name: $result"
+        return 1
     }
     return 0
 }
@@ -1487,18 +1486,18 @@ proc eval_variants {variations} {
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
-	set portname $PortInfo(name)
+    set portname $PortInfo(name)
 
-	# Check to make sure the requested variations are available with this 
-	# port, if one is not, warn the user and remove the variant from the 
-	# array.
-	foreach key [array names upvariations *] {
-		if {![info exists PortInfo(variants)] || 
-			[lsearch $PortInfo(variants) $key] == -1} {
-			ui_debug "Requested variant $key is not provided by port $portname."
-			array unset upvariations $key
-		}
-	}
+    # Check to make sure the requested variations are available with this 
+    # port, if one is not, warn the user and remove the variant from the 
+    # array.
+    foreach key [array names upvariations *] {
+        if {![info exists PortInfo(variants)] || 
+            [lsearch $PortInfo(variants) $key] == -1} {
+            ui_debug "Requested variant $key is not provided by port $portname."
+            array unset upvariations $key
+        }
+    }
 
     # now that we've selected variants, change all provides [a b c] to [a-b-c]
     # this will eliminate ambiguity between item a, b, and a-b while fulfilling requirments.
@@ -1508,12 +1507,12 @@ proc eval_variants {variations} {
     
     set newlist [list]
     foreach variant $chosen {
-		set newlist [dlist_append_dependents $dlist $variant $newlist]
+        set newlist [dlist_append_dependents $dlist $variant $newlist]
     }
     
     set dlist [dlist_eval $newlist "" variant_run]
     if {[llength $dlist] > 0} {
-		return 1
+        return 1
     }
 
     # Now compute the true active array of variants. Note we do not
@@ -1567,21 +1566,21 @@ proc check_variants {variations target} {
     # - Skip this test if ports_force was specified.
     
     if { [lsearch "clean submit" $target] < 0 && 
-		!([info exists ports_force] && $ports_force == "yes")} {
-		
-		set state_fd [open_statefile]
-	
-		if {[check_statefile_variants upvariations $state_fd]} {
-			ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
-			set result 1
-		} else {
-			# Write variations out to the statefile
-			foreach key [array names upvariations *] {
-			write_statefile variant $upvariations($key)$key $state_fd
-			}
-		}
-		
-		close $state_fd
+        !([info exists ports_force] && $ports_force == "yes")} {
+        
+        set state_fd [open_statefile]
+    
+        if {[check_statefile_variants upvariations $state_fd]} {
+            ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
+            set result 1
+        } else {
+            # Write variations out to the statefile
+            foreach key [array names upvariations *] {
+            write_statefile variant $upvariations($key)$key $state_fd
+            }
+        }
+        
+        close $state_fd
     }
     
     return $result
@@ -1703,18 +1702,18 @@ proc variant_new {name} {
 proc handle_default_variants {option action {value ""}} {
     global variations
     switch -regex $action {
-	set|append {
-	    foreach v $value {
-		if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
-		    if {![info exists variations($variant)]} {
-			set variations($variant) $val
-		    }
-		}
-	    }
-	}
-	delete {
-	    # xxx
-	}
+        set|append {
+            foreach v $value {
+                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                    if {![info exists variations($variant)]} {
+                    set variations($variant) $val
+                    }
+                }
+            }
+        }
+        delete {
+            # xxx
+        }
     }
 }
 
@@ -1743,14 +1742,14 @@ proc portexec_int {portname target {newworkpath ""}} {
     array set portinfo [lindex $res 1]
     set porturl $portinfo(porturl)
     if {[catch {set worker [mport_open $porturl [array get options] $variations]} result]} {
-		global errorInfo
-		ui_debug "$errorInfo"
+        global errorInfo
+        ui_debug "$errorInfo"
         ui_error "Opening $portname $target failed: $result"
         return -1
     }
     if {[catch {mport_exec $worker $target} result] || $result != 0} {
-		global errorInfo
-		ui_debug "$errorInfo"
+        global errorInfo
+        ui_debug "$errorInfo"
         ui_error "Execution $portname $target failed: $result"
         mport_close $worker
         return -1
@@ -1837,14 +1836,14 @@ proc addgroup {name args} {
 proc dirSize {dir} {
     set size    0;
     foreach file [readdir $dir] {
-	if {[file type [file join $dir $file]] == "link" } {
-	    continue
-	}
-	if {[file isdirectory [file join $dir $file]]} {
-	    incr size [dirSize [file join $dir $file]]
-	} else {
-	    incr size [file size [file join $dir $file]];
-	}
+        if {[file type [file join $dir $file]] == "link" } {
+            continue
+        }
+        if {[file isdirectory [file join $dir $file]]} {
+            incr size [dirSize [file join $dir $file]]
+        } else {
+            incr size [file size [file join $dir $file]];
+        }
     }
     return $size;
 }
@@ -1854,9 +1853,9 @@ proc dirSize {dir} {
 proc binaryInPath {binary} {
     global env
     foreach dir [split $env(PATH) :] { 
-	if {[file executable [file join $dir $binary]]} {
-	    return [file join $dir $binary]
-	}
+        if {[file executable [file join $dir $binary]]} {
+            return [file join $dir $binary]
+        }
     }
     
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
@@ -1864,85 +1863,85 @@ proc binaryInPath {binary} {
 
 # Set the UI prefix to something standard (so it can be grepped for in output)
 proc set_ui_prefix {} {
-	global UI_PREFIX env
-	if {[info exists env(UI_PREFIX)]} {
-		set UI_PREFIX $env(UI_PREFIX)
-	} else {
-		set UI_PREFIX "---> "
-	}
+    global UI_PREFIX env
+    if {[info exists env(UI_PREFIX)]} {
+        set UI_PREFIX $env(UI_PREFIX)
+    } else {
+        set UI_PREFIX "---> "
+    }
 }
 
 # Use a specified group/version.
 proc PortGroup {group version} {
-	global portresourcepath
+    global portresourcepath
 
-	set groupFile ${portresourcepath}/group/${group}-${version}.tcl
+    set groupFile ${portresourcepath}/group/${group}-${version}.tcl
 
-	if {[file exists $groupFile]} {
-		uplevel "source $groupFile"
-	} else {
-		ui_warn "Group file could not be located."
-	}
+    if {[file exists $groupFile]} {
+        uplevel "source $groupFile"
+    } else {
+        ui_warn "Group file could not be located."
+    }
 }
 
 # check if archive type is supported by current system
 # returns an error code if it is not
 proc archiveTypeIsSupported {type} {
     global os.platform os.version
-	set errmsg ""
-	switch -regex $type {
-		cp(io|gz) {
-			set pax "pax"
-			if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
-				if {[regexp {z$} $type]} {
-					set gzip "gzip"
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
-						return 0
-					}
-				} else {
-					return 0
-				}
-			}
-		}
-		t(ar|bz|lz|gz) {
-			set tar "tar"
-			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
-				if {[regexp {z2?$} $type]} {
-					if {[regexp {bz2?$} $type]} {
-						set gzip "bzip2"
-					} elseif {[regexp {lz$} $type]} {
-						set gzip "lzma"
-					} else {
-						set gzip "gzip"
-					}
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
-						return 0
-					}
-				} else {
-					return 0
-				}
-			}
-		}
-		xar {
-			set xar "xar"
-			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
-				return 0
-			}
-		}
-		zip {
-			set zip "zip"
-			if {[catch {set zip [binaryInPath $zip]} errmsg] == 0} {
-				set unzip "unzip"
-				if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
-					return 0
-				}
-			}
-		}
-		default {
-			return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
-		}
-	}
-	return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
+    set errmsg ""
+    switch -regex $type {
+        cp(io|gz) {
+            set pax "pax"
+            if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
+                if {[regexp {z$} $type]} {
+                    set gzip "gzip"
+                    if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+                        return 0
+                    }
+                } else {
+                    return 0
+                }
+            }
+        }
+        t(ar|bz|lz|gz) {
+            set tar "tar"
+            if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+                if {[regexp {z2?$} $type]} {
+                    if {[regexp {bz2?$} $type]} {
+                        set gzip "bzip2"
+                    } elseif {[regexp {lz$} $type]} {
+                        set gzip "lzma"
+                    } else {
+                        set gzip "gzip"
+                    }
+                    if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+                        return 0
+                    }
+                } else {
+                    return 0
+                }
+            }
+        }
+        xar {
+            set xar "xar"
+            if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+                return 0
+            }
+        }
+        zip {
+            set zip "zip"
+            if {[catch {set zip [binaryInPath $zip]} errmsg] == 0} {
+                set unzip "unzip"
+                if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
+                    return 0
+                }
+            }
+        }
+        default {
+            return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
+        }
+    }
+    return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
 
@@ -1950,32 +1949,32 @@ proc archiveTypeIsSupported {type} {
 # this is intended to be called during destroot, e.g. 'merge i386 ppc'
 # this will merge the directories $destroot/i386 & $destroot/ppc into $destroot
 proc merge args {
-	global workpath prefix destroot
-	set all_args "-i ${destroot} -o ${destroot} -v debug"
-	set architectures ""
+    global workpath prefix destroot
+    set all_args "-i ${destroot} -o ${destroot} -v debug"
+    set architectures ""
 
-	# check existance of given architectures in $destroot
-	foreach arg $args {
-		if [file exists ${destroot}/${arg}] {
-			ui_debug "found architecture '${arg}'"
-			set architectures "${architectures} $arg"
-		} else {
-			ui_error "could not find directory for architecture '${arg}'"
-		}
-	}
-	set all_args "${all_args} ${architectures}"
+    # check existance of given architectures in $destroot
+    foreach arg $args {
+        if [file exists ${destroot}/${arg}] {
+            ui_debug "found architecture '${arg}'"
+            set architectures "${architectures} $arg"
+        } else {
+            ui_error "could not find directory for architecture '${arg}'"
+        }
+    }
+    set all_args "${all_args} ${architectures}"
 
-	# call merge.rb
-	ui_debug "executing merge.rb with '${all_args}'"
-	set fullcmdstring "${prefix}/bin/merge.rb $all_args"
-	set code [catch {system $fullcmdstring} result]
-	ui_debug "merge returned: '${result}'"
+    # call merge.rb
+    ui_debug "executing merge.rb with '${all_args}'"
+    set fullcmdstring "${prefix}/bin/merge.rb $all_args"
+    set code [catch {system $fullcmdstring} result]
+    ui_debug "merge returned: '${result}'"
 
-	foreach arg ${architectures} {
-		ui_debug "removing arch directory \"$arg\""
-		file delete -force ${destroot}/${arg}
-	}
+    foreach arg ${architectures} {
+        ui_debug "removing arch directory \"$arg\""
+        file delete -force ${destroot}/${arg}
+    }
 
-	return -code $code $result
+    return -code $code $result
 }
 
