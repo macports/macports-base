@@ -2106,7 +2106,7 @@ echo "$as_me: WARNING: This version of Mac OS X is not supported" >&2;}
     { echo "$as_me:$LINENO: WARNING: Please upgrade at http://store.apple.com/" >&5
 echo "$as_me: WARNING: Please upgrade at http://store.apple.com/" >&2;}
     ;;
-  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-10])
+  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-8])
     { echo "$as_me:$LINENO: WARNING: This version of Mac OS X is out of date" >&5
 echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { echo "$as_me:$LINENO: WARNING: Please run Software Update to update it" >&5
@@ -2134,13 +2134,13 @@ echo "$as_me: WARNING: This version of Xcode Tools is not supported" >&2;}
     { echo "$as_me:$LINENO: WARNING: Please upgrade at http://connect.apple.com/" >&5
 echo "$as_me: WARNING: Please upgrade at http://connect.apple.com/" >&2;}
     ;;
-  1.[2-4]*|2.[2-4]*)
+  1.[2-4]*|2.[2-3]*)
     { echo "$as_me:$LINENO: WARNING: This version of Xcode Tools is out of date" >&5
 echo "$as_me: WARNING: This version of Xcode Tools is out of date" >&2;}
     { echo "$as_me:$LINENO: WARNING: Please consider upgrading as some ports fail compiling" >&5
 echo "$as_me: WARNING: Please consider upgrading as some ports fail compiling" >&2;}
     ;;
-  1.5*|2.5*|3.*)
+  1.5*|2.4*|3.*)
         ;;
   *)
     ;;
