@@ -3,7 +3,7 @@ INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/port1.0
 SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portfetch.tcl portmain.tcl portbuild.tcl portpatch.tcl portutil.tcl \
 	portinstall.tcl portdepends.tcl portdestroot.tcl portlint.tcl \
-  portclean.tcl porttest.tcl portactivate.tcl portsubmit.tcl \
+	portclean.tcl porttest.tcl portactivate.tcl portsubmit.tcl \
 	port_autoconf.tcl portstartupitem.tcl porttrace.tcl portlivecheck.tcl \
 	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl
 
