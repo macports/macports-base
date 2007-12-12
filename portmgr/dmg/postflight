@@ -37,7 +37,7 @@ PREFIX=/opt/local
 BINPATH=$PREFIX/bin
 SBINPATH=$PREFIX/sbin
 MANPAGES=$PREFIX/share/man
-USHELL="$(basename "$SHELL")" || {
+USHELL="$(basename "$SHELL" 2>/dev/null)" || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     exit 1
 }
@@ -93,7 +93,7 @@ function write_setting () {
             fi
             ;;
     esac
-    chown $USER $HOME/.$CONF_FILE
+    chown $USER $HOME/.$CONF_FILE || echo "Unable to switch your $HOME/.$CONF_FILE shell configuration file to your UID!"
     echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/.$CONF_FILE
 }
 
@@ -108,7 +108,7 @@ else
 fi
 
 # We gather the path into a variable of our own for faster operation:
-ORIGINAL_MANPATH="$($SHELL $LOGIN_FLAG -c "/usr/bin/printenv MANPATH")"
+ORIGINAL_MANPATH="$($SHELL $LOGIN_FLAG -c "/usr/bin/printenv MANPATH" 2>/dev/null)"
 # Adding out setting to the MANPATH variable only if it exists:
 if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH" > /dev/null 2>&1 || \
 # and following that, if it's not empty:
