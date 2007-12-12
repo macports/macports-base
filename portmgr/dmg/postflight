@@ -112,7 +112,7 @@ ORIGINAL_MANPATH="$($SHELL $LOGIN_FLAG -c "/usr/bin/printenv MANPATH" 2>/dev/nul
 # Adding out setting to the MANPATH variable only if it exists:
 if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH" > /dev/null 2>&1 || \
 # and following that, if it's not empty:
-  [ -z "$ORIGINAL_MAPNATH" ] || \
+  [ -z "$ORIGINAL_MANPATH" ] || \
 # or if it doesn't already contain our path:
   echo "$ORIGINAL_MANPATH" | grep $MANPAGES > /dev/null 2>&1 || \
 # or if there's no empty component somewhere in the middle of it:
