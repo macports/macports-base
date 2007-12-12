@@ -1309,7 +1309,7 @@ proc mportsync {} {
             ui_debug "Skipping $source"
             continue
         }
-        ui_info "Synchronizing from $source"
+        ui_info "Synchronizing local ports tree from $source"
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
                 set portdir [macports::getportdir $source]
@@ -1329,7 +1329,7 @@ proc mportsync {} {
                         }]
                     } {
                         ui_debug "$::errorInfo"
-                        return -code error "sync failed doing svn update"
+                        return -code error "Synchronization of the local ports tree failed doing an svn update"
                     }
                 }
             }
@@ -1348,7 +1348,7 @@ proc mportsync {} {
                 set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
                 ui_debug $rsync_commandline
                 if {[catch {system $rsync_commandline}]} {
-                    return -code error "sync failed doing rsync"
+                    return -code error "Synchronization the local ports tree failed doing rsync"
                 }
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
@@ -1360,7 +1360,7 @@ proc mportsync {} {
                 exec curl -L -s -S -o $indexfile $source/PortIndex
             }
             default {
-                ui_warn "Unknown protocol for $source"
+                ui_warn "Unknown synchronization protocol for $source"
             }
         }
     }
@@ -1657,7 +1657,7 @@ proc macports::selfupdate {{optionslist {}}} {
     } else {
         set mp_version_old 0
     }
-    ui_msg "MacPorts base version $mp_version_old installed"
+    ui_msg "\nMacPorts base version $mp_version_old installed"
 
     ui_debug "Updating using rsync"
     if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_base_path" } ] } {
@@ -1668,7 +1668,7 @@ proc macports::selfupdate {{optionslist {}}} {
     set fd [open [file join $mp_base_path config mp_version] r]
     gets $fd mp_version_new
     close $fd
-    ui_msg "Downloaded MacPorts base version $mp_version_new"
+    ui_msg "\nDownloaded MacPorts base version $mp_version_new"
 
     # check if we we need to rebuild base
     if {$mp_version_new > $mp_version_old || $use_the_force_luke == "yes"} {
@@ -1706,7 +1706,7 @@ proc macports::selfupdate {{optionslist {}}} {
             return -code error "Error installing new MacPorts base: $result"
         }
     } else {
-        ui_msg "The MacPorts installation is not outdated and so was not updated"
+        ui_msg "\nThe MacPorts installation is not outdated and so was not updated"
     }
 
     # set the macports system to the right owner 

@@ -1339,7 +1339,7 @@ proc action_selfupdate { action portlist opts } {
     if { [catch {macports::selfupdate [array get global_options]} result ] } {
         global errorInfo
         ui_debug "$errorInfo"
-        fatal "selfupdate failed: $result"
+        fatal "port selfupdate failed: $result"
     }
     
     return 0
