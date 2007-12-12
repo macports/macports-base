@@ -42,7 +42,7 @@ USHELL="$(basename "$SHELL")" || {
 }
 case "$USHELL" in
     tcsh)
-        CONF_FILE=login
+        CONF_FILE=tcshrc
         LOGIN_FLAG=""
         ;;
     bash)
@@ -74,7 +74,7 @@ function write_setting () {
             if [ "$CONF_FILE" == "profile" ]; then
                 echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.$CONF_FILE
             elif [ "$CONF_FILE" == "tcshrc" ]; then
-                echo "setenv PATH $BINPATH $SBINPATH:\$PATH" >> $HOME/.$CONF_FILE
+                echo "setenv PATH $BINPATH:$SBINPATH:\$PATH" >> $HOME/.$CONF_FILE
             fi
             ;;
         MANPATH)
