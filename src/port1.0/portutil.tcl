@@ -4,7 +4,7 @@
 #
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
 # Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2006 Markus W. Weissmann <mww@macports.org>
+# Copyright (c) 2006, 2007 Markus W. Weissmann <mww@macports.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1944,37 +1944,100 @@ proc archiveTypeIsSupported {type} {
     return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
+#
+# merge function for universal builds
+#
 
-# simple wrapper for calling merge.rb - for creating universal binaries (etc.)
-# this is intended to be called during destroot, e.g. 'merge i386 ppc'
-# this will merge the directories $destroot/i386 & $destroot/ppc into $destroot
-proc merge args {
-    global workpath prefix destroot
-    set all_args "-i ${destroot} -o ${destroot} -v debug"
-    set architectures ""
+# private function
+# merge_lipo base-path target-path relative-path architectures
+# e.g. 'merge_lipo ${workpath}/pre-dest ${destroot} ${prefix}/bin/pstree i386 ppc
+# will merge binary files with lipo which have to be in the same (relative) path
+proc merge_lipo {base target file archs} {
+    set exec-lipo ""
+    foreach arch ${archs} {
+        set exec-lipo [concat ${exec-lipo} [list "-arch" "${arch}" "${base}/${arch}${file}"]]
+    }
+    set exec-lipo [concat ${exec-lipo}]
+    system "/usr/bin/lipo ${exec-lipo} -create -output ${target}${file}"
+}
 
-    # check existance of given architectures in $destroot
-    foreach arg $args {
-        if [file exists ${destroot}/${arg}] {
-            ui_debug "found architecture '${arg}'"
-            set architectures "${architectures} $arg"
-        } else {
-            ui_error "could not find directory for architecture '${arg}'"
+# private function
+# merge C/C++/.. files
+# either just copy (if equivalent) or add CPP directive for differences
+# should work for C++, C, Obj-C, Obj-C++ files and headers
+proc merge_cpp {base target file archs} {
+    merge_file $base $target $file $archs
+    # TODO -- instead of just calling merge_file:
+    # check if different
+    #   no: copy
+    #   yes: merge with #elif defined(__i386__) (__x86_64__, __ppc__, __ppc64__)
+}
+
+# private function
+# merge_file base-path target-path relative-path architectures
+# e.g. 'merge_file ${workpath}/pre-dest ${destroot} ${prefix}/share/man/man1/port.1 i386 ppc
+# will test equivalence of files and copy them if they are the same (for the different architectures) 
+proc merge_file {base target file archs} {
+    set basearch [lindex ${archs} 0]
+    ui_debug "ba: '${basearch}' ('${archs}')"
+    foreach arch [lrange ${archs} 1 end] {
+        # checking for differences; TODO: error more gracefully on non-equal files
+        exec "/usr/bin/diff" "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
+    }
+    ui_debug "ba: '${basearch}'"
+    file copy "${base}/${basearch}${file}" "${target}${file}"
+}
+
+# merges multiple "single-arch" destroots into the final destroot
+# 'base' is the path where the different directories (one for each arch) are
+# e.g. call 'merge ${workpath}/pre-dest' with having a destroot in ${workpath}/pre-dest/i386 and ${workpath}/pre-dest/ppc64 -- single arch -- each
+proc merge {base} {
+    global destroot
+
+    # test which architectures are available, set one as base-architecture
+    set archs ""
+    set base_arch ""
+    foreach arch {"i386" "x86_64" "ppc" "pp64"} {
+        if [file exists "${base}/${arch}"] {
+            set archs [concat ${archs} ${arch}]
+            set base_arch ${arch}
         }
     }
-    set all_args "${all_args} ${architectures}"
+    ui_debug "mergin architectures ${archs}, base_arch is ${base_arch}"
 
-    # call merge.rb
-    ui_debug "executing merge.rb with '${all_args}'"
-    set fullcmdstring "${prefix}/bin/merge.rb $all_args"
-    set code [catch {system $fullcmdstring} result]
-    ui_debug "merge returned: '${result}'"
-
-    foreach arg ${architectures} {
-        ui_debug "removing arch directory \"$arg\""
-        file delete -force ${destroot}/${arg}
+    # traverse the base-architecure directory
+    set basepath "${base}/${base_arch}"
+    fs-traverse file "${basepath}" {
+        set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
+        if {${fpath} != ""} {
+            # determine the type (dir/file/link)
+            set filetype [exec "/usr/bin/file" "-b" "${basepath}${fpath}"]
+            switch -regexp ${filetype} {
+                directory {
+                    # just create directories
+                    ui_debug "mrg: directory ${fpath}"
+                    file mkdir "${destroot}${fpath}"
+                }
+                symbolic\ link.* {
+                    # copy symlinks, TODO: check if targets match!
+                    ui_debug "mrg: symlink ${fpath}"
+                    file copy "${basepath}${fpath}" "${destroot}${fpath}"
+                }
+                Mach-O.* {
+                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                }
+                current\ ar\ archive {
+                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                }
+                ASCII\ C\ program\ text {
+                    merge_cpp "${base}" "${destroot}" "${fpath}" "${archs}"
+                }
+                default {
+                    ui_debug "unknown file type: ${filetype}"
+                    merge_file "${base}" "${destroot}" "${fpath}" "${archs}"
+                }
+            }
+        }
     }
-
-    return -code $code $result
 }
 
