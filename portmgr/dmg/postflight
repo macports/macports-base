@@ -84,7 +84,14 @@ function write_setting () {
             elif [ "$CONF_FILE" == "tcshrc" ]; then
                 echo "setenv MANPATH $MANPAGES:\$MANPATH" >> $HOME/.$CONF_FILE
             fi
-        ;;
+            ;;
+        DISPLAY)
+            if [ "$CONF_FILE" == "profile" ]; then
+                echo "export DISPLAY=:0" >> $HOME/.$CONF_FILE
+            elif [ "$CONF_FILE" == "tcshrc" ]; then
+                echo "setenv DISPLAY :0" >> $HOME/.$CONF_FILE
+            fi
+            ;;
     esac
     chown $USER $HOME/.$CONF_FILE
     echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/.$CONF_FILE
@@ -117,6 +124,13 @@ if ! $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep MANPATH" > /dev/null 2>&1 || \
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
     write_setting MANPATH
+fi
+
+# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
+if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || $SHELL $LOGIN_FLAG -c "/usr/bin/env | grep DISPLAY" > /dev/null 2>&1; then
+    echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
+else
+    write_setting DISPLAY
 fi
 
 
