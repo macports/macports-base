@@ -12,6 +12,11 @@ Unreleased:
 
 Release 1.6.0 (pending):
 
+    - Revamped the postflight script that is run by Installer.app with our pkg installer to gracefully
+      handle the addition of PATH, MANPATH and DISPLAY environment variables separately, if needed.
+      Read http://guide.macports.org/#installing.binary.postflight.details for more information
+      (jmpp in many commits directly on the release_1_6 branch).
+
     - Remove LD_PREBIND & LD_PREBIND_ALLOW_OVERLAP variables from MacPorts' environment to prevent
       prebinding of binaries, which can be harmful on Tiger and above (#13436, mww in r31786).
 

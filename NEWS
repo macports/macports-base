@@ -18,6 +18,11 @@ Overview of Changes from MacPorts 1.5.2 to MacPorts 1.6.0:
 *) Disabled readline support in interactive mode of the port(1) command by deafult;
 *) Fixed a bug by which the "variants" target of the port(1) command would spit out an error backtrace to the terminal when no match
     was found for the requested port;
+*) Revamped the "postflight" script that takes care of setting a MacPorts-compatible shell environment after installation from our
+    "pkg" is complete; it now gracefully handles the addition of PATH, MANPATH and DISPLAY environment variables separately and only
+    if strictly needed, properly backing up appropriate shell configuration files before proceeding to modify them
+    (http://guide.macports.org/#installing.binary.postflight.details for more information);
+
 
 # Individual port-building related improvements:
 
