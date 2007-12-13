@@ -31,6 +31,8 @@ Overview of Changes from MacPorts 1.5.2 to MacPorts 1.6.0:
 *) Added a 'macosx_deployment_target' option to the main 'macports.conf' file for ports that benefit form this Mac OS X specific flag;
 *) Added a 'configurepipe' option to the main 'macports.conf' file for using pipes rather than intermediate files when compiling C/C++
     based ports;
+*) Removed LD_PREBIND & LD_PREBIND_ALLOW_OVERLAP variables from MacPorts' environment to prevent prebinding of binaries, which can be harmful
+    on Tiger and above;
 
 
 # Packaging related improvements:

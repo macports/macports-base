@@ -6,10 +6,16 @@
 
 Unreleased:
 
-    - 
+    - Add 'merge' function for merging multiple (single arch) destroots into one (universal)
+      destroot (mww in r31954).
 
 
 Release 1.6.0 (pending):
+
+    - Remove LD_PREBIND & LD_PREBIND_ALLOW_OVERLAP variables from MacPorts' environment to prevent
+      prebinding of binaries, which can be harmful on Tiger and above (#13436, mww in r31786).
+
+    - Add 'gcc-4.2' option to the configure.compiler Portfile command (mww in r31891). 
 
     - Flush port(1) output channel after issuing prompt, when readline is not
       available, to ensure prompt is displayed at proper time. (jberry r31338).
