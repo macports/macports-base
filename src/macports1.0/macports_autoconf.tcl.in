@@ -1,3 +1,4 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # macports-autoconf.tcl.in
 # $Id$
 #
@@ -31,9 +32,9 @@
 package provide macports 1.0
 
 namespace eval macports::autoconf {
-	variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
-        variable macports_user_dir "~/.macports"
-        variable svn_path "@SVN@"
-	variable rsync_path "@RSYNC@"
-        variable open_path "@OPEN@"
+    variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
+    variable macports_user_dir "~/.macports"
+    variable svn_path "@SVN@"
+    variable rsync_path "@RSYNC@"
+    variable open_path "@OPEN@"
 }
