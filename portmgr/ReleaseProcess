@@ -126,12 +126,11 @@ for a particular release. They are named with the following naming convention:
  MacPorts-1.6.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_6_0)
  MacPorts-1.6.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_6_0-archive)
 
-The following commands issued to the top level Makefile will generate the archives and checksums:
+The following commands issued to the top level Makefile will generate all the tarballs and checksums:
 
- make DISTVER=1.6.0 distfromsvn
+ make ARC=yes DISTVER=1.6.0 distfromsvn
 
-Note that you need to pass the "ARC=yes" flag on the command line to the "distfromsvn" top-level make target
-if you also wish to produce the full archive tarballs.
+Note that if you omit the "ARC=yes" flag at the start of the make call then the full archive tarballs will not be produced.
 
 All these tarballs are uploaded via svn to the http://svn.macports.org/repository/macports/downloads/MacPorts-1.6.0/
 directory.
