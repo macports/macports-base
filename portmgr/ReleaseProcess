@@ -115,7 +115,7 @@ tag URL. For instance:
 And finally we tag the entire directory as release_1_6_0-archive:
 
  cd ../../
- svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/tags/release_1_6_0-archive
+ svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/macports/tags/release_1_6_0-archive
 
 
 === Create & Post Release Tarballs ===
