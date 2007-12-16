@@ -8,7 +8,6 @@ DISTNAME	= MacPorts-${DISTVER}
 DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
 SVNURL		= http://svn.macports.org/repository/macports
-UPGRADECHECK	= ${localstatedir}/macports/.mprename
 
 
 include Mk/macports.autoconf.mk

@@ -1,5 +1,8 @@
 # $Id$
 
+UPGRADECHECK    = ${localstatedir}/macports/.mprename
+
+
 upgrade::
 	@echo ""; echo "Upgrading your existing MacPorts installation to the new namespace if necessary:"; echo ""
 
