@@ -10,7 +10,7 @@ Unreleased:
       destroot (mww in r31954).
 
 
-Release 1.6.0 (pending):
+Release 1.6.0 (16-December-2007 by jmpp):
 
     - Revamped the postflight script that is run by Installer.app with our pkg installer to gracefully
       handle the addition of PATH, MANPATH and DISPLAY environment variables separately, if needed.
