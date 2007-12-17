@@ -1,8 +1,11 @@
 # $Id$
-OBJS=       registry.o entry.o sql.o
-STLIB_NAME=	cregistry.a
+OBJS = registry.o entry.o sql.o
+STLIB_NAME = cregistry.a
+RANLIB = ranlib
+
 
 include ../../Mk/macports.autoconf.mk
+
 
 all:: ${STLIB_NAME}
 
@@ -11,6 +14,7 @@ all:: ${STLIB_NAME}
 
 ${STLIB_NAME}:: ${OBJS}
 	${STLIB_LD} ${STLIB_NAME} ${OBJS}
+	${RANLIB} ${STLIB_NAME}
 
 clean::
 	rm -f ${STLIB_NAME} ${OBJS}
