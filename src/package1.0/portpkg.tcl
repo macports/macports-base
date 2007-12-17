@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portpkg.tcl
 # $Id$
 #
@@ -37,9 +37,9 @@ set org.macports.pkg [target_new org.macports.pkg pkg_main]
 target_runtype ${org.macports.pkg} always
 target_provides ${org.macports.pkg} pkg
 if {[option portarchivemode] == "yes"} {
-	target_requires ${org.macports.pkg} unarchive destroot
+    target_requires ${org.macports.pkg} unarchive destroot
 } else {
-	target_requires ${org.macports.pkg} destroot
+    target_requires ${org.macports.pkg} destroot
 }
 
 # define options
@@ -66,13 +66,13 @@ proc package_pkg {portname portversion portrevision} {
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 
     if {[file readable $pkgpath] && ([file mtime ${pkgpath}] >= [file mtime ${portpath}/Portfile])} {
-       	ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Package for %s-%s is up-to-date"] ${portname} ${portversion}]"
         return 0
     }
 
     set packagemaker "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
     if ([file exists "$packagemaker"]) {
-         set resourcepath ${workpath}/pkg_resources
+        set resourcepath ${workpath}/pkg_resources
     } else {
         set resourcepath "${pkgpath}/Contents/Resources"
     }
@@ -82,20 +82,20 @@ proc package_pkg {portname portversion portrevision} {
 	
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
-	if {![info exists $variable]} {
-	    set pkg_$variable ""
-	} else {
-	    set pkg_$variable [set $variable]
-	}
+        if {![info exists $variable]} {
+            set pkg_$variable ""
+        } else {
+            set pkg_$variable [set $variable]
+        }
     }
     write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- ${portresourcepath}/package/background.tiff ${resourcepath}/${language}.lproj/background.tiff
 
     foreach dir {etc var tmp} {
-	if ([file exists "${destpath}/$dir"]) {
-	    # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
-	    system "mkdir -p ${destpath}/private/$dir; mv ${destpath}/$dir/* ${destpath}/private/$dir; rm -r \"${destpath}/$dir\""
-	}
+        if ([file exists "${destpath}/$dir"]) {
+            # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
+            system "mkdir -p ${destpath}/private/$dir; mv ${destpath}/$dir/* ${destpath}/private/$dir; rm -r \"${destpath}/$dir\""
+        }
     }
 
     if ([file exists "$packagemaker"]) {
@@ -139,25 +139,25 @@ proc package_pkg {portname portversion portrevision} {
     }
 
     foreach dir {etc var tmp} {
-	if ([file exists "${destpath}/private/$dir"]) {
-	    # restore any directories that were moved, to avoid confusing the rest of the ports system.
-	    system "mv ${destpath}/private/$dir ${destpath}/$dir; rmdir ${destpath}/private 2>/dev/null"
-	}
+        if ([file exists "${destpath}/private/$dir"]) {
+            # restore any directories that were moved, to avoid confusing the rest of the ports system.
+            system "mv ${destpath}/private/$dir ${destpath}/$dir; rmdir ${destpath}/private 2>/dev/null"
+        }
     }
 
     return 0
 }
 
 proc write_PkgInfo {infofile} {
-	set infofd [open ${infofile} w+]
-	puts $infofd "pmkrpkg1"
-	close $infofd
+    set infofd [open ${infofile} w+]
+    puts $infofd "pmkrpkg1"
+    close $infofd
 }
 
 # XXX: deprecated
 proc write_info_file {infofile portname portversion description} {
-	set infofd [open ${infofile} w+]
-	puts $infofd "Title ${portname}
+    set infofd [open ${infofile} w+]
+    puts $infofd "Title ${portname}
 Version ${portversion}
 Description ${description}
 DefaultLocation /
@@ -173,101 +173,101 @@ UseUserMask YES
 OverwritePermissions NO
 InstallFat NO
 RootVolumeOnly NO"
-	close $infofd
+    close $infofd
 }
 
 proc xml_escape {s} {
-	regsub -all {&} $s {\&amp;} s
-	regsub -all {<} $s {\&lt;} s
-	regsub -all {>} $s {\&gt;} s
-	return $s
+    regsub -all {&} $s {\&amp;} s
+    regsub -all {<} $s {\&lt;} s
+    regsub -all {>} $s {\&gt;} s
+    return $s
 }
 
 proc write_info_plist {infofile portname portversion portrevision} {
-	set portname [xml_escape $portname]
-	set portversion [xml_escape $portversion]
-	set portrevision [xml_escape $portrevision]
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set portrevision [xml_escape $portrevision]
 
-	set infofd [open ${infofile} w+]
-	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+    set infofd [open ${infofile} w+]
+    puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 }
-	puts $infofd "<dict>
-	<key>CFBundleGetInfoString</key>
-	<string>${portname} ${portversion}</string>
-	<key>CFBundleIdentifier</key>
-	<string>org.macports.${portname}</string>
-	<key>CFBundleName</key>
-	<string>${portname}</string>
-	<key>CFBundleShortVersionString</key>
-	<string>${portversion}</string>
-	<key>IFMajorVersion</key>
-	<integer>${portrevision}</integer>
-	<key>IFMinorVersion</key>
-	<integer>0</integer>
-	<key>IFPkgFlagAllowBackRev</key>
-	<true/>
-	<key>IFPkgFlagAuthorizationAction</key>
-	<string>RootAuthorization</string>
-	<key>IFPkgFlagDefaultLocation</key>
-	<string>/</string>
-	<key>IFPkgFlagInstallFat</key>
-	<false/>
-	<key>IFPkgFlagIsRequired</key>
-	<false/>
-	<key>IFPkgFlagRelocatable</key>
-	<false/>
-	<key>IFPkgFlagRestartAction</key>
-	<string>NoRestart</string>
-	<key>IFPkgFlagRootVolumeOnly</key>
-	<false/>
-	<key>IFPkgFlagUpdateInstalledLanguages</key>
-	<false/>
-	<key>IFPkgFormatVersion</key>
-	<real>0.10000000149011612</real>
+    puts $infofd "<dict>
+    <key>CFBundleGetInfoString</key>
+    <string>${portname} ${portversion}</string>
+    <key>CFBundleIdentifier</key>
+    <string>org.macports.${portname}</string>
+    <key>CFBundleName</key>
+    <string>${portname}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${portversion}</string>
+    <key>IFMajorVersion</key>
+    <integer>${portrevision}</integer>
+    <key>IFMinorVersion</key>
+    <integer>0</integer>
+    <key>IFPkgFlagAllowBackRev</key>
+    <true/>
+    <key>IFPkgFlagAuthorizationAction</key>
+    <string>RootAuthorization</string>
+    <key>IFPkgFlagDefaultLocation</key>
+    <string>/</string>
+    <key>IFPkgFlagInstallFat</key>
+    <false/>
+    <key>IFPkgFlagIsRequired</key>
+    <false/>
+    <key>IFPkgFlagRelocatable</key>
+    <false/>
+    <key>IFPkgFlagRestartAction</key>
+    <string>NoRestart</string>
+    <key>IFPkgFlagRootVolumeOnly</key>
+    <false/>
+    <key>IFPkgFlagUpdateInstalledLanguages</key>
+    <false/>
+    <key>IFPkgFormatVersion</key>
+    <real>0.10000000149011612</real>
 </dict>
 </plist>"
-	close $infofd
+    close $infofd
 }
 
 proc write_description_plist {infofile portname portversion description} {
-	set portname [xml_escape $portname]
-	set portversion [xml_escape $portversion]
-	set description [xml_escape $description]
-	
-	set infofd [open ${infofile} w+]
-	puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set description [xml_escape $description]
+
+    set infofd [open ${infofile} w+]
+    puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 }
-	puts $infofd "<dict>
-	<key>IFPkgDescriptionDeleteWarning</key>
-	<string></string>
-	<key>IFPkgDescriptionDescription</key>
-	<string>${description}</string>
-	<key>IFPkgDescriptionTitle</key>
-	<string>${portname}</string>
-	<key>IFPkgDescriptionVersion</key>
-	<string>${portversion}</string>
+    puts $infofd "<dict>
+    <key>IFPkgDescriptionDeleteWarning</key>
+    <string></string>
+    <key>IFPkgDescriptionDescription</key>
+    <string>${description}</string>
+    <key>IFPkgDescriptionTitle</key>
+    <string>${portname}</string>
+    <key>IFPkgDescriptionVersion</key>
+    <string>${portversion}</string>
 </dict>
 </plist>"
-	close $infofd
+    close $infofd
 }
 
 proc write_welcome_html {filename portname portversion long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description == ""} {
-	set long_description $description
+        set long_description $description
     }
 
-	set portname [xml_escape $portname]
-	set portversion [xml_escape $portversion]
-	set long_description [xml_escape $long_description]
-	set description [xml_escape $description]
-	set homepage [xml_escape $homepage]
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set long_description [xml_escape $long_description]
+    set description [xml_escape $description]
+    set homepage [xml_escape $homepage]
 	
-puts $fd "
+    puts $fd "
 <html lang=\"en\">
 <head>
 	<meta http-equiv=\"content-type\" content=\"text/html; charset=iso-8859-1\">
@@ -280,7 +280,7 @@ puts $fd "
 <p>"
 
     if {$homepage != ""} {
-	puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
+        puts $fd "<font face=\"Helvetica\"><a href=\"${homepage}\">${homepage}</a></font><p>"
     }
 
     puts $fd "<font face=\"Helvetica\">This installer guides you through the steps necessary to install ${portname} ${portversion} for Mac OS X. To get started, click Continue.</font>
@@ -293,19 +293,19 @@ puts $fd "
 proc write_sizes_file {sizesfile portname portversion pkgpath destpath} {
     
     if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
-	return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
+        return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
     if {[catch {set compressedSize [expr [dirSize ${pkgpath}] / 1024]} result]} {
-	return -code error [format [msgcat::mc "Error determining compressed size: %s"] $result]
+        return -code error [format [msgcat::mc "Error determining compressed size: %s"] $result]
     }
     if {[catch {set installedSize [expr [dirSize ${destpath}] / 1024]} result]} {
-	return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
+        return -code error [format [msgcat::mc "Error determining installed size: %s"] $result]
     }
     if {[catch {set infoSize [file size ${pkgpath}/Contents/Info.plist]} result]} {
        return -code error [format [msgcat::mc "Error determining plist file size: %s"] $result]
     }
     if {[catch {set bomSize [file size ${pkgpath}/Contents/Archive.bom]} result]} {
-	return -code error [format [msgcat::mc "Error determining bom file size: %s"] $result]
+        return -code error [format [msgcat::mc "Error determining bom file size: %s"] $result]
     }
     incr installedSize $infoSize
     incr installedSize $bomSize
@@ -318,13 +318,13 @@ CompressedSize $compressedSize"
 }
 
 proc write_package_info {infofile portname portversion portrevision} {
-	set portname [xml_escape $portname]
-	set portversion [xml_escape $portversion]
-	set portrevision [xml_escape $portrevision]
+    set portname [xml_escape $portname]
+    set portversion [xml_escape $portversion]
+    set portrevision [xml_escape $portrevision]
 
-	set infofd [open ${infofile} w+]
-	puts $infofd "
+    set infofd [open ${infofile} w+]
+    puts $infofd "
 <pkg-info install-location=\"/\" relocatable=\"false\" auth=\"root\">
 </pkg-info>"
-	close $infofd
+    close $infofd
 }
