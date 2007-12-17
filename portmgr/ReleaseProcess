@@ -155,8 +155,9 @@ was built.
 To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
 downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
-for the release). Resource files in the files/ directory of the MacPorts port will also have to be fully
-up to date, in sync with their copies in the base/portmgr/dmg svn directory.
+for the release). Make sure the ports tree you're using to build the dmg's is fully up to date, as to
+insure the resource files in the files/ directory of the port are current (fetched through svn:externals
+off the base/portmgr/dmg directory of the current final release tag).
 
  sudo port -d dmg MacPorts
 
