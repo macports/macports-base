@@ -100,41 +100,41 @@ proc package_pkg {portname portversion portrevision} {
 
     if ([file exists "$packagemaker"]) {
 
-    ui_debug "Calling $packagemaker for $portname pkg"
-    if {${os.major} >= 9} {
-        if {${package.flat}} {
-            set pkgtarget "10.5"
-            set pkgresources ""
-            set infofile "${workpath}/PackageInfo"
-            write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
+        ui_debug "Calling $packagemaker for $portname pkg"
+        if {${os.major} >= 9} {
+            if {${package.flat}} {
+                set pkgtarget "10.5"
+                set pkgresources ""
+                set infofile "${workpath}/PackageInfo"
+                write_package_info ${workpath}/PackageInfo $portname $portversion $portrevision
+            } else {
+                set pkgtarget "10.3"
+                set pkgresources " --resources ${resourcepath} --title \"$portname-$portversion\""
+                set infofile "${workpath}/Info.plist"
+                write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+            }
+            system "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
         } else {
-            set pkgtarget "10.3"
-            set pkgresources " --resources ${resourcepath} --title \"$portname-$portversion\""
-            set infofile "${workpath}/Info.plist"
             write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
+            write_description_plist ${workpath}/Description.plist $portname $portversion $description
+            system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
         }
-        system "PMResourceLocale=${language} $packagemaker -AppleLanguages \"(${language})\" --root ${destpath} --out ${pkgpath} ${pkgresources} --info $infofile --target $pkgtarget --domain system --id org.macports.$portname"
-    } else {
-        write_info_plist ${workpath}/Info.plist $portname $portversion $portrevision
-        write_description_plist ${workpath}/Description.plist $portname $portversion $description
-        system "$packagemaker -build -f ${destpath} -p ${pkgpath} -r ${resourcepath} -i ${workpath}/Info.plist -d ${workpath}/Description.plist"
-    }
 
-    file delete ${workpath}/Info.plist
-    file delete ${workpath}/PackageInfo
-    file delete ${workpath}/Description.plist
-    file delete -force ${workpath}/pkg_resources
+        file delete ${workpath}/Info.plist
+        file delete ${workpath}/PackageInfo
+        file delete ${workpath}/Description.plist
+        file delete -force ${workpath}/pkg_resources
 
     } else {
 
-    write_PkgInfo ${pkgpath}/Contents/PkgInfo
-    write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
+        write_PkgInfo ${pkgpath}/Contents/PkgInfo
+        write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
-    system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-    system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+        system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
+        system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
-    write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
-    write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
+        write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
+        write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
 
     }
 
@@ -192,7 +192,7 @@ proc write_info_plist {infofile portname portversion portrevision} {
     puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-}
+    }
     puts $infofd "<dict>
     <key>CFBundleGetInfoString</key>
     <string>${portname} ${portversion}</string>
@@ -240,7 +240,7 @@ proc write_description_plist {infofile portname portversion description} {
     puts $infofd {<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-}
+    }
     puts $infofd "<dict>
     <key>IFPkgDescriptionDeleteWarning</key>
     <string></string>
