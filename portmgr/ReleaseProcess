@@ -166,7 +166,7 @@ file in the downloads directory:
 
  cd work
  mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5-Leopard.dmg
- for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.6.0-10.5-Leopard.dmg; done
+ for dmg in MacPorts-1.6.0-*.dmg; do for type in -md5 -sha1 -ripemd160; do openssl dgst $type $dmg; done >> MacPorts-1.6.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate downloads
 directory of the MacPorts svn repository. Developers are required to validate the generated installer as
@@ -179,7 +179,14 @@ create the destroot of the port and examine it for:
    this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
    of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${destroot}/opt/local/bin/daemondo
    ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib, ${destroot}/opt/local/share/macports/\
-   Tcl/pextlib1.0/Pextlib.dylib and ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
+   Tcl/pextlib1.0/Pextlib.dylib, ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib and
+   ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
+ * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
+   step above also need to be confirmed of the universal type. A way to do this is through the file(1) command:
+             file ${destroot}/opt/local/bin/daemondo:
+                  ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
+                  ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
+                  ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
  * tclsh shell invoked by our scripts: all scripts installed in ${destroot}/opt/local/bin (that is port,
    portindex and portmirror) should invoke the tclsh shell through a call like:
              #!/bin/sh
