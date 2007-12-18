@@ -665,8 +665,9 @@ target
 target_cpu
 target_vendor
 target_os
-SW_VERS
 VER
+MP_VERSION
+SW_VERS
 CC
 CFLAGS
 LDFLAGS
@@ -2024,6 +2025,16 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
+# Read in the MacPorts version from the base/config/mp_vesion file and translate it (e.g. 1.600) to regular version (1.6.0)
+{ echo "$as_me:$LINENO: checking MacPorts version" >&5
+echo $ECHO_N "checking MacPorts version... $ECHO_C" >&6; }
+MP_VERSION=$(cat config/mp_version | tr -d '\n')
+VER=`echo $MP_VERSION | sed -e 's/\([0-9]\)\.\([0-9]\)0\{0,1\}\([0-9][1-9]\{0,1\}\)0\{0,1\}/\1.\2.\3/'`
+{ echo "$as_me:$LINENO: result: $VER" >&5
+echo "${ECHO_T}$VER" >&6; }
+
+
+
 # Check user PATH for MP paths, and remove as necessary.
 
 	oldprefix=$prefix
@@ -2145,15 +2156,6 @@ echo "$as_me: WARNING: Please consider upgrading as some ports fail compiling" >
   *)
     ;;
 esac
-
-# translate mp_version (1.600) to regular version (1.6.0)
-{ echo "$as_me:$LINENO: checking MacPorts version" >&5
-echo $ECHO_N "checking MacPorts version... $ECHO_C" >&6; }
-MP_VERSION=`cat config/mp_version | tr -d '\n'`
-VER=`echo $MP_VERSION | sed -e 's/\([0-9]\)\.\([0-9]\)0\{0,1\}\([0-9][1-9]\{0,1\}\)0\{0,1\}/\1.\2.\3/'`
-{ echo "$as_me:$LINENO: result: $VER" >&5
-echo "${ECHO_T}$VER" >&6; }
-
 
 # Checks for programs.
 ac_ext=c
@@ -12825,8 +12827,9 @@ target!$target$ac_delim
 target_cpu!$target_cpu$ac_delim
 target_vendor!$target_vendor$ac_delim
 target_os!$target_os$ac_delim
-SW_VERS!$SW_VERS$ac_delim
 VER!$VER$ac_delim
+MP_VERSION!$MP_VERSION$ac_delim
+SW_VERS!$SW_VERS$ac_delim
 CC!$CC$ac_delim
 CFLAGS!$CFLAGS$ac_delim
 LDFLAGS!$LDFLAGS$ac_delim
@@ -12872,7 +12875,6 @@ OBJC_RUNTIME_FLAGS!$OBJC_RUNTIME_FLAGS$ac_delim
 OBJC_LIBS!$OBJC_LIBS$ac_delim
 OBJC_PTHREAD_LIBS!$OBJC_PTHREAD_LIBS$ac_delim
 OBJC_PTHREAD_CFLAGS!$OBJC_PTHREAD_CFLAGS$ac_delim
-OBJC_FOUNDATION!$OBJC_FOUNDATION$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -12914,6 +12916,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+OBJC_FOUNDATION!$OBJC_FOUNDATION$ac_delim
 OBJC_FOUNDATION_LDFLAGS!$OBJC_FOUNDATION_LDFLAGS$ac_delim
 OBJC_FOUNDATION_CPPFLAGS!$OBJC_FOUNDATION_CPPFLAGS$ac_delim
 OBJC_FOUNDATION_LIBS!$OBJC_FOUNDATION_LIBS$ac_delim
@@ -12974,7 +12977,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 58; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 59; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
