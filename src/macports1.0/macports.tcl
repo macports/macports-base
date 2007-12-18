@@ -1623,7 +1623,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}}} {
     global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir macports::rsync_options
-    global macports::autoconf::macports_conf_path macports::autoconf::rsync_path
+    global macports::autoconf::macports_version macports::autoconf::rsync_path
     array set options $optionslist
     
     if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
@@ -1648,30 +1648,22 @@ proc macports::selfupdate {{optionslist {}}} {
     set user [file attributes [file join $portdbpath sources/] -owner]
     ui_debug "Setting user: $user"
 
-    # get MacPorts version 
-    set mp_version_path [file join ${macports_conf_path} mp_version]
-    if { [file exists $mp_version_path]} {
-        set fd [open $mp_version_path r]
-        gets $fd mp_version_old
-        close $fd
-    } else {
-        set mp_version_old 0
-    }
-    ui_msg "\nMacPorts base version $mp_version_old installed"
+    # echo MacPorts version
+    ui_msg "\nMacPorts base version $macports::autoconf::macports_version installed"
 
     ui_debug "Updating using rsync"
     if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_base_path" } ] } {
         return -code error "Error: rsync failed in selfupdate"
     }
 
-    # get downloaded macports version and write the old version back
+    # get downloaded MacPorts version and write the old version back
     set fd [open [file join $mp_base_path config mp_version] r]
     gets $fd mp_version_new
     close $fd
     ui_msg "\nDownloaded MacPorts base version $mp_version_new"
 
     # check if we we need to rebuild base
-    if {$mp_version_new > $mp_version_old || $use_the_force_luke == "yes"} {
+    if {$mp_version_new > $macports::autoconf::macports_version || $use_the_force_luke == "yes"} {
         ui_msg "Configuring, Building and Installing new MacPorts base"
         # check if $prefix/bin/port is writable, if so we go !
         # get installation user / group 
