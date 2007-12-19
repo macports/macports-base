@@ -85,12 +85,12 @@ if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
 } else {
     set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
 }
-options configure.universal_args        configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
+options configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
 default configure.universal_args        --disable-dependency-tracking
-default configure.universal_cflags      {"-isysroot $sysroot -arch i386 -arch ppc"}
+default configure.universal_cflags      {[configure_get_universal_cflags]}
 default configure.universal_cppflags    {}
-default configure.universal_cxxflags    {"-isysroot $sysroot -arch i386 -arch ppc"}
-default configure.universal_ldflags     {"-arch i386 -arch ppc"}
+default configure.universal_cxxflags    {[configure_get_universal_cflags]}
+default configure.universal_ldflags     {[configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
@@ -113,6 +113,35 @@ proc configure_start {args} {
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
+
+#
+# internal functions to determine the "-arch xy" flags for the compiler
+# -> these should preferably get a more global scope, perhaps be user-configurable?
+set universal_archs {ppc ppc64 i386 x86_64}
+
+proc configure_get_universal_archflags {args} {
+    global universal_archs
+    set flags ""
+    foreach arch $universal_archs {
+        set flags "$flags -arch $arch"
+    }
+    return $flags
+}
+
+proc configure_get_universal_cflags {args} {
+    global sysroot
+    set flags [configure_get_universal_archflags]
+    if {${sysroot} != ""} {
+        set flags "-isysroot ${sysroot} ${flags}"
+    }
+    return $flags
+}
+
+proc configure_get_universal_ldflags {args} {
+    return [configure_get_universal_archflags]
+}
+
+
 
 # internal function for setting compiler variables; use like "_set_compiler string var val var val .."
 # this function will NOT override explicitely set variables from the portfile
