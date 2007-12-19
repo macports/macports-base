@@ -1542,7 +1542,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         archive     -
         pkg         -
         mpkg        -
-                rpm         -
+        rpm         -
         dpkg        -
         ""          { set deptypes "depends_lib depends_build depends_run" }
     }
