@@ -1714,19 +1714,10 @@ proc macports::selfupdate {{optionslist {}}} {
 }
 
 proc macports::version {} {
-    global macports::rsync_server macports::rsync_dir
-    global macports::autoconf::macports_conf_path
+    global macports::autoconf::macports_version
     
-    set mp_version_path [file join ${macports_conf_path} mp_version]
+    return $macports::autoconf::macports_version
 
-    if [file exists $mp_version_path] {
-        set fd [open $mp_version_path r]
-        gets $fd retval
-        close $fd
-        return $retval
-    } else {
-        return -1
-    }
 }
 
 # upgrade procedure
