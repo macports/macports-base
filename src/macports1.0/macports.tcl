@@ -1638,11 +1638,11 @@ proc macports::selfupdate {{optionslist {}}} {
         return -code error "Couldn't sync the ports tree: $result"
     }
 
-    set mp_base_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
-    if {![file exists $mp_base_path]} {
-        file mkdir $mp_base_path
+    set mp_source_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
+    if {![file exists $mp_source_path]} {
+        file mkdir $mp_source_path
     }
-    ui_debug "MacPorts base dir: $mp_base_path"
+    ui_debug "MacPorts sources dir: $mp_source_path"
 
     # get user of the MacPorts system
     set user [file attributes [file join $portdbpath sources/] -owner]
@@ -1652,12 +1652,12 @@ proc macports::selfupdate {{optionslist {}}} {
     ui_msg "\nMacPorts base version $macports::autoconf::macports_version installed"
 
     ui_debug "Updating using rsync"
-    if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_base_path" } ] } {
+    if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } ] } {
         return -code error "Error: rsync failed in selfupdate"
     }
 
     # get downloaded MacPorts version and write the old version back
-    set fd [open [file join $mp_base_path config mp_version] r]
+    set fd [open [file join $mp_source_path config mp_version] r]
     gets $fd mp_version_new
     close $fd
     ui_msg "\nDownloaded MacPorts base version $mp_version_new"
@@ -1694,7 +1694,7 @@ proc macports::selfupdate {{optionslist {}}} {
         }
         # do the actual installation of new base
         ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
-        if { [catch { system "cd $mp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
+        if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
             return -code error "Error installing new MacPorts base: $result"
         }
     } else {
