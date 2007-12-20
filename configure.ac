@@ -261,6 +261,7 @@ AC_ARG_WITH(
 # If sqlite3 package isn't installed, configure and install sqlite3 package.
 if test "$with_included_sqlite3" = "yes"; then
 	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES sqlite-3.1.3"
+	INCLUDES="$INCLUDES -I../sqlite-3.1.3"
 	AC_CONFIG_SUBDIRS([src/sqlite-3.1.3])
 	# Extract sqlite3 package
 	(cd src/; gzip -d < sqlite-3.1.3.tar.gz | tar xf -)
