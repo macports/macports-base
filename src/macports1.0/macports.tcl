@@ -1658,12 +1658,12 @@ proc macports::selfupdate {{optionslist {}}} {
 
     # get downloaded MacPorts version and write the old version back
     set fd [open [file join $mp_source_path config mp_version] r]
-    gets $fd mp_version_new
+    gets $fd macports_version_new
     close $fd
-    ui_msg "\nDownloaded MacPorts base version $mp_version_new"
+    ui_msg "\nDownloaded MacPorts base version $macports_version_new"
 
     # check if we we need to rebuild base
-    if {$mp_version_new > $macports::autoconf::macports_version || $use_the_force_luke == "yes"} {
+    if {$macports_version_new > $macports::autoconf::macports_version || $use_the_force_luke == "yes"} {
         ui_msg "Configuring, Building and Installing new MacPorts base"
         # check if $prefix/bin/port is writable, if so we go !
         # get installation user / group 
