@@ -1,8 +1,10 @@
 # $Id$
-SRCS=		registry_util.tcl portimage.tcl portuninstall.tcl
-OBJS=       registry.o util.o \
-			entry.o entryobj.o
-			#graph.o graphobj.o
+
+SRCS = registry_util.tcl portimage.tcl portuninstall.tcl
+OBJS = registry.o util.o \
+	entry.o entryobj.o
+	#graph.o graphobj.o
+
 SHLIB_NAME= registry${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/registry2.0
 export MACOSX_DEPLOYMENT_TARGET=10.3
