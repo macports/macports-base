@@ -1400,13 +1400,21 @@ proc action_uncompact { action portlist opts } {
 }
 
 
-
 proc action_dependents { action portlist opts } {
     require_portlist portlist
+    set ilist {}
+
     foreachport $portlist {
         registry::open_dep_map
+        
+        set composite_version [composite_version $portversion [array get variations]]
+        if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
+            global errorInfo
+            ui_debug "$errorInfo"
+            break_softcontinue "$result" 1 status
+        }
+        
         set deplist [registry::list_dependents $portname]
- 
         if { [llength $deplist] > 0 } {
             set dl [list]
             # Check the deps first
