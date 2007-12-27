@@ -1,17 +1,18 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [esyscmd(cat config/mp_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts], [esyscmd(cat config/macports_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
-# Read in the MacPorts version from the base/config/mp_vesion file and translate it (e.g. 1.600) to regular version (1.6.0)
+# Read in the MacPorts version from the base/config/macports_vesion file
 AC_MSG_CHECKING(MacPorts version)
+MACPORTS_VERSION=$(cat config/macports_version | tr -d '\n')
+AC_MSG_RESULT([$MACPORTS_VERSION])
+AC_SUBST(MACPORTS_VERSION)
+# Read the old, floating point format version, which we still use internally, and export it for the $macports::autoconf::macports_version variable
 MP_VERSION=$(cat config/mp_version | tr -d '\n')
-VER=`echo $MP_VERSION | sed -e 's/\([[0-9]]\)\.\([[0-9]]\)0\{0,1\}\([[0-9]][[1-9]]\{0,1\}\)0\{0,1\}/\1.\2.\3/'`
-AC_MSG_RESULT([$VER])
-AC_SUBST(VER)
 AC_SUBST(MP_VERSION)
 
 # Check user PATH for MP paths, and remove as necessary.
