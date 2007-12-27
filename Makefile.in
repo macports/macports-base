@@ -1,6 +1,6 @@
 # $Id$
 
-SUBDIR		= config doc src
+SUBDIR		= doc src
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}

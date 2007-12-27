@@ -2,7 +2,6 @@ bin/port
 bin/portf
 bin/portindex
 bin/portmirror
-etc/macports/mp_version
 etc/macports/macports.conf
 etc/macports/sources.conf
 etc/macports/variants.conf
