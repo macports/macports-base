@@ -1656,14 +1656,14 @@ proc macports::selfupdate {{optionslist {}}} {
         return -code error "Error: rsync failed in selfupdate"
     }
 
-    # get downloaded MacPorts version and write the old version back
+    # get downloaded MacPorts version
     set fd [open [file join $mp_source_path config mp_version] r]
     gets $fd macports_version_new
     close $fd
     ui_msg "\nDownloaded MacPorts base version $macports_version_new"
 
     # check if we we need to rebuild base
-    if {$macports_version_new > $macports::autoconf::macports_version || $use_the_force_luke == "yes"} {
+    if {[rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0 || $use_the_force_luke == "yes"} {
         ui_msg "Configuring, Building and Installing new MacPorts base"
         # check if $prefix/bin/port is writable, if so we go !
         # get installation user / group 
