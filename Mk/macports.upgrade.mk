@@ -30,8 +30,9 @@ upgrade::
 
 # Move the default ports tree to the new layout:
 	[ ! -d ${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ] || { mkdir -vp \
-	${localstatedir}/macports/sources/rsync.macports.org/release && mv -v \
-	${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports ; }
+		${localstatedir}/macports/sources/rsync.macports.org/release && mv -v \
+		${localstatedir}/db/dports/sources/rsync.rsync.darwinports.org_dpupdate_dports ${localstatedir}/macports/sources/rsync.macports.org/release/ports ; \
+	}
 
 # Open up receipts and upgrade any paths in them containing old conventions to the new namespace:
 	for receipt in ${localstatedir}/macports/receipts/*/*/receipt.bz2 ; do [ ! \( -f $${receipt} -a ! -f $${receipt}.mpsaved \) ] || { \
@@ -111,4 +112,4 @@ upgrade::
 
 # Upgrade success announcement (meaning we're done ;):
 	@[ -f ${UPGRADECHECK} ] || { echo ""; echo "MacPorts installation successfully upgraded from the old DarwinPorts namespace!"; echo ""; \
-	echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
+		echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
