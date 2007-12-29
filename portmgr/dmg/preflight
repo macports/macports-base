@@ -116,6 +116,10 @@ for receipt in /opt/local/var/macports/receipts/*/*/receipt.bz2 ; do
     mv -v "${HOME}/.macports/macports.conf.tmp" "${HOME}/.macports/macports.conf"
 }
 
+
+[ ! -f /opt/local/etc/macports/mp_version ] || rm -vf /opt/local/etc/macports/mp_version
+
+
 [ -f ${UPGRADECHECK} ] || {
     echo ""; echo "MacPorts installation successfully upgraded from the old DarwinPorts namespace!"; echo ""
 	echo "MacPorts rename update done!" > ${UPGRADECHECK} ;
