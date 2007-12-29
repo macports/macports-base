@@ -32,6 +32,7 @@ config.status: configure
 include Mk/macports.upgrade.mk
 
 install:: upgrade
+	[ ! -f ${sysconfdir}/macports/mp_version ] || rm -vf ${sysconfdir}/macports/mp_version
 
 include Mk/macports.subdir.mk
 
