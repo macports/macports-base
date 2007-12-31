@@ -56,7 +56,6 @@ default use_configure       yes
 # We could have default debug/optimization flags at some point.
 # compiler flags section
 options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
-default configure.pipe      {${configurepipe}}
 default configure.cflags    {-O2}
 default configure.cppflags  {"-I${prefix}/include"}
 default configure.cxxflags  {-O2}
@@ -93,9 +92,10 @@ default configure.universal_cxxflags    {[configure_get_universal_cflags]}
 default configure.universal_ldflags     {[configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
-options configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
+options configure.ccache configure.distcc configure.pipe configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
+default configure.pipe          {${configurepipe}}
 default configure.cc            {}
 default configure.cxx           {}
 default configure.cpp           {}
