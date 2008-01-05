@@ -1997,7 +1997,7 @@ proc merge {base} {
     # test which architectures are available, set one as base-architecture
     set archs ""
     set base_arch ""
-    foreach arch {"i386" "x86_64" "ppc" "pp64"} {
+    foreach arch {"i386" "x86_64" "ppc" "ppc64"} {
         if [file exists "${base}/${arch}"] {
             set archs [concat ${archs} ${arch}]
             set base_arch ${arch}
