@@ -2003,9 +2003,9 @@ proc merge {base} {
             set base_arch ${arch}
         }
     }
-    ui_debug "mergin architectures ${archs}, base_arch is ${base_arch}"
+    ui_debug "merging architectures ${archs}, base_arch is ${base_arch}"
 
-    # traverse the base-architecure directory
+    # traverse the base-architecture directory
     set basepath "${base}/${base_arch}"
     fs-traverse file "${basepath}" {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
