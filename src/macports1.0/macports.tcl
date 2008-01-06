@@ -100,9 +100,9 @@ proc macports::global_option_isset {val} {
 
 proc macports::ui_init {priority message} {
     # Get the list of channels.
-    if {[llength [info commands ui_channels]] > 0} {
+    try {
         set channels [ui_channels $priority]
-    } else {
+    } catch * {
         set channels [ui_channels_default $priority]
     }
 
