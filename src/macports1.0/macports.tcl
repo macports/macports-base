@@ -133,7 +133,7 @@ proc macports::ui_init {priority message} {
     }
 }
 
-# Defult implementation of ui_prefix
+# Default implementation of ui_prefix
 proc macports::ui_prefix_default {priority} {
     switch $priority {
         debug {
