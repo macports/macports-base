@@ -111,9 +111,9 @@ proc macports::ui_init {priority message} {
     if {$nbchans == 0} {
         proc ::ui_$priority {str} {}
     } else {
-        if {[llength [info commands ui_prefix]] > 0} {
+        try {
             set prefix [ui_prefix $priority]
-        } else {
+        } catch * {
             set prefix [ui_prefix_default $priority]
         }
 
