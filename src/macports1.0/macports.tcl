@@ -1691,7 +1691,7 @@ proc macports::selfupdate {{optionslist {}}} {
         }
         
         # do the actual configure, build and installation of new base
-        ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms"
+        ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms\n"
         if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
             return -code error "Error installing new MacPorts base: $result"
         }

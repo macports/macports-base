@@ -38,8 +38,8 @@ include Mk/macports.subdir.mk
 
 install::
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"; echo ""
-	@echo "sudo port selfupdate"; echo ""
-	@echo "Please read port(1) and the MacPorts Wiki at http://trac.macports.org/ for full documentation."; echo ""
+	@echo "sudo port -v selfupdate"; echo ""
+	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
 	@echo "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually."; echo ""
 
 clean::
