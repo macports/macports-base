@@ -1669,7 +1669,7 @@ proc macports::selfupdate {{optionslist {}}} {
     }
 
     # check if we we need to rebuild base
-    if {[rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0 || $use_the_force_luke == "yes"} {
+    if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
         # get installation user/group and permissions
         set owner [file attributes ${prefix} -owner]
         set group [file attributes ${prefix} -group]
