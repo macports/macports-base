@@ -1673,8 +1673,8 @@ proc macports::selfupdate {{optionslist {}}} {
         # get installation user/group and permissions
         set owner [file attributes ${prefix} -owner]
         set group [file attributes ${prefix} -group]
-        set perms [file attributes ${prefix} -permissions]
-        set installing_user [exec /usr/bin/whoami]
+        set perms [string range [file attributes ${prefix} -permissions] end-3 end]
+        set installing_user [exec /usr/bin/id -un]
         if {![string equal $installing_user $owner]} {
             return -code error "User $installing_user does not own ${prefix} - try using sudo"
         }
