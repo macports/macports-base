@@ -1665,23 +1665,20 @@ proc macports::selfupdate {{optionslist {}}} {
         gets $fd macports_version_new
         close $fd
         # echo downloaded MacPorts version
-        ui_msg "\nDownloaded MacPorts base version $macports_version_new"
+        ui_msg "Downloaded MacPorts base version $macports_version_new"
     }
 
     # check if we we need to rebuild base
     if {[rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0 || $use_the_force_luke == "yes"} {
-        ui_msg "\nConfiguring, building and installing new MacPorts release"
         # get installation user/group and permissions
         set owner [file attributes ${prefix} -owner]
         set group [file attributes ${prefix} -group]
         set perms [file attributes ${prefix} -permissions]
         set installing_user [exec /usr/bin/whoami]
-        if {[string equal $installing_user $owner]} {
-            ui_debug "Permissions OK"
-        } else {
-            return -code error "Error: $installing_user cannot write to ${prefix} - try using sudo"
+        if {![string equal $installing_user $owner]} {
+            return -code error "User $installing_user does not own ${prefix} - try using sudo"
         }
-        ui_debug "Setting owner: $owner; group: $group"
+        ui_debug "Permissions OK"
 
         # where to install our macports1.0 tcl package
         set mp_tclpackage_path [file join $portdbpath .tclpackage]
@@ -1694,7 +1691,7 @@ proc macports::selfupdate {{optionslist {}}} {
         }
         
         # do the actual configure, build and installation of new base
-        ui_debug "Install new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; permissions: $perms"
+        ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms"
         if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
             return -code error "Error installing new MacPorts base: $result"
         }
