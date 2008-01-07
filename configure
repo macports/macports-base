@@ -2028,7 +2028,7 @@ test -n "$target_alias" &&
 # Read in the MacPorts version from the base/config/macports_vesion file
 { echo "$as_me:$LINENO: checking MacPorts version" >&5
 echo $ECHO_N "checking MacPorts version... $ECHO_C" >&6; }
-MACPORTS_VERSION=$(cat config/macports_version | tr -d '\n')
+MACPORTS_VERSION=1.7.0
 { echo "$as_me:$LINENO: result: $MACPORTS_VERSION" >&5
 echo "${ECHO_T}$MACPORTS_VERSION" >&6; }
 

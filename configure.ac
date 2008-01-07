@@ -1,14 +1,15 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [esyscmd(cat config/macports_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
+AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d '\n')])
+AC_INIT([MacPorts], [MACPORTS_VERSION_MACRO], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
 # Read in the MacPorts version from the base/config/macports_vesion file
 AC_MSG_CHECKING(MacPorts version)
-MACPORTS_VERSION=$(cat config/macports_version | tr -d '\n')
+MACPORTS_VERSION=MACPORTS_VERSION_MACRO
 AC_MSG_RESULT([$MACPORTS_VERSION])
 AC_SUBST(MACPORTS_VERSION)
 # Read the old, floating point format version, which we still use internally, and export it for the $macports::autoconf::macports_version variable
