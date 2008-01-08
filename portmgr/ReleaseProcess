@@ -177,10 +177,13 @@ create the destroot of the port and examine it for:
  * Linking: libraries and binaries should not be linked against anything that's not present by default
    on a vanilla Mac OS X installation + developer tools, excluding even the MacPorts installation prefix;
    this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
-   of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${destroot}/opt/local/bin/daemondo
-   ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib, ${destroot}/opt/local/share/macports/\
-   Tcl/pextlib1.0/Pextlib.dylib, ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib and
-   ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
+   of linking validation are:
+             ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib
+	     ${destroot}/opt/local/bin/daemondo
+	     ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib
  * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
    step above also need to be confirmed of the universal type. A way to do this is through the file(1) command:
              file ${destroot}/opt/local/bin/daemondo:
