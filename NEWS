@@ -1,9 +1,9 @@
 
-== Overwiew of changes from MacPorts 1.6.0 to 1.6.1 ==
+== Overview of changes from MacPorts 1.6.0 to 1.6.1 ==
 
 # For regular users:
 
-* A suitable message is output when a the requested port is not installed when polling its dependents;
+* A suitable message is output when the requested port is not installed when polling its dependents;
 * Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther;
 * Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther;
 * Fixed a MacPorts, Panther specific build failure due to missing sqlite headers on that platform;
@@ -23,11 +23,11 @@
 # For regular usage:
 
 *) Revived and thoroughly refreshed web presence at http://www.macports.org/ , with more improvements still on the way;
-*) New project guide at http://guide.macports.org
+*) New project guide at http://guide.macports.org/
 *) Fixed the "upgrade" target of the port(1) command to properly handle installed versions beginning with letters;
 *) Improved the "variants" target of the port(1) command to behave like the "info" target to poll the requested Portfile directly
     rather than the index for more up-to-date information, while also providing a --index flag for legacy behavior;
-*) Fixed a bug by which a user specific 'macports.conf' file would not be read;
+*) Fixed a bug by which a user-specific 'macports.conf' file would not be read;
 *) Tightened security by installing MacPorts in 0755 mode (no write permission for group and others) by default;
 *) Added 'none' as a possible option for supported types of startupitems scripts;
 *) Disabled readline support in interactive mode of the port(1) command by deafult;
@@ -39,7 +39,7 @@
     (http://guide.macports.org/#installing.binary.postflight.details for more information);
 
 
-# Individual port-building related improvements:
+# Individual port-building-related improvements:
 
 *) Eugene Pimenov's GSoC2007 work on improving "trace mode" for the building of ports in clean environments,
     http://trac.macports.org/projects/macports/wiki/soc2007/epimenov ;
@@ -55,13 +55,13 @@
     on Tiger and above;
 
 
-# Packaging related improvements:
+# Packaging-related improvements:
 
 *) Created pkg's no longer have /etc, /var/ or /tmp directories in them;
 *) Fixed a bug by which all .mpkg packages were missing their welcome page;
 *) Fixed a bug by which HTML contents were written as a pkg's Welcome.rtf file, causing it to not display at all;
 *) Made the homepage clickable in a pkg's welcoming screen;
-*) Added support lzma compression for archives;
+*) Added support for lzma compression for archives;
 *) Improved pkg & dmg creation on Leopard, for both Intel and PowerPC platforms;
 *) Added an 'mdmg' target, for the creation of a dmg for a port and its dependencies;
 *) Dramatically improved performace of the port(1) command's Portfile level actions like "file", "dir", "work" and "url"
@@ -79,7 +79,7 @@
 *) Added Portfile group code for Python 3.0 based ports and deprecated the plain 'python' group code;
 *) Added generic GNU livecheck rules;
 *) The "x86" platform has been normalized as "i386";
-*) Added a 'use_parallel_build' Portfile option for declaring if a particular port can be built in paralel through make's -j flag,
+*) Added a 'use_parallel_build' Portfile option for declaring if a particular port can be built in parallel through make's -j flag,
     defaulting to no;
 *) Added 'configure.awk', 'configure.bison', 'configure.pkg_config', 'configure.pkg_config_path' Portfile options to point to the
     relevant programs/paths to use;
@@ -93,10 +93,10 @@
 *) Improved defaults for implicit ui_prefix and ui_channels behaviour at the macports1.0 layer;
 
 
-# Miscellaenous:
+# Miscellaneous:
 
 *) Added MacPorts-configure time checks for Mac OS X and Xcode versions and warnings for old versions;
-*) Added a 'user-agent' parameters to our libcurl based fetching of sources for sites that require a user agent;
+*) Added a 'user-agent' parameters to our libcurl-based fetching of sources for sites that require a user agent;
 *) 'livecheck' regular expressions are now checked against each entry in the listed master_site in the Portfile;
 *) Fixed regexp in livecheck code to work when there is both a tag and a subdir in the mirror uri;
 *) Improved the integrated "daemondo" program to better handle the death of startupitem-based programs;
@@ -104,8 +104,8 @@
     the process it is monitoring, defaulting to 3;
 *) Enabled building of our objc bridge against GNUStep on platforms other than Mac OS X;
 *) Added support for packing of MacPorts itself on FreeBSD and Fedora platforms;
-*) Added SourceForge.jp to our list of SourceForge based mirrors for sources fetching;
+*) Added SourceForge.jp to our list of SourceForge-based mirrors for sources fetching;
 *) Added http mirror sites for the postgresql mirrors list;
 *) Added the ftp://ftp.gnu.org/old-gnu/ mirror to the GNU mirrors list;
-*) Fixed a bug by which paths with embedded spaces would cause the "dp2mp-move" upgrade code to fail when trying to find user specific
+*) Fixed a bug by which paths with embedded spaces would cause the "dp2mp-move" upgrade code to fail when trying to find user-specific
     'macports.conf' files;
