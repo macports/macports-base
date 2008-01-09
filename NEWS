@@ -1,14 +1,29 @@
 
-What's new:
+== Overwiew of changes from MacPorts 1.6.0 to 1.6.1 ==
 
-*) Revived and thoroughly refreshed web presence at http://www.macports.org/ , with more improvements still on the way;
-*) New project guide at http://guide.macports.org
+# For regular users:
+
+* A suitable message is output when a the requested port is not installed when polling its dependents;
+* Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther;
+* Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther;
+* Fixed a MacPorts, Panther specific build failure due to missing sqlite headers on that platform;
+* Fixed a MacPorts build failure when building itself in universal fashion;
 
 
-Overview of Changes from MacPorts 1.5.2 to MacPorts 1.6.0:
+# For Portfile writers:
+
+*) Pre-fabricated statements with correct checksums are output when in verbose mode if the existing ones in the Portfile are incorrect;
+*) "port lint" now recognizes non-canonical modelines;
+*) Added a 'configure.pipe' Portfile option for using pipes rather than intermediate files when compiling C/C++ based ports;
+
+
+
+== Overview of changes from MacPorts 1.5.2 to 1.6.0 ==
 
 # For regular usage:
 
+*) Revived and thoroughly refreshed web presence at http://www.macports.org/ , with more improvements still on the way;
+*) New project guide at http://guide.macports.org
 *) Fixed the "upgrade" target of the port(1) command to properly handle installed versions beginning with letters;
 *) Improved the "variants" target of the port(1) command to behave like the "info" target to poll the requested Portfile directly
     rather than the index for more up-to-date information, while also providing a --index flag for legacy behavior;
@@ -69,7 +84,6 @@ Overview of Changes from MacPorts 1.5.2 to MacPorts 1.6.0:
 *) Added 'configure.awk', 'configure.bison', 'configure.pkg_config', 'configure.pkg_config_path' Portfile options to point to the
     relevant programs/paths to use;
 *) Added a 'extract.mkdir' Portfile option to better deal with so-called "tar bombs";
-*) Added a 'configure.pipe' Portfile option for using pipes rather than intermediate files when compiling C/C++ based ports;
 
 
 # For MacPorts scripting:

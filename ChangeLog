@@ -10,6 +10,32 @@ Unreleased:
       destroot (mww in r31954).
 
 
+Release 1.6.1 (unreleased):
+
+    - If checksum is mismatched, and in verbose mode, present a corrected pre-fabricated checksum statement
+      to make it easy to update a port (jberry in r32441).
+
+    - Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther
+      (eridius in r32525).
+
+    - Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther
+      (eridius in r32514).
+
+    - "port lint" now recognizes non-canonical modelines (afb in r32480).
+
+    - "configure.pipe" is now hackable from Portfiles (afb in r32430).
+
+    - MacPorts no longer installs the "base/config/mp_version" file, as the release version is now stored
+      internally in $macports::autoconf::macports_vesion (jmpp in r32353).
+
+    - Bail out with a suitable message if the requested port is not installed when polling its dependents
+      (jmpp in r32336).
+
+    - Fixed a Panther build failure due to missing sqlite headers (jmpp in r32212).
+
+    - Fixed a build failure by passing the base/src/cregistry/cregistry.a archive through ranlib (jmpp in r32105).
+
+
 Release 1.6.0 (16-December-2007 by jmpp):
 
     - Revamped the postflight script that is run by Installer.app with our pkg installer to gracefully
