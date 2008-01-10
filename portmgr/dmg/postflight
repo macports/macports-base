@@ -39,21 +39,9 @@ SBINPATH=$PREFIX/sbin
 MANPAGES=$PREFIX/share/man
 USHELL="$(basename "$SHELL" 2>/dev/null)" || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
+    update_macports
     exit 1
 }
-case "$USHELL" in
-    tcsh)
-        CONF_FILE=tcshrc
-        LOGIN_FLAG=""
-        ;;
-    bash)
-        CONF_FILE=profile
-        LOGIN_FLAG="-l"
-        ;;
-    *)
-        echo "Unknown shell! Please set your MacPorts compatible environment manually."
-        ;;
-esac
 BACKUP_SUFFIX=mpsaved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
 OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 
@@ -65,6 +53,7 @@ function write_setting () {
     if [ -f $HOME/.$CONF_FILE ] && ! grep "$OUR_STRING" $HOME/.$CONF_FILE > /dev/null 2>&1; then
         /bin/cp -fp $HOME/.$CONF_FILE "$HOME/.$CONF_FILE.$BACKUP_SUFFIX" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
+            update_macports
             exit 1
         }
         echo -e "\n##\n# Your previous $HOME/.$CONF_FILE file was backed up as $HOME/.$CONF_FILE.$BACKUP_SUFFIX\n##" >> $HOME/.$CONF_FILE
@@ -96,6 +85,35 @@ function write_setting () {
     chown $USER $HOME/.$CONF_FILE || echo "Unable to switch your $HOME/.$CONF_FILE shell configuration file to your UID!"
     echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/.$CONF_FILE
 }
+
+# Command to update the MacPorts installation through "selfupdate":
+function update_macports {
+    export PATH=$BINPATH:$PATH
+    echo -e "\nSynchronizing the MacPorts installation with the project's rsync server...\n"
+    port -v selfupdate || {
+        echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
+        echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
+    }
+}
+
+
+# Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
+# Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
+case "$USHELL" in
+    tcsh)
+        CONF_FILE=tcshrc
+        LOGIN_FLAG=""
+        ;;
+    bash)
+        CONF_FILE=profile
+        LOGIN_FLAG="-l"
+        ;;
+    *)
+        echo "Unknown shell! Please set your MacPorts compatible environment manually."
+        update_macports
+        exit 0
+        ;;
+esac
 
 
 echo -e "\nChecking the shell environment for user \"$USER\"...\n"
@@ -134,17 +152,8 @@ else
 fi
 
 
-# Update the MacPorts installation through "selfupdate":
-echo -e "\nSynchronizing the MacPorts installation with the project's rsync server...\n"
-export PATH=$BINPATH:$PATH
-port -v selfupdate || {
-    echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
-    echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
-}
-
-
 # Postflight script is done with its job!
-echo -e "\nYou have succesfully installed the MacPorts system.\n"
-echo "Launch a terminal and try it out!"
-echo -e "Read the port(1) manual page for help.\n"
+update_macports
+echo -e "\nYou have succesfully installed the MacPorts system, launch a terminal and try it out!\n"
+echo -e "Read the port(1) manual page and http://guide.macports.org for help.\n"
 exit 0
