@@ -32,6 +32,19 @@
 # $Id$
 
 
+# Command to update the MacPorts installation through "selfupdate":
+function update_macports {
+    export PATH=$BINPATH:$PATH
+    echo "Synchronizing the MacPorts installation with the project's rsync server..."
+    if ! port -v selfupdate; then 
+        echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
+        echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
+    else
+        echo "Successful!"
+    fi
+}
+
+
 # Abstraction variables:
 PREFIX=/opt/local
 BINPATH=$PREFIX/bin
@@ -84,18 +97,6 @@ function write_setting () {
     esac
     chown $USER $HOME/.$CONF_FILE || echo "Unable to switch your $HOME/.$CONF_FILE shell configuration file to your UID!"
     echo -e "# Finished adapting your $1 environment variable for use with MacPorts.\n" >> $HOME/.$CONF_FILE
-}
-
-# Command to update the MacPorts installation through "selfupdate":
-function update_macports {
-    export PATH=$BINPATH:$PATH
-    echo "Synchronizing the MacPorts installation with the project's rsync server..."
-    if ! port -v selfupdate; then 
-        echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
-        echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
-    else
-        echo "Successful!"
-    fi
 }
 
 
