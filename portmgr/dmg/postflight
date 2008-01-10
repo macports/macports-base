@@ -139,7 +139,6 @@ export PATH=$BINPATH:$PATH
 port -v selfupdate || {
     echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
     echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
-    exit 1
 }
 
 
