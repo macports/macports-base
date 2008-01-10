@@ -90,10 +90,12 @@ function write_setting () {
 function update_macports {
     export PATH=$BINPATH:$PATH
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
-    port -v selfupdate || {
+    if ! port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
         echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
-    }
+    else
+        echo "Successful!"
+    fi
 }
 
 
