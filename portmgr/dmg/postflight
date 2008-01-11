@@ -32,32 +32,25 @@
 # $Id$
 
 
+# Abstraction variables:
+PREFIX=/opt/local
+BINPATH=${PREFIX}/bin
+SBINPATH=${PREFIX}/sbin
+MANPAGES=${PREFIX}/share/man
+BACKUP_SUFFIX=mpsaved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
+OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
+
+
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
-    export PATH=$BINPATH:$PATH
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
-    if ! port -v selfupdate; then 
+    if ! ${BINPATH}/port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
         echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
     else
         echo "Successful!"
     fi
 }
-
-
-# Abstraction variables:
-PREFIX=/opt/local
-BINPATH=$PREFIX/bin
-SBINPATH=$PREFIX/sbin
-MANPAGES=$PREFIX/share/man
-USHELL="$(basename "$SHELL" 2>/dev/null)" || {
-    echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
-    update_macports
-    exit 1
-}
-BACKUP_SUFFIX=mpsaved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
-OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
-
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
 # backing up the original only if it exists and if it doesn't contain the $OUR_STRING identification string,
@@ -100,8 +93,16 @@ function write_setting () {
 }
 
 
+echo "Checking the shell environment for user \"$USER\"..."
+
+
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
+USHELL="$(basename "$SHELL" 2>/dev/null)" || {
+    echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
+    update_macports
+    exit 1
+}
 case "$USHELL" in
     tcsh)
         CONF_FILE=tcshrc
@@ -118,8 +119,6 @@ case "$USHELL" in
         ;;
 esac
 
-
-echo "Checking the shell environment for user \"$USER\"..."
 
 # Adding our setting to the PATH variable if not already there:
 if $SHELL $LOGIN_FLAG -c "/usr/bin/printenv PATH" | grep $PREFIX > /dev/null 2>&1; then
