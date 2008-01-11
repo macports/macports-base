@@ -63,6 +63,7 @@ function write_setting () {
             exit 1
         }
         echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> ${HOME}/.${CONF_FILE}
+        echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
     fi
     echo -e "\n# ${OUR_STRING} adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
     case ${1} in
