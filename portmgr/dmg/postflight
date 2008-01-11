@@ -37,7 +37,7 @@ PREFIX=/opt/local
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 MANPAGES=${PREFIX}/share/man
-BACKUP_SUFFIX=mpsaved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
+BACKUP_SUFFIX=macports-saved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
 OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
 
 
