@@ -32,6 +32,9 @@
 # $Id$
 
 
+set -x
+
+
 # Abstraction variables:
 PREFIX=/opt/local
 BINPATH=${PREFIX}/bin
