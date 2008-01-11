@@ -41,7 +41,7 @@ BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 MANPAGES=${PREFIX}/share/man
 BACKUP_SUFFIX=macports-saved_"$(date +"%Y-%m-%d_at_%H:%M:%S")"
-OUR_STRING="MacPorts setting on $(date +"%Y-%m-%d at %H:%M:%S"):"
+OUR_STRING="MacPorts Installer addition on $(date +"%Y-%m-%d at %H:%M:%S"):"
 
 
 # Command to update the MacPorts installation through "selfupdate":
