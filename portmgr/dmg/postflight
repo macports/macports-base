@@ -46,7 +46,7 @@ function update_macports {
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
-        echo "Please run 'port -d selfupdate' manually to find out the cause of the error."
+        echo "Please run 'sudo port -d selfupdate' manually to find out the cause of the error."
     else
         echo "Successful!"
     fi
