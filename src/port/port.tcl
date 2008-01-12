@@ -1154,6 +1154,7 @@ proc action_info { action portlist opts } {
             categories      1
             depends_build   1
             depends_lib     1
+            depends_run     1
             maintainers     1
             platforms       1
             variants        1
