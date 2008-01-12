@@ -209,7 +209,7 @@ proc registry_installed {portname {portversion ""}} {
     set ilist [registry::installed $portname $portversion]
     if { [llength $ilist] > 1 } {
         puts "The following versions of $portname are currently installed:"
-        foreach i $ilist { 
+        foreach i [portlist_sortint $ilist] { 
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -340,14 +340,42 @@ proc foreachport {portlist block} {
 proc portlist_compare { a b } {
     array set a_ $a
     array set b_ $b
-    return [string compare $a_(name) $b_(name)]
+    set namecmp [string compare $a_(name) $b_(name)]
+    if {$namecmp != 0} {
+        return $namecmp
+    }
+    set avr_ [split $a_(version) "_"]
+    set bvr_ [split $b_(version) "_"]
+    set vercmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    if {$vercmp != 0} {
+        return $vercmp
+    }
+    set ar_ [lindex $avr_ 1]
+    set br_ [lindex $bvr_ 1]
+    if {$ar_ < $br_} {
+        return -1
+    } elseif {$ar_ > $br_} {
+        return 1
+    } else {
+        return 0
+    }
 }
 
-
+# Sort two ports in NVR (name@version_revision) order
 proc portlist_sort { list } {
     return [lsort -command portlist_compare $list]
 }
 
+proc portlist_compareint { a b } {
+    array set a_ [list "name" [lindex $a 0] "version" [lindex $a 1] "revision" [lindex $a 2]]
+    array set b_ [list "name" [lindex $b 0] "version" [lindex $b 1] "revision" [lindex $b 2]]
+    return [portlist_compare [array get a_] [array get b_]]
+}
+
+# Same as portlist_sort, but with numeric indexes
+proc portlist_sortint { list } {
+    return [lsort -command portlist_compareint $list]
+}
 
 proc regex_pat_sanitize { s } {
     set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
@@ -1483,7 +1511,7 @@ proc action_installed { action portlist opts } {
     }
     if { [llength $ilist] > 0 } {
         puts "The following ports are currently installed:"
-        foreach i $ilist {
+        foreach i [portlist_sortint $ilist] {
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
