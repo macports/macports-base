@@ -433,7 +433,7 @@ proc fetchfiles {args} {
 				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 				set file_url [portfetch::assemble_url $site $distfile]
 				set effectiveURL ""
-				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
+				if {![catch {eval curl fetch --remote-time --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
 					![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
 
 					# Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
