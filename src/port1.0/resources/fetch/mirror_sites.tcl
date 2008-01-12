@@ -20,6 +20,7 @@ set portfetch::mirror_sites::sites(afterstep) {
 
 set portfetch::mirror_sites::sites(apache) {
     http://www.apache.org/dist/
+    http://archive.apache.org/dist/
     http://apache.planetmirror.com.au/dist/
     ftp://ftp.planetmirror.com/pub/apache/dist/
     ftp://ftp.is.co.za/Apache/dist/
