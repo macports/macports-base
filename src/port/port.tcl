@@ -1398,6 +1398,21 @@ proc action_version { action portlist opts } {
 }
 
 
+proc action_platform { action portlist opts } {
+#   global os.platform os.major os.arch 
+    global tcl_platform
+    set os_platform [string tolower $tcl_platform(os)]
+    set os_version $tcl_platform(osVersion)
+    set os_arch $tcl_platform(machine)
+    if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+    if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
+    set os_major [lindex [split $tcl_platform(osVersion) .] 0]
+#   puts "Platform: ${os.platform} ${os.major} ${os.arch}"
+    puts "Platform: ${os_platform} ${os_major} ${os_arch}"
+    return 0
+}
+
+
 proc action_compact { action portlist opts } {
     set status 0
     require_portlist portlist
@@ -2159,6 +2174,7 @@ array set action_array {
     upgrade     action_upgrade
     
     version     action_version
+    platform    action_platform
     compact     action_compact
     uncompact   action_uncompact
     
