@@ -93,7 +93,7 @@ function write_setting () {
             fi
             ;;
     esac
-    chown ${USER} ${HOME}/.${CONF_FILE} || echo "Unable to switch your ${HOME}/.${CONF_FILE} shell configuration file to your UID!"
+    chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
 }
