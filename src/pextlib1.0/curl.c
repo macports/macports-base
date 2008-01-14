@@ -150,7 +150,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		const char* theUserPassString = NULL;
 		const char* effectiveURLVarName = NULL;
 		char* effectiveURL = NULL;
-		char* userAgent = "MacPorts libcurl/" LIBCURL_VERSION;
+		char* userAgent = PACKAGE_STRING " libcurl/" LIBCURL_VERSION;
 		int optioncrsr;
 		int lastoption;
 		const char* theURL;
