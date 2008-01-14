@@ -219,7 +219,7 @@ practice to update the same file accordingly in its branched guise.
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
- * The MacPorts website, by adapting the $mp_version_major and $mp_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
+ * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
  * [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Apple's downloads page] (submitter: jmpp@)
  * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
