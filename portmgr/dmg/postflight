@@ -42,7 +42,7 @@ SBINPATH=${PREFIX}/sbin
 MANPAGES=${PREFIX}/share/man
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
-OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}:"
+OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
 
 # Command to update the MacPorts installation through "selfupdate":
@@ -69,7 +69,7 @@ function write_setting () {
         }
         echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> ${HOME}/.${CONF_FILE}
     fi
-    echo -e "\n# ${OUR_STRING} adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
+    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
     echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> ${HOME}/.${CONF_FILE}
     echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
     chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
