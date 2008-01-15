@@ -72,27 +72,16 @@ function write_setting () {
     echo -e "\n# ${OUR_STRING} adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
     case ${1} in
         PATH)
-            if [ "${CONF_FILE}" == "profile" ]; then
-                echo "export PATH=${BINPATH}:${SBINPATH}:\$PATH" >> ${HOME}/.${CONF_FILE}
-            elif [ "${CONF_FILE}" == "tcshrc" ]; then
-                echo "setenv PATH ${BINPATH}:${SBINPATH}:\$PATH" >> ${HOME}/.${CONF_FILE}
-            fi
+            NEW_SETTING="${BINPATH}:${SBINPATH}:\$PATH"
             ;;
         MANPATH)
-            if [ "${CONF_FILE}" == "profile" ]; then
-                echo "export MANPATH=${MANPAGES}:\$MANPATH" >> ${HOME}/.${CONF_FILE}
-            elif [ "${CONF_FILE}" == "tcshrc" ]; then
-                echo "setenv MANPATH ${MANPAGES}:\$MANPATH" >> ${HOME}/.${CONF_FILE}
-            fi
+            NEW_SETTING="${MANPAGES}:\$MANPATH"
             ;;
         DISPLAY)
-            if [ "${CONF_FILE}" == "profile" ]; then
-                echo "export DISPLAY=:0" >> ${HOME}/.${CONF_FILE}
-            elif [ "${CONF_FILE}" == "tcshrc" ]; then
-                echo "setenv DISPLAY :0" >> ${HOME}/.${CONF_FILE}
-            fi
+            NEW_SETTING=":0"
             ;;
     esac
+    echo "${ENV_COMMAND} ${1}${ASSIGN}${NEW_SETTING}" >> ${HOME}/.${CONF_FILE}
     chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
     echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
@@ -111,12 +100,16 @@ USHELL="$(basename "${SHELL}")" || {
 }
 case "${USHELL}" in
     tcsh)
-        CONF_FILE=tcshrc
         LOGIN_FLAG=""
+        ENV_COMMAND="setenv"
+        ASSIGN=" "
+        CONF_FILE=tcshrc
         ;;
     bash)
-        CONF_FILE=profile
         LOGIN_FLAG="-l"
+        ENV_COMMAND="export"
+        ASSIGN="="
+        CONF_FILE=profile
         ;;
     *)
         echo "Unknown shell! Please set your MacPorts compatible environment manually."
