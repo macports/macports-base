@@ -6,6 +6,10 @@
 
 Unreleased:
 
+    - Add `port platform` info target that outputs current platform (#12302, afb in r32724).
+
+    - Enable 64 bit environment, ppc64 x86_64, for all +universal builds (mww in r32194).
+
     - Add 'merge' function for merging multiple (single arch) destroots into one (universal)
       destroot (mww in r31954).
 
