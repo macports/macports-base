@@ -106,7 +106,8 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
             return -code error "Default universal variant only works with ports based on configure"
         }
         eval configure.args-append ${configure.universal_args}
-        if {![file exists /Developer/SDKs/MacOSX10.4u.sdk/]} {
+        if {![file exists /Developer/SDKs/MacOSX10.4u.sdk] &&
+            ![file exists /Developer/SDKs/MacOSX10.5.sdk]} {
             return -code error "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
         }
         eval configure.cflags-append ${configure.universal_cflags}
