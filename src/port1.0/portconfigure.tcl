@@ -84,7 +84,7 @@ if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
 } else {
     set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
 }
-options configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags configure.universal_env
+options configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[configure_get_universal_cflags]}
 default configure.universal_cppflags    {}
