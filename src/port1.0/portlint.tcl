@@ -205,7 +205,7 @@ proc lint_main {args} {
             incr warnings
         }
 
-        if {($lineno == $topline_number) && [string match "*-\*- Mode:*" $line]} {
+        if {($lineno == $topline_number) && [string match "*-\*- *" $line]} {
             ui_info "OK: Line $lineno has emacs/vim Mode"
             incr topline_number
         }

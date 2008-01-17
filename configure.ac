@@ -1,10 +1,20 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 AC_PREREQ(2.52)
-AC_INIT([MacPorts], [esyscmd(cat config/mp_version | tr -d '\n')], [macports-dev@lists.macosforge.org], [macports])
+AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d '\n')])
+AC_INIT([MacPorts], [MACPORTS_VERSION_MACRO], [macports-dev@lists.macosforge.org], [macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
+
+# Read in the MacPorts version from the base/config/macports_vesion file
+AC_MSG_CHECKING(MacPorts version)
+MACPORTS_VERSION=MACPORTS_VERSION_MACRO
+AC_MSG_RESULT([$MACPORTS_VERSION])
+AC_SUBST(MACPORTS_VERSION)
+# Read the old, floating point format version, which we still use internally, and export it for the $macports::autoconf::macports_version variable
+MP_VERSION=$(cat config/mp_version | tr -d '\n')
+AC_SUBST(MP_VERSION)
 
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
@@ -54,13 +64,6 @@ case "$XCODE_VERSION" in
   *)
     ;;
 esac
-
-# translate mp_version (1.600) to regular version (1.6.0)
-AC_MSG_CHECKING(MacPorts version)
-MP_VERSION=`cat config/mp_version | tr -d '\n'`
-VER=`echo $MP_VERSION | sed -e 's/\([[0-9]]\)\.\([[0-9]]\)0\{0,1\}\([[0-9]][[1-9]]\{0,1\}\)0\{0,1\}/\1.\2.\3/'`
-AC_MSG_RESULT([$VER])
-AC_SUBST(VER)
 
 # Checks for programs.
 AC_PROG_CC
@@ -260,6 +263,7 @@ AC_ARG_WITH(
 # If sqlite3 package isn't installed, configure and install sqlite3 package.
 if test "$with_included_sqlite3" = "yes"; then
 	OUR_INCLUDED_PACKAGES="$OUR_INCLUDED_PACKAGES sqlite-3.1.3"
+	INCLUDES="$INCLUDES -I../sqlite-3.1.3"
 	AC_CONFIG_SUBDIRS([src/sqlite-3.1.3])
 	# Extract sqlite3 package
 	(cd src/; gzip -d < sqlite-3.1.3.tar.gz | tar xf -)

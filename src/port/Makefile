@@ -29,7 +29,7 @@ test:
 
 distclean: clean
 
-install: mkdirs
+install: port portindex portmirror mkdirs
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf

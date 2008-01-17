@@ -33,6 +33,7 @@ package provide macports 1.0
 
 namespace eval macports::autoconf {
     variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
+    variable macports_version "@MP_VERSION@"
     variable macports_user_dir "~/.macports"
     variable svn_path "@SVN@"
     variable rsync_path "@RSYNC@"

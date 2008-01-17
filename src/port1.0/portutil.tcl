@@ -524,7 +524,7 @@ proc platform {args} {
     # Set the variant if this platform matches the platform we're on
     set matches 1
     if {[info exists os.platform] && ${os.platform} == $os} { 
-    set sel_platform $os
+        set sel_platform $os
         if {[info exists os.major] && [info exists release]} {
             if {${os.major} == $release } { 
                 set sel_platform ${sel_platform}_${release} 

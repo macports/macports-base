@@ -184,7 +184,7 @@ proc checksum_start {args} {
 # Target main procedure. Verifies the checksums of all distfiles.
 #
 proc checksum_main {args} {
-	global UI_PREFIX all_dist_files checksums_array portverbose checksum.skip
+	global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip
 
 	# If no files have been downloaded, there is nothing to checksum.
 	if {![info exists all_dist_files]} {
@@ -218,9 +218,9 @@ proc checksum_main {args} {
 			# check that there is at least one checksum for the distfile.
 			if {![info exists checksums_array($distfile)]} {
 				ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-				ui_info "[format [msgcat::mc "Distfile checksum: %s md5 %s"] $distfile [calc_md5 $fullpath]]"
-				ui_info "[format [msgcat::mc "Distfile checksum: %s sha1 %s"] $distfile [calc_sha1 $fullpath]]"
-				ui_info "[format [msgcat::mc "Distfile checksum: %s rmd160 %s"] $distfile [calc_rmd160 $fullpath]]"
+				foreach type $checksum_types {
+					ui_info "[format [msgcat::mc "Distfile checksum: %s $type %s"] $distfile [calc_$type $fullpath]]"
+				}
 				set fail yes
 			} else {
 				# retrieve the list of types/values from the array.
@@ -241,6 +241,7 @@ proc checksum_main {args} {
 					}
 				}
 			}
+			
 		}
 	} else {
 		# Something went wrong with the syntax.
@@ -248,6 +249,22 @@ proc checksum_main {args} {
 	}
 
 	if {[tbool fail]} {
+	
+		# Show the desired checksum line for easy cut-paste
+		set sums ""
+		foreach distfile $all_dist_files {
+			if {[llength $all_dist_files] > 1} {
+				lappend sums $distfile
+			}
+			
+			set fullpath [file join $distpath $distfile]
+			foreach type $checksum_types {
+				lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
+			}
+		}
+		ui_info "The correct checksum line may be:"
+		ui_info [format "%-20s%s" "checksums" [join $sums [format " \\\n%-20s" ""]]]
+		
 		return -code error "[msgcat::mc "Unable to verify file checksums"]"
 	}
 

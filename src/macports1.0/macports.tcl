@@ -100,9 +100,9 @@ proc macports::global_option_isset {val} {
 
 proc macports::ui_init {priority message} {
     # Get the list of channels.
-    if {[llength [info commands ui_channels]] > 0} {
+    try {
         set channels [ui_channels $priority]
-    } else {
+    } catch * {
         set channels [ui_channels_default $priority]
     }
 
@@ -111,9 +111,9 @@ proc macports::ui_init {priority message} {
     if {$nbchans == 0} {
         proc ::ui_$priority {str} {}
     } else {
-        if {[llength [info commands ui_prefix]] > 0} {
+        try {
             set prefix [ui_prefix $priority]
-        } else {
+        } catch * {
             set prefix [ui_prefix_default $priority]
         }
 
@@ -133,7 +133,7 @@ proc macports::ui_init {priority message} {
     }
 }
 
-# Defult implementation of ui_prefix
+# Default implementation of ui_prefix
 proc macports::ui_prefix_default {priority} {
     switch $priority {
         debug {
@@ -1542,7 +1542,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         archive     -
         pkg         -
         mpkg        -
-                rpm         -
+        rpm         -
         dpkg        -
         ""          { set deptypes "depends_lib depends_build depends_run" }
     }
@@ -1622,119 +1622,98 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
 
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}}} {
-    global macports::prefix macports::portdbpath macports::rsync_server macports::rsync_dir macports::rsync_options
-    global macports::autoconf::macports_conf_path macports::autoconf::rsync_path
+    global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
+    global macports::autoconf::macports_version macports::autoconf::rsync_path
     array set options $optionslist
     
-    if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
-        set use_the_force_luke yes
-        ui_debug "Forcing a rebuild of the MacPorts base system."
-    } else {
-        set use_the_force_luke no
-        ui_debug "Rebuilding the MacPorts base system if needed."
-    }
-    # syncing ports tree. We expect the user have rsync:// in the sources.conf
+    # syncing ports tree.
     if {[catch {mportsync} result]} {
         return -code error "Couldn't sync the ports tree: $result"
     }
-
-    set mp_base_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
-    if {![file exists $mp_base_path]} {
-        file mkdir $mp_base_path
+    
+    # create the path to the to be downloaded sources if it doesn't exist
+    set mp_source_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
+    if {![file exists $mp_source_path]} {
+        file mkdir $mp_source_path
     }
-    ui_debug "MacPorts base dir: $mp_base_path"
+    ui_debug "MacPorts sources location: $mp_source_path"
+    
+    # sync the MacPorts sources
+    ui_debug "Updating MacPorts sources using rsync"
+    if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } result ] } {
+       return -code error "Error synchronizing MacPorts sources: $result"
+    }
 
-    # get user of the MacPorts system
-    set user [file attributes [file join $portdbpath sources/] -owner]
-    ui_debug "Setting user: $user"
+    # echo current MacPorts version
+    ui_msg "\nMacPorts base version $macports::autoconf::macports_version installed"
 
-    # get MacPorts version 
-    set mp_version_path [file join ${macports_conf_path} mp_version]
-    if { [file exists $mp_version_path]} {
-        set fd [open $mp_version_path r]
-        gets $fd mp_version_old
-        close $fd
+    if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
+        set use_the_force_luke yes
+        ui_debug "Forcing a rebuild and reinstallation of MacPorts"
     } else {
-        set mp_version_old 0
+        set use_the_force_luke no
+        ui_debug "Rebuilding and reinstalling MacPorts if needed"
+        # Choose what version file to use: old, floating point format or new, real version number format
+        set old_version_file [file join $mp_source_path config mp_version]
+        set new_version_file [file join $mp_source_path config macports_version]
+        if {[file exists $old_version_file]} {
+            set fd [open $old_version_file r]
+        } elseif {[file exists $new_version_file]} {
+            set fd [open $new_version_file r]
+        }
+        # get downloaded MacPorts version
+        gets $fd macports_version_new
+        close $fd
+        # echo downloaded MacPorts version
+        ui_msg "Downloaded MacPorts base version $macports_version_new"
     }
-    ui_msg "\nMacPorts base version $mp_version_old installed"
-
-    ui_debug "Updating using rsync"
-    if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_base_path" } ] } {
-        return -code error "Error: rsync failed in selfupdate"
-    }
-
-    # get downloaded macports version and write the old version back
-    set fd [open [file join $mp_base_path config mp_version] r]
-    gets $fd mp_version_new
-    close $fd
-    ui_msg "\nDownloaded MacPorts base version $mp_version_new"
 
     # check if we we need to rebuild base
-    if {$mp_version_new > $mp_version_old || $use_the_force_luke == "yes"} {
-        ui_msg "Configuring, Building and Installing new MacPorts base"
-        # check if $prefix/bin/port is writable, if so we go !
-        # get installation user / group 
-        set owner root
-        set group admin
-        set portprog [file join $prefix bin port]
-        if {[file exists $portprog ]} {
-            # set owner
-            set owner [file attributes $portprog -owner]
-            # set group
-            set group [file attributes $portprog -group]
+    if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
+        # get installation user/group and permissions
+        set owner [file attributes ${prefix} -owner]
+        set group [file attributes ${prefix} -group]
+        set perms [string range [file attributes ${prefix} -permissions] end-3 end]
+        set installing_user [exec /usr/bin/id -un]
+        if {![string equal $installing_user $owner]} {
+            return -code error "User $installing_user does not own ${prefix} - try using sudo"
         }
-        set p_user [exec /usr/bin/whoami]
-        if {[file writable $portprog] || [string equal $p_user $owner] } {
-            ui_debug "permissions OK"
-        } else {
-            return -code error "Error: $p_user cannot write to ${prefix}/bin - try using sudo"
-        }
-        ui_debug "Setting owner: $owner group: $group"
+        ui_debug "Permissions OK"
 
+        # where to install our macports1.0 tcl package
         set mp_tclpackage_path [file join $portdbpath .tclpackage]
         if { [file exists $mp_tclpackage_path]} {
             set fd [open $mp_tclpackage_path r]
             gets $fd tclpackage
             close $fd
         } else {
-            set tclpackage [file join ${prefix} share macports Tcl]
+            set tclpackage $libpath
         }
-        # do the actual installation of new base
-        ui_debug "Install in: $prefix as $owner : $group - TCL-PACKAGE in $tclpackage"
-        if { [catch { system "cd $mp_base_path && ./configure --prefix=$prefix --with-install-user=$owner --with-install-group=$group --with-tclpackage=$tclpackage && make && make install" } result] } {
+        
+        # do the actual configure, build and installation of new base
+        ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms\n"
+        if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
             return -code error "Error installing new MacPorts base: $result"
         }
     } else {
-        ui_msg "\nThe MacPorts installation is not outdated and so was not updated"
+        ui_msg "\nThe MacPorts installation is not outdated so it was not updated"
     }
 
-    # set the macports system to the right owner 
-    ui_debug "Setting ownership to $user"
-    if { [catch { exec chown -R $user [file join $portdbpath sources/] } result] } {
-        return -code error "Couldn't change permissions: $result"
+    # set the MacPorts sources to the right owner
+    set sources_owner [file attributes [file join $portdbpath sources/] -owner]
+    ui_debug "Setting MacPorts sources ownership to $sources_owner"
+    if { [catch { exec chown -R $sources_owner [file join $portdbpath sources/] } result] } {
+        return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to $sources_owner: $result"
     }
 
-    # set the right version
     ui_msg "selfupdate done!"
 
     return 0
 }
 
 proc macports::version {} {
-    global macports::rsync_server macports::rsync_dir
-    global macports::autoconf::macports_conf_path
-    
-    set mp_version_path [file join ${macports_conf_path} mp_version]
-
-    if [file exists $mp_version_path] {
-        set fd [open $mp_version_path r]
-        gets $fd retval
-        close $fd
-        return $retval
-    } else {
-        return -1
-    }
+    global macports::autoconf::macports_version
+    return $macports::autoconf::macports_version
 }
 
 # upgrade procedure

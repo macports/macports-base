@@ -209,7 +209,7 @@ proc registry_installed {portname {portversion ""}} {
     set ilist [registry::installed $portname $portversion]
     if { [llength $ilist] > 1 } {
         puts "The following versions of $portname are currently installed:"
-        foreach i $ilist { 
+        foreach i [portlist_sortint $ilist] { 
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -340,14 +340,42 @@ proc foreachport {portlist block} {
 proc portlist_compare { a b } {
     array set a_ $a
     array set b_ $b
-    return [string compare $a_(name) $b_(name)]
+    set namecmp [string compare $a_(name) $b_(name)]
+    if {$namecmp != 0} {
+        return $namecmp
+    }
+    set avr_ [split $a_(version) "_"]
+    set bvr_ [split $b_(version) "_"]
+    set vercmp [rpm-vercomp [lindex $avr_ 0] [lindex $bvr_ 0]]
+    if {$vercmp != 0} {
+        return $vercmp
+    }
+    set ar_ [lindex $avr_ 1]
+    set br_ [lindex $bvr_ 1]
+    if {$ar_ < $br_} {
+        return -1
+    } elseif {$ar_ > $br_} {
+        return 1
+    } else {
+        return 0
+    }
 }
 
-
+# Sort two ports in NVR (name@version_revision) order
 proc portlist_sort { list } {
     return [lsort -command portlist_compare $list]
 }
 
+proc portlist_compareint { a b } {
+    array set a_ [list "name" [lindex $a 0] "version" [lindex $a 1] "revision" [lindex $a 2]]
+    array set b_ [list "name" [lindex $b 0] "version" [lindex $b 1] "revision" [lindex $b 2]]
+    return [portlist_compare [array get a_] [array get b_]]
+}
+
+# Same as portlist_sort, but with numeric indexes
+proc portlist_sortint { list } {
+    return [lsort -command portlist_compareint $list]
+}
 
 proc regex_pat_sanitize { s } {
     set sanitized [regsub -all {[\\(){}+$.^]} $s {\\&}]
@@ -1126,6 +1154,7 @@ proc action_info { action portlist opts } {
             categories      1
             depends_build   1
             depends_lib     1
+            depends_run     1
             maintainers     1
             platforms       1
             variants        1
@@ -1370,6 +1399,21 @@ proc action_version { action portlist opts } {
 }
 
 
+proc action_platform { action portlist opts } {
+#   global os.platform os.major os.arch 
+    global tcl_platform
+    set os_platform [string tolower $tcl_platform(os)]
+    set os_version $tcl_platform(osVersion)
+    set os_arch $tcl_platform(machine)
+    if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+    if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
+    set os_major [lindex [split $tcl_platform(osVersion) .] 0]
+#   puts "Platform: ${os.platform} ${os.major} ${os.arch}"
+    puts "Platform: ${os_platform} ${os_major} ${os_arch}"
+    return 0
+}
+
+
 proc action_compact { action portlist opts } {
     set status 0
     require_portlist portlist
@@ -1475,7 +1519,7 @@ proc action_installed { action portlist opts } {
     }
     if { [llength $ilist] > 0 } {
         puts "The following ports are currently installed:"
-        foreach i $ilist {
+        foreach i [portlist_sortint $ilist] {
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -2123,6 +2167,7 @@ array set action_array {
     upgrade     action_upgrade
     
     version     action_version
+    platform    action_platform
     compact     action_compact
     uncompact   action_uncompact
     

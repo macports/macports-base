@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	macports
-PORTVERSION=	@VER@
+PORTVERSION=	@MACPORTS_VERSION@
 CATEGORIES=	sysutils
 MASTER_SITES=	http://svn.macosforge.org/repository/macports/distfiles/MacPorts/
 DISTNAME=	MacPorts-${PORTVERSION}

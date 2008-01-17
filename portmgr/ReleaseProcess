@@ -115,7 +115,7 @@ tag URL. For instance:
 And finally we tag the entire directory as release_1_6_0-archive:
 
  cd ../../
- svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/tags/release_1_6_0-archive
+ svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/macports/tags/release_1_6_0-archive
 
 
 === Create & Post Release Tarballs ===
@@ -126,12 +126,11 @@ for a particular release. They are named with the following naming convention:
  MacPorts-1.6.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_6_0)
  MacPorts-1.6.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_6_0-archive)
 
-The following commands issued to the top level Makefile will generate the archives and checksums:
+The following commands issued to the top level Makefile will generate all the tarballs and checksums:
 
- make DISTVER=1.6.0 distfromsvn
+ make ARC=yes DISTVER=1.6.0 distfromsvn
 
-Note that you need to pass the "ARC=yes" flag on the command line to the "distfromsvn" top-level make target
-if you also wish to produce the full archive tarballs.
+Note that if you omit the "ARC=yes" flag at the start of the make call then the full archive tarballs will not be produced.
 
 All these tarballs are uploaded via svn to the http://svn.macports.org/repository/macports/downloads/MacPorts-1.6.0/
 directory.
@@ -156,8 +155,9 @@ was built.
 To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
 downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
-for the release). Resource files in the files/ directory of the MacPorts port will also have to be fully
-up to date, in sync with their copies in the base/portmgr/dmg svn directory.
+for the release). Make sure the ports tree you're using to build the dmg's is fully up to date, as to
+insure the resource files in the files/ directory of the port are current (fetched through svn:externals
+off the base/portmgr/dmg directory of the current final release tag).
 
  sudo port -d dmg MacPorts
 
@@ -166,7 +166,7 @@ file in the downloads directory:
 
  cd work
  mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5-Leopard.dmg
- for type in -md5 -sha1 -ripemd160; do openssl dgst $type MacPorts-1.6.0-10.5-Leopard.dmg; done
+ for dmg in MacPorts-1.6.0-*.dmg; do for type in -md5 -sha1 -ripemd160; do openssl dgst $type $dmg; done >> MacPorts-1.6.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate downloads
 directory of the MacPorts svn repository. Developers are required to validate the generated installer as
@@ -177,9 +177,19 @@ create the destroot of the port and examine it for:
  * Linking: libraries and binaries should not be linked against anything that's not present by default
    on a vanilla Mac OS X installation + developer tools, excluding even the MacPorts installation prefix;
    this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
-   of linking validation are: ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib, ${destroot}/opt/local/bin/daemondo
-   ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib, ${destroot}/opt/local/share/macports/\
-   Tcl/pextlib1.0/Pextlib.dylib and ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib.
+   of linking validation are:
+             ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib
+	     ${destroot}/opt/local/bin/daemondo (only built on 10.4 and later)
+	     ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
+	     ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib
+ * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
+   step above also need to be confirmed of the universal type. A way to do this is through the file(1) command:
+             file ${destroot}/opt/local/bin/daemondo:
+                  ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
+                  ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
+                  ${destroot}/opt/local/bin/daemondo (for architecture i386): Mach-O executable i386
  * tclsh shell invoked by our scripts: all scripts installed in ${destroot}/opt/local/bin (that is port,
    portindex and portmirror) should invoke the tclsh shell through a call like:
              #!/bin/sh
@@ -208,10 +218,11 @@ practice to update the same file accordingly in its branched guise.
 
 Once the release has been posted, notification of the release should be sent/posted to the following places:
 
- * The macports-users@lists.macosforge.org and macports-dev@lists.macosforge.org mailing lists.
- * The MacPorts website, by adapting the $mp_version_major and $mp_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
- * Apple's [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Mac OS X software downloads page] (submitter: jmpp@)
+ * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
+ * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
+ * [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Apple's downloads page] (submitter: jmpp@)
  * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
+ * [http://sourceforge.net/projects/macports/ sourceforge] (submitted: rhwood@)
  * [http://www.macupdate.com/info.php/id/21309/macports MacUpdate] (submitter: ???)
  * (Where else?)
