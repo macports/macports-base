@@ -34,6 +34,8 @@
 
 set -x
 
+# Script identification ('cause more often than not the svn Id is not expanded):
+VERSION=1.6.1
 
 # Abstraction variables:
 PREFIX=/opt/local
@@ -77,7 +79,7 @@ function write_setting () {
 }
 
 
-echo "Checking the shell environment for user \"${USER}\"..."
+echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
