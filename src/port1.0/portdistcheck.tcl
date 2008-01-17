@@ -63,6 +63,7 @@ proc distcheck_main {args} {
 		# portfetch 1.0::checkfiles sets fetch_urls list.
 		global fetch_urls
 		checkfiles
+		set totalsize 0
 		
 		# Check all the files.
 		foreach {url_var distfile} $fetch_urls {
@@ -89,10 +90,46 @@ proc distcheck_main {args} {
 				if {$count == 0} {
 					ui_error "no mirror had $distfile for $portname"
 				}
+			} elseif {${distcheck.check} == "filesize"} {
+				set count 0
+				foreach site [set $url_var] {
+					ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
+					set file_url [portfetch::assemble_url $site $distfile]
+					if {[catch {set urlsize [curl getsize $file_url]} error]} {
+						ui_warn "couldn't fetch $file_url for $portname ($error)"
+					} else {
+						incr count
+						if {$urlsize > 0} {
+							ui_info "port $portname: $distfile $urlsize bytes"
+							incr totalsize $urlsize
+							break
+						}
+					}
+				}
+				if {$count == 0} {
+					ui_error "no mirror had $distfile for $portname"
+				}
 			} else {
 				ui_error "unknown distcheck.check ${distcheck.check}"
 				break
 			}
+		}
+		
+		if {${distcheck.check} == "filesize" && $totalsize > 0} {
+			if {$totalsize < 1024} {
+				set size $totalsize
+				set humansize "${size}"
+			} elseif {$totalsize < 1024*1024} {
+				set size [expr $totalsize / 1024.0]
+				set humansize [format "%.1fK" $size]
+			} elseif {$totalsize < 1024*1024*1024} {
+				set size [expr $totalsize / (1024.0*1024.0)]
+				set humansize [format "%.1fM" $size]
+			} else {
+				set size [expr $totalsize / (1024.0*1024.0*1024.0)]
+				set humansize [format "%.1fG" $size]
+			}
+			ui_msg "$portname: $humansize"
 		}
 	}
 }

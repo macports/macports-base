@@ -47,6 +47,7 @@ options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
 options startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
+options startupitem.uniquename startupitem.plist startupitem.location
 commands destroot
 
 # Set defaults
@@ -62,6 +63,9 @@ default destroot.keepdirs ""
 default destroot.violate_mtree no
 
 default startupitem.name        {${portname}}
+default startupitem.uniquename  {org.macports.${startupitem.name}}
+default startupitem.plist       {${startupitem.uniquename}.plist}
+default startupitem.location    LaunchDaemons
 default startupitem.init        ""
 default startupitem.start       ""
 default startupitem.stop        ""
