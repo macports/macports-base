@@ -117,7 +117,7 @@ proc configure_start {args} {
 #
 # internal functions to determine the "-arch xy" flags for the compiler
 # -> these should preferably get a more global scope, perhaps be user-configurable?
-set universal_archs {ppc ppc64 i386 x86_64}
+set universal_archs {ppc i386}
 
 proc configure_get_universal_archflags {args} {
     global universal_archs
