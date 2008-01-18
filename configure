@@ -736,6 +736,7 @@ X_CFLAGS
 X_PRE_LIBS
 X_LIBS
 X_EXTRA_LIBS
+x11prefix
 READLINE_LIBS
 TCL_VERSION
 TCL_BIN_DIR
@@ -1395,6 +1396,8 @@ Optional Packages:
                           Specify group ownership of installed files
   --with-directory-mode=MODE
                           Specify directory mode of installed directories
+  --with-x11-prefix=PREFIX
+                          use PREFIX as the X11 base dir (default autodetect)
   --with-x                use the X Window System
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
   --with-tclinclude       directory containing the public Tcl header files.
@@ -8786,6 +8789,23 @@ _ACEOF
 
 
 
+
+# Check whether --with-x11-prefix was given.
+if test "${with_x11_prefix+set}" = set; then
+  withval=$with_x11_prefix;  x11prefix="$withval"
+fi
+
+case "$x11prefix" in
+  "")
+    # default to traditional value
+    x11prefix=/usr/X11R6
+    ;;
+  *)
+    x_includes=$x11prefix/include
+    x_libraries=$x11prefix/lib
+    ;;
+esac
+
 # Check for md5 implementation
 
 
@@ -10741,6 +10761,17 @@ echo "$as_me: error: Broken X11 install" >&2;}
 			;;
 	esac
 
+
+
+{ echo "$as_me:$LINENO: checking for X11 prefix" >&5
+echo $ECHO_N "checking for X11 prefix... $ECHO_C" >&6; }
+X_INCLUDES_PREFIX=`echo "$x_includes" | sed "s,/include,,"`
+X_LIBRARIES_PREFIX=`echo "$x_libraries" | sed "s,/lib,,"`
+if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX"; then
+    x11prefix=$X_LIBRARIES_PREFIX
+fi
+{ echo "$as_me:$LINENO: result: $x11prefix" >&5
+echo "${ECHO_T}$x11prefix" >&6; }
 
 
 # Check for readline
@@ -12941,6 +12972,7 @@ X_CFLAGS!$X_CFLAGS$ac_delim
 X_PRE_LIBS!$X_PRE_LIBS$ac_delim
 X_LIBS!$X_LIBS$ac_delim
 X_EXTRA_LIBS!$X_EXTRA_LIBS$ac_delim
+x11prefix!$x11prefix$ac_delim
 READLINE_LIBS!$READLINE_LIBS$ac_delim
 TCL_VERSION!$TCL_VERSION$ac_delim
 TCL_BIN_DIR!$TCL_BIN_DIR$ac_delim
@@ -12979,7 +13011,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 59; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 60; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

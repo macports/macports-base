@@ -15,7 +15,7 @@ portdbformat		flat
 portinstalltype		image
 
 # Directory containing the X11 installation.
-x11prefix		/usr/X11R6
+x11prefix		@x11prefix@
 
 # Where to find the sources list.
 sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf

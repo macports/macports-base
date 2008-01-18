@@ -155,10 +155,31 @@ AC_FUNC_STRERROR_R
 AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile])
 MP_CHECK_READLINK_IS_P1003_1A
 
+AC_ARG_WITH(x11-prefix, [AC_HELP_STRING([--with-x11-prefix=PREFIX], [use PREFIX as the X11 base dir (default autodetect)])], [ x11prefix="$withval" ] )
+case "$x11prefix" in
+  "")
+    # default to traditional value
+    x11prefix=/usr/X11R6
+    ;;
+  *)
+    x_includes=$x11prefix/include
+    x_libraries=$x11prefix/lib
+    ;;
+esac
+
 # Check for md5 implementation
 MP_LIB_MD5
 # Check for X11 and paraphernalia
 MP_CHECK_X11
+
+AC_MSG_CHECKING(for X11 prefix)
+X_INCLUDES_PREFIX=`echo "$x_includes" | sed "s,/include,,"`
+X_LIBRARIES_PREFIX=`echo "$x_libraries" | sed "s,/lib,,"`
+if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX"; then
+    x11prefix=$X_LIBRARIES_PREFIX
+fi
+AC_MSG_RESULT([$x11prefix])
+AC_SUBST(x11prefix)
 
 # Check for readline
 AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readline present.]),
