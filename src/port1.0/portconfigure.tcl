@@ -147,7 +147,7 @@ proc configure_get_universal_ldflags {args} {
     global sysroot os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     if {${os.arch} == "powerpc"} {
-        set flags "-Wl,-isyslibroot,${sysroot} ${flags}"
+        set flags "-Wl,-syslibroot,${sysroot} ${flags}"
     }
     return $flags
 }
