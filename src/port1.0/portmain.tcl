@@ -106,14 +106,17 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
             return -code error "Default universal variant only works with ports based on configure"
         }
         eval configure.args-append ${configure.universal_args}
-        if {![file exists /Developer/SDKs/MacOSX10.4u.sdk] &&
-            ![file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+        if {![file exists /Developer/SDKs/MacOSX10.4u.sdk]} {
             return -code error "MacOS X 10.4 universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
         }
         eval configure.cflags-append ${configure.universal_cflags}
         eval configure.cppflags-append ${configure.universal_cppflags}
         eval configure.cxxflags-append ${configure.universal_cxxflags}
         eval configure.ldflags-append ${configure.universal_ldflags}
+    }
+    if {[info exists variations(universal)] && $variations(universal) == "+"} {
+        # cannot go into the variant, due to the amount of ports overriding it
+        eval macosx_deployment_target "10.4"
     }
 
     # This is not a standard option, because we need to take an action when it's
