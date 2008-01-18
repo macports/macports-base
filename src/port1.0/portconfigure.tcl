@@ -84,7 +84,7 @@ set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
 options configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[configure_get_universal_cflags]}
-default configure.universal_cppflags    {}
+default configure.universal_cppflags    {[configure_get_universal_cppflags]}
 default configure.universal_cxxflags    {[configure_get_universal_cflags]}
 default configure.universal_ldflags     {[configure_get_universal_ldflags]}
 
@@ -121,6 +121,15 @@ proc configure_get_universal_archflags {args} {
     set flags ""
     foreach arch $universal_archs {
         set flags "$flags -arch $arch"
+    }
+    return $flags
+}
+
+proc configure_get_universal_cppflags {args} {
+    global sysroot
+    set flags ""
+    if {${sysroot} != ""} {
+        set flags "-isysroot ${sysroot}"
     }
     return $flags
 }
