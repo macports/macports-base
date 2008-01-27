@@ -150,11 +150,16 @@ proc configure_get_universal_cflags {args} {
 
 # internal function to determine the LDFLAGS for the compiler
 proc configure_get_universal_ldflags {args} {
-    global configure.universal_sysroot os.platform os.arch os.version os.major
+    global configure.universal_sysroot global configure.universal_target 
+    global os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
     if {${os.arch} == "powerpc"} {
         set flags "-Wl,-syslibroot,${configure.universal_sysroot} ${flags}"
+    }
+    # normally set in MACOSX_DEPLOYMENT_TARGET, add here too to make sure
+    if {${os.major} == "9"} {
+        set flags "${flags} -mmacosx-version-min=${configure.universal_target}"
     }
     return $flags
 }
