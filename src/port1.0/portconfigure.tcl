@@ -150,7 +150,7 @@ proc configure_get_universal_cflags {args} {
 
 # internal function to determine the LDFLAGS for the compiler
 proc configure_get_universal_ldflags {args} {
-    global configure.universal_sysroot global configure.universal_target 
+    global configure.universal_sysroot configure.universal_target 
     global os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
