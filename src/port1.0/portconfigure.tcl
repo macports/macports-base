@@ -116,9 +116,23 @@ proc configure_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
+# internal function to determine canonical system name for configure
+proc configure_get_universal_system_name {args} {
+    global configure.universal_target
+    switch -- ${configure.universal_target} {
+        "10.4"  { return "i686-apple-darwin8" }
+        "10.5"  { return "i686-apple-darwin9" }
+    }
+    return ""
+}
+
 # internal function to determine the universal args for configure.cmd
 proc configure_get_universal_args {args} {
+    set system [configure_get_universal_system_name]
     set params "--disable-dependency-tracking"
+    if {[info exists system] && $system != ""} {
+        set params "$params --host=${system} --target=${system}"
+    }
     return $params
 }
 
