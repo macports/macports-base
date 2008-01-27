@@ -111,11 +111,10 @@ proc configure_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
-#
-# internal functions to determine the "-arch xy" flags for the compiler
 # -> these should preferably get a more global scope, perhaps be user-configurable?
 set universal_archs {ppc i386}
 
+# internal function to determine the "-arch xy" flags for the compiler
 proc configure_get_universal_archflags {args} {
     global universal_archs
     set flags ""
@@ -125,27 +124,33 @@ proc configure_get_universal_archflags {args} {
     return $flags
 }
 
+# internal function to determine the CPPFLAGS for the compiler
 proc configure_get_universal_cppflags {args} {
     global sysroot
     set flags ""
+    # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
     if {${sysroot} != ""} {
         set flags "-isysroot ${sysroot}"
     }
     return $flags
 }
 
+# internal function to determine the CFLAGS for the compiler
 proc configure_get_universal_cflags {args} {
     global sysroot
     set flags [configure_get_universal_archflags]
+    # these flags should be valid for C/C++ and similar compiler frontends
     if {${sysroot} != ""} {
         set flags "-isysroot ${sysroot} ${flags}"
     }
     return $flags
 }
 
+# internal function to determine the LDFLAGS for the compiler
 proc configure_get_universal_ldflags {args} {
     global sysroot os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
+    # works around linking without using the CFLAGS, outside of automake
     if {${os.arch} == "powerpc"} {
         set flags "-Wl,-syslibroot,${sysroot} ${flags}"
     }
