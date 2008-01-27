@@ -79,9 +79,14 @@ default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
 # Universal options & default values.
+set target "10.4"
 set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+set universal_archs {ppc i386}
 
-options configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
+options configure.universal_target configure.universal_sysroot configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
+default configure.universal_target      {${target}}
+default configure.universal_sysroot     {${sysroot}}
+default configure.universal_archs       {${universal_archs}}
 default configure.universal_args        --disable-dependency-tracking
 default configure.universal_cflags      {[configure_get_universal_cflags]}
 default configure.universal_cppflags    {[configure_get_universal_cppflags]}
@@ -111,14 +116,11 @@ proc configure_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
 }
 
-# -> these should preferably get a more global scope, perhaps be user-configurable?
-set universal_archs {ppc i386}
-
 # internal function to determine the "-arch xy" flags for the compiler
 proc configure_get_universal_archflags {args} {
-    global universal_archs
+    global configure.universal_archs
     set flags ""
-    foreach arch $universal_archs {
+    foreach arch ${configure.universal_archs} {
         set flags "$flags -arch $arch"
     }
     return $flags
@@ -126,33 +128,33 @@ proc configure_get_universal_archflags {args} {
 
 # internal function to determine the CPPFLAGS for the compiler
 proc configure_get_universal_cppflags {args} {
-    global sysroot
+    global configure.universal_sysroot
     set flags ""
     # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
-    if {${sysroot} != ""} {
-        set flags "-isysroot ${sysroot}"
+    if {[info exists configure.universal_sysroot]} {
+        set flags "-isysroot ${configure.universal_sysroot}"
     }
     return $flags
 }
 
 # internal function to determine the CFLAGS for the compiler
 proc configure_get_universal_cflags {args} {
-    global sysroot
+    global configure.universal_sysroot
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
-    if {${sysroot} != ""} {
-        set flags "-isysroot ${sysroot} ${flags}"
+    if {[info exists configure.universal_sysroot]} {
+        set flags "-isysroot ${configure.universal_sysroot} ${flags}"
     }
     return $flags
 }
 
 # internal function to determine the LDFLAGS for the compiler
 proc configure_get_universal_ldflags {args} {
-    global sysroot os.platform os.arch os.version os.major
+    global configure.universal_sysroot os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
     if {${os.arch} == "powerpc"} {
-        set flags "-Wl,-syslibroot,${sysroot} ${flags}"
+        set flags "-Wl,-syslibroot,${configure.universal_sysroot} ${flags}"
     }
     return $flags
 }
