@@ -87,7 +87,7 @@ options configure.universal_target configure.universal_sysroot configure.univers
 default configure.universal_target      {${target}}
 default configure.universal_sysroot     {${sysroot}}
 default configure.universal_archs       {${universal_archs}}
-default configure.universal_args        --disable-dependency-tracking
+default configure.universal_args        {[configure_get_universal_args]}
 default configure.universal_cflags      {[configure_get_universal_cflags]}
 default configure.universal_cppflags    {[configure_get_universal_cppflags]}
 default configure.universal_cxxflags    {[configure_get_universal_cflags]}
@@ -114,6 +114,12 @@ proc configure_start {args} {
     global UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+}
+
+# internal function to determine the universal args for configure.cmd
+proc configure_get_universal_args {args} {
+    set params "--disable-dependency-tracking"
+    return $params
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
