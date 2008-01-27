@@ -6,6 +6,10 @@
 
 Unreleased:
 
+    - Add configure.{universal_target/universal_sysroot/universal_archs} (afb in r33478).
+
+    - Change default +universal platform back to: 10.4/10.4u.sdk/i386 ppc (r33087, r33107).
+
     - Add `port platform` info target that outputs current platform (#12302, afb in r32724).
 
     - Enable 64 bit environment, ppc64 x86_64, for all +universal builds (mww in r32194).
