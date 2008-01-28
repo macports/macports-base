@@ -53,18 +53,19 @@ default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
 
 # Configure special environment variables.
-# We could have default debug/optimization flags at some point.
+# We could have default debug flags at some point.
 # compiler flags section
-options configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
-default configure.cflags    {-O2}
+options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
+default configure.optflags  {-O2}
+default configure.cflags    {${configure.optflags}}
 default configure.cppflags  {"-I${prefix}/include"}
-default configure.cxxflags  {-O2}
-default configure.objcflags {-O2}
+default configure.cxxflags  {${configure.optflags}}
+default configure.objcflags {${configure.optflags}}
 default configure.ldflags   {"-L${prefix}/lib"}
 default configure.libs      {}
-default configure.fflags    {-O2}
-default configure.f90flags  {-O2}
-default configure.fcflags   {-O2}
+default configure.fflags    {${configure.optflags}}
+default configure.f90flags  {${configure.optflags}}
+default configure.fcflags   {${configure.optflags}}
 default configure.classpath {}
 
 # tools section
