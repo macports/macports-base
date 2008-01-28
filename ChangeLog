@@ -6,7 +6,9 @@
 
 Unreleased:
 
-    - Add configure.{universal_target/universal_sysroot/universal_archs} (afb in r33478).
+    - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install)
+
+    - Add configure.{universal_target,universal_sysroot,universal_archs} (afb in r33478).
 
     - Change default +universal platform back to: 10.4/10.4u.sdk/i386 ppc (r33087, r33107).
 
