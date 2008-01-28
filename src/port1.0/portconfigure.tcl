@@ -72,7 +72,7 @@ options configure.perl configure.python configure.ruby configure.install configu
 default configure.perl              {}
 default configure.python            {}
 default configure.ruby              {}
-default configure.install           {"/usr/bin/install"}
+default configure.install           {${portutil::autoconf::install_command}}
 default configure.awk               {}
 default configure.bison             {}
 default configure.pkg_config        {}
