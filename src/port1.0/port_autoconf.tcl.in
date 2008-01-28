@@ -41,6 +41,7 @@ namespace eval portutil::autoconf {
 	variable tar_command "@TAR_CMD@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
+	variable install_command "@INSTALL@"
 	variable install_user "@DSTUSR@"
 	variable install_group "@DSTGRP@"
 	variable prefix "@prefix_expanded@"
