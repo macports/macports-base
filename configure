@@ -728,6 +728,8 @@ MPCONFIGDIR
 DSTUSR
 DSTGRP
 DSTMODE
+MPAPPLICATIONSDIR
+MPFRAMEWORKSDIR
 CPP
 READLINK_IS_NOT_P1003_1A
 MD5_LIBS
@@ -1396,6 +1398,8 @@ Optional Packages:
                           Specify group ownership of installed files
   --with-directory-mode=MODE
                           Specify directory mode of installed directories
+  --with-applications-dir Applications installation directory.
+  --with-frameworks-dir   Frameworks installation directory.
   --with-x11-prefix=PREFIX
                           use PREFIX as the X11 base dir (default autodetect)
   --with-x                use the X Window System
@@ -6740,6 +6744,58 @@ echo $ECHO_N "checking what permissions to use for installation directories... $
 
 	{ echo "$as_me:$LINENO: result: $DSTMODE" >&5
 echo "${ECHO_T}$DSTMODE" >&6; }
+
+
+
+# Check for default directories
+
+
+
+
+# Check whether --with-applications-dir was given.
+if test "${with_applications_dir+set}" = set; then
+  withval=$with_applications_dir; MPAPPLICATIONSDIR=${withval}
+fi
+
+
+    { echo "$as_me:$LINENO: checking for Applications installation directory" >&5
+echo $ECHO_N "checking for Applications installation directory... $ECHO_C" >&6; }
+
+	if test "x$MPAPPLICATIONSDIR" = "x" ; then
+	    if test "$DSTUSR" = "root" ; then
+		MPAPPLICATIONSDIR="/Applications/MacPorts"
+	    else
+		MPAPPLICATIONSDIR="~$DSTUSR/Applications/MacPorts"
+	    fi
+	fi
+
+	{ echo "$as_me:$LINENO: result: $MPAPPLICATIONSDIR" >&5
+echo "${ECHO_T}$MPAPPLICATIONSDIR" >&6; }
+
+
+
+
+
+
+# Check whether --with-frameworks-dir was given.
+if test "${with_frameworks_dir+set}" = set; then
+  withval=$with_frameworks_dir; MPFRAMEWORKSDIR=${withval}
+fi
+
+
+    { echo "$as_me:$LINENO: checking for Frameworks installation directory" >&5
+echo $ECHO_N "checking for Frameworks installation directory... $ECHO_C" >&6; }
+
+	if test "x$MPFRAMEWORKSDIR" = "x" ; then
+	    if test "$DSTUSR" = "root" ; then
+		MPFRAMEWORKSDIR="/Library/Frameworks"
+	    else
+		MPFRAMEWORKSDIR="~$DSTUSR/Library/Frameworks"
+	    fi
+	fi
+
+	{ echo "$as_me:$LINENO: result: $MPFRAMEWORKSDIR" >&5
+echo "${ECHO_T}$MPFRAMEWORKSDIR" >&6; }
 
 
 
@@ -12964,6 +13020,8 @@ MPCONFIGDIR!$MPCONFIGDIR$ac_delim
 DSTUSR!$DSTUSR$ac_delim
 DSTGRP!$DSTGRP$ac_delim
 DSTMODE!$DSTMODE$ac_delim
+MPAPPLICATIONSDIR!$MPAPPLICATIONSDIR$ac_delim
+MPFRAMEWORKSDIR!$MPFRAMEWORKSDIR$ac_delim
 CPP!$CPP$ac_delim
 READLINK_IS_NOT_P1003_1A!$READLINK_IS_NOT_P1003_1A$ac_delim
 MD5_LIBS!$MD5_LIBS$ac_delim
@@ -13011,7 +13069,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 60; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

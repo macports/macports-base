@@ -351,6 +351,48 @@ AC_DEFUN([MP_DIRECTORY_MODE],[
 	AC_SUBST(DSTMODE)
 ])
 
+# MP_PATH_APPLICATIONS
+#---------------------------------------
+AC_DEFUN([MP_PATH_APPLICATIONS],[
+        AC_REQUIRE([MP_CHECK_INSTALLUSER])
+
+    AC_ARG_WITH(applications-dir,[AC_HELP_STRING([--with-applications-dir], [Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
+
+    AC_MSG_CHECKING([for Applications installation directory])
+
+	if test "x$MPAPPLICATIONSDIR" = "x" ; then
+	    if test "$DSTUSR" = "root" ; then
+		MPAPPLICATIONSDIR="/Applications/MacPorts"
+	    else
+		MPAPPLICATIONSDIR="~$DSTUSR/Applications/MacPorts"
+	    fi
+	fi
+
+	AC_MSG_RESULT([$MPAPPLICATIONSDIR])
+    AC_SUBST(MPAPPLICATIONSDIR)
+])
+
+# MP_PATH_FRAMEWORKS
+#---------------------------------------
+AC_DEFUN([MP_PATH_FRAMEWORKS],[
+        AC_REQUIRE([MP_CHECK_INSTALLUSER])
+
+    AC_ARG_WITH(frameworks-dir,[AC_HELP_STRING([--with-frameworks-dir], [Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
+
+    AC_MSG_CHECKING([for Frameworks installation directory])
+
+	if test "x$MPFRAMEWORKSDIR" = "x" ; then
+	    if test "$DSTUSR" = "root" ; then
+		MPFRAMEWORKSDIR="/Library/Frameworks"
+	    else
+		MPFRAMEWORKSDIR="~$DSTUSR/Library/Frameworks"
+	    fi
+	fi
+
+	AC_MSG_RESULT([$MPFRAMEWORKSDIR])
+    AC_SUBST(MPFRAMEWORKSDIR)
+])
+
 # MP_LIB_MD5
 #---------------------------------------
 # Check for an md5 implementation
