@@ -31,5 +31,7 @@ distclean: clean
 
 install: port portindex portmirror mkdirs
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/var/macports
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port-help.tcl  ${INSTALLDIR}/var/macports/
 	cd ${INSTALLDIR}/bin && $(LN_S) -f port portf

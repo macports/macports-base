@@ -1093,7 +1093,32 @@ proc action_usage { action portlist opts } {
 
 
 proc action_help { action portlist opts } {
-    print_help
+    set pl [lindex $portlist 0]
+    set x [lsearch $pl name*]
+    set helpfile "$macports::prefix/var/macports/port-help.tcl"
+
+    if {$x != -1} {
+	set topic [lindex $pl [expr $x + 1]]
+	if {[file exists $helpfile]} {
+		if {[catch {source $helpfile} err]} {
+			puts "Error reading helpfile $helpfile: $err"
+			return 1
+		} else {
+			if {[info exists porthelp($topic)]} {
+				puts $porthelp($topic)
+				return 0
+			} else {
+				puts "No help for topic $topic"
+				return 1
+			}
+		}
+	} else {
+		puts "Unable to open help file $helpfile"
+		return 1
+	}
+    } else {
+    	print_help
+    }
     return 0
 }
 
