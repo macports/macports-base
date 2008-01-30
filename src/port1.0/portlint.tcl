@@ -145,8 +145,10 @@ proc lint_main {args} {
 	set portfile ${portpath}/Portfile
 	set portdirs [split ${portpath} /]
 	set last [llength $portdirs]
-	incr last -2
+	incr last -1
 	set portdir [lindex $portdirs $last]
+	incr last -1
+	set portcatdir [lindex $portdirs $last]
 	set groupdir ${portresourcepath}/group
 
 	set warnings 0
@@ -402,12 +404,18 @@ proc lint_main {args} {
         incr warnings
     }
 
-    # this check is only valid for ports stored in the regular tree directories
-    if {$portdir != $category} {
-        ui_error "Portfile directory $portdir does not match primary category $category"
+    # these checks are only valid for ports stored in the regular tree directories
+    if {$portcatdir != $category} {
+        ui_error "Portfile parent directory $portcatdir does not match primary category $category"
         incr errors
     } else {
-        ui_info "OK: Portfile directory matches primary category"
+        ui_info "OK: Portfile parent directory matches primary category"
+    }
+    if {$portdir != $portname} {
+        ui_error "Portfile directory $portdir does not match port name $portname"
+        incr errors
+    } else {
+        ui_info "OK: Portfile directory matches port name"
     }
 
     if {[info exists patchfiles]} {
