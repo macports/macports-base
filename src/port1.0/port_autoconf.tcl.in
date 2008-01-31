@@ -45,4 +45,5 @@ namespace eval portutil::autoconf {
 	variable install_user "@DSTUSR@"
 	variable install_group "@DSTGRP@"
 	variable prefix "@prefix_expanded@"
+	variable x11prefix "@x11prefix@"
 }
