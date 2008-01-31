@@ -144,6 +144,12 @@ proc configure_start {args} {
 proc configure_get_universal_system_name {args} {
     global configure.universal_target
     switch -- ${configure.universal_target} {
+        "10.1"  { return "powerpc-apple-darwin5" }
+                # /Developer/SDKs/MacOSX10.1.5.sdk
+        "10.2"  { return "powerpc-apple-darwin6" }
+                # /Developer/SDKs/MacOSX10.2.8.sdk
+        "10.3"  { return "powerpc-apple-darwin7" }
+                # /Developer/SDKs/MacOSX10.3.9.sdk
         "10.4"  { return "i686-apple-darwin8" }
         "10.5"  { return "i686-apple-darwin9" }
     }
