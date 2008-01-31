@@ -592,6 +592,8 @@ AC_DEFUN([MP_PROG_DAEMONDO],[
 #------------------------------------------------------------------------
 
 AC_DEFUN(MP_TCL_PACKAGE_DIR, [
+	AC_REQUIRE([MP_CHECK_INSTALLUSER])
+
     AC_MSG_CHECKING(for Tcl package directory)
 
     AC_ARG_WITH(tclpackage, [  --with-tclpackage       Tcl package installation directory.], with_tclpackagedir=${withval})
@@ -611,6 +613,7 @@ AC_DEFUN(MP_TCL_PACKAGE_DIR, [
 		    darwin*)
 		    	tcl_autopath=`echo 'puts -nonewline \$auto_path' | $TCLSH`
 			for path in $tcl_autopath; do
+			if test "$DSTUSR" = "root" ; then
 			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
 				break
@@ -621,6 +624,10 @@ AC_DEFUN(MP_TCL_PACKAGE_DIR, [
 				    break
 			        fi
 			    fi
+			elif test "$path" = "~/Library/Tcl"; then
+			    ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+			    break
+			fi
 			done
 		    ;;
 		esac

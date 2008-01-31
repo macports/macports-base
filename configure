@@ -11683,6 +11683,8 @@ echo "$as_me: error: Could not find tclsh" >&2;}
 
 # Check for Tcl package path
 
+
+
     { echo "$as_me:$LINENO: checking for Tcl package directory" >&5
 echo $ECHO_N "checking for Tcl package directory... $ECHO_C" >&6; }
 
@@ -11711,6 +11713,7 @@ else
 		    darwin*)
 		    	tcl_autopath=`echo 'puts -nonewline \$auto_path' | $TCLSH`
 			for path in $tcl_autopath; do
+			if test "$DSTUSR" = "root" ; then
 			    if test "$path" = "/Library/Tcl"; then
 				ac_cv_c_tclpkgd="$path"
 				break
@@ -11721,6 +11724,10 @@ else
 				    break
 			        fi
 			    fi
+			elif test "$path" = "~/Library/Tcl"; then
+			    ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+			    break
+			fi
 			done
 		    ;;
 		esac
