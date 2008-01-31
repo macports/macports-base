@@ -53,20 +53,43 @@ default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
 
 # Configure special environment variables.
-# We could have default debug flags at some point.
-# compiler flags section
+# We could have m32/m64/march/mtune be global configurable at some point.
+options configure.m32 configure.m64 configure.march configure.mtune
+default configure.march     {}
+default configure.mtune     {}
+# We could have debug/optimizations be global configurable at some point.
 options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
 default configure.optflags  {-O2}
-default configure.cflags    {${configure.optflags}}
+# compiler flags section
+default configure.cflags    {[configure_get_cflags]}
 default configure.cppflags  {"-I${prefix}/include"}
-default configure.cxxflags  {${configure.optflags}}
-default configure.objcflags {${configure.optflags}}
+default configure.cxxflags  {[configure_get_cflags]}
+default configure.objcflags {[configure_get_cflags]}
 default configure.ldflags   {"-L${prefix}/lib"}
 default configure.libs      {}
-default configure.fflags    {${configure.optflags}}
-default configure.f90flags  {${configure.optflags}}
-default configure.fcflags   {${configure.optflags}}
+default configure.fflags    {[configure_get_cflags]}
+default configure.f90flags  {[configure_get_cflags]}
+default configure.fcflags   {[configure_get_cflags]}
 default configure.classpath {}
+
+# internal function to return the system value for CFLAGS/CXXFLAGS/etc
+proc configure_get_cflags {args} {
+    global configure.optflags
+    global configure.m32 configure.m64 configure.march configure.mtune
+    set flags "${configure.optflags}"
+    if {[tbool configure.m64]} {
+        set flags "-m64 ${flags}"
+    } elseif {[tbool configure.m32]} {
+        set flags "-m32 ${flags}"
+    }
+    if {[info exists configure.march] && ${configure.march} != {}} {
+        set flags "${flags} -march=${configure.march}"
+    }
+    if {[info exists configure.mtune] && ${configure.mtune} != {}} {
+        set flags "${flags} -mtune=${configure.mtune}"
+    }
+    return $flags
+}
 
 # tools section
 options configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
