@@ -1,4 +1,4 @@
-#!/bin/bash -l
+#!/bin/bash
 # -*- coding: utf-8; mode: shell-script-mode; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=sh:et:sw=4:ts=4:sts=4
 #
 # Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
@@ -32,7 +32,7 @@
 # $Id$
 
 
-#set -x
+set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
 VERSION=1.6.1
@@ -90,22 +90,20 @@ USHELL="$(basename "${SHELL}")" || {
     exit 1
 }
 case "${USHELL}" in
-    *csh)
+    tcsh)
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
-        CONF_FILE=cshrc
-        echo "Configuring a csh based shell."
+        CONF_FILE=tcshrc
         ;;
-    *sh)
+    bash)
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
         CONF_FILE=profile
-        echo "Configuring a bourne based shell."
         ;;
     *)
-        echo "Unsupported shell ($USHELL)! Please set your MacPorts compatible environment manually."
+        echo "Unknown shell! Please set your MacPorts compatible environment manually."
         update_macports
         exit 0
         ;;
