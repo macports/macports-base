@@ -40,14 +40,14 @@ package require macports_util 1.0
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
-        portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
+        portdbpath libpath binpath auto_path extra_env sources_conf prefix x11prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-        portdbpath portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
+        portdbpath portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
@@ -320,6 +320,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::libpath
     global macports::prefix
     global macports::prefix_frozen
+    global macports::x11prefix
     global macports::registry.installtype
     global macports::rsync_dir
     global macports::rsync_options
