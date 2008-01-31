@@ -6,6 +6,8 @@
 
 Unreleased:
 
+    - Add configure.{optflags,m32,m64,march,mtune} (afb in r33503, r33599)
+
     - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install)
 
     - Add configure.{universal_target,universal_sysroot,universal_archs} (afb in r33478).
