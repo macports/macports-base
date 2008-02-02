@@ -32,7 +32,7 @@
 # $Id$
 
 
-set -x
+#set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
 VERSION=1.6.1
