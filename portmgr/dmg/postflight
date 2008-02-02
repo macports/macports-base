@@ -84,26 +84,28 @@ echo "The MacPorts Project, postflight script version ${VERSION}: checking the s
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL="$(basename "${SHELL}")" || {
+USHELL=$(dscl . -read /users/${USER} shell | awk -F'/' '{print $NF}') || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1
 }
 case "${USHELL}" in
     tcsh)
+        echo "Detected the tcsh shell."
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
         CONF_FILE=tcshrc
         ;;
     bash)
+        echo "Detected the bash shell."
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
         CONF_FILE=profile
         ;;
     *)
-        echo "Unknown shell! Please set your MacPorts compatible environment manually."
+        echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."
         update_macports
         exit 0
         ;;
