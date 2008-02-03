@@ -448,12 +448,13 @@ dnl print a warning
 # ---------------------
 AC_DEFUN([MP_CHECK_X11], [
 
+	AC_PATH_X
 	AC_PATH_XTRA
 
 	# Check for libX11
 	AC_CHECK_LIB([X11], [XOpenDisplay],[
 		has_x_runtime=yes
-		], [ has_x_runtime=no ], [-L/usr/X11R6/lib $X_LIBS])
+		], [ has_x_runtime=no ], [$X_LIBS])
 
 # 	echo "------done---------"
 # 	echo "x_includes=${x_includes}"
