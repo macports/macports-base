@@ -384,7 +384,7 @@ proc lint_main {args} {
             set desc_ok true
 
             if {![regexp {^[A-Za-z0-9_]+$} $variantname]} {
-                ui_error "Variant $variantname is named illegal, use \[A-Za-z0-9_\]+ only"
+                ui_error "Variant name $variantname is not valid; use \[A-Za-z0-9_\]+ only"
                 incr errors
                 set name_ok false
             }
