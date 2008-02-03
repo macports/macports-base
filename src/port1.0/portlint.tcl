@@ -379,16 +379,33 @@ proc lint_main {args} {
         if {![info exists variantname] || $variantname == ""} {
             ui_error "Variant number $variantnumber does not have a name"
             incr errors
-        } elseif {![info exists variantdesc] || $variantdesc == ""} {
-            ui_info "OK: Found variant: $variantname"
-            # don't warn about missing descriptions for global variants
-            if {[lsearch -exact $local_variants $variantname] != -1 &&
-                [lsearch -exact $lint_variants $variantname] == -1} {
-                ui_warn "Variant $variantname does not have a description"
-                incr warnings
-            }
         } else {
-            ui_info "OK: Found variant $variantname: $variantdesc"
+            set name_ok true
+            set desc_ok true
+
+            if {![regexp {^[A-Za-z0-9_]+$} $variantname]} {
+                ui_error "Variant $variantname is named illegal, use \[A-Za-z0-9_\]+ only"
+                incr errors
+                set name_ok false
+            }
+
+            if {![info exists variantdesc] || $variantdesc == ""} {
+                # don't warn about missing descriptions for global variants
+                if {[lsearch -exact $local_variants $variantname] != -1 &&
+                    [lsearch -exact $lint_variants $variantname] == -1} {
+                    ui_warn "Variant $variantname does not have a description"
+                    incr warnings
+                    set desc_ok false
+                }
+            }
+
+            if {$name_ok} {
+                if {$desc_ok} {
+                    ui_info "OK: Found variant $variantname: $variantdesc"
+                } else {
+                    ui_info "OK: Found variant: $variantname"
+                }
+            }
         }
         incr variantnumber
     }
