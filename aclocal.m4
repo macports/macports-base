@@ -448,6 +448,22 @@ dnl print a warning
 # ---------------------
 AC_DEFUN([MP_CHECK_X11], [
 
+        # work around symbolic X11 link in /usr/include by providing explicit defaults
+        case "$host" in
+            *-*-darwin9*)
+                if test "x$x_includes" = xNONE && test "x$x_libraries" = xNONE; then
+                    x_includes="/usr/X11/include"
+                    x_libraries="/usr/X11/lib"
+                fi
+                ;;
+            *-*-darwin*)
+                if test "x$x_includes" = xNONE && test "x$x_libraries" = xNONE; then
+                    x_includes="/usr/X11R6/include"
+                    x_libraries="/usr/X11R6/lib"
+                fi
+                ;;
+        esac
+
 	AC_PATH_X
 	AC_PATH_XTRA
 

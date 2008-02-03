@@ -9349,7 +9349,25 @@ echo "$as_me: error: Neither OpenSSL or libmd were found. A working md5 implemen
 
 
 # Check for X11 and paraphernalia
-{ echo "$as_me:$LINENO: checking for X" >&5
+
+
+        # work around symbolic X11 link in /usr/include by providing explicit defaults
+        case "$host" in
+            *-*-darwin9*)
+                if test "x$x_includes" = xNONE && test "x$x_libraries" = xNONE; then
+                    x_includes="/usr/X11/include"
+                    x_libraries="/usr/X11/lib"
+                fi
+                ;;
+            *-*-darwin*)
+                if test "x$x_includes" = xNONE && test "x$x_libraries" = xNONE; then
+                    x_includes="/usr/X11R6/include"
+                    x_libraries="/usr/X11R6/lib"
+                fi
+                ;;
+        esac
+
+	{ echo "$as_me:$LINENO: checking for X" >&5
 echo $ECHO_N "checking for X... $ECHO_C" >&6; }
 
 
@@ -9587,8 +9605,6 @@ else
   { echo "$as_me:$LINENO: result: libraries $x_libraries, headers $x_includes" >&5
 echo "${ECHO_T}libraries $x_libraries, headers $x_includes" >&6; }
 fi
-
-
 
 	if test "$no_x" = yes; then
   # Not all programs may use this symbol, but it does not hurt to define it.
@@ -10673,7 +10689,7 @@ if test "${ac_cv_lib_X11_XOpenDisplay+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lX11 -L/usr/X11R6/lib $X_LIBS $LIBS"
+LIBS="-lX11 $X_LIBS $LIBS"
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
