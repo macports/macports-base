@@ -341,7 +341,8 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 	fi
 
 	if test x"${with_objc_foundation}" == x || test x${with_objc_foundation} == x"GNUstep"; then
-		if test x"${GNUSTEP_SYSTEM_ROOT}" == x; then
+		GNUSTEP_CONFIG=/usr/bin/gnustep-config
+		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" == x; then
 			if test x"${with_objc_foundation}" == x"GNUstep"; then
 				AC_MSG_ERROR([GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library])
 			else
@@ -352,9 +353,15 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 			AC_MSG_CHECKING([for GNUstep Foundation library])
 
 			# Set GNUstep LDFLAGS, CPPFLAGS, and LIBS
+			if test -x ${GNUSTEP_CONFIG}; then
+			GNUSTEP_LDFLAGS="`${GNUSTEP_CONFIG} --objc-libs`"
+			GNUSTEP_CPPFLAGS="`${GNUSTEP_CONFIG} --objc-flags`"
+			GNUSTEP_LIBS="`${GNUSTEP_CONFIG} --base-libs`"
+			else
 			GNUSTEP_LDFLAGS="-L${GNUSTEP_SYSTEM_ROOT}/Library/Libraries/"
 			GNUSTEP_CPPFLAGS="-I${GNUSTEP_SYSTEM_ROOT}/Library/Headers/"
 			GNUSTEP_LIBS="-lgnustep-base"
+			fi
 
 			AC_CACHE_VAL(ac_cv_objc_foundation_gnustep, [
 				# Save old LDFLAGS, CPPFLAGS, and LIBS
