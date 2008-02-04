@@ -322,6 +322,12 @@ AC_DEFUN([MP_CHECK_INSTALLGROUP],[
 	   darwin*)
 		DSTGRP="admin"
 		;;
+	   freebsd*)
+		DSTGRP="wheel"
+		;;
+	   linux*)
+		DSTGRP="root"
+		;;
 	   *)
 		DSTGRP="wheel"
 		;;
