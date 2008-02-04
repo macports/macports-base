@@ -67,6 +67,17 @@ rsync_dir			release/base/
 # Rsync options
 rsync_options		-rtzv --delete-after
 
+# Options for Universal Binaries (+universal variant)
+
+# macosx_deployment_target
+universal_target	10.4
+
+# the SDK "sysroot" to use 
+universal_sysroot	/Developer/SDKs/MacOSX10.4u.sdk
+
+# machine architectures
+universal_archs		ppc i386
+
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", "launchd", or "none";
 # if the option is empty or "default" then a startupitem type appropriate
