@@ -10,6 +10,9 @@ LDFLAGS+=	${OBJC_FOUNDATION_LDFLAGS}
 CPPFLAGS+=	${OBJC_FOUNDATION_CPPFLAGS}
 LIBS+=	${OBJC_FOUNDATION_LIBS}
 
+clean::
+	rm -f *.d
+
 distclean::
 	rm -f Makefile
 
