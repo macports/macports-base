@@ -6112,9 +6112,9 @@ echo $ECHO_N "checking for GNUstep Foundation library... $ECHO_C" >&6; }
 
 			# Set GNUstep LDFLAGS, CPPFLAGS, and LIBS
 			if test -x ${GNUSTEP_CONFIG}; then
-			GNUSTEP_LDFLAGS="`${GNUSTEP_CONFIG} --objc-libs`"
-			GNUSTEP_CPPFLAGS="`${GNUSTEP_CONFIG} --objc-flags`"
-			GNUSTEP_LIBS="`${GNUSTEP_CONFIG} --base-libs`"
+			GNUSTEP_LDFLAGS=`sh -c "MAKELEVEL=0 {GNUSTEP_CONFIG} --objc-libs"`
+			GNUSTEP_CPPFLAGS=`sh -c "MAKELEVEL=0 ${GNUSTEP_CONFIG} --objc-flags"`
+			GNUSTEP_LIBS=`sh -c "MAKELEVEL=0 ${GNUSTEP_CONFIG} --base-libs"`
 			else
 			GNUSTEP_LDFLAGS="-L${GNUSTEP_SYSTEM_ROOT}/Library/Libraries/"
 			GNUSTEP_CPPFLAGS="-I${GNUSTEP_SYSTEM_ROOT}/Library/Headers/"
@@ -6722,6 +6722,12 @@ echo $ECHO_N "checking for install group... $ECHO_C" >&6; }
 	   case $host_os in
 	   darwin*)
 		DSTGRP="admin"
+		;;
+	   freebsd*)
+		DSTGRP="wheel"
+		;;
+	   linux*)
+		DSTGRP="root"
 		;;
 	   *)
 		DSTGRP="wheel"
