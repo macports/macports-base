@@ -6095,7 +6095,8 @@ echo "${ECHO_T}${ac_cv_objc_foundation_apple}" >&6; }
 	fi
 
 	if test x"${with_objc_foundation}" == x || test x${with_objc_foundation} == x"GNUstep"; then
-		if test x"${GNUSTEP_SYSTEM_ROOT}" == x; then
+		GNUSTEP_CONFIG=/usr/bin/gnustep-config
+		if test ! -x "${GNUSTEP_CONFIG}" -a x"${GNUSTEP_SYSTEM_ROOT}" == x; then
 			if test x"${with_objc_foundation}" == x"GNUstep"; then
 				{ { echo "$as_me:$LINENO: error: GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library" >&5
 echo "$as_me: error: GNUSTEP_SYSTEM_ROOT is not defined in your environment, preventing the use of GNUstep's Foundation library" >&2;}
@@ -6110,9 +6111,15 @@ echo "$as_me: WARNING: GNUSTEP_SYSTEM_ROOT is not defined in your environment, p
 echo $ECHO_N "checking for GNUstep Foundation library... $ECHO_C" >&6; }
 
 			# Set GNUstep LDFLAGS, CPPFLAGS, and LIBS
+			if test -x ${GNUSTEP_CONFIG}; then
+			GNUSTEP_LDFLAGS="`${GNUSTEP_CONFIG} --objc-libs`"
+			GNUSTEP_CPPFLAGS="`${GNUSTEP_CONFIG} --objc-flags`"
+			GNUSTEP_LIBS="`${GNUSTEP_CONFIG} --base-libs`"
+			else
 			GNUSTEP_LDFLAGS="-L${GNUSTEP_SYSTEM_ROOT}/Library/Libraries/"
 			GNUSTEP_CPPFLAGS="-I${GNUSTEP_SYSTEM_ROOT}/Library/Headers/"
 			GNUSTEP_LIBS="-lgnustep-base"
+			fi
 
 			if test "${ac_cv_objc_foundation_gnustep+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
@@ -10839,7 +10846,7 @@ echo "$as_me: error: Broken X11 install" >&2;}
 echo $ECHO_N "checking for X11 prefix... $ECHO_C" >&6; }
 X_INCLUDES_PREFIX=`echo "$x_includes" | sed "s,/include,,"`
 X_LIBRARIES_PREFIX=`echo "$x_libraries" | sed "s,/lib,,"`
-if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX"; then
+if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX" -a "x$X_LIBRARIES_PREFIX" != x; then
     x11prefix=$X_LIBRARIES_PREFIX
 fi
 { echo "$as_me:$LINENO: result: $x11prefix" >&5
