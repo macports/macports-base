@@ -6,7 +6,13 @@
 
 Unreleased:
 
+    - Work around autoconf X11 detection bugs on darwin (afb in r33717)
+
+    - Fix bugs with X11 lib detection on Leopard (#14089, afb in r33716)
+
     - Add configure.{optflags,m32,m64,march,mtune} (afb in r33503, r33599)
+
+    - Add applications_dir and frameworks_dir configuration (r33499, r33722)
 
     - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install)
 
