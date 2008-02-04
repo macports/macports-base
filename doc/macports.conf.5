@@ -213,7 +213,7 @@ Sets the directory search path for locating system executables used by MacPorts.
 the paths for locating utilities such as rsync, tar, cvs and others.
 .br
 .Ic Default:
-${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
+${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:${x11prefix}/bin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
 .El
