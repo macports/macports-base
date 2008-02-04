@@ -87,6 +87,16 @@ image
 .Pp
 NOTE. Mac OS X 10.2 and Darwin 6.x users should switch to 'direct' mode to have MacPorts working properly
 on their systems.
+.It Va applications_dir
+Directory containing Applications installed from ports.
+.br
+.Ic Default:
+/Applications/MacPorts
+.It Va frameworks_dir
+Directory containing Frameworks installed from ports.
+.br
+.Ic Default:
+/Library/Frameworks
 .It Va sources_conf
 Location of the sources file. This file enables rsync synchronization of the default ports tree with the
 MacPorts rsync server (through the "sync" target of the
