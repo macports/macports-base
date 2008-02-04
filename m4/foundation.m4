@@ -354,9 +354,9 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 
 			# Set GNUstep LDFLAGS, CPPFLAGS, and LIBS
 			if test -x ${GNUSTEP_CONFIG}; then
-			GNUSTEP_LDFLAGS="`${GNUSTEP_CONFIG} --objc-libs`"
-			GNUSTEP_CPPFLAGS="`${GNUSTEP_CONFIG} --objc-flags`"
-			GNUSTEP_LIBS="`${GNUSTEP_CONFIG} --base-libs`"
+			GNUSTEP_LDFLAGS=`sh -c "MAKELEVEL=0 {GNUSTEP_CONFIG} --objc-libs"`
+			GNUSTEP_CPPFLAGS=`sh -c "MAKELEVEL=0 ${GNUSTEP_CONFIG} --objc-flags"`
+			GNUSTEP_LIBS=`sh -c "MAKELEVEL=0 ${GNUSTEP_CONFIG} --base-libs"`
 			else
 			GNUSTEP_LDFLAGS="-L${GNUSTEP_SYSTEM_ROOT}/Library/Libraries/"
 			GNUSTEP_CPPFLAGS="-I${GNUSTEP_SYSTEM_ROOT}/Library/Headers/"
