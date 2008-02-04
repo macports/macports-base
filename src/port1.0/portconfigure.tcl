@@ -102,14 +102,9 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-# Universal options & default values.
-set target "10.4"
-set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
-set universal_archs {ppc i386}
-
 options configure.universal_target configure.universal_sysroot configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
-default configure.universal_target      {${target}}
-default configure.universal_sysroot     {${sysroot}}
+default configure.universal_target      {${universal_target}}
+default configure.universal_sysroot     {${universal_sysroot}}
 default configure.universal_archs       {${universal_archs}}
 default configure.universal_args        {[configure_get_universal_args]}
 default configure.universal_cflags      {[configure_get_universal_cflags]}
