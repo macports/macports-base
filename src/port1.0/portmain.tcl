@@ -129,6 +129,12 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
             variant_undef universal
         }
     }
+} else {
+    proc universal_variant {state} {
+        if {${state} != "no"} {
+            ui_error "+universal is only available on +macosx"
+        }
+    }
 }
 
 proc main {args} {
