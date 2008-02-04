@@ -179,7 +179,7 @@ MP_CHECK_X11
 AC_MSG_CHECKING(for X11 prefix)
 X_INCLUDES_PREFIX=`echo "$x_includes" | sed "s,/include,,"`
 X_LIBRARIES_PREFIX=`echo "$x_libraries" | sed "s,/lib,,"`
-if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX"; then
+if test "x$have_x" = "xyes" -a "x$X_INCLUDES_PREFIX" = "x$X_LIBRARIES_PREFIX" -a "x$X_LIBRARIES_PREFIX" != x; then
     x11prefix=$X_LIBRARIES_PREFIX
 fi
 AC_MSG_RESULT([$x11prefix])
