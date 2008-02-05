@@ -58,7 +58,9 @@ configurepipe		no
 # Lowered scheduling priority (0-20) to use for make when building ports
 buildnicevalue		0
 
-# Number of simultaneous make jobs (commands) to use when building ports
+# Number of simultaneous make jobs (commands) to use when building ports. This
+# value may be set to 0 so the number of simultaneous make jobs will be set to
+# the number of CPU cores that are automatically detected.
 buildmakejobs		1
 
 # Set whether to automatically execute "clean" after "install" of ports
