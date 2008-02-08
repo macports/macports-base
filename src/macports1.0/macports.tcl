@@ -1643,8 +1643,10 @@ proc macports::selfupdate {{optionslist {}}} {
     array set options $optionslist
     
     # syncing ports tree.
-    if {[catch {mportsync} result]} {
-        return -code error "Couldn't sync the ports tree: $result"
+    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
+        if {[catch {mportsync} result]} {
+            return -code error "Couldn't sync the ports tree: $result"
+        }
     }
     
     # create the path to the to be downloaded sources if it doesn't exist
