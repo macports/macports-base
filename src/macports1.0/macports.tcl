@@ -1669,47 +1669,52 @@ proc macports::selfupdate {{optionslist {}}} {
     } else {
         set use_the_force_luke no
         ui_debug "Rebuilding and reinstalling MacPorts if needed"
-        # Choose what version file to use: old, floating point format or new, real version number format
-        set old_version_file [file join $mp_source_path config mp_version]
-        set new_version_file [file join $mp_source_path config macports_version]
-        if {[file exists $old_version_file]} {
-            set fd [open $old_version_file r]
-        } elseif {[file exists $new_version_file]} {
-            set fd [open $new_version_file r]
-        }
-        # get downloaded MacPorts version
-        gets $fd macports_version_new
-        close $fd
-        # echo downloaded MacPorts version
-        ui_msg "Downloaded MacPorts base version $macports_version_new"
     }
+
+    # Choose what version file to use: old, floating point format or new, real version number format
+    set old_version_file [file join $mp_source_path config mp_version]
+    set new_version_file [file join $mp_source_path config macports_version]
+    if {[file exists $old_version_file]} {
+        set fd [open $old_version_file r]
+    } elseif {[file exists $new_version_file]} {
+        set fd [open $new_version_file r]
+    }
+    # get downloaded MacPorts version
+    gets $fd macports_version_new
+    close $fd
+    # echo downloaded MacPorts version
+    ui_msg "Downloaded MacPorts base version $macports_version_new"
 
     # check if we we need to rebuild base
     if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
-        # get installation user/group and permissions
-        set owner [file attributes ${prefix} -owner]
-        set group [file attributes ${prefix} -group]
-        set perms [string range [file attributes ${prefix} -permissions] end-3 end]
-        set installing_user [exec /usr/bin/id -un]
-        if {![string equal $installing_user $owner]} {
-            return -code error "User $installing_user does not own ${prefix} - try using sudo"
-        }
-        ui_debug "Permissions OK"
-
-        # where to install our macports1.0 tcl package
-        set mp_tclpackage_path [file join $portdbpath .tclpackage]
-        if { [file exists $mp_tclpackage_path]} {
-            set fd [open $mp_tclpackage_path r]
-            gets $fd tclpackage
-            close $fd
+        if {[info exists options(ports_selfupdate_prepend)]} {
+            ui_msg "\nMacPorts base is outdated, selfupdate will install $macports_version_new"
         } else {
-            set tclpackage $libpath
-        }
-        
-        # do the actual configure, build and installation of new base
-        ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms\n"
-        if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
-            return -code error "Error installing new MacPorts base: $result"
+            # get installation user/group and permissions
+            set owner [file attributes ${prefix} -owner]
+            set group [file attributes ${prefix} -group]
+            set perms [string range [file attributes ${prefix} -permissions] end-3 end]
+            set installing_user [exec /usr/bin/id -un]
+            if {![string equal $installing_user $owner]} {
+                return -code error "User $installing_user does not own ${prefix} - try using sudo"
+            }
+            ui_debug "Permissions OK"
+
+            # where to install our macports1.0 tcl package
+            set mp_tclpackage_path [file join $portdbpath .tclpackage]
+            if { [file exists $mp_tclpackage_path]} {
+                set fd [open $mp_tclpackage_path r]
+                gets $fd tclpackage
+                close $fd
+            } else {
+                set tclpackage $libpath
+            }
+            
+            # do the actual configure, build and installation of new base
+            ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms\n"
+            if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
+                return -code error "Error installing new MacPorts base: $result"
+            }
         }
     } else {
         ui_msg "\nThe MacPorts installation is not outdated so it was not updated"
@@ -1721,8 +1726,6 @@ proc macports::selfupdate {{optionslist {}}} {
     if { [catch { exec chown -R $sources_owner [file join $portdbpath sources/] } result] } {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to $sources_owner: $result"
     }
-
-    ui_msg "selfupdate done!"
 
     return 0
 }
