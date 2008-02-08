@@ -156,9 +156,11 @@ proc configure_get_universal_system_name {args} {
 
 # internal function to determine the universal args for configure.cmd
 proc configure_get_universal_args {args} {
+    global configure.universal_archs
     set system [configure_get_universal_system_name]
     set params "--disable-dependency-tracking"
-    if {[info exists system] && $system != ""} {
+    if {[llength ${configure.universal_archs}] == 1 &&
+        [info exists system] && $system != ""} {
         set params "$params --host=${system} --target=${system}"
     }
     return $params
