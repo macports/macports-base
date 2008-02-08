@@ -1687,7 +1687,7 @@ proc macports::selfupdate {{optionslist {}}} {
 
     # check if we we need to rebuild base
     if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
-        if {[info exists options(ports_selfupdate_prepend)] && $options(ports_selfupdate_prepend) == "yes"} {
+        if {[info exists options(ports_selfupdate_pretend)] && $options(ports_selfupdate_pretend) == "yes"} {
             ui_msg "\nMacPorts base is outdated, selfupdate will install $macports_version_new"
         } else {
             # get installation user/group and permissions
