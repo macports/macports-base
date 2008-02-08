@@ -1364,7 +1364,7 @@ proc mportsync {} {
                 set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
                 ui_debug $rsync_commandline
                 if {[catch {system $rsync_commandline}]} {
-                    return -code error "Synchronization the local ports tree failed doing rsync"
+                    return -code error "Synchronization of the local ports tree failed doing rsync"
                 }
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
