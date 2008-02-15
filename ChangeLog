@@ -5,6 +5,8 @@
 
 
 Unreleased:
+    - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
+	r33940, 33941)
 
     - Work around autoconf X11 detection bugs on darwin (afb in r33717)
 
