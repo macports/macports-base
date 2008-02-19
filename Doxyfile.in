@@ -62,7 +62,7 @@ GENERATE_DEPRECATEDLIST= YES
 ENABLED_SECTIONS       = 
 MAX_INITIALIZER_LINES  = 30
 SHOW_USED_FILES        = YES
-SHOW_DIRECTORIES       = NO
+SHOW_DIRECTORIES       = YES
 FILE_VERSION_FILTER    = 
 #---------------------------------------------------------------------------
 # configuration options related to warning and progress messages
@@ -79,7 +79,10 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = src
 INPUT_ENCODING         = UTF-8
-FILE_PATTERNS          = *.tcl
+FILE_PATTERNS          = *.tcl \
+                         *.c \
+                         *.m \
+                         *.h
 RECURSIVE              = YES
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
@@ -97,7 +100,7 @@ FILTER_SOURCE_FILES    = NO
 #---------------------------------------------------------------------------
 SOURCE_BROWSER         = YES
 INLINE_SOURCES         = NO
-STRIP_CODE_COMMENTS    = YES
+STRIP_CODE_COMMENTS    = NO
 REFERENCED_BY_RELATION = YES
 REFERENCES_RELATION    = YES
 REFERENCES_LINK_SOURCE = YES
