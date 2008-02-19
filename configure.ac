@@ -390,6 +390,7 @@ dnl SC_CONFIG_MANPAGES
 
 # Output
 AC_CONFIG_FILES([
+	Doxyfile
 	Makefile
 	Mk/macports.autoconf.mk
 	doc/prefix.mtree
