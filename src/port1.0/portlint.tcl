@@ -283,6 +283,7 @@ proc lint_main {args} {
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
     global maintainers homepage master_sites checksums patchfiles
+    global fetch.type
     
     global lint_portsystem lint_platforms lint_categories 
     global lint_required lint_optional lint_variants
@@ -313,6 +314,12 @@ proc lint_main {args} {
         } else {
             set var $req_var
         }
+
+       if {$var == "master_sites" && ${fetch.type} != "standard"} {
+             ui_info "OK: $var not required for fetch.type ${fetch.type}"
+             continue
+       }
+       
        if {![info exists $var]} {
             ui_error "Missing required variable: $req_var"
             incr errors
