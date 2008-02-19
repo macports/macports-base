@@ -78,6 +78,9 @@ endif
 tcldoc:
 	find src -name '*.tcl' | xargs tcldoc --verbose --title "MacPorts Documentation" --force tcldoc
 
+tcldox:
+	doxygen
+
 test::
 
-.PHONY: dist _gettag _pkgdist _dopkg tcldoc
+.PHONY: dist _gettag _pkgdist _dopkg tcldoc tcldox
