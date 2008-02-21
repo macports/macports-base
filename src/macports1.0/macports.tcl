@@ -632,10 +632,18 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default mp universal options
     if {![info exists macports::universal_target]} {
-        set macports::universal_target "10.4"
+        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+            set macports::universal_target "10.5"
+        } else {
+            set macports::universal_target "10.4"
+        }
     }
     if {![info exists macports::universal_sysroot]} {
-        set macports::universal_sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.5.sdk"
+        } else {
+            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+        }
     }
     if {![info exists macports::universal_archs]} {
         set macports::universal_archs {ppc i386}
