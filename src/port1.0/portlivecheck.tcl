@@ -181,19 +181,22 @@ proc livecheck_main {args} {
                         ui_debug "The regex matched >$matched<"
                     }
                 } else {
+                    set updated_version 0
                     while {1} {
                         if {[gets $chan line] < 0} {
                             break
                         }
-                        if {[regexp $the_re $line matched updated_version]} {
-                            if {$updated_version != ${livecheck.version}} {
-                                set updated 1
-                            } else {
-                                set updated 0
+                        if {[regexp $the_re $line matched upver]} {
+                            if {[rpm-vercomp $upver $updated_version] > 0} {
+                                set updated_version $upver
                             }
                             ui_debug "The regex matched >$matched<"
-                            break
                         }
+                    }
+                    if {$updated_version != ${livecheck.version}} {
+                        set updated 1
+                    } else {
+                        set updated 0
                     }
                 }
                 close $chan
