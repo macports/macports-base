@@ -194,10 +194,15 @@ proc configure_get_universal_cppflags {args} {
 # internal function to determine the CFLAGS for the compiler
 proc configure_get_universal_cflags {args} {
     global configure.universal_sysroot
+    global os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
     if {[info exists configure.universal_sysroot]} {
         set flags "-isysroot ${configure.universal_sysroot} ${flags}"
+    }
+    # normally set in MACOSX_DEPLOYMENT_TARGET, add here too to make sure
+    if {${os.major} == "9"} {
+        set flags "${flags} -mmacosx-version-min=${configure.universal_target}"
     }
     return $flags
 }
