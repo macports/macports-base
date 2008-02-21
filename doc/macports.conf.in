@@ -77,7 +77,7 @@ rsync_options		-rtzv --delete-after
 
 # Options for Universal Binaries (+universal variant)
 
-# macosx_deployment_target
+# MACOSX_DEPLOYMENT_TARGET
 universal_target	10.4
 
 # the SDK "sysroot" to use 
