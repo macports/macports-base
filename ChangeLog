@@ -5,6 +5,10 @@
 
 
 Unreleased:
+    - Revert the default +universal MDT/SDK to 10.4/10.4u on Tiger and 10.5/10.5 on Leopard
+
+    - port lint shouldn't require variable master_sites for fetch.type != standard (#14377)
+
     - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
 	r33940, 33941)
 
