@@ -249,6 +249,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
+                        break;
 		}
 
 		/* Create the CURL handle */
@@ -459,6 +460,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
+                        break;
 		}
 
 		/* Create the CURL handle */
@@ -631,6 +633,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theFile == NULL) {
 			Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
 			theResult = TCL_ERROR;
+                        break;
 		}
 
 		/* Create the CURL handle */
