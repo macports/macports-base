@@ -730,6 +730,9 @@ DSTGRP
 DSTMODE
 MPAPPLICATIONSDIR
 MPFRAMEWORKSDIR
+UNIVERSAL_TARGET
+UNIVERSAL_SYSROOT
+UNIVERSAL_ARCHS
 CPP
 READLINK_IS_NOT_P1003_1A
 MD5_LIBS
@@ -1400,6 +1403,12 @@ Optional Packages:
                           Specify directory mode of installed directories
   --with-applications-dir Applications installation directory.
   --with-frameworks-dir   Frameworks installation directory.
+  --with-universal-target=MDT
+                          Universal MACOSX_DEPLOYMENT_TARGET version
+  --with-universal-sysroot=SDK
+                          Universal SDK sysroot (with complete path)
+  --with-universal-archs="CPU"
+                          Universal CPU architectures (space separated)
   --with-x11-prefix=PREFIX
                           use PREFIX as the X11 base dir (default autodetect)
   --with-x                use the X Window System
@@ -6809,6 +6818,66 @@ echo $ECHO_N "checking for Frameworks installation directory... $ECHO_C" >&6; }
 
 	{ echo "$as_me:$LINENO: result: $MPFRAMEWORKSDIR" >&5
 echo "${ECHO_T}$MPFRAMEWORKSDIR" >&6; }
+
+
+
+# Check for universal options
+
+
+
+# Check whether --with-universal-target was given.
+if test "${with_universal_target+set}" = set; then
+  withval=$with_universal_target; UNIVERSAL_TARGET=${withval}
+fi
+
+
+# Check whether --with-universal-sysroot was given.
+if test "${with_universal_sysroot+set}" = set; then
+  withval=$with_universal_sysroot; UNIVERSAL_SYSROOT=${withval}
+fi
+
+
+# Check whether --with-universal-archs was given.
+if test "${with_universal_archs+set}" = set; then
+  withval=$with_universal_archs; UNIVERSAL_ARCHS=${withval}
+fi
+
+
+	if test "x$UNIVERSAL_TARGET" = "x"; then
+	    if test -d /Developer/SDKs/MacOSX10.5.sdk; then
+		UNIVERSAL_TARGET=10.5
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk
+	    else
+		UNIVERSAL_TARGET=10.4
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk
+	    fi
+	else
+	    if test "x$UNIVERSAL_SYSROOT" = "x"; then
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${UNIVERSAL_TARGET}.sdk
+	    fi
+	fi
+
+	if test "x$UNIVERSAL_ARCHS" = "x"; then
+		#UNIVERSAL_ARCHS="ppc ppc64 i386 x86_64"
+		UNIVERSAL_ARCHS="ppc i386"
+	fi
+
+    { echo "$as_me:$LINENO: checking for Universal MDT version" >&5
+echo $ECHO_N "checking for Universal MDT version... $ECHO_C" >&6; }
+    { echo "$as_me:$LINENO: result: $UNIVERSAL_TARGET" >&5
+echo "${ECHO_T}$UNIVERSAL_TARGET" >&6; }
+
+
+    { echo "$as_me:$LINENO: checking for Universal SDK sysroot" >&5
+echo $ECHO_N "checking for Universal SDK sysroot... $ECHO_C" >&6; }
+    { echo "$as_me:$LINENO: result: $UNIVERSAL_SYSROOT" >&5
+echo "${ECHO_T}$UNIVERSAL_SYSROOT" >&6; }
+
+
+    { echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
+echo $ECHO_N "checking for Universal CPU architectures... $ECHO_C" >&6; }
+    { echo "$as_me:$LINENO: result: $UNIVERSAL_ARCHS" >&5
+echo "${ECHO_T}$UNIVERSAL_ARCHS" >&6; }
 
 
 
@@ -13061,6 +13130,9 @@ DSTGRP!$DSTGRP$ac_delim
 DSTMODE!$DSTMODE$ac_delim
 MPAPPLICATIONSDIR!$MPAPPLICATIONSDIR$ac_delim
 MPFRAMEWORKSDIR!$MPFRAMEWORKSDIR$ac_delim
+UNIVERSAL_TARGET!$UNIVERSAL_TARGET$ac_delim
+UNIVERSAL_SYSROOT!$UNIVERSAL_SYSROOT$ac_delim
+UNIVERSAL_ARCHS!$UNIVERSAL_ARCHS$ac_delim
 CPP!$CPP$ac_delim
 READLINK_IS_NOT_P1003_1A!$READLINK_IS_NOT_P1003_1A$ac_delim
 MD5_LIBS!$MD5_LIBS$ac_delim
@@ -13108,7 +13180,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 62; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 65; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

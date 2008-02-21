@@ -142,6 +142,9 @@ MP_DIRECTORY_MODE
 MP_PATH_APPLICATIONS
 MP_PATH_FRAMEWORKS
 
+# Check for universal options
+MP_UNIVERSAL_OPTIONS
+
 # Check for standard header files.
 AC_HEADER_STDC
 AC_HEADER_DIRENT

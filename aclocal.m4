@@ -399,6 +399,47 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
     AC_SUBST(MPFRAMEWORKSDIR)
 ])
 
+
+# MP_UNIVERSAL_OPTIONS
+#---------------------------------------
+AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
+
+    AC_ARG_WITH(universal-target,[AC_HELP_STRING([--with-universal-target=MDT], [Universal MACOSX_DEPLOYMENT_TARGET version])], UNIVERSAL_TARGET=${withval})
+    AC_ARG_WITH(universal-sysroot,[AC_HELP_STRING([--with-universal-sysroot=SDK], [Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
+    AC_ARG_WITH(universal-archs,[AC_HELP_STRING([--with-universal-archs="CPU"], [Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
+
+	if test "x$UNIVERSAL_TARGET" = "x"; then
+	    if [test -d /Developer/SDKs/MacOSX10.5.sdk]; then
+		UNIVERSAL_TARGET=10.5
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk
+	    else
+		UNIVERSAL_TARGET=10.4
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk
+	    fi
+	else
+	    if test "x$UNIVERSAL_SYSROOT" = "x"; then
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${UNIVERSAL_TARGET}.sdk
+	    fi
+	fi
+
+	if test "x$UNIVERSAL_ARCHS" = "x"; then
+		#UNIVERSAL_ARCHS="ppc ppc64 i386 x86_64"
+		UNIVERSAL_ARCHS="ppc i386"
+	fi
+    
+    AC_MSG_CHECKING([for Universal MDT version])
+    AC_MSG_RESULT([$UNIVERSAL_TARGET])
+    AC_SUBST(UNIVERSAL_TARGET)
+
+    AC_MSG_CHECKING([for Universal SDK sysroot])
+    AC_MSG_RESULT([$UNIVERSAL_SYSROOT])
+    AC_SUBST(UNIVERSAL_SYSROOT)
+
+    AC_MSG_CHECKING([for Universal CPU architectures])
+    AC_MSG_RESULT([$UNIVERSAL_ARCHS])
+    AC_SUBST(UNIVERSAL_ARCHS)
+])
+
 # MP_LIB_MD5
 #---------------------------------------
 # Check for an md5 implementation
