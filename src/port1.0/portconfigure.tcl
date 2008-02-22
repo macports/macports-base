@@ -144,7 +144,14 @@ proc configure_start {args} {
 
 # internal function to determine canonical system name for configure
 proc configure_get_universal_system_name {args} {
-    global configure.universal_target
+    global configure.universal_target configure.universal_archs
+    set arch "unknown"
+    switch -- ${configure.universal_archs} {
+        "ppc"  { set arch "powerpc" }
+        "i386"  { set arch "i686" }
+        "ppc64"  { set arch "powerpc" }
+        "x86_64"  { set arch "i686" }
+    }
     switch -- ${configure.universal_target} {
         "10.1"  { return "powerpc-apple-darwin5" }
                 # /Developer/SDKs/MacOSX10.1.5.sdk
@@ -152,8 +159,8 @@ proc configure_get_universal_system_name {args} {
                 # /Developer/SDKs/MacOSX10.2.8.sdk
         "10.3"  { return "powerpc-apple-darwin7" }
                 # /Developer/SDKs/MacOSX10.3.9.sdk
-        "10.4"  { return "i686-apple-darwin8" }
-        "10.5"  { return "i686-apple-darwin9" }
+        "10.4"  { return "${arch}-apple-darwin8" }
+        "10.5"  { return "${arch}-apple-darwin9" }
     }
     return ""
 }
