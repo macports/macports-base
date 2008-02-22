@@ -1554,7 +1554,11 @@ proc action_dependents { action portlist opts } {
             # Check the deps first
             foreach dep $deplist {
                 set depport [lindex $dep 2]
-                ui_msg "$depport depends on $portname"
+                if {![macports::ui_isset ports_verbose]} {
+                    ui_msg "$depport depends on $portname"
+                } else {
+                    ui_msg "$depport depends on $portname (by [lindex $dep 1]:)"
+                }
             }
         } else {
             ui_msg "$portname has no dependents!"
@@ -1814,7 +1818,11 @@ proc action_deps { action portlist opts } {
                 $portinfo($depstype) != ""} {
                 puts "$portname has $depsdecr dependencies on:"
                 foreach i $portinfo($depstype) {
-                    puts "\t[lindex [split [lindex $i 0] :] end]"
+                    if {[macports::ui_isset ports_verbose]} {
+                        puts "\t$i"
+                    } else {
+                        puts "\t[lindex [split [lindex $i 0] :] end]"
+                    }
                 }
                 set nodeps false
             }
