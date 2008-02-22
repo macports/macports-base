@@ -162,17 +162,18 @@ Automatic cleaning of the build directory of a given port after it has been inst
 .Ic Default:
 yes
 .It Va universal_target
-The macosx_deployment_target to use for +universal variant
+The MACOSX_DEPLOYMENT_TARGET to use for +universal variant
 .br
-.Ic Default:
+.Ic Example:
 10.4
 .It Va universal_sysroot
 The SDK "sysroot" full path to use for +universal variant
 .br
-.Ic Default:
+.Ic Example:
 /Developer/SDKs/MacOSX10.4u.sdk
 .It Va universal_archs
 The machine architectures to use for +universal variant
+(multiple architecture entries should be space separated)
 .br
 Regular architectures include: ppc, i386, ppc64, x86_64
 .br
