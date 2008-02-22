@@ -382,6 +382,43 @@ proc regex_pat_sanitize { s } {
     return $sanitized
 }
 
+##
+# Wraps a multi-line string at specified textwidth
+#
+# @see wrapline
+#
+# @param string input string
+# @param maxlen text width
+# @return wrapped string
+proc wrap {string maxlen} {
+    set splitstring {}
+    foreach line [split $string "\n"] {
+        lappend splitstring [wrapline $line $maxlen]
+    }
+    return [join $splitstring "\n"]
+}
+
+##
+# Wraps a line at specified textwidth
+#
+# @see wrap
+#
+# @param line input line
+# @param maxlen text width
+# @return wrapped string
+proc wrapline {line maxlen} {
+    set string [split $line " "]
+    set newline [list [lindex $string 0]]
+    foreach word [lrange $string 1 end] {
+        if {[string length $newline]+[string length $word] > $maxlen} {
+            lappend lines [join $newline " "]
+            set newline {}
+        }
+        lappend newline $word
+    }
+    lappend lines [join $newline " "]
+    return [join $lines "\n"]
+}
 
 proc unobscure_maintainers { list } {
     set result {}
@@ -1126,6 +1163,8 @@ proc action_help { action portlist opts } {
 proc action_info { action portlist opts } {
     set status 0
     require_portlist portlist
+
+    set separator ""
     foreachport $portlist {
     # If we have a url, use that, since it's most specific
     # otherwise try to map the portname to a url
@@ -1250,27 +1289,47 @@ proc action_info { action portlist opts } {
             # Show specific fields
             puts [join $fields $field_sep]
         } else {
-        
             # If we weren't asked to show any specific fields, then show general information
-            puts -nonewline "$portinfo(name) $portinfo(version)"
-            if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
-                puts -nonewline ", Revision $portinfo(revision)" 
+            puts -nonewline "$portinfo(name) @$portinfo(version)"
+            if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
+                puts -nonewline ", Revision $portinfo(revision)"
             }
-            if {[info exists portinfo(portdir)]} {
-                puts -nonewline ", $portinfo(portdir)"
-            }
-            if {[info exists portinfo(variants)]} {
-                puts -nonewline " (Variants: [join $portinfo(variants) ", "])"
+            if {[info exists portinfo(categories)]} {
+                puts -nonewline " ([join $portinfo(categories) ", "])"
             }
             puts ""
-            if {[info exists portinfo(homepage)]} { 
-                puts "$portinfo(homepage)"
-            }
-    
-            if {[info exists portinfo(long_description)]} {
-                puts "\n[join $portinfo(long_description)]\n"
-            }
+            if {[info exists portinfo(variants)]} {
+                global global_variations
 
+                puts -nonewline "Variants:    "
+                set joiner ""
+                foreach v [lsort $portinfo(variants)] {
+                    set mod ""
+                    if {[info exists variations($v)]} {
+                        # selected by command line, prefixed with +/-
+                        set mod $variations($v)
+                    } elseif {[info exists global_variations($v)]} {
+                        # selected by variants.conf, prefixed with (+)/(-)
+                        set mod "($global_variations($v))"
+                    }
+                    # TODO: selected by default_variants (with [+]/[-])
+                    puts -nonewline "$joiner$mod$v"
+                    set joiner ", "
+                }
+                puts ""
+            }
+            puts ""
+            if {[info exists portinfo(long_description)]} {
+                puts [wrap [join $portinfo(long_description)] 80]
+            } else {
+                if {[info exists portinfo(description)]} {
+                    puts [wrap [join $portinfo(description)] 80]
+                }
+            }
+            if {[info exists portinfo(homepage)]} {
+                puts "Homepage:    $portinfo(homepage)"
+            }
+            puts ""
             # Emit build, library, and runtime dependencies
             foreach {key title} {
                 depends_build "Build Dependencies"
@@ -1278,22 +1337,28 @@ proc action_info { action portlist opts } {
                 depends_run "Runtime Dependencies"
             } {
                 if {[info exists portinfo($key)]} {
-                    puts -nonewline "$title:"
+                    puts -nonewline "$title: "
                     set joiner ""
                     foreach d $portinfo($key) {
-                        puts -nonewline "$joiner [lindex [split $d :] end]"
-                        set joiner ","
+                        if {[macports::ui_isset ports_verbose]} {
+                            puts -nonewline "$joiner$d"
+                        } else {
+                            puts -nonewline "$joiner[lindex [split $d :] end]"
+                        }
+                        set joiner ", "
                     }
                     set nodeps false
                     puts ""
                 }
             }
                 
-            if {[info exists portinfo(platforms)]} { puts "Platforms: $portinfo(platforms)"}
+            if {[info exists portinfo(platforms)]} { puts "Platforms: [join $portinfo(platforms) ", "]"}
             if {[info exists portinfo(maintainers)]} {
                 puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
             }
         }
+        puts -nonewline $separator
+        set separator "--\n"
     }
     
     return $status
