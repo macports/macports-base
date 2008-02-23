@@ -1173,8 +1173,9 @@ proc action_info { action portlist opts } {
 
     set separator ""
     foreachport $portlist {
-    # If we have a url, use that, since it's most specific
-    # otherwise try to map the portname to a url
+        puts -nonewline $separator
+        # If we have a url, use that, since it's most specific
+        # otherwise try to map the portname to a url
         if {$porturl eq ""} {
         # Verify the portname, getting portinfo to map to a porturl
             if {[catch {mportsearch $portname no exact} result]} {
@@ -1364,7 +1365,6 @@ proc action_info { action portlist opts } {
                 puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
             }
         }
-        puts -nonewline $separator
         set separator "--\n"
     }
     
