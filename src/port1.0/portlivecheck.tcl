@@ -164,6 +164,7 @@ proc livecheck_main {args} {
             ui_debug "Fetching ${livecheck.url}"
             if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
                 ui_error "cannot check if $portname was updated ($error)"
+                set updated -1
             } else {
                 # let's extract the version from the file.
                 set chan [open $tempfile "r"]
