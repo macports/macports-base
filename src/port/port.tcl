@@ -411,15 +411,19 @@ proc wrap {string maxlen {indent ""}} {
 # @return wrapped string
 proc wrapline {line maxlen {indent ""}} {
     set string [split $line " "]
-    set newline [list $indent [lindex $string 0]]
+    set newline $indent
+    append newline [lindex $string 0]
+    set joiner " "
     foreach word [lrange $string 1 end] {
         if {[string length $newline]+[string length $word] > $maxlen} {
-            lappend lines [join $newline " "]
-            set newline [list $indent]
+            lappend lines $newline
+            set newline $indent
+            set joiner ""
         }
-        lappend newline $word
+        append newline $joiner $word
+        set joiner " "
     }
-    lappend lines [join $newline " "]
+    lappend lines $newline
     return [join $lines "\n"]
 }
 
