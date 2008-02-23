@@ -388,12 +388,13 @@ proc regex_pat_sanitize { s } {
 # @see wrapline
 #
 # @param string input string
-# @param maxlen text width
+# @param maxlen text width (indent length not counted)
+# @param indent prepend to every line
 # @return wrapped string
-proc wrap {string maxlen} {
+proc wrap {string maxlen {indent ""}} {
     set splitstring {}
     foreach line [split $string "\n"] {
-        lappend splitstring [wrapline $line $maxlen]
+        lappend splitstring [wrapline $line $maxlen $indent]
     }
     return [join $splitstring "\n"]
 }
@@ -404,15 +405,16 @@ proc wrap {string maxlen} {
 # @see wrap
 #
 # @param line input line
-# @param maxlen text width
+# @param maxlen text width (indent length not counted)
+# @param indent prepend to every line
 # @return wrapped string
-proc wrapline {line maxlen} {
+proc wrapline {line maxlen {indent ""}} {
     set string [split $line " "]
-    set newline [list [lindex $string 0]]
+    set newline [list $indent [lindex $string 0]]
     foreach word [lrange $string 1 end] {
         if {[string length $newline]+[string length $word] > $maxlen} {
             lappend lines [join $newline " "]
-            set newline {}
+            set newline [list $indent]
         }
         lappend newline $word
     }
@@ -1908,13 +1910,17 @@ proc action_search { action portlist opts } {
         return 1
     }
     
+    set separator ""
     foreachport $portlist {
+        puts -nonewline $separator
+
         set portfound 0
         if {[catch {set res [mportsearch $portname no]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "search for portname $portname failed: $result" 1 status
         }
+        set joiner ""
         foreach {name array} $res {
             array unset portinfo
             array set portinfo $array
@@ -1932,17 +1938,30 @@ proc action_search { action portlist opts } {
                 puts "Invalid port entry for $portinfo(name), missing version"
                 continue
             }
-            if {![info exists portinfo(portdir)]} {
-                set output [format "%-30s %-12s %s" $portinfo(name) $portinfo(version) [join $portinfo(description)]]
+
+            if {[macports::ui_isset ports_quiet]} {
+                puts $portinfo(name)
             } else {
-                set output [format "%-30s %-14s %-12s %s" $portinfo(name) $portinfo(portdir) $portinfo(version) [join $portinfo(description)]]
+                puts -nonewline $joiner
+
+                puts -nonewline "$portinfo(name) @$portinfo(version)"
+                if {[info exists portinfo(categories)]} {
+                    puts -nonewline " ([join $portinfo(categories) ", "])"
+                }
+                puts ""
+                puts [wrap [join $portinfo(description)] 76 [string repeat " " 4]]
             }
+
+            set joiner "\n"
             set portfound 1
-            puts $output
         }
         if { !$portfound } {
             ui_msg "No match for $portname found"
+        } elseif {[llength $res] > 1} {
+            ui_msg "\nFound [llength $res] ports."
         }
+
+        set separator "--\n"
     }
     
     return $status
