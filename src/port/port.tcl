@@ -51,8 +51,8 @@ proc print_usage {args} {
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
-    puts "Usage: $cmdname$syntax"
-    puts "\"$cmdname help\" or \"man 1 port\" for more information."
+    puts stderr "Usage: $cmdname$syntax"
+    puts stderr "\"$cmdname help\" or \"man 1 port\" for more information."
 }
 
 
@@ -592,7 +592,7 @@ proc get_outdated_ports {} {
             }
             if {[llength $res] < 2} {
                 if {[macports::ui_isset ports_debug]} {
-                    puts "$portname ($installed_compound is installed; the port was not found in the port index)"
+                    puts stderr "$portname ($installed_compound is installed; the port was not found in the port index)"
                 }
                 continue
             }
@@ -1145,19 +1145,19 @@ proc action_help { action portlist opts } {
 	set topic [lindex $pl [expr $x + 1]]
 	if {[file exists $helpfile]} {
 		if {[catch {source $helpfile} err]} {
-			puts "Error reading helpfile $helpfile: $err"
+			puts stderr "Error reading helpfile $helpfile: $err"
 			return 1
 		} else {
 			if {[info exists porthelp($topic)]} {
-				puts $porthelp($topic)
+				puts stderr $porthelp($topic)
 				return 0
 			} else {
-				puts "No help for topic $topic"
+				puts stderr "No help for topic $topic"
 				return 1
 			}
 		}
 	} else {
-		puts "Unable to open help file $helpfile"
+		puts stderr "Unable to open help file $helpfile"
 		return 1
 	}
     } else {
