@@ -6,7 +6,7 @@
 
 Unreleased:
     - Overhauled output for port info/deps/dependents/search (raimue in
-	r34354, r34371, r34391)
+	r34354, r34371, r34391, r34395)
 
     - Revert the default +universal MDT/SDK to 10.4/10.4u on Tiger and 10.5/10.5 on Leopard
 
