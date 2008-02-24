@@ -383,7 +383,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			if ( (p = fgets(buf, BUFSIZ, theFile)) != NULL) {
 				/* skip stray header escaping into output */
 				if (strncmp(p, "Last-Modified:", 14) != 0)
-					fwrite(p, 1, strlen(p), fp);
+					rewind(theFile);
 			}
 			while ( (size = fread(buf, 1, BUFSIZ, theFile)) > 0) {
 				fwrite(buf, 1, size, fp);
