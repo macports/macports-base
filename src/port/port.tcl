@@ -1932,15 +1932,15 @@ proc action_search { action portlist opts } {
 
             # XXX is this the right place to verify an entry?
             if {![info exists portinfo(name)]} {
-                puts "Invalid port entry, missing portname"
+                puts stderr "Invalid port entry, missing portname"
                 continue
             }
             if {![info exists portinfo(description)]} {
-                puts "Invalid port entry for $portinfo(name), missing description"
+                puts stderr "Invalid port entry for $portinfo(name), missing description"
                 continue
             }
             if {![info exists portinfo(version)]} {
-                puts "Invalid port entry for $portinfo(name), missing version"
+                puts stderr "Invalid port entry for $portinfo(name), missing version"
                 continue
             }
 
