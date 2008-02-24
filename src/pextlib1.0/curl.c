@@ -360,6 +360,45 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		(void) fclose( theFile );
 		theFile = NULL;
 		
+#if LIBCURL_VERSION_NUM == 0x070d01 /* work around broken Tiger version of cURL */
+		if (remotetime) {
+			FILE *fp;
+			char *tmp, *p;
+			char buf[BUFSIZ];
+			size_t size;
+			
+			tmp = tmpnam(NULL);
+			fp = fopen(tmp, "w");
+			if (fp == NULL) {
+				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+			theFile = fopen( theFilePath, "r");
+			if (theFile == NULL) {
+				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+			if ( (p = fgets(buf, BUFSIZ, theFile)) != NULL) {
+				/* skip stray header escaping into output */
+				if (strncmp(p, "Last-Modified:", 14) != 0)
+					fwrite(p, 1, strlen(p), fp);
+			}
+			while ( (size = fread(buf, 1, BUFSIZ, theFile)) > 0) {
+				fwrite(buf, 1, size, fp);
+			}
+			(void) fclose( theFile );
+			theFile = NULL;
+			fclose(fp);
+			if (rename(tmp, theFilePath) != 0) {
+				Tcl_SetResult(interp, strerror(errno), TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+		}
+#endif
+
 #ifdef HAVE_UTIME_H
 		if (remotetime) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theFileTime);
