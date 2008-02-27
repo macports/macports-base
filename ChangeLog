@@ -5,6 +5,10 @@
 
 
 Unreleased:
+    - port lint now checks all dependencies so that the ports actually exist (#14380)
+
+    - added target_state to avoid the need for privileges for lint/livecheck (#13458)
+
     - Overhauled output for port info/deps/dependents/search (raimue in
 	r34354, r34371, r34391, r34395, r34402, r34420)
 
