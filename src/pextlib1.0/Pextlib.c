@@ -806,7 +806,6 @@ int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 	tcl_result = Tcl_NewStringObj(sp, -1);
 	Tcl_SetObjResult(interp, tcl_result);
-	free(sp);
 	free(template);
 	return TCL_OK;
 }
