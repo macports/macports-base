@@ -363,6 +363,15 @@ proc configure_main {args} {
                 fc  ${prefix}/bin/gfortran-mp-4.3 \
                 f77 ${prefix}/bin/gfortran-mp-4.3 \
                 f90 ${prefix}/bin/gfortran-mp-4.3 }
+        macports-gcc-4.4 {
+            select_compiler "MacPorts gcc 4.4" \
+                cc  ${prefix}/bin/gcc-mp-4.4 \
+                objc ${prefix}/bin/gcc-mp-4.4 \
+                cxx ${prefix}/bin/g++-mp-4.4 \
+                cpp ${prefix}/bin/cpp-mp-4.4 \
+                fc  ${prefix}/bin/gfortran-mp-4.4 \
+                f77 ${prefix}/bin/gfortran-mp-4.4 \
+                f90 ${prefix}/bin/gfortran-mp-4.4 }
         default {
             ui_debug "No compiler collection selected explicitly" }
     }
