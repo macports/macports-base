@@ -418,9 +418,9 @@ proc lint_main {args} {
     }
 
     set all_depends {}
-    if {[info exists depends_lib]} { lappend all_depends $depends_lib }
-    if {[info exists depends_build]} { lappend all_depends $depends_build }
-    if {[info exists depends_run]} { lappend all_depends $depends_run }
+    if {[info exists depends_lib]} { eval "lappend all_depends $depends_lib" }
+    if {[info exists depends_build]} { eval "lappend all_depends $depends_build" }
+    if {[info exists depends_run]} { eval "lappend all_depends $depends_run" }
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
         if {[catch {set res [mport_search "^$dep\$"]} error]} {
