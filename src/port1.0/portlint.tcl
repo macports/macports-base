@@ -7,6 +7,7 @@ package require portutil 1.0
 
 set org.macports.lint [target_new org.macports.lint lint_main]
 target_runtype ${org.macports.lint} always
+target_state ${org.macports.lint} no
 target_provides ${org.macports.lint} lint
 target_requires ${org.macports.lint} main
 target_prerun ${org.macports.lint} lint_start

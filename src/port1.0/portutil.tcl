@@ -1038,6 +1038,11 @@ proc target_run {ditem} {
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
+            
+    if {[ditem_key $ditem state] != "no"} {
+        set target_state_fd [open_statefile]
+    }
+        
     if {$procedure != ""} {
         set name [ditem_key $ditem name]
     
@@ -1048,7 +1053,8 @@ proc target_run {ditem} {
         if {$result == 0} {
             # Skip the step if required and explain why through ui_debug.
             # 1st case: the step was already done (as mentioned in the state file)
-            if {[check_statefile target $name $target_state_fd]} {
+            if {[ditem_key $ditem state] != "no"
+                    && [check_statefile target $name $target_state_fd]} {
                 ui_debug "Skipping completed $name ($portname)"
                 set skipped 1
             # 2nd case: the step is not to always be performed
@@ -1233,6 +1239,10 @@ proc target_run {ditem} {
         set result 1
     }
     
+    if {[ditem_key $ditem state] != "no"} {
+        close $target_state_fd
+    }
+
     return $result
 }
 
@@ -1285,9 +1295,6 @@ proc eval_targets {target} {
         }
     }
     
-    # Restore the state from a previous run.
-    set target_state_fd [open_statefile]
-    
     set dlist [dlist_eval $dlist "" target_run]
     
     if {[llength $dlist] > 0} {
@@ -1302,7 +1309,6 @@ proc eval_targets {target} {
         set result 0
     }
     
-    close $target_state_fd
     return $result
 }
 
@@ -1564,8 +1570,10 @@ proc check_variants {variations target} {
     # - Skip this test if the statefile is empty.
     # - Skip this test if performing a clean or submit.
     # - Skip this test if ports_force was specified.
-    
-    if { [lsearch "clean submit" $target] < 0 && 
+   
+    # TODO: Don't hardcode this list of targets here,
+    #       check for [ditem_key $mport state] == "no" somewhere else instead
+    if { [lsearch "clean submit lint livecheck" $target] < 0 &&
         !([info exists ports_force] && $ports_force == "yes")} {
         
         set state_fd [open_statefile]

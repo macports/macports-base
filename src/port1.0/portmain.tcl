@@ -38,6 +38,7 @@ package require portutil 1.0
 
 set org.macports.main [target_new org.macports.main main]
 target_provides ${org.macports.main} main
+target_state ${org.macports.main} no
 
 # define options
 options prefix name version revision epoch categories maintainers
