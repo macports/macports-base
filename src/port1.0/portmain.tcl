@@ -74,8 +74,6 @@ default worksrcpath {[file join $workpath $worksrcdir]}
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
-default macosx_deployment_target {}
-
 # Compatibility namespace
 default portname {$name}
 default portversion {$version}
@@ -102,6 +100,8 @@ if {$os_platform == "darwin"} {
     # This will probably break when Apple changes versioning
     set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
 }
+
+default macosx_deployment_target {$macosx_version}
 
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
