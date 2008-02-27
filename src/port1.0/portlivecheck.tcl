@@ -64,7 +64,7 @@ proc livecheck_main {args} {
     set has_master_sites [info exists master_sites]
     set has_homepage [info exists homepage]
 
-    set tempfile ${workpath}/livecheck.TMP
+    set tempfile [mktemp "/tmp/mports.livecheck.XXXXXXXX"]
     set port_moddate [file mtime ${portpath}/Portfile]
 
     ui_debug "Portfile modification date is [clock format $port_moddate]"
