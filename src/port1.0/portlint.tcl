@@ -283,7 +283,7 @@ proc lint_main {args} {
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
     global maintainers homepage master_sites checksums patchfiles
-    global fetch.type
+    global depends_lib depends_build depends_run fetch.type
     
     global lint_portsystem lint_platforms lint_categories 
     global lint_required lint_optional lint_variants
@@ -414,6 +414,25 @@ proc lint_main {args} {
             }
         }
         incr variantnumber
+    }
+
+    set all_depends {}
+    if {[info exists depends_lib]} { lappend all_depends $depends_lib }
+    if {[info exists depends_build]} { lappend all_depends $depends_build }
+    if {[info exists depends_run]} { lappend all_depends $depends_run }
+    foreach depspec $all_depends {
+        set dep [lindex [split $depspec :] end]
+        if {[catch {set res [mport_search "^$dep\$"]} error]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            continue
+        }
+        if {$res == ""} {
+            ui_error "Unknown dependency: $dep"
+            incr errors
+        } else {
+            ui_info "OK: Found dependency: $dep"
+        }
     }
 
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
