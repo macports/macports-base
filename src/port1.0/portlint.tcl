@@ -403,6 +403,8 @@ proc lint_main {args} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
+                } elseif {$variantdesc == ""} {
+                    set variantdesc "(pre-defined variant)"
                 }
             }
 
