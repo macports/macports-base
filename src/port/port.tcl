@@ -306,11 +306,19 @@ proc url_to_portname { url {quiet 0} } {
 
 # Supply a default porturl/portname if the portlist is empty
 proc require_portlist { nameportlist } {
+    global private_options
     upvar $nameportlist portlist
+
+    if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
+        ui_error "No ports found"
+        return 1
+    }
 
     if {[llength $portlist] == 0} {
         set portlist [get_current_port]
     }
+
+    return 0
 }
 
 
@@ -1169,7 +1177,9 @@ proc action_help { action portlist opts } {
 
 proc action_info { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
 
     set separator ""
     foreachport $portlist {
@@ -1374,7 +1384,9 @@ proc action_info { action portlist opts } {
 
 proc action_location { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         if { [catch {set ilist [registry_installed $portname [composite_version $portversion [array get variations]]]} result] } {
             global errorInfo
@@ -1432,7 +1444,9 @@ proc action_provides { action portlist opts } {
 
 proc action_activate { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
             global errorInfo
@@ -1447,7 +1461,9 @@ proc action_activate { action portlist opts } {
 
 proc action_deactivate { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
             global errorInfo
@@ -1474,7 +1490,9 @@ proc action_selfupdate { action portlist opts } {
 
 proc action_upgrade { action portlist opts } {
     global global_variations
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         # Merge global variations into the variations specified for this port
         foreach { variation value } [array get global_variations] {
@@ -1513,7 +1531,9 @@ proc action_platform { action portlist opts } {
 
 proc action_compact { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         if { [catch {portimage::compact $portname [composite_version $portversion [array get variations]]} result] } {
             global errorInfo
@@ -1528,7 +1548,9 @@ proc action_compact { action portlist opts } {
 
 proc action_uncompact { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         if { [catch {portimage::uncompact $portname [composite_version $portversion [array get variations]]} result] } {
             global errorInfo
@@ -1542,7 +1564,9 @@ proc action_uncompact { action portlist opts } {
 
 
 proc action_dependents { action portlist opts } {
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     set ilist {}
 
     foreachport $portlist {
@@ -1583,7 +1607,9 @@ proc action_uninstall { action portlist opts } {
         set portlist [opUnion $portlist [get_inactive_ports]]
     } else {
         # Otherwise the user hopefully supplied a portlist, or we'll default to the existing directory
-        require_portlist portlist
+        if {[require_portlist portlist]} {
+            return 1
+        }
     }
 
     foreachport $portlist {
@@ -1604,7 +1630,7 @@ proc action_installed { action portlist opts } {
     set restrictedList 0
     set ilist {}
     
-    if { [llength $portlist] || ![info exists private_options(ports_no_args)] } {
+    if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
         set restrictedList 1
         foreachport $portlist {
             set composite_version [composite_version $portversion [array get variations]]
@@ -1659,7 +1685,7 @@ proc action_outdated { action portlist opts } {
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
     set ilist {}
     set restrictedList 0
-    if { [llength $portlist] || ![info exists private_options(ports_no_args)] } {
+    if { [llength $portlist] || (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
         set restrictedList 1
         foreach portspec $portlist {
             array set port $portspec
@@ -1777,7 +1803,9 @@ proc action_outdated { action portlist opts } {
 
 proc action_contents { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         set files [registry::port_registered $portname]
         if { $files != 0 } {
@@ -1800,7 +1828,9 @@ proc action_contents { action portlist opts } {
 
 proc action_deps { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         # Get info about the port
         if {[catch {mportsearch $portname no exact} result]} {
@@ -1847,7 +1877,9 @@ proc action_deps { action portlist opts } {
 
 proc action_variants { action portlist opts } {
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         # search for port
         if {[catch {mportsearch $portname no exact} result]} {
@@ -1910,7 +1942,7 @@ proc action_variants { action portlist opts } {
 proc action_search { action portlist opts } {
     global private_options
     set status 0
-    if {![llength $portlist] && [info exists private_options(ports_no_args)]} {
+    if {![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) == "yes"} {
         ui_error "You must specify a search pattern"
         return 1
     }
@@ -1978,7 +2010,7 @@ proc action_list { action portlist opts } {
     set status 0
     
     # Default to list all ports if no portnames are supplied
-    if { ![llength $portlist] && [info exists private_options(ports_no_args)] } {
+    if { ![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) == "yes"} {
         add_to_portlist portlist [list name "-all-"]
     }
     
@@ -2037,7 +2069,9 @@ proc action_portcmds { action portlist opts } {
     global current_portdir
     
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         # If we have a url, use that, since it's most specific, otherwise try to map the portname to a url
         if {$porturl == ""} {
@@ -2177,7 +2211,9 @@ proc action_sync { action portlist opts } {
 proc action_target { action portlist opts } {
     global global_variations
     set status 0
-    require_portlist portlist
+    if {[require_portlist portlist]} {
+        return 1
+    }
     foreachport $portlist {
         set target $action
 
