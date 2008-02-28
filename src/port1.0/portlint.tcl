@@ -438,6 +438,16 @@ proc lint_main {args} {
         }
     }
 
+    if {[regexp "^(.+)nomaintainer(@macports.org)?(.+)$" $maintainers] } {
+        ui_error "Using nomaintainer together with other maintainer"
+        incr errors
+    }
+
+    if {[regexp "^openmaintainer(@macports.org)?$" $maintainers] } {
+        ui_error "Using openmaintainer without any other maintainer"
+        incr errors
+    }
+
     if {[string match "*darwinports@opendarwin.org*" $maintainers]} {
         ui_warn "Using legacy email address for no/open maintainer"
         incr warnings
