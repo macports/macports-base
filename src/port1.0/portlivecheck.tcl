@@ -170,7 +170,7 @@ proc livecheck_main {args} {
                 set chan [open $tempfile "r"]
                 set updated -1
                 set the_re [join ${livecheck.regex}]
-                ui_debug "The regex is >$the_re<"
+                ui_debug "The regex is \"$the_re\""
                 if {${livecheck.check} == "regexm"} {
                     set data [read $chan]
                     if {[regexp $the_re $data matched updated_version]} {
@@ -179,7 +179,7 @@ proc livecheck_main {args} {
                         } else {
                             set updated 0
                         }
-                        ui_debug "The regex matched >$matched<"
+                        ui_debug "The regex matched \"$matched\""
                     }
                 } else {
                     set updated_version 0
@@ -191,7 +191,7 @@ proc livecheck_main {args} {
                             if {[rpm-vercomp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
-                            ui_debug "The regex matched >$matched<"
+                            ui_debug "The regex matched \"$matched\""
                         }
                     }
                     if {$updated_version != ${livecheck.version}} {
