@@ -124,7 +124,7 @@ proc livecheck_main {args} {
                 set livecheck.distname ${livecheck.name}
             }
             if {${livecheck.regex} eq ""} {
-                set livecheck.regex "<title>${livecheck.distname} (.*) released.*</title>"
+                set livecheck.regex "<title>[quotemeta ${livecheck.distname}] (.*) released.*</title>"
             }
             set livecheck.check "regex"
         }
@@ -136,7 +136,7 @@ proc livecheck_main {args} {
                 set livecheck.distname [regsub ***=${livecheck.version} [file tail [lindex ${distfiles} 0]] (.*)]
             }
             if {${livecheck.regex} eq ""} {
-                set livecheck.regex {<a href="http://${livecheck.name}.googlecode.com/files/${livecheck.distname}"}
+                set livecheck.regex "<a href=\"http://[quotemeta ${livecheck.name}].googlecode.com/files/[quotemeta ${livecheck.distname}]\""
             }
             set livecheck.check "regex"
         }
@@ -148,7 +148,7 @@ proc livecheck_main {args} {
                 set livecheck.distname ${livecheck.name}
             }
             if {${livecheck.regex} eq ""} {
-                set livecheck.regex {${livecheck.distname}-(\\d+(?:\\.\\d+)*)}
+                set livecheck.regex "[quotemeta ${livecheck.distname}]-(\\\\d+(?:\\\\.\\\\d+)*)"
             }
             set livecheck.check "regex"
         }
@@ -169,7 +169,7 @@ proc livecheck_main {args} {
                 # let's extract the version from the file.
                 set chan [open $tempfile "r"]
                 set updated -1
-                set the_re [subst -nocommands -nobackslashes [join ${livecheck.regex}]]
+                set the_re [join ${livecheck.regex}]
                 ui_debug "The regex is >$the_re<"
                 if {${livecheck.check} == "regexm"} {
                     set data [read $chan]

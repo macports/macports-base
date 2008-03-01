@@ -2049,3 +2049,13 @@ proc merge {base} {
     }
 }
 
+##
+# Escape a string for safe use in regular expressions
+#
+# @param str the string to be quoted
+# @return the escaped string
+proc quotemeta {str} {
+    regsub -all {(\W)} $str {\\\1} str
+    return $str
+}
+
