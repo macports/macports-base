@@ -169,7 +169,7 @@ proc livecheck_main {args} {
                 # let's extract the version from the file.
                 set chan [open $tempfile "r"]
                 set updated -1
-                set the_re [join ${livecheck.regex}]
+                set the_re ${livecheck.regex}
                 ui_debug "The regex is \"$the_re\""
                 if {${livecheck.check} == "regexm"} {
                     set data [read $chan]
