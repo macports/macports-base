@@ -82,6 +82,57 @@ proc exists {name} {
     return [info exists $name]
 }
 
+##
+# Handle an option
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option {option args} {
+    global $option user_options option_procs
+
+    if {![info exists user_options($option)]} {
+        set $option $args
+    }
+}
+
+##
+# Handle option-append
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-append {option args} {
+    global $option user_options option_procs
+
+    if {![info exists user_options($option)]} {
+        if {[info exists $option]} {
+            set $option [concat [set $option] $args]
+        } else {
+            set $option $args
+        }
+    }
+}
+
+##
+# Handle option-delete
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-delete {option args} {
+    global $option user_options option_procs
+
+    if {![info exists user_options($option)] && [info exists $option]} {
+        set temp [set $option]
+        foreach val $args {
+            set temp [ldelete $temp $val]
+        }
+        if {$temp eq ""} {
+            unset $option
+        } else {
+            set $option $temp
+        }
+    }
+}
+
 # options
 # Exports options in an array as externally callable procedures
 # Thus, "options name date" would create procedures named "name"
@@ -91,80 +142,83 @@ proc exists {name} {
 # Arguments: <list of options>
 proc options {args} {
     foreach option $args {
-        proc $option {args} [subst -nocommands {
-            global $option user_options option_procs
-            if {![info exists user_options($option)]} {
-                set $option \$args
-            }
-        }]
-        proc ${option}-delete {args} [subst -nocommands {
-            global $option user_options option_procs
-            if {![info exists user_options($option)] && [info exists $option]} {
-                set temp [set $option]
-                foreach val \$args {
-                   set temp [ldelete \$temp \$val]
-                }
-                if {\$temp eq ""} {
-                    unset $option
-                } else {
-                    set $option \$temp
-                }
-            }
-        }]
-        proc ${option}-append {args} [subst -nocommands {
-            global $option user_options option_procs
-            if {![info exists user_options($option)]} {
-                if {[info exists $option]} {
-                    set $option [concat \${$option} \$args]
-                } else {
-                    set $option \$args
-                }
-            }
-        }]
+        interp alias {} $option {} handle_option $option
+        interp alias {} $option-append {} handle_option-append $option
+        interp alias {} $option-delete {} handle_option-delete $option
     }
 }
 
+##
+# Export options into PortInfo
+#
+# @param option the name of the option
+# @param action set or delete
+# @param value the value to be set, defaults to an empty string
+proc options::export {option action {value ""}} {
+    global $option PortInfo
+    switch $action {
+        set {
+            set PortInfo($option) $value
+        }
+        delete {
+            unset PortInfo($option)
+        }
+    }
+}
+
+##
+# Export multiple options
+#
+# @param args list of ports to be exported
 proc options_export {args} {
     foreach option $args {
-        proc options::export-${option} {option action {value ""}} [subst -nocommands {
-            global $option PortInfo
-            switch \$action {
-                set {
-                    set PortInfo($option) \$value
-                }
-                delete {
-                    unset PortInfo($option)
-                }
-            }
-        }]
-        option_proc $option options::export-$option
+        option_proc $option options::export
     }
 }
 
-# option_deprecate
+##
+# Print a warning for deprecated ports
+#
+# @param args list of ports to be exported
+proc warn_deprecated_option {option action args} {
+    global portname $option $newoption
+
+    ui_warn "Port $portname using deprecated option \"$option\"."
+}
+
+proc warn_superseded_option {option newport action args} {
+    global portname $option $newoption
+
+    if {$action != "read"} {
+        $newoption [set $option]
+    } else {
+        ui_warn "Port $portname using deprecated option \"$option\"."
+        $option [set $newoption]
+    }
+}
+
+
+##
 # Causes a warning to be printed when an option is set or accessed
+#
+# @param option name of the option
+# @param newoption name of a superseding option
 proc option_deprecate {option {newoption ""} } {
     # If a new option is specified, default the option to {${newoption}}
     # Display a warning
     if {$newoption != ""} {
-        proc warn_deprecated_${option} {option action args} [subst -nocommands {
-            global portname $option $newoption
-            if {\$action != "read"} {
-                $newoption \$$option
-            } else {
-                ui_warn "Port \$portname using deprecated option \\\"$option\\\"."
-                $option \[set $newoption\]
-            }
-        }]
+        option_proc $option warn_deprecated_option $option
     } else {
-        proc warn_deprecated_$option {option action args} [subst -nocommands {
-            global portname $option $newoption
-            ui_warn "Port \$portname using deprecated option \\\"$option\\\"."
-        }]
+        option_proc $option warn_superseded_option $option $newoption
     }
-    option_proc $option warn_deprecated_$option
+
 }
 
+##
+# Registers a proc to be called when an option is changed
+#
+# @param option the name of the option
+# @param args name of proc (and additional arguments)
 proc option_proc {option args} {
     global option_procs $option
     if {[info exists option_procs($option)]} {
