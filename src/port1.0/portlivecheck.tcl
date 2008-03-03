@@ -179,25 +179,28 @@ proc livecheck_main {args} {
                         } else {
                             set updated 0
                         }
-                        ui_debug "The regex matched \"$matched\""
+                        ui_debug "The regex matched \"$matched\", extracted \"$updated_version\""
                     }
                 } else {
                     set updated_version 0
-                    while {1} {
-                        if {[gets $chan line] < 0} {
-                            break
-                        }
+                    set foundmatch 0
+                    while {[gets $chan line] >= 0} {
                         if {[regexp $the_re $line matched upver]} {
+                            set foundmatch 1
                             if {[rpm-vercomp $upver $updated_version] > 0} {
                                 set updated_version $upver
                             }
-                            ui_debug "The regex matched \"$matched\""
+                            ui_debug "The regex matched \"$matched\", extracted \"$upver\""
                         }
                     }
-                    if {$updated_version != ${livecheck.version}} {
-                        set updated 1
-                    } else {
-                        set updated 0
+                    if {$foundmatch == 1} {
+                        if {$updated_version == 0} {
+                            set updated -1
+                        } elseif {$updated_version != ${livecheck.version}} {
+                            set updated 1
+                        } else {
+                            set updated 0
+                        }
                     }
                 }
                 close $chan
