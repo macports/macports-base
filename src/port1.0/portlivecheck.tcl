@@ -148,7 +148,7 @@ proc livecheck_main {args} {
                 set livecheck.distname ${livecheck.name}
             }
             if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "[quotemeta ${livecheck.distname}]-(\\\\d+(?:\\\\.\\\\d+)*)"]
+                set livecheck.regex [list "[quotemeta ${livecheck.distname}]-(\\d+(?:\\.\\d+)*)"]
             }
             set livecheck.check "regex"
         }
