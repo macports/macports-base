@@ -73,7 +73,7 @@ proc package_mdmg {portname portversion portrevision} {
 	# there is a minimum of 8292 512 blocks in a dmg
         set blocks 8292
     } else {
-	# this should later be replaced with hdiutil create -srcfolder
+	# this is now replaced with hdiutil create -srcfolder
         set blocks [expr ($size/512) + ((($size/512)*3)/100)]
     }
     
@@ -86,6 +86,7 @@ proc package_mdmg {portname portversion portrevision} {
         set subdev 2
     }
     
+  if {false} {
     if {[system "hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
@@ -96,6 +97,11 @@ proc package_mdmg {portname portversion portrevision} {
     regexp {(\/Volumes/[A-Za-z0-9\-\_\s].+)\s\(} $mount_point code mount_point
     system "ditto -rsrcFork ${mpkgpath} '${mount_point}/${portname}-${portversion}.mpkg'"
     system "hdiutil detach ${devicename} -quiet"
+  } else {
+    if {[system "hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${mpkgpath} ${tmp_image}"] != ""} {
+        return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
+    }
+  }
     if {[system "hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
