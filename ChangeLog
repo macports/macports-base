@@ -5,7 +5,7 @@
 
 
 Unreleased:
-    - New fetch.type git (eridius in r34875)
+    - New fetch.type git (#14232, eridius in r34875)
 
     - port lint now checks all dependencies so that the ports actually exist (#14380)
 
