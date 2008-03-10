@@ -45,7 +45,8 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use
 	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag \
-	svn.url svn.tag
+	svn.url svn.tag \
+	git.url git.branch
 	
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -74,6 +75,9 @@ default svn.env {}
 default svn.pre_args {"--non-interactive"}
 default svn.args ""
 default svn.post_args {"${svn.url}"}
+
+default git.dir {${workpath}}
+default git.branch {}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -120,7 +124,8 @@ proc suffix {distname} {
     global extract.suffix fetch.type
     switch -- "${fetch.type}" {
     	cvs			-
-    	svn			{ return "" }
+    	svn			-
+    	git			{ return "" }
     	standard	-
     	default 	{ return "${distname}${extract.suffix}" }
     }
@@ -387,6 +392,52 @@ proc svnfetch {args} {
     return 0
 }
 
+# Perform a git fetch
+proc gitfetch {args} {
+    global worksrcpath prefix_frozen
+    global git.url git.branch git.sha1
+    
+    # Look for the git command
+    set git.cmd {}
+    foreach gitcmd "$portutil::autoconf::git_path $prefix_frozen/bin/git git" {
+        if {[file executable $gitcmd]} {
+            set git.cmd $gitcmd
+            break
+        }
+    }
+    if {${git.cmd} == {}} {
+        ui_error "git is required to fetch ${git.url}"
+        ui_error "Please install the git-core port before proceeding."
+        return -code error [msgcat::mc "Git command not found"]
+    }
+    
+    set options "-q"
+    if {[string length ${git.branch}] == 0} {
+        # if we're just using HEAD, we can make a shallow repo
+        set options "$options --depth=1"
+    }
+    set cmdstring "${git.cmd} clone $options ${git.url} ${worksrcpath} 2>&1"
+    ui_debug "Executing: $cmdstring"
+    if {[catch {system $cmdstring} result]} {
+        return -code error [msgcat::mc "Git clone failed"]
+    }
+    
+    if {[string length ${git.branch}] > 0} {
+        set env "GIT_DIR=${worksrcpath}/.git GIT_WORK_TREE=${worksrcpath}"
+        set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
+        ui_debug "Executing $cmdstring"
+        if {[catch {system $cmdstring} result]} {
+            return -code error [msgcat::mc "Git checkout failed"]
+        }
+    }
+    
+    if {[info exists patchfiles]} {
+        return [fetchfiles]
+    }
+    
+    return 0
+}
+
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
@@ -520,6 +571,7 @@ proc fetch_main {args} {
     switch -- "${fetch.type}" {
     	cvs		{ return [cvsfetch] }
     	svn		{ return [svnfetch] }
+    	git		{ return [gitfetch] }
     	standard -
     	default	{ return [fetchfiles] }
     }

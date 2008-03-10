@@ -686,6 +686,7 @@ LN_S
 MTREE
 CVS
 SVN
+GIT
 RSYNC
 SED
 TAR
@@ -3588,6 +3589,46 @@ SVN=$ac_cv_path_SVN
 if test -n "$SVN"; then
   { echo "$as_me:$LINENO: result: $SVN" >&5
 echo "${ECHO_T}$SVN" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+# Extract the first word of "git", so it can be a program name with args.
+set dummy git; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_GIT+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $GIT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GIT="$GIT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_GIT="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+GIT=$ac_cv_path_GIT
+if test -n "$GIT"; then
+  { echo "$as_me:$LINENO: result: $GIT" >&5
+echo "${ECHO_T}$GIT" >&6; }
 else
   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
@@ -13045,6 +13086,7 @@ LN_S!$LN_S$ac_delim
 MTREE!$MTREE$ac_delim
 CVS!$CVS$ac_delim
 SVN!$SVN$ac_delim
+GIT!$GIT$ac_delim
 RSYNC!$RSYNC$ac_delim
 SED!$SED$ac_delim
 TAR!$TAR$ac_delim
@@ -13071,7 +13113,6 @@ OBJC_RUNTIME!$OBJC_RUNTIME$ac_delim
 OBJC_RUNTIME_FLAGS!$OBJC_RUNTIME_FLAGS$ac_delim
 OBJC_LIBS!$OBJC_LIBS$ac_delim
 OBJC_PTHREAD_LIBS!$OBJC_PTHREAD_LIBS$ac_delim
-OBJC_PTHREAD_CFLAGS!$OBJC_PTHREAD_CFLAGS$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -13113,6 +13154,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+OBJC_PTHREAD_CFLAGS!$OBJC_PTHREAD_CFLAGS$ac_delim
 OBJC_FOUNDATION!$OBJC_FOUNDATION$ac_delim
 OBJC_FOUNDATION_LDFLAGS!$OBJC_FOUNDATION_LDFLAGS$ac_delim
 OBJC_FOUNDATION_CPPFLAGS!$OBJC_FOUNDATION_CPPFLAGS$ac_delim
@@ -13180,7 +13222,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 65; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 66; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

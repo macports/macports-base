@@ -33,6 +33,7 @@ package provide port 1.0
 namespace eval portutil::autoconf {
 	variable cvs_path "@CVS@"
 	variable svn_path "@SVN@"
+	variable git_path "@GIT@"
 	variable rsync_path "@RSYNC@"
 	variable mtree_path "@MTREE@"
 	variable xar_path "@XAR@"

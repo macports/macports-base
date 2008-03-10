@@ -736,7 +736,7 @@ Specify the url from which to fetch files.
 .Dl svn.url http://www.domain.com/svn-repo/mydirectory
       svn.url svn://www.domain.com/svn-repo/mydirectory
 .It Ic svn.tag
-Specify the a tag from which svn should fetch files. This
+Specify a tag from which svn should fetch files. This
 corresponds to the -r option to the svn cli.  Note that you
 will need to use backslashes to escape characters that have
 meaning to the Tcl interpreter, such as braces and double
@@ -751,6 +751,37 @@ quotes.
 .Sy Example:
 .Dl svn.tag 37192
       svn.tag \\{\\"2006-02-17 15:30 +0230\\"\\}
+.El
+.Ss FETCHING FROM GIT
+As an alternative to fetching distribution files, pulling the sources
+from a git repository is supported. Use of git can give rise to
+non-reproducible builds, so it is strongly discouraged.
+.Bl -tag -width lc
+.It Ic git.url
+Specify the url from which to fetch files
+.br
+.Sy Type:
+.Em required
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl git.url git://git.kernel.org/pub/scm/git/git.git
+      git.url http://www.kernel.org/pub/scm/git/git.git
+.It Ic git.branch
+Specify a branch (or other commit-ish) that git should checkout.
+Note that any branch besides HEAD should be prefixed by origin/.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl git.branch 72bf1c8
+      git.branch origin/next
 .El
 .Sh EXTRACT OPTIONS
 Extract all compressed/archived files.

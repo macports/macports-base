@@ -74,6 +74,7 @@ AC_PROG_LN_S
 AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(SVN, [svn], [])
+AC_PATH_PROG(GIT, [git], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(TAR, [tar])
