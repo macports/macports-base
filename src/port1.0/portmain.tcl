@@ -110,7 +110,7 @@ if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirect
 if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} { variant_set macosx }
 if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     # Declare default universal variant, on >10.3
-    variant universal {
+    variant universal description {Build for multiple architectures} {
         if {[tbool use_xmkmf] || ![tbool use_configure]} {
             return -code error "Default universal variant only works with ports based on configure"
         }
