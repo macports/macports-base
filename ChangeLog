@@ -7,6 +7,8 @@
 Unreleased:
     - New fetch.type git (#14232, eridius in r34875)
 
+    - fixed "port mdmg" getting block size wrong for the disk image (#13968, afb in r34844)
+
     - port lint now checks all dependencies so that the ports actually exist (#14380)
 
     - added target_state to avoid the need for privileges for lint/livecheck (#13458)
