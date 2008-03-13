@@ -98,14 +98,20 @@ proc uninstall {portname {v ""} optionslist} {
 		}
 		# Now see if we need to error
 		if { [llength $dl] > 0 } {
-			ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
-			foreach depport $dl {
-				ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
-			}
-			if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
-				ui_warn "Uninstall forced.  Proceeding despite dependencies."
+			if {[info exists options(ports_uninstall_recursive)] && $options(ports_uninstall_recursive) eq "yes"} {
+				foreach depport $dl {
+					portuninstall::uninstall $depport "" [array get options]
+				}
 			} else {
-				return -code error "Please uninstall the ports that depend on $portname first."
+				ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
+				foreach depport $dl {
+					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
+				}
+				if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
+					ui_warn "Uninstall forced.  Proceeding despite dependencies."
+				} else {
+					return -code error "Please uninstall the ports that depend on $portname first."
+				}
 			}
 		}
 	}

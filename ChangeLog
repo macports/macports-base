@@ -5,6 +5,8 @@
 
 
 Unreleased:
+    - port uninstall now takes --recursive to uninstall all dependents (#14637, eridius in r34977)
+
     - New fetch.type git (#14232, eridius in r34875)
 
     - fixed "port mdmg" getting block size wrong for the disk image (#13968, afb in r34844)
