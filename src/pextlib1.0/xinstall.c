@@ -749,7 +749,7 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	 * flags, except for the dump flag.
 	 * NFS does not support flags.  Ignore EOPNOTSUPP flags if we're just
 	 * trying to turn off UF_NODUMP.  If we're trying to set real flags,
-	 * then warn if the the fs doesn't support it, otherwise fail.
+	 * then warn if the fs doesn't support it, otherwise fail.
 	 */
 #if defined(UF_NODUMP)
 	if (!devnull && (flags & SETFLAGS ||

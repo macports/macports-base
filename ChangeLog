@@ -544,7 +544,7 @@ Release 1.4 (26-March-2007):
     - Add new 'touch' & 'ln' portfile writing commands, their usage being similar to their BSD equivalents,
       along with 'move' and 'copy' shorthands for TCL's "file rename/copy" calls (eridius in r22007).
 
-    - Fix a dangerous bug in parsing filenames with spaces in the the 'delete' command, while reworking it
+    - Fix a dangerous bug in parsing filenames with spaces in the 'delete' command, while reworking it
       to no longer be a plain 'system "rm -rf <path>"' call (eridius in r22007).
 
     - Checksum phase no longer deletes distfiles upon checksums mistmatch, eliminating "file not found"

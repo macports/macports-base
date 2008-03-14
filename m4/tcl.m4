@@ -2033,7 +2033,7 @@ closedir(d);
 #	
 # Results:
 #
-#	Sets the the following vars:
+#	Sets the following vars:
 #		XINCLUDES
 #		XLIBSW
 #

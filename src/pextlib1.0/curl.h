@@ -57,7 +57,7 @@ int CurlInit(Tcl_Interp* interp);
  *
  * curl getsize url
  *	Determine the file size of some resource. Try to not fetch the resource
- *  if possible. The size returned is the the number of bytes.
+ *  if possible. The size returned is the number of bytes.
  */
 int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
