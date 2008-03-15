@@ -91,7 +91,7 @@ proc uninstall {portname {v ""} optionslist} {
 			# xxx: Should look at making registry::installed return 0 or 
 			# something instead  of erroring.
 			if { ![catch {set installed [registry::installed $depport]} res] } {
-				if { [llength [registry::installed $depport]] > 0 } {
+				if { [llength installed] > 0 } {
 					lappend dl $depport
 				}
 			}
@@ -100,7 +100,13 @@ proc uninstall {portname {v ""} optionslist} {
 		if { [llength $dl] > 0 } {
 			if {[info exists options(ports_uninstall_recursive)] && $options(ports_uninstall_recursive) eq "yes"} {
 				foreach depport $dl {
-					portuninstall::uninstall $depport "" [array get options]
+					# make sure it's still installed, since a previous dep uninstall may have removed it
+					# does registry::installed still error? A cursory look at the code says no, but above says yes
+					if { ![catch {set installed [registry::installed $depport]} res] } {
+						if { [llength installed] > 0 } {
+							portuninstall::uninstall $depport "" [array get options]
+						}
+					}
 				}
 			} else {
 				ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
