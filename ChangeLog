@@ -11,6 +11,8 @@ Unreleased:
 
     - fixed "port mdmg" getting block size wrong for the disk image (#13968, afb in r34844)
 
+    - always set MACOSX_DEPLOYMENT_TARGET, to avoid bugs with older glibtool (afb in r34541)
+
     - port lint now checks all dependencies so that the ports actually exist (#14380)
 
     - added target_state to avoid the need for privileges for lint/livecheck (#13458)
