@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        universal_target universal_sysroot universal_archs"
+        applications_dir frameworks_dir universal_target universal_sysroot universal_archs"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
@@ -53,7 +53,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        universal_target universal_sysroot universal_archs $user_options"
+        applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options"
     
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
