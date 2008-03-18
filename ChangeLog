@@ -22,6 +22,8 @@ Unreleased:
 
     - port lint shouldn't require variable master_sites for fetch.type != standard (#14377)
 
+    - Add "tcldoc" documentation comments and "tcldox" Doxyfile for doxygen (#12048)
+
     - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
 	r33940, 33941)
 
