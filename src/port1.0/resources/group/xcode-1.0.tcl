@@ -170,11 +170,12 @@ proc xcode::get_project_arg { project } {
 # get the install path setting
 # remark: xcodebuild take care of creating the directory if required.
 proc xcode::get_install_path_setting { path type } {
+    global applications_dir frameworks_dir
     if {$path == ""} {
         if {$type == "application"} {
-            return "INSTALL_PATH=/Applications/MacPorts"
+            return "INSTALL_PATH=${applications_dir}"
         } elseif {$type == "framework"} {
-            return "INSTALL_PATH=/Library/Frameworks"
+            return "INSTALL_PATH=${frameworks_dir}"
         } else {
             return ""
         }
