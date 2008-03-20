@@ -29,7 +29,7 @@ from source code have all been performed in advance.
 %prep
 %setup -n MacPorts-%{version}
 # avoid the whole upgrade and information procedure
-perl -pe 's/^install::/interactive:/' -i Makefile.in
+perl -pe 's/^install::/interactive::/' -i Makefile.in
 
 %define _prefix         %{prefix}
 %define _bindir         %{prefix}/bin
