@@ -33,6 +33,7 @@
 package provide portdistfiles 1.0
 package require portutil 1.0
 package require portfetch 1.0
+package require portchecksum 1.0
 
 set org.macports.distfiles [target_new org.macports.distfiles distfiles_main]
 target_runtype ${org.macports.distfiles} always
@@ -49,16 +50,30 @@ proc distfiles_start {args} {
 }
 
 proc distfiles_main {args} {
-    global UI_PREFIX master_sites fetch_urls url_var distfile all_dist_files variations
+    global UI_PREFIX master_sites fetch_urls url_var distfile checksums_array
     
+    # give up on ports that do not provide URLs
+    if {$master_sites == "{}"} {
+        return 0
+    }
+
     # from portfetch... process the sites, files and patches
     checkfiles
+
+    # get checksum data from the portfile and parse it
+    set checksums_str [option checksums]
+    set result [parse_checksums $checksums_str]
 
     foreach {url_var distfile} $fetch_urls {
 
         ui_msg "\[$distfile\]"
 
-        # TODO: display checksum(s) of distfile       
+        # print checksums if available
+        if {$result == "yes" && [array get checksums_array $distfile] != ""} {
+            foreach {type sum} $checksums_array($distfile) {
+                ui_msg " $type: $sum"
+            }
+        }
 
         # determine sites to download from
         global portfetch::$url_var
