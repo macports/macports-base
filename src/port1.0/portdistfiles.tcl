@@ -1,8 +1,8 @@
-# et:ts=4
-# port.tcl
-# $Id$
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
+# portdistfiles.tcl
+# $Id: portdistfiles.tcl $
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2008 MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,51 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require mp_package 1.0
-package require portmain 1.0
-package require portdepends 1.0
+package provide portdistfiles 1.0
+package require portutil 1.0
 package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portactivate 1.0
-package require portclean 1.0
-package require porttest 1.0
-package require portlint 1.0
-package require portsubmit 1.0
-package require porttrace 1.0
-package require portdistcheck 1.0
-package require portlivecheck 1.0
-package require portmirror 1.0
-package require portload 1.0
-package require portunload 1.0
 
-package require portdistfiles 1.0
+set org.macports.distfiles [target_new org.macports.distfiles distfiles_main]
+target_runtype ${org.macports.distfiles} always
+target_state ${org.macports.distfiles} no
+target_provides ${org.macports.distfiles} distfiles
+target_requires ${org.macports.distfiles} main
+target_prerun ${org.macports.distfiles} distfiles_start
+
+set_ui_prefix
+
+proc distfiles_start {args} {
+    global UI_PREFIX portname
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Distfiles for %s"] ${portname}]"
+}
+
+proc distfiles_main {args} {
+    global UI_PREFIX master_sites fetch_urls url_var distfile all_dist_files variations
+    
+    # from portfetch... process the sites, files and patches
+    checkfiles
+
+    foreach {url_var distfile} $fetch_urls {
+
+        ui_msg "\[$distfile\]"
+
+        # TODO: display checksum(s) of distfile       
+
+        # determine sites to download from
+        global portfetch::$url_var
+        if {![info exists $url_var]} {
+            set url_var master_sites
+			global portfetch::$url_var
+        }
+        
+        # determine URLs to download
+        foreach site [set $url_var] {
+            set file_url [portfetch::assemble_url $site $distfile]
+            ui_msg "  $file_url"
+        }
+
+        ui_msg " "
+
+    }
+}

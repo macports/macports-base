@@ -5,7 +5,8 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portinstall.tcl portdepends.tcl portdestroot.tcl portlint.tcl \
 	portclean.tcl porttest.tcl portactivate.tcl portsubmit.tcl \
 	port_autoconf.tcl portstartupitem.tcl porttrace.tcl portlivecheck.tcl \
-	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl
+	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl \
+	portdistfiles.tcl
 
 SUBDIR=		resources
 
