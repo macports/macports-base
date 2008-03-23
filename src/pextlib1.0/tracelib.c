@@ -123,21 +123,56 @@ static int TracelibSetSandboxCmd(Tcl_Interp * interp, int objc, Tcl_Obj *CONST o
 }
 
 /*
+ * Is there more data? (return 1 if more data in socket, 0 otherwise)
+ */
+static char can_I_recv_more(int sock)
+{
+	struct timeval tv;
+	fd_set fdr;
+	tv.tv_sec  = 0;
+	tv.tv_usec = 0;
+
+	FD_ZERO(&fdr);
+	FD_SET(sock, &fdr);
+	return select(sock+1, &fdr, 0, 0, &tv) == 1;
+}
+
+/*
  * receive line from socket, parse it and send answer
  */
 static char process_line(int sock)
 {
-	char * t, buf[1024]={0}, *f;
+	char * t, buf[1024]={0}, *f, *next_t;
 	int len;
 	
-	if((len=recv(sock, buf, sizeof(buf), 0))==-1)
+	if((len=recv(sock, buf, sizeof(buf) - 1, 0))==-1)
 		return 0;
 	if(!len)
 		return 0;
 	buf[len]=0;
-	/* sometimes two messages come in one recv.. I ain't caring about it now, but it can be a problem */
-	for(t=buf;*t&&t-buf<(int)sizeof(buf);t=f+strlen(f)+1)
+	for(t=buf;*t&&t-buf<(int)sizeof(buf);t=next_t)
 	{
+		next_t = t+strlen(t)+1;
+		if(next_t == buf + sizeof(buf) && len == sizeof(buf) - 1)
+		{
+			memmove(buf, t, next_t - t);
+			t = buf;
+			{
+				char * end_of_t = t + strlen(t);
+				*end_of_t = ' ';
+				for(;can_I_recv_more(sock);)
+				{
+					if(recv(sock, end_of_t, 1, 0) != 1)
+					{
+						ui_warn("recv failed");
+						return 0;
+					}
+					if(*end_of_t++ == 0)
+						break;
+				}
+			}
+		}
+    
 		f=strchr(t, '\t');
 		if(!f)
 		{
@@ -145,6 +180,7 @@ static char process_line(int sock)
 			break;
 		}
 		*f++=0;
+
 		if(!strcmp(t, "filemap"))
 		{
 			send_file_map(sock);
@@ -206,7 +242,7 @@ static void send_file_map(int sock)
 				append_allow("/usr", 0);
 				append_allow("/System/Library", 0);
 				append_allow("/Library", 0);
-				append_allow("/Developer/Headers", 0);
+				append_allow("/Developer", 0);
 			}
 		}else
 			append_allow("/", 0);
