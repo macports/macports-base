@@ -2377,6 +2377,7 @@ array set action_array {
     mirror      action_target
     load        action_target
     unload      action_target
+    distfiles   action_target
 
     archive     action_target
     unarchive   action_target
