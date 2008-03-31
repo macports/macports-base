@@ -1325,6 +1325,8 @@ proc mportsync {} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::autoconf::rsync_path 
     
+    set numfailed 0
+
     ui_debug "Synchronizing ports tree(s)"
     foreach source $sources {
         set flags [lrange $source 1 end]
@@ -1353,7 +1355,9 @@ proc mportsync {} {
                         }]
                     } {
                         ui_debug "$::errorInfo"
-                        return -code error "Synchronization of the local ports tree failed doing an svn update"
+                        ui_error "Synchronization of the local ports tree failed doing an svn update"
+                        incr numfailed
+                        continue
                     }
                 }
             }
@@ -1372,7 +1376,9 @@ proc mportsync {} {
                 set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
                 ui_debug $rsync_commandline
                 if {[catch {system $rsync_commandline}]} {
-                    return -code error "Synchronization of the local ports tree failed doing rsync"
+                    ui_error "Synchronization of the local ports tree failed doing rsync"
+                    incr numfailed
+                    continue
                 }
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
@@ -1387,6 +1393,10 @@ proc mportsync {} {
                 ui_warn "Unknown synchronization protocol for $source"
             }
         }
+    }
+
+    if {$numfailed > 0} {
+        return -code error "Synchronization of $numfailed source(s) failed"
     }
 }
 
