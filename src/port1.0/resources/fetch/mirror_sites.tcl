@@ -131,6 +131,22 @@ set portfetch::mirror_sites::sites(macports) {
     http://svn.macports.org/repository/macports/downloads/
 }
 
+set portfetch::mirror_sites::sites(openbsd) {
+    http://mirror.roothell.org/pub/OpenBSD/
+    http://ftp-stud.fht-esslingen.de/pub/OpenBSD/
+    http://mirror.paranoidbsd.org/pub/OpenBSD/
+    ftp://ftp.openbsd.org/pub/OpenBSD/
+    ftp://ftp.jp.openbsd.org/pub/OpenBSD/
+    ftp://carroll.cac.psu.edu/pub/OpenBSD/
+    ftp://openbsd.informatik.uni-erlangen.de/pub/OpenBSD/
+    ftp://gd.tuwien.ac.at/opsys/OpenBSD/
+    ftp://ftp.stacken.kth.se/pub/OpenBSD/
+    ftp://ftp3.usa.openbsd.org/pub/OpenBSD/
+    ftp://ftp5.usa.openbsd.org/pub/OpenBSD/
+    ftp://rt.fm/pub/OpenBSD/
+    ftp://ftp.openbsd.md5.com.ar/pub/OpenBSD/
+}
+
 set portfetch::mirror_sites::sites(perl_cpan) {
     http://ftp.ucr.ac.cr/Unix/CPAN/modules/by-module/
     ftp://ftp.funet.fi/pub/languages/perl/CPAN/modules/by-module/
@@ -147,6 +163,18 @@ set portfetch::mirror_sites::sites(perl_cpan) {
     ftp://ftp.is.co.za/programming/perl/CPAN/modules/by-module/
     ftp://sunsite.org.uk/packages/perl/CPAN/modules/by-module/
     ftp://ftp.chg.ru/pub/lang/perl/CPAN/modules/by-module/
+}
+
+set portfetch::mirror_sites::sites(postgresql) {
+    http://ftp8.us.postgresql.org/postgresql/
+    http://ftp9.us.postgresql.org/pub/mirrors/postgresql/
+    http://ftp7.de.postgresql.org/pub/ftp.postgresql.org/
+    http://ftp2.jp.postgresql.org/pub/postgresql/
+    ftp://ftp2.ch.postgresql.org/mirror/postgresql/
+    ftp://ftp.postgresql.org/pub/
+    ftp://ftp.de.postgresql.org/mirror/postgresql/
+    ftp://ftp.fr.postgresql.org/
+    ftp://ftp2.uk.postgresql.org/
 }
 
 set portfetch::mirror_sites::sites(ruby) {
@@ -217,32 +245,4 @@ set portfetch::mirror_sites::sites(xfree) {
     ftp://ftp.physics.uvt.ro/pub/XFree86/
     ftp://ftp.chg.ru/pub/XFree86/
     ftp://ftp.xfree86.org/pub/XFree86/
-}
-
-set portfetch::mirror_sites::sites(openbsd) {
-    http://mirror.roothell.org/pub/OpenBSD/
-    http://ftp-stud.fht-esslingen.de/pub/OpenBSD/
-    http://mirror.paranoidbsd.org/pub/OpenBSD/
-    ftp://ftp.openbsd.org/pub/OpenBSD/
-    ftp://ftp.jp.openbsd.org/pub/OpenBSD/
-    ftp://carroll.cac.psu.edu/pub/OpenBSD/
-    ftp://openbsd.informatik.uni-erlangen.de/pub/OpenBSD/
-    ftp://gd.tuwien.ac.at/opsys/OpenBSD/
-    ftp://ftp.stacken.kth.se/pub/OpenBSD/
-    ftp://ftp3.usa.openbsd.org/pub/OpenBSD/
-    ftp://ftp5.usa.openbsd.org/pub/OpenBSD/
-    ftp://rt.fm/pub/OpenBSD/
-    ftp://ftp.openbsd.md5.com.ar/pub/OpenBSD/
-}
-
-set portfetch::mirror_sites::sites(postgresql) {
-    http://ftp8.us.postgresql.org/postgresql/
-    http://ftp9.us.postgresql.org/pub/mirrors/postgresql/
-    http://ftp7.de.postgresql.org/pub/ftp.postgresql.org/
-    http://ftp2.jp.postgresql.org/pub/postgresql/
-    ftp://ftp2.ch.postgresql.org/mirror/postgresql/
-    ftp://ftp.postgresql.org/pub/
-    ftp://ftp.de.postgresql.org/mirror/postgresql/
-    ftp://ftp.fr.postgresql.org/
-    ftp://ftp2.uk.postgresql.org/
 }
