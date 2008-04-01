@@ -1219,6 +1219,11 @@ proc target_run {ditem} {
                             set dep_portname [lindex [split $depspec :] end]
                             lappend depsPorts $dep_portname
                         }
+
+                        # always allow gzip in destroot as it is used to compress man pages
+                        if {$target == "destroot"} {
+                            lappend depsPorts "gzip"
+                        }
                     
                         set portlist $depsPorts
                         foreach depName $depsPorts {
