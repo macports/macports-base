@@ -1285,8 +1285,35 @@ proc mportexec {mport target} {
 
 proc macports::getsourcepath {url} {
     global macports::portdbpath
+
     set source_path [split $url ://]
+
+    if {[_source_is_snapshot $url]} {
+        # daily snapshot tarball
+        return [file join $portdbpath sources [join [lrange $source_path 3 end-1] /] ports]
+    }
+
     return [file join $portdbpath sources [lindex $source_path 3] [lindex $source_path 4] [lindex $source_path 5]]
+}
+
+##
+# Checks whether a supplied source URL is for a daily snapshot tarball
+# (private)
+#
+# @param url source URL to check
+# @return a list containing filename and extension or an empty list
+proc _source_is_snapshot {url {filename ""} {extension ""}} {
+    upvar $filename myfilename
+    upvar $extension myextension
+
+    if {[regexp {^(?:https?|ftp)://.+/(.+\.(tar\.gz|tar\.bz2))$} $url -> f e]} {
+        set myfilename $f
+        set myextension $e
+
+        return 1
+    }
+
+    return 0
 }
 
 proc macports::getportbuildpath {id} {
@@ -1323,6 +1350,7 @@ proc dportsync {} {
 
 proc mportsync {} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
+    global macports::portverbose
     global macports::autoconf::rsync_path 
     
     set numfailed 0
@@ -1385,9 +1413,52 @@ proc mportsync {} {
                 }
             }
             {^https?$|^ftp$} {
-                set indexfile [macports::getindex $source]
-                file mkdir [file dirname $indexfile]
-                exec curl -L -s -S -o $indexfile $source/PortIndex
+                if {[_source_is_snapshot $source filename extension]} {
+                    # sync a daily port snapshot tarball
+                    set indexfile [macports::getindex $source]
+                    set destdir [file dirname $indexfile]
+                    set tarpath [file join [file normalize [file join $destdir ..]] $filename]
+
+                    file mkdir [file dirname $indexfile]
+
+                    set verboseflag {}
+                    if {$macports::portverbose == "yes"} {
+                        set verboseflag "-v"
+                    }
+
+                    if {[catch {eval curl fetch $verboseflag {$source} {$tarpath}} error]} {
+                        ui_error "Fetching $source failed ($error)"
+                        incr numfailed
+                        continue
+                    }
+
+                    set extflag {}
+                    switch $extension {
+                        {tar.gz} {
+                            set extflag "-z"
+                        }
+                        {tar.bz2} {
+                            set extflag "-j"
+                        }
+                    }
+
+                    if { [catch { system "cd $destdir/.. && tar ${verboseflag} ${extflag} -xf $filename" } error] } {
+                        ui_error "Extracting $source failed ($error)"
+                        incr numfailed
+                        continue
+                    }
+
+                    if {[catch {system "chmod -R a+r \"$destdir\""}]} {
+                        ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+                    }
+
+                    file delete $tarpath
+                } else {
+                    # sync just a PortIndex file
+                    set indexfile [macports::getindex $source]
+                    file mkdir [file dirname $indexfile]
+                    exec curl -L -s -S -o $indexfile $source/PortIndex
+                }
             }
             default {
                 ui_warn "Unknown synchronization protocol for $source"
@@ -1462,6 +1533,15 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                                 {^rsync$} {
                                     # Rsync files are local
                                     set source_url "file://[macports::getsourcepath $source]"
+                                }
+                                {^https?$|^ftp$} {
+                                    if {[_source_is_snapshot $source filename extension]} {
+                                        # daily snapshot tarball
+                                        set source_url "file://[macports::getsourcepath $source]"
+                                    } else {
+                                        # default action
+                                        set source_url $source
+                                    }
                                 }
                                 default {
                                     set source_url $source
