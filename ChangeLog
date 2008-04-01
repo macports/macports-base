@@ -5,6 +5,9 @@
 
 
 Unreleased:
+    - Fetching of daily snapshot tarballs of the ports tree as an alternative to rsync
+      (raimue in r35647, r35648)
+
     - port uninstall now takes --recursive to uninstall all dependents (#14637, eridius in r34977)
 
     - New fetch.type git (#14232, eridius in r34875)
