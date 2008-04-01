@@ -1348,11 +1348,12 @@ proc dportsync {} {
     mportsync
 }
 
-proc mportsync {} {
+proc mportsync {{optionslist {}}} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::portverbose
-    global macports::autoconf::rsync_path 
-    
+    global macports::autoconf::rsync_path
+    array set options $optionslist
+
     set numfailed 0
 
     ui_debug "Synchronizing ports tree(s)"
@@ -1418,6 +1419,19 @@ proc mportsync {} {
                     set indexfile [macports::getindex $source]
                     set destdir [file dirname $indexfile]
                     set tarpath [file join [file normalize [file join $destdir ..]] $filename]
+
+                    set updated 1
+                    if {[file isdirectory $destdir]} {
+                        set moddate [file mtime $destdir]
+                        if {[catch {set updated [curl isnewer $source $moddate]} error]} {
+                            ui_warn "Cannot check if $source was updated, ($error)"
+                        }
+                    }
+
+                    if {(![info exists options(ports_force)] || $options(ports_force) != "yes") && $updated <= 0} {
+                        ui_info "No updates for $source"
+                        continue
+                    }
 
                     file mkdir [file dirname $indexfile]
 
@@ -1742,7 +1756,7 @@ proc macports::selfupdate {{optionslist {}}} {
     
     # syncing ports tree.
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        if {[catch {mportsync} result]} {
+        if {[catch {mportsync $optionslist} result]} {
             return -code error "Couldn't sync the ports tree: $result"
         }
     }

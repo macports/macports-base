@@ -2196,8 +2196,10 @@ proc action_portcmds { action portlist opts } {
 
 
 proc action_sync { action portlist opts } {
+    global global_options
+
     set status 0
-    if {[catch {mportsync} result]} {
+    if {[catch {mportsync [array get global_options]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         ui_msg "port sync failed: $result"
