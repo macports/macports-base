@@ -259,7 +259,7 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://kent.dl.sourceforge.net/
     http://jaist.dl.sourceforge.net/
     http://optusnet.dl.sourceforge.net/
-    http://nchc.dl.sourceforge.ne/
+    http://nchc.dl.sourceforge.net/
     http://switch.dl.sourceforge.net/
     http://puzzle.dl.sourceforge.net/
     http://garr.dl.sourceforge.net/
