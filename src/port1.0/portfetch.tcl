@@ -301,6 +301,75 @@ proc checkdistfiles {args} {
     }
 }
 
+# sorts fetch_urls in order of ping time
+proc sortsites {args} {
+    global fetch_urls fallback_mirror_site
+
+    set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
+
+    foreach {url_var distfile} $fetch_urls {
+        global portfetch::$url_var
+        if {![info exists $url_var]} {
+            ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
+            set url_var master_sites
+            global portfetch::$url_var
+        }
+        set urllist [set $url_var]
+        set hosts {}
+        set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
+
+        if {[llength $urllist] - [llength $fallback_mirror_list] <= 1} {
+            # there is only one mirror, no need to ping or sort
+            continue
+        }
+
+        foreach site $urllist {
+            regexp $hostregex $site -> host
+
+            if { [info exists seen($host)] } {
+                continue
+            }
+            foreach fallback $fallback_mirror_list {
+                if {[string match [append fallback *] $site]} {
+                    # don't bother pinging fallback mirrors
+                    set seen($host) yes
+                    # and make them sort to the very end of the list
+                    set pingtimes($host) 20000
+                    break
+                }
+            }
+            if { ![info exists seen($host)] } {
+                set seen($host) yes
+                lappend hosts $host
+                ui_debug "Pinging $host..."
+                set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]
+            }
+        }
+
+        foreach host $hosts {
+            set len [gets $fds($host) pingtimes($host)]
+            if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
+                # ping failed, so put it last in the list (but before the fallback mirrors)
+                set pingtimes($host) 10000
+            }
+            ui_debug "$host ping time is $pingtimes($host)"
+        }
+        
+        set pinglist {}
+        foreach site $urllist {
+            regexp $hostregex $site -> host
+            lappend pinglist [ list $site $pingtimes($host) ]
+        }
+
+        set pinglist [ lsort -real -index 1 $pinglist ]
+
+        set $url_var {}
+        foreach pair $pinglist {
+            lappend $url_var [lindex $pair 0]
+        }
+    }
+}
+
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc checkfiles {args} {
@@ -310,6 +379,7 @@ proc checkfiles {args} {
 	checksites
 	checkpatchfiles
 	checkdistfiles
+	sortsites
 }
 
 
