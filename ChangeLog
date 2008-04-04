@@ -5,6 +5,8 @@
 
 
 Unreleased:
+    - Fetch now prefers mirrors with lower ping times (#14891, jmr in r35748)
+
     - Fetching of daily snapshot tarballs of the ports tree as an alternative to rsync
       (raimue in r35647, r35648)
 
