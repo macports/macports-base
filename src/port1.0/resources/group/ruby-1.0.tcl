@@ -285,6 +285,10 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 				}
 			}
 		}
+		fetch {
+			# do nothing but fetch and extract - for strange installers
+			build {}
+		}
 		default {
 			ui_error "ruby.setup: unknown setup type '${type}' specified!"
 			return -code error "ruby.setup failed"
