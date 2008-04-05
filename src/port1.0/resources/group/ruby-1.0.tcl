@@ -180,15 +180,18 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			build			{}
 
 			destroot {
-				_cd ${worksrcpath}/${ruby.srcdir}
+				set root ${worksrcpath}/${ruby.srcdir}
 				xinstall -d -m 0755 ${destroot}${ruby.lib}
-				foreach dir [exec find . -type d] {
-					set dir [strsed ${dir} {s|^[.]/||}]
-					xinstall -d -m 0755 ${destroot}${ruby.lib}/${dir}
-				}
-				foreach file [exec find . -type f] {
-					set file [strsed ${file} {s|^[.]/||}]
-					xinstall -m 0644 ${file} ${destroot}${ruby.lib}/${file}
+				fs-traverse file $root {
+					set file [trimroot $root $file]
+					if {$file ne ""} {
+						set filepath [file join $root $file]
+						if {[file isdirectory $filepath]} {
+							xinstall -d -m 0755 ${destroot}${ruby.lib}/${file}
+						} else {
+							xinstall -m 0644 $filepath ${destroot}${ruby.lib}/${file}
+						}
+					}
 				}
 			}
 		}
@@ -272,14 +275,12 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			}
 			
 			destroot {
-			  _cd ${worksrcpath}
-			  system "${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distpath}/${distname}"
+			  system "cd ${worksrcpath} && ${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distpath}/${distname}"
 			
 				set binDir ${destroot}${prefix}/lib/ruby/gems/${ruby.version}/bin
 				if {[file isdirectory $binDir]} {
-					_cd $binDir
 					foreach file [readdir $binDir] {
-						file copy $file ${destroot}${prefix}/bin
+						file copy [file join $binDir $file] ${destroot}${prefix}/bin
 					}
 				}
 			}
@@ -291,23 +292,50 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 	}
 
 	post-destroot {
-		_cd ${worksrcpath}
 		# Install documentation files (if specified)
 		if {[llength ${ruby.docs}] > 0} {
 			set docPath ${prefix}/share/doc/${name}
 			xinstall -d -m 0755 ${destroot}${docPath}
 			foreach docitem ${ruby.docs} {
+				set docitem [file join ${worksrcpath} ${docitem}]
 				if {[file isdirectory ${docitem}]} {
-					foreach dir [exec find ${docitem} -type d] {
-						xinstall -d -m 0755 ${destroot}${docPath}/${dir}
-					}
-					foreach file [exec find ${docitem} -type f] {
-						xinstall -m 0644 ${file} ${destroot}${docPath}/${file}
+					fs-traverse $file $docitem {
+						set file [trimroot $root $file]
+						if {$file ne ""} {
+							set filepath [file join $root $file]
+							if {[file isdirectory $filepath]} {
+								xinstall -d -m 0755 ${destroot}${docPath}/${file}
+							} else {
+								xinstall -m 0644 $filepath ${destroot}${docPath}/${file}
+							}
+						}
 					}
 				} else {
 					xinstall -m 0644 ${docitem} ${destroot}${docPath}
 				}
 			}
 		}
+	}
+}
+
+proc trimroot {root path} {
+	set acc {}
+	set skiproot no
+	foreach rootf [file split $root] pathf [file split $path] {
+		if {$pathf eq ""} {
+			# we've hit the end of the path
+			break
+		} elseif {$skiproot eq "yes" || $rootf eq ""} {
+			lappend acc $pathf
+		} elseif {$rootf ne $pathf} {
+			# diverged from the root
+			lappend acc $pathf
+			set skiproot yes
+		}
+	}
+	if {[llength $acc] == 0} {
+		return ""
+	} else {
+		return [eval [subst -nobackslashes -nocommands {file join $acc}]]
 	}
 }
