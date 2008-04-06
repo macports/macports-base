@@ -1227,13 +1227,10 @@ proc target_run {ditem} {
                     
                         set portlist $depsPorts
                         foreach depName $depsPorts {
-                            set portlist [concat $portlist [recursive_collect_deps $depName $deptypes]]
+                            set portlist [recursive_collect_deps $depName $deptypes $portlist]
                         }
-                        #uniquer from http://aspn.activestate.com/ASPN/Cookbook/Tcl/Recipe/147663
-                        array set a [split "[join $portlist {::}]:" {:}]
-                        set depsPorts [array names a]
                     
-                        if {[llength $deptypes] > 0} {tracelib setdeps $depsPorts}
+                        if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
                     }
                 }
             
@@ -1305,9 +1302,8 @@ proc target_run {ditem} {
     return $result
 }
 
-# recursive found depends for portname
-# It isn't ideal, because it scan many ports multiple time
-proc recursive_collect_deps {portname deptypes} \
+# recursive dependency search for portname
+proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 {
     set res [mport_search ^$portname\$]
     if {[llength $res] < 2} \
@@ -1325,13 +1321,15 @@ proc recursive_collect_deps {portname deptypes} \
             set depends [concat $depends $portinfo($deptype)]
         }
     }
-    
-    set portdeps {}
+
+    set portdeps $depsfound
     foreach depspec $depends \
     {
         set portname [lindex [split $depspec :] end]
-        lappend portdeps $portname
-        set portdeps [concat $portdeps [recursive_collect_deps $portname $deptypes]]
+        if {[lsearch -exact $portdeps $portname] == -1} { 
+            lappend portdeps $portname
+            set portdeps [recursive_collect_deps $portname $deptypes $portdeps]
+        }
     }
     return $portdeps
 }
