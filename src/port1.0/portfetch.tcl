@@ -379,7 +379,6 @@ proc checkfiles {args} {
 	checksites
 	checkpatchfiles
 	checkdistfiles
-	sortsites
 }
 
 
@@ -536,12 +535,17 @@ proc fetchfiles {args} {
 	if {$portverbose == "yes"} {
 		lappend fetch_options "-v"
 	}
+	set sorted no
 	
 	foreach {url_var distfile} $fetch_urls {
 		if {![file isfile $distpath/$distfile]} {
 			ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
 			if {![file writable $distpath]} {
 				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+			}
+			if {!$sorted} {
+			    sortsites
+			    set sorted yes
 			}
 			global portfetch::$url_var
 			if {![info exists $url_var]} {
