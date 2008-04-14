@@ -2125,15 +2125,12 @@ proc action_portcmds { action portlist opts } {
                         }
                     }
                     
-                    # Invoke the editor
-                    if { $editor == "" } {
-                        break_softcontinue "No EDITOR is specified in your environment" 1 status
-                    } else {
-                        if {[catch {eval exec >/dev/stdout </dev/stdin $editor $portfile} result]} {
-                            global errorInfo
-                            ui_debug "$errorInfo"
-                            break_softcontinue "unable to invoke editor $editor: $result" 1 status
-                        }
+                    # Invoke the editor, with a reasonable canned default.
+                    if { $editor == "" } { set editor "/usr/bin/vi" }
+                    if {[catch {eval exec >/dev/stdout </dev/stdin $editor $portfile} result]} {
+                        global errorInfo
+                        ui_debug "$errorInfo"
+                        break_softcontinue "unable to invoke editor $editor: $result" 1 status
                     }
                     
                     # Restore internal MacPorts environment
