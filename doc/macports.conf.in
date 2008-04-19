@@ -14,6 +14,10 @@ portdbformat		flat
 # Type of installation to do for ports, "direct" or "image".  See macports.conf(5) and online documentation.
 portinstalltype		image
 
+# PATH settings that are used for external tools (configure, make, etc.) while installing ports. The default
+# paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
+#binpath		/opt/local/bin:/opt/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
+
 # Directory containing the X11 installation.
 x11prefix		@x11prefix@
 
