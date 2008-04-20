@@ -98,7 +98,7 @@ proc uninstall {portname {v ""} optionslist} {
 		}
 		# Now see if we need to error
 		if { [llength $dl] > 0 } {
-			if {[info exists options(ports_uninstall_recursive)] && $options(ports_uninstall_recursive) eq "yes"} {
+			if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
 				foreach depport $dl {
 					# make sure it's still installed, since a previous dep uninstall may have removed it
 					# does registry::installed still error? A cursory look at the code says no, but above says yes
