@@ -90,7 +90,7 @@ proc uninstall {portname {specifier ""} optionslist} {
         }
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s %s_%s%s"] $portname $version $revision $variants]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
 
     # pkg_uninstall isn't used anywhere as far as I can tell and I intend to add
     # some proper pre-/post- hooks to uninstall/deactivate.

@@ -77,7 +77,7 @@ proc activate {name specifier optionslist} {
         set force 0
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s %s"] $name $specifier]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
     registry::read {
 
@@ -131,7 +131,7 @@ proc deactivate {name spec optionslist} {
         set force 0
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s %s"] $name $v]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
 
     if { [string equal $name {}] } {
         throw registry::image-error "Registry error: Please specify the name of the port."

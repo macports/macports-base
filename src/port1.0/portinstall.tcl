@@ -48,7 +48,7 @@ set_ui_prefix
 
 proc install_start {args} {
 	global UI_PREFIX portname portversion portrevision variations portvariants
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
 }
 
 proc install_element {src_element dst_element} {

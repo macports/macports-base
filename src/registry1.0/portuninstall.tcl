@@ -128,7 +128,7 @@ proc uninstall {portname {v ""} optionslist} {
 		portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s %s_%s%s"] $portname $version $revision $variants]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
 
 	# Look to see if the port has registered an uninstall procedure
 	set uninstall [registry::property_retrieve $ref pkg_uninstall] 

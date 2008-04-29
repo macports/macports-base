@@ -1966,7 +1966,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                     if {[catch {portimage::deactivate $portname $version $optionslist} result]} {
                         global errorInfo
                         ui_debug "$errorInfo"
-                        ui_error "Deactivating $portname $version_installed_$revision_installed failed: $result"
+                        ui_error "Deactivating $portname @${version_installed}_${revision_installed} failed: $result"
                         return 1
                     }
                 }
@@ -1974,10 +1974,10 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         }
         if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
             # activate the latest installed version
-            if {[catch {portimage::activate $portname ${version_installed}_$revision_installed$variant $optionslist} result]} {
+            if {[catch {portimage::activate $portname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                ui_error "Activating $portname ${version_installed}_$revision_installed failed: $result"
+                ui_error "Activating $portname @${version_installed}_${revision_installed} failed: $result"
                 return 1
             }
         }

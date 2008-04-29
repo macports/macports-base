@@ -79,7 +79,7 @@ proc activate {name v optionslist} {
 		set force 0
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s %s"] $name $v]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
 	
 	set ilist [_check_registry $name $v]
 	set version [lindex $ilist 1]
@@ -142,7 +142,7 @@ proc deactivate {name v optionslist} {
 		set force 0
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s %s"] $name $v]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
 	
 	set ilist [registry::active $name]
 	if { [llength $ilist] > 1 } {
