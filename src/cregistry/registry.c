@@ -34,6 +34,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <libgen.h>
+#include <string.h>
 #include <stdarg.h>
 #include <sqlite3.h>
 #include <sys/stat.h>
@@ -161,9 +162,12 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     if (stat(path, &sb) != 0) {
         initialized = 0;
         if (errno == ENOENT) {
-            if (stat(dirname(path), &sb) != 0) {
+            char *mypath = strdup(path);
+            mypath = dirname(mypath);
+            if (stat(mypath, &sb) != 0) {
                 can_write = 0;
             }
+            free(mypath);
         } else {
             can_write = 0;
         }
