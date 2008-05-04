@@ -79,8 +79,12 @@ proc activate {name v optionslist} {
 		set force 0
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
-	
+        if {$v != ""} {
+        	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
+        } else {
+        	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
+        }
+
 	set ilist [_check_registry $name $v]
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
@@ -142,8 +146,12 @@ proc deactivate {name v optionslist} {
 		set force 0
 	}
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
-	
+        if {$v != ""} {
+        	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
+        } else {
+        	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
+        }
+
 	set ilist [registry::active $name]
 	if { [llength $ilist] > 1 } {
 		return -code error "Registry error: Please specify the name of the port."
