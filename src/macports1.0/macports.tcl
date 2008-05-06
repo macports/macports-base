@@ -1056,7 +1056,7 @@ proc _libtest {mport depspec} {
     if {[info exists env(DYLD_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_LIBRARY_PATH)
     }
-    lappend search_path /lib /usr/lib /usr/X11R6/lib ${prefix}/lib
+    lappend search_path /lib /usr/lib /usr/X11R6/lib /usr/X11/lib ${prefix}/lib
     if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
     }
