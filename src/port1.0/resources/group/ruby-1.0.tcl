@@ -303,14 +303,16 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			foreach docitem ${ruby.docs} {
 				set docitem [file join ${worksrcpath} ${docitem}]
 				if {[file isdirectory ${docitem}]} {
-					fs-traverse $file $docitem {
-						set file [trimroot $root $file]
+				    set subdir [file tail $docitem]
+				    xinstall -d -m 0755 ${destroot}${docPath}/${subdir}
+					fs-traverse file $docitem {
+						set file [trimroot $docitem $file]
 						if {$file ne ""} {
-							set filepath [file join $root $file]
+							set filepath [file join $docitem $file]
 							if {[file isdirectory $filepath]} {
-								xinstall -d -m 0755 ${destroot}${docPath}/${file}
+								xinstall -d -m 0755 ${destroot}${docPath}/${subdir}/${file}
 							} else {
-								xinstall -m 0644 $filepath ${destroot}${docPath}/${file}
+								xinstall -m 0644 $filepath ${destroot}${docPath}/${subdir}/${file}
 							}
 						}
 					}
