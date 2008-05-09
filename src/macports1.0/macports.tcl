@@ -1696,6 +1696,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             ui_error "Internal error: port search failed: $error"
             return 1
         }
+        
+        unset -nocomplain porturl
         foreach {name array} $res {
             array set portinfo $array
             if {[info exists portinfo(porturl)]} {
