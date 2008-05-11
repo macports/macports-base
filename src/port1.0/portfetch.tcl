@@ -510,13 +510,13 @@ proc gitfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
-	global distpath all_dist_files UI_PREFIX fetch_urls
+	global fulldistpath all_dist_files UI_PREFIX fetch_urls
 	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
 	global distfile site
 	global portverbose
 
-	if {![file isdirectory $distpath]} {
-		if {[catch {file mkdir $distpath} result]} {
+	if {![file isdirectory $fulldistpath]} {
+		if {[catch {file mkdir $fulldistpath} result]} {
 			return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
 		}
 	}
@@ -538,10 +538,10 @@ proc fetchfiles {args} {
 	set sorted no
 	
 	foreach {url_var distfile} $fetch_urls {
-		if {![file isfile $distpath/$distfile]} {
-			ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
-			if {![file writable $distpath]} {
-				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+		if {![file isfile [file join $fulldistpath $distfile]]} {
+			ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $fulldistpath]"
+			if {![file writable $fulldistpath]} {
+				return -code error [format [msgcat::mc "%s must be writable"] $fulldistpath]
 			}
 			if {!$sorted} {
 			    sortsites
@@ -558,8 +558,8 @@ proc fetchfiles {args} {
 				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 				set file_url [portfetch::assemble_url $site $distfile]
 				set effectiveURL ""
-				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
-					![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
+				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${fulldistpath}/${distfile}.TMP} result] &&
+					![catch {system "mv ${fulldistpath}/${distfile}.TMP ${fulldistpath}/${distfile}"}]} {
 
 					# Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
 					if {![string equal $effectiveURL $file_url] &&
@@ -569,7 +569,7 @@ proc fetchfiles {args} {
 						# *SourceForge hackage in effect*
 						# The url seen by curl seems to have been a redirect to the sourceforge mirror page
 						ui_debug "[msgcat::mc "Fetching from sourceforge mirror failed"]"
-						exec rm -f ${distpath}/${distfile}.TMP
+						exec rm -f [file join $fulldistpath ${distfile}.TMP]
 						
 						# Continue on to try the next mirror, if any
 					} else {
@@ -582,7 +582,7 @@ proc fetchfiles {args} {
 
 				} else {
 					ui_debug "[msgcat::mc "Fetching failed:"]: $result"
-					exec rm -f ${distpath}/${distfile}.TMP
+					exec rm -f [file join $fulldistpath ${distfile}.TMP]
 				}
 			}
 			if {![info exists fetched]} {
@@ -595,30 +595,34 @@ proc fetchfiles {args} {
 
 # Utility function to delete fetched files.
 proc fetch_deletefiles {args} {
-	global distpath fetch_urls
+	global fulldistpath fetch_urls
 	foreach {url_var distfile} $fetch_urls {
-		if {[file isfile $distpath/$distfile]} {
-			exec rm -f ${distpath}/${distfile}
+		if {[file isfile [file join $fulldistpath $distfile]]} {
+			exec rm -f [file join $fulldistpath $distfile]
 		}
 	}
 }
 
 # Utility function to add files to a list of fetched files.
 proc fetch_addfilestomap {filemapname} {
-	global distpath fetch_urls $filemapname
+	global fulldistpath fetch_urls $filemapname
 	foreach {url_var distfile} $fetch_urls {
-		if {[file isfile $distpath/$distfile]} {
-			filemap set $filemapname $distpath/$distfile 1
+		if {[file isfile [file join $fulldistpath $distfile]]} {
+			filemap set $filemapname [file join $fulldistpath $distfile] 1
 		}
 	}
 }
 
 # Initialize fetch target
 proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir fetch.type
+    global distfiles distname distpath fulldistpath all_dist_files dist_subdir fetch.type
     
-    if {[info exist distpath] && [info exists dist_subdir]} {
-	set distpath ${distpath}/${dist_subdir}
+    if {[info exist distpath]} {
+        if {[info exists dist_subdir]} {
+            set fulldistpath [file join $distpath $dist_subdir]
+        } else {
+            set fulldistpath $distpath
+        }
     }
 }
 

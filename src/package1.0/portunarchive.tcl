@@ -61,7 +61,7 @@ proc unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
 	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants portpath
-	global unarchive.srcpath unarchive.type unarchive.file unarchive.path
+	global unarchive.srcpath unarchive.type unarchive.file unarchive.path unarchive.fullsrcpath
 
 	# Check mode in case archive called directly by user
 	if {[option portarchivemode] != "yes"} {
@@ -82,7 +82,9 @@ proc unarchive_init {args} {
 
 	# Define archive directory, file, and path
 	if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
-		set unarchive.srcpath [file join ${unarchive.srcpath} [option os.platform] [option os.arch]]
+		set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] [option os.arch]]
+	} else {
+	    set unarchive.fullsrcpath ${unarchive.srcpath}
 	}
 
 	# Determine if unarchive should be skipped
@@ -104,7 +106,7 @@ proc unarchive_init {args} {
 		foreach unarchive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
 				set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${unarchive.type}"
-				set unarchive.path "[file join ${unarchive.srcpath} ${unarchive.file}]"
+				set unarchive.path "[file join ${unarchive.fullsrcpath} ${unarchive.file}]"
 				if {[file exist ${unarchive.path}]} {
 					set found 1
 					break

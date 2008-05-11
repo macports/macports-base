@@ -61,7 +61,7 @@ proc archive_init {args} {
 	global variations package.destpath workpath
 	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants
-	global archive.destpath archive.type archive.file archive.path
+	global archive.destpath archive.type archive.file archive.path archive.fulldestpath
 
 	# Check mode in case archive called directly by user
 	if {[option portarchivemode] != "yes"} {
@@ -82,7 +82,9 @@ proc archive_init {args} {
 
 	# Define archive destination directory and target filename
 	if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-		set archive.destpath [file join ${archive.destpath} [option os.platform] [option os.arch]]
+		set archive.fulldestpath [file join ${archive.destpath} [option os.platform] [option os.arch]]
+	} else {
+	    set archive.fulldestpath ${archive.destpath}
 	}
 
 	# Determine if archive should be skipped
@@ -100,7 +102,7 @@ proc archive_init {args} {
 		foreach archive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
 				set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
-				set archive.path "[file join ${archive.destpath} ${archive.file}]"
+				set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 			} else {
 				ui_debug "Skipping [string toupper ${archive.type}] archive: $errmsg"
 				set unsupported [expr $unsupported + 1]
@@ -238,11 +240,11 @@ proc archive_main {args} {
 	global UI_PREFIX variations
 	global workpath destpath portpath ports_force
 	global portname portversion portrevision portvariants
-	global archive.destpath archive.type archive.file archive.path
+	global archive.fulldestpath archive.type archive.file archive.path
 
 	# Create archive destination path (if needed)
-	if {![file isdirectory ${archive.destpath}]} {
-		system "mkdir -p ${archive.destpath}"
+	if {![file isdirectory ${archive.fulldestpath}]} {
+		system "mkdir -p ${archive.fulldestpath}"
 	}
 
 	# Copy state file into destroot for archiving
@@ -317,7 +319,7 @@ proc archive_main {args} {
 		if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
 			# Define archive file/path
 			set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
-			set archive.path "[file join ${archive.destpath} ${archive.file}]"
+			set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 
 			# Setup archive command
 			archive_command_setup
