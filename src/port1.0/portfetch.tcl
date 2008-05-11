@@ -615,10 +615,11 @@ proc fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target
 proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir fetch.type
+    global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     
-    if {[info exist distpath] && [info exists dist_subdir]} {
-	set distpath ${distpath}/${dist_subdir}
+    if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
+	    set distpath ${distpath}/${dist_subdir}
+	    set fetch_init_done yes
     }
 }
 
