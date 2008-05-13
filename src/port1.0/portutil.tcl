@@ -356,6 +356,7 @@ proc command_exec {command args} {
     
     # Restore the environment.
     array unset env *
+    unsetenv *
     array set env [array get saved_env]
 
     # Return as if system had been called directly. 
