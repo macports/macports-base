@@ -58,7 +58,7 @@ default extract.mkdir no
 set_ui_prefix
 
 proc extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_zip workpath
+    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_zip use_dmg workpath
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
@@ -74,6 +74,14 @@ proc extract_init {args} {
 	option extract.cmd [binaryInPath "unzip"]
 	option extract.pre_args -q
 	option extract.post_args "-d [option extract.dir]"
+    } elseif {[tbool use_dmg]} {
+        global worksrcdir
+        set dmg_tmp_dir [exec mktemp -d -q "/tmp/mports.XXXXXXXX"]
+        set dmg_mount ${dmg_tmp_dir}/${worksrcdir}
+        file mkdir ${dmg_mount}
+        option extract.cmd [binaryInPath "hdiutil"]
+        option extract.pre_args attach
+        option extract.post_args "-private -readonly -nobrowse -mountpoint ${dmg_mount} && [binaryInPath "cp"] -Rp ${dmg_mount} ${extract.dir} && ${extract.cmd} detach ${dmg_mount} && [binaryInPath "rmdir"] ${dmg_mount} ${dmg_tmp_dir}"
     }
 }
 
