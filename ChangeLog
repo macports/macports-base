@@ -26,7 +26,7 @@ Unreleased:
     - added target_state to avoid the need for privileges for lint/livecheck (#13458)
 
     - Overhauled output for port info/deps/dependents/search (raimue in
-	r34354, r34371, r34391, r34395, r34402, r34420)
+      r34354, r34371, r34391, r34395, r34402, r34420)
 
     - Revert the default +universal MDT/SDK to 10.4/10.4u on Tiger and 10.5/10.5 on Leopard
 
@@ -35,7 +35,7 @@ Unreleased:
     - Add "tcldoc" documentation comments and "tcldox" Doxyfile for doxygen (#12048)
 
     - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
-	r33940, 33941)
+      r33940, 33941)
 
     - Work around autoconf X11 detection bugs on darwin (afb in r33717)
 
@@ -95,11 +95,11 @@ Release 1.6.0 (16-December-2007 by jmpp):
     - Remove LD_PREBIND & LD_PREBIND_ALLOW_OVERLAP variables from MacPorts' environment to prevent
       prebinding of binaries, which can be harmful on Tiger and above (#13436, mww in r31786).
 
-    - Add 'gcc-4.2' option to the configure.compiler Portfile command (mww in r31891). 
+    - Add 'gcc-4.2' option to the configure.compiler Portfile command (mww in r31891).
 
     - Flush port(1) output channel after issuing prompt, when readline is not
       available, to ensure prompt is displayed at proper time. (jberry r31338).
-      
+
     - readline is now disabled by default, in order to avoid support issues.
       use --enable-readine parameter to configure to enable support for readine.
       (jberry r31139, r31140).
