@@ -5,6 +5,10 @@
 
 
 Unreleased:
+    - Explicitly use unsetenv(3) on all environment variables (#13930)
+
+    - Make the included tclthread compile on Leopard if configured (#13495)
+
     - Allow distfiles to be disk images with "use_dmg yes" port option (#13509,
       ryandesign in r36708)
 
