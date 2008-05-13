@@ -617,7 +617,7 @@ proc fetch_addfilestomap {filemapname} {
 	}
 }
 
-# Initialize fetch target
+# Initialize fetch target and call checkfiles.
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     
@@ -625,14 +625,13 @@ proc fetch_init {args} {
 	    set distpath ${distpath}/${dist_subdir}
 	    set fetch_init_done yes
     }
+    checkfiles
 }
 
 proc fetch_start {args} {
     global UI_PREFIX portname
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
-
-    checkfiles
 }
 
 # Main fetch routine
