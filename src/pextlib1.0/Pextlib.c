@@ -1118,6 +1118,52 @@ int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc,
     return TCL_OK;
 }
 
+/**
+ * deletes environment variable
+ *
+ * Syntax is:
+ * unsetenv name (* for all)
+ */
+int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    char *name;
+    char **envp;
+    char *equals;
+    size_t len;
+    
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "name");
+        return TCL_ERROR;
+    }
+
+    name = Tcl_GetString(objv[1]);
+    if (strchr(name, '=') != NULL) {
+        Tcl_SetResult(interp, "only the name should be given", TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    if (strcmp(name, "*") == 0) {
+        /* unset all current environment variables */
+        for (envp = environ; *envp != NULL; envp++) {
+            equals = strchr(*envp, '=');
+            if (equals != NULL) {
+                len = equals - *envp;
+                name = malloc(len+1);
+                if (name != NULL) {
+                    memcpy(name, *envp, len);
+                    name[len] = '\0';
+                    (void) unsetenv(name);
+                    free(name);
+                }
+            }
+        }
+    } else {
+        (void) unsetenv(name);
+    }
+
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -1149,6 +1195,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
     Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
+    Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
