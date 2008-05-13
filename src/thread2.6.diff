@@ -50,3 +50,30 @@ diff -ru src/thread2.6/lib/ttrace.tcl src/thread2.6.mine/lib/ttrace.tcl
          variable mutex thread::mutex
          variable elock [$mutex create]
          variable store tsv::
+# tcl-64/tcl_ext/thread/thread.diff
+--- src/thread2.6/generic/threadPoolCmd.c.orig	2003-11-27 11:54:19.000000000 -0800
++++ src/thread2.6/generic/threadPoolCmd.c	2005-07-20 23:10:12.000000000 -0700
+@@ -1710,18 +1710,21 @@
+  *
+  *----------------------------------------------------------------------
+  */
++#ifdef __WIN32__
++#include <sys/timeb.h>
++#else
++#include <sys/time.h>
++#endif
+ static void
+ GetTime(timePtr)
+     Tcl_Time *timePtr;
+ {
+ #ifdef __WIN32__
+-#include <sys/timeb.h>
+     struct timeb tb;
+     (void)ftime(&tb);
+     timePtr->sec  = tb.time;
+     timePtr->usec = tb.millitm * 1000;
+ #else
+-#include <sys/time.h>
+     struct timeval tv;
+     (void)gettimeofday(&tv, NULL);
+     timePtr->sec  = tv.tv_sec;
