@@ -12,6 +12,18 @@ proc main {pextlibname} {
     
     unsetenv *
     puts [array get env]
+
+
+    set env(CC) "gcc"
+
+    array unset env CC
+    if {[info exists env(CC)]} {
+        puts "note: your TclUnsetEnv is broken... (need to use unsetenv too)"
+    }
+    unsetenv CC
+    if {[info exists env(CC)]} {
+        exit 1
+    }
 }
 
 main $argv
