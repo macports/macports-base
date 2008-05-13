@@ -1134,21 +1134,30 @@ proc _mportinstalled {mport} {
     }
 }
 
+# Determine if a port is active (only for image mode)
+proc _mportactive {mport} {
+    set workername [ditem_key $mport workername]
+    if {[catch {set reslist [$workername eval registry_active \${portname}]} res]} {
+        return 0
+    } else {
+        return [expr [llength $reslist] > 0]
+    }
+}
+
 ### _mportispresent is private; may change without notice
 
-# Determine if some depspec is satisfied or if the given port is installed.
+# Determine if some depspec is satisfied or if the given port is installed
+# (and active, if we're in image mode).
 # We actually start with the registry (faster?)
 #
 # mport     the port to test (to figure out if it's present)
 # depspec   the dependency test specification (path, bin, lib, etc.)
 proc _mportispresent {mport depspec} {
-    # Check for the presense of the port in the registry
-    set workername [ditem_key $mport workername]
     ui_debug "Searching for dependency: [ditem_key $mport provides]"
-    if {[catch {set reslist [$workername eval registry_installed \${portname}]} res]} {
-        set res 0
+    if {[string equal ${macports::registry.installtype} "image"]} {
+        set res [_mportactive $mport]
     } else {
-        set res [llength $reslist]
+        set res [_mportinstalled $mport]
     }
     if {$res != 0} {
         ui_debug "Found Dependency: receipt exists for [ditem_key $mport provides]"
@@ -1237,7 +1246,7 @@ proc mportexec {mport target} {
         # xxx: as with below, this is ugly.  and deps need to be fixed to
         # understand Port Images before this can get prettier
         if { [string equal ${macports::registry.installtype} "image"] } {
-            set result [dlist_eval $dlist _mportinstalled [list _mportexec "activate"]]
+            set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
         } else {
             set result [dlist_eval $dlist _mportinstalled [list _mportexec "install"]]
         }
