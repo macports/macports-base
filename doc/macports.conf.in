@@ -16,7 +16,7 @@ portinstalltype		image
 
 # PATH settings that are used for external tools (configure, make, etc.) while installing ports. The default
 # paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
-#binpath		/opt/local/bin:/opt/local/sbin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/X11R6/bin
+#binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin:@x11prefix@/bin
 
 # Directory containing the X11 installation.
 x11prefix		@x11prefix@
