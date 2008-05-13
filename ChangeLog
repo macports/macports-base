@@ -8,7 +8,7 @@ Unreleased:
     - ruby.setup now takes a type 'fetch' to just fetch/extract (eridius in r35773)
 
     - Fetch now prefers mirrors with lower ping times (#14891, jmr in r35748,
-    r35806, r35808)
+      r35806, r35808)
 
     - Fetching of daily snapshot tarballs of the ports tree as an alternative to rsync
       (raimue in r35647, r35648)
