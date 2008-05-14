@@ -10,15 +10,13 @@ include ../../Mk/macports.autoconf.mk
 
 all: ${SCRIPTS}
 
-.PHONY: always
-
-portmirror: portmirror.tcl always
+portmirror: portmirror.tcl ../../Mk/macports.autoconf.mk
 	${edit} portmirror.tcl > $@
 
-portindex: portindex.tcl always
+portindex: portindex.tcl ../../Mk/macports.autoconf.mk
 	${edit} portindex.tcl > $@
 
-port: port.tcl always
+port: port.tcl ../../Mk/macports.autoconf.mk
 	${edit} port.tcl > $@
 
 mkdirs:
