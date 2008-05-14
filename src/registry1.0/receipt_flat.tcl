@@ -732,7 +732,11 @@ proc list_dependents {name} {
 
 proc register_dep {dep type port} {
 	variable dep_map
-	lappend dep_map [list $dep $type $port]
+	set newdep [list $dep $type $port]
+	# slow, but avoids duplicate entries building up
+	if {[lsearch -exact $dep_map $newdep] == -1} {
+	    lappend dep_map $newdep
+	}
 }
 
 proc unregister_dep {dep type port} {
