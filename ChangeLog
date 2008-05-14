@@ -5,6 +5,23 @@
 
 
 Unreleased:
+    - A port with dependents can now be removed without forcing iff it is
+      inactive and there is at least one other version of the same port
+      installed (#11501, jmr in r36747)
+
+    - Duplicate entries can no longer build up in the dependency map (#8763,
+      jmr in r36745)
+
+    - In image mode, dependencies are no longer treated as being satisfied
+      when the satisfying port is not active (#7361, jmr in r36735)
+
+    - Fixed a bug where upgrade could create too many nested subdirectories
+      in distpath, archive.destpath and unarchive.srcpath (#11971, jmr in
+      r36679, r36687, r36688)
+
+    - Declaring a dependency on a nonexistent port now always causes an error
+      (#10768, jmr in r36648)
+
     - Explicitly use unsetenv(3) on all environment variables (#13930)
 
     - Make the included tclthread compile on Leopard if configured (#13495)
