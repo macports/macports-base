@@ -5,6 +5,13 @@
 
 
 Unreleased:
+    - The default universal variant is no longer added when we know it won't
+      work. (#12170, jmr in r36764)
+
+    - During upgrade, if the latest installed version of a port is not active,
+      the currently active version (if any) is now deactivated before trying
+      to activate the latest version. (#12013, jmr in r36762)
+
     - A port with dependents can now be removed without forcing iff it is
       inactive and there is at least one other version of the same port
       installed (#11501, jmr in r36747)
