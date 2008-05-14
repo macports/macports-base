@@ -1652,6 +1652,43 @@ proc check_variants {variations target} {
     return $result
 }
 
+proc default_universal_variant_allowed {args} {
+    
+    if {[variant_exists universal]} {
+        ui_debug "universal variant already exists, so not adding the default one"
+        return no
+    } elseif {[exists universal_variant] && ![option universal_variant]} {
+        ui_debug "'universal_variant no' specified, so not adding the default universal variant"
+        return no
+    } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
+        ui_debug "using xmkmf, so not adding the default universal variant"
+        return no
+    } elseif {[exists use_configure] && ![option use_configure]} {
+        ui_debug "not using configure, so not adding the default universal variant"
+        return no
+    } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
+        ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
+        return no
+    } else {
+        ui_debug "adding the default universal variant"
+        return yes
+    }
+}
+
+proc add_default_universal_variant {args} {
+    # Declare default universal variant, on >10.3
+    variant universal description {Build for multiple architectures} {
+        if {![file exists ${configure.universal_sysroot}]} {
+            return -code error "Universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
+        }
+        eval configure.args-append ${configure.universal_args}
+        eval configure.cflags-append ${configure.universal_cflags}
+        eval configure.cppflags-append ${configure.universal_cppflags}
+        eval configure.cxxflags-append ${configure.universal_cxxflags}
+        eval configure.ldflags-append ${configure.universal_ldflags}
+    }
+}
+
 # Target class definition.
 
 # constructor for target object

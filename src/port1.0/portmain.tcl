@@ -44,6 +44,7 @@ target_state ${org.macports.main} no
 options prefix name version revision epoch categories maintainers
 options long_description description homepage
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
+options universal_variant os.universal_supported
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage
@@ -96,6 +97,7 @@ default os.major {$os_major}
 default os.arch {$os_arch}
 # Remove trailing "Endian"
 default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
+default os.universal_supported no
 
 set macosx_version {}
 if {$os_platform == "darwin"} {
@@ -105,45 +107,23 @@ if {$os_platform == "darwin"} {
 
 default macosx_deployment_target {$macosx_version}
 
+default universal_variant yes
+
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
 if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(puredarwin)]} { variant_set puredarwin }
 if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} { variant_set macosx }
 if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
-    # Declare default universal variant, on >10.3
-    variant universal description {Build for multiple architectures} {
-        if {[tbool use_xmkmf] || ![tbool use_configure]} {
-            return -code error "Default universal variant only works with ports based on configure"
-        }
-        eval configure.args-append ${configure.universal_args}
-        if {![file exists ${configure.universal_sysroot}]} {
-            return -code error "Universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
-        }
-        eval configure.cflags-append ${configure.universal_cflags}
-        eval configure.cppflags-append ${configure.universal_cppflags}
-        eval configure.cxxflags-append ${configure.universal_cxxflags}
-        eval configure.ldflags-append ${configure.universal_ldflags}
-    }
+    # the universal variant itself is now created in
+    # add_default_universal_variant, which is called from mportopen
+    option os.universal_supported yes
+
     if {[info exists variations(universal)] && $variations(universal) == "+"} {
         # cannot go into the variant, due to the amount of ports overriding it
         global configure.universal_target
         if {[info exists configure.universal_target]} {
             eval macosx_deployment_target ${configure.universal_target}
-        }
-    }
-
-    # This is not a standard option, because we need to take an action when it's
-    # set, in order to alter the PortInfo structure in time.
-    proc universal_variant {state} {
-        if {${state} == "no"} {
-            variant_undef universal
-        }
-    }
-} else {
-    proc universal_variant {state} {
-        if {${state} != "no"} {
-            ui_error "+universal is only available on +macosx"
         }
     }
 }
