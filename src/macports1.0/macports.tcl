@@ -1937,7 +1937,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
             exit 1
         }
     }
-    set anyactive 0
+    set anyactive no
     set version_installed {}
     set revision_installed {}
     set epoch_installed 0
@@ -1964,23 +1964,28 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                         && [rpm-vercomp $revision $revision_installed] > 0)} {
                 set version_installed $version
                 set revision_installed $revision
+                set variant_installed $variant
                 set epoch_installed [registry::property_retrieve [registry::open_entry $portname [lindex $i 1] [lindex $i 2] $variant] epoch]
                 set num $i
             }
 
             set isactive [lindex $i 4]
             if {$isactive == 1} {
-                if { [rpm-vercomp $version_installed $version] < 0
-                        || ([rpm-vercomp $version_installed $version] == 0
-                            && [rpm-vercomp $revision_installed $revision] < 0)} {
-                    # deactivate version
-                    if {[catch {portimage::deactivate $portname $version $optionslist} result]} {
-                        global errorInfo
-                        ui_debug "$errorInfo"
-                        ui_error "Deactivating $portname @${version_installed}_${revision_installed} failed: $result"
-                        return 1
-                    }
-                }
+                set anyactive yes
+                set version_active $version
+                set revision_active $revision
+                set variant_active $variant
+            }
+        }
+        if { $anyactive && ([rpm-vercomp $version_installed $version_active] != 0
+                            || [rpm-vercomp $revision_installed $revision_active] != 0
+                            || [string compare $variant_installed $variant_active] != 0)} {
+            # deactivate version
+            if {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Deactivating $portname @${version_active}_${revision_active} failed: $result"
+                return 1
             }
         }
         if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
