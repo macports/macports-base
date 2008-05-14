@@ -247,6 +247,11 @@ proc archive_main {args} {
 		system "mkdir -p ${archive.fulldestpath}"
 	}
 
+	# Create (if no files) destroot for archiving
+	if {![file isdirectory ${destpath}]} {
+		system "mkdir -p ${destpath}"
+	}
+
 	# Copy state file into destroot for archiving
 	# +STATE contains a copy of the MacPorts state information
     set statefile [file join $workpath .macports.${portname}.state]
