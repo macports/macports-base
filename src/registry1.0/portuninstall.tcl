@@ -62,6 +62,7 @@ proc uninstall {portname {v ""} optionslist} {
 		set version [lindex [lindex $ilist 0] 1]
 		set revision [lindex [lindex $ilist 0] 2]
 		set variants [lindex [lindex $ilist 0] 3]
+		set active [lindex [lindex $ilist 0] 4]
 	}
 
 	# determine if it's the only installed port with that name or not.
@@ -109,15 +110,18 @@ proc uninstall {portname {v ""} optionslist} {
 					}
 				}
 			} else {
-				ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
-				foreach depport $dl {
-					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
-				}
-				if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
-					ui_warn "Uninstall forced.  Proceeding despite dependencies."
-				} else {
-					return -code error "Please uninstall the ports that depend on $portname first."
-				}
+                # will need to change this when we get version/variant dependencies
+                if {$nb_versions_installed == 1 || $active == 1} {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
+                    foreach depport $dl {
+                        ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
+                    }
+                    if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
+                        ui_warn "Uninstall forced.  Proceeding despite dependencies."
+                    } else {
+                        return -code error "Please uninstall the ports that depend on $portname first."
+                    }
+                }
 			}
 		}
 	}
