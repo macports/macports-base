@@ -239,7 +239,7 @@ proc archive_command_setup {args} {
 proc archive_main {args} {
 	global UI_PREFIX variations
 	global workpath destpath portpath ports_force
-	global portname portversion portrevision portvariants
+	global portname portepoch portversion portrevision portvariants
 	global archive.fulldestpath archive.type archive.file archive.path
 
 	# Create archive destination path (if needed)
@@ -286,6 +286,7 @@ proc archive_main {args} {
 	set fd [open [file join $destpath "+CONTENTS"] w]
 	puts $fd "@name ${portname}-${portversion}_${portrevision}${portvariants}"
 	puts $fd "@portname ${portname}"
+	puts $fd "@portepoch ${portepoch}"
 	puts $fd "@portversion ${portversion}"
 	puts $fd "@portrevision ${portrevision}"
 	set vlist [lsort -ascii [array names variations]]
