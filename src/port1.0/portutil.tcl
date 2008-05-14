@@ -1676,7 +1676,7 @@ proc default_universal_variant_allowed {args} {
 }
 
 proc add_default_universal_variant {args} {
-    # Declare default universal variant, on >10.3
+    # Declare default universal variant if universal SDK is installed
     variant universal description {Build for multiple architectures} {
         if {![file exists ${configure.universal_sysroot}]} {
             return -code error "Universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
