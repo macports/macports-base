@@ -93,9 +93,10 @@ universal_archs		@UNIVERSAL_ARCHS@
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", "launchd", or "none";
 # if the option is empty or "default" then a startupitem type appropriate
-# to the platform will be chosen. Tiger will default to launchd, while
-# older Mac OS X systems will default to systemstarter. If option "none"
-# is chosen, port startupitems are ignored and no startupitems are installed.
+# to the platform will be chosen. Mac OS X 10.4 Tiger and above will default to
+# launchd, while older Mac OS X systems will default to systemstarter. If
+# option "none" is chosen, port startupitems are ignored and no startupitems
+# are installed.
 startupitem_type	default
 
 # Extra environment variables to keep. Any variables listed here are added
