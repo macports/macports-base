@@ -52,7 +52,7 @@ commands destroot
 
 # Set defaults
 default destroot.dir {${build.dir}}
-default destroot.cmd {${build.cmd}}
+default destroot.cmd {[build_getmaketype]}
 default destroot.pre_args {${destroot.target}}
 default destroot.target install
 default destroot.post_args {${destroot.destdir}}
