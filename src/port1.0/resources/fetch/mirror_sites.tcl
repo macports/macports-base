@@ -330,3 +330,21 @@ set portfetch::mirror_sites::sites(xfree) {
     ftp://ftp.planetmirror.com/pub/xfree86/
     ftp://ftp.xfree86.org/pub/XFree86/
 }
+
+set portfetch::mirror_sites::sites(xorg) {
+    http://x.paracoda.com/pub/
+    http://www.mirrorservice.org/sites/ftp.x.org/pub/
+    ftp://ftp.gwdg.de/pub/x11/x.org/pub/
+    ftp://ftp.cs.cuhk.edu.hk/pub/X11/
+    http://ftp.nara.wide.ad.jp/pub/X11/x.org/pub/
+    http://www.qtopia.org.cn/ftp/mirror/ftp.x.org/pub/
+    ftp://ftp.cica.es/pub/X/pub/
+    ftp://ftp.ntua.gr/pub/X11/X.org/
+    ftp://ftp.task.gda.pl/mirror/ftp.x.org/pub/
+    ftp://ftp.sunet.se/pub/X11/ftp.x.org/
+    ftp://sunsite.uio.no/pub/X11/
+    ftp://ftp.chg.ru/pub/X11/x.org/pub/
+    ftp://ftp.is.co.za/pub/x.org/pub/
+    http://xorg.freedesktop.org/releases/
+    ftp://ftp.x.org/pub/
+}
