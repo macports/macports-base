@@ -2098,12 +2098,12 @@ proc merge_file {base target file archs} {
 # 'base' is the path where the different directories (one for each arch) are
 # e.g. call 'merge ${workpath}/pre-dest' with having a destroot in ${workpath}/pre-dest/i386 and ${workpath}/pre-dest/ppc64 -- single arch -- each
 proc merge {base} {
-    global destroot
+    global destroot configure.universal_archs
 
     # test which architectures are available, set one as base-architecture
     set archs ""
     set base_arch ""
-    foreach arch {"i386" "x86_64" "ppc" "ppc64"} {
+    foreach arch ${configure.universal_archs} {
         if [file exists "${base}/${arch}"] {
             set archs [concat ${archs} ${arch}]
             set base_arch ${arch}
