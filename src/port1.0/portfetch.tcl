@@ -90,6 +90,8 @@ default fetch.password ""
 default fetch.use_epsv "yes"
 # Ignore SSL certificate
 default fetch.ignore_sslcert "no"
+# Use remote timestamps
+default fetch.remote_time "no"
 
 default fallback_mirror_site "macports"
 default mirror_sites.listfile {"mirror_sites.tcl"}
@@ -515,7 +517,7 @@ proc gitfetch {args} {
 # the listed url varable and associated distfile
 proc fetchfiles {args} {
 	global distpath all_dist_files UI_PREFIX fetch_urls
-	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
+	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
 	global distfile site
 	global portverbose
 
@@ -535,6 +537,9 @@ proc fetchfiles {args} {
 	}
 	if {${fetch.ignore_sslcert} != "no"} {
 		lappend fetch_options "--ignore-ssl-cert"
+	}
+	if {${fetch.remote_time} != "no"} {
+		lappend fetch_options "--remote-time"
 	}
 	if {$portverbose == "yes"} {
 		lappend fetch_options "-v"
