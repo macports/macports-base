@@ -5,6 +5,8 @@
 
 
 Unreleased:
+    - Don't include build.nice and build.jobs in destroot.cmd (#15295)
+
     - The default universal variant is no longer added when we know it won't
       work. (#12170, jmr in r36764)
 
