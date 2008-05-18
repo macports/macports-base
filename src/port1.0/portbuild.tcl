@@ -45,7 +45,7 @@ options build.jobs
 commands build parallel_build
 # defaults
 default build.dir {${workpath}/${worksrcdir}}
-default build.cmd {[build_getmaketype]}
+default build.cmd {[build_getnicevalue][build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {${buildmakejobs}}
 default build.pre_args {${build.target}}
@@ -143,6 +143,6 @@ proc build_start {args} {
 }
 
 proc build_main {args} {
-    command_exec build [build_getnicevalue] [build_getmakejobs]
+    command_exec build "" [build_getmakejobs]
     return 0
 }
