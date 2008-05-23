@@ -20,7 +20,7 @@ RUN_DEPENDS=	rsync:${PORTSDIR}/net/rsync \
 		gmake:${PORTSDIR}/devel/gmake
 LIB_DEPENDS=	tcl84:${PORTSDIR}/lang/tcl84-thread \
 		curl:${PORTSDIR}/ftp/curl \
-		sqlite3:${PORTSDIR}/databases/sqlite3-threads
+		sqlite3:${PORTSDIR}/databases/sqlite3
 BUILD_DEPENDS=	${LOCALBASE}/lib/thread2.6.5:${PORTSDIR}/devel/tclthread \
 		bash:${PORTSDIR}/shells/bash
 
