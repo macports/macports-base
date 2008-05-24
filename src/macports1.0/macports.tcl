@@ -2021,13 +2021,25 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         ui_debug "Not following dependencies"
         set depflag 0
     } else {
+        # If we're following dependents, we only want to follow this port's
+        # dependents, not those of all its dependencies. Otherwise, we would
+        # end up processing this port's dependents n+1 times (recursively!),
+        # where n is the number of dependencies this port has, since this port
+        # is of course a dependent of each of its dependencies. Plus the
+        # dependencies could have any number of unrelated dependents.
+        
+        # So we save whether we're following dependents, unset the option
+        # while doing the dependencies, and restore it afterwards.
+        set saved_do_dependents [info exists options(ports_do_dependents)]
+        unset -nocomplain options(ports_do_dependents)
+        
         # build depends is upgraded
         if {[info exists portinfo(depends_build)]} {
             foreach i $portinfo(depends_build) {
                 if {![llength [array get depscache $i]]} {
                 set d [lindex [split $i :] end]
                     set depscache($i) 1
-                    upgrade $d $i $variationslist $optionslist depscache
+                    upgrade $d $i $variationslist [array get options] depscache
                 } 
             }
         }
@@ -2037,7 +2049,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                 if {![llength [array get depscache $i]]} {
                 set d [lindex [split $i :] end]
                     set depscache($i) 1
-                    upgrade $d $i $variationslist $optionslist depscache
+                    upgrade $d $i $variationslist [array get options] depscache
                 } 
             }
         }
@@ -2047,9 +2059,14 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                 if {![llength [array get depscache $i]]} {
                 set d [lindex [split $i :] end]
                     set depscache($i) 1
-                    upgrade $d $i $variationslist $optionslist depscache
+                    upgrade $d $i $variationslist [array get options] depscache
                 } 
             }
+        }
+        
+        # restore dependent-following to its former value
+        if {$saved_do_dependents} {
+            set options(ports_do_dependents) yes
         }
     }
 
@@ -2070,8 +2087,11 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 
                 if { [llength deplist] > 0 } {
                     foreach dep $deplist {
-                        set mpname [lindex $dep 2] 
-                        macports::upgrade $mpname "port:$mpname" [array get variations] [array get options]
+                        set mpname [lindex $dep 2]
+                        if {![llength [array get depscache port:${mpname}]]} {
+                            set depscache(port:${mpname}) 1
+                            macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
+                        }
                     }
                 }
             }
@@ -2166,8 +2186,11 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 
         if { [llength deplist] > 0 } {
             foreach dep $deplist {
-                set mpname [lindex $dep 2] 
-                macports::upgrade $mpname "port:$mpname" [array get variations] [array get options]
+                set mpname [lindex $dep 2]
+                if {![llength [array get depscache port:${mpname}]]} {
+                    set depscache(port:${mpname}) 1
+                    macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
+                }
             }
         }
     }
