@@ -5,6 +5,9 @@
 
 
 Unreleased:
+    - Stopped 'port -R upgrade' from processing more ports than it should, and
+      from processing ports multiple times. (#10827, jmr in r37046)
+
     - Don't include build.nice and build.jobs in destroot.cmd (#15295)
 
     - The default universal variant is no longer added when we know it won't
