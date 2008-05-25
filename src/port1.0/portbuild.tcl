@@ -118,7 +118,7 @@ proc build_getmakejobs {args} {
     }
     ui_debug "port allows a parallel build"
 
-    if {![exists build.jobs] || ![string match "*make*" [build_getmaketype]]} {
+    if {![exists build.jobs] || ![string match "*make*" [option build.cmd]]} {
         return ""
     }
     set jobs [option build.jobs]
