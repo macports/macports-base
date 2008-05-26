@@ -1954,15 +1954,43 @@ proc action_search { action portlist opts } {
         puts -nonewline $separator
 
         set portfound 0
-        if {[catch {set res [mportsearch $portname no]} result]} {
+        set res {}
+        if {[catch {set matches [mportsearch "*$portname*" no glob name]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            break_softcontinue "search for portname $portname failed: $result" 1 status
+            break_softcontinue "search for name $portname failed: $result" 1 status
         }
+        set tmp {}
+        foreach {name info} $matches {
+            add_to_portlist tmp [concat [list name $name] $info]
+        }
+        set res [opUnion $res $tmp]
+        if {[catch {set matches [mportsearch "*$portname*" no glob description]} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            break_softcontinue "search for description $portname failed: $result" 1 status
+        }
+        set tmp {}
+        foreach {name info} $matches {
+            add_to_portlist tmp [concat [list name $name] $info]
+        }
+        set res [opUnion $res $tmp]
+        if {[catch {set matches [mportsearch "*$portname*" no glob long_description]} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            break_softcontinue "search for long_description $portname failed: $result" 1 status
+        }
+        set tmp {}
+        foreach {name info} $matches {
+            add_to_portlist tmp [concat [list name $name] $info]
+        }
+        set res [opUnion $res $tmp]
+        set res [portlist_sort $res]
+
         set joiner ""
-        foreach {name array} $res {
+        foreach info $res {
             array unset portinfo
-            array set portinfo $array
+            array set portinfo $info
 
             # XXX is this the right place to verify an entry?
             if {![info exists portinfo(name)]} {
