@@ -894,12 +894,14 @@ proc opUnion { a b } {
     foreach item $a {
         array set port $item
         if {[info exists onetime($port(fullname))]} continue
+        set onetime($port(fullname)) 1
         lappend result $item
     }
 
     foreach item $b {
         array set port $item
         if {[info exists onetime($port(fullname))]} continue
+        set onetime($port(fullname)) 1
         lappend result $item
     }
     
