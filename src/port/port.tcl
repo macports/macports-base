@@ -2024,8 +2024,8 @@ proc action_search { action portlist opts } {
         }
         if { !$portfound } {
             ui_msg "No match for $portname found"
-        } elseif {[llength $res] > 2} {
-            ui_msg "\nFound [expr [llength $res] / 2] ports."
+        } elseif {[llength $res] > 1} {
+            ui_msg "\nFound [llength $res] ports."
         }
 
         set separator "--\n"
