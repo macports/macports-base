@@ -5,6 +5,9 @@
 
 
 Unreleased:
+    - port search looks now in name, description and long_description for the
+      search pattern and prints the list sorted (#15434, raimue in r37119)
+
     - Stopped 'port -R upgrade' from processing more ports than it should, and
       from processing ports multiple times. (#10827, jmr in r37046)
 
