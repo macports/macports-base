@@ -180,6 +180,10 @@ set portfetch::mirror_sites::sites(macports) {
     http://svn.macports.org/repository/macports/downloads/
 }
 
+set portfetch::mirror_sites::sites(macports_distfiles) {
+    http://distfiles.macports.org/:mirror
+}
+
 set portfetch::mirror_sites::sites(openbsd) {
     http://mirror.roothell.org/pub/OpenBSD/
     http://www.mirrorservice.org/sites/ftp.openbsd.org/pub/OpenBSD/

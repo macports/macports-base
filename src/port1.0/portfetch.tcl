@@ -94,6 +94,7 @@ default fetch.ignore_sslcert "no"
 default fetch.remote_time "no"
 
 default fallback_mirror_site "macports"
+default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 
@@ -218,13 +219,15 @@ proc mirror_sites {mirrors tag subdir} {
 # sites
 proc checksites {args} {
     global patch_sites master_sites master_sites.mirror_subdir \
-        patch_sites.mirror_subdir fallback_mirror_site env
+        patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
     
-    append master_sites " ${fallback_mirror_site}"
+    append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(MASTER_SITE_LOCAL)]} {
 	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
     }
     
+    # we probably want to mirror downloaded patches
+    # on distfiles.macports.org too, but we don't currently
     append patch_sites " ${fallback_mirror_site}"
     if {[info exists env(PATCH_SITE_LOCAL)]} {
 	set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
