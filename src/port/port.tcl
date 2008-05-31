@@ -405,10 +405,10 @@ proc regex_pat_sanitize { s } {
 # @param maxlen text width (indent length not counted)
 # @param indent prepend to every line
 # @return wrapped string
-proc wrap {string maxlen {indent ""}} {
+proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
     set splitstring {}
     foreach line [split $string "\n"] {
-        lappend splitstring [wrapline $line $maxlen $indent]
+        lappend splitstring [wrapline $line $maxlen $indent $indentfirstline]
     }
     return [join $splitstring "\n"]
 }
@@ -422,11 +422,17 @@ proc wrap {string maxlen {indent ""}} {
 # @param maxlen text width (indent length not counted)
 # @param indent prepend to every line
 # @return wrapped string
-proc wrapline {line maxlen {indent ""}} {
+proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
     set string [split $line " "]
-    set newline $indent
+    if {$indentfirstline == 0} {
+        set newline ""
+        set maxlen [expr $maxlen - [string length $indent]]
+    } else {
+        set newline $indent
+    }
     append newline [lindex $string 0]
     set joiner " "
+    set first 1
     foreach word [lrange $string 1 end] {
         if {[string length $newline]+[string length $word] >= $maxlen} {
             lappend lines $newline
@@ -435,6 +441,10 @@ proc wrapline {line maxlen {indent ""}} {
         }
         append newline $joiner $word
         set joiner " "
+        set first 0
+        if {$first == 1 && $indentfirstline == 0} {
+            set maxlen [expr $maxlen + [string length $indent]]
+        }
     }
     lappend lines $newline
     return [join $lines "\n"]
@@ -1153,32 +1163,55 @@ proc action_usage { action portlist opts } {
 
 
 proc action_help { action portlist opts } {
-    set pl [lindex $portlist 0]
-    set x [lsearch $pl name*]
+    global action_array cmd_args_array
     set helpfile "$macports::prefix/var/macports/port-help.tcl"
 
-    if {$x != -1} {
-	set topic [lindex $pl [expr $x + 1]]
+    if {[llength $portlist] == 0} {
+        print_help
+        return 0
+    }
+
 	if {[file exists $helpfile]} {
 		if {[catch {source $helpfile} err]} {
 			puts stderr "Error reading helpfile $helpfile: $err"
 			return 1
-		} else {
-			if {[info exists porthelp($topic)]} {
-				puts stderr $porthelp($topic)
-				return 0
-			} else {
-				puts stderr "No help for topic $topic"
-				return 1
-			}
 		}
-	} else {
+    } else {
 		puts stderr "Unable to open help file $helpfile"
 		return 1
 	}
-    } else {
-    	print_help
+
+    foreach topic $portlist {
+        if {![info exists porthelp($topic)]} {
+            puts stderr "No help for topic $topic"
+            return 1
+        }
+
+        if {[info exists action_array($topic)]} {
+            set cmds ""
+            if {[info exists cmd_args_array($topic)]} {
+                foreach cmd $cmd_args_array($topic) {
+                    append cmds " --$cmd"
+                }
+            }
+            set args ""
+            switch -- [action_needs_portlist $topic] {
+                1 {
+                    set args " <arguments>"
+                }
+                2 {
+                    set args " <portlist>"
+                }
+            }
+
+            puts -nonewline stderr "Usage: "
+            set len [string length $topic]
+            puts stderr [wrap "$topic$cmds$args" [expr 80 - $len] [string repeat " " [expr 8 + $len]] 0]
+        }
+
+        puts stderr $porthelp($topic)
     }
+
     return 0
 }
 
