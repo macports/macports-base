@@ -1959,9 +1959,15 @@ proc action_search { action portlist opts } {
     foreach portname $portlist {
         puts -nonewline $separator
 
+        if {[string first "*" $portname] == -1} {
+            set searchstring "*$portname*"
+        } else {
+            set searchstring $portname
+        }
+
         set portfound 0
         set res {}
-        if {[catch {set matches [mportsearch "*$portname*" no glob name]} result]} {
+        if {[catch {set matches [mportsearch $searchstring no glob name]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "search for name $portname failed: $result" 1 status
@@ -1971,7 +1977,7 @@ proc action_search { action portlist opts } {
             add_to_portlist tmp [concat [list name $name] $info]
         }
         set res [opUnion $res $tmp]
-        if {[catch {set matches [mportsearch "*$portname*" no glob description]} result]} {
+        if {[catch {set matches [mportsearch $searchstring no glob description]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "search for description $portname failed: $result" 1 status
@@ -1981,7 +1987,7 @@ proc action_search { action portlist opts } {
             add_to_portlist tmp [concat [list name $name] $info]
         }
         set res [opUnion $res $tmp]
-        if {[catch {set matches [mportsearch "*$portname*" no glob long_description]} result]} {
+        if {[catch {set matches [mportsearch $searchstring no glob long_description]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "search for long_description $portname failed: $result" 1 status
