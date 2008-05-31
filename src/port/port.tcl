@@ -2434,6 +2434,16 @@ proc find_action_proc { action } {
     return $action_proc
 }
 
+# cmd_args_array specifies which arguments the commands accept
+# Commands not listed here do not accept any arguments
+global cmd_args_array
+array set cmd_args_array {
+    info        {index line category categories depends_build depends_lib depends_run maintainer maintainers platform platforms variant variants}
+    selfupdate  {pretend nosync}
+    uninstall   {follow-dependents}
+    variants    {index}
+    clean       {all dist archive work}
+}
 
 # Parse global options
 #
@@ -2446,7 +2456,7 @@ proc find_action_proc { action } {
 proc parse_options { action ui_options_name global_options_name } {
     upvar $ui_options_name ui_options
     upvar $global_options_name global_options
-    global cmdname
+    global cmdname cmd_args_array
     
     while {[moreargs]} {
         set arg [lookahead]
@@ -2461,6 +2471,9 @@ proc parse_options { action ui_options_name global_options_name } {
                 }
                 default {
                     set key [string range $arg 2 end]
+                    if {![info exists cmd_args_array($action)] || [lsearch -exact $cmd_args_array($action) $key] == -1} {
+                        return -code error "${action} does not accept --${key}"
+                    }
                     set global_options(ports_${action}_${key}) yes
                 }
             }
@@ -2586,7 +2599,13 @@ proc process_cmd { argv } {
         # Parse options that will be unique to this action
         # (to avoid abiguity with -variants and a default port, either -- must be
         # used to terminate option processing, or the pseudo-port current must be specified).
-        parse_options $action ui_options global_options
+        if {[catch {parse_options $action ui_options global_options} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error $result
+            set action_status 1
+            break
+        }
         
         # Parse action arguments, setting a special flag if there were none
         # We otherwise can't tell the difference between arguments that evaluate
