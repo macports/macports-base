@@ -316,6 +316,11 @@ proc require_portlist { nameportlist } {
 
     if {[llength $portlist] == 0} {
         set portlist [get_current_port]
+
+        if {[llength $portlist] == 0} {
+            # there was no port in current directory
+            return 1
+        }
     }
 
     return 0
@@ -507,6 +512,7 @@ proc get_current_port {} {
         ui_msg "To use the current port, you must be in a port's directory."
         ui_msg "(you might also see this message if a pseudo-port such as"
         ui_msg "outdated or installed expands to no ports)."
+        return [list]
     }
 
     set results {}
