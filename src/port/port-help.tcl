@@ -6,65 +6,264 @@
 # port-help.tcl
 # $Id$
 
-set porthelp(activate) "activate a port"
-set porthelp(archive) "archive a port"
-set porthelp(build) "build a port"
-set porthelp(cat) "cat a port"
-set porthelp(cd) "cd to a port"
-set porthelp(checksum) "checksum a port"
-set porthelp(clean) "clean a port"
-set porthelp(compact) "compact a port"
-set porthelp(configure) "configure a port"
-set porthelp(contents) "get contents for a port"
-set porthelp(deactivate) "deactivate a port"
-set porthelp(dependents) "dependents a port"
-set porthelp(deps) "show deps for a port"
-set porthelp(destroot) "destroot a port"
-set porthelp(dir) "dir a port"
-set porthelp(distcheck) "distcheck a port"
-set porthelp(distfiles) "list the distfiles for a port"
-set porthelp(dmg) "dmg a port"
-set porthelp(dpkg) "dpkg a port"
-set porthelp(echo) "echo a port"
-set porthelp(ed) "ed a port"
-set porthelp(edit) "edit a port"
-set porthelp(exit) "exit a port"
-set porthelp(extract) "extract a port"
-set porthelp(fetch) "fetch a port"
-set porthelp(file) "file a port"
-set porthelp(gohome) "gohome a port"
-set porthelp(help) "help a port"
-set porthelp(info) "info a port"
-set porthelp(install) "install a port"
-set porthelp(installed) "installed a port"
-set porthelp(lint) "lint a port"
-set porthelp(list) "list a port"
-set porthelp(livecheck) "livecheck a port"
-set porthelp(load) "load a port"
-set porthelp(location) "location a port"
-set porthelp(mdmg) "mdmg a port"
-set porthelp(mirror) "mirror a port"
-set porthelp(mpkg) "mpkg a port"
-set porthelp(outdated) "outdated a port"
-set porthelp(patch) "patch a port"
-set porthelp(pkg) "pkg a port"
-set porthelp(platform) "platform a port"
-set porthelp(provides) "provides a port"
-set porthelp(quit) "quit a port"
-set porthelp(rpm) "rpm a port"
-set porthelp(search) "search a port"
-set porthelp(selfupdate) "selfupdate a port"
-set porthelp(srpm) "srpm a port"
-set porthelp(submit) "submit a port"
-set porthelp(sync) "sync a port"
-set porthelp(test) "test a port"
-set porthelp(trace) "trace a port"
-set porthelp(unarchive) "unarchive a port"
-set porthelp(uncompact) "uncompact a port"
-set porthelp(uninstall) "uninstall a port"
-set porthelp(unload) "unload a port"
-set porthelp(upgrade) "upgrade a port"
-set porthelp(url) "url a port"
-set porthelp(usage) "usage a port"
-set porthelp(variants) "variants a port"
-set porthelp(version) "version a port"
+
+set porthelp(activate) {
+Activate the given ports
+}
+
+set porthelp(archive) {
+Archive the given ports
+}
+
+set porthelp(build) {
+Build the given ports
+}
+
+set porthelp(cat) {
+Writes the Portfiles of the given ports to stdout
+}
+
+set porthelp(cd) {
+Changes to the directory of the given port
+
+Only in interactive mode.
+}
+
+set porthelp(checksum) {
+Compares the checksums for the downloaded files of the given ports
+}
+
+set porthelp(clean) {
+Removes file associates with given ports
+
+--archives    Removes created archives
+--dist        Removes downloaded distfiles
+--work        Removes work directory
+--all         Removes everything from above
+}
+
+set porthelp(compact) {
+Compact the given ports
+}
+
+set porthelp(configure) {
+Configure the given ports
+}
+
+set porthelp(contents) {
+Returns a list of files installed by given ports
+}
+
+set porthelp(deactivate) {
+Deactivates the given ports
+}
+
+set porthelp(dependents) {
+Returns a list of installed dependents for each of the given ports
+
+Note: Don't get fooled by the language!
+Dependents are those ports which depend on the given port, not vice-versa!
+}
+
+set porthelp(deps) {
+Returns a list of dependencies for each of the given ports
+}
+
+set porthelp(destroot) {
+Destroot the given ports
+}
+
+set porthelp(dir) {
+Returns the directories of the given ports
+
+This can be quite handy to be used in your shell:
+cd $(port dir <portname>)
+}
+
+set porthelp(distcheck) {
+Checks if the given ports can be fetched from all of its master_sites
+}
+
+set porthelp(distfiles) {
+Returns a list of distfiles for the given port
+}
+
+set porthelp(dmg) {
+Creates a dmg for each of the given ports
+}
+
+set porthelp(dpkg) {
+Creates a dpkg for each of the given ports
+}
+
+set porthelp(echo) {
+Returns the list of ports the argument expands to
+
+This can be useful to what a pseudo-port expands.
+}
+
+set porthelp(edit) {
+Edit given ports
+}
+
+set porthelp(ed) $porthelp(edit)
+
+set porthelp(exit) {
+Exit port
+
+Only in interactive mode.
+}
+
+set porthelp(extract) {
+Extract the downloaded files of the given ports
+}
+
+set porthelp(fetch) {
+Downloaded distfiles for the given ports
+}
+
+set porthelp(file) {
+Returns the path to the Portfile for each of the given ports
+}
+
+set porthelp(gohome) {
+Opens the homepages of the given ports in your browser
+}
+
+set porthelp(help) {
+Displays short help texts for the given ports
+}
+
+set porthelp(info) {
+Returns informations about the given ports
+}
+
+set porthelp(install) {
+Installs the given ports
+}
+
+set porthelp(installed) {
+List installed versions of the given port
+}
+
+set porthelp(lint) {
+Checks if the Portfile is lint-free for each of the given ports
+}
+
+set porthelp(list) {
+List the available version for each of the given ports
+}
+
+set porthelp(livecheck) {
+Checks if a new version of the software is available
+}
+
+set porthelp(load) {
+Interface to launchctl(1) for ports providing startup items
+}
+
+set porthelp(location) {
+Returns the install location for each of the given ports
+}
+
+set porthelp(mdmg) {
+Creates a dmg for each of the given ports
+}
+
+set porthelp(mirror) {
+Fetches distfiles for the given ports
+}
+
+set porthelp(mpkg) {
+Creates a mpkg for each of the given ports
+}
+
+set porthelp(outdated) {
+Returns a list of outdated ports
+}
+
+set porthelp(patch) {
+Applies patches on each of the given port
+}
+
+set porthelp(pkg) {
+Creates a pkg for each of the given ports
+}
+
+set porthelp(platform) {
+Returns the current platform you are on
+}
+
+set porthelp(provides) {
+Return a list of files provided by the given ports
+}
+
+set porthelp(quit) $porthelp(exit)
+
+set porthelp(rpm) {
+Creates a rpm for each of the given ports
+}
+
+set porthelp(search) {
+Search for a port
+
+This looks in name, desription and long_description of each port for the given search string.
+}
+
+set porthelp(selfupdate) {
+Upgrade MacPorts itself
+}
+
+set porthelp(srpm) {
+Creates a srpm for each of the given ports
+}
+
+set porthelp(submit) {
+Submit a port to the MacPorts Web Application
+}
+
+set porthelp(sync) {
+Synchronize the set of Portfiles
+}
+
+set porthelp(test) {
+Run tests on each of the given ports
+}
+
+set porthelp(trace) {
+Trace a port
+}
+
+set porthelp(unarchive) {
+Unarchive a port
+}
+
+set porthelp(uncompact) {
+Uncompact a port
+}
+
+set porthelp(uninstall) {
+Uninstall the given ports
+}
+
+set porthelp(unload) $porthelp(load)
+
+set porthelp(upgrade) {
+Upgrades the given ports to the latest version
+}
+
+set porthelp(url) {
+Returns the URL for each of the given ports
+}
+
+set porthelp(usage) {
+Returns basic usage of the port command
+}
+
+set porthelp(variants) {
+Returns a list of variants with descriptions available for the given ports
+}
+
+set porthelp(version) {
+Returns the version of MacPorts
+}
