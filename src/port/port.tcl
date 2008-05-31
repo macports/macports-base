@@ -2596,6 +2596,14 @@ proc process_cmd { argv } {
         # Reset global_options from base before each action, as we munge it just below...
         array set global_options $global_options_base
         
+        # Find an action to execute
+        set action_proc [find_action_proc $action]
+        if { $action_proc == "" } {
+            puts "Unrecognized action \"$action\""
+            set action_status 1
+            break
+        }
+
         # Parse options that will be unique to this action
         # (to avoid abiguity with -variants and a default port, either -- must be
         # used to terminate option processing, or the pseudo-port current must be specified).
@@ -2626,14 +2634,8 @@ proc process_cmd { argv } {
             }
         }
         
-        # Find an action to execute
-        set action_proc [find_action_proc $action]
-        if { $action_proc != "" } {
-            set action_status [$action_proc $action $portlist [array get global_options]]
-        } else {
-            puts "Unrecognized action \"$action\""
-            set action_status 1
-        }
+        # execute the action
+        set action_status [$action_proc $action $portlist [array get global_options]]
 
         # semaphore to exit
         if {$action_status == -999} break
