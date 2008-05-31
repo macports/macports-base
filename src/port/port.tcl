@@ -1950,7 +1950,7 @@ proc action_search { action portlist opts } {
     }
     
     set separator ""
-    foreachport $portlist {
+    foreach portname $portlist {
         puts -nonewline $separator
 
         set portfound 0
@@ -2341,85 +2341,91 @@ proc match s {
     return 0
 }
 
-
+# action_array specifies which action to run on the given command
+# and if the action wants an expanded portlist.
+# The value is a list of the form {action expand},
+# where action is a string and expand a value (0, 1, 2)
+#   0   Does not expect any text argument
+#   1   Expects some strings as text argument
+#   2   Wants an expanded list of ports as text argument
 global action_array
 array set action_array {
-    usage       action_usage
-    help        action_help
+    usage       {action_usage 0}
+    help        {action_help 1}
 
-    echo        action_echo
+    echo        {action_echo 2}
     
-    info        action_info
-    location    action_location
-    provides    action_provides
+    info        {action_info 2}
+    location    {action_location 2}
+    provides    {action_provides 1}
     
-    activate    action_activate
-    deactivate  action_deactivate
+    activate    {action_activate 2}
+    deactivate  {action_deactivate 2}
     
-    sync        action_sync
-    selfupdate  action_selfupdate
+    sync        {action_sync 0}
+    selfupdate  {action_selfupdate 0}
     
-    upgrade     action_upgrade
+    upgrade     {action_upgrade 2}
     
-    version     action_version
-    platform    action_platform
-    compact     action_compact
-    uncompact   action_uncompact
+    version     {action_version 0}
+    platform    {action_platform 0}
+    compact     {action_compact 2}
+    uncompact   {action_uncompact 2}
     
-    uninstall   action_uninstall
+    uninstall   {action_uninstall 2}
     
-    installed   action_installed
-    outdated    action_outdated
-    contents    action_contents
-    dependents  action_dependents
-    deps        action_deps
-    variants    action_variants
+    installed   {action_installed 2}
+    outdated    {action_outdated 2}
+    contents    {action_contents 2}
+    dependents  {action_dependents 2}
+    deps        {action_deps 2}
+    variants    {action_variants 2}
     
-    search      action_search
-    list        action_list
+    search      {action_search 1}
+    list        {action_list 2}
     
-    ed          action_portcmds
-    edit        action_portcmds
-    cat         action_portcmds
-    dir         action_portcmds
-    work        action_portcmds
-    cd          action_portcmds
-    url         action_portcmds
-    file        action_portcmds
-    gohome      action_portcmds
+    ed          {action_portcmds 2}
+    edit        {action_portcmds 2}
+    cat         {action_portcmds 2}
+    dir         {action_portcmds 2}
+    work        {action_portcmds 2}
+    cd          {action_portcmds 2}
+    url         {action_portcmds 2}
+    file        {action_portcmds 2}
+    gohome      {action_portcmds 2}
     
-    fetch       action_target
-    checksum    action_target
-    extract     action_target
-    patch       action_target
-    configure   action_target
-    build       action_target
-    destroot    action_target
-    install     action_target
-    clean       action_target
-    test        action_target
-    lint        action_target
-    submit      action_target
-    trace       action_target
-    livecheck   action_target
-    distcheck   action_target
-    mirror      action_target
-    load        action_target
-    unload      action_target
-    distfiles   action_target
-
-    archive     action_target
-    unarchive   action_target
-    dmg         action_target
-    mdmg        action_target
-    dpkg        action_target
-    mpkg        action_target
-    pkg         action_target
-    rpm         action_target
-    srpm        action_target
-
-    quit        action_exit
-    exit        action_exit
+    fetch       {action_target 2}
+    checksum    {action_target 2}
+    extract     {action_target 2}
+    patch       {action_target 2}
+    configure   {action_target 2}
+    build       {action_target 2}
+    destroot    {action_target 2}
+    install     {action_target 2}
+    clean       {action_target 2}
+    test        {action_target 2}
+    lint        {action_target 2}
+    submit      {action_target 2}
+    trace       {action_target 2}
+    livecheck   {action_target 2}
+    distcheck   {action_target 2}
+    mirror      {action_target 2}
+    load        {action_target 2}
+    unload      {action_target 2}
+    distfiles   {action_target 2}
+    
+    archive     {action_target 2}
+    unarchive   {action_target 2}
+    dmg         {action_target 2}
+    mdmg        {action_target 2}
+    dpkg        {action_target 2}
+    mpkg        {action_target 2}
+    pkg         {action_target 2}
+    rpm         {action_target 2}
+    srpm        {action_target 2}
+    
+    quit        {action_exit 0}
+    exit        {action_exit 0}
 }
 
 
@@ -2428,10 +2434,27 @@ proc find_action_proc { action } {
     
     set action_proc ""
     if { [info exists action_array($action)] } {
-        set action_proc $action_array($action)
+        set action_proc [lindex $action_array($action) 0]
     }
     
     return $action_proc
+}
+
+# Returns whether an action expects text arguments at all,
+# expects text arguments or wants an expanded list of ports
+# Return value:
+#   0   Does not expect any text argument
+#   1   Expects some strings as text argument
+#   2   Wants an expanded list of ports as text argument
+proc action_needs_portlist { action } {
+    global action_array
+
+    set ret 0
+    if {[info exists action_array($action)]} {
+        set ret [lindex $action_array($action) 1]
+    }
+
+    return [expr $ret > 2 ? 2 : $ret]
 }
 
 # cmd_args_array specifies which arguments the commands accept
@@ -2614,7 +2637,10 @@ proc process_cmd { argv } {
             set action_status 1
             break
         }
-        
+
+        # Does the port need text arguments?
+        set expand [action_needs_portlist $action]
+
         # Parse action arguments, setting a special flag if there were none
         # We otherwise can't tell the difference between arguments that evaluate
         # to the empty set, and the empty set itself.
@@ -2625,11 +2651,26 @@ proc process_cmd { argv } {
                 set private_options(ports_no_args) yes
             }
             default {
-                # Parse port specifications into portlist
-                if {![portExpr portlist]} {
-                    ui_error "Improper expression syntax while processing parameters"
-                    set action_status 1
-                    break
+                switch -- $expand {
+                    0 {
+                        ui_error "$action does not accept string arguments"
+                        set action_status 1
+                        break
+                    }
+                    1 {
+                        while { [moreargs] && ![match ";"] } {
+                            lappend portlist [lookahead]
+                            advance
+                        }
+                    }
+                    2 {
+                        # Parse port specifications into portlist
+                        if {![portExpr portlist]} {
+                            ui_error "Improper expression syntax while processing parameters"
+                            set action_status 1
+                            break
+                        }
+                    }
                 }
             }
         }
