@@ -2506,11 +2506,14 @@ proc action_needs_portlist { action } {
 # Commands not listed here do not accept any arguments
 global cmd_args_array
 array set cmd_args_array {
-    info        {index line category categories depends_build depends_lib depends_run maintainer maintainers platform platforms variant variants}
-    selfupdate  {pretend nosync}
+    info        {category categories depends_build depends_lib depends_run
+                 description epoch homepage long_description maintainer
+                 maintainers name platform platforms portdir revision
+                 variant variants version}
+    selfupdate  {nosync pretend}
     uninstall   {follow-dependents}
     variants    {index}
-    clean       {all dist archive work}
+    clean       {all archive dist work}
 }
 
 # Parse global options
