@@ -2651,7 +2651,6 @@ proc process_cmd { argv } {
 
 
 proc complete_portname { text state } { 
-    global action_array
     global complete_choices complete_position
     
     if {$state == 0} {
