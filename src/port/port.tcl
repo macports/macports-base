@@ -1354,7 +1354,9 @@ proc action_info { action portlist opts } {
                 if {!$quiet} {
                     puts stderr "no info for '$opt'"
                 }
-                continue
+                set inf ""
+            } else {
+                set inf $portinfo($ropt)
             }
             
             # Calculate field label
@@ -1364,7 +1366,6 @@ proc action_info { action portlist opts } {
             }
             
             # Format the data
-            set inf $portinfo($ropt)
             if { $ropt eq "maintainers" } {
                 set inf [unobscure_maintainers $inf]
             }
