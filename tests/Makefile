@@ -40,11 +40,11 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
 			( cd $$subdir && \
-				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-ports.conf test) || exit 1; \
+				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-macports.conf test) || exit 1; \
 		else \
 			( cd $$subdir && \
-				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port clean > /dev/null && \
-				PORTSRC=$(PWD)/test-ports.conf $(bindir)/port test > output 2>&1 \
+				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port clean > /dev/null && \
+				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port test > output 2>&1 \
 					|| (cat output; exit 1) && \
 			sed -e "s|${PWD}|PWD|g" < output > output.sed && \
 			diff output.sed master 2>&1 | tee difference && \
