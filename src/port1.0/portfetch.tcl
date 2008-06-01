@@ -226,9 +226,7 @@ proc checksites {args} {
 	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
     }
     
-    # we probably want to mirror downloaded patches
-    # on distfiles.macports.org too, but we don't currently
-    append patch_sites " ${fallback_mirror_site}"
+    append patch_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(PATCH_SITE_LOCAL)]} {
 	set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
     }
