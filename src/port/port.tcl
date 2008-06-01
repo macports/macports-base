@@ -2502,9 +2502,10 @@ proc find_action_proc { action } {
 # Returns whether an action expects text arguments at all,
 # expects text arguments or wants an expanded list of ports
 # Return value:
-#   0   Does not expect any text argument
-#   1   Expects some strings as text argument
-#   2   Wants an expanded list of ports as text argument
+#   0 none        Does not expect any text argument
+#   1 strings     Expects some strings as text argument
+#   2 ports       Wants an expanded list of ports as text argument
+# Use action_args_const to translate them
 proc action_needs_portlist { action } {
     global action_array
 
@@ -2513,7 +2514,7 @@ proc action_needs_portlist { action } {
         set ret [lindex $action_array($action) 1]
     }
 
-    return [expr $ret > 2 ? 2 : $ret]
+    return $ret
 }
 
 # cmd_args_array specifies which arguments the commands accept
@@ -2749,7 +2750,7 @@ proc process_cmd { argv } {
             break
         }
 
-        # Does the port need text arguments?
+        # What kind of arguments does the command expect?
         set expand [action_needs_portlist $action]
 
         # Parse action arguments, setting a special flag if there were none
@@ -2762,25 +2763,21 @@ proc process_cmd { argv } {
                 set private_options(ports_no_args) yes
             }
             default {
-                switch -- $expand {
-                    0 {
-                        ui_error "$action does not accept string arguments"
+                if {[action_args_const none] == $expand} {
+                    ui_error "$action does not accept string arguments"
+                    set action_status 1
+                    break
+                } elseif {[action_args_const strings] == $expand} {
+                    while { [moreargs] && ![match ";"] } {
+                        lappend portlist [lookahead]
+                        advance
+                    }
+                } elseif {[action_args_const ports] == $expand} {
+                    # Parse port specifications into portlist
+                    if {![portExpr portlist]} {
+                        ui_error "Improper expression syntax while processing parameters"
                         set action_status 1
                         break
-                    }
-                    1 {
-                        while { [moreargs] && ![match ";"] } {
-                            lappend portlist [lookahead]
-                            advance
-                        }
-                    }
-                    2 {
-                        # Parse port specifications into portlist
-                        if {![portExpr portlist]} {
-                            ui_error "Improper expression syntax while processing parameters"
-                            set action_status 1
-                            break
-                        }
                     }
                 }
             }
