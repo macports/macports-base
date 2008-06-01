@@ -2504,16 +2504,50 @@ proc action_needs_portlist { action } {
 
 # cmd_args_array specifies which arguments the commands accept
 # Commands not listed here do not accept any arguments
+# Syntax if {option argn}
+# Where option is the name of the option and argn specifies how many arguments
+# this argument takes
 global cmd_args_array
 array set cmd_args_array {
-    info        {category categories depends_build depends_lib depends_run
-                 description epoch homepage long_description maintainer
-                 maintainers name platform platforms portdir revision
-                 variant variants version}
-    selfupdate  {nosync pretend}
-    uninstall   {follow-dependents}
-    variants    {index}
-    clean       {all archive dist work}
+    info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0} {depends_run 0}
+                {description 0} {epoch 0} {homepage 0} {long_description 0} {maintainer 0}
+                {maintainers 0} {name 0} {platform 0} {platforms 0} {portdir 0} {revision 0}
+                {variant 0} {variants 0} {version 0}}
+    selfupdate  {{nosync 0} {pretend 0}}
+    uninstall   {{follow-dependents 0}}
+    variants    {{index 0}}
+    clean       {{all 0} {archive 0} {dist 0} {work 0}}
+}
+
+##
+# Checks whether the given option is valid
+#
+# œparam action for which action
+# @param option the option to check
+# @param upoptargc reference to upvar for storing the number of arguments for
+#                  this option
+proc cmd_option_exists { action option {upoptargc ""}} {
+    global cmd_args_array
+    upvar 1 $upoptargc optargc
+
+    # This could be so easy with lsearch -index,
+    # but that's only available as of Tcl 8.5
+
+    if {![info exists cmd_args_array($action)]} {
+        return 0
+    }
+
+    foreach item $cmd_args_array($action) {
+        set name [lindex $item 0]
+        set argc [lindex $item 1]
+
+        if {$name == $option} {
+            set optargc $argc
+            return 1
+        }
+    }
+
+    return 0
 }
 
 # Parse global options
@@ -2542,10 +2576,24 @@ proc parse_options { action ui_options_name global_options_name } {
                 }
                 default {
                     set key [string range $arg 2 end]
-                    if {![info exists cmd_args_array($action)] || [lsearch -exact $cmd_args_array($action) $key] == -1} {
+                    set kargc 0
+                    if {![cmd_option_exists $action $key kargc]} {
                         return -code error "${action} does not accept --${key}"
                     }
-                    set global_options(ports_${action}_${key}) yes
+                    if {$kargc == 0} {
+                        set global_options(ports_${action}_${key}) yes
+                    } else {
+                        set args {}
+                        while {[moreargs] && $kargc > 0} {
+                            advance
+                            lappend args [lookahead]
+                            set kargc [expr $kargc - 1]
+                        }
+                        if {$kargc > 0} {
+                            return -code error "--${key} expects [expr $kargc + [llength $args]] parameters!"
+                        }
+                        set global_options(ports_${action}_${key}) $args
+                    }
                 }
             }
         } else {
