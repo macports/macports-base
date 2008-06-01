@@ -2509,10 +2509,11 @@ proc action_needs_portlist { action } {
 # this argument takes
 global cmd_args_array
 array set cmd_args_array {
-    info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0} {depends_run 0}
-                {description 0} {epoch 0} {homepage 0} {long_description 0} {maintainer 0}
-                {maintainers 0} {name 0} {platform 0} {platforms 0} {portdir 0} {revision 0}
-                {variant 0} {variants 0} {version 0}}
+    info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0}
+                {depends_run 0} {description 0} {epoch 0} {homepage 0}
+                {index 0} {line 0} {long_description 0} {maintainer 0}
+                {maintainers 0} {name 0} {platform 0} {platforms 0} {portdir 0}
+                {revision 0} {variant 0} {variants 0} {version 0}}
     selfupdate  {{nosync 0} {pretend 0}}
     uninstall   {{follow-dependents 0}}
     variants    {{index 0}}
