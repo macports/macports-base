@@ -1156,14 +1156,61 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
 # Action Handlers
 ##########################################
 
+proc action_get_usage { action } {
+    global action_array cmd_args_array
+
+    if {[info exists action_array($action)]} {
+        set cmds ""
+        if {[info exists cmd_args_array($action)]} {
+            foreach cmd $cmd_args_array($action) {
+                set name [lindex $cmd 0]
+                set argc [lindex $cmd 1]
+
+                append cmds " --$name"
+
+                for {set i 1} {$i <= $argc} {incr i} {
+                    append cmds " <arg$i>"
+                }
+            }
+        }
+        set args ""
+        set needed [action_needs_portlist $action]
+        if {[action_args_const strings] == $needed} {
+            set args " <arguments>"
+        } elseif {[action_args_const strings] == $needed} {
+            set args " <portlist>"
+        }
+
+        set ret "Usage: "
+        set len [string length $action]
+        append ret [wrap "$action$cmds$args" [expr 80 - $len] [string repeat " " [expr 8 + $len]] 0]
+        append ret "\n"
+
+        return $ret
+    }
+
+    return -1
+}
+
 proc action_usage { action portlist opts } {
-    print_usage
-    return 0
+    if {[llength $portlist] == 0} {
+        print_usage
+        return 0
+    }
+
+    foreach topic $portlist {
+        set usage [action_get_usage $topic]
+        if {$usage != -1} {
+           puts -nonewline stderr $usage
+        } else {
+            ui_error "No usage for topic $topic"
+            return 1
+        }
+    }
 }
 
 
 proc action_help { action portlist opts } {
-    global action_array cmd_args_array
     set helpfile "$macports::prefix/var/macports/port-help.tcl"
 
     if {[llength $portlist] == 0} {
@@ -1187,26 +1234,12 @@ proc action_help { action portlist opts } {
             return 1
         }
 
-        if {[info exists action_array($topic)]} {
-            set cmds ""
-            if {[info exists cmd_args_array($topic)]} {
-                foreach cmd $cmd_args_array($topic) {
-                    append cmds " --$cmd"
-                }
-            }
-            set args ""
-            switch -- [action_needs_portlist $topic] {
-                1 {
-                    set args " <arguments>"
-                }
-                2 {
-                    set args " <portlist>"
-                }
-            }
-
-            puts -nonewline stderr "Usage: "
-            set len [string length $topic]
-            puts stderr [wrap "$topic$cmds$args" [expr 80 - $len] [string repeat " " [expr 8 + $len]] 0]
+        set usage [action_get_usage $topic]
+        if {$usage != -1} {
+           puts -nonewline stderr $usage
+        } else {
+            ui_error "No usage for topic $topic"
+            return 1
         }
 
         puts stderr $porthelp($topic)
@@ -2410,7 +2443,7 @@ proc action_args_const {arg} {
     }
 }
 array set action_array [list \
-    usage       [list action_usage          [action_args_const none]] \
+    usage       [list action_usage          [action_args_const strings]] \
     help        [list action_help           [action_args_const strings]] \
     \
     echo        [list action_echo           [action_args_const ports]] \
