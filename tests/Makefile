@@ -2,6 +2,8 @@ include ../Mk/macports.autoconf.mk
 
 TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal universal-2 xcodeversion dependencies-c
 
+PWD=$(shell pwd)
+
 .PHONY: test clean PortIndex
 
 all:
