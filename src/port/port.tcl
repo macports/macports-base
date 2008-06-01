@@ -1183,7 +1183,7 @@ proc action_get_usage { action } {
 
         set ret "Usage: "
         set len [string length $action]
-        append ret [wrap "$action$cmds$args" [expr 80 - $len] [string repeat " " [expr 8 + $len]] 0]
+        append ret [wrap "$action$cmds$args" 80 [string repeat " " [expr 8 + $len]] 0]
         append ret "\n"
 
         return $ret
@@ -1393,8 +1393,8 @@ proc action_info { action portlist opts } {
             if {[info exists portinfo(variants)]} {
                 global global_variations
 
-                puts -nonewline "Variants:    "
                 set joiner ""
+                set vars ""
                 foreach v [lsort $portinfo(variants)] {
                     set mod ""
                     if {[info exists variations($v)]} {
@@ -1405,10 +1405,11 @@ proc action_info { action portlist opts } {
                         set mod "($global_variations($v))"
                     }
                     # TODO: selected by default_variants (with [+]/[-])
-                    puts -nonewline "$joiner$mod$v"
+                    append vars "$joiner$mod$v"
                     set joiner ", "
                 }
-                puts ""
+                puts -nonewline "Variants:    "
+                puts [wrap $vars 80 [string repeat " " 13] 0]
             }
             puts ""
             if {[info exists portinfo(long_description)]} {
@@ -2094,7 +2095,7 @@ proc action_search { action portlist opts } {
                     puts -nonewline " ([join $portinfo(categories) ", "])"
                 }
                 puts ""
-                puts [wrap [join $portinfo(description)] 76 [string repeat " " 4]]
+                puts [wrap [join $portinfo(description)] 80 [string repeat " " 4]]
             }
 
             set joiner "\n"
