@@ -12,10 +12,10 @@ platforms	darwin
 long_description ${description}
 
 fetch.type          cvs
-cvs.root            :pserver:anonymous@cvs.mutt.org:/home/roessler/cvs
-cvs.module          mutt
+cvs.root            :pserver:anonymous@common-lisp.net:/project/slime/cvsroot
+cvs.module          slime
 cvs.password        anonymous
-worksrcdir          mutt
+worksrcdir          slime
 
 patch_sites      http://home.uchicago.edu/~dgc/sw/mutt/
 patchfiles       patch-1.5.14.dgc.xlabel_ext.9
