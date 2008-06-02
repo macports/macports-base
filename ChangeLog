@@ -5,6 +5,11 @@
 
 
 Unreleased:
+    - More helpful strings for 'port help' (needs more work #15467, raimue)
+
+    - Command line options are checked if the command accepts it before
+      running (raimue)
+
     - We now have a mirror of (almost) all distfiles at distfiles.macports.org,
       and it is automatically appended to master_sites (#15456, jmr in r37217)
 
