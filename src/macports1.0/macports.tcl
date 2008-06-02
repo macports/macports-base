@@ -658,6 +658,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         PATCH_SITE_LOCAL PATH PORTSRC RSYNC_PROXY TMP TMPDIR
         USER GROUP
         http_proxy HTTPS_PROXY FTP_PROXY ALL_PROXY NO_PROXY
+        COLUMNS LINES
     }
     if {[info exists extra_env]} {
         set keepenvkeys [concat ${keepenvkeys} ${extra_env}]

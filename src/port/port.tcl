@@ -397,15 +397,39 @@ proc regex_pat_sanitize { s } {
 }
 
 ##
+# Makes sure we get the current terminal size
+proc set_term_size {} {
+    global env
+
+    if {![info exists env(COLUMNS)] || ![info exists env(LINES)]} {
+        if {![catch {exec stty size} err]} {
+            regexp {(\d+) (\d+)} $err -> rows cols
+            set env(COLUMNS) $cols
+            set env(LINES) $rows
+        } else {
+            puts stderr "Warning: Unable to get terminal size, using 80x24!"
+            set cols 80
+            set rows 24
+        }
+    }
+}
+
+##
 # Wraps a multi-line string at specified textwidth
 #
 # @see wrapline
 #
 # @param string input string
-# @param maxlen text width (indent length not counted)
+# @param maxlen text width (0 defaults to current terminal width)
 # @param indent prepend to every line
 # @return wrapped string
 proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
+    global env
+
+    if {$maxlen == 0} {
+        set maxlen $env(COLUMNS)
+    }
+
     set splitstring {}
     foreach line [split $string "\n"] {
         lappend splitstring [wrapline $line $maxlen $indent $indentfirstline]
@@ -419,10 +443,16 @@ proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
 # @see wrap
 #
 # @param line input line
-# @param maxlen text width (indent length not counted)
+# @param maxlen text width (0 defaults to current terminal width)
 # @param indent prepend to every line
 # @return wrapped string
 proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
+    global env
+
+    if {$maxlen == 0} {
+        set maxlen $env(COLUMNS)
+    }
+
     set string [split $line " "]
     if {$indentfirstline == 0} {
         set newline ""
@@ -1183,7 +1213,7 @@ proc action_get_usage { action } {
 
         set ret "Usage: "
         set len [string length $action]
-        append ret [wrap "$action$cmds$args" 80 [string repeat " " [expr 8 + $len]] 0]
+        append ret [wrap "$action$cmds$args" 0 [string repeat " " [expr 8 + $len]] 0]
         append ret "\n"
 
         return $ret
@@ -1410,14 +1440,14 @@ proc action_info { action portlist opts } {
                     set joiner ", "
                 }
                 puts -nonewline "Variants:    "
-                puts [wrap $vars 80 [string repeat " " 13] 0]
+                puts [wrap $vars 0 [string repeat " " 13] 0]
             }
             puts ""
             if {[info exists portinfo(long_description)]} {
-                puts [wrap [join $portinfo(long_description)] 80]
+                puts [wrap [join $portinfo(long_description)] 0]
             } else {
                 if {[info exists portinfo(description)]} {
-                    puts [wrap [join $portinfo(description)] 80]
+                    puts [wrap [join $portinfo(description)] 0]
                 }
             }
             if {[info exists portinfo(homepage)]} {
@@ -2100,7 +2130,7 @@ proc action_search { action portlist opts } {
                         puts -nonewline " ([join $portinfo(categories) ", "])"
                     }
                     puts ""
-                    puts [wrap [join $portinfo(description)] 80 [string repeat " " 4]]
+                    puts [wrap [join $portinfo(description)] 0 [string repeat " " 4]]
                 }
             }
 
@@ -3049,6 +3079,10 @@ array set global_variations {}
 
 # Global options private to this script
 array set private_options {}
+
+# Make sure we get the size of the terminal
+# We do this here to save it in the boot_env, in case we determined it manually
+set_term_size
 
 # Save off a copy of the environment before mportinit monkeys with it
 global env boot_env
