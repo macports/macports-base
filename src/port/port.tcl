@@ -2016,7 +2016,7 @@ proc action_variants { action portlist opts } {
 
 
 proc action_search { action portlist opts } {
-    global private_options
+    global private_options global_options
     set status 0
     if {![llength $portlist] && [info exists private_options(ports_no_args)] && $private_options(ports_no_args) == "yes"} {
         ui_error "You must specify a search pattern"
@@ -2089,14 +2089,19 @@ proc action_search { action portlist opts } {
             if {[macports::ui_isset ports_quiet]} {
                 puts $portinfo(name)
             } else {
-                puts -nonewline $joiner
+                if {[info exists global_options(ports_search_line)]
+                        && $global_options(ports_search_line) == "yes"} {
+                    puts "$portinfo(name)\t$portinfo(version)\t$portinfo(categories)\t$portinfo(description)"
+                } else {
+                    puts -nonewline $joiner
 
-                puts -nonewline "$portinfo(name) @$portinfo(version)"
-                if {[info exists portinfo(categories)]} {
-                    puts -nonewline " ([join $portinfo(categories) ", "])"
+                    puts -nonewline "$portinfo(name) @$portinfo(version)"
+                    if {[info exists portinfo(categories)]} {
+                        puts -nonewline " ([join $portinfo(categories) ", "])"
+                    }
+                    puts ""
+                    puts [wrap [join $portinfo(description)] 80 [string repeat " " 4]]
                 }
-                puts ""
-                puts [wrap [join $portinfo(description)] 80 [string repeat " " 4]]
             }
 
             set joiner "\n"
@@ -2105,7 +2110,10 @@ proc action_search { action portlist opts } {
         if { !$portfound } {
             ui_msg "No match for $portname found"
         } elseif {[llength $res] > 1} {
-            ui_msg "\nFound [llength $res] ports."
+            if {![info exists global_options(ports_search_line)]
+                    || $global_options(ports_search_line) != "yes"} {
+                ui_msg "\nFound [llength $res] ports."
+            }
         }
 
         set separator "--\n"
@@ -2564,6 +2572,7 @@ array set cmd_args_array {
                 {index 0} {line 0} {long_description 0} {maintainer 0}
                 {maintainers 0} {name 0} {platform 0} {platforms 0} {portdir 0}
                 {revision 0} {variant 0} {variants 0} {version 0}}
+    search      {{line 0}}
     selfupdate  {{nosync 0} {pretend 0}}
     uninstall   {{follow-dependents 0}}
     variants    {{index 0}}
