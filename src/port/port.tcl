@@ -2577,6 +2577,7 @@ array set cmd_args_array {
     uninstall   {{follow-dependents 0}}
     variants    {{index 0}}
     clean       {{all 0} {archive 0} {dist 0} {work 0}}
+    mirror      {{new 0}}
 }
 
 ##
