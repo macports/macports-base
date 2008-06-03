@@ -34,8 +34,9 @@
 
 set python.bin	${prefix}/bin/python2.5
 set python.lib	${prefix}/lib/libpython2.5.dylib
+set python.libdir ${prefix}/lib/python2.5
 set python.pkgd	${prefix}/lib/python2.5/site-packages
-set python.include	${prefix}/include/python/2.5
+set python.include	${prefix}/include/python2.5
 
 categories		python
 

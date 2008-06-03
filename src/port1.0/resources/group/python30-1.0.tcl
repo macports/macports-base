@@ -36,8 +36,9 @@ set prefix ${prefix}/Library/Frameworks/Python.framework/Versions/3.0
 
 set python.bin	${prefix}/bin/python3.0
 set python.lib	${prefix}/lib/libpython3.0.dylib
+set python.libdir ${prefix}/lib/python3.0
 set python.pkgd	${prefix}/lib/python3.0/site-packages
-set python.include	${prefix}/include/python/3.0
+set python.include	${prefix}/include/python3.0
 
 categories		python
 
