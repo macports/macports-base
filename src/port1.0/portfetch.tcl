@@ -628,6 +628,12 @@ proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
+		# start gsoc08-privileges
+    	if {![file writable $distpath]} {
+			set distpath "/Users/[exec whoami]/.macports/[ string range $distpath 1 end ]"
+			ui_warn "Going to use $distpath for fetch."
+    	}
+    	# end gsoc08-privileges
 	    set distpath ${distpath}/${dist_subdir}
 	    set fetch_init_done yes
     }

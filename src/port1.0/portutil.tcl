@@ -1375,11 +1375,40 @@ proc eval_targets {target} {
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     
+    # start gsoc08-privileges
+    if {![file writable $workpath] && [string first "~/.macports" $workpath] == -1} {
+    
+    	set userhome "/Users/[exec whoami]"
+    	
+        set newworkpath "$userhome/.macports/[ string range $workpath 1 end ]"
+		set newworksymlink "$userhome/.macports/[ string range $worksymlink 1 end ]"
+        
+        set sourcepath [string map {"work" ""} $worksymlink] 
+        set newsourcepath "$userhome/.macports/[ string range $sourcepath 1 end ]"
+        
+        if {![file exists ${sourcepath}Portfile] } {
+			file mkdir $newsourcepath
+			ui_debug "$newsourcepath created"
+        	ui_debug "Going to copy: ${sourcepath}Portfile"
+        	file copy ${sourcepath}Portfile $newsourcepath
+        }
+        
+        set workpath $newworkpath
+        set worksymlink $newworksymlink
+        
+        ui_warn "Going to use $newworkpath for statefile."
+    } else {
+    	set notroot no
+    }
+    # end gsoc08-privileges
+
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
     }
+    
     # flock Portfile
     set statefile [file join $workpath .macports.${portname}.state]
+    
     if {[file exists $statefile]} {
         if {![file writable $statefile]} {
             return -code error "$statefile is not writable - check permission on port directory"
@@ -1394,7 +1423,8 @@ proc open_statefile {args} {
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-        exec ln -sf $workpath $worksymlink
+    	#pmagrath TODO: fix this quick hack.
+		#exec ln -sf $workpath $worksymlink
     }
     
     set fd [open $statefile a+]
