@@ -209,6 +209,8 @@ proc split_variants {variants} {
 proc registry_installed {portname {portversion ""}} {
     set ilist [registry::installed $portname $portversion]
     if { [llength $ilist] > 1 } {
+        # set portname again since the one we were passed may not have had the correct case
+        set portname [lindex [lindex $ilist 0] 0]
         puts "The following versions of $portname are currently installed:"
         foreach i [portlist_sortint $ilist] { 
             set iname [lindex $i 0]
@@ -1499,6 +1501,8 @@ proc action_location { action portlist opts } {
             ui_debug "$errorInfo"
             break_softcontinue "port location failed: $result" 1 status
         } else {
+            # set portname again since the one we were passed may not have had the correct case
+            set portname [lindex $ilist 0]
             set version [lindex $ilist 1]
             set revision [lindex $ilist 2]
             set variants [lindex $ilist 3]
@@ -1683,6 +1687,9 @@ proc action_dependents { action portlist opts } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "$result" 1 status
+        } else {
+            # set portname again since the one we were passed may not have had the correct case
+            set portname [lindex [lindex $ilist 0] 0]
         }
         
         set deplist [registry::list_dependents $portname]
@@ -1913,6 +1920,10 @@ proc action_contents { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        if { ![catch {set ilist [registry::installed $portname]} result] } {
+            # set portname again since the one we were passed may not have had the correct case
+            set portname [lindex [lindex $ilist 0] 0]
+        }
         set files [registry::port_registered $portname]
         if { $files != 0 } {
             if { [llength $files] > 0 } {
@@ -1951,6 +1962,8 @@ proc action_deps { action portlist opts } {
 
         array unset portinfo
         array set portinfo [lindex $result 1]
+        # set portname again since the one we were passed may not have had the correct case
+        set portname $portinfo(name)
 
         set depstypes {depends_build depends_lib depends_run}
         set depstypes_descr {"build" "library" "runtime"}
@@ -1999,6 +2012,8 @@ proc action_variants { action portlist opts } {
     
         array unset portinfo
         array set portinfo [lindex $result 1]
+        # set portname again since the one we were passed may not have had the correct case
+        set portname $portinfo(name)
         set porturl $portinfo(porturl)
         set portdir $portinfo(portdir)
 
