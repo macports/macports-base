@@ -1537,11 +1537,11 @@ proc action_provides { action portlist opts } {
         ui_error "Please specify a filename to check which port provides that file."
         return 1
     }
-    foreachport $portlist {
-        set file [compat filenormalize $portname]
+    foreach filename $portlist {
+        set file [compat filenormalize $filename]
         if {[file exists $file]} {
             if {![file isdirectory $file]} {
-                set port [registry::file_registered $file] 
+                set port [registry::file_registered $file]
                 if { $port != 0 } {
                     puts "$file is provided by: $port"
                 } else {
