@@ -1347,6 +1347,13 @@ proc action_info { action portlist opts } {
             platforms       1
             variants        1
         "
+
+        if {[info exists options(ports_info_depends)] && $options(ports_info_depends) == "yes"} {
+            array unset options ports_info_depends
+            set options(ports_info_depends_build) yes
+            set options(ports_info_depends_lib) yes
+            set options(ports_info_depends_run) yes
+        }
                 
         # Set up our field separators
         set show_label 1
@@ -2613,10 +2620,11 @@ proc action_needs_portlist { action } {
 global cmd_args_array
 array set cmd_args_array {
     info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0}
-                {depends_run 0} {description 0} {epoch 0} {homepage 0}
-                {index 0} {line 0} {long_description 0} {maintainer 0}
-                {maintainers 0} {name 0} {platform 0} {platforms 0} {portdir 0}
-                {revision 0} {variant 0} {variants 0} {version 0}}
+                {depends_run 0} {depends 0} {description 0} {epoch 0}
+                {homepage 0} {index 0} {line 0} {long_description 0}
+                {maintainer 0} {maintainers 0} {name 0} {platform 0}
+                {platforms 0} {portdir 0} {revision 0} {variant 0} {variants 0}
+                {version 0}}
     search      {{line 0}}
     selfupdate  {{nosync 0} {pretend 0}}
     uninstall   {{follow-dependents 0}}
