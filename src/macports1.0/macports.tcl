@@ -2143,14 +2143,20 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     }
 
     # uninstall old ports
-    if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
+    if { $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
         # uninstall old
         ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
-        if {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+        # we have to force the uninstall in case of dependents
+        set force_cur [info exists options(ports_force)]
+        set options(ports_force) yes
+        if {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
             return 1
+        }
+        if {!$force_cur} {
+            unset options(ports_force)
         }
     } else {
         # XXX deactivate version_installed
@@ -2160,6 +2166,11 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
             ui_error "Deactivating $iname ${version_installed}_$revision_installed failed: $result"
             return 1
         }
+        if { [info exists options(port_uninstall_old)] } {
+            # uninstalling now could fail due to dependents when not forced,
+            # because the new version is not installed
+            set uninstall_later yes
+        }
     }
 
     if {[catch {set result [mportexec $workername install]} result]} {
@@ -2167,6 +2178,16 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         ui_debug "$errorInfo"
         ui_error "Couldn't activate $portname ${version_in_tree}_$revision_in_tree$oldvariant: $result"
         return 1
+    }
+    
+    if { [info exists uninstall_later] && $uninstall_later == yes } {
+        ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
+        if {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
+            return 1
+        }
     }
 
     # Check if we have to do dependents
