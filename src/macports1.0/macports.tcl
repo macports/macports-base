@@ -1935,16 +1935,23 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                     ui_error "Unable to exec port: $result"
                     return 1
                 }
+                # we just installed it, so mark it done in the cache
+                set depscache(port:${portname}) 1
             } else {
                 # port installed outside MacPorts
                 ui_debug "$portname installed outside the MacPorts system"
                 set depflag 1
+                # mark this depspec as satisfied in the cache
+                set depscache($dspec) 1
             }
 
         } else {
             ui_error "Checking installed version failed: $result"
             exit 1
         }
+    } else {
+        # we'll now take care of upgrading it, so we can add it to the cache
+        set depscache(port:${portname}) 1
     }
     set anyactive no
     set version_installed {}
@@ -2039,34 +2046,15 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         set saved_do_dependents [info exists options(ports_do_dependents)]
         unset -nocomplain options(ports_do_dependents)
         
-        # build depends is upgraded
-        if {[info exists portinfo(depends_build)]} {
-            foreach i $portinfo(depends_build) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
-            }
-        }
-        # library depends is upgraded
-        if {[info exists portinfo(depends_lib)]} {
-            foreach i $portinfo(depends_lib) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
-            }
-        }
-        # runtime depends is upgraded
-        if {[info exists portinfo(depends_run)]} {
-            foreach i $portinfo(depends_run) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
+        # each dep type is upgraded
+        foreach dtype {depends_build depends_lib depends_run} {
+            if {[info exists portinfo($dtype)]} {
+                foreach i $portinfo($dtype) {
+                    set d [lindex [split $i :] end]
+                    if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
+                        upgrade $d $i $variationslist [array get options] depscache
+                    } 
+                }
             }
         }
         
@@ -2095,7 +2083,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                     foreach dep $deplist {
                         set mpname [lindex $dep 2]
                         if {![llength [array get depscache port:${mpname}]]} {
-                            set depscache(port:${mpname}) 1
                             macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
                         }
                     }
@@ -2194,7 +2181,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
-                    set depscache(port:${mpname}) 1
                     macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
                 }
             }
