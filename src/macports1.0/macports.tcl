@@ -1236,8 +1236,10 @@ proc mportexec {mport target} {
         || $target == "test"
         || $target == "destroot" || $target == "install"
         || $target == "archive"
+        || $target == "dmg" || $target == "mdmg"
         || $target == "pkg" || $target == "mpkg"
-        || $target == "rpm" || $target == "dpkg" } {
+        || $target == "rpm" || $target == "dpkg" 
+        || $target == "srpm" } {
 
         if {[mportdepends $mport $target] != 0} {
             return 1
@@ -1676,17 +1678,19 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         
     # Determine deptypes to look for based on target
     switch $target {
-        configure   { set deptypes "depends_lib" }
-        
+        configure   -
         build       { set deptypes "depends_lib depends_build" }
         
         test        -
         destroot    -
         install     -
         archive     -
+        dmg         -
         pkg         -
+        mdmg        -
         mpkg        -
         rpm         -
+        srpm        -
         dpkg        -
         ""          { set deptypes "depends_lib depends_build depends_run" }
     }

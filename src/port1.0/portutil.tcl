@@ -1188,19 +1188,20 @@ proc target_run {ditem} {
                     
                         # Determine deptypes to look for based on target
                         switch $target {
-                            configure   { set deptypes "depends_lib depends_build" }
-                            
+                            configure   -
                             build       { set deptypes "depends_lib depends_build" }
                         
                             test        -
                             destroot    -
                             install     -
                             archive     -
+                            dmg         -
                             pkg         -
                             mpkg        -
                             rpm         -
                             srpm        -
                             dpkg        -
+                            mdmg        -
                             activate    -
                             ""          { set deptypes "depends_lib depends_build depends_run" }
                         }
