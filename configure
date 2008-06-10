@@ -4205,11 +4205,9 @@ echo "${ECHO_T}-E (BSD)" >&6; }
 echo "${ECHO_T}-r (GNU)" >&6; }
 		SED_EXT=-r
 	else
-		{ echo "$as_me:$LINENO: result: no idea" >&5
-echo "${ECHO_T}no idea" >&6; }
-		{ { echo "$as_me:$LINENO: error: cannot determine flag to use for $SED" >&5
-echo "$as_me: error: cannot determine flag to use for $SED" >&2;}
-   { (exit 1); exit 1; }; }
+		{ echo "$as_me:$LINENO: result: not available" >&5
+echo "${ECHO_T}not available" >&6; }
+		SED_EXT='N/A'
 	fi
 
 

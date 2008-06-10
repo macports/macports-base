@@ -912,8 +912,8 @@ AC_DEFUN([MP_SED_EXTENDED_REGEXP],[
 		AC_MSG_RESULT([-r (GNU)])
 		SED_EXT=-r
 	else
-		AC_MSG_RESULT([no idea])
-		AC_MSG_ERROR([cannot determine flag to use for $SED])
+		AC_MSG_RESULT([not available])
+		SED_EXT='N/A'
 	fi
 	AC_SUBST(SED_EXT)
 ])
