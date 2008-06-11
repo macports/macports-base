@@ -408,10 +408,6 @@ proc set_term_size {} {
             regexp {(\d+) (\d+)} $err -> rows cols
             set env(COLUMNS) $cols
             set env(LINES) $rows
-        } else {
-            puts stderr "Warning: Unable to get terminal size, using 80x24!"
-            set cols 80
-            set rows 24
         }
     }
 }
@@ -429,6 +425,10 @@ proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
     global env
 
     if {$maxlen == 0} {
+        if {![info exists env(COLUMNS)]} {
+            # no width for wrapping
+            return $string
+        }
         set maxlen $env(COLUMNS)
     }
 
@@ -452,6 +452,10 @@ proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
     global env
 
     if {$maxlen == 0} {
+        if {![info exists env(COLUMNS)]} {
+            # no width for wrapping
+            return $string
+        }
         set maxlen $env(COLUMNS)
     }
 
