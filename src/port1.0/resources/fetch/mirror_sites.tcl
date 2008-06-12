@@ -258,6 +258,7 @@ set portfetch::mirror_sites::sites(ruby) {
 
 set portfetch::mirror_sites::sites(sourceforge) {
     http://downloads.sourceforge.net/
+    http://internode.dl.sourceforge.net/
     http://easynews.dl.sourceforge.net/
     http://ufpr.dl.sourceforge.net/
     http://kent.dl.sourceforge.net/
