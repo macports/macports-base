@@ -22,7 +22,7 @@ MP_PATH_SCAN
 AC_CHECK_PROGS(SW_VERS, sw_vers)
 if test "x$SW_VERS" != "x"; then
   AC_MSG_CHECKING(Mac OS X version)
-  MACOSX_VERSION=`$SW_VERS -productVersion | cut -f 1-3 -d.`
+  MACOSX_VERSION=`$SW_VERS | sed -n "s/^ProductVersion:[[[:space:]]]//p" | cut -f 1-3 -d.`
   AC_MSG_RESULT([$MACOSX_VERSION])
 fi
 

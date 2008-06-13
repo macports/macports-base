@@ -2123,7 +2123,7 @@ done
 if test "x$SW_VERS" != "x"; then
   { echo "$as_me:$LINENO: checking Mac OS X version" >&5
 echo $ECHO_N "checking Mac OS X version... $ECHO_C" >&6; }
-  MACOSX_VERSION=`$SW_VERS -productVersion | cut -f 1-3 -d.`
+  MACOSX_VERSION=`$SW_VERS | sed -n "s/^ProductVersion:[[:space:]]//p" | cut -f 1-3 -d.`
   { echo "$as_me:$LINENO: result: $MACOSX_VERSION" >&5
 echo "${ECHO_T}$MACOSX_VERSION" >&6; }
 fi
