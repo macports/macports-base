@@ -79,16 +79,18 @@ proc activate {name v optionslist} {
 		set force 0
 	}
 
-        if {$v != ""} {
-        	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
-        } else {
-        	ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
-        }
-
 	set ilist [_check_registry $name $v]
+	# set name again since the one we were passed may not have had the correct case
+	set name [lindex $ilist 0]
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
+	
+    if {$v != ""} {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
+    } else {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
+    }
 
 	set ilist [registry::installed $name]
 	if { [llength $ilist] > 1 } {
@@ -146,22 +148,24 @@ proc deactivate {name v optionslist} {
 		set force 0
 	}
 
-        if {$v != ""} {
-        	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
-        } else {
-        	ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
-        }
-
 	set ilist [registry::active $name]
 	if { [llength $ilist] > 1 } {
 		return -code error "Registry error: Please specify the name of the port."
 	} else {
 		set ilist [lindex $ilist 0]
 	}
+	# set name again since the one we were passed may not have had the correct case
+	set name [lindex $ilist 0]
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
 	set fqversion ${version}_${revision}${variants}
+	
+    if {$v != ""} {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
+    } else {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
+    }
 	
 	if { $v != "" && ![string equal ${fqversion} $v] } {
 		return -code error "Active version of $name is not $v but ${fqversion}."
@@ -217,6 +221,8 @@ proc _check_registry {name v} {
 	set ilist [registry::installed $name $v]
 	if { [string equal $v ""] } {
 		if { [llength $ilist] > 1 } {
+		    # set name again since the one we were passed may not have had the correct case
+		    set name [lindex [lindex $ilist 0] 0]
 			ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
 			foreach i $ilist { 
 				set iname [lindex $i 0]

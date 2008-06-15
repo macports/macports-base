@@ -5,6 +5,9 @@
 
 
 Unreleased:
+    - Make missing sed extended regexp (for reinplace -E) into a runtime error.
+      (#15577, afb in r37501)
+
     - More helpful strings for 'port help' (needs more work #15467, raimue)
 
     - Command line options are checked if the command accepts it before

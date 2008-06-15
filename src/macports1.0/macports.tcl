@@ -1236,8 +1236,10 @@ proc mportexec {mport target} {
         || $target == "test"
         || $target == "destroot" || $target == "install"
         || $target == "archive"
+        || $target == "dmg" || $target == "mdmg"
         || $target == "pkg" || $target == "mpkg"
-        || $target == "rpm" || $target == "dpkg" } {
+        || $target == "rpm" || $target == "dpkg" 
+        || $target == "srpm" } {
 
         if {[mportdepends $mport $target] != 0} {
             return 1
@@ -1676,17 +1678,19 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         
     # Determine deptypes to look for based on target
     switch $target {
-        configure   { set deptypes "depends_lib" }
-        
+        configure   -
         build       { set deptypes "depends_lib depends_build" }
         
         test        -
         destroot    -
         install     -
         archive     -
+        dmg         -
         pkg         -
+        mdmg        -
         mpkg        -
         rpm         -
+        srpm        -
         dpkg        -
         ""          { set deptypes "depends_lib depends_build depends_run" }
     }
@@ -1894,6 +1898,8 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     }
     # fill array with information
     array set portinfo [lindex $result 1]
+    # set portname again since the one we were passed may not have had the correct case
+    set portname $portinfo(name)
 
     # set version_in_tree and revision_in_tree
     if {![info exists portinfo(version)]} {
@@ -1933,16 +1939,23 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                     ui_error "Unable to exec port: $result"
                     return 1
                 }
+                # we just installed it, so mark it done in the cache
+                set depscache(port:${portname}) 1
             } else {
                 # port installed outside MacPorts
                 ui_debug "$portname installed outside the MacPorts system"
                 set depflag 1
+                # mark this depspec as satisfied in the cache
+                set depscache($dspec) 1
             }
 
         } else {
             ui_error "Checking installed version failed: $result"
             exit 1
         }
+    } else {
+        # we'll now take care of upgrading it, so we can add it to the cache
+        set depscache(port:${portname}) 1
     }
     set anyactive no
     set version_installed {}
@@ -1952,6 +1965,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         # XXX  this sets $version_installed to $version_in_tree even if not installed!!
         set version_installed $version_in_tree
         set revision_installed $revision_in_tree
+        set iname $portname
         # That was a very dirty hack showing how ugly our depencendy and upgrade code is.
         # To get it working when user provides -f, we also need to set the variant to
         # avoid a future failure.
@@ -1969,16 +1983,18 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                     [rpm-vercomp $version $version_installed] > 0
                     || ([rpm-vercomp $version $version_installed] == 0
                         && [rpm-vercomp $revision $revision_installed] > 0)} {
+                set iname [lindex $i 0]
                 set version_installed $version
                 set revision_installed $revision
                 set variant_installed $variant
-                set epoch_installed [registry::property_retrieve [registry::open_entry $portname [lindex $i 1] [lindex $i 2] $variant] epoch]
+                set epoch_installed [registry::property_retrieve [registry::open_entry $iname [lindex $i 1] [lindex $i 2] $variant] epoch]
                 set num $i
             }
 
             set isactive [lindex $i 4]
             if {$isactive == 1} {
                 set anyactive yes
+                set active_name [lindex $i 0]
                 set version_active $version
                 set revision_active $revision
                 set variant_active $variant
@@ -1988,19 +2004,19 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                             || [rpm-vercomp $revision_installed $revision_active] != 0
                             || [string compare $variant_installed $variant_active] != 0)} {
             # deactivate version
-            if {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+            if {[catch {portimage::deactivate $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                ui_error "Deactivating $portname @${version_active}_${revision_active} failed: $result"
+                ui_error "Deactivating $active_name @${version_active}_${revision_active} failed: $result"
                 return 1
             }
         }
         if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
             # activate the latest installed version
-            if {[catch {portimage::activate $portname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
+            if {[catch {portimage::activate $iname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                ui_error "Activating $portname @${version_installed}_${revision_installed} failed: $result"
+                ui_error "Activating $iname @${version_installed}_${revision_installed} failed: $result"
                 return 1
             }
         }
@@ -2009,7 +2025,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     # output version numbers
     ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
     ui_debug "$portname ${version_in_tree}_$revision_in_tree exists in the ports tree"
-    ui_debug "$portname ${version_installed}_$revision_installed is installed"
+    ui_debug "$iname ${version_installed}_$revision_installed is installed"
 
     # set the nodeps option  
     if {![info exists options(ports_nodeps)]} {
@@ -2034,34 +2050,15 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         set saved_do_dependents [info exists options(ports_do_dependents)]
         unset -nocomplain options(ports_do_dependents)
         
-        # build depends is upgraded
-        if {[info exists portinfo(depends_build)]} {
-            foreach i $portinfo(depends_build) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
-            }
-        }
-        # library depends is upgraded
-        if {[info exists portinfo(depends_lib)]} {
-            foreach i $portinfo(depends_lib) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
-            }
-        }
-        # runtime depends is upgraded
-        if {[info exists portinfo(depends_run)]} {
-            foreach i $portinfo(depends_run) {
-                if {![llength [array get depscache $i]]} {
-                set d [lindex [split $i :] end]
-                    set depscache($i) 1
-                    upgrade $d $i $variationslist [array get options] depscache
-                } 
+        # each dep type is upgraded
+        foreach dtype {depends_build depends_lib depends_run} {
+            if {[info exists portinfo($dtype)]} {
+                foreach i $portinfo($dtype) {
+                    set d [lindex [split $i :] end]
+                    if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
+                        upgrade $d $i $variationslist [array get options] depscache
+                    } 
+                }
             }
         }
         
@@ -2076,7 +2073,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
             || ([rpm-vercomp $version_installed $version_in_tree] == 0
                 && [rpm-vercomp $revision_installed $revision_in_tree] >= 0 ))
         && ![info exists options(ports_force)] } {
-        ui_debug "No need to upgrade! $portname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree"
+        ui_debug "No need to upgrade! $iname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree"
         if { $epoch_installed >= $epoch_in_tree } {
             # Check if we have to do dependents
             if {[info exists options(ports_do_dependents)]} {
@@ -2084,13 +2081,12 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
                 set options(ports_nodeps) 1
 
                 registry::open_dep_map
-                set deplist [registry::list_dependents $portname]
+                set deplist [registry::list_dependents $iname]
 
                 if { [llength deplist] > 0 } {
                     foreach dep $deplist {
                         set mpname [lindex $dep 2]
                         if {![llength [array get depscache port:${mpname}]]} {
-                            set depscache(port:${mpname}) 1
                             macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
                         }
                     }
@@ -2151,22 +2147,33 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     }
 
     # uninstall old ports
-    if {[info exists options(port_uninstall_old)] || $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
+    if { $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
         # uninstall old
-        ui_debug "Uninstalling $portname ${version_installed}_$revision_installed$oldvariant"
-        if {[catch {portuninstall::uninstall $portname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+        ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
+        # we have to force the uninstall in case of dependents
+        set force_cur [info exists options(ports_force)]
+        set options(ports_force) yes
+        if {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $portname ${version_installed}_$revision_installed$oldvariant failed: $result"
+            ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
             return 1
+        }
+        if {!$force_cur} {
+            unset options(ports_force)
         }
     } else {
         # XXX deactivate version_installed
-        if {[catch {portimage::deactivate $portname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+        if {[catch {portimage::deactivate $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Deactivating $portname ${version_installed}_$revision_installed failed: $result"
+            ui_error "Deactivating $iname ${version_installed}_$revision_installed failed: $result"
             return 1
+        }
+        if { [info exists options(port_uninstall_old)] } {
+            # uninstalling now could fail due to dependents when not forced,
+            # because the new version is not installed
+            set uninstall_later yes
         }
     }
 
@@ -2175,6 +2182,16 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         ui_debug "$errorInfo"
         ui_error "Couldn't activate $portname ${version_in_tree}_$revision_in_tree$oldvariant: $result"
         return 1
+    }
+    
+    if { [info exists uninstall_later] && $uninstall_later == yes } {
+        ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
+        if {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
+            return 1
+        }
     }
 
     # Check if we have to do dependents
@@ -2189,7 +2206,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
-                    set depscache(port:${mpname}) 1
                     macports::upgrade $mpname port:${mpname} [array get variations] [array get options] depscache
                 }
             }

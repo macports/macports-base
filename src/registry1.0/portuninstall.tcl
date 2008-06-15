@@ -44,6 +44,7 @@ proc uninstall {portname {v ""} optionslist} {
 
 	set ilist [registry::installed $portname $v]
 	if { [llength $ilist] > 1 } {
+	    set portname [lindex [lindex $ilist 0] 0]
 		ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
 		foreach i $ilist { 
 			set iname [lindex $i 0]
@@ -59,6 +60,8 @@ proc uninstall {portname {v ""} optionslist} {
 		}
 		return -code error "Registry error: Please specify the full version as recorded in the port registry."
 	} else {
+	    # set portname again since the one we were passed may not have had the correct case
+	    set portname [lindex [lindex $ilist 0] 0]
 		set version [lindex [lindex $ilist 0] 1]
 		set revision [lindex [lindex $ilist 0] 2]
 		set variants [lindex [lindex $ilist 0] 3]

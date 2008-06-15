@@ -426,6 +426,19 @@ proc installed {{name ""} {version ""}} {
 		}
 		# [PG] Huh?
 	} else {
+	    # We want to be case-insensitive but case-preserving, so the name gets
+	    # returned with the correct case even if it's wrong when given. To get the
+	    # correct case on a case-insensitive FS, we have to list the directory and
+	    # compare against each entry.
+	    set name_path [file join ${query_path} *]
+	    set name_entries [glob -nocomplain -types d ${name_path}]
+	    foreach entry $name_entries {
+	        set basename [file tail $entry]
+	        if {[string equal -nocase $basename $name]} {
+	            set name $basename
+	            break
+	        }
+	    }
 		set query_path [file join ${query_path} ${name}]
 		if { $version != "" } {
 			set query_path [file join ${query_path} ${version}]
