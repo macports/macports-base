@@ -134,6 +134,9 @@ AC_PREFIX_DEFAULT(/opt/local)
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
 
+# Check whether to install without root privileges
+MP_CHECK_NOROOTPRIVILEGES
+
 # Check for install ownership
 MP_CHECK_INSTALLUSER
 MP_CHECK_INSTALLGROUP

@@ -288,12 +288,52 @@ AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 
 	])
 
+
+# MP_CHECK_NOROOTPRIVILEGES
+#-------------------------------------------------
+AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
+	dnl use current user and group.
+	dnl use ~/Library/Tcl as Tcl package directory
+		AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(no-root-privileges, [AC_HELP_STRING([--with-no-root-privileges], [Specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
+
+	if test "${ROOTPRIVS+set}" = set; then
+
+		# Set install-user to current user
+		AC_MSG_CHECKING([for install user])
+		DSTUSR=`whoami`
+		AC_MSG_RESULT([$DSTUSR])
+		AC_SUBST(DSTUSR)
+		
+		# Set install-group to current user
+		AC_MSG_CHECKING([for install group])
+		DSTGRP=`whoami`
+		AC_MSG_RESULT([$DSTGRP])
+		AC_SUBST(DSTGRP)
+
+		# Set Tcl package directory to ~/Library/Tcl
+	    AC_MSG_CHECKING(for Tcl package directory)
+		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+	    # Convert to a native path and substitute into the output files.
+	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
+	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
+	    AC_SUBST(TCL_PACKAGE_DIR)
+		if test x"${ac_cv_c_tclpkgd}" = x ; then
+		AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
+	    else
+		AC_MSG_RESULT(${ac_cv_c_tclpkgd})
+	    fi
+	fi
+
+])
+
 # MP_CHECK_INSTALLUSER
 #-------------------------------------------------
 AC_DEFUN([MP_CHECK_INSTALLUSER],[
 	dnl if with user specifies --with-install-user,
 	dnl use it. otherwise default to platform defaults
-        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+       AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
 	AC_ARG_WITH(install-user, [AC_HELP_STRING([--with-install-user=USER], [Specify user ownership of installed files])], [ DSTUSR=$withval ] )
 	
