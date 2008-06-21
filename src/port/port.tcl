@@ -356,7 +356,7 @@ proc foreachport {portlist block} {
 proc portlist_compare { a b } {
     array set a_ $a
     array set b_ $b
-    set namecmp [string compare $a_(name) $b_(name)]
+    set namecmp [string compare -nocase $a_(name) $b_(name)]
     if {$namecmp != 0} {
         return $namecmp
     }
