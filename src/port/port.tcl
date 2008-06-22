@@ -1193,18 +1193,23 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
 ##########################################
 
 proc action_get_usage { action } {
-    global action_array cmd_args_array
+    global action_array cmd_opts_array
 
     if {[info exists action_array($action)]} {
         set cmds ""
-        if {[info exists cmd_args_array($action)]} {
-            foreach cmd $cmd_args_array($action) {
-                set name [lindex $cmd 0]
-                set argc [lindex $cmd 1]
+        if {[info exists cmd_opts_array($action)]} {
+            foreach opt $cmd_opts_array($action) {
+                if {[llength $opt] == 1} {
+                    set name $opt
+                    set optc 0
+                } else {
+                    set name [lindex $opt 0]
+                    set optc [lindex $opt 1]
+                }
 
                 append cmds " --$name"
 
-                for {set i 1} {$i <= $argc} {incr i} {
+                for {set i 1} {$i <= $optc} {incr i} {
                     append cmds " <arg$i>"
                 }
             }
@@ -2624,13 +2629,13 @@ proc action_needs_portlist { action } {
     return $ret
 }
 
-# cmd_args_array specifies which arguments the commands accept
+# cmd_opts_array specifies which arguments the commands accept
 # Commands not listed here do not accept any arguments
 # Syntax if {option argn}
 # Where option is the name of the option and argn specifies how many arguments
 # this argument takes
-global cmd_args_array
-array set cmd_args_array {
+global cmd_opts_array
+array set cmd_opts_array {
     edit        {{editor 1}}
     ed          {{editor 1}}
     info        {category categories depends_build depends_lib depends_run
@@ -2653,17 +2658,17 @@ array set cmd_args_array {
 # @param upoptargc reference to upvar for storing the number of arguments for
 #                  this option
 proc cmd_option_exists { action option {upoptargc ""}} {
-    global cmd_args_array
+    global cmd_opts_array
     upvar 1 $upoptargc optargc
 
     # This could be so easy with lsearch -index,
     # but that's only available as of Tcl 8.5
 
-    if {![info exists cmd_args_array($action)]} {
+    if {![info exists cmd_opts_array($action)]} {
         return 0
     }
 
-    foreach item $cmd_args_array($action) {
+    foreach item $cmd_opts_array($action) {
         if {[llength $item] == 1} {
             set name $item
             set argc 0
@@ -2692,7 +2697,7 @@ proc cmd_option_exists { action option {upoptargc ""}} {
 proc parse_options { action ui_options_name global_options_name } {
     upvar $ui_options_name ui_options
     upvar $global_options_name global_options
-    global cmdname cmd_args_array
+    global cmdname cmd_opts_array
     
     while {[moreargs]} {
         set arg [lookahead]
