@@ -162,12 +162,13 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     if (stat(path, &sb) != 0) {
         initialized = 0;
         if (errno == ENOENT) {
-            char *mypath = strdup(path);
-            mypath = dirname(mypath);
-            if (stat(mypath, &sb) != 0) {
+            char *dirc, *dname;
+            dirc = strdup(path);
+            dname = dirname(dirc);
+            if (stat(dname, &sb) != 0) {
                 can_write = 0;
             }
-            free(mypath);
+            free(dirc);
         } else {
             can_write = 0;
         }
