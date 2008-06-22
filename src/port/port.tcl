@@ -2633,18 +2633,16 @@ global cmd_args_array
 array set cmd_args_array {
     edit        {{editor 1}}
     ed          {{editor 1}}
-    info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0}
-                {depends_run 0} {depends 0} {description 0} {epoch 0}
-                {homepage 0} {index 0} {line 0} {long_description 0}
-                {maintainer 0} {maintainers 0} {name 0} {platform 0}
-                {platforms 0} {portdir 0} {revision 0} {variant 0} {variants 0}
-                {version 0}}
-    search      {{line 0}}
-    selfupdate  {{nosync 0} {pretend 0}}
-    uninstall   {{follow-dependents 0}}
-    variants    {{index 0}}
-    clean       {{all 0} {archive 0} {dist 0} {work 0}}
-    mirror      {{new 0}}
+    info        {category categories depends_build depends_lib depends_run
+                 depends description epoch homepage index line long_description
+                 maintainer maintainers name platform platforms portdir
+                 revision variant variants version}
+    search      {line}
+    selfupdate  {nosync pretend}
+    uninstall   {follow-dependents}
+    variants    {index}
+    clean       {all archive dist work}
+    mirror      {new}
 }
 
 ##
@@ -2666,8 +2664,13 @@ proc cmd_option_exists { action option {upoptargc ""}} {
     }
 
     foreach item $cmd_args_array($action) {
-        set name [lindex $item 0]
-        set argc [lindex $item 1]
+        if {[llength $item] == 1} {
+            set name $item
+            set argc 0
+        } else {
+            set name [lindex $item 0]
+            set argc [lindex $item 1]
+        }
 
         if {$name == $option} {
             set optargc $argc
