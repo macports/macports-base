@@ -2241,6 +2241,8 @@ proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
     global env boot_env
     global current_portdir
+
+    array set local_options $opts
     
     set status 0
     if {[require_portlist portlist]} {
@@ -2292,10 +2294,16 @@ proc action_portcmds { action portlist opts } {
                     
                     # Find an editor to edit the portfile
                     set editor ""
-                    foreach ed { VISUAL EDITOR } {
-                        if {[info exists env($ed)]} {
-                            set editor $env($ed)
-                            break
+                    if {[info exists local_options(ports_edit_editor)]} {
+                        set editor $local_options(ports_edit_editor)
+                    } elseif {[info exists local_options(ports_ed_editor)]} {
+                        set editor $local_options(ports_edit_editor)
+                    } else {
+                        foreach ed { VISUAL EDITOR } {
+                            if {[info exists env($ed)]} {
+                                set editor $env($ed)
+                                break
+                            }
                         }
                     }
                     
@@ -2623,6 +2631,8 @@ proc action_needs_portlist { action } {
 # this argument takes
 global cmd_args_array
 array set cmd_args_array {
+    edit        {{editor 1}}
+    ed          {{editor 1}}
     info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0}
                 {depends_run 0} {depends 0} {description 0} {epoch 0}
                 {homepage 0} {index 0} {line 0} {long_description 0}
