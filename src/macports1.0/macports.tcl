@@ -456,23 +456,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             if {[catch {file mkdir $portdbpath} result]} {
                 return -code error "portdbpath $portdbpath does not exist and could not be created: $result"
             }
+        } else {
+            return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
         }
-    }
-    if {![file isdirectory $portdbpath]} {
-        return -code error "$portdbpath is not a directory. Please create the directory $portdbpath and try again"
     }
 
     set registry.path $portdbpath
-    if {![file isdirectory ${registry.path}]} {
-        if {![file exists ${registry.path}]} {
-            if {[catch {file mkdir ${registry.path}} result]} {
-                return -code error "portdbpath ${registry.path} does not exist and could not be created: $result"
-            }
-        }
-    }
-    if {![file isdirectory ${macports::registry.path}]} {
-        return -code error "${macports::registry.path} is not a directory. Please create the directory $portdbpath and try again"
-    }
 
     # Format for receipts, can currently be either "flat" or "sqlite"
     if {[info exists portdbformat]} {
