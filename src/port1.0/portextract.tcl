@@ -92,19 +92,32 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global UI_PREFIX
+    global UI_PREFIX euid egid worksrcpath macportsuser
     
     if {![exists distfiles] && ![exists extract.only]} {
 	# nothing to do
 	return 0
     }
-    
+
     foreach distfile [option extract.only] {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
 	option extract.args "[option distpath]/$distfile"
 	if {[catch {command_exec extract} result]} {
 	    return -code error "$result"
 	}
+	
+	# start gsoc08-privileges
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+	# if started with sudo but have dropped the privileges
+		seteuid $euid	
+		ui_debug "euid changed to: [geteuid]"
+		file attributes "${worksrcpath}" -owner [name_to_uid "$macportsuser"]
+		ui_debug "chowned $worksrcpath to $macportsuser"
+		seteuid [name_to_uid "$macportsuser"]
+		ui_debug "euid changed to: [geteuid]"
+	}
+	# end gsoc08-privileges
+	
     }
     return 0
 }

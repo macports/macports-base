@@ -1378,32 +1378,82 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global macportsuser euid egid usealtworkpath workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     
-    # start gsoc08-privileges
-    if {![file writable $workpath] && [string first "~/.macports" $workpath] == -1} {
+	# start gsoc08-privileges
+	
+	# TODO: move the macportsuser setting to macports.conf
+	set macportsuser "paul"
+
+	# descalate privileges - only ran if macports stated with sudo
+	if { [geteuid] == 0 } {
+		if { [catch {
+				set euid [geteuid]
+				set egid [getegid]
+				ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+	
+				#seteuid [name_to_uid [file attributes $workpath -owner]]
+				#setegid [name_to_gid [file attributes $workpath -group]]
+	
+				setegid [name_to_gid "$macportsuser"]
+				seteuid [name_to_uid "$macportsuser"]
+				ui_debug "egid changed to: [getegid]" 
+				ui_debug "euid changed to: [geteuid]"
+				
+				if {![file writable $workpath]} {
+					ui_debug "Privileges successfully descalated. Unable to write to workpath."
+				}
+			}]
+		} {
+			ui_debug "$::errorInfo"
+			ui_error "Failed to descalate privileges."
+		}
+	} else {
+		ui_debug "Privilege desclation not attempted as not running as root."
+	}
     
-    	set userhome "/Users/[exec whoami]"
+    # if unable to write to workpath, implies running without root privileges so use ~/.macports
+    if { ![file writable $workpath] } {
     	
-        set newworkpath "$userhome/.macports/[ string range $workpath 1 end ]"
-		set newworksymlink "$userhome/.macports/[ string range $worksymlink 1 end ]"
-        
-        set sourcepath [string map {"work" ""} $worksymlink] 
-        set newsourcepath "$userhome/.macports/[ string range $sourcepath 1 end ]"
-        
-        if {![file exists ${sourcepath}Portfile] } {
-			file mkdir $newsourcepath
-			ui_debug "$newsourcepath created"
-        	ui_debug "Going to copy: ${sourcepath}Portfile"
-        	file copy ${sourcepath}Portfile $newsourcepath
-        }
-        
-        set workpath $newworkpath
-        set worksymlink $newworksymlink
-        
-        ui_warn "Going to use $newworkpath for statefile."
-    } else {
-    	set notroot no
+    	if { [getuid] !=0 } {
+    		ui_msg "Insufficient privileges to perform action for all users."
+    		ui_msg "Action will be performed for current user only."
+    		ui_msg "Install actions should be executed using sudo."
+    
+    		#set usealtworkpath [gets stdin]
+    		set usealtworkpath yes
+    	} else {
+    		set usealtworkpath yes
+    	}
+    	
+		if {$usealtworkpath} {
+    
+    		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
+			set userhome "/Users/[exec whoami]"
+			
+			# get alternative paths
+			set newworkpath "$userhome/.macports/[ string range $workpath 1 end ]"
+			set newworksymlink "$userhome/.macports/[ string range $worksymlink 1 end ]"
+			
+			set sourcepath [string map {"work" ""} $worksymlink] 
+			set newsourcepath "$userhome/.macports/[ string range $sourcepath 1 end ]"
+	
+			# copy Portfile if not there already
+			# note to self: should this be done always in case existing Portfile is out of date?
+			if {![file exists ${newsourcepath}Portfile] } {
+				file mkdir $newsourcepath
+				ui_debug "$newsourcepath created"
+				ui_debug "Going to copy: ${sourcepath}Portfile"
+				file copy ${sourcepath}Portfile $newsourcepath
+			}
+			
+			set workpath $newworkpath
+			set worksymlink $newworksymlink
+			
+			ui_debug "Going to use $newworkpath for statefile."
+		} else {
+			return -code error "Insufficient privileges."
+		}
     }
     # end gsoc08-privileges
 
@@ -1428,8 +1478,7 @@ proc open_statefile {args} {
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-    	#pmagrath TODO: fix this quick hack.
-		#exec ln -sf $workpath $worksymlink
+		exec ln -sf $workpath $worksymlink
     }
     
     set fd [open $statefile a+]

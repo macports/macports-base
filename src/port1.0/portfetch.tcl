@@ -568,6 +568,7 @@ proc fetchfiles {args} {
 				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
 				set file_url [portfetch::assemble_url $site $distfile]
 				set effectiveURL ""
+				
 				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
 					![catch {system "mv ${distpath}/${distfile}.TMP ${distpath}/${distfile}"}]} {
 
@@ -625,13 +626,16 @@ proc fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
+    global usealtworkpath distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
+
 		# start gsoc08-privileges
-    	if {![file writable $distpath]} {
+    	if { $usealtworkpath} {
+    	# I have removed ![file writable $distpath] from the if condition as
+    	# the writable condition seems to get confused by effective uids.
 			set distpath "/Users/[exec whoami]/.macports/[ string range $distpath 1 end ]"
-			ui_warn "Going to use $distpath for fetch."
+			ui_debug "Going to use $distpath for fetch."
     	}
     	# end gsoc08-privileges
 	    set distpath ${distpath}/${dist_subdir}

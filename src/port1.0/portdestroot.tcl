@@ -87,9 +87,22 @@ namespace eval destroot {
 
 proc destroot_start {args} {
     global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean
-    global destroot::oldmask destroot.umask
+    global destroot::oldmask destroot.umask macportsuser euid egid
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
+
+	# start gsoc08-privileges
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+	# if started with sudo but have dropped the privileges
+		ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
+		ui_debug "Run destroot without sudo to avoid root privileges."
+		ui_debug "Going to escalate privileges back to root."
+		seteuid $euid	
+		seteuid $egid	
+		ui_debug "euid changed to: [geteuid]"
+		ui_debug "egid changed to: [getegid]"
+	}
+	# end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
     set mtree ${portutil::autoconf::mtree_path}
@@ -99,15 +112,18 @@ proc destroot_start {args} {
     }
     
     file mkdir "${destroot}"
+
     if { ${os.platform} == "darwin" } {
         system "cd \"${destroot}\" && ${mtree} -e -U -f ${portresourcepath}/install/macosx.mtree"
     }
     file mkdir "${destroot}/${prefix}"
+
     system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f ${portresourcepath}/install/prefix.mtree"
 }
 
 proc destroot_main {args} {
     command_exec destroot
+    ui_debug "destroot_main finished."
     return 0
 }
 

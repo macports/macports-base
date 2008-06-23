@@ -47,8 +47,21 @@ target_prerun ${org.macports.install} install_start
 set_ui_prefix
 
 proc install_start {args} {
-	global UI_PREFIX portname portversion portrevision variations portvariants
+	global UI_PREFIX portname portversion portrevision variations portvariants macportsuser euid egid
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	
+	# start gsoc08-privileges
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+	# if started with sudo but have dropped the privileges
+		ui_debug "Can't run install without elevated privileges."
+		ui_debug "Going to escalate privileges back to root."
+		seteuid $euid	
+		setegid $egid
+		ui_debug "euid changed to: [geteuid]"
+		ui_debug "egid changed to: [getegid]"
+	}
+	# end gsoc08-privileges
+	
 }
 
 proc install_element {src_element dst_element} {
