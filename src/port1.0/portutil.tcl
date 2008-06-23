@@ -1378,12 +1378,13 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global macportsuser euid egid usealtworkpath workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global altprefix macportsuser euid egid usealtworkpath
     
 	# start gsoc08-privileges
 	
 	# TODO: move the macportsuser setting to macports.conf
-	set macportsuser "paul"
+	set macportsuser "[uid_to_name [getuid]]"
 
 	# descalate privileges - only ran if macports stated with sudo
 	if { [geteuid] == 0 } {
@@ -1429,14 +1430,17 @@ proc open_statefile {args} {
 		if {$usealtworkpath} {
     
     		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
-			set userhome "/Users/[exec whoami]"
+			set userhome "/Users/[uid_to_name [getuid]]"
+			
+			# set alternative prefix global variables
+			set altprefix "$userhome/.macports"
 			
 			# get alternative paths
-			set newworkpath "$userhome/.macports/[ string range $workpath 1 end ]"
-			set newworksymlink "$userhome/.macports/[ string range $worksymlink 1 end ]"
+			set newworkpath "$altprefix/[ string range $workpath 1 end ]"
+			set newworksymlink "$altprefix/[ string range $worksymlink 1 end ]"
 			
 			set sourcepath [string map {"work" ""} $worksymlink] 
-			set newsourcepath "$userhome/.macports/[ string range $sourcepath 1 end ]"
+			set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
 	
 			# copy Portfile if not there already
 			# note to self: should this be done always in case existing Portfile is out of date?
