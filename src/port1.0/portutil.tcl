@@ -1379,7 +1379,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
-    global altprefix macportsuser euid egid usealtworkpath
+    global altprefix macportsuser euid egid usealtworkpath env
     
 	# start gsoc08-privileges
 	
@@ -1420,44 +1420,43 @@ proc open_statefile {args} {
     		ui_msg "Insufficient privileges to perform action for all users."
     		ui_msg "Action will be performed for current user only."
     		ui_msg "Install actions should be executed using sudo."
-    
-    		#set usealtworkpath [gets stdin]
-    		set usealtworkpath yes
-    	} else {
-    		set usealtworkpath yes
-    	}
-    	
-		if {$usealtworkpath} {
-    
-    		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
-			set userhome "/Users/[uid_to_name [getuid]]"
-			
-			# set alternative prefix global variables
-			set altprefix "$userhome/.macports"
-			
-			# get alternative paths
-			set newworkpath "$altprefix/[ string range $workpath 1 end ]"
-			set newworksymlink "$altprefix/[ string range $worksymlink 1 end ]"
-			
-			set sourcepath [string map {"work" ""} $worksymlink] 
-			set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
-	
-			# copy Portfile if not there already
-			# note to self: should this be done always in case existing Portfile is out of date?
-			if {![file exists ${newsourcepath}Portfile] } {
-				file mkdir $newsourcepath
-				ui_debug "$newsourcepath created"
-				ui_debug "Going to copy: ${sourcepath}Portfile"
-				file copy ${sourcepath}Portfile $newsourcepath
-			}
-			
-			set workpath $newworkpath
-			set worksymlink $newworksymlink
-			
-			ui_debug "Going to use $newworkpath for statefile."
-		} else {
-			return -code error "Insufficient privileges."
 		}
+    	
+    	# set global variable indicating to other functions to use ~/.macports as well
+    	set usealtworkpath yes
+    
+		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
+		if {[info exists env(HOME)]} {
+			# HOME evnironment var is set, use it.
+			set userhome "$env(HOME)"
+		} else {
+			# the environment var isn't set, make an educated guess
+			set userhome "/Users/[uid_to_name [getuid]]"
+		}
+		
+		# set alternative prefix global variables
+		set altprefix "$userhome/.macports"
+		
+		# get alternative paths
+		set newworkpath "$altprefix/[ string range $workpath 1 end ]"
+		set newworksymlink "$altprefix/[ string range $worksymlink 1 end ]"
+		
+		set sourcepath [string map {"work" ""} $worksymlink] 
+		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
+
+		# copy Portfile if not there already
+		# note to self: should this be done always in case existing Portfile is out of date?
+		if {![file exists ${newsourcepath}Portfile] } {
+			file mkdir $newsourcepath
+			ui_debug "$newsourcepath created"
+			ui_debug "Going to copy: ${sourcepath}Portfile"
+			file copy ${sourcepath}Portfile $newsourcepath
+		}
+		
+		set workpath $newworkpath
+		set worksymlink $newworksymlink
+		
+		ui_debug "Going to use $newworkpath for statefile."
     }
     # end gsoc08-privileges
 
