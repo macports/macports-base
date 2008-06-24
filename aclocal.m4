@@ -302,13 +302,13 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 
 		# Set install-user to current user
 		AC_MSG_CHECKING([for install user])
-		DSTUSR=`whoami`
+		DSTUSR=`id -un`
 		AC_MSG_RESULT([$DSTUSR])
 		AC_SUBST(DSTUSR)
 		
 		# Set install-group to current user
 		AC_MSG_CHECKING([for install group])
-		DSTGRP=`whoami`
+		DSTGRP=`id -gn`
 		AC_MSG_RESULT([$DSTGRP])
 		AC_SUBST(DSTGRP)
 
