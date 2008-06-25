@@ -292,6 +292,7 @@ AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 # MP_CHECK_NOROOTPRIVILEGES
 #-------------------------------------------------
 AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
+	dnl if with user specifies --with-no-root-privileges,
 	dnl use current user and group.
 	dnl use ~/Library/Tcl as Tcl package directory
 		AC_REQUIRE([MP_PATH_MPCONFIGDIR])
@@ -320,12 +321,31 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
 	    AC_SUBST(TCL_PACKAGE_DIR)
 		if test x"${ac_cv_c_tclpkgd}" = x ; then
-		AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
+			AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
 	    else
-		AC_MSG_RESULT(${ac_cv_c_tclpkgd})
+			AC_MSG_RESULT(${ac_cv_c_tclpkgd})
 	    fi
 	fi
 
+])
+
+
+# MP_SHARED_DIRECTORY
+#-------------------------------------------------
+AC_DEFUN([MP_SHARED_DIRECTORY],[
+	dnl if with user specifies --with-shared-directory,
+	dnl use 0775 permissions for ${prefix} directories
+        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(shared-directory, [AC_HELP_STRING([--with-shared-directory], [Use 0775 permissions for installed directories])], [ SHAREDIR=$withval ] )
+
+	if test "${SHAREDIR+set}" = set; then	
+		AC_MSG_CHECKING([whether to share the install directory with all members of the install group])
+	    DSTMODE=0775
+
+		AC_MSG_RESULT([$DSTMODE])
+		AC_SUBST(DSTMODE)
+	fi
 ])
 
 # MP_CHECK_INSTALLUSER

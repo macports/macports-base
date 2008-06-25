@@ -1405,6 +1405,7 @@ Optional Packages:
                           Specify group ownership of installed files
   --with-directory-mode=MODE
                           Specify directory mode of installed directories
+  --with-shared-directory Use 0775 permissions for installed directories
   --with-applications-dir Applications installation directory.
   --with-frameworks-dir   Frameworks installation directory.
   --with-universal-target=MDT
@@ -6751,7 +6752,7 @@ fi
 		# Set install-user to current user
 		{ echo "$as_me:$LINENO: checking for install user" >&5
 echo $ECHO_N "checking for install user... $ECHO_C" >&6; }
-		DSTUSR=`whoami`
+		DSTUSR=`id -un`
 		{ echo "$as_me:$LINENO: result: $DSTUSR" >&5
 echo "${ECHO_T}$DSTUSR" >&6; }
 
@@ -6759,7 +6760,7 @@ echo "${ECHO_T}$DSTUSR" >&6; }
 		# Set install-group to current user
 		{ echo "$as_me:$LINENO: checking for install group" >&5
 echo $ECHO_N "checking for install group... $ECHO_C" >&6; }
-		DSTGRP=`whoami`
+		DSTGRP=`id -gn`
 		{ echo "$as_me:$LINENO: result: $DSTGRP" >&5
 echo "${ECHO_T}$DSTGRP" >&6; }
 
@@ -6773,11 +6774,11 @@ echo $ECHO_N "checking for Tcl package directory... $ECHO_C" >&6; }
 	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
 
 		if test x"${ac_cv_c_tclpkgd}" = x ; then
-		{ { echo "$as_me:$LINENO: error: Tcl package directory not found.  Please specify its location with --with-tclpackage" >&5
+			{ { echo "$as_me:$LINENO: error: Tcl package directory not found.  Please specify its location with --with-tclpackage" >&5
 echo "$as_me: error: Tcl package directory not found.  Please specify its location with --with-tclpackage" >&2;}
    { (exit 1); exit 1; }; }
 	    else
-		{ echo "$as_me:$LINENO: result: ${ac_cv_c_tclpkgd}" >&5
+			{ echo "$as_me:$LINENO: result: ${ac_cv_c_tclpkgd}" >&5
 echo "${ECHO_T}${ac_cv_c_tclpkgd}" >&6; }
 	    fi
 	fi
@@ -6858,6 +6859,26 @@ echo $ECHO_N "checking what permissions to use for installation directories... $
 	{ echo "$as_me:$LINENO: result: $DSTMODE" >&5
 echo "${ECHO_T}$DSTMODE" >&6; }
 
+
+
+
+
+
+# Check whether --with-shared-directory was given.
+if test "${with_shared_directory+set}" = set; then
+  withval=$with_shared_directory;  SHAREDIR=$withval
+fi
+
+
+	if test "${SHAREDIR+set}" = set; then
+		{ echo "$as_me:$LINENO: checking whether to share the install directory with all members of the install group" >&5
+echo $ECHO_N "checking whether to share the install directory with all members of the install group... $ECHO_C" >&6; }
+	    DSTMODE=0775
+
+		{ echo "$as_me:$LINENO: result: $DSTMODE" >&5
+echo "${ECHO_T}$DSTMODE" >&6; }
+
+	fi
 
 
 # Check for default directories
