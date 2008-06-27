@@ -4,6 +4,9 @@
 # Set the directory in which to install ports
 prefix			@prefix_expanded@
 
+# Set the user to run MacPorts compiles, etc as when privileges are dropped during an install
+macportsuser	@RUNUSR@
+
 # Where to store MacPorts working data
 portdbpath		@localstatedir_expanded@/macports
 

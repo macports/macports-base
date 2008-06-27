@@ -729,6 +729,7 @@ MPCONFIGDIR
 DSTUSR
 DSTGRP
 TCL_PACKAGE_DIR
+RUNUSR
 DSTMODE
 MPAPPLICATIONSDIR
 MPFRAMEWORKSDIR
@@ -1403,6 +1404,9 @@ Optional Packages:
                           Specify user ownership of installed files
   --with-install-group=GROUP
                           Specify group ownership of installed files
+  --with-macports-user=USER
+                          Specify user to drop privileges to, if possible,
+                          during compiles,etc.
   --with-directory-mode=MODE
                           Specify directory mode of installed directories
   --with-shared-directory Use 0775 permissions for installed directories
@@ -6838,6 +6842,26 @@ echo $ECHO_N "checking for install group... $ECHO_C" >&6; }
 
 	{ echo "$as_me:$LINENO: result: $DSTGRP" >&5
 echo "${ECHO_T}$DSTGRP" >&6; }
+
+
+
+
+
+
+# Check whether --with-install-user was given.
+if test "${with_install_user+set}" = set; then
+  withval=$with_install_user;  RUNUSR=$withval
+fi
+
+
+	{ echo "$as_me:$LINENO: checking for macports user" >&5
+echo $ECHO_N "checking for macports user... $ECHO_C" >&6; }
+	if test "x$RUNUSR" = "x" ; then
+	   RUNUSR=`id -un`
+	fi
+
+	{ echo "$as_me:$LINENO: result: $RUNUSR" >&5
+echo "${ECHO_T}$RUNUSR" >&6; }
 
 
 
@@ -13241,6 +13265,7 @@ MPCONFIGDIR!$MPCONFIGDIR$ac_delim
 DSTUSR!$DSTUSR$ac_delim
 DSTGRP!$DSTGRP$ac_delim
 TCL_PACKAGE_DIR!$TCL_PACKAGE_DIR$ac_delim
+RUNUSR!$RUNUSR$ac_delim
 DSTMODE!$DSTMODE$ac_delim
 MPAPPLICATIONSDIR!$MPAPPLICATIONSDIR$ac_delim
 MPFRAMEWORKSDIR!$MPFRAMEWORKSDIR$ac_delim
@@ -13293,7 +13318,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 66; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 67; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

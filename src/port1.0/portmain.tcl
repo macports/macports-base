@@ -41,7 +41,7 @@ target_provides ${org.macports.main} main
 target_state ${org.macports.main} no
 
 # define options
-options prefix name version revision epoch categories maintainers
+options prefix macportsuser name version revision epoch categories maintainers
 options long_description description homepage
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
@@ -58,6 +58,7 @@ default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default worksymlink {[file join $portpath work]}
 default prefix /opt/local
+default macportsuser {[uid_to_name [getuid]]}
 default x11prefix /usr/X11R6
 default applications_dir /Applications/MacPorts
 default frameworks_dir /Library/Frameworks

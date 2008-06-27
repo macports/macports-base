@@ -1379,12 +1379,9 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
-    global altprefix macportsuser euid egid usealtworkpath env
+    global altprefix macportsuser euid egid usealtworkpath env applications_dir
     
 	# start gsoc08-privileges
-	
-	# TODO: move the macportsuser setting to macports.conf
-	set macportsuser "[uid_to_name [getuid]]"
 
 	# descalate privileges - only ran if macports stated with sudo
 	if { [geteuid] == 0 } {
@@ -1413,12 +1410,16 @@ proc open_statefile {args} {
 		ui_debug "Privilege desclation not attempted as not running as root."
 	}
     
-    # if unable to write to workpath, implies running without root privileges so use ~/.macports
+    # if unable to write to workpath, implies running without root privileges 
+    # or a shared directory owned by the group so use ~/.macports
     if { ![file writable $workpath] } {
-    	
-    	if { [getuid] !=0 } {
+    
+    	set userid [getuid]
+    	set username [uid_to_name $userid]
+
+    	if { $userid !=0 } {
     		ui_msg "Insufficient privileges to perform action for all users."
-    		ui_msg "Action will be performed for current user only."
+    		ui_msg "Action will be performed for current user (${username}) only."
     		ui_msg "Install actions should be executed using sudo."
 		}
     	
@@ -1431,7 +1432,7 @@ proc open_statefile {args} {
 			set userhome "$env(HOME)"
 		} else {
 			# the environment var isn't set, make an educated guess
-			set userhome "/Users/[uid_to_name [getuid]]"
+			set userhome "/Users/${username}"
 		}
 		
 		# set alternative prefix global variables

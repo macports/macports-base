@@ -329,6 +329,24 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 
 ])
 
+# MP_CHECK_RUNUSER
+#-------------------------------------------------
+AC_DEFUN([MP_CHECK_RUNUSER],[
+	dnl if with user specifies --with-macports-user,
+	dnl use it. otherwise default to platform defaults
+       AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(install-user, [AC_HELP_STRING([--with-macports-user=USER], [Specify user to drop privileges to, if possible, during compiles,etc.])], [ RUNUSR=$withval ] )
+	
+	AC_MSG_CHECKING([for macports user])
+	if test "x$RUNUSR" = "x" ; then
+	   RUNUSR=`id -un`
+	fi
+
+	AC_MSG_RESULT([$RUNUSR])
+	AC_SUBST(RUNUSR)
+])
+
 
 # MP_SHARED_DIRECTORY
 #-------------------------------------------------
