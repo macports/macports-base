@@ -1003,7 +1003,7 @@ ListSubtree(
 	if (inRoot->fNodeType == kLeaf)
 	{
 		/* it's a leaf. Does the value match? */
-		if (strcmp(((SLeaf*) inRoot)->fValue, inValue) == 0)
+		if (strcasecmp(((SLeaf*) inRoot)->fValue, inValue) == 0)
 		{
 			/* It matches. */
 			char* thePath = ckalloc(inSubpathLen + NAME_MAX + 1);

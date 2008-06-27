@@ -356,7 +356,7 @@ proc foreachport {portlist block} {
 proc portlist_compare { a b } {
     array set a_ $a
     array set b_ $b
-    set namecmp [string compare $a_(name) $b_(name)]
+    set namecmp [string compare -nocase $a_(name) $b_(name)]
     if {$namecmp != 0} {
         return $namecmp
     }
@@ -1193,18 +1193,23 @@ proc parsePortSpec { vername varname optname {remainder ""} } {
 ##########################################
 
 proc action_get_usage { action } {
-    global action_array cmd_args_array
+    global action_array cmd_opts_array
 
     if {[info exists action_array($action)]} {
         set cmds ""
-        if {[info exists cmd_args_array($action)]} {
-            foreach cmd $cmd_args_array($action) {
-                set name [lindex $cmd 0]
-                set argc [lindex $cmd 1]
+        if {[info exists cmd_opts_array($action)]} {
+            foreach opt $cmd_opts_array($action) {
+                if {[llength $opt] == 1} {
+                    set name $opt
+                    set optc 0
+                } else {
+                    set name [lindex $opt 0]
+                    set optc [lindex $opt 1]
+                }
 
                 append cmds " --$name"
 
-                for {set i 1} {$i <= $argc} {incr i} {
+                for {set i 1} {$i <= $optc} {incr i} {
                     append cmds " <arg$i>"
                 }
             }
@@ -2241,6 +2246,8 @@ proc action_portcmds { action portlist opts } {
     # Operations on the port's directory and Portfile
     global env boot_env
     global current_portdir
+
+    array set local_options $opts
     
     set status 0
     if {[require_portlist portlist]} {
@@ -2292,10 +2299,16 @@ proc action_portcmds { action portlist opts } {
                     
                     # Find an editor to edit the portfile
                     set editor ""
-                    foreach ed { VISUAL EDITOR } {
-                        if {[info exists env($ed)]} {
-                            set editor $env($ed)
-                            break
+                    if {[info exists local_options(ports_edit_editor)]} {
+                        set editor $local_options(ports_edit_editor)
+                    } elseif {[info exists local_options(ports_ed_editor)]} {
+                        set editor $local_options(ports_ed_editor)
+                    } else {
+                        foreach ed { VISUAL EDITOR } {
+                            if {[info exists env($ed)]} {
+                                set editor $env($ed)
+                                break
+                            }
                         }
                     }
                     
@@ -2616,25 +2629,25 @@ proc action_needs_portlist { action } {
     return $ret
 }
 
-# cmd_args_array specifies which arguments the commands accept
+# cmd_opts_array specifies which arguments the commands accept
 # Commands not listed here do not accept any arguments
 # Syntax if {option argn}
 # Where option is the name of the option and argn specifies how many arguments
 # this argument takes
-global cmd_args_array
-array set cmd_args_array {
-    info        {{category 0} {categories 0} {depends_build 0} {depends_lib 0}
-                {depends_run 0} {depends 0} {description 0} {epoch 0}
-                {homepage 0} {index 0} {line 0} {long_description 0}
-                {maintainer 0} {maintainers 0} {name 0} {platform 0}
-                {platforms 0} {portdir 0} {revision 0} {variant 0} {variants 0}
-                {version 0}}
-    search      {{line 0}}
-    selfupdate  {{nosync 0} {pretend 0}}
-    uninstall   {{follow-dependents 0}}
-    variants    {{index 0}}
-    clean       {{all 0} {archive 0} {dist 0} {work 0}}
-    mirror      {{new 0}}
+global cmd_opts_array
+array set cmd_opts_array {
+    edit        {{editor 1}}
+    ed          {{editor 1}}
+    info        {category categories depends_build depends_lib depends_run
+                 depends description epoch homepage index line long_description
+                 maintainer maintainers name platform platforms portdir
+                 revision variant variants version}
+    search      {line}
+    selfupdate  {nosync pretend}
+    uninstall   {follow-dependents}
+    variants    {index}
+    clean       {all archive dist work}
+    mirror      {new}
 }
 
 ##
@@ -2645,19 +2658,24 @@ array set cmd_args_array {
 # @param upoptargc reference to upvar for storing the number of arguments for
 #                  this option
 proc cmd_option_exists { action option {upoptargc ""}} {
-    global cmd_args_array
+    global cmd_opts_array
     upvar 1 $upoptargc optargc
 
     # This could be so easy with lsearch -index,
     # but that's only available as of Tcl 8.5
 
-    if {![info exists cmd_args_array($action)]} {
+    if {![info exists cmd_opts_array($action)]} {
         return 0
     }
 
-    foreach item $cmd_args_array($action) {
-        set name [lindex $item 0]
-        set argc [lindex $item 1]
+    foreach item $cmd_opts_array($action) {
+        if {[llength $item] == 1} {
+            set name $item
+            set argc 0
+        } else {
+            set name [lindex $item 0]
+            set argc [lindex $item 1]
+        }
 
         if {$name == $option} {
             set optargc $argc
@@ -2679,7 +2697,7 @@ proc cmd_option_exists { action option {upoptargc ""}} {
 proc parse_options { action ui_options_name global_options_name } {
     upvar $ui_options_name ui_options
     upvar $global_options_name global_options
-    global cmdname cmd_args_array
+    global cmdname cmd_opts_array
     
     while {[moreargs]} {
         set arg [lookahead]
