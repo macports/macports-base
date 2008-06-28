@@ -864,6 +864,9 @@ proc element { resname } {
         ^categories:        -
         ^category:          -
         ^version:           -
+        ^depends_lib:       -
+        ^depends_build:     -
+        ^depends_run:       -
         ^revision:          { # Handle special port selectors
             advance
 
@@ -878,6 +881,19 @@ proc element { resname } {
                 category { set field "categories" }
             }                           
             add_multiple_ports reslist [get_matching_ports $pat no regexp $field]
+            set el 1
+        }
+
+        ^depends:           { # A port selector shorthand for depends_lib, depends_build or depends_run
+            advance
+
+            # Break up the token, because older Tcl switch doesn't support -matchvar
+            regexp {^(\w+):(.*)} $token matchvar field pat
+
+            add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_lib"]
+            add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_build"]
+            add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_run"]
+
             set el 1
         }
 
