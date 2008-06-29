@@ -256,6 +256,21 @@ proc checksites {args} {
             }
         }
         
+        # add in the global and fallback mirrors for each tag
+        foreach site $site_list {
+            if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
+                if {![info exists extras_added($tag)]} {
+                    set site_list [concat $site_list [mirror_sites $global_mirror_site $tag ""] [mirror_sites $fallback_mirror_site $tag ""]]
+                    if {[string equal $list master_sites] && [info exists env(MASTER_SITE_LOCAL)]} {
+                        set site_list [concat [list $env(MASTER_SITE_LOCAL)] $site_list]
+                    } elseif {[string equal $list patch_sites] && [info exists env(PATCH_SITE_LOCAL)]} {
+                        set site_list [concat [list $env(PATCH_SITE_LOCAL)] $site_list]
+                    }
+                    set extras_added($tag) yes
+                }
+            }
+        }
+        
         foreach site $site_list {
 	    if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
                 lappend portfetch::$tag $site
