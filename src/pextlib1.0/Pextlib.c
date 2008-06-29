@@ -1194,8 +1194,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
-    Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
