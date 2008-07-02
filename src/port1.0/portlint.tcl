@@ -271,6 +271,11 @@ proc lint_main {args} {
             }
         }
 
+        if {[regexp {(^|\s)configure\s+\{\s*\}} $line]} {
+            ui_warn "Line $lineno should say \"use_configure no\" instead of declaring an empty configure phase"
+            incr warnings
+        }
+
         ### TODO: more checks to Portfile syntax
 
         incr lineno
