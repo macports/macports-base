@@ -1410,7 +1410,7 @@ proc open_statefile {args} {
 		ui_debug "Privilege desclation not attempted as not running as root."
 	}
     
-    # if unable to write to workpath, implies running without root privileges 
+    # if unable to write to workpath, implies running without either root privileges 
     # or a shared directory owned by the group so use ~/.macports
     if { ![file writable $workpath] } {
     
@@ -1445,13 +1445,15 @@ proc open_statefile {args} {
 		set sourcepath [string map {"work" ""} $worksymlink] 
 		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
 
-		# copy Portfile if not there already
+		# copy Portfile (and files) if not there already
 		# note to self: should this be done always in case existing Portfile is out of date?
 		if {![file exists ${newsourcepath}Portfile] } {
 			file mkdir $newsourcepath
 			ui_debug "$newsourcepath created"
 			ui_debug "Going to copy: ${sourcepath}Portfile"
 			file copy ${sourcepath}Portfile $newsourcepath
+			ui_debug "Going to copy: ${sourcepath}files"
+			file copy ${sourcepath}files $newsourcepath
 		}
 		
 		set workpath $newworkpath

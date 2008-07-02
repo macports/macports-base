@@ -55,10 +55,9 @@ proc install_start {args} {
 	# if started with sudo but have dropped the privileges
 		ui_debug "Can't run install without elevated privileges."
 		ui_debug "Going to escalate privileges back to root."
+		setegid $egid	
 		seteuid $euid	
-		setegid $egid
-		ui_debug "euid changed to: [geteuid]"
-		ui_debug "egid changed to: [getegid]"
+		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
 	}
 	# end gsoc08-privileges
 	

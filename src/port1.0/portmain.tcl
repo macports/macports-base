@@ -58,7 +58,6 @@ default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default worksymlink {[file join $portpath work]}
 default prefix /opt/local
-default macportsuser {[uid_to_name [getuid]]}
 default x11prefix /usr/X11R6
 default applications_dir /Applications/MacPorts
 default frameworks_dir /Library/Frameworks
@@ -75,6 +74,7 @@ default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
 
 # Configure settings
+default macportsuser {${portutil::autoconf::macportsuser}}
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 

@@ -97,10 +97,9 @@ proc destroot_start {args} {
 		ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
 		ui_debug "Run destroot without sudo to avoid root privileges."
 		ui_debug "Going to escalate privileges back to root."
+		setegid $egid	
 		seteuid $euid	
-		seteuid $egid	
-		ui_debug "euid changed to: [geteuid]"
-		ui_debug "egid changed to: [getegid]"
+		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
 	}
 	# end gsoc08-privileges
 
@@ -119,6 +118,8 @@ proc destroot_start {args} {
     file mkdir "${destroot}/${prefix}"
 
     system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f ${portresourcepath}/install/prefix.mtree"
+    
+    ui_debug "destroot_start finished"
 }
 
 proc destroot_main {args} {
