@@ -55,7 +55,6 @@ proc print_usage {args} {
     puts stderr "\"$cmdname help\" or \"man 1 port\" for more information."
 }
 
-
 proc print_help {args} {
     global cmdname
     global action_array
@@ -97,9 +96,10 @@ all, current, active, inactive, installed, uninstalled, and outdated.
 These pseudo-portnames expand to the set of ports named.
 
 Additional pseudo-portnames start with...
-variants:, variant:, description:, portdir:, homepage:, epoch:,
-platforms:, platform:, name:, long_description:, maintainers:,
-maintainer:, categories:, category:, version:, and revision:.
+variants:, variant:, description:, depends:, depends_lib:, depends_run:,
+depends_build:, portdir:, homepage:, epoch:, platforms:, platform:, name:,
+long_description:, maintainers:, maintainer:, categories:, category:, version:,
+and revision:.
 These each select a set of ports based on a regex search of metadata
 about the ports. In all such cases, a standard regex pattern following
 the colon will be used to select the set of ports to which the
