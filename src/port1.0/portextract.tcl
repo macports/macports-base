@@ -92,7 +92,7 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global UI_PREFIX
+    global UI_PREFIX filespath
     
     if {![exists distfiles] && ![exists extract.only]} {
 	# nothing to do
@@ -101,7 +101,11 @@ proc extract_main {args} {
     
     foreach distfile [option extract.only] {
 	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
-	option extract.args "[option distpath]/$distfile"
+	if {[file exists $filespath/$distfile]} {
+		option extract.args "$filespath/$distfile"
+	} else {
+		option extract.args "[option distpath]/$distfile"
+	}
 	if {[catch {command_exec extract} result]} {
 	    return -code error "$result"
 	}
