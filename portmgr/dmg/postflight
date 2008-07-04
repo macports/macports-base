@@ -1,9 +1,7 @@
 #!/bin/bash
+# -*- coding: utf-8; mode: shell-script-mode; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=sh:et:sw=4:ts=4:sts=4
 #
-# Copyright (c) 2007 Juan Manuel Palacios <jmpp@macports.org>
-# Copyright (c) 2005 Ole Guldberg Jensen <olegb@opendarwin.org>
-# Copyright (c) 2005 Dr. Ernie Prabhakar <drernir@opendarwin.org>
-# Copyright (c) 2005 Matt Anton <matt@opendarwin.org>
+# Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,11 +12,14 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
+# 3. Neither the name of Apple, Inc., The MacPorts Project nor the
+#    names of its contributors may be used to endorse or promote products
+#    derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY Eric Melville AND CONTRIBUTORS ``AS IS'' AND
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
 # FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
 # OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -31,62 +32,122 @@
 # $Id$
 
 
-BINPATH=/opt/local/bin
-SBINPATH=/opt/local/sbin
+#set -x
+
+# Script identification ('cause more often than not the svn Id is not expanded):
+VERSION=1.7.0
+
+# Abstraction variables:
+PREFIX=/opt/local
+BINPATH=${PREFIX}/bin
+SBINPATH=${PREFIX}/sbin
+MANPAGES=${PREFIX}/share/man
+TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
+BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
+OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
 
-echo -e "\nChecking the PATH variable for $USER...\n"
+# Command to update the MacPorts installation through "selfupdate":
+function update_macports {
+    echo "Synchronizing the MacPorts installation with the project's rsync server..."
+    if ! ${BINPATH}/port -v selfupdate; then 
+        echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
+        echo "Please run 'sudo port -d selfupdate' manually to find out the cause of the error."
+    else
+        echo "Successful!"
+    fi
+}
 
-# No need to do any path adjustments if we're on Leopard, as we already install our path configs into /etc/paths.d/ and /etc/manpaths.d/
-if [ $(sw_vers -productVersion | awk -F . '{print $2}') -eq 5 ]; then
-    echo "No need to adjust the PATH and MANPATH environment variables on Leopard!"
-    exit 0
-fi
-
-if $SHELL -c "/usr/bin/printenv PATH" | grep -c $BINPATH > /dev/null; then
-    echo "You already have the right PATH!"
-else
-    USHELL=`basename $SHELL`
-    echo "Setting the PATH of $USHELL for $USER in ${HOME:=/Users/$USER}..."
-    case $USHELL in
-        *csh)
-	    # we backup the original
-            /bin/cp -fp $HOME/.cshrc $HOME/.cshrc.mpsaved
-            echo "#" >> $HOME/.cshrc
-            echo "# Your previous .cshrc (if any) is saved as .cshrc.mpsaved" >> $HOME/.cshrc
-            echo "# Setting the path for MacPorts." >> $HOME/.cshrc
-            echo "set path=($BINPATH $SBINPATH" '$path'")" >> $HOME/.cshrc
-            chown $USER $HOME/.cshrc
-            echo "Finished modifying $HOME/.cshrc"
-        ;;
-	*sh)
-	    # we backup the original
-            /bin/cp -fp $HOME/.profile $HOME/.profile.mpsaved
-            echo "#" >> $HOME/.profile
-            echo "# Your previous .profile  (if any) is saved as .profile.mpsaved" >> $HOME/.profile
-            echo "# Setting the path for MacPorts." >> $HOME/.profile
-            echo "export PATH=$BINPATH:$SBINPATH:\$PATH" >> $HOME/.profile
-            chown $USER $HOME/.profile
-            echo "Finished modifying $HOME/.profile"
-        ;;
-	*)
-            echo "Unknown shell! Please set your own PATH manually."
-        ;;
-    esac
-fi
+# Through this command we write an environment variable to an appropriate shell configuration file,
+# backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
+# which hints that we've already tweaked it and therefore already baked it up.
+function write_setting () {
+    if [ -f ${HOME}/.${CONF_FILE} ] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
+        echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
+        /bin/cp -fp ${HOME}/.${CONF_FILE} "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
+            echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
+            update_macports
+            exit 1
+        }
+        echo -e "\n##\n# Your previous ${HOME}/.${CONF_FILE} file was backed up as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}\n##" >> ${HOME}/.${CONF_FILE}
+    fi
+    echo -e "\n# ${OUR_STRING}: adding an appropriate ${1} variable for use with MacPorts." >> ${HOME}/.${CONF_FILE}
+    echo "${ENV_COMMAND} ${1}${ASSIGN}${2}" >> ${HOME}/.${CONF_FILE}
+    echo -e "# Finished adapting your ${1} environment variable for use with MacPorts.\n" >> ${HOME}/.${CONF_FILE}
+    chown ${USER} ${HOME}/.${CONF_FILE} || echo "Warning: unable to adapt permissions on your ${HOME}/.${CONF_FILE} shell configuration file!"
+    echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
+}
 
 
-# Run selfupdate:
-export PATH=$BINPATH:$PATH
-echo -e "\nSelfupdating The MacPorts system...\n"
-port -d selfupdate
-if [ $? != 0 ]; then
-    echo "An attempt to synchronize your recent MacPorts installation with the rsync server failed, please run 'port -d selfupdate' manually to find out the cause of the error."
+echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
+
+
+# Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
+# Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
+USHELL=$(dscl . -read /users/${USER} shell | awk -F'/' '{print $NF}') || {
+    echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
+    update_macports
     exit 1
+}
+case "${USHELL}" in
+    tcsh)
+        echo "Detected the tcsh shell."
+        LOGIN_FLAG=""
+        ENV_COMMAND="setenv"
+        ASSIGN=" "
+        CONF_FILE=tcshrc
+        ;;
+    bash)
+        echo "Detected the bash shell."
+        LOGIN_FLAG="-l"
+        ENV_COMMAND="export"
+        ASSIGN="="
+        CONF_FILE=profile
+        ;;
+    *)
+        echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."
+        update_macports
+        exit 0
+        ;;
+esac
+
+
+# Adding our setting to the PATH variable if not already there:
+if ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv PATH" | grep ${PREFIX} > /dev/null; then
+    echo "Your shell already has the right PATH environment variable for use with MacPorts!"
+else
+    write_setting PATH "${BINPATH}:${SBINPATH}:\$PATH"
+fi
+
+# We gather the path into a variable of our own for faster operation:
+ORIGINAL_MANPATH="$(${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
+# Adding out setting to the MANPATH variable only if it exists:
+if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
+# and following that, if it's not empty:
+  [ -z "${ORIGINAL_MANPATH}" ] || \
+# or if it doesn't already contain our path:
+  echo "${ORIGINAL_MANPATH}" | grep ${MANPAGES} > /dev/null || \
+# or if there's no empty component somewhere in the middle of it:
+  echo "${ORIGINAL_MANPATH}" | grep :: > /dev/null || \
+# or at the start of it:
+  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $1}')" ] || \
+# or at the end of it:
+  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]; then
+    echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
+else
+    write_setting MANPATH "${MANPAGES}:\$MANPATH"
+fi
+
+# Adding a DISPLAY variable only if we're running on Tiger or less and if it doesn't already exist:
+if (($(sw_vers -productVersion | awk -F . '{print $2}') >= 5)) || ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep DISPLAY" > /dev/null; then
+    echo "Your shell already has the right DISPLAY environment variable for use with MacPorts!"
+else
+    write_setting DISPLAY ":0"
 fi
 
 
-# Postflight script is done with its job!
-echo -e "\nYou have succesfully installed the MacPorts system.\n"
-echo "Launch a terminal and try it out!"
-echo -e "Read the port manual page for help.\n"
+# Postflight script is done with its job, update MacPorts and exit gracefully!
+update_macports
+echo "You have succesfully installed the MacPorts system, launch a terminal and try it out!"
+echo "Read the port(1) manual page and http://guide.macports.org for help, http://www.macports.org/contact.php if you need to get in touch with The MacPorts Project."
+exit 0
