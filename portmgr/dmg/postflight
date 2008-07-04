@@ -78,9 +78,23 @@ function write_setting () {
     echo "An appropriate ${1} variable has been added to your shell environment by the MacPorts installer."
 }
 
+function cleanup_man () {
+    # Remove old non-compressed man pages
+    echo -e "\nRemoving old man pages..."
+    MAN1="port.1"
+    MAN5="macports.conf.5"
+    MAN7="portfile.7 portstyle.7 porthier.7 portgroup.7"
+    for m in ${MAN1}; do rm -vf ${MANPAGES}/man1/$m ; done
+    for m in ${MAN5}; do rm -vf ${MANPAGES}/man5/$m ; done
+    for m in ${MAN7}; do rm -vf ${MANPAGES}/man7/$m ; done
+    echo -e "Done.\n"
+}
+
 
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
+# Remove old stuff
+cleanup_man
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
