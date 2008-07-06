@@ -8,7 +8,7 @@ ifneq ($(MAKECMDGOALS),distclean)
 include ../Mk/macports.autoconf.mk
 endif
 
-all:
+all: ${MAN1:.1=.1.gz} ${MAN5:.5=.5.gz} ${MAN7:.7=.7.gz}
 
 clean:
 	rm -f *.{1,5,7}.gz
@@ -27,7 +27,7 @@ distclean: clean
 %.7.gz: %.7
 	gzip -c $^ > $@
 
-install: ${MAN1:.1=.1.gz} ${MAN5:.5=.5.gz} ${MAN7:.7=.7.gz}
+install: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${mpconfigdir}
 
