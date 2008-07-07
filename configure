@@ -12377,7 +12377,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.sh"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
 
 
 cat >confcache <<\_ACEOF
@@ -12953,7 +12953,7 @@ do
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
-    "setupenv.sh") CONFIG_FILES="$CONFIG_FILES setupenv.sh" ;;
+    "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
 
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
