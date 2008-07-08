@@ -717,6 +717,8 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
+	global euid macportsuser
+
     set extended 0
     while 1 {
         set arg [lindex $args 0]
@@ -775,6 +777,21 @@ proc reinplace {args}  {
         }
     
         close $tmpfd
+    
+		# start gsoc08-privileges
+		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+		# if started with sudo but have dropped the privileges
+			seteuid $euid	
+			ui_debug "euid changed to: [geteuid]"
+			chown $file ${macportsuser}
+			ui_debug "chowned $file to $macportsuser"
+			seteuid [name_to_uid "$macportsuser"]
+			ui_debug "euid changed to: [geteuid]"
+		} else {
+			ui_debug "no need to chown $file. uid=[getuid]. euid=[geteuid]."
+		}
+			
+		# end gsoc08-privileges
     
         set attributes [file attributes $file]
         # We need to overwrite this file
@@ -2245,5 +2262,20 @@ proc merge {base} {
 proc quotemeta {str} {
     regsub -all {(\W)} $str {\\\1} str
     return $str
+}
+
+##
+# Recusively chown the given file or directory to the specified user.
+#
+# @param path the file/directory to be chowned
+# @param user the user to chown file to
+proc chown {path user} {
+	file attributes $path -owner [name_to_uid "$user"]
+	
+    if {[file isdirectory $path]} {
+		foreach g [glob [file join $path *]] {
+			chown $g $user
+		}
+    }
 }
 
