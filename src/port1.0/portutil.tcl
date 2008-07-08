@@ -2273,9 +2273,10 @@ proc chown {path user} {
 	file attributes $path -owner [name_to_uid "$user"]
 	
     if {[file isdirectory $path]} {
-		foreach g [glob [file join $path *]] {
-			chown $g $user
+		fs-traverse myfile ${path} {
+			file attributes $myfile -owner [name_to_uid "$user"]
 		}
     }
+    
 }
 
