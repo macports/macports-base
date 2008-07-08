@@ -417,6 +417,7 @@ AC_CONFIG_FILES([
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
 	src/macports1.0/macports_fastload.tcl
+	setupenv.bash
 ])
 
 AC_OUTPUT
