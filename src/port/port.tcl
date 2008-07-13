@@ -3169,7 +3169,11 @@ if {[moreargs] && $cmdname == "portf"} {
 }
 
 # Parse global options that will affect all subsequent commands
-parse_options "global" ui_options global_options
+if {[catch {parse_options "global" ui_options global_options} result]} {
+    puts "Error: $result"
+    print_usage
+    exit 1
+}
 
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
