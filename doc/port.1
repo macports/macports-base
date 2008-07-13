@@ -437,6 +437,12 @@ Opens
 with your default editor specified in your shell's environment variable. Alias
 .Ar ed
 also invokes this command.
+.Pp
+You can also use the
+.Fl -editor
+flag on the command line to specify an alternative editor. For example:
+.Dl port edit --editor nano apache2
+.Pp
 .Ss unarchive
 Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
 .Ar fetch ,
