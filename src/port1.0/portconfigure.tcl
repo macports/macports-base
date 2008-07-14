@@ -285,6 +285,7 @@ proc configure_main {args} {
             "darwin 7" { set configure.compiler gcc-3.3 }
             "darwin 8" { set configure.compiler gcc-4.0 }
             "darwin 9" { set configure.compiler gcc-4.0 }
+            "darwin 10" { set configure.compiler llvm-gcc-4.2 }
         }
     }
 
@@ -308,6 +309,12 @@ proc configure_main {args} {
                 objc /usr/bin/gcc-4.2 \
                 cxx /usr/bin/g++-4.2 \
                 cpp /usr/bin/cpp-4.2 }
+        llvm-gcc-4.2 {
+            select_compiler "Mac OS X llvm-gcc 4.2" \
+                cc  /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 \
+                objc /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 \
+                cxx /Developer/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 \
+                cpp /Developer/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
         apple-gcc-3.3 {
             select_compiler "MacPorts Apple gcc 3.3" \
                 cc  ${prefix}/bin/gcc-apple-3.3 \
