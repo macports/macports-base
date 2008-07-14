@@ -272,6 +272,7 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://internap.dl.sourceforge.net/
     http://superb-east.dl.sourceforge.net/
     http://superb-west.dl.sourceforge.net/
+    http://transact.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sourceforge_jp) {

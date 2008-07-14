@@ -361,10 +361,15 @@ proc sortsites {args} {
                 }
             }
             if { ![info exists seen($host)] } {
-                set seen($host) yes
-                lappend hosts $host
-                ui_debug "Pinging $host..."
-                set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]
+                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
+                    ui_debug "Spawning ping for $host failed"
+                    # will end up after all hosts that were pinged OK but before those that didn't respond
+                    set pingtimes($host) 5000
+                } else {
+                    ui_debug "Pinging $host..."
+                    set seen($host) yes
+                    lappend hosts $host
+                }
             }
         }
 
