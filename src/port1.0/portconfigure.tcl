@@ -52,6 +52,9 @@ default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
 
+options configure.asroot
+default configure.asroot no
+
 # Configure special environment variables.
 # We could have m32/m64/march/mtune be global configurable at some point.
 options configure.m32 configure.m64 configure.march configure.mtune
@@ -137,9 +140,28 @@ default configure.compiler      {}
 set_ui_prefix
 
 proc configure_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX macportsuser euid egid
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+    
+    # start gsoc08-privileges
+    if { [tbool configure.asroot] } {
+	# if port is marked as needing root		
+		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+		# if started with sudo but have dropped the privileges
+			ui_debug "Can't run install on this port without elevated privileges."
+			ui_debug "Going to escalate privileges back to root."
+			setegid $egid	
+			seteuid $euid	
+			ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+		}
+		
+		if { [getuid] != 0 } {
+			return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+		}
+	}
+	# end gsoc08-privileges
+    
 }
 
 # internal function to determine canonical system name for configure

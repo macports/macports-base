@@ -42,8 +42,10 @@ target_prerun ${org.macports.build} build_start
 options build.target
 options build.nice
 options build.jobs
+options build.asroot
 commands build parallel_build
 # defaults
+default build.asroot no
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[build_getmaketype]}
 default build.nice {${buildnicevalue}}
@@ -133,13 +135,32 @@ proc build_getmakejobs {args} {
 }
 
 proc build_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX build.asroot  macportsuser euid egid
     
     if {[string length [option build.target]]} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
     }
+    
+    # start gsoc08-privileges
+    if { [tbool build.asroot] } {
+	# if port is marked as needing root		
+		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+		# if started with sudo but have dropped the privileges
+			ui_debug "Can't run install on this port without elevated privileges."
+			ui_debug "Going to escalate privileges back to root."
+			setegid $egid	
+			seteuid $euid	
+			ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+		}
+		
+		if { [getuid] != 0 } {
+			return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+		}
+	}
+	# end gsoc08-privileges
+    
 }
 
 proc build_main {args} {

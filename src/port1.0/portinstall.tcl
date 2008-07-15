@@ -44,20 +44,36 @@ if {[option portarchivemode] == "yes"} {
 }
 target_prerun ${org.macports.install} install_start
 
+# define options
+options install.asroot
+
+# Set defaults
+default install.asroot yes
+
 set_ui_prefix
 
 proc install_start {args} {
-	global UI_PREFIX portname portversion portrevision variations portvariants macportsuser euid egid
+	global UI_PREFIX portname portversion portrevision variations portvariants 
+	global macportsuser euid egid install.asroot
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
 	
 	# start gsoc08-privileges
-	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
-	# if started with sudo but have dropped the privileges
-		ui_debug "Can't run install without elevated privileges."
-		ui_debug "Going to escalate privileges back to root."
-		setegid $egid	
-		seteuid $euid	
-		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+	ui_msg [tbool install.asroot]
+	
+	if { [tbool install.asroot] } {
+	# if port isn't marked as not needing root		
+		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+		# if started with sudo but have dropped the privileges
+			ui_debug "Can't run install on this port without elevated privileges."
+			ui_debug "Going to escalate privileges back to root."
+			setegid $egid	
+			seteuid $euid	
+			ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+		}
+		
+		if { [getuid] != 0 } {
+			return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+		}
 	}
 	# end gsoc08-privileges
 	

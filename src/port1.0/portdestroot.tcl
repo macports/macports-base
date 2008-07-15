@@ -42,7 +42,7 @@ target_postrun ${org.macports.destroot} destroot_finish
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
-options destroot.violate_mtree
+options destroot.violate_mtree destroot.asroot
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
@@ -51,6 +51,7 @@ options startupitem.uniquename startupitem.plist startupitem.location
 commands destroot
 
 # Set defaults
+default destroot.asroot no
 default destroot.dir {${build.dir}}
 default destroot.cmd {${build.cmd}}
 default destroot.pre_args {${destroot.target}}
@@ -87,7 +88,7 @@ namespace eval destroot {
 
 proc destroot_start {args} {
     global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean
-    global destroot::oldmask destroot.umask macportsuser euid egid
+    global destroot::oldmask destroot.umask destroot.asroot macportsuser euid egid
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
 
@@ -100,6 +101,10 @@ proc destroot_start {args} {
 		setegid $egid	
 		seteuid $euid	
 		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+	}
+	
+	if { [tbool destroot.asroot] && [getuid] != 0 } {
+		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
 	}
 	# end gsoc08-privileges
 
