@@ -40,12 +40,14 @@ target_requires ${org.macports.configure} main fetch extract checksum patch
 target_prerun ${org.macports.configure} configure_start
 
 # define options
-commands configure automake autoconf xmkmf libtool
+commands configure autoreconf automake autoconf xmkmf libtool
 # defaults
 default configure.env       ""
 default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
 default configure.dir       {${worksrcpath}}
+default autoreconf.dir      {${worksrcpath}}
+default autoreconf.pre_args {--install}
 default autoconf.dir        {${worksrcpath}}
 default automake.dir        {${worksrcpath}}
 default xmkmf.cmd           xmkmf
@@ -259,11 +261,18 @@ proc select_compiler {info args} {
 
 proc configure_main {args} {
     global [info globals]
-    global worksrcpath use_configure use_autoconf use_automake use_xmkmf
+    global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
     global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
     global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
     global os.platform os.major
+    
+    if {[tbool use_autoreconf]} {
+        # XXX depend on autoreconf
+        if {[catch {command_exec autoreconf} result]} {
+            return -code error "[format [msgcat::mc "%s failure: %s"] autoreconf $result]"
+        }
+    }
     
     if {[tbool use_automake]} {
         # XXX depend on automake
