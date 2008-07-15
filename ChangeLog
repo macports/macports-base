@@ -5,6 +5,11 @@
 
 
 Unreleased:
+    - The non-verbose output for the build phase no longer shows what target
+      was used. This makes the build phase consistent with the other phases
+      which also do not show details. If details are desired, the debug or
+      verbose switches should be used. (#15881, raimue/ryandesign in r38315)
+
     - Make missing sed extended regexp (for reinplace -E) into a runtime error.
       (#15577, afb in r37501)
 
