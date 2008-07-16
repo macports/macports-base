@@ -19,7 +19,8 @@ Unreleased:
       running (raimue)
 
     - We now have a mirror of (almost) all distfiles at distfiles.macports.org,
-      and it is automatically appended to master_sites (#15456, jmr in r37217)
+      and it is automatically appended to master_sites and patch_sites (#15456,
+      jmr in r37217, 37255)
 
     - port search looks now in name, description and long_description for the
       search pattern and prints the list sorted (#15434, raimue in r37119,
