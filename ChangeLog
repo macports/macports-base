@@ -5,6 +5,11 @@
 
 
 Unreleased:
+    - User-supplied port names are now treated in a fully case-insensitive
+      manner. This fixes a bug where giving the name with incorrect case when
+      deactivating/uninstalling would cause all the port's files to be left
+      behind. (#11759, jmr/raimue in r37349, 37621)
+    
     - The non-verbose output for the build phase no longer shows what target
       was used. This makes the build phase consistent with the other phases
       which also do not show details. If details are desired, the debug or
