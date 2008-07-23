@@ -76,6 +76,13 @@ namespace eval macports {
 # ui_channels returns a list of channels to output the message to, empty for
 #     no message.
 # if these functions are not provided, defaults are used.
+# Clients of the library may optionally provide ui_init with the following
+# prototype.
+#     proc ui_init {priority prefix channels message}
+# ui_init needs to correctly define the proc ::ui_$priority {message} or throw
+# an error.
+# if this function is not provided or throws an error, default procedures for
+# ui_$priority are defined.
 
 # ui_options accessor
 proc macports::ui_isset {val} {
@@ -118,15 +125,19 @@ proc macports::ui_init {priority message} {
             set prefix [ui_prefix_default $priority]
         }
 
-        if {$nbchans == 1} {
-            set chan [lindex $channels 0]
-            proc ::ui_$priority {str} [subst { puts $chan "$prefix\$str" }]
-        } else {
-            proc ::ui_$priority {str} [subst {
-                foreach chan \$channels {
-                    puts $chan "$prefix\$str"
-                }
-            }]
+        try {
+            ::ui_init $priority $prefix $channels $message
+        } catch * {
+            if {$nbchans == 1} {
+                set chan [lindex $channels 0]
+                proc ::ui_$priority {str} [subst { puts $chan "$prefix\$str" }]
+            } else {
+                proc ::ui_$priority {str} [subst {
+                    foreach chan \$channels {
+                        puts $chan "$prefix\$str"
+                    }
+                }]
+            }
         }
 
         # Call ui_$priority
