@@ -5,6 +5,10 @@
 
 
 Unreleased:
+    - The buildmakejobs setting now also affects ports using the scons build
+      system, so now scons-based ports can be built in parallel too. Previously
+      only automake-based ports were supported. (ryandesign in r38556)
+
     - User-supplied port names are now treated in a fully case-insensitive
       manner. This fixes a bug where giving the name with incorrect case when
       deactivating/uninstalling would cause all the port's files to be left
