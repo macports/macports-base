@@ -100,7 +100,7 @@ proc build_getmaketype {args} {
 }
 
 proc build_getnicevalue {args} {
-    if {![exists build.nice]} {
+    if {![exists build.nice] || [string match "* *" [option build.cmd]]} {
         return ""
     }
     set nice [option build.nice]
