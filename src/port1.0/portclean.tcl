@@ -143,7 +143,7 @@ proc clean_dist {args} {
 	if {$count > 0} {
 		ui_debug "$count distfile(s) removed."
 	} else {
-		ui_debug "No distfiles found to remove."
+		ui_debug "No distfiles found to remove at $distpath"
 	}
 
 	# next remove dist_subdir if only needed for this port,
@@ -254,7 +254,7 @@ proc clean_archive {args} {
 	if {$count > 0} {
 		ui_debug "$count archive(s) removed."
 	} else {
-		ui_debug "No archives found to remove."
+		ui_debug "No archives found to remove at $archivepath"
 	}
 
 	return 0
