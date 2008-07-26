@@ -1396,7 +1396,7 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
-    global altprefix macportsuser euid egid usealtworkpath env applications_dir
+    global altprefix macportsuser euid egid usealtworkpath env applications_dir portbuildpath
     
 	# start gsoc08-privileges
 
@@ -1458,6 +1458,7 @@ proc open_statefile {args} {
 		# get alternative paths
 		set newworkpath "$altprefix/[ string range $workpath 1 end ]"
 		set newworksymlink "$altprefix/[ string range $worksymlink 1 end ]"
+		set newportbuildpath "$altprefix/[ string range $portbuildpath 1 end ]"
 		
 		set sourcepath [string map {"work" ""} $worksymlink] 
 		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
@@ -1469,12 +1470,15 @@ proc open_statefile {args} {
 			ui_debug "$newsourcepath created"
 			ui_debug "Going to copy: ${sourcepath}Portfile"
 			file copy ${sourcepath}Portfile $newsourcepath
-			ui_debug "Going to copy: ${sourcepath}files"
-			file copy ${sourcepath}files $newsourcepath
+			if {[file exists ${sourcepath}files] } {
+				ui_debug "Going to copy: ${sourcepath}files"
+				file copy ${sourcepath}files $newsourcepath
+			}
 		}
 		
 		set workpath $newworkpath
 		set worksymlink $newworksymlink
+		set portbuildpath $newportbuildpath
 		
 		ui_debug "Going to use $newworkpath for statefile."
     }

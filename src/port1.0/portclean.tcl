@@ -51,24 +51,24 @@ proc clean_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
     
 	# start gsoc08-privileges
-	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+	#if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
 	# if started with sudo but have dropped the privileges
-		ui_debug "Can't guarantee a good clean without elevated privileges."
+	#	ui_debug "Can't guarantee a good clean without elevated privileges."
 		# TODO: modify so that privilege descalation is conditional on needing
 		# to clean a directory in the /opt hierarchy.
-		ui_debug "Going to escalate privileges back to root."
-		seteuid $euid	
-		setegid $egid
-		ui_debug "euid changed to: [geteuid]"
-		ui_debug "egid changed to: [getegid]"
-	}
+	#	ui_debug "Going to escalate privileges back to root."
+	#	seteuid $euid	
+	#	setegid $egid
+	#	ui_debug "euid changed to: [geteuid]"
+	#	ui_debug "egid changed to: [getegid]"
+	#}
 	# end gsoc08-privileges
 }
 
 proc clean_main {args} {
     global UI_PREFIX
 	global ports_clean_dist ports_clean_work ports_clean_archive
-	global ports_clean_all
+	global ports_clean_all usealtworkpath
 
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
 		[info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
@@ -87,8 +87,33 @@ proc clean_main {args} {
 		 ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option portname]]"
 		 clean_work
 	}
-
+	
+	# start gsoc-08 privileges
+	if {$usealtworkpath == "yes"} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option portname]]"
+		clean_altsource
+	}
+	# end gsoc-08 privileges
+	
     return 0
+}
+
+proc clean_altsource {args} {
+    global usealtworkpath worksymlink
+    
+    set sourcepath [string map {"work" ""} $worksymlink] 
+
+	if {[file isdirectory $sourcepath]} {
+		ui_debug "Removing directory: ${sourcepath}"
+		if {[catch {delete $sourcepath} result]} {
+			ui_debug "$::errorInfo"
+			ui_error "$result"
+		}
+	} else {
+		ui_debug "No alt source directory found to remove."
+	}
+
+	return 0
 }
 
 #
@@ -172,7 +197,7 @@ proc clean_work {args} {
 			ui_error "$result"
 		}
 	} else {
-		ui_debug "No work directory found to remove."
+		ui_debug "No work directory found to remove at: ${portbuildpath}"
 	}
 
 	# Clean symlink, if necessary
