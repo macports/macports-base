@@ -102,7 +102,7 @@ proc build_getmaketype {args} {
 }
 
 proc build_getnicevalue {args} {
-    if {![exists build.nice]} {
+    if {![exists build.nice] || [string match "* *" [option build.cmd]]} {
         return ""
     }
     set nice [option build.nice]
@@ -120,7 +120,7 @@ proc build_getmakejobs {args} {
     }
     ui_debug "port allows a parallel build"
 
-    if {![exists build.jobs] || ![string match "*make*" [option build.cmd]]} {
+    if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
         return ""
     }
     set jobs [option build.jobs]
@@ -137,11 +137,7 @@ proc build_getmakejobs {args} {
 proc build_start {args} {
     global UI_PREFIX build.asroot  macportsuser euid egid
     
-    if {[string length [option build.target]]} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s with target %s"] [option portname] [option build.target]]"
-    } else {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
-    }
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
     
     # start gsoc08-privileges
     if { [tbool build.asroot] } {
