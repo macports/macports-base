@@ -31,10 +31,13 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
-# Set some variables.
-set ruby.bin	${prefix}/bin/ruby
-set ruby.rdoc	${prefix}/bin/rdoc
+
+# Define these variables assuming ruby1.8 to make them accessible in
+# the portfile after port group declaration. They can be modified by
+# ruby.setup, e.g. to use another ruby than 1.8.
+set ruby.bin	        ${prefix}/bin/ruby
+set ruby.rdoc	        ${prefix}/bin/rdoc
+set ruby.gem            ${prefix}/bin/gem
 
 proc ruby.extract_config {var {default ""}} {
 	global ruby.bin
@@ -51,18 +54,39 @@ set ruby.arch		[ruby.extract_config arch ${os.platform}]
 set ruby.lib		[ruby.extract_config vendorlibdir ${prefix}/lib/ruby/vendor_ruby/${ruby.version}]
 set ruby.archlib	[ruby.extract_config vendorarchdir ${ruby.lib}/${ruby.arch}]
 
-# define these empty initially, they are set by ruby.setup arguments
 set ruby.module		""
 set ruby.filename	""
 set ruby.project	""
 set ruby.docs		{}
 set ruby.srcdir		""
 
-# ruby group setup procedure
-proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
-	global destroot prefix worksrcpath
-	global ruby.bin ruby.lib
-	global ruby.module ruby.project ruby.filename ruby.docs ruby.srcdir
+# ruby group setup procedure; optional for ruby 1.8 if you want only
+# basic variables, like ruby.lib and ruby.archlib.
+proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"} {implementation "ruby"}} {
+	global destroot prefix worksrcpath os.platform
+	global ruby.bin ruby.rdoc ruby.gem
+	global ruby.version 
+	global ruby.lib ruby.archlib
+	global ruby.module ruby.filename ruby.project ruby.docs ruby.srcdir
+
+	if {${implementation} eq "ruby19"} {
+		set ruby.bin	${prefix}/bin/ruby1.9
+		set ruby.rdoc	${prefix}/bin/rdoc1.9
+		set ruby.gem    ${prefix}/bin/gem1.9
+		set ruby.port_prefix rb19
+	} elseif {${implementation} eq "ruby"} {
+		# ruby.bin, ruby.rdoc, and ruby.gem set to 1.8 by default
+		set ruby.port_prefix rb
+	} else {
+		ui_error "ruby.setup: unknown implementation '${implementation}' specified (ruby, ruby19 possible)"
+		return -code error "ruby.setup failed"
+	}
+
+	# re-define variables to pick up possible implemantation change
+	set ruby.version	[ruby.extract_config ruby_version]
+	set ruby.arch		[ruby.extract_config arch ${os.platform}]
+	set ruby.lib		[ruby.extract_config vendorlibdir ${prefix}/lib/ruby/vendor_ruby/${ruby.version}]
+	set ruby.archlib	[ruby.extract_config vendorarchdir ${ruby.lib}/${ruby.arch}]
 
 	# define ruby global names and lists
 	# check if module is a list or string
@@ -80,7 +104,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 	}
 	set ruby.docs	${docs}
 
-	name			rb-[string tolower ${ruby.module}]
+	name			${ruby.port_prefix}-[string tolower ${ruby.module}]
 	version			${vers}
 	categories		ruby
 
@@ -131,7 +155,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 	distname		${ruby.filename}-${vers}
 	dist_subdir		ruby
 
-	depends_lib		path:${ruby.bin}:ruby
+	depends_lib		port:${implementation}
 
 	post-extract {
 		# Create the work directory for gem-based ruby ports.
@@ -275,7 +299,7 @@ proc ruby.setup {module vers {type "install.rb"} {docs {}} {source "custom"}} {
 			}
 			
 			destroot {
-			  system "cd ${worksrcpath} && ${prefix}/bin/gem install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distpath}/${distname}"
+			  system "cd ${worksrcpath} && ${ruby.gem} install --local --force --install-dir ${destroot}${prefix}/lib/ruby/gems/${ruby.version} ${distpath}/${distname}"
 			
 				set binDir ${destroot}${prefix}/lib/ruby/gems/${ruby.version}/bin
 				if {[file isdirectory $binDir]} {
