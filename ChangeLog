@@ -11,6 +11,8 @@ Unreleased:
       possibly support still other rubys in the future. (#15912, febeling 
       in 38683)
 	
+    - Don't use build.nice for complex build.cmd commands (#16091)
+
     - The buildmakejobs setting now also affects ports using the scons build
       system, so now scons-based ports can be built in parallel too. Previously
       only automake-based ports were supported. (ryandesign in r38556)
