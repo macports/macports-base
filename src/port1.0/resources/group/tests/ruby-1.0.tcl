@@ -63,6 +63,7 @@ namespace eval tests {
 
 		ruby.setup {test_module tmod} 9.9 setup.rb {README INSTALL}
 
+		if {![file exists ${ruby.bin}]} { return }
 		if {"1.8" ne ${ruby.version}} { error "ruby.version failed: ${ruby.version}" }
 		if {"test_module" ne ${ruby.module}} { error "ruby.module failed" }
 		if {"tmod" ne ${ruby.project}} { error "ruby.project failed" }
@@ -100,6 +101,7 @@ namespace eval tests {
 		ruby.setup {test_module tmod} 9.9 setup.rb {README INSTALL} custom ruby19
 
 		# changed prefix
+		if {![file exists ${ruby.bin}]} { return }
 		if {![string equal "1.9.0" ${ruby.version}]} { error "ruby.version failed: '${ruby.version}'" }
 		if {![string equal "rb19-test_module" ${name.found}]} { error "drived name failed: ${name.found}" }
 
@@ -129,9 +131,9 @@ namespace eval tests {
 		if {"${prefix}/bin/rdoc" ne ${ruby.rdoc}} { error "variable ruby.rdoc missing" }
 		if {"${prefix}/bin/gem" ne ${ruby.gem}} { error "variable ruby.gem missing" }
 		if {"1.8" ne ${ruby.version}} { error "variable ruby.version missing" }
-		if {"i686-darwin9" ne ${ruby.arch}} { error "variable ruby.arch missing" }
+		if {"" eq ${ruby.arch}} { error "variable ruby.arch missing" }
 		if {"${prefix}/lib/ruby/vendor_ruby/1.8" ne ${ruby.lib}} { error "variable ruby.lib missing" }
-		if {"${prefix}/lib/ruby/vendor_ruby/1.8/i686-darwin9" ne${ruby.archlib}} { error "variable ruby.archlib missing" }
+		if {"" eq ${ruby.archlib}} { error "variable ruby.archlib missing" }
 	}
 	
 	# run all tests
