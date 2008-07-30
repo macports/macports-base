@@ -12289,6 +12289,8 @@ mpprefix=$prefix
 test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
 if false && test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
 	PATHCONF=pathconf
+	ac_config_files="$ac_config_files src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths"
+
 	{ echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6; }
 else
@@ -12377,7 +12379,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
 
 
 cat >confcache <<\_ACEOF
@@ -12935,6 +12937,9 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/programs/daemondo/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
+    "src/pathconf/Makefile") CONFIG_FILES="$CONFIG_FILES src/pathconf/Makefile" ;;
+    "src/pathconf/paths") CONFIG_FILES="$CONFIG_FILES src/pathconf/paths" ;;
+    "src/pathconf/manpaths") CONFIG_FILES="$CONFIG_FILES src/pathconf/manpaths" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;
@@ -12946,9 +12951,6 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
     "src/tclobjc1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tclobjc1.0/Makefile" ;;
-    "src/pathconf/Makefile") CONFIG_FILES="$CONFIG_FILES src/pathconf/Makefile" ;;
-    "src/pathconf/paths") CONFIG_FILES="$CONFIG_FILES src/pathconf/paths" ;;
-    "src/pathconf/manpaths") CONFIG_FILES="$CONFIG_FILES src/pathconf/manpaths" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;

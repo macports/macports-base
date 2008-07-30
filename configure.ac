@@ -336,6 +336,7 @@ mpprefix=$prefix
 test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
 if false && test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
 	PATHCONF=pathconf
+	AC_CONFIG_FILES([src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths])
 	AC_MSG_RESULT([yes])
 else
 	AC_MSG_RESULT([no])
@@ -405,9 +406,6 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/tclobjc1.0/Makefile
-	src/pathconf/Makefile
-	src/pathconf/paths
-	src/pathconf/manpaths
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile

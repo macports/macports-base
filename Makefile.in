@@ -50,6 +50,7 @@ distclean::
 	rm -rf autom4te.cache ${DISTDIR}
 	rm -f Makefile Mk/macports.autoconf.mk portmgr/fedora/macports.spec portmgr/freebsd/Makefile
 	rm -f Doxyfile
+	rm -f setupenv.bash
 
 _gettag:
 	cd ${DISTDIR}; svn co ${SVNURL}/tags/${SVNTAG} ${PKGNAME}-svn
