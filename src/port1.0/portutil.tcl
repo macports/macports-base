@@ -1397,6 +1397,7 @@ proc eval_targets {target} {
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     global altprefix macportsuser euid egid usealtworkpath env applications_dir portbuildpath distpath
+    global portname
     
 	# start gsoc08-privileges
 
@@ -1435,7 +1436,7 @@ proc open_statefile {args} {
     	set username [uid_to_name $userid]
 
     	if { $userid !=0 } {
-    		ui_msg "Insufficient privileges to perform action for all users."
+    		ui_msg "Insufficient privileges to perform action on port '$portname' for all users."
     		ui_msg "Action will be performed for current user (${username}) only."
     		ui_msg "Install actions should be executed using sudo."
 		}
@@ -2284,5 +2285,40 @@ proc chown {path user} {
 		}
     }
     
+}
+
+proc chownAsRoot {path} {
+    global euid macportsuser
+
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+	# if started with sudo but have dropped the privileges
+		seteuid $euid	
+		ui_debug "euid changed to: [geteuid]"
+		chown  ${path} ${macportsuser}
+		ui_debug "chowned $path to $macportsuser"
+		seteuid [name_to_uid "$macportsuser"]
+		ui_debug "euid changed to: [geteuid]"
+	} elseif { [getuid] == 0 } {
+	# if started with sudo but have elevated back to root already
+		chown  ${path} ${macportsuser}
+	} else {
+		ui_debug "not need to chown $path. uid=[getuid]. euid=[geteuid]."
+	}
+}
+
+proc elevateToRoot {action} {
+	global euid egid macportsuser
+	
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+	# if started with sudo but have dropped the privileges
+		ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
+		setegid $egid	
+		seteuid $euid	
+		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+	}
+	
+	if { [getuid] != 0 } {
+		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+	}
 }
 

@@ -92,8 +92,7 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global UI_PREFIX euid egid worksrcpath macportsuser
-    global filespath    
+    global UI_PREFIX filespath worksrcpath
     
     if {![exists distfiles] && ![exists extract.only]} {
 	# nothing to do
@@ -112,18 +111,7 @@ proc extract_main {args} {
 	}
 	
 	# start gsoc08-privileges
-	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
-	# if started with sudo but have dropped the privileges
-		seteuid $euid	
-		ui_debug "euid changed to: [geteuid]"
-		chown  ${worksrcpath} ${macportsuser}
-		ui_debug "chowned $worksrcpath to $macportsuser"
-		seteuid [name_to_uid "$macportsuser"]
-		ui_debug "euid changed to: [geteuid]"
-	} else {
-		ui_debug "no need to chown $worksrcpath. uid=[getuid]. euid=[geteuid]."
-	}
-		
+	chownAsRoot $worksrcpath
 	# end gsoc08-privileges
 	
     }

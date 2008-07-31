@@ -348,7 +348,11 @@ proc foreachport {portlist block} {
             array set options $portspec(options)
         }
         uplevel 1 $block
-        cd $savedir
+        if {[file exists $savedir]} {
+        	cd $savedir
+        } else {
+        	cd ~
+        }
     }
 }
 
@@ -2456,6 +2460,9 @@ proc action_target { action portlist opts } {
             ui_debug "$errorInfo"
             break_softcontinue "Unable to open port: $result" 1 status
         }
+        
+        #ui_debug "worker ($workername) $target $portname"	
+        
         if {[catch {set result [mportexec $workername $target]} result]} {
             global errorInfo
             mportclose $workername
@@ -2465,10 +2472,22 @@ proc action_target { action portlist opts } {
 
         mportclose $workername
         
+        
+        # start gsoc08-privileges
+		if { [geteuid] != 0 && $result == 1 } {
+		# TODO: find a way to detect definitely that the error is privileges related.
+			ui_warn "Attempting to re-run with 'sudo port'. Command: 'sudo port $target $portname'."
+			set result 0
+			ui_msg [exec sudo port $target $portname]
+			ui_debug "'sudo port $target $portname' has completed."
+		}
+		# end gsoc08-privileges
+        
         # Process any error that wasn't thrown and handled already
         if {$result} {
             break_softcontinue "Status $result encountered during processing." 1 status
         }
+        
     }
     
     return $status

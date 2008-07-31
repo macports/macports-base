@@ -312,6 +312,10 @@ proc destroot_finish {args} {
 
     # Restore umask
     umask $oldmask
+    
+    # start gsoc08-privileges
+	chownAsRoot $destroot
+	# end gsoc08-privileges
 
     return 0
 }
