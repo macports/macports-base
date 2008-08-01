@@ -1,8 +1,9 @@
 #!/bin/sh 
+# This test needs macports to be installed to work
 # start as tcl \
 exec tclsh "$0" "$@"
 
-set prefix                    /opt/local
+set prefix                    [file dirname [file dirname [exec which port]]]
 set os.platform               i686-darwin
 
 # mock the commands the ruby group uses
@@ -48,6 +49,7 @@ set testdir [file dirname ${argv0}]
 namespace eval tests {
 	# Backwards compatible behaviour, assumes ruby1.8
 	proc test_rubysetup_ruby18_default {} {
+		global prefix
 		global ruby.bin
 		global ruby.version
 		global ruby.module
@@ -74,8 +76,8 @@ namespace eval tests {
 		if {"9.9" ne ${version.found}} { error "port version set failed" }
 		if {"port:ruby" ne ${depends_lib.found}} { error "depends_lib failed: ${depends_lib.found}" }
 
-		if {"/opt/local/lib/ruby/vendor_ruby/1.8" ne ${ruby.lib}} { error "ruby.lib failed: ${ruby.lib}" }
-		if {!(0 == [string first "/opt/local/lib/ruby/vendor_ruby/1.8/i686-darwin" ${ruby.archlib}])} { error "ruby.archlib failed: ${ruby.archlib}" }
+		if {"${prefix}/lib/ruby/vendor_ruby/1.8" ne ${ruby.lib}} { error "ruby.lib failed: ${ruby.lib}" }
+		if {!(0 == [string first "${prefix}/lib/ruby/vendor_ruby/1.8/i686-darwin" ${ruby.archlib}])} { error "ruby.archlib failed: ${ruby.archlib}" }
 	}
 
 	proc test_rubysetup_type_gem {} {
@@ -85,6 +87,7 @@ namespace eval tests {
 	}
 
 	proc test_rubysetup_ruby19 {} {
+		global prefix
 		global ruby.version
 		global ruby.module
 		global ruby.project
@@ -113,8 +116,8 @@ namespace eval tests {
 		if {![string equal "9.9" ${version.found}]} { error "port version set failed" }
 		if {![string equal "port:ruby19" ${depends_lib.found}]} { error "depends_lib failed: ${depends_lib.found}" }
 
-		if {![string equal "/opt/local/lib/ruby/vendor_ruby/1.9.0" ${ruby.lib}]} { error "ruby.lib failed: ${ruby.lib}" }
-		if {!(0 == [string first "/opt/local/lib/ruby/vendor_ruby/1.9.0/i686-darwin" ${ruby.archlib}])} { error "ruby.archlib failed: ${ruby.archlib}" }
+		if {![string equal "${prefix}/lib/ruby/vendor_ruby/1.9.0" ${ruby.lib}]} { error "ruby.lib failed: ${ruby.lib}" }
+		if {!(0 == [string first "${prefix}/lib/ruby/vendor_ruby/1.9.0/i686-darwin" ${ruby.archlib}])} { error "ruby.archlib failed: ${ruby.archlib}" }
 	}
 
 	proc test_setup_implementation_specifics {} {
