@@ -1389,6 +1389,13 @@ proc eval_targets {target} {
         set result 0
     }
     
+    # start gsoc08-privileges
+    global errorisprivileges
+    if { $result == 1 && $errorisprivileges == "yes" } {
+    	set result 2
+    }
+    # end gsoc08-privileges
+    
     return $result
 }
 
@@ -2287,6 +2294,10 @@ proc chown {path user} {
     
 }
 
+##
+# Recusively chown the given file or directory to the specified user, using root privileges.
+#
+# @param path the file/directory to be chowned
 proc chownAsRoot {path} {
     global euid macportsuser
 
@@ -2302,12 +2313,16 @@ proc chownAsRoot {path} {
 	# if started with sudo but have elevated back to root already
 		chown  ${path} ${macportsuser}
 	} else {
-		ui_debug "not need to chown $path. uid=[getuid]. euid=[geteuid]."
+		ui_debug "no need to chown $path. uid=[getuid]. euid=[geteuid]."
 	}
 }
 
+##
+# Elevate privileges back to root.
+#
+# @param action the action for which privileges are being elevated
 proc elevateToRoot {action} {
-	global euid egid macportsuser
+	global euid egid macportsuser errorisprivileges
 	
 	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
 	# if started with sudo but have dropped the privileges
@@ -2318,6 +2333,7 @@ proc elevateToRoot {action} {
 	}
 	
 	if { [getuid] != 0 } {
+		set errorisprivileges yes
 		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
 	}
 }

@@ -49,20 +49,6 @@ proc clean_start {args} {
     global UI_PREFIX macportsuser euid egid
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
-    
-	# start gsoc08-privileges
-	#if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
-	# if started with sudo but have dropped the privileges
-	#	ui_debug "Can't guarantee a good clean without elevated privileges."
-		# TODO: modify so that privilege descalation is conditional on needing
-		# to clean a directory in the /opt hierarchy.
-	#	ui_debug "Going to escalate privileges back to root."
-	#	seteuid $euid	
-	#	setegid $egid
-	#	ui_debug "euid changed to: [geteuid]"
-	#	ui_debug "egid changed to: [getegid]"
-	#}
-	# end gsoc08-privileges
 }
 
 proc clean_main {args} {

@@ -50,7 +50,7 @@ default patch.cmd patch
 default patch.pre_args -p0
 
 proc patch_main {args} {
-    global UI_PREFIX patch.asroot  macportsuser euid egid
+    global UI_PREFIX
     
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles]} {
@@ -61,19 +61,8 @@ proc patch_main {args} {
 	
 	# start gsoc08-privileges
     if { [tbool patch.asroot] } {
-	# if port is marked as needing root		
-		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
-		# if started with sudo but have dropped the privileges
-			ui_debug "Can't run install on this port without elevated privileges."
-			ui_debug "Going to escalate privileges back to root."
-			setegid $egid	
-			seteuid $euid	
-			ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-		}
-		
-		if { [getuid] != 0 } {
-			return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
-		}
+	# if port is marked as needing root	
+		elevateToRoot "patch"
 	}
 	# end gsoc08-privileges
 

@@ -2415,7 +2415,7 @@ proc action_sync { action portlist opts } {
 
 
 proc action_target { action portlist opts } {
-    global global_variations
+    global global_variations 
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -2462,7 +2462,7 @@ proc action_target { action portlist opts } {
         }
         
         #ui_debug "worker ($workername) $target $portname"	
-        
+	        
         if {[catch {set result [mportexec $workername $target]} result]} {
             global errorInfo
             mportclose $workername
@@ -2472,11 +2472,10 @@ proc action_target { action portlist opts } {
 
         mportclose $workername
         
-        
         # start gsoc08-privileges
-		if { [geteuid] != 0 && $result == 1 } {
-		# TODO: find a way to detect definitely that the error is privileges related.
-			ui_warn "Attempting to re-run with 'sudo port'. Command: 'sudo port $target $portname'."
+		if { [geteuid] != 0 && $result == 2} {
+			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
+			ui_warn "Attempting re-run with 'sudo port'. Executing: 'sudo port $target $portname'."
 			set result 0
 			ui_msg [exec sudo port $target $portname]
 			ui_debug "'sudo port $target $portname' has completed."

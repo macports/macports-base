@@ -47,7 +47,7 @@ options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os
 options universal_variant os.universal_supported
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage
+options_export name version revision epoch categories maintainers platforms description long_description homepage 
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants

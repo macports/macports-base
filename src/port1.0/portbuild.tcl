@@ -135,25 +135,14 @@ proc build_getmakejobs {args} {
 }
 
 proc build_start {args} {
-    global UI_PREFIX build.asroot  macportsuser euid egid
+    global UI_PREFIX build.asroot
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
     
     # start gsoc08-privileges
     if { [tbool build.asroot] } {
-	# if port is marked as needing root		
-		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
-		# if started with sudo but have dropped the privileges
-			ui_debug "Can't run install on this port without elevated privileges."
-			ui_debug "Going to escalate privileges back to root."
-			setegid $egid	
-			seteuid $euid	
-			ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-		}
-		
-		if { [getuid] != 0 } {
-			return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
-		}
+	# if port is marked as needing root	
+		elevateToRoot "build"
 	}
 	# end gsoc08-privileges
     
