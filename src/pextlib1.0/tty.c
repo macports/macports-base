@@ -47,16 +47,16 @@
 
 int IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *tcl_result;
+        Tcl_Obj *tcl_result;
         Tcl_Channel chan;
         int dir;
         int fd;
-	int rval;
+        int rval;
 
-	if (objc != 2) {
+        if (objc != 2) {
             Tcl_WrongNumArgs(interp, 1, objv, "channel");
             return TCL_ERROR;
-	}
+        }
 
         chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
         if (chan == NULL) {
@@ -72,25 +72,25 @@ int IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
         rval = isatty(fd);
 
-	tcl_result = Tcl_NewIntObj(rval);
-	Tcl_SetObjResult(interp, tcl_result);
+        tcl_result = Tcl_NewIntObj(rval);
+        Tcl_SetObjResult(interp, tcl_result);
 
-	return TCL_OK;
+        return TCL_OK;
 }
 
 int TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	Tcl_Obj *tcl_result;
+        Tcl_Obj *tcl_result;
         Tcl_Channel chan;
         int dir;
-	int fd;
-	Tcl_Obj *robjv[2];
+        int fd;
+        Tcl_Obj *robjv[2];
         struct winsize ws = {0, 0, 0, 0};
 
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "channel");
-		return TCL_ERROR;
-	}
+        if (objc != 2) {
+                Tcl_WrongNumArgs(interp, 1, objv, "channel");
+                return TCL_ERROR;
+        }
 
         chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
         if (chan == NULL) {
@@ -117,8 +117,8 @@ int TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
         robjv[0] = Tcl_NewIntObj(ws.ws_row);
         robjv[1] = Tcl_NewIntObj(ws.ws_col);
 
-	tcl_result = Tcl_NewListObj(2, robjv);
-	Tcl_SetObjResult(interp, tcl_result);
+        tcl_result = Tcl_NewListObj(2, robjv);
+        Tcl_SetObjResult(interp, tcl_result);
 
-	return TCL_OK;
+        return TCL_OK;
 }
