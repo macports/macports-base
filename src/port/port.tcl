@@ -41,6 +41,7 @@ exec @TCLSH@ "$0" "$@"
 catch {source \
     [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
+package require Pextlib 1.0
 
 
 # Standard procedures
@@ -400,14 +401,20 @@ proc regex_pat_sanitize { s } {
 
 ##
 # Makes sure we get the current terminal size
-proc set_term_size {} {
+proc term_init_size {} {
     global env
 
     if {![info exists env(COLUMNS)] || ![info exists env(LINES)]} {
-        if {![catch {exec stty size} err]} {
-            regexp {(\d+) (\d+)} $err -> rows cols
-            set env(COLUMNS) $cols
-            set env(LINES) $rows
+        if {[isatty stdout]} {
+            set size [term_get_size stdout]
+
+            if {![info exists env(LINES)]} {
+                set env(LINES) [lindex $size 0]
+            }
+
+            if {![info exists env(COLUMNS)]} {
+                set env(COLUMNS) [lindex $size 1]
+            }
         }
     }
 }
@@ -3143,7 +3150,7 @@ array set private_options {}
 
 # Make sure we get the size of the terminal
 # We do this here to save it in the boot_env, in case we determined it manually
-set_term_size
+term_init_size
 
 # Save off a copy of the environment before mportinit monkeys with it
 global env boot_env
