@@ -100,6 +100,7 @@ default mirror_sites.listpath {"${portresourcepath}/fetch/"}
 
 # Option-executed procedures
 option_proc use_bzip2 fix_extract_suffix
+option_proc use_lzma fix_extract_suffix
 option_proc use_zip fix_extract_suffix
 option_proc use_dmg fix_extract_suffix
 
@@ -109,6 +110,9 @@ proc fix_extract_suffix {option action args} {
         switch $option {
             use_bzip2 {
                 set extract.suffix .tar.bz2
+            }
+            use_lzma {
+                set extract.suffix .tar.lzma
             }
             use_zip {
                 set extract.suffix .zip
