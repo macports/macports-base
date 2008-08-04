@@ -258,21 +258,25 @@ set portfetch::mirror_sites::sites(ruby) {
 
 set portfetch::mirror_sites::sites(sourceforge) {
     http://downloads.sourceforge.net/
-    http://internode.dl.sourceforge.net/
     http://easynews.dl.sourceforge.net/
-    http://ufpr.dl.sourceforge.net/
-    http://kent.dl.sourceforge.net/
-    http://jaist.dl.sourceforge.net/
-    http://optusnet.dl.sourceforge.net/
-    http://nchc.dl.sourceforge.net/
-    http://switch.dl.sourceforge.net/
-    http://puzzle.dl.sourceforge.net/
-    http://garr.dl.sourceforge.net/
-    http://surfnet.dl.sourceforge.net/
     http://internap.dl.sourceforge.net/
     http://superb-east.dl.sourceforge.net/
     http://superb-west.dl.sourceforge.net/
+    http://voxel.dl.sourceforge.net/
+    http://ufpr.dl.sourceforge.net/
+    http://dfn.dl.sourceforge.net/
+    http://garr.dl.sourceforge.net/
+    http://heanet.dl.sourceforge.net/
+    http://kent.dl.sourceforge.net/
+    http://mesh.dl.sourceforge.net/
+    http://puzzle.dl.sourceforge.net/
+    http://surfnet.dl.sourceforge.net/
+    http://switch.dl.sourceforge.net/
+    http://nchc.dl.sourceforge.net/
+    http://jaist.dl.sourceforge.net/
+    http://internode.dl.sourceforge.net/
     http://transact.dl.sourceforge.net/
+    http://optusnet.dl.sourceforge.net/
 }
 
 set portfetch::mirror_sites::sites(sourceforge_jp) {
