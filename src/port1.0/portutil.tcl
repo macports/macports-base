@@ -1359,8 +1359,9 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd portname
+    global targets target_state_fd portname errorisprivileges
     set dlist $targets
+    set errorisprivileges "no"
     
     # Select the subset of targets under $target
     if {$target != ""} {
@@ -1390,7 +1391,6 @@ proc eval_targets {target} {
     }
     
     # start gsoc08-privileges
-    global errorisprivileges
     if { $result == 1 && $errorisprivileges == "yes" } {
     	set result 2
     }
