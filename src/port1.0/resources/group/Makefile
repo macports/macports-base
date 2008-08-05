@@ -12,6 +12,7 @@ clean:
 distclean:
 
 test:
+	${TCLSH} tests/ruby-1.0.tcl
 
 install:
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}

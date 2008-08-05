@@ -58,7 +58,7 @@ default extract.mkdir no
 set_ui_prefix
 
 proc extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_zip use_dmg workpath
+    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_lzma use_zip use_dmg workpath
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
@@ -70,6 +70,8 @@ proc extract_init {args} {
 
     if {[tbool use_bzip2]} {
 	option extract.cmd [binaryInPath "bzip2"]
+    } elseif {[tbool use_lzma]} {
+	option extract.cmd [binaryInPath "lzma"]
     } elseif {[tbool use_zip]} {
 	option extract.cmd [binaryInPath "unzip"]
 	option extract.pre_args -q

@@ -114,6 +114,7 @@
 #include "readline.h"
 #include "uid.h"
 #include "tracelib.h"
+#include "tty.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1214,6 +1215,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "gid_to_name", gid_to_nameCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "tracelib", TracelibCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "isatty", IsattyCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "term_get_size", TermGetSizeCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
