@@ -2475,7 +2475,7 @@ proc action_target { action portlist opts } {
         # start gsoc08-privileges
 		if { [geteuid] != 0 && $result == 2} {
 			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
-			ui_warn "Attempting re-run with 'sudo port'. Executing: 'sudo port $target $portname'."
+			ui_warn "Attempting port action with 'sudo port': 'sudo port $target $portname'."
 			set result 0
 			ui_msg [exec sudo port $target $portname]
 			ui_debug "'sudo port $target $portname' has completed."

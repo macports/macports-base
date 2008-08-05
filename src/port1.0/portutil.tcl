@@ -1110,7 +1110,7 @@ proc unobscure_maintainers { list } {
 ########### Internal Dependency Manipulation Procedures ###########
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo errorisprivileges
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1309,7 +1309,11 @@ proc target_run {ditem} {
             write_statefile target $name $target_state_fd
             }
         } else {
-            ui_error "Target $name returned: $errstr"
+        	if {$errorisprivileges != "yes"} {
+            	ui_error "Target $name returned: $errstr"
+            } else {
+            	ui_msg "Target $name returned: $errstr"
+            }
             set result 1
         }
     
@@ -1472,8 +1476,11 @@ proc open_statefile {args} {
 		set sourcepath [string map {"work" ""} $worksymlink] 
 		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
 
-		# copy Portfile (and files) if not there already
-		# note to self: should this be done always in case existing Portfile is out of date?
+		# copy Portfile (and patch files) if not there already
+		# note to maintainers/devs: the original portfile in /opt is ALWAYS the one that will be 
+		#	 read by macports. The copying of the portfile is done to preserve the symlink provided
+		#	 historically by macports from the portfile directory to the work directory.
+		#	 It is NOT read by MacPorts.
 		if {![file exists ${newsourcepath}Portfile] } {
 			file mkdir $newsourcepath
 			ui_debug "$newsourcepath created"
@@ -2334,7 +2341,7 @@ proc elevateToRoot {action} {
 	
 	if { [getuid] != 0 } {
 		set errorisprivileges yes
-		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+		return -code error "port requires root privileges for this action and needs you to type your password for sudo.";
 	}
 }
 
