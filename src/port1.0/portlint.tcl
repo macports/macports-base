@@ -143,11 +143,6 @@ proc lint_start {args} {
 
 proc lint_main {args} {
 	global UI_PREFIX portname portpath portresourcepath
-	global ports_lint_strict
-	if {[info exists ports_lint_strict] && $ports_lint_strict == "yes"} {
-		ui_info "$UI_PREFIX strict mode enabled"
-	}
-	
 	set portfile ${portpath}/Portfile
 	set portdirs [split ${portpath} /]
 	set last [llength $portdirs]

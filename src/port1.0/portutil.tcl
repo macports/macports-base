@@ -718,7 +718,6 @@ proc ldelete {list value} {
 # Provides "sed in place" functionality
 proc reinplace {args}  {
     set extended 0
-    set quiet 0
     while 1 {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
@@ -726,9 +725,6 @@ proc reinplace {args}  {
             switch [string range $arg 1 end] {
                 E {
                     set extended 1
-                }
-                q {
-                    set quiet 1
                 }
                 - {
                     break
@@ -742,7 +738,7 @@ proc reinplace {args}  {
         }
     }
     if {[llength $args] < 2} {
-        error "reinplace ?-q? ?-E? pattern file ..."
+        error "reinplace ?-E? pattern file ..."
     }
     set pattern [lindex $args 0]
     set files [lrange $args 1 end]
@@ -779,14 +775,6 @@ proc reinplace {args}  {
         }
     
         close $tmpfd
-    
-        if {![catch {exec cmp -s $file $tmpfile}]} {
-            if {!$quiet} {
-                ui_warn "[format [msgcat::mc "reinplace %1\$s didn't change anything in %2\$s"] $pattern $file]"
-            } else {
-                ui_info "[format "reinplace %1\$s didn't change anything in %2\$s" $pattern $file]"
-            }
-        }
     
         set attributes [file attributes $file]
         # We need to overwrite this file
