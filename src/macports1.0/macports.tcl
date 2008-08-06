@@ -697,6 +697,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     } else {
         return -code error "Library directory '$libpath' must exist"
     }
+
+    # unset environment an extra time, to work around bugs in Leopard Tcl
+    foreach envkey [array names env] {
+        if {[lsearch $keepenvkeys $envkey] == -1} {
+            unsetenv $envkey
+        }
+    }
 }
 
 proc macports::worker_init {workername portpath portbuildpath options variations} {
