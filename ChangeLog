@@ -5,8 +5,6 @@
 
 
 Unreleased:
-    - Use unsetenv(3) needed in two more places (#16010 and #16233)
-
     - Ruby port group now accepts a new (optional) last parameter for the
       ruby.setup command, "implementation". It is "ruby" by default, and 
       can be set to "ruby19". It names the ruby-implementing port, and can
@@ -74,7 +72,8 @@ Unreleased:
     - Declaring a dependency on a nonexistent port now always causes an error
       (#10768, jmr in r36648)
 
-    - Explicitly use unsetenv(3) on all environment variables (#13930)
+    - Explicitly use unsetenv(3) on all environment variables (#13930, #16010,
+      #16233)
 
     - Make the included tclthread compile on Leopard if configured (#13495)
 
