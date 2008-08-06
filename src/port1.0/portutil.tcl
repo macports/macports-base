@@ -1407,37 +1407,13 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
-    global altprefix macportsuser euid egid usealtworkpath env applications_dir portbuildpath distpath
+    global altprefix usealtworkpath env applications_dir portbuildpath distpath
     global portname
     
 	# start gsoc08-privileges
 
 	# descalate privileges - only ran if macports stated with sudo
-	if { [geteuid] == 0 } {
-		if { [catch {
-				set euid [geteuid]
-				set egid [getegid]
-				ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-	
-				#seteuid [name_to_uid [file attributes $workpath -owner]]
-				#setegid [name_to_gid [file attributes $workpath -group]]
-	
-				setegid [name_to_gid "$macportsuser"]
-				seteuid [name_to_uid "$macportsuser"]
-				ui_debug "egid changed to: [getegid]" 
-				ui_debug "euid changed to: [geteuid]"
-				
-				if {![file writable $workpath]} {
-					ui_debug "Privileges successfully descalated. Unable to write to workpath."
-				}
-			}]
-		} {
-			ui_debug "$::errorInfo"
-			ui_error "Failed to descalate privileges."
-		}
-	} else {
-		ui_debug "Privilege desclation not attempted as not running as root."
-	}
+	dropPrivileges
     
     # if unable to write to workpath, implies running without either root privileges 
     # or a shared directory owned by the group so use ~/.macports
@@ -1447,9 +1423,8 @@ proc open_statefile {args} {
     	set username [uid_to_name $userid]
 
     	if { $userid !=0 } {
-    		ui_msg "Insufficient privileges to perform action on port '$portname' for all users."
-    		ui_msg "Action will be performed for current user (${username}) only."
-    		ui_msg "Install actions should be executed using sudo."
+    		ui_msg "MacPorts running without privileges.\
+					You may be prompted for your sudo password in order to complete certain actions (eg install)."
 		}
     	
     	# set global variable indicating to other functions to use ~/.macports as well
@@ -2342,6 +2317,38 @@ proc elevateToRoot {action} {
 	if { [getuid] != 0 } {
 		set errorisprivileges yes
 		return -code error "port requires root privileges for this action and needs you to type your password for sudo.";
+	}
+}
+
+##
+# Descalate privileges from root to those of $macportsuser.
+#
+proc dropPrivileges {} {
+	global euid egid macportsuser workpath
+	if { [geteuid] == 0 } {
+		if { [catch {
+				set euid [geteuid]
+				set egid [getegid]
+				ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+	
+				#seteuid [name_to_uid [file attributes $workpath -owner]]
+				#setegid [name_to_gid [file attributes $workpath -group]]
+	
+				setegid [name_to_gid "$macportsuser"]
+				seteuid [name_to_uid "$macportsuser"]
+				ui_debug "egid changed to: [getegid]" 
+				ui_debug "euid changed to: [geteuid]"
+				
+				if {![file writable $workpath]} {
+					ui_debug "Privileges successfully descalated. Unable to write to default workpath."
+				}
+			}]
+		} {
+			ui_debug "$::errorInfo"
+			ui_error "Failed to descalate privileges."
+		}
+	} else {
+		ui_debug "Privilege desclation not attempted as not running as root."
 	}
 }
 
