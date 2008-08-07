@@ -779,18 +779,7 @@ proc reinplace {args}  {
         close $tmpfd
     
 		# start gsoc08-privileges
-		if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
-		# if started with sudo but have dropped the privileges
-			seteuid $euid	
-			ui_debug "euid changed to: [geteuid]"
-			chown $file ${macportsuser}
-			ui_debug "chowned $file to $macportsuser"
-			seteuid [name_to_uid "$macportsuser"]
-			ui_debug "euid changed to: [geteuid]"
-		} else {
-			ui_debug "no need to chown $file. uid=[getuid]. euid=[geteuid]."
-		}
-			
+		chownAsRoot $file	
 		# end gsoc08-privileges
     
         set attributes [file attributes $file]
@@ -2277,7 +2266,7 @@ proc chown {path user} {
 }
 
 ##
-# Recusively chown the given file or directory to the specified user, using root privileges.
+# Recusively chown the given file or directory to $macportsuser, using root privileges.
 #
 # @param path the file/directory to be chowned
 proc chownAsRoot {path} {
