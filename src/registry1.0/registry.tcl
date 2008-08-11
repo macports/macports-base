@@ -370,6 +370,11 @@ proc unregister_dep {dep type port} {
 	return [${macports::registry.format}::unregister_dep $dep $type $port]
 }
 
+proc clean_dep_map {args} {
+    global macports::registry.format
+    return [${macports::registry.format}::clean_dep_map $args]
+}
+
 proc write_dep_map {args} {
 	global macports::registry.format
 	return [${macports::registry.format}::write_dep_map $args]

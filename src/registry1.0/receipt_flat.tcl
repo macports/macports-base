@@ -763,6 +763,28 @@ proc unregister_dep {dep type port} {
 	set dep_map $new_map
 }
 
+# remove duplicate entries from the dep_map
+# (could be put there by older versions of MacPorts)
+proc clean_dep_map {args} {
+    variable dep_map
+    set new_map [list]
+    set oldlen [llength $dep_map]
+    ui_debug "Current dep_map has $oldlen entries"
+    foreach de $dep_map {
+        if {[lsearch -exact $new_map $de] == -1} {
+            lappend new_map $de
+        } else {
+            ui_debug "Removing $de from dep_map"
+        }
+    }
+    set dep_map $new_map
+    
+    set newlen [llength $dep_map]
+    set diff [expr $oldlen - $newlen]
+    ui_debug "New dep_map has $newlen entries"
+    ui_info "Removed $diff duplicate entries from the dependency map"
+}
+
 proc write_dep_map {args} {
 	global macports::registry.path
 	variable dep_map

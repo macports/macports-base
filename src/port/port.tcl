@@ -2334,7 +2334,7 @@ proc action_portcmds { action portlist opts } {
                     # We need it to evaluate the editor, and the editor
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
-                    array unset env *; array set env [array get boot_env]
+                    array unset env *; unsetenv *; array set env [array get boot_env]
                     
                     # Find an editor to edit the portfile
                     set editor ""
@@ -2360,7 +2360,7 @@ proc action_portcmds { action portlist opts } {
                     }
                     
                     # Restore internal MacPorts environment
-                    array unset env *; array set env [array get env_save]
+                    array unset env *; unsetenv *; array set env [array get env_save]
                 }
 
                 dir {
@@ -2393,19 +2393,27 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 gohome {
-                    # Get the homepage for the port by opening the portfile
-                    if {![catch {set ctx [mportopen $porturl]} result]} {
-                        array set portinfo [mportinfo $ctx]
+                    set homepage ""
+
+                    # Get the homepage as read from PortIndex
+                    if {[info exists portinfo(homepage)]} {
                         set homepage $portinfo(homepage)
+                    }
+
+                    # If not available, get the homepage for the port by opening the Portfile
+                    if {$homepage == "" && ![catch {set ctx [mportopen $porturl]} result]} {
+                        array set portinfo [mportinfo $ctx]
+                        if {[info exists portinfo(homepage)]} {
+                            set homepage $portinfo(homepage)
+                        }
                         mportclose $ctx
                     }
 
                     # Try to open a browser to the homepage for the given port
-                    set homepage $portinfo(homepage)
                     if { $homepage != "" } {
                         system "${macports::autoconf::open_path} $homepage"
                     } else {
-                        puts "(no homepage)"
+                        ui_error [format "No homepage for %s" $portname]
                     }
                 }
             }

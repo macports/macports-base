@@ -556,8 +556,8 @@ proc startupitem_create_darwin_launchd {args} {
     set plist [open "${destroot}${itemdir}/${plistname}" w 0644]
     
     puts ${plist} "<?xml version='1.0' encoding='UTF-8'?>"
-    puts ${plist} "<!DOCTYPE plist PUBLIC -//Apple Computer//DTD PLIST 1.0//EN"
-    puts ${plist} "http://www.apple.com/DTDs/PropertyList-1.0.dtd >"
+    puts ${plist} "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\""
+    puts ${plist} "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\" >"
     puts ${plist} "<plist version='1.0'>"
     puts ${plist} "<dict>"
     
