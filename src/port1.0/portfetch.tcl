@@ -539,7 +539,7 @@ proc gitfetch {args} {
 }
 
 # Perform a standard fetch, assembling fetch urls from
-# the listed url varable and associated distfile
+# the listed url variable and associated distfile
 proc fetchfiles {args} {
 	global distpath all_dist_files UI_PREFIX fetch_urls
 	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
@@ -671,7 +671,7 @@ proc fetch_start {args} {
 proc fetch_main {args} {
     global distname distpath all_dist_files fetch.type
 
-    # Check for files, download if neccesary
+    # Check for files, download if necessary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
         return 0
     }
