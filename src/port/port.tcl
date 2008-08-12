@@ -2442,7 +2442,7 @@ proc action_sync { action portlist opts } {
 
 
 proc action_target { action portlist opts } {
-    global global_variations 
+    global global_variations prefix
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -2502,17 +2502,19 @@ proc action_target { action portlist opts } {
         # start gsoc08-privileges
 		if { [geteuid] != 0 && $result == 2} {
 			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
-			ui_info "Attempting port action with 'sudo port': 'sudo port $target $portname'."
-			set result 0
+
+			set portbinary "${macports::prefix}/bin/port"
 			
-			if {[catch {set sudomsgs [exec sudo port $target $portname]} sudomsgs]} {
+			ui_info "Attempting port action with 'sudo port': 'sudo $portbinary $target $portname'."
+			set result 0
+			if {[catch {set sudomsgs [exec sudo $portbinary $target $portname]} sudomsgs]} {
 	            global errorInfo
 	            ui_debug "$errorInfo"
 				break_softcontinue "Unable to execute port: $errorInfo" 1 status
 	        }
 			
 			ui_msg $sudomsgs
-			ui_debug "'sudo port $target $portname' has completed."
+			ui_debug "'sudo $portbinary $target $portname' has completed."
 		}
 		# end gsoc08-privileges
         
