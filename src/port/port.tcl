@@ -2504,7 +2504,14 @@ proc action_target { action portlist opts } {
 			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
 			ui_info "Attempting port action with 'sudo port': 'sudo port $target $portname'."
 			set result 0
-			ui_msg [exec sudo port $target $portname]
+			
+			if {[catch {set sudomsgs [exec sudo port $target $portname]} sudomsgs]} {
+	            global errorInfo
+	            ui_debug "$errorInfo"
+				break_softcontinue "Unable to execute port: $errorInfo" 1 status
+	        }
+			
+			ui_msg $sudomsgs
 			ui_debug "'sudo port $target $portname' has completed."
 		}
 		# end gsoc08-privileges
