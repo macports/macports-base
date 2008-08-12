@@ -33,7 +33,7 @@ To this end, a number of modifications were made to the MacPorts trunk. The chan
 
 5) MacPorts now supports two new, additional, installation options. Each of these is a distinct alternative to the current standard installation option. 
 	(a)	A "make group" command has been added to the Makefile and a "--with-shared-directory" switch to the configure script. Running "make group" will create a macports group. "--with-shared-directory" will let let the group specified by "--with-install-group" have full read write access to the /opt/local hierarchy. This will allow users who are members of the new macports group to have full write permissions to /opt and its subfolders, and hence to install ports which only affect that hierarchy to install those ports without requiring root privileges. 
-	(b)	 A switch called "--with-no-root-privileges" has been added for use by user installing MacPorts for their own use only. An example configure command would be "./configure --prefix=/Users/{your-user-name-here}/.macports --with-no-root-privileges"
+	(b)	 A switch called "--with-no-root-privileges" has been added for use by user installing MacPorts for their own use only. An example configure command would be "./configure --prefix=/Users/{your-user-name-here}/.macports/opt --with-no-root-privileges"
 
 
 Why a Beta Release?
