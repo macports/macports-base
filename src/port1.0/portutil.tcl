@@ -1404,6 +1404,13 @@ proc open_statefile {args} {
 	# descalate privileges - only ran if macports stated with sudo
 	dropPrivileges
     
+    if { ![file exists $workpath] } {
+        if {[catch {set result [file mkdir $workpath]} result]} {
+            global errorInfo
+            ui_debug "mkdir $workpath: $errorInfo"
+        }
+    }
+    
     # if unable to write to workpath, implies running without either root privileges 
     # or a shared directory owned by the group so use ~/.macports
     if { ![file writable $workpath] } {
@@ -1421,7 +1428,7 @@ proc open_statefile {args} {
     
 		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
 		if {[info exists env(HOME)]} {
-			# HOME evnironment var is set, use it.
+			# HOME environment var is set, use it.
 			set userhome "$env(HOME)"
 		} else {
 			# the environment var isn't set, make an educated guess
@@ -1462,6 +1469,8 @@ proc open_statefile {args} {
 		set distpath $newdistpath
 		
 		ui_debug "Going to use $newworkpath for statefile."
+    } else {
+    	set usealtworkpath no
     }
     # end gsoc08-privileges
 
@@ -1486,6 +1495,7 @@ proc open_statefile {args} {
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+		ui_debug "Attempting ln -sf $workpath $worksymlink"
 		exec ln -sf $workpath $worksymlink
     }
     
@@ -1501,6 +1511,7 @@ proc open_statefile {args} {
         }
     }
     flock $fd -exclusive
+    
     return $fd
 }
 
