@@ -2442,7 +2442,7 @@ proc action_sync { action portlist opts } {
 
 
 proc action_target { action portlist opts } {
-    global global_variations prefix
+    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
