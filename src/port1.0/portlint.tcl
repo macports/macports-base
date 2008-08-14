@@ -55,6 +55,7 @@ set lint_categories [list \
 	"multimedia" \
 	"net" \
 	"news" \
+	"office" \
 	"palm" \
 	"perl" \
 	"print" \
