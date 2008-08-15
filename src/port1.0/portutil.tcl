@@ -1397,7 +1397,7 @@ proc eval_targets {target} {
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
     global altprefix usealtworkpath env applications_dir portbuildpath distpath
-    global portname
+    global portname destroot.args prefix
     
 	# start gsoc08-privileges
 
@@ -1439,13 +1439,17 @@ proc open_statefile {args} {
 		set altprefix "$userhome/.macports"
 		
 		# get alternative paths
-		set newworkpath "$altprefix/[ string range $workpath 1 end ]"
-		set newworksymlink "$altprefix/[ string range $worksymlink 1 end ]"
-		set newportbuildpath "$altprefix/[ string range $portbuildpath 1 end ]"
-		set newdistpath "$altprefix/[ string range $distpath 1 end ]"
+		set newworkpath "$altprefix$workpath"
+		set newworksymlink "$altprefix$worksymlink"
+		set newportbuildpath "$altprefix$portbuildpath"
+		set newdistpath "$altprefix$distpath"
 		
 		set sourcepath [string map {"work" ""} $worksymlink] 
 		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
+		
+		set argprefix "=${prefix}"
+		set newargprefix "=${altprefix}${prefix}"
+		set newdestrootargs [string map [list $argprefix $newargprefix] ${destroot.args}]
 
 		# copy Portfile (and patch files) if not there already
 		# note to maintainers/devs: the original portfile in /opt is ALWAYS the one that will be 
@@ -1467,6 +1471,7 @@ proc open_statefile {args} {
 		set worksymlink $newworksymlink
 		set portbuildpath $newportbuildpath
 		set distpath $newdistpath
+		set destroot.args $newdestrootargs
 		
 		ui_debug "Going to use $newworkpath for statefile."
     } else {
