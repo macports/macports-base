@@ -6,14 +6,14 @@ Name:		MacPorts
 Version:	1.7 (aka trunk)
 Branch:		gsoc08-privileges
 Culprit:	pmagrath@macports.org
-Stage:		Beta Release
-Release Date:	11th August 2008
+Stage:		Release Candidate 1
+Release Date:	18th August 2008
 
 
 Welcome
 -------
 
-Welcome to the beta of my gsoc08-privileges branch of MacPorts!
+Welcome to RC1 of my gsoc08-privileges branch of MacPorts!
 
 
 Introduction
@@ -36,11 +36,10 @@ To this end, a number of modifications were made to the MacPorts trunk. The chan
 	(b)	 A switch called "--with-no-root-privileges" has been added for use by user installing MacPorts for their own use only. An example configure command would be "./configure --prefix=/Users/{your-user-name-here}/.macports/opt --with-no-root-privileges"
 
 
-Why a Beta Release?
--------------------
+Why Release Candidate 1?
+------------------------
 
-Why not? It allows an opportunity to shake out bugs in my code before it is merged in with the trunk.
-
+On the 11th August, a Beta release was announced on macports-dev and a couple of bugs were shaken out. The code base for the branch is now reasonably well tested and about ready for integration into trunk where it can be tested more fully before the next point release of MacPorts. As such, on the 18th August 2008 (GSoC "pencils down" date) I termed it to be at "Release Candidate" stage.
 
 Where should feedback be directed?
 ----------------------------------
