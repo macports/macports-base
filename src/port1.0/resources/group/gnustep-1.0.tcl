@@ -66,7 +66,7 @@
 #                               for the gnustep FilesystemLayout
 #
 #
-# default gnustep.cc            CC=gcc-dp-4.2
+# default gnustep.cc            CC=gcc-mp-4.2
 #
 # default use_configure         no
 # default configure.env         Sets the environment for the gnustep FilesystemLayout
