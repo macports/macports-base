@@ -821,7 +821,7 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
 	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
 	# Get rid of them.
-	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9]* //g'])
+	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
 
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
