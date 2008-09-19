@@ -537,7 +537,7 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 		Tcl_SetResult(interp, "error getting channel handle", TCL_STATIC);
 		return TCL_ERROR;
 	}
-	fd = (int) handle;
+	fd = (int)(intptr_t)handle;
 
 	for (i = 2; i < objc; i++) {
 		char *arg = Tcl_GetString(objv[i]);
@@ -773,7 +773,7 @@ int MkChannelFromFdCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
 		free(fd_as_char_star);
 	}
 
-	theChannel = Tcl_MakeFileChannel((ClientData) fd, readOrWrite);
+	theChannel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, readOrWrite);
 	if (theChannel == NULL) {
 		return TCL_ERROR;
 	}
@@ -832,7 +832,7 @@ int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 		return TCL_ERROR;
 	}
 
-	channel = Tcl_MakeFileChannel((ClientData) fd, TCL_READABLE|TCL_WRITABLE);
+	channel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, TCL_READABLE|TCL_WRITABLE);
 	Tcl_RegisterChannel(interp, channel);
 	channelname = (char *)Tcl_GetChannelName(channel);
 	Tcl_AppendResult(interp, channelname, " ", template, NULL);

@@ -767,7 +767,7 @@ Set(SNode** ioRoot, const char* inPath, const char* inValue)
 
 		/* one char too far */
 		endCursor--;
-		partLength = (int) endCursor - (int) beginCursor;
+		partLength = endCursor - beginCursor;
 
 		/* do we have a node for this entry? */
 		for (indexSubnodes = 0; indexSubnodes < nbSubnodes; indexSubnodes++)
@@ -907,7 +907,7 @@ Get(SNode* inRoot, const char* inPath)
 
 		/* one char too far */
 		endCursor--;
-		partLength = (int) endCursor - (int) beginCursor;
+		partLength = endCursor - beginCursor;
 
 		/* do we have a node for this entry? */
 		for (indexSubnodes = 0; indexSubnodes < nbSubnodes; indexSubnodes++)
@@ -1106,7 +1106,7 @@ Delete(SNode** ioRoot, const char* inPath)
 
 		/* one char too far */
 		endCursor--;
-		partLength = (int) endCursor - (int) beginCursor;
+		partLength = endCursor - beginCursor;
 
 		/* do we have a node for this entry? */
 		for (indexSubnodes = 0; indexSubnodes < nbSubnodes; indexSubnodes++)
