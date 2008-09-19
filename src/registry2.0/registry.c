@@ -107,12 +107,12 @@ static void delete_reg(ClientData reg, Tcl_Interp* interp UNUSED) {
     reg_error error;
     if (((reg_registry*)reg)->status & reg_attached) {
         if (!registry_tcl_detach(interp, (reg_registry*)reg, &error)) {
-            fprintf(stderr, error.description);
+            fprintf(stderr, "%s", error.description);
             reg_error_destruct(&error);
         }
     }
     if (!reg_close((reg_registry*)reg, &error)) {
-        fprintf(stderr, error.description);
+        fprintf(stderr, "%s", error.description);
         reg_error_destruct(&error);
     }
 }
