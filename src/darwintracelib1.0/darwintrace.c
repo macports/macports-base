@@ -320,7 +320,7 @@ inline char* const* __darwintrace_restore_env(char* const envp[]) {
 static void ask_for_filemap()
 {
 	filemap=exchange_with_port("filemap\t", sizeof("filemap\t"), 1, 0);
-	if((int)filemap==-1)
+	if(filemap==(char*)-1)
 		filemap=0;
 }
 
@@ -339,7 +339,9 @@ inline void __darwintrace_setup() {
 				dprintf("darwintrace: connect successful. socket %d\n", sock);
 				__darwintrace_fd=sock;
 				ask_for_filemap();
-			}else dprintf("connect failed %d :-(\n", errno);
+			} else {
+				dprintf("connect failed %d :-(\n", errno);
+			}
 			errno = olderrno;
 		}
 	}
@@ -473,7 +475,7 @@ static int ask_for_dependency(char * path)
 	strcpy(buffer, "dep_check\t");
 	strcpy(buffer+10, path);
 	p=exchange_with_port(buffer, strlen(buffer)+1, 1, 0);
-	if((int)p==-1||!p)
+	if(p==(char*)-1||!p)
 		return 0;
 	
 	if(*p=='+')
