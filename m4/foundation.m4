@@ -307,7 +307,7 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 		AC_MSG_CHECKING([for Apple Foundation library])
 
 		# Set NeXT LIBS and CFLAGS
-		APPLE_FOUNDATION_CFLAGS="-framework Foundation"
+		APPLE_FOUNDATION_CFLAGS=""
 		APPLE_FOUNDATION_LIBS="-framework Foundation"
 
 		AC_CACHE_VAL(ac_cv_objc_foundation_apple, [

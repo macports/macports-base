@@ -6061,7 +6061,7 @@ ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 echo $ECHO_N "checking for Apple Foundation library... $ECHO_C" >&6; }
 
 		# Set NeXT LIBS and CFLAGS
-		APPLE_FOUNDATION_CFLAGS="-framework Foundation"
+		APPLE_FOUNDATION_CFLAGS=""
 		APPLE_FOUNDATION_LIBS="-framework Foundation"
 
 		if test "${ac_cv_objc_foundation_apple+set}" = set; then
