@@ -249,7 +249,7 @@ DoHelp(void)
         "\n"
         ;
         
-    printf(helpText);
+    printf("%s", helpText);
 }
 
 
