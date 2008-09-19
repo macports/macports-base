@@ -114,7 +114,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
             if (Tcl_GetLongFromObj(interp, objv[i], &value) == TCL_OK) {
                 if (value > UINT_MAX || value < 0) {
                     NSString *str = [NSString stringWithFormat:@"Unsigned integer argument invalid: %ld", value];
-                    Tcl_Obj *tcl_result = Tcl_NewStringObj([str cString], -1);
+                    Tcl_Obj *tcl_result = Tcl_NewStringObj([str UTF8String], -1);
                     Tcl_SetObjResult(interp, tcl_result);
                     result = TCL_ERROR;
                 } else {
@@ -129,7 +129,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 				[invocation setArgument:&buf atIndex:arg_num];
 		} else {
 			NSString* str = [NSString stringWithFormat:@"unexpected argument type %s at %s:%d", arg_type, __FILE__, __LINE__];
-			Tcl_Obj* tcl_result = Tcl_NewStringObj([str cString], -1);
+			Tcl_Obj* tcl_result = Tcl_NewStringObj([str UTF8String], -1);
 			Tcl_SetObjResult(interp, tcl_result);
 			result = TCL_ERROR;
 			break;
@@ -140,7 +140,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 	if (result == TCL_OK) {
 		Tcl_Obj *tcl_result;
 		[invocation invoke];
-		fprintf(stderr, "result size = %d\n", [signature methodReturnLength]);
+		fprintf(stderr, "result size = %lu\n", (unsigned long)[signature methodReturnLength]);
 		void* result_ptr;
 		[invocation getReturnValue:&result_ptr];        
 		
