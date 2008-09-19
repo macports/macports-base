@@ -162,8 +162,10 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 {
 	char* action;
 	Tcl_Obj *tcl_result;
+#if HAVE_LIBREADLINE
 	int argbase;
 	int argcnt;
+#endif
 	
 	/* Get the action */
 	if (objc < 2) {
@@ -276,9 +278,11 @@ int ReadlineCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 int RLHistoryCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char* action = NULL;
+#if HAVE_LIBREADLINE
 	char* s = NULL;
 	int i = 0;
 	Tcl_Obj *tcl_result;
+#endif
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "action");

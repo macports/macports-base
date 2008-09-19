@@ -66,6 +66,7 @@ void delete_entry(ClientData clientData) {
     entry->proc = NULL;
 }
 
+/*
 static int obj_to_entry(Tcl_Interp* interp, reg_entry** entry, Tcl_Obj* obj,
         reg_error* errPtr) {
     reg_entry* result = get_entry(interp, Tcl_GetString(obj), errPtr);
@@ -77,7 +78,6 @@ static int obj_to_entry(Tcl_Interp* interp, reg_entry** entry, Tcl_Obj* obj,
     }
 }
 
-/*
 static int list_obj_to_entry(Tcl_Interp* interp, reg_entry*** entries,
         const Tcl_Obj** objv, int objc, reg_error* errPtr) {
     return recast(interp, (cast_function*)obj_to_entry, NULL, (void***)entries,
