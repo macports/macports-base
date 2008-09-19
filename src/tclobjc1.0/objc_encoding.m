@@ -55,7 +55,7 @@ int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void 
 			*objPtr = Tcl_NewStringObj((char *) val, -1);
 			return (TCL_OK);
 		case _C_INT:
-			*objPtr = Tcl_NewIntObj((int) val);
+			*objPtr = Tcl_NewIntObj((int)(intptr_t)val);
 			return (TCL_OK);
 		case _C_ID:
 			*objPtr = TclObjC_NewIdObj(val);
