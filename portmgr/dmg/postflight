@@ -42,6 +42,8 @@ PREFIX=/opt/local
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 MANPAGES=${PREFIX}/share/man
+TCLSH=/usr/bin/tclsh
+TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
 OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
@@ -56,6 +58,9 @@ function update_macports {
     else
         echo "Successful!"
     fi
+    
+    # Remove any duplicates from the dep map (could occur with 1.6 and earlier)
+    ${TCLSH} dep_map_clean.tcl ${TCL_PACKAGE_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
