@@ -110,9 +110,6 @@ upgrade::
 			mv -v "$${HOME}/.macports/macports.conf.tmp" "$${HOME}/.macports/macports.conf"; \
 	}
 
-# Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
-	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
-
 # Upgrade success announcement (meaning we're done ;):
 	@[ -f ${UPGRADECHECK} ] || { echo ""; echo "MacPorts installation successfully upgraded from the old DarwinPorts namespace!"; echo ""; \
 		echo "MacPorts rename update done!" > ${UPGRADECHECK} ; }
