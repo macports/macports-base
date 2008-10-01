@@ -2395,7 +2395,7 @@ proc action_portcmds { action portlist opts } {
 
                     # Try to open a browser to the homepage for the given port
                     if { $homepage != "" } {
-                        system "${macports::autoconf::open_path} $homepage"
+                        system "${macports::autoconf::open_path} '$homepage'"
                     } else {
                         ui_error [format "No homepage for %s" $portname]
                     }
