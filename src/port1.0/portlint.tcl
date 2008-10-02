@@ -40,9 +40,11 @@ set lint_categories [list \
 	"editors" \
 	"emulators" \
 	"erlang" \
+	"finance" \
 	"fuse" \
 	"games" \
 	"genealogy" \
+	"gis" \
 	"gnome" \
 	"gnustep" \
 	"graphics" \
