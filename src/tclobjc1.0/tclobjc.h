@@ -2,7 +2,7 @@
  * TclObjC.m
  *
  * Authors:
- * 	Keven Van Vechten <kvv@apple.com>
+ * 	Kevin Van Vechten <kvv@apple.com>
  * 	Landon J. Fuller  <landonf@macports.org>
  *
  * Copyright (c) 2003 Kevin Van Vechten <kvv@apple.com>
