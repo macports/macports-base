@@ -39,6 +39,7 @@ set lint_categories [list \
 	"devel" \
 	"editors" \
 	"emulators" \
+	"erlang" \
 	"fuse" \
 	"games" \
 	"genealogy" \
