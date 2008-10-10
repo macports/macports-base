@@ -2306,7 +2306,7 @@ proc action_portcmds { action portlist opts } {
                     # Copy the portfile to standard output
                     set f [open $portfile RDONLY]
                     while { ![eof $f] } {
-                        puts [read $f 4096]
+                        puts -nonewline [read $f 4096]
                     }
                     close $f
                 }
