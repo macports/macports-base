@@ -2001,6 +2001,13 @@ proc action_deps { action portlist opts } {
 
         array unset portinfo
         array set portinfo [lindex $result 1]
+        if {[catch {set mport [mportopen $portinfo(porturl) [array get options] [array get variations]]} result]} {
+           ui_debug "$::errorInfo"
+           break_softcontinue "Unable to open port: $result" 1 status
+        }
+        array unset portinfo
+        array set portinfo [mportinfo $mport]
+        mportclose $mport
         # set portname again since the one we were passed may not have had the correct case
         set portname $portinfo(name)
 
