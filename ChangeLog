@@ -5,6 +5,11 @@
 
 
 Unreleased:
+    - Changes in loading of configuration files. Currently the global
+      configuration file is loaded first, then user defined one (if present),
+      PORTSRC environment variable is loaded last. Last defined value is used
+      for each configuration option. (#16329, contributed by Adam Byrtek)
+
     - Ruby port group now accepts a new (optional) last parameter for the
       ruby.setup command, "implementation". It is "ruby" by default, and 
       can be set to "ruby19". It names the ruby-implementing port, and can

@@ -369,14 +369,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
     # Configure the search path for configuration files
     set conf_files ""
+    lappend conf_files "${macports_conf_path}/macports.conf"
+    if { [file isdirectory $macports_user_dir] } {
+        lappend conf_files "${macports_user_dir}/macports.conf"
+    }
     if {[info exists env(PORTSRC)]} {
         set PORTSRC $env(PORTSRC)
         lappend conf_files ${PORTSRC}
     }
-    if { [file isdirectory $macports_user_dir] } {
-        lappend conf_files "${macports_user_dir}/macports.conf"
-    }
-    lappend conf_files "${macports_conf_path}/macports.conf"
     
     # Process the first configuration file we find on conf_files list
     foreach file $conf_files {
@@ -391,7 +391,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                     }
                 }
             }            
-            break
         }
     }
     
