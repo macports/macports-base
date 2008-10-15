@@ -1054,9 +1054,11 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
 proc _libtest {mport depspec} {
-    global env tcl_platform macports::frameworks_dir macports::x11prefix
+    global env tcl_platform
     set depline [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
+    set frameworks_dir [_mportkey $mport frameworks_dir]
+    set x11prefix [_mportkey $mport x11prefix]
     
     if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
         lappend search_path $env(DYLD_FRAMEWORK_PATH)
