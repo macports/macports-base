@@ -1054,7 +1054,7 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
 proc _libtest {mport depspec} {
-    global env tcl_platform
+    global env tcl_platform macports::frameworks_dir macports::x11prefix
     set depline [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
     
