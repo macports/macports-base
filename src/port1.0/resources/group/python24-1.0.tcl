@@ -34,9 +34,9 @@
 
 set python.bin	${prefix}/bin/python2.4
 set python.lib	${prefix}/lib/libpython2.4.dylib
-set python.libdir ${prefix}/Library/Frameworks/Python.framework/Versions/2.4/lib/python2.4
+set python.libdir ${frameworks_dir}/Python.framework/Versions/2.4/lib/python2.4
 set python.pkgd	${prefix}/lib/python2.4/site-packages
-set python.include	${prefix}/Library/Frameworks/Python.framework/Versions/2.4/include/python2.4
+set python.include	${frameworks_dir}/Python.framework/Versions/2.4/include/python2.4
 
 categories		python
 

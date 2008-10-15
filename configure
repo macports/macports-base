@@ -6848,11 +6848,7 @@ fi
 echo $ECHO_N "checking for Frameworks installation directory... $ECHO_C" >&6; }
 
 	if test "x$MPFRAMEWORKSDIR" = "x" ; then
-	    if test "$DSTUSR" = "root" ; then
-		MPFRAMEWORKSDIR="/Library/Frameworks"
-	    else
-		MPFRAMEWORKSDIR="~$DSTUSR/Library/Frameworks"
-	    fi
+		MPFRAMEWORKSDIR="${prefix}/Library/Frameworks"
 	fi
 
 	{ echo "$as_me:$LINENO: result: $MPFRAMEWORKSDIR" >&5

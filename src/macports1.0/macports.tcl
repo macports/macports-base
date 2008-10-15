@@ -1061,7 +1061,7 @@ proc _libtest {mport depspec} {
     if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
         lappend search_path $env(DYLD_FRAMEWORK_PATH)
     } else {
-        lappend search_path /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
+        lappend search_path ${frameworks_dir} /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
     }
     if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
         lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
@@ -1069,7 +1069,7 @@ proc _libtest {mport depspec} {
     if {[info exists env(DYLD_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_LIBRARY_PATH)
     }
-    lappend search_path /lib /usr/lib /usr/X11R6/lib /usr/X11/lib ${prefix}/lib
+    lappend search_path /lib /usr/lib ${x11prefix}/lib ${prefix}/lib
     if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
     }

@@ -32,7 +32,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-set prefix ${prefix}/Library/Frameworks/Python.framework/Versions/3.0
+set prefix ${frameworks_dir}/Python.framework/Versions/3.0
 
 set python.bin	${prefix}/bin/python3.0
 set python.lib	${prefix}/lib/libpython3.0.dylib

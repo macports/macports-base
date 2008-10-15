@@ -60,7 +60,7 @@ default worksymlink {[file join $portpath work]}
 default prefix /opt/local
 default x11prefix /usr/X11R6
 default applications_dir /Applications/MacPorts
-default frameworks_dir /Library/Frameworks
+default frameworks_dir {${prefix}/Library/Frameworks}
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable

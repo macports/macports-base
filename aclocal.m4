@@ -388,11 +388,7 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
     AC_MSG_CHECKING([for Frameworks installation directory])
 
 	if test "x$MPFRAMEWORKSDIR" = "x" ; then
-	    if test "$DSTUSR" = "root" ; then
-		MPFRAMEWORKSDIR="/Library/Frameworks"
-	    else
-		MPFRAMEWORKSDIR="~$DSTUSR/Library/Frameworks"
-	    fi
+		MPFRAMEWORKSDIR="${prefix}/Library/Frameworks"
 	fi
 
 	AC_MSG_RESULT([$MPFRAMEWORKSDIR])
