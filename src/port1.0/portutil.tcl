@@ -553,7 +553,7 @@ proc platform {args} {
     set ditem [variant_new "temp-variant"]
     
     foreach arg $args {
-        if {[regexp {(^[0-9]$)} $arg match result]} {
+        if {[regexp {(^[0-9]+$)} $arg match result]} {
             set release $result
         } elseif {[regexp {([a-zA-Z0-9]*)} $arg match result]} {
             set arch $result
