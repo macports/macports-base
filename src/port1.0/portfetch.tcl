@@ -46,7 +46,8 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag \
 	svn.url svn.tag \
-	git.url git.branch
+	git.url git.branch \
+	hg.url hg.tag
 	
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -78,6 +79,9 @@ default svn.post_args {"${svn.url}"}
 
 default git.dir {${workpath}}
 default git.branch {}
+
+default hg.dir {${workpath}}
+default hg.tag {tip}
 
 # Set distfiles
 default distfiles {[suffix $distname]}
@@ -136,7 +140,8 @@ proc suffix {distname} {
     switch -- "${fetch.type}" {
     	cvs			-
     	svn			-
-    	git			{ return "" }
+    	git			-
+    	hg			{ return "" }
     	standard	-
     	default 	{ return "${distname}${extract.suffix}" }
     }
@@ -538,6 +543,38 @@ proc gitfetch {args} {
     return 0
 }
 
+# Perform a mercurial fetch.
+proc hgfetch {args} {
+    global worksrcpath prefix_frozen
+    global hg.url hg.tag
+
+    # Look for the hg command.
+    set hg.cmd {}
+    foreach hgcmd "$prefix_frozen/bin/hg hg" {
+        if {[file executable $hgcmd]} {
+            set hg.cmd $hgcmd
+            break
+        }
+    }
+    if {${hg.cmd} == {}} {
+        ui_error "hg is required to fetch ${hg.url}"
+        ui_error "Please install the mercurial port before proceeding."
+        return -code error [msgcat::mc "Mercurial command not found"]
+    }
+
+    set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
+    ui_debug "Executing: $cmdstring"
+    if {[catch {system $cmdstring} result]} {
+        return -code error [msgcat::mc "Mercurial clone failed"]
+    }
+
+    if {[info exists patchfiles]} {
+        return [fetchfiles]
+    }
+
+    return 0
+}
+
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
 proc fetchfiles {args} {
@@ -681,6 +718,7 @@ proc fetch_main {args} {
     	cvs		{ return [cvsfetch] }
     	svn		{ return [svnfetch] }
     	git		{ return [gitfetch] }
+    	hg		{ return [hgfetch] }
     	standard -
     	default	{ return [fetchfiles] }
     }
