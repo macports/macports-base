@@ -229,7 +229,7 @@ proc unarchive_command_setup {args} {
 				ui_debug "Using $xar"
 				set unarchive.cmd "$xar"
 				set unarchive.pre_args {-xvpf}
-				set unarchive.args "${unarchive.path} ."
+				set unarchive.args "${unarchive.path}"
 			} else {
 				ui_debug $errmsg
 				return -code error "No '$xar' was found on this system!"
