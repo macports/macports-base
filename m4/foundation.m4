@@ -87,6 +87,8 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 				;;
 			apple)
 				;;
+			no)
+				;;
 			*)
 				AC_MSG_ERROR([${with_objc_runtime} is not a valid argument to --with-objc-runtime. Please specify either "GNU" or "apple"])
 				;;
@@ -95,6 +97,8 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 
 	AC_LANG_PUSH([Objective C])
 
+	if test x"${with_objc_runtime}" != x"no"; then
+	
 	# Check for common header, objc/objc.h
 	AC_CHECK_HEADERS([objc/objc.h], ,[AC_MSG_ERROR([Can't locate Objective C runtime headers])])
 
@@ -222,6 +226,8 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 		mp_cv_objc_runtime_gnu="no"
 	fi
 
+	fi
+
 	# Apple runtime is prefered
 	if test x"${mp_cv_objc_runtime_apple}" = x"yes"; then
 			OBJC_RUNTIME="APPLE_RUNTIME"
@@ -233,6 +239,9 @@ AC_DEFUN([MP_OBJC_RUNTIME],[
 			OBJC_RUNTIME_FLAGS="-fgnu-runtime"
 			AC_MSG_NOTICE([Using GNU Objective-C runtime])
 			AC_DEFINE([GNU_RUNTIME], 1, [Define if using the GNU Objective-C runtime and compiler.]) 
+	elif test x"${with_objc_runtime}" = x"no"; then
+			OBJC_RUNTIME="none"
+			AC_MSG_NOTICE([Not using Objective-C runtime])
 	else
 			AC_MSG_FAILURE([Could not locate a working Objective-C runtime.])
 	fi
@@ -293,6 +302,8 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 				;;
 			apple)
 				;;
+			no)
+				;;
 			*)
 				AC_MSG_ERROR([${with_objc_foundation} is not a valid argument to --with-objc-foundation. Please specify either "GNU" or "apple"])
 				;;
@@ -301,6 +312,8 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 
 	AC_LANG_PUSH([Objective C])
 
+	if test x"${with_objc_foundation}" != x"no"; then
+	
 	if test x"${with_objc_foundation}" == x || test x"${with_objc_foundation}" == x"apple"; then
 		# '@<:@' = '['
 		# '@:>@' = ']'
@@ -397,6 +410,8 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 		ac_cv_objc_foundation_gnustep="no"
 	fi
 
+	fi
+	
 	# NeXT Foundation is prefered
 	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
 		OBJC_FOUNDATION="Apple"
@@ -412,6 +427,9 @@ AC_DEFUN([MP_OBJC_FOUNDATION],[
 		OBJC_FOUNDATION_LDFLAGS="${GNUSTEP_LDFLAGS}"
 		AC_DEFINE([GNUSTEP_FOUNDATION], 1, [Define if using the GNUstep Foundation library]) 
 		AC_MSG_NOTICE([Using GNUstep Foundation library])
+	elif test x"${with_objc_foundation}" = x"no"; then
+		OBJC_FOUNDATION="none"
+		AC_MSG_NOTICE([Not using Foundation implementation])
 	else
 		AC_MSG_ERROR([Could not find a working Foundation implementation])
 	fi

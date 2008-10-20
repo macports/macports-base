@@ -7,7 +7,7 @@ TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
 			registry1.0 \
 			registry2.0 \
 			darwintracelib1.0 \
-			tclobjc1.0
+			@CONDITIONAL_PACKAGES@
 SUBDIR=		${TCLPKG} @PATHCONF@ port programs
 
 all::

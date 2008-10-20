@@ -115,10 +115,18 @@ MP_WERROR
 MP_COMPILER_ATTRIBUTE_UNUSED
 MP_COMPILER_ATTRIBUTE_LF_PRIVATE
 
+# Determine if we want to install conditional packages
+CONDITIONAL_PACKAGES=
+
 # Foundation checks
 ACX_PTHREAD
 MP_OBJC_RUNTIME
 MP_OBJC_FOUNDATION
+
+# tclobjc requires objc (runtime and foundation) support
+if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
+	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
+fi
 
 MP_PROG_DAEMONDO
 #MP_PROG_XAR
@@ -368,6 +376,7 @@ AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_DEFS)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
+AC_SUBST(CONDITIONAL_PACKAGES)
 AC_SUBST(OUR_INCLUDED_PACKAGES)
 
 # misc variables that need to be expanded for substitution into tcl
