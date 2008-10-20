@@ -773,6 +773,7 @@ SHLIB_LDFLAGS
 SHLIB_SUFFIX
 TCL_DEFS
 TCL_CC
+CONDITIONAL_PACKAGES
 OUR_INCLUDED_PACKAGES
 prefix_expanded
 MPCONFIGDIR_EXPANDED
@@ -4464,6 +4465,9 @@ _ACEOF
 
 
 
+# Determine if we want to install conditional packages
+CONDITIONAL_PACKAGES=
+
 # Foundation checks
 
 
@@ -5495,6 +5499,8 @@ fi
 				;;
 			apple)
 				;;
+			no)
+				;;
 			*)
 				{ { echo "$as_me:$LINENO: error: ${with_objc_runtime} is not a valid argument to --with-objc-runtime. Please specify either \"GNU\" or \"apple\"" >&5
 echo "$as_me: error: ${with_objc_runtime} is not a valid argument to --with-objc-runtime. Please specify either \"GNU\" or \"apple\"" >&2;}
@@ -5509,6 +5515,8 @@ ac_compile='$OBJC -c $OBJCFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$OBJC -o conftest$ac_exeext $OBJCFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 
+
+    if test x"${with_objc_runtime}" != x"no"; then
 
 	# Check for common header, objc/objc.h
 
@@ -5974,6 +5982,8 @@ echo "${ECHO_T}${mp_cv_objc_runtime_gnu}" >&6; }
 		mp_cv_objc_runtime_gnu="no"
 	fi
 
+	fi
+
 	# Apple runtime is prefered
 	if test x"${mp_cv_objc_runtime_apple}" = x"yes"; then
 			OBJC_RUNTIME="APPLE_RUNTIME"
@@ -5995,6 +6005,10 @@ cat >>confdefs.h <<\_ACEOF
 #define GNU_RUNTIME 1
 _ACEOF
 
+	elif test x"${with_objc_runtime}" = x"no"; then
+			OBJC_RUNTIME="none"
+			{ echo "$as_me:$LINENO: Not using Objective-C runtime" >&5
+echo "$as_me: Not using Objective-C runtime" >&6;}
 	else
 			{ { echo "$as_me:$LINENO: error: Could not locate a working Objective-C runtime.
 See \`config.log' for more details." >&5
@@ -6039,6 +6053,8 @@ fi
 				;;
 			apple)
 				;;
+			no)
+				;;
 			*)
 				{ { echo "$as_me:$LINENO: error: ${with_objc_foundation} is not a valid argument to --with-objc-foundation. Please specify either \"GNU\" or \"apple\"" >&5
 echo "$as_me: error: ${with_objc_foundation} is not a valid argument to --with-objc-foundation. Please specify either \"GNU\" or \"apple\"" >&2;}
@@ -6053,6 +6069,8 @@ ac_compile='$OBJC -c $OBJCFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$OBJC -o conftest$ac_exeext $OBJCFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 
+
+    if test x"${with_objc_foundation}" != x"no"; then
 
 	if test x"${with_objc_foundation}" == x || test x"${with_objc_foundation}" == x"apple"; then
 		# '[' = '['
@@ -6251,6 +6269,8 @@ echo "${ECHO_T}${ac_cv_objc_foundation_gnustep}" >&6; }
 		ac_cv_objc_foundation_gnustep="no"
 	fi
 
+	fi
+
 	# NeXT Foundation is prefered
 	if test x"${ac_cv_objc_foundation_apple}" == x"yes"; then
 		OBJC_FOUNDATION="Apple"
@@ -6276,6 +6296,10 @@ _ACEOF
 
 		{ echo "$as_me:$LINENO: Using GNUstep Foundation library" >&5
 echo "$as_me: Using GNUstep Foundation library" >&6;}
+	elif test x"${with_objc_foundation}" = x"no"; then
+		OBJC_FOUNDATION="none"
+		{ echo "$as_me:$LINENO: Not using Foundation implementation" >&5
+echo "$as_me: Not using Foundation implementation" >&6;}
 	else
 		{ { echo "$as_me:$LINENO: error: Could not find a working Foundation implementation" >&5
 echo "$as_me: error: Could not find a working Foundation implementation" >&2;}
@@ -6294,6 +6318,11 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+
+# tclobjc requires objc (runtime and foundation) support
+if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
+	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
+fi
 
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
@@ -12354,6 +12383,7 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
 
 
+
 # misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
@@ -13211,6 +13241,7 @@ SHLIB_LDFLAGS!$SHLIB_LDFLAGS$ac_delim
 SHLIB_SUFFIX!$SHLIB_SUFFIX$ac_delim
 TCL_DEFS!$TCL_DEFS$ac_delim
 TCL_CC!$TCL_CC$ac_delim
+CONDITIONAL_PACKAGES!$CONDITIONAL_PACKAGES$ac_delim
 OUR_INCLUDED_PACKAGES!$OUR_INCLUDED_PACKAGES$ac_delim
 prefix_expanded!$prefix_expanded$ac_delim
 MPCONFIGDIR_EXPANDED!$MPCONFIGDIR_EXPANDED$ac_delim
@@ -13219,7 +13250,7 @@ LIBOBJS!$LIBOBJS$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 66; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 67; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
