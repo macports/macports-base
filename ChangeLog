@@ -5,6 +5,9 @@
 
 
 Unreleased:
+    - Allow configuring --without-objc-runtime --without-objc-foundation,
+      for building on platforms without Foundation like +puredarwin (r41015)
+
     - Changes in loading of configuration files. Currently the global
       configuration file is loaded first, then user defined one (if present),
       PORTSRC environment variable is loaded last. Last defined value is used
