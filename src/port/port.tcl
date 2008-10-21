@@ -34,10 +34,6 @@ exec @TCLSH@ "$0" "$@"
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-#
-# TODO:
-#
-
 catch {source \
     [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
 package require macports
