@@ -67,6 +67,25 @@ set portfetch::mirror_sites::sites(freebsd) {
     ftp://ftp.FreeBSD.org/pub/FreeBSD/ports/local-distfiles/:nosubdir
 }
 
+set portfetch::mirror_sites::sites(gimp) {
+    ftp://ftp.gimp.org/pub/
+    ftp://ftp.gtk.org/pub/
+    http://ftp.gtk.org/pub/
+    http://gimp.mirrors.hoobly.com/
+    ftp://gd.tuwien.ac.at/graphics/gimp/
+    http://ftp.iut-bm.univ-fcomte.fr/gimp/
+    http://gimp.krecio.pl/
+    ftp://ftp.gwdg.de/pub/misc/grafik/gimp/
+    http://ftp.gwdg.de/pub/misc/grafik/gimp/
+    ftp://ftp.esat.net/mirrors/ftp.gimp.org/pub/
+    http://ftp.esat.net/mirrors/ftp.gimp.org/pub/
+    ftp://ftp.u-aizu.ac.jp/pub/graphics/tools/gimp/
+    ftp://ftp.snt.utwente.nl/pub/software/gimp/
+    http://ftp.snt.utwente.nl/pub/software/gimp/
+    ftp://ftp.sai.msu.su/pub/unix/graphics/gimp/mirror/
+    ftp://ftp.acc.umu.se/pub/gimp/
+}
+
 set portfetch::mirror_sites::sites(gnome) {
     ftp://ftp.cse.buffalo.edu/pub/Gnome/
     http://www.gtlib.cc.gatech.edu/pub/gnome/
