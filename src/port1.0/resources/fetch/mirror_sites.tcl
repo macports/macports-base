@@ -105,7 +105,6 @@ set portfetch::mirror_sites::sites(gnu) {
     http://mirror.pacific.net.au/pub1/gnu/gnu/
     http://mirror.aarnet.edu.au/pub/GNU/
     ftp://ftp.unicamp.br/pub/gnu/
-    http://gnu.glug-nith.org/
     ftp://ftp.gnu.org/gnu/
     http://ftp.gnu.org/gnu/
     ftp://ftp.gnu.org/old-gnu/
@@ -272,7 +271,6 @@ set portfetch::mirror_sites::sites(sourceforge) {
     http://surfnet.dl.sourceforge.net/
     http://switch.dl.sourceforge.net/
     http://nchc.dl.sourceforge.net/
-    http://jaist.dl.sourceforge.net/
     http://internode.dl.sourceforge.net/
     http://transact.dl.sourceforge.net/
     http://optusnet.dl.sourceforge.net/
