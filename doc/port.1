@@ -290,13 +290,13 @@ Deactivate and uninstall
 To uninstall all installed but inactive ports, use
 .Fl u .
 To recursively uninstall all dependents of this port, use
-.Fl -recursive .
+.Fl -follow-dependents .
 .Pp
 For example:
 .Pp
 .Dl "port uninstall vim"
 .Dl "port -u uninstall"
-.Dl "port uninstall --recursive python24"
+.Dl "port uninstall --follow-dependents python24"
 .Ss activate
 Activate the installed
 .Ar portname .
