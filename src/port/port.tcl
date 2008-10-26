@@ -2454,13 +2454,11 @@ proc action_target { action portlist opts } {
             set porturl $portinfo(porturl)
         }
         
-        # If this is the install target, add any global_variations to the variations
+        # Add any global_variations to the variations
         # specified for the port
-        if { $target == "install" } {
-            foreach { variation value } [array get global_variations] {
-                if { ![info exists variations($variation)] } {
-                    set variations($variation) $value
-                }
+        foreach { variation value } [array get global_variations] {
+            if { ![info exists variations($variation)] } {
+                set variations($variation) $value
             }
         }
 
