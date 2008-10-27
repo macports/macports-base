@@ -1,6 +1,6 @@
 # et:ts=4
 # portsubmit.tcl
-# $Id: portsubmit.tcl 26177 2007-06-15 10:11:22Z jmpp@macports.org $
+# $Id$
 #
 # Copyright (c) 2007 MacPorts Project
 # Copyright (c) 2007 James D. Berry

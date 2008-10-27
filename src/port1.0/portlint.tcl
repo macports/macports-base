@@ -1,6 +1,6 @@
 # et:ts=4
 # portlint.tcl
-# $Id: portlint.tcl $
+# $Id$
 
 package provide portlint 1.0
 package require portutil 1.0

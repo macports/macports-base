@@ -1,6 +1,6 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 # portdistfiles.tcl
-# $Id: portdistfiles.tcl $
+# $Id$
 #
 # Copyright (c) 2008 MacPorts Project
 # All rights reserved.
