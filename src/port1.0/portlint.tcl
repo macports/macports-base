@@ -161,6 +161,8 @@ proc lint_main {args} {
 
     ###################################################################
     ui_debug "$portfile"
+    
+    set nitpick false
 
     set topline_number 1
     set require_blank false
@@ -178,11 +180,13 @@ proc lint_main {args} {
     while {1} {
         set line [gets $f]
         if {[eof $f]} {
-            seek $f -1 end
-            set last [read $f 1]
-            if {![string match "\n" $last]} {
-                ui_warn "Line $lineno has missing newline (at end of file)"
-                incr warnings
+            if {$nitpick} {
+                seek $f -1 end
+                set last [read $f 1]
+                if {![string match "\n" $last]} {
+                    ui_warn "Line $lineno has missing newline (at end of file)"
+                    incr warnings
+                }
             }
             close $f
             break
@@ -199,13 +203,13 @@ proc lint_main {args} {
             set require_blank false
         }
 
-        if {$require_blank && ($line != "")} {
+        if {$nitpick && $require_blank && ($line != "")} {
             ui_warn "Line $lineno should be a newline (after $require_after)"
             incr warnings
         }
         set require_blank false
 
-        if {[regexp {\S[ \t]+$} $line]} {
+        if {$nitpick && [regexp {\S[ \t]+$} $line]} {
             # allow indented blank lines between blocks of code and such
             ui_warn "Line $lineno has trailing whitespace before newline"
             incr warnings
@@ -482,7 +486,7 @@ proc lint_main {args} {
         ui_info "OK: Portfile directory matches port name"
     }
 
-    if {[info exists patchfiles]} {
+    if {$nitpick && [info exists patchfiles]} {
         foreach patchfile $patchfiles {
             if {![string match "patch-*.diff" $patchfile] && [file exists "$portpath/files/$patchfile"]} {
                 ui_warn "Patchfile $patchfile does not follow the source patch naming policy \"patch-*.diff\""
