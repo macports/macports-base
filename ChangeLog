@@ -4,7 +4,7 @@
 ###
 
 
-Unreleased:
+Release 1.7.0 (unreleased):
     - Allow configuring --without-objc-runtime --without-objc-foundation,
       for building on platforms without Foundation like +puredarwin (r41015)
 
@@ -140,9 +140,6 @@ Unreleased:
 
     - Add 'merge' function for merging multiple (single arch) destroots into one (universal)
       destroot (mww in r31954).
-
-
-Release 1.6.1 (unreleased):
 
     - If checksum is mismatched, and in verbose mode, present a corrected pre-fabricated checksum statement
       to make it easy to update a port (jberry in r32441).
