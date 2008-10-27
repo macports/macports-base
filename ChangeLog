@@ -5,6 +5,11 @@
 
 
 Release 1.7.0 (unreleased):
+    - Fix python port group issues (#15226)
+
+    - Make sure global variants (from variants.conf) are applied to all
+      phases (#11897)
+
     - Allow configuring --without-objc-runtime --without-objc-foundation,
       for building on platforms without Foundation like +puredarwin (r41015)
 
