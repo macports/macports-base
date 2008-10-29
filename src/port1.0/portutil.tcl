@@ -1668,7 +1668,8 @@ proc default_universal_variant_allowed {args} {
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
         return no
-    } elseif {[exists use_configure] && ![option use_configure]} {
+    } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.universal.settings]} {
+        # Allow +universal if port uses xcode portgroup.
         ui_debug "not using configure, so not adding the default universal variant"
         return no
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {

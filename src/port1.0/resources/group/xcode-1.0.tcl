@@ -53,18 +53,24 @@
 #
 # build and destroot parameters use the following parameters:
 #  PortGroup specific parameters:
-#   xcode.project           name (or path relative to build.dir) of the xcode
-#                           project. Default is "" meaning let xcodebuild figure it
-#                           out.
-#   xcode.configuration     xcode buildstyle/configuration. Default is Deployment.
-#   xcode.target            if present, overrides build.target and destroot.target
-#   xcode.build.settings    additional settings passed to $xcodebuildcmd (in
-#                           the X=Y form)
-#   xcode.destroot.type     install type (application or framework). Default is
-#                           application. This setting overrides xcode.destroot.path.
-#   xcode.destroot.path     install path (INSTALL_PATH setting value).
-#   xcode.destroot.settings additional settings passed to $xcodebuildcmd (in
-#                           the X=Y form)
+#   xcode.project            name (or path relative to build.dir) of the xcode
+#                            project. Default is "" meaning let xcodebuild figure it
+#                            out.
+#   xcode.configuration      xcode buildstyle/configuration. Default is Deployment.
+#   xcode.target             if present, overrides build.target and destroot.target
+#   xcode.build.settings     additional settings passed to $xcodebuildcmd (in
+#                            the X=Y form)
+#   xcode.destroot.type      install type (application or framework). Default is
+#                            application. This setting overrides xcode.destroot.path.
+#   xcode.destroot.path      install path (INSTALL_PATH setting value).
+#   xcode.destroot.settings  additional settings passed to $xcodebuildcmd (in
+#                            the X=Y form)
+#   xcode.universal.settings settings passed to $xcodebuildcmd when the +universal
+#                            variant is selected. Defaults to ARCHS="${universal_archs}"
+#                            MACOSX_DEPLOYMENT_TARGET=${universal_target}.
+#   xcode.universal.sdk      sdk to use when the +universal variant is selected.
+#                            Defaults to ${universal_sysroot}. If set to the empty
+#                            list, no sdk option will be passed to xcodebuild.
 #
 #  Usual parameters:
 #   destroot            where to destroot the project.
@@ -112,6 +118,11 @@ options xcode.destroot.path
 default xcode.destroot.path ""
 options xcode.destroot.settings
 default xcode.destroot.settings ""
+
+options xcode.universal.settings
+default xcode.universal.settings {ARCHS=\"${universal_archs}\"\ MACOSX_DEPLOYMENT_TARGET=${universal_target}}
+options xcode.universal.sdk
+default xcode.universal.sdk {${universal_sysroot}}
 
 namespace eval xcode {}
 
@@ -257,6 +268,13 @@ build {
     set xcode_configuration_arg [xcode::get_configuration_arg ${xcode.configuration}]
     set xcode_project_arg [xcode::get_project_arg ${xcode.project}]
     set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
+
+    if {[variant_isset universal]} {
+        set xcode_build_args "$xcode_build_args ${xcode.universal.settings}"
+        if {"${xcode.universal.sdk}" != ""} {
+            set xcode_build_args "-sdk ${xcode.universal.sdk} $xcode_build_args"
+        }
+    }
     
     # iterate on targets if there is any, do -alltargets otherwise.
     if {"$xcode_targets" == ""} {
@@ -291,6 +309,13 @@ destroot {
                                         ${xcode.destroot.path} ${xcode.destroot.type}]
     set xcode_build_args "OBJROOT=build/ SYMROOT=build/"
     
+    if {[variant_isset universal]} {
+        set xcode_build_args "$xcode_build_args ${xcode.universal.settings}"
+        if {"${xcode.universal.sdk}" != ""} {
+            set xcode_build_args "-sdk ${xcode.universal.sdk} $xcode_build_args"
+        }
+    }
+
     # iterate on targets if there is any, do -alltargets otherwise.
     if {"$xcode_targets" == ""} {
         xcode::destroot_one_target \
