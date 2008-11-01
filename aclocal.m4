@@ -364,6 +364,10 @@ AC_DEFUN([MP_PATH_APPLICATIONS],[
 
     AC_ARG_WITH(applications-dir,[AC_HELP_STRING([--with-applications-dir], [Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
 
+    oldprefix=$prefix
+    if test "x$prefix" = "xNONE" ; then
+	prefix=$ac_default_prefix
+    fi
     AC_MSG_CHECKING([for Applications installation directory])
 
 	if test "x$MPAPPLICATIONSDIR" = "x" ; then
@@ -376,6 +380,7 @@ AC_DEFUN([MP_PATH_APPLICATIONS],[
 
 	AC_MSG_RESULT([$MPAPPLICATIONSDIR])
     AC_SUBST(MPAPPLICATIONSDIR)
+    prefix=$oldprefix
 ])
 
 # MP_PATH_FRAMEWORKS
@@ -385,6 +390,10 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 
     AC_ARG_WITH(frameworks-dir,[AC_HELP_STRING([--with-frameworks-dir], [Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
 
+    oldprefix=$prefix
+    if test "x$prefix" = "xNONE" ; then
+	prefix=$ac_default_prefix
+    fi
     AC_MSG_CHECKING([for Frameworks installation directory])
 
 	if test "x$MPFRAMEWORKSDIR" = "x" ; then
@@ -393,6 +402,7 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 
 	AC_MSG_RESULT([$MPFRAMEWORKSDIR])
     AC_SUBST(MPFRAMEWORKSDIR)
+    prefix=$oldprefix
 ])
 
 
