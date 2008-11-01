@@ -5516,7 +5516,7 @@ ac_link='$OBJC -o conftest$ac_exeext $OBJCFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_
 ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 
 
-    if test x"${with_objc_runtime}" != x"no"; then
+	if test x"${with_objc_runtime}" != x"no"; then
 
 	# Check for common header, objc/objc.h
 
@@ -6070,7 +6070,7 @@ ac_link='$OBJC -o conftest$ac_exeext $OBJCFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_
 ac_compiler_gnu=$ac_cv_objc_compiler_gnu
 
 
-    if test x"${with_objc_foundation}" != x"no"; then
+	if test x"${with_objc_foundation}" != x"no"; then
 
 	if test x"${with_objc_foundation}" == x || test x"${with_objc_foundation}" == x"apple"; then
 		# '[' = '['
@@ -6848,6 +6848,10 @@ if test "${with_applications_dir+set}" = set; then
 fi
 
 
+    oldprefix=$prefix
+    if test "x$prefix" = "xNONE" ; then
+	prefix=$ac_default_prefix
+    fi
     { echo "$as_me:$LINENO: checking for Applications installation directory" >&5
 echo $ECHO_N "checking for Applications installation directory... $ECHO_C" >&6; }
 
@@ -6862,6 +6866,7 @@ echo $ECHO_N "checking for Applications installation directory... $ECHO_C" >&6; 
 	{ echo "$as_me:$LINENO: result: $MPAPPLICATIONSDIR" >&5
 echo "${ECHO_T}$MPAPPLICATIONSDIR" >&6; }
 
+    prefix=$oldprefix
 
 
 
@@ -6873,6 +6878,10 @@ if test "${with_frameworks_dir+set}" = set; then
 fi
 
 
+    oldprefix=$prefix
+    if test "x$prefix" = "xNONE" ; then
+	prefix=$ac_default_prefix
+    fi
     { echo "$as_me:$LINENO: checking for Frameworks installation directory" >&5
 echo $ECHO_N "checking for Frameworks installation directory... $ECHO_C" >&6; }
 
@@ -6883,6 +6892,7 @@ echo $ECHO_N "checking for Frameworks installation directory... $ECHO_C" >&6; }
 	{ echo "$as_me:$LINENO: result: $MPFRAMEWORKSDIR" >&5
 echo "${ECHO_T}$MPFRAMEWORKSDIR" >&6; }
 
+    prefix=$oldprefix
 
 
 # Check for universal options
