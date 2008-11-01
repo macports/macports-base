@@ -56,6 +56,7 @@ default livecheck.version {$version}
 
 proc livecheck_main {args} {
     global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
+    global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
     global homepage portname portpath workpath
     global master_sites name distfiles
     
@@ -104,6 +105,19 @@ proc livecheck_main {args} {
     if {${livecheck.name} eq "default"} {
         set livecheck.name $name
     }
+
+    # Copied over from portfetch in parts
+    set fetch_options {}
+	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
+		lappend fetch_options -u
+		lappend fetch_options "${fetch.user}:${fetch.password}"
+	}
+	if {${fetch.use_epsv} != "yes"} {
+		lappend fetch_options "--disable-epsv"
+	}
+	if {${fetch.ignore_sslcert} != "no"} {
+		lappend fetch_options "--ignore-ssl-cert"
+	}
 
     # Perform the check depending on the type.
     switch ${livecheck.check} {
@@ -162,7 +176,7 @@ proc livecheck_main {args} {
         "regexm" {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
+            if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
                 ui_error "cannot check if $portname was updated ($error)"
                 set updated -1
             } else {
@@ -211,7 +225,7 @@ proc livecheck_main {args} {
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {curl fetch ${livecheck.url} $tempfile} error]} {
+            if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
                 ui_error "cannot check if $portname was updated ($error)"
                 set updated -1
             } else {
