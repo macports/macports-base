@@ -70,7 +70,12 @@ buildmakejobs		1
 # Set whether to automatically execute "clean" after "install" of ports
 portautoclean		yes
 
-# Rsync server to fetch MacPorts sources from
+# Rsync server to fetch MacPorts sources from. Note that this is only used
+# for selfupdate. The source(s) for the ports tree are set in sources.conf.
+# Known mirrors at time of writing (see http://trac.macports.org/wiki/Mirrors
+# for the current list):
+#   rsync.macports.org        - California, USA (master)
+#   trd.no.rsync.macports.org - Trondheim, Norway
 rsync_server		rsync.macports.org
 
 # Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
