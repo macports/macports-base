@@ -489,6 +489,20 @@ proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
     return [join $lines "\n"]
 }
 
+##
+# Wraps a line at a specified width with a label in front
+#
+# @see wrap
+#
+# @param label label for output
+# @param string input string
+# @param maxlen text width (0 defaults to current terminal width)
+# @return wrapped string
+proc wraplabel {label string maxlen {indent ""}} {
+    append label ": [string repeat " " [expr [string length $indent] - [string length "$label: "]]]"
+    return "$label[wrap $string $maxlen $indent 0]"
+}
+
 proc unobscure_maintainers { list } {
     set result {}
     foreach m $list {
@@ -1476,8 +1490,7 @@ proc action_info { action portlist opts } {
                     append vars "$joiner$mod$v"
                     set joiner ", "
                 }
-                puts -nonewline "Variants:    "
-                puts [wrap $vars 0 [string repeat " " 13] 0]
+                puts [wraplabel "Variants" $vars 0 [string repeat " " 13]]
             }
             puts ""
             if {[info exists portinfo(long_description)]} {
@@ -1488,34 +1501,38 @@ proc action_info { action portlist opts } {
                 }
             }
             if {[info exists portinfo(homepage)]} {
-                puts "Homepage:    $portinfo(homepage)"
+                puts [wraplabel "Homepage" $portinfo(homepage) 0 [string repeat " " 13]]
             }
             puts ""
             # Emit build, library, and runtime dependencies
+            # For wrapping, indent output at 22 chars
+            set label_len 22
             foreach {key title} {
                 depends_build "Build Dependencies"
                 depends_lib "Library Dependencies"
                 depends_run "Runtime Dependencies"
             } {
                 if {[info exists portinfo($key)]} {
-                    puts -nonewline "$title: "
+                    set depstr ""
                     set joiner ""
                     foreach d $portinfo($key) {
                         if {[macports::ui_isset ports_verbose]} {
-                            puts -nonewline "$joiner$d"
+                            append depstr "$joiner$d"
                         } else {
-                            puts -nonewline "$joiner[lindex [split $d :] end]"
+                            append depstr "$joiner[lindex [split $d :] end]"
                         }
                         set joiner ", "
                     }
                     set nodeps false
-                    puts ""
+                    puts [wraplabel $title $depstr 0 [string repeat " " $label_len]]
                 }
             }
                 
-            if {[info exists portinfo(platforms)]} { puts "Platforms: [join $portinfo(platforms) ", "]"}
+            if {[info exists portinfo(platforms)]} {
+                puts [wraplabel "Platforms" [join $portinfo(platforms) ", "] 0 [string repeat " " $label_len]]
+            }
             if {[info exists portinfo(maintainers)]} {
-                puts "Maintainers: [unobscure_maintainers $portinfo(maintainers)]"
+                puts [wraplabel "Maintainers" [unobscure_maintainers $portinfo(maintainers)] 0 [string repeat " " $label_len]]
             }
         }
         set separator "--\n"
