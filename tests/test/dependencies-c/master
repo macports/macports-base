@@ -2,7 +2,7 @@
 --->  Verifying checksum(s) for dependencies-b
 --->  Extracting dependencies-b
 --->  Configuring dependencies-b
---->  Building dependencies-b with target all
+--->  Building dependencies-b
 --->  Staging dependencies-b into destroot
 --->  Installing dependencies-b @1_0
 --->  Activating dependencies-b @1_0
@@ -11,7 +11,7 @@
 --->  Verifying checksum(s) for dependencies-a
 --->  Extracting dependencies-a
 --->  Configuring dependencies-a
---->  Building dependencies-a with target all
+--->  Building dependencies-a
 --->  Staging dependencies-a into destroot
 --->  Installing dependencies-a @1_0+i_want_b
 --->  Activating dependencies-a @1_0+i_want_b
@@ -20,5 +20,5 @@
 --->  Verifying checksum(s) for dependencies-c
 --->  Extracting dependencies-c
 --->  Configuring dependencies-c
---->  Building dependencies-c with target all
+--->  Building dependencies-c
 --->  Testing dependencies-c
