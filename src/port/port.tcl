@@ -2697,6 +2697,7 @@ array set cmd_opts_array {
     variants    {index}
     clean       {all archive dist work}
     mirror      {new}
+    lint        {nitpick}
 }
 
 ##

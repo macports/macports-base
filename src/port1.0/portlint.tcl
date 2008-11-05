@@ -146,7 +146,7 @@ proc lint_start {args} {
 }
 
 proc lint_main {args} {
-	global UI_PREFIX portname portpath portresourcepath
+	global UI_PREFIX portname portpath portresourcepath ports_lint_nitpick
 	set portfile ${portpath}/Portfile
 	set portdirs [split ${portpath} /]
 	set last [llength $portdirs]
@@ -162,7 +162,11 @@ proc lint_main {args} {
     ###################################################################
     ui_debug "$portfile"
     
-    set nitpick false
+    if {[info exists ports_lint_nitpick] && $ports_lint_nitpick eq "yes"} {
+        set nitpick true
+    } else {
+        set nitpick false
+    }
 
     set topline_number 1
     set require_blank false
