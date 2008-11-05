@@ -52,9 +52,9 @@ proc validate_depends_options {option action {value ""}} {
     switch $action {
 		set {
 			foreach depspec $value {
+			    # port syntax accepts colon-separated junk that we do not understand yet.
 				switch -regex $depspec {
 					^(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-._A-Za-z0-9]+)$ {}
-					# port syntax accepts colon-separated junk that we do not understand yet.
 					^(port)(:.+)?:([-._A-Za-z0-9]+)$ {}
 					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
 				}
