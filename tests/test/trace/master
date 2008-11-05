@@ -2,7 +2,7 @@
 --->  Verifying checksum(s) for trace
 --->  Extracting trace
 --->  Configuring trace
---->  Building trace with target all
+--->  Building trace
 --->  Testing trace
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace
 Warning: A creation/deletion/modification was attempted outside sandbox: PWD/create-trace-modenv
