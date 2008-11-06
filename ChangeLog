@@ -5,6 +5,9 @@
 
 
 Release 1.7.0 (unreleased):
+    - Improve upon 'port lint' usage by not being too overbearing unless
+      --nitpick is used (#14799)
+
     - Fix reinplace when the filename contains spaces (#17098, ryandesign)
 
     - Fix python port group issues (#15226)
