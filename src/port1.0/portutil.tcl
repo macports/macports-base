@@ -753,7 +753,7 @@ proc reinplace {args}  {
             # Extract the Tcl Channel number
             set tmpfd [lindex $tmpfile 0]
             # Set tmpfile to only the file name
-            set tmpfile [lindex $tmpfile 1]
+            set tmpfile [join [lrange $tmpfile 1 end]]
         }
     
         set cmdline $portutil::autoconf::sed_command
