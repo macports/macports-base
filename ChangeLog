@@ -5,6 +5,8 @@
 
 
 Release 1.7.0 (unreleased):
+    - Fix reinplace when the filename contains spaces (#17098, ryandesign)
+
     - Fix python port group issues (#15226)
 
     - Make sure global variants (from variants.conf) are applied to all
