@@ -9,9 +9,14 @@ proc main {pextlibname} {
 
     array unset env *
     puts [array get env]
-
+    if {[array size env] > 0} {
+        puts "note: your TclUnsetEnv is broken... (need to use unsetenv too)"
+    }
     unsetenv *
     puts [array get env]
+    if {[array size env] > 0} {
+        error "env not empty as expected"
+    }
 
 
     set env(CC) "gcc"
@@ -22,7 +27,7 @@ proc main {pextlibname} {
     }
     unsetenv CC
     if {[info exists env(CC)]} {
-        exit 1
+        error "CC still set in env"
     }
 }
 
