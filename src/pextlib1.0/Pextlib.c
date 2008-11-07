@@ -1129,9 +1129,6 @@ int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc,
 int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *name;
-    char **envp;
-    char *equals;
-    size_t len;
     
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "name");
@@ -1145,20 +1142,11 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
 
     if (strcmp(name, "*") == 0) {
-        /* unset all current environment variables */
-        for (envp = environ; *envp != NULL; envp++) {
-            equals = strchr(*envp, '=');
-            if (equals != NULL) {
-                len = equals - *envp;
-                name = malloc(len+1);
-                if (name != NULL) {
-                    memcpy(name, *envp, len);
-                    name[len] = '\0';
-                    (void) unsetenv(name);
-                    free(name);
-                }
-            }
-        }
+        /* unset all current environment variables; it'd be best to use
+           clearenv() but that is not yet standardized, instead use this
+           technique which appears to be good across platforms, see eg:
+           <http://lists.freebsd.org/pipermail/freebsd-stable/2008-June/043136.html> */
+        environ = calloc(1, sizeof(char *));
     } else {
         (void) unsetenv(name);
     }
