@@ -1150,6 +1150,13 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     } else {
         (void) unsetenv(name);
     }
+    /* Tcl appears to become out of sync with the environment when we
+       unset things, eg, 'info exists env(CC)' will succeed where
+       'puts $env(CC)' will fail since it doesn't actually exist after
+       being unset here.  This forces Tcl to resync to the current state
+       (don't care about the actual result, so reset it) */
+    Tcl_Eval(interp, "array get env");
+    Tcl_ResetResult(interp);
 
     return TCL_OK;
 }
