@@ -1129,6 +1129,13 @@ int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc,
 int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *name;
+    char **envp;
+    char *equals;
+    size_t len;
+    Tcl_Obj *tclList;
+    int listLength;
+    Tcl_Obj **listArray;
+    int loopCounter;
     
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "name");
@@ -1143,10 +1150,24 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 
     if (strcmp(name, "*") == 0) {
         /* unset all current environment variables; it'd be best to use
-           clearenv() but that is not yet standardized, instead use this
-           technique which appears to be good across platforms, see eg:
-           <http://lists.freebsd.org/pipermail/freebsd-stable/2008-June/043136.html> */
-        environ = calloc(1, sizeof(char *));
+           clearenv() but that is not yet standardized, instead use Tcl's
+           list capability to easily build an array of strings for each
+           env name, then loop through that list to unsetenv() each one */
+        tclList = Tcl_NewListObj( 0, NULL );
+        Tcl_IncrRefCount( tclList );
+        /* unset all current environment variables */
+        for (envp = environ; *envp != NULL; envp++) {
+            equals = strchr(*envp, '=');
+            if (equals != NULL) {
+                len = equals - *envp;
+                Tcl_ListObjAppendElement(interp, tclList, Tcl_NewStringObj(*envp, len));
+            }
+        }
+        Tcl_ListObjGetElements(interp, tclList, &listLength, &listArray);
+        for (loopCounter = 0; loopCounter < listLength; loopCounter++) {
+            unsetenv(Tcl_GetString(listArray[loopCounter]));
+        }
+        Tcl_DecrRefCount( tclList );
     } else {
         (void) unsetenv(name);
     }
