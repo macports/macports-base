@@ -1149,6 +1149,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
 
     if (strcmp(name, "*") == 0) {
+#ifndef HAVE_CLEARENV
         /* unset all current environment variables; it'd be best to use
            clearenv() but that is not yet standardized, instead use Tcl's
            list capability to easily build an array of strings for each
@@ -1168,6 +1169,9 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
             unsetenv(Tcl_GetString(listArray[loopCounter]));
         }
         Tcl_DecrRefCount( tclList );
+#else
+        clearenv();
+#endif
     } else {
         (void) unsetenv(name);
     }
