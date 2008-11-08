@@ -220,17 +220,16 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	pid_t pid;
 	Tcl_Obj *errbuf;
 	Tcl_Obj *tcl_result;
+	int read_failed, status;
 
-	if (objc != 2 && objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "command");
-		return TCL_ERROR;
-	}
-	
-	if (objc == 3) {
+	/* usage: system [-notty] command */
+	if (objc == 2) {
+		cmdstring = Tcl_GetString(objv[1]);
+	} else if (objc == 3) {
 		char *arg = Tcl_GetString(objv[1]);
 		cmdstring = Tcl_GetString(objv[2]);
 
-		if (!strcmp(arg, "-notty")) {
+		if (strcmp(arg, "-notty") == 0) {
 			osetsid = 1;
 		} else {
 			tcl_result = Tcl_NewStringObj("bad option ", -1);
@@ -239,21 +238,26 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 			return TCL_ERROR;
 		}
 	} else {
-		cmdstring = Tcl_GetString(objv[1]);
-	}
-
-	if (pipe(fdset) == -1)
+		Tcl_WrongNumArgs(interp, 1, objv, "command");
 		return TCL_ERROR;
+	}
 
 	/*
 	 * Fork a child to run the command, in a popen() like fashion -
 	 * popen() itself is not used because stderr is also desired.
 	 */
-	pid = fork();
-	if (pid == -1)
+	if (pipe(fdset) != 0) {
 		return TCL_ERROR;
-	if (pid == 0) {
+	}
+
+	pid = fork();
+	switch (pid) {
+	case -1: /* error */
+		return TCL_ERROR;
+		break;
+	case 0: /* child */
 		close(fdset[0]);
+
 		if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
 			_exit(1);
 		dup2(nullfd, STDIN_FILENO);
@@ -271,13 +275,18 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		args[3] = NULL;
 		execve("/bin/sh", args, environ);
 		_exit(1);
+		break;
+	default: /* parent */
+		break;
 	}
+
 	close(fdset[1]);
-	pdes = fdopen(fdset[0], "r");
 
 	/* read from simulated popen() pipe */
+	read_failed = 0;
 	pos = 0;
 	bzero(circbuf, sizeof(circbuf));
+	pdes = fdopen(fdset[0], "r");
 	while ((buf = fgetln(pdes, &linelen)) != NULL) {
 		char *sbuf;
 		int slen;
@@ -298,11 +307,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		}
 
 		if (sbuf == NULL) {
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len != 0)
-					free(circbuf[pos % CBUFSIZ].line);
-			}
-			return TCL_ERROR;
+			read_failed = 1;
+			break;
 		}
 
 		memcpy(sbuf, buf, linelen);
@@ -312,25 +318,24 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		circbuf[pos].line = sbuf;
 		circbuf[pos].len = slen;
 
-		if (pos++ == CBUFSIZ - 1)
+		if (pos++ == CBUFSIZ - 1) {
 			pos = 0;
-		ret = ui_info(interp, sbuf);
-		if (ret != TCL_OK) {
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len != 0)
-					free(circbuf[pos % CBUFSIZ].line);
-			}
-			return ret;
+		}
+
+		if (ui_info(interp, sbuf) != TCL_OK) {
+			read_failed = 1;
+			break;
 		}
 	}
 	fclose(pdes);
 
-	if (wait(&ret) != pid)
-		return TCL_ERROR;
-	if (WIFEXITED(ret)) {
-		if (WEXITSTATUS(ret) == 0)
-			return TCL_OK;
-		else {
+	status = TCL_ERROR;
+
+	if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
+		/* Normal exit, and reading from the pipe didn't fail. */
+		if (WEXITSTATUS(ret) == 0) {
+			status = TCL_OK;
+		} else {
 			/* Copy the contents of the circular buffer to errbuf */
 		  	Tcl_Obj* errorCode;
 			errbuf = Tcl_NewStringObj(NULL, 0);
@@ -344,7 +349,6 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 				/* Re-add previously stripped newline */
 				Tcl_AppendToObj(errbuf, "\n", 1);
-				free(circbuf[pos % CBUFSIZ].line);
 			}
 
 			/* set errorCode [list CHILDSTATUS <pid> <code>] */
@@ -362,10 +366,18 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
 			Tcl_AppendObjToObj(tcl_result, errbuf);
 			Tcl_SetObjResult(interp, tcl_result);
-			return TCL_ERROR;
 		}
-	} else
-		return TCL_ERROR;
+	}
+
+	/* Cleanup. */
+	close(fdset[0]);
+	for (fline = 0; fline < CBUFSIZ; fline++) {
+		if (circbuf[fline].len != 0) {
+			free(circbuf[fline].line);
+		}
+	}
+
+	return status;
 }
 
 int SudoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
