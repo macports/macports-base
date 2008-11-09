@@ -5,6 +5,8 @@
 
 
 Release 1.7.0 (unreleased):
+    - PortIndex is now regenerated atomically (#16234, blb & ryandesign)
+
     - Improve upon 'port lint' usage by not being too overbearing unless
       --nitpick is used (#14799)
 
