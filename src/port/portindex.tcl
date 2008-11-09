@@ -136,9 +136,11 @@ if {[info exists outdir]} {
 }
 
 puts "Creating software index in $outdir"
-set fd [open [file join $outdir PortIndex] w]
+set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
+set fd [open $tempportindex w]
 mporttraverse pindex $directory
 close $fd
+file rename -force $tempportindex [file join $outdir PortIndex]
 puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\t\
       \nPorts failed:\t\t\t$stats(failed)\n"
