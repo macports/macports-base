@@ -28,8 +28,8 @@ proc main {pextlibname} {
 	test {[md5 file $tempfile] == "a4b0f4a5fbd8bec23002ad8023e01729"}
 	
 	# use -u
-	curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/ast-ksh.2008-02-02.tgz $tempfile
-	test {[md5 file $tempfile] == "d2a71e320fbaa7a0fd950a27c7e4b099"}
+	curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/sfio.2005-02-01.tgz $tempfile
+	test {[md5 file $tempfile] == "48f45c7c77c23ab0ccca48c22b3870de"}
 	
 	file delete -force $tempfile
 }
