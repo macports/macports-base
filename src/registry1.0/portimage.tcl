@@ -41,7 +41,7 @@ set UI_PREFIX "--> "
 #
 # Port Images are basically just installations of the destroot of a port into
 # ${macports::registry.path}/software/${name}/${version}_${revision}${variants}
-# They allow the user to instal multiple versions of the same port, treating
+# They allow the user to install multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
 # From there, the user can "activate" a port image.  This creates {sym,hard}links for
