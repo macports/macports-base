@@ -154,7 +154,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 		set receipt_contents [read $receipt_handle]
 		close $receipt_handle
 	} else {
-		return -code error "Registry error: receipt for ${name} @${version}_${revision}${variants} seems to be compressed, but bzip2 couln't be found."
+		return -code error "Registry error: receipt for ${name} @${version}_${revision}${variants} seems to be compressed, but bzip2 couldn't be found."
 	}
 
 	set ref [new_entry]
