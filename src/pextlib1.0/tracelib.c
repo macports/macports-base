@@ -44,6 +44,7 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <pthread.h>
+#include <limits.h>
 #include "tracelib.h"
 
 static char * name;
@@ -364,6 +365,10 @@ static int TracelibRunCmd(Tcl_Interp * in)
 	interp=in;
 	
 	rl.rlim_cur=rl.rlim_max=RLIM_INFINITY;
+#if defined(__APPLE__) && defined(OPEN_MAX)
+	if (OPEN_MAX < rl.rlim_cur)
+		rl.rlim_cur = OPEN_MAX;
+#endif
 	if(setrlimit(RLIMIT_NOFILE, &rl)==-1)
 	{
 		ui_warn("setrlimit failed (%d)", errno);
