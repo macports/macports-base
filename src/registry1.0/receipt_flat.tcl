@@ -98,7 +98,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 ##
 #
 # Open an existing entry and return its reference number.
-proc open_entry {name {version 0} {revision 0} {variants ""}} {
+proc open_entry {name {version ""} {revision 0} {variants ""}} {
 	global macports::registry.installtype
 	global macports::registry.path
 
@@ -110,7 +110,7 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		set receipt_file [get_head_entry_receipt_path $name $version]
 		
 		if {![string length $receipt_file]} {
-			if { $version != 0 } {
+			if { $version != "" } {
 				return -code error "Registry error: ${name} @${version}_${revision}${variants} not registered as installed."
 			} else {
 				return -code error "Registry error: ${name} not registered as installed."
@@ -118,14 +118,14 @@ proc open_entry {name {version 0} {revision 0} {variants ""}} {
 		}
 		
 		# Extract the version from the path.
-		if { $version == 0 } {
+		if { $version == "" } {
 			set theFileName [file tail $receipt_file]
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
 		# If version wasn't specified, find out the version number.  This will
 		# depend on which installtype mode we're in, "direct" or "image"	
-		if { $version == 0 } {
+		if { $version == "" } {
 			# xxx: If we're in image mode, we really should have had the 
 			# version given to us.  How should we handle this?
 			set x [glob -nocomplain [file join ${receipt_path} *]]

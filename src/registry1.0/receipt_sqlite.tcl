@@ -49,7 +49,7 @@ proc new_entry {} {
 }
 
 # Open an existing entry and place it in the receipt_list
-proc open_entry {name {version 0} {revision 0} {variants ""}} {
+proc open_entry {name {version ""} {revision 0} {variants ""}} {
 	return -1
 }
 

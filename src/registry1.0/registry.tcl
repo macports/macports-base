@@ -111,7 +111,7 @@ proc delete_entry {ref} {
 }
 
 # Open a registry entry.
-proc open_entry {name {version 0} {revision 0} {variants ""}} {
+proc open_entry {name {version ""} {revision 0} {variants ""}} {
 	global macports::registry.format
 
 	return [${macports::registry.format}::open_entry $name $version $revision $variants]
