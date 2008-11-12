@@ -44,7 +44,7 @@ UPGRADECHECK=/opt/local/var/macports/.mprename
 
 [ ! -d /Library/Tcl/darwinports1.0 ] || rm -rf /Library/Tcl/darwinports1.0
 
-[ ! -d /opt/local/share/darwinports ] || rm -rf /opt/local/darwinports
+[ ! -d /opt/local/share/darwinports ] || rm -rf /opt/local/share/darwinports
 
 [ ! -f /opt/local/etc/ports/dp_version ] || rm -vf /opt/local/etc/ports/dp_version
 
