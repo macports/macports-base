@@ -1015,6 +1015,7 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 	}
 
 	newmode = getmode(set, 0);
+	free(set);
 
 	oldmode = umask(newmode);
 
