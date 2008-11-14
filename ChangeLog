@@ -5,6 +5,8 @@
 
 
 Release 1.7.0 (unreleased):
+    - Improve error message when "upgrade outdated" is used (#12288)
+
     - Properly handle ports whose version evaluates to 0 (#16740, ryandesign)
 
     - PortIndex is now regenerated atomically (#16234, blb & ryandesign)
