@@ -234,7 +234,7 @@ set portfetch::mirror_sites::sites(perl_cpan) {
     ftp://ftp.auckland.ac.nz/pub/perl/CPAN/modules/by-module/
     ftp://ftp.cs.colorado.edu/pub/perl/CPAN/modules/by-module/
     ftp://cpan.pop-mg.com.br/pub/CPAN/modules/by-module/
-    ftp://ftp.is.co.za/programming/perl/CPAN/modules/by-module/
+    ftp://ftp.is.co.za/programming/perl/modules/by-module/
     ftp://ftp.chg.ru/pub/lang/perl/CPAN/modules/by-module/
     http://mirror.internode.on.net/pub/cpan/modules/by-module/
     http://cpan.mirrors.ilisys.com.au/modules/by-module/
