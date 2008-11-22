@@ -85,7 +85,7 @@ proc perl5.setup {module vers {cpandir ""}} {
     distname            ${perl5.module}-${vers}
     dist_subdir         perl5
 
-    depends_lib     path:${perl5.bin}:perl5.8
+    depends_lib     path:[string range ${perl5.bin} [string length ${prefix}/] end]:perl5
 
     configure.cmd       ${perl5.bin}
     configure.pre_args  Makefile.PL
