@@ -61,6 +61,7 @@ set perl5.cpandir ""
 # perl5 group setup procedure
 proc perl5.setup {module vers {cpandir ""}} {
     global perl5.bin perl5.lib perl5.module perl5.cpandir
+    global prefix
 
     # define perl5.module
     set perl5.module ${module}
