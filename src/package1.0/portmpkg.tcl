@@ -109,7 +109,7 @@ proc make_one_package {portname portversion destination} {
 }
 
 proc package_mpkg {portname portversion portrevision} {
-    global portdbpath destpath workpath prefix portresourcepath description package.destpath package.flat long_description homepage depends_run depends_lib
+    global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
 	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
 	set mpkgpath ${package.destpath}/${portname}-${portversion}.mpkg
@@ -146,7 +146,7 @@ proc package_mpkg {portname portversion portrevision} {
 	}
     }
     write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- ${portresourcepath}/package/background.tiff ${mpkgpath}/Contents/Resources/background.tiff
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${mpkgpath}/Contents/Resources/background.tiff
 
 	return 0
 }

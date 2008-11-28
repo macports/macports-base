@@ -146,7 +146,7 @@ proc lint_start {args} {
 }
 
 proc lint_main {args} {
-	global UI_PREFIX portname portpath portresourcepath ports_lint_nitpick
+	global UI_PREFIX portname portpath porturl ports_lint_nitpick
 	set portfile ${portpath}/Portfile
 	set portdirs [split ${portpath} /]
 	set last [llength $portdirs]
@@ -154,7 +154,6 @@ proc lint_main {args} {
 	set portdir [lindex $portdirs $last]
 	incr last -1
 	set portcatdir [lindex $portdirs $last]
-	set groupdir ${portresourcepath}/group
 
 	set warnings 0
 	set errors 0
@@ -317,7 +316,7 @@ proc lint_main {args} {
     }
     if (!$seen_portgroup) {
         # PortGroup is optional, so missing is OK
-    }  elseif {![file exists $groupdir/$portgroup-$portgroupversion.tcl]} {
+    }  elseif {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
         ui_error "Unknown PortGroup: $portgroup-$portgroupversion"
         incr errors
     } else {
@@ -416,12 +415,18 @@ proc lint_main {args} {
             if {![info exists variantdesc] || $variantdesc == ""} {
                 # don't warn about missing descriptions for global variants
                 if {[lsearch -exact $local_variants $variantname] != -1 &&
-                    [lsearch -exact $lint_variants $variantname] == -1} {
+                    [lsearch -exact $lint_variants $variantname] == -1 && 
+                    [variant_desc $porturl $variantname] == ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
                     set desc_ok false
                 } elseif {$variantdesc == ""} {
                     set variantdesc "(pre-defined variant)"
+                }
+            } else {
+                if {[variant_desc $porturl $variantname] != ""} {
+                    ui_warn "Variant $variantname overrides global description"
+                    incr warnings
                 }
             }
 

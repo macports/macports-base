@@ -412,7 +412,7 @@ proc default_check {optionName index op} {
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
-    global all_variants PortInfo
+    global all_variants PortInfo porturl
     
     set len [llength $args]
     set code [lindex $args end]
@@ -450,6 +450,12 @@ proc variant {args} {
     } else {
         lappend PortInfo(variants) $variant_provides
         set vdesc [join [ditem_key $ditem description]]
+
+        # read global variant description, if none given
+        if {$vdesc == ""} {
+            set vdesc [variant_desc $porturl $variant_provides]
+        }
+
         if {$vdesc != ""} {
             lappend PortInfo(variant_desc) $variant_provides $vdesc
         }
@@ -536,6 +542,46 @@ proc variant_exists {name} {
     }
 
     return 0
+}
+
+##
+# Get description for a variant from global descriptions file
+#
+# @param porturl url to a port
+# @param variant name
+# @return description from descriptions file or an empty string
+proc variant_desc {porturl variant} {
+    global variant_descs_global
+
+    set descfile [getportresourcepath $porturl variant_descriptions.conf]
+    if {![info exists variant_descs_global($descfile)]} {
+        set variant_descs_global($descfile) yes
+
+        if {[file exists $descfile]} {
+            if {[catch {set fd [open $descfile r]} err]} {
+                ui_warn "Could not open global variant description file: $err"
+                return ""
+            }
+            set lineno 0
+            while {[gets $fd line] >= 0} {
+                incr lineno
+                set name [lindex $line 0]
+                set desc [lindex $line 1]
+                if {$name != "" && $desc != ""} {
+                    set variant_descs_global(${descfile}_$name) $desc
+                } else {
+                    ui_warn "Invalid variant description in $descfile at line $lineno"
+                }
+            }
+            close $fd
+        }
+    }
+
+    if {[info exists variant_descs_global(${descfile}_${variant})]} {
+        return $variant_descs_global(${descfile}_${variant})
+    } else {
+        return ""
+    }
 }
 
 # platform <os> [<release>] [<arch>] 
@@ -1985,11 +2031,12 @@ proc set_ui_prefix {} {
 
 # Use a specified group/version.
 proc PortGroup {group version} {
-    global portresourcepath
+    global porturl
 
-    set groupFile ${portresourcepath}/group/${group}-${version}.tcl
+    set groupFile [getportresourcepath $porturl "port1.0/group/${group}-${version}.tcl"]
 
     if {[file exists $groupFile]} {
+        ui_debug "Using group file $groupFile"
         uplevel "source $groupFile"
     } else {
         ui_warn "Group file could not be located."

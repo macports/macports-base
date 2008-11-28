@@ -51,7 +51,7 @@ proc rpm_main {args} {
 }
 
 proc rpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath prefix portresourcepath categories maintainers description long_description homepage epoch portpath
+    global UI_PREFIX package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
 	global os.platform os.arch os.version os.major
     
     set rpmdestpath ""

@@ -52,8 +52,6 @@ options_export name version revision epoch categories maintainers platforms desc
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 
-# Hard coded version number for resource location
-default portresourcepath {[file join $portsharepath resources/port1.0]}
 default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default worksymlink {[file join $portpath work]}

@@ -60,7 +60,7 @@ proc pkg_main {args} {
 }
 
 proc package_pkg {portname portversion portrevision} {
-    global UI_PREFIX portdbpath destpath workpath prefix portresourcepath description package.destpath package.flat long_description homepage portpath
+    global UI_PREFIX portdbpath destpath workpath prefix description package.destpath package.flat long_description homepage portpath porturl
     global os.version os.major
 
     set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
@@ -89,7 +89,7 @@ proc package_pkg {portname portversion portrevision} {
         }
     }
     write_welcome_html ${resourcepath}/${language}.lproj/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
-    file copy -force -- ${portresourcepath}/package/background.tiff ${resourcepath}/${language}.lproj/background.tiff
+    file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${resourcepath}/${language}.lproj/background.tiff
 
     foreach dir {etc var tmp} {
         if ([file exists "${destpath}/$dir"]) {

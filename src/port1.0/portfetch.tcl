@@ -100,7 +100,7 @@ default fetch.remote_time "no"
 default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
-default mirror_sites.listpath {"${portresourcepath}/fetch/"}
+default mirror_sites.listpath {"port1.0/fetch"}
 
 # Option-executed procedures
 option_proc use_bzip2 fix_extract_suffix
@@ -173,8 +173,10 @@ proc disttagclean {list} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX portname portresourcepath mirror_sites.listfile mirror_sites.listpath dist_subdir
-    source ${mirror_sites.listpath}${mirror_sites.listfile}
+    global UI_PREFIX portname porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
+
+    source [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
+
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
         ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
         return {}

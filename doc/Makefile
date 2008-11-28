@@ -58,9 +58,9 @@ install: all
 	for m in ${MAN5}; do rm -f ${INSTALLDIR}/share/man/man5/$$m ; done
 	for m in ${MAN7}; do rm -f ${INSTALLDIR}/share/man/man7/$$m ; done
 
-	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/macports/resources/port1.0/install
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
-	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/macports/resources/port1.0/install/
+	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/macports/install
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/macports/install/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/macports/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1.gz ${INSTALLDIR}/share/man/man1
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports.conf.5.gz ${INSTALLDIR}/share/man/man5
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 portfile.7.gz ${INSTALLDIR}/share/man/man7

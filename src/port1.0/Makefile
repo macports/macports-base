@@ -8,8 +8,6 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portdistcheck.tcl portmirror.tcl portload.tcl portunload.tcl \
 	portdistfiles.tcl
 
-SUBDIR=		resources
-
 include ../../Mk/macports.subdir.mk
 include ../../Mk/macports.autoconf.mk
 

@@ -2106,8 +2106,8 @@ proc action_variants { action portlist opts } {
             # print out all the variants
             puts "$portname has the variants:"
             foreach v $portinfo(variants) {
-                if {[info exists descs($v)]} {
-                    puts "\t$v: [join [string trim $descs($v)]]"
+                if {[info exists descs($v)] && $descs($v) != ""} {
+                    puts "\t$v: [string trim $descs($v)]"
                 } else {
                     puts "\t$v"
                 }

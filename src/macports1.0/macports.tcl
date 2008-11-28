@@ -48,7 +48,7 @@ namespace eval macports {
         applications_dir frameworks_dir universal_target universal_sysroot universal_archs"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-        portdbpath portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
+        portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
@@ -327,6 +327,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::registry.format
     global macports::registry.path
     global macports::sources
+    global macports::sources_default
     global macports::sources_conf
     global macports::destroot_umask
     global macports::libpath
@@ -418,8 +419,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line _ url flags]} {
                 set flags [split $flags ,]
                 foreach flag $flags {
-                    if {[lsearch -exact [list nosync] $flag] == -1} {
+                    if {[lsearch -exact [list nosync default] $flag] == -1} {
                         ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
+                    }
+                    if {$flag == "default"} {
+                        set sources_default [concat [list $url] $flags]
                     }
                 }
                 lappend sources [concat [list $url] $flags]
@@ -705,7 +709,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 }
 
-proc macports::worker_init {workername portpath portbuildpath options variations} {
+proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
     global macports::portinterp_options macports::portinterp_deferred_options registry.installtype
 
     # Hide any Tcl commands that should be inaccessible to port1.0 and Portfiles
@@ -744,6 +748,9 @@ proc macports::worker_init {workername portpath portbuildpath options variations
     # Export some utility functions defined here.
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
+    $workername alias getportresourcepath macports::getportresourcepath
+    $workername alias getprotocol macports::getprotocol
+    $workername alias getportdir macports::getportdir
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -893,6 +900,41 @@ proc macports::getportdir {url {destdir "."}} {
     }
 }
 
+##
+# Get the path to the _resources directory of the source
+#
+# @param url port url
+# @return path to the _resources directory or the path to the fallback
+proc macports::getportresourcepath {url {path ""}} {
+    global macports::sources_default
+
+    set protocol [getprotocol $url]
+
+    switch -- ${protocol} {
+        file {
+            set proposedpath [file normalize [file join [getportdir $url] .. ..]]
+        }
+    }
+
+    # append requested path
+    set proposedpath [file join $proposedpath _resources $path]
+
+    if {![file exists $proposedpath]} {
+        # fallback
+        set default_source_url [lindex ${sources_default} 0]
+        if {[getprotocol $default_source_url] == "file"} {
+            set proposedpath [getportdir $default_source_url]
+        } else {
+            set proposedpath [getsourcepath $default_source_url]
+        }
+
+        # append requested path
+        set proposedpath [file join $proposedpath _resources $path]
+    }
+
+    return $proposedpath
+}
+
 # dportopen
 # Deprecated version of the new mportopen proc, listed here as backwards
 # compatibility glue for API clients that haven't updated to the new naming
@@ -950,7 +992,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     ditem_key $mport variations $variations
     ditem_key $mport refcnt 1
     
-    macports::worker_init $workername $portpath [macports::getportbuildpath $portpath] $options $variations
+    macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
 
     $workername eval source Portfile
     

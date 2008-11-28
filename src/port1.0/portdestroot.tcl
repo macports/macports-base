@@ -86,7 +86,7 @@ namespace eval destroot {
 }
 
 proc destroot_start {args} {
-    global UI_PREFIX prefix portname destroot portresourcepath os.platform destroot.clean
+    global UI_PREFIX prefix portname porturl destroot os.platform destroot.clean portsharepath
     global destroot::oldmask destroot.umask
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
@@ -100,10 +100,10 @@ proc destroot_start {args} {
     
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
-        system "cd \"${destroot}\" && ${mtree} -e -U -f ${portresourcepath}/install/macosx.mtree"
+        system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
     }
     file mkdir "${destroot}/${prefix}"
-    system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f ${portresourcepath}/install/prefix.mtree"
+    system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
 proc destroot_main {args} {

@@ -67,7 +67,7 @@ proc test_depends_lib-delete {} {
     # depends_lib is intended to work from within a worker thread
     # so we shall oblige
     set workername [interp create]
-    macports::worker_init $workername {} [macports::getportbuildpath {}] {} {}
+    macports::worker_init $workername {} {} [macports::getportbuildpath {}] {} {}
     $workername alias scriptname info script
     set body {
         # load the current copy of portutil instead of the installed one
