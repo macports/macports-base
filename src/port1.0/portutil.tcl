@@ -553,7 +553,7 @@ proc variant_exists {name} {
 proc variant_desc {porturl variant} {
     global variant_descs_global
 
-    set descfile [getportresourcepath $porturl variant_descriptions.conf]
+    set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf"]
     if {![info exists variant_descs_global($descfile)]} {
         set variant_descs_global($descfile) yes
 
