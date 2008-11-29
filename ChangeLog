@@ -5,6 +5,11 @@
 
 
 Release 1.7.0 (unreleased):
+    - Global variant descriptions using variant_descriptions.conf in the new
+      resources directory in the ports tree (#14482, raimue)
+
+    - Move port resources into the ports tree (#14553, raimue and blb)
+
     - Improve error message when "upgrade outdated" is used (#12288)
 
     - Properly handle ports whose version evaluates to 0 (#16740, ryandesign)
