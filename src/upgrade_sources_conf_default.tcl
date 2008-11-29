@@ -61,7 +61,9 @@ close $sourcesConfChannel
 
 if {$defaultWritten} {
    set attributes [file attributes ${sourcesConf}]
-   file rename ${sourcesConf} "${sourcesConf}.mpsaved"
+   if {[catch {file rename ${sourcesConf} "${sourcesConf}.mpsaved"}]} {
+      file rename -force ${sourcesConf} "${sourcesConf}.mpsaved_[clock seconds]"
+   }
    file rename ${tempfile} ${sourcesConf}
    eval file attributes ${sourcesConf} $attributes
 }
