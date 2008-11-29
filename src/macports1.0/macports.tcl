@@ -1034,7 +1034,8 @@ proc mporttraverse {func {root .}} {
 
     foreach category [lsort -increasing -unique [readdir $root]] {
         set pathToCategory [file join $root $category]
-        if {[file isdirectory $pathToCategory]} {
+        # process the category dirs but not _resources
+        if {[file isdirectory $pathToCategory] && [string index [file tail $pathToCategory] 0] != "_"} {
             # Iterate on port directories.
             foreach port [lsort -increasing -unique [readdir $pathToCategory]] {
                 set pathToPort [file join $pathToCategory $port]
