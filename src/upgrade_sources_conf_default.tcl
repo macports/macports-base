@@ -60,8 +60,10 @@ close $tempfileChannel
 close $sourcesConfChannel
 
 if {$defaultWritten} {
+   set attributes [file attributes ${sourcesConf}]
    file rename ${sourcesConf} "${sourcesConf}.mpsaved"
    file rename ${tempfile} ${sourcesConf}
+   eval file attributes ${sourcesConf} $attributes
 }
 exit 0
 
