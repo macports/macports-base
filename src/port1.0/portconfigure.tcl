@@ -126,22 +126,42 @@ options configure.ccache configure.distcc configure.pipe configure.cc configure.
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-default configure.cc            {}
-default configure.cxx           {}
-default configure.cpp           {}
-default configure.objc          {}
-default configure.f77           {}
-default configure.f90           {}
-default configure.fc            {}
-default configure.javac         {}
-default configure.compiler      {}
+default configure.cc            {[configure_get_compiler cc]}
+default configure.cxx           {[configure_get_compiler cxx]}
+default configure.cpp           {[configure_get_compiler cpp]}
+default configure.objc          {[configure_get_compiler objc]}
+default configure.f77           {[configure_get_compiler f77]}
+default configure.f90           {[configure_get_compiler f90]}
+default configure.fc            {[configure_get_compiler fc]}
+default configure.javac         {[configure_get_compiler javac]}
+default configure.compiler      {[configure_get_default_compiler]}
 
 set_ui_prefix
 
 proc configure_start {args} {
     global UI_PREFIX
+    global configure.compiler
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+
+    set name ""
+    switch -exact ${configure.compiler} {
+        gcc-3.3 { set name "Mac OS X gcc 3.3" }
+        gcc-4.0 { set name "Mac OS X gcc 4.0" }
+        gcc-4.2 { set name "Mac OS X gcc 4.2" }
+        llvm-gcc-4.2 { set name "Mac OS X llvm-gcc 4.2" }
+        apple-gcc-3.3 { set name "MacPorts Apple gcc 3.3" }
+        apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
+        macports-gcc-3.3 { set name "MacPorts gcc 3.3" }
+        macports-gcc-3.4 { set name "MacPorts gcc 3.4" }
+        macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
+        macports-gcc-4.1 { set name "MacPorts gcc 4.1" }
+        macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
+        macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
+        macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
+        default { return -code error "Invalid value for configure.compiler" }
+    }
+    ui_debug "Using compiler '$name'"
 }
 
 # internal function to determine canonical system name for configure
@@ -232,31 +252,140 @@ proc configure_get_universal_ldflags {args} {
     return $flags
 }
 
+# internal function to determine the default compiler
+proc configure_get_default_compiler {args} {
+    global os.platform os.major
+    set compiler ""
+    switch -exact "${os.platform} ${os.major}" {
+        "darwin 7" { set compiler gcc-3.3 }
+        "darwin 8" { set compiler gcc-4.0 }
+        "darwin 9" { set compiler gcc-4.0 }
+        "darwin 10" { set compiler llvm-gcc-4.2 }
+    }
+    return $compiler
+}
 
-
-# internal function for setting compiler variables; use like "_set_compiler string var val var val .."
-# this function will NOT override explicitely set variables from the portfile
-proc select_compiler {info args} {
-    global configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc
-    ui_debug "Using compiler '$info'"
-    set i 0
-    foreach value $args {
-        if {0==$i} {
-            set comp $value
-            set i 1
-        } else {
-            switch -exact $comp {
-                cc  { if {""==${configure.cc}}  { set configure.cc $value } }
-                cxx { if {""==${configure.cxx}} { set configure.cxx $value } }
-                cpp { if {""==${configure.cpp}} { set configure.cpp $value } }
-                objc { if {""==${configure.objc}} { set configure.objc $value } }
-                fc  { if {""==${configure.fc}}  { set configure.fc $value } }
-                f77 { if {""==${configure.f77}} { set configure.f77 $value } }
-                f90 { if {""==${configure.f90}} { set configure.f90 $value } }
+# internal function to find correct compilers
+proc configure_get_compiler {type} {
+    global configure.compiler prefix
+    set ret ""
+    switch -exact ${configure.compiler} {
+        gcc-3.3 {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/gcc-3.3 }
+                objc { set ret /usr/bin/gcc-3.3 }
+                cxx  { set ret /usr/bin/g++-3.3 }
+                cpp  { set ret /usr/bin/cpp-3.3 }
             }
-            set i 0
+        }
+        gcc-4.0 {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/gcc-4.0 }
+                objc { set ret /usr/bin/gcc-4.0 }
+                cxx  { set ret /usr/bin/g++-4.0 }
+                cpp  { set ret /usr/bin/cpp-4.0 }
+            }
+        }
+        gcc-4.2 {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/gcc-4.2 }
+                objc { set ret /usr/bin/gcc-4.2 }
+                cxx  { set ret /usr/bin/g++-4.2 }
+                cpp  { set ret /usr/bin/cpp-4.2 }
+            }
+        }
+        llvm-gcc-4.2 {
+            switch -exact ${type} {
+                cc   { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
+                objc { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
+                cxx  { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
+                cpp  { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
+            }
+        }
+        apple-gcc-3.3 {
+            switch -exact ${type} {
+                cc  { set ret ${prefix}/bin/gcc-apple-3.3 }
+                cpp { set ret ${prefix}/bin/cpp-apple-3.3 }
+            }
+        }
+        apple-gcc-4.0 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-apple-4.0 }
+                objc { set ret ${prefix}/bin/gcc-apple-4.0 }
+                cpp  { set ret ${prefix}/bin/cpp-apple-4.0 }
+            }
+        }
+        macports-gcc-3.3 {
+            switch -exact ${type} {
+                cc  { set ret ${prefix}/bin/gcc-mp-3.3 }
+                cxx { set ret ${prefix}/bin/g++-mp-3.3 }
+                cpp { set ret ${prefix}/bin/cpp-mp-3.3 }
+            }
+        }
+        macports-gcc-3.4 {
+            switch -exact ${type} {
+                cc  { set ret ${prefix}/bin/gcc-mp-3.4 }
+                cxx { set ret ${prefix}/bin/g++-mp-3.4 }
+                cpp { set ret ${prefix}/bin/cpp-mp-3.4 }
+            }
+        }
+        macports-gcc-4.0 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.0 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.0 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.0 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.0 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.0 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.0 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.0 }
+            }
+        }
+        macports-gcc-4.1 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.1 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.1 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.1 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.1 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.1 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.1 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.1 }
+            }
+        }
+        macports-gcc-4.2 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.2 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.2 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.2 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.2 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.2 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.2 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.2 }
+            }
+        }
+        macports-gcc-4.3 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.3 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.3 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.3 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.3 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.3 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.3 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.3 }
+            }
+        }
+        macports-gcc-4.4 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.4 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.4 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.4 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.4 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.4 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.4 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.4 }
+            }
         }
     }
+    return $ret
 }
 
 proc configure_main {args} {
@@ -264,8 +393,7 @@ proc configure_main {args} {
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
     global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler prefix
-    global os.platform os.major
+    global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac
     
     if {[tbool use_autoreconf]} {
         # XXX depend on autoreconf
@@ -288,110 +416,6 @@ proc configure_main {args} {
         }
     }
 
-    # 1st chose a reasonable default compiler suite for each platform if none was chosen
-    if {""==${configure.compiler}} {
-        switch -exact "${os.platform} ${os.major}" {
-            "darwin 7" { set configure.compiler gcc-3.3 }
-            "darwin 8" { set configure.compiler gcc-4.0 }
-            "darwin 9" { set configure.compiler gcc-4.0 }
-            "darwin 10" { set configure.compiler llvm-gcc-4.2 }
-        }
-    }
-
-    # select a compiler collection
-    switch -exact ${configure.compiler} {
-        gcc-3.3 {
-            select_compiler "Mac OS X gcc 3.3" \
-                cc  /usr/bin/gcc-3.3 \
-                objc /usr/bin/gcc-3.3 \
-                cxx /usr/bin/g++-3.3 \
-                cpp /usr/bin/cpp-3.3 }
-        gcc-4.0 {
-            select_compiler "Mac OS X gcc 4.0" \
-                cc  /usr/bin/gcc-4.0 \
-                objc /usr/bin/gcc-4.0 \
-                cxx /usr/bin/g++-4.0 \
-                cpp /usr/bin/cpp-4.0 }
-        gcc-4.2 {
-            select_compiler "Mac OS X gcc 4.2" \
-                cc  /usr/bin/gcc-4.2 \
-                objc /usr/bin/gcc-4.2 \
-                cxx /usr/bin/g++-4.2 \
-                cpp /usr/bin/cpp-4.2 }
-        llvm-gcc-4.2 {
-            select_compiler "Mac OS X llvm-gcc 4.2" \
-                cc  /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 \
-                objc /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 \
-                cxx /Developer/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 \
-                cpp /Developer/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
-        apple-gcc-3.3 {
-            select_compiler "MacPorts Apple gcc 3.3" \
-                cc  ${prefix}/bin/gcc-apple-3.3 \
-                cpp ${prefix}/bin/cpp-apple-3.3 }
-        apple-gcc-4.0 {
-            select_compiler "MacPorts Apple gcc 4.0" \
-                cc  ${prefix}/bin/gcc-apple-4.0 \
-                objc ${prefix}/bin/gcc-apple-4.0 \
-                cpp ${prefix}/bin/cpp-apple-4.0 }
-        macports-gcc-3.3 {
-            select_compiler "MacPorts gcc 3.3" \
-                cc  ${prefix}/bin/gcc-mp-3.3 \
-                cxx ${prefix}/bin/g++-mp-3.3 \
-                cpp ${prefix}/bin/cpp-mp-3.3 }
-        macports-gcc-3.4 {
-            select_compiler "MacPorts gcc 3.4" \
-                cc  ${prefix}/bin/gcc-mp-3.4 \
-                cxx ${prefix}/bin/g++-mp-3.4 \
-                cpp ${prefix}/bin/cpp-mp-3.4 }
-        macports-gcc-4.0 {
-            select_compiler "MacPorts gcc 4.0" \
-                cc  ${prefix}/bin/gcc-mp-4.0 \
-                objc ${prefix}/bin/gcc-mp-4.0 \
-                cxx ${prefix}/bin/g++-mp-4.0 \
-                cpp ${prefix}/bin/cpp-mp-4.0 \
-                fc  ${prefix}/bin/gfortran-mp-4.0 \
-                f77 ${prefix}/bin/gfortran-mp-4.0 \
-                f90 ${prefix}/bin/gfortran-mp-4.0 }
-        macports-gcc-4.1 {
-            select_compiler "MacPorts gcc 4.1" \
-                cc  ${prefix}/bin/gcc-mp-4.1 \
-                objc ${prefix}/bin/gcc-mp-4.1 \
-                cxx ${prefix}/bin/g++-mp-4.1 \
-                cpp ${prefix}/bin/cpp-mp-4.1 \
-                fc  ${prefix}/bin/gfortran-mp-4.1 \
-                f77 ${prefix}/bin/gfortran-mp-4.1 \
-                f90 ${prefix}/bin/gfortran-mp-4.1 }
-        macports-gcc-4.2 {
-            select_compiler "MacPorts gcc 4.2" \
-                cc  ${prefix}/bin/gcc-mp-4.2 \
-                objc ${prefix}/bin/gcc-mp-4.2 \
-                cxx ${prefix}/bin/g++-mp-4.2 \
-                cpp ${prefix}/bin/cpp-mp-4.2 \
-                fc  ${prefix}/bin/gfortran-mp-4.2 \
-                f77 ${prefix}/bin/gfortran-mp-4.2 \
-                f90 ${prefix}/bin/gfortran-mp-4.2 }
-        macports-gcc-4.3 {
-            select_compiler "MacPorts gcc 4.3" \
-                cc  ${prefix}/bin/gcc-mp-4.3 \
-                objc ${prefix}/bin/gcc-mp-4.3 \
-                cxx ${prefix}/bin/g++-mp-4.3 \
-                cpp ${prefix}/bin/cpp-mp-4.3 \
-                fc  ${prefix}/bin/gfortran-mp-4.3 \
-                f77 ${prefix}/bin/gfortran-mp-4.3 \
-                f90 ${prefix}/bin/gfortran-mp-4.3 }
-        macports-gcc-4.4 {
-            select_compiler "MacPorts gcc 4.4" \
-                cc  ${prefix}/bin/gcc-mp-4.4 \
-                objc ${prefix}/bin/gcc-mp-4.4 \
-                cxx ${prefix}/bin/g++-mp-4.4 \
-                cpp ${prefix}/bin/cpp-mp-4.4 \
-                fc  ${prefix}/bin/gfortran-mp-4.4 \
-                f77 ${prefix}/bin/gfortran-mp-4.4 \
-                f90 ${prefix}/bin/gfortran-mp-4.4 }
-        default {
-            return -code error "Invalid value for configure.compiler" }
-    }
-    
     if {[tbool use_xmkmf]} {
         # XXX depend on xmkmf
         if {[catch {command_exec xmkmf} result]} {
