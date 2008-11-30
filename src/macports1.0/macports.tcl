@@ -432,6 +432,13 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             }
         }
     }
+    # Make sure the default port source is defined. Otherwise
+    # [macports::getportresourcepath] fails when the first source doesn't
+    # contain _resources.
+    if {![info exists sources_default]} {
+        return -code error "No default port source specified in $sources_conf"
+    }
+
     if {![info exists sources]} {
         if {[file isdirectory ports]} {
             set sources "file://[pwd]/ports"
