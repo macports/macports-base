@@ -38,10 +38,10 @@ include Mk/macports.subdir.mk
 
 install::
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  ${datadir}/macports/
-# Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
-	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) src/upgrade_sources_conf_default.tcl ${prefix}
+# Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
+	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
 	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
