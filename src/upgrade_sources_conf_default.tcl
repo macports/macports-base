@@ -76,6 +76,9 @@ if {$defaultWritten} {
    }
    file rename ${tempfile} ${sourcesConf}
    eval file attributes ${sourcesConf} $attributes
+} else {
+   file delete ${tempfile}
 }
+
 exit 0
 
