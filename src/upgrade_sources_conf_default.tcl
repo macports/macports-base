@@ -44,7 +44,7 @@ while {[gets $sourcesConfChannel line] >= 0} {
    if {!$defaultSeen && ![regexp {^\s*#|^$} $line]} {
       if {[string first {[default]} $line] >= 0} {
          set defaultSeen true
-      } elseif {[regexp {^\s*rsync://rsync\.macports\.org/release/ports/} $line]} {
+      } elseif {[regexp {^\s*rsync://rsync\.(macports|darwinports)\.org/(release|dpupdate)/d?ports} $line]} {
          set line [append_default_tag_to_line $line]
          set defaultSeen true
          set defaultWritten true
@@ -56,7 +56,7 @@ while {[gets $sourcesConfChannel line] >= 0} {
                regexp {^URL: (.*)} $svnLine -> svnURL
             }
             close $svnChannel
-            if {[regexp {^https?://svn\.macports\.org/repository/macports/trunk/dports} $svnURL]} {
+            if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
                set line [append_default_tag_to_line $line]
                set defaultSeen true
                set defaultWritten true
