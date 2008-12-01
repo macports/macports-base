@@ -23,15 +23,6 @@ if {[catch {set sourcesConfChannel [open $sourcesConf r]}]} {
 }
 
 
-proc append_default_tag_to_line {line} {
-   if {[regexp {^(.* )\[(.*)\](.*)$} $line -> line_begin current_tag line_end]} {
-      return "${line_begin}\[${current_tag},default\]${line_end}"
-   } else {
-      return "${line} \[default\]"
-   }
-}
-
-
 set mktempChannel [open "|/usr/bin/mktemp -t macports_sources_upgrade" r]
 set tempfile [read -nonewline $mktempChannel]
 close $mktempChannel
@@ -41,26 +32,32 @@ set defaultSeen false
 set defaultWritten false
 
 while {[gets $sourcesConfChannel line] >= 0} {
+   set addDefault false
    if {!$defaultSeen && ![regexp {^\s*#|^$} $line]} {
-      if {[string first {[default]} $line] >= 0} {
-         set defaultSeen true
-      } elseif {[regexp {^\s*rsync://rsync\.(macports|darwinports)\.org/(release|dpupdate)/d?ports} $line]} {
-         set line [append_default_tag_to_line $line]
-         set defaultSeen true
-         set defaultWritten true
-      } elseif {[regexp {^\s*file://(/[^ #]+)} $line -> filepath]} {
-         if {[file exists [file join ${filepath} .svn]]} {
-            set svnChannel [open "|svn info ${filepath}" r]
-            set svnURL {}
-            while {[gets $svnChannel svnLine] >= 0} {
-               regexp {^URL: (.*)} $svnLine -> svnURL
+      if {[regexp {^([\w-]+://\S+)(?:\s+\[(\w+(?:,\w+)*)\])?$} $line -> url flags]} {
+         set flags [split $flags ,]
+         if {[lsearch $flags default] >= 0} {
+            set defaultSeen true
+         } elseif {[regexp {rsync://rsync\.(macports|darwinports)\.org/(release|dpupdate)/d?ports} $url]} {
+            set addDefault true
+         } elseif {[regexp {file://(/.+)} $url -> filepath]} {
+            if {[file exists [file join ${filepath} .svn]]} {
+               set svnChannel [open "|svn info ${filepath}" r]
+               set svnURL {}
+               while {[gets $svnChannel svnLine] >= 0} {
+                  regexp {^URL: (.*)} $svnLine -> svnURL
+               }
+               close $svnChannel
+               if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
+                  set addDefault true
+               }
             }
-            close $svnChannel
-            if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
-               set line [append_default_tag_to_line $line]
-               set defaultSeen true
-               set defaultWritten true
-            }
+         }
+         if {$addDefault} {
+            lappend flags default
+            set line "$url \[[join $flags ,]\]"
+            set defaultSeen true
+            set defaultWritten true
          }
       }
    }
