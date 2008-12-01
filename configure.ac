@@ -31,7 +31,7 @@ case "$MACOSX_VERSION" in
     AC_WARN(This version of Mac OS X is not supported)
     AC_WARN(Please upgrade at http://store.apple.com/)
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-8]])
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-4]])
     AC_WARN(This version of Mac OS X is out of date)
     AC_WARN(Please run Software Update to update it)
     ;;
