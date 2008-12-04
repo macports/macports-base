@@ -38,7 +38,7 @@ Release 1.7.0 (unreleased):
       ruby.setup command, "implementation". It is "ruby" by default, and
       can be set to "ruby19". It names the ruby-implementing port, and can
       possibly support still other rubys in the future. (#15912, febeling
-      in 38683)
+      in r38683)
 
     - Don't use build.nice for complex build.cmd commands (#16091)
 
@@ -49,7 +49,7 @@ Release 1.7.0 (unreleased):
     - User-supplied port names are now treated in a fully case-insensitive
       manner. This fixes a bug where giving the name with incorrect case when
       deactivating/uninstalling would cause all the port's files to be left
-      behind. (#11759, jmr/raimue in r37349, 37621)
+      behind. (#11759, jmr/raimue in r37349, r37621)
 
     - The non-verbose output for the build phase no longer shows what target
       was used. This makes the build phase consistent with the other phases
@@ -66,7 +66,7 @@ Release 1.7.0 (unreleased):
 
     - We now have a mirror of (almost) all distfiles at distfiles.macports.org,
       and it is automatically appended to master_sites and patch_sites (#15456,
-      jmr in r37217, 37255)
+      jmr in r37217, r37255)
 
     - port search looks now in name, description and long_description for the
       search pattern and prints the list sorted (#15434, raimue in r37119,
@@ -139,7 +139,7 @@ Release 1.7.0 (unreleased):
     - Add "tcldoc" documentation comments and "tcldox" Doxyfile for doxygen (#12048)
 
     - Add --pretend and --nosync flags to selfupdate (raimue in r33938, r33939,
-      r33940, 33941)
+      r33940, r33941)
 
     - Work around autoconf X11 detection bugs on darwin (afb in r33717)
 
@@ -149,7 +149,7 @@ Release 1.7.0 (unreleased):
 
     - Add applications_dir and frameworks_dir configuration (r33499, r33722)
 
-    - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install)
+    - Remove some hardcoded paths (such as /usr/X11R6, /usr/bin/install) (afb in r33501, r33619, r33620)
 
     - Add configure.{universal_target,universal_sysroot,universal_archs} (afb in r33478).
 
