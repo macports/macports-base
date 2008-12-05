@@ -1,17 +1,38 @@
 
-== Overview of changes from MacPorts 1.6.0 to 1.6.1 ==
+== Overview of changes from MacPorts 1.6.0 to 1.7.0 ==
 
 # For regular users:
 
-* A suitable message is output when the requested port is not installed when polling its dependents;
-* Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther;
-* Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther;
-* Fixed a MacPorts, Panther specific build failure due to missing sqlite headers on that platform;
-* Fixed a MacPorts build failure when building itself in universal fashion;
+*) The resources directory (containing port group information and the mirror sites) has been moved into the ports tree, so a new MacPorts release is no longer needed to update these items
+*) The error message from 'port upgrade outdated' when no ports are outdated is much improved
+*) Improvement on handling of MacPorts configuration files (global and user-defined options)
+*) Case-insensitive issues have been fixed
+*) 'port help' is improved
+*) The MacPorts mirror, distfiles.macports.org, is automatically checked when the normal sites fail to respond
+*) The search command of port now searches the name, description, and long_description fields
+*) Numerous improvements to dependency handling
+*) Work around a bug in 10.5's Tcl environment handling
+*) Fetching distfiles now tries to ping all mirror sites first in an attempt to pick the best source
+*) A new option was added to uninstall: --recursive
+*) The output for the port commands info, deps, dependents, and search has been improved
+*) Two new options to selfupdate: --pretend and --nosync
+*) A platform command has been added to port to display your platform information
+*) A suitable message is output when the requested port is not installed when polling its dependents;
+*) Fixed the "Error: Unable to open port: invalid command name "ui_prefix"" runtime error on Panther;
+*) Fixed the "Error: Unable to open port: invalid command name "ui_channels"" runtime error on Panther;
+*) Fixed a MacPorts, Panther specific build failure due to missing sqlite headers on that platform;
+*) Fixed a MacPorts build failure when building itself in universal fashion;
 
 
 # For Portfile writers:
 
+*) ruby port group adds a new parameter to ruby.setup for multiple ruby version support
+*) New use_dmg option allows DMG-format distfiles
+*) ruby.setup (part of the ruby port group) now takes a fetch type
+*) git has been added as a valid fetch.type
+*) On Mac OS X, MACOSX_DEPLOYMENT_TARGET is now always set to workaround various issues
+*) Several universal-specific variables added to the configure.* group
+*) A merge function is now available for easier merging of multiple architectures for universal support
 *) Pre-fabricated statements with correct checksums are output when in verbose mode if the existing ones in the Portfile are incorrect;
 *) "port lint" now recognizes non-canonical modelines;
 *) Added a 'configure.pipe' Portfile option for using pipes rather than intermediate files when compiling C/C++ based ports;
