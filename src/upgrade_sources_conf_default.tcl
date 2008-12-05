@@ -82,9 +82,9 @@ Warning, your source config file at:
    $sourcesConf
 
 needs to have a \[default\] tag added to the primary MacPorts repository,
-however I was unable to determine which one is the proper one.  Please
-add it manually by either appending \[default\] to the end of the correct
-line, or if there are already tags, adding it to the list, eg,
+however the proper entry could not be determined.  Please add the tag
+manually by either appending \[default\] to the end of the correct line,
+or if there are already tags, adding it to the list, eg,
 \[nosync,default\].
 [string repeat - 72]"
    }
