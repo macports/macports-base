@@ -75,6 +75,19 @@ if {$defaultWritten} {
    eval file attributes ${sourcesConf} $attributes
 } else {
    file delete ${tempfile}
+   if {!$defaultSeen} {
+      puts "[string repeat - 72]
+Warning, your source config file at:
+
+   $sourcesConf
+
+needs to have a \[default\] tag added to the primary MacPorts repository,
+however I was unable to determine which one is the proper one.  Please
+add it manually by either appending \[default\] to the end of the correct
+line, or if there are already tags, adding it to the list, eg,
+\[nosync,default\].
+[string repeat - 72]"
+   }
 }
 
 exit 0
