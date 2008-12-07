@@ -866,7 +866,7 @@ proc macports::fetch_port {url} {
     }
     cd $fetchdir
     if {[catch {exec tar -zxf $fetchfile} result]} {
-    return -code error "Port extract failed: $result"
+        return -code error "Port extract failed: $result"
     }
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
         return -code error "Can't decipher portdir from $fetchfile"
@@ -1011,8 +1011,8 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
 
     # evaluate the variants
     if {[$workername eval eval_variants variations] != 0} {
-    mportclose $mport
-    error "Error evaluating variants"
+        mportclose $mport
+        error "Error evaluating variants"
     }
 
     ditem_key $mport provides [$workername eval return \$portname]
@@ -1047,7 +1047,7 @@ proc mporttraverse {func {root .}} {
             foreach port [lsort -increasing -unique [readdir $pathToCategory]] {
                 set pathToPort [file join $pathToCategory $port]
                 if {[file isdirectory $pathToPort] &&
-                    [file exists [file join $pathToPort "Portfile"]]} {
+                  [file exists [file join $pathToPort "Portfile"]]} {
                     # Call the function.
                     $func [file join $category $port]
                     
