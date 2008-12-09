@@ -1475,6 +1475,13 @@ proc action_info { action portlist opts } {
             if {[info exists portinfo(variants)]} {
                 global global_variations
 
+                # Get the default variants
+                if {[info exists portinfo(default_variants)]} {
+                    array set default_variants $portinfo(default_variants)
+                } else {
+                    array set default_variants ""
+                }
+
                 set joiner ""
                 set vars ""
                 foreach v [lsort $portinfo(variants)] {
@@ -1485,8 +1492,10 @@ proc action_info { action portlist opts } {
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set mod "($global_variations($v))"
+                    } elseif {[info exists default_variants($v)]} {
+                        # selected by default_variants, prefixed with [+]/[-]
+                        set mod "\[$default_variants($v)\]"
                     }
-                    # TODO: selected by default_variants (with [+]/[-])
                     append vars "$joiner$mod$v"
                     set joiner ", "
                 }
