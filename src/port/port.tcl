@@ -2096,6 +2096,12 @@ proc action_variants { action portlist opts } {
         if {![info exists portinfo(variants)]} {
             puts "$portname has no variants"
         } else {
+            # Get the default variants
+            if {[info exists portinfo(default_variants)]} {
+                array set default_variants $portinfo(default_variants)
+            } else {
+                array set default_variants ""
+            }
             # Get the variant descriptions
             if {[info exists portinfo(variant_desc)]} {
                 array set descs $portinfo(variant_desc)
@@ -2107,10 +2113,14 @@ proc action_variants { action portlist opts } {
             puts "$portname has the variants:"
             foreach v $portinfo(variants) {
                 if {[info exists descs($v)] && $descs($v) != ""} {
-                    puts "\t$v: [string trim $descs($v)]"
+                    puts -nonewline "\t$v: [string trim $descs($v)]"
                 } else {
-                    puts "\t$v"
+                    puts -nonewline "\t$v"
                 }
+                if {[info exists default_variants($v)] && $default_variants($v) != ""} {
+                    puts -nonewline { [default]}
+                }
+                puts ""
             }
         }
     }
