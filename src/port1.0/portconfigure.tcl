@@ -146,6 +146,7 @@ proc configure_start {args} {
 
     set name ""
     switch -exact ${configure.compiler} {
+        gcc { set name "System gcc" }
         gcc-3.3 { set name "Mac OS X gcc 3.3" }
         gcc-4.0 { set name "Mac OS X gcc 4.0" }
         gcc-4.2 { set name "Mac OS X gcc 4.2" }
@@ -261,6 +262,8 @@ proc configure_get_default_compiler {args} {
         "darwin 8" { set compiler gcc-4.0 }
         "darwin 9" { set compiler gcc-4.0 }
         "darwin 10" { set compiler llvm-gcc-4.2 }
+        "freebsd 7" { set compiler gcc }
+        "linux 2" { set compiler gcc }
     }
     return $compiler
 }
@@ -270,6 +273,14 @@ proc configure_get_compiler {type} {
     global configure.compiler prefix
     set ret ""
     switch -exact ${configure.compiler} {
+        gcc {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/gcc }
+                objc { set ret /usr/bin/gcc }
+                cxx  { set ret /usr/bin/g++ }
+                cpp  { set ret /usr/bin/cpp }
+            }
+        }
         gcc-3.3 {
             switch -exact ${type} {
                 cc   { set ret /usr/bin/gcc-3.3 }
