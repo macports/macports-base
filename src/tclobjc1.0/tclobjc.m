@@ -57,6 +57,9 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 	SEL selector;
 	Tcl_Obj *selname;
 	int i = 1;
+	NSMethodSignature *signature;
+	NSInvocation *invocation;
+
 	fprintf(stderr, "objc = %d\n", objc);
 
 	if (objc < 2) {
@@ -87,9 +90,9 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
         goto cleanup;
 	}
 
-//		fprintf(stderr, "target = %08x\n", target);
-	NSMethodSignature* signature = [target methodSignatureForSelector:selector];
-	NSInvocation* invocation = [NSInvocation invocationWithMethodSignature:signature];
+	/*fprintf(stderr, "target = %08x\n", target);*/
+	signature = [target methodSignatureForSelector:selector];
+	invocation = [NSInvocation invocationWithMethodSignature:signature];
 	[invocation setTarget:target];
 	[invocation setSelector:selector];
 
@@ -118,7 +121,6 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
                     Tcl_SetObjResult(interp, tcl_result);
                     result = TCL_ERROR;
                 } else {
-                    unsigned int word = value;
                     [invocation setArgument:&value atIndex:arg_num];
                 }
             }
@@ -139,12 +141,14 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
     /* If all is well, invoke the Objective-C method. */
 	if (result == TCL_OK) {
 		Tcl_Obj *tcl_result;
+		void *result_ptr;
+		const char *result_type;
+
 		[invocation invoke];
 		fprintf(stderr, "result size = %lu\n", (unsigned long)[signature methodReturnLength]);
-		void* result_ptr;
 		[invocation getReturnValue:&result_ptr];        
 		
-		const char* result_type = tclobjc_getreturn_typestring(signature);
+		result_type = tclobjc_getreturn_typestring(signature);
 		result = objc_to_tclobj(interp, &tcl_result, result_type, result_ptr);
 		Tcl_SetObjResult(interp, tcl_result);
 	}
@@ -158,7 +162,7 @@ cleanup:
 /*
  * Invoke the standard 'unknown' procedure
  */
-static int StandardUnknownObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int StandardUnknownObjCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 	Tcl_CmdInfo info;
 	int result;
 	if (!Tcl_GetCommandInfo(interp, "tclobjc::standard_unknown", &info) || !info.isNativeObjectProc)
@@ -180,7 +184,7 @@ static int StandardUnknownObjCmd(ClientData clientData, Tcl_Interp *interp, int 
  * Dispatches messages to Objective C classes, if one exists, or calls
  * standard 'unknown' procedure
  */
-static int UnknownObjCmd(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+static int UnknownObjCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
 	const char *className;
 	id classId;
 	Tcl_Obj **sobjv;

@@ -81,8 +81,8 @@ static Tcl_ObjType tclObjcIdType = {
 /**
  * Release the internal objective-c instance.
  */
-static void free_objc_internalrep(Tcl_Obj *objPtr) {
-    // TODO cleanup
+static void free_objc_internalrep(Tcl_Obj *objPtr UNUSED) {
+    /* TODO cleanup */
 }
 
 /**
@@ -128,7 +128,7 @@ static int set_objc_fromstring (Tcl_Interp *interp, Tcl_Obj *objPtr) {
 	string = Tcl_GetStringFromObj(objPtr, &length);
 
 	/* Verify that this is a valid string */
-	if ((length < sizeof(tclobjc_name_prefix)) ||
+	if ((length < (int)sizeof(tclobjc_name_prefix)) ||
 			(strncmp(string, tclobjc_name_prefix,
 				 sizeof(tclobjc_name_prefix)) != 0)) {
 			goto invalid_obj;
@@ -136,7 +136,7 @@ static int set_objc_fromstring (Tcl_Interp *interp, Tcl_Obj *objPtr) {
 
 	p = string + sizeof(tclobjc_name_prefix);
 
-	if (sscanf(p, "%p", &objcId) != 1)
+	if (sscanf(p, "%p", (void **)&objcId) != 1)
 		goto invalid_obj;
 	
 	/* Free the old internal representation before setting new one */
