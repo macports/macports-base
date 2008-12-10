@@ -12,9 +12,6 @@ AC_MSG_CHECKING(MacPorts version)
 MACPORTS_VERSION=MACPORTS_VERSION_MACRO
 AC_MSG_RESULT([$MACPORTS_VERSION])
 AC_SUBST(MACPORTS_VERSION)
-# Read the old, floating point format version, which we still use internally, and export it for the $macports::autoconf::macports_version variable
-MP_VERSION=$(cat config/mp_version | tr -d '\n')
-AC_SUBST(MP_VERSION)
 
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN

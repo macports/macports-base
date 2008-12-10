@@ -1866,18 +1866,25 @@ proc macports::selfupdate {{optionslist {}}} {
     }
 
     # Choose what version file to use: old, floating point format or new, real version number format
-    set old_version_file [file join $mp_source_path config mp_version]
-    set new_version_file [file join $mp_source_path config macports_version]
-    if {[file exists $old_version_file]} {
-        set fd [open $old_version_file r]
-    } elseif {[file exists $new_version_file]} {
-        set fd [open $new_version_file r]
+    set version_file [file join $mp_source_path config macports_version]
+    if {[file exists $version_file]} {
+        set fd [open $version_file r]
+        gets $fd macports_version_new
+        close $fd
+        # echo downloaded MacPorts version
+        ui_msg "Downloaded MacPorts base version $macports_version_new"
+    } else {
+        ui_warn "No version file found, please rerun selfupdate."
+        set macports_version_new 0
     }
-    # get downloaded MacPorts version
-    gets $fd macports_version_new
-    close $fd
-    # echo downloaded MacPorts version
-    ui_msg "Downloaded MacPorts base version $macports_version_new"
+
+    # Temporary special-case hack to move MacPorts away from floating point version numbers:
+    # If we encounter a floating point version number smaller or equal to 1.800, we force the
+    # upgrade, since the 8 in 1.8.x will always be smaller than, e.g. the 700 in 1.700, the 610
+    # in 1.610, etc, and therefore the upgrade would never trigger on its own.
+    if {$macports::autoconf::macports_version <= 1.800} {
+        set use_the_force_luke yes
+    }
 
     # check if we we need to rebuild base
     if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {

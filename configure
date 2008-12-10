@@ -752,7 +752,6 @@ LDFLAGS
 CFLAGS
 CC
 SW_VERS
-MP_VERSION
 MACPORTS_VERSION
 target_os
 target_vendor
@@ -2167,9 +2166,6 @@ $as_echo_n "checking MacPorts version... " >&6; }
 MACPORTS_VERSION=1.8.0
 { $as_echo "$as_me:$LINENO: result: $MACPORTS_VERSION" >&5
 $as_echo "$MACPORTS_VERSION" >&6; }
-
-# Read the old, floating point format version, which we still use internally, and export it for the $macports::autoconf::macports_version variable
-MP_VERSION=$(cat config/mp_version | tr -d '\n')
 
 
 # Check user PATH for MP paths, and remove as necessary.
