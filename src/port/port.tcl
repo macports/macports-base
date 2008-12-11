@@ -1475,16 +1475,15 @@ proc action_info { action portlist opts } {
             if {[info exists portinfo(variants)]} {
                 global global_variations
 
-                # Get the default variants
-                if {[info exists portinfo(default_variants)]} {
-                    array set default_variants $portinfo(default_variants)
-                } else {
-                    array set default_variants ""
-                }
+                # Get the variants associated with this Portfile.
+                array set variants $portinfo(_variants)
 
                 set joiner ""
                 set vars ""
                 foreach v [lsort $portinfo(variants)] {
+                    # Get the variant's information.
+                    array set variant $variants($v)
+
                     set mod ""
                     if {[info exists variations($v)]} {
                         # selected by command line, prefixed with +/-
@@ -1492,9 +1491,8 @@ proc action_info { action portlist opts } {
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set mod "($global_variations($v))"
-                    } elseif {[info exists default_variants($v)]} {
-                        # selected by default_variants, prefixed with [+]/[-]
-                        set mod "\[$default_variants($v)\]"
+                    } elseif {$variant(is_default) == "+"} {
+                        set mod "\[+\]"
                     }
                     append vars "$joiner$mod$v"
                     set joiner ", "
@@ -2102,32 +2100,31 @@ proc action_variants { action portlist opts } {
         }
     
         # if this fails the port doesn't have any variants
-        if {![info exists portinfo(variants)]} {
+        if { ! [ info exists portinfo(_variants) ] } {
             puts "$portname has no variants"
         } else {
-            # Get the default variants
-            if {[info exists portinfo(default_variants)]} {
-                array set default_variants $portinfo(default_variants)
-            } else {
-                array set default_variants ""
-            }
-            # Get the variant descriptions
-            if {[info exists portinfo(variant_desc)]} {
-                array set descs $portinfo(variant_desc)
-            } else {
-                array set descs ""
-            }
+            array set variants $portinfo(_variants)
 
             # print out all the variants
             puts "$portname has the variants:"
-            foreach v $portinfo(variants) {
-                if {[info exists descs($v)] && $descs($v) != ""} {
-                    puts -nonewline "\t$v: [string trim $descs($v)]"
-                } else {
-                    puts -nonewline "\t$v"
+            foreach vname [ lsort [ array names variants ] ] {
+                array set vinfo $variants($vname)
+
+                puts -nonewline "\t$vname:"
+                if { [ info exists vinfo(description) ] } {
+                    puts -nonewline " [ string trim $vinfo(description) ]"
                 }
-                if {[info exists default_variants($v)] && $default_variants($v) != ""} {
-                    puts -nonewline { [default]}
+                if { [ info exists vinfo(is_default) ] \
+                     && $vinfo(is_default) == "+" } {
+                    puts -nonewline "\n\t  * is a default variant"
+                }
+                if { [ info exists vinfo(conflicts) ] \
+                    && $vinfo(conflicts) != "" } {
+                    puts -nonewline "\n\t  * conflicts with [ string trim $vinfo(conflicts) ]"
+                }
+                if { [ info exists vinfo(requires) ] \
+                    && $vinfo(requires) != "" } {
+                    puts -nonewline "\n\t  * requires [ string trim $vinfo(requires) ]"
                 }
                 puts ""
             }

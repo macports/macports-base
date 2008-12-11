@@ -413,7 +413,24 @@ proc default_check {optionName index op} {
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {
     global all_variants PortInfo porturl
-    
+
+    # Perhaps a little self-explanatory ;), but PortInfo(_variants) contains
+    # the variants associated with a Portfile.  Each key, the variant's name,
+    # maps to an array, the variant, which contains the following keys:
+    #   * conflicts
+    #   * description
+    #   * is_default
+    #   * requires
+    # XXX: PortInfo(_variants)'s contents *should* eventually replace
+    #      PortInfo(variants)'s contents.  Once I've finished transitioning the
+    #      code to use the new format, I will rename PortInfo(_variants) as
+    #      PortInfo(variants) (and hopefully everything will continue to work).
+    #      -- perry
+    if { ! [ info exists PortInfo(_variants) ] } {
+        set PortInfo(_variants) {}
+    }
+    array set variants $PortInfo(_variants)
+
     set len [llength $args]
     set code [lindex $args end]
     set args [lrange $args 0 [expr $len - 2]]
@@ -448,6 +465,20 @@ proc variant {args} {
         # This variant was already defined. Remove it from the dlist.
         variant_remove_ditem $variant_provides
     } else {
+        # Create an array to contain the variant's information.
+        if { ! [ info exists variants($variant_provides) ] } {
+            set variants($variant_provides) {}
+        }
+        array set variant $variants($variant_provides)
+    
+        # Set conflicts (if any).
+        set vconflicts [ join [ lsort [ ditem_key $ditem conflicts ] ] ]
+        if { $vconflicts != "" } {
+            array set variant [ list conflicts $vconflicts ]
+        } else {
+            array set variant [ list conflicts "" ]
+        }
+
         lappend PortInfo(variants) $variant_provides
         set vdesc [join [ditem_key $ditem description]]
 
@@ -456,10 +487,29 @@ proc variant {args} {
             set vdesc [variant_desc $porturl $variant_provides]
         }
 
+        # Set description (if any).
         if {$vdesc != ""} {
+            array set variant [ list description $vdesc ]
             lappend PortInfo(variant_desc) $variant_provides $vdesc
         }
+
+        # Set is_default.
+        if { ! [ info exists variant(is_default) ] } {
+            array set variant [ list is_default "-" ]
+        }
+
+        # Set requires (if any).
+        set vrequires [ join [ lsort [ ditem_key $ditem requires ] ] ]
+        if { $vrequires != "" } {
+            array set variant [ list requires $vrequires ]
+        } else {
+            array set variant [ list requires "" ]
+        }
     }
+
+    # Add variant to PortInfo(_variants)
+    array set variants [ list $variant_provides [ array get variant ] ]
+    set PortInfo(_variants) [ array get variants ]
 
     # Finally append the ditem to the dlist.
     lappend all_variants $ditem
@@ -1862,15 +1912,31 @@ proc handle_default_variants {option action {value ""}} {
     global variations
     switch -regex $action {
         set|append {
-            set PortInfo(default_variants) {}
+            # Retrieve the variants associated with this Portfile.
+            if { ! [ info exists PortInfo(_variants) ] } {
+                set PortInfo(_variants) {}
+            }
+            array set variants $PortInfo(_variants)
+
             foreach v $value {
                 if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                    # Retrieve the information associated with this variant.
+                    if { ! [ info exists variants($variant) ] } {
+                        set variants($variant) {}
+                    }
+                    array set vinfo $variants($variant)
+
                     if {![info exists variations($variant)]} {
-                    lappend PortInfo(default_variants) $variant $val
-                    set variations($variant) $val
+                        # Set is_default and update variants.
+                        array set vinfo [ list is_default "+" ]
+                        array set variants [ list $variant [ array get vinfo ] ]
+
+                        set variations($variant) $val
                     }
                 }
             }
+            # Update PortInfo(_variants).
+            set PortInfo(_variants) [ array get variants ]
         }
         delete {
             # xxx
