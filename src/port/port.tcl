@@ -1351,6 +1351,24 @@ proc action_info { action portlist opts } {
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
+        } else {
+            # Extract the portdir from porturl and use it to search PortIndex.
+            # Only the last two elements of the path (porturl) make up the
+            # portdir.
+            set portdir [file split [macports::getportdir $porturl]]
+            set lsize [llength $portdir]
+            set portdir \
+                [file join [lindex $portdir [expr $lsize - 2]] \
+                           [lindex $portdir [expr $lsize - 1]]]
+            if {[catch {mportsearch $portdir no exact portdir} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
         }
 
         if {!([info exists options(ports_info_index)] && $options(ports_info_index) eq "yes")} {
