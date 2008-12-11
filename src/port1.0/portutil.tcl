@@ -486,7 +486,6 @@ proc variant {args} {
         # Set description (if any).
         if {$vdesc != ""} {
             array set variant [ list description $vdesc ]
-            lappend PortInfo(variant_desc) $variant_provides $vdesc
         }
 
         # Set is_default.
