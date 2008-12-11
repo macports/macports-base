@@ -2110,9 +2110,9 @@ proc action_variants { action portlist opts } {
             foreach vname [ lsort [ array names variants ] ] {
                 array set vinfo $variants($vname)
 
-                puts -nonewline "\t$vname:"
+                puts -nonewline "\t$vname"
                 if { [ info exists vinfo(description) ] } {
-                    puts -nonewline " [ string trim $vinfo(description) ]"
+                    puts -nonewline ": [ string trim $vinfo(description) ]"
                 }
                 if { [ info exists vinfo(is_default) ] \
                      && $vinfo(is_default) == "+" } {
