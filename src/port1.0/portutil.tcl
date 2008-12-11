@@ -473,11 +473,7 @@ proc variant {args} {
     
         # Set conflicts (if any).
         set vconflicts [ join [ lsort [ ditem_key $ditem conflicts ] ] ]
-        if { $vconflicts != "" } {
-            array set variant [ list conflicts $vconflicts ]
-        } else {
-            array set variant [ list conflicts "" ]
-        }
+        array set variant [ list conflicts $vconflicts ]
 
         lappend PortInfo(variants) $variant_provides
         set vdesc [join [ditem_key $ditem description]]
@@ -500,11 +496,7 @@ proc variant {args} {
 
         # Set requires (if any).
         set vrequires [ join [ lsort [ ditem_key $ditem requires ] ] ]
-        if { $vrequires != "" } {
-            array set variant [ list requires $vrequires ]
-        } else {
-            array set variant [ list requires "" ]
-        }
+        array set variant [ list requires $vrequires ]
     }
 
     # Add variant to PortInfo(_variants)
