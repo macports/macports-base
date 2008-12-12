@@ -66,10 +66,13 @@ the branch you intend to manage:
 In preparation for a release, several things should be completed within the code:
 
  * Update the file base/ChangeLog in both trunk and the release branch to reflect the appropriate changes.
- * Update the file base/config/macports_version with the target release number.  The version number in
-   macports_version is displayed by the port command as the version of MacPorts, and is used by the selfupdate
-   command to determine whether a newer version of code is available. This number should be different
-   between trunk and a release branch, the former greater to differentiate it from the latter.
+ * Update the file base/config/macports_version with the target release number. The content of this file
+   is recorded as the MacPorts version at MacPorts build time, as displayed by the port command, and it's
+   also used by the selfupdate procedure to determine whether a newer version of code is available.
+   It should be different between trunk and the release branch, the former greater to differentiate it from
+   the latter.
+ * Preserve the file base/config/mp_version at the 1.800 fixed value if selfupdate backwards compatibility
+   with pre 1.8.0 MacPorts installations is still desired (cf. svn's r43571).
  * Update the autoconf 'configure' script through the provided base/regen.sh script once the version number
    in mp_version has been changed, since the former reads the latter.
  * Make sure that these and any other changes or bug fixes are made on and/or merged between the release branch
