@@ -1878,14 +1878,6 @@ proc macports::selfupdate {{optionslist {}}} {
         set macports_version_new 0
     }
 
-    # Temporary special-case hack to move MacPorts away from floating point version numbers:
-    # If we encounter a floating point version number smaller or equal to 1.800, we force the
-    # upgrade, since the 8 in 1.8.x will always be smaller than, e.g. the 700 in 1.700, the 610
-    # in 1.610, etc, and therefore the upgrade would never trigger on its own.
-    if {$macports::autoconf::macports_version <= 1.800} {
-        set use_the_force_luke yes
-    }
-
     # check if we we need to rebuild base
     if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
         if {[info exists options(ports_selfupdate_pretend)] && $options(ports_selfupdate_pretend) == "yes"} {
