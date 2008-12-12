@@ -67,7 +67,7 @@ function update_macports {
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
 # backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
-# which hints that we've already tweaked it and therefore already baked it up.
+# which hints that we've already tweaked it and therefore already backed it up.
 function write_setting () {
     if [ -f ${HOME}/.${CONF_FILE} ] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
         echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
