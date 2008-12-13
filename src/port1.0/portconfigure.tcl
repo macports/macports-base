@@ -262,8 +262,7 @@ proc configure_get_default_compiler {args} {
         "darwin 8" { set compiler gcc-4.0 }
         "darwin 9" { set compiler gcc-4.0 }
         "darwin 10" { set compiler llvm-gcc-4.2 }
-        "freebsd 7" { set compiler gcc }
-        "linux 2" { set compiler gcc }
+        default { set compiler gcc }
     }
     return $compiler
 }
