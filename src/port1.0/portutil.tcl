@@ -1178,9 +1178,11 @@ proc unobscure_maintainers { list } {
 
 
 ########### Internal Dependency Manipulation Procedures ###########
+global ports_dry_last_skipped
+set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1242,6 +1244,18 @@ proc target_run {ditem} {
                     ui_msg "Skipping $name ($portname $portvariants) since this port is already active"
                 }
                 
+            }
+            
+            # Of course, if this is a dry run, don't do the task:
+            if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
+                # only one message per portname
+                if {$portname != $ports_dry_last_skipped} {
+                    ui_msg "For $portname: skipping $name (dry run)"
+                    set ports_dry_last_skipped $portname
+                } else {
+                    ui_info "    .. and skipping $name"
+                }
+                set skipped 1
             }
             
             # otherwise execute the task.
@@ -1709,7 +1723,7 @@ proc eval_variants {variations} {
 }
 
 proc check_variants {variations target} {
-    global ports_force PortInfo
+    global ports_force ports_dryrun PortInfo
     upvar $variations upvariations
     set result 0
     set portname $PortInfo(name)
@@ -1731,7 +1745,7 @@ proc check_variants {variations target} {
         if {[check_statefile_variants upvariations $state_fd]} {
             ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
             set result 1
-        } else {
+        } elseif {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
             # Write variations out to the statefile
             foreach key [array names upvariations *] {
             write_statefile variant $upvariations($key)$key $state_fd

@@ -44,7 +44,7 @@ package require Pextlib 1.0
 proc print_usage {args} {
     global cmdname
     set syntax {
-        [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+        [-bcdfiknopqRstuvxy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -2876,6 +2876,9 @@ proc parse_options { action ui_options_name global_options_name } {
                     }
                     t {
                         set global_options(ports_trace) yes
+                    }
+                    y {
+                        set global_options(ports_dryrun) yes
                     }
                     F {
                         # Name a command file to process
