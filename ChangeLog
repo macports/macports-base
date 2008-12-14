@@ -4,6 +4,8 @@
 ###
 
 
+Release 1.7.1 (unreleased):
+
 Release 1.7.0 (2008-12-13 by blb):
     - Global variant descriptions using variant_descriptions.conf in the new
       resources directory in the ports tree (#14482, raimue)
