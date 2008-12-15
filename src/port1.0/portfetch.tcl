@@ -103,26 +103,51 @@ default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
 
 # Option-executed procedures
-option_proc use_bzip2 fix_extract_suffix
-option_proc use_lzma fix_extract_suffix
-option_proc use_zip fix_extract_suffix
-option_proc use_dmg fix_extract_suffix
+option_proc use_bzip2 set_extract_type
+option_proc use_lzma set_extract_type
+option_proc use_zip set_extract_type
+option_proc use_dmg set_extract_type
 
-proc fix_extract_suffix {option action args} {
+option_proc fetch.type set_fetch_type
+
+# We should probably add something like a depends_fetch; see #15161
+proc set_extract_type {option action args} {
     global extract.suffix
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
             use_bzip2 {
                 set extract.suffix .tar.bz2
+                depends_build-append bin:bunzip2:bzip2
             }
             use_lzma {
                 set extract.suffix .tar.lzma
+                depends_build-append bin:unlzma:lzmautils
             }
             use_zip {
                 set extract.suffix .zip
+                depends_build-append bin:unzip:unzip
             }
             use_dmg {
                 set extract.suffix .dmg
+            }
+        }
+    }
+}
+
+proc set_fetch_type {option action args} {
+    if {[string equal ${action} "set"]} {
+        switch $args {
+            cvs {
+                depends_build-append bin:cvs:cvs
+            }
+            svn {
+                depends_build-append bin:svn:subversion
+            }
+            git {
+                depends_build-append bin:git:git-core
+            }
+            hg {
+                depends_build-append bin:hg:mercurial
             }
         }
     }
