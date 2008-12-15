@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -69,13 +69,13 @@ proc extract_init {args} {
     }
 
     if {[tbool use_bzip2]} {
-	option extract.cmd [binaryInPath "bzip2"]
+        option extract.cmd [binaryInPath "bzip2"]
     } elseif {[tbool use_lzma]} {
-	option extract.cmd [binaryInPath "lzma"]
+        option extract.cmd [binaryInPath "lzma"]
     } elseif {[tbool use_zip]} {
-	option extract.cmd [binaryInPath "unzip"]
-	option extract.pre_args -q
-	option extract.post_args "-d [option extract.dir]"
+        option extract.cmd [binaryInPath "unzip"]
+        option extract.pre_args -q
+        option extract.post_args "-d [option extract.dir]"
     } elseif {[tbool use_dmg]} {
         global worksrcdir
         set dmg_tmp_dir [exec mktemp -d -q "/tmp/mports.XXXXXXXX"]
@@ -89,28 +89,28 @@ proc extract_init {args} {
 
 proc extract_start {args} {
     global UI_PREFIX
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
 proc extract_main {args} {
     global UI_PREFIX filespath
-    
+
     if {![exists distfiles] && ![exists extract.only]} {
-	# nothing to do
-	return 0
+        # nothing to do
+        return 0
     }
-    
+
     foreach distfile [option extract.only] {
-	ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
-	if {[file exists $filespath/$distfile]} {
-		option extract.args "$filespath/$distfile"
-	} else {
-		option extract.args "[option distpath]/$distfile"
-	}
-	if {[catch {command_exec extract} result]} {
-	    return -code error "$result"
-	}
+        ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
+        if {[file exists $filespath/$distfile]} {
+            option extract.args "$filespath/$distfile"
+        } else {
+            option extract.args "[option distpath]/$distfile"
+        }
+        if {[catch {command_exec extract} result]} {
+            return -code error "$result"
+        }
     }
     return 0
 }
