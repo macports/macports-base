@@ -40,7 +40,7 @@ target_requires ${org.macports.configure} main fetch extract checksum patch
 target_prerun ${org.macports.configure} configure_start
 
 # define options
-commands configure autoreconf automake autoconf xmkmf libtool
+commands configure autoreconf automake autoconf xmkmf
 # defaults
 default configure.env       ""
 default configure.pre_args  {--prefix=${prefix}}
@@ -58,7 +58,6 @@ option_proc use_autoreconf  set_configure_type
 option_proc use_automake    set_configure_type
 option_proc use_autoconf    set_configure_type
 option_proc use_xmkmf       set_configure_type
-option_proc use_libtool     set_configure_type
 
 proc set_configure_type {option action args} {
     if {[string equal ${action} "set"] && [tbool args]} {
@@ -74,9 +73,6 @@ proc set_configure_type {option action args} {
             }
             use_xmkmf {
                 depends_build-append bin:xmkmf:imake
-            }
-            use_libtool {
-                depends_build-append bin:libtool:libtool
             }
         }
     }
