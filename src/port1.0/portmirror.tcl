@@ -43,7 +43,6 @@ target_runtype ${org.macports.mirror} always
 target_state ${org.macports.mirror} no
 target_provides ${org.macports.mirror} mirror
 target_requires ${org.macports.mirror} main
-#target_parallel ${org.macports.mirror} yes
 
 # Mirror is a target that fetches & checksums files and delete them
 # if the checksum isn't correct.
