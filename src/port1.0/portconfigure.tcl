@@ -67,10 +67,10 @@ proc set_configure_type {option action args} {
                 depends_build-append bin:autoreconf:autoconf
             }
             use_automake {
-                depends_build-append bin:autoreconf:automake
+                depends_build-append bin:automake:automake
             }
             use_autoconf {
-                depends_build-append bin:autoreconf:autoconf
+                depends_build-append bin:autoconf:autoconf
             }
             use_xmkmf {
                 depends_build-append bin:xmkmf:imake
