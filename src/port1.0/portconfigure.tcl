@@ -54,6 +54,34 @@ default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
 
+option_proc use_autoreconf  set_configure_type
+option_proc use_automake    set_configure_type
+option_proc use_autoconf    set_configure_type
+option_proc use_xmkmf       set_configure_type
+option_proc use_libtool     set_configure_type
+
+proc set_configure_type {option action args} {
+    if {[string equal ${action} "set"] && [tbool args]} {
+        switch $option {
+            use_autoreconf {
+                depends_build-append bin:autoreconf:automake
+            }
+            use_automake {
+                depends_build-append bin:autoreconf:automake
+            }
+            use_autoconf {
+                depends_build-append bin:autoreconf:autoconf
+            }
+            use_xmkmf {
+                depends_build-append bin:xmkmf:imake
+            }
+            use_libtool {
+                depends_build-append bin:libtool:libtool
+            }
+        }
+    }
+}
+
 # Configure special environment variables.
 # We could have m32/m64/march/mtune be global configurable at some point.
 options configure.m32 configure.m64 configure.march configure.mtune
@@ -406,28 +434,24 @@ proc configure_main {args} {
     global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac
     
     if {[tbool use_autoreconf]} {
-        # XXX depend on autoreconf
         if {[catch {command_exec autoreconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoreconf $result]"
         }
     }
     
     if {[tbool use_automake]} {
-        # XXX depend on automake
         if {[catch {command_exec automake} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] automake $result]"
         }
     }
     
     if {[tbool use_autoconf]} {
-        # XXX depend on autoconf
         if {[catch {command_exec autoconf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] autoconf $result]"
         }
     }
 
     if {[tbool use_xmkmf]} {
-        # XXX depend on xmkmf
         if {[catch {command_exec xmkmf} result]} {
             return -code error "[format [msgcat::mc "%s failure: %s"] xmkmf $result]"
         } else {
