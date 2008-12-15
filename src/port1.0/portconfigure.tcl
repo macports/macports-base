@@ -64,7 +64,7 @@ proc set_configure_type {option action args} {
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
             use_autoreconf {
-                depends_build-append bin:autoreconf:automake
+                depends_build-append bin:autoreconf:autoconf
             }
             use_automake {
                 depends_build-append bin:autoreconf:automake
