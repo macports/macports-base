@@ -1493,15 +1493,16 @@ proc action_info { action portlist opts } {
             if {[info exists portinfo(variants)]} {
                 global global_variations
 
-                # Get the variants associated with this Portfile.
-                array set variants $portinfo(_variants)
+                # Only use the new key for variants if it exists in PortInfo.
+                # Note that this key does not currently exist outside of trunk.
+                array unset variants
+                if {[info exists portinfo(_variants)]} {
+                    array set variants $portinfo(_variants)
+                }
 
                 set joiner ""
                 set vars ""
                 foreach v [lsort $portinfo(variants)] {
-                    # Get the variant's information.
-                    array set variant $variants($v)
-
                     set mod ""
                     if {[info exists variations($v)]} {
                         # selected by command line, prefixed with +/-
@@ -1509,8 +1510,13 @@ proc action_info { action portlist opts } {
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set mod "($global_variations($v))"
-                    } elseif {$variant(is_default) == "+"} {
-                        set mod "\[+\]"
+                    # Retrieve additional information from the new key.
+                    } elseif {[info exists variants]} {
+                        array unset variant
+                        array set variant $variants($v)
+                        if {$variant(is_default) eq "+"} {
+                            set mod "\[+\]"
+                        }
                     }
                     append vars "$joiner$mod$v"
                     set joiner ", "
