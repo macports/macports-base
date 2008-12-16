@@ -2107,6 +2107,7 @@ proc action_variants { action portlist opts } {
                 break_softcontinue "Unable to open port: $result" 1 status
             }
             array unset portinfo
+            array unset variants
             array set portinfo [mportinfo $mport]
             mportclose $mport
             if {[info exists portdir]} {
