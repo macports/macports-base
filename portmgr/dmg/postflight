@@ -116,14 +116,26 @@ case "${USHELL}" in
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
-        CONF_FILE=tcshrc
+        if [ -f ${HOME}/.tcshrc ]; then
+            CONF_FILE=tcshrc
+        elif [ -f ${HOME}/.cshrc ]; then
+            CONF_FILE=cshrc
+        else
+            CONF_FILE=tcshrc
+        fi
         ;;
     bash)
         echo "Detected the bash shell."
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
-        CONF_FILE=profile
+        if [ -f ${HOME}/.bash_profile ]; then
+            CONF_FILE=bash_profile
+        elif [ -f ${HOME}/.bash_login ]; then
+            CONF_FILE=bash_login
+        else
+            CONF_FILE=profile
+        fi
         ;;
     *)
         echo "Unknown shell ($USHELL)! Please set your MacPorts compatible environment manually."
