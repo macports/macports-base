@@ -11,6 +11,11 @@ Release 1.8.0 (unreleased):
 
 
 Release 1.7.1 (unreleased):
+    - Make the postflight procedure a bit smarter about which login files
+      to update for bash and tcsh (#17588)
+
+    - Add error messages to package installers when the wrong OS package
+      is being installed (#13141)
 
 Release 1.7.0 (2008-12-13 by blb):
     - Global variant descriptions using variant_descriptions.conf in the new
