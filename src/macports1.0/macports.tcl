@@ -356,13 +356,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Ensure that the macports user directory exists if HOME is defined
     if {[info exists env(HOME)]} {
         set macports::macports_user_dir [file normalize $macports::autoconf::macports_user_dir]
-        if { ![file exists $macports_user_dir] } {
-        # If not, create it with ownership of the enclosing directory, rwx by the user only
-        file mkdir $macports_user_dir
-        file attributes $macports_user_dir -permissions u=rwx,go= \
-            -owner [file attributes $macports_user_dir/.. -owner] \
-            -group [file attributes $macports_user_dir/.. -group]
-        }
     } else {
         # Otherwise define the user directory as a direcotory that will never exist
         set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
