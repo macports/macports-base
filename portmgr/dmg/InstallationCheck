@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# $Id$
+#
+# Check for proper OS version for the package (meant to be used by the
+# MacPorts port which replaces __DARWINVERS__ with the version of Darwin
+# needed).
+
+base_version=`uname -r | sed 's/\..*//'`
+if [[ ${base_version} != __DARWINVERS__ ]]; then
+   # This maps to message 16 in InstallationCheck.strings (Apple allows
+   # 16-31 for custom messages); that message should also be customized
+   # like this script
+   exit 112
+fi
+exit 0
+
