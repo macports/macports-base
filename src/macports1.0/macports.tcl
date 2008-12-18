@@ -1416,14 +1416,6 @@ proc macports::getindex {source} {
     return [file join [macports::getsourcepath $source] PortIndex]
 }
 
-# dportsync
-# Deprecated version of the new mportsync proc, listed here as backwards
-# compatibility glue for API clients that haven't updated to the new naming
-proc dportsync {} {
-    ui_warn "The dportsync proc is deprecated and will be going away soon, please use mportsync in the future!"
-    mportsync
-}
-
 proc mportsync {{optionslist {}}} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::portverbose
@@ -1666,14 +1658,6 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     }
 
     return $matches
-}
-
-# dportinfo
-# Deprecated version of the new mportinfo proc, listed here as backwards
-# compatibility glue for API clients that haven't updated to the new naming
-proc dportinfo {mport} {
-    ui_warn "The dportinfo proc is deprecated and will be going away soon, please use mportinfo in the future!"
-    mport info $mport
 }
 
 proc mportinfo {mport} {
