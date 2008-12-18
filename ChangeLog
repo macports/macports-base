@@ -5,6 +5,10 @@
 
 
 Release 1.8.0 (unreleased):
+    - Add xpkg archive type, xar-based format with XML. (afb)
+
+    - Split portpkg creation out from portsubmit phase. (afb)
+
 
 Release 1.7.1 (unreleased):
 

@@ -223,7 +223,7 @@ proc unarchive_command_setup {args} {
 				return -code error "No '$tar' was found on this system!"
 			}
 		}
-		xar {
+		(xar|xpkg) {
 			set xar "xar"
 			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
 				ui_debug "Using $xar"

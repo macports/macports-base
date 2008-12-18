@@ -1290,7 +1290,7 @@ proc mportexec {mport target} {
         || $target == "dmg" || $target == "mdmg"
         || $target == "pkg" || $target == "mpkg"
         || $target == "rpm" || $target == "dpkg" 
-        || $target == "srpm" } {
+        || $target == "srpm"|| $target == "portpkg" } {
 
         if {[mportdepends $mport $target] != 0} {
             return 1
@@ -1722,6 +1722,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         archive     -
         dmg         -
         pkg         -
+        portpkg     -
         mdmg        -
         mpkg        -
         rpm         -

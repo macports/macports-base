@@ -32,32 +32,14 @@
 
 package provide portsubmit 1.0
 package require portutil 1.0
+package require portportpkg 1.0
 
 set org.macports.submit [target_new org.macports.submit submit_main]
 target_runtype ${org.macports.submit} always
 target_provides ${org.macports.submit} submit 
-target_requires ${org.macports.submit} main
+target_requires ${org.macports.submit} portpkg
 
 set_ui_prefix
-
-
-proc xar_path {args} {
-	global prefix_frozen
-    set xar ""
-    foreach path "${portutil::autoconf::xar_path} ${prefix_frozen}/bin/xar xar" {
- 	if { [file executable ${path}] } {
- 	   	  set xar $path
- 	      break;
- 	   }
-    }
-    if { "${xar}" == "" } {
-    	ui_error "The xar tool is required to submit ports"
-    	ui_error "Please install the xar port before proceeding."
-		return -code error [msgcat::mc "Submit failed"]
-    }
-    
-    return $xar
-}
 
 
 # escape quotes, and things that make the shell cry
@@ -69,143 +51,21 @@ proc shell_escape {str} {
 }
 
 
-proc putel { fd el data } {
-	# Quote xml data
-	set quoted [string map  { & &amp; < &lt; > &gt; } $data]
-	# Write the element
-	puts $fd "<${el}>${quoted}</${el}>"
-}
-
-
-proc putlist { fd listel itemel list } {
-	puts $fd "<$listel>"
-	foreach item $list {
-		putel $fd $itemel $item
-	}
-	puts $fd "</$listel>"
-}
-
-
-proc create_portpkg {} {
-    global portname portversion prefix UI_PREFIX workpath portpath
-
-	set xar [xar_path]
-	
-    set dirname "portpkg"
-    set dirpath "${workpath}/${dirname}"
-    set pkgpath "${workpath}/${portname}.portpkg"
-    set metaname "portpkg_meta.xml"
-    set metapath "${workpath}/${metaname}"
+proc submit_main {args} {
+    global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
     
-    # Expose and default some global variables
-    set vars " portname portversion maintainers categories description \
-    	long_description master_sites homepage epoch version revision \
-    	PortInfo \
-    	submitter_name submitter_email submitter_key \
-    	"
-	eval "global $vars"
-	foreach var $vars {
-		if {![info exists $var]} { set $var {} }
-	}
-	
-	# Unobscure the maintainer addresses
-	set maintainers [unobscure_maintainers $maintainers]
-
-    # Make sure our workpath is clean
-    file delete -force $dirpath $metapath $pkgpath
-    
-    # Create the portpkg directory
-    file mkdir $dirpath
-
-    # Move in the Portfile
-    file copy Portfile ${dirpath}
-    
-    # Move in files    
-    if {[file isdirectory "files"]} {
-        file copy files ${dirpath}
-    }
+    set submiturl $mp_remote_submit_url
     
     # Preconditions for submit
     if {$submitter_email == ""} {
 		return -code error [format [msgcat::mc "Submitter email is required to submit a port"]]
     }
 
-    # Create the metadata subdoc
-    set sd [open ${metapath} w]
-    puts $sd "<portpkg version='1'>"
-    
-		puts $sd "<submitter>"
-			putel $sd name $submitter_name
-			putel $sd email $submitter_email
-			
-			# TODO provide means to set notes?
-			putel $sd notes ""
-		puts $sd "</submitter>"
-		
-		puts $sd "<package>"
-			putel $sd name $portname
-			putel $sd homepage $homepage
-			putlist $sd categories category $categories
-			putlist $sd maintainers maintainer $maintainers
-			
-			putel $sd epoch $epoch
-			putel $sd version $version
-			putel $sd revision $revision
-			
-			putel $sd description [join $description]
-			putel $sd long_description [join $long_description]
-		
-			# TODO: variants has platforms in it
-			if {[info exists PortInfo(variants)]} {
-				if {[info exists PortInfo(variant_desc)]} {
-					array set descs $PortInfo(variant_desc)
-				} else {
-					array set descs ""
-				}
-	
-				puts $sd "<variants>"
-				foreach v $PortInfo(variants) {
-					puts $sd "<variant>"
-						putel $sd name $v
-						if {[info exists descs($v)]} {
-							putel $sd description $descs($v)
-						}
-					puts $sd "</variant>"
-				}
-				puts $sd "</variants>"
-			} else {
-				putel $sd variants ""
-			}
-			
-			# TODO: Dependencies and platforms
-			#putel $sd dependencies ""
-			#putel $sd platforms ""
-			
-		puts $sd "</package>"
-		
-    puts $sd "</portpkg>"
-    close $sd
-    
-    # Create portpkg.xar, including the metadata and the portpkg directory contents
-    set cmd "cd ${workpath}; ${xar} -cf ${pkgpath} --exclude \\.DSStore --exclude \\.svn ${dirname} -s ${metapath} -n ${metaname}"
-    if {[system $cmd] != ""} {
-		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $portname]
-    }
-    
-    return ${pkgpath}
-}
-
-
-proc submit_main {args} {
-    global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
-    
-    set submiturl $mp_remote_submit_url
-    
     # Make sure we have a work directory
     file mkdir ${workpath}
   
    	# Create portpkg.xar in the work directory
-   	set pkgpath [create_portpkg]
+   	set pkgpath "${workpath}/${portname}.portpkg"
    	
    	# TODO: If a private key was provided, create a signed digest of the submission
    	

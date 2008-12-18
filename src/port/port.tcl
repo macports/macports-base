@@ -2683,6 +2683,7 @@ array set action_array [list \
     dpkg        [list action_target         [action_args_const ports]] \
     mpkg        [list action_target         [action_args_const ports]] \
     pkg         [list action_target         [action_args_const ports]] \
+    portpkg     [list action_target         [action_args_const ports]] \
     rpm         [list action_target         [action_args_const ports]] \
     srpm        [list action_target         [action_args_const ports]] \
     \

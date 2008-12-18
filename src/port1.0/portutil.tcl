@@ -1264,6 +1264,7 @@ proc target_run {ditem} {
                             archive     -
                             dmg         -
                             pkg         -
+                            portpkg     -
                             mpkg        -
                             rpm         -
                             srpm        -
@@ -2117,7 +2118,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        xar {
+        xar|xpkg {
             set xar "xar"
             if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
                 return 0
