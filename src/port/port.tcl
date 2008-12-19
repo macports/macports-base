@@ -2133,6 +2133,7 @@ proc action_variants { action portlist opts } {
             # print out all the variants
             puts "$portname has the variants:"
             foreach vname [ lsort [ array names variants ] ] {
+                array unset vinfo
                 array set vinfo $variants($vname)
 
                 puts -nonewline "\t$vname"
