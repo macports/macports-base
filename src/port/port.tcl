@@ -2136,13 +2136,15 @@ proc action_variants { action portlist opts } {
                 array unset vinfo
                 array set vinfo $variants($vname)
 
-                puts -nonewline "\t$vname"
-                if { [ info exists vinfo(description) ] } {
-                    puts -nonewline ": [ string trim $vinfo(description) ]"
-                }
                 if { [ info exists vinfo(is_default) ] \
                      && $vinfo(is_default) == "+" } {
-                    puts -nonewline "\n\t  * is a default variant"
+                    set mod "\[+] "
+                } else {
+                    set mod {}
+                }
+                puts -nonewline "\t$mod$vname"
+                if { [ info exists vinfo(description) ] } {
+                    puts -nonewline ": [ string trim $vinfo(description) ]"
                 }
                 if { [ info exists vinfo(conflicts) ] \
                     && $vinfo(conflicts) != "" } {
