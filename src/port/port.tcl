@@ -3159,6 +3159,10 @@ proc process_command_file { in } {
         }
     }
 
+    # Create macports user directory if it does not exist yet
+    if {$use_readline && ![file isdirectory $macports::macports_user_dir]} {
+        file mkdir $macports::macports_user_dir
+    }
     # Save readine history
     if {$use_readline && [file isdirectory $macports::macports_user_dir]} {
         rl_history write $history_file
