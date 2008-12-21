@@ -2188,22 +2188,31 @@ proc action_search { action portlist opts } {
         set options(ports_search_depends_run) yes
     }
 
-    # Set default search filter if none was given
+    # Array to hold given filters
     array set filters {}
+    # Default matchstyle
+    set filter_matchstyle "none"
     foreach { option } [array names options ports_search_*] {
         set opt [string range $option 13 end]
 
+        if { $options($option) != "yes" } {
+            continue
+        }
         switch -- $opt {
+            exact -
+            glob -
+            regex {
+                set filter_matchstyle $opt
+                continue
+            }
             line {
                 continue
             }
         }
-        if { $options($option) != "yes" } {
-            continue
-        }
 
         set filters($opt) "yes"
     }
+    # Set default search filter if none was given
     if { [array size filters] == 0 } {
         set filters(name) "yes"
     }
@@ -2212,10 +2221,14 @@ proc action_search { action portlist opts } {
     foreach portname $portlist {
         puts -nonewline $separator
 
-        if {[string first "*" $portname] == -1} {
-            set searchstring "*$portname*"
-        } else {
-            set searchstring $portname
+        set searchstring $portname
+        set matchstyle $filter_matchstyle
+        if {$matchstyle == "none"} {
+            # Guess if the given string was a glob expression, if not do a substring search
+            if {[string first "*" $portname] == -1 && [string first "?" $portname] == -1} {
+                set searchstring "*$portname*"
+            }
+            set matchstyle glob
         }
 
         set res {}
@@ -2224,7 +2237,7 @@ proc action_search { action portlist opts } {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
-            if {[catch {eval set matches \[mportsearch \$searchstring no glob $opt\]} result]} {
+            if {[catch {eval set matches \[mportsearch \$searchstring no $matchstyle $opt\]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "search for name $portname failed: $result" 1 status
@@ -2763,9 +2776,9 @@ array set cmd_opts_array {
                  maintainer maintainers name platform platforms portdir
                  revision variant variants version}
     search      {category categories depends_build depends_lib depends_run
-                 depends description epoch homepage line long_description
-                 maintainer maintainers name platform platforms portdir
-                 revision variant variants version}
+                 depends description epoch exact glob homepage line
+                 long_description maintainer maintainers name platform
+                 platforms portdir regex revision variant variants version}
     selfupdate  {nosync pretend}
     uninstall   {follow-dependents}
     variants    {index}
