@@ -2181,8 +2181,15 @@ proc action_search { action portlist opts } {
     # Copy global options as we are going to modify the array
     array set options [array get global_options]
 
+    if {[info exists options(ports_search_depends)] && $options(ports_search_depends) == "yes"} {
+        array unset options ports_search_depends
+        set options(ports_search_depends_build) yes
+        set options(ports_search_depends_lib) yes
+        set options(ports_search_depends_run) yes
+    }
+
     # Set default search filter if none was given
-    set optcnt 0
+    array set filters {}
     foreach { option } [array names options ports_search_*] {
         set opt [string range $option 13 end]
 
@@ -2191,17 +2198,14 @@ proc action_search { action portlist opts } {
                 continue
             }
         }
-        incr optcnt
-    }
-    if { $optcnt == 0 } {
-        set options(ports_search_name) "yes"
-    }
+        if { $options($option) != "yes" } {
+            continue
+        }
 
-    if {[info exists options(ports_search_depends)] && $options(ports_search_depends) == "yes"} {
-        array unset options ports_search_depends
-        set options(ports_search_depends_build) yes
-        set options(ports_search_depends_lib) yes
-        set options(ports_search_depends_run) yes
+        set filters($opt) "yes"
+    }
+    if { [array size filters] == 0 } {
+        set filters(name) "yes"
     }
 
     set separator ""
@@ -2216,9 +2220,7 @@ proc action_search { action portlist opts } {
 
         set res {}
         set portfound 0
-        foreach { option } [array names options ports_search_*] {
-            set opt [string range $option 13 end]
-
+        foreach { opt } [array get filters] {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
@@ -2287,7 +2289,10 @@ proc action_search { action portlist opts } {
 
         set separator "--\n"
     }
-    
+
+    array unset options
+    array unset filters
+
     return $status
 }
 
