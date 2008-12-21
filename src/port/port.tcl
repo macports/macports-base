@@ -2220,6 +2220,9 @@ proc action_search { action portlist opts } {
         foreach { option } [array names options ports_search_*] {
             set opt [string range $option 13 end]
 
+            # Map from friendly name
+            set opt [map_friendly_field_names $opt]
+
             if {[catch {eval set matches \[mportsearch \$searchstring no glob $opt\]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
