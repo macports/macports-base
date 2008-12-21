@@ -2192,6 +2192,7 @@ proc action_search { action portlist opts } {
     array set filters {}
     # Default matchstyle
     set filter_matchstyle "none"
+    set filter_case no
     foreach { option } [array names options ports_search_*] {
         set opt [string range $option 13 end]
 
@@ -2203,6 +2204,10 @@ proc action_search { action portlist opts } {
             glob -
             regex {
                 set filter_matchstyle $opt
+                continue
+            }
+            case-sensitive {
+                set filter_case yes
                 continue
             }
             line {
@@ -2237,7 +2242,7 @@ proc action_search { action portlist opts } {
             # Map from friendly name
             set opt [map_friendly_field_names $opt]
 
-            if {[catch {eval set matches \[mportsearch \$searchstring no $matchstyle $opt\]} result]} {
+            if {[catch {eval set matches \[mportsearch \$searchstring $filter_case $matchstyle $opt\]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "search for name $portname failed: $result" 1 status
@@ -2775,7 +2780,7 @@ array set cmd_opts_array {
                  depends description epoch homepage index line long_description
                  maintainer maintainers name platform platforms portdir
                  revision variant variants version}
-    search      {category categories depends_build depends_lib depends_run
+    search      {case-sensitive category categories depends_build depends_lib depends_run
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
