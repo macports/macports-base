@@ -2187,8 +2187,7 @@ proc action_search { action portlist opts } {
         set opt [string range $option 13 end]
 
         switch -- $opt {
-            line -
-            index {
+            line {
                 continue
             }
         }
