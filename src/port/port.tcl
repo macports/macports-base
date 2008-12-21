@@ -2170,7 +2170,27 @@ proc action_search { action portlist opts } {
         ui_error "You must specify a search pattern"
         return 1
     }
-    
+
+    # Copy global options as we are going to modify the array
+    array set options [array get global_options]
+
+    # Set default search filter if none was given
+    set optcnt 0
+    foreach { option } [array names options ports_search_*] {
+        set opt [string range $option 13 end]
+
+        switch -- $opt {
+            line -
+            index {
+                continue
+            }
+        }
+        incr optcnt
+    }
+    if { $optcnt == 0 } {
+        set options(ports_search_name) "yes"
+    }
+
     set separator ""
     foreach portname $portlist {
         puts -nonewline $separator
@@ -2181,38 +2201,23 @@ proc action_search { action portlist opts } {
             set searchstring $portname
         }
 
-        set portfound 0
         set res {}
-        if {[catch {set matches [mportsearch $searchstring no glob name]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for name $portname failed: $result" 1 status
+        set portfound 0
+        foreach { option } [array names options ports_search_*] {
+            set opt [string range $option 13 end]
+
+            if {[catch {eval set matches \[mportsearch \$searchstring no glob $opt\]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "search for name $portname failed: $result" 1 status
+            }
+
+            set tmp {}
+            foreach {name info} $matches {
+                add_to_portlist tmp [concat [list name $name] $info]
+            }
+            set res [opUnion $res $tmp]
         }
-        set tmp {}
-        foreach {name info} $matches {
-            add_to_portlist tmp [concat [list name $name] $info]
-        }
-        set res [opUnion $res $tmp]
-        if {[catch {set matches [mportsearch $searchstring no glob description]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for description $portname failed: $result" 1 status
-        }
-        set tmp {}
-        foreach {name info} $matches {
-            add_to_portlist tmp [concat [list name $name] $info]
-        }
-        set res [opUnion $res $tmp]
-        if {[catch {set matches [mportsearch $searchstring no glob long_description]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for long_description $portname failed: $result" 1 status
-        }
-        set tmp {}
-        foreach {name info} $matches {
-            add_to_portlist tmp [concat [list name $name] $info]
-        }
-        set res [opUnion $res $tmp]
         set res [portlist_sort $res]
 
         set joiner ""
@@ -2237,8 +2242,8 @@ proc action_search { action portlist opts } {
             if {[macports::ui_isset ports_quiet]} {
                 puts $portinfo(name)
             } else {
-                if {[info exists global_options(ports_search_line)]
-                        && $global_options(ports_search_line) == "yes"} {
+                if {[info exists options(ports_search_line)]
+                        && $options(ports_search_line) == "yes"} {
                     puts "$portinfo(name)\t$portinfo(version)\t$portinfo(categories)\t$portinfo(description)"
                 } else {
                     puts -nonewline $joiner
@@ -2736,7 +2741,10 @@ array set cmd_opts_array {
                  depends description epoch homepage index line long_description
                  maintainer maintainers name platform platforms portdir
                  revision variant variants version}
-    search      {line}
+    search      {category categories depends_build depends_lib depends_run
+                 depends description epoch homepage line long_description
+                 maintainer maintainers name platform platforms portdir
+                 revision variant variants version}
     selfupdate  {nosync pretend}
     uninstall   {follow-dependents}
     variants    {index}
