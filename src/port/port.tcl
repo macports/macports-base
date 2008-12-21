@@ -203,6 +203,28 @@ proc split_variants {variants} {
 }
 
 
+##
+# Maps friendly field names to their real name
+# Names which do not need mapping are not changed.
+#
+# @param field friendly name
+# @return real name
+proc map_friendly_field_names { field } {
+    switch -- $field {
+        variant -
+        platform -
+        maintainer {
+            set field "${field}s"
+        }
+        category {
+            set field "categories"
+        }
+    }
+
+    return $field
+}
+
+
 proc registry_installed {portname {portversion ""}} {
     set ilist [registry::installed $portname $portversion]
     if { [llength $ilist] > 1 } {
@@ -891,12 +913,8 @@ proc element { resname } {
             regexp {^(\w+):(.*)} $token matchvar field pat
 
             # Remap friendly names to actual names
-            switch -- $field {
-                variant -
-                platform -
-                maintainer { set field "${field}s" }
-                category { set field "categories" }
-            }                           
+            set field [map_friendly_field_names $field]
+
             add_multiple_ports reslist [get_matching_ports $pat no regexp $field]
             set el 1
         }
@@ -1386,15 +1404,7 @@ proc action_info { action portlist opts } {
             ui_warn "port info --index does not work with 'current' pseudo-port"
             continue
         }
-        
-        # Map from friendly to less-friendly but real names
-        array set name_map "
-            category        categories
-            maintainer      maintainers
-            platform        platforms
-            variant         variants
-        "
-                
+
         # Understand which info items are actually lists
         # (this could be overloaded to provide a generic formatting code to
         # allow us to, say, split off the prefix on libs)
@@ -1443,10 +1453,7 @@ proc action_info { action portlist opts } {
             }
             
             # Map from friendly name
-            set ropt $opt
-            if {[info exists name_map($opt)]} {
-                set ropt $name_map($opt)
-            }
+            set ropt [map_friendly_field_names $opt]
             
             # If there's no such info, move on
             if {![info exists portinfo($ropt)]} {
