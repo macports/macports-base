@@ -2191,6 +2191,13 @@ proc action_search { action portlist opts } {
         set options(ports_search_name) "yes"
     }
 
+    if {[info exists options(ports_search_depends)] && $options(ports_search_depends) == "yes"} {
+        array unset options ports_search_depends
+        set options(ports_search_depends_build) yes
+        set options(ports_search_depends_lib) yes
+        set options(ports_search_depends_run) yes
+    }
+
     set separator ""
     foreach portname $portlist {
         puts -nonewline $separator
