@@ -331,22 +331,6 @@ AC_ARG_WITH(
 	AS_HELP_STRING([--with-trace-sdk=SDK],
 		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
 	[test -d /Developer/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
-	
-	
-# If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
-# (this code is currently disabled since this mechanism implies that MacPorts paths are
-# added after the system's paths, and so MacPorts commands would not override system functions).
-AC_MSG_CHECKING(whether to install MacPorts paths into /etc/paths.d and /etc/manpaths.d)
-mpprefix=$prefix
-test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
-if false && test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
-	PATHCONF=pathconf
-	AC_CONFIG_FILES([src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths])
-	AC_MSG_RESULT([yes])
-else
-	AC_MSG_RESULT([no])
-fi
-
 
 # Allows building of shared libraries
 SC_ENABLE_SHARED
