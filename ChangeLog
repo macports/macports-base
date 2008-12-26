@@ -11,6 +11,10 @@ Release 1.8.0 (unreleased):
 
     - Split portpkg creation out from portsubmit phase. (afb)
 
+    - Make dependencies displayed in port info respect variants
+      specified in variants.conf; collapse port deps to be an alias
+      for port info with appropriate flags. Note this changes output
+      format of port deps somewhat.  (#11891, gwhitney)
 
 Release 1.7.1 (unreleased):
     - Make the postflight procedure a bit smarter about which login files
