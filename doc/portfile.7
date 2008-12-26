@@ -833,6 +833,20 @@ Command to perform the extraction.
 .br
 .Sy Example:
 .Dl extract.cmd bzip2
+.It Ic extract.mkdir
+Create the
+.Ic worksrcdir
+prior to extraction; useful for ports which extract directly into the current
+working directory instead of a subdirectory.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Example:
+.Dl extract.mkdir yes
 .El
 .Sh CONFIGURE OPTIONS
 MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
