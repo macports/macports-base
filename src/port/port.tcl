@@ -2994,6 +2994,7 @@ proc process_cmd { argv } {
         cd $current_portdir
         
         # Reset global_options from base before each action, as we munge it just below...
+        array unset global_options
         array set global_options $global_options_base
         
         # Find an action to execute
