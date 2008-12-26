@@ -1342,6 +1342,7 @@ proc action_help { action portlist opts } {
 
 
 proc action_info { action portlist opts } {
+    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -1390,7 +1391,17 @@ proc action_info { action portlist opts } {
         }
 
         if {!([info exists options(ports_info_index)] && $options(ports_info_index) eq "yes")} {
-            if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
+            # Add any global_variations to the variations
+            # specified for the port (so we get e.g. dependencies right)
+            array unset merged_variations
+            array set merged_variations [array get variations]
+            foreach { variation value } [array get global_variations] { 
+                if { ![info exists merged_variations($variation)] } { 
+                    set merged_variations($variation) $value 
+                } 
+            }
+ 
+            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
@@ -1404,6 +1415,7 @@ proc action_info { action portlist opts } {
             ui_warn "port info --index does not work with 'current' pseudo-port"
             continue
         }
+        array unset options ports_info_index
 
         # Understand which info items are actually lists
         # (this could be overloaded to provide a generic formatting code to
@@ -1418,6 +1430,36 @@ proc action_info { action portlist opts } {
             variants        1
         "
 
+        # Label map for pretty printing
+        array set pretty_label {
+            heading     ""
+            variants    Variants
+            depends_build "Build Dependencies"
+            depends_run "Runtime Dependencies"
+            depends_lib "Library Dependencies"
+            description "Brief Description"
+            long_description ""
+            fullname    "Full Name: "
+            homepage    Homepage
+            platforms   Platforms
+            maintainers Maintainers
+        }
+
+        # Wrap-length map for pretty printing
+        array set pretty_wrap {
+            heading 0
+            variants 13
+            depends_build 22
+            depends_run 22
+            depends_lib 22
+            description 22
+            long_description 0
+            homepage 13
+            platforms 22
+            maintainers 22
+        }
+
+        # Interpret a convenient field abbreviation
         if {[info exists options(ports_info_depends)] && $options(ports_info_depends) == "yes"} {
             array unset options ports_info_depends
             set options(ports_info_depends_build) yes
@@ -1429,7 +1471,16 @@ proc action_info { action portlist opts } {
         set show_label 1
         set field_sep "\n"
         set subfield_sep ", "
+        set pretty_print 0
         
+        # For human-readable summary, which is the default with no options
+        if {![array size options]} {
+            set pretty_print 1
+        } elseif {[info exists options(ports_info_pretty)]} {
+            set pretty_print 1
+            array unset options ports_info_pretty
+        }
+
         # Tune for sort(1)
         if {[info exists options(ports_info_line)]} {
             array unset options ports_info_line
@@ -1443,31 +1494,70 @@ proc action_info { action portlist opts } {
         if {$quiet} {
             set show_label 0
         }
-        
+        # In pretty-print mode we also suppress messages, even though we show
+        # most of the labels:
+        if {$pretty_print} {
+            set quiet 1
+        }
+
         # Spin through action options, emitting information for any found
         set fields {}
-        foreach { option } [array names options ports_info_*] {
+        set opts_todo [array names options ports_info_*]
+        set fields_tried {}
+        if {![llength $opts_todo]} {
+            set opts_todo {ports_info_heading ports_info_variants 
+                ports_info_description ports_info_skip_line
+                ports_info_long_description ports_info_homepage 
+                ports_info_skip_line ports_info_depends_build
+                ports_info_depends_lib ports_info_depends_run
+                ports_info_platforms ports_info_maintainers
+            }
+        }
+        foreach { option } $opts_todo {
             set opt [string range $option 11 end]
-            if {$opt eq "index"} {
+            # Artificial field name for formatting
+            if {$pretty_print && $opt eq "skip_line"} {
+                lappend fields ""
                 continue
             }
-            
-            # Map from friendly name
-            set ropt [map_friendly_field_names $opt]
-            
-            # If there's no such info, move on
-            if {![info exists portinfo($ropt)]} {
-                if {!$quiet} {
-                    puts stderr "no info for '$opt'"
+            # Artificial field names to reproduce prettyprinted summary
+            if {$opt eq "heading"} {
+                set inf "$portinfo(name) @$portinfo(version)"
+                set ropt "heading"
+                if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
+                    append inf ", Revision $portinfo(revision)"
                 }
-                set inf ""
+                if {[info exists portinfo(categories)]} {
+                    append inf " ([join $portinfo(categories) ", "])"
+                }
+            } elseif {$opt eq "fullname"} {
+                set inf "$portinfo(name)@"
+                append inf [composite_version $portinfo(version) $portinfo(active_variants)]
+                set ropt "fullname"
             } else {
-                set inf $portinfo($ropt)
+                # Map from friendly name
+                set ropt [map_friendly_field_names $opt]
+                
+                # If there's no such info, move on
+                if {![info exists portinfo($ropt)]} {
+                    if {!$quiet} {
+                        puts stderr "no info for '$opt'"
+                    }
+                    set inf ""
+                } else {
+                    set inf $portinfo($ropt)
+                }
             }
-            
+
             # Calculate field label
             set label ""
-            if {$show_label} {
+            if {$pretty_print} {
+                if {[info exists pretty_label($ropt)]} {
+                    set label $pretty_label($ropt)
+                } else {
+                    set label $opt
+                }
+            } elseif {$show_label} {
                 set label "$opt: "
             }
             
@@ -1475,102 +1565,89 @@ proc action_info { action portlist opts } {
             if { $ropt eq "maintainers" } {
                 set inf [unobscure_maintainers $inf]
             }
+            #     ... special formatting for certain fields when prettyprinting
+            if {$pretty_print} {
+                if {$ropt eq "variants"} {
+                    # Only use the new key for variants if it exists in PortInfo.
+                    # Note that this key does not currently exist outside of trunk.
+                    array unset variants
+                    if {[info exists portinfo(_variants)]} {
+                        array set variants $portinfo(_variants)
+                    }
+
+                    set pi_vars $inf
+                    set inf {}
+                    foreach v [lsort $pi_vars] {
+                        set mod ""
+                        if {[info exists variations($v)]} {
+                            # selected by command line, prefixed with +/-
+                            set mod $variations($v)
+                        } elseif {[info exists global_variations($v)]} {
+                            # selected by variants.conf, prefixed with (+)/(-)
+                            set mod "($global_variations($v))"
+                            # Retrieve additional information from the new key.
+                        } elseif {[info exists variants]} {
+                            array unset variant
+                            array set variant $variants($v)
+                            if {$variant(is_default) eq "+"} {
+                                set mod "\[+\]"
+                            }
+                        }
+                        lappend inf "$mod$v"
+                    }
+                } elseif {[string match "depend*" $ropt] 
+                          && ![macports::ui_isset ports_verbose]} {
+                    set pi_deps $inf
+                    set inf {}
+                    foreach d $pi_deps {
+                        lappend inf [lindex [split $d :] end]
+                    }
+                }
+            } 
+            #End of special pretty-print formatting for certain fields
             if [info exists list_map($ropt)] {
                 set field [join $inf $subfield_sep]
             } else {
                 set field $inf
             }
             
-            lappend fields "$label$field"
+            # Assemble the entry
+            if {$pretty_print} {
+                # The two special fields are considered headings and are
+                # emitted immediately, rather than waiting. Also they are not
+                # recorded on the list of fields tried
+                if {$ropt eq "heading" || $ropt eq "fullname"} {
+                    puts "$label$field"
+                    continue
+                }
+            }
+            lappend fields_tried $label
+            if {$pretty_print} {
+                if {![string length $field]} {
+                    continue
+                }
+                if {![string length $label]} {
+                    lappend fields [wrap $field 0]
+                } else {
+                    set wrap_len [string length $label]
+                    if {[info exists pretty_wrap($ropt)]} {
+                        set wrap_len $pretty_wrap($ropt)
+                    }
+                    lappend fields [wraplabel $label $field 0 [string repeat " " $wrap_len]]
+                }
+
+            } else { # Not pretty print
+                lappend fields "$label$field"
+            }
         }
-        
+
+        # Now output all that information:
         if {[llength $fields]} {
-            # Show specific fields
             puts [join $fields $field_sep]
         } else {
-            # If we weren't asked to show any specific fields, then show general information
-            puts -nonewline "$portinfo(name) @$portinfo(version)"
-            if {[info exists portinfo(revision)] && $portinfo(revision) > 0} {
-                puts -nonewline ", Revision $portinfo(revision)"
-            }
-            if {[info exists portinfo(categories)]} {
-                puts -nonewline " ([join $portinfo(categories) ", "])"
-            }
-            puts ""
-            if {[info exists portinfo(variants)]} {
-                global global_variations
-
-                # Only use the new key for variants if it exists in PortInfo.
-                # Note that this key does not currently exist outside of trunk.
-                array unset variants
-                if {[info exists portinfo(_variants)]} {
-                    array set variants $portinfo(_variants)
-                }
-
-                set joiner ""
-                set vars ""
-                foreach v [lsort $portinfo(variants)] {
-                    set mod ""
-                    if {[info exists variations($v)]} {
-                        # selected by command line, prefixed with +/-
-                        set mod $variations($v)
-                    } elseif {[info exists global_variations($v)]} {
-                        # selected by variants.conf, prefixed with (+)/(-)
-                        set mod "($global_variations($v))"
-                    # Retrieve additional information from the new key.
-                    } elseif {[info exists variants]} {
-                        array unset variant
-                        array set variant $variants($v)
-                        if {$variant(is_default) eq "+"} {
-                            set mod "\[+\]"
-                        }
-                    }
-                    append vars "$joiner$mod$v"
-                    set joiner ", "
-                }
-                puts [wraplabel "Variants" $vars 0 [string repeat " " 13]]
-            }
-            puts ""
-            if {[info exists portinfo(long_description)]} {
-                puts [wrap [join $portinfo(long_description)] 0]
-            } else {
-                if {[info exists portinfo(description)]} {
-                    puts [wrap [join $portinfo(description)] 0]
-                }
-            }
-            if {[info exists portinfo(homepage)]} {
-                puts [wraplabel "Homepage" $portinfo(homepage) 0 [string repeat " " 13]]
-            }
-            puts ""
-            # Emit build, library, and runtime dependencies
-            # For wrapping, indent output at 22 chars
-            set label_len 22
-            foreach {key title} {
-                depends_build "Build Dependencies"
-                depends_lib "Library Dependencies"
-                depends_run "Runtime Dependencies"
-            } {
-                if {[info exists portinfo($key)]} {
-                    set depstr ""
-                    set joiner ""
-                    foreach d $portinfo($key) {
-                        if {[macports::ui_isset ports_verbose]} {
-                            append depstr "$joiner$d"
-                        } else {
-                            append depstr "$joiner[lindex [split $d :] end]"
-                        }
-                        set joiner ", "
-                    }
-                    set nodeps false
-                    puts [wraplabel $title $depstr 0 [string repeat " " $label_len]]
-                }
-            }
-                
-            if {[info exists portinfo(platforms)]} {
-                puts [wraplabel "Platforms" [join $portinfo(platforms) ", "] 0 [string repeat " " $label_len]]
-            }
-            if {[info exists portinfo(maintainers)]} {
-                puts [wraplabel "Maintainers" [unobscure_maintainers $portinfo(maintainers)] 0 [string repeat " " $label_len]]
+            if {$pretty_print && [llength $fields_tried]} {
+                puts -nonewline "$portinfo(name) has no "
+                puts [join $fields_tried ", "]
             }
         }
         set separator "--\n"
@@ -2031,65 +2108,6 @@ proc action_contents { action portlist opts } {
 
     return $status
 }
-
-
-proc action_deps { action portlist opts } {
-    set status 0
-    if {[require_portlist portlist]} {
-        return 1
-    }
-    foreachport $portlist {
-        # Get info about the port
-        if {[catch {mportsearch $portname no exact} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for portname $portname failed: $result" 1 status
-        }
-
-        if {$result == ""} {
-            break_softcontinue "No port $portname found." 1 status
-        }
-
-        array unset portinfo
-        array set portinfo [lindex $result 1]
-        if {[catch {set mport [mportopen $portinfo(porturl) [array get options] [array get variations]]} result]} {
-           ui_debug "$::errorInfo"
-           break_softcontinue "Unable to open port: $result" 1 status
-        }
-        array unset portinfo
-        array set portinfo [mportinfo $mport]
-        mportclose $mport
-        # set portname again since the one we were passed may not have had the correct case
-        set portname $portinfo(name)
-
-        set depstypes {depends_build depends_lib depends_run}
-        set depstypes_descr {"build" "library" "runtime"}
-
-        set nodeps true
-        foreach depstype $depstypes depsdecr $depstypes_descr {
-            if {[info exists portinfo($depstype)] &&
-                $portinfo($depstype) != ""} {
-                puts "$portname has $depsdecr dependencies on:"
-                foreach i $portinfo($depstype) {
-                    if {[macports::ui_isset ports_verbose]} {
-                        puts "\t$i"
-                    } else {
-                        puts "\t[lindex [split [lindex $i 0] :] end]"
-                    }
-                }
-                set nodeps false
-            }
-        }
-        
-        # no dependencies found
-        if {$nodeps == "true"} {
-            puts "$portname has no dependencies"
-        }
-    }
-    
-    return $status
-}
-
 
 proc action_variants { action portlist opts } {
     set status 0
@@ -2687,7 +2705,7 @@ array set action_array [list \
     outdated    [list action_outdated       [action_args_const ports]] \
     contents    [list action_contents       [action_args_const ports]] \
     dependents  [list action_dependents     [action_args_const ports]] \
-    deps        [list action_deps           [action_args_const ports]] \
+    deps        [list action_info           [action_args_const ports]] \
     variants    [list action_variants       [action_args_const ports]] \
     \
     search      [list action_search         [action_args_const strings]] \
@@ -2777,8 +2795,9 @@ array set cmd_opts_array {
     edit        {{editor 1}}
     ed          {{editor 1}}
     info        {category categories depends_build depends_lib depends_run
-                 depends description epoch homepage index line long_description
-                 maintainer maintainers name platform platforms portdir
+                 depends description epoch fullname heading homepage index line
+                 long_description
+                 maintainer maintainers name platform platforms portdir pretty
                  revision variant variants version}
     search      {case-sensitive category categories depends_build depends_lib depends_run
                  depends description epoch exact glob homepage line
@@ -2791,6 +2810,12 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
 }
+
+global cmd_implied_options
+array set cmd_implied_options {
+    deps   {ports_info_fullname yes ports_info_depends yes ports_info_pretty yes}
+}
+                                 
 
 ##
 # Checks whether the given option is valid
@@ -2968,6 +2993,7 @@ proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn
     global global_options global_options_base private_options ui_options
     global current_portdir
+    global cmd_implied_options
     set cmd_argv $argv
     set cmd_argc [llength $argv]
     set cmd_argn 0
@@ -2997,6 +3023,10 @@ proc process_cmd { argv } {
         array unset global_options
         array set global_options $global_options_base
         
+        if {[info exists cmd_implied_options($action)]} {
+            array set global_options $cmd_implied_options($action)
+        }
+
         # Find an action to execute
         set action_proc [find_action_proc $action]
         if { $action_proc == "" } {

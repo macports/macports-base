@@ -1673,6 +1673,9 @@ proc eval_variants {variations} {
     # Record a canonical variant string, used e.g. in accessing the registry
     set portvariants [canonicalize_variants [array get activevariants]]
 
+    # Make this important information visible in PortInfo
+    set PortInfo(active_variants) [array get activevariants]
+
     # XXX: I suspect it would actually work better in the following
     # block to record the activevariants in the statefile rather than
     # the upvariations, since as far as I can see different sets of
