@@ -1675,6 +1675,7 @@ proc eval_variants {variations} {
 
     # Make this important information visible in PortInfo
     set PortInfo(active_variants) [array get activevariants]
+    set PortInfo(canonical_active_variants) $portvariants
 
     # XXX: I suspect it would actually work better in the following
     # block to record the activevariants in the statefile rather than

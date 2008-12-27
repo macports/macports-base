@@ -373,6 +373,14 @@ without following its dependencies, use
 For example:
 .Pp
 .Dl "port -n upgrade wireshark"
+.Pp  
+Note that in selecting the variants to use in the upgraded build of the 
+port, any variants specified on the command line take highest precedence, 
+then the variants active in the latest installed version of the port, and 
+finally the global variants specified in variants.conf, if any.  Note that 
+upgrade will not normally rebuild a port only to change the selected 
+variants; you can either specify -f, or deactivate the port and reinstall it 
+with different variants. 
 .Ss clean
 Clean the files used for building
 .Ar portname .

@@ -1771,15 +1771,11 @@ proc action_upgrade { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        # Merge global variations into the variations specified for this port
-        foreach { variation value } [array get global_variations] {
-            if { ![info exists variations($variation)] } {
-                set variations($variation) $value
+		# Global variations will have to be merged into the specified
+	        # variations, but perhaps after the installed variations are
+	        # merged. So we pass them into upgrade:
+		macports::upgrade $portname "port:$portname" [array get global_variations] [array get variations] [array get options]
             }
-        }
-
-        macports::upgrade $portname "port:$portname" [array get variations] [array get options]
-    }
 
     return 0
 }

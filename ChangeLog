@@ -16,6 +16,10 @@ Release 1.8.0 (unreleased):
       for port info with appropriate flags. Note this changes output
       format of port deps somewhat.  (#11891, gwhitney)
 
+    - Make dependencies in port upgrade respect variants as specified
+      (in order of precedence) on command line, latest installed
+      version, or variants.conf .  (#8221, gwhitney)
+
 Release 1.7.1 (unreleased):
     - Make the postflight procedure a bit smarter about which login files
       to update for bash and tcsh (#17588)
