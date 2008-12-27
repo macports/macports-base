@@ -1531,7 +1531,7 @@ proc action_info { action portlist opts } {
                     append inf " ([join $portinfo(categories) ", "])"
                 }
             } elseif {$opt eq "fullname"} {
-                set inf "$portinfo(name)@"
+                set inf "$portinfo(name) @"
                 append inf [composite_version $portinfo(version) $portinfo(active_variants)]
                 set ropt "fullname"
             } else {
