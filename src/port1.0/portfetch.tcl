@@ -44,8 +44,8 @@ target_prerun ${org.macports.fetch} fetch_start
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_dmg dist_subdir \
 	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
-	cvs.module cvs.root cvs.password cvs.date cvs.tag \
-	svn.url svn.tag \
+	cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
+	svn.url svn.tag svn.method \
 	git.url git.branch \
 	hg.url hg.tag
 	
@@ -61,6 +61,7 @@ default fetch.type standard
 default cvs.cmd {$portutil::autoconf::cvs_path}
 default cvs.password ""
 default cvs.dir {${workpath}}
+default cvs.method {export}
 default cvs.module {$distname}
 default cvs.tag ""
 default cvs.date ""
@@ -71,6 +72,7 @@ default cvs.post_args {"${cvs.module}"}
 
 default svn.cmd {$portutil::autoconf::svn_path}
 default svn.dir {${workpath}}
+default svn.method {export}
 default svn.tag ""
 default svn.env {}
 default svn.pre_args {"--non-interactive"}
@@ -449,10 +451,13 @@ proc checkfiles {args} {
 # information in a custom .cvspass file
 proc cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
-    global cvs.root cvs.date cvs.tag cvs.password
+    global cvs.root cvs.date cvs.tag cvs.method cvs.password
     global patch_sites patchfiles filespath
 
-    set cvs.args "co ${cvs.args}"
+    set cvs.args "${cvs.method} ${cvs.args}"
+    if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
+    	set cvs.tag "HEAD"
+    }
     if {[string length ${cvs.tag}]} {
 	set cvs.args "${cvs.args} -r ${cvs.tag}"
     }
@@ -491,7 +496,7 @@ proc cvsfetch {args} {
 # Perform an svn fetch
 proc svnfetch {args} {
     global workpath prefix_frozen
-    global svn.env svn.cmd svn.args svn.post_args svn.tag svn.url
+    global svn.env svn.cmd svn.args svn.post_args svn.tag svn.url svn.method
     
     # Look for the svn command, either in the path or in the prefix
     set goodcmd 0
@@ -508,7 +513,7 @@ proc svnfetch {args} {
 		return -code error [msgcat::mc "Subversion check out failed"]
     }
     
-    set svn.args "checkout ${svn.args}"
+    set svn.args "${svn.method} ${svn.args}"
     if {[string length ${svn.tag}]} {
 		set svn.args "${svn.args} -r ${svn.tag}"
     }
