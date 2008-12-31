@@ -181,7 +181,11 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 
 		# Remove any line starting with #
 		while {[regexp "(^|\n)#.*\n(.*)\$" $receipt_contents match foo receipt_contents]} {}
-		array set receipt_$ref $receipt_contents
+		if {[catch {array set receipt_$ref $receipt_contents} rcpterr]} {
+			ui_error "Malformed receipt for ${name} @${version}_${revision}${variants}"
+			ui_error "receipt_contents = '$receipt_contents'"
+			error $rcpterr
+		}
 	} else {
 		# This is old Images format
 
