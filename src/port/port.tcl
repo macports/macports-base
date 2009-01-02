@@ -1753,6 +1753,101 @@ proc action_deactivate { action portlist opts } {
 }
 
 
+proc action_select { action portlist opts } {
+    ui_debug "action_select \[$portlist] \[$opts]..."
+
+    # Error out if no group is specified.
+    if {[llength $portlist] < 1} {
+        ui_error "port select \[--list|--set|--show] <group> \[<version>]"
+        return 1
+    }
+    set group [lindex $portlist 0]
+
+    set commands [array names [array set {} $opts]]
+    # If no command (--set, --show, --list) is specified *but* more than one
+    # argument is specified, default to the set command.
+    if {[llength $commands] < 1 && [llength $portlist] > 1} {
+        set command set
+        ui_debug [concat "Although no command was specified, more than " \
+                         "one argument was specified.  Defaulting to the " \
+                         "'set' command..."]
+    # If no command (--set, --show, --list) is specified *and* less than two
+    # argument are specified, default to the show command.
+    } elseif {[llength $commands] < 1} {
+        set command show
+        ui_debug [concat "No command was specified. Defaulting to the " \
+                         "'show' command..."]
+    # Only allow one command to be specified at a time.
+    } elseif {[llength $commands] > 1} {
+        ui_error [concat "Multiple commands were specified. Only one " \
+                         "command may be specified at a time."]
+        return 1
+    } else {
+        set command [string map {ports_select_ ""} [lindex $commands 0]]
+        ui_debug "The '$command' command was specified."
+    }
+
+    switch -- $command {
+        list {
+            if {[llength $portlist] > 1} {
+                ui_warn [concat "The 'list' command does not expect any " \
+                                "arguments. Extra arguments will be ignored."]
+            }
+
+            # On error mportselect returns with the code 'error'.
+            if {[catch {mportselect $command $group} versions]} {
+                ui_error "The 'list' command failed: $versions"
+                return 1
+            }
+
+            puts "Available Versions:"
+            foreach v $versions {
+                puts "\t$v"
+            }
+            return 0
+        }
+        set {
+            if {[llength $portlist] < 2} {
+                ui_error [concat "The 'set' command expects two " \
+                                 "arguments: <group>, <version>"]
+                return 1
+            } elseif {[llength $portlist] > 2} {
+                ui_warn [concat "The 'set' command only expects two " \
+                                "arguments. Extra arguments will be " \
+                                "ignored."]
+            }
+            set version [lindex $portlist 1]
+
+            puts -nonewline "Selecting '$version' for '$group' "
+            if {[catch {mportselect $command $group $version} result]} {
+                puts "failed: $result"
+                return 1
+            }
+            puts "succeeded. '$version' is now active."
+            return 0
+        }
+        show {
+            if {[llength $portlist] > 1} {
+                ui_warn [concat "The 'show' command does not expect any " \
+                                "arguments. Extra arguments will be ignored."]
+            }
+
+            if {[catch {mportselect $command $group} selected_version]} {
+                ui_error "The 'show' command failed: $selected_version"
+                return 1
+            }
+            puts [concat "The currently selected version for '$group' is " \
+                         "'$selected_version'."]
+            return 0
+        }
+        default {
+            ui_error "An unknown command '$command' was specified."
+            return 1
+        }
+    }
+}
+
+
 proc action_selfupdate { action portlist opts } {
     global global_options
     if { [catch {macports::selfupdate [array get global_options]} result ] } {
@@ -2685,6 +2780,8 @@ array set action_array [list \
     activate    [list action_activate       [action_args_const ports]] \
     deactivate  [list action_deactivate     [action_args_const ports]] \
     \
+    select      [list action_select         [action_args_const strings]] \
+    \
     sync        [list action_sync           [action_args_const none]] \
     selfupdate  [list action_selfupdate     [action_args_const none]] \
     \
@@ -2805,6 +2902,7 @@ array set cmd_opts_array {
     clean       {all archive dist work}
     mirror      {new}
     lint        {nitpick}
+    select      {list set show}
 }
 
 global cmd_implied_options

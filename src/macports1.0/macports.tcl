@@ -2336,3 +2336,109 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     # close the port handle
     mportclose $workername
 }
+
+# mportselect
+#   * command: The only valid commands are list, set and show
+#   * group: This argument should correspond to a directory under
+#            $macports::prefix/etc/select.
+#   * version: This argument is only used by the 'set' command.
+# On error mportselect returns with the code 'error'.
+proc mportselect {command group {version ""}} {
+    ui_debug "mportselect \[$command] \[$group] \[$version]"
+
+    set conf_path "$macports::prefix/etc/select/$group"
+    if {![file isdirectory $conf_path]} {
+        return -code error "The specified group '$group' does not exist."
+    }
+
+    switch -- $command {
+        list {
+            if {[catch {set versions [glob -directory $conf_path *]}]} {
+                return -code error [concat "No configurations associated " \
+                                           "with '$group' were found."]
+            }
+
+            # Return the sorted list of versions (excluding base and current).
+            set lversions {}
+            foreach v $versions {
+                # Only the file name corresponds to the version name.
+                set v [file tail $v]
+                if {$v eq "base" || $v eq "current"} {
+                    continue
+                }
+                lappend lversions [file tail $v]
+            }
+            return [lsort $lversions]
+        }
+        set {
+            # Use $conf_path/$version to read in sources.
+            if {[catch {set src_file [open "$conf_path/$version"]}]} {
+                return -code error [concat "Verify that the specified " \
+                                           "version '$version' is valid " \
+                                           "(i.e., Is it listed when you " \
+                                           "specify the --list command?)."]
+            }
+            set srcs [split [read -nonewline $src_file] "\n"]
+            close $src_file
+
+            # Use $conf_path/base to read in targets.
+            if {[catch {set tgt_file [open "$conf_path/base"]}]} {
+                return -code error [concat "The configuration file " \
+                                           "'$conf_path/base' could not be " \
+                                           "opened."]
+            }
+            set tgts [split [read -nonewline $tgt_file] "\n"]
+            close $tgt_file
+
+            # Iterate through the configuration files executing the specified
+            # actions.
+            set i 0
+            foreach tgt $tgts {
+                set src [lindex $srcs $i]
+
+                switch -glob -- $src {
+                    - {
+                        # The source is unavailable for this file.
+                        set tgt [file join $macports::prefix $tgt]
+                        file delete $tgt
+                        ui_debug "rm -f $tgt"
+                    }
+                    /* {
+                        # The source is an absolute path.
+                        set tgt [file join $macports::prefix $tgt]
+                        file delete $tgt
+                        file link -symbolic $tgt $src
+                        ui_debug "ln -sf $src $tgt"
+                    }
+                    default {
+                        # The source is a relative path.
+                        set src [file join $macports::prefix $src]
+                        set tgt [file join $macports::prefix $tgt]
+                        file delete $tgt
+                        file link -symbolic $tgt $src
+                        ui_debug "ln -sf $src $tgt"
+                    }
+                }
+                set i [expr $i+1]
+            }
+
+            # Update the selected version.
+            set selected_version "$conf_path/current"
+            if {[file exists $selected_version]} {
+                file delete $selected_version
+            }
+            symlink $version $selected_version 
+            return
+        }
+        show {
+            set selected_version "$conf_path/current"
+
+            if {![file exists $selected_version]} {
+                return "none"
+            } else {
+                return [file readlink $selected_version]
+            }
+        }
+    }
+    return
+}
