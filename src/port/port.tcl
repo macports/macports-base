@@ -1438,7 +1438,7 @@ proc action_info { action portlist opts } {
             depends_run "Runtime Dependencies"
             depends_lib "Library Dependencies"
             description "Brief Description"
-            long_description ""
+            long_description "Description"
             fullname    "Full Name: "
             homepage    Homepage
             platforms   Platforms
@@ -1448,13 +1448,13 @@ proc action_info { action portlist opts } {
         # Wrap-length map for pretty printing
         array set pretty_wrap {
             heading 0
-            variants 13
+            variants 22
             depends_build 22
             depends_run 22
             depends_lib 22
             description 22
-            long_description 0
-            homepage 13
+            long_description 22
+            homepage 22
             platforms 22
             maintainers 22
         }
@@ -1506,7 +1506,7 @@ proc action_info { action portlist opts } {
         set fields_tried {}
         if {![llength $opts_todo]} {
             set opts_todo {ports_info_heading ports_info_variants 
-                ports_info_description ports_info_skip_line
+                ports_info_skip_line ports_info_description
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
@@ -1627,7 +1627,11 @@ proc action_info { action portlist opts } {
                     continue
                 }
                 if {![string length $label]} {
-                    lappend fields [wrap $field 0]
+                    set wrap_len 0
+                    if {[info exists pretty_wrap($ropt)]} {
+                        set wrap_len $pretty_wrap($ropt)
+                    }
+                    lappend fields [wrap $field 0 [string repeat " " $wrap_len]]
                 } else {
                     set wrap_len [string length $label]
                     if {[info exists pretty_wrap($ropt)]} {
