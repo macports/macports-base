@@ -425,6 +425,22 @@ may be used to determine the exact set of ports to which a given string of argum
 .Ss list
 If no argument is given, display a list of the latest version of all available ports.
 If portname(s) are given as arguments, display a list of the latest version of each port.
+.Ss mirror
+Create/update a local mirror of distfiles used for ports given on the command line.  The filemap database can be reset by using the
+.Fl -new
+option (though if no database is found, it will be created automatically).
+If the fetched file does not match the checksum given in the Portfile, it is
+deleted.  This can be used with
+.Ar pseudo-portnames ,
+eg,
+.Ar all ,
+to mirror everything.  Note that if you use
+.Ar all ,
+you'll most likely want to use
+.Fl p
+so
+.Nm
+doesn't quit on the first download failure.
 .Ss version
 Display the release number of the installed MacPorts infrastructure.
 .Ss platform
@@ -438,6 +454,21 @@ installing the newest infrastructure available. To update you would typically do
 See
 .Ic sync
 for more information about updating ports tree(s).
+.Ss load
+Provides a shortcut to using launchctl to load a port's daemon (as installed
+in /Library/LaunchDaemons).  It runs:
+.Pp
+.Dl launchctl load -w /Library/LaunchDaemons/org.macports.${port}.plist
+.Ss unload
+A shortcut to launchctl, like load, but unloads the daemon.
+.Ss platform
+Prints out the current platform information for the running system.
+.Ss gohome
+Loads the home page for the given 
+.Ar portname 
+in the default web browser.
+.Ss usage
+Displays a condensed usage summary.
 .Ss help
 Displays a summary of all available actions and port command syntax on stdout.
 .Sh DEVELOPER TARGETS
@@ -445,9 +476,20 @@ The targets that are often used by Port developers are intended to provide acces
 .Ss dir
 Displays the path to the directory containing
 .Ar portname .
+.Ss work
+Displays the path to the work directory for
+.Ar portname .
+.Ss cd
+Changes the current working directory to the one containing
+.Ar portname .
+Only useful in interactive mode.
 .Ss file
 Displays the path to the Portfile for
 .Ar portname .
+.Ss url
+Displays the URL for the path of the given
+.Ar portname ,
+which can be passed as port-url
 .Ss cat
 Concatenates and prints the contents of
 .Ar Portfile
@@ -464,6 +506,9 @@ You can also use the
 flag on the command line to specify an alternative editor. For example:
 .Dl port edit --editor nano apache2
 .Pp
+.Ss ed
+An alias for
+.Ic edit .
 .Ss unarchive
 Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
 .Ar fetch ,
