@@ -73,10 +73,15 @@ proc trace_start {workpath} {
 			# /dev/null
 			# /dev/tty
 			# /Library/Caches/com.apple.Xcode
-			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:${workpath}:$portpath"
+ 			# $CCACHE_DIR
+ 			# $HOMEDIR/.ccache
+			set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:$portpath"
 			if {[info exists env(TMPDIR)]} {
 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
 			}
+ 			if {[info exists env(CCACHE_DIR)]} {
+ 				set trace_sandboxbounds "${trace_sandboxbounds}:$env(CCACHE_DIR)"
+ 			}
 			tracelib setsandbox $trace_sandboxbounds
 		}
 	}
