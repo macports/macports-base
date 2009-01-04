@@ -20,6 +20,11 @@ Release 1.8.0 (unreleased):
       (in order of precedence) on command line, latest installed
       version, or variants.conf .  (#8221, gwhitney)
 
+    - Add mkdtemp Tcl command to create temporary directories. (#17181, perry)
+
+    - Add select action, which integrates *_select tools into port.
+      (#17477, perry)
+
 Release 1.7.1 (unreleased):
     - Make the postflight procedure a bit smarter about which login files
       to update for bash and tcsh (#17588)
