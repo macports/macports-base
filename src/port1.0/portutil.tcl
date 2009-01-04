@@ -125,11 +125,7 @@ proc handle_option-delete {option args} {
         foreach val $args {
             set temp [ldelete $temp $val]
         }
-        if {$temp eq ""} {
-            unset $option
-        } else {
-            set $option $temp
-        }
+        set $option $temp
     }
 }
 
