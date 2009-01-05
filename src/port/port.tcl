@@ -1945,7 +1945,7 @@ proc action_dependents { action portlist opts } {
         registry::open_dep_map
         
         set composite_version [composite_version $portversion [array get variations]]
-        if { [catch {set ilist [concat $ilist [registry::installed $portname $composite_version]]} result] } {
+        if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "$result" 1 status
