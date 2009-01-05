@@ -1941,9 +1941,9 @@ proc action_dependents { action portlist opts } {
     }
     set ilist {}
 
+    registry::open_dep_map
+
     foreachport $portlist {
-        registry::open_dep_map
-        
         set composite_version [composite_version $portversion [array get variations]]
         if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
             global errorInfo
