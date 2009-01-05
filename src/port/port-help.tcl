@@ -223,6 +223,27 @@ Search for a port
 This looks in name, desription and long_description of each port for the given search string.
 }
 
+set porthelp(select) {
+Select between mulitple versions of a versioned port
+
+This allows you to choose which version, among several installed versions
+of a port, is to be considered primary.  What this means is which version
+becomes the one most would consider the default, eg, the one run without
+specifying any version.
+
+One example is the set of python ports, where there are (among others)
+python25, python26, and python30.  The select command lets you set which
+of these becomes the version run when you simply use 'python'.
+
+<arguments> must include the group upon which to be acted, and may include
+a version if --set is used.
+
+--list   List available versions for the group
+--set    Select the given version for the group
+--show   Show which version is currently selected for the group (default if
+         none given)
+}
+
 set porthelp(selfupdate) {
 Upgrade MacPorts itself
 }
