@@ -25,6 +25,9 @@ Release 1.8.0 (unreleased):
     - Add select action, which integrates *_select tools into port.
       (#17477, perry)
 
+    - The variants action additionally shows default variants, conflicting
+      variants and variants' dependencies. (#14178, #15628, perry)
+
 Release 1.7.1 (unreleased):
     - Make the postflight procedure a bit smarter about which login files
       to update for bash and tcsh (#17588)
