@@ -1568,11 +1568,12 @@ proc action_info { action portlist opts } {
             #     ... special formatting for certain fields when prettyprinting
             if {$pretty_print} {
                 if {$ropt eq "variants"} {
-                    # Only use the new key for variants if it exists in PortInfo.
-                    # Note that this key does not currently exist outside of trunk.
-                    array unset variants
-                    if {[info exists portinfo(_variants)]} {
-                        array set variants $portinfo(_variants)
+                    # Use the new format for variants iff it exists in
+                    # PortInfo. This key currently does not exist outside of
+                    # trunk (1.8.0).
+                    array unset vinfo
+                    if {[info exists portinfo(vinfo)]} {
+                        array set vinfo $portinfo(vinfo)
                     }
 
                     set pi_vars $inf
@@ -1586,11 +1587,11 @@ proc action_info { action portlist opts } {
                             # selected by variants.conf, prefixed with (+)/(-)
                             set mod "($global_variations($v))"
                             # Retrieve additional information from the new key.
-                        } elseif {[info exists variants]} {
+                        } elseif {[info exists vinfo]} {
                             array unset variant
-                            array set variant $variants($v)
-                            if {$variant(is_default) eq "+"} {
-                                set mod "\[+\]"
+                            array set variant $vinfo($v)
+                            if {[info exists variant(is_default)]} {
+                                set mod "\[+]"
                             }
                         }
                         lappend inf "$mod$v"
@@ -2221,7 +2222,6 @@ proc action_variants { action portlist opts } {
         }
     
         array unset portinfo
-        array unset variants
         array set portinfo [lindex $result 1]
         # set portname again since the one we were passed may not have had the correct case
         set portname $portinfo(name)
@@ -2245,34 +2245,59 @@ proc action_variants { action portlist opts } {
         }
     
         # if this fails the port doesn't have any variants
-        if { ! [ info exists portinfo(_variants) ] } {
+        if {![info exists portinfo(variants)]} {
             puts "$portname has no variants"
         } else {
-            array set variants $portinfo(_variants)
+            array unset vinfo
+            # Use the new format if it exists.
+            if {[info exists portinfo(vinfo)]} {
+                array set vinfo $portinfo(vinfo)
+            # Otherwise fall back to the old format.
+            } else {
+                if {[info exists portinfo(variant_desc)]} {
+                    array set vdescriptions $portinfo(variant_desc)
+                }
+            }
 
             # print out all the variants
             puts "$portname has the variants:"
-            foreach vname [ lsort [ array names variants ] ] {
-                array unset vinfo
-                array set vinfo $variants($vname)
+            foreach v $portinfo(variants) {
+                set mod ""
+                unset -nocomplain vconflicts vdescription vrequires
+                # Retrieve variants' information from the new format.
+                if {[info exists vinfo]} {
+                    array unset variant
+                    array set variant $vinfo($v)
 
-                if { [ info exists vinfo(is_default) ] \
-                     && $vinfo(is_default) == "+" } {
-                    set mod "\[+] "
-                } else {
-                    set mod {}
+                    # Retrieve conflicts, description, is_default, and
+                    # vrequires.
+                    if {[info exists variant(conflicts)]} {
+                        set vconflicts $variant(conflicts)
+                    }
+                    if {[info exists variant(description)]} {
+                        set vdescription $variant(description)
+                    }
+                    if {[info exists variant(is_default)]} {
+                        set mod "\[+] "
+                    }
+                    if {[info exists variant(requires)]} {
+                        set vrequires $variant(requires)
+                    }
+                # Retrieve variants' information from the old format,
+                # which only consists of the description.
+                } elseif {[info exists vdescriptions($v)]} {
+                    set vdescription $vdescriptions($v)
                 }
-                puts -nonewline "\t$mod$vname"
-                if { [ info exists vinfo(description) ] } {
-                    puts -nonewline ": [ string trim $vinfo(description) ]"
+
+                puts -nonewline "\t$mod$v"
+                if {[info exists vdescription]} {
+                    puts -nonewline ": [string trim $vdescription]"
                 }
-                if { [ info exists vinfo(conflicts) ] \
-                    && $vinfo(conflicts) != "" } {
-                    puts -nonewline "\n\t  * conflicts with [ string trim $vinfo(conflicts) ]"
+                if {[info exists vconflicts]} {
+                    puts -nonewline "\n\t  * conflicts with [string trim $vconflicts]"
                 }
-                if { [ info exists vinfo(requires) ] \
-                    && $vinfo(requires) != "" } {
-                    puts -nonewline "\n\t  * requires [ string trim $vinfo(requires) ]"
+                if {[info exists vrequires]} {
+                    puts -nonewline "\n\t  * requires [string trim $vrequires]"
                 }
                 puts ""
             }
