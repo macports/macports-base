@@ -2253,10 +2253,8 @@ proc action_variants { action portlist opts } {
             if {[info exists portinfo(vinfo)]} {
                 array set vinfo $portinfo(vinfo)
             # Otherwise fall back to the old format.
-            } else {
-                if {[info exists portinfo(variant_desc)]} {
-                    array set vdescriptions $portinfo(variant_desc)
-                }
+            } elseif {[info exists portinfo(variant_desc)]} {
+                array set vdescriptions $portinfo(variant_desc)
             }
 
             # print out all the variants
