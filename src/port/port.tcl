@@ -2259,7 +2259,7 @@ proc action_variants { action portlist opts } {
 
             # print out all the variants
             puts "$portname has the variants:"
-            foreach v $portinfo(variants) {
+            foreach v [lsort $portinfo(variants)] {
                 set mod ""
                 unset -nocomplain vconflicts vdescription vrequires
                 # Retrieve variants' information from the new format.
