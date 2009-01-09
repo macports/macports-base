@@ -148,7 +148,8 @@ Release 1.7.0 (2008-12-13 by blb):
     - Fetching of daily snapshot tarballs of the ports tree as an alternative to rsync
       (raimue in r35647, r35648)
 
-    - port uninstall now takes --recursive to uninstall all dependents (#14637, eridius in r34977)
+    - port uninstall now takes --follow-dependents to uninstall all dependents
+      (#14637, eridius/raimue in r34977, r35042, r36160)
 
     - New fetch.type git (#14232, eridius in r34875)
 
