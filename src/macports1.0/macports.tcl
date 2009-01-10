@@ -429,7 +429,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # [macports::getportresourcepath] fails when the first source doesn't
     # contain _resources.
     if {![info exists sources_default]} {
-        return -code error "No default port source specified in $sources_conf"
+        ui_warn "No default port source specified in $sources_conf, using last source as default"
+        set sources_default [lindex $sources end]
     }
 
     if {![info exists sources]} {
