@@ -2287,15 +2287,15 @@ proc action_variants { action portlist opts } {
                     set vdescription $vdescriptions($v)
                 }
 
-                puts -nonewline "\t$mod$v"
+                puts -nonewline "  $mod$v"
                 if {[info exists vdescription]} {
                     puts -nonewline ": [string trim $vdescription]"
                 }
                 if {[info exists vconflicts]} {
-                    puts -nonewline "\n\t  * conflicts with [string trim $vconflicts]"
+                    puts -nonewline "\n    * conflicts with [string trim $vconflicts]"
                 }
                 if {[info exists vrequires]} {
-                    puts -nonewline "\n\t  * requires [string trim $vrequires]"
+                    puts -nonewline "\n    * requires [string trim $vrequires]"
                 }
                 puts ""
             }
