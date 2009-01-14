@@ -1957,10 +1957,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     set revision_in_tree "$portinfo(revision)"
     set epoch_in_tree "$portinfo(epoch)"
 
-    # the depflag tells us if we should follow deps (this is for stuff installed outside MacPorts)
-    # if this is set (not 0) we dont follow the deps
-    set depflag 0
-
     # Sooner or later we may have to open this port to update the portinfo
 	# by evaluating the variants. Keep track of whether this has happened
 	set portwasopened 0
@@ -2012,11 +2008,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     set ilist [registry::installed $portname ""]
                 }
             } else {
-                # port installed outside MacPorts
-                ui_debug "$portname installed outside the MacPorts system"
-                set depflag 1
+                # dependency is satisfied by something other than the named port
+                ui_debug "$portname not installed, soft dependency satisfied"
                 # mark this depspec as satisfied in the cache
                 set depscache($dspec) 1
+                return
             }
 
         } else {
@@ -2032,21 +2028,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     set revision_installed {}
     set epoch_installed 0
     if {$ilist == ""} {
-        # XXX  this sets $version_installed to $version_in_tree even if not installed!!
-        # This hack appears to be invoked when a dependency is found that
-        # is installed outside of MacPorts. It would be nice to eliminate it,
-        # but I don't at the moment have time to investigate what would happen in
-        # current Macports code if this hack was simply removed.  I have a 
-        # hunch that things might be OK... but I'm not sure.
-        #      -- gwhitney 2008-12-26
-        ui_debug "Hack forcing version_installed = version_in tree invoked here."
-        set version_installed $version_in_tree
-        set revision_installed $revision_in_tree
-        set iname $portname
-        # That was a very dirty hack showing how ugly our depencendy and upgrade code is.
-        # To get it working when user provides -f, we also need to set the variant to
-        # avoid a future failure.
-        set variant ""
+        ui_error "Port $portname should now be installed but isn't!"
+        exit 1
     } else {
         # a port could be installed but not activated
         # so, deactivate all and save newest for activation later
@@ -2174,9 +2157,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 	}
 		
 
-    if {$nodeps == "yes" || $depflag == 1} {
+    if {$nodeps == "yes"} {
         ui_debug "Not following dependencies"
-        set depflag 0
     } else {
         # If we're following dependents, we only want to follow this port's
         # dependents, not those of all its dependencies. Otherwise, we would
