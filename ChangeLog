@@ -29,6 +29,9 @@ Release 1.8.0 (unreleased):
       variants and variants' dependencies. (#14178, #15628, perry)
 
 Release 1.7.1 (unreleased):
+    - Create ${applications_dir} and ${frameworks_dir} in destroot
+      automatically (r45614, raimue)
+
     - Make the postflight procedure a bit smarter about which login files
       to update for bash and tcsh (#17588)
 
