@@ -12723,26 +12723,6 @@ _ACEOF
 fi
 
 
-
-# If /etc/paths.d and /etc/manpaths.d then we can install our path configuration
-# (this code is currently disabled since this mechanism implies that MacPorts paths are
-# added after the system's paths, and so MacPorts commands would not override system functions).
-{ $as_echo "$as_me:$LINENO: checking whether to install MacPorts paths into /etc/paths.d and /etc/manpaths.d" >&5
-$as_echo_n "checking whether to install MacPorts paths into /etc/paths.d and /etc/manpaths.d... " >&6; }
-mpprefix=$prefix
-test "x$mpprefix" = "xNONE" && mpprefix=$ac_default_prefix
-if false && test -d /etc/paths.d -a -d /etc/manpaths.d -a "$mpprefix" = "$ac_default_prefix"; then
-	PATHCONF=pathconf
-	ac_config_files="$ac_config_files src/pathconf/Makefile src/pathconf/paths src/pathconf/manpaths"
-
-	{ $as_echo "$as_me:$LINENO: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-	{ $as_echo "$as_me:$LINENO: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
 # Allows building of shared libraries
 
     { $as_echo "$as_me:$LINENO: checking how to build libraries" >&5
@@ -13419,9 +13399,6 @@ do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "src/programs/daemondo/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/daemondo/Makefile" ;;
-    "src/pathconf/Makefile") CONFIG_FILES="$CONFIG_FILES src/pathconf/Makefile" ;;
-    "src/pathconf/paths") CONFIG_FILES="$CONFIG_FILES src/pathconf/paths" ;;
-    "src/pathconf/manpaths") CONFIG_FILES="$CONFIG_FILES src/pathconf/manpaths" ;;
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;
