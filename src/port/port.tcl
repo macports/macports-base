@@ -1506,7 +1506,7 @@ proc action_info { action portlist opts } {
         set fields_tried {}
         if {![llength $opts_todo]} {
             set opts_todo {ports_info_heading ports_info_variants 
-                ports_info_skip_line ports_info_description
+                ports_info_skip_line
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
