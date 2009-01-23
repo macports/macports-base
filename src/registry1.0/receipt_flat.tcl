@@ -318,12 +318,12 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 	close $receipt_handle
 
 	if { [file exists ${receipt_file}] } {
-		system "rm -rf ${receipt_file}"
+		file delete -force "${receipt_file}"
 	} elseif { [file exists ${receipt_file}.bz2] } {
-		system "rm -rf ${receipt_file}.bz2"
+		file delete -force "${receipt_file}.bz2"
 	}
 
-	system "mv ${receipt_file}.tmp ${receipt_file}"
+	file rename -force "${receipt_file}.tmp" "${receipt_file}"
 
 	if { [file exists ${receipt_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${receipt_file}"

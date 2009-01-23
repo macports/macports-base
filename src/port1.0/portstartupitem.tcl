@@ -584,7 +584,7 @@ proc startupitem_create_darwin_launchd {args} {
 
     # Make a symlink to the plist file
     file mkdir "${destroot}/Library/${daemondest}"
-    system "cd ${destroot}/Library/${daemondest} && ln -sf ${itemdir}/${plistname}"
+    ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
     
     # If launchd is not available, warn the user
     set haveLaunchd ${portutil::autoconf::have_launchd}

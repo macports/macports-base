@@ -829,7 +829,7 @@ proc reinplace {args}  {
             return -code error "reinplace permissions failed"
         }
     
-        if {[catch {exec cp $tmpfile $file} error]} {
+        if {[catch {file copy -force $tmpfile $file} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "reinplace: $error"
@@ -1450,14 +1450,14 @@ proc open_statefile {args} {
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             ui_msg "Portfile changed since last build; discarding previous state."
             #file delete $statefile
-            exec rm -rf [file join $workpath]
-            exec mkdir [file join $workpath]
+            exec /bin/rm -rf [file join $workpath]
+            file mkdir [file join $workpath]
         }
     }
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-        exec ln -sf $workpath $worksymlink
+        ln -sf $workpath $worksymlink
     }
     
     set fd [open $statefile a+]

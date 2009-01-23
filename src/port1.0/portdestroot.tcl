@@ -96,7 +96,7 @@ proc destroot_start {args} {
     set mtree ${portutil::autoconf::mtree_path}
     
     if { ${destroot.clean} == "yes" } {
-        system "rm -Rf \"${destroot}\""
+        system "/bin/rm -Rf \"${destroot}\""
     }
     
     file mkdir "${destroot}"
@@ -214,7 +214,7 @@ proc destroot_finish {args} {
                             # repoint the link
                             ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
                             file delete $manlinkpath
-                            system "ln -s \"${manlinksrc}.gz\" \"$manlinkpath\""
+                            ln -s "${manlinksrc}.gz" "${manlinkpath}"
                         }
                         _cd $pwd
                     }
