@@ -119,10 +119,7 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
 
     if {[info exists variations(universal)] && $variations(universal) == "+"} {
         # cannot go into the variant, due to the amount of ports overriding it
-        global configure.universal_target
-        if {[info exists configure.universal_target]} {
-            eval macosx_deployment_target ${configure.universal_target}
-        }
+        eval macosx_deployment_target ${universal_target}
     }
 }
 
