@@ -94,7 +94,9 @@ proc package_pkg {portname portversion portrevision} {
     foreach dir {etc var tmp} {
         if ([file exists "${destpath}/$dir"]) {
             # certain toplevel directories really are symlinks. leaving them as directories make pax lose the symlinks. that's bad.
-            system "mkdir -p ${destpath}/private/$dir; mv ${destpath}/$dir/* ${destpath}/private/$dir; rm -r \"${destpath}/$dir\""
+            file mkdir "${destpath}/private/${dir}"
+            eval file rename [glob ${destpath}/${dir}/*] "${destpath}/private/${dir}"
+            delete "${destpath}/${dir}"
         }
     }
 

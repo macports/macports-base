@@ -108,7 +108,7 @@ proc package_mdmg {portname portversion portrevision} {
     if {[system "hdiutil internet-enable -quiet -yes ${final_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
-    system "rm -f ${tmp_image}"
+    file delete -force "${tmp_image}"
     
     return 0
 }

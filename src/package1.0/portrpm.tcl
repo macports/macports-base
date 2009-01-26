@@ -57,11 +57,11 @@ proc rpm_pkg {portname portversion portrevision} {
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
         set pkgpath ${package.destpath}
-        system "mkdir -p ${pkgpath}/BUILD"
-        system "mkdir -p ${pkgpath}/RPMS"
-        system "mkdir -p ${pkgpath}/SOURCES"
-        system "mkdir -p ${pkgpath}/SPECS"
-        system "mkdir -p ${pkgpath}/SRPMS"
+        file mkdir ${pkgpath}/BUILD \
+                   ${pkgpath}/RPMS \
+                   ${pkgpath}/SOURCES \
+                   ${pkgpath}/SPECS \
+                   ${pkgpath}/SRPMS
         set rpmdestpath "--define '_topdir ${pkgpath}'"
     }
     

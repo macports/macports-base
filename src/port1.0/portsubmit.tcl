@@ -233,15 +233,14 @@ proc submit_main {args} {
 		if {$base_rev != ""} {
 			set worker2 [mport_open $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
 			catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$portname-$portversion/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
-			system "mv $tmpdir/Portfile $portpath/Portfile"
+			file rename -force "${tmpdir}/Portfile" "${portpath}/Portfile"
 			mport_close $worker2
 		} else {
 			catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
-			system "mv $tmpdir/Portfile $portpath/Portfile"
+			file rename -force "${tmpdir}/Portfile" "${portpath}/Portfile"
 		}
 		mport_close $worker
-		catch {system "rm -Rf $tmpdir"}
-		catch {system "rm -Rf $tmpdir"}
+		catch {delete "${tmpdir}"}
 
 		set fd [open [file join "$portpath" ".mports_source"] w]
 		puts $fd "source: $portsource"

@@ -96,7 +96,7 @@ proc destroot_start {args} {
     set mtree ${portutil::autoconf::mtree_path}
     
     if { ${destroot.clean} == "yes" } {
-        system "/bin/rm -Rf \"${destroot}\""
+        delete "${destroot}"
     }
     
     file mkdir "${destroot}"

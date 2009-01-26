@@ -75,7 +75,7 @@ proc org.macports.dpkg::main {args} {
 			return -code error [format [msgcat::mc "Can not create dpkg control directory. %s not a directory."] ${controlpath}]
 		} else {
 			ui_info [msgcat::mc "Removing stale dpkg control directory."]
-			system "rm -rf \"${controlpath}\""
+			delete "${controlpath}"
 		}
 	}
 	file mkdir ${controlpath}
@@ -157,7 +157,7 @@ proc org.macports.dpkg::main {args} {
 	system "dpkg-deb -b \"${destpath}\" \"[option package.destpath]\""
 
 	ui_info [msgcat::mc "Removing dpkg control directory."]
-	system "rm -rf \"${controlpath}\""
+	delete "${controlpath}"
 }
 
 proc org.macports.dpkg::make_dependency_list {portname} {
