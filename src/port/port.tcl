@@ -1871,11 +1871,15 @@ proc action_upgrade { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-		# Global variations will have to be merged into the specified
-	        # variations, but perhaps after the installed variations are
-	        # merged. So we pass them into upgrade:
-		macports::upgrade $portname "port:$portname" [array get global_variations] [array get variations] [array get options]
-            }
+        if {[catch {registry::installed $portname}]} {
+            ui_error "$portname is not installed"
+            return 1
+        }
+        # Global variations will have to be merged into the specified
+        # variations, but perhaps after the installed variations are
+        # merged. So we pass them into upgrade:
+        macports::upgrade $portname "port:$portname" [array get global_variations] [array get variations] [array get options]
+    }
 
     return 0
 }
