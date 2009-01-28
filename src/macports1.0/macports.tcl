@@ -1706,11 +1706,16 @@ proc _mportkey {mport key} {
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
-proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps {}}} {
+proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsFlag 0}} {
 
     array set portinfo [mportinfo $mport]
     set depends {}
     set deptypes {}
+    if {$accDepsFlag == 0} {
+        array set accDeps {}
+    } else {
+        upvar accDeps accDeps
+    }
         
     # Determine deptypes to look for based on target
     switch $target {
@@ -1745,6 +1750,10 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
     foreach depspec $depends {
         # grab the portname portion of the depspec
         set dep_portname [lindex [split $depspec :] end]
+        # Skip the port if it's already in the accumulated list.
+        if {$skipSatisfied && [info exists accDeps($dep_portname)]} {
+            continue
+        }
         
         # Find the porturl
         if {[catch {set res [mportsearch $dep_portname false exact]} error]} {
@@ -1781,14 +1790,11 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             ditem_append_unique $mport requires "[ditem_key $subport provides]"
     
             if {$recurseDeps} {
-                # Skip the port if it's already in the accumulated list.
-                if {[lsearch $accDeps $dep_portname] == -1} {
-                    # Add it to the list
-                    lappend accDeps $dep_portname
-                
-                    # We'll recursively iterate on it.
-                    lappend subPorts $subport
-                }
+                # Add it to the list
+                set accDeps($dep_portname) 1
+
+                # We'll recursively iterate on it.
+                lappend subPorts $subport
             }
         }
     }
@@ -1797,7 +1803,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
     if {$recurseDeps} {
         foreach subport $subPorts {
             # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $subport "" $recurseDeps $skipSatisfied $accDeps]
+            set res [mportdepends $subport "" $recurseDeps $skipSatisfied 1]
             if {$res != 0} {
                 return $res
             }
