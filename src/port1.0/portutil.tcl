@@ -367,6 +367,15 @@ proc default_check {optionName index op} {
     }
 }
 
+# Notes are displayed at (1) the end of the activation phase and (2) when
+# action_notes is executed.
+proc notes {args} {
+    global PortInfo portnotes
+
+    set PortInfo(notes) [string trim [join $args]]
+    set portnotes       $PortInfo(notes)
+}
+
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]
 # Portfile level procedure to provide support for declaring variants
 proc variant {args} {

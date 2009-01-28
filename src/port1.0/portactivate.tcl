@@ -49,7 +49,13 @@ if {[option portarchivemode] == "yes"} {
 set_ui_prefix
 
 proc activate_main {args} {
-	global portname portversion portrevision portvariants user_options
+	global portname portversion portrevision portvariants user_options portnotes
 	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+
+    # Display notes at the end of the activation phase.
+    if {[info exists portnotes] && $portnotes ne {}} {
+        ui_msg \n$portnotes\n
+    }
+    
     return 0
 }

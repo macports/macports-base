@@ -1694,6 +1694,55 @@ proc action_location { action portlist opts } {
 }
 
 
+proc action_notes { action portlist opts } {
+    if {[require_portlist portlist]} {
+        return 1
+    }
+
+    foreachport $portlist {
+        # Search for the port.
+        if {[catch {mportsearch $portname no exact} result]} {
+            ui_debug $::errorInfo
+            break_softcontinue "The search for '$portname' failed: $result" \
+                               1 status
+        }
+        if {[llength $result] < 2} {
+            break_softcontinue "The port '$portname' was not found" 1 status
+        }
+
+        # Retrieve the port's URL.
+        array unset portinfo
+        array set portinfo [lindex $result 1]
+        set porturl $portinfo(porturl)
+
+        # Retrieve the port's name once more to ensure it has the proper case.
+        set portname $portinfo(name)
+
+        # Open the Portfile associated with this port.
+        if {[catch {set mport [mportopen $porturl [array get options] \
+                                         [array get merged_variations]]} \
+                   result]} {
+            ui_debug $::errorInfo
+            break_softcontinue [concat "The URL '$porturl' could not be" \
+                                       "opened: $result"] 1 status
+        }
+        array unset portinfo
+        array set portinfo [mportinfo $mport]
+        mportclose $mport
+
+        # Display notes.
+        if {[info exists portinfo(notes)] && $portinfo(notes) ne {}} {
+            puts "$portname has the following notes:"
+            # Add indentation.
+            puts -nonewline "  "
+            puts [string map {\n "\n  "} $portinfo(notes)]
+        } else {
+            puts "$portname has no notes."
+        }
+    }
+}
+
+
 proc action_provides { action portlist opts } {
     # In this case, portname is going to be used for the filename... since
     # that is the first argument we expect... perhaps there is a better way
@@ -2810,6 +2859,7 @@ array set action_array [list \
     \
     info        [list action_info           [action_args_const ports]] \
     location    [list action_location       [action_args_const ports]] \
+    notes       [list action_notes          [action_args_const ports]] \
     provides    [list action_provides       [action_args_const strings]] \
     \
     activate    [list action_activate       [action_args_const ports]] \
