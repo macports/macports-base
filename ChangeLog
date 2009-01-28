@@ -5,6 +5,11 @@
 
 
 Release 1.8.0 (unreleased):
+    - Upgrade will no longer accept ports that are not installed (but it still
+      installs new ports as dependencies if needed). In particular, this means
+      that "port upgrade all" will no longer proceed to install every
+      available port. (jmr in r46052)
+
     - Add several new options to port search (#15434, raimue)
 
     - Add xpkg archive type, xar-based format with XML. (afb)
