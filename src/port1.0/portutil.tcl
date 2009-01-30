@@ -846,7 +846,7 @@ proc reinplace {args}  {
             return -code error "reinplace copy failed"
         }
     
-        for {set i 0} {$i < [llength attributes]} {incr i} {
+        for {set i 0} {$i < [llength $attributes]} {incr i} {
             set opt [lindex $attributes $i]
             incr i
             set arg [lindex $attributes $i]
