@@ -1750,10 +1750,6 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     foreach depspec $depends {
         # grab the portname portion of the depspec
         set dep_portname [lindex [split $depspec :] end]
-        # Skip the port if it's already in the accumulated list.
-        if {$skipSatisfied && [info exists accDeps($dep_portname)]} {
-            continue
-        }
         
         # Find the porturl
         if {[catch {set res [mportsearch $dep_portname false exact]} error]} {
@@ -1790,11 +1786,14 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
             ditem_append_unique $mport requires "[ditem_key $subport provides]"
     
             if {$recurseDeps} {
-                # Add it to the list
-                set accDeps($dep_portname) 1
+                # Skip the port if it's already in the accumulated list.
+                if {![info exists accDeps($dep_portname)]} {
+                    # Add it to the list
+                    set accDeps($dep_portname) 1
 
-                # We'll recursively iterate on it.
-                lappend subPorts $subport
+                    # We'll recursively iterate on it.
+                    lappend subPorts $subport
+                }
             }
         }
     }
