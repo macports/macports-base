@@ -254,10 +254,6 @@ proc configure_get_universal_cflags {args} {
     if {[info exists configure.universal_sysroot]} {
         set flags "-isysroot ${configure.universal_sysroot} ${flags}"
     }
-    # normally set in MACOSX_DEPLOYMENT_TARGET, add here too to make sure
-    if {${os.major} == "9"} {
-        set flags "${flags} -mmacosx-version-min=${configure.universal_target}"
-    }
     return $flags
 }
 
@@ -269,10 +265,6 @@ proc configure_get_universal_ldflags {args} {
     # works around linking without using the CFLAGS, outside of automake
     if {${os.arch} == "powerpc"} {
         set flags "-Wl,-syslibroot,${configure.universal_sysroot} ${flags}"
-    }
-    # normally set in MACOSX_DEPLOYMENT_TARGET, add here too to make sure
-    if {${os.major} == "9"} {
-        set flags "${flags} -mmacosx-version-min=${configure.universal_target}"
     }
     return $flags
 }
