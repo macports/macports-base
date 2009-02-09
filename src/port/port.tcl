@@ -1726,16 +1726,18 @@ proc action_notes { action portlist opts } {
             break_softcontinue [concat "The URL '$porturl' could not be" \
                                        "opened: $result"] 1 status
         }
-        array unset portinfo
-        array set portinfo [mportinfo $mport]
+        # Return the notes associated with this Portfile.
+        if {[catch {set portnotes [_mportkey $mport portnotes]}]} {
+            set portnotes {}
+        }
         mportclose $mport
 
-        # Display notes.
-        if {[info exists portinfo(notes)] && $portinfo(notes) ne {}} {
+        # Display the notes.
+        if {$portnotes ne {}} {
             puts "$portname has the following notes:"
-            # Add indentation.
+            # Indent the output.
             puts -nonewline "  "
-            puts [string map {\n "\n  "} $portinfo(notes)]
+            puts [string map {\n "\n  "} $portnotes]
         } else {
             puts "$portname has no notes."
         }
