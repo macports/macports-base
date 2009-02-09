@@ -1400,6 +1400,21 @@ is set, events with timestamps are logged to the logfile.
 .br
 .Sy Example:
 .Dl startupitem.logevents yes
+.It Ic startupitem.netchange
+Control whether the startupitem should be restarted when a change in the
+machine's network state is detected.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em no
+.br
+.Sy Values:
+.Em yes|no
+.br
+.Sy Example:
+.Dl startupitem.netchange yes
 .El
 .Sh DISTCHECK AND LIVECHECK OPTIONS
 MacPorts can automatically check if the software has been updated
