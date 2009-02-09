@@ -177,6 +177,7 @@ proc configure_start {args} {
         llvm-gcc-4.2 { set name "Mac OS X llvm-gcc 4.2" }
         apple-gcc-3.3 { set name "MacPorts Apple gcc 3.3" }
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
+        apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
         macports-gcc-3.3 { set name "MacPorts gcc 3.3" }
         macports-gcc-3.4 { set name "MacPorts gcc 3.4" }
         macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
@@ -339,6 +340,13 @@ proc configure_get_compiler {type} {
                 cc   { set ret ${prefix}/bin/gcc-apple-4.0 }
                 objc { set ret ${prefix}/bin/gcc-apple-4.0 }
                 cpp  { set ret ${prefix}/bin/cpp-apple-4.0 }
+            }
+        }
+        apple-gcc-4.2 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-apple-4.2 }
+                objc { set ret ${prefix}/bin/gcc-apple-4.2 }
+                cpp  { set ret ${prefix}/bin/cpp-apple-4.2 }
             }
         }
         macports-gcc-3.3 {
