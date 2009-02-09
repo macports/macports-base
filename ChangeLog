@@ -34,7 +34,7 @@ Release 1.8.0 (unreleased):
       variants and variants' dependencies. (#14178, #15628, perry)
 
 Release 1.7.1 (unreleased):
-    - Add 'apple-gcc-4.2' option to configure.compiler (#16666, ryandesign)
+    - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
 
     - Create ${applications_dir} and ${frameworks_dir} in destroot
       automatically (r45614, raimue)
