@@ -5,6 +5,8 @@
 
 
 Release 1.7.1 (unreleased):
+    - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
+
     - Create ${applications_dir} and ${frameworks_dir} in destroot
       automatically (r45614, raimue)
 
