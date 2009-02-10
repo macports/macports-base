@@ -103,6 +103,13 @@ if {$os_platform == "darwin"} {
     set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
 }
 
+ui_debug "OS Platform: [option os.platform]"
+ui_debug "OS Version: [option os.version]"
+if {$macosx_version != ""} {
+    ui_debug "Mac OS X Version: ${macosx_version}"
+}
+ui_debug "System Arch: [option os.arch]"
+
 default macosx_deployment_target {$macosx_version}
 
 default universal_variant yes
