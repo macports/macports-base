@@ -15,96 +15,96 @@ target_prerun ${org.macports.lint} lint_start
 set_ui_prefix
 
 set lint_portsystem \
-	"1.0"
+    "1.0"
 
 set lint_platforms [list \
-	"macosx" \
-	"darwin" \
-	"freebsd" \
-	"openbsd" \
-	"netbsd" \
-	"linux" \
-	"sunos" \
-	]
+    "macosx" \
+    "darwin" \
+    "freebsd" \
+    "openbsd" \
+    "netbsd" \
+    "linux" \
+    "sunos" \
+    ]
 
 set lint_categories [list \
-	"aqua" \
-	"archivers" \
-	"audio" \
-	"benchmarks" \
-	"cad" \
-	"comms" \
-	"cross" \
-	"databases" \
-	"devel" \
-	"editors" \
-	"emulators" \
-	"erlang" \
-	"finance" \
-	"fuse" \
-	"games" \
-	"genealogy" \
-	"gis" \
-	"gnome" \
-	"gnustep" \
-	"graphics" \
-	"iphone" \
-	"irc" \
-	"java" \
-	"kde" \
-	"lang" \
-	"mail" \
-	"math" \
-	"multimedia" \
-	"net" \
-	"news" \
-	"office" \
-	"palm" \
-	"perl" \
-	"print" \
-	"python" \
-	"ruby" \
-	"science" \
-	"security" \
-	"shells" \
-	"sysutils" \
-	"tex" \
-	"textproc" \
-	"www" \
-	"x11" \
-	"xfce" \
-	"zope" \
-	]
+    "aqua" \
+    "archivers" \
+    "audio" \
+    "benchmarks" \
+    "cad" \
+    "comms" \
+    "cross" \
+    "databases" \
+    "devel" \
+    "editors" \
+    "emulators" \
+    "erlang" \
+    "finance" \
+    "fuse" \
+    "games" \
+    "genealogy" \
+    "gis" \
+    "gnome" \
+    "gnustep" \
+    "graphics" \
+    "iphone" \
+    "irc" \
+    "java" \
+    "kde" \
+    "lang" \
+    "mail" \
+    "math" \
+    "multimedia" \
+    "net" \
+    "news" \
+    "office" \
+    "palm" \
+    "perl" \
+    "print" \
+    "python" \
+    "ruby" \
+    "science" \
+    "security" \
+    "shells" \
+    "sysutils" \
+    "tex" \
+    "textproc" \
+    "www" \
+    "x11" \
+    "xfce" \
+    "zope" \
+    ]
 
 set lint_required [list \
-	"name" \
-	"version" \
-	"description" \
-	"long_description" \
-	"categories" \
-	"maintainers" \
-	"platforms" \
-	"homepage" \
-	"master_sites" \
-	"checksums" \
-	]
+    "name" \
+    "version" \
+    "description" \
+    "long_description" \
+    "categories" \
+    "maintainers" \
+    "platforms" \
+    "homepage" \
+    "master_sites" \
+    "checksums" \
+    ]
 
 set lint_optional [list \
-	"epoch" \
-	"revision" \
-	"worksrcdir" \
-	"distname" \
-	"use_automake" \
-	"use_autoconf" \
-	"use_configure" \
-	]
+    "epoch" \
+    "revision" \
+    "worksrcdir" \
+    "distname" \
+    "use_automake" \
+    "use_autoconf" \
+    "use_configure" \
+    ]
 
 set lint_variants [list \
-	"universal" \
-	"docs" \
-	"aqua" \
-	"x11" \
-	]
+    "universal" \
+    "docs" \
+    "aqua" \
+    "x11" \
+    ]
 
 
 proc seems_utf8 {str} {
@@ -146,17 +146,17 @@ proc lint_start {args} {
 }
 
 proc lint_main {args} {
-	global UI_PREFIX portname portpath porturl ports_lint_nitpick
-	set portfile ${portpath}/Portfile
-	set portdirs [split ${portpath} /]
-	set last [llength $portdirs]
-	incr last -1
-	set portdir [lindex $portdirs $last]
-	incr last -1
-	set portcatdir [lindex $portdirs $last]
+    global UI_PREFIX portname portpath porturl ports_lint_nitpick
+    set portfile ${portpath}/Portfile
+    set portdirs [split ${portpath} /]
+    set last [llength $portdirs]
+    incr last -1
+    set portdir [lindex $portdirs $last]
+    incr last -1
+    set portcatdir [lindex $portdirs $last]
 
-	set warnings 0
-	set errors 0
+    set warnings 0
+    set errors 0
 
     ###################################################################
     ui_debug "$portfile"
@@ -233,13 +233,13 @@ proc lint_main {args} {
 
         if {[string match "PortSystem*" $line]} {
             if {$seen_portsystem} {
-                 ui_error "Line $lineno repeats PortSystem information"
-                 incr errors
+                ui_error "Line $lineno repeats PortSystem information"
+                incr errors
             }
             regexp {PortSystem\s+([0-9.]+)} $line -> portsystem
             if {![info exists portsystem]} {
-                 ui_error "Line $lineno has unrecognized PortSystem"
-                 incr errors
+                ui_error "Line $lineno has unrecognized PortSystem"
+                incr errors
             }
             set seen_portsystem true
             set require_blank true
@@ -247,13 +247,13 @@ proc lint_main {args} {
         }
         if {[string match "PortGroup*" $line]} {
             if {$seen_portgroup} {
-                 ui_error "Line $lineno repeats PortGroup information"
-                 incr errors
+                ui_error "Line $lineno repeats PortGroup information"
+                incr errors
             }
             regexp {PortGroup\s+([a-z0-9]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
-                 ui_error "Line $lineno has unrecognized PortGroup"
-                 incr errors
+                ui_error "Line $lineno has unrecognized PortGroup"
+                incr errors
             }
             set seen_portgroup true
             set require_blank true
@@ -278,7 +278,7 @@ proc lint_main {args} {
         if {[string match "variant*" $line]} {
             regexp {variant\s+(\w+)} $line -> variantname
             if {[info exists variantname]} {
-                 lappend local_variants $variantname
+                lappend local_variants $variantname
             }
         }
 
@@ -332,12 +332,12 @@ proc lint_main {args} {
             set var $req_var
         }
 
-       if {$var == "master_sites" && ${fetch.type} != "standard"} {
-             ui_info "OK: $var not required for fetch.type ${fetch.type}"
-             continue
-       }
-       
-       if {![info exists $var]} {
+        if {$var == "master_sites" && ${fetch.type} != "standard"} {
+            ui_info "OK: $var not required for fetch.type ${fetch.type}"
+            continue
+        }
+
+        if {![info exists $var]} {
             ui_error "Missing required variable: $req_var"
             incr errors
         } else {
@@ -346,22 +346,22 @@ proc lint_main {args} {
     }
 
     foreach opt_var $lint_optional {
-       if {$opt_var == "epoch"} {
+        if {$opt_var == "epoch"} {
             set var "portepoch"
         } elseif {$opt_var == "revision"} {
             set var "portrevision"
         } else {
             set var $opt_var
-       }
-       if {[info exists $var]} {
+        }
+        if {[info exists $var]} {
             # TODO: check whether it was seen (or default)
             ui_info "OK: Found optional variable: $opt_var"
-       }
+        }
     }
 
     if {[info exists platforms]} {
         foreach platform $platforms {
-           if {[lsearch -exact $lint_platforms $platform] == -1} {
+            if {[lsearch -exact $lint_platforms $platform] == -1} {
                 ui_error "Unknown platform: $platform"
                 incr errors
             } else {
@@ -513,7 +513,7 @@ proc lint_main {args} {
     ui_debug "Arch: $portarch"
     ###################################################################
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"
 
-	return {$errors > 0}
+    return {$errors > 0}
 }
