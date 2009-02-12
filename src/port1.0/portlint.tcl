@@ -300,7 +300,7 @@ proc lint_main {args} {
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
     global maintainers homepage master_sites checksums patchfiles
-    global depends_lib depends_build depends_run fetch.type
+    global depends_lib depends_build depends_run distfiles fetch.type
     
     global lint_portsystem lint_platforms lint_categories 
     global lint_required lint_optional lint_variants
@@ -332,9 +332,15 @@ proc lint_main {args} {
             set var $req_var
         }
 
-        if {$var == "master_sites" && ${fetch.type} != "standard"} {
-            ui_info "OK: $var not required for fetch.type ${fetch.type}"
-            continue
+        if {$var == "master_sites"} {
+            if {${fetch.type} != "standard"} {
+                ui_info "OK: $var not required for fetch.type ${fetch.type}"
+                continue
+            }
+            if {[llength ${distfiles}] == 0} {
+                ui_info "OK: $var not required when there are no distfiles"
+                continue
+            }
         }
 
         if {![info exists $var]} {

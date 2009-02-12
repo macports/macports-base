@@ -5,6 +5,9 @@
 
 
 Release 1.8.0 (unreleased):
+    - port lint no longer requires variable master_sites if the port has no
+      distfiles (#18479, ryandesign)
+
     - Upgrade will no longer accept ports that are not installed (but it still
       installs new ports as dependencies if needed). In particular, this means
       that "port upgrade all" will no longer proceed to install every
