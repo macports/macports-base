@@ -1545,7 +1545,7 @@ proc action_info { action portlist opts } {
                     }
                     set inf ""
                 } else {
-                    set inf $portinfo($ropt)
+                    set inf [join $portinfo($ropt)]
                 }
             }
 
