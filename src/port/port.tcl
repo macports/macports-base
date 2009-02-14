@@ -499,13 +499,15 @@ proc wrapline {line maxlen {indent ""} {indentfirstline 1}} {
             lappend lines $newline
             set newline $indent
             set joiner ""
+            # If indentfirstline is set to 0, reset maxlen to its
+            # original length after appending the first line to lines.
+            if {$first == 1 && $indentfirstline == 0} {
+                set maxlen [expr $maxlen + [string length $indent]]
+            }
+            set first 0
         }
         append newline $joiner $word
         set joiner " "
-        set first 0
-        if {$first == 1 && $indentfirstline == 0} {
-            set maxlen [expr $maxlen + [string length $indent]]
-        }
     }
     lappend lines $newline
     return [join $lines "\n"]
