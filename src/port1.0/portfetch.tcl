@@ -119,7 +119,6 @@ proc set_extract_type {option action args} {
         switch $option {
             use_bzip2 {
                 set extract.suffix .tar.bz2
-                depends_build-append bin:bzip2:bzip2
             }
             use_lzma {
                 set extract.suffix .tar.lzma
