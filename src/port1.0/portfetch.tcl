@@ -41,7 +41,7 @@ target_requires ${org.macports.fetch} main
 target_prerun ${org.macports.fetch} fetch_start
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
 	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
@@ -108,6 +108,7 @@ default mirror_sites.listpath {"port1.0/fetch"}
 option_proc use_bzip2 set_extract_type
 option_proc use_lzma set_extract_type
 option_proc use_zip set_extract_type
+option_proc use_7z set_extract_type
 option_proc use_dmg set_extract_type
 
 option_proc fetch.type set_fetch_type
@@ -127,6 +128,10 @@ proc set_extract_type {option action args} {
             use_zip {
                 set extract.suffix .zip
                 depends_build-append bin:unzip:unzip
+            }
+            use_7z {
+                set extract.suffix .7z
+                depends_build-append bin:7za:p7zip
             }
             use_dmg {
                 set extract.suffix .dmg
