@@ -238,7 +238,7 @@ foreach {name array} $allpackages {
 	#ui_msg "foo $portinfo(porturl)"
 
 	# Start with verbose output off;
-	# this will prevent the repopulation of /opt from getting logged.
+	# this will prevent the repopulation of /opt/local from getting logged.
 	set ui_options(ports_verbose) no
 
 	if {![info exists portinfo(porturl)]} {
@@ -310,9 +310,9 @@ foreach {name array} $allpackages {
 	}
 	
 	# Building the port:
-	# - remove /opt so it won't pollute the port.
-	# - re-install DarwinPorts.
-	# - keep distfiles outside /opt so we don't have to keep fetching them.
+	# - remove /opt/local so it won't pollute the port.
+	# - re-install MacPorts.
+	# - keep distfiles outside /opt/local so we don't have to keep fetching them.
 	# - send out an email to the maintainer if any errors occurred.
 
 	set remove_files ""
@@ -323,9 +323,9 @@ foreach {name array} $allpackages {
 	}
 	system "rpm -q --queryformat='%{name} ' -p ${remove_files} | xargs rpm -e || true"
 
-	ui_msg "->    Removing /opt"
+	ui_msg "->    Removing /opt/local"
 	#unset ui_options(ports_verbose)
-	if {[catch {system "rm -Rf /opt"} error]} {
+	if {[catch {system "rm -Rf /opt/local"} error]} {
 		puts stderr "Internal error: $error"
 	}
 	# this is bad on pure darwin  :)
@@ -338,7 +338,7 @@ foreach {name array} $allpackages {
 	#if {[catch {system "rm -Rf /etc/fonts"} error]} {
 	#	puts stderr "Internal error: $error"
 	#}
-	ui_msg "->    Installing darwinports"
+	ui_msg "->    Installing MacPorts"
 	if {[catch {system "cd $env(HOME)/darwinports && make && make install"} error]} {
 		puts stderr "Internal error: $error"
 	}
@@ -412,16 +412,16 @@ foreach {name array} $allpackages {
 	
 	pkg_ui_log "To: [join $maintainers {, }]"
 	pkg_ui_log "From: donotreply@opendarwin.org"
-	pkg_ui_log "Subject: DarwinPorts $portinfo(name)-$portinfo(version) build failure"
+	pkg_ui_log "Subject: MacPorts $portinfo(name)-$portinfo(version) build failure"
 	pkg_ui_log ""
-	pkg_ui_log "The following is a transcript produced by the DarwinPorts automated build       "
+	pkg_ui_log "The following is a transcript produced by the MacPorts automated build       "
 	pkg_ui_log "system.  You are receiving this email because you are listed as a maintainer    "
 	pkg_ui_log "of this port, which has failed the automated packaging process.  Please update  "
 	pkg_ui_log "the port as soon as possible."
 	pkg_ui_log ""
 	pkg_ui_log ""
 	pkg_ui_log "Thank you,"
-	pkg_ui_log "The DarwinPorts Team"
+	pkg_ui_log "The MacPorts Team"
 	pkg_ui_log ""
 	pkg_ui_log "================================================================================"
 	pkg_ui_log ""

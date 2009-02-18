@@ -227,7 +227,7 @@ foreach {name array} $res {
 	array set portinfo $array
 
 	# Start with verbose output off;
-	# this will prevent the repopulation of /opt from getting logged.
+	# this will prevent the repopulation of /opt/local from getting logged.
 	set ui_options(ports_verbose) no
 
 	if {![info exists portinfo(porturl)]} {
@@ -257,14 +257,14 @@ foreach {name array} $res {
 	# Skipt packages which previously failed
 		
 	# Building the port:
-	# - remove /opt so it won't pollute the port.
-	# - re-install DarwinPorts.
-	# - keep distfiles outside /opt so we don't have to keep fetching them.
+	# - remove /opt/local so it won't pollute the port.
+	# - re-install MacPorts.
+	# - keep distfiles outside /opt/local so we don't have to keep fetching them.
 	# - send out an email to the maintainer if any errors occurred.
 
-	ui_msg "removing /opt"
+	ui_msg "removing /optlocal"
 	#unset ui_options(ports_verbose)
-	if {[catch {system "rm -Rf /opt"} error]} {
+	if {[catch {system "rm -Rf /opt/local"} error]} {
 		puts stderr "Internal error: $error"
 	}
 	if {[catch {system "rm -Rf /usr/X11R6"} error]} {
@@ -349,16 +349,16 @@ foreach {name array} $res {
 	
 	pkg_ui_log "To: [join $maintainers {, }]"
 	pkg_ui_log "From: donotreply@opendarwin.org"
-	pkg_ui_log "Subject: DarwinPorts $portinfo(name)-$portinfo(version) build failure"
+	pkg_ui_log "Subject: MacPorts $portinfo(name)-$portinfo(version) build failure"
 	pkg_ui_log ""
-	pkg_ui_log "The following is a transcript produced by the DarwinPorts automated build       "
+	pkg_ui_log "The following is a transcript produced by the MacPorts automated build       "
 	pkg_ui_log "system.  You are receiving this email because you are listed as a maintainer    "
 	pkg_ui_log "of this port, which has failed the automated packaging process.  Please update  "
 	pkg_ui_log "the port as soon as possible."
 	pkg_ui_log ""
 	pkg_ui_log ""
 	pkg_ui_log "Thank you,"
-	pkg_ui_log "The DarwinPorts Team"
+	pkg_ui_log "The MacPorts Team"
 	pkg_ui_log ""
 	pkg_ui_log "================================================================================"
 	pkg_ui_log ""
