@@ -54,7 +54,7 @@ proc clean_start {args} {
 proc clean_main {args} {
     global UI_PREFIX
 	global ports_clean_dist ports_clean_work ports_clean_archive
-	global ports_clean_all
+	global ports_clean_all usealtworkpath
 
 	if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
 		[info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
@@ -74,7 +74,32 @@ proc clean_main {args} {
 		 clean_work
 	}
 
+	# start gsoc-08 privileges
+	if {$usealtworkpath == "yes"} {
+		ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option portname]]"
+		clean_altsource
+	}
+	# end gsoc-08 privileges
+	
     return 0
+}
+
+proc clean_altsource {args} {
+    global usealtworkpath worksymlink
+    
+    set sourcepath [string map {"work" ""} $worksymlink] 
+
+	if {[file isdirectory $sourcepath]} {
+		ui_debug "Removing directory: ${sourcepath}"
+		if {[catch {delete $sourcepath} result]} {
+			ui_debug "$::errorInfo"
+			ui_error "$result"
+		}
+	} else {
+		ui_debug "No alt source directory found to remove."
+	}
+
+	return 0
 }
 
 #
@@ -104,7 +129,7 @@ proc clean_dist {args} {
 	if {$count > 0} {
 		ui_debug "$count distfile(s) removed."
 	} else {
-		ui_debug "No distfiles found to remove."
+		ui_debug "No distfiles found to remove at $distpath"
 	}
 
 	# next remove dist_subdir if only needed for this port,
@@ -158,7 +183,7 @@ proc clean_work {args} {
 			ui_error "$result"
 		}
 	} else {
-		ui_debug "No work directory found to remove."
+		ui_debug "No work directory found to remove at: ${portbuildpath}"
 	}
 
 	# Clean symlink, if necessary
@@ -215,7 +240,7 @@ proc clean_archive {args} {
 	if {$count > 0} {
 		ui_debug "$count archive(s) removed."
 	} else {
-		ui_debug "No archives found to remove."
+		ui_debug "No archives found to remove at $archivepath"
 	}
 
 	return 0

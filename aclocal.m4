@@ -288,6 +288,86 @@ AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 
 	])
 
+
+# MP_CHECK_NOROOTPRIVILEGES
+#-------------------------------------------------
+AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
+	dnl if with user specifies --with-no-root-privileges,
+	dnl use current user and group.
+	dnl use ~/Library/Tcl as Tcl package directory
+		AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(no-root-privileges, [AC_HELP_STRING([--with-no-root-privileges], [Specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
+
+	if test "${ROOTPRIVS+set}" = set; then
+
+		# Set install-user to current user
+		AC_MSG_CHECKING([for install user])
+		DSTUSR=`id -un`
+		AC_MSG_RESULT([$DSTUSR])
+		AC_SUBST(DSTUSR)
+		
+		# Set install-group to current user
+		AC_MSG_CHECKING([for install group])
+		DSTGRP=`id -gn`
+		AC_MSG_RESULT([$DSTGRP])
+		AC_SUBST(DSTGRP)
+
+		# Set Tcl package directory to ~/Library/Tcl
+	    AC_MSG_CHECKING(for Tcl package directory)
+		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+	    # Convert to a native path and substitute into the output files.
+	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
+	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
+	    AC_SUBST(TCL_PACKAGE_DIR)
+		if test x"${ac_cv_c_tclpkgd}" = x ; then
+			AC_MSG_ERROR(Tcl package directory not found.  Please specify its location with --with-tclpackage)
+	    else
+			AC_MSG_RESULT(${ac_cv_c_tclpkgd})
+	    fi
+	fi
+
+])
+
+# MP_CHECK_RUNUSER
+#-------------------------------------------------
+AC_DEFUN([MP_CHECK_RUNUSER],[
+	dnl if with user specifies --with-macports-user,
+	dnl use it. otherwise default to platform defaults
+       AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(macports-user, [AC_HELP_STRING([--with-macports-user=USER], [Specify user to drop privileges to, if possible, during compiles etc.])], [ RUNUSR=$withval ] )
+	
+	AC_MSG_CHECKING([for macports user])
+	if test "x$RUNUSR" = "x" ; then
+# dropping root privs is still buggy
+#	   RUNUSR=`id -un`
+	   RUNUSR=root
+	fi
+
+	AC_MSG_RESULT([$RUNUSR])
+	AC_SUBST(RUNUSR)
+])
+
+
+# MP_SHARED_DIRECTORY
+#-------------------------------------------------
+AC_DEFUN([MP_SHARED_DIRECTORY],[
+	dnl if with user specifies --with-shared-directory,
+	dnl use 0775 permissions for ${prefix} directories
+        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
+
+	AC_ARG_WITH(shared-directory, [AC_HELP_STRING([--with-shared-directory], [Use 0775 permissions for installed directories])], [ SHAREDIR=$withval ] )
+
+	if test "${SHAREDIR+set}" = set; then	
+		AC_MSG_CHECKING([whether to share the install directory with all members of the install group])
+	    DSTMODE=0775
+
+		AC_MSG_RESULT([$DSTMODE])
+		AC_SUBST(DSTMODE)
+	fi
+])
+
 # MP_CHECK_INSTALLUSER
 #-------------------------------------------------
 AC_DEFUN([MP_CHECK_INSTALLUSER],[

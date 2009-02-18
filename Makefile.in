@@ -50,6 +50,13 @@ endif
 	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
 	@echo "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually."; echo ""
 
+group::
+	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
+
+rmgroup::
+	@echo "deleting macports group..." && sudo dseditgroup -o delete -n . macports && echo "done! use 'make group' to re-create"
+
+
 clean::
 
 distclean::

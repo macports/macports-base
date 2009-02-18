@@ -661,7 +661,6 @@ subdirs
 LDFLAGS_LIBCURL
 CFLAGS_LIBCURL
 CURL_CONFIG
-TCL_PACKAGE_DIR
 TCLSH
 TCL_INCLUDES
 TCL_STUB_LIB_SPEC
@@ -689,6 +688,8 @@ UNIVERSAL_TARGET
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
+RUNUSR
+TCL_PACKAGE_DIR
 DSTGRP
 DSTUSR
 MPCONFIGDIR
@@ -807,9 +808,12 @@ enable_werror
 with_objc_runtime
 with_objc_foundation
 with_ports_dir
+with_no_root_privileges
 with_install_user
 with_install_group
+with_macports_user
 with_directory_mode
+with_shared_directory
 with_applications_dir
 with_frameworks_dir
 with_universal_target
@@ -1495,12 +1499,19 @@ Optional Packages:
   --with-objc-runtime     Specify either "GNU" or "apple"
   --with-objc-foundation  Specify either "GNUstep" or "apple"
   --with-ports-dir=DIR    Specify alternate ports directory
+  --with-no-root-privileges
+                          Specify that MacPorts should be installed in your
+                          home directory
   --with-install-user=USER
                           Specify user ownership of installed files
   --with-install-group=GROUP
                           Specify group ownership of installed files
+  --with-macports-user=USER
+                          Specify user to drop privileges to, if possible,
+                          during compiles etc.
   --with-directory-mode=MODE
                           Specify directory mode of installed directories
+  --with-shared-directory Use 0775 permissions for installed directories
   --with-applications-dir Applications installation directory.
   --with-frameworks-dir   Frameworks installation directory.
   --with-universal-target=MDT
@@ -6947,6 +6958,55 @@ $as_echo "$mpconfigdir" >&6; }
 
 
 
+# Check whether to install without root privileges
+
+
+
+
+# Check whether --with-no-root-privileges was given.
+if test "${with_no_root_privileges+set}" = set; then
+  withval=$with_no_root_privileges; ROOTPRIVS=$withval
+fi
+
+
+	if test "${ROOTPRIVS+set}" = set; then
+
+		# Set install-user to current user
+		{ $as_echo "$as_me:$LINENO: checking for install user" >&5
+$as_echo_n "checking for install user... " >&6; }
+		DSTUSR=`id -un`
+		{ $as_echo "$as_me:$LINENO: result: $DSTUSR" >&5
+$as_echo "$DSTUSR" >&6; }
+
+
+		# Set install-group to current user
+		{ $as_echo "$as_me:$LINENO: checking for install group" >&5
+$as_echo_n "checking for install group... " >&6; }
+		DSTGRP=`id -gn`
+		{ $as_echo "$as_me:$LINENO: result: $DSTGRP" >&5
+$as_echo "$DSTGRP" >&6; }
+
+
+		# Set Tcl package directory to ~/Library/Tcl
+	    { $as_echo "$as_me:$LINENO: checking for Tcl package directory" >&5
+$as_echo_n "checking for Tcl package directory... " >&6; }
+		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+	    # Convert to a native path and substitute into the output files.
+	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
+	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
+
+		if test x"${ac_cv_c_tclpkgd}" = x ; then
+			{ { $as_echo "$as_me:$LINENO: error: Tcl package directory not found.  Please specify its location with --with-tclpackage" >&5
+$as_echo "$as_me: error: Tcl package directory not found.  Please specify its location with --with-tclpackage" >&2;}
+   { (exit 1); exit 1; }; }
+	    else
+			{ $as_echo "$as_me:$LINENO: result: ${ac_cv_c_tclpkgd}" >&5
+$as_echo "${ac_cv_c_tclpkgd}" >&6; }
+	    fi
+	fi
+
+
+
 # Check for install ownership
 
 
@@ -7006,6 +7066,28 @@ $as_echo "$DSTGRP" >&6; }
 
 
 
+# Check whether --with-macports-user was given.
+if test "${with_macports_user+set}" = set; then
+  withval=$with_macports_user;  RUNUSR=$withval
+fi
+
+
+	{ $as_echo "$as_me:$LINENO: checking for macports user" >&5
+$as_echo_n "checking for macports user... " >&6; }
+	if test "x$RUNUSR" = "x" ; then
+# dropping root privs is still buggy
+#	   RUNUSR=`id -un`
+	   RUNUSR=root
+	fi
+
+	{ $as_echo "$as_me:$LINENO: result: $RUNUSR" >&5
+$as_echo "$RUNUSR" >&6; }
+
+
+
+
+
+
 # Check whether --with-directory-mode was given.
 if test "${with_directory_mode+set}" = set; then
   withval=$with_directory_mode;  DSTMODE=$withval
@@ -7021,6 +7103,26 @@ $as_echo_n "checking what permissions to use for installation directories... " >
 	{ $as_echo "$as_me:$LINENO: result: $DSTMODE" >&5
 $as_echo "$DSTMODE" >&6; }
 
+
+
+
+
+
+# Check whether --with-shared-directory was given.
+if test "${with_shared_directory+set}" = set; then
+  withval=$with_shared_directory;  SHAREDIR=$withval
+fi
+
+
+	if test "${SHAREDIR+set}" = set; then
+		{ $as_echo "$as_me:$LINENO: checking whether to share the install directory with all members of the install group" >&5
+$as_echo_n "checking whether to share the install directory with all members of the install group... " >&6; }
+	    DSTMODE=0775
+
+		{ $as_echo "$as_me:$LINENO: result: $DSTMODE" >&5
+$as_echo "$DSTMODE" >&6; }
+
+	fi
 
 
 # Check for default directories

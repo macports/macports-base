@@ -42,8 +42,10 @@ target_prerun ${org.macports.build} build_start
 options build.target
 options build.nice
 options build.jobs
+options build.asroot
 commands build parallel_build
 # defaults
+default build.asroot no
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[build_getmaketype]}
 default build.nice {${buildnicevalue}}
@@ -133,9 +135,17 @@ proc build_getmakejobs {args} {
 }
 
 proc build_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX build.asroot
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
+    
+    # start gsoc08-privileges
+    if { [tbool build.asroot] } {
+	# if port is marked as needing root	
+		elevateToRoot "build"
+	}
+	# end gsoc08-privileges
+    
 }
 
 proc build_main {args} {

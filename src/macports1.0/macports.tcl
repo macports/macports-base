@@ -45,7 +45,8 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs"
+        applications_dir frameworks_dir universal_target universal_sysroot universal_archs \
+        macportsuser"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
@@ -332,6 +333,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::destroot_umask
     global macports::libpath
     global macports::prefix
+    global macports::macportsuser
     global macports::prefix_frozen
     global macports::x11prefix
     global macports::registry.installtype

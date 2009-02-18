@@ -367,7 +367,11 @@ proc foreachport {portlist block} {
             array set options $portspec(options)
         }
         uplevel 1 $block
-        cd $savedir
+        if {[file exists $savedir]} {
+        	cd $savedir
+        } else {
+        	cd ~
+        }
     }
 }
 
@@ -2053,6 +2057,16 @@ proc action_uninstall { action portlist opts } {
         if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
+
+			# start gsoc08-privileges	
+			if { [string first "permission denied" $result] != -1 } {
+				set result "port requires root privileges for this action and needs you to execute 'sudo port uninstall $portname' to continue."
+				#ui_msg [exec sudo port uninstall $portname]
+				# The above line is what should be here to let the user simply enter his/her password to uninstall as root.
+				# However, for some as yet unknown reason, executing it here will not work.
+			}
+			# end gsoc08-privileges
+
             break_softcontinue "port uninstall failed: $result" 1 status
         }
     }
@@ -2782,6 +2796,25 @@ proc action_target { action portlist opts } {
         }
 
         mportclose $workername
+        
+        # start gsoc08-privileges
+		if { [geteuid] != 0 && $result == 2} {
+			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
+
+			set portbinary "${macports::prefix}/bin/port"
+			
+			ui_info "Attempting port action with 'sudo port': 'sudo $portbinary $target $portname'."
+			set result 0
+			if {[catch {set sudomsgs [exec sudo $portbinary $target $portname]} sudomsgs]} {
+	            global errorInfo
+	            ui_debug "$errorInfo"
+				break_softcontinue "Unable to execute port: $errorInfo" 1 status
+	        }
+			
+			ui_msg $sudomsgs
+			ui_debug "'sudo $portbinary $target $portname' has completed."
+		}
+		# end gsoc08-privileges
         
         # Process any error that wasn't thrown and handled already
         if {$result} {

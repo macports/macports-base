@@ -723,8 +723,18 @@ proc fetch_addfilestomap {filemapname} {
 # Initialize fetch target and call checkfiles.
 proc fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
+    global altprefix usealtworkpath
     
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
+
+		# start gsoc08-privileges
+    	if { $usealtworkpath } {
+    	# I have removed ![file writable $distpath] from the if condition as
+    	# the writable condition seems to get confused by effective uids.
+			set distpath "$altprefix/[ string range $distpath 1 end ]"
+			ui_debug "Going to use $distpath for fetch."
+    	}
+    	# end gsoc08-privileges
 	    set distpath ${distpath}/${dist_subdir}
 	    set fetch_init_done yes
     }

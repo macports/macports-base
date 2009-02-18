@@ -41,7 +41,10 @@ set_ui_prefix
 
 # Add command patch
 commands patch
+
+options patch.asroot
 # Set up defaults
+default patch.asroot no
 default patch.dir {${worksrcpath}}
 default patch.cmd patch
 default patch.pre_args -p0
@@ -55,6 +58,13 @@ proc patch_main {args} {
     }
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
+	
+	# start gsoc08-privileges
+    if { [tbool patch.asroot] } {
+	# if port is marked as needing root	
+		elevateToRoot "patch"
+	}
+	# end gsoc08-privileges
 
     foreach patch [option patchfiles] {
     set patch_file [getdistname $patch]

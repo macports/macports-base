@@ -78,6 +78,9 @@ proc set_configure_type {option action args} {
     }
 }
 
+options configure.asroot
+default configure.asroot no
+
 # Configure special environment variables.
 # We could have m32/m64/march/mtune be global configurable at some point.
 options configure.m32 configure.m64 configure.march configure.mtune
@@ -188,6 +191,13 @@ proc configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
+    
+    # start gsoc08-privileges
+    if { [tbool configure.asroot] } {
+	# if port is marked as needing root	
+		elevateToRoot "configure"
+	}
+	# end gsoc08-privileges
 }
 
 # internal function to determine canonical system name for configure

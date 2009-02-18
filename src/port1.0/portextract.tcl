@@ -98,7 +98,7 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global UI_PREFIX filespath
+    global UI_PREFIX filespath worksrcpath
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -115,6 +115,11 @@ proc extract_main {args} {
         if {[catch {command_exec extract} result]} {
             return -code error "$result"
         }
+	
+	# start gsoc08-privileges
+	chownAsRoot $worksrcpath
+	# end gsoc08-privileges
+	
     }
     return 0
 }

@@ -322,6 +322,13 @@ and
 .Cm test .
 The hooks are:
 .Bl -tag -width lc
+.It Va target Ns Ic .asroot
+Run the 
+.Va target
+with root privileges.
+.br
+.Sy Example:
+.Dl install.asroot yes
 .It Va target Ns Ic .dir
 Directory in which to run the
 .Va target .

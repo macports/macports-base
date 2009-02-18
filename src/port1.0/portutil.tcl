@@ -768,6 +768,8 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
+	global euid macportsuser
+
     set extended 0
     while 1 {
         set arg [lindex $args 0]
@@ -826,6 +828,10 @@ proc reinplace {args}  {
         }
     
         close $tmpfd
+    
+		# start gsoc08-privileges
+		chownAsRoot $file	
+		# end gsoc08-privileges
     
         set attributes [file attributes $file]
         # We need to overwrite this file
@@ -1146,7 +1152,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
+    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1358,7 +1364,11 @@ proc target_run {ditem} {
             write_statefile target $name $target_state_fd
             }
         } else {
-            ui_error "Target $name returned: $errstr"
+        	if {$errorisprivileges != "yes"} {
+            	ui_error "Target $name returned: $errstr"
+            } else {
+            	ui_msg "Target $name returned: $errstr"
+            }
             set result 1
         }
     
@@ -1408,8 +1418,9 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd portname
+    global targets target_state_fd portname errorisprivileges
     set dlist $targets
+    set errorisprivileges "no"
     
     # Select the subset of targets under $target
     if {$target != ""} {
@@ -1438,6 +1449,12 @@ proc eval_targets {target} {
         set result 0
     }
     
+    # start gsoc08-privileges
+    if { $result == 1 && $errorisprivileges == "yes" } {
+    	set result 2
+    }
+    # end gsoc08-privileges
+    
     return $result
 }
 
@@ -1445,7 +1462,87 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global altprefix usealtworkpath env applications_dir portbuildpath distpath
     
+	# start gsoc08-privileges
+
+	# descalate privileges - only ran if macports stated with sudo
+	dropPrivileges
+    
+    if { ![file exists $workpath] } {
+        if {[catch {set result [file mkdir $workpath]} result]} {
+            global errorInfo
+            ui_debug "mkdir $workpath: $errorInfo"
+        }
+    }
+    
+    # if unable to write to workpath, implies running without either root privileges 
+    # or a shared directory owned by the group so use ~/.macports
+    if { ![file writable $workpath] } {
+    
+    	set userid [getuid]
+    	set username [uid_to_name $userid]
+
+    	if { $userid !=0 } {
+    		ui_msg "MacPorts running without privileges.\
+					You may be prompted for your sudo password in order to complete certain actions (eg install)."
+		}
+    	
+    	# set global variable indicating to other functions to use ~/.macports as well
+    	set usealtworkpath yes
+    
+		# do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
+		if {[info exists env(HOME)]} {
+			# HOME environment var is set, use it.
+			set userhome "$env(HOME)"
+		} else {
+			# the environment var isn't set, make an educated guess
+			if {[option os.platform] == "darwin"} {
+			    set userhome "/Users/${username}"
+			} else {
+			    set userhome "/home/${username}"
+			}
+		}
+		
+		# set alternative prefix global variables
+		set altprefix "$userhome/.macports"
+		
+		# get alternative paths
+		set newworkpath "$altprefix$workpath"
+		set newworksymlink "$altprefix$worksymlink"
+		set newportbuildpath "$altprefix$portbuildpath"
+		set newdistpath "$altprefix$distpath"
+		
+		set sourcepath [string map {"work" ""} $worksymlink] 
+		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
+
+		# copy Portfile (and patch files) if not there already
+		# note to maintainers/devs: the original portfile in /opt is ALWAYS the one that will be 
+		#	 read by macports. The copying of the portfile is done to preserve the symlink provided
+		#	 historically by macports from the portfile directory to the work directory.
+		#	 It is NOT read by MacPorts.
+		if {![file exists ${newsourcepath}Portfile] } {
+			file mkdir $newsourcepath
+			ui_debug "$newsourcepath created"
+			ui_debug "Going to copy: ${sourcepath}Portfile"
+			file copy ${sourcepath}Portfile $newsourcepath
+			if {[file exists ${sourcepath}files] } {
+				ui_debug "Going to copy: ${sourcepath}files"
+				file copy ${sourcepath}files $newsourcepath
+			}
+		}
+		
+		set workpath $newworkpath
+		set worksymlink $newworksymlink
+		set portbuildpath $newportbuildpath
+		set distpath $newdistpath
+		
+		ui_debug "Going to use $newworkpath for statefile."
+    } else {
+    	set usealtworkpath no
+    }
+    # end gsoc08-privileges
+
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
     }
@@ -1465,6 +1562,7 @@ proc open_statefile {args} {
 
     # Create a symlink to the workpath for port authors 
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+        ui_debug "Attempting ln -sf $workpath $worksymlink"
         ln -sf $workpath $worksymlink
     }
     
@@ -2251,5 +2349,97 @@ proc merge {base} {
 proc quotemeta {str} {
     regsub -all {(\W)} $str {\\\1} str
     return $str
+}
+
+##
+# Recusively chown the given file or directory to the specified user.
+#
+# @param path the file/directory to be chowned
+# @param user the user to chown file to
+proc chown {path user} {
+	file attributes $path -owner [name_to_uid "$user"]
+	
+    if {[file isdirectory $path]} {
+		fs-traverse myfile ${path} {
+			file attributes $myfile -owner [name_to_uid "$user"]
+		}
+    }
+    
+}
+
+##
+# Recusively chown the given file or directory to $macportsuser, using root privileges.
+#
+# @param path the file/directory to be chowned
+proc chownAsRoot {path} {
+    global euid macportsuser
+
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+	# if started with sudo but have dropped the privileges
+		seteuid $euid	
+		ui_debug "euid changed to: [geteuid]"
+		chown  ${path} ${macportsuser}
+		ui_debug "chowned $path to $macportsuser"
+		seteuid [name_to_uid "$macportsuser"]
+		ui_debug "euid changed to: [geteuid]"
+	} elseif { [getuid] == 0 } {
+	# if started with sudo but have elevated back to root already
+		chown  ${path} ${macportsuser}
+	} else {
+		ui_debug "no need to chown $path. uid=[getuid]. euid=[geteuid]."
+	}
+}
+
+##
+# Elevate privileges back to root.
+#
+# @param action the action for which privileges are being elevated
+proc elevateToRoot {action} {
+	global euid egid macportsuser errorisprivileges
+	
+	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
+	# if started with sudo but have dropped the privileges
+		ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
+		setegid $egid	
+		seteuid $euid	
+		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+	}
+	
+	if { [getuid] != 0 } {
+		set errorisprivileges yes
+		return -code error "port requires root privileges for this action and needs you to type your password for sudo.";
+	}
+}
+
+##
+# Descalate privileges from root to those of $macportsuser.
+#
+proc dropPrivileges {} {
+	global euid egid macportsuser workpath
+	if { [geteuid] == 0 } {
+		if { [catch {
+				set euid [geteuid]
+				set egid [getegid]
+				ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+	
+				#seteuid [name_to_uid [file attributes $workpath -owner]]
+				#setegid [name_to_gid [file attributes $workpath -group]]
+	
+				setegid [name_to_gid "$macportsuser"]
+				seteuid [name_to_uid "$macportsuser"]
+				ui_debug "egid changed to: [getegid]" 
+				ui_debug "euid changed to: [geteuid]"
+				
+				if {![file writable $workpath]} {
+					ui_debug "Privileges successfully descalated. Unable to write to default workpath."
+				}
+			}]
+		} {
+			ui_debug "$::errorInfo"
+			ui_error "Failed to descalate privileges."
+		}
+	} else {
+		ui_debug "Privilege desclation not attempted as not running as root."
+	}
 }
 

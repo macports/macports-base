@@ -44,11 +44,29 @@ if {[option portarchivemode] == "yes"} {
 }
 target_prerun ${org.macports.install} install_start
 
+# define options
+options install.asroot
+
+# Set defaults
+default install.asroot no
+
 set_ui_prefix
 
 proc install_start {args} {
 	global UI_PREFIX portname portversion portrevision variations portvariants
+	global install.asroot prefix
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	
+	# start gsoc08-privileges
+	if { [tbool install.asroot] } {
+		# if port is marked as needing root	
+		elevateToRoot "install"
+	} elseif { ![file writable $prefix] } {
+		# if install location is not writable, need root privileges to install
+		elevateToRoot "install"
+	}
+	# end gsoc08-privileges
+	
 }
 
 proc install_element {src_element dst_element} {
