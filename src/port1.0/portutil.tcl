@@ -1517,7 +1517,7 @@ proc open_statefile {args} {
 		set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
 
 		# copy Portfile (and patch files) if not there already
-		# note to maintainers/devs: the original portfile in /opt is ALWAYS the one that will be 
+		# note to maintainers/devs: the original portfile in /opt/local is ALWAYS the one that will be 
 		#	 read by macports. The copying of the portfile is done to preserve the symlink provided
 		#	 historically by macports from the portfile directory to the work directory.
 		#	 It is NOT read by MacPorts.

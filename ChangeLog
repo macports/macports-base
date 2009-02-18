@@ -14,8 +14,8 @@ Release 1.8.0 (unreleased):
       avoid running as root whenever possible. (gsoc08-privileges)
 
     - MacPorts will prompt for the root password if you attempt to install a
-      port into the /opt hierarchy and did not start MacPorts with sudo. It
-      will not do so however until the install stage. The fetch, extract,
+      port into the /opt/local hierarchy and did not start MacPorts with sudo.
+      It will not do so however until the install stage. The fetch, extract,
       patch, configure and build will proceed first under the privileges
       MacPorts is started with. (gsoc08-privileges)
 
@@ -31,9 +31,9 @@ Release 1.8.0 (unreleased):
       group" will create a macports group. "--with-shared-directory" will let
       let the group specified by "--with-install-group" have full read write
       access to the /opt/local hierarchy. This will allow users who are
-      members of the new macports group to have full write permissions to /opt
-      and its subfolders, and hence to install ports which only affect that
-      hierarchy to install those ports without requiring root privileges. 
+      members of the new macports group to have full write permissions to
+      /opt/local and its subfolders, and hence to install ports which only
+      affect that hierarchy without requiring root privileges.
       (gsoc08-privileges)
 
     - A switch called "--with-no-root-privileges" has been added for use by
