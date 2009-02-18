@@ -44,7 +44,7 @@
 # A tar file containing full /${portprefix} directory tree, stored in:
 #	$pkgrepo/$architecture/root.tar.gz
 # The /${portprefix} directory tree must contain:
-#	DarwinPorts installation
+#	MacPorts installation
 #	dpkg
 #
 # Configuration:
@@ -85,7 +85,7 @@ namespace eval dpkg {
 	variable logfd
 }
 
-# DarwinPorts UI Event Callbacks
+# MacPorts UI Event Callbacks
 proc ui_prefix {priority} {
     switch $priority {
         debug {
@@ -516,7 +516,7 @@ proc main {argc argv} {
 			continue
 		}
 
-		# Re-open the port. DarwinPorts doesn't play well with multiple targets, apparently
+		# Re-open the port. MacPorts doesn't play well with multiple targets, apparently
 		dportclose $workername
 		if {[catch {set workername [dportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
 			global errorInfo
@@ -907,7 +907,7 @@ proc install_binary_if_available {dep} {
 	set pkgpath [get_pkgpath ${portname} ${portversion} ${portrevision}]
 
 	# Check if the package is available, and ensure that it has not already been
-	# installed through darwinports (bootstrap packages such as dpkg and its
+	# installed through MacPorts (bootstrap packages such as dpkg and its
 	# dependencies are always installed)
 	if {[file readable $pkgpath] && ![file exists $receiptdir/receipt.bz2]} {
 		ui_silent "Installing binary: $pkgpath"
