@@ -1007,8 +1007,8 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         set filteredvariations {}
         foreach {variation value} $variations {
             if {[info exists isimplicit($variation)]} {
-                ui_warn [concat "Implicit variants should not be explicitly" \
-                                "set or unset. $variation will be ignored."]
+                ui_debug [concat "Implicit variants should not be explicitly" \
+                                 "set or unset. $variation will be ignored."]
             } else {
                 lappend filteredvariations $variation $value
             }
