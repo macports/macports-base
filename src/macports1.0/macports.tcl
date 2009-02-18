@@ -982,6 +982,41 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         return -code error "Could not find Portfile in $portpath"
     }
 
+    # Filter out explicitly set/unset implicit variants.
+    array set isimplicit {}
+
+    # Use the global descriptions file to determine whether a variant is implicit.
+    set descfile [macports::getportresourcepath $porturl "port1.0/variant_descriptions.conf"]
+    if {[file exists $descfile] && ![catch {set fd [open $descfile r]}]} {
+        set i 0
+        while {[gets $fd line] >= 0} {
+            set name [lindex $line 0]
+            set desc [lindex $line 1]
+
+            if {[regexp {^(Platform variant)} $desc]} {
+                set isimplicit($name) 1
+            }
+            incr i
+        }
+        close $fd
+
+        # Iterate through the explicitly set/unset variants, filtering out
+        # implicit variants.
+        set filteredvariations {}
+        foreach {variation value} $variations {
+            if {[info exists isimplicit($variation)]} {
+                ui_warn [concat "Implicit variants should not be explicitly" \
+                                "set or unset. $variation will be ignored."]
+            } else {
+                lappend filteredvariations $variation $value
+            }
+        }
+    } else {
+        # If the global descriptions file cannot be read, use the unfiltered
+        # list of variants.
+        set filteredvariations $variations
+    }
+
     set workername [interp create]
 
     set mport [ditem_create]
@@ -990,10 +1025,10 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     ditem_key $mport portpath $portpath
     ditem_key $mport workername $workername
     ditem_key $mport options $options
-    ditem_key $mport variations $variations
+    ditem_key $mport variations $filteredvariations
     ditem_key $mport refcnt 1
-    
-    macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
+
+    macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $filteredvariations
 
     $workername eval source Portfile
     
