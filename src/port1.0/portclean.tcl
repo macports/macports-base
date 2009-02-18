@@ -183,7 +183,7 @@ proc clean_work {args} {
 			ui_error "$result"
 		}
 	} else {
-		ui_debug "No work directory found to remove at: ${portbuildpath}"
+		ui_debug "No work directory found to remove at ${portbuildpath}"
 	}
 
 	# Clean symlink, if necessary
