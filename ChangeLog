@@ -36,6 +36,9 @@ Release 1.8.0 (unreleased):
     - The variants action additionally shows default variants, conflicting
       variants and variants' dependencies. (#14178, #15628, perry)
 
+    - Implicit variants (e.g., darwin) can no longer be explicitly
+      set/unset. (#12563, perry)
+
 Release 1.7.1 (unreleased):
     - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
 
