@@ -262,7 +262,7 @@ foreach {name array} $res {
 	# - keep distfiles outside /opt/local so we don't have to keep fetching them.
 	# - send out an email to the maintainer if any errors occurred.
 
-	ui_msg "removing /optlocal"
+	ui_msg "removing /opt/local"
 	#unset ui_options(ports_verbose)
 	if {[catch {system "rm -Rf /opt/local"} error]} {
 		puts stderr "Internal error: $error"
