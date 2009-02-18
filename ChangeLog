@@ -5,6 +5,9 @@
 
 
 Release 1.8.0 (unreleased):
+    - Add new "use_7z yes" port option to allow distfiles in 7z format
+      (#18521, ryandesign)
+
     - port lint no longer requires variable master_sites if the port has no
       distfiles (#18479, ryandesign)
 
