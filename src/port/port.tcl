@@ -1706,23 +1706,22 @@ proc action_notes { action portlist opts } {
     }
 
     foreachport $portlist {
-        # Search for the port.
-        if {[catch {mportsearch $portname no exact} result]} {
-            ui_debug $::errorInfo
-            break_softcontinue "The search for '$portname' failed: $result" \
-                               1 status
-        }
-        if {[llength $result] < 2} {
-            break_softcontinue "The port '$portname' was not found" 1 status
-        }
+        if {$porturl eq ""} {
+            # Search for the port.
+            if {[catch {mportsearch $portname no exact} result]} {
+                ui_debug $::errorInfo
+                break_softcontinue "The search for '$portname' failed: $result" \
+                                1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "The port '$portname' was not found" 1 status
+            }
 
-        # Retrieve the port's URL.
-        array unset portinfo
-        array set portinfo [lindex $result 1]
-        set porturl $portinfo(porturl)
-
-        # Retrieve the port's name once more to ensure it has the proper case.
-        set portname $portinfo(name)
+            # Retrieve the port's URL.
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+            set porturl $portinfo(porturl)
+        }
 
         # Open the Portfile associated with this port.
         if {[catch {set mport [mportopen $porturl [array get options] \
@@ -1736,6 +1735,8 @@ proc action_notes { action portlist opts } {
         if {[catch {set portnotes [_mportkey $mport portnotes]}]} {
             set portnotes {}
         }
+        # Retrieve the port's name once more to ensure it has the proper case.
+        set portname [_mportkey $mport portname]
         mportclose $mport
 
         # Display the notes.
@@ -2284,22 +2285,23 @@ proc action_variants { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        # search for port
-        if {[catch {mportsearch $portname no exact} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for portname $portname failed: $result" 1 status
+        if {$porturl eq ""} {
+            # search for port
+            if {[catch {mportsearch $portname no exact} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "search for portname $portname failed: $result" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+
+            set porturl $portinfo(porturl)
+            set portdir $portinfo(portdir)
         }
-        if {[llength $result] < 2} {
-            break_softcontinue "Port $portname not found" 1 status
-        }
-    
-        array unset portinfo
-        array set portinfo [lindex $result 1]
-        # set portname again since the one we were passed may not have had the correct case
-        set portname $portinfo(name)
-        set porturl $portinfo(porturl)
-        set portdir $portinfo(portdir)
 
         if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
             if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
@@ -2316,7 +2318,10 @@ proc action_variants { action portlist opts } {
             ui_warn "port variants --index does not work with 'current' pseudo-port"
             continue
         }
-    
+
+        # set portname again since the one we were passed may not have had the correct case
+        set portname $portinfo(name)
+
         # if this fails the port doesn't have any variants
         if {![info exists portinfo(variants)]} {
             puts "$portname has no variants"
