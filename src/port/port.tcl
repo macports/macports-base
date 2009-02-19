@@ -1741,9 +1741,7 @@ proc action_notes { action portlist opts } {
         # Display the notes.
         if {$portnotes ne {}} {
             puts "$portname has the following notes:"
-            # Indent the output.
-            puts -nonewline "  "
-            puts [string map {\n "\n  "} $portnotes]
+            puts [wrap $portnotes 0 "  " 1]
         } else {
             puts "$portname has no notes."
         }
