@@ -2439,7 +2439,7 @@ proc dropPrivileges {} {
 			ui_error "Failed to descalate privileges."
 		}
 	} else {
-		ui_debug "Privilege desclation not attempted as not running as root."
+		ui_debug "Privilege de-escalation not attempted as not running as root."
 	}
 }
 
