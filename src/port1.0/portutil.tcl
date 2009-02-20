@@ -851,12 +851,7 @@ proc reinplace {args}  {
             return -code error "reinplace copy failed"
         }
     
-        for {set i 0} {$i < [llength $attributes]} {incr i} {
-            set opt [lindex $attributes $i]
-            incr i
-            set arg [lindex $attributes $i]
-            file attributes $file $opt $arg
-        }
+        eval file attributes $file $attributes
         
         file delete "$tmpfile"
     }
