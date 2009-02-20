@@ -1466,7 +1466,7 @@ proc open_statefile {args} {
     
 	# start gsoc08-privileges
 
-	# descalate privileges - only ran if macports stated with sudo
+	# de-escalate privileges - only ran if macports stated with sudo
 	dropPrivileges
     
     if { ![file exists $workpath] } {
@@ -2412,7 +2412,7 @@ proc elevateToRoot {action} {
 }
 
 ##
-# Descalate privileges from root to those of $macportsuser.
+# de-escalate privileges from root to those of $macportsuser.
 #
 proc dropPrivileges {} {
 	global euid egid macportsuser workpath
@@ -2431,12 +2431,12 @@ proc dropPrivileges {} {
 				ui_debug "euid changed to: [geteuid]"
 				
 				if {![file writable $workpath]} {
-					ui_debug "Privileges successfully descalated. Unable to write to default workpath."
+					ui_debug "Privileges successfully de-escalated. Unable to write to default workpath."
 				}
 			}]
 		} {
 			ui_debug "$::errorInfo"
-			ui_error "Failed to descalate privileges."
+			ui_error "Failed to de-escalate privileges."
 		}
 	} else {
 		ui_debug "Privilege de-escalation not attempted as not running as root."
