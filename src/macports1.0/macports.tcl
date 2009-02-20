@@ -382,7 +382,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             while {[gets $fd line] >= 0} {
                 if {[regexp {^(\w+)([ \t]+(.*))?$} $line match option ignore val] == 1} {
                     if {[lsearch $bootstrap_options $option] >= 0} {
-                        set macports::$option $val
+                        set macports::$option [string trim $val]
                         global macports::$option
                     }
                 }
