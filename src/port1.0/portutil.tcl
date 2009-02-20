@@ -1466,7 +1466,7 @@ proc open_statefile {args} {
     
 	# start gsoc08-privileges
 
-	# de-escalate privileges - only ran if macports stated with sudo
+	# de-escalate privileges - only run if MacPorts was started with sudo
 	dropPrivileges
     
     if { ![file exists $workpath] } {
