@@ -2352,11 +2352,11 @@ proc quotemeta {str} {
 # @param path the file/directory to be chowned
 # @param user the user to chown file to
 proc chown {path user} {
-	file attributes $path -owner [name_to_uid "$user"]
+	lchown $path $user
 	
     if {[file isdirectory $path]} {
 		fs-traverse myfile ${path} {
-			file attributes $myfile -owner [name_to_uid "$user"]
+			lchown $myfile $user
 		}
     }
     
