@@ -1225,6 +1225,53 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     return TCL_OK;
 }
 
+/**
+ *
+ * Tcl wrapper around lchown() to allow changing ownership of symlinks
+ * ('file attributes' follows the symlink).
+ *
+ * Synopsis: lchown filename user ?group?
+ */
+int lchownCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+    CONST char *path;
+    long user;
+    long group = -1;
+
+    if (objc != 3 && objc != 4) {
+        Tcl_WrongNumArgs(interp, 1, objv, "filename user ?group?");
+        return TCL_ERROR;
+    }
+
+    path = Tcl_GetString(objv[1]);
+    if (Tcl_GetLongFromObj(NULL, objv[2], &user) != TCL_OK) {
+        CONST char *userString = Tcl_GetString(objv[2]);
+        struct passwd *pwent = getpwnam(userString);
+        if (pwent == NULL) {
+            Tcl_SetResult(interp, "Unknown user given", TCL_STATIC);
+            return TCL_ERROR;
+        }
+        user = pwent->pw_uid;
+    }
+    if (objc == 4) {
+        if (Tcl_GetLongFromObj(NULL, objv[3], &group) != TCL_OK) {
+           CONST char *groupString = Tcl_GetString(objv[3]);
+           struct group *grent = getgrnam(groupString);
+           if (grent == NULL) {
+               Tcl_SetResult(interp, "Unknown group given", TCL_STATIC);
+               return TCL_ERROR;
+           }
+           group = grent->gr_gid;
+        }
+    }
+    if (lchown(path, (uid_t) user, (gid_t) group) != 0) {
+        Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
+        return TCL_ERROR;
+    }
+
+    return TCL_OK;
+}
+
 int Pextlib_Init(Tcl_Interp *interp)
 {
 	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
@@ -1258,6 +1305,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "lchown", lchownCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
