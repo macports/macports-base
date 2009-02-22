@@ -222,6 +222,11 @@ proc destroot_finish {args} {
                     set manlinkpath [file join $manpath $manlink]
                     # if link destination is not gzipped, check it
                     set manlinksrc [file readlink $manlinkpath]
+                    # if link destination is an absolute path, convert it to a
+                    # relative path
+                    if {[file pathtype $manlinksrc] eq "absolute"} {
+                        set manlinksrc [file tail $manlinksrc]
+                    }
                     if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
                         set mandir [file dirname $manlink]
                         set mandirpath [file join $manpath $mandir]
