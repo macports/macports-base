@@ -690,10 +690,10 @@ proc get_outdated_ports {} {
             set installed_epoch     [lindex $i 5]
 
             # Get info about the port from the index
-            if {[catch {set res [mportsearch $portname no exact]} result]} {
+            if {[catch {set res [mportlookup $portname]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                fatal "search for portname $portname failed: $result"
+                fatal "lookup of portname $portname failed: $result"
             }
             if {[llength $res] < 2} {
                 if {[macports::ui_isset ports_debug]} {
@@ -1361,16 +1361,12 @@ proc action_info { action portlist opts } {
         # otherwise try to map the portname to a url
         if {$porturl eq ""} {
         # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {mportsearch $portname no exact} result]} {
+            if {[catch {mportlookup $portname} result]} {
                 ui_debug "$::errorInfo"
-                break_softcontinue "search for portname $portname failed: $result" 1 status
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
-            }
-            set found [expr [llength $result] / 2]
-            if {$found > 1} {
-                ui_warn "Found $found port $portname definitions, displaying first one."
             }
             array unset portinfo
             array set portinfo [lindex $result 1]
@@ -1707,10 +1703,10 @@ proc action_notes { action portlist opts } {
 
     foreachport $portlist {
         if {$porturl eq ""} {
-            # Search for the port.
-            if {[catch {mportsearch $portname no exact} result]} {
+            # Look up the port.
+            if {[catch {mportlookup $portname} result]} {
                 ui_debug $::errorInfo
-                break_softcontinue "The search for '$portname' failed: $result" \
+                break_softcontinue "The lookup of '$portname' failed: $result" \
                                 1 status
             }
             if {[llength $result] < 2} {
@@ -2177,7 +2173,7 @@ proc action_outdated { action portlist opts } {
             set installed_epoch [lindex $i 5]
 
             # Get info about the port from the index
-            if {[catch {set res [mportsearch $portname no exact]} result]} {
+            if {[catch {set res [mportlookup $portname]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "search for portname $portname failed: $result" 1 status
@@ -2286,11 +2282,11 @@ proc action_variants { action portlist opts } {
     }
     foreachport $portlist {
         if {$porturl eq ""} {
-            # search for port
-            if {[catch {mportsearch $portname no exact} result]} {
+            # look up port
+            if {[catch {mportlookup $portname} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                break_softcontinue "search for portname $portname failed: $result" 1 status
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $result] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
@@ -2603,10 +2599,10 @@ proc action_portcmds { action portlist opts } {
         if {$porturl == ""} {
         
             # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {set res [mportsearch $portname no exact]} result]} {
+            if {[catch {set res [mportlookup $portname]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                break_softcontinue "search for portname $portname failed: $result" 1 status
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
                 break_softcontinue "Port $portname not found" 1 status
@@ -2760,10 +2756,10 @@ proc action_target { action portlist opts } {
         # otherwise try to map the portname to a url
         if {$porturl == ""} {
             # Verify the portname, getting portinfo to map to a porturl
-            if {[catch {set res [mportsearch $portname no exact]} result]} {
+            if {[catch {set res [mportlookup $portname]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
-                break_softcontinue "search for portname $portname failed: $result" 1 status
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
                 break_softcontinue "Port $portname not found" 1 status

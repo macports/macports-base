@@ -710,6 +710,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             unsetenv $envkey
         }
     }
+    
+    # load the quick index
+    _mports_load_quickindex
 }
 
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
@@ -1691,6 +1694,167 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
     return $matches
 }
 
+# Returns the PortInfo for a single named port. The info comes from the
+# PortIndex, and name matching is case-insensitive. Unlike mportsearch, only
+# the first match is returned, but the return format is otherwise identical.
+# The advantage is that mportlookup is much faster than mportsearch, due to
+# the use of the quick index.
+proc mportlookup {name} {
+    global macports::portdbpath macports::sources
+    
+    set sourceno 0
+    set matches [list]
+    foreach source $sources {
+        set source [lindex $source 0]
+        if {[macports::getprotocol $source] != "mports"} {
+            global macports::quick_index
+            if {![info exists quick_index($sourceno,[string tolower $name])]} {
+                incr sourceno 1
+                continue
+            }
+            # The quick index is keyed on the port name, and provides the
+            # offset in the main PortIndex where the given port's PortInfo
+            # line can be found.
+            set offset $quick_index($sourceno,[string tolower $name])
+            incr sourceno 1
+            if {[catch {set fd [open [macports::getindex $source] r]} result]} {
+                ui_warn "Can't open index file for source: $source"
+            } else {
+                try {
+                    seek $fd $offset
+                    gets $fd line
+                    set name [lindex $line 0]
+                    set len [lindex $line 1]
+                    set line [read $fd $len]
+                        
+                    array set portinfo $line
+
+                    switch -regexp -- [macports::getprotocol ${source}] {
+                        {^rsync$} {
+                            # Rsync files are local
+                            set source_url "file://[macports::getsourcepath $source]"
+                        }
+                        {^https?$|^ftp$} {
+                            if {[_source_is_snapshot $source filename extension]} {
+                                # daily snapshot tarball
+                                set source_url "file://[macports::getsourcepath $source]"
+                             } else {
+                                # default action
+                                set source_url $source
+                             }
+                        }
+                        default {
+                            set source_url $source
+                        }
+                    }
+                    if {[info exists portinfo(portarchive)]} {
+                        set porturl ${source_url}/$portinfo(portarchive)
+                    } elseif {[info exists portinfo(portdir)]} {
+                        set porturl ${source_url}/$portinfo(portdir)
+                    }
+                    if {[info exists porturl]} {
+                        lappend line porturl $porturl
+                        ui_debug "Found port in $porturl"
+                    } else {
+                        ui_debug "Found port info: $line"
+                    }
+                    lappend matches $name
+                    lappend matches $line
+                    close $fd
+                    break
+                } catch {*} {
+                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    throw
+                } finally {
+                    catch {close $fd}
+                }
+            }
+        } else {
+            array set attrs [list name $name]
+            set res [macports::index::search $macports::portdbpath $source [array get attrs]]
+            if {[llength $res] > 0} {
+                eval lappend matches $res
+                break
+            }
+        }
+    }
+
+    return $matches
+}
+
+# Loads PortIndex.quick from each source into the quick_index, generating
+# it first if necessary.
+proc _mports_load_quickindex {args} {
+    global macports::sources macports::quick_index
+    
+    set sourceno 0
+    foreach source $sources {
+        unset -nocomplain quicklist
+        # chop off any tags
+        set source [lindex $source 0]
+        set index [macports::getindex $source]
+        if {![file exists ${index}.quick] || [file mtime ${index}] > [file mtime ${index}.quick]} {
+            # stale or nonexistent quick index file, so generate a new one
+            if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
+                continue
+            }
+        }
+        # only need to read the quick index file if we didn't just update it
+        if {![info exists quicklist]} {
+            if {[catch {set fd [open ${index}.quick r]} result]} {
+                ui_warn "Can't open quick index file for source: $source"
+                continue
+            } else {
+                set quicklist [read $fd]
+                close $fd
+            }
+        }
+        foreach entry [split $quicklist "\n"] {
+            set quick_index($sourceno,[lindex $entry 0]) [lindex $entry 1]
+        }
+        incr sourceno 1
+    }
+    if {!$sourceno} {
+        return -code error "No index(es) found! Have you synced your source indexes?"
+    }
+}
+
+proc mports_generate_quickindex {index} {
+    if {[catch {set indexfd [open ${index} r]} result] || [catch {set quickfd [open ${index}.quick w]} result]} {
+        ui_warn "Can't open index file: $index"
+        return -code error
+    } else {
+        try {
+            set offset [tell $indexfd]
+            set quicklist ""
+            while {[gets $indexfd line] >= 0} {
+                if {[llength $line] != 2} {
+                    continue
+                }
+                set name [lindex $line 0]
+                append quicklist "[string tolower $name] ${offset}\n"
+
+                set len [lindex $line 1]
+                seek $indexfd $len current
+                set offset [tell $indexfd]
+            }
+            puts -nonewline $quickfd $quicklist
+        } catch {*} {
+            ui_warn "It looks like your PortIndex file may be corrupt."
+            throw
+        } finally {
+            close $indexfd
+            close $quickfd
+        }
+    }
+    if {[info exists quicklist]} {
+        return $quicklist
+    } else {
+        ui_warn "Failed to generate quick index for: $index"
+        return -code error
+    }
+}
+
 proc mportinfo {mport} {
     set workername [ditem_key $mport workername]
     return [$workername eval array get PortInfo]
@@ -1789,23 +1953,18 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         set dep_portname [lindex [split $depspec :] end]
         
         # Find the porturl
-        if {[catch {set res [mportsearch $dep_portname false exact]} error]} {
+        if {[catch {set res [mportlookup $dep_portname]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Internal error: port search failed: $error"
+            ui_error "Internal error: port lookup failed: $error"
             return 1
         }
         
-        unset -nocomplain porturl
-        foreach {name array} $res {
-            array set portinfo $array
-            if {[info exists portinfo(porturl)]} {
-                set porturl $portinfo(porturl)
-                break
-            }
-        }
-
-        if {![info exists porturl]} {
+        array unset portinfo
+        array set portinfo [lindex $res 1]
+        if {[info exists portinfo(porturl)]} {
+            set porturl $portinfo(porturl)
+        } else {
             ui_error "Dependency '$dep_portname' not found."
             return 1
         }
@@ -1974,10 +2133,10 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     }
 
     # check if the port is in tree
-    if {[catch {mportsearch $portname false exact} result]} {
+    if {[catch {mportlookup $portname} result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "port search failed: $result"
+        ui_error "port lookup failed: $result"
         return 1
     }
     # argh! port doesnt exist!
