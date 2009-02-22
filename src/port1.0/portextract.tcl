@@ -98,7 +98,7 @@ proc extract_start {args} {
 }
 
 proc extract_main {args} {
-    global UI_PREFIX filespath worksrcpath
+    global UI_PREFIX filespath worksrcpath extract.dir
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -117,7 +117,7 @@ proc extract_main {args} {
         }
 	
 	# start gsoc08-privileges
-	chownAsRoot $worksrcpath
+	chownAsRoot ${extract.dir}
 	# end gsoc08-privileges
 	
     }
