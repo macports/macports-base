@@ -46,7 +46,7 @@ namespace eval macports {
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir universal_target universal_sysroot universal_archs \
-        macportsuser"
+        macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
@@ -711,6 +711,45 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
     
+    # Proxy handling (done this late since Pextlib is needed)
+    if {![info exists proxy_override_env] } {
+        set proxy_override_env "no"
+    }
+    array set sysConfProxies [get_systemconfiguration_proxies]
+    if {![info exists env(http_proxy)] || $proxy_override_env == "yes" } {
+        if {[info exists proxy_http]} {
+            set env(http_proxy) $proxy_http
+        } elseif {[info exists sysConfProxies(proxy_http)]} {
+            set env(http_proxy) $sysConfProxies(proxy_http)
+        }
+    }
+    if {![info exists env(HTTPS_PROXY)] || $proxy_override_env == "yes" } {
+        if {[info exists proxy_https]} {
+            set env(HTTPS_PROXY) $proxy_https
+        } elseif {[info exists sysConfProxies(proxy_https)]} {
+            set env(HTTPS_PROXY) $sysConfProxies(proxy_https)
+        }
+    }
+    if {![info exists env(FTP_PROXY)] || $proxy_override_env == "yes" } {
+        if {[info exists proxy_ftp]} {
+            set env(FTP_PROXY) $proxy_ftp
+        } elseif {[info exists sysConfProxies(proxy_ftp)]} {
+            set env(FTP_PROXY) $sysConfProxies(proxy_ftp)
+        }
+    }
+    if {![info exists env(RSYNC_PROXY)] || $proxy_override_env == "yes" } {
+        if {[info exists proxy_rsync]} {
+            set env(RSYNC_PROXY) $proxy_rsync
+        }
+    }
+    if {![info exists env(NO_PROXY)] || $proxy_override_env == "yes" } {
+        if {[info exists proxy_skip]} {
+            set env(NO_PROXY) $proxy_skip
+        } elseif {[info exists sysConfProxies(proxy_skip)]} {
+            set env(NO_PROXY) $sysConfProxies(proxy_skip)
+        }
+    }
+
     # load the quick index
     _mports_load_quickindex
 }

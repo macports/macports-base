@@ -111,3 +111,29 @@ startupitem_type	default
 # to the list of variables that are not removed from the environment used
 # while processing ports
 # extra_env		KEEP_THIS THIS_TOO
+
+# Proxy support
+# Precedence is: env, macports.conf, System Preferences
+# That is, if it's set in the environment, that will be used instead of
+# anything here or in System Preferences.  Setting proxy_override_env to yes
+# will cause any proxies set here (or in System Preferences if set there but
+# not here) to override what's in the environment.
+# Note that System Preferences doesn't have an rsync proxy definition.
+# Also note, on 10.5, sudo will clear many environment variables including
+# those for proxy support.
+# Equivalent envioronment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
+# RSYNC_PROXY, NO_PROXY
+#
+#proxy_override_env    yes
+# HTTP proxy:
+#proxy_http            hostname:12345
+# HTTPS proxy:
+#proxy_https       hostname:12345
+# FTP proxy:
+#proxy_ftp         hostname:12345
+# rsync proxy:
+#proxy_rsync       hostname:12345
+# hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS,
+# and FTP, but not rsync):
+#proxy_skip            internal1, internal2, internal3
+
