@@ -69,7 +69,7 @@ proc pindex {portdir} {
         }
         
         set output [array get portinfo]
-        set len [expr [string length $output] + 1]
+        set len [expr [string bytelength $output] + 1]
         puts $fd [list $portinfo(name) $len]
         puts $fd $output
     }
