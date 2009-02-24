@@ -89,7 +89,7 @@ Pseudo-portnames
 ----------------
 Pseudo-portnames are words that may be used in place of a portname, and
 which expand to some set of ports. The common pseudo-portnames are:
-all, current, active, inactive, installed, uninstalled, and outdated.
+all, current, active, inactive, installed, uninstalled, outdated and obsolete.
 These pseudo-portnames expand to the set of ports named.
 
 Additional pseudo-portnames start with...
@@ -736,6 +736,27 @@ proc get_outdated_ports {} {
 }
 
 
+proc get_obsolete_ports {} {
+    set ilist [get_installed_ports]
+    set results {}
+
+    foreach i $ilist {
+        array set port $i
+
+        if {[catch {mportlookup $port(name)} result]} {
+            ui_debug "$::errorInfo"
+            break_softcontinue "lookup of portname $portname failed: $result" 1 status
+        }
+
+        if {[llength $result] < 2} {
+            lappend results $i
+        }
+    }
+
+    # Return the list of ports, already sorted
+    return [portlist_sort $results]
+}
+
 
 ##########################################
 # Port expressions
@@ -882,6 +903,7 @@ proc element { resname } {
         ^active(@.*)?$      -
         ^inactive(@.*)?$    -
         ^outdated(@.*)?$    -
+        ^obsolete(@.*)?$    -
         ^current(@.*)?$     {
             # A simple pseudo-port name
             advance
