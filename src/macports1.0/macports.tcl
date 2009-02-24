@@ -1874,7 +1874,7 @@ proc mports_generate_quickindex {index} {
                 append quicklist "[string tolower $name] ${offset}\n"
 
                 set len [lindex $line 1]
-                seek $indexfd $len current
+                read $indexfd $len
                 set offset [tell $indexfd]
             }
             puts -nonewline $quickfd $quicklist
