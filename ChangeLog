@@ -5,6 +5,9 @@
 
 
 Release 1.8.0 (unreleased):
+    - New pseudo-port 'obsolete' to identify ports which are installed but no
+      longer in the PortIndex (r47253, raimue)
+
     - MacPorts now performs fetch, extract, patch, configure and build in a
       user rather than system owned location. By default, this is
       ~/.macports/opt. This allows MacPorts to do all but the install of the
