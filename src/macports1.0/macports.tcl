@@ -967,7 +967,7 @@ proc macports::getportresourcepath {url {path ""} {fallback yes}} {
     set proposedpath [file join $proposedpath _resources $path]
 
     if {$fallback == "yes" && ![file exists $proposedpath]} {
-        return [getdefaultportresourcepath $porturl $path]
+        return [getdefaultportresourcepath $path]
     }
 
     return $proposedpath
@@ -976,9 +976,8 @@ proc macports::getportresourcepath {url {path ""} {fallback yes}} {
 ##
 # Get the path to the _resources directory of the default source
 #
-# @param url port url
 # @return path to the _resources directory of the default source
-proc macports::getdefaultportresourcepath {url {path ""}} {
+proc macports::getdefaultportresourcepath {{path ""}} {
     global macports::sources_default
 
     set default_source_url [lindex ${sources_default} 0]

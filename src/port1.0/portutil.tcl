@@ -597,7 +597,7 @@ proc variant_desc {porturl variant} {
     if {[info exists variant_descs_global(${descfile}_${variant})]} {
         return $variant_descs_global(${descfile}_${variant})
     } else {
-        set descfile [getdefaultportresourcepath $porturl "port1.0/variant_descriptions.conf"]
+        set descfile [getdefaultportresourcepath "port1.0/variant_descriptions.conf"]
         load_variant_desc_file $descfile
 
         if {[info exists variant_descs_global(${descfile}_${variant})]} {
