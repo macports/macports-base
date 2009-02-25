@@ -550,15 +550,14 @@ proc variant_exists {name} {
 }
 
 ##
-# Get description for a variant from global descriptions file
+# Load the global description file for a port tree
 #
-# @param porturl url to a port
-# @param variant name
-# @return description from descriptions file or an empty string
-proc variant_desc {porturl variant} {
+# @param descfile path to the descriptions file
+proc load_variant_desc_file {descfile} {
     global variant_descs_global
 
-    set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf"]
+    ui_debug "Reading variant descriptions from $descfile"
+
     if {![info exists variant_descs_global($descfile)]} {
         set variant_descs_global($descfile) yes
 
@@ -581,10 +580,30 @@ proc variant_desc {porturl variant} {
             close $fd
         }
     }
+}
+
+##
+# Get description for a variant from global descriptions file
+#
+# @param porturl url to a port
+# @param variant name
+# @return description from descriptions file or an empty string
+proc variant_desc {porturl variant} {
+    global variant_descs_global
+
+    set descfile [getportresourcepath $porturl "port1.0/variant_descriptions.conf" no]
+    load_variant_desc_file $descfile
 
     if {[info exists variant_descs_global(${descfile}_${variant})]} {
         return $variant_descs_global(${descfile}_${variant})
     } else {
+        set descfile [getdefaultportresourcepath $porturl "port1.0/variant_descriptions.conf"]
+        load_variant_desc_file $descfile
+
+        if {[info exists variant_descs_global(${descfile}_${variant})]} {
+            return $variant_descs_global(${descfile}_${variant})
+        }
+
         return ""
     }
 }

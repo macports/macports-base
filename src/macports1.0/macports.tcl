@@ -794,6 +794,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
     $workername alias getportresourcepath macports::getportresourcepath
+    $workername alias getdefaultportresourcepath macports::getdefaultportresourcepath
     $workername alias getprotocol macports::getprotocol
     $workername alias getportdir macports::getportdir
 
@@ -949,8 +950,9 @@ proc macports::getportdir {url {destdir "."}} {
 # Get the path to the _resources directory of the source
 #
 # @param url port url
+# @param fallback fall back to the default source tree
 # @return path to the _resources directory or the path to the fallback
-proc macports::getportresourcepath {url {path ""}} {
+proc macports::getportresourcepath {url {path ""} {fallback yes}} {
     global macports::sources_default
 
     set protocol [getprotocol $url]
@@ -964,18 +966,30 @@ proc macports::getportresourcepath {url {path ""}} {
     # append requested path
     set proposedpath [file join $proposedpath _resources $path]
 
-    if {![file exists $proposedpath]} {
-        # fallback
-        set default_source_url [lindex ${sources_default} 0]
-        if {[getprotocol $default_source_url] == "file"} {
-            set proposedpath [getportdir $default_source_url]
-        } else {
-            set proposedpath [getsourcepath $default_source_url]
-        }
-
-        # append requested path
-        set proposedpath [file join $proposedpath _resources $path]
+    if {$fallback == "yes" && ![file exists $proposedpath]} {
+        return [getdefaultportresourcepath $porturl $path]
     }
+
+    return $proposedpath
+}
+
+##
+# Get the path to the _resources directory of the default source
+#
+# @param url port url
+# @return path to the _resources directory of the default source
+proc macports::getdefaultportresourcepath {url {path ""}} {
+    global macports::sources_default
+
+    set default_source_url [lindex ${sources_default} 0]
+    if {[getprotocol $default_source_url] == "file"} {
+        set proposedpath [getportdir $default_source_url]
+    } else {
+        set proposedpath [getsourcepath $default_source_url]
+    }
+
+    # append requested path
+    set proposedpath [file join $proposedpath _resources $path]
 
     return $proposedpath
 }
