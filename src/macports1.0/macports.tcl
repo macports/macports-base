@@ -1854,7 +1854,7 @@ proc _mports_load_quickindex {args} {
         incr sourceno 1
     }
     if {!$sourceno} {
-        return -code error "No index(es) found! Have you synced your source indexes?"
+        ui_warn "No index(es) found! Have you synced your source indexes?"
     }
 }
 
