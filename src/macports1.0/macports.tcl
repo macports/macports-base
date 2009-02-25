@@ -949,7 +949,11 @@ proc macports::getportdir {url {destdir "."}} {
 ##
 # Get the path to the _resources directory of the source
 #
+# If the file is not available in the current source, it will fall back to the
+# default source. This behavior is controlled by the fallback parameter.
+#
 # @param url port url
+# @param path path in _resources we are interested in
 # @param fallback fall back to the default source tree
 # @return path to the _resources directory or the path to the fallback
 proc macports::getportresourcepath {url {path ""} {fallback yes}} {
@@ -976,6 +980,7 @@ proc macports::getportresourcepath {url {path ""} {fallback yes}} {
 ##
 # Get the path to the _resources directory of the default source
 #
+# @param path path in _resources we are interested in
 # @return path to the _resources directory of the default source
 proc macports::getdefaultportresourcepath {{path ""}} {
     global macports::sources_default
