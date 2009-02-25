@@ -341,6 +341,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::rsync_options
     global macports::rsync_server
     global macports::variants_conf
+    global macports::variants_descriptions
     global macports::xcodebuildcmd
     global macports::xcodeversion
     global macports::configureccache
@@ -433,6 +434,19 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists sources_default]} {
         ui_warn "No default port source specified in $sources_conf, using last source as default"
         set sources_default [lindex $sources end]
+    }
+
+    set default_source_url [lindex $sources_default 0]
+    if {[macports::getprotocol $default_source_url] eq "file"} {
+        set variants_descriptions [macports::getportdir $default_source_url]
+    } else {
+        set variants_descriptions [macports::getsourcepath $default_source_url]
+    }
+    set variants_descriptions [file join $variants_descriptions \
+                               "_resources/port1.0/variant_descriptions.conf"]
+    if {![file exists $variants_descriptions]} {
+        set variants_descriptions {}
+        ui_warn "variant_descriptions.conf was not found ($default_source_url). No descriptions will be shown for global variants."
     }
 
     if {![info exists sources]} {
