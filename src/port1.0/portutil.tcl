@@ -559,9 +559,9 @@ proc load_variant_desc_file {descfile} {
     if {![info exists variant_descs_global($descfile)]} {
         set variant_descs_global($descfile) yes
 
-        ui_debug "Reading variant descriptions from $descfile"
-
         if {[file exists $descfile]} {
+            ui_debug "Reading variant descriptions from $descfile"
+
             if {[catch {set fd [open $descfile r]} err]} {
                 ui_warn "Could not open global variant description file: $err"
                 return ""
