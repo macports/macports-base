@@ -34,6 +34,9 @@ $(bindir)/port:
 	@echo "Please install MacPorts before running these tests"
 	@exit 1
 
+# Run all tests
+# Use TESTS to choose which tests to run
+# For example: make test TESTS="checkums-1 universal"
 test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
 	@for testname in $(TESTS); do\
 	    subdir=test/$$testname; \
@@ -58,6 +61,9 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 	@rm -rf /tmp/macports-tests/
 	@rm -f PortIndex
 
+# Run specific test
+# Prepend the directory name with "test-" and use it as target
+# For example: make test-checksums-1
 test-%:
 	$(MAKE) TESTS="$(@:test-%=%)" test
 
