@@ -29,6 +29,10 @@ PortIndex:
 clean:
 	rm -rf /tmp/macports-tests/
 	rm -f PortIndex
+	rm -f PortIndex.quick
+	for testname in $(TESTS); do \
+		rm -f test/$$testname/{output,output.sed,difference,work}; \
+	done
 
 $(bindir)/port:
 	@echo "Please install MacPorts before running these tests"
