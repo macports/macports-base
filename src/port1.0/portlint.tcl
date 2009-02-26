@@ -436,6 +436,21 @@ proc lint_main {args} {
                 }
             }
 
+            # Check if conflicting variants actually exist
+            foreach vconflict [ditem_key $variant conflicts] {
+                set exists 0
+                foreach v $all_variants {
+                    if {$vconflict == [ditem_key $v name]} {
+                        set exists 1
+                        break
+                    }
+                }
+                if {!$exists} {
+                    ui_warn "Variant $variantname conflicts with non-existing variant $vconflict"
+                    incr warnings
+                }
+            }
+
             if {$name_ok} {
                 if {$desc_ok} {
                     ui_info "OK: Found variant $variantname: $variantdesc"
