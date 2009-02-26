@@ -205,11 +205,17 @@ proc disttagclean {list} {
 # pre-registered set of sites, and if so, return them.
 proc mirror_sites {mirrors tag subdir} {
     global UI_PREFIX portname porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
+    global global_mirror_site fallback_mirror_site
 
-    source [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
+    set mirrorfile [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
+    if {[file exists $mirrorfile]} {
+        source $mirrorfile
+    }
 
     if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
-        ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
+        if {$mirrors != $global_mirror_site && $mirrors != $fallback_mirror_site} {
+            ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
+        }
         return {}
     }
     
