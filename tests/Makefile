@@ -58,6 +58,9 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 	@rm -rf /tmp/macports-tests/
 	@rm -f PortIndex
 
+test-%:
+	$(MAKE) TESTS="$(@:test-%=%)" test
+
 install:
 
 distclean: clean
