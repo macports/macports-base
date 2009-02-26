@@ -556,10 +556,10 @@ proc variant_exists {name} {
 proc load_variant_desc_file {descfile} {
     global variant_descs_global
 
-    ui_debug "Reading variant descriptions from $descfile"
-
     if {![info exists variant_descs_global($descfile)]} {
         set variant_descs_global($descfile) yes
+
+        ui_debug "Reading variant descriptions from $descfile"
 
         if {[file exists $descfile]} {
             if {[catch {set fd [open $descfile r]} err]} {
