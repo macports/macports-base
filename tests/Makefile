@@ -24,7 +24,7 @@ all:
 	cp PortIndex /tmp/macports-tests/ports/PortIndex
 
 PortIndex:
-	portindex
+	$(bindir)/portindex
 
 clean:
 	rm -rf /tmp/macports-tests/
