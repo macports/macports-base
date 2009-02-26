@@ -21,6 +21,11 @@ patch_sites      http://home.uchicago.edu/~dgc/sw/mutt/
 patchfiles       patch-1.5.14.dgc.xlabel_ext.9
 checksums        patch-1.5.14.dgc.xlabel_ext.9 md5 c5badc733020187b6677f31b343195e8
 
+# Set depends_build to be empty to remove the dependency on cvs added by base,
+# as it is not available in the test suite. Otherwise MacPorts will try to
+# verify a cvs port exists.
+depends_build
+
 # disable the patch phase in case the cvs code gets out of sync with the patch.
 patch		{}
 extract		{}
