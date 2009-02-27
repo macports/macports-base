@@ -1390,9 +1390,13 @@ proc mportexec {mport target} {
         || $target == "rpm" || $target == "dpkg" 
         || $target == "srpm"|| $target == "portpkg" } {
 
+        if {![macports::ui_isset ports_quiet]} {
+            puts -nonewline "---> Computing dependencies for [_mportkey $mport name]"
+        }
         if {[mportdepends $mport $target] != 0} {
             return 1
         }
+        ui_msg ""
         
         # Select out the dependents along the critical path,
         # but exclude this mport, we might not be installing it.
@@ -1973,6 +1977,12 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         array set accDeps {}
     } else {
         upvar accDeps accDeps
+    }
+    
+    # progress indicator
+    if {$macports::portverbose} {
+        puts -nonewline "."
+        flush stdout
     }
         
     # Determine deptypes to look for based on target
