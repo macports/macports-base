@@ -870,7 +870,7 @@ proc reinplace {args}  {
             return -code error "reinplace copy failed"
         }
     
-        eval file attributes $file $attributes
+        eval file attributes {$file} $attributes
         
         file delete "$tmpfile"
     }
