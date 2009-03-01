@@ -107,7 +107,7 @@ proc macports::global_option_isset {val} {
 }
 
 
-proc macports::ui_init {priority message} {
+proc macports::ui_init {priority args} {
     # Get the list of channels.
     try {
         set channels [ui_channels $priority]
@@ -118,7 +118,7 @@ proc macports::ui_init {priority message} {
     # Simplify ui_$priority.
     set nbchans [llength $channels]
     if {$nbchans == 0} {
-        proc ::ui_$priority {str} {}
+        proc ::ui_$priority {args} {}
     } else {
         try {
             set prefix [ui_prefix $priority]
@@ -127,22 +127,32 @@ proc macports::ui_init {priority message} {
         }
 
         try {
-            ::ui_init $priority $prefix $channels $message
+            eval ::ui_init $priority $prefix $channels $args
         } catch * {
             if {$nbchans == 1} {
                 set chan [lindex $channels 0]
-                proc ::ui_$priority {str} [subst { puts $chan "$prefix\$str" }]
+                proc ::ui_$priority {args} [subst {
+                    if {\[lindex \$args 0\] == "-nonewline"} {
+                        puts -nonewline $chan "$prefix\[lindex \$args 1\]"
+                    } else {
+                        puts $chan "$prefix\[lindex \$args 0\]"
+                    }
+                }]
             } else {
-                proc ::ui_$priority {str} [subst {
+                proc ::ui_$priority {args} [subst {
                     foreach chan \$channels {
-                        puts $chan "$prefix\$str"
+                        if {\[lindex \$args 0\] == "-nonewline"} {
+                            puts -nonewline $chan "$prefix\[lindex \$args 1\]"
+                        } else {
+                            puts $chan "$prefix\[lindex \$args 0\]"
+                        }
                     }
                 }]
             }
         }
 
         # Call ui_$priority
-        ::ui_$priority $message
+        eval ::ui_$priority $args
     }
 }
 
@@ -201,7 +211,7 @@ proc macports::ui_channels_default {priority} {
 }
 
 foreach priority ${macports::ui_priorities} {
-    proc ui_$priority {str} [subst { macports::ui_init $priority \$str }]
+    proc ui_$priority {args} [subst { eval macports::ui_init $priority \$args }]
 }
 
 # Replace puts to catch errors (typically broken pipes when being piped to head)
@@ -1390,8 +1400,10 @@ proc mportexec {mport target} {
         || $target == "rpm" || $target == "dpkg" 
         || $target == "srpm"|| $target == "portpkg" } {
 
-        if {![macports::ui_isset ports_quiet]} {
-            puts -nonewline "---> Computing dependencies for [_mportkey $mport name]"
+        ui_msg -nonewline "--->  Computing dependencies for [_mportkey $mport name]"
+        if {[macports::ui_isset ports_debug]} {
+            # play nice with debug messages
+            ui_msg ""
         }
         if {[mportdepends $mport $target] != 0} {
             return 1
@@ -1980,8 +1992,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     }
     
     # progress indicator
-    if {$macports::portverbose} {
-        puts -nonewline "."
+    if {![macports::ui_isset ports_debug]} {
+        ui_info -nonewline "."
         flush stdout
     }
         
