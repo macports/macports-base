@@ -41,8 +41,7 @@ while {[gets $sourcesConfChannel line] >= 0} {
          } elseif {[regexp {rsync://rsync\.(macports|darwinports)\.org/(release|dpupdate)/d?ports} $url]} {
             set addDefault true
          } elseif {[regexp {file://(/.+)} $url -> filepath]} {
-            if {[file exists [file join ${filepath} .svn]]} {
-               set svnChannel [open "|svn info ${filepath}" r]
+            if {[file exists [file join ${filepath} .svn]] && ![catch {set svnChannel [open "|svn info ${filepath}" r]}]} {
                set svnURL {}
                while {[gets $svnChannel svnLine] >= 0} {
                   regexp {^URL: (.*)} $svnLine -> svnURL
