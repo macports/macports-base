@@ -495,22 +495,19 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
     AC_ARG_WITH(universal-archs,[AC_HELP_STRING([--with-universal-archs="CPU"], [Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
 	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    if [test -d /Developer/SDKs/MacOSX10.5.sdk]; then
-		UNIVERSAL_TARGET=10.5
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.5.sdk
+	    UNIVERSAL_TARGET=${MACOSX_VERSION}
+	fi
+
+	if test "x$UNIVERSAL_SYSROOT" = "x"; then
+	    if test "${MACOSX_VERSION}" = "10.4"; then
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_VERSION}u.sdk
 	    else
-		UNIVERSAL_TARGET=10.4
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk
-	    fi
-	else
-	    if test "x$UNIVERSAL_SYSROOT" = "x"; then
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${UNIVERSAL_TARGET}.sdk
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_VERSION}.sdk
 	    fi
 	fi
 
 	if test "x$UNIVERSAL_ARCHS" = "x"; then
-		#UNIVERSAL_ARCHS="ppc ppc64 i386 x86_64"
-		UNIVERSAL_ARCHS="ppc i386"
+	    UNIVERSAL_ARCHS="ppc i386"
 	fi
     
     AC_MSG_CHECKING([for Universal MDT version])
