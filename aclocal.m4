@@ -494,15 +494,17 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
     AC_ARG_WITH(universal-sysroot,[AC_HELP_STRING([--with-universal-sysroot=SDK], [Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
     AC_ARG_WITH(universal-archs,[AC_HELP_STRING([--with-universal-archs="CPU"], [Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
+	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
+
 	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    UNIVERSAL_TARGET=${MACOSX_VERSION}
+	    UNIVERSAL_TARGET=${MACOSX_MAJOR_VERSION}
 	fi
 
 	if test "x$UNIVERSAL_SYSROOT" = "x"; then
-	    if test "${MACOSX_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_VERSION}u.sdk
+	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
 	    else
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_VERSION}.sdk
+		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
 	    fi
 	fi
 
