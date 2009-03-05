@@ -2203,7 +2203,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         upvar $depscachename depscache
     } 
 
-    # set to no-zero is epoch overrides version
+    # set to 1 if epoch overrides version
     set epoch_override 0
     # Is this a dry run?
     set is_dryrun no
@@ -2310,66 +2310,41 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     set revision_installed {}
     set epoch_installed 0
 
-    # a port could be installed but not activated
-    # so, deactivate all and save newest for activation later
-    set num 0
-    set variant ""
+    # find latest version installed and active version (if any)
     foreach i $ilist {
         set variant [lindex $i 3]
         set version [lindex $i 1]
         set revision [lindex $i 2]
-        if { $version_installed == {} ||
-                [rpm-vercomp $version $version_installed] > 0
-                || ([rpm-vercomp $version $version_installed] == 0
+        set epoch [lindex $i 5]
+        if { $version_installed == {} || $epoch > $epoch_installed ||
+                ($epoch == $epoch_installed && [rpm-vercomp $version $version_installed] > 0)
+                || ($epoch == $epoch_installed
+                    && [rpm-vercomp $version $version_installed] == 0
                     && [rpm-vercomp $revision $revision_installed] > 0)} {
-            set iname [lindex $i 0]
             set version_installed $version
             set revision_installed $revision
             set variant_installed $variant
-            set epoch_installed [registry::property_retrieve [registry::open_entry $iname [lindex $i 1] [lindex $i 2] $variant] epoch]
-            set num $i
+            set epoch_installed $epoch
         }
 
         set isactive [lindex $i 4]
         if {$isactive == 1} {
             set anyactive yes
-            set active_name [lindex $i 0]
             set version_active $version
             set revision_active $revision
             set variant_active $variant
         }
     }
-    if { $anyactive && ([rpm-vercomp $version_installed $version_active] != 0
-                        || [rpm-vercomp $revision_installed $revision_active] != 0
-                        || [string compare $variant_installed $variant_active] != 0)} {
-        # deactivate version
-        if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping deactivate $active_name @${version_active}_${revision_active} (dry run)"
-        } elseif {[catch {portimage::deactivate $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Deactivating $active_name @${version_active}_${revision_active} failed: $result"
-            return 1
-        }
-    }
-    # record the variant of the latest version
-    set variant [lindex $num 3]
-    if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
-        # activate the latest installed version
-        if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping activate $iname @${version_installed}_${revision_installed} (dry run)"
-        } elseif {[catch {portimage::activate $iname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Activating $iname @${version_installed}_${revision_installed} failed: $result"
-            return 1
-        }
-    }
 
     # output version numbers
     ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
-    ui_debug "$portname ${version_in_tree}_$revision_in_tree exists in the ports tree"
-    ui_debug "$iname ${version_installed}_$revision_installed $variant is installed"
+    ui_debug "$portname ${version_in_tree}_${revision_in_tree} exists in the ports tree"
+    ui_debug "$portname ${version_installed}_${revision_installed} $variant_installed is the latest installed"
+    if {$anyactive} {
+        ui_debug "$portname ${version_active}_${revision_active} $variant_active is active"
+    } else {
+        ui_debug "no version of $portname is active"
+    }
 
     # set the nodeps option  
     if {![info exists options(ports_nodeps)]} {
@@ -2379,7 +2354,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     }
 
 	# save existing variant for later use
-	set oldvariant $variant
+	if {$anyactive} {
+	    set oldvariant $variant_active
+	} else {
+	    set oldvariant $variant_installed
+	}
 	if {$portwasopened == 0} {
 		# If the port has not been opened, then before we do 
 		# dependencies, we need to figure out the final variants, 
@@ -2393,7 +2372,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 		}
 
 		# check if the variants is present in $version_in_tree
-		set variant [split $variant +]
+		set variant [split $oldvariant +]
 		ui_debug "Merging existing variants $variant into variants"
 		if {[info exists portinfo(variants)]} {
 			set avariants $portinfo(variants)
@@ -2463,10 +2442,10 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             || ([rpm-vercomp $version_installed $version_in_tree] == 0
                 && [rpm-vercomp $revision_installed $revision_in_tree] >= 0 ))
         && ![info exists options(ports_force)] } {
-        ui_debug "No need to upgrade! $iname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree"
+        ui_debug "No need to upgrade! $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}"
         if {[info exists portinfo(canonical_active_variants)]
             && $portinfo(canonical_active_variants) != $oldvariant} {
-            ui_warn "Skipping upgrade since $iname ${version_installed}_$revision_installed >= $portname ${version_in_tree}_$revision_in_tree, even though installed variant $oldvariant does not match $portinfo(canonical_active_variants). Specify -f to force upgrade."
+            ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variant $oldvariant does not match $portinfo(canonical_active_variants). Specify -f to force upgrade."
         }
         if { $epoch_installed >= $epoch_in_tree } {
             # Check if we have to do dependents
@@ -2475,7 +2454,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 set options(ports_nodeps) 1
 
                 registry::open_dep_map
-                set deplist [registry::list_dependents $iname]
+                set deplist [registry::list_dependents $portname]
 
                 if { [llength deplist] > 0 } {
                     foreach dep $deplist {
@@ -2509,58 +2488,83 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         return 1
     }
 
-    # uninstall old ports
-    if { $epoch_override == 1 || [info exists options(ports_force)] || 0 != [string compare "image" ${macports::registry.installtype}] } {
+    # always uninstall old port in direct mode
+    if { 0 != [string compare "image" ${macports::registry.installtype}] } {
         # uninstall old
-        ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
+        ui_debug "Uninstalling $portname ${version_installed}_${revision_installed}${variant_installed}"
         # we have to force the uninstall in case of dependents
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $iname @${version_installed}_$revision_installed$oldvariant (dry run)"
-        } elseif {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant [array get options]} result]} {
+            ui_msg "Skipping uninstall $portname @${version_installed}_${revision_installed}${variant_installed} (dry run)"
+        } elseif {[catch {portuninstall::uninstall $portname ${version_installed}_${revision_installed}${variant_installed} [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
+            ui_error "Uninstall $portname ${version_installed}_${revision_installed}${variant_installed} failed: $result"
             return 1
         }
         if {!$force_cur} {
             unset options(ports_force)
         }
     } else {
-        # XXX deactivate version_installed
-        if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping deactivate $iname @${version_installed}_$revision_installed (dry run)"
-        } elseif {[catch {portimage::deactivate $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Deactivating $iname ${version_installed}_$revision_installed failed: $result"
-            return 1
+        # are we installing an existing version due to force or epoch override?
+        if {([info exists options(ports_force)] || $epoch_override == 1)
+            && [registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
+             ui_debug "Uninstalling $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
+            # we have to force the uninstall in case of dependents
+            set force_cur [info exists options(ports_force)]
+            set options(ports_force) yes
+            if {$is_dryrun eq "yes"} {
+                ui_msg "Skipping uninstall $portname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
+            } elseif {[catch {portuninstall::uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
+                return 1
+            }
+            if {!$force_cur} {
+                unset options(ports_force)
+            }
+            if {$version_in_tree == $version_active && $revision_in_tree == $revision_active
+                && $portinfo(canonical_active_variants) == $variant_active} {
+                set anyactive no
+            }
         }
-        if { [info exists options(port_uninstall_old)] } {
-            # uninstalling now could fail due to dependents when not forced,
-            # because the new version is not installed
-            set uninstall_later yes
+        if {$anyactive} {
+            # deactivate version_active
+            if {$is_dryrun eq "yes"} {
+                ui_msg "Skipping deactivate $portname @${version_active}_${revision_active} (dry run)"
+            } elseif {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
+                return 1
+            }
+            if { [info exists options(port_uninstall_old)] } {
+                # uninstalling now could fail due to dependents when not forced,
+                # because the new version is not installed
+                set uninstall_later yes
+            }
         }
     }
 
     if {$is_dryrun eq "yes"} {
-        ui_msg "Skipping activate $portname @${version_in_tree}_$revision_in_tree$oldvariant (dry run)"
+        ui_msg "Skipping activate $portname @${version_in_tree}_${revision_in_tree} (dry run)"
     } elseif {[catch {set result [mportexec $workername install]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Couldn't activate $portname ${version_in_tree}_$revision_in_tree$oldvariant: $result"
+        ui_error "Couldn't activate $portname ${version_in_tree}_${revision_in_tree}: $result"
         return 1
     }
     
     if { [info exists uninstall_later] && $uninstall_later == yes } {
-        ui_debug "Uninstalling $iname ${version_installed}_$revision_installed$oldvariant"
+        ui_debug "Uninstalling $portname ${version_active}_${revision_active}${variant_active}"
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $iname @${version_installed}_$revision_installed$oldvariant (dry run)"
-        } elseif {[catch {portuninstall::uninstall $iname ${version_installed}_$revision_installed$oldvariant $optionslist} result]} {
+            ui_msg "Skipping uninstall $portname @${version_active}_${revision_active}${variant_active} (dry run)"
+        } elseif {[catch {portuninstall::uninstall $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $iname ${version_installed}_$revision_installed$oldvariant failed: $result"
+            ui_error "Uninstall $portname ${version_active}_${revision_active}${variant_active} failed: $result"
             return 1
         }
     }
