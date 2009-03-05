@@ -2309,64 +2309,60 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     set version_installed {}
     set revision_installed {}
     set epoch_installed 0
-    if {$ilist == ""} {
-        ui_error "Port $portname should now be installed but isn't!"
-        exit 1
-    } else {
-        # a port could be installed but not activated
-        # so, deactivate all and save newest for activation later
-        set num 0
-        set variant ""
-        foreach i $ilist {
-            set variant [lindex $i 3]
-            set version [lindex $i 1]
-            set revision [lindex $i 2]
-            if { $version_installed == {} ||
-                    [rpm-vercomp $version $version_installed] > 0
-                    || ([rpm-vercomp $version $version_installed] == 0
-                        && [rpm-vercomp $revision $revision_installed] > 0)} {
-                set iname [lindex $i 0]
-                set version_installed $version
-                set revision_installed $revision
-                set variant_installed $variant
-                set epoch_installed [registry::property_retrieve [registry::open_entry $iname [lindex $i 1] [lindex $i 2] $variant] epoch]
-                set num $i
-            }
 
-            set isactive [lindex $i 4]
-            if {$isactive == 1} {
-                set anyactive yes
-                set active_name [lindex $i 0]
-                set version_active $version
-                set revision_active $revision
-                set variant_active $variant
-            }
+    # a port could be installed but not activated
+    # so, deactivate all and save newest for activation later
+    set num 0
+    set variant ""
+    foreach i $ilist {
+        set variant [lindex $i 3]
+        set version [lindex $i 1]
+        set revision [lindex $i 2]
+        if { $version_installed == {} ||
+                [rpm-vercomp $version $version_installed] > 0
+                || ([rpm-vercomp $version $version_installed] == 0
+                    && [rpm-vercomp $revision $revision_installed] > 0)} {
+            set iname [lindex $i 0]
+            set version_installed $version
+            set revision_installed $revision
+            set variant_installed $variant
+            set epoch_installed [registry::property_retrieve [registry::open_entry $iname [lindex $i 1] [lindex $i 2] $variant] epoch]
+            set num $i
         }
-        if { $anyactive && ([rpm-vercomp $version_installed $version_active] != 0
-                            || [rpm-vercomp $revision_installed $revision_active] != 0
-                            || [string compare $variant_installed $variant_active] != 0)} {
-            # deactivate version
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping deactivate $active_name @${version_active}_${revision_active} (dry run)"
-            } elseif {[catch {portimage::deactivate $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error "Deactivating $active_name @${version_active}_${revision_active} failed: $result"
-                return 1
-            }
+
+        set isactive [lindex $i 4]
+        if {$isactive == 1} {
+            set anyactive yes
+            set active_name [lindex $i 0]
+            set version_active $version
+            set revision_active $revision
+            set variant_active $variant
         }
-		# record the variant of the latest version
-		set variant [lindex $num 3]
-        if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
-            # activate the latest installed version
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping activate $iname @${version_installed}_${revision_installed} (dry run)"
-            } elseif {[catch {portimage::activate $iname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error "Activating $iname @${version_installed}_${revision_installed} failed: $result"
-                return 1
-            }
+    }
+    if { $anyactive && ([rpm-vercomp $version_installed $version_active] != 0
+                        || [rpm-vercomp $revision_installed $revision_active] != 0
+                        || [string compare $variant_installed $variant_active] != 0)} {
+        # deactivate version
+        if {$is_dryrun eq "yes"} {
+            ui_msg "Skipping deactivate $active_name @${version_active}_${revision_active} (dry run)"
+        } elseif {[catch {portimage::deactivate $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Deactivating $active_name @${version_active}_${revision_active} failed: $result"
+            return 1
+        }
+    }
+    # record the variant of the latest version
+    set variant [lindex $num 3]
+    if { [lindex $num 4] == 0 && 0 == [string compare "image" ${macports::registry.installtype}] } {
+        # activate the latest installed version
+        if {$is_dryrun eq "yes"} {
+            ui_msg "Skipping activate $iname @${version_installed}_${revision_installed} (dry run)"
+        } elseif {[catch {portimage::activate $iname ${version_installed}_${revision_installed}$variant $optionslist} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Activating $iname @${version_installed}_${revision_installed} failed: $result"
+            return 1
         }
     }
 
