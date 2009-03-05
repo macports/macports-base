@@ -2270,7 +2270,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 			set portwasopened 1
 
             if {![_mportispresent $workername $dspec ] } {
-                # port in not installed - install it!
+                # upgrade its dependencies first
+                _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+                # now install it
                 if {[catch {set result [mportexec $workername install]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
@@ -2452,17 +2454,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         set saved_do_dependents [info exists options(ports_do_dependents)]
         unset -nocomplain options(ports_do_dependents)
         
-        # each dep type is upgraded
-        foreach dtype {depends_build depends_lib depends_run} {
-            if {[info exists portinfo($dtype)]} {
-                foreach i $portinfo($dtype) {
-                    set d [lindex [split $i :] end]
-                    if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
-                        upgrade $d $i $globalvarlist $variationslist [array get options] depscache
-                    } 
-                }
-            }
-        }
+        _upgrade_dependencies portinfo depscache globalvarlist variationslist options
         
         # restore dependent-following to its former value
         if {$saved_do_dependents} {
@@ -2598,6 +2590,27 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     
     # close the port handle
     mportclose $workername
+}
+
+# upgrade_dependencies: helper proc for upgrade
+# Calls upgrade on each dependency listed in the PortInfo.
+# Uses upvar to access the variables.
+proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistname variationslistname optionsname} {
+    upvar $portinfoname portinfo $depscachename depscache \
+          $globalvarlistname globalvarlist $variationslistname variationslist \
+          $optionsname options
+    
+    # each dep type is upgraded
+    foreach dtype {depends_build depends_lib depends_run} {
+        if {[info exists portinfo($dtype)]} {
+            foreach i $portinfo($dtype) {
+                set d [lindex [split $i :] end]
+                if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
+                    upgrade $d $i $globalvarlist $variationslist [array get options] depscache
+                } 
+            }
+        }
+    }
 }
 
 # mportselect
