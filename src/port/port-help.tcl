@@ -208,7 +208,7 @@ Returns the current platform you are on
 }
 
 set porthelp(provides) {
-Return a list of files provided by the given ports
+Return which port (or ports) provide the file (or files) given
 }
 
 set porthelp(quit) $porthelp(exit)
