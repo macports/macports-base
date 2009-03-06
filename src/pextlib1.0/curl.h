@@ -62,4 +62,4 @@ int CurlInit(Tcl_Interp* interp);
 int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
 #endif
-		/* _FILEMAP_H */
+		/* _CURL_H */
