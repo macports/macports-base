@@ -1544,7 +1544,7 @@ proc mportsync {{optionslist {}}} {
             {^file$} {
                 set portdir [macports::getportdir $source]
                 if {[file exists $portdir/.svn]} {
-                    set svn_commandline "[macports::findBinary svn ${macports::autoconf::svn_path}] update --non-interactive ${portdir}"
+                    set svn_commandline "[macports::findBinary svn] update --non-interactive ${portdir}"
                     ui_debug $svn_commandline
                     if {
                         [catch {
