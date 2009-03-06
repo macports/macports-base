@@ -1054,39 +1054,27 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         return -code error "Could not find Portfile in $portpath"
     }
 
-    # Filter out explicitly set/unset implicit variants.
-    array set isimplicit {}
+    # Iterate through the explicitly set/unset variants, filtering out
+    # implicit variants. At the moment, the only implicit variants are
+    # platform variants.
+    set filteredvariations {}
 
-    # Use the global descriptions file to determine whether a variant is implicit.
-    set descfile [macports::getportresourcepath $porturl "port1.0/variant_descriptions.conf"]
-    if {[file exists $descfile] && ![catch {set fd [open $descfile r]}]} {
-        set i 0
-        while {[gets $fd line] >= 0} {
-            set name [lindex $line 0]
-            set desc [lindex $line 1]
-
-            if {[regexp {^(Platform variant)} $desc]} {
-                set isimplicit($name) 1
+    foreach {variation value} $variations {
+        switch -regexp $variation {
+            ^(pure)?darwin         -
+            ^(free|net|open){1}bsd -
+            ^i386                  -
+            ^linux                 -
+            ^macosx                -
+            ^powerpc               -
+            ^solaris               -
+            ^sunos {
+                ui_debug "Implicit variants should not be explicitly set or unset. $variation will be ignored."
             }
-            incr i
-        }
-        close $fd
-
-        # Iterate through the explicitly set/unset variants, filtering out
-        # implicit variants.
-        set filteredvariations {}
-        foreach {variation value} $variations {
-            if {[info exists isimplicit($variation)]} {
-                ui_debug [concat "Implicit variants should not be explicitly" \
-                                 "set or unset. $variation will be ignored."]
-            } else {
+            default {
                 lappend filteredvariations $variation $value
             }
         }
-    } else {
-        # If the global descriptions file cannot be read, use the unfiltered
-        # list of variants.
-        set filteredvariations $variations
     }
 
     set workername [interp create]
