@@ -2540,11 +2540,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
                 return 1
             }
-            if { [info exists options(port_uninstall_old)] } {
-                # uninstalling now could fail due to dependents when not forced,
-                # because the new version is not installed
-                set uninstall_later yes
-            }
+        }
+        if {[info exists options(port_uninstall_old)]} {
+            # uninstalling now could fail due to dependents when not forced,
+            # because the new version is not installed
+            set uninstall_later yes
         }
     }
 
@@ -2557,15 +2557,23 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         return 1
     }
     
-    if { [info exists uninstall_later] && $uninstall_later == yes } {
-        ui_debug "Uninstalling $portname ${version_active}_${revision_active}${variant_active}"
-        if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $portname @${version_active}_${revision_active}${variant_active} (dry run)"
-        } elseif {[catch {portuninstall::uninstall $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Uninstall $portname ${version_active}_${revision_active}${variant_active} failed: $result"
-            return 1
+    if {[info exists uninstall_later] && $uninstall_later == yes} {
+        foreach i $ilist {
+            set version [lindex $i 1]
+            set revision [lindex $i 2]
+            set variant [lindex $i 3]
+            if {$version == $version_in_tree && $revision == $revision_in_tree && $variant == $portinfo(canonical_active_variants)} {
+                continue
+            }
+            ui_debug "Uninstalling $portname ${version}_${revision}${variant}"
+            if {$is_dryrun eq "yes"} {
+                ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
+            } elseif {[catch {portuninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
+                return 1
+            }
         }
     }
 
