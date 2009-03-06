@@ -58,8 +58,3 @@ int CompatCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONS
 
 #endif
 		/* _COMPAT_H */
-
-/* ================================================= **
-** Truly simple systems... require infinite testing. **
-**                 -- Norman Augustine               **
-** ================================================= */

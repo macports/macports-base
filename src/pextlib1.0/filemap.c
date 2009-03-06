@@ -2091,8 +2091,3 @@ FilemapCmd(
 	
 	return theResult;
 }
-
-/* ============================================================== **
-** As of next Thursday, UNIX will be flushed in favor of TOPS-10. **
-** Please update your programs.                                   **
-** ============================================================== */

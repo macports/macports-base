@@ -878,8 +878,3 @@ CurlInit(Tcl_Interp* interp)
 	CURLcode theCurlCode = curl_global_init(CURL_GLOBAL_ALL);
 	return SetResultFromCurlErrorCode(interp, theCurlCode);
 }
-
-/* ============================================================== **
-** As of next Thursday, UNIX will be flushed in favor of TOPS-10. **
-** Please update your programs.                                   **
-** ============================================================== */
