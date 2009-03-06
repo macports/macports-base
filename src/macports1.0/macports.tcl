@@ -2067,10 +2067,10 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     ui_debug "epoch: in tree: $epoch_in_tree installed: $epoch_installed"
     ui_debug "$portname ${version_in_tree}_$revision_in_tree exists in the ports tree"
     ui_debug "$iname ${version_installed}_${revision_installed}${variant_installed} is installed"
-    if {$anyactive} { 
-        ui_debug "$active_name ${version_active}_${revision_active}${variant_active} is active" 
-    } else { 
-        ui_debug "no version of $portname is active" 
+    if {$anyactive} {
+        ui_debug "$active_name ${version_active}_${revision_active}${variant_active} is active"
+    } else {
+        ui_debug "no version of $portname is active"
     }
 
     # set the nodeps option  
@@ -2153,10 +2153,10 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     }
 
     # check if the variants is present in $version_in_tree
-    if {$anyactive} { 
-        set variant $variant_active 
-    } else { 
-        set variant $variant_installed 
+    if {$anyactive} {
+        set variant $variant_active
+    } else {
+        set variant $variant_installed
     }
     set variant [split $variant +]
     ui_debug "variants to install $variant"
