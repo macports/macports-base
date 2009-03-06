@@ -2405,24 +2405,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if {$nodeps == "yes"} {
         ui_debug "Not following dependencies"
     } else {
-        # If we're following dependents, we only want to follow this port's
-        # dependents, not those of all its dependencies. Otherwise, we would
-        # end up processing this port's dependents n+1 times (recursively!),
-        # where n is the number of dependencies this port has, since this port
-        # is of course a dependent of each of its dependencies. Plus the
-        # dependencies could have any number of unrelated dependents.
-        
-        # So we save whether we're following dependents, unset the option
-        # while doing the dependencies, and restore it afterwards.
-        set saved_do_dependents [info exists options(ports_do_dependents)]
-        unset -nocomplain options(ports_do_dependents)
-        
         _upgrade_dependencies portinfo depscache globalvarlist variationslist options
-        
-        # restore dependent-following to its former value
-        if {$saved_do_dependents} {
-            set options(ports_do_dependents) yes
-        }
     }
 
     # check installed version against version in ports
@@ -2596,6 +2579,18 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
           $globalvarlistname globalvarlist $variationslistname variationslist \
           $optionsname options
     
+    # If we're following dependents, we only want to follow this port's
+    # dependents, not those of all its dependencies. Otherwise, we would
+    # end up processing this port's dependents n+1 times (recursively!),
+    # where n is the number of dependencies this port has, since this port
+    # is of course a dependent of each of its dependencies. Plus the
+    # dependencies could have any number of unrelated dependents.
+        
+    # So we save whether we're following dependents, unset the option
+    # while doing the dependencies, and restore it afterwards.
+    set saved_do_dependents [info exists options(ports_do_dependents)]
+    unset -nocomplain options(ports_do_dependents)
+    
     # each dep type is upgraded
     foreach dtype {depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
@@ -2606,6 +2601,10 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
                 } 
             }
         }
+    }
+    # restore dependent-following to its former value
+    if {$saved_do_dependents} {
+        set options(ports_do_dependents) yes
     }
 }
 
