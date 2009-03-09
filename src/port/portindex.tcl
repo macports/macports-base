@@ -67,7 +67,13 @@ proc pindex {portdir} {
                 exit 1
             }
         }
-        
+
+        set keepkeys {categories depends_build depends_lib depends_run description epoch homepage long_description maintainers name platforms revision variants version portdir}
+        foreach availkey [array names portinfo] {
+            if {[lsearch -exact ${keepkeys} $availkey] == -1} {
+                unset portinfo($availkey)
+            }
+        }
         set output [array get portinfo]
         set len [expr [string length $output] + 1]
         puts $fd [list $portinfo(name) $len]
