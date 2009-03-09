@@ -2029,7 +2029,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         # That was a very dirty hack showing how ugly our depencendy and upgrade code is.
         # To get it working when user provides -f, we also need to set the variant to
         # avoid a future failure.
-        set variant ""
+        set variant_installed ""
     } else {
         # find latest version installed and active version (if any)
         set num 0
@@ -2196,7 +2196,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         return 1
     }
 
-    if { 0 == [string compare "image" ${macports::registry.installtype}] } {
+    if { $anyactive && 0 == [string compare "image" ${macports::registry.installtype}] } {
         # deactivate version_active
         if {[catch {portimage::deactivate $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
             global errorInfo
@@ -2237,11 +2237,11 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     }
     
     if { [info exists uninstall_later] && $uninstall_later == yes } {
-        ui_debug "Uninstalling $active_name ${version_active}_${revision_active}${variant_active}"
-        if {[catch {portuninstall::uninstall $active_name ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+        ui_debug "Uninstalling $iname ${version_installed}_${revision_installed}${variant_installed}"
+        if {[catch {portuninstall::uninstall $iname ${version_installed}_${revision_installed}${variant_installed} $optionslist} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $active_name ${version_active}_${revision_active}${variant_active} failed: $result"
+            ui_error "Uninstall $iname ${version_installed}_${revision_installed}${variant_installed} failed: $result"
             return 1
         }
     }
