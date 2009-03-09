@@ -1854,6 +1854,9 @@ proc _mports_load_quickindex {args} {
         # chop off any tags
         set source [lindex $source 0]
         set index [macports::getindex $source]
+        if {![file exists ${index}]} {
+            continue
+        }
         if {![file exists ${index}.quick] || [file mtime ${index}] > [file mtime ${index}.quick]} {
             # stale or nonexistent quick index file, so generate a new one
             if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
