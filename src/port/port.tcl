@@ -2452,6 +2452,7 @@ proc action_search { action portlist opts } {
     # Set default search filter if none was given
     if { [array size filters] == 0 } {
         set filters(name) "yes"
+        set filters(description) "yes"
     }
 
     set separator ""

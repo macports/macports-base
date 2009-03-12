@@ -56,7 +56,8 @@ Release 1.8.0 (unreleased):
       that "port upgrade all" will no longer proceed to install every
       available port. (jmr in r46052)
 
-    - Add several new options to port search (#15434, raimue)
+    - Add several new options to port search, looks in name and description by
+      default (#15434, raimue)
 
     - Add xpkg archive type, xar-based format with XML. (afb)
 
