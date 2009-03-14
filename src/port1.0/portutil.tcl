@@ -1510,12 +1510,8 @@ proc open_statefile {args} {
 			# HOME environment var is set, use it.
 			set userhome "$env(HOME)"
 		} else {
-			# the environment var isn't set, make an educated guess
-			if {[option os.platform] == "darwin"} {
-			    set userhome "/Users/${username}"
-			} else {
-			    set userhome "/home/${username}"
-			}
+			# the environment var isn't set, expand ~user instead
+			set userhome [file normalize "~${username}"]
 		}
 		
 		# set alternative prefix global variables
