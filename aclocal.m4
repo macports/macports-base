@@ -454,7 +454,7 @@ AC_DEFUN([MP_PATH_APPLICATIONS],[
 	    if test "$DSTUSR" = "root" ; then
 		MPAPPLICATIONSDIR="/Applications/MacPorts"
 	    else
-		MPAPPLICATIONSDIR="~$DSTUSR/Applications/MacPorts"
+		MPAPPLICATIONSDIR="$(eval echo ~$DSTUSR)/Applications/MacPorts"
 	    fi
 	fi
 
