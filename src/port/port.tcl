@@ -3040,7 +3040,7 @@ array set cmd_opts_array {
                  depends description epoch exact glob homepage line
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
-    selfupdate  {nosync pretend}
+    selfupdate  {nosync}
     uninstall   {follow-dependents}
     variants    {index}
     clean       {all archive dist work}
