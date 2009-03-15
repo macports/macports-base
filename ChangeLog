@@ -5,6 +5,8 @@
 
 
 Release 1.8.0 (unreleased):
+    - port(1) option -y for dry-run (#11892, gwhitney) 
+
     - New pseudo-port 'obsolete' to identify ports which are installed but no
       longer in the PortIndex (r47253, raimue)
 
