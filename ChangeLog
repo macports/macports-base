@@ -5,6 +5,9 @@
 
 
 Release 1.8.0 (unreleased):
+    - Remove --pretend option for port selfupdate, use global dry-run option
+      instead (r48125, raimue)
+
     - port(1) option -y for dry-run (#11892, gwhitney) 
 
     - New pseudo-port 'obsolete' to identify ports which are installed but no
