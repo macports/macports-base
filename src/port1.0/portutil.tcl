@@ -2395,8 +2395,6 @@ proc chownAsRoot {path} {
 	} elseif { [getuid] == 0 } {
 	# if started with sudo but have elevated back to root already
 		chown  ${path} ${macportsuser}
-	} else {
-		ui_debug "no need to chown $path. uid=[getuid]. euid=[geteuid]."
 	}
 }
 
