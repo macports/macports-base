@@ -2133,8 +2133,10 @@ proc macports::selfupdate {{optionslist {}}} {
     set comp [rpm-vercomp $macports_version_new $macports::autoconf::macports_version]
     if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
-            ui_msg "--> MacPorts base is outdated, selfupdate will install $macports_version_new"
+            ui_msg "--> MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
         } else {
+            ui_msg "--> MacPorts base is outdated, installing new version $macports_version_new"
+
             # get installation user/group and permissions
             set owner [file attributes ${prefix} -owner]
             set group [file attributes ${prefix} -group]
