@@ -41,25 +41,25 @@ package require Pextlib 1.0
 
 
 # Standard procedures
-proc print_usage {args} {
+proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
         [-bcdfiknopqRstuvxy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
-    puts stderr "Usage: $cmdname$syntax"
-    puts stderr "\"$cmdname help\" or \"man 1 port\" for more information."
+    if {$verbose} {
+        puts stderr "Usage: $cmdname$syntax"
+        puts stderr "\"$cmdname help\" or \"man 1 port\" for more information."
+    } else {
+        puts stderr "$cmdname$syntax"
+    }
 }
 
 proc print_help {args} {
-    global cmdname
     global action_array
-    
-    set syntax {
-        [-bcdfiknopqRstuvx] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
-        [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
-    }
+
+    print_usage 0
 
     # Generate and format the command list from the action_array
     set cmds ""
@@ -77,12 +77,12 @@ proc print_help {args} {
         incr lineLen [string length $new]
         set cmds "$cmds$new"
     }
-    
-    set cmdText "
+
+    set cmdText [string range "
 Supported commands
 ------------------
 $cmds
-"
+" 1 end-1]
 
     set text {
 Pseudo-portnames
@@ -116,8 +116,7 @@ See man pages: port(1), macports.conf(5), portfile(7), portgroup(7),
 porthier(7), portstyle(7). Also, see http://www.macports.org.
     }
 
-
-    puts "$cmdname$syntax $cmdText $text"
+    puts "$cmdText $text"
 }
 
 
