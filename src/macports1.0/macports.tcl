@@ -2086,6 +2086,7 @@ proc macports::selfupdate {{optionslist {}}} {
     
     # syncing ports tree.
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
+        ui_msg "--> Updating the ports tree"
         if {[catch {mportsync $optionslist} result]} {
             return -code error "Couldn't sync the ports tree: $result"
         }
@@ -2099,13 +2100,13 @@ proc macports::selfupdate {{optionslist {}}} {
     ui_debug "MacPorts sources location: $mp_source_path"
     
     # sync the MacPorts sources
-    ui_debug "Updating MacPorts sources using rsync"
+    ui_msg "--> Updating MacPorts base sources using rsync"
     if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } result ] } {
        return -code error "Error synchronizing MacPorts sources: $result"
     }
 
     # echo current MacPorts version
-    ui_msg "\nMacPorts base version $macports::autoconf::macports_version installed"
+    ui_msg "MacPorts base version $macports::autoconf::macports_version installed,"
 
     if { [info exists options(ports_force)] && $options(ports_force) == "yes" } {
         set use_the_force_luke yes
@@ -2122,16 +2123,17 @@ proc macports::selfupdate {{optionslist {}}} {
         gets $fd macports_version_new
         close $fd
         # echo downloaded MacPorts version
-        ui_msg "Downloaded MacPorts base version $macports_version_new"
+        ui_msg "MacPorts base version $macports_version_new downloaded."
     } else {
         ui_warn "No version file found, please rerun selfupdate."
         set macports_version_new 0
     }
 
     # check if we we need to rebuild base
-    if {$use_the_force_luke == "yes" || [rpm-vercomp $macports_version_new $macports::autoconf::macports_version] > 0} {
+    set comp [rpm-vercomp $macports_version_new $macports::autoconf::macports_version]
+    if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_selfupdate_pretend)] && $options(ports_selfupdate_pretend) == "yes"} {
-            ui_msg "\nMacPorts base is outdated, selfupdate will install $macports_version_new"
+            ui_msg "--> MacPorts base is outdated, selfupdate will install $macports_version_new"
         } else {
             # get installation user/group and permissions
             set owner [file attributes ${prefix} -owner]
@@ -2154,13 +2156,15 @@ proc macports::selfupdate {{optionslist {}}} {
             }
             
             # do the actual configure, build and installation of new base
-            ui_msg "\nInstalling new MacPorts release in $prefix as $owner:$group - TCL-PACKAGE in $tclpackage; Permissions: $perms\n"
+            ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
             if { [catch { system "cd $mp_source_path && ./configure --prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms && make && make install" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
             }
         }
+    } elseif {$comp < 0} {
+        ui_msg "--> MacPorts base is probably trunk or a release candidate"
     } else {
-        ui_msg "\nThe MacPorts installation is not outdated so it was not updated"
+        ui_msg "--> MacPorts base is already the latest version"
     }
 
     # set the MacPorts sources to the right owner
@@ -2168,6 +2172,11 @@ proc macports::selfupdate {{optionslist {}}} {
     ui_debug "Setting MacPorts sources ownership to $sources_owner"
     if { [catch { exec chown -R $sources_owner [file join $portdbpath sources/] } result] } {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to $sources_owner: $result"
+    }
+
+    if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
+        ui_msg "\nThe ports tree has been updated. To upgrade your installed ports, you should run"
+        ui_msg "  port upgrade outdated"
     }
 
     return 0
