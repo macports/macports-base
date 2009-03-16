@@ -176,7 +176,7 @@ proc options_export {args} {
 # Registers a proc to be called when an option is changed
 #
 # @param option the name of the option
-# @param args name of proc (and additional arguments)
+# @param args name of procs
 proc option_proc {option args} {
     global option_procs $option
     if {[info exists option_procs($option)]} {
