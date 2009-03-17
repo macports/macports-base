@@ -56,17 +56,6 @@ Release 1.8.0 (unreleased):
       --prefix=/Users/{your-user-name-here}/.macports/opt
       --with-no-root-privileges" (gsoc08-privileges)
 
-    - Add new "use_7z yes" port option to allow distfiles in 7z format
-      (#18521, ryandesign)
-
-    - port lint no longer requires variable master_sites if the port has no
-      distfiles (#18479, ryandesign)
-
-    - Upgrade will no longer accept ports that are not installed (but it still
-      installs new ports as dependencies if needed). In particular, this means
-      that "port upgrade all" will no longer proceed to install every
-      available port. (jmr in r46052)
-
     - Add several new options to port search, looks in name and description by
       default (#15434, raimue)
 
@@ -83,8 +72,6 @@ Release 1.8.0 (unreleased):
       (in order of precedence) on command line, latest installed
       version, or variants.conf .  (#8221, gwhitney)
 
-    - Add mkdtemp Tcl command to create temporary directories. (#17181, perry)
-
     - Add select action, which integrates *_select tools into port.
       (#17477, perry)
 
@@ -95,6 +82,19 @@ Release 1.8.0 (unreleased):
       set/unset. (#12563, perry)
 
 Release 1.7.1 (unreleased):
+    - Add new "use_7z yes" port option to allow distfiles in 7z format
+      (#18521, ryandesign)
+
+    - port lint no longer requires variable master_sites if the port has no
+      distfiles (#18479, ryandesign)
+
+    - Upgrade will no longer accept ports that are not installed (but it still
+      installs new ports as dependencies if needed). In particular, this means
+      that "port upgrade all" will no longer proceed to install every
+      available port. (jmr in r46052)
+
+    - Add mkdtemp Tcl command to create temporary directories. (#17181, perry)
+
     - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
 
     - Create ${applications_dir} and ${frameworks_dir} in destroot
