@@ -82,6 +82,8 @@ Release 1.8.0 (unreleased):
       set/unset. (#12563, perry)
 
 Release 1.7.1 (unreleased):
+    - Fix freshmeat-based livecheck (#18887)
+
     - Fix issue on direct-mode installs where checking for installed ports
       wasn't properly looking (it only matched for revision 0 and no
       variants) (#17762)
