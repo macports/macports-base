@@ -45,10 +45,10 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use
 	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
 	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
 	cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
-	svn.url svn.tag svn.method \
+	svn.url svn.tag svn.revision svn.method \
 	git.url git.branch \
 	hg.url hg.tag
-	
+
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
 commands cvs
@@ -74,6 +74,7 @@ default svn.cmd {$portutil::autoconf::svn_path}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.tag ""
+default svn.revision ""
 default svn.env {}
 default svn.pre_args {"--non-interactive"}
 default svn.args ""
@@ -103,6 +104,9 @@ default fallback_mirror_site "macports"
 default global_mirror_site "macports_distfiles"
 default mirror_sites.listfile {"mirror_sites.tcl"}
 default mirror_sites.listpath {"port1.0/fetch"}
+
+# Deprecation
+option_deprecate svn.tag svn.revision
 
 # Option-executed procedures
 option_proc use_bzip2 set_extract_type
@@ -506,7 +510,7 @@ proc cvsfetch {args} {
 # Perform an svn fetch
 proc svnfetch {args} {
     global workpath prefix_frozen
-    global svn.env svn.cmd svn.args svn.post_args svn.tag svn.url svn.method
+    global svn.env svn.cmd svn.args svn.post_args svn.revision svn.url svn.method
     
     # Look for the svn command, either in the path or in the prefix
     set goodcmd 0
@@ -524,8 +528,8 @@ proc svnfetch {args} {
     }
     
     set svn.args "${svn.method} ${svn.args}"
-    if {[string length ${svn.tag}]} {
-		set svn.args "${svn.args} -r ${svn.tag}"
+    if {[string length ${svn.revision}]} {
+		set svn.args "${svn.args} -r ${svn.revision}"
     }
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
