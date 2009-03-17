@@ -1280,19 +1280,17 @@ proc _porttest {mport depspec} {
 proc _mportinstalled {mport} {
     # Check for the presense of the port in the registry
     set workername [ditem_key $mport workername]
-    set res [$workername eval registry_exists \${portname} \${portversion}]
-    if {$res != 0} {
-        ui_debug "[ditem_key $mport provides] is installed"
-        return 1
-    } else {
+    if {[catch {set reslist [$workername eval registry_installed \${portname}]}]} {
         return 0
+    } else {
+        return [expr [llength $reslist] > 0]
     }
 }
 
 # Determine if a port is active (only for image mode)
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_active \${portname}]} res]} {
+    if {[catch {set reslist [$workername eval registry_active \${portname}]}]} {
         return 0
     } else {
         return [expr [llength $reslist] > 0]
