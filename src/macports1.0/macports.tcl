@@ -201,6 +201,7 @@ proc macports::ui_channels_default {priority} {
                 return {stdout}
             }
         }
+        warn -
         error {
             return {stderr}
         }
