@@ -1658,6 +1658,10 @@ proc action_upgrade { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        if {[catch {registry::installed $portname}]} {
+            ui_error "$portname is not installed"
+            return 1
+        }
         # Merge global variations into the variations specified for this port
         foreach { variation value } [array get global_variations] {
             if { ![info exists variations($variation)] } {
