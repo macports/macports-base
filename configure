@@ -6859,7 +6859,7 @@ echo $ECHO_N "checking for Applications installation directory... $ECHO_C" >&6; 
 	    if test "$DSTUSR" = "root" ; then
 		MPAPPLICATIONSDIR="/Applications/MacPorts"
 	    else
-		MPAPPLICATIONSDIR="~$DSTUSR/Applications/MacPorts"
+		MPAPPLICATIONSDIR="$(eval echo ~$DSTUSR)/Applications/MacPorts"
 	    fi
 	fi
 
