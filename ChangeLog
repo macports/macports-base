@@ -5,6 +5,12 @@
 
 
 Release 1.8.0 (unreleased):
+    - svn.tag is deprecated, use svn.revision instead (r48222-48223, raimue)
+
+    - port -i option has been removed (r48218, blb)
+
+    - ui_warn logs to stderr instead of stdout (r48217, raimue)
+
     - Remove --pretend option for port selfupdate, use global dry-run option
       instead (r48125, raimue)
 
