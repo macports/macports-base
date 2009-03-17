@@ -2087,7 +2087,7 @@ proc macports::selfupdate {{optionslist {}}} {
     
     # syncing ports tree.
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
-        ui_msg "--> Updating the ports tree"
+        ui_msg "--->  Updating the ports tree"
         if {[catch {mportsync $optionslist} result]} {
             return -code error "Couldn't sync the ports tree: $result"
         }
@@ -2101,7 +2101,7 @@ proc macports::selfupdate {{optionslist {}}} {
     ui_debug "MacPorts sources location: $mp_source_path"
     
     # sync the MacPorts sources
-    ui_msg "--> Updating MacPorts base sources using rsync"
+    ui_msg "--->  Updating MacPorts base sources using rsync"
     if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } result ] } {
        return -code error "Error synchronizing MacPorts sources: $result"
     }
@@ -2134,9 +2134,9 @@ proc macports::selfupdate {{optionslist {}}} {
     set comp [rpm-vercomp $macports_version_new $macports::autoconf::macports_version]
     if {$use_the_force_luke == "yes" || $comp > 0} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
-            ui_msg "--> MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
+            ui_msg "--->  MacPorts base is outdated, selfupdate would install $macports_version_new (dry run)"
         } else {
-            ui_msg "--> MacPorts base is outdated, installing new version $macports_version_new"
+            ui_msg "--->  MacPorts base is outdated, installing new version $macports_version_new"
 
             # get installation user/group and permissions
             set owner [file attributes ${prefix} -owner]
@@ -2165,9 +2165,9 @@ proc macports::selfupdate {{optionslist {}}} {
             }
         }
     } elseif {$comp < 0} {
-        ui_msg "--> MacPorts base is probably trunk or a release candidate"
+        ui_msg "--->  MacPorts base is probably trunk or a release candidate"
     } else {
-        ui_msg "--> MacPorts base is already the latest version"
+        ui_msg "--->  MacPorts base is already the latest version"
     }
 
     # set the MacPorts sources to the right owner
