@@ -123,10 +123,10 @@ proc livecheck_main {args} {
     switch ${livecheck.check} {
         "freshmeat" {
             if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-                set livecheck.url "http://freshmeat.net/projects-xml/${livecheck.name}/${livecheck.name}.xml"
+                set livecheck.url "http://freshmeat.net/projects/${livecheck.name}/releases.atom"
             }
             if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "<latest_release_version>(.*)</latest_release_version>"]
+                set livecheck.regex [list "<title>${livecheck.name} (.*)</title>"]
             }
             set livecheck.check "regex"
         }
