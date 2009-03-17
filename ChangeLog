@@ -5,6 +5,19 @@
 
 
 Release 1.7.1 (unreleased):
+    - Add new "use_7z yes" port option to allow distfiles in 7z format
+      (#18521, ryandesign)
+
+    - port lint no longer requires variable master_sites if the port has no
+      distfiles (#18479, ryandesign)
+
+    - Upgrade will no longer accept ports that are not installed (but it still
+      installs new ports as dependencies if needed). In particular, this means
+      that "port upgrade all" will no longer proceed to install every
+      available port. (jmr in r46052)
+
+    - Add mkdtemp Tcl command to create temporary directories. (#17181, perry)
+
     - Add 'apple-gcc-4.2' option to configure.compiler (#18426, ryandesign)
 
     - Create ${applications_dir} and ${frameworks_dir} in destroot
