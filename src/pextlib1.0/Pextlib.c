@@ -798,6 +798,32 @@ int MkChannelFromFdCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int obj
 	return TCL_OK;
 }
 
+int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	char *template, *sp;
+	Tcl_Obj *tcl_result;
+
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "template");
+		return TCL_ERROR;
+	}
+
+	template = strdup(Tcl_GetString(objv[1]));
+	if (template == NULL)
+		return TCL_ERROR;
+
+	if ((sp = mkdtemp(template)) == NULL) {
+		Tcl_AppendResult(interp, "mkdtemp failed: ", strerror(errno), NULL);
+		free(template);
+		return TCL_ERROR;
+	}
+
+	tcl_result = Tcl_NewStringObj(sp, -1);
+	Tcl_SetObjResult(interp, tcl_result);
+	free(template);
+	return TCL_OK;
+}
+
 int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *template, *sp;
@@ -1210,6 +1236,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "strsed", StrsedCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkstemp", MkstempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mktemp", MktempCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "mkdtemp", MkdtempCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "existsuser", ExistsuserCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "existsgroup", ExistsgroupCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "nextuid", NextuidCmd, NULL, NULL);
