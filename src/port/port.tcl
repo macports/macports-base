@@ -44,7 +44,7 @@ package require Pextlib 1.0
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfiknopqRstuvxy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+        [-bcdfknopqRstuvxy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -3153,10 +3153,6 @@ proc parse_options { action ui_options_name global_options_name } {
                         set ui_options(ports_quiet) yes
                         set ui_options(ports_verbose) no
                         set ui_options(ports_debug) no
-                    }
-                    i {
-                        # Always go to interactive mode
-                        lappend ui_options(ports_commandfiles) -
                     }
                     p {
                         # Ignore errors while processing within a command
