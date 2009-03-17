@@ -173,6 +173,42 @@ proc options_export {args} {
 }
 
 ##
+# Print a warning for deprecated options
+#
+# @param option deprecated option
+# @param action read/set
+# @param value ignored
+proc warn_deprecated_option {option action {value ""}} {
+    global portname $option deprecated_options
+    set newoption $deprecated_options($option)
+
+    if {$newoption == ""} {
+        ui_warn "Port $portname using deprecated option \"$option\"."
+        return
+    }
+
+    ui_warn "Port $portname using deprecated option \"$option\", superseded by \"$newoption\"."
+    if {$action != "read"} {
+        $newoption [set $option]
+    } else {
+        $option [set $newoption]
+    }
+}
+
+##
+# Causes a warning to be printed when an option is set or accessed
+#
+# @param option name of the option
+# @param newoption name of a superseding option
+proc option_deprecate {option {newoption ""} } {
+    global deprecated_options
+    # If a new option is specified, default the option to $newoption
+    set deprecated_options($option) $newoption
+    # Register a proc for printing a warning
+    option_proc $option warn_deprecated_option
+}
+
+##
 # Registers a proc to be called when an option is changed
 #
 # @param option the name of the option
