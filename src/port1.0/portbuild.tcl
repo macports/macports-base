@@ -43,7 +43,8 @@ options build.target
 options build.nice
 options build.jobs
 options build.asroot
-commands build parallel_build
+options use_parallel_build
+commands build
 # defaults
 default build.asroot no
 default build.dir {${workpath}/${worksrcdir}}
@@ -52,6 +53,7 @@ default build.nice {${buildnicevalue}}
 default build.jobs {${buildmakejobs}}
 default build.pre_args {${build.target}}
 default build.target "all"
+default use_parallel_build yes
 
 set_ui_prefix
 
@@ -116,9 +118,9 @@ proc build_getmakejobs {args} {
     # check if port allows a parallel build
     global use_parallel_build
     if {![tbool use_parallel_build]} {
+        ui_debug "port disallows a parallel build"
         return ""
     }
-    ui_debug "port allows a parallel build"
 
     if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
         return ""
