@@ -181,6 +181,7 @@ proc options_export {args} {
 proc warn_deprecated_option {option action {value ""}} {
     global portname $option deprecated_options
     set newoption $deprecated_options($option)
+    global $newoption
 
     if {$newoption == ""} {
         ui_warn "Port $portname using deprecated option \"$option\"."
