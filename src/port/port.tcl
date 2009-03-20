@@ -2297,6 +2297,7 @@ proc action_contents { action portlist opts } {
 }
 
 proc action_variants { action portlist opts } {
+    global global_variations
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -2355,7 +2356,6 @@ proc action_variants { action portlist opts } {
             # print out all the variants
             puts "$portname has the variants:"
             foreach v [lsort $portinfo(variants)] {
-                set mod ""
                 unset -nocomplain vconflicts vdescription vrequires
                 # Retrieve variants' information from the new format.
                 if {[info exists vinfo]} {
@@ -2370,8 +2370,17 @@ proc action_variants { action portlist opts } {
                     if {[info exists variant(description)]} {
                         set vdescription $variant(description)
                     }
-                    if {[info exists variant(is_default)]} {
-                        set mod "\[+] "
+
+                    # XXX Keep these mods in sync with action_info, or create a wrapper for it
+                    if {[info exists variations($v)]} {
+                        set mod "  $variations($v)"
+                    } elseif {[info exists global_variations($v)]} {
+                        # selected by variants.conf, prefixed with (+)/(-)
+                        set mod "($global_variations($v))"
+                    } elseif {[info exists variant(is_default)]} {
+                        set mod "\[+]"
+                    } else {
+                        set mod "   "
                     }
                     if {[info exists variant(requires)]} {
                         set vrequires $variant(requires)
@@ -2382,21 +2391,21 @@ proc action_variants { action portlist opts } {
                     set vdescription $vdescriptions($v)
                 }
 
-                puts -nonewline "  $mod$v"
                 if {[info exists vdescription]} {
-                    puts -nonewline ": [string trim $vdescription]"
+                    puts [wraplabel "$mod$v" [string trim $vdescription] 0 [string repeat " " [expr 5 + [string length $v]]]]
+                } else {
+                    puts "$mod$v"
                 }
                 if {[info exists vconflicts]} {
-                    puts -nonewline "\n    * conflicts with [string trim $vconflicts]"
+                    puts "     * conflicts with [string trim $vconflicts]"
                 }
                 if {[info exists vrequires]} {
-                    puts -nonewline "\n    * requires [string trim $vrequires]"
+                    puts "     * requires [string trim $vrequires]"
                 }
-                puts ""
             }
         }
     }
-    
+
     return $status
 }
 
