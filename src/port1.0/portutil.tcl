@@ -129,6 +129,23 @@ proc handle_option-delete {option args} {
     }
 }
 
+##
+# Handle option-replace
+#
+# @param option name of the option
+# @param args arguments
+proc handle_option-replace {option args} {
+    global $option user_options option_procs
+
+    if {![info exists user_options($option)] && [info exists $option]} {
+        set temp [set $option]
+        foreach val $args {
+            set temp [strsed $temp $val]
+        }
+        set $option $temp
+    }
+}
+
 # options
 # Exports options in an array as externally callable procedures
 # Thus, "options name date" would create procedures named "name"
@@ -141,6 +158,7 @@ proc options {args} {
         interp alias {} $option {} handle_option $option
         interp alias {} $option-append {} handle_option-append $option
         interp alias {} $option-delete {} handle_option-delete $option
+        interp alias {} $option-replace {} handle_option-replace $option
     }
 }
 
