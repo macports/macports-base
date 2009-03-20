@@ -1602,22 +1602,22 @@ proc action_info { action portlist opts } {
                     set pi_vars $inf
                     set inf {}
                     foreach v [lsort $pi_vars] {
-                        set mod ""
+                        set varmodifier ""
                         if {[info exists variations($v)]} {
                             # selected by command line, prefixed with +/-
-                            set mod $variations($v)
+                            set varmodifier $variations($v)
                         } elseif {[info exists global_variations($v)]} {
                             # selected by variants.conf, prefixed with (+)/(-)
-                            set mod "($global_variations($v))"
+                            set varmodifier "($global_variations($v))"
                             # Retrieve additional information from the new key.
                         } elseif {[info exists vinfo]} {
                             array unset variant
                             array set variant $vinfo($v)
                             if {[info exists variant(is_default)]} {
-                                set mod "\[+]"
+                                set varmodifier "\[+]"
                             }
                         }
-                        lappend inf "$mod$v"
+                        lappend inf "$varmodifier$v"
                     }
                 } elseif {[string match "depend*" $ropt] 
                           && ![macports::ui_isset ports_verbose]} {
@@ -2371,16 +2371,16 @@ proc action_variants { action portlist opts } {
                         set vdescription $variant(description)
                     }
 
-                    # XXX Keep these mods in sync with action_info, or create a wrapper for it
+                    # XXX Keep these varmodifiers in sync with action_info, or create a wrapper for it
                     if {[info exists variations($v)]} {
-                        set mod "  $variations($v)"
+                        set varmodifier "  $variations($v)"
                     } elseif {[info exists global_variations($v)]} {
                         # selected by variants.conf, prefixed with (+)/(-)
-                        set mod "($global_variations($v))"
+                        set varmodifier "($global_variations($v))"
                     } elseif {[info exists variant(is_default)]} {
-                        set mod "\[+]"
+                        set varmodifier "\[+]"
                     } else {
-                        set mod "   "
+                        set varmodifier "   "
                     }
                     if {[info exists variant(requires)]} {
                         set vrequires $variant(requires)
@@ -2392,9 +2392,9 @@ proc action_variants { action portlist opts } {
                 }
 
                 if {[info exists vdescription]} {
-                    puts [wraplabel "$mod$v" [string trim $vdescription] 0 [string repeat " " [expr 5 + [string length $v]]]]
+                    puts [wraplabel "$varmodifier$v" [string trim $vdescription] 0 [string repeat " " [expr 5 + [string length $v]]]]
                 } else {
-                    puts "$mod$v"
+                    puts "$varmodifier$v"
                 }
                 if {[info exists vconflicts]} {
                     puts "     * conflicts with [string trim $vconflicts]"
