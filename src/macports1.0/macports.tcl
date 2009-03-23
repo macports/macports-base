@@ -397,7 +397,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                         global macports::$option
                     }
                 }
-            }            
+            }
+            close $fd
         }
     }
     
@@ -413,6 +414,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                 }
             }
         }
+        close $fd
     }
     
     if {![info exists sources_conf]} {
@@ -438,6 +440,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             }
         }
     }
+    close $fd
     # Make sure the default port source is defined. Otherwise
     # [macports::getportresourcepath] fails when the first source doesn't
     # contain _resources.
@@ -471,6 +474,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                     }
                 }
             }
+            close $fd
         } else {
             ui_debug "$variants_conf does not exist, variants_conf setting ignored."
         }
