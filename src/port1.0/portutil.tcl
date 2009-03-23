@@ -1855,21 +1855,29 @@ proc eval_variants {variations} {
 }
 
 proc check_variants {variations target} {
-    global ports_force ports_dryrun PortInfo
+    global targets ports_force ports_dryrun PortInfo
     upvar $variations upvariations
     set result 0
     set portname $PortInfo(name)
     
     # Make sure the variations match those stored in the statefile.
-    # If they don't match, print an error indicating a 'port clean' 
-    # should be performed.  
+    # If they don't match, print an error indicating a 'port clean'
+    # should be performed.
+    # - Skip this test if the target indicated target_state no
     # - Skip this test if the statefile is empty.
-    # - Skip this test if performing a clean or submit.
     # - Skip this test if ports_force was specified.
-   
-    # TODO: Don't hardcode this list of targets here,
-    #       check for [ditem_key $mport state] == "no" somewhere else instead
-    if { [lsearch "clean submit lint livecheck" $target] < 0 &&
+
+    # Assume we do not need the statefile
+    set statereq 0
+    set ditems [dlist_search $targets provides $target]
+    foreach d $ditems {
+        if {[ditem_key $d state] != "no"} {
+            # At least one matching target requires the state file
+            set statereq 1
+            break
+        }
+    }
+    if { $statereq &&
         !([info exists ports_force] && $ports_force == "yes")} {
         
         set state_fd [open_statefile]
