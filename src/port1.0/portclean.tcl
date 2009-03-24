@@ -39,6 +39,7 @@ package require Pextlib 1.0
 
 set org.macports.clean [target_new org.macports.clean clean_main]
 target_runtype ${org.macports.clean} always
+target_state ${org.macports.clean} no
 target_provides ${org.macports.clean} clean
 target_requires ${org.macports.clean} main
 target_prerun ${org.macports.clean} clean_start
@@ -75,7 +76,7 @@ proc clean_main {args} {
 	}
 
 	# start gsoc-08 privileges
-	if {$usealtworkpath == "yes"} {
+	if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
 		ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option portname]]"
 		clean_altsource
 	}
