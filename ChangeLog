@@ -5,6 +5,9 @@
 
 
 Release 1.8.0 (unreleased):
+    - Do not print header lines when the quiet option -q is set
+    (r48558, raimue)
+
     - svn.tag is deprecated, use svn.revision instead (r48222-48223, raimue)
 
     - port -i option has been removed (r48218, blb)
