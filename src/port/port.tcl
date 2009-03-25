@@ -1565,9 +1565,6 @@ proc action_info { action portlist opts } {
                 
                 # If there's no such info, move on
                 if {![info exists portinfo($ropt)]} {
-                    if {!$quiet} {
-                        puts stderr "no info for '$opt'"
-                    }
                     set inf ""
                 } else {
                     set inf [join $portinfo($ropt)]
