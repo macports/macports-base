@@ -260,7 +260,6 @@ proc configure_get_universal_cppflags {args} {
 # internal function to determine the CFLAGS for the compiler
 proc configure_get_universal_cflags {args} {
     global configure.universal_sysroot configure.universal_target
-    global os.platform os.arch os.version os.major
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
     if {[info exists configure.universal_sysroot]} {
@@ -272,7 +271,7 @@ proc configure_get_universal_cflags {args} {
 # internal function to determine the LDFLAGS for the compiler
 proc configure_get_universal_ldflags {args} {
     global configure.universal_sysroot configure.universal_target
-    global os.platform os.arch os.version os.major
+    global os.arch
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
     if {${os.arch} == "powerpc"} {
