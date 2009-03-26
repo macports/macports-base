@@ -194,10 +194,10 @@ proc configure_start {args} {
     
     # start gsoc08-privileges
     if { [tbool configure.asroot] } {
-	# if port is marked as needing root	
-		elevateToRoot "configure"
-	}
-	# end gsoc08-privileges
+        # if port is marked as needing root
+        elevateToRoot "configure"
+    }
+    # end gsoc08-privileges
 }
 
 # internal function to determine canonical system name for configure
