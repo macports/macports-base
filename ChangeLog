@@ -62,7 +62,7 @@ Release 1.8.0 (unreleased):
     - Add several new options to port search, looks in name and description by
       default (#15434, raimue)
 
-    - Add xpkg archive type, xar-based format with XML. (afb)
+    - Add xpkg package type, xar-based format with XML. (afb)
 
     - Split portpkg creation out from portsubmit phase. (afb)
 

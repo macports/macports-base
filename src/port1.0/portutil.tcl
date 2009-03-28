@@ -2295,7 +2295,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        xar|xpkg {
+        xar {
             set xar "xar"
             if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
                 return 0
