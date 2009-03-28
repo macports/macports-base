@@ -2273,6 +2273,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 			array unset portinfo
 			array set portinfo [mportinfo $workername]
 			set portwasopened 1
+			set version_in_tree "$portinfo(version)"
+			set revision_in_tree "$portinfo(revision)"
+			set epoch_in_tree "$portinfo(epoch)"
 
             if {![_mportispresent $workername $dspec ] } {
                 # upgrade its dependencies first
@@ -2416,6 +2419,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 		array unset portinfo
 		array set portinfo [mportinfo $workername]
 		set portwasopened 1
+		set version_in_tree "$portinfo(version)"
+		set revision_in_tree "$portinfo(revision)"
+		set epoch_in_tree "$portinfo(epoch)"
 	}
 		
 
