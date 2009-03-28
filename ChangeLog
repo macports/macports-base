@@ -84,7 +84,7 @@ Release 1.8.0 (unreleased):
     - Implicit variants (e.g., darwin) can no longer be explicitly
       set/unset. (#12563, perry)
 
-Release 1.7.1 (unreleased):
+Release 1.7.1 (2009-03-28 by raimue):
     - Fix freshmeat-based livecheck (#18887)
 
     - Fix issue on direct-mode installs where checking for installed ports
