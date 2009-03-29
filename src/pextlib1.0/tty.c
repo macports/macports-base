@@ -109,7 +109,7 @@ int TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
             return TCL_ERROR;
         }
 
-        if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
+        if (ioctl(fd, TIOCGWINSZ, &ws) == -1) {
             Tcl_SetResult(interp, "ioctl failed", TCL_STATIC);
             return TCL_ERROR;
         }
