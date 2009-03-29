@@ -72,7 +72,7 @@ proc set_configure_type {option action args} {
                 depends_build-append bin:autoconf:autoconf
             }
             use_xmkmf {
-                depends_build-append bin:xmkmf:imake
+                depends_build-append path:bin/xmkmf:imake
             }
         }
     }
