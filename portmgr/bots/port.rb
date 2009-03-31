@@ -1,7 +1,7 @@
 #
 #	port.rb
 #
-#	Plugin to rbot (http://linuxbrit.co.uk/rbot/), an irc bot, to provide
+#	Plugin to rbot (http://ruby-rbot.org/), an irc bot, to provide
 #	services related to MacPorts for the #macports channel on freenode.net.
 #
 #	By James D. Berry
@@ -133,15 +133,36 @@ class PortPlugin < Plugin
 	end
 	
 	def info(m, params)
-		doPort(m, "info", params[:portname])
+		if !isPseudo(m, params[:portname])
+			doPort(m, "info", params[:portname])
+		end
 	end
 	
 	def portmaintainer(m, params)
-		doPort(m, "info", "--maintainer", params[:portname])
+		if !isPseudo(m, params[:portname])
+			doPort(m, "info", "--maintainer", params[:portname])
+		end
 	end
 	
 	def portversion(m, params)
-		doPort(m, "info", "--version", params[:portname])
+		if !isPseudo(m, params[:portname])
+			doPort(m, "info", "--version", params[:portname])
+		end
+	end
+	
+	def isPseudo(m, portname)
+		case portname
+			when "all", "current", "active", "inactive", "installed", "uninstalled", "outdated", "obsolete"
+		        ret = true
+		    when /:/, /\*/, /\?/, /\{/, /\}/, /\[/, /\]/
+		        ret = true
+		    else
+		        ret = false
+		end
+		if ret
+		    m.reply "no globs or pseudo ports, please"
+		end
+		return ret
 	end
 	
 	def portsearch(m, params)
