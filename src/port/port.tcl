@@ -1758,13 +1758,13 @@ proc action_notes { action portlist opts } {
         mportclose $mport
 
         # Display the notes.
-        if {$portnotes ne {}} {
-            if {![macports::ui_isset ports_quiet]} {
+        if {![macports::ui_isset ports_quiet]} {
+            if {$portnotes ne {}} {
                 puts "$portname has the following notes:"
+                puts [wrap $portnotes 0 "  " 1]
+            } else {
+                puts "$portname has no notes."
             }
-            puts [wrap $portnotes 0 "  " 1]
-        } else if {![macports::ui_isset ports_quiet]} {
-            puts "$portname has no notes."
         }
     }
 }
