@@ -2519,7 +2519,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             if {!$force_cur} {
                 unset options(ports_force)
             }
-            if {$version_in_tree == $version_active && $revision_in_tree == $revision_active
+            if {$anyactive && $version_in_tree == $version_active && $revision_in_tree == $revision_active
                 && $portinfo(canonical_active_variants) == $variant_active} {
                 set anyactive no
             }
