@@ -1934,7 +1934,6 @@ proc adduser {name args} {
     
     foreach arg $args {
         if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
-            regsub -all " " ${val} "\\ " val
             set $key $val
         }
     }
@@ -1966,7 +1965,6 @@ proc addgroup {name args} {
     
     foreach arg $args {
         if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
-            regsub -all " " ${val} "\\ " val
             set $key $val
         }
     }
