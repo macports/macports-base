@@ -738,7 +738,7 @@ proc fetch_init {args} {
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
 
 		# start gsoc08-privileges
-    	if { $usealtworkpath } {
+	if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
     	# I have removed ![file writable $distpath] from the if condition as
     	# the writable condition seems to get confused by effective uids.
 			set distpath "$altprefix/[ string range $distpath 1 end ]"

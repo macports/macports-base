@@ -110,7 +110,7 @@ proc destroot_start {args} {
 		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
 	}
 	
-	if {$usealtworkpath} {
+	if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
 	    # rewrite destroot.args
 	    set argprefix "=[option prefix]"
 	    set newargprefix "=${altprefix}[option prefix]"
