@@ -341,12 +341,14 @@ proc _activate_contents {name imagefiles imagedir} {
 
 		set port [registry::file_registered $file] 
 
+		set timestamp [clock seconds]
+
 		if { $port != 0  && $force != 1 && $port != $name } {
 			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."
 		} elseif { [file exists $file] && $force != 1 } {
 			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
 		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
-			set bakfile ${file}.mp_[clock seconds]
+			set bakfile ${file}.mp_${timestamp}
 
 			if {[file exists $file]} {
 				ui_warn "File $file already exists.  Moving to: $bakfile."
