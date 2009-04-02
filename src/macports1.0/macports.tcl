@@ -2147,11 +2147,6 @@ proc macports::selfupdate {{optionslist {}}} {
     return 0
 }
 
-proc macports::version {} {
-    global macports::autoconf::macports_version
-    return $macports::autoconf::macports_version
-}
-
 # upgrade procedure
 proc macports::upgrade {portname dspec globalvarlist variationslist optionslist {depscachename ""}} {
     global macports::registry.installtype

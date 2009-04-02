@@ -36,10 +36,22 @@
 
 #include <tcl.h>
 
+static int
+macports__version(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[])
+{
+	if (objc != 1) {
+		Tcl_WrongNumArgs(interp, 1, objv, NULL);
+		return TCL_ERROR;
+	}
+	Tcl_SetObjResult(interp, Tcl_GetVar2Ex(interp, "macports::autoconf::macports_version", NULL, 0));
+	return TCL_OK;
+}
+
 int Macports_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return TCL_ERROR;
+	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
 	if(Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
