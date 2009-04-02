@@ -36,7 +36,7 @@
 
 #include <tcl.h>
 
-int macports_Init(Tcl_Interp *interp)
+int Macports_Init(Tcl_Interp *interp)
 {
 	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return TCL_ERROR;
