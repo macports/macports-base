@@ -203,14 +203,14 @@ class PortPlugin < Plugin
 	def forget(m, params)
 		nick = params[:nick]
 		@registry.delete("email_#{nick}")
+		@registry.delete("timezone_#{nick}")
+		@registry.delete("location_#{nick}")
 		m.okay
 	end
 
 	def forgetEmail(m, params)
 		nick = params[:nick]
 		@registry.delete("email_#{nick}")
-		@registry.delete("timezone_#{nick}")
-		@registry.delete("location_#{nick}")
 		m.okay
 	end
 
