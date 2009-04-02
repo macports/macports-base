@@ -54,7 +54,7 @@ proc copy_package_if_available {portname basepath destpath} {
 	# XXX: probably should exclude KDE here too
 	if {$portname == "XFree86"} { return {} }
 	
-	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+	if {[catch {set res [mportsearch "^$portname\$"]} error]} {
 		puts stderr "Internal error: port search failed: $error"
 		return
 	}
@@ -216,7 +216,7 @@ array set options [list]
 array set variations [list]
 #	set ui_options(ports_verbose) yes
 
-if {[catch {dportinit ui_options options variations} result]} {
+if {[catch {mportinit ui_options options variations} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
 }
@@ -230,7 +230,7 @@ if {[llength $argv] == 0} {
 
 foreach pname $argv {
 
-if {[catch {set res [dportsearch "^${pname}\$"]} result]} {
+if {[catch {set res [mportsearch "^${pname}\$"]} result]} {
 	puts "port search failed: $result"
 	exit 1
 }

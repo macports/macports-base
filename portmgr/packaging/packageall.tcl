@@ -119,7 +119,7 @@ proc log_message {channel message} {
 proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 	
-	if {[catch {set res [dportsearch "^$portname\$"]} error]} {
+	if {[catch {set res [mportsearch "^$portname\$"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Internal error: port search failed: $error"
@@ -200,7 +200,7 @@ array set options [list]
 array set variations [list]
 #	set ui_options(ports_verbose) yes
 
-if {[catch {dportinit ui_options options variations} result]} {
+if {[catch {mportinit ui_options options variations} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
 }
@@ -214,7 +214,7 @@ if {[llength $argv] == 0} {
 
 foreach pname $argv {
 
-if {[catch {set res [dportsearch "^${pname}\$"]} result]} {
+if {[catch {set res [mportsearch "^${pname}\$"]} result]} {
 	puts "port search failed: $result"
 	exit 1
 }
@@ -391,25 +391,25 @@ foreach {name array} $res {
 
 	# Turn on verbose output for the build
 	set ui_options(ports_verbose) yes
-	if {[catch {set workername [dportopen $porturl [array get options] [array get variations] yes]} result] ||
+	if {[catch {set workername [mportopen $porturl [array get options] [array get variations] yes]} result] ||
 		$result == 1} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}	
-	if {[catch {set result [dportexec $workername pkg]} result] ||
+	if {[catch {set result [mportexec $workername pkg]} result] ||
 		$result == 1} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "port package failed: $result"
-		dportclose $workername
+		mportclose $workername
 	    continue
 	}
 	set ui_options(ports_verbose) no
 	# Turn verbose output off after the build
 
-	dportclose $workername
+	mportclose $workername
 
 	# We made it to the end.  We can delete the log file.
 	close $logfd

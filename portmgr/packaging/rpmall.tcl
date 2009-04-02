@@ -122,7 +122,7 @@ proc log_message {channel message} {
 proc get_dependencies {portname includeBuildDeps} {
 	set result {}
 	
-	if {[catch {set search [dportsearch "^$portname\$"]} error]} {
+	if {[catch {set search [mportsearch "^$portname\$"]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "Internal error: port search failed: $error"
@@ -209,7 +209,7 @@ if {![file exists /usr/bin/sw_vers]} {
 	set variations(puredarwin) "+"
 }
 
-if {[catch {dportinit ui_options options variations} result]} {
+if {[catch {mportinit ui_options options variations} result]} {
     puts "Failed to initialize ports system, $result"
     exit 1
 }
@@ -223,7 +223,7 @@ if {[llength $argv] == 0} {
 
 foreach pname $argv {
 
-if {[catch {set allpackages [dportsearch "^${pname}\$"]} result]} {
+if {[catch {set allpackages [mportsearch "^${pname}\$"]} result]} {
 	puts "port search failed: $result"
 	exit 1
 }
@@ -437,26 +437,26 @@ foreach {name array} $allpackages {
 	foreach prebuild {"ccache" "rpm" "unzip"} {
 		if {![file exists /bin/${prebuild}] && ![file exists /usr/bin/${prebuild}]} {
 			ui_msg "--->  Pre-installing ${prebuild}"
-			if {[catch {set search [dportsearch "^${prebuild}\$"]} error]} {
+			if {[catch {set search [mportsearch "^${prebuild}\$"]} error]} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				ui_error "Internal error: port search ${prebuild} failed: $error"
 			}
 			array set prebuildinfo [lindex $search 1]
 			set ui_options(ports_verbose) yes
-			if {[catch {set workername [dportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
+			if {[catch {set workername [mportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
 				$result == 1} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				ui_error "Internal error: unable to install ${prebuild}... exiting"
 				exit 1
 			}
-			if {[catch {set result [dportexec $workername install]} result] ||
+			if {[catch {set result [mportexec $workername install]} result] ||
 				$result == 1} {
 				global errorInfo
 				ui_debug "$errorInfo"
 				ui_error "installation of ${prebuild} failed: $result"
-				dportclose $workername
+				mportclose $workername
 				exit 1
 			}
 		}
@@ -464,25 +464,25 @@ foreach {name array} $allpackages {
 
 	# Turn on verbose output for the build
 	set ui_options(ports_verbose) yes
-	if {[catch {set workername [dportopen $porturl [array get options] [array get variations]]} result] ||
+	if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result] ||
 		$result == 1} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "Internal error: unable to open port: $result"
 	    continue
 	}
-	if {[catch {set result [dportexec $workername rpmpackage]} result] ||
+	if {[catch {set result [mportexec $workername rpmpackage]} result] ||
 		$result == 1} {
 		global errorInfo
 		ui_debug "$errorInfo"
 	    ui_error "port package failed: $result"
-		dportclose $workername
+		mportclose $workername
 	    continue
 	}
 	set ui_options(ports_verbose) no
 	# Turn verbose output off after the build
 
-	dportclose $workername
+	mportclose $workername
 
 	# We made it to the end.  We can delete the log file.
 	close $logfd

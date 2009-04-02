@@ -293,7 +293,7 @@ proc main {argc argv} {
 	array set ui_options {}
 	array set options {}
 	array set variations {}
-	dportinit ui_options options variations
+	mportinit ui_options options variations
 
 	# If -i was specified, install base system and exit
 	if {$initialize_flag == "true"} {
@@ -347,7 +347,7 @@ proc main {argc argv} {
 
 	# If no portlist file was specified, create a portlist that includes all ports
 	if {[llength $portlist] == 0 || "$buildall_flag" == "true"} {
-		set res [dportsearch {.*}]
+		set res [mportsearch {.*}]
 		foreach {name array} $res {
 			lappend portlist $name
 		}
@@ -494,14 +494,14 @@ proc main {argc argv} {
 			install_binary_if_available $dep
 		}
 
-		if {[catch {set workername [dportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
+		if {[catch {set workername [mportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: unable to open port: $result"
 			exit 1
 		}
 
-		if {[catch {set result [dportexec $workername clean]} result] || $result == 1} {
+		if {[catch {set result [mportexec $workername clean]} result] || $result == 1} {
 			ui_noisy_error "Cleaning $portinfo(name) failed, consult build log"
 
 			# Close the log
@@ -511,28 +511,28 @@ proc main {argc argv} {
 			copy_failure_log $portinfo(name)
 
 			# Close the port
-			dportclose $workername
+			mportclose $workername
 
 			continue
 		}
 
 		# Re-open the port. MacPorts doesn't play well with multiple targets, apparently
-		dportclose $workername
-		if {[catch {set workername [dportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
+		mportclose $workername
+		if {[catch {set workername [mportopen $portinfo(porturl) [array get options] [array get variations] yes]} result] || $result == 1} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_noisy_error "Internal error: unable to open port: $result"
 			exit 1
 		}
 
-		if {[catch {set result [dportexec $workername dpkg]} result] || $result == 1} {
+		if {[catch {set result [mportexec $workername dpkg]} result] || $result == 1} {
 			ui_noisy_error "Packaging $portinfo(name) failed, consult build log"
 
 			# Copy the log to the failure directory
 			copy_failure_log $portinfo(name)
 
 			# Close the port
-			dportclose $workername
+			mportclose $workername
 
 			# Close the log
 			close $logfd
@@ -566,7 +566,7 @@ proc main {argc argv} {
 		delete_failure_log $portinfo(name)
 
 		# Close the port
-		dportclose $workername
+		mportclose $workername
 	}
 
 	open_default_log
@@ -740,15 +740,15 @@ proc do_portexec {port options variants target} {
 
 	array set portinfo [lindex [get_portinfo $port] 1]
 
-	if {[catch {set workername [dportopen $portinfo(porturl) $options $variants yes]} result] || $result == 1} {
+	if {[catch {set workername [mportopen $portinfo(porturl) $options $variants yes]} result] || $result == 1} {
 		return -code error "Internal error: unable to open port: $result"
 		exit 1
 	}
 
-	if {[catch {set result [dportexec $workername install]} result] || $result == 1} {
+	if {[catch {set result [mportexec $workername install]} result] || $result == 1} {
 
 		# Close the port
-		dportclose $workername
+		mportclose $workername
 
 		# Return error
 		return -code error "Executing target $target on $portinfo(name) failed."
@@ -757,7 +757,7 @@ proc do_portexec {port options variants target} {
 
 proc get_portinfo {port} {
 	set searchstring [regex_escape_portname $port]
-	set res [dportsearch "^${searchstring}\$"]
+	set res [mportsearch "^${searchstring}\$"]
 
 	if {[llength $res] < 2} {
 		return -code error "Port \"$port\" not found in index."
