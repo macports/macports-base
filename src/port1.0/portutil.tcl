@@ -1434,7 +1434,9 @@ proc target_run {ditem} {
             }
         } else {
         	if {$errorisprivileges != "yes"} {
+                global errorInfo
             	ui_error "Target $name returned: $errstr"
+                ui_debug "Backtrace: $errorInfo"
             } else {
             	ui_msg "Target $name returned: $errstr"
             }
