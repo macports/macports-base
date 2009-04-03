@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2003 Kevin Van Vechten <kvv@apple.com>
  * Copyright (c) 2004 Landon J. Fuller <landonf@macports.org>
- * Copyright (c) 2003 Apple Computer, Inc.
+ * Copyright (c) 2003 Apple Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
