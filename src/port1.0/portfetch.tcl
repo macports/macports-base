@@ -41,6 +41,7 @@ target_requires ${org.macports.fetch} main
 target_prerun ${org.macports.fetch} portfetch::fetch_start
 
 namespace eval portfetch {
+    namespace export suffix
     variable fetch_urls {}
 }
 
