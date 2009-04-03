@@ -34,14 +34,17 @@
 package provide portunload 1.0
 package require portutil 1.0
 
-set org.macports.unload [target_new org.macports.unload unload_main]
+set org.macports.unload [target_new org.macports.unload portunload::unload_main]
 target_runtype ${org.macports.unload} always
 target_provides ${org.macports.unload} unload 
 target_requires ${org.macports.unload} main
 
+namespace eval portunload {
+}
+
 set_ui_prefix
 
-proc unload_main {args} {
+proc portunload::unload_main {args} {
     global startupitem.type startupitem.name startupitem.location startupitem.plist
     set launchctl_path ${portutil::autoconf::launchctl_path}
 

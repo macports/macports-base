@@ -34,10 +34,13 @@
 package provide portconfigure 1.0
 package require portutil 1.0
 
-set org.macports.configure [target_new org.macports.configure configure_main]
+set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
 target_requires ${org.macports.configure} main fetch extract checksum patch
-target_prerun ${org.macports.configure} configure_start
+target_prerun ${org.macports.configure} portconfigure::configure_start
+
+namespace eval portconfigure {
+}
 
 # define options
 commands configure autoreconf automake autoconf xmkmf
@@ -54,12 +57,12 @@ default xmkmf.cmd           xmkmf
 default xmkmf.dir           {${worksrcpath}}
 default use_configure       yes
 
-option_proc use_autoreconf  set_configure_type
-option_proc use_automake    set_configure_type
-option_proc use_autoconf    set_configure_type
-option_proc use_xmkmf       set_configure_type
+option_proc use_autoreconf  portconfigure::set_configure_type
+option_proc use_automake    portconfigure::set_configure_type
+option_proc use_autoconf    portconfigure::set_configure_type
+option_proc use_xmkmf       portconfigure::set_configure_type
 
-proc set_configure_type {option action args} {
+proc portconfigure::set_configure_type {option action args} {
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
             use_autoreconf {
@@ -90,19 +93,19 @@ default configure.mtune     {}
 options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
 default configure.optflags  {-O2}
 # compiler flags section
-default configure.cflags    {[configure_get_cflags]}
+default configure.cflags    {[portconfigure::configure_get_cflags]}
 default configure.cppflags  {"-I${prefix}/include"}
-default configure.cxxflags  {[configure_get_cflags]}
-default configure.objcflags {[configure_get_cflags]}
+default configure.cxxflags  {[portconfigure::configure_get_cflags]}
+default configure.objcflags {[portconfigure::configure_get_cflags]}
 default configure.ldflags   {"-L${prefix}/lib"}
 default configure.libs      {}
-default configure.fflags    {[configure_get_cflags]}
-default configure.f90flags  {[configure_get_cflags]}
-default configure.fcflags   {[configure_get_cflags]}
+default configure.fflags    {[portconfigure::configure_get_cflags]}
+default configure.f90flags  {[portconfigure::configure_get_cflags]}
+default configure.fcflags   {[portconfigure::configure_get_cflags]}
 default configure.classpath {}
 
 # internal function to return the system value for CFLAGS/CXXFLAGS/etc
-proc configure_get_cflags {args} {
+proc portconfigure::configure_get_cflags {args} {
     global configure.optflags
     global configure.m32 configure.m64 configure.march configure.mtune
     set flags "${configure.optflags}"
@@ -142,30 +145,30 @@ options configure.universal_target configure.universal_sysroot configure.univers
 default configure.universal_target      {${universal_target}}
 default configure.universal_sysroot     {${universal_sysroot}}
 default configure.universal_archs       {${universal_archs}}
-default configure.universal_args        {[configure_get_universal_args]}
-default configure.universal_cflags      {[configure_get_universal_cflags]}
-default configure.universal_cppflags    {[configure_get_universal_cppflags]}
-default configure.universal_cxxflags    {[configure_get_universal_cflags]}
-default configure.universal_ldflags     {[configure_get_universal_ldflags]}
+default configure.universal_args        {[portconfigure::configure_get_universal_args]}
+default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_cppflags    {[portconfigure::configure_get_universal_cppflags]}
+default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
+default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
 # Select a distinct compiler (C, C preprocessor, C++)
 options configure.ccache configure.distcc configure.pipe configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac configure.compiler
 default configure.ccache        {${configureccache}}
 default configure.distcc        {${configuredistcc}}
 default configure.pipe          {${configurepipe}}
-default configure.cc            {[configure_get_compiler cc]}
-default configure.cxx           {[configure_get_compiler cxx]}
-default configure.cpp           {[configure_get_compiler cpp]}
-default configure.objc          {[configure_get_compiler objc]}
-default configure.f77           {[configure_get_compiler f77]}
-default configure.f90           {[configure_get_compiler f90]}
-default configure.fc            {[configure_get_compiler fc]}
-default configure.javac         {[configure_get_compiler javac]}
-default configure.compiler      {[configure_get_default_compiler]}
+default configure.cc            {[portconfigure::configure_get_compiler cc]}
+default configure.cxx           {[portconfigure::configure_get_compiler cxx]}
+default configure.cpp           {[portconfigure::configure_get_compiler cpp]}
+default configure.objc          {[portconfigure::configure_get_compiler objc]}
+default configure.f77           {[portconfigure::configure_get_compiler f77]}
+default configure.f90           {[portconfigure::configure_get_compiler f90]}
+default configure.fc            {[portconfigure::configure_get_compiler fc]}
+default configure.javac         {[portconfigure::configure_get_compiler javac]}
+default configure.compiler      {[portconfigure::configure_get_default_compiler]}
 
 set_ui_prefix
 
-proc configure_start {args} {
+proc portconfigure::configure_start {args} {
     global UI_PREFIX
     global configure.compiler
     
@@ -202,7 +205,7 @@ proc configure_start {args} {
 }
 
 # internal function to determine canonical system name for configure
-proc configure_get_universal_system_name {args} {
+proc portconfigure::configure_get_universal_system_name {args} {
     global configure.universal_target configure.universal_archs
     set arch "unknown"
     switch -- ${configure.universal_archs} {
@@ -225,7 +228,7 @@ proc configure_get_universal_system_name {args} {
 }
 
 # internal function to determine the universal args for configure.cmd
-proc configure_get_universal_args {args} {
+proc portconfigure::configure_get_universal_args {args} {
     global configure.universal_archs
     set system [configure_get_universal_system_name]
     set params "--disable-dependency-tracking"
@@ -237,7 +240,7 @@ proc configure_get_universal_args {args} {
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
-proc configure_get_universal_archflags {args} {
+proc portconfigure::configure_get_universal_archflags {args} {
     global configure.universal_archs
     set flags ""
     foreach arch ${configure.universal_archs} {
@@ -247,7 +250,7 @@ proc configure_get_universal_archflags {args} {
 }
 
 # internal function to determine the CPPFLAGS for the compiler
-proc configure_get_universal_cppflags {args} {
+proc portconfigure::configure_get_universal_cppflags {args} {
     global configure.universal_sysroot
     set flags ""
     # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
@@ -258,7 +261,7 @@ proc configure_get_universal_cppflags {args} {
 }
 
 # internal function to determine the CFLAGS for the compiler
-proc configure_get_universal_cflags {args} {
+proc portconfigure::configure_get_universal_cflags {args} {
     global configure.universal_sysroot configure.universal_target
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
@@ -269,7 +272,7 @@ proc configure_get_universal_cflags {args} {
 }
 
 # internal function to determine the LDFLAGS for the compiler
-proc configure_get_universal_ldflags {args} {
+proc portconfigure::configure_get_universal_ldflags {args} {
     global configure.universal_sysroot configure.universal_target
     global os.arch
     set flags [configure_get_universal_archflags]
@@ -281,7 +284,7 @@ proc configure_get_universal_ldflags {args} {
 }
 
 # internal function to determine the default compiler
-proc configure_get_default_compiler {args} {
+proc portconfigure::configure_get_default_compiler {args} {
     global os.platform os.major
     set compiler ""
     switch -exact "${os.platform} ${os.major}" {
@@ -295,7 +298,7 @@ proc configure_get_default_compiler {args} {
 }
 
 # internal function to find correct compilers
-proc configure_get_compiler {type} {
+proc portconfigure::configure_get_compiler {type} {
     global configure.compiler prefix
     set ret ""
     switch -exact ${configure.compiler} {
@@ -438,7 +441,7 @@ proc configure_get_compiler {type} {
     return $ret
 }
 
-proc configure_main {args} {
+proc portconfigure::configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
     global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath

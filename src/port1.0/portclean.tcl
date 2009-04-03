@@ -37,22 +37,25 @@ package provide portclean 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
-set org.macports.clean [target_new org.macports.clean clean_main]
+set org.macports.clean [target_new org.macports.clean portclean::clean_main]
 target_runtype ${org.macports.clean} always
 target_state ${org.macports.clean} no
 target_provides ${org.macports.clean} clean
 target_requires ${org.macports.clean} main
-target_prerun ${org.macports.clean} clean_start
+target_prerun ${org.macports.clean} portclean::clean_start
+
+namespace eval portclean {
+}
 
 set_ui_prefix
 
-proc clean_start {args} {
+proc portclean::clean_start {args} {
     global UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
 }
 
-proc clean_main {args} {
+proc portclean::clean_main {args} {
     global UI_PREFIX
 	global ports_clean_dist ports_clean_work ports_clean_archive
 	global ports_clean_all usealtworkpath
@@ -85,7 +88,7 @@ proc clean_main {args} {
     return 0
 }
 
-proc clean_altsource {args} {
+proc portclean::clean_altsource {args} {
     global usealtworkpath worksymlink
     
     set sourcepath [string map {"work" ""} $worksymlink] 
@@ -107,7 +110,7 @@ proc clean_altsource {args} {
 # Remove the directory where the distfiles reside.
 # This is crude, but works.
 #
-proc clean_dist {args} {
+proc portclean::clean_dist {args} {
 	global ports_force portname distpath dist_subdir distfiles
 
 	# remove known distfiles for sure (if they exist)
@@ -174,7 +177,7 @@ proc clean_dist {args} {
 	return 0
 }
 
-proc clean_work {args} {
+proc portclean::clean_work {args} {
     global portbuildpath worksymlink
 
 	if {[file isdirectory $portbuildpath]} {
@@ -196,7 +199,7 @@ proc clean_work {args} {
 	return 0
 }
 
-proc clean_archive {args} {
+proc portclean::clean_archive {args} {
 	global workpath portarchivepath portname portversion ports_version_glob
 
 	# Define archive destination directory and target filename

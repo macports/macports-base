@@ -813,7 +813,6 @@ proc getdistname {name} {
     return $name
 }
 
-
 ########### Misc Utility Functions ###########
 
 # tbool (testbool)
@@ -1311,7 +1310,7 @@ proc target_run {ditem} {
                   && [info exists ports_trace]
                   && $ports_trace == "yes"
                   && $target != "clean")} {
-                    trace_start $workpath
+                    porttrace::trace_start $workpath
 
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
@@ -1319,7 +1318,7 @@ proc target_run {ditem} {
                       && $target != "archive"
                       && $target != "fetch"
                       && $target != "install"} {
-                        trace_enable_fence
+                        porttrace::trace_enable_fence
                     }
             
                     # collect deps
@@ -1415,10 +1414,10 @@ proc target_run {ditem} {
                 
                     tracelib closesocket
                 
-                    trace_check_violations
+                    porttrace::trace_check_violations
                 
                     # End of trace.
-                    trace_stop
+                    porttrace::trace_stop
                 }
             }
         }

@@ -36,11 +36,14 @@ package provide portdistcheck 1.0
 package require portutil 1.0
 package require portfetch 1.0
 
-set org.macports.distcheck [target_new org.macports.distcheck distcheck_main]
+set org.macports.distcheck [target_new org.macports.distcheck portdistcheck::distcheck_main]
 target_runtype ${org.macports.distcheck} always
 target_state ${org.macports.distcheck} no
 target_provides ${org.macports.distcheck} distcheck
 target_requires ${org.macports.distcheck} main
+
+namespace eval portdistcheck {
+}
 
 # define options
 options distcheck.check
@@ -48,7 +51,7 @@ options distcheck.check
 # defaults
 default distcheck.check moddate
 
-proc distcheck_main {args} {
+proc portdistcheck::distcheck_main {args} {
 	global distcheck.check
 	global fetch.type
 	global portname portpath

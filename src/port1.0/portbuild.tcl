@@ -33,10 +33,13 @@
 package provide portbuild 1.0
 package require portutil 1.0
 
-set org.macports.build [target_new org.macports.build build_main]
+set org.macports.build [target_new org.macports.build portbuild::build_main]
 target_provides ${org.macports.build} build
 target_requires ${org.macports.build} main fetch extract checksum patch configure
-target_prerun ${org.macports.build} build_start
+target_prerun ${org.macports.build} portbuild::build_start
+
+namespace eval portbuild {
+}
 
 # define options
 options build.target
@@ -48,7 +51,7 @@ commands build
 # defaults
 default build.asroot no
 default build.dir {${workpath}/${worksrcdir}}
-default build.cmd {[build_getmaketype]}
+default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {${buildmakejobs}}
 default build.pre_args {${build.target}}
@@ -57,7 +60,7 @@ default use_parallel_build yes
 
 set_ui_prefix
 
-proc build_getmaketype {args} {
+proc portbuild::build_getmaketype {args} {
     if {![exists build.type]} {
         return make
     }
@@ -103,7 +106,7 @@ proc build_getmaketype {args} {
     }
 }
 
-proc build_getnicevalue {args} {
+proc portbuild::build_getnicevalue {args} {
     if {![exists build.nice] || [string match "* *" [option build.cmd]]} {
         return ""
     }
@@ -114,7 +117,7 @@ proc build_getnicevalue {args} {
     return "nice -n $nice "
 }
 
-proc build_getmakejobs {args} {
+proc portbuild::build_getmakejobs {args} {
     # check if port allows a parallel build
     global use_parallel_build
     if {![tbool use_parallel_build]} {
@@ -136,7 +139,7 @@ proc build_getmakejobs {args} {
     return " -j$jobs"
 }
 
-proc build_start {args} {
+proc portbuild::build_start {args} {
     global UI_PREFIX build.asroot
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
@@ -150,7 +153,7 @@ proc build_start {args} {
     
 }
 
-proc build_main {args} {
+proc portbuild::build_main {args} {
     global build.cmd
 
     set nice_prefix [build_getnicevalue]

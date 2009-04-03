@@ -36,7 +36,7 @@
 package provide portactivate 1.0
 package require portutil 1.0
 
-set org.macports.activate [target_new org.macports.activate activate_main]
+set org.macports.activate [target_new org.macports.activate portactivate::activate_main]
 target_runtype ${org.macports.activate} always
 target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
@@ -46,9 +46,12 @@ if {[option portarchivemode] == "yes"} {
 	target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
 }
 
+namespace eval portactivate {
+}
+
 set_ui_prefix
 
-proc activate_main {args} {
+proc portactivate::activate_main {args} {
 	global portname portversion portrevision portvariants user_options portnotes
 	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
 

@@ -38,17 +38,20 @@ package require Pextlib 1.0
 package require portfetch 1.0
 package require portchecksum 1.0
 
-set org.macports.mirror [target_new org.macports.mirror mirror_main]
+set org.macports.mirror [target_new org.macports.mirror portmirror::mirror_main]
 target_runtype ${org.macports.mirror} always
 target_state ${org.macports.mirror} no
 target_provides ${org.macports.mirror} mirror
 target_requires ${org.macports.mirror} main
 
+namespace eval portmirror {
+}
+
 # Mirror is a target that fetches & checksums files and delete them
 # if the checksum isn't correct.
 # It also records the path in a database.
 
-proc mirror_main {args} {
+proc portmirror::mirror_main {args} {
 	global fetch.type portname mirror_filemap ports_mirror_new portdbpath
 	
 	set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
@@ -65,18 +68,18 @@ proc mirror_main {args} {
 	# Check the distfiles if it's a regular fetch phase.
 	if {"${fetch.type}" == "standard"} {
 		# fetch the files.
-		fetch_init $args
+		portfetch::fetch_init $args
 		#fetch_start
-		fetch_main $args
+		portfetch::fetch_main $args
 
 		# checksum the files.
 		#checksum_start
-		if {[catch {checksum_main $args}]} {
+		if {[catch {portchecksum::checksum_main $args}]} {
 			# delete the files.
-			fetch_deletefiles $args
+			portfetch::fetch_deletefiles $args
 		} else {
 			# add the list of files.
-			fetch_addfilestomap mirror_filemap
+			portfetch::fetch_addfilestomap mirror_filemap
 		}
 	}
 

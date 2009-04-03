@@ -36,11 +36,14 @@ package provide portlivecheck 1.0
 package require portutil 1.0
 package require portfetch 1.0
 
-set org.macports.livecheck [target_new org.macports.livecheck livecheck_main]
+set org.macports.livecheck [target_new org.macports.livecheck portlivecheck::livecheck_main]
 target_runtype ${org.macports.livecheck} always
 target_state ${org.macports.livecheck} no
 target_provides ${org.macports.livecheck} livecheck
 target_requires ${org.macports.livecheck} main
+
+namespace eval portlivecheck {
+}
 
 # define options
 options livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
@@ -54,7 +57,7 @@ default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 
-proc livecheck_main {args} {
+proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
     global homepage portname portpath workpath

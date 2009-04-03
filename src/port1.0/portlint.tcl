@@ -5,12 +5,15 @@
 package provide portlint 1.0
 package require portutil 1.0
 
-set org.macports.lint [target_new org.macports.lint lint_main]
+set org.macports.lint [target_new org.macports.lint portlint::lint_main]
 target_runtype ${org.macports.lint} always
 target_state ${org.macports.lint} no
 target_provides ${org.macports.lint} lint
 target_requires ${org.macports.lint} main
-target_prerun ${org.macports.lint} lint_start
+target_prerun ${org.macports.lint} portlint::lint_start
+
+namespace eval portlint {
+}
 
 set_ui_prefix
 
@@ -107,7 +110,7 @@ set lint_variants [list \
     ]
 
 
-proc seems_utf8 {str} {
+proc portlint::seems_utf8 {str} {
     set len [string length $str]
     for {set i 0} {$i<$len} {incr i} {
         set c [scan [string index $str $i] %c]
@@ -140,12 +143,12 @@ proc seems_utf8 {str} {
 }
 
 
-proc lint_start {args} {
+proc portlint::lint_start {args} {
     global UI_PREFIX portname
     ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${portname}]"
 }
 
-proc lint_main {args} {
+proc portlint::lint_main {args} {
     global UI_PREFIX portname portpath porturl ports_lint_nitpick
     set portfile ${portpath}/Portfile
     set portdirs [split ${portpath} /]

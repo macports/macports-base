@@ -34,14 +34,17 @@
 package provide portload 1.0
 package require portutil 1.0
 
-set org.macports.load [target_new org.macports.load load_main]
+set org.macports.load [target_new org.macports.load portload::load_main]
 target_runtype ${org.macports.load} always
 target_provides ${org.macports.load} load 
-target_requires ${org.macports.load} main
+target_requires ${org.macports.load} portload::main
+
+namespace eval portload {
+}
 
 set_ui_prefix
 
-proc load_main {args} {
+proc portload::load_main {args} {
     global startupitem.type startupitem.name startupitem.location startupitem.plist
     set launchctl_path ${portutil::autoconf::launchctl_path}
 

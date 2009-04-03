@@ -34,11 +34,14 @@
 package provide portextract 1.0
 package require portutil 1.0
 
-set org.macports.extract [target_new org.macports.extract extract_main]
-target_init ${org.macports.extract} extract_init
+set org.macports.extract [target_new org.macports.extract portextract::extract_main]
+target_init ${org.macports.extract} portextract::extract_init
 target_provides ${org.macports.extract} extract
 target_requires ${org.macports.extract} fetch checksum
-target_prerun ${org.macports.extract} extract_start
+target_prerun ${org.macports.extract} portextract::extract_start
+
+namespace eval portextract {
+}
 
 # define options
 options extract.only extract.mkdir
@@ -47,7 +50,7 @@ commands extract
 # Set up defaults
 # XXX call out to code in portutil.tcl XXX
 # This cleans the distfiles list of all site tags
-default extract.only {[disttagclean $distfiles]}
+default extract.only {[portextract::disttagclean $distfiles]}
 
 default extract.dir {${workpath}}
 default extract.cmd gzip
@@ -57,7 +60,20 @@ default extract.mkdir no
 
 set_ui_prefix
 
-proc extract_init {args} {
+# XXX
+# Helper function for portextract.tcl that strips all tag names from a list
+# Used to clean ${distfiles} for setting the ${extract.only} default
+proc portextract::disttagclean {list} {
+    if {"$list" == ""} {
+        return $list
+    }
+    foreach name $list {
+        lappend val [getdistname $name]
+    }
+    return $val
+}
+
+proc portextract::extract_init {args} {
     global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_lzma use_zip use_7z use_dmg workpath
 
     # should the distfiles be extracted to worksrcpath instead?
@@ -91,13 +107,13 @@ proc extract_init {args} {
     }
 }
 
-proc extract_start {args} {
+proc portextract::extract_start {args} {
     global UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
 }
 
-proc extract_main {args} {
+proc portextract::extract_main {args} {
     global UI_PREFIX filespath worksrcpath extract.dir
 
     if {![exists distfiles] && ![exists extract.only]} {

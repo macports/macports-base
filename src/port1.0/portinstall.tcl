@@ -34,7 +34,7 @@
 package provide portinstall 1.0
 package require portutil 1.0
 
-set org.macports.install [target_new org.macports.install install_main]
+set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_state ${org.macports.install} no
 target_provides ${org.macports.install} install
 if {[option portarchivemode] == "yes"} {
@@ -42,7 +42,10 @@ if {[option portarchivemode] == "yes"} {
 } else {
 	target_requires ${org.macports.install} main fetch extract checksum patch configure build destroot
 }
-target_prerun ${org.macports.install} install_start
+target_prerun ${org.macports.install} portinstall::install_start
+
+namespace eval portinstall {
+}
 
 # define options
 options install.asroot
@@ -52,7 +55,7 @@ default install.asroot no
 
 set_ui_prefix
 
-proc install_start {args} {
+proc portinstall::install_start {args} {
 	global UI_PREFIX portname portversion portrevision variations portvariants
 	global install.asroot prefix
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
@@ -69,7 +72,7 @@ proc install_start {args} {
 	
 }
 
-proc install_element {src_element dst_element} {
+proc portinstall::install_element {src_element dst_element} {
     # don't recursively copy directories
     if {[file isdirectory $src_element] && [file type $src_element] != "link"} {
 	file mkdir $dst_element
@@ -93,7 +96,7 @@ proc install_element {src_element dst_element} {
     }
 }
 
-proc directory_dig {rootdir workdir regref {cwd ""}} {
+proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
     global installPlist
     set pwd [pwd]
     if {[catch {_cd $workdir} err]} {
@@ -145,7 +148,7 @@ proc directory_dig {rootdir workdir regref {cwd ""}} {
     _cd $pwd
 }
 
-proc install_main {args} {
+proc portinstall::install_main {args} {
 	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch
 
 	# Begin the registry entry
@@ -194,7 +197,7 @@ proc install_main {args} {
     return 0
 }
 
-proc proc_disasm {pname} {
+proc portinstall::proc_disasm {pname} {
     set p "proc "
     append p $pname " \{"
     set space ""

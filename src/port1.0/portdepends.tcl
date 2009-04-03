@@ -33,21 +33,24 @@
 package provide portdepends 1.0
 package require portutil 1.0
 
+namespace eval portdepends {
+}
+
 # define options
 options depends_build depends_run depends_lib depends
 # Export options via PortInfo
 options_export depends_build depends_lib depends_run
 
-option_proc depends_build validate_depends_options
-option_proc depends_run validate_depends_options
-option_proc depends_lib validate_depends_options
+option_proc depends_build portdepends::validate_depends_options
+option_proc depends_run portdepends::validate_depends_options
+option_proc depends_lib portdepends::validate_depends_options
 
 # New option for the new dependency. We generate a warning because we don't handle this yet.
-option_proc depends validate_depends_options_new
+option_proc depends portdepends::validate_depends_options_new
 
 set_ui_prefix
 
-proc validate_depends_options {option action {value ""}} {
+proc portdepends::validate_depends_options {option action {value ""}} {
     global targets
     switch $action {
 		set {
@@ -63,6 +66,6 @@ proc validate_depends_options {option action {value ""}} {
     }
 }
 
-proc validate_depends_options_new {option action {value ""}} {
+proc portdepends::validate_depends_options_new {option action {value ""}} {
     ui_warn [msgcat::mc "depends option is not handled yet"]
 }

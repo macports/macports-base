@@ -35,7 +35,10 @@
 package provide porttrace 1.0
 package require Pextlib 1.0
 
-proc trace_start {workpath} {
+namespace eval porttrace {
+}
+
+proc porttrace::trace_start {workpath} {
 	global os.platform
 	if {${os.platform} == "darwin"} {
 		if {[catch {package require Thread} error]} {
@@ -89,7 +92,7 @@ proc trace_start {workpath} {
 
 # Enable the fence.
 # Only done for targets that should only happen in the sandbox.
-proc trace_enable_fence {} {
+proc porttrace::trace_enable_fence {} {
 	global env trace_sandboxbounds
 	set env(DARWINTRACE_SANDBOX_BOUNDS) $trace_sandboxbounds
 	tracelib enablefence
@@ -97,7 +100,7 @@ proc trace_enable_fence {} {
 
 # Disable the fence.
 # Unused yet.
-proc trace_disable_fence {} {
+proc porttrace::trace_disable_fence {} {
 	global env
 	if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
 		unset env(DARWINTRACE_SANDBOX_BOUNDS)
@@ -108,9 +111,9 @@ proc trace_disable_fence {} {
 # Output a warning for every port the trace revealed a dependency on
 # that isn't included in portslist
 # This method must be called after trace_start
-proc trace_check_deps {target portslist} {
+proc porttrace::trace_check_deps {target portslist} {
 	# Get the list of ports.
-	set ports [slave_send slave_get_ports]
+	set ports [slave_send porttrace::slave_get_ports]
 	
 	# Compare with portslist
 	set portslist [lsort $portslist]
@@ -129,9 +132,9 @@ proc trace_check_deps {target portslist} {
 # Check that no violation happened.
 # Output a warning for every sandbox violation the trace revealed.
 # This method must be called after trace_start
-proc trace_check_violations {} {
+proc porttrace::trace_check_violations {} {
 	# Get the list of violations.
-	set violations [slave_send slave_get_sandbox_violations]
+	set violations [slave_send porttrace::slave_get_sandbox_violations]
 	
 	foreach violation [lsort $violations] {
 		ui_warn "An activity was attempted outside sandbox: $violation"
@@ -140,7 +143,7 @@ proc trace_check_violations {} {
 
 # Stop the trace and return the list of ports the port depends on.
 # This method must be called after trace_start
-proc trace_stop {} {
+proc porttrace::trace_stop {} {
 	global os.platform
 	if {${os.platform} == "darwin"} {
 		global env trace_fifo
@@ -155,7 +158,7 @@ proc trace_stop {} {
 		tracelib clean
 
 		# Clean up.
-		slave_send slave_stop
+		slave_send porttrace::slave_stop
 
 		# Delete the slave.
 		delete_slave
@@ -166,7 +169,7 @@ proc trace_stop {} {
 
 # Private
 # Create the slave thread.
-proc create_slave {workpath trace_fifo} {
+proc porttrace::create_slave {workpath trace_fifo} {
 	global trace_thread
 	# Create the thread.
 	set trace_thread [macports_create_thread]
@@ -177,12 +180,12 @@ proc create_slave {workpath trace_fifo} {
 	thread::send -async $trace_thread "package require porttrace 1.0"
 
 	# Start the slave work.
-	thread::send -async $trace_thread "slave_start $trace_fifo $workpath"
+	thread::send -async $trace_thread "porttrace::slave_start $trace_fifo $workpath"
 }
 
 # Private
 # Send a command to the thread without waiting for the result.
-proc slave_send_async {command} {
+proc porttrace::slave_send_async {command} {
 	global trace_thread
 
 	thread::send -async $trace_thread "$command"
@@ -190,7 +193,7 @@ proc slave_send_async {command} {
 
 # Private
 # Send a command to the thread.
-proc slave_send {command} {
+proc porttrace::slave_send {command} {
 	global trace_thread
 
 	# ui_warn "slave send $command ?"
@@ -201,7 +204,7 @@ proc slave_send {command} {
 
 # Private
 # Destroy the thread.
-proc delete_slave {} {
+proc porttrace::delete_slave {} {
 	global trace_thread
 
 	# Destroy the thread.
@@ -210,7 +213,7 @@ proc delete_slave {} {
 
 # Private.
 # Slave method to read a line from the trace.
-proc slave_read_line {chan} {
+proc porttrace::lave_read_line {chan} {
 	global ports_list trace_filemap sandbox_violation_list workpath
 	global env
 
@@ -271,7 +274,7 @@ proc slave_read_line {chan} {
 
 # Private.
 # Slave init method.
-proc slave_start {fifo p_workpath} {
+proc porttrace::slave_start {fifo p_workpath} {
 	global ports_list trace_filemap sandbox_violation_list 
 	# Save the workpath.
 	set workpath $p_workpath
@@ -285,7 +288,7 @@ proc slave_start {fifo p_workpath} {
 
 # Private.
 # Slave cleanup method.
-proc slave_stop {} {
+proc porttrace::slave_stop {} {
 	global trace_filemap trace_fifo_r_chan trace_fifo_w_chan
 	# Close the virtual filemap.
 	filemap close trace_filemap
@@ -294,19 +297,19 @@ proc slave_stop {} {
 
 # Private.
 # Slave ports export method.
-proc slave_get_ports {} {
+proc porttrace::slave_get_ports {} {
 	global ports_list
 	return $ports_list
 }
 
 # Private.
 # Slave sandbox violations export method.
-proc slave_get_sandbox_violations {} {
+proc porttrace::slave_get_sandbox_violations {} {
 	global sandbox_violation_list
 	return $sandbox_violation_list
 }
 
-proc slave_add_sandbox_violation {path} {
+proc porttrace::slave_add_sandbox_violation {path} {
 	global sandbox_violation_list
 	lappend sandbox_violation_list $path
 }

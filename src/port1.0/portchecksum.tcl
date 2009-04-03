@@ -34,10 +34,13 @@
 package provide portchecksum 1.0
 package require portutil 1.0
 
-set org.macports.checksum [target_new org.macports.checksum checksum_main]
+set org.macports.checksum [target_new org.macports.checksum portchecksum::checksum_main]
 target_provides ${org.macports.checksum} checksum
 target_requires ${org.macports.checksum} main fetch
-target_prerun ${org.macports.checksum} checksum_start
+target_prerun ${org.macports.checksum} portchecksum::checksum_start
+
+namespace eval portchecksum {
+}
 
 # Options
 options checksums checksum.skip
@@ -68,7 +71,7 @@ set checksum_types_count [llength $checksum_types]
 # (4) first word is one of the checksums types.
 #
 # return yes if the syntax was correct, no if there was a problem.
-proc parse_checksums {checksums_str} {
+proc portchecksum::parse_checksums {checksums_str} {
 	global checksums_array all_dist_files checksum_types checksum_types_count
 
 	# Parse the string of checksums.
@@ -147,7 +150,7 @@ proc parse_checksums {checksums_str} {
 # Calculate the md5 checksum for the given file.
 # Return the checksum.
 #
-proc calc_md5 {file} {
+proc portchecksum::calc_md5 {file} {
 	return [md5 file $file]
 }
 
@@ -156,7 +159,7 @@ proc calc_md5 {file} {
 # Calculate the sha1 checksum for the given file.
 # Return the checksum.
 #
-proc calc_sha1 {file} {
+proc portchecksum::calc_sha1 {file} {
 	return [sha1 file $file]
 }
 
@@ -165,7 +168,7 @@ proc calc_sha1 {file} {
 # Calculate the rmd160 checksum for the given file.
 # Return the checksum.
 #
-proc calc_rmd160 {file} {
+proc portchecksum::calc_rmd160 {file} {
 	return [rmd160 file $file]
 }
 
@@ -173,7 +176,7 @@ proc calc_rmd160 {file} {
 #
 # Target prerun procedure; simply prints a message about what we're doing.
 #
-proc checksum_start {args} {
+proc portchecksum::checksum_start {args} {
 	global UI_PREFIX
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option portname]]"
@@ -183,7 +186,7 @@ proc checksum_start {args} {
 #
 # Target main procedure. Verifies the checksums of all distfiles.
 #
-proc checksum_main {args} {
+proc portchecksum::checksum_main {args} {
 	global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip
 
 	# If no files have been downloaded, there is nothing to checksum.

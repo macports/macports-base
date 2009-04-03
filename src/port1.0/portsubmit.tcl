@@ -34,16 +34,19 @@ package provide portsubmit 1.0
 package require portutil 1.0
 package require portportpkg 1.0
 
-set org.macports.submit [target_new org.macports.submit submit_main]
+set org.macports.submit [target_new org.macports.submit portsubmit::submit_main]
 target_runtype ${org.macports.submit} always
 target_provides ${org.macports.submit} submit 
 target_requires ${org.macports.submit} portpkg
+
+namespace eval portsubmit {
+}
 
 set_ui_prefix
 
 
 # escape quotes, and things that make the shell cry
-proc shell_escape {str} {
+proc portsubmit::shell_escape {str} {
 	regsub -all -- {\\} $str {\\\\} str
 	regsub -all -- {"} $str {\"} str
 	regsub -all -- {'} $str {\'} str
@@ -51,7 +54,7 @@ proc shell_escape {str} {
 }
 
 
-proc submit_main {args} {
+proc portsubmit::submit_main {args} {
     global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
     
     set submiturl $mp_remote_submit_url

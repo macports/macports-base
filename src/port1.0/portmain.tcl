@@ -36,9 +36,12 @@
 package provide portmain 1.0
 package require portutil 1.0
 
-set org.macports.main [target_new org.macports.main main]
+set org.macports.main [target_new org.macports.main portmain::main]
 target_provides ${org.macports.main} main
 target_state ${org.macports.main} no
+
+namespace eval portmain {
+}
 
 # define options
 options prefix macportsuser name version revision epoch categories maintainers
@@ -131,6 +134,6 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     }
 }
 
-proc main {args} {
+proc portmain::main {args} {
     return 0
 }

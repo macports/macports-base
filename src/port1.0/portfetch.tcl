@@ -34,11 +34,22 @@ package provide portfetch 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
-set org.macports.fetch [target_new org.macports.fetch fetch_main]
-target_init ${org.macports.fetch} fetch_init
+set org.macports.fetch [target_new org.macports.fetch portfetch::fetch_main]
+target_init ${org.macports.fetch} portfetch::fetch_init
 target_provides ${org.macports.fetch} fetch
 target_requires ${org.macports.fetch} main
-target_prerun ${org.macports.fetch} fetch_start
+target_prerun ${org.macports.fetch} portfetch::fetch_start
+
+namespace eval portfetch {
+    variable fetch_urls {}
+}
+
+# Name space for internal site lists storage
+namespace eval portfetch::mirror_sites {
+    variable sites
+
+    array set sites {}
+}
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
@@ -87,7 +98,7 @@ default hg.dir {${workpath}}
 default hg.tag {tip}
 
 # Set distfiles
-default distfiles {[suffix $distname]}
+default distfiles {[portfetch::suffix $distname]}
 default dist_subdir {${portname}}
 
 # user name & password
@@ -109,16 +120,16 @@ default mirror_sites.listpath {"port1.0/fetch"}
 option_deprecate svn.tag svn.revision
 
 # Option-executed procedures
-option_proc use_bzip2 set_extract_type
-option_proc use_lzma set_extract_type
-option_proc use_zip set_extract_type
-option_proc use_7z set_extract_type
-option_proc use_dmg set_extract_type
+option_proc use_bzip2 portfetch::set_extract_type
+option_proc use_lzma  portfetch::set_extract_type
+option_proc use_zip   portfetch::set_extract_type
+option_proc use_7z    portfetch::set_extract_type
+option_proc use_dmg   portfetch::set_extract_type
 
-option_proc fetch.type set_fetch_type
+option_proc fetch.type portfetch::set_fetch_type
 
 # We should probably add something like a depends_fetch; see #15161
-proc set_extract_type {option action args} {
+proc portfetch::set_extract_type {option action args} {
     global extract.suffix
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
@@ -144,7 +155,7 @@ proc set_extract_type {option action args} {
     }
 }
 
-proc set_fetch_type {option action args} {
+proc portfetch::set_fetch_type {option action args} {
     if {[string equal ${action} "set"]} {
         switch $args {
             cvs {
@@ -163,14 +174,11 @@ proc set_fetch_type {option action args} {
     }
 }
 
-# Name space for internal implementation variables
-# Site lists are stored here
-namespace eval portfetch { }
-
 set_ui_prefix
 
+
 # Given a distname, return a suffix based on the use_zip / use_bzip2 / use_dmg / extract.suffix options
-proc suffix {distname} {
+proc portfetch::suffix {distname} {
     global extract.suffix fetch.type
     switch -- "${fetch.type}" {
     	cvs			-
@@ -181,6 +189,9 @@ proc suffix {distname} {
     	default 	{ return "${distname}${extract.suffix}" }
     }
 }
+# XXX import suffix into the global namespace as it is currently used from
+# Portfiles, but should better go somewhere else
+namespace import portfetch::suffix
 
 # Given a site url and the name of the distfile, assemble url and
 # return it.
@@ -192,22 +203,9 @@ proc portfetch::assemble_url {site distfile} {
     }
 }
 
-# XXX
-# Helper function for portextract.tcl that strips all tag names from a list
-# Used to clean ${distfiles} for setting the ${extract.only} default
-proc disttagclean {list} {
-    if {"$list" == ""} {
-        return $list
-    }
-    foreach name $list {
-        lappend val [getdistname $name]
-    }
-    return $val
-}
-
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
-proc mirror_sites {mirrors tag subdir} {
+proc portfetch::mirror_sites {mirrors tag subdir} {
     global UI_PREFIX portname porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
     global global_mirror_site fallback_mirror_site
 
@@ -269,10 +267,10 @@ proc mirror_sites {mirrors tag subdir} {
 # within that tag distfiles are added in $site $distfile format, where $site is
 # the name of a variable in the portfetch:: namespace containing a list of fetch
 # sites
-proc checksites {args} {
+proc portfetch::checksites {args} {
     global patch_sites master_sites master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
-    
+   
     append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(MASTER_SITE_LOCAL)]} {
 	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
@@ -334,8 +332,9 @@ proc checksites {args} {
 }
 
 # Checks patch files and their tags to assemble url lists for later fetching
-proc checkpatchfiles {args} {
-    global patchfiles all_dist_files patch_sites fetch_urls filespath
+proc portfetch::checkpatchfiles {args} {
+    global patchfiles all_dist_files patch_sites filespath
+    variable fetch_urls
     
     if {[info exists patchfiles]} {
 	foreach file $patchfiles {
@@ -356,8 +355,9 @@ proc checkpatchfiles {args} {
 }
 
 # Checks dist files and their tags to assemble url lists for later fetching
-proc checkdistfiles {args} {
-    global distfiles all_dist_files fetch_urls master_sites filespath
+proc portfetch::checkdistfiles {args} {
+    global distfiles all_dist_files master_sites filespath
+    variable fetch_urls
     
     if {[info exists distfiles]} {
     foreach file $distfiles {
@@ -376,17 +376,18 @@ proc checkdistfiles {args} {
 }
 
 # sorts fetch_urls in order of ping time
-proc sortsites {args} {
-    global fetch_urls fallback_mirror_site
+proc portfetch::sortsites {args} {
+    global fallback_mirror_site
+    variable fetch_urls
 
     set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
 
     foreach {url_var distfile} $fetch_urls {
-        global portfetch::$url_var
+        variable portfetch::$url_var
         if {![info exists $url_var]} {
             ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
             set url_var master_sites
-            global portfetch::$url_var
+            variable portfetch::$url_var
         }
         set urllist [set $url_var]
         set hosts {}
@@ -451,10 +452,9 @@ proc sortsites {args} {
 
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
-proc checkfiles {args} {
-	# Set fetch_urls to be empty in case there is no file to fetch.
-	global fetch_urls
-	set fetch_urls {}
+proc portfetch::checkfiles {args} {
+	variable fetch_urls
+
 	checksites
 	checkpatchfiles
 	checkdistfiles
@@ -463,7 +463,7 @@ proc checkfiles {args} {
 
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
-proc cvsfetch {args} {
+proc portfetch::cvsfetch {args} {
     global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
     global cvs.root cvs.date cvs.tag cvs.method cvs.password
     global patch_sites patchfiles filespath
@@ -502,13 +502,13 @@ proc cvsfetch {args} {
     }
 
     if {[info exists patchfiles]} {
-	return [fetchfiles]
+	return [portfetch::fetchfiles]
     }
     return 0
 }
 
 # Perform an svn fetch
-proc svnfetch {args} {
+proc portfetch::svnfetch {args} {
     global workpath prefix_frozen
     global svn.env svn.cmd svn.args svn.post_args svn.revision svn.url svn.method
     
@@ -537,14 +537,14 @@ proc svnfetch {args} {
     }
 
     if {[info exists patchfiles]} {
-	return [fetchfiles]
+	return [portfetch::fetchfiles]
     }
 
     return 0
 }
 
 # Perform a git fetch
-proc gitfetch {args} {
+proc portfetch::gitfetch {args} {
     global worksrcpath prefix_frozen
     global git.url git.branch git.sha1
     
@@ -583,14 +583,14 @@ proc gitfetch {args} {
     }
     
     if {[info exists patchfiles]} {
-        return [fetchfiles]
+        return [portfetch::fetchfiles]
     }
     
     return 0
 }
 
 # Perform a mercurial fetch.
-proc hgfetch {args} {
+proc portfetch::hgfetch {args} {
     global worksrcpath prefix_frozen
     global hg.url hg.tag
 
@@ -615,7 +615,7 @@ proc hgfetch {args} {
     }
 
     if {[info exists patchfiles]} {
-        return [fetchfiles]
+        return [portfetch::fetchfiles]
     }
 
     return 0
@@ -623,11 +623,12 @@ proc hgfetch {args} {
 
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
-proc fetchfiles {args} {
-	global distpath all_dist_files UI_PREFIX fetch_urls
+proc portfetch::fetchfiles {args} {
+	global distpath all_dist_files UI_PREFIX
 	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
 	global distfile site
 	global portverbose
+    variable fetch_urls
 
 	if {![file isdirectory $distpath]} {
 		if {[catch {file mkdir $distpath} result]} {
@@ -664,11 +665,11 @@ proc fetchfiles {args} {
 			    sortsites
 			    set sorted yes
 			}
-			global portfetch::$url_var
+			variable portfetch::$url_var
 			if {![info exists $url_var]} {
 				ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
 				set url_var master_sites
-				global portfetch::$url_var
+				variable portfetch::$url_var
 			}
 			unset -nocomplain fetched
 			foreach site [set $url_var] {
@@ -711,8 +712,9 @@ proc fetchfiles {args} {
 }
 
 # Utility function to delete fetched files.
-proc fetch_deletefiles {args} {
-	global distpath fetch_urls
+proc portfetch::fetch_deletefiles {args} {
+	global distpath
+    variable fetch_urls
 	foreach {url_var distfile} $fetch_urls {
 		if {[file isfile $distpath/$distfile]} {
 			file delete -force "${distpath}/${distfile}"
@@ -721,8 +723,9 @@ proc fetch_deletefiles {args} {
 }
 
 # Utility function to add files to a list of fetched files.
-proc fetch_addfilestomap {filemapname} {
-	global distpath fetch_urls $filemapname
+proc portfetch::fetch_addfilestomap {filemapname} {
+	global distpath $filemapname
+    variable fetch_urls
 	foreach {url_var distfile} $fetch_urls {
 		if {[file isfile $distpath/$distfile]} {
 			filemap set $filemapname $distpath/$distfile 1
@@ -731,7 +734,7 @@ proc fetch_addfilestomap {filemapname} {
 }
 
 # Initialize fetch target and call checkfiles.
-proc fetch_init {args} {
+proc portfetch::fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     global altprefix usealtworkpath
     
@@ -748,10 +751,10 @@ proc fetch_init {args} {
 	    set distpath ${distpath}/${dist_subdir}
 	    set fetch_init_done yes
     }
-    checkfiles
+    portfetch::checkfiles
 }
 
-proc fetch_start {args} {
+proc portfetch::fetch_start {args} {
     global UI_PREFIX portname
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
@@ -761,7 +764,7 @@ proc fetch_start {args} {
 # If all_dist_files is not populated and $fetch.type == standard, then
 # there are no files to download. Otherwise, either do a cvs checkout
 # or call the standard fetchfiles procedure
-proc fetch_main {args} {
+proc portfetch::fetch_main {args} {
     global distname distpath all_dist_files fetch.type
 
     # Check for files, download if necessary
@@ -776,6 +779,6 @@ proc fetch_main {args} {
     	git		{ return [gitfetch] }
     	hg		{ return [hgfetch] }
     	standard -
-    	default	{ return [fetchfiles] }
+    	default	{ return [portfetch::fetchfiles] }
     }
 }

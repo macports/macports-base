@@ -33,9 +33,12 @@
 package provide portpatch 1.0
 package require portutil 1.0
 
-set org.macports.patch [target_new org.macports.patch patch_main]
+set org.macports.patch [target_new org.macports.patch portpatch::patch_main]
 target_provides ${org.macports.patch} patch
 target_requires ${org.macports.patch} main fetch checksum extract 
+
+namespace eval portpatch {
+}
 
 set_ui_prefix
 
@@ -49,7 +52,7 @@ default patch.dir {${worksrcpath}}
 default patch.cmd patch
 default patch.pre_args -p0
 
-proc patch_main {args} {
+proc portpatch::patch_main {args} {
     global UI_PREFIX
     
     # First make sure that patchfiles exists and isn't stubbed out.

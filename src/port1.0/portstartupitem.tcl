@@ -68,9 +68,12 @@
 package provide portstartupitem 1.0
 package require portutil 1.0
 
+namespace eval portstartupitem {
+}
+
 set_ui_prefix
 
-proc startupitem_create_rcng {args} {
+proc portstartupitem::startupitem_create_rcng {args} {
     global prefix destroot portname os.platform
     global startupitem.name startupitem.requires
     global startupitem.start startupitem.stop startupitem.restart
@@ -116,7 +119,7 @@ proc startupitem_create_rcng {args} {
     close ${fd}
 }
 
-proc startupitem_create_darwin_systemstarter {args} {
+proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs  portname os.platform
     global startupitem.name startupitem.requires startupitem.init
     global startupitem.start startupitem.stop startupitem.restart startupitem.executable
@@ -382,7 +385,7 @@ RunService "$1"
     ui_msg "###########################################################"
 }
 
-proc startupitem_create_darwin_launchd {args} {
+proc portstartupitem::startupitem_create_darwin_launchd {args} {
     global UI_PREFIX prefix destroot destroot.keepdirs portname os.platform
     global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
     global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
@@ -608,7 +611,7 @@ proc startupitem_create_darwin_launchd {args} {
     ui_msg "###########################################################"
 }
 
-proc startupitem_create {args} {
+proc portstartupitem::startupitem_create {args} {
     global UI_PREFIX
     global startupitem.type os.platform
     

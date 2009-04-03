@@ -34,11 +34,16 @@
 package provide portdestroot 1.0
 package require portutil 1.0
 
-set org.macports.destroot [target_new org.macports.destroot destroot_main]
+set org.macports.destroot [target_new org.macports.destroot portdestroot::destroot_main]
 target_provides ${org.macports.destroot} destroot
 target_requires ${org.macports.destroot} main fetch extract checksum patch configure build
-target_prerun ${org.macports.destroot} destroot_start
-target_postrun ${org.macports.destroot} destroot_finish
+target_prerun ${org.macports.destroot} portdestroot::destroot_start
+target_postrun ${org.macports.destroot} portdestroot::destroot_finish
+
+namespace eval portdestroot {
+    # Save old umask
+    variable oldmask
+}
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
@@ -81,15 +86,11 @@ default startupitem.netchange   no
 
 set_ui_prefix
 
-namespace eval destroot {
-    # Save old umask
-    variable oldmask
-}
-
-proc destroot_start {args} {
+proc portdestroot::destroot_start {args} {
     global UI_PREFIX prefix portname porturl destroot os.platform destroot.clean portsharepath
-    global destroot::oldmask destroot.umask destroot.asroot macportsuser euid egid usealtworkpath altprefix
+    global destroot.umask destroot.asroot macportsuser euid egid usealtworkpath altprefix
     global applications_dir frameworks_dir
+    variable oldmask
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
 
@@ -137,19 +138,20 @@ proc destroot_start {args} {
     system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
-proc destroot_main {args} {
+proc portdestroot::destroot_main {args} {
     command_exec destroot
     return 0
 }
 
-proc destroot_finish {args} {
-    global UI_PREFIX destroot prefix portname startupitem.create destroot::oldmask destroot.violate_mtree
+proc portdestroot::destroot_finish {args} {
+    global UI_PREFIX destroot prefix portname startupitem.create destroot.violate_mtree
     global os.platform os.version
+    variable oldmask
 
     # Create startup-scripts/items
     if {[tbool startupitem.create]} {
         package require portstartupitem 1.0
-        startupitem_create
+        portstartupitem::startupitem_create
     }
 
     # Prune empty directories in ${destroot}
