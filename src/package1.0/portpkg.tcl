@@ -33,13 +33,16 @@
 package provide portpkg 1.0
 package require portutil 1.0
 
-set org.macports.pkg [target_new org.macports.pkg pkg_main]
+set org.macports.pkg [target_new org.macports.pkg portpkg::pkg_main]
 target_runtype ${org.macports.pkg} always
 target_provides ${org.macports.pkg} pkg
 if {[option portarchivemode] == "yes"} {
     target_requires ${org.macports.pkg} unarchive destroot
 } else {
     target_requires ${org.macports.pkg} destroot
+}
+
+namespace eval portpkg {
 }
 
 # define options
@@ -51,7 +54,7 @@ default package.flat     false
 
 set_ui_prefix
 
-proc pkg_main {args} {
+proc portpkg::pkg_main {args} {
     global portname portversion portrevision package.type package.destpath package.flat UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${portname} ${portversion}]"
@@ -59,7 +62,7 @@ proc pkg_main {args} {
     return [package_pkg $portname $portversion $portrevision]
 }
 
-proc package_pkg {portname portversion portrevision} {
+proc portpkg::package_pkg {portname portversion portrevision} {
     global UI_PREFIX portdbpath destpath workpath prefix description package.destpath package.flat long_description homepage portpath porturl
     global os.version os.major
 
@@ -150,14 +153,14 @@ proc package_pkg {portname portversion portrevision} {
     return 0
 }
 
-proc write_PkgInfo {infofile} {
+proc portpkg::write_PkgInfo {infofile} {
     set infofd [open ${infofile} w+]
     puts $infofd "pmkrpkg1"
     close $infofd
 }
 
 # XXX: deprecated
-proc write_info_file {infofile portname portversion description} {
+proc portpkg::write_info_file {infofile portname portversion description} {
     set infofd [open ${infofile} w+]
     puts $infofd "Title ${portname}
 Version ${portversion}
@@ -178,14 +181,14 @@ RootVolumeOnly NO"
     close $infofd
 }
 
-proc xml_escape {s} {
+proc portpkg::xml_escape {s} {
     regsub -all {&} $s {\&amp;} s
     regsub -all {<} $s {\&lt;} s
     regsub -all {>} $s {\&gt;} s
     return $s
 }
 
-proc write_info_plist {infofile portname portversion portrevision} {
+proc portpkg::write_info_plist {infofile portname portversion portrevision} {
     set portname [xml_escape $portname]
     set portversion [xml_escape $portversion]
     set portrevision [xml_escape $portrevision]
@@ -233,7 +236,7 @@ proc write_info_plist {infofile portname portversion portrevision} {
     close $infofd
 }
 
-proc write_description_plist {infofile portname portversion description} {
+proc portpkg::write_description_plist {infofile portname portversion description} {
     set portname [xml_escape $portname]
     set portversion [xml_escape $portversion]
     set description [xml_escape $description]
@@ -257,7 +260,7 @@ proc write_description_plist {infofile portname portversion description} {
     close $infofd
 }
 
-proc write_welcome_html {filename portname portversion long_description description homepage} {
+proc portpkg::write_welcome_html {filename portname portversion long_description description homepage} {
     set fd [open ${filename} w+]
     if {$long_description == ""} {
         set long_description $description
@@ -292,7 +295,7 @@ proc write_welcome_html {filename portname portversion long_description descript
     close $fd
 }
 
-proc write_sizes_file {sizesfile portname portversion pkgpath destpath} {
+proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath} {
     
     if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
@@ -319,7 +322,7 @@ CompressedSize $compressedSize"
     close $fd
 }
 
-proc write_package_info {infofile portname portversion portrevision} {
+proc portpkg::write_package_info {infofile portname portversion portrevision} {
     set portname [xml_escape $portname]
     set portversion [xml_escape $portversion]
     set portrevision [xml_escape $portrevision]

@@ -33,16 +33,19 @@
 package provide portrpm 1.0
 package require portutil 1.0
 
-set org.macports.rpm [target_new org.macports.rpm rpm_main]
+set org.macports.rpm [target_new org.macports.rpm portrpm::rpm_main]
 target_runtype ${org.macports.rpm} always
 target_provides ${org.macports.rpm} rpm
 target_requires ${org.macports.rpm} destroot
+
+namespace eval portrpm {
+}
 
 options package.destpath
 
 set_ui_prefix
 
-proc rpm_main {args} {
+proc portrpm::rpm_main {args} {
     global portname portversion portrevision UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${portname} ${portversion}]"
@@ -50,7 +53,7 @@ proc rpm_main {args} {
     return [rpm_pkg $portname $portversion $portrevision]
 }
 
-proc rpm_pkg {portname portversion portrevision} {
+proc portrpm::rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
 	global os.platform os.arch os.version os.major
     
@@ -124,7 +127,7 @@ proc rpm_pkg {portname portversion portrevision} {
     return 0
 }
 
-proc make_dependency_list {portname} {
+proc portrpm::make_dependency_list {portname} {
     set result {}
     if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo
@@ -158,7 +161,7 @@ proc make_dependency_list {portname} {
     return $result
 }
 
-proc word_wrap {orig Length} {
+proc portrpm::word_wrap {orig Length} {
     set pos 0
     set line ""
     set text ""
@@ -188,7 +191,7 @@ proc word_wrap {orig Length} {
     return $text
 }
 
-proc write_spec {specfile destroot filelist portname portversion portrevision description long_description homepage category license maintainer dependencies epoch} {
+proc portrpm::write_spec {specfile destroot filelist portname portversion portrevision description long_description homepage category license maintainer dependencies epoch} {
     set specfd [open ${specfile} w+]
     set origportname ${portname}
     regsub -all -- "\-" $portversion "_" portversion

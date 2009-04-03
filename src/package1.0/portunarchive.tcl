@@ -34,13 +34,16 @@
 package provide portunarchive 1.0
 package require portutil 1.0
 
-set org.macports.unarchive [target_new org.macports.unarchive unarchive_main]
+set org.macports.unarchive [target_new org.macports.unarchive portunarchive::unarchive_main]
 target_runtype ${org.macports.unarchive} always
-target_init ${org.macports.unarchive} unarchive_init
+target_init ${org.macports.unarchive} portunarchive::unarchive_init
 target_provides ${org.macports.unarchive} unarchive
 target_requires ${org.macports.unarchive} main
-target_prerun ${org.macports.unarchive} unarchive_start
-target_postrun ${org.macports.unarchive} unarchive_finish
+target_prerun ${org.macports.unarchive} portunarchive::unarchive_start
+target_postrun ${org.macports.unarchive} portunarchive::unarchive_finish
+
+namespace eval portunarchive {
+}
 
 # defaults
 default unarchive.dir {${destpath}}
@@ -57,7 +60,7 @@ default unarchive.path {}
 
 set_ui_prefix
 
-proc unarchive_init {args} {
+proc portunarchive::unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
 	global ports_force ports_source_only ports_binary_only
 	global portname portversion portrevision portvariants portpath
@@ -141,7 +144,7 @@ proc unarchive_init {args} {
 	return 0
 }
 
-proc unarchive_start {args} {
+proc portunarchive::unarchive_start {args} {
 	global UI_PREFIX portname portversion portrevision portvariants
 	global unarchive.type
 
@@ -150,7 +153,7 @@ proc unarchive_start {args} {
 	return 0
 }
 
-proc unarchive_command_setup {args} {
+proc portunarchive::unarchive_command_setup {args} {
 	global unarchive.env unarchive.cmd
 	global unarchive.pre_args unarchive.args unarchive.post_args
 	global unarchive.type unarchive.path
@@ -259,7 +262,7 @@ proc unarchive_command_setup {args} {
 	return 0
 }
 
-proc unarchive_main {args} {
+proc portunarchive::unarchive_main {args} {
 	global UI_PREFIX
 	global portname portversion portrevision portvariants
 	global unarchive.dir unarchive.file unarchive.pipe_cmd
@@ -283,7 +286,7 @@ proc unarchive_main {args} {
 	return 0
 }
 
-proc unarchive_finish {args} {
+proc portunarchive::unarchive_finish {args} {
 	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
 
 	# Reset state file with archive version

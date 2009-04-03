@@ -33,14 +33,17 @@
 package provide portmdmg 1.0
 package require portutil 1.0
 
-set org.macports.mdmg [target_new org.macports.mdmg mdmg_main]
+set org.macports.mdmg [target_new org.macports.mdmg portmdmg::mdmg_main]
 target_runtype ${org.macports.mdmg} always
 target_provides ${org.macports.mdmg} mdmg 
 target_requires ${org.macports.mdmg} mpkg
 
+namespace eval portmdmg {
+}
+
 set_ui_prefix
 
-proc mdmg_main {args} {
+proc portmdmg::mdmg_main {args} {
     global portname portversion portrevision package.destpath UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${portname} ${portversion}]"
@@ -48,7 +51,7 @@ proc mdmg_main {args} {
     return [package_mdmg $portname $portversion $portrevision]
 }
 
-proc package_mdmg {portname portversion portrevision} {
+proc portmdmg::package_mdmg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portpath
     global os.platform os.arch os.version os.major
     

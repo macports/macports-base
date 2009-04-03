@@ -34,16 +34,19 @@ package provide portsrpm 1.0
 package require portutil 1.0
 package require portfetch 1.0
 
-set org.macports.srpm [target_new org.macports.srpm srpm_main]
+set org.macports.srpm [target_new org.macports.srpm portsrpm::srpm_main]
 target_runtype ${org.macports.srpm} always
 target_provides ${org.macports.srpm} srpm
 target_requires ${org.macports.srpm} checksum
+
+namespace eval portsrpm {
+}
 
 options package.destpath
 
 set_ui_prefix
 
-proc srpm_main {args} {
+proc portsrpm::srpm_main {args} {
     global portname portversion portrevision UI_PREFIX
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${portname} ${portversion}]"
@@ -51,7 +54,7 @@ proc srpm_main {args} {
     return [srpm_pkg $portname $portversion $portrevision]
 }
 
-proc srpm_pkg {portname portversion portrevision} {
+proc portsrpm::srpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath distpath prefix categories maintainers description long_description homepage epoch portpath distfiles fetch_urls
 	global os.platform os.arch os.version os.major
     
@@ -121,7 +124,7 @@ proc srpm_pkg {portname portversion portrevision} {
     return 0
 }
 
-proc make_dependency_list {portname} {
+proc portsrpm::make_dependency_list {portname} {
     set result {}
     if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo
@@ -155,7 +158,7 @@ proc make_dependency_list {portname} {
     return $result
 }
 
-proc word_wrap {orig Length} {
+proc portsrpm::word_wrap {orig Length} {
     set pos 0
     set line ""
     set text ""
@@ -185,7 +188,7 @@ proc word_wrap {orig Length} {
     return $text
 }
 
-proc write_port_spec {specfile portname portversion portrevision description long_description homepage category license maintainer distfiles fetch_urls dependencies epoch src} {
+proc portsrpm::write_port_spec {specfile portname portversion portrevision description long_description homepage category license maintainer distfiles fetch_urls dependencies epoch src} {
     set specfd [open ${specfile} w+]
     set origportname ${portname}
     regsub -all -- "\-" $portversion "_" portversion

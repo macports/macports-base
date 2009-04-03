@@ -33,17 +33,20 @@
 package provide portmpkg 1.0
 package require portutil 1.0
 
-set org.macports.mpkg [target_new org.macports.mpkg mpkg_main]
+set org.macports.mpkg [target_new org.macports.mpkg portmpkg::mpkg_main]
 target_runtype ${org.macports.mpkg} always
 target_provides ${org.macports.mpkg} mpkg
 target_requires ${org.macports.mpkg} pkg
+
+namespace eval portmpkg {
+}
 
 # define options
 options package.destpath package.flat
 
 set_ui_prefix
 
-proc mpkg_main {args} {
+proc portmpkg::mpkg_main {args} {
     global portname portversion portrevision package.destpath package.flat UI_PREFIX
 
     # Make sure the destination path exists.
@@ -52,7 +55,7 @@ proc mpkg_main {args} {
     return [package_mpkg $portname $portversion $portrevision]
 }
 
-proc make_dependency_list {portname} {
+proc portmpkg::make_dependency_list {portname} {
 	set result {}
 	if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo
@@ -86,7 +89,7 @@ proc make_dependency_list {portname} {
 	return $result
 }
 
-proc make_one_package {portname portversion destination} {
+proc portmpkg::make_one_package {portname portversion destination} {
 	global prefix package.destpath package.flat
 	if {[catch {set res [mport_search "^$portname\$"]} result]} {
 		global errorInfo
@@ -108,7 +111,7 @@ proc make_one_package {portname portversion destination} {
 	}
 }
 
-proc package_mpkg {portname portversion portrevision} {
+proc portmpkg::package_mpkg {portname portversion portrevision} {
     global portdbpath destpath workpath prefix porturl description package.destpath package.flat long_description homepage depends_run depends_lib
 
 	set pkgpath ${package.destpath}/${portname}-${portversion}.pkg
@@ -151,14 +154,14 @@ proc package_mpkg {portname portversion portrevision} {
 	return 0
 }
 
-proc xml_escape {s} {
+proc portmpkg::xml_escape {s} {
 	regsub -all {&} $s {\&amp;} s
 	regsub -all {<} $s {\&lt;} s
 	regsub -all {>} $s {\&gt;} s
 	return $s
 }
 
-proc mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
+proc portmpkg::mpkg_write_info_plist {infofile portname portversion portrevision destination dependencies} {
 	set vers [split $portversion "."]
 	
 	if {[string index $destination end] != "/"} {

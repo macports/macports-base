@@ -34,13 +34,12 @@
 package provide portdpkg 1.0
 package require portutil 1.0
 
-set org.macports.dpkg [target_new org.macports.dpkg org.macports.dpkg::main]
+set org.macports.dpkg [target_new org.macports.dpkg portdpkg::main]
 target_runtype ${org.macports.dpkg} always
 target_provides ${org.macports.dpkg} dpkg
 target_requires ${org.macports.dpkg} destroot
 
-# Target Namespace
-namespace eval org.macports.dpkg {
+namespace eval portdpkg {
 }
 
 # Options
@@ -48,7 +47,7 @@ options package.destpath
 
 set_ui_prefix
 
-proc org.macports.dpkg::main {args} {
+proc portdpkg::main {args} {
 	global UI_PREFIX destpath os.arch os.platform
     
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option portname] [option portversion]]"
@@ -160,7 +159,7 @@ proc org.macports.dpkg::main {args} {
 	delete "${controlpath}"
 }
 
-proc org.macports.dpkg::make_dependency_list {portname} {
+proc portdpkg::make_dependency_list {portname} {
 	set result {}
 	if {[catch {set res [mport_search "^$portname\$"]} error]} {
 		global errorInfo

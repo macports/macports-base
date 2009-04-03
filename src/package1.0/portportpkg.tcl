@@ -33,15 +33,18 @@
 package provide portportpkg 1.0
 package require portutil 1.0
 
-set org.macports.portpkg [target_new org.macports.portpkg portpkg_main]
+set org.macports.portpkg [target_new org.macports.portpkg portportpkg::portpkg_main]
 target_runtype ${org.macports.portpkg} always
 target_provides ${org.macports.portpkg} portpkg 
 target_requires ${org.macports.portpkg} main
 
+namespace eval portportpkg {
+}
+
 set_ui_prefix
 
 
-proc xar_path {args} {
+proc portportpkg::xar_path {args} {
 	global prefix_frozen
     set xar ""
     foreach path "${portutil::autoconf::xar_path} ${prefix_frozen}/bin/xar xar" {
@@ -61,7 +64,7 @@ proc xar_path {args} {
 
 
 # escape quotes, and things that make the shell cry
-proc shell_escape {str} {
+proc portportpkg::shell_escape {str} {
 	regsub -all -- {\\} $str {\\\\} str
 	regsub -all -- {"} $str {\"} str
 	regsub -all -- {'} $str {\'} str
@@ -69,7 +72,7 @@ proc shell_escape {str} {
 }
 
 
-proc putel { fd el data } {
+proc portportpkg::putel { fd el data } {
 	# Quote xml data
 	set quoted [string map  { & &amp; < &lt; > &gt; } $data]
 	# Write the element
@@ -77,7 +80,7 @@ proc putel { fd el data } {
 }
 
 
-proc putlist { fd listel itemel list } {
+proc portportpkg::putlist { fd listel itemel list } {
 	puts $fd "<$listel>"
 	foreach item $list {
 		putel $fd $itemel $item
@@ -86,7 +89,7 @@ proc putlist { fd listel itemel list } {
 }
 
 
-proc create_portpkg {} {
+proc portportpkg::create_portpkg {} {
     global portname portversion prefix UI_PREFIX workpath portpath
 
 	set xar [xar_path]
@@ -191,7 +194,7 @@ proc create_portpkg {} {
 }
 
 
-proc portpkg_main {args} {
+proc portportpkg::portpkg_main {args} {
     global portname portversion portverbose prefix UI_PREFIX workpath portpath
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating portpkg for %s-%s"] ${portname} ${portversion}]"

@@ -34,12 +34,15 @@
 package provide portarchive 1.0
 package require portutil 1.0
 
-set org.macports.archive [target_new org.macports.archive archive_main]
-target_init ${org.macports.archive} archive_init
+set org.macports.archive [target_new org.macports.archive portarchive::archive_main]
+target_init ${org.macports.archive} portarchive::archive_init
 target_provides ${org.macports.archive} archive
 target_requires ${org.macports.archive} main fetch extract checksum patch configure build destroot
-target_prerun ${org.macports.archive} archive_start
-target_postrun ${org.macports.archive} archive_finish
+target_prerun ${org.macports.archive} portarchive::archive_start
+target_postrun ${org.macports.archive} portarchive::archive_finish
+
+namespace eval portarchive {
+}
 
 # defaults
 default archive.dir {${destpath}}
@@ -60,7 +63,7 @@ default archive.metapath {}
 
 set_ui_prefix
 
-proc archive_init {args} {
+proc portarchive::archive_init {args} {
 	global UI_PREFIX target_state_fd
 	global variations package.destpath workpath
 	global ports_force ports_source_only ports_binary_only
@@ -129,7 +132,7 @@ proc archive_init {args} {
 	return 0
 }
 
-proc archive_start {args} {
+proc portarchive::archive_start {args} {
 	global UI_PREFIX
 	global portname portversion portrevision portvariants
 
@@ -142,7 +145,7 @@ proc archive_start {args} {
 	return 0
 }
 
-proc archive_command_setup {args} {
+proc portarchive::archive_command_setup {args} {
 	global archive.env archive.cmd
 	global archive.pre_args archive.args archive.post_args
 	global archive.type archive.path
@@ -258,14 +261,14 @@ proc archive_command_setup {args} {
 	return 0
 }
 
-proc putel { fd el data } {
+proc portarchive::putel { fd el data } {
 	# Quote xml data
 	set quoted [string map  { & &amp; < &lt; > &gt; } $data]
 	# Write the element
 	puts $fd "<${el}>${quoted}</${el}>"
 }
 
-proc putlist { fd listel itemel list } {
+proc portarchive::putlist { fd listel itemel list } {
 	puts $fd "<$listel>"
 	foreach item $list {
 		putel $fd $itemel $item
@@ -273,7 +276,7 @@ proc putlist { fd listel itemel list } {
 	puts $fd "</$listel>"
 }
 
-proc archive_main {args} {
+proc portarchive::archive_main {args} {
 	global UI_PREFIX variations
 	global workpath destpath portpath ports_force
 	global portname portepoch portversion portrevision portvariants
@@ -459,7 +462,7 @@ proc archive_main {args} {
     return 0
 }
 
-proc archive_finish {args} {
+proc portarchive::archive_finish {args} {
 	global UI_PREFIX
 	global portname portversion portrevision portvariants
 	global destpath
