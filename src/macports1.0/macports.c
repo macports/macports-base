@@ -2,7 +2,8 @@
  * macports.c
  * $Id$
  *
- * Copyright (c) 2003 Apple Computer, Inc.
+ * Copyright (c) 2009 The MacPorts Project
+ * Copyright (c) 2003 Apple Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +14,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+ * 3. Neither the name of the copyright owner nor the names of contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
@@ -47,12 +48,13 @@ macports__version(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
 	return TCL_OK;
 }
 
-int Macports_Init(Tcl_Interp *interp)
+int
+Macports_Init(Tcl_Interp *interp)
 {
-	if(Tcl_InitStubs(interp, "8.3", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
 		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
-	if(Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
+	if (Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;
 }
