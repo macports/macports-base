@@ -7,7 +7,7 @@ AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 AC_CANONICAL_SYSTEM
 
-# Read in the MacPorts version from the base/config/macports_vesion file
+# Read in the MacPorts version from the base/config/macports_version file
 AC_MSG_CHECKING(MacPorts version)
 MACPORTS_VERSION=MACPORTS_VERSION_MACRO
 AC_MSG_RESULT([$MACPORTS_VERSION])

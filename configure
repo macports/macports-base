@@ -2169,7 +2169,7 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-# Read in the MacPorts version from the base/config/macports_vesion file
+# Read in the MacPorts version from the base/config/macports_version file
 { $as_echo "$as_me:$LINENO: checking MacPorts version" >&5
 $as_echo_n "checking MacPorts version... " >&6; }
 MACPORTS_VERSION=1.8.0

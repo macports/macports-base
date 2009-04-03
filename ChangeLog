@@ -288,7 +288,7 @@ Release 1.7.0 (2008-12-13 by blb):
     - "configure.pipe" is now hackable from Portfiles (afb in r32430).
 
     - MacPorts no longer installs the "base/config/mp_version" file, as the release version is now stored
-      internally in $macports::autoconf::macports_vesion (jmpp in r32353).
+      internally in $macports::autoconf::macports_version (jmpp in r32353).
 
     - Bail out with a suitable message if the requested port is not installed when polling its dependents
       (jmpp in r32336).
