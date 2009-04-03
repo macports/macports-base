@@ -423,6 +423,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
                         ui_warn "$sources_conf source '$line' specifies invalid flag '$flag'"
                     }
                     if {$flag == "default"} {
+                        if {[info exists sources_default]} {
+                            ui_warn "More than one default port source is defined."
+                        }
                         set sources_default [concat [list $url] $flags]
                     }
                 }
