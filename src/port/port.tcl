@@ -1749,13 +1749,19 @@ proc action_notes { action portlist opts } {
             break_softcontinue [concat "The URL '$porturl' could not be" \
                                        "opened: $result"] 1 status
         }
+        array unset portinfo
+        array set portinfo [mportinfo $mport]
+        mportclose $mport
+
         # Return the notes associated with this Portfile.
-        if {[catch {set portnotes [_mportkey $mport portnotes]}]} {
+        if {[info exists portinfo(notes)]} {
+            set portnotes $portinfo(notes)
+        } else {
             set portnotes {}
         }
+
         # Retrieve the port's name once more to ensure it has the proper case.
-        set portname [_mportkey $mport portname]
-        mportclose $mport
+        set portname $portinfo(name)
 
         # Display the notes.
         if {![macports::ui_isset ports_quiet]} {
