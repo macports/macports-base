@@ -60,7 +60,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 	NSMethodSignature *signature;
 	NSInvocation *invocation;
 
-	fprintf(stderr, "objc = %d\n", objc);
+	/*fprintf(stderr, "objc = %d\n", objc);*/
 
 	if (objc < 2) {
 		Tcl_WrongNumArgs(interp, 1, objv, "arguments");
@@ -74,7 +74,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 		Tcl_AppendObjToObj(selname, objv[i]);
 	}
 	
-	fprintf(stderr, "selector = %s\n", Tcl_GetString(selname));
+	/*fprintf(stderr, "selector = %s\n", Tcl_GetString(selname));*/
 
 #if defined(GNU_RUNTIME)
 	selector = sel_get_uid(Tcl_GetString(selname));
@@ -101,7 +101,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 		int arg_num = i / 2 + 1;
 
 		const char* arg_type = tclobjc_getarg_typestring(signature, arg_num);
-		fprintf(stderr, "argument type %s\n", arg_type);
+		/*fprintf(stderr, "argument type %s\n", arg_type);*/
 		if (arg_type[0] == _C_ID) {
 			id obj;
 			if (TclObjC_GetIdFromObj(interp, objv[i], &obj) == TCL_OK) {
@@ -145,7 +145,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 		const char *result_type;
 
 		[invocation invoke];
-		fprintf(stderr, "result size = %lu\n", (unsigned long)[signature methodReturnLength]);
+		/*fprintf(stderr, "result size = %lu\n", (unsigned long)[signature methodReturnLength]);*/
 		result_ptr = malloc([signature methodReturnLength]);
 		[invocation getReturnValue:result_ptr];
 		
