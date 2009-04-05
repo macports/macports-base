@@ -53,15 +53,15 @@ int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void 
 
 	switch(*type) {
 		case _C_CHARPTR:
-			*objPtr = Tcl_NewStringObj((char *) val, -1);
+			*objPtr = Tcl_NewStringObj(*(char **)val, -1);
 			return (TCL_OK);
 		case _C_INT:
-			*objPtr = Tcl_NewIntObj((int)(intptr_t)val);
+			*objPtr = Tcl_NewIntObj(*(int *)val);
 			return (TCL_OK);
 		case _C_ID:
-			*objPtr = TclObjC_NewIdObj(val);
+			*objPtr = TclObjC_NewIdObj(*(id *)val);
 			name = Tcl_GetString(*objPtr);
-			Tcl_CreateObjCommand(interp, (char *) name, tclobjc_dispatch, (id) val, NULL);
+			Tcl_CreateObjCommand(interp, (char *)name, tclobjc_dispatch, *(id *)val, NULL);
 			return (TCL_OK);
 		default:
 			/* Unhandled objc type encoding */

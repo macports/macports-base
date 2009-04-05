@@ -146,10 +146,12 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 
 		[invocation invoke];
 		fprintf(stderr, "result size = %lu\n", (unsigned long)[signature methodReturnLength]);
-		[invocation getReturnValue:&result_ptr];        
+		result_ptr = malloc([signature methodReturnLength]);
+		[invocation getReturnValue:result_ptr];
 		
 		result_type = tclobjc_getreturn_typestring(signature);
 		result = objc_to_tclobj(interp, &tcl_result, result_type, result_ptr);
+		free(result_ptr);
 		Tcl_SetObjResult(interp, tcl_result);
 	}
 
