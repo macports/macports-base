@@ -115,7 +115,7 @@ int tclobjc_dispatch(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Ob
 		} else if (arg_type[0] == _C_UINT) {
             long value;
             if (Tcl_GetLongFromObj(interp, objv[i], &value) == TCL_OK) {
-                if ((unsigned int)value > UINT_MAX || value < 0) {
+                if ((unsigned long)value > UINT_MAX || value < 0) {
                     NSString *str = [NSString stringWithFormat:@"Unsigned integer argument invalid: %ld", value];
                     Tcl_Obj *tcl_result = Tcl_NewStringObj([str UTF8String], -1);
                     Tcl_SetObjResult(interp, tcl_result);
