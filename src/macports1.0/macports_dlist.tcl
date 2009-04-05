@@ -124,6 +124,10 @@ proc ditem_create {} {
 	return [macports_dlist::ditem_create]
 }
 
+proc ditem_delete {ditem} {
+	macports_dlist::ditem_delete $ditem
+}
+
 # ditem_key
 # Sets and returns the given key of the dependency item.
 #	ditem - the dependency item to operate on
@@ -332,6 +336,11 @@ proc ditem_create {} {
 	variable $ditem
 	array set $ditem [list]
 	return $ditem
+}
+
+proc ditem_delete {ditem} {
+	variable $ditem
+	unset $ditem
 }
 
 proc ditem_key {ditem args} {

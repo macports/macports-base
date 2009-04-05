@@ -1907,6 +1907,7 @@ proc mportclose {mport} {
         dlist_delete macports::open_mports $mport
         set workername [ditem_key $mport workername]
         interp delete $workername
+        ditem_delete $mport
     }
 }
 
