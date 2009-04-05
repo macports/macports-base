@@ -174,7 +174,7 @@ Tcl_Obj *TclObjC_NewIdObj(id objcId) {
 
 	objPtr->bytes = NULL;
 
-	objPtr->internalRep.otherValuePtr = objcId;
+	objPtr->internalRep.otherValuePtr = [objcId retain]; /* this is a leak */
 	objPtr->typePtr = &tclObjcIdType;
 	return (objPtr);
 }
