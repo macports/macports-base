@@ -48,7 +48,6 @@
 #include "tclobjc_types.h"
 
 int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void *val) {
-	Tcl_Obj *tcl_result;
 	char *name;
 
 	switch(*type) {
@@ -65,11 +64,8 @@ int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void 
 			return (TCL_OK);
 		default:
 			/* Unhandled objc type encoding */
-			if (interp) {
-				tcl_result = Tcl_NewStringObj("Invalid objc type encoding: ", -1);
-				Tcl_AppendToObj(tcl_result, type, -1);
-				Tcl_SetObjResult(interp, tcl_result);
-			}
+			*objPtr = Tcl_NewStringObj("Invalid objc type encoding: ", -1);
+			Tcl_AppendToObj(*objPtr, type, -1);
 			return (TCL_ERROR);
 	}
 }
