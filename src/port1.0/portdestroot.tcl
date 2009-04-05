@@ -154,6 +154,13 @@ proc portdestroot::destroot_finish {args} {
         portstartupitem::startupitem_create
     }
 
+    foreach fileToDelete {share/info/dir lib/charset.alias} {
+        if [file exists "${destroot}${prefix}/${fileToDelete}"] {
+            ui_debug "Deleting stray ${fileToDelete} file."
+            file delete "${destroot}${prefix}/${fileToDelete}"
+        }
+    }
+
     # Prune empty directories in ${destroot}
     set exclude_dirs [list]
     set exclude_phrase ""
@@ -260,11 +267,6 @@ proc portdestroot::destroot_finish {args} {
         }
     } else {
         ui_debug "No man page compression on ${os.platform}${os.version}."
-    }
-
-    if [file exists "${destroot}${prefix}/share/info/dir"] {
-        ui_debug "Deleting stray info/dir file."
-        file delete "${destroot}${prefix}/share/info/dir"
     }
 
     # test for violations of mtree
