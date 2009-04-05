@@ -57,6 +57,12 @@ int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void 
 		case _C_INT:
 			*objPtr = Tcl_NewIntObj(*(int *)val);
 			return (TCL_OK);
+		case _C_UINT:
+			*objPtr = Tcl_NewLongObj(*(unsigned int *)val);
+			return (TCL_OK);
+		case _C_ULNG_LNG:
+			*objPtr = Tcl_NewWideIntObj(*(Tcl_WideUInt *)val);
+			return (TCL_OK);
 		case _C_ID:
 			*objPtr = TclObjC_NewIdObj(*(id *)val);
 			name = Tcl_GetString(*objPtr);
