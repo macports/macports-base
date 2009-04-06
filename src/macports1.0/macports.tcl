@@ -2276,6 +2276,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     set version_installed {}
     set revision_installed {}
     set epoch_installed 0
+    set variant_installed ""
 
     # find latest version installed and active version (if any)
     foreach i $ilist {
