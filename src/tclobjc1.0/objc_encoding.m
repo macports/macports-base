@@ -47,6 +47,10 @@
 #include "objc_encoding.h"
 #include "tclobjc_types.h"
 
+#ifndef _C_ULNG_LNG
+#define _C_ULNG_LNG 'Q'
+#endif
+
 int objc_to_tclobj(Tcl_Interp *interp, Tcl_Obj **objPtr, const char *type, void *val) {
 	char *name;
 

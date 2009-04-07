@@ -82,13 +82,20 @@ static Tcl_ObjType tclObjcIdType = {
  * Release the internal objective-c instance.
  */
 static void free_objc_internalrep(Tcl_Obj *objPtr UNUSED) {
-    /* TODO cleanup */
+	id objcId = objPtr->internalRep.otherValuePtr;
+	if (Tcl_IsShared(objPtr)) {
+		NSLog(@"shared  %@ %p", [objcId class], objcId);
+		return;
+	}
+	NSLog(@"release %@ %p", [objcId class], objcId);
+	[objcId release];
 }
 
 /**
  * Duplicate the internal objective-c pointer.
  */
 static void dup_objc_internalrep(Tcl_Obj *srcPtr, Tcl_Obj *dupPtr) {
+	printf("dup_objc_internalrep: %p\n", srcPtr->internalRep.otherValuePtr);
 	dupPtr->internalRep.otherValuePtr = srcPtr->internalRep.otherValuePtr;
 }
 
@@ -144,6 +151,7 @@ static int set_objc_fromstring (Tcl_Interp *interp, Tcl_Obj *objPtr) {
 		oldTypePtr->freeIntRepProc(objPtr);
 	}
 
+	printf("set_objc_fromstring: %p\n", (void *)objcId);
 	objPtr->internalRep.otherValuePtr = objcId;
 	objPtr->typePtr = &tclObjcIdType;
 
@@ -174,6 +182,7 @@ Tcl_Obj *TclObjC_NewIdObj(id objcId) {
 
 	objPtr->bytes = NULL;
 
+	NSLog(@"retain  %@ %p", [objcId class], objcId);
 	objPtr->internalRep.otherValuePtr = [objcId retain]; /* this is a leak */
 	objPtr->typePtr = &tclObjcIdType;
 	return (objPtr);
