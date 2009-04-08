@@ -111,7 +111,6 @@
 #include "curl.h"
 #include "xinstall.h"
 #include "vercomp.h"
-#include "compat.h"
 #include "readline.h"
 #include "uid.h"
 #include "tracelib.h"
@@ -1296,7 +1295,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "compat", CompatCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "mkfifo", MkfifoCmd, NULL, NULL);

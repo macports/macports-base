@@ -254,10 +254,10 @@ proc _activate_file {srcfile dstfile} {
             ui_debug "activating file: $dstfile"
             # Try a hard link first and if that fails, a symlink
             try {
-                compat filelinkhard $dstfile $srcfile
+                file link -hard $dstfile $srcfile
             } catch {*} {
                 ui_debug "hardlinking $srcfile to $dstfile failed; symlinking instead"
-                compat filelinksymbolic $dstfile $srcfile
+                file link -symbolic $dstfile $srcfile
             }
         }
         default {
@@ -420,7 +420,7 @@ proc _deactivate_contents {port force} {
             # instead of the paths we currently have, users' registry won't
             # match and activate will say that some file exists but doesn't
             # belong to any port.
-            set theFile [compat filenormalize $file]
+            set theFile [file normalize $file]
             lappend files $theFile
 
             # Split out the filename's subpaths and add them to the image list

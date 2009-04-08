@@ -124,7 +124,7 @@ proc uninstall {portname {specifier ""} optionslist} {
 
         # Normalize the file path to avoid removing the intermediate
         # symlinks (remove the empty directories instead)
-        set theFile [compat filenormalize $file]
+        set theFile [file normalize $file]
         lappend files $theFile
 
         # Split out the filename's subpaths and add them to the

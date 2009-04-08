@@ -1785,7 +1785,7 @@ proc action_provides { action portlist opts } {
         return 1
     }
     foreach filename $portlist {
-        set file [compat filenormalize $filename]
+        set file [file normalize $filename]
         if {[file exists $file]} {
             if {![file isdirectory $file]} {
                 set port [registry::file_registered $file]
