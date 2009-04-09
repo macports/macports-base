@@ -102,14 +102,6 @@ set lint_optional [list \
     "use_configure" \
     ]
 
-set lint_variants [list \
-    "universal" \
-    "docs" \
-    "aqua" \
-    "x11" \
-    ]
-
-
 proc portlint::seems_utf8 {str} {
     set len [string length $str]
     for {set i 0} {$i<$len} {incr i} {
@@ -306,7 +298,7 @@ proc portlint::lint_main {args} {
     global depends_lib depends_build depends_run distfiles fetch.type
     
     global lint_portsystem lint_platforms lint_categories 
-    global lint_required lint_optional lint_variants
+    global lint_required lint_optional
 
     if (!$seen_portsystem) {
         ui_error "Didn't find PortSystem specification"
@@ -424,7 +416,6 @@ proc portlint::lint_main {args} {
             if {![info exists variantdesc] || $variantdesc == ""} {
                 # don't warn about missing descriptions for global variants
                 if {[lsearch -exact $local_variants $variantname] != -1 &&
-                    [lsearch -exact $lint_variants $variantname] == -1 && 
                     [variant_desc $porturl $variantname] == ""} {
                     ui_warn "Variant $variantname does not have a description"
                     incr warnings
