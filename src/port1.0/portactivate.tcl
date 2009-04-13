@@ -52,12 +52,39 @@ namespace eval portactivate {
 set_ui_prefix
 
 proc portactivate::activate_main {args} {
-	global portname portversion portrevision portvariants user_options portnotes
+	global env portname portversion portrevision portvariants user_options portnotes
 	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists portnotes] && $portnotes ne {}} {
-        ui_msg \n$portnotes\n
+        # If env(COLUMNS) exists, limit each line's width to this width.
+        if {[info exists env(COLUMNS)]} {
+            set maxlen $env(COLUMNS)
+
+            ui_msg ""
+            foreach line [split $portnotes "\n"] {
+                set joiner ""
+                set lines ""
+                set newline ""
+
+                foreach word [split $line " "] {
+                    if {[string length $newline] + [string length $word] >= $maxlen} {
+                        lappend lines $newline
+                        set newline ""
+                        set joiner ""
+                    }
+                    append newline $joiner $word
+                    set joiner " "
+                }
+                if {$newline ne {}} {
+                    lappend lines $newline
+                }
+                ui_msg [join $lines "\n"]
+            }
+            ui_msg ""
+        } else {
+            ui_msg \n$portnotes\n
+        }
     }
     
     return 0
