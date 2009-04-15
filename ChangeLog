@@ -5,6 +5,8 @@
 
 
 Release 1.8.0 (unreleased):
+    - port lint recognizes new top-level category php (#19329, ryandesign)
+
     - Do not print header lines when the quiet option -q is set
     (r48558, raimue)
 

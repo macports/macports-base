@@ -64,6 +64,7 @@ set lint_categories [list \
     "office" \
     "palm" \
     "perl" \
+    "php" \
     "print" \
     "python" \
     "ruby" \
