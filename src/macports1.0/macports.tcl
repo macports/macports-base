@@ -2303,13 +2303,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         ui_debug "no version of $portname is active"
     }
 
-    # set the nodeps option  
-    if {![info exists options(ports_nodeps)]} {
-        set nodeps no
-    } else {
-        set nodeps yes
-    }
-
 	# save existing variant for later use
 	if {$anyactive} {
 	    set oldvariant $variant_active
@@ -2371,10 +2364,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 	set epoch_in_tree "$portinfo(epoch)"
 
 
-    if {$nodeps == "yes"} {
-        ui_debug "Not following dependencies"
-    } else {
+    # first upgrade dependencies
+    if {![info exists options(ports_nodeps)]} {
         _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+    } else {
+        ui_debug "Not following dependencies"
     }
 
     # check installed version against version in ports
