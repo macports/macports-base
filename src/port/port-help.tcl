@@ -43,7 +43,7 @@ Removes file associates with given ports
 }
 
 set porthelp(compact) {
-Compact the given ports
+Compact the given ports (unimplemented)
 }
 
 set porthelp(configure) {
@@ -99,7 +99,7 @@ Creates a dpkg for each of the given ports
 set porthelp(echo) {
 Returns the list of ports the argument expands to
 
-This can be useful to what a pseudo-port expands.
+This can be useful to see what a pseudo-port expression expands to.
 }
 
 set porthelp(edit) {
@@ -131,7 +131,7 @@ Opens the homepages of the given ports in your browser
 }
 
 set porthelp(help) {
-Displays short help texts for the given ports
+Displays short help texts for the given commands
 }
 
 set porthelp(info) {
@@ -156,7 +156,7 @@ Installs the given ports
 }
 
 set porthelp(installed) {
-List installed versions of the given port
+List installed versions of the given port, or all installed ports if no port is given
 }
 
 set porthelp(lint) {
@@ -180,7 +180,7 @@ Returns the install location for each of the given ports
 }
 
 set porthelp(mdmg) {
-Creates a dmg for each of the given ports
+Creates a dmg containing an mpkg for each of the given ports and their dependencies
 }
 
 set porthelp(mirror) {
@@ -188,7 +188,7 @@ Fetches distfiles for the given ports
 }
 
 set porthelp(mpkg) {
-Creates a mpkg for each of the given ports
+Creates an mpkg for each of the given ports and their dependencies
 }
 
 set porthelp(outdated) {
@@ -196,7 +196,7 @@ Returns a list of outdated ports
 }
 
 set porthelp(patch) {
-Applies patches on each of the given port
+Applies patches to each of the given ports
 }
 
 set porthelp(pkg) {
@@ -204,11 +204,11 @@ Creates a pkg for each of the given ports
 }
 
 set porthelp(platform) {
-Returns the current platform you are on
+Returns the current platform that port is running on
 }
 
 set porthelp(provides) {
-Return which port (or ports) provide the file (or files) given
+Return which port provides each of the files given
 }
 
 set porthelp(quit) $porthelp(exit)
@@ -220,11 +220,16 @@ Creates a rpm for each of the given ports
 set porthelp(search) {
 Search for a port
 
-This looks in name, desription and long_description of each port for the given search string.
+--case-sensitive   match the search string in a case-sensitive manner
+--exact   match the literal search string exactly
+--glob    treat the given search string as a glob (default)
+--line    print each result on a single line
+--regex   treat the given search string as a regular expression
+--<field> match against <field>, default is '--name --description'
 }
 
 set porthelp(select) {
-Select between mulitple versions of a versioned port
+Select between multiple versions of a versioned port
 
 This allows you to choose which version, among several installed versions
 of a port, is to be considered primary.  What this means is which version
@@ -245,7 +250,7 @@ a version if --set is used.
 }
 
 set porthelp(selfupdate) {
-Upgrade MacPorts itself
+Upgrade MacPorts itself and run the sync target
 }
 
 set porthelp(srpm) {
@@ -253,7 +258,7 @@ Creates a srpm for each of the given ports
 }
 
 set porthelp(submit) {
-Submit a port to the MacPorts Web Application
+Submit a port to the MacPorts Web Application (unimplemented)
 }
 
 set porthelp(sync) {
@@ -264,16 +269,12 @@ set porthelp(test) {
 Run tests on each of the given ports
 }
 
-set porthelp(trace) {
-Trace a port
-}
-
 set porthelp(unarchive) {
-Unarchive a port
+Unarchive the given ports
 }
 
 set porthelp(uncompact) {
-Uncompact a port
+Uncompact a port (unimplemented)
 }
 
 set porthelp(uninstall) {
@@ -299,7 +300,7 @@ Returns basic usage of the port command
 }
 
 set porthelp(variants) {
-Returns a list of variants with descriptions available for the given ports
+Returns a list of variants provided by the given ports, with descriptions if present
 }
 
 set porthelp(version) {
