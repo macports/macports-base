@@ -2165,7 +2165,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache
-    } 
+    }
 
     # set to 1 if epoch overrides version
     set epoch_override 0
@@ -2205,11 +2205,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if { [catch {set ilist [registry::installed $portname ""]} result] } {
         if {$result == "Registry error: $portname not registered as installed." } {
             ui_debug "$portname is *not* installed by MacPorts"
-            # open porthandle    
+            # open porthandle
             set porturl $portinfo(porturl)
             if {![info exists porturl]} {
-                set porturl file://./    
-            }    
+                set porturl file://./
+            }
 			# Merge the global variations into the specified
 			foreach { variation value } $globalvarlist {
 				if { ![info exists variations($variation)] } {
@@ -2220,7 +2220,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 			if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
-                    ui_error "Unable to open port: $result"        
+                    ui_error "Unable to open port: $result"
                     return 1
             }
 			# While we're at it, update the portinfo
@@ -2241,8 +2241,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 					ui_error "Problem while installing $portname"
 					return $result
                 }
-                # we just installed it, so mark it done in the cache 
-                # and update ilist 
+                # we just installed it, so mark it done in the cache
+                # and update ilist
                 set depscache(port:${portname}) 1
             } else {
                 # dependency is satisfied by something other than the named port
@@ -2310,8 +2310,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 	    set oldvariant $variant_installed
 	}
 
-	# Before we do 
-	# dependencies, we need to figure out the final variants, 
+	# Before we do
+	# dependencies, we need to figure out the final variants,
 	# open the port, and update the portinfo.
 
 	set porturl $portinfo(porturl)
