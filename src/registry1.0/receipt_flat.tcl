@@ -43,6 +43,8 @@ namespace eval receipt_flat {
 
 # receipt_lastref is the last attributed index of receipts.
 variable receipt_lastref -1
+# maps port name,version,variants to the corresponding receipt ref
+variable ref_index
 
 ##
 #
@@ -101,6 +103,12 @@ proc get_head_entry_receipt_path {portname portversion} {
 proc open_entry {name {version ""} {revision 0} {variants ""}} {
 	global macports::registry.installtype
 	global macports::registry.path
+	variable ref_index
+	
+	# if this entry is already open, just return the reference
+	if {[info exists ref_index($name,$version,$revision,$variants)]} {
+	    return $ref_index($name,$version,$revision,$variants)
+	}
 
 	set receipt_path [file join ${macports::registry.path} receipts ${name}]
 
@@ -194,6 +202,8 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 			array set receipt_[set ref] $pair
 		}
 	}
+	
+	set ref_index($name,$version,$revision,$variants) $ref
 	
 	return $ref
 }
@@ -398,6 +408,15 @@ proc property_retrieve {ref property} {
 # Delete an entry
 proc delete_entry {name version {revision 0} {variants ""}} {
 	global macports::registry.path
+	variable ref_index
+	
+	# if the entry is loaded, purge it
+	if {[info exists ref_index($name,$version,$revision,$variants)]} {
+	    set ref $ref_index($name,$version,$revision,$variants)
+	    variable receipt_${ref}
+	    array unset receipt_${ref}
+	    array unset ref_index "$name,$version,$revision,$variants"
+	}
 
 	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	if { [file exists ${receipt_path}] } {
