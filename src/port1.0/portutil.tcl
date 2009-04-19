@@ -544,39 +544,6 @@ proc variant_set {name} {
     set variations($name) +
 }
 
-# variant_unset name
-# Clear variant for current portfile
-proc variant_unset {name} {
-    global variations
-    
-    set variations($name) -
-}
-
-# variant_undef name
-# Undefine a variant for the current portfile.
-proc variant_undef {name} {
-    global variations PortInfo
-    
-    # Remove it from the list of selected variations.
-    array unset variations $name
-
-    # Remove the variant from the portinfo.
-    if {[info exists PortInfo(variants)]} {
-        set variant_index [lsearch -exact $PortInfo(variants) $name]
-        if {$variant_index >= 0} {
-            set new_list [lreplace $PortInfo(variants) $variant_index $variant_index]
-            if {"$new_list" == {}} {
-                unset PortInfo(variants) 
-            } else {
-                set PortInfo(variants) $new_list
-            }
-        }
-    }
-    
-    # And from the dlist.
-    variant_remove_ditem $name
-}
-
 # variant_remove_ditem name
 # Remove variant name's ditem from the all_variants dlist
 proc variant_remove_ditem {name} {
