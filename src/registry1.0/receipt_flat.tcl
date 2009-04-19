@@ -335,9 +335,6 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 # Check to see if an entry exists
 proc entry_exists {name version {revision 0} {variants ""}} {
 	global macports::registry.path
-	variable receipt_handle 
-	variable receipt_file 
-	variable receipt_path
 
 	set receipt_path [file join ${macports::registry.path} receipts ${name} ${version}_${revision}${variants}]
 	set receipt_file [file join ${receipt_path} receipt]
@@ -345,6 +342,19 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 	if { [file exists $receipt_file] } {
 		return 1
 	} elseif { [file exists ${receipt_file}.bz2] } {
+		return 1
+	}
+
+	return 0
+}
+
+# Check to see if any entry exists for the given port name
+proc entry_exists_for_name {name} {
+	global macports::registry.path
+
+	set receipt_path [file join ${macports::registry.path} receipts ${name}]
+
+	if {[llength [glob -nocomplain -directory $receipt_path */receipt{,.bz2}]] > 0} {
 		return 1
 	}
 

@@ -92,12 +92,8 @@ proc uninstall {portname {v ""} optionslist} {
 		foreach dep $deplist { 
 			set depport [lindex $dep 2]
 			ui_debug "$depport depends on this port"
-			# xxx: Should look at making registry::installed return 0 or 
-			# something instead  of erroring.
-			if { ![catch {set installed [registry::installed $depport]} res] } {
-				if { [llength installed] > 0 } {
-					lappend dl $depport
-				}
+			if {[registry::entry_exists_for_name $depport]} {
+				lappend dl $depport
 			}
 		}
 		# Now see if we need to error
@@ -105,11 +101,8 @@ proc uninstall {portname {v ""} optionslist} {
 			if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
 				foreach depport $dl {
 					# make sure it's still installed, since a previous dep uninstall may have removed it
-					# does registry::installed still error? A cursory look at the code says no, but above says yes
-					if { ![catch {set installed [registry::installed $depport]} res] } {
-						if { [llength installed] > 0 } {
-							portuninstall::uninstall $depport "" [array get options]
-						}
+					if {[registry::entry_exists_for_name $depport]} {
+						portuninstall::uninstall $depport "" [array get options]
 					}
 				}
 			} else {

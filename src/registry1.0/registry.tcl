@@ -82,6 +82,12 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 	return [${macports::registry.format}::entry_exists $name $version $revision $variants] 
 }
 
+# Check to see if any entry exists in the registry for the given port name.
+proc entry_exists_for_name {name} {
+	global macports::registry.format
+	return [${macports::registry.format}::entry_exists_for_name $name]
+}
+
 # Close the registry... basically wrap the receipts systems's write process
 proc write_entry {ref} {
 	global macports::registry.format

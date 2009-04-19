@@ -816,6 +816,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_prop_retr registry::property_retrieve
     $workername alias registry_delete registry::delete_entry
     $workername alias registry_exists registry::entry_exists
+    $workername alias registry_exists_for_name registry::entry_exists_for_name
     $workername alias registry_activate portimage::activate
     $workername alias registry_deactivate portimage::deactivate
     $workername alias registry_register_deps registry::register_dependencies
@@ -1269,13 +1270,9 @@ proc _porttest {mport depspec} {
 
 # Determine if a port is already *installed*, as in "in the registry".
 proc _mportinstalled {mport} {
-    # Check for the presense of the port in the registry
+    # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_installed \${portname}]}]} {
-        return 0
-    } else {
-        return [expr [llength $reslist] > 0]
-    }
+    return [$workername eval registry_exists_for_name \${portname}]
 }
 
 # Determine if a port is active (only for image mode)

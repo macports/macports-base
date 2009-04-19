@@ -1955,7 +1955,7 @@ proc action_upgrade { action portlist opts } {
     # shared depscache for all ports in the list
     array set depscache {}
     foreachport $portlist {
-        if {[catch {registry::installed $portname}]} {
+        if {![registry::entry_exists_for_name $portname]} {
             ui_error "$portname is not installed"
             return 1
         }
