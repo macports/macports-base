@@ -137,9 +137,9 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
 	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Packages/"
 	lappend dependencies ${portname}-${portversion}.pkg
 	
-    write_PkgInfo ${mpkgpath}/Contents/PkgInfo
+    portpkg::write_PkgInfo ${mpkgpath}/Contents/PkgInfo
     mpkg_write_info_plist ${mpkgpath}/Contents/Info.plist $portname $portversion $portrevision $prefix $dependencies
-    write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
+    portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
 	if {![info exists $variable]} {
@@ -148,7 +148,7 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
 	    set pkg_$variable [set $variable]
 	}
     }
-    write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
+    portpkg::write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${mpkgpath}/Contents/Resources/background.tiff
 
 	return 0
