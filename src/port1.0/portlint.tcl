@@ -178,6 +178,12 @@ proc portlint::lint_main {args} {
             set require_blank true
             set require_after "RCS tag"
         }
+        
+        # skip the rest for comment lines (not perfectly accurate...)
+        if {[regexp {^\s*#} $line]} {
+            incr lineno
+            continue
+        }
 
         if {[string match "PortSystem*" $line]} {
             if {$seen_portsystem} {
