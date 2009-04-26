@@ -32,56 +32,6 @@ set lint_platforms [list \
     "sunos" \
     ]
 
-set lint_categories [list \
-    "aqua" \
-    "archivers" \
-    "audio" \
-    "benchmarks" \
-    "cad" \
-    "comms" \
-    "cross" \
-    "databases" \
-    "devel" \
-    "editors" \
-    "emulators" \
-    "erlang" \
-    "finance" \
-    "fuse" \
-    "games" \
-    "genealogy" \
-    "gis" \
-    "gnome" \
-    "gnustep" \
-    "graphics" \
-    "iphone" \
-    "irc" \
-    "java" \
-    "kde" \
-    "lang" \
-    "mail" \
-    "math" \
-    "multimedia" \
-    "net" \
-    "news" \
-    "office" \
-    "palm" \
-    "perl" \
-    "php" \
-    "print" \
-    "python" \
-    "ruby" \
-    "science" \
-    "security" \
-    "shells" \
-    "sysutils" \
-    "tex" \
-    "textproc" \
-    "www" \
-    "x11" \
-    "xfce" \
-    "zope" \
-    ]
-
 set lint_required [list \
     "name" \
     "version" \
@@ -306,7 +256,7 @@ proc portlint::lint_main {args} {
     global maintainers homepage master_sites checksums patchfiles
     global depends_lib depends_build depends_run distfiles fetch.type
     
-    global lint_portsystem lint_platforms lint_categories 
+    global lint_portsystem lint_platforms
     global lint_required lint_optional
 
     if (!$seen_portsystem) {
@@ -381,18 +331,12 @@ proc portlint::lint_main {args} {
     }
 
     if {[info exists categories]} {
-        set category [lindex $categories 0]
-        if {[lsearch -exact $lint_categories $category] == -1} {
-            ui_error "Unknown category: $category"
-            incr errors
+        if {[llength $categories] > 0} {
+            set category [lindex $categories 0]
+            ui_info "OK: Found primary category: $category"
         } else {
-            ui_info "OK: Found category: $category"
-        }
-        foreach secondary $categories {
-            if {[string match $secondary $category]} {
-                continue
-            }
-            ui_info "OK: Found category: $secondary"
+            ui_error "Categories list is empty"
+            incr errors
         }
     }
 
@@ -506,7 +450,7 @@ proc portlint::lint_main {args} {
     }
 
     # these checks are only valid for ports stored in the regular tree directories
-    if {$portcatdir != $category} {
+    if {[info exists category] && $portcatdir != $category} {
         ui_error "Portfile parent directory $portcatdir does not match primary category $category"
         incr errors
     } else {
