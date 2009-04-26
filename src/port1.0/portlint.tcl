@@ -21,12 +21,14 @@ set lint_portsystem \
     "1.0"
 
 set lint_platforms [list \
-    "macosx" \
     "darwin" \
     "freebsd" \
-    "openbsd" \
-    "netbsd" \
     "linux" \
+    "macosx" \
+    "netbsd" \
+    "openbsd" \
+    "puredarwin" \
+    "solaris" \
     "sunos" \
     ]
 
