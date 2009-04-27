@@ -1425,7 +1425,7 @@ proc target_run {ditem} {
 # recursive dependency search for portname
 proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 {
-    set res [mport_search ^$portname\$]
+    set res [mport_lookup $portname]
     if {[llength $res] < 2} \
     {
         return {}
@@ -2071,10 +2071,8 @@ proc portexec_int {portname target {newworkpath ""}} {
     } else {
         set options(workpath) ${newworkpath}
     }
-    # Escape regex special characters
-    regsub -all "(\\(){1}|(\\)){1}|(\\{1}){1}|(\\+){1}|(\\{1}){1}|(\\{){1}|(\\}){1}|(\\^){1}|(\\$){1}|(\\.){1}|(\\\\){1}" $portname "\\\\&" search_string 
     
-    set res [mport_search ^$search_string\$]
+    set res [mport_lookup $portname]
     if {[llength $res] < 2} {
         ui_error "Dependency $portname not found"
         return -1

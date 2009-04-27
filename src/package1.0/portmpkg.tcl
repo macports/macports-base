@@ -57,7 +57,7 @@ proc portmpkg::mpkg_main {args} {
 
 proc portmpkg::make_dependency_list {portname} {
 	set result {}
-	if {[catch {set res [mport_search "^$portname\$"]} error]} {
+	if {[catch {set res [mport_lookup $portname]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $error"
@@ -91,7 +91,7 @@ proc portmpkg::make_dependency_list {portname} {
 
 proc portmpkg::make_one_package {portname portversion destination} {
 	global prefix package.destpath package.flat
-	if {[catch {set res [mport_search "^$portname\$"]} result]} {
+	if {[catch {set res [mport_lookup $portname]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port search failed: $result"

@@ -407,7 +407,7 @@ proc portarchive::archive_main {args} {
                 puts $sd "</item>"
             puts $sd "</provides>"
             
-    set res [mport_search ^$portname\$]
+    set res [mport_lookup $portname]
     if {[llength $res] < 2} {
         ui_error "Dependency $portname not found"
     } else {

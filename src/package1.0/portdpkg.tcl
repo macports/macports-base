@@ -161,10 +161,10 @@ proc portdpkg::main {args} {
 
 proc portdpkg::make_dependency_list {portname} {
 	set result {}
-	if {[catch {set res [mport_search "^$portname\$"]} error]} {
+	if {[catch {set res [mport_lookup $portname]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
-		ui_error "port search failed: $error"
+		ui_error "port lookup failed: $error"
 		return 1
 	}
 	foreach {name array} $res {

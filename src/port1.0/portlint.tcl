@@ -421,7 +421,7 @@ proc portlint::lint_main {args} {
     if {[info exists depends_run]} { eval "lappend all_depends $depends_run" }
     foreach depspec $all_depends {
         set dep [lindex [split $depspec :] end]
-        if {[catch {set res [mport_search "^$dep\$"]} error]} {
+        if {[catch {set res [mport_lookup $dep]} error]} {
             global errorInfo
             ui_debug "$errorInfo"
             continue
