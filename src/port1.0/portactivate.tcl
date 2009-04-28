@@ -40,11 +40,7 @@ set org.macports.activate [target_new org.macports.activate portactivate::activa
 target_runtype ${org.macports.activate} always
 target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
-if {[option portarchivemode] == "yes"} {
-	target_requires ${org.macports.activate} main unarchive fetch extract checksum patch configure build destroot archive install
-} else {
-	target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
-}
+target_requires ${org.macports.activate} main unarchive fetch extract checksum patch configure build destroot archive install
 
 namespace eval portactivate {
 }

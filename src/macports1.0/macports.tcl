@@ -41,7 +41,7 @@ namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix x11prefix portdbformat \
-        portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
+        portinstalltype portarchivepath portarchivetype portautoclean \
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -50,7 +50,7 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
-        registry.path registry.format registry.installtype portarchivemode portarchivepath \
+        registry.path registry.format registry.installtype portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -545,36 +545,22 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
 
-    # Archive mode, whether to create/use binary archive packages
-    if {![info exists portarchivemode]} {
-        set macports::portarchivemode "yes"
-        global macports::portarchivemode
-    }
-
     # Archive path, where to store/retrieve binary archive packages
-    if {![info exists portarchivepath]} {
-        set macports::portarchivepath [file join $portdbpath packages]
-        global macports::portarchivepath
-    }
-    if {$portarchivemode == "yes"} {
-        if {![file isdirectory $portarchivepath]} {
-            if {![file exists $portarchivepath]} {
-                if {[catch {file mkdir $portarchivepath} result]} {
-                    return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
-                }
+    set macports::portarchivepath [file join $portdbpath packages]
+    global macports::portarchivepath
+    if {![file isdirectory $portarchivepath]} {
+        if {![file exists $portarchivepath]} {
+            if {[catch {file mkdir $portarchivepath} result]} {
+                return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
             }
         }
-        if {![file isdirectory $portarchivepath]} {
-            return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
-        }
+    }
+    if {![file isdirectory $portarchivepath]} {
+        return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
     }
 
-    # Archive type, what type of binary archive to use (CPIO, gzipped
-    # CPIO, XAR, etc.)
-    if {![info exists portarchivetype]} {
-        set macports::portarchivetype "cpgz"
-        global macports::portarchivetype
-    }
+    set macports::portarchivetype "tbz"
+    global macports::portarchivetype
     # Convert archive type to a list for multi-archive support, colon or
     # comma separators indicates to use multiple archive formats
     # (reading and writing)
@@ -2152,7 +2138,6 @@ proc macports::selfupdate {{optionslist {}}} {
 # upgrade procedure
 proc macports::upgrade {portname dspec globalvarlist variationslist optionslist {depscachename ""}} {
     global macports::registry.installtype
-    global macports::portarchivemode
     array set options $optionslist
 
 	# Note $variationslist is left alone and so retains the original
@@ -2407,11 +2392,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
 
     # install version_in_tree
-    if {0 == [string compare "yes" ${macports::portarchivemode}]} {
-        set upgrade_action "archive"
-    } else {
-        set upgrade_action "destroot"
-    }
+    set upgrade_action "archive"
 
     if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
         global errorInfo

@@ -71,11 +71,6 @@ proc portarchive::archive_init {args} {
 	global archive.destpath archive.type archive.meta
 	global archive.file archive.path archive.fulldestpath
 
-	# Check mode in case archive called directly by user
-	if {[option portarchivemode] != "yes"} {
-		return -code error "Archive mode is not enabled!"
-	}
-
 	# Define port variants if not already defined
 	if { ![info exists portvariants] } {
 		set portvariants ""
