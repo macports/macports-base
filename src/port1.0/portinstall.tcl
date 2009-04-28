@@ -37,9 +37,9 @@ package require portutil 1.0
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install
 if {[option portarchivemode] == "yes"} {
-	target_requires ${org.macports.install} main unarchive fetch extract checksum patch configure build destroot archive
+    target_requires ${org.macports.install} main unarchive fetch extract checksum patch configure build destroot archive
 } else {
-	target_requires ${org.macports.install} main fetch extract checksum patch configure build destroot
+    target_requires ${org.macports.install} main fetch extract checksum patch configure build destroot
 }
 target_prerun ${org.macports.install} portinstall::install_start
 
@@ -55,43 +55,42 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-	global UI_PREFIX portname portversion portrevision variations portvariants
-	global install.asroot prefix
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
-	
-	# start gsoc08-privileges
-	if { [tbool install.asroot] } {
-		# if port is marked as needing root	
-		elevateToRoot "install"
-	} elseif { ![file writable $prefix] } {
-		# if install location is not writable, need root privileges to install
-		elevateToRoot "install"
-	}
-	# end gsoc08-privileges
-	
+    global UI_PREFIX portname portversion portrevision variations portvariants
+    global install.asroot prefix
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+    
+    # start gsoc08-privileges
+    if { [tbool install.asroot] } {
+        # if port is marked as needing root
+        elevateToRoot "install"
+    } elseif { ![file writable $prefix] } {
+        # if install location is not writable, need root privileges to install
+        elevateToRoot "install"
+    }
+    # end gsoc08-privileges
 }
 
 proc portinstall::install_element {src_element dst_element} {
     # don't recursively copy directories
     if {[file isdirectory $src_element] && [file type $src_element] != "link"} {
-	file mkdir $dst_element
+        file mkdir $dst_element
     } else {
-	file copy -force $src_element $dst_element
+        file copy -force $src_element $dst_element
     }
     
     # if the file is a symlink, do not try to set file attributes
     # if the destination file is an existing directory,
     # do not overwrite its file attributes
     if {[file type $src_element] != "link" || [file isdirectory $dst_element]} {
-	set attributes [file attributes $src_element]	
-	for {set i 0} {$i < [llength $attributes]} {incr i} {
-	    set opt [lindex $attributes $i]
-	    incr i
-	    set arg [lindex $attributes $i]
-	    file attributes $dst_element $opt $arg
-	    # set mtime on installed element
-	    exec touch -r $src_element $dst_element
-	}
+        set attributes [file attributes $src_element]
+        for {set i 0} {$i < [llength $attributes]} {incr i} {
+            set opt [lindex $attributes $i]
+            incr i
+            set arg [lindex $attributes $i]
+            file attributes $dst_element $opt $arg
+            # set mtime on installed element
+            exec touch -r $src_element $dst_element
+        }
     }
 }
 
@@ -99,100 +98,100 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
     global installPlist
     set pwd [pwd]
     if {[catch {_cd $workdir} err]} {
-	puts $err
-	return
+        puts $err
+        return
     }
     
     foreach name [readdir .] {
-	set element [file join $cwd $name]
-	
-	# XXX jpm's cross-platform code to find file separator
-	# replace with [file seperator] with tcl 8.4
-	if {![info exists root]} {
-	    if {[string match [file tail "/monkey"] "monkey"]} {
-		set root "/"
-	    } elseif {[string match [file tail ":monkey"] "monkey"]} {
-		set root ":" 
-	    } else {
-		set root "\\"		
-	    }
-	}
-	
-	if { [registry_prop_retr $regref installtype] == "image" } {
-		set imagedir [registry_prop_retr $regref imagedir]
-		set root [file join $root $imagedir]
-	}
-	
-	set dst_element [file join $root $element]
-	set src_element [file join $rootdir $element]
-	# overwrites files but not directories
-	if {![file exists $dst_element] || ![file isdirectory $dst_element]} {
-		if {[file type $src_element] == "link"} {
-			ui_debug "installing link: $dst_element"
-		} elseif {[file isdirectory $src_element]} {
-			ui_debug "installing directory: $dst_element"
-		} else {
-			ui_debug "installing file: $dst_element"
-		}
-	    install_element $src_element $dst_element
-		# only track files/links for registry, not directories
-		if {[file type $dst_element] != "directory"} {
-			lappend installPlist $dst_element
-		}
-	}
-	if {[file isdirectory $name] && [file type $name] != "link"} {
-	    directory_dig $rootdir $name $regref [file join $cwd $name]
-	}
+        set element [file join $cwd $name]
+        
+        # XXX jpm's cross-platform code to find file separator
+        # replace with [file seperator] with tcl 8.4
+        if {![info exists root]} {
+            if {[string match [file tail "/monkey"] "monkey"]} {
+                set root "/"
+            } elseif {[string match [file tail ":monkey"] "monkey"]} {
+                set root ":"
+            } else {
+                set root "\\"
+            }
+        }
+        
+        if { [registry_prop_retr $regref installtype] == "image" } {
+            set imagedir [registry_prop_retr $regref imagedir]
+            set root [file join $root $imagedir]
+        }
+        
+        set dst_element [file join $root $element]
+        set src_element [file join $rootdir $element]
+        # overwrites files but not directories
+        if {![file exists $dst_element] || ![file isdirectory $dst_element]} {
+            if {[file type $src_element] == "link"} {
+                ui_debug "installing link: $dst_element"
+            } elseif {[file isdirectory $src_element]} {
+                ui_debug "installing directory: $dst_element"
+            } else {
+                ui_debug "installing file: $dst_element"
+            }
+            install_element $src_element $dst_element
+            # only track files/links for registry, not directories
+            if {[file type $dst_element] != "directory"} {
+                lappend installPlist $dst_element
+            }
+        }
+        if {[file isdirectory $name] && [file type $name] != "link"} {
+            directory_dig $rootdir $name $regref [file join $cwd $name]
+        }
     }
     _cd $pwd
 }
 
 proc portinstall::install_main {args} {
-	global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch
-
-	# Begin the registry entry
-   	set regref [registry_new $portname $portversion $portrevision $portvariants $epoch]
+    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch
     
-  	# Install the files	
-	directory_dig ${destroot} ${destroot} ${regref}
+    # Begin the registry entry
+    set regref [registry_new $portname $portversion $portrevision $portvariants $epoch]
     
-	registry_prop_store $regref categories $categories
+    # Install the files
+    directory_dig ${destroot} ${destroot} ${regref}
+    
+    registry_prop_store $regref categories $categories
     
     if {[info exists description]} {
-		registry_prop_store $regref description $description
+        registry_prop_store $regref description $description
     }
     if {[info exists long_description]} {
-		registry_prop_store $regref long_description ${long_description}
+        registry_prop_store $regref long_description ${long_description}
     }
     if {[info exists homepage]} {
-		registry_prop_store $regref homepage ${homepage}
+        registry_prop_store $regref homepage ${homepage}
     }
-	if {[info exists maintainers]} {
-		registry_prop_store $regref maintainers ${maintainers}
+    if {[info exists maintainers]} {
+        registry_prop_store $regref maintainers ${maintainers}
     }
-	if {[info exists depends_run]} {
-		registry_prop_store $regref depends_run $depends_run
-		registry_register_deps $depends_run $portname
+    if {[info exists depends_run]} {
+        registry_prop_store $regref depends_run $depends_run
+        registry_register_deps $depends_run $portname
     }
-	if {[info exists depends_lib]} {
-		registry_prop_store $regref depends_lib $depends_lib
-		registry_register_deps $depends_lib $portname
-	}
+    if {[info exists depends_lib]} {
+        registry_prop_store $regref depends_lib $depends_lib
+        registry_register_deps $depends_lib $portname
+    }
     if {[info exists installPlist]} {
-		registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
-		if { [registry_prop_retr $regref installtype] != "image" } {
-			registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
-		}
-	}
-	if {[info exists package-install]} {
-		registry_prop_store $regref package-install ${package-install}
+        registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
+        if { [registry_prop_retr $regref installtype] != "image" } {
+            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
+        }
+    }
+    if {[info exists package-install]} {
+        registry_prop_store $regref package-install ${package-install}
     }
     if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-		registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
+        registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
     }
-	
-	registry_write $regref 
-
+    
+    registry_write $regref
+    
     return 0
 }
 
@@ -201,12 +200,12 @@ proc portinstall::proc_disasm {pname} {
     append p $pname " \{"
     set space ""
     foreach arg [info args $pname] {
-	if {[info default $pname $arg value]} {
-	    append p "$space{" [list $arg $value] "}"
-	} else {
-	    append p $space $arg
-	}
-	set space " "
+        if {[info default $pname $arg value]} {
+            append p "$space{" [list $arg $value] "}"
+        } else {
+            append p $space $arg
+        }
+        set space " "
     }
     append p "\} \{" [info body $pname] "\}"
     return $p
