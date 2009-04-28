@@ -241,7 +241,7 @@ proc portlint::lint_main {args} {
             incr warnings
         }
 
-        if {![regexp {^PortSystem|^PortGroup|^version|^(perl5|ruby|haskell|php5extension).setup} $line]
+        if {![regexp {^PortSystem|^PortGroup|^version|^(perl5|ruby|haskell|php5extension|php5peclextension).setup} $line]
                 && [string first [option version] $line] != -1} {
             ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
             incr warnings
