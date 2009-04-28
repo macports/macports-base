@@ -114,10 +114,8 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
 	    }
 	}
 	
-	if { [registry_prop_retr $regref installtype] == "image" } {
-		set imagedir [registry_prop_retr $regref imagedir]
-		set root [file join $root $imagedir]
-	}
+	set imagedir [registry_prop_retr $regref imagedir]
+	set root [file join $root $imagedir]
 	
 	set dst_element [file join $root $element]
 	set src_element [file join $rootdir $element]
@@ -176,9 +174,6 @@ proc portinstall::install_main {args} {
 	}
     if {[info exists installPlist]} {
 		registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
-		if { [registry_prop_retr $regref installtype] != "image" } {
-			registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
-		}
 	}
 	if {[info exists package-install]} {
 		registry_prop_store $regref package-install ${package-install}

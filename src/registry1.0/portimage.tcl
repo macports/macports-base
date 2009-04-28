@@ -108,9 +108,6 @@ proc activate {name v optionslist} {
 
 	set ref [registry::open_entry $name $version $revision $variants]
 	
-	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
-	}
 	if { [registry::property_retrieve $ref active] != 0 } {
 		return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
 	} 
@@ -173,9 +170,6 @@ proc deactivate {name v optionslist} {
 	
 	set ref [registry::open_entry $name $version $revision $variants]
 
-	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} @${fqversion} not installed as an image."
-	}
 	if { [registry::property_retrieve $ref active] != 1 } {
 		return -code error "Image error: ${name} @${fqversion} is not active."
 	} 

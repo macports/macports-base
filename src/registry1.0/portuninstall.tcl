@@ -122,8 +122,7 @@ proc uninstall {portname {v ""} optionslist} {
 		}
 	}
 
-	set installtype [registry::property_retrieve $ref installtype]
-	if { $installtype == "image" && [registry::property_retrieve $ref active] == 1} {
+	if {[registry::property_retrieve $ref active] == 1} {
 		#return -code error [msgcat::mc "Registry Error: ${portname} ${version}_${revision}${variants} is active."]
 		portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
 	}

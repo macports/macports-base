@@ -101,7 +101,6 @@ proc get_head_entry_receipt_path {portname portversion} {
 #
 # Open an existing entry and return its reference number.
 proc open_entry {name {version ""} {revision 0} {variants ""}} {
-	global macports::registry.installtype
 	global macports::registry.path
 	variable ref_index
 	
@@ -310,7 +309,6 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 # version			the version of the port.
 # variants			the variants of the port.
 proc write_entry {ref name version {revision 0} {variants ""}} {
-	global macports::registry.installtype
 	variable receipt_$ref
 
 	set receipt_contents [array get receipt_$ref]

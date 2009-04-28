@@ -41,7 +41,7 @@ namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix x11prefix portdbformat \
-        portinstalltype portarchivepath portarchivetype portautoclean \
+        portarchivepath portarchivetype portautoclean \
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -50,7 +50,7 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
-        registry.path registry.format registry.installtype portarchivepath \
+        registry.path registry.format portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -339,7 +339,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::macportsuser
     global macports::prefix_frozen
     global macports::x11prefix
-    global macports::registry.installtype
     global macports::rsync_dir
     global macports::rsync_options
     global macports::rsync_server
@@ -500,13 +499,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set registry.format receipt_flat
     }
 
-    # Installation type, whether to use port "images" or install "direct"
-    if {[info exists portinstalltype]} {
-        set registry.installtype $portinstalltype
-    } else {
-        set registry.installtype image
-    }
-    
     # Autoclean mode, whether to automatically call clean after "install"
     if {![info exists portautoclean]} {
         set macports::portautoclean "yes"
@@ -751,7 +743,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 }
 
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
-    global macports::portinterp_options macports::portinterp_deferred_options registry.installtype
+    global macports::portinterp_options macports::portinterp_deferred_options
 
     # Hide any Tcl commands that should be inaccessible to port1.0 and Portfiles
     # exit: It should not be possible to exit the interpreter
@@ -847,10 +839,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     foreach {var val} $variations {
         $workername eval set variations($var) $val
-    }
-
-    if { [info exists registry.installtype] } {
-        $workername eval set installtype ${registry.installtype}
     }
 }
 
@@ -1253,15 +1241,6 @@ proc _porttest {mport depspec} {
     return 0
 }
 
-### _mportinstalled is private; may change without notice
-
-# Determine if a port is already *installed*, as in "in the registry".
-proc _mportinstalled {mport} {
-    # Check for the presence of the port in the registry
-    set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \${portname}]
-}
-
 # Determine if a port is active (only for image mode)
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
@@ -1282,11 +1261,7 @@ proc _mportactive {mport} {
 # depspec   the dependency test specification (path, bin, lib, etc.)
 proc _mportispresent {mport depspec} {
     ui_debug "Searching for dependency: [ditem_key $mport provides]"
-    if {[string equal ${macports::registry.installtype} "image"]} {
-        set res [_mportactive $mport]
-    } else {
-        set res [_mportinstalled $mport]
-    }
+    set res [_mportactive $mport]
     if {$res != 0} {
         ui_debug "Found Dependency: receipt exists for [ditem_key $mport provides]"
         return 1
@@ -1333,8 +1308,6 @@ proc _mportexec {target mport} {
 # mportexec
 # Execute the specified target of the given mport.
 proc mportexec {mport target} {
-    global macports::registry.installtype
-
     set workername [ditem_key $mport workername]
 
     # check variants
@@ -1373,12 +1346,8 @@ proc mportexec {mport target} {
         # install them
         # xxx: as with below, this is ugly.  and deps need to be fixed to
         # understand Port Images before this can get prettier
-        if { [string equal ${macports::registry.installtype} "image"] } {
-            set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
-        } else {
-            set result [dlist_eval $dlist _mportinstalled [list _mportexec "install"]]
-        }
-        
+        set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
+
         if {$result != {}} {
             set errstring "The following dependencies failed to build:"
             foreach ditem $result {
@@ -1402,7 +1371,7 @@ proc mportexec {mport target} {
 
     # If we're doing image installs, then we should activate after install
     # xxx: This isn't pretty
-    if { [string equal ${macports::registry.installtype} "image"] && [string equal $target "install"] } {
+    if {[string equal $target "install"]} {
         set target activate
     }
     
@@ -2137,7 +2106,6 @@ proc macports::selfupdate {{optionslist {}}} {
 
 # upgrade procedure
 proc macports::upgrade {portname dspec globalvarlist variationslist optionslist {depscachename ""}} {
-    global macports::registry.installtype
     array set options $optionslist
 
 	# Note $variationslist is left alone and so retains the original
@@ -2401,64 +2369,44 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         return 1
     }
 
-    # always uninstall old port in direct mode
-    if { 0 != [string compare "image" ${macports::registry.installtype}] } {
-        # uninstall old
-        ui_debug "Uninstalling $portname ${version_installed}_${revision_installed}${variant_installed}"
+    # are we installing an existing version due to force or epoch override?
+    if {([info exists options(ports_force)] || $epoch_override == 1)
+        && [registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
+         ui_debug "Uninstalling $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
         # we have to force the uninstall in case of dependents
         set force_cur [info exists options(ports_force)]
         set options(ports_force) yes
         if {$is_dryrun eq "yes"} {
-            ui_msg "Skipping uninstall $portname @${version_installed}_${revision_installed}${variant_installed} (dry run)"
-        } elseif {[catch {portuninstall::uninstall $portname ${version_installed}_${revision_installed}${variant_installed} [array get options]} result]} {
+            ui_msg "Skipping uninstall $portname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
+        } elseif {[catch {portuninstall::uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
-            ui_error "Uninstall $portname ${version_installed}_${revision_installed}${variant_installed} failed: $result"
+            ui_error "Uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
             return 1
         }
         if {!$force_cur} {
             unset options(ports_force)
         }
-    } else {
-        # are we installing an existing version due to force or epoch override?
-        if {([info exists options(ports_force)] || $epoch_override == 1)
-            && [registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
-             ui_debug "Uninstalling $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
-            # we have to force the uninstall in case of dependents
-            set force_cur [info exists options(ports_force)]
-            set options(ports_force) yes
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping uninstall $portname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-            } elseif {[catch {portuninstall::uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error "Uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
-                return 1
-            }
-            if {!$force_cur} {
-                unset options(ports_force)
-            }
-            if {$anyactive && $version_in_tree == $version_active && $revision_in_tree == $revision_active
-                && $portinfo(canonical_active_variants) == $variant_active} {
-                set anyactive no
-            }
+        if {$anyactive && $version_in_tree == $version_active && $revision_in_tree == $revision_active
+            && $portinfo(canonical_active_variants) == $variant_active} {
+            set anyactive no
         }
-        if {$anyactive} {
-            # deactivate version_active
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping deactivate $portname @${version_active}_${revision_active} (dry run)"
-            } elseif {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
-                return 1
-            }
+    }
+    if {$anyactive} {
+        # deactivate version_active
+        if {$is_dryrun eq "yes"} {
+            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active} (dry run)"
+        } elseif {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
+            return 1
         }
-        if {[info exists options(port_uninstall_old)]} {
-            # uninstalling now could fail due to dependents when not forced,
-            # because the new version is not installed
-            set uninstall_later yes
-        }
+    }
+    if {[info exists options(port_uninstall_old)]} {
+        # uninstalling now could fail due to dependents when not forced,
+        # because the new version is not installed
+        set uninstall_later yes
     }
 
     if {$is_dryrun eq "yes"} {

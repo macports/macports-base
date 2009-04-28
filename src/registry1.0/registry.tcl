@@ -43,7 +43,7 @@ namespace eval registry {
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global macports::registry.path macports::registry.format macports::registry.installtype macports::prefix
+	global macports::registry.path macports::registry.format macports::prefix
 
 	
 	# Make sure we don't already have an entry in the Registry for this
@@ -60,14 +60,11 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		# Trick to have a portable GMT-POSIX epoch-based time.
 		# (because we'll compare this with a file mtime).
 		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-		property_store $ref installtype ${macports::registry.installtype}
 		property_store $ref receipt_f ${macports::registry.format}
-		if { ${macports::registry.installtype} == "image" } {
-			set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
-			property_store $ref imagedir $imagedir
-			property_store $ref active 0
-			property_store $ref compact 0
-		}
+		set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
+		property_store $ref imagedir $imagedir
+		property_store $ref active 0
+		property_store $ref compact 0
 
 		return $ref
 	} else {
