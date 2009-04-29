@@ -18,9 +18,9 @@ class TracPlugin < Plugin
 		  when "ticket"
 			return "ticket <ticket no.> => show http link for ticket # <ticket no.>"
 		  when "faq"
-			return "faq [help] => show FAQs' URL or help"
+			return "faq => show FAQs' URL"
 		  when "guide"
-			return "guide [help] => show The Guide's URL or help. Don't Panic."		 
+			return "guide [chunked] => show The Guide's URL. Don't Panic."		 
 		  else
 			return "trac module provides: !ticket, !faq, !guide"
 		end
@@ -37,18 +37,12 @@ class TracPlugin < Plugin
 	end
 
 	def faq(m, params)
-		if ( params[:parm] )
-			m.reply "Just type !faq for now"
-		else
-			m.reply "FAQs are at: http://trac.macports.org/wiki/FAQ"
-		end
+		m.reply "FAQs are at: http://trac.macports.org/wiki/FAQ"
 	end
 
 	def guide(m, params)
 		if ( params[:parm] == "chunked" )
 			m.reply "http://guide.macports.org/chunked/index.html"
-		elsif ( params[:parm] != "" )
-			m.reply "Just type !faq for now"
 		else
 			m.reply "http://guide.macports.org/"
 		end
