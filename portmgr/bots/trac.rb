@@ -50,7 +50,7 @@ class TracPlugin < Plugin
 		elsif ( params[:parm] != "" )
 			m.reply "Just type !faq for now"
 		else
-			m.reply "FAQs are at: http://trac.macports.org/wiki/FAQ"
+			m.reply "http://guide.macports.org/"
 		end
 	end
 	
