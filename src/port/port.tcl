@@ -407,12 +407,12 @@ proc portlist_sort { list } {
 }
 
 proc portlist_compareint { a b } {
-    array set a_ [list "name" [lindex $a 0] "version" [lindex $a 1] "revision" [lindex $a 2]]
-    array set b_ [list "name" [lindex $b 0] "version" [lindex $b 1] "revision" [lindex $b 2]]
+    array set a_ [list "name" [lindex $a 0] "version" "[lindex $a 1]_[lindex $a 2]"]
+    array set b_ [list "name" [lindex $b 0] "version" "[lindex $b 1]_[lindex $b 2]"]
     return [portlist_compare [array get a_] [array get b_]]
 }
 
-# Same as portlist_sort, but with numeric indexes
+# Same as portlist_sort, but with numeric indexes {name version revision}
 proc portlist_sortint { list } {
     return [lsort -command portlist_compareint $list]
 }
