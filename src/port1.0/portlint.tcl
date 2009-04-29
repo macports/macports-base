@@ -122,6 +122,8 @@ proc portlint::lint_main {args} {
     set seen_portgroup false
     set in_description false
 
+    array set portgroups {}
+
     set local_variants [list]
 
     set f [open $portfile RDONLY]
@@ -149,7 +151,7 @@ proc portlint::lint_main {args} {
             incr errors
         }
 
-        if {[string equal "PortSystem" $require_after] && \
+        if {($require_after == "PortSystem" || $require_after == "PortGroup") && \
             [string match "PortGroup*" $line]} {
             set require_blank false
         }
@@ -200,14 +202,16 @@ proc portlint::lint_main {args} {
             set require_after "PortSystem"
         }
         if {[string match "PortGroup*" $line]} {
-            if {$seen_portgroup} {
-                ui_error "Line $lineno repeats PortGroup information"
-                incr errors
-            }
             regexp {PortGroup\s+([a-z0-9]+)\s+([0-9.]+)} $line -> portgroup portgroupversion
             if {![info exists portgroup]} {
                 ui_error "Line $lineno has unrecognized PortGroup"
                 incr errors
+            }
+            if {[info exists portgroups($portgroup)]} {
+                ui_error "Line $lineno repeats PortGroup information"
+                incr errors
+            } else {
+                set portgroups($portgroup) $portgroupversion
             }
             set seen_portgroup true
             set require_blank true
@@ -274,13 +278,17 @@ proc portlint::lint_main {args} {
     } else {
         ui_info "OK: Found PortSystem $portsystem"
     }
-    if (!$seen_portgroup) {
-        # PortGroup is optional, so missing is OK
-    }  elseif {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
-        ui_error "Unknown PortGroup: $portgroup-$portgroupversion"
-        incr errors
-    } else {
-        ui_info "OK: Found PortGroup $portgroup-$portgroupversion"
+
+    if ($seen_portgroup) {
+        # Using a PortGroup is optional
+        foreach {portgroup portgroupversion} [array get portgroups] {
+            if {![file exists [getportresourcepath $porturl "port1.0/group/${portgroup}-${portgroupversion}.tcl"]]} {
+                ui_error "Unknown PortGroup: $portgroup-$portgroupversion"
+                incr errors
+            } else {
+                ui_info "OK: Found PortGroup $portgroup-$portgroupversion"
+            }
+        }
     }
 
     foreach req_var $lint_required {
