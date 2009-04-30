@@ -308,9 +308,6 @@ proc portunarchive::unarchive_finish {args} {
 
     # Update the state from unpacked archive version
     set target_state_fd [open_statefile]
-
-	# Archive unpacked, skip archive target
-	write_statefile target "org.macports.archive" $target_state_fd
     
 	# Cleanup all control files when finished
 	set control_files [glob -nocomplain -types f [file join $destpath +*]]

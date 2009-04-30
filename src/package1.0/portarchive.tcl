@@ -37,7 +37,7 @@ package require portutil 1.0
 set org.macports.archive [target_new org.macports.archive portarchive::archive_main]
 target_init ${org.macports.archive} portarchive::archive_init
 target_provides ${org.macports.archive} archive
-target_requires ${org.macports.archive} main fetch extract checksum patch configure build destroot
+target_requires ${org.macports.archive} main unarchive fetch extract checksum patch configure build destroot
 target_prerun ${org.macports.archive} portarchive::archive_start
 target_postrun ${org.macports.archive} portarchive::archive_finish
 
@@ -107,14 +107,23 @@ proc portarchive::archive_init {args} {
 		set skipped 1
 	} else {
 		set unsupported 0
+		set any_missing no
 		foreach archive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
 				set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
 				set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
+				if {![file exists ${archive.path}]} {
+				    set any_missing yes
+				}
 			} else {
 				ui_debug "Skipping [string toupper ${archive.type}] archive: $errmsg"
 				set unsupported [expr $unsupported + 1]
 			}
+		}
+		if {!$any_missing} {
+			# might be nice to allow forcing, but let's fix #16061 first
+			ui_debug "Skipping archive ($portname) since archive(s) already exist"
+			set skipped 1
 		}
 		if {${archive.type} == "xpkg"} {
 			set archive.meta true
