@@ -56,6 +56,6 @@ end
 
 plugin = TracPlugin.new
 plugin.map 'ticket :number', :action => 'ticket'
-plugin.map 'faq :parm', :action => 'faq'
-plugin.map 'guide :parm', :action => 'guide'
+plugin.map 'faq :parm', :action => 'faq', :defaults => {:parm => ""}
+plugin.map 'guide :parm', :action => 'guide', :defaults => {:parm => ""}
 plugin.map 'team', :action => 'team'
