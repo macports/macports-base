@@ -17,8 +17,12 @@ class TracPlugin < Plugin
 		case topic
 		  when "ticket"
 			return "ticket <ticket no.> => show http link for ticket # <ticket no.>"
+		  when "faq"
+			return "faq => show FAQs' URL"
+		  when "guide"
+			return "guide [chunked] => show The Guide's URL. Don't Panic."		 
 		  else
-			return "trac commands: ticket"
+			return "trac module provides: !ticket, !faq, !guide"
 		end
 	end
 
@@ -31,8 +35,22 @@ class TracPlugin < Plugin
 			m.reply "Use either #1234 or 1234 for ticket number"
 		end
 	end
+
+	def faq(m, params)
+		m.reply "FAQs are at: http://trac.macports.org/wiki/FAQ"
+	end
+
+	def guide(m, params)
+		if ( params[:parm] == "chunked" )
+			m.reply "http://guide.macports.org/chunked/index.html"
+		else
+			m.reply "http://guide.macports.org/"
+		end
+	end
 	
 end
 
 plugin = TracPlugin.new
 plugin.map 'ticket :number', :action => 'ticket'
+plugin.map 'faq :parm', :action => 'faq'
+plugin.map 'guide :parm', :action => 'guide'
