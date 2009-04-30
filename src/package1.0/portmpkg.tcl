@@ -60,7 +60,7 @@ proc portmpkg::make_dependency_list {portname} {
 	if {[catch {set res [mport_lookup $portname]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
-		ui_error "port search failed: $error"
+		ui_error "port lookup failed: $error"
 		return 1
 	}
 	foreach {name array} $res {
@@ -94,7 +94,7 @@ proc portmpkg::make_one_package {portname portversion destination} {
 	if {[catch {set res [mport_lookup $portname]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
-		ui_error "port search failed: $result"
+		ui_error "port lookup failed: $result"
 		return 1
 	}
 	foreach {name array} $res {
