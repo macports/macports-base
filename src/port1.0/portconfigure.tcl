@@ -191,7 +191,7 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
         macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
-        ccc { set name "clang ccc" }
+        clang { set name "Mac OS X clang" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -431,10 +431,10 @@ proc portconfigure::configure_get_compiler {type} {
                 f90  { set ret ${prefix}/bin/gfortran-mp-4.4 }
             }
         }
-        ccc {
+        clang {
             switch -exact ${type} {
-                cc   { set ret /Developer/usr/bin/ccc }
-                objc { set ret /Developer/usr/bin/ccc }
+                cc   { set ret /usr/bin/clang }
+                objc { set ret /usr/bin/clang }
             }
         }
     }
