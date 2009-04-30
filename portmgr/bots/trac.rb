@@ -48,9 +48,14 @@ class TracPlugin < Plugin
 		end
 	end
 	
+	def team(m, params)
+		m.reply "http://trac.macports.org/wiki/MacPortsDevelopers"
+	end
+
 end
 
 plugin = TracPlugin.new
 plugin.map 'ticket :number', :action => 'ticket'
 plugin.map 'faq :parm', :action => 'faq'
 plugin.map 'guide :parm', :action => 'guide'
+plugin.map 'team', :action => 'team'
