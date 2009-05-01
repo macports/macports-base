@@ -2367,6 +2367,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         ui_debug "Not following dependencies"
     }
 
+    set epoch_override 0
     # check installed version against version in ports
     if { ( [rpm-vercomp $version_installed $version_in_tree] > 0
             || ([rpm-vercomp $version_installed $version_in_tree] == 0
@@ -2398,23 +2399,28 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
             return 0
         } else {
+            set epoch_override 1
             ui_debug "epoch override ... upgrading!"
         }
     }
 
 
-    # install version_in_tree
+    # build or unarchive version_in_tree
     if {0 == [string compare "yes" ${macports::portarchivemode}]} {
         set upgrade_action "archive"
     } else {
         set upgrade_action "destroot"
     }
 
-    if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
-        global errorInfo
-        ui_debug "$errorInfo"
-        ui_error "Unable to upgrade port: $result"
-        return 1
+    # avoid building again unnecessarily
+    if {[info exists options(ports_force)] || $epoch_override == 1
+        || ![registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
+        if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error "Unable to upgrade port: $result"
+            return 1
+        }
     }
 
     # always uninstall old port in direct mode

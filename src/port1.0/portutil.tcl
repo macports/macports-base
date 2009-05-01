@@ -1188,7 +1188,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd portpath portname portversion portrevision portvariants ports_force variations workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
+    global target_state_fd portname workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1206,50 +1206,11 @@ proc target_run {ditem} {
     
         if {$result == 0} {
             # Skip the step if required and explain why through ui_debug.
-            # 1st case: the step was already done (as mentioned in the state file)
+            # check if the step was already done (as mentioned in the state file)
             if {[ditem_key $ditem state] != "no"
                     && [check_statefile target $name $target_state_fd]} {
                 ui_debug "Skipping completed $name ($portname)"
                 set skipped 1
-            # 2nd case: the step is not to always be performed
-            # and this exact port/version/revision/variants is already installed
-            # and user didn't mention -f
-            # and portfile didn't change since installation.
-            } elseif {[ditem_key $ditem runtype] != "always"
-              && [registry_exists $portname $portversion $portrevision $portvariants]
-              && !([info exists ports_force] && $ports_force == "yes")} {
-                        
-                # Did the Portfile change since installation?
-                set regref [registry_open $portname $portversion $portrevision $portvariants]
-            
-                set installdate [registry_prop_retr $regref date]
-                if { $installdate != 0
-                  && $installdate < [file mtime ${portpath}/Portfile]} {
-                    ui_debug "Portfile changed since installation"
-                } else {
-                    # Say we're skipping.
-                    set skipped 1
-                
-                    ui_debug "Skipping $name ($portname) since this port is already installed"
-                }
-            
-                # Something to close the registry entry may be called here, if it existed.
-                # 3rd case: the same port/version/revision/Variants is already active
-                # and user didn't mention -f
-            } elseif {$name == "org.macports.activate"
-              && [registry_exists $portname $portversion $portrevision $portvariants]
-              && !([info exists ports_force] && $ports_force == "yes")} {
-            
-                # Is port active?
-                set regref [registry_open $portname $portversion $portrevision $portvariants]
-            
-                if { [registry_prop_retr $regref active] != 0 } {
-                    # Say we're skipping.
-                    set skipped 1
-                
-                    ui_msg "Skipping $name ($portname $portvariants) since this port is already active"
-                }
-                
             }
             
             # Of course, if this is a dry run, don't do the task:
@@ -1456,9 +1417,32 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd portname errorisprivileges
+    global targets target_state_fd portname portversion portrevision portvariants ports_dryrun user_options errorisprivileges
     set dlist $targets
     set errorisprivileges "no"
+    
+    # the statefile will likely be autocleaned away after install,
+    # so special-case ignore already-completed install and activate
+    if {[registry_exists $portname $portversion $portrevision $portvariants]} {
+        if {$target == "install"} {
+            ui_debug "Skipping $target ($portname) since this port is already installed"
+            return 0
+        } elseif {$target == "activate"} {
+            set regref [registry_open $portname $portversion $portrevision $portvariants]
+            if {[registry_prop_retr $regref active] != 0} {
+                # Something to close the registry entry may be called here, if it existed.
+                ui_debug "Skipping $target ($portname @${portversion}_${portrevision}${portvariants}) since this port is already active"
+            } else {
+                # do the activate here since target_run doesn't know how to selectively ignore the preceding steps
+                if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
+                    ui_msg "For $portname: skipping $target (dry run)"
+                } else {
+                    registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+                }
+            }
+            return 0
+        }
+    }
     
     # Select the subset of targets under $target
     if {$target != ""} {
