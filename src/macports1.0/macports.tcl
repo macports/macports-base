@@ -2165,8 +2165,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         upvar $depscachename depscache
     }
 
-    # set to 1 if epoch overrides version
-    set epoch_override 0
     # Is this a dry run?
     set is_dryrun no
     if {[info exists options(ports_dryrun)] && $options(ports_dryrun) eq "yes"} {
@@ -2401,7 +2399,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             return 0
         } else {
             ui_debug "epoch override ... upgrading!"
-            set epoch_override 1
         }
     }
 
@@ -2440,8 +2437,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         }
     } else {
         # are we installing an existing version due to force or epoch override?
-        if {([info exists options(ports_force)] || $epoch_override == 1)
-            && [registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
+        if {[registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
              ui_debug "Uninstalling $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
             # we have to force the uninstall in case of dependents
             set force_cur [info exists options(ports_force)]
