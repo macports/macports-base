@@ -181,6 +181,7 @@ proc portconfigure::configure_start {args} {
         gcc-4.0 { set name "Mac OS X gcc 4.0" }
         gcc-4.2 { set name "Mac OS X gcc 4.2" }
         llvm-gcc-4.2 { set name "Mac OS X llvm-gcc 4.2" }
+        clang { set name "Mac OS X clang" }
         apple-gcc-3.3 { set name "MacPorts Apple gcc 3.3" }
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
@@ -191,7 +192,6 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
         macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
-        clang { set name "Mac OS X clang" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -342,6 +342,12 @@ proc portconfigure::configure_get_compiler {type} {
                 cpp  { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
             }
         }
+        clang {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/clang }
+                objc { set ret /usr/bin/clang }
+            }
+        }
         apple-gcc-3.3 {
             switch -exact ${type} {
                 cc  { set ret ${prefix}/bin/gcc-apple-3.3 }
@@ -429,12 +435,6 @@ proc portconfigure::configure_get_compiler {type} {
                 fc   { set ret ${prefix}/bin/gfortran-mp-4.4 }
                 f77  { set ret ${prefix}/bin/gfortran-mp-4.4 }
                 f90  { set ret ${prefix}/bin/gfortran-mp-4.4 }
-            }
-        }
-        clang {
-            switch -exact ${type} {
-                cc   { set ret /usr/bin/clang }
-                objc { set ret /usr/bin/clang }
             }
         }
     }
