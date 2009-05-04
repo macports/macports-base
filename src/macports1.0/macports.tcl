@@ -40,7 +40,7 @@ package require macports_util 1.0
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
-        portdbpath libpath binpath auto_path extra_env sources_conf prefix x11prefix portdbformat \
+        portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
@@ -49,7 +49,7 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-        portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen x11prefix portsharepath \
+        portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
@@ -338,7 +338,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::prefix
     global macports::macportsuser
     global macports::prefix_frozen
-    global macports::x11prefix
     global macports::registry.installtype
     global macports::rsync_dir
     global macports::rsync_options
@@ -604,7 +603,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     if {![info exists binpath]} {
-        set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:${x11prefix}/bin"
+        set env(PATH) "${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin"
     } else {
         set env(PATH) "$binpath"
     }
@@ -1191,7 +1190,6 @@ proc _libtest {mport depspec} {
     set depline [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
     set frameworks_dir [_mportkey $mport frameworks_dir]
-    set x11prefix [_mportkey $mport x11prefix]
     
     if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
         lappend search_path $env(DYLD_FRAMEWORK_PATH)
@@ -1204,7 +1202,7 @@ proc _libtest {mport depspec} {
     if {[info exists env(DYLD_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_LIBRARY_PATH)
     }
-    lappend search_path /lib /usr/lib ${x11prefix}/lib ${prefix}/lib
+    lappend search_path /lib /usr/lib ${prefix}/lib
     if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
         lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
     }

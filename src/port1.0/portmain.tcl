@@ -59,7 +59,6 @@ default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default worksymlink {[file join $portpath work]}
 default prefix /opt/local
-default x11prefix /usr/X11R6
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
 default destdir destroot
