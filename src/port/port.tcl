@@ -369,9 +369,9 @@ proc foreachport {portlist block} {
         }
         uplevel 1 $block
         if {[file exists $savedir]} {
-        	cd $savedir
+            cd $savedir
         } else {
-        	cd ~
+            cd ~
         }
     }
 }
@@ -1339,15 +1339,15 @@ proc action_help { action portlist opts } {
         return 0
     }
 
-	if {[file exists $helpfile]} {
-		if {[catch {source $helpfile} err]} {
-			puts stderr "Error reading helpfile $helpfile: $err"
-			return 1
-		}
+    if {[file exists $helpfile]} {
+        if {[catch {source $helpfile} err]} {
+            puts stderr "Error reading helpfile $helpfile: $err"
+            return 1
+        }
     } else {
-		puts stderr "Unable to open help file $helpfile"
-		return 1
-	}
+        puts stderr "Unable to open help file $helpfile"
+        return 1
+    }
 
     foreach topic $portlist {
         if {![info exists porthelp($topic)]} {
@@ -2083,14 +2083,14 @@ proc action_uninstall { action portlist opts } {
             global errorInfo
             ui_debug "$errorInfo"
 
-			# start gsoc08-privileges	
-			if { [string first "permission denied" $result] != -1 } {
-				set result "port requires root privileges for this action and needs you to execute 'sudo port uninstall $portname' to continue."
-				#ui_msg [exec sudo port uninstall $portname]
-				# The above line is what should be here to let the user simply enter his/her password to uninstall as root.
-				# However, for some as yet unknown reason, executing it here will not work.
-			}
-			# end gsoc08-privileges
+            # start gsoc08-privileges
+            if { [string first "permission denied" $result] != -1 } {
+                set result "port requires root privileges for this action and needs you to execute 'sudo port uninstall $portname' to continue."
+                #ui_msg [exec sudo port uninstall $portname]
+                # The above line is what should be here to let the user simply enter his/her password to uninstall as root.
+                # However, for some as yet unknown reason, executing it here will not work.
+            }
+            # end gsoc08-privileges
 
             break_softcontinue "port uninstall failed: $result" 1 status
         }
@@ -2856,23 +2856,23 @@ proc action_target { action portlist opts } {
         mportclose $workername
         
         # start gsoc08-privileges
-		if { [geteuid] != 0 && $result == 2} {
-			# mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
+        if { [geteuid] != 0 && $result == 2} {
+            # mportexec will return an error result code 2 if eval_targets fails due to insufficient privileges.
 
-			set portbinary "${macports::prefix}/bin/port"
-			
-			ui_info "Attempting port action with 'sudo port': 'sudo $portbinary $target $portname'."
-			set result 0
-			if {[catch {set sudomsgs [exec sudo $portbinary $target $portname]} sudomsgs]} {
-	            global errorInfo
-	            ui_debug "$errorInfo"
-				break_softcontinue "Unable to execute port: $errorInfo" 1 status
-	        }
-			
-			ui_msg $sudomsgs
-			ui_debug "'sudo $portbinary $target $portname' has completed."
-		}
-		# end gsoc08-privileges
+            set portbinary "${macports::prefix}/bin/port"
+
+            ui_info "Attempting port action with 'sudo port': 'sudo $portbinary $target $portname'."
+            set result 0
+            if {[catch {set sudomsgs [exec sudo $portbinary $target $portname]} sudomsgs]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "Unable to execute port: $errorInfo" 1 status
+            }
+
+            ui_msg $sudomsgs
+            ui_debug "'sudo $portbinary $target $portname' has completed."
+        }
+        # end gsoc08-privileges
         
         # Process any error that wasn't thrown and handled already
         if {$result} {

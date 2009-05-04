@@ -14,7 +14,7 @@ namespace eval porttest {
 }
 
 # define options
-options test.run test.target 
+options test.run test.target
 commands test
 
 # Set defaults
@@ -33,9 +33,9 @@ proc porttest::test_start {args} {
 proc porttest::test_main {args} {
     global portname test.run
     if {[tbool test.run]} {
-    	command_exec test
+        command_exec test
     } else {
-	return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $portname]
+    return -code error [format [msgcat::mc "%s has no tests turned on. see 'test.run' in portfile(7)"] $portname]
     }
     return 0
 }

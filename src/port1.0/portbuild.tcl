@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -86,11 +86,11 @@ proc portbuild::build_getmaketype {args} {
         pbx {
             set pbxbuild "pbxbuild"
             set xcodebuild "xcodebuild"
-        
+
             if {[option os.platform] != "darwin"} {
                 return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
             }
-        
+
             if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
                 return $xcodebuild
             } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
@@ -141,16 +141,16 @@ proc portbuild::build_getmakejobs {args} {
 
 proc portbuild::build_start {args} {
     global UI_PREFIX build.asroot
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
-    
+
     # start gsoc08-privileges
     if { [tbool build.asroot] } {
-	# if port is marked as needing root	
-		elevateToRoot "build"
-	}
-	# end gsoc08-privileges
-    
+    # if port is marked as needing root
+        elevateToRoot "build"
+    }
+    # end gsoc08-privileges
+
 }
 
 proc portbuild::build_main {args} {

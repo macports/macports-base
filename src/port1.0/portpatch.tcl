@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -35,7 +35,7 @@ package require portutil 1.0
 
 set org.macports.patch [target_new org.macports.patch portpatch::patch_main]
 target_provides ${org.macports.patch} patch
-target_requires ${org.macports.patch} main fetch checksum extract 
+target_requires ${org.macports.patch} main fetch checksum extract
 
 namespace eval portpatch {
 }
@@ -54,48 +54,48 @@ default patch.pre_args -p0
 
 proc portpatch::patch_main {args} {
     global UI_PREFIX
-    
+
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles]} {
-	return 0
+    return 0
     }
-    
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
-	
-	# start gsoc08-privileges
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
+
+    # start gsoc08-privileges
     if { [tbool patch.asroot] } {
-	# if port is marked as needing root	
-		elevateToRoot "patch"
-	}
-	# end gsoc08-privileges
+    # if port is marked as needing root
+        elevateToRoot "patch"
+    }
+    # end gsoc08-privileges
 
     foreach patch [option patchfiles] {
     set patch_file [getdistname $patch]
-	if {[file exists [option filespath]/$patch_file]} {
-	    lappend patchlist [option filespath]/$patch_file
-	} elseif {[file exists [option distpath]/$patch_file]} {
-	    lappend patchlist [option distpath]/$patch_file
-	} else {
-		return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
-	}
+    if {[file exists [option filespath]/$patch_file]} {
+        lappend patchlist [option filespath]/$patch_file
+    } elseif {[file exists [option distpath]/$patch_file]} {
+        lappend patchlist [option distpath]/$patch_file
+    } else {
+        return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
+    }
     }
     if {![info exists patchlist]} {
-	return -code error [msgcat::mc "Patch files missing"]
+    return -code error [msgcat::mc "Patch files missing"]
     }
     _cd [option worksrcpath]
     foreach patch $patchlist {
-	ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
-	if {[option os.platform] == "linux"} {
-	    set gzcat "zcat"
-	} else {
-	    set gzcat "gzcat"
-	}
-	switch -glob -- [file tail $patch] {
-	    *.Z -
-	    *.gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
-	    *.bz2 {command_exec patch "bzcat \"$patch\" | (" ")"}
-	    default {command_exec patch "" "< '$patch'"}
-	}
+    ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
+    if {[option os.platform] == "linux"} {
+        set gzcat "zcat"
+    } else {
+        set gzcat "gzcat"
+    }
+    switch -glob -- [file tail $patch] {
+        *.Z -
+        *.gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
+        *.bz2 {command_exec patch "bzcat \"$patch\" | (" ")"}
+        default {command_exec patch "" "< '$patch'"}
+    }
     }
     return 0
 }

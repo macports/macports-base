@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -41,9 +41,9 @@ target_runtype ${org.macports.activate} always
 target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
 if {[option portarchivemode] == "yes"} {
-	target_requires ${org.macports.activate} main unarchive fetch extract checksum patch configure build destroot archive install
+    target_requires ${org.macports.activate} main unarchive fetch extract checksum patch configure build destroot archive install
 } else {
-	target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
+    target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
 }
 
 namespace eval portactivate {
@@ -52,8 +52,8 @@ namespace eval portactivate {
 set_ui_prefix
 
 proc portactivate::activate_main {args} {
-	global env portname portversion portrevision portvariants user_options portnotes
-	registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+    global env portname portversion portrevision portvariants user_options portnotes
+    registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists portnotes] && $portnotes ne {}} {
@@ -86,6 +86,6 @@ proc portactivate::activate_main {args} {
             ui_msg \n$portnotes\n
         }
     }
-    
+
     return 0
 }

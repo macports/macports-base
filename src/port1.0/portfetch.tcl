@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -54,12 +54,12 @@ namespace eval portfetch::mirror_sites {
 
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
-	fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
-	master_sites.mirror_subdir patch_sites.mirror_subdir portname \
-	cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
-	svn.url svn.tag svn.revision svn.method \
-	git.url git.branch \
-	hg.url hg.tag
+    fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
+    master_sites.mirror_subdir patch_sites.mirror_subdir portname \
+    cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
+    svn.url svn.tag svn.revision svn.method \
+    git.url git.branch \
+    hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -182,12 +182,12 @@ set_ui_prefix
 proc portfetch::suffix {distname} {
     global extract.suffix fetch.type
     switch -- "${fetch.type}" {
-    	cvs			-
-    	svn			-
-    	git			-
-    	hg			{ return "" }
-    	standard	-
-    	default 	{ return "${distname}${extract.suffix}" }
+        cvs         -
+        svn         -
+        git         -
+        hg          { return "" }
+        standard    -
+        default     { return "${distname}${extract.suffix}" }
     }
 }
 # XXX import suffix into the global namespace as it is currently used from
@@ -221,15 +221,15 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
         }
         return {}
     }
-    
+
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
-	
-	# here we have the chance to take a look at tags, that possibly
-	# have been assigned in mirror_sites.tcl
-	set splitlist [split $element :]
-	# every element is a URL, so we'll always have multiple elements. no need to check
-    set element "[lindex $splitlist 0]:[lindex $splitlist 1]" 
+
+    # here we have the chance to take a look at tags, that possibly
+    # have been assigned in mirror_sites.tcl
+    set splitlist [split $element :]
+    # every element is a URL, so we'll always have multiple elements. no need to check
+    set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
     set mirror_tag "[lindex $splitlist 2]"
 
     set name_re {\$(?:name\y|\{name\})}
@@ -238,28 +238,28 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
     if {[regexp $name_re $element]} {
         set mirror_tag ""
     }
-    
-	if {$mirror_tag == "mirror"} {
-		set thesubdir ${dist_subdir}
-	} elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
-		set thesubdir ${portname}
-	} else {
-		set thesubdir ${subdir}
-	}
-	
-	# parse an embedded $name. if present, remove the subdir
-	if {[regsub $name_re $element $thesubdir element] > 0} {
-	    set thesubdir ""
-	}
-	
-	if {"$tag" != ""} {
-	    eval append element "${thesubdir}:${tag}"
-	} else {
-	    eval append element "${thesubdir}"
-	}
+
+    if {$mirror_tag == "mirror"} {
+        set thesubdir ${dist_subdir}
+    } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
+        set thesubdir ${portname}
+    } else {
+        set thesubdir ${subdir}
+    }
+
+    # parse an embedded $name. if present, remove the subdir
+    if {[regsub $name_re $element $thesubdir element] > 0} {
+        set thesubdir ""
+    }
+
+    if {"$tag" != ""} {
+        eval append element "${thesubdir}:${tag}"
+    } else {
+        eval append element "${thesubdir}"
+    }
         eval lappend ret $element
     }
-    
+
     return $ret
 }
 
@@ -271,15 +271,15 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
 proc portfetch::checksites {args} {
     global patch_sites master_sites master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
-   
+
     append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(MASTER_SITE_LOCAL)]} {
-	set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
+    set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
     }
-    
+
     append patch_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(PATCH_SITE_LOCAL)]} {
-	set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
+    set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
     }
 
     foreach list {master_sites patch_sites} {
@@ -287,26 +287,26 @@ proc portfetch::checksites {args} {
         if {![info exists uplist]} {
             continue
         }
-        
+
         set site_list [list]
         foreach site $uplist {
             if {[regexp {([a-zA-Z]+://.+)} $site match site]} {
                 set site_list [concat $site_list $site]
             } else {
-	    	set splitlist [split $site :]
-		if {[llength $splitlist] > 3 || [llength $splitlist] <1} {
+            set splitlist [split $site :]
+        if {[llength $splitlist] > 3 || [llength $splitlist] <1} {
                     ui_error [format [msgcat::mc "Unable to process mirror sites for: %s, ignoring."] $site]
-		}
-		set mirrors "[lindex $splitlist 0]"
-		set subdir "[lindex $splitlist 1]"
-		set tag "[lindex $splitlist 2]"
+        }
+        set mirrors "[lindex $splitlist 0]"
+        set subdir "[lindex $splitlist 1]"
+        set tag "[lindex $splitlist 2]"
                 if {[info exists $list.mirror_subdir]} {
                     append subdir "[set ${list}.mirror_subdir]"
                 }
                 set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir]]
             }
         }
-        
+
         # add in the global and fallback mirrors for each tag
         foreach site $site_list {
             if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
@@ -321,9 +321,9 @@ proc portfetch::checksites {args} {
                 }
             }
         }
-        
+
         foreach site $site_list {
-	    if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
+        if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
                 lappend portfetch::$tag $site
             } else {
                 lappend portfetch::$list $site
@@ -336,22 +336,22 @@ proc portfetch::checksites {args} {
 proc portfetch::checkpatchfiles {args} {
     global patchfiles all_dist_files patch_sites filespath
     variable fetch_urls
-    
+
     if {[info exists patchfiles]} {
-	foreach file $patchfiles {
-	    if {![file exists $filespath/$file]} {
-		set distsite [getdisttag $file]
-		set file [getdistname $file]
-		lappend all_dist_files $file
-		if {$distsite != ""} {
-		    lappend fetch_urls $distsite $file
-		} elseif {[info exists patch_sites]} {
-		    lappend fetch_urls patch_sites $file
-		} else {
-		    lappend fetch_urls master_sites $file
-		}
-	    }
-	}
+    foreach file $patchfiles {
+        if {![file exists $filespath/$file]} {
+        set distsite [getdisttag $file]
+        set file [getdistname $file]
+        lappend all_dist_files $file
+        if {$distsite != ""} {
+            lappend fetch_urls $distsite $file
+        } elseif {[info exists patch_sites]} {
+            lappend fetch_urls patch_sites $file
+        } else {
+            lappend fetch_urls master_sites $file
+        }
+        }
+    }
     }
 }
 
@@ -359,19 +359,19 @@ proc portfetch::checkpatchfiles {args} {
 proc portfetch::checkdistfiles {args} {
     global distfiles all_dist_files master_sites filespath
     variable fetch_urls
-    
+
     if {[info exists distfiles]} {
     foreach file $distfiles {
-	if {![file exists $filespath/$file]} {
-	    set distsite [getdisttag $file]
-	    set file [getdistname $file]
-	    lappend all_dist_files $file
-	    if {$distsite != ""} {
-		lappend fetch_urls $distsite $file
-	    } else {
-		lappend fetch_urls master_sites $file
-	    }
-	}
+    if {![file exists $filespath/$file]} {
+        set distsite [getdisttag $file]
+        set file [getdistname $file]
+        lappend all_dist_files $file
+        if {$distsite != ""} {
+        lappend fetch_urls $distsite $file
+        } else {
+        lappend fetch_urls master_sites $file
+        }
+    }
     }
     }
 }
@@ -435,7 +435,7 @@ proc portfetch::sortsites {args} {
             }
             ui_debug "$host ping time is $pingtimes($host)"
         }
-        
+
         set pinglist {}
         foreach site $urllist {
             regexp $hostregex $site -> host
@@ -454,56 +454,56 @@ proc portfetch::sortsites {args} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {args} {
-	variable fetch_urls
+    variable fetch_urls
 
-	checksites
-	checkpatchfiles
-	checkdistfiles
+    checksites
+    checkpatchfiles
+    checkdistfiles
 }
 
 
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
 proc portfetch::cvsfetch {args} {
-    global workpath cvs.env cvs.cmd cvs.args cvs.post_args 
+    global workpath cvs.env cvs.cmd cvs.args cvs.post_args
     global cvs.root cvs.date cvs.tag cvs.method cvs.password
     global patch_sites patchfiles filespath
 
     set cvs.args "${cvs.method} ${cvs.args}"
     if {${cvs.method} == "export" && ![string length ${cvs.tag}] && ![string length ${cvs.date}]} {
-    	set cvs.tag "HEAD"
+        set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
-	set cvs.args "${cvs.args} -r ${cvs.tag}"
+    set cvs.args "${cvs.args} -r ${cvs.tag}"
     }
 
     if {[string length ${cvs.date}]} {
-	set cvs.args "${cvs.args} -D ${cvs.date}"
+    set cvs.args "${cvs.args} -D ${cvs.date}"
     }
 
     if {[regexp ^:pserver: ${cvs.root}]} {
-	set savecmd ${cvs.cmd}
-	set saveargs ${cvs.args}
-	set savepost_args ${cvs.post_args}
-	set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
-	set cvs.args login
-	set cvs.post_args ""
-	if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
-	    return -code error [msgcat::mc "CVS login failed"]
-	}
-	set cvs.cmd ${savecmd}
-	set cvs.args ${saveargs}
-	set cvs.post_args ${savepost_args}
+    set savecmd ${cvs.cmd}
+    set saveargs ${cvs.args}
+    set savepost_args ${cvs.post_args}
+    set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
+    set cvs.args login
+    set cvs.post_args ""
+    if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
+        return -code error [msgcat::mc "CVS login failed"]
+    }
+    set cvs.cmd ${savecmd}
+    set cvs.args ${saveargs}
+    set cvs.post_args ${savepost_args}
     } else {
-	set env(CVS_RSH) ssh
+    set env(CVS_RSH) ssh
     }
 
     if {[catch {command_exec cvs "" "2>&1"} result]} {
-	return -code error [msgcat::mc "CVS check out failed"]
+    return -code error [msgcat::mc "CVS check out failed"]
     }
 
     if {[info exists patchfiles]} {
-	return [portfetch::fetchfiles]
+    return [portfetch::fetchfiles]
     }
     return 0
 }
@@ -512,33 +512,33 @@ proc portfetch::cvsfetch {args} {
 proc portfetch::svnfetch {args} {
     global workpath prefix_frozen
     global svn.env svn.cmd svn.args svn.post_args svn.revision svn.url svn.method
-    
+
     # Look for the svn command, either in the path or in the prefix
     set goodcmd 0
     foreach svncmd "${svn.cmd} ${prefix_frozen}/bin/svn svn" {
- 	if { [file executable ${svncmd}] } {
- 	   	  set svn.cmd $svncmd
- 	   	  set goodcmd 1
- 	      break;
- 	   }
+    if { [file executable ${svncmd}] } {
+          set svn.cmd $svncmd
+          set goodcmd 1
+          break;
+       }
     }
     if { !$goodcmd } {
-    	ui_error "The subversion tool (svn) is required to fetch ${svn.url}."
-    	ui_error "Please install the subversion port before proceeding."
-		return -code error [msgcat::mc "Subversion check out failed"]
+        ui_error "The subversion tool (svn) is required to fetch ${svn.url}."
+        ui_error "Please install the subversion port before proceeding."
+        return -code error [msgcat::mc "Subversion check out failed"]
     }
-    
+
     set svn.args "${svn.method} ${svn.args}"
     if {[string length ${svn.revision}]} {
-		set svn.args "${svn.args} -r ${svn.revision}"
+        set svn.args "${svn.args} -r ${svn.revision}"
     }
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
-		return -code error [msgcat::mc "Subversion check out failed"]
+        return -code error [msgcat::mc "Subversion check out failed"]
     }
 
     if {[info exists patchfiles]} {
-	return [portfetch::fetchfiles]
+    return [portfetch::fetchfiles]
     }
 
     return 0
@@ -548,7 +548,7 @@ proc portfetch::svnfetch {args} {
 proc portfetch::gitfetch {args} {
     global worksrcpath prefix_frozen
     global git.url git.branch git.sha1
-    
+
     # Look for the git command
     set git.cmd {}
     foreach gitcmd "$portutil::autoconf::git_path $prefix_frozen/bin/git git" {
@@ -562,7 +562,7 @@ proc portfetch::gitfetch {args} {
         ui_error "Please install the git-core port before proceeding."
         return -code error [msgcat::mc "Git command not found"]
     }
-    
+
     set options "-q"
     if {[string length ${git.branch}] == 0} {
         # if we're just using HEAD, we can make a shallow repo
@@ -573,7 +573,7 @@ proc portfetch::gitfetch {args} {
     if {[catch {system $cmdstring} result]} {
         return -code error [msgcat::mc "Git clone failed"]
     }
-    
+
     if {[string length ${git.branch}] > 0} {
         set env "GIT_DIR=${worksrcpath}/.git GIT_WORK_TREE=${worksrcpath}"
         set cmdstring "$env ${git.cmd} checkout -q ${git.branch} 2>&1"
@@ -582,11 +582,11 @@ proc portfetch::gitfetch {args} {
             return -code error [msgcat::mc "Git checkout failed"]
         }
     }
-    
+
     if {[info exists patchfiles]} {
         return [portfetch::fetchfiles]
     }
-    
+
     return 0
 }
 
@@ -625,120 +625,120 @@ proc portfetch::hgfetch {args} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated distfile
 proc portfetch::fetchfiles {args} {
-	global distpath all_dist_files UI_PREFIX
-	global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
-	global distfile site
-	global portverbose
+    global distpath all_dist_files UI_PREFIX
+    global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
+    global distfile site
+    global portverbose
     variable fetch_urls
 
-	if {![file isdirectory $distpath]} {
-		if {[catch {file mkdir $distpath} result]} {
-			return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
-		}
-	}
-	
-	set fetch_options {}
-	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
-		lappend fetch_options -u
-		lappend fetch_options "${fetch.user}:${fetch.password}"
-	}
-	if {${fetch.use_epsv} != "yes"} {
-		lappend fetch_options "--disable-epsv"
-	}
-	if {${fetch.ignore_sslcert} != "no"} {
-		lappend fetch_options "--ignore-ssl-cert"
-	}
-	if {${fetch.remote_time} != "no"} {
-		lappend fetch_options "--remote-time"
-	}
-	if {$portverbose == "yes"} {
-		lappend fetch_options "-v"
-	}
-	set sorted no
-	
-	foreach {url_var distfile} $fetch_urls {
-		if {![file isfile $distpath/$distfile]} {
-			ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
-			if {![file writable $distpath]} {
-				return -code error [format [msgcat::mc "%s must be writable"] $distpath]
-			}
-			if {!$sorted} {
-			    sortsites
-			    set sorted yes
-			}
-			variable portfetch::$url_var
-			if {![info exists $url_var]} {
-				ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-				set url_var master_sites
-				variable portfetch::$url_var
-			}
-			unset -nocomplain fetched
-			foreach site [set $url_var] {
-				ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
-				set file_url [portfetch::assemble_url $site $distfile]
-				set effectiveURL ""
-				if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
-					![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
+    if {![file isdirectory $distpath]} {
+        if {[catch {file mkdir $distpath} result]} {
+            return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
+        }
+    }
 
-					# Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
-					if {![string equal $effectiveURL $file_url] &&
-						[string match "*sourceforge*" $file_url] &&
-						[string match "*failedmirror*" $effectiveURL]} {
-						
-						# *SourceForge hackage in effect*
-						# The url seen by curl seems to have been a redirect to the sourceforge mirror page
-						ui_debug "[msgcat::mc "Fetching from sourceforge mirror failed"]"
-						file delete -force "${distpath}/${distfile}.TMP"
-						
-						# Continue on to try the next mirror, if any
-					} else {
-					
-						# Successful fetch
-						set fetched 1
-						break
-					
-					}
+    set fetch_options {}
+    if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
+        lappend fetch_options -u
+        lappend fetch_options "${fetch.user}:${fetch.password}"
+    }
+    if {${fetch.use_epsv} != "yes"} {
+        lappend fetch_options "--disable-epsv"
+    }
+    if {${fetch.ignore_sslcert} != "no"} {
+        lappend fetch_options "--ignore-ssl-cert"
+    }
+    if {${fetch.remote_time} != "no"} {
+        lappend fetch_options "--remote-time"
+    }
+    if {$portverbose == "yes"} {
+        lappend fetch_options "-v"
+    }
+    set sorted no
 
-				} else {
-					ui_debug "[msgcat::mc "Fetching failed:"]: $result"
-					file delete -force "${distpath}/${distfile}.TMP"
-				}
-			}
-			if {![info exists fetched]} {
-				return -code error [msgcat::mc "fetch failed"]
-			}
-		}
-	}
+    foreach {url_var distfile} $fetch_urls {
+        if {![file isfile $distpath/$distfile]} {
+            ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
+            if {![file writable $distpath]} {
+                return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+            }
+            if {!$sorted} {
+                sortsites
+                set sorted yes
+            }
+            variable portfetch::$url_var
+            if {![info exists $url_var]} {
+                ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
+                set url_var master_sites
+                variable portfetch::$url_var
+            }
+            unset -nocomplain fetched
+            foreach site [set $url_var] {
+                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+                set file_url [portfetch::assemble_url $site $distfile]
+                set effectiveURL ""
+                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
+                    ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
+
+                    # Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
+                    if {![string equal $effectiveURL $file_url] &&
+                        [string match "*sourceforge*" $file_url] &&
+                        [string match "*failedmirror*" $effectiveURL]} {
+
+                        # *SourceForge hackage in effect*
+                        # The url seen by curl seems to have been a redirect to the sourceforge mirror page
+                        ui_debug "[msgcat::mc "Fetching from sourceforge mirror failed"]"
+                        file delete -force "${distpath}/${distfile}.TMP"
+
+                        # Continue on to try the next mirror, if any
+                    } else {
+
+                        # Successful fetch
+                        set fetched 1
+                        break
+
+                    }
+
+                } else {
+                    ui_debug "[msgcat::mc "Fetching failed:"]: $result"
+                    file delete -force "${distpath}/${distfile}.TMP"
+                }
+            }
+            if {![info exists fetched]} {
+                return -code error [msgcat::mc "fetch failed"]
+            }
+        }
+    }
     return 0
 }
 
 # Utility function to delete fetched files.
 proc portfetch::fetch_deletefiles {args} {
-	global distpath
+    global distpath
     variable fetch_urls
-	foreach {url_var distfile} $fetch_urls {
-		if {[file isfile $distpath/$distfile]} {
-			file delete -force "${distpath}/${distfile}"
-		}
-	}
+    foreach {url_var distfile} $fetch_urls {
+        if {[file isfile $distpath/$distfile]} {
+            file delete -force "${distpath}/${distfile}"
+        }
+    }
 }
 
 # Utility function to add files to a list of fetched files.
 proc portfetch::fetch_addfilestomap {filemapname} {
-	global distpath $filemapname
+    global distpath $filemapname
     variable fetch_urls
-	foreach {url_var distfile} $fetch_urls {
-		if {[file isfile $distpath/$distfile]} {
-			filemap set $filemapname $distpath/$distfile 1
-		}
-	}
+    foreach {url_var distfile} $fetch_urls {
+        if {[file isfile $distpath/$distfile]} {
+            filemap set $filemapname $distpath/$distfile 1
+        }
+    }
 }
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     global altprefix usealtworkpath
-    
+
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
 
         # start gsoc08-privileges
@@ -757,7 +757,7 @@ proc portfetch::fetch_init {args} {
 
 proc portfetch::fetch_start {args} {
     global UI_PREFIX portname
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
 }
 
@@ -772,14 +772,14 @@ proc portfetch::fetch_main {args} {
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
         return 0
     }
-    
+
     # Fetch the files
     switch -- "${fetch.type}" {
-    	cvs		{ return [cvsfetch] }
-    	svn		{ return [svnfetch] }
-    	git		{ return [gitfetch] }
-    	hg		{ return [hgfetch] }
-    	standard -
-    	default	{ return [portfetch::fetchfiles] }
+        cvs     { return [cvsfetch] }
+        svn     { return [svnfetch] }
+        git     { return [gitfetch] }
+        hg      { return [hgfetch] }
+        standard -
+        default { return [portfetch::fetchfiles] }
     }
 }
