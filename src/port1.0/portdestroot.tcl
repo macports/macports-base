@@ -17,7 +17,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -91,43 +91,43 @@ proc portdestroot::destroot_start {args} {
     global destroot.umask destroot.asroot macportsuser euid egid usealtworkpath altprefix
     global applications_dir frameworks_dir
     variable oldmask
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${portname}]"
 
-	# start gsoc08-privileges
-	if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } { 
-	# if started with sudo but have dropped the privileges
-		ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
-		ui_debug "Run destroot without sudo to avoid root privileges."
-		ui_debug "Going to escalate privileges back to root."
-		setegid $egid	
-		seteuid $euid	
-		ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-	}
-	
-	if { [tbool destroot.asroot] && [getuid] != 0 } {
-		global errorisprivileges
-		set errorisprivileges yes
-		return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
-	}
-	
-	if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-	    # rewrite destroot.args
-	    set argprefix "=[option prefix]"
-	    set newargprefix "=${altprefix}[option prefix]"
-	    set newdestrootargs [string map [list $argprefix $newargprefix] [option destroot.args]]
-	    option destroot.args $newdestrootargs
-	}
-	
-	# end gsoc08-privileges
+    # start gsoc08-privileges
+    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+    # if started with sudo but have dropped the privileges
+        ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
+        ui_debug "Run destroot without sudo to avoid root privileges."
+        ui_debug "Going to escalate privileges back to root."
+        setegid $egid
+        seteuid $euid
+        ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
+    }
+
+    if { [tbool destroot.asroot] && [getuid] != 0 } {
+        global errorisprivileges
+        set errorisprivileges yes
+        return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+    }
+
+    if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
+        # rewrite destroot.args
+        set argprefix "=[option prefix]"
+        set newargprefix "=${altprefix}[option prefix]"
+        set newdestrootargs [string map [list $argprefix $newargprefix] [option destroot.args]]
+        option destroot.args $newdestrootargs
+    }
+
+    # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
     set mtree ${portutil::autoconf::mtree_path}
-    
+
     if { ${destroot.clean} == "yes" } {
         delete "${destroot}"
     }
-    
+
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
         system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
@@ -330,10 +330,10 @@ proc portdestroot::destroot_finish {args} {
 
     # Restore umask
     umask $oldmask
-    
+
     # start gsoc08-privileges
-	chownAsRoot $destroot
-	# end gsoc08-privileges
+    chownAsRoot $destroot
+    # end gsoc08-privileges
 
     return 0
 }

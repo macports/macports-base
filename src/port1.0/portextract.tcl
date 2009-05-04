@@ -131,11 +131,11 @@ proc portextract::extract_main {args} {
         if {[catch {command_exec extract} result]} {
             return -code error "$result"
         }
-	
-	# start gsoc08-privileges
-	chownAsRoot ${extract.dir}
-	# end gsoc08-privileges
-	
+
+    # start gsoc08-privileges
+    chownAsRoot ${extract.dir}
+    # end gsoc08-privileges
+
     }
     return 0
 }

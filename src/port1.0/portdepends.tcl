@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -53,16 +53,16 @@ set_ui_prefix
 proc portdepends::validate_depends_options {option action {value ""}} {
     global targets
     switch $action {
-		set {
-			foreach depspec $value {
-			    # port syntax accepts colon-separated junk that we do not understand yet.
-				switch -regex $depspec {
-					^(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-._A-Za-z0-9]+)$ {}
-					^(port)(:.+)?:([-._A-Za-z0-9]+)$ {}
-					default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
-				}
-			}
-		}
+        set {
+            foreach depspec $value {
+                # port syntax accepts colon-separated junk that we do not understand yet.
+                switch -regex $depspec {
+                    ^(lib|bin|path):([-A-Za-z0-9_/.${}^?+()|\\\\]+):([-._A-Za-z0-9]+)$ {}
+                    ^(port)(:.+)?:([-._A-Za-z0-9]+)$ {}
+                    default { return -code error [format [msgcat::mc "invalid depspec: %s"] $depspec] }
+                }
+            }
+        }
     }
 }
 

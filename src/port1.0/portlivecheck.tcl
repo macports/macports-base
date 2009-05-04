@@ -18,7 +18,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -62,7 +62,7 @@ proc portlivecheck::livecheck_main {args} {
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
     global homepage portname portpath workpath
     global master_sites name distfiles
-    
+
     set updated 0
     set updated_version "unknown"
     set has_master_sites [info exists master_sites]
@@ -111,16 +111,16 @@ proc portlivecheck::livecheck_main {args} {
 
     # Copied over from portfetch in parts
     set fetch_options {}
-	if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
-		lappend fetch_options -u
-		lappend fetch_options "${fetch.user}:${fetch.password}"
-	}
-	if {${fetch.use_epsv} != "yes"} {
-		lappend fetch_options "--disable-epsv"
-	}
-	if {${fetch.ignore_sslcert} != "no"} {
-		lappend fetch_options "--ignore-ssl-cert"
-	}
+    if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
+        lappend fetch_options -u
+        lappend fetch_options "${fetch.user}:${fetch.password}"
+    }
+    if {${fetch.use_epsv} != "yes"} {
+        lappend fetch_options "--disable-epsv"
+    }
+    if {${fetch.ignore_sslcert} != "no"} {
+        lappend fetch_options "--ignore-ssl-cert"
+    }
 
     # Perform the check depending on the type.
     switch ${livecheck.check} {
@@ -170,10 +170,10 @@ proc portlivecheck::livecheck_main {args} {
             set livecheck.check "regex"
         }
     }
-    
+
     # de-escape livecheck.url
     set livecheck.url [join ${livecheck.url}]
-    
+
     switch ${livecheck.check} {
         "regex" -
         "regexm" {

@@ -18,7 +18,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its
 #    contributors may be used to endorse or promote products derived from
 #    this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -52,37 +52,37 @@ namespace eval portmirror {
 # It also records the path in a database.
 
 proc portmirror::mirror_main {args} {
-	global fetch.type portname mirror_filemap ports_mirror_new portdbpath
-	
-	set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
-	if {![info exists mirror_filemap]
-		&& [info exists ports_mirror_new]
-		&& $ports_mirror_new == "yes"
-		&& [file exists $mirror_filemap_path]} {
-		# Trash the map file if it existed.
-		file delete -force $mirror_filemap_path
-	}
-	
-	filemap open mirror_filemap $mirror_filemap_path
+    global fetch.type portname mirror_filemap ports_mirror_new portdbpath
 
-	# Check the distfiles if it's a regular fetch phase.
-	if {"${fetch.type}" == "standard"} {
-		# fetch the files.
-		portfetch::fetch_init $args
-		#fetch_start
-		portfetch::fetch_main $args
+    set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
+    if {![info exists mirror_filemap]
+        && [info exists ports_mirror_new]
+        && $ports_mirror_new == "yes"
+        && [file exists $mirror_filemap_path]} {
+        # Trash the map file if it existed.
+        file delete -force $mirror_filemap_path
+    }
 
-		# checksum the files.
-		#checksum_start
-		if {[catch {portchecksum::checksum_main $args}]} {
-			# delete the files.
-			portfetch::fetch_deletefiles $args
-		} else {
-			# add the list of files.
-			portfetch::fetch_addfilestomap mirror_filemap
-		}
-	}
+    filemap open mirror_filemap $mirror_filemap_path
 
-	# close the filemap.
-	filemap close mirror_filemap
+    # Check the distfiles if it's a regular fetch phase.
+    if {"${fetch.type}" == "standard"} {
+        # fetch the files.
+        portfetch::fetch_init $args
+        #fetch_start
+        portfetch::fetch_main $args
+
+        # checksum the files.
+        #checksum_start
+        if {[catch {portchecksum::checksum_main $args}]} {
+            # delete the files.
+            portfetch::fetch_deletefiles $args
+        } else {
+            # add the list of files.
+            portfetch::fetch_addfilestomap mirror_filemap
+        }
+    }
+
+    # close the filemap.
+    filemap close mirror_filemap
 }
