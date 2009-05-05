@@ -1985,40 +1985,6 @@ proc action_platform { action portlist opts } {
 }
 
 
-proc action_compact { action portlist opts } {
-    set status 0
-    if {[require_portlist portlist]} {
-        return 1
-    }
-    foreachport $portlist {
-        if { [catch {portimage::compact $portname [composite_version $portversion [array get variations]]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "port compact failed: $result" 1 status
-        }
-    }
-
-    return $status
-}
-
-
-proc action_uncompact { action portlist opts } {
-    set status 0
-    if {[require_portlist portlist]} {
-        return 1
-    }
-    foreachport $portlist {
-        if { [catch {portimage::uncompact $portname [composite_version $portversion [array get variations]]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "port uncompact failed: $result" 1 status
-        }
-    }
-    
-    return $status
-}
-
-
 proc action_dependents { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1

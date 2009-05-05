@@ -1241,7 +1241,7 @@ proc _porttest {mport depspec} {
     return 0
 }
 
-# Determine if a port is active (only for image mode)
+# Determine if a port is active
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
     if {[catch {set reslist [$workername eval registry_active \${portname}]}]} {
@@ -1254,7 +1254,7 @@ proc _mportactive {mport} {
 ### _mportispresent is private; may change without notice
 
 # Determine if some depspec is satisfied or if the given port is installed
-# (and active, if we're in image mode).
+# and active
 # We actually start with the registry (faster?)
 #
 # mport     the port to test (to figure out if it's present)
@@ -1344,8 +1344,6 @@ proc mportexec {mport target} {
         dlist_delete dlist $mport
 
         # install them
-        # xxx: as with below, this is ugly.  and deps need to be fixed to
-        # understand Port Images before this can get prettier
         set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
 
         if {$result != {}} {

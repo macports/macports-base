@@ -42,10 +42,6 @@ Removes file associates with given ports
 --all         Removes everything from above
 }
 
-set porthelp(compact) {
-Compact the given ports (unimplemented)
-}
-
 set porthelp(configure) {
 Configure the given ports
 }
@@ -271,10 +267,6 @@ Run tests on each of the given ports
 
 set porthelp(unarchive) {
 Unarchive the given ports
-}
-
-set porthelp(uncompact) {
-Uncompact a port (unimplemented)
 }
 
 set porthelp(uninstall) {
