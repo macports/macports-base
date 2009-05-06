@@ -161,7 +161,7 @@ proc portinstall::install_main {args} {
         registry_prop_store $regref description $description
     }
     if {[info exists long_description]} {
-        registry_prop_store $regref long_description ${long_description}
+        registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
     }
     if {[info exists homepage]} {
         registry_prop_store $regref homepage ${homepage}
