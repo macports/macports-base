@@ -124,7 +124,7 @@ proc uninstall {portname {v ""} optionslist} {
 
 	if {[registry::property_retrieve $ref active] == 1} {
 		#return -code error [msgcat::mc "Registry Error: ${portname} ${version}_${revision}${variants} is active."]
-		portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
+		registry::deactivate $portname ${version}_${revision}${variants} $optionslist
 	}
 
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
