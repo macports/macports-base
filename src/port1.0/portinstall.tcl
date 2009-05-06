@@ -101,16 +101,8 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
     foreach name [readdir .] {
         set element [file join $cwd $name]
 
-        # XXX jpm's cross-platform code to find file separator
-        # replace with [file seperator] with tcl 8.4
         if {![info exists root]} {
-            if {[string match [file tail "/monkey"] "monkey"]} {
-                set root "/"
-            } elseif {[string match [file tail ":monkey"] "monkey"]} {
-                set root ":" 
-            } else {
-                set root "\\"
-            }
+            set root [file separator]
         }
 
         set imagedir [registry_prop_retr $regref imagedir]
@@ -155,7 +147,7 @@ proc portinstall::install_main {args} {
         registry_prop_store $regref description $description
     }
     if {[info exists long_description]} {
-        registry_prop_store $regref long_description ${long_description}
+        registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
     }
     if {[info exists homepage]} {
         registry_prop_store $regref homepage ${homepage}
