@@ -3171,12 +3171,6 @@ proc parse_options { action ui_options_name global_options_name } {
                     R {
                         set global_options(ports_do_dependents) yes
                     }
-                    s {
-                        set global_options(ports_source_only) yes
-                    }
-                    b {
-                        set global_options(ports_binary_only) yes
-                    }
                     c {
                         set global_options(ports_autoclean) yes
                     }

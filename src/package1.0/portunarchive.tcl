@@ -62,7 +62,7 @@ set_ui_prefix
 
 proc portunarchive::unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
-	global ports_force ports_source_only ports_binary_only
+	global ports_force
 	global portname portversion portrevision portvariants portpath
 	global unarchive.srcpath unarchive.type unarchive.file unarchive.path unarchive.fullsrcpath
 
@@ -89,9 +89,6 @@ proc portunarchive::unarchive_init {args} {
 	set skipped 0
 	if {[check_statefile target org.macports.unarchive $target_state_fd]} {
 		return 0
-	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
-		ui_debug "Skipping unarchive ($portname) since source-only is set"
-		set skipped 1
 	} elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
 		ui_debug "Skipping unarchive ($portname) since destroot completed"
 		set skipped 1
@@ -119,16 +116,12 @@ proc portunarchive::unarchive_init {args} {
 		if {$found == 1} {
 			ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
 		} else {
-			if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-				return -code error "Archive for ${portname} ${portversion}_${portrevision}${portvariants} not found, required when binary-only is set!"
+			if {[llength [option portarchivetype]] == $unsupported} {
+				ui_debug "Skipping unarchive ($portname) since specified archive types not supported"
 			} else {
-				if {[llength [option portarchivetype]] == $unsupported} {
-					ui_debug "Skipping unarchive ($portname) since specified archive types not supported"
-				} else {
-					ui_debug "Skipping unarchive ($portname) since no archive found"
-				}
-				set skipped 1
+				ui_debug "Skipping unarchive ($portname) since no archive found"
 			}
+			set skipped 1
 		}
 	}
 	# Skip unarchive target by setting state

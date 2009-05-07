@@ -66,7 +66,7 @@ set_ui_prefix
 proc portarchive::archive_init {args} {
 	global UI_PREFIX target_state_fd
 	global variations package.destpath workpath
-	global ports_force ports_source_only ports_binary_only
+	global ports_force
 	global portname portversion portrevision portvariants
 	global archive.destpath archive.type archive.meta
 	global archive.file archive.path archive.fulldestpath
@@ -94,12 +94,6 @@ proc portarchive::archive_init {args} {
 	set skipped 0
 	if {[check_statefile target org.macports.archive $target_state_fd]} {
 		return 0
-	} elseif {[check_statefile target org.macports.unarchive $target_state_fd] && ([info exists ports_binary_only] && $ports_binary_only == "yes")} {
-		ui_debug "Skipping archive ($portname) since binary-only is set"
-		set skipped 1
-	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
-		ui_debug "Skipping archive ($portname) since source-only is set"
-		set skipped 1
 	} else {
 		set unsupported 0
 		set any_missing no
