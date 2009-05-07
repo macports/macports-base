@@ -450,6 +450,9 @@ proc variant {args} {
     array set vinfo $PortInfo(vinfo)
 
     set len [llength $args]
+    if {$len < 2} {
+        return -code error "Malformed variant specification"
+    }
     set code [lindex $args end]
     set args [lrange $args 0 [expr $len - 2]]
 

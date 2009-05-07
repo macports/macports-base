@@ -150,7 +150,7 @@ proc portinstall::install_main {args} {
     registry_prop_store $regref categories $categories
     
     if {[info exists description]} {
-        registry_prop_store $regref description $description
+        registry_prop_store $regref description [string map {\n \\n} ${description}]
     }
     if {[info exists long_description]} {
         registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
