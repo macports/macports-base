@@ -36,7 +36,7 @@ package require portutil 1.0
 
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install
-target_requires ${org.macports.install} main unarchive fetch extract checksum patch configure build destroot archive
+target_requires ${org.macports.install} main fetch extract checksum patch configure build destroot archive
 target_prerun ${org.macports.install} portinstall::install_start
 
 namespace eval portinstall {

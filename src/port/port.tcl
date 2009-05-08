@@ -2971,7 +2971,6 @@ array set action_array [list \
     distfiles   [list action_target         [action_args_const ports]] \
     \
     archive     [list action_target         [action_args_const ports]] \
-    unarchive   [list action_target         [action_args_const ports]] \
     dmg         [list action_target         [action_args_const ports]] \
     mdmg        [list action_target         [action_args_const ports]] \
     dpkg        [list action_target         [action_args_const ports]] \

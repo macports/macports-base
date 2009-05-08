@@ -265,10 +265,6 @@ set porthelp(test) {
 Run tests on each of the given ports
 }
 
-set porthelp(unarchive) {
-Unarchive the given ports
-}
-
 set porthelp(uninstall) {
 Uninstall the given ports
 }
