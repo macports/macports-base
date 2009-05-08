@@ -28,7 +28,7 @@ case "$MACOSX_VERSION" in
     AC_WARN(This version of Mac OS X is not supported)
     AC_WARN(Please upgrade at http://store.apple.com/)
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-4]])
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-5]])
     AC_WARN(This version of Mac OS X is out of date)
     AC_WARN(Please run Software Update to update it)
     ;;
@@ -126,7 +126,6 @@ if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
 fi
 
 MP_PROG_DAEMONDO
-#MP_PROG_XAR
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
@@ -161,7 +160,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_HEADER_STAT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
 	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"

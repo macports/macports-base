@@ -2242,7 +2242,7 @@ $as_echo "$as_me: WARNING: This version of Mac OS X is not supported" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please upgrade at http://store.apple.com/" >&5
 $as_echo "$as_me: WARNING: Please upgrade at http://store.apple.com/" >&2;}
     ;;
-  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-9]|10.4.10|10.5.[0-4])
+  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-9]|10.4.10|10.5.[0-5])
     { $as_echo "$as_me:$LINENO: WARNING: This version of Mac OS X is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please run Software Update to update it" >&5
@@ -6877,7 +6877,6 @@ $as_echo_n "checking for whether we will build daemondo... " >&6; }
 	{ $as_echo "$as_me:$LINENO: result: ${result}" >&5
 $as_echo "${result}" >&6; }
 
-#MP_PROG_XAR
 
 
 
@@ -8045,8 +8044,7 @@ fi
 
 
 
-
-for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
+for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
 	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h
 do
 as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
