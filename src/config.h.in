@@ -67,9 +67,6 @@
 /* Define to 1 if you have the `flock' function. */
 #undef HAVE_FLOCK
 
-/* Define to 1 if you have the `fork' function. */
-#undef HAVE_FORK
-
 /* Define if CoreFoundation framework is available */
 #undef HAVE_FRAMEWORK_COREFOUNDATION
 
@@ -199,18 +196,6 @@
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
 
-/* Define to 1 if you have the `vfork' function. */
-#undef HAVE_VFORK
-
-/* Define to 1 if you have the <vfork.h> header file. */
-#undef HAVE_VFORK_H
-
-/* Define to 1 if `fork' works. */
-#undef HAVE_WORKING_FORK
-
-/* Define to 1 if `vfork' works. */
-#undef HAVE_WORKING_VFORK
-
 /* Lowest non-system-reserved GID. */
 #undef MIN_USABLE_GID
 
@@ -257,9 +242,3 @@
 
 /* Attribute to mark unused variables */
 #undef UNUSED
-
-/* Define to `int' if <sys/types.h> does not define. */
-#undef pid_t
-
-/* Define as `fork' if `vfork' does not work. */
-#undef vfork
