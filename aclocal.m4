@@ -572,21 +572,6 @@ AC_DEFUN([MP_LIB_MD5],[
 	AC_SUBST([MD5_LIBS])
 ])
 
-# MP_PROG_XAR
-#---------------------------------------
-AC_DEFUN([MP_PROG_XAR],[
-
-	AC_PATH_PROG([XAR], [xar], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
-
-	if test "x$XAR" = "x" ; then
-		AC_CONFIG_SUBDIRS([src/programs/xar])
-		XAR='$(TOPSRCDIR)/src/programs/xar/xar'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS xar"
-	fi
-
-	AC_SUBST(XAR)
-])
-
 # MP_PROG_DAEMONDO
 #---------------------------------------
 AC_DEFUN([MP_PROG_DAEMONDO],[
@@ -806,29 +791,6 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
 ])
-
-# MP_LIBCURL_VERSION
-#	Determine the version of libcurl.
-#
-# Arguments:
-#	None.
-#
-# Requires:
-#	CURL must be set (AC_PATH_PROG(CURL, [curl], []))
-#
-# Results:
-#   sets libcurl_version to "0" or some number
-#---------------------------------------
-AC_DEFUN([MP_LIBCURL_VERSION],[
-	if test "x$CURL" = "x"; then
-		libcurl_version="0"
-	else
-		AC_MSG_CHECKING([libcurl version])
-		libcurl_version=`$CURL -V | sed '2,$d' | awk '{print $ 2}' | sed -e 's/\.//g' -e 's/-.*//g'`
-		AC_MSG_RESULT([$libcurl_version])
-	fi
-])
-
 
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters
