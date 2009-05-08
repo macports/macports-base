@@ -92,18 +92,20 @@ for {set i 0} {$i < $argc} {incr i} {
         {^-.+} {
             if {$arg == "-a"} { # Turn on archiving
                 set archive 1
-        } elseif {$arg == "-d"} { # Turn on debug output
-            set ui_options(ports_debug) yes
-        } elseif {$arg == "-o"} { # Set output directory
-            incr i
-            set outdir [lindex $argv $i]
-        } else {
-            puts stderr "Unknown option: $arg"
-            print_usage
-            exit 1
+            } elseif {$arg == "-d"} { # Turn on debug output
+                set ui_options(ports_debug) yes
+            } elseif {$arg == "-o"} { # Set output directory
+                incr i
+                set outdir [lindex $argv $i]
+            } else {
+                puts stderr "Unknown option: $arg"
+                print_usage
+                exit 1
+            }
         }
-    }
-    default { set directory $arg }
+        default {
+            set directory $arg
+        }
     }
 }
 
