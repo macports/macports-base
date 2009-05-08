@@ -5,6 +5,7 @@ AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d 
 AC_INIT([MacPorts],[MACPORTS_VERSION_MACRO],[macports-dev@lists.macosforge.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
+
 AC_CANONICAL_TARGET
 
 # Read in the MacPorts version from the base/config/macports_version file
@@ -16,7 +17,10 @@ AC_SUBST(MACPORTS_VERSION)
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
 
-AC_CHECK_PROGS(SW_VERS, sw_vers)
+AC_PATH_PROG(SW_VERS, sw_vers)
+AC_PATH_PROG(DEFAULTS, defaults)
+AC_PATH_PROG(XCODE_SELECT, xcode-select)
+
 if test "x$SW_VERS" != "x"; then
   AC_MSG_CHECKING(Mac OS X version)
   MACOSX_VERSION=`$SW_VERS -productVersion`
@@ -39,10 +43,21 @@ case "$MACOSX_VERSION" in
     ;;
 esac
 
-XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
+# locate currently selected Xcode path
+if test "x$XCODE_SELECT" != "x"; then
+  AC_MSG_CHECKING(Xcode location)
+  DEVELOPER_DIR=`$XCODE_SELECT -print-path`
+  AC_MSG_RESULT([$DEVELOPER_DIR])
+fi
+
+XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
   AC_MSG_CHECKING(Xcode version)
-  XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
+  if test "x$DEFAULTS" != "x"; then
+    XCODE_VERSION=`$DEFAULTS read $DEVELOPER_DIR/Applications/Xcode.app/Contents/version CFBundleShortVersionString`
+  else
+    XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
+  fi
   AC_MSG_RESULT([$XCODE_VERSION])
 fi
 
@@ -51,7 +66,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is not supported])
     AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
     ;;
-  1.[[2-4]]*|2.[[2-3]]*)
+  1.[[2-4]]*|2.[[2-3]]*|3.[[0]]*)
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;

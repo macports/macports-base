@@ -744,6 +744,8 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+XCODE_SELECT
+DEFAULTS
 SW_VERS
 MACPORTS_VERSION
 target_os
@@ -1994,6 +1996,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_config_headers="$ac_config_headers src/config.h"
 
+
 ac_aux_dir=
 for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
   if test -f "$ac_dir/install-sh"; then
@@ -2185,26 +2188,26 @@ $as_echo "$MACPORTS_VERSION" >&6; }
 	prefix=$oldprefix
 
 
-for ac_prog in sw_vers
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+# Extract the first word of "sw_vers", so it can be a program name with args.
+set dummy sw_vers; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if test "${ac_cv_prog_SW_VERS+set}" = set; then
+if test "${ac_cv_path_SW_VERS+set}" = set; then
   $as_echo_n "(cached) " >&6
 else
-  if test -n "$SW_VERS"; then
-  ac_cv_prog_SW_VERS="$SW_VERS" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $SW_VERS in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SW_VERS="$SW_VERS" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_SW_VERS="$ac_prog"
+    ac_cv_path_SW_VERS="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -2212,9 +2215,10 @@ done
 done
 IFS=$as_save_IFS
 
+  ;;
+esac
 fi
-fi
-SW_VERS=$ac_cv_prog_SW_VERS
+SW_VERS=$ac_cv_path_SW_VERS
 if test -n "$SW_VERS"; then
   { $as_echo "$as_me:$LINENO: result: $SW_VERS" >&5
 $as_echo "$SW_VERS" >&6; }
@@ -2224,8 +2228,86 @@ $as_echo "no" >&6; }
 fi
 
 
-  test -n "$SW_VERS" && break
+# Extract the first word of "defaults", so it can be a program name with args.
+set dummy defaults; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_DEFAULTS+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $DEFAULTS in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DEFAULTS="$DEFAULTS" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_DEFAULTS="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
 done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+DEFAULTS=$ac_cv_path_DEFAULTS
+if test -n "$DEFAULTS"; then
+  { $as_echo "$as_me:$LINENO: result: $DEFAULTS" >&5
+$as_echo "$DEFAULTS" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "xcode-select", so it can be a program name with args.
+set dummy xcode-select; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_XCODE_SELECT+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $XCODE_SELECT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XCODE_SELECT="$XCODE_SELECT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_XCODE_SELECT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+XCODE_SELECT=$ac_cv_path_XCODE_SELECT
+if test -n "$XCODE_SELECT"; then
+  { $as_echo "$as_me:$LINENO: result: $XCODE_SELECT" >&5
+$as_echo "$XCODE_SELECT" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
 
 if test "x$SW_VERS" != "x"; then
   { $as_echo "$as_me:$LINENO: checking Mac OS X version" >&5
@@ -2254,11 +2336,24 @@ $as_echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
     ;;
 esac
 
-XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
+# locate currently selected Xcode path
+if test "x$XCODE_SELECT" != "x"; then
+  { $as_echo "$as_me:$LINENO: checking Xcode location" >&5
+$as_echo_n "checking Xcode location... " >&6; }
+  DEVELOPER_DIR=`$XCODE_SELECT -print-path`
+  { $as_echo "$as_me:$LINENO: result: $DEVELOPER_DIR" >&5
+$as_echo "$DEVELOPER_DIR" >&6; }
+fi
+
+XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
   { $as_echo "$as_me:$LINENO: checking Xcode version" >&5
 $as_echo_n "checking Xcode version... " >&6; }
-  XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([0-9.]*\)<\/string>.*/\1/'`
+  if test "x$DEFAULTS" != "x"; then
+    XCODE_VERSION=`$DEFAULTS read $DEVELOPER_DIR/Applications/Xcode.app/Contents/version CFBundleShortVersionString`
+  else
+    XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([0-9.]*\)<\/string>.*/\1/'`
+  fi
   { $as_echo "$as_me:$LINENO: result: $XCODE_VERSION" >&5
 $as_echo "$XCODE_VERSION" >&6; }
 fi
@@ -2270,7 +2365,7 @@ $as_echo "$as_me: WARNING: This version of Xcode Tools is not supported" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please upgrade at http://connect.apple.com/" >&5
 $as_echo "$as_me: WARNING: Please upgrade at http://connect.apple.com/" >&2;}
     ;;
-  1.[2-4]*|2.[2-3]*)
+  1.[2-4]*|2.[2-3]*|3.[0]*)
     { $as_echo "$as_me:$LINENO: WARNING: This version of Xcode Tools is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Xcode Tools is out of date" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please consider upgrading as some ports fail compiling" >&5
