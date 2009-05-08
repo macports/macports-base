@@ -79,7 +79,7 @@ AC_DEFUN([MP_COMPILER_ATTRIBUTE_LF_PRIVATE], [
 #------------------------------------------------------------------------
 AC_DEFUN([MP_OBJC_RUNTIME],[
 	AC_REQUIRE([AC_PROG_OBJC])
-	AC_ARG_WITH(objc-runtime, AC_HELP_STRING([--with-objc-runtime], [Specify either "GNU" or "apple"]), [with_objc_runtime=${withval}])
+	AC_ARG_WITH(objc-runtime, AS_HELP_STRING([--with-objc-runtime],[Specify either "GNU" or "apple"]), [with_objc_runtime=${withval}])
 
 	if test x"${with_objc_runtime}" != x; then
 		case "${with_objc_runtime}" in

@@ -1,11 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
-AC_PREREQ(2.52)
+AC_PREREQ(2.63)
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d '\n')])
-AC_INIT([MacPorts], [MACPORTS_VERSION_MACRO], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts],[MACPORTS_VERSION_MACRO],[macports-dev@lists.macosforge.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
-AC_CANONICAL_SYSTEM
+
+AC_CANONICAL_TARGET
 
 # Read in the MacPorts version from the base/config/macports_version file
 AC_MSG_CHECKING(MacPorts version)
@@ -16,7 +17,10 @@ AC_SUBST(MACPORTS_VERSION)
 # Check user PATH for MP paths, and remove as necessary.
 MP_PATH_SCAN
 
-AC_CHECK_PROGS(SW_VERS, sw_vers)
+AC_PATH_PROG(SW_VERS, sw_vers)
+AC_PATH_PROG(DEFAULTS, defaults)
+AC_PATH_PROG(XCODE_SELECT, xcode-select)
+
 if test "x$SW_VERS" != "x"; then
   AC_MSG_CHECKING(Mac OS X version)
   MACOSX_VERSION=`$SW_VERS -productVersion`
@@ -25,12 +29,12 @@ fi
 
 case "$MACOSX_VERSION" in
   10.0*|10.1*|10.2*)
-    AC_WARN(This version of Mac OS X is not supported)
-    AC_WARN(Please upgrade at http://store.apple.com/)
+    AC_MSG_WARN([This version of Mac OS X is not supported])
+    AC_MSG_WARN([Please upgrade at http://store.apple.com/])
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-4]])
-    AC_WARN(This version of Mac OS X is out of date)
-    AC_WARN(Please run Software Update to update it)
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-5]])
+    AC_MSG_WARN([This version of Mac OS X is out of date])
+    AC_MSG_WARN([Please run Software Update to update it])
     ;;
   10.3*|10.4*|10.5*)
     dnl Supported version
@@ -39,21 +43,32 @@ case "$MACOSX_VERSION" in
     ;;
 esac
 
-XCODEPLIST=/Developer/Applications/Xcode.app/Contents/version.plist
+# locate currently selected Xcode path
+if test "x$XCODE_SELECT" != "x"; then
+  AC_MSG_CHECKING(Xcode location)
+  DEVELOPER_DIR=`$XCODE_SELECT -print-path`
+  AC_MSG_RESULT([$DEVELOPER_DIR])
+fi
+
+XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
   AC_MSG_CHECKING(Xcode version)
-  XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
+  if test "x$DEFAULTS" != "x"; then
+    XCODE_VERSION=`$DEFAULTS read $DEVELOPER_DIR/Applications/Xcode.app/Contents/version CFBundleShortVersionString`
+  else
+    XCODE_VERSION=`tr -d '\r\n' < $XCODEPLIST | sed -e 's/.*<key>CFBundleShortVersionString<\/key>.<string>\([[0-9.]]*\)<\/string>.*/\1/'`
+  fi
   AC_MSG_RESULT([$XCODE_VERSION])
 fi
 
 case "$XCODE_VERSION" in
   1.[[0-1]]*|2.[[0-1]]*)
-    AC_WARN(This version of Xcode Tools is not supported)
-    AC_WARN(Please upgrade at http://connect.apple.com/)
+    AC_MSG_WARN([This version of Xcode Tools is not supported])
+    AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
     ;;
-  1.[[2-4]]*|2.[[2-3]]*)
-    AC_WARN(This version of Xcode Tools is out of date)
-    AC_WARN(Please consider upgrading as some ports fail compiling)
+  1.[[2-4]]*|2.[[2-3]]*|3.[[0]]*)
+    AC_MSG_WARN([This version of Xcode Tools is out of date])
+    AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
   1.5*|2.4*|3.*)
     dnl Supported version
@@ -126,7 +141,6 @@ if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
 fi
 
 MP_PROG_DAEMONDO
-#MP_PROG_XAR
 
 AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
@@ -160,24 +174,20 @@ MP_UNIVERSAL_OPTIONS
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_HEADER_STAT
-AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h libgen.h sys/socket.h \
+AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
 	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
 # Checks for library functions.
-AC_FUNC_CLOSEDIR_VOID
-AC_FUNC_FORK
-AC_FUNC_STRERROR_R
-AC_CHECK_FUNCS([bzero memset dup2 regcomp strdup strerror strtol fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile clearenv])
+AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp strlcpy copyfile clearenv])
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
 MP_LIB_MD5
 
 # Check for readline
-AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readline present.]),
+AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline

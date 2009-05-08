@@ -620,7 +620,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::buildnicevalue 0
     }
     if {![info exists macports::buildmakejobs]} {
-        set macports::buildmakejobs 1
+        set macports::buildmakejobs 0
     }
 
     # Default mp universal options

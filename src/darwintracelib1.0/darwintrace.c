@@ -324,6 +324,7 @@ static void ask_for_filemap()
 		filemap=0;
 }
 
+__attribute__((always_inline))
 inline void __darwintrace_setup() {
 #define open(x,y,z) syscall(SYS_open, (x), (y), (z))
 #define close(x) syscall(SYS_close, (x))
@@ -354,6 +355,7 @@ inline void __darwintrace_setup() {
  * path:		the path of the file
  * fd:			a fd to the file, or 0 if we don't have any.
  */
+__attribute__((always_inline))
 inline void __darwintrace_log_op(const char* op, const char* path, int fd) {
 	int size;
 	char somepath[MAXPATHLEN];
@@ -530,6 +532,7 @@ static char * exchange_with_port(const char * buf, size_t len, int answer, char 
 /*
  * return 1 if path (once normalized) is in sandbox or redirected, 0 otherwise.
  */
+__attribute__((always_inline))
 inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 	char * t, * p, * _;
 	int result=-1;

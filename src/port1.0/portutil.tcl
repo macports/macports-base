@@ -450,6 +450,9 @@ proc variant {args} {
     array set vinfo $PortInfo(vinfo)
 
     set len [llength $args]
+    if {$len < 2} {
+        return -code error "Malformed variant specification"
+    }
     set code [lindex $args end]
     set args [lrange $args 0 [expr $len - 2]]
 
@@ -639,6 +642,9 @@ proc platform {args} {
     global all_variants PortInfo os.platform os.arch os.version os.major
 
     set len [llength $args]
+    if {$len < 2} {
+        return -code error "Malformed platform variant specification"
+    }
     set code [lindex $args end]
     set os [lindex $args 0]
     set args [lrange $args 1 [expr $len - 2]]

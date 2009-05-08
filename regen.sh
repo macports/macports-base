@@ -1,4 +1,4 @@
 #!/bin/sh
 
-autoconf
-autoheader
+autoconf --warnings=all
+autoheader --warnings=all

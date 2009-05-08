@@ -241,7 +241,7 @@ dnl explicitly. If not, search for it
  	dnl For ease of reading, run after gcc has been found/configured
  	AC_REQUIRE([AC_PROG_CC])
 
- 	AC_ARG_WITH(ports-dir, [AC_HELP_STRING([--with-ports-dir=DIR], [Specify alternate ports directory])], [ portsdir="$withval" ] )
+ 	AC_ARG_WITH(ports-dir, [AS_HELP_STRING([--with-ports-dir=DIR],[Specify alternate ports directory])], [ portsdir="$withval" ] )
 
 
  	AC_MSG_CHECKING([for ports tree])
@@ -297,7 +297,7 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 	dnl use ~/Library/Tcl as Tcl package directory
 		AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(no-root-privileges, [AC_HELP_STRING([--with-no-root-privileges], [Specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
+	AC_ARG_WITH(no-root-privileges, [AS_HELP_STRING([--with-no-root-privileges],[Specify that MacPorts should be installed in your home directory])], [ROOTPRIVS=$withval] )
 
 	if test "${ROOTPRIVS+set}" = set; then
 
@@ -336,7 +336,7 @@ AC_DEFUN([MP_CHECK_RUNUSER],[
 	dnl use it. otherwise default to platform defaults
        AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(macports-user, [AC_HELP_STRING([--with-macports-user=USER], [Specify user to drop privileges to, if possible, during compiles etc.])], [ RUNUSR=$withval ] )
+	AC_ARG_WITH(macports-user, [AS_HELP_STRING([--with-macports-user=USER],[Specify user to drop privileges to, if possible, during compiles etc.])], [ RUNUSR=$withval ] )
 	
 	AC_MSG_CHECKING([for macports user])
 	if test "x$RUNUSR" = "x" ; then
@@ -357,7 +357,7 @@ AC_DEFUN([MP_SHARED_DIRECTORY],[
 	dnl use 0775 permissions for ${prefix} directories
         AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(shared-directory, [AC_HELP_STRING([--with-shared-directory], [Use 0775 permissions for installed directories])], [ SHAREDIR=$withval ] )
+	AC_ARG_WITH(shared-directory, [AS_HELP_STRING([--with-shared-directory],[Use 0775 permissions for installed directories])], [ SHAREDIR=$withval ] )
 
 	if test "${SHAREDIR+set}" = set; then	
 		AC_MSG_CHECKING([whether to share the install directory with all members of the install group])
@@ -375,7 +375,7 @@ AC_DEFUN([MP_CHECK_INSTALLUSER],[
 	dnl use it. otherwise default to platform defaults
         AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(install-user, [AC_HELP_STRING([--with-install-user=USER], [Specify user ownership of installed files])], [ DSTUSR=$withval ] )
+	AC_ARG_WITH(install-user, [AS_HELP_STRING([--with-install-user=USER],[Specify user ownership of installed files])], [ DSTUSR=$withval ] )
 	
 	AC_MSG_CHECKING([for install user])
 	if test "x$DSTUSR" = "x" ; then
@@ -393,7 +393,7 @@ AC_DEFUN([MP_CHECK_INSTALLGROUP],[
 	dnl use it. otherwise default to platform defaults
         AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
-	AC_ARG_WITH(install-group, [AC_HELP_STRING([--with-install-group=GROUP], [Specify group ownership of installed files])], [ DSTGRP=$withval ] )
+	AC_ARG_WITH(install-group, [AS_HELP_STRING([--with-install-group=GROUP],[Specify group ownership of installed files])], [ DSTGRP=$withval ] )
 
 	AC_MSG_CHECKING([for install group])
 	if test "x$DSTGRP" = "x" ; then
@@ -426,7 +426,7 @@ AC_DEFUN([MP_DIRECTORY_MODE],[
 	dnl otherwise use 0755
         AC_REQUIRE([MP_PATH_MPCONFIGDIR])
 
-	AC_ARG_WITH(directory-mode, [AC_HELP_STRING([--with-directory-mode=MODE], [Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
+	AC_ARG_WITH(directory-mode, [AS_HELP_STRING([--with-directory-mode=MODE],[Specify directory mode of installed directories])], [ DSTMODE=$withval ] )
 	
 	AC_MSG_CHECKING([what permissions to use for installation directories])
 	if test "x$DSTMODE" = "x" ; then
@@ -442,7 +442,7 @@ AC_DEFUN([MP_DIRECTORY_MODE],[
 AC_DEFUN([MP_PATH_APPLICATIONS],[
         AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
-    AC_ARG_WITH(applications-dir,[AC_HELP_STRING([--with-applications-dir], [Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
+    AC_ARG_WITH(applications-dir,[AS_HELP_STRING([--with-applications-dir],[Applications installation directory.])], MPAPPLICATIONSDIR=${withval})
 
     oldprefix=$prefix
     if test "x$prefix" = "xNONE" ; then
@@ -468,7 +468,7 @@ AC_DEFUN([MP_PATH_APPLICATIONS],[
 AC_DEFUN([MP_PATH_FRAMEWORKS],[
         AC_REQUIRE([MP_CHECK_INSTALLUSER])
 
-    AC_ARG_WITH(frameworks-dir,[AC_HELP_STRING([--with-frameworks-dir], [Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
+    AC_ARG_WITH(frameworks-dir,[AS_HELP_STRING([--with-frameworks-dir],[Frameworks installation directory.])], MPFRAMEWORKSDIR=${withval})
 
     oldprefix=$prefix
     if test "x$prefix" = "xNONE" ; then
@@ -490,9 +490,9 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 #---------------------------------------
 AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
 
-    AC_ARG_WITH(universal-target,[AC_HELP_STRING([--with-universal-target=MDT], [Universal MACOSX_DEPLOYMENT_TARGET version])], UNIVERSAL_TARGET=${withval})
-    AC_ARG_WITH(universal-sysroot,[AC_HELP_STRING([--with-universal-sysroot=SDK], [Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
-    AC_ARG_WITH(universal-archs,[AC_HELP_STRING([--with-universal-archs="CPU"], [Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
+    AC_ARG_WITH(universal-target,[AS_HELP_STRING([--with-universal-target=MDT],[Universal MACOSX_DEPLOYMENT_TARGET version])], UNIVERSAL_TARGET=${withval})
+    AC_ARG_WITH(universal-sysroot,[AS_HELP_STRING([--with-universal-sysroot=SDK],[Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
+    AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
 	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
 
@@ -570,21 +570,6 @@ AC_DEFUN([MP_LIB_MD5],[
 		AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
 	fi
 	AC_SUBST([MD5_LIBS])
-])
-
-# MP_PROG_XAR
-#---------------------------------------
-AC_DEFUN([MP_PROG_XAR],[
-
-	AC_PATH_PROG([XAR], [xar], ,  [/usr/bin:/usr/sbin:/bin:/sbin])
-
-	if test "x$XAR" = "x" ; then
-		AC_CONFIG_SUBDIRS([src/programs/xar])
-		XAR='$(TOPSRCDIR)/src/programs/xar/xar'
-		REPLACEMENT_PROGS="$REPLACEMENT_PROGS xar"
-	fi
-
-	AC_SUBST(XAR)
 ])
 
 # MP_PROG_DAEMONDO
@@ -807,29 +792,6 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	AC_SUBST(LDFLAGS_LIBCURL)
 ])
 
-# MP_LIBCURL_VERSION
-#	Determine the version of libcurl.
-#
-# Arguments:
-#	None.
-#
-# Requires:
-#	CURL must be set (AC_PATH_PROG(CURL, [curl], []))
-#
-# Results:
-#   sets libcurl_version to "0" or some number
-#---------------------------------------
-AC_DEFUN([MP_LIBCURL_VERSION],[
-	if test "x$CURL" = "x"; then
-		libcurl_version="0"
-	else
-		AC_MSG_CHECKING([libcurl version])
-		libcurl_version=`$CURL -V | sed '2,$d' | awk '{print $ 2}' | sed -e 's/\.//g' -e 's/-.*//g'`
-		AC_MSG_RESULT([$libcurl_version])
-	fi
-])
-
-
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters
 AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
@@ -986,7 +948,7 @@ AC_DEFUN(MP_CHECK_READLINK_IS_P1003_1A, [
 #------------------------------------------------------------------------
 AC_DEFUN([MP_WERROR],[
 	AC_REQUIRE([AC_PROG_CC])
-	AC_ARG_ENABLE(werror, AC_HELP_STRING([--enable-werror], [Add -Werror to CFLAGS. Used for development.]), [enable_werror=${enableval}], [enable_werror=no])
+	AC_ARG_ENABLE(werror, AS_HELP_STRING([--enable-werror],[Add -Werror to CFLAGS. Used for development.]), [enable_werror=${enableval}], [enable_werror=no])
 	if test x"$enable_werror" != "xno"; then
 		CFLAGS_WERROR="-Werror"
 	else

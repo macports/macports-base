@@ -23,8 +23,6 @@ array set global_variations [list]
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
 
-
-
 # Standard procedures
 proc print_usage args {
     global argv0
@@ -34,8 +32,8 @@ proc print_usage args {
     puts "-d:\tOutput debugging information"
 }
 
-proc pindex {portdir} { 
-    global target fd directory archive outdir stats 
+proc pindex {portdir} {
+    global target fd directory archive outdir stats
     incr stats(total)
     global macports::prefix
     set save_prefix $prefix
@@ -92,18 +90,20 @@ for {set i 0} {$i < $argc} {incr i} {
         {^-.+} {
             if {$arg == "-a"} { # Turn on archiving
                 set archive 1
-        } elseif {$arg == "-d"} { # Turn on debug output
-            set ui_options(ports_debug) yes
-        } elseif {$arg == "-o"} { # Set output directory
-            incr i
-            set outdir [lindex $argv $i]
-        } else {
-            puts stderr "Unknown option: $arg"
-            print_usage
-            exit 1
+            } elseif {$arg == "-d"} { # Turn on debug output
+                set ui_options(ports_debug) yes
+            } elseif {$arg == "-o"} { # Set output directory
+                incr i
+                set outdir [lindex $argv $i]
+            } else {
+                puts stderr "Unknown option: $arg"
+                print_usage
+                exit 1
+            }
         }
-    }
-    default { set directory $arg }
+        default {
+            set directory $arg
+        }
     }
 }
 
@@ -117,7 +117,7 @@ if {![info exists directory]} {
     set directory .
 }
 
-# cd to input directory 
+# cd to input directory
 if {[catch {cd $directory} result]} {
     puts stderr "$result"
     exit 1
