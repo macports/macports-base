@@ -6,9 +6,6 @@
 /* Define if using the Apple Objective-C runtime and compiler. */
 #undef APPLE_RUNTIME
 
-/* Define to 1 if the `closedir' function returns void instead of `int'. */
-#undef CLOSEDIR_VOID
-
 /* Define if using the GNUstep Foundation library */
 #undef GNUSTEP_FOUNDATION
 
