@@ -1,11 +1,11 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
-AC_PREREQ(2.52)
+AC_PREREQ(2.63)
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d '\n')])
-AC_INIT([MacPorts], [MACPORTS_VERSION_MACRO], [macports-dev@lists.macosforge.org], [macports])
+AC_INIT([MacPorts],[MACPORTS_VERSION_MACRO],[macports-dev@lists.macosforge.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
-AC_CANONICAL_SYSTEM
+AC_CANONICAL_TARGET
 
 # Read in the MacPorts version from the base/config/macports_version file
 AC_MSG_CHECKING(MacPorts version)
@@ -25,12 +25,12 @@ fi
 
 case "$MACOSX_VERSION" in
   10.0*|10.1*|10.2*)
-    AC_WARN(This version of Mac OS X is not supported)
-    AC_WARN(Please upgrade at http://store.apple.com/)
+    AC_MSG_WARN([This version of Mac OS X is not supported])
+    AC_MSG_WARN([Please upgrade at http://store.apple.com/])
     ;;
   10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-5]])
-    AC_WARN(This version of Mac OS X is out of date)
-    AC_WARN(Please run Software Update to update it)
+    AC_MSG_WARN([This version of Mac OS X is out of date])
+    AC_MSG_WARN([Please run Software Update to update it])
     ;;
   10.3*|10.4*|10.5*)
     dnl Supported version
@@ -48,12 +48,12 @@ fi
 
 case "$XCODE_VERSION" in
   1.[[0-1]]*|2.[[0-1]]*)
-    AC_WARN(This version of Xcode Tools is not supported)
-    AC_WARN(Please upgrade at http://connect.apple.com/)
+    AC_MSG_WARN([This version of Xcode Tools is not supported])
+    AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
     ;;
   1.[[2-4]]*|2.[[2-3]]*)
-    AC_WARN(This version of Xcode Tools is out of date)
-    AC_WARN(Please consider upgrading as some ports fail compiling)
+    AC_MSG_WARN([This version of Xcode Tools is out of date])
+    AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
   1.5*|2.4*|3.*)
     dnl Supported version
@@ -172,7 +172,7 @@ MP_CHECK_READLINK_IS_P1003_1A
 MP_LIB_MD5
 
 # Check for readline
-AC_ARG_ENABLE(readline, AC_HELP_STRING([--enable-readline], [Enable addition of readline support, if readline present.]),
+AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
 [
 	AC_CHECK_LIB([readline], [readline], [
 				  READLINE_LIBS=-lreadline
