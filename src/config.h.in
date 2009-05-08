@@ -47,10 +47,6 @@
    `rl_username_completion_function', and to 0 if you don't. */
 #undef HAVE_DECL_RL_USERNAME_COMPLETION_FUNCTION
 
-/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
-   don't. */
-#undef HAVE_DECL_STRERROR_R
-
 /* Define to 1 if you have the declaration of `username_completion_function',
    and to 0 if you don't. */
 #undef HAVE_DECL_USERNAME_COMPLETION_FUNCTION
@@ -58,9 +54,6 @@
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
-
-/* Define to 1 if you have the `dup2' function. */
-#undef HAVE_DUP2
 
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
@@ -144,9 +137,6 @@
 /* Define to 1 if you have the <readline/readline.h> header file. */
 #undef HAVE_READLINE_READLINE_H
 
-/* Define to 1 if you have the `regcomp' function. */
-#undef HAVE_REGCOMP
-
 /* Define to 1 if you have the `setmode' function. */
 #undef HAVE_SETMODE
 
@@ -159,15 +149,6 @@
 /* Define to 1 if you have the `strcasecmp' function. */
 #undef HAVE_STRCASECMP
 
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
-
-/* Define to 1 if you have the `strerror_r' function. */
-#undef HAVE_STRERROR_R
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -179,9 +160,6 @@
 
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
-
-/* Define to 1 if you have the `strtol' function. */
-#undef HAVE_STRTOL
 
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #undef HAVE_SYS_CDEFS_H
@@ -273,9 +251,6 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
-
-/* Define to 1 if strerror_r returns char *. */
-#undef STRERROR_R_CHAR_P
 
 /* SDK for SDK redirect in tracelib */
 #undef TRACE_SDK
