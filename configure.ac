@@ -159,7 +159,6 @@ MP_UNIVERSAL_OPTIONS
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_HEADER_STAT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
 	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
