@@ -2925,8 +2925,6 @@ array set action_array [list \
     \
     version     [list action_version        [action_args_const none]] \
     platform    [list action_platform       [action_args_const none]] \
-    compact     [list action_compact        [action_args_const ports]] \
-    uncompact   [list action_uncompact      [action_args_const ports]] \
     \
     uninstall   [list action_uninstall      [action_args_const ports]] \
     \
