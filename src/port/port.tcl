@@ -1468,6 +1468,7 @@ proc action_info { action portlist opts } {
             homepage    Homepage
             platforms   Platforms
             maintainers Maintainers
+            license     License
         }
 
         # Wrap-length map for pretty printing
@@ -1481,6 +1482,7 @@ proc action_info { action portlist opts } {
             long_description 22
             homepage 22
             platforms 22
+            license 22
             maintainers 22
         }
 
@@ -1535,7 +1537,8 @@ proc action_info { action portlist opts } {
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
-                ports_info_platforms ports_info_maintainers
+                ports_info_platforms ports_info_license
+                ports_info_maintainers
             }
         }
         foreach { option } $opts_todo {
@@ -3068,8 +3071,8 @@ array set cmd_opts_array {
     edit        {{editor 1}}
     ed          {{editor 1}}
     info        {category categories depends_build depends_lib depends_run
-                 depends description epoch fullname heading homepage index line
-                 long_description
+                 depends description epoch fullname heading homepage index license
+                 line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  revision variant variants version}
     search      {case-sensitive category categories depends_build depends_lib depends_run

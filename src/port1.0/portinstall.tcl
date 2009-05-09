@@ -155,6 +155,9 @@ proc portinstall::install_main {args} {
     if {[info exists long_description]} {
         registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
     }
+    if {[info exists license]} {
+        registry_prop_store $regref license ${license}
+    }
     if {[info exists homepage]} {
         registry_prop_store $regref homepage ${homepage}
     }
