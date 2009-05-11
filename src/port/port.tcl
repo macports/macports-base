@@ -2824,7 +2824,13 @@ proc action_target { action portlist opts } {
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
-                break_softcontinue "Port $portname not found" 1 status
+                # don't error for ports that are installed but not in the tree
+                if {[registry::entry_exists_for_name $portname]} {
+                    ui_warn "Skipping $portname (not in the ports tree)"
+                    continue
+                } else {
+                    break_softcontinue "Port $portname not found" 1 status
+                }
             }
             array unset portinfo
             array set portinfo [lindex $res 1]
