@@ -1465,6 +1465,7 @@ proc action_info { action portlist opts } {
             homepage    Homepage
             platforms   Platforms
             maintainers Maintainers
+            license     License
         }
 
         # Wrap-length map for pretty printing
@@ -1478,6 +1479,7 @@ proc action_info { action portlist opts } {
             long_description 22
             homepage 22
             platforms 22
+            license 22
             maintainers 22
         }
 
@@ -1532,7 +1534,8 @@ proc action_info { action portlist opts } {
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
-                ports_info_platforms ports_info_maintainers
+                ports_info_platforms ports_info_license
+                ports_info_maintainers
             }
         }
         foreach { option } $opts_todo {
@@ -2777,7 +2780,13 @@ proc action_target { action portlist opts } {
                 break_softcontinue "lookup of portname $portname failed: $result" 1 status
             }
             if {[llength $res] < 2} {
-                break_softcontinue "Port $portname not found" 1 status
+                # don't error for ports that are installed but not in the tree
+                if {[registry::entry_exists_for_name $portname]} {
+                    ui_warn "Skipping $portname (not in the ports tree)"
+                    continue
+                } else {
+                    break_softcontinue "Port $portname not found" 1 status
+                }
             }
             array unset portinfo
             array set portinfo [lindex $res 1]
@@ -3022,8 +3031,8 @@ array set cmd_opts_array {
     edit        {{editor 1}}
     ed          {{editor 1}}
     info        {category categories depends_build depends_lib depends_run
-                 depends description epoch fullname heading homepage index line
-                 long_description
+                 depends description epoch fullname heading homepage index license
+                 line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  revision variant variants version}
     search      {case-sensitive category categories depends_build depends_lib depends_run

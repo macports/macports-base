@@ -204,38 +204,9 @@ proc portconfigure::configure_start {args} {
     # end gsoc08-privileges
 }
 
-# internal function to determine canonical system name for configure
-proc portconfigure::configure_get_universal_system_name {args} {
-    global configure.universal_target configure.universal_archs
-    set arch "unknown"
-    switch -- ${configure.universal_archs} {
-        "ppc"  { set arch "powerpc" }
-        "i386"  { set arch "i686" }
-        "ppc64"  { set arch "powerpc" }
-        "x86_64"  { set arch "i686" }
-    }
-    switch -- ${configure.universal_target} {
-        "10.1"  { return "powerpc-apple-darwin5" }
-                # /Developer/SDKs/MacOSX10.1.5.sdk
-        "10.2"  { return "powerpc-apple-darwin6" }
-                # /Developer/SDKs/MacOSX10.2.8.sdk
-        "10.3"  { return "powerpc-apple-darwin7" }
-                # /Developer/SDKs/MacOSX10.3.9.sdk
-        "10.4"  { return "${arch}-apple-darwin8" }
-        "10.5"  { return "${arch}-apple-darwin9" }
-    }
-    return ""
-}
-
 # internal function to determine the universal args for configure.cmd
 proc portconfigure::configure_get_universal_args {args} {
-    global configure.universal_archs
-    set system [configure_get_universal_system_name]
     set params "--disable-dependency-tracking"
-    if {[llength ${configure.universal_archs}] == 1 &&
-        [info exists system] && $system != ""} {
-        set params "$params --host=${system} --target=${system}"
-    }
     return $params
 }
 

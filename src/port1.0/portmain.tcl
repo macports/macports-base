@@ -45,12 +45,12 @@ namespace eval portmain {
 
 # define options
 options prefix macportsuser name version revision epoch categories maintainers
-options long_description description homepage
+options long_description description homepage license
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage
+options_export name version revision epoch categories maintainers platforms description long_description homepage license
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
@@ -68,6 +68,7 @@ default destroot {${destpath}}
 default filesdir files
 default revision 0
 default epoch 0
+default license unknown
 default distname {${portname}-${portversion}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath $filesdir]}

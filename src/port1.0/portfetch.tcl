@@ -338,20 +338,20 @@ proc portfetch::checkpatchfiles {args} {
     variable fetch_urls
 
     if {[info exists patchfiles]} {
-    foreach file $patchfiles {
-        if {![file exists $filespath/$file]} {
-        set distsite [getdisttag $file]
-        set file [getdistname $file]
-        lappend all_dist_files $file
-        if {$distsite != ""} {
-            lappend fetch_urls $distsite $file
-        } elseif {[info exists patch_sites]} {
-            lappend fetch_urls patch_sites $file
-        } else {
-            lappend fetch_urls master_sites $file
+        foreach file $patchfiles {
+            if {![file exists $filespath/$file]} {
+                set distsite [getdisttag $file]
+                set file [getdistname $file]
+                lappend all_dist_files $file
+                if {$distsite != ""} {
+                    lappend fetch_urls $distsite $file
+                } elseif {[info exists patch_sites]} {
+                    lappend fetch_urls patch_sites $file
+                } else {
+                    lappend fetch_urls master_sites $file
+                }
+            }
         }
-        }
-    }
     }
 }
 
@@ -361,18 +361,18 @@ proc portfetch::checkdistfiles {args} {
     variable fetch_urls
 
     if {[info exists distfiles]} {
-    foreach file $distfiles {
-    if {![file exists $filespath/$file]} {
-        set distsite [getdisttag $file]
-        set file [getdistname $file]
-        lappend all_dist_files $file
-        if {$distsite != ""} {
-        lappend fetch_urls $distsite $file
-        } else {
-        lappend fetch_urls master_sites $file
+        foreach file $distfiles {
+            if {![file exists $filespath/$file]} {
+                set distsite [getdisttag $file]
+                set file [getdistname $file]
+                lappend all_dist_files $file
+                if {$distsite != ""} {
+                    lappend fetch_urls $distsite $file
+                } else {
+                    lappend fetch_urls master_sites $file
+                }
+            }
         }
-    }
-    }
     }
 }
 
@@ -474,36 +474,36 @@ proc portfetch::cvsfetch {args} {
         set cvs.tag "HEAD"
     }
     if {[string length ${cvs.tag}]} {
-    set cvs.args "${cvs.args} -r ${cvs.tag}"
+        set cvs.args "${cvs.args} -r ${cvs.tag}"
     }
 
     if {[string length ${cvs.date}]} {
-    set cvs.args "${cvs.args} -D ${cvs.date}"
+        set cvs.args "${cvs.args} -D ${cvs.date}"
     }
 
     if {[regexp ^:pserver: ${cvs.root}]} {
-    set savecmd ${cvs.cmd}
-    set saveargs ${cvs.args}
-    set savepost_args ${cvs.post_args}
-    set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
-    set cvs.args login
-    set cvs.post_args ""
-    if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
-        return -code error [msgcat::mc "CVS login failed"]
-    }
-    set cvs.cmd ${savecmd}
-    set cvs.args ${saveargs}
-    set cvs.post_args ${savepost_args}
+        set savecmd ${cvs.cmd}
+        set saveargs ${cvs.args}
+        set savepost_args ${cvs.post_args}
+        set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
+        set cvs.args login
+        set cvs.post_args ""
+        if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
+            return -code error [msgcat::mc "CVS login failed"]
+        }
+        set cvs.cmd ${savecmd}
+        set cvs.args ${saveargs}
+        set cvs.post_args ${savepost_args}
     } else {
-    set env(CVS_RSH) ssh
+        set env(CVS_RSH) ssh
     }
 
     if {[catch {command_exec cvs "" "2>&1"} result]} {
-    return -code error [msgcat::mc "CVS check out failed"]
+        return -code error [msgcat::mc "CVS check out failed"]
     }
 
     if {[info exists patchfiles]} {
-    return [portfetch::fetchfiles]
+        return [portfetch::fetchfiles]
     }
     return 0
 }
@@ -516,11 +516,11 @@ proc portfetch::svnfetch {args} {
     # Look for the svn command, either in the path or in the prefix
     set goodcmd 0
     foreach svncmd "${svn.cmd} ${prefix_frozen}/bin/svn svn" {
-    if { [file executable ${svncmd}] } {
-          set svn.cmd $svncmd
-          set goodcmd 1
-          break;
-       }
+        if { [file executable ${svncmd}] } {
+            set svn.cmd $svncmd
+            set goodcmd 1
+            break;
+        }
     }
     if { !$goodcmd } {
         ui_error "The subversion tool (svn) is required to fetch ${svn.url}."
@@ -538,7 +538,7 @@ proc portfetch::svnfetch {args} {
     }
 
     if {[info exists patchfiles]} {
-    return [portfetch::fetchfiles]
+        return [portfetch::fetchfiles]
     }
 
     return 0
