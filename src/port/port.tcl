@@ -2954,6 +2954,7 @@ array set action_array [list \
     patch       [list action_target         [action_args_const ports]] \
     configure   [list action_target         [action_args_const ports]] \
     build       [list action_target         [action_args_const ports]] \
+    imagefile   [list action_target         [action_args_const ports]] \
     destroot    [list action_target         [action_args_const ports]] \
     install     [list action_target         [action_args_const ports]] \
     clean       [list action_target         [action_args_const ports]] \

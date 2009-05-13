@@ -799,6 +799,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_deactivate registry::deactivate
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
+    $workername alias registry_fileinfo_for_file registry::fileinfo_for_file
     $workername alias registry_bulk_register_files registry::register_bulk_files
     $workername alias registry_installed registry::installed
     $workername alias registry_active registry::active
@@ -1318,7 +1319,7 @@ proc mportexec {mport target} {
     set dlist {}
     if {$target == "configure" || $target == "build"
         || $target == "test"
-        || $target == "destroot" || $target == "install"
+        || $target == "destroot" || $target == "imagefile" || $target == "install"
         || $target == "archive"
         || $target == "dmg" || $target == "mdmg"
         || $target == "pkg" || $target == "mpkg"
@@ -1911,6 +1912,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         
         test        -
         destroot    -
+        imagefile   -
         install     -
         archive     -
         dmg         -

@@ -1252,6 +1252,7 @@ proc target_run {ditem} {
                     if {$target != "activate"
                       && $target != "archive"
                       && $target != "fetch"
+                      && $target != "imagefile"
                       && $target != "install"} {
                         porttrace::trace_enable_fence
                     }
@@ -1271,6 +1272,7 @@ proc target_run {ditem} {
 
                             test        -
                             destroot    -
+                            imagefile   -
                             install     -
                             archive     -
                             dmg         -
