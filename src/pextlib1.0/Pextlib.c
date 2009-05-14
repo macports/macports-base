@@ -809,54 +809,6 @@ int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	return TCL_OK;
 }
 
-/**
- * Call mkfifo(2).
- * Generate a Tcl error if something wrong occurred.
- *
- * Syntax is:
- * mkfifo path mode
- */
-int MkfifoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char* path;
-	mode_t mode;
-
-	if (objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "path mode");
-		return TCL_ERROR;
-	}
-	
-	{
-		char* mode_as_char_star;
-		int mode_as_int;
-		mode_as_char_star = strdup(Tcl_GetString(objv[2]));
-		if (mode_as_char_star == NULL) {
-			return TCL_ERROR;
-		}
-
-		if (Tcl_GetInt(interp, mode_as_char_star, &mode_as_int) != TCL_OK) {
-			free(mode_as_char_star);
-			return TCL_ERROR;
-		}
-		free(mode_as_char_star);
-		mode = (mode_t) mode_as_int;
-	}
-
-	path = strdup(Tcl_GetString(objv[1]));
-	if (path == NULL) {
-		return TCL_ERROR;
-	}
-
-	if (mkfifo(path, mode) != 0) {
-		Tcl_AppendResult(interp, "mkfifo failed: ", strerror(errno), NULL);
-		free(path);
-		return TCL_ERROR;
-	}
-
-	free(path);
-	return TCL_OK;
-}
-
 int ExistsuserCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Obj *tcl_result;
@@ -1195,7 +1147,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "mkfifo", MkfifoCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
