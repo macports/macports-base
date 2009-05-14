@@ -1,7 +1,7 @@
 # Test file for Pextlib's symlink.
 # Requires r/w access to /tmp/
 # Syntax:
-# tclsh mkfifo.tcl <Pextlib name>
+# tclsh symlink.tcl <Pextlib name>
 
 proc main {pextlibname} {
     load $pextlibname
