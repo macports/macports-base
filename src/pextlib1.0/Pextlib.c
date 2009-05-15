@@ -912,7 +912,7 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 	mode_t oldmode;
 
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "numask");
+		Tcl_WrongNumArgs(interp, 1, objv, "mode");
 		return TCL_ERROR;
 	}
 
