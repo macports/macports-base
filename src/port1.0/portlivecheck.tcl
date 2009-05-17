@@ -74,41 +74,6 @@ proc portlivecheck::livecheck_main {args} {
     ui_debug "Portfile modification date is [clock format $port_moddate]"
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
-    # Determine the default type depending on the mirror.
-    if {${livecheck.check} eq "default"} {
-        if {$has_master_sites} {
-            foreach {master_site} ${master_sites} {
-                if {[regexp {^(sourceforge|freshmeat|googlecode|gnu)(?::([^:]+))?} ${master_site} _ site subdir]} {
-                    if {${subdir} ne "" && ${livecheck.name} eq "default"} {
-                        set livecheck.name ${subdir}
-                    }
-                    set livecheck.check ${site}
-
-                    break
-                }
-            }
-        }
-        if {${livecheck.check} eq "default"} {
-            set livecheck.check "freshmeat"
-        }
-        if {$has_homepage} {
-            if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
-                if {${livecheck.name} eq "default"} {
-                    set livecheck.name $tag
-                }
-                set livecheck.check "googlecode"
-            } elseif {[regexp {^http://www.gnu.org/software/([^/]+)} $homepage _ tag]} {
-                if {${livecheck.name} eq "default"} {
-                    set livecheck.name $tag
-                }
-                set livecheck.check "gnu"
-            }
-        }
-    }
-    if {${livecheck.name} eq "default"} {
-        set livecheck.name $name
-    }
-
     # Copied over from portfetch in parts
     set fetch_options {}
     if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
@@ -122,52 +87,46 @@ proc portlivecheck::livecheck_main {args} {
         lappend fetch_options "--ignore-ssl-cert"
     }
 
-    # Perform the check depending on the type.
-    switch ${livecheck.check} {
-        "freshmeat" {
-            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-                set livecheck.url "http://freshmeat.net/projects/${livecheck.name}/releases.atom"
+    # Check _resources/port1.0/livecheck for available types.
+    set types_dir [getdefaultportresourcepath "port1.0/livecheck"]
+    if {[catch {set available_types [glob -directory $types_dir -tails -types f *.tcl]} result]} {
+        return -code 1 "No available types were found. Check '$types_dir'."
+    }
+
+    # Convert available_types from a list of files (e.g., { freshmeat.tcl
+    # gnu.tcl ... }) into a string in the format "type|type|..." (e.g.,
+    # "freshmeat|gnu|...").
+    set available_types [regsub -all {\.tcl} [join $available_types |] {}]
+
+    if {${livecheck.check} eq "default"} {
+        # Determine the default type from the mirror.
+        if {$has_master_sites} {
+            foreach {master_site} ${master_sites} {
+                if {[regexp "^($available_types)(?::(\[^:\]+))?" ${master_site} _ site subdir]} {
+                    if {${subdir} ne "" && ${livecheck.name} eq "default"} {
+                        set livecheck.name ${subdir}
+                    }
+                    set livecheck.check ${site}
+
+                    break
+                }
             }
-            if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "(?i)<title>${livecheck.name} (.*)</title>"]
-            }
-            set livecheck.check "regex"
         }
-        "sourceforge" {
-            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-                set livecheck.url "http://sourceforge.net/export/rss2_projfiles.php?project=${livecheck.name}"
-            }
-            if {${livecheck.distname} eq "default"} {
-                set livecheck.distname ${livecheck.name}
-            }
-            if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "<title>[quotemeta ${livecheck.distname}] (.*) released.*</title>"]
-            }
-            set livecheck.check "regex"
+        # If the default type cannot be determined from the mirror, use the
+        # fallback type (which is a symlink to one of the available types).
+        if {${livecheck.check} eq "default"} {
+            set livecheck.check "fallback"
         }
-        "googlecode" {
-            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-                set livecheck.url "http://code.google.com/p/${livecheck.name}/downloads/list"
-            }
-            if {${livecheck.distname} eq "default"} {
-                set livecheck.distname [regsub ***=[quotemeta ${livecheck.version}] [quotemeta [file tail [lindex ${distfiles} 0]]] (.*)]
-            }
-            if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "<a href=\"http://[quotemeta ${livecheck.name}].googlecode.com/files/${livecheck.distname}\""]
-            }
-            set livecheck.check "regex"
+        # If livecheck.name is still "default", set it to $name.
+        if {${livecheck.name} eq "default"} {
+            set livecheck.name $name
         }
-        "gnu" {
-            if {!$has_homepage || ${livecheck.url} eq ${homepage}} {
-                set livecheck.url "http://ftp.gnu.org/gnu/${livecheck.name}/?C=M&O=D"
-            }
-            if {${livecheck.distname} eq "default"} {
-                set livecheck.distname ${livecheck.name}
-            }
-            if {${livecheck.regex} eq ""} {
-                set livecheck.regex [list "[quotemeta ${livecheck.distname}]-(\\d+(?:\\.\\d+)*)"]
-            }
-            set livecheck.check "regex"
+
+        # Load the defaults from _resources/port1.0/livecheck/${livecheck.check}.tcl.
+        set defaults_file "$types_dir/${livecheck.check}.tcl"
+        ui_debug "Loading the defaults from '$defaults_file'"
+        if {[catch {source $defaults_file} result]} {
+            return -code 1 "The defaults could not be loaded from '$defaults_file'."
         }
     }
 
