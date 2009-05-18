@@ -1124,7 +1124,7 @@ int lchownCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 int Pextlib_Init(Tcl_Interp *interp)
 {
-	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
 		return TCL_ERROR;
 
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
