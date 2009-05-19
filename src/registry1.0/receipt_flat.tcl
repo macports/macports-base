@@ -484,6 +484,9 @@ proc installed {{name ""} {version ""}} {
 	set x [glob -nocomplain -types d ${query_path}]
 	set rlist [list]
 	foreach p $x {
+		if {![file isfile [file join $p receipt.bz2]] && ![file isfile [file join $p receipt]]} {
+			continue
+		}
 		set plist [list]
 		regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} [lindex [file split $p] end] match version revision variants
 		lappend plist [lindex [file split $p] end-1]
