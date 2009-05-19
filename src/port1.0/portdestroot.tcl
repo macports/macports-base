@@ -182,6 +182,9 @@ proc portdestroot::destroot_finish {args} {
     # but NOT on Jaguar (Darwin 6.x)
     if {![regexp {darwin6} "${os.platform}${os.version}"]} {
         set manpath "${destroot}${prefix}/share/man"
+        set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
+        set gunzip "$gzip -d"
+        set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
         if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
             ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${portname}]"
             set found 0
@@ -197,17 +200,17 @@ proc portdestroot::destroot_finish {args} {
                             if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
                                 set found 1
                                 system "cd ${manpath} && \
-                                gunzip -f [file join ${mandir} ${gzfile}] && \
-                                gzip -9vf [file join ${mandir} ${manfile}]"
+                                $gunzip -f [file join ${mandir} ${gzfile}] && \
+                                $gzip -9vf [file join ${mandir} ${manfile}]"
                             } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
                                 set found 1
                                 system "cd ${manpath} && \
-                                bunzip2 -f [file join ${mandir} ${bz2file}] && \
-                                gzip -9vf [file join ${mandir} ${manfile}]"
+                                $bunzip2 -f [file join ${mandir} ${bz2file}] && \
+                                $gzip -9vf [file join ${mandir} ${manfile}]"
                             } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
                                 set found 1
                                 system "cd ${manpath} && \
-                                gzip -9vf [file join ${mandir} ${manfile}]"
+                                $gzip -9vf [file join ${mandir} ${manfile}]"
                             }
                             set gzmanfile ${manfile}.gz
                             set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]

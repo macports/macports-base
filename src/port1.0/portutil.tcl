@@ -2188,6 +2188,20 @@ proc binaryInPath {binary} {
     return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
 }
 
+# find a binary either in a path defined at MacPorts' configuration time
+# or in the PATH environment variable through binaryInPath (fallback)
+proc findBinary {prog {autoconf_hint ""}} {
+    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
+        return ${autoconf_hint}
+    } else {
+        if {[catch {set cmd_path [binaryInPath ${prog}]} result] == 0} {
+            return ${cmd_path}
+        } else {
+            return -code error "${result} or at its MacPorts configuration time location, did you move it?"
+        }
+    }
+}
+
 # Set the UI prefix to something standard (so it can be grepped for in output)
 proc set_ui_prefix {} {
     global UI_PREFIX env
@@ -2220,10 +2234,10 @@ proc archiveTypeIsSupported {type} {
     switch -regex $type {
         cp(io|gz) {
             set pax "pax"
-            if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
+            if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
                 if {[regexp {z$} $type]} {
                     set gzip "gzip"
-                    if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+                    if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
                         return 0
                     }
                 } else {
@@ -2233,7 +2247,7 @@ proc archiveTypeIsSupported {type} {
         }
         t(ar|bz|lz|gz) {
             set tar "tar"
-            if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+            if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
                 if {[regexp {z2?$} $type]} {
                     if {[regexp {bz2?$} $type]} {
                         set gzip "bzip2"
@@ -2242,7 +2256,12 @@ proc archiveTypeIsSupported {type} {
                     } else {
                         set gzip "gzip"
                     }
-                    if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+                    if {[info exists portutil::autoconf::${gzip}_path]} {
+                        set hint [set portutil::autoconf::${gzip}_path]
+                    } else {
+                        set hint ""
+                    }
+                    if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
                         return 0
                     }
                 } else {
@@ -2252,15 +2271,15 @@ proc archiveTypeIsSupported {type} {
         }
         xar {
             set xar "xar"
-            if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
                 return 0
             }
         }
         zip {
             set zip "zip"
-            if {[catch {set zip [binaryInPath $zip]} errmsg] == 0} {
+            if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
                 set unzip "unzip"
-                if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
+                if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
                     return 0
                 }
             }

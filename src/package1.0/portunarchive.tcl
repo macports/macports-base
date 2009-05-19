@@ -170,7 +170,7 @@ proc portunarchive::unarchive_command_setup {args} {
 	switch -regex ${unarchive.type} {
 		cp(io|gz) {
 			set pax "pax"
-			if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
+			if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
 				ui_debug "Using $pax"
 				set unarchive.cmd "$pax"
 				if {[info exists env(USER)] && $env(USER) == "root"} {
@@ -181,7 +181,7 @@ proc portunarchive::unarchive_command_setup {args} {
 				if {[regexp {z$} ${unarchive.type}]} {
 					set unarchive.args {.}
 					set gzip "gzip"
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+					if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
 					} else {
@@ -198,7 +198,7 @@ proc portunarchive::unarchive_command_setup {args} {
 		}
 		t(ar|bz|lz|gz) {
 			set tar "tar"
-			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+			if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
 				ui_debug "Using $tar"
 				set unarchive.cmd "$tar"
 				set unarchive.pre_args {-xvpf}
@@ -211,7 +211,12 @@ proc portunarchive::unarchive_command_setup {args} {
 					} else {
 						set gzip "gzip"
 					}
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+					if {[info exists portutil::autoconf::${gzip}_path]} {
+					    set hint [set portutil::autoconf::${gzip}_path]
+					} else {
+					    set hint ""
+					}
+					if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set unarchive.pipe_cmd "$gzip -d -c ${unarchive.path} |"
 					} else {
@@ -228,7 +233,7 @@ proc portunarchive::unarchive_command_setup {args} {
 		}
 		xar {
 			set xar "xar"
-			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+			if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set unarchive.cmd "$xar"
 				set unarchive.pre_args {-xvpf}
@@ -240,7 +245,7 @@ proc portunarchive::unarchive_command_setup {args} {
 		}
 		zip {
 			set unzip "unzip"
-			if {[catch {set unzip [binaryInPath $unzip]} errmsg] == 0} {
+			if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
 				ui_debug "Using $unzip"
 				set unarchive.cmd "$unzip"
 				if {[info exists env(USER)] && $env(USER) == "root"} {
