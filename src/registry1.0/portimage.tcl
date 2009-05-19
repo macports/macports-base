@@ -130,7 +130,12 @@ proc activate {name v optionslist} {
 
 	registry::write_entry $ref
 
-	registry::register_bulk_files $imagefiles $name
+	registry::open_file_map
+	foreach file $imagefiles {
+		registry::register_file $file $name
+	}
+	registry::write_file_map
+	registry::close_file_map
 }
 
 proc deactivate {name v optionslist} {
