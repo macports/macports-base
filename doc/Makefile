@@ -40,14 +40,17 @@ install: all
 		$(LN_S) share/man ${INSTALLDIR}/man; \
 	fi
 
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports.conf ${DESTDIR}${mpconfigdir}/macports.conf.default
 	if test ! -e ${DESTDIR}${mpconfigdir}/macports.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macports.conf ${DESTDIR}${mpconfigdir}; \
 	fi
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 sources.conf ${DESTDIR}${mpconfigdir}/sources.conf.default
 	if test ! -e ${DESTDIR}${mpconfigdir}/sources.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 sources.conf ${DESTDIR}${mpconfigdir}; \
 	fi
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 variants.conf ${DESTDIR}${mpconfigdir}/variants.conf.default
 	if test ! -e ${DESTDIR}${mpconfigdir}/variants.conf ; then \
 		set -x; \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 variants.conf ${DESTDIR}${mpconfigdir}; \
