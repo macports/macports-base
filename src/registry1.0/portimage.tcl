@@ -130,11 +130,7 @@ proc activate {name v optionslist} {
 
 	registry::write_entry $ref
 
-	registry::open_file_map
-	foreach file $imagefiles {
-		registry::register_file $file $name
-	}
-	registry::write_file_map
+	registry::register_bulk_files $imagefiles $name
 }
 
 proc deactivate {name v optionslist} {
@@ -185,15 +181,16 @@ proc deactivate {name v optionslist} {
 
 	set imagedir [registry::property_retrieve $ref imagedir]
 
+	registry::open_file_map
 	set imagefiles [registry::port_registered $name]
 
 	_deactivate_contents $name $imagefiles
 
-	registry::open_file_map
 	foreach file $imagefiles {
 		registry::unregister_file $file
 	}
 	registry::write_file_map
+	registry::close_file_map
 	
 	registry::property_store $ref active 0
 
@@ -380,6 +377,7 @@ proc _activate_contents {name imagefiles imagedir} {
 		lappend files $file
 	}
 	registry::write_file_map
+	registry::close_file_map
 
 	# Sort the list in forward order, removing duplicates.
 	# Since the list is sorted in forward order, we're sure that directories

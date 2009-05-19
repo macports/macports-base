@@ -296,6 +296,7 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 
 	# Save the file_map afterwards
 	write_file_map
+	close_file_map
 	
 	# Save the entry to new format.
 	write_entry $ref $name $version $revision $variants
@@ -721,6 +722,19 @@ proc write_file_map {args} {
 	}
 
 	return 1
+}
+
+##
+# close the file map.
+# important to do this so the lock is released.
+# do not do anything if the file map wasn't open.
+#
+proc close_file_map {args} {
+	variable file_map
+
+	if { [info exists file_map] } {
+		filemap close file_map
+	}
 }
 
 # Dependency Map Code
