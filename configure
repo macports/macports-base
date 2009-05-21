@@ -688,7 +688,6 @@ DSTUSR
 MPCONFIGDIR
 PORTSDIR
 EXTRA_PROGS
-REPLACEMENT_PROGS
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 HAVE_FRAMEWORK_IOKIT
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
@@ -7248,7 +7247,6 @@ $as_echo_n "checking for whether we will build daemondo... " >&6; }
 	esac
 	{ $as_echo "$as_me:$LINENO: result: ${result}" >&5
 $as_echo "${result}" >&6; }
-
 
 
 
