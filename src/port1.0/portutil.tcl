@@ -2245,7 +2245,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        t(ar|bz|lz|gz) {
+        t(ar|bz|lz|xz|gz) {
             set tar "tar"
             if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
                 if {[regexp {z2?$} $type]} {
@@ -2253,6 +2253,8 @@ proc archiveTypeIsSupported {type} {
                         set gzip "bzip2"
                     } elseif {[regexp {lz$} $type]} {
                         set gzip "lzma"
+                    } elseif {[regexp {xz$} $type]} {
+                        set gzip "xz"
                     } else {
                         set gzip "gzip"
                     }

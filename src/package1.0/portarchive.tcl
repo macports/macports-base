@@ -192,7 +192,7 @@ proc portarchive::archive_command_setup {args} {
 				return -code error "No '$pax' was found on this system!"
 			}
 		}
-		t(ar|bz|lz|gz) {
+		t(ar|bz|lz|xz|gz) {
 			set tar "tar"
 			if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
 				ui_debug "Using $tar"
@@ -205,6 +205,9 @@ proc portarchive::archive_command_setup {args} {
 					} elseif {[regexp {lz$} ${archive.type}]} {
 						set gzip "lzma"
 						set level 7
+					} elseif {[regexp {xz$} ${archive.type}]} {
+						set gzip "xz"
+						set level 6
 					} else {
 						set gzip "gzip"
 						set level 9
