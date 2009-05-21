@@ -645,7 +645,6 @@ localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 prefix_expanded
 OUR_INCLUDED_PACKAGES
-CONDITIONAL_PACKAGES
 TCL_CC
 TCL_DEFS
 SHLIB_SUFFIX
@@ -4981,9 +4980,6 @@ _ACEOF
 
 
 
-# Determine if we want to install conditional packages
-CONDITIONAL_PACKAGES=
-
 # Foundation checks
 
 
@@ -6863,11 +6859,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-
-# tclobjc requires objc (runtime and foundation) support
-if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
-	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
-fi
 
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
@@ -10595,7 +10586,6 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
 
 
-
 # misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
@@ -10617,7 +10607,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
 
 
 cat >confcache <<\_ACEOF
@@ -11226,7 +11216,6 @@ do
     "portmgr/fedora/macports.spec") CONFIG_FILES="$CONFIG_FILES portmgr/fedora/macports.spec" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
-    "src/tclobjc1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tclobjc1.0/Makefile" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;

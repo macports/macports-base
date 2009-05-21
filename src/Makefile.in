@@ -6,8 +6,7 @@ TCLPKG=		@OUR_INCLUDED_PACKAGES@ \
 			pextlib1.0 \
 			registry1.0 \
 			registry2.0 \
-			darwintracelib1.0 \
-			@CONDITIONAL_PACKAGES@
+			darwintracelib1.0
 SUBDIR=		${TCLPKG} port programs
 
 all::

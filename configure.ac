@@ -134,18 +134,10 @@ MP_WERROR
 MP_COMPILER_ATTRIBUTE_UNUSED
 MP_COMPILER_ATTRIBUTE_LF_PRIVATE
 
-# Determine if we want to install conditional packages
-CONDITIONAL_PACKAGES=
-
 # Foundation checks
 ACX_PTHREAD
 MP_OBJC_RUNTIME
 MP_OBJC_FOUNDATION
-
-# tclobjc requires objc (runtime and foundation) support
-if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
-	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
-fi
 
 MP_PROG_DAEMONDO
 
@@ -352,7 +344,6 @@ AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_DEFS)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
-AC_SUBST(CONDITIONAL_PACKAGES)
 AC_SUBST(OUR_INCLUDED_PACKAGES)
 
 # misc variables that need to be expanded for substitution into tcl
@@ -390,7 +381,6 @@ AC_CONFIG_FILES([
 	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/tclobjc1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
