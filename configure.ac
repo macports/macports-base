@@ -226,13 +226,6 @@ MP_TCL_THREAD_SUPPORT
 ## libcurl
 MP_LIBCURL_FLAGS
 
-# Do we have curl_easy_strerror?
-AH_TEMPLATE([HAVE_CURL_EASY_STRERROR],
-	       [Define to 1 if you have the curl_easy_strerror function.])
-AC_CHECK_LIB([curl], [curl_easy_strerror],
-	[AC_DEFINE([HAVE_CURL_EASY_STRERROR])],[],
-	[$LDFLAGS_LIBCURL])
-
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
 
