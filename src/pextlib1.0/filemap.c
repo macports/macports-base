@@ -34,15 +34,12 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
-
-#if HAVE_STRING_H
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #if HAVE_STRINGS_H
 #include <strings.h>
@@ -222,6 +219,7 @@ int SetFilemapFromAny(Tcl_Interp* inInterp, Tcl_Obj* inObjPtr);
 int SetResultFromErrorCode(Tcl_Interp* interp, int inErrorCode);
 SFilemapObject* GetObjectFromVarName(Tcl_Interp* interp, Tcl_Obj* inVarName);
 int FilemapCloseCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int FilemapCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapExistsCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapGetCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int FilemapIsReadOnlyCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);

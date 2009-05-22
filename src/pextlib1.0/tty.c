@@ -45,6 +45,8 @@
 
 #include <tcl.h>
 
+#include "tty.h"
+
 int IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
         Tcl_Obj *tcl_result;

@@ -34,14 +34,11 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
-
-#if HAVE_STRING_H
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #ifdef HAVE_UTIME_H
 #include <utime.h>
@@ -50,17 +47,8 @@
 #include <curl/curl.h>
 
 #include <tcl.h>
-#include <tclDecls.h>
 
 #include "curl.h"
-
-/* Avoid a warning with Tcl < 8.4, even if Tcl_GetIndexFromObj's tablePtr
-probably isn't modified. */
-#if (TCL_MAJOR_VERSION > 8) || (TCL_MINOR_VERSION >= 4)
-typedef CONST char* tableEntryString;
-#else
-typedef char* tableEntryString;
-#endif
 
 /*
  * Some compiled-in constants that we may wish to change later, given more
@@ -81,6 +69,7 @@ typedef char* tableEntryString;
 int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
 int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
 /* ========================================================================= **
  * Entry points
@@ -829,7 +818,7 @@ CurlCmd(
     	kCurlGetSize
     } EOption;
     
-	static tableEntryString options[] = {
+	static const char *options[] = {
 		"fetch", "isnewer", "getsize", NULL
 	};
 	int theResult = TCL_OK;

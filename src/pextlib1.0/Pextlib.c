@@ -36,16 +36,13 @@
 #include <config.h>
 #endif
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
-
-#if HAVE_STRING_H
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #if HAVE_STRINGS_H
 #include <strings.h>

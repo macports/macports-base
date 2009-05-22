@@ -36,8 +36,6 @@
 #ifndef _PEXTLIB_TTY_H
 #define _PEXTLIB_TTY_H
 
-#include <tcl.h>
-
 /**
  * A wrapper for isatty(3)
  */

@@ -78,6 +78,8 @@
 #define _PATH_DEVNULL	"/dev/null"
 #endif
 
+#include "xinstall.h"
+
 #ifndef MAXBSIZE
 #define MAXBSIZE 65536
 #endif
