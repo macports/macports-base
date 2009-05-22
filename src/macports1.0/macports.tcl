@@ -790,7 +790,6 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias mport_exec mportexec
     $workername alias mport_open mportopen
     $workername alias mport_close mportclose
-    $workername alias mport_search mportsearch
     $workername alias mport_lookup mportlookup
 
     # instantiate the UI call-backs
