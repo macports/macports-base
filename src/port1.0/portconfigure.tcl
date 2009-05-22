@@ -302,7 +302,6 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret /usr/bin/gcc-4.2 }
                 objc { set ret /usr/bin/gcc-4.2 }
                 cxx  { set ret /usr/bin/g++-4.2 }
-                cpp  { set ret /usr/bin/cpp-4.2 }
             }
         }
         llvm-gcc-4.2 {
