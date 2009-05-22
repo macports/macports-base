@@ -50,7 +50,7 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format portarchivepath \
+        registry.path registry.format portimagefilepath portarchivepath \
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
@@ -330,6 +330,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::portsharepath
     global macports::registry.format
     global macports::registry.path
+    global macports::portimagefilepath
     global macports::sources
     global macports::sources_default
     global macports::sources_conf
@@ -487,6 +488,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     set registry.path $portdbpath
+    set portimagefilepath [file join $portdbpath images]
 
     # Format for receipts, can currently be either "flat" or "sqlite"
     if {[info exists portdbformat]} {

@@ -40,12 +40,6 @@ target_prerun ${org.macports.imagefile} portimagefile::imagefile_start
 namespace eval portimagefile {
 }
 
-# define options
-options imagefile.imagespath
-
-# set defaults
-default imagefile.imagespath {[file join $portdbpath images]}
-
 set_ui_prefix
 
 proc portimagefile::imagefile_start {args} {
@@ -140,11 +134,11 @@ proc portimagefile::filelist_for_path {startpath} {
 }
 
 
-# Install (copy to imagefile.imagespath) an imagefile and register
+# Install (copy to portimagefilepath) an imagefile and register
 # it as installed in the MacPorts registry.  This makes no assumptions
 # about how the imagefile was created/acquired
 proc portimagefile::install_register_imagefile {imagefile} {
-    global imagefile.imagespath prefix
+    global portimagefilepath prefix
     set mytempdir [mkdtemp /tmp/mpimageXXXXXXXX]
     set startpwd [pwd]
     try {
@@ -175,7 +169,7 @@ proc portimagefile::install_register_imagefile {imagefile} {
         if {$imagevars(prefix) != $prefix} {
             throw MACPORTS "Image prefix ($imagevars(prefix)) does not match ours ($prefix)"
         }
-        set portimagepath [file join ${imagefile.imagespath} $imagevars(portname)]
+        set portimagepath [file join ${portimagefilepath} $imagevars(portname)]
         if {![file isdirectory $portimagepath]} {
             file mkdir $portimagepath
         }
