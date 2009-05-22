@@ -108,6 +108,8 @@ proc macports::global_option_isset {val} {
 
 
 proc macports::ui_init {priority args} {
+    global macports::channels
+
     # Get the list of channels.
     try {
         set channels [ui_channels $priority]
@@ -116,8 +118,7 @@ proc macports::ui_init {priority args} {
     }
 
     # Simplify ui_$priority.
-    set nbchans [llength $channels]
-    if {$nbchans == 0} {
+    if {[llength $channels] == 0} {
         proc ::ui_$priority {args} {}
     } else {
         try {
@@ -129,26 +130,16 @@ proc macports::ui_init {priority args} {
         try {
             eval ::ui_init $priority $prefix $channels $args
         } catch * {
-            if {$nbchans == 1} {
-                set chan [lindex $channels 0]
-                proc ::ui_$priority {args} [subst {
+            proc ::ui_$priority {args} [subst {
+                global macports::channels
+                foreach chan {$macports::channels} {
                     if {\[lindex \$args 0\] == "-nonewline"} {
-                        puts -nonewline $chan "$prefix\[lindex \$args 1\]"
+                        puts -nonewline \$chan "$prefix\[lindex \$args 1\]"
                     } else {
-                        puts $chan "$prefix\[lindex \$args 0\]"
+                        puts \$chan "$prefix\[lindex \$args 0\]"
                     }
-                }]
-            } else {
-                proc ::ui_$priority {args} [subst {
-                    foreach chan \$channels {
-                        if {\[lindex \$args 0\] == "-nonewline"} {
-                            puts -nonewline $chan "$prefix\[lindex \$args 1\]"
-                        } else {
-                            puts $chan "$prefix\[lindex \$args 0\]"
-                        }
-                    }
-                }]
-            }
+                }
+            }]
         }
 
         # Call ui_$priority

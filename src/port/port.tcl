@@ -39,6 +39,21 @@ catch {source \
 package require macports
 package require Pextlib 1.0
 
+trace add execution exit enter exit_cleanup
+
+proc exit_cleanup {commandstring op} {
+    global exit_status global_options ::debuglog ::debuglogname
+    if {[info exists ::debuglog]} {
+        close $::debuglog
+        if {($exit_status != 0) || ([info exists global_options(ports_autoclean)] && !$global_options(ports_autoclean))} {
+            puts "See the debug log at $::debuglogname"
+        } else {
+            file delete -force $::debuglogname
+            puts "deleting log"
+        }
+    }
+}
+
 
 # Standard procedures
 proc print_usage {{verbose 1}} {
@@ -156,6 +171,15 @@ proc break_softcontinue { msg status name_status } {
     }
 }
 
+proc ui_channels {priority} {
+    global ::debuglog ::debuglogname
+    set default_channel [macports::ui_channels_default $priority]
+    if {![info exists ::debuglog]} {
+        set ::debuglogname [mktemp /tmp/macports_debug.XXXXXX]
+        set ::debuglog [open $::debuglogname w]
+    }
+    return [concat $default_channel $::debuglog]
+}
 
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations {emptyVersionOkay 0}} {
@@ -3648,6 +3672,7 @@ global global_options_base
 set global_options_base [array get global_options]
 
 # First process any remaining args as action(s)
+global exit_status
 set exit_status 0
 if { [llength $remaining_args] > 0 } {
 
