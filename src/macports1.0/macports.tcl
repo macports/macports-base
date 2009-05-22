@@ -54,7 +54,8 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options"
+        applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options \
+        os_arch os_endian os_major os_platform os_version"
     
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -319,7 +320,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         upvar $up_variations variations
     }
     
-    global auto_path env
+    global auto_path env tcl_platform
     global macports::autoconf::macports_conf_path
     global macports::macports_user_dir
     global macports::bootstrap_options
@@ -353,6 +354,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::universal_target
     global macports::universal_sysroot
     global macports::universal_archs
+    global macports::os_arch
+    global macports::os_endian
+    global macports::os_major
+    global macports::os_platform
+    global macports::os_version
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -644,6 +650,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::universal_archs {ppc i386}
     }
     
+    # Platform Settings
+    set os_arch $tcl_platform(machine)
+    if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+    if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
+    set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
+    set os_version $tcl_platform(osVersion)
+    set os_major [lindex [split $os_version .] 0]
+    set os_platform [string tolower $tcl_platform(os)]
+
     # ENV cleanup.
     set keepenvkeys {
         DISPLAY DYLD_FALLBACK_FRAMEWORK_PATH
@@ -881,7 +896,7 @@ proc macports::create_thread {} {
 }
 
 proc macports::fetch_port {url} {
-    global macports::portdbpath tcl_platform
+    global macports::portdbpath
     set fetchdir [file join $portdbpath portdirs]
     set fetchfile [file tail $url]
     file mkdir $fetchdir
@@ -1163,7 +1178,7 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
 proc _libtest {mport depspec} {
-    global env tcl_platform
+    global env macports::os_platform
     set depline [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
     set frameworks_dir [_mportkey $mport frameworks_dir]
@@ -1189,7 +1204,7 @@ proc _libtest {mport depspec} {
     set depname [string range $depline 0 [expr $i - 1]]
     set depversion [string range $depline $i end]
     regsub {\.} $depversion {\.} depversion
-    if {$tcl_platform(os) == "Darwin"} {
+    if {$os_platform == "darwin"} {
         set depregex \^${depname}${depversion}\\.dylib\$
     } else {
         set depregex \^${depname}\\.so${depversion}\$
@@ -1446,8 +1461,8 @@ proc macports::getindex {source} {
 }
 
 proc mportsync {{optionslist {}}} {
-    global macports::sources macports::portdbpath macports::rsync_options tcl_platform
-    global macports::portverbose
+    global macports::sources macports::portdbpath macports::rsync_options
+    global macports::portverbose macports::os_platform
     global macports::autoconf::rsync_path
     array set options $optionslist
 
@@ -2079,7 +2094,7 @@ proc macports::selfupdate {{optionslist {}}} {
             
             set configure_args "--prefix=$prefix --with-tclpackage=$tclpackage --with-install-user=$owner --with-install-group=$group --with-directory-mode=$perms"
             # too many users have an incompatible readline in /usr/local, see ticket #10651
-            if {$tcl_platform(os) != "Darwin" || $prefix == "/usr/local"
+            if {$os_platform != "darwin" || $prefix == "/usr/local"
                 || ([glob -nocomplain "/usr/local/lib/lib{readline,history}*"] == "" && [glob -nocomplain "/usr/local/include/readline/*.h"] == "")} {
                 append configure_args " --enable-readline"
             } else {

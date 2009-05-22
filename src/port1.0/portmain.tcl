@@ -85,20 +85,12 @@ default portversion {$version}
 default portrevision {$revision}
 default portepoch {$epoch}
 
-# Platform Settings
-set os_arch $tcl_platform(machine)
-if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
-set os_version $tcl_platform(osVersion)
-set os_major [lindex [split $os_version .] 0]
-set os_platform [string tolower $tcl_platform(os)]
-
 default os.platform {$os_platform}
 default os.version {$os_version}
 default os.major {$os_major}
 default os.arch {$os_arch}
 # Remove trailing "Endian"
-default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
+default os.endian {$os_endian}
 default os.universal_supported no
 
 set macosx_version {}
