@@ -8,6 +8,8 @@ edit = sed \
 
 include ../../Mk/macports.autoconf.mk
 
+.PHONY: mkdirs
+
 all: ${SCRIPTS}
 
 portmirror: portmirror.tcl ../../Mk/macports.autoconf.mk
@@ -29,7 +31,7 @@ test:
 
 distclean: clean
 
-install: port portindex portmirror mkdirs
+install: all mkdirs
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/bin
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/var/macports
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 555 port portindex portmirror ${INSTALLDIR}/bin/
