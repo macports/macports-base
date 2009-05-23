@@ -38,17 +38,12 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
+
 #include <tcl.h>
 
-#if HAVE_STRING_H
-#include <string.h>
-#endif
-
-#if HAVE_STRINGS_H
-#include <strings.h>
-#endif
+#include "vercomp.h"
 
 /*
  * If A is newer than B, return an integer > 0

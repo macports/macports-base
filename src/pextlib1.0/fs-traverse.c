@@ -58,6 +58,8 @@
 
 #include <tcl.h>
 
+#include "fs-traverse.h"
+
 static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varname, Tcl_Obj *body);
 
 #define F_DEPTH 0x1

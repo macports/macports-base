@@ -2048,52 +2048,6 @@ proc handle_default_variants {option action {value ""}} {
     }
 }
 
-
-# builds the specified port (looked up in the index) to the specified target
-# doesn't yet support options or variants...
-# newworkpath defines the port's workpath - useful for when one port relies
-# on the source, etc, of another
-proc portexec_int {portname target {newworkpath ""}} {
-    ui_debug "Executing $target ($portname)"
-    set variations [list]
-    if {$newworkpath == ""} {
-        array set options [list]
-    } else {
-        set options(workpath) ${newworkpath}
-    }
-
-    set res [mport_lookup $portname]
-    if {[llength $res] < 2} {
-        ui_error "Dependency $portname not found"
-        return -1
-    }
-
-    array set portinfo [lindex $res 1]
-    set porturl $portinfo(porturl)
-    if {[catch {set worker [mport_open $porturl [array get options] $variations]} result]} {
-        global errorInfo
-        ui_debug "$errorInfo"
-        ui_error "Opening $portname $target failed: $result"
-        return -1
-    }
-    if {[catch {mport_exec $worker $target} result] || $result != 0} {
-        global errorInfo
-        ui_debug "$errorInfo"
-        ui_error "Execution $portname $target failed: $result"
-        mport_close $worker
-        return -1
-    }
-    mport_close $worker
-
-    return 0
-}
-
-# portfile primitive that calls portexec_int with newworkpath == ${workpath}
-proc portexec {portname target} {
-    global workpath
-    return [portexec_int $portname $target $workpath]
-}
-
 proc adduser {name args} {
     global os.platform
     set passwd {*}
@@ -2245,7 +2199,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        t(ar|bz|lz|gz) {
+        t(ar|bz|lz|xz|gz) {
             set tar "tar"
             if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
                 if {[regexp {z2?$} $type]} {
@@ -2253,6 +2207,8 @@ proc archiveTypeIsSupported {type} {
                         set gzip "bzip2"
                     } elseif {[regexp {lz$} $type]} {
                         set gzip "lzma"
+                    } elseif {[regexp {xz$} $type]} {
+                        set gzip "xz"
                     } else {
                         set gzip "gzip"
                     }

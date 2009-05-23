@@ -1,6 +1,6 @@
 # $Id$
 
-SUBDIR=	@REPLACEMENT_PROGS@ @EXTRA_PROGS@
+SUBDIR=	@EXTRA_PROGS@
 
 include ../../Mk/macports.subdir.mk
 

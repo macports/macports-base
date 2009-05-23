@@ -8,19 +8,15 @@
  *
  */
  
-#include "uid.h"
-#include "grp.h"
-
 #if HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <grp.h>
+#include <string.h>
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-
-#if HAVE_STRING_H
-#include <string.h>
 #endif
 
 #if HAVE_UNISTD_H
@@ -40,6 +36,8 @@
 #endif
 
 #include <tcl.h>
+
+#include "uid.h"
 
 /*
 	getuid

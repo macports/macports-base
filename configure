@@ -645,7 +645,6 @@ localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 prefix_expanded
 OUR_INCLUDED_PACKAGES
-CONDITIONAL_PACKAGES
 TCL_CC
 TCL_DEFS
 SHLIB_SUFFIX
@@ -689,7 +688,6 @@ DSTUSR
 MPCONFIGDIR
 PORTSDIR
 EXTRA_PROGS
-REPLACEMENT_PROGS
 HAVE_FUNCTION_CFNOTIFICATIONCENTERGETDARWINNOTIFYCENTER
 HAVE_FRAMEWORK_IOKIT
 HAVE_FRAMEWORK_SYSTEMCONFIGURATION
@@ -2331,7 +2329,7 @@ $as_echo "$as_me: WARNING: This version of Mac OS X is not supported" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please upgrade at http://store.apple.com/" >&5
 $as_echo "$as_me: WARNING: Please upgrade at http://store.apple.com/" >&2;}
     ;;
-  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-9]|10.4.10|10.5.[0-5])
+  10.1.[0-4]|10.2.[0-7]|10.3.[0-8]|10.4.[0-9]|10.4.10|10.5.[0-6])
     { $as_echo "$as_me:$LINENO: WARNING: This version of Mac OS X is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { $as_echo "$as_me:$LINENO: WARNING: Please run Software Update to update it" >&5
@@ -4981,9 +4979,6 @@ _ACEOF
 
 
 
-# Determine if we want to install conditional packages
-CONDITIONAL_PACKAGES=
-
 # Foundation checks
 
 
@@ -6864,11 +6859,6 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-# tclobjc requires objc (runtime and foundation) support
-if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
-	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
-fi
-
 
 	FRAMEWORK_LIBS="-framework CoreFoundation"
 
@@ -7257,7 +7247,6 @@ $as_echo_n "checking for whether we will build daemondo... " >&6; }
 	esac
 	{ $as_echo "$as_me:$LINENO: result: ${result}" >&5
 $as_echo "${result}" >&6; }
-
 
 
 
@@ -10276,82 +10265,6 @@ $as_echo "$as_me: error: cannot find curl-config. Is libcurl installed?" >&2;}
 
 
 
-# Do we have curl_easy_strerror?
-
-
-{ $as_echo "$as_me:$LINENO: checking for curl_easy_strerror in -lcurl" >&5
-$as_echo_n "checking for curl_easy_strerror in -lcurl... " >&6; }
-if test "${ac_cv_lib_curl_curl_easy_strerror+set}" = set; then
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcurl $LDFLAGS_LIBCURL $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char curl_easy_strerror ();
-int
-main ()
-{
-return curl_easy_strerror ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:$LINENO: $ac_try_echo\""
-$as_echo "$ac_try_echo") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  $as_echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 $as_test_x conftest$ac_exeext
-       }; then
-  ac_cv_lib_curl_curl_easy_strerror=yes
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_cv_lib_curl_curl_easy_strerror=no
-fi
-
-rm -rf conftest.dSYM
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:$LINENO: result: $ac_cv_lib_curl_curl_easy_strerror" >&5
-$as_echo "$ac_cv_lib_curl_curl_easy_strerror" >&6; }
-if test "x$ac_cv_lib_curl_curl_easy_strerror" = x""yes; then
-  cat >>confdefs.h <<\_ACEOF
-#define HAVE_CURL_EASY_STRERROR 1
-_ACEOF
-
-fi
-
-
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
 
@@ -10595,7 +10508,6 @@ SHLIB_SUFFIX=${TCL_SHLIB_SUFFIX}
 
 
 
-
 # misc variables that need to be expanded for substitution into tcl
 
 oldprefix=$prefix
@@ -10617,7 +10529,10 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/tclobjc1.0/Makefile src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+
+
+ac_config_files="$ac_config_files src/pkg_mkindex.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -11226,12 +11141,12 @@ do
     "portmgr/fedora/macports.spec") CONFIG_FILES="$CONFIG_FILES portmgr/fedora/macports.spec" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/macports1.0/macports_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_autoconf.tcl" ;;
-    "src/tclobjc1.0/Makefile") CONFIG_FILES="$CONFIG_FILES src/tclobjc1.0/Makefile" ;;
     "src/port1.0/port_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/port1.0/port_autoconf.tcl" ;;
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
     "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
+    "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -11841,6 +11756,11 @@ $as_echo "$as_me: error: could not create -" >&2;}
 
   esac
 
+
+  case $ac_file$ac_mode in
+    "src/pkg_mkindex.sh":F) chmod +x src/pkg_mkindex.sh ;;
+
+  esac
 done # for ac_tag
 
 

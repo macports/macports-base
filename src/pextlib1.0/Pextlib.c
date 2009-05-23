@@ -36,16 +36,13 @@
 #include <config.h>
 #endif
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
-
-#if HAVE_STRING_H
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #if HAVE_STRINGS_H
 #include <strings.h>
@@ -136,7 +133,8 @@ char *fgetln(FILE *stream, size_t *len);
 
 #define CBUFSIZ 30
 
-char *ui_escape(const char *source)
+static char *
+ui_escape(const char *source)
 {
 	char *d, *dest;
 	const char *s;
@@ -173,7 +171,8 @@ char *ui_escape(const char *source)
 	return dest;
 }
 
-int ui_info(Tcl_Interp *interp, char *mesg)
+int
+ui_info(Tcl_Interp *interp, char *mesg)
 {
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";

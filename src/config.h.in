@@ -24,9 +24,6 @@
 /* Define to 1 if you have the <crt_externs.h> header file. */
 #undef HAVE_CRT_EXTERNS_H
 
-/* Define to 1 if you have the curl_easy_strerror function. */
-#undef HAVE_CURL_EASY_STRERROR
-
 /* Define to 1 if you have the declaration of `completion_matches', and to 0
    if you don't. */
 #undef HAVE_DECL_COMPLETION_MATCHES

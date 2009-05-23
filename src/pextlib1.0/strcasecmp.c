@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
 #include <ctype.h>
+#include <string.h>
+
+#include "strcasecmp.h"
 
 /* ------------------------------------------------------------------------- **
  * xstrcasecmp
