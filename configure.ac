@@ -377,8 +377,9 @@ AC_CONFIG_FILES([
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
 	src/macports1.0/macports_fastload.tcl
-	src/pkg_mkindex.sh
 	setupenv.bash
 ])
+
+AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
 
 AC_OUTPUT

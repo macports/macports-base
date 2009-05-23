@@ -10529,7 +10529,10 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl src/pkg_mkindex.sh setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf portmgr/freebsd/Makefile portmgr/fedora/macports.spec src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry1.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+
+
+ac_config_files="$ac_config_files src/pkg_mkindex.sh"
 
 
 cat >confcache <<\_ACEOF
@@ -11142,8 +11145,8 @@ do
     "src/registry1.0/registry_autoconf.tcl") CONFIG_FILES="$CONFIG_FILES src/registry1.0/registry_autoconf.tcl" ;;
     "src/programs/Makefile") CONFIG_FILES="$CONFIG_FILES src/programs/Makefile" ;;
     "src/macports1.0/macports_fastload.tcl") CONFIG_FILES="$CONFIG_FILES src/macports1.0/macports_fastload.tcl" ;;
-    "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
     "setupenv.bash") CONFIG_FILES="$CONFIG_FILES setupenv.bash" ;;
+    "src/pkg_mkindex.sh") CONFIG_FILES="$CONFIG_FILES src/pkg_mkindex.sh" ;;
 
   *) { { $as_echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 $as_echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
@@ -11753,6 +11756,11 @@ $as_echo "$as_me: error: could not create -" >&2;}
 
   esac
 
+
+  case $ac_file$ac_mode in
+    "src/pkg_mkindex.sh":F) chmod +x src/pkg_mkindex.sh ;;
+
+  esac
 done # for ac_tag
 
 
