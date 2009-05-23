@@ -25,4 +25,4 @@ install::
 	$(SILENT) set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
 	done
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT) ../pkg_mkindex.sh ${INSTALLDIR}

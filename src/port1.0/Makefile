@@ -25,7 +25,7 @@ install::
 	$(SILENT)set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT) ../pkg_mkindex.sh ${INSTALLDIR}
 
 test::
 	${TCLSH} tests/portutil.tcl

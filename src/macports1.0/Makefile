@@ -24,4 +24,4 @@ install::
 
 	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
 
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(SILENT) ../pkg_mkindex.sh ${INSTALLDIR}
