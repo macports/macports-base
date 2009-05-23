@@ -106,17 +106,27 @@ proc macports::global_option_isset {val} {
     return 0
 }
 
+proc macports::init_logging {} {
+    global ::debuglog ::debuglogname
+    if {![info exists ::debuglog]} {
+        set ::debuglogname [mktemp /tmp/macports_debug.XXXXXX]
+        set ::debuglog [open $::debuglogname w]
+    }
+    return $::debuglog
+}
+
 
 proc macports::ui_init {priority args} {
     global macports::channels
+    set default_channel [macports::ui_channels_default $priority]
+    set logging_file [init_logging]
 
     # Get the list of channels.
     try {
-        set channels [ui_channels $priority]
+        set channels [concat [ui_channels $priority] $logging_file]
     } catch * {
-        set channels [ui_channels_default $priority]
+        set channels [concat $logging_file $default_channel]
     }
-
     # Simplify ui_$priority.
     if {[llength $channels] == 0} {
         proc ::ui_$priority {args} {}

@@ -171,16 +171,6 @@ proc break_softcontinue { msg status name_status } {
     }
 }
 
-proc ui_channels {priority} {
-    global ::debuglog ::debuglogname
-    set default_channel [macports::ui_channels_default $priority]
-    if {![info exists ::debuglog]} {
-        set ::debuglogname [mktemp /tmp/macports_debug.XXXXXX]
-        set ::debuglog [open $::debuglogname w]
-    }
-    return [concat $default_channel $::debuglog]
-}
-
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations {emptyVersionOkay 0}} {
     # Form a composite version out of the version and variations
