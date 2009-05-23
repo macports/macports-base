@@ -2237,10 +2237,12 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to exec port: $result"
+                    catch {mportclose $workername}
                     return 1
                 }
                 if {$result > 0} {
                     ui_error "Problem while installing $portname"
+                    catch {mportclose $workername}
                     return $result
                 }
                 # we just installed it, so mark it done in the cache
@@ -2254,6 +2256,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             }
             # the rest of the proc doesn't matter for a port that is freshly
             # installed or not installed
+            mportclose $workername
             return 0
         } else {
             ui_error "Checking installed version failed: $result"
@@ -2402,7 +2405,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     }
                 }
             }
-
+            mportclose $workername
             return 0
         } else {
             set epoch_override 1
@@ -2425,6 +2428,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Unable to upgrade port: $result"
+            catch {mportclose $workername}
             return 1
         }
     }
@@ -2442,6 +2446,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Uninstall $portname ${version_installed}_${revision_installed}${variant_installed} failed: $result"
+            catch {mportclose $workername}
             return 1
         }
         if {!$force_cur} {
@@ -2460,6 +2465,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 global errorInfo
                 ui_debug "$errorInfo"
                 ui_error "Uninstall $portname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
+                catch {mportclose $workername}
                 return 1
             }
             if {!$force_cur} {
@@ -2478,6 +2484,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 global errorInfo
                 ui_debug "$errorInfo"
                 ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
+                catch {mportclose $workername}
                 return 1
             }
         }
@@ -2494,6 +2501,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         global errorInfo
         ui_debug "$errorInfo"
         ui_error "Couldn't activate $portname ${version_in_tree}_${revision_in_tree}: $result"
+        catch {mportclose $workername}
         return 1
     }
 
@@ -2512,6 +2520,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 global errorInfo
                 ui_debug "$errorInfo"
                 ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
+                catch {mportclose $workername}
                 return 1
             }
         }
