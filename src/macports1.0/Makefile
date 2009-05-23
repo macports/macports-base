@@ -15,7 +15,7 @@ test::
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
 
-install::
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
