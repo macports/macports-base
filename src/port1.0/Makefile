@@ -13,9 +13,13 @@ include ../../Mk/macports.autoconf.mk
 
 .PHONY: test
 
-all::
+all:: pkgIndex.tcl
+
+pkgIndex.tcl:
+	$(SILENT) ../pkg_mkindex.sh .
 
 clean::
+	rm -f pkgIndex.tcl
 
 distclean::
 	rm -f port_autoconf.tcl
@@ -25,7 +29,7 @@ install::
 	$(SILENT)set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
-	$(SILENT) ../pkg_mkindex.sh ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
 
 test::
 	${TCLSH} tests/portutil.tcl
