@@ -115,20 +115,20 @@ proc macports::init_logging {} {
     return $::debuglog
 }
 
-proc ui_message {priority args} {
-    global macports::channels
-    foreach chan {$macports::channels} {
-    if {\[lindex \$args 0\] == "-nonewline"} {
-        puts -nonewline \$chan "$prefix\[lindex \$args 1\]"
-    } else {
-        puts \$chan "$prefix\[lindex \$args 0\]"
+proc ui_message {priority prefix args} {
+    global macports::channels 
+    foreach chan $macports::channels {
+        if {[lindex $args 0] == "-nonewline"} {
+            puts -nonewline $chan "$prefix[lindex $args 1]"
+        } else {
+            puts $chan "$prefix[lindex $args 0]"
+        }
     }
 }
 proc macports::ui_init {priority args} {
     global macports::channels
     set default_channel [macports::ui_channels_default $priority]
     set logging_file [init_logging]
-    puts "$portname"
     # Get the list of channels.
     try {
         set channels [concat [ui_channels $priority] $logging_file]
@@ -136,7 +136,7 @@ proc macports::ui_init {priority args} {
         set channels [concat $logging_file $default_channel]
     }
     # Simplify ui_$priority.
-    if {[llength $channels] == 0} {
+    if {[llength $channels] == 1} {
         proc ::ui_$priority {args} {}
     } else {
         try {
@@ -148,7 +148,7 @@ proc macports::ui_init {priority args} {
         try {
             eval ::ui_init $priority $prefix $channels $args
         } catch * {
-            interp alias {} ui_$priority {} ui_message $priority
+            interp alias {} ui_$priority {} ui_message $priority $prefix
         }
 
         # Call ui_$priority
