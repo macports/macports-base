@@ -152,24 +152,21 @@ proc macports::ui_init {priority args} {
         set channels($priority) [concat $channels($priority) $::debuglog]
     }
     # Simplify ui_$priority.
-    if {[llength $channels($priority)] == 0} {
-       proc ::ui_$priority {args} {}
-    } else {
-        try {
-            set prefix [ui_prefix $priority]
-        } catch * {
-            set prefix [ui_prefix_default $priority]
-        }
-
-        try {
-            eval ::ui_init $priority $prefix $channels($priority) $args
-        } catch * {
-            interp alias {} ui_$priority {} ui_message $priority $prefix
-        }
-
-        # Call ui_$priority
-        eval ::ui_$priority $args
+    try {
+        set prefix [ui_prefix $priority]
+    } catch * {
+        set prefix [ui_prefix_default $priority]
     }
+
+    try {
+        eval ::ui_init $priority $prefix $channels($priority) $args
+    } catch * {
+        interp alias {} ui_$priority {} ui_message $priority $prefix
+    }
+
+    # Call ui_$priority
+    eval ::ui_$priority $args
+    
 }
 
 # Default implementation of ui_prefix
