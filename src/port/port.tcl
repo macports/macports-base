@@ -39,21 +39,6 @@ catch {source \
 package require macports
 package require Pextlib 1.0
 
-trace add execution exit enter exit_cleanup
-
-proc exit_cleanup {commandstring op} {
-    global exit_status global_options ::debuglog ::debuglogname
-    if {[info exists ::debuglog]} {
-        close $::debuglog
-        if {($exit_status != 0) || ([info exists global_options(ports_autoclean)] && !$global_options(ports_autoclean))} {
-            puts "See the debug log at $::debuglogname"
-        } else {
-            file delete -force $::debuglogname
-            puts "deleting log"
-        }
-    }
-}
-
 
 # Standard procedures
 proc print_usage {{verbose 1}} {
