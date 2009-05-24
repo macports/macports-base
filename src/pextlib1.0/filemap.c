@@ -707,6 +707,8 @@ Free(SNode** ioRoot)
 					ckfree((char*) theSubnode);
 					*theSubnodeCursor = 0;
 				}
+				
+				theSubnodeCursor++;
 			}
 		}
 		
