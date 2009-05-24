@@ -1283,27 +1283,37 @@ proc _mportactive {mport} {
     }
 }
 
+# Determine if the named port is active (only for image mode)
+proc _portnameactive {portname} {
+    if {[catch {set reslist [registry::active $portname]}]} {
+        return 0
+    } else {
+        return [expr [llength $reslist] > 0]
+    }
+}
+
 ### _mportispresent is private; may change without notice
 
 # Determine if some depspec is satisfied or if the given port is installed
 # (and active, if we're in image mode).
 # We actually start with the registry (faster?)
 #
-# mport     the port to test (to figure out if it's present)
+# mport     the port declaring the dep (context in which to evaluate $prefix etc)
 # depspec   the dependency test specification (path, bin, lib, etc.)
 proc _mportispresent {mport depspec} {
-    ui_debug "Searching for dependency: [ditem_key $mport provides]"
+    set portname [lindex [split $depspec :] end]
+    ui_debug "Searching for dependency: $portname"
     if {[string equal ${macports::registry.installtype} "image"]} {
-        set res [_mportactive $mport]
+        set res [_portnameactive $portname]
     } else {
-        set res [_mportinstalled $mport]
+        set res [registry::entry_exists_for_name $portname]
     }
     if {$res != 0} {
-        ui_debug "Found Dependency: receipt exists for [ditem_key $mport provides]"
+        ui_debug "Found Dependency: receipt exists for $portname"
         return 1
     } else {
         # The receipt test failed, use one of the depspec regex mechanisms
-        ui_debug "Didn't find receipt, going to depspec regex for: [ditem_key $mport provides]"
+        ui_debug "Didn't find receipt, going to depspec regex for: $portname"
         set type [lindex [split $depspec :] 0]
         switch $type {
             lib { return [_libtest $mport $depspec] }
@@ -2001,15 +2011,14 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
             return 1
         }
 
-        set options [ditem_key $mport options]
-        set variations [ditem_key $mport variations]
-
-        # Figure out the subport.
-        set subport [mportopen $porturl $options $variations]
-
         # Is that dependency satisfied or this port installed?
         # If we don't skip or if it is not, add it to the list.
-        if {!$skipSatisfied || ![_mportispresent $subport $depspec]} {
+        if {!$skipSatisfied || ![_mportispresent $mport $depspec]} {
+            set options [ditem_key $mport options]
+            set variations [ditem_key $mport variations]
+            # Figure out the subport.
+            set subport [mportopen $porturl $options $variations]
+            
             # Append the sub-port's provides to the port's requirements list.
             ditem_append_unique $mport requires "[ditem_key $subport provides]"
 
@@ -2207,29 +2216,34 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if { [catch {set ilist [registry::installed $portname ""]} result] } {
         if {$result == "Registry error: $portname not registered as installed." } {
             ui_debug "$portname is *not* installed by MacPorts"
-            # open porthandle
-            set porturl $portinfo(porturl)
-            if {![info exists porturl]} {
-                set porturl file://./
-            }
-            # Merge the global variations into the specified
-            foreach { variation value } $globalvarlist {
-                if { ![info exists variations($variation)] } {
-                    set variations($variation) $value
-                }
-            }
 
-            if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
+            # We need to pass _mportispresent a reference to the mport that is
+            # actually declaring the dependency on the one we're checking for.
+            # We got here via _upgrade_dependencies, so we grab it from 2 levels up.
+            upvar 2 workername parentworker
+            if {![_mportispresent $parentworker $dspec ] } {
+                # open porthandle
+                set porturl $portinfo(porturl)
+                if {![info exists porturl]} {
+                    set porturl file://./
+                }
+                # Merge the global variations into the specified
+                foreach { variation value } $globalvarlist {
+                    if { ![info exists variations($variation)] } {
+                        set variations($variation) $value
+                    }
+                }
+
+                if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to open port: $result"
                     return 1
-            }
-            # While we're at it, update the portinfo
-            array unset portinfo
-            array set portinfo [mportinfo $workername]
-
-            if {![_mportispresent $workername $dspec ] } {
+                }
+                # While we're at it, update the portinfo
+                array unset portinfo
+                array set portinfo [mportinfo $workername]
+                
                 # upgrade its dependencies first
                 _upgrade_dependencies portinfo depscache globalvarlist variationslist options
                 # now install it
@@ -2246,8 +2260,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     return $result
                 }
                 # we just installed it, so mark it done in the cache
-                # and update ilist
                 set depscache(port:${portname}) 1
+                mportclose $workername
             } else {
                 # dependency is satisfied by something other than the named port
                 ui_debug "$portname not installed, soft dependency satisfied"
@@ -2256,7 +2270,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             }
             # the rest of the proc doesn't matter for a port that is freshly
             # installed or not installed
-            mportclose $workername
             return 0
         } else {
             ui_error "Checking installed version failed: $result"
