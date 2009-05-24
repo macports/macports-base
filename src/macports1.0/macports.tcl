@@ -106,13 +106,25 @@ proc macports::global_option_isset {val} {
     return 0
 }
 
-proc macports::init_logging {} {
-    global ::debuglog ::debuglogname
-    if {![info exists ::debuglog]} {
-        set ::debuglogname [mktemp /tmp/macports_debug.XXXXXX]
-        set ::debuglog [open $::debuglogname w]
+proc macports::init_logging {portpath} {
+    global ::debuglog ::debuglogname macports::channels
+    append portpath "/work/logs"
+    if ![file exists $portpath] {
+        file mkdir $portpath
     }
-    return $::debuglog
+    append portpath "/main.log"
+    set ::debuglogname $portpath
+
+    # Recreate the file if already exists
+    if {[file exists $::debuglogname]} {
+        file delete $::debuglogname
+    }
+    set ::debuglog [open $::debuglogname w]
+
+    # Add our log-channel to all already initialized channels
+    foreach key [array names channels] {
+        set macports::channels($key) [concat $macports::channels($key) $::debuglog]
+    }
 }
 
 proc ui_message {priority prefix args} {
@@ -126,16 +138,19 @@ proc ui_message {priority prefix args} {
     }
 }
 proc macports::ui_init {priority args} {
-    global macports::channels
+    global macports::channels ::debuglog
     set default_channel [macports::ui_channels_default $priority]
-    set logging_file [init_logging]
     # Get the list of channels.
     try {
-        set channels($priority) [concat [ui_channels $priority] $logging_file]
+        set channels($priority) [ui_channels $priority]
     } catch * {
-        set channels($priority) [concat $logging_file $default_channel]
+        set channels($priority) $default_channel
     }
- 
+    
+    # if some priority initialized after log file is being created
+    if [info exist ::debuglog] {
+        set channels($priority) [concat $channels($priority) $::debuglog]
+    }
     # Simplify ui_$priority.
     if {[llength $channels($priority)] == 0} {
        proc ::ui_$priority {args} {}
@@ -1346,14 +1361,13 @@ proc _mportexec {target mport} {
 # Execute the specified target of the given mport.
 proc mportexec {mport target} {
     global macports::registry.installtype
-
     set workername [ditem_key $mport workername]
-
     # check variants
     if {[$workername eval check_variants variations $target] != 0} {
         return 1
     }
-
+    set portpath [ditem_key $mport portpath]
+    macports::init_logging $portpath
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
     set dlist {}
