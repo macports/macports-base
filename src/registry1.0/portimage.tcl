@@ -124,13 +124,13 @@ proc activate {name v optionslist} {
 	
 	set imagefiles [_check_contents $name $contents $imagedir]
 	
+	registry::open_file_map
 	_activate_contents $name $imagefiles $imagedir
 
 	registry::property_store $ref active 1
 
 	registry::write_entry $ref
 
-	registry::open_file_map
 	foreach file $imagefiles {
 		registry::register_file $file $name
 	}
@@ -330,7 +330,6 @@ proc _activate_contents {name imagefiles imagedir} {
 	# Last, if the file exists, and belongs to another port, and force is set
 	#  we remove the file from the file_map, take ownership of it, and 
 	#  clobber it
-	registry::open_file_map
 	foreach file $imagefiles {
 		set srcfile ${imagedir}${file}
 
@@ -382,7 +381,6 @@ proc _activate_contents {name imagefiles imagedir} {
 		lappend files $file
 	}
 	registry::write_file_map
-	registry::close_file_map
 
 	# Sort the list in forward order, removing duplicates.
 	# Since the list is sorted in forward order, we're sure that directories
