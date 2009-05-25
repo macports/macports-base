@@ -113,7 +113,7 @@ proc portlivecheck::livecheck_main {args} {
             }
         }
         # If the default type cannot be determined from the mirror, use the
-        # fallback type (which is a symlink to one of the available types).
+        # fallback.
         if {${livecheck.check} eq "default"} {
             set livecheck.check "fallback"
         }
