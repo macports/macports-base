@@ -142,7 +142,7 @@ proc portimagefile::install_register_imagefile {imagefile} {
     if {[info exists env(TMPDIR)]} {
         set mytempdir [mkdtemp [file join $env(TMPDIR) mpimageXXXXXXXX]]
     } else {
-        set mytempdir [mkdtemp [file join tmp mpimageXXXXXXXX]]
+        set mytempdir [mkdtemp [file join /tmp mpimageXXXXXXXX]]
     }
     set startpwd [pwd]
     try {
