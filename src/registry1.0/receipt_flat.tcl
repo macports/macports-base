@@ -295,6 +295,7 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 
 	# Save the file_map afterwards
 	write_file_map
+	close_file_map
 	
 	# Save the entry to new format.
 	write_entry $ref $name $version $revision $variants
@@ -481,6 +482,9 @@ proc installed {{name ""} {version ""}} {
 	set x [glob -nocomplain -types d ${query_path}]
 	set rlist [list]
 	foreach p $x {
+		if {![file isfile [file join $p receipt.bz2]] && ![file isfile [file join $p receipt]]} {
+			continue
+		}
 		set plist [list]
 		regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} [lindex [file split $p] end] match version revision variants
 		lappend plist [lindex [file split $p] end-1]
@@ -719,6 +723,19 @@ proc write_file_map {args} {
 	}
 
 	return 1
+}
+
+##
+# close the file map.
+# important to do this so the lock is released.
+# do not do anything if the file map wasn't open.
+#
+proc close_file_map {args} {
+	variable file_map
+
+	if { [info exists file_map] } {
+		filemap close file_map
+	}
 }
 
 # Dependency Map Code

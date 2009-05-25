@@ -264,6 +264,7 @@ proc register_bulk_files {files port} {
 	open_file_map
         set r [${macports::registry.format}::register_bulk_files $files $port]
 	write_file_map
+	close_file_map
 	return $r
 }
 
@@ -275,6 +276,11 @@ proc unregister_file {file} {
 proc write_file_map {args} {
 	global macports::registry.format
 	return [${macports::registry.format}::write_file_map $args]
+}
+
+proc close_file_map {args} {
+	global macports::registry.format
+	return [${macports::registry.format}::close_file_map $args]
 }
 
 # Dependency Map Code

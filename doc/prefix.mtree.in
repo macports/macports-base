@@ -231,7 +231,7 @@
             ..
             zh_TW.Big5
             ..
-	..
+        ..
         skel
         ..
     ..
@@ -240,9 +240,9 @@
     var
         macports
             distfiles
-	    ..
+            ..
             receipts
-        ..
+            ..
             registry
             ..
         ..

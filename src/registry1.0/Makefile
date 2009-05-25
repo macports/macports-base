@@ -4,18 +4,22 @@ SRCS= registry.tcl registry_autoconf.tcl receipt_flat.tcl receipt_sqlite.tcl por
 
 include ../../Mk/macports.autoconf.mk
 
-all::
+all:: pkgIndex.tcl
+
+pkgIndex.tcl:
+	$(SILENT) ../pkg_mkindex.sh .
 
 clean::
+	rm -f pkgIndex.tcl
 
 distclean:: clean
 	rm -f registry_autoconf.tcl
 
-install::
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(SILENT)set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \
 	done
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
 
 test::

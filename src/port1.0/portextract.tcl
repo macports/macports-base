@@ -53,7 +53,7 @@ commands extract
 default extract.only {[portextract::disttagclean $distfiles]}
 
 default extract.dir {${workpath}}
-default extract.cmd gzip
+default extract.cmd {[findBinary gzip ${portutil::autoconf::gzip_path}]}
 default extract.pre_args -dc
 default extract.post_args {"| ${portutil::autoconf::tar_command} -xf -"}
 default extract.mkdir no
@@ -85,11 +85,11 @@ proc portextract::extract_init {args} {
     }
 
     if {[tbool use_bzip2]} {
-        option extract.cmd [binaryInPath "bzip2"]
+        option extract.cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
     } elseif {[tbool use_lzma]} {
         option extract.cmd [binaryInPath "lzma"]
     } elseif {[tbool use_zip]} {
-        option extract.cmd [binaryInPath "unzip"]
+        option extract.cmd [findBinary unzip ${portutil::autoconf::unzip_path}]
         option extract.pre_args -q
         option extract.post_args "-d [option extract.dir]"
     } elseif {[tbool use_7z]} {
@@ -101,9 +101,9 @@ proc portextract::extract_init {args} {
         set dmg_tmp_dir [exec mktemp -d -q "/tmp/mports.XXXXXXXX"]
         set dmg_mount ${dmg_tmp_dir}/${worksrcdir}
         file mkdir ${dmg_mount}
-        option extract.cmd [binaryInPath "hdiutil"]
+        option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
-        option extract.post_args "-private -readonly -nobrowse -mountpoint ${dmg_mount} && [binaryInPath "cp"] -Rp ${dmg_mount} ${extract.dir} && ${extract.cmd} detach ${dmg_mount} && [binaryInPath "rmdir"] ${dmg_mount} ${dmg_tmp_dir}"
+        option extract.post_args "-private -readonly -nobrowse -mountpoint ${dmg_mount} && [findBinary cp  ${portutil::autoconf::cp_path}] -Rp ${dmg_mount} ${extract.dir} && ${extract.cmd} detach ${dmg_mount} && [findBinary rmdir  ${portutil::autoconf::rmdir_path}] ${dmg_mount} ${dmg_tmp_dir}"
     }
 }
 

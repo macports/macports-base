@@ -1797,6 +1797,7 @@ proc action_provides { action portlist opts } {
             puts "$file does not exist."
         }
     }
+    registry::close_file_map
     
     return 0
 }
@@ -2263,6 +2264,7 @@ proc action_contents { action portlist opts } {
             }
         }
     }
+    registry::close_file_map
 
     return $status
 }

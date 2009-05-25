@@ -36,16 +36,13 @@
 #include <config.h>
 #endif
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <errno.h>
 #include <grp.h>
-
-#if HAVE_STRING_H
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#endif
 
 #if HAVE_STRINGS_H
 #include <strings.h>
@@ -136,7 +133,8 @@ char *fgetln(FILE *stream, size_t *len);
 
 #define CBUFSIZ 30
 
-char *ui_escape(const char *source)
+static char *
+ui_escape(const char *source)
 {
 	char *d, *dest;
 	const char *s;
@@ -173,7 +171,8 @@ char *ui_escape(const char *source)
 	return dest;
 }
 
-int ui_info(Tcl_Interp *interp, char *mesg)
+int
+ui_info(Tcl_Interp *interp, char *mesg)
 {
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
@@ -728,76 +727,6 @@ int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	return TCL_OK;
 }
 
-/**
- * Take a file descriptor and generate a Tcl channel out of it.
- * Syntax is:
- * mkchannelfromfd fd [r|w|rw]
- * Use r to generate a read-only channel, w for a write only channel or rw
- * for a read/write channel (the default).
- */
-int MkChannelFromFdCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Channel theChannel;
-	int fd;
-	int readOrWrite = TCL_READABLE | TCL_WRITABLE;
-
-	if ((objc != 2) && (objc != 3)) {
-		Tcl_WrongNumArgs(interp, 1, objv, "fd [r|w|rw]");
-		return TCL_ERROR;
-	}
-	
-	if (objc == 3) {
-		char* readOrWrite_as_char_star;
-		readOrWrite_as_char_star = strdup(Tcl_GetString(objv[2]));
-		if (readOrWrite_as_char_star == NULL) {
-			return TCL_ERROR;
-		}
-
-		if ((readOrWrite_as_char_star[0] == 'r')
-			&& (readOrWrite_as_char_star[1] == '\0')) {
-			readOrWrite = TCL_READABLE;
-		} else if ((readOrWrite_as_char_star[0] == 'w')
-			&& (readOrWrite_as_char_star[1] == '\0')) {
-			readOrWrite = TCL_WRITABLE;
-		} else if ((readOrWrite_as_char_star[0] == 'r')
-			&& (readOrWrite_as_char_star[1] == 'w')
-			&& (readOrWrite_as_char_star[2] == '\0')) {
-			readOrWrite = TCL_READABLE | TCL_WRITABLE;
-		} else {
-			Tcl_AppendResult(interp, "Bad mode. Use r, w or rw", NULL);
-			free(readOrWrite_as_char_star);
-			return TCL_ERROR;
-		}
-
-		free(readOrWrite_as_char_star);
-	}
-
-	{
-		char* fd_as_char_star;
-		fd_as_char_star = strdup(Tcl_GetString(objv[1]));
-		if (fd_as_char_star == NULL) {
-			return TCL_ERROR;
-		}
-
-		if (Tcl_GetInt(interp, fd_as_char_star, &fd) != TCL_OK) {
-			free(fd_as_char_star);
-			return TCL_ERROR;
-		}
-		free(fd_as_char_star);
-	}
-
-	theChannel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, readOrWrite);
-	if (theChannel == NULL) {
-		return TCL_ERROR;
-	}
-	
-	/* register the channel in the current interpreter */
-	Tcl_RegisterChannel(interp, theChannel);
-	Tcl_AppendResult(interp, Tcl_GetChannelName(theChannel), (char *) NULL);
-
-	return TCL_OK;
-}
-
 int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *template, *sp;
@@ -876,54 +805,6 @@ int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 	channelname = (char *)Tcl_GetChannelName(channel);
 	Tcl_AppendResult(interp, channelname, " ", template, NULL);
 	free(template);
-	return TCL_OK;
-}
-
-/**
- * Call mkfifo(2).
- * Generate a Tcl error if something wrong occurred.
- *
- * Syntax is:
- * mkfifo path mode
- */
-int MkfifoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char* path;
-	mode_t mode;
-
-	if (objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "path mode");
-		return TCL_ERROR;
-	}
-	
-	{
-		char* mode_as_char_star;
-		int mode_as_int;
-		mode_as_char_star = strdup(Tcl_GetString(objv[2]));
-		if (mode_as_char_star == NULL) {
-			return TCL_ERROR;
-		}
-
-		if (Tcl_GetInt(interp, mode_as_char_star, &mode_as_int) != TCL_OK) {
-			free(mode_as_char_star);
-			return TCL_ERROR;
-		}
-		free(mode_as_char_star);
-		mode = (mode_t) mode_as_int;
-	}
-
-	path = strdup(Tcl_GetString(objv[1]));
-	if (path == NULL) {
-		return TCL_ERROR;
-	}
-
-	if (mkfifo(path, mode) != 0) {
-		Tcl_AppendResult(interp, "mkfifo failed: ", strerror(errno), NULL);
-		free(path);
-		return TCL_ERROR;
-	}
-
-	free(path);
 	return TCL_OK;
 }
 
@@ -1030,7 +911,7 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 	mode_t oldmode;
 
 	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "numask");
+		Tcl_WrongNumArgs(interp, 1, objv, "mode");
 		return TCL_ERROR;
 	}
 
@@ -1098,38 +979,6 @@ int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
 	result = Tcl_NewListObj(0, NULL);
 	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[0]));
 	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[1]));
-	Tcl_SetObjResult(interp, result);
-
-	return TCL_OK;
-}
-
-/**
- * Call socketpair to generate a socket pair in the Unix domain.
- * Syntax is:
- * unixsocketpair
- *
- * Generate a Tcl error if something goes wrong.
- * Return a list with the file descriptors of the pair.
- */
-int UnixSocketPairCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Obj* result;
-	int pair[2];
-
-	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, NULL);
-		return TCL_ERROR;
-	}
-	
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, pair) < 0) {
-		Tcl_AppendResult(interp, "socketpair failed: ", strerror(errno), NULL);
-		return TCL_ERROR;
-	}
-	
-	/* build a list out of the pair */
-	result = Tcl_NewListObj(0, NULL);
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(pair[0]));
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(pair[1]));
 	Tcl_SetObjResult(interp, result);
 
 	return TCL_OK;
@@ -1274,7 +1123,7 @@ int lchownCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
 int Pextlib_Init(Tcl_Interp *interp)
 {
-	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
 		return TCL_ERROR;
 
 	Tcl_CreateObjCommand(interp, "system", SystemCmd, NULL, NULL);
@@ -1297,9 +1146,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "mkfifo", MkfifoCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "unixsocketpair", UnixSocketPairCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "mkchannelfromfd", MkChannelFromFdCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);

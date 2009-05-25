@@ -15,7 +15,7 @@ test::
 distclean:: clean
 	rm -f macports_autoconf.tcl macports_fastload.tcl ${SHLIB_NAME}
 
-install::
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 
 	$(SILENT) set -x; for file in ${SRCS}; do \
@@ -24,4 +24,4 @@ install::
 
 	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
 
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}

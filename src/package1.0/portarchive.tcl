@@ -159,13 +159,13 @@ proc portarchive::archive_command_setup {args} {
 	switch -regex ${archive.type} {
 		cp(io|gz) {
 			set pax "pax"
-			if {[catch {set pax [binaryInPath $pax]} errmsg] == 0} {
+			if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
 				ui_debug "Using $pax"
 				set archive.cmd "$pax"
 				set archive.pre_args {-w -v -x cpio}
 				if {[regexp {z$} ${archive.type}]} {
 					set gzip "gzip"
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+					if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set archive.args {.}
 						set archive.post_args "| $gzip -c9 > ${archive.path}"
@@ -181,9 +181,9 @@ proc portarchive::archive_command_setup {args} {
 				return -code error "No '$pax' was found on this system!"
 			}
 		}
-		t(ar|bz|lz|gz) {
+		t(ar|bz|lz|xz|gz) {
 			set tar "tar"
-			if {[catch {set tar [binaryInPath $tar]} errmsg] == 0} {
+			if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
 				ui_debug "Using $tar"
 				set archive.cmd "$tar"
 				set archive.pre_args {-cvf}
@@ -194,11 +194,19 @@ proc portarchive::archive_command_setup {args} {
 					} elseif {[regexp {lz$} ${archive.type}]} {
 						set gzip "lzma"
 						set level 7
+					} elseif {[regexp {xz$} ${archive.type}]} {
+						set gzip "xz"
+						set level 6
 					} else {
 						set gzip "gzip"
 						set level 9
 					}
-					if {[catch {set gzip [binaryInPath $gzip]} errmsg] == 0} {
+					if {[info exists portutil::autoconf::${gzip}_path]} {
+					    set hint [set portutil::autoconf::${gzip}_path]
+					} else {
+					    set hint ""
+					}
+					if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
 						ui_debug "Using $gzip"
 						set archive.args {- .}
 						set archive.post_args "| $gzip -c$level > ${archive.path}"
@@ -216,7 +224,7 @@ proc portarchive::archive_command_setup {args} {
 		}
 		xar {
 			set xar "xar"
-			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+			if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set archive.cmd "$xar"
 				set archive.pre_args {-cvf}
@@ -229,7 +237,7 @@ proc portarchive::archive_command_setup {args} {
 		xpkg {
 			set xar "xar"
 			set compression "bzip2"
-			if {[catch {set xar [binaryInPath $xar]} errmsg] == 0} {
+			if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
 				ui_debug "Using $xar"
 				set archive.cmd "$xar"
 				set archive.pre_args "-cv --exclude='\./\+.*' --compression=${compression} -n ${archive.metaname} -s ${archive.metapath} -f"
@@ -241,7 +249,7 @@ proc portarchive::archive_command_setup {args} {
 		}
 		zip {
 			set zip "zip"
-			if {[catch {set zip [binaryInPath $zip]} errmsg] == 0} {
+			if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
 				ui_debug "Using $zip"
 				set archive.cmd "$zip"
 				set archive.pre_args {-ry9}

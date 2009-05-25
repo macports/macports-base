@@ -24,4 +24,4 @@ distclean:: clean
 
 test:
 
-install:: ${STLIB_NAME}
+install:: all

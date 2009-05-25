@@ -12,15 +12,12 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
+#include <string.h>
+
 #if HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-
-#if HAVE_STRING_H
-#include <string.h>
-#endif
-
-#include <stdio.h>
 
 #if HAVE_READLINE_READLINE_H
 #include <readline/readline.h>
@@ -31,8 +28,8 @@
 #endif
 
 #include <tcl.h>
-#include "readline.h"
 
+#include "readline.h"
 
 /* Globals */
 #if HAVE_READLINE_READLINE_H

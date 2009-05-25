@@ -32,7 +32,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_WARN([This version of Mac OS X is not supported])
     AC_MSG_WARN([Please upgrade at http://store.apple.com/])
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-5]])
+  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-6]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
@@ -84,19 +84,26 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
+AC_PATH_PROG(CP, [cp], [])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(GIT, [git], [])
+AC_PATH_PROG(GZIP, [gzip], [])
+AC_PATH_PROG(RMDIR, [rmdir], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(TAR, [tar])
+AC_PATH_PROG(UNZIP, [unzip])
+AC_PATH_PROG(ZIP, [zip])
 AC_PATH_PROG(MAKE, [make])
+AC_PATH_PROG(HDIUTIL, [hdiutil], [])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
 AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(PAX, [pax], [])
 AC_PATH_PROG(XAR, [xar], [])
 AC_PATH_PROG(OPEN, [open], [])
 
@@ -127,22 +134,13 @@ MP_WERROR
 MP_COMPILER_ATTRIBUTE_UNUSED
 MP_COMPILER_ATTRIBUTE_LF_PRIVATE
 
-# Determine if we want to install conditional packages
-CONDITIONAL_PACKAGES=
-
 # Foundation checks
 ACX_PTHREAD
 MP_OBJC_RUNTIME
 MP_OBJC_FOUNDATION
 
-# tclobjc requires objc (runtime and foundation) support
-if test x$OBJC_RUNTIME != xnone -a x$OBJC_FOUNDATION != xnone; then
-	CONDITIONAL_PACKAGES="tclobjc1.0 $CONDITIONAL_PACKAGES"
-fi
-
 MP_PROG_DAEMONDO
 
-AC_SUBST(REPLACEMENT_PROGS)
 AC_SUBST(EXTRA_PROGS)
 
 # set default ports-directory
@@ -227,13 +225,6 @@ MP_TCL_THREAD_SUPPORT
 
 ## libcurl
 MP_LIBCURL_FLAGS
-
-# Do we have curl_easy_strerror?
-AH_TEMPLATE([HAVE_CURL_EASY_STRERROR],
-	       [Define to 1 if you have the curl_easy_strerror function.])
-AC_CHECK_LIB([curl], [curl_easy_strerror],
-	[AC_DEFINE([HAVE_CURL_EASY_STRERROR])],[],
-	[$LDFLAGS_LIBCURL])
 
 # Determine if we need to install some bundled packages
 OUR_INCLUDED_PACKAGES=
@@ -345,7 +336,6 @@ AC_SUBST(SHLIB_SUFFIX)
 AC_SUBST(TCL_DEFS)
 AC_SUBST(TCL_STUB_LIB_SPEC)
 AC_SUBST(TCL_CC)
-AC_SUBST(CONDITIONAL_PACKAGES)
 AC_SUBST(OUR_INCLUDED_PACKAGES)
 
 # misc variables that need to be expanded for substitution into tcl
@@ -383,12 +373,13 @@ AC_CONFIG_FILES([
 	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
-	src/tclobjc1.0/Makefile
 	src/port1.0/port_autoconf.tcl
 	src/registry1.0/registry_autoconf.tcl
 	src/programs/Makefile
 	src/macports1.0/macports_fastload.tcl
 	setupenv.bash
 ])
+
+AC_CONFIG_FILES([src/pkg_mkindex.sh], [chmod +x src/pkg_mkindex.sh])
 
 AC_OUTPUT

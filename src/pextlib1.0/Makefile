@@ -17,9 +17,9 @@ endif
 .PHONY: test
 
 test:: ${SHLIB_NAME}
-	${TCLSH} tests/curl.tcl ${SHLIB_NAME}
 	${TCLSH} tests/checksums.tcl ${SHLIB_NAME}
+	${TCLSH} tests/curl.tcl ${SHLIB_NAME}
 	${TCLSH} tests/filemap.tcl ${SHLIB_NAME}
-	${TCLSH} tests/fifo.tcl ${SHLIB_NAME}
 	${TCLSH} tests/fs-traverse.tcl ${SHLIB_NAME}
-	${TCLSH} tests/socketpair.tcl ${SHLIB_NAME}
+	${TCLSH} tests/symlink.tcl ${SHLIB_NAME}
+	${TCLSH} tests/unsetenv.tcl ${SHLIB_NAME}

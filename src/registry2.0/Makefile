@@ -19,10 +19,10 @@ test:: ${SHLIB_NAME}
 	${TCLSH} tests/entry.tcl ${SHLIB_NAME}
 	${TCLSH} tests/depends.tcl ${SHLIB_NAME}
 
-install::
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
 	$(SILENT) set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
 	done
-	$(SILENT) $(TCLSH) ../pkg_mkindex.tcl ${INSTALLDIR}
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}

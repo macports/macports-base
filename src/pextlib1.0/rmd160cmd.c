@@ -34,11 +34,9 @@
 #include <config.h>
 #endif
 
-#include <tcl.h>
-
-#if HAVE_STRING_H
 #include <string.h>
-#endif
+
+#include <tcl.h>
 
 #if !defined(HAVE_LIBMD)
 

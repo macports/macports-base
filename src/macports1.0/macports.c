@@ -51,7 +51,7 @@ macports__version(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tc
 int
 Macports_Init(Tcl_Interp *interp)
 {
-	if (Tcl_InitStubs(interp, "8.3", 0) == NULL)
+	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
 		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
 	if (Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
