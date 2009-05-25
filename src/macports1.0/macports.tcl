@@ -106,18 +106,36 @@ proc macports::global_option_isset {val} {
     return 0
 }
 
-proc macports::init_logging {portpath} {
-    global ::debuglog ::debuglogname macports::channels
-    append portpath "/work/logs"
-    if ![file exists $portpath] {
-        file mkdir $portpath
+proc macports::init_logging {portname} {
+    global ::debuglog ::debuglogname macports::channels macports::prefix
+    set logname $macports::prefix
+    
+    # I am not sure tcl can handle mkdir -p, to make stuff below easier.
+    # first we create ${prefix}/var/macports/
+    append logname "/var/macports"
+    if ![file exists $logname] {
+        file mkdir $logname
     }
-    append portpath "/main.log"
-    set ::debuglogname $portpath
+
+    # second we create ${prefix}/var/macports/logs
+    append logname "/logs"
+    if ![file exists $logname] {
+        file mkdir $logname
+    }
+
+    # third we create ${prefix}/var/macports/logs/${portname}
+    append logname "/$portname"
+    if ![file exists $logname] {
+        file mkdir $logname
+    }
+    
+    append logname "/main.log"
+    puts $logname
+    set ::debuglogname $logname
 
     # Recreate the file if already exists
     if {[file exists $::debuglogname]} {
-        file delete $::debuglogname
+        file delete -force $::debuglogname
     }
     set ::debuglog [open $::debuglogname w]
 
@@ -1363,8 +1381,8 @@ proc mportexec {mport target} {
     if {[$workername eval check_variants variations $target] != 0} {
         return 1
     }
-    set portpath [ditem_key $mport portpath]
-    macports::init_logging $portpath
+    set portname [_mportkey $mport name]
+    macports::init_logging $portname
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
     set dlist {}
