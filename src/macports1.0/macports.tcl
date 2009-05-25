@@ -110,27 +110,10 @@ proc macports::init_logging {portname} {
     global ::debuglog ::debuglogname macports::channels macports::prefix
     set logname $macports::prefix
     
-    # I am not sure tcl can handle mkdir -p, to make stuff below easier.
-    # first we create ${prefix}/var/macports/
-    append logname "/var/macports"
-    if ![file exists $logname] {
-        file mkdir $logname
-    }
+    append logname "/var/macports/logs/$portname"
+    file mkdir $logname
 
-    # second we create ${prefix}/var/macports/logs
-    append logname "/logs"
-    if ![file exists $logname] {
-        file mkdir $logname
-    }
-
-    # third we create ${prefix}/var/macports/logs/${portname}
-    append logname "/$portname"
-    if ![file exists $logname] {
-        file mkdir $logname
-    }
-    
     append logname "/main.log"
-    puts $logname
     set ::debuglogname $logname
 
     # Recreate the file if already exists
