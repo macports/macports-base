@@ -551,8 +551,6 @@ proc deactivate {name v optionslist} {
 		return -code error "Image error: ${name} @${fqversion} is not active."
 	} 
 
-	set imagedir [registry::property_retrieve $ref imagedir]
-
 	set imagefiles [registry::port_registered $name]
 
 	_deactivate_contents $name $imagefiles
