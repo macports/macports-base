@@ -92,7 +92,6 @@
 #endif
 
 #include <tcl.h>
-#include <tclDecls.h>
 
 #include "filemap.h"
 #include "strcasecmp.h"
