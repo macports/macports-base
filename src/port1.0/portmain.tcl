@@ -94,7 +94,7 @@ default os.endian {$os_endian}
 default os.universal_supported no
 
 set macosx_version {}
-if {$os_platform == "darwin"} {
+if {[info exists os.platform] && ${os.platform} == "darwin"} {
     # This will probably break when Apple changes versioning
     set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
 }
