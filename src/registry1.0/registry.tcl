@@ -391,29 +391,27 @@ proc write_dep_map {args} {
 
 
 #
-# Port Images are basically just installations of the destroot of a port into
-# ${macports::registry.path}/software/${name}/${version}_${revision}${variants}
+# Port Images are installations of the destroot of a port archived into a
+# tbz file.
 # They allow the user to install multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #  
-# From there, the user can "activate" a port image.  This creates {sym,hard}links for
-# all files in the image into the ${prefix}.  Directories are created.  
+# From there, the user can "activate" a port image.  This extracts the port's
+# files from the tbz into ${prefix}.  Directories are created.  
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
 # The conflicting port must be deactivated first.
 #
-# The user can also "deactivate" an active port.  This will remove all {sym,hard}links
-# from ${prefix}, and if any directories are empty, remove them as well.  It 
-# will also remove all of the references of the files from the registry's 
-# file_map
-#
-# For the creating and removing of links during activation and deactivation,
-# code very similar to what is used in portinstall is used.
+# The user can also "deactivate" an active port.  This will remove all the
+# port's files from ${prefix}, and if any directories are empty, remove them
+# as well.  It will also remove all of the references of the files from the
+# registry's file_map.
 #
 
 # Activate a "Port Image"	
 proc activate {name v optionslist} {
-	global macports::prefix macports::registry.path UI_PREFIX
+	global macports::prefix macports::registry.path UI_PREFIX env
+	global macports::portimagefilepath macports::os_platform macports::os_arch
 	array set options $optionslist
 	variable force
 
@@ -429,6 +427,12 @@ proc activate {name v optionslist} {
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
+	set	epoch [lindex $ilist 5]
+	set macport_filename "${name}-${epoch}-${version}_${revision}${variants}.${macports::os_platform}.${macports::os_arch}.macport"
+	set macport_file [file join ${macports::portimagefilepath} $name $macport_filename]
+	if {![file exists $macport_file]} {
+		return -code error "Image error: Can't find image file $macport_file"
+	}
 	
     if {$v != ""} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
@@ -456,23 +460,49 @@ proc activate {name v optionslist} {
 		return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
 	} 
 
-	set imagedir [registry::property_retrieve $ref imagedir]
-
 	set contents [registry::property_retrieve $ref contents]
-	
-	set imagefiles [_check_contents $name $contents $imagedir]
-	
-	_activate_contents $name $imagefiles $imagedir
 
-	registry::property_store $ref active 1
-
-	registry::write_entry $ref
-
-	registry::open_file_map
-	foreach file $imagefiles {
-		registry::register_file $file $name
+	set imagefiles {}
+	foreach content_element $contents {
+		lappend imagefiles [lindex $content_element 0]
 	}
-	registry::write_file_map
+
+	if {[info exists env(TMPDIR)]} {
+		set extractdir [mkdtemp [file join $env(TMPDIR) mpextractXXXXXXXX]]
+	} else {
+		set extractdir [mkdtemp [file join /tmp mpextractXXXXXXXX]]
+	}
+	set startpwd [pwd]
+	try {
+		if {[catch {cd $extractdir} err]} {
+			throw MACPORTS $err
+		}
+		if {[catch {set tarcmd [macports::binaryInPath tar]} err]} {
+			throw MACPORTS $err
+		}
+		if {[catch {set bzipcmd [macports::binaryInPath bzip2]} err]} {
+			throw MACPORTS $err
+		}
+		if {[catch {system "$tarcmd -xf $macport_file files.tar.bz2"} err]} {
+			throw MACPORTS $err
+		}
+		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf -"} err]} {
+			throw MACPORTS $err
+		}
+		# XXX should we delete files.tar.bz2 now here?
+		_activate_contents $name $imagefiles $extractdir
+		registry::property_store $ref active 1
+		registry::write_entry $ref
+
+		registry::open_file_map
+		registry::register_bulk_files $contents $name
+		registry::write_file_map
+	} catch {* errorCode errorMessage} {
+		ui_error $errorMessage
+	} finally {
+		cd $startpwd
+		file delete -force $extractdir
+	}
 }
 
 proc deactivate {name v optionslist} {
@@ -564,32 +594,6 @@ proc _check_registry {name v} {
 	return -code error "Registry error: No port of $name installed."
 }
 
-proc _check_contents {name contents imagedir} {
-	variable force
-
-	set imagefiles [list]
-
-	# This is big and hairy and probably could be done better.
-	# First, we need to check the source file, make sure it exists
-	# Then we remove the $imagedir from the path of the file in the contents
-	#  list  and check to see if that file exists
-	# Last, if the file exists, and belongs to another port, and force is set
-	#  we remove the file from the file_map, take ownership of it, and 
-	#  clobber it
-	foreach fe $contents {
-		if { ![file isdirectory [lindex $fe 0]] || [file type [lindex $fe 0]] == "link" } {
-			set srcfile [lindex $fe 0]
-			set file [string range [lindex $fe 0] [string length $imagedir] [string length [lindex $fe 0]]]
-
-			if { ![string equal $srcfile ""] } {
-				lappend imagefiles $file
-			}
-		}
-	}
-
-	return $imagefiles
-}
-
 proc _activate_file {srcfile dstfile} {
 	# Don't recursively copy directories
 	if { [file isdirectory $srcfile] && [file type $srcfile] != "link" } {
@@ -609,31 +613,19 @@ proc _activate_file {srcfile dstfile} {
 			# set mtime on installed element
 			exec touch -r $srcfile $dstfile
 		}
-	} elseif { [file type $srcfile] == "link" } {
-		file copy -force $srcfile $dstfile
 	} else {
-		# Try a hard link first and if that fails, a symlink
-		if {[catch {file link -hard $dstfile $srcfile}]} {
-			ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-			file link -symbolic $dstfile $srcfile
-		}
+		file rename $srcfile $dstfile
 	}
 }
 
-proc _activate_list {flist imagedir} {
+proc _activate_list {flist extractdir} {
 	foreach file $flist {
-		if { [file type ${imagedir}${file}] == "link" } {
-			ui_debug "activating link: $file"
-		} elseif { [file isdirectory ${imagedir}${file}] } {
-			ui_debug "activating directory: $file"
-		} else {
-			ui_debug "activating file: $file"
-		}
-		_activate_file ${imagedir}${file} $file
+		ui_debug "activating [file type ${extractdir}${file}]: $file"
+		_activate_file ${extractdir}${file} $file
 	}
 }
 
-proc _activate_contents {name imagefiles imagedir} {
+proc _activate_contents {name imagefiles extractdir} {
 	variable force
 	global macports::prefix
 
@@ -641,14 +633,14 @@ proc _activate_contents {name imagefiles imagedir} {
 	
 	# This is big and hairy and probably could be done better.
 	# First, we need to check the source file, make sure it exists
-	# Then we remove the $imagedir from the path of the file in the contents
+	# Then we remove the $extractdir from the path of the file in the contents
 	#  list  and check to see if that file exists
 	# Last, if the file exists, and belongs to another port, and force is set
 	#  we remove the file from the file_map, take ownership of it, and 
 	#  clobber it
 	registry::open_file_map
 	foreach file $imagefiles {
-		set srcfile ${imagedir}${file}
+		set srcfile ${extractdir}${file}
 
 		# To be able to install links, we test if we can lstat the file to figure
 		# out if the source file exists (file exists will return false for symlinks on
@@ -707,14 +699,11 @@ proc _activate_contents {name imagefiles imagedir} {
 	set theList [lsort -increasing -unique $files]
 
 	# Activate it, and catch errors so we can roll-back
-	if { [catch {set files [_activate_list $theList $imagedir] } result] } {
+	if { [catch {set files [_activate_list $theList $extractdir] } result] } {
 		ui_debug "Activation failed, rolling back."
 		_deactivate_contents $name $imagefiles
 		return -code error $result
 	}
-
-	#_activate_list $files $imagedir
-
 }
 
 proc _deactivate_file {dstfile} {
