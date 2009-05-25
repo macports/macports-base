@@ -138,8 +138,12 @@ proc portimagefile::filelist_for_path {startpath} {
 # it as installed in the MacPorts registry.  This makes no assumptions
 # about how the imagefile was created/acquired
 proc portimagefile::install_register_imagefile {imagefile} {
-    global portimagefilepath prefix
-    set mytempdir [mkdtemp /tmp/mpimageXXXXXXXX]
+    global env portimagefilepath prefix
+    if {[info exists env(TMPDIR)]} {
+        set mytempdir [mkdtemp [file join $env(TMPDIR) mpimageXXXXXXXX]]
+    } else {
+        set mytempdir [mkdtemp [file join tmp mpimageXXXXXXXX]]
+    }
     set startpwd [pwd]
     try {
         if {[catch {_cd $mytempdir} err]} {
