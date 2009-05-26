@@ -14,6 +14,7 @@ all::
 distclean::
 	rm -f config.h
 	rm -f Makefile
+	rm -f pkg_mkindex.sh
 
 test::
 
