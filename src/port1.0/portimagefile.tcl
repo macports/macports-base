@@ -98,9 +98,9 @@ proc portimagefile::imagefile_main {args} {
 proc portimagefile::create_image_receipt {imageworkpath} {
     global portname portversion portrevision portvariants epoch categories
     global homepage maintainers depends_run depends_lib prefix package-install
-    global description long_description destpath
+    global description long_description license destpath
     set fd [open [file join $imageworkpath "+IMAGERECEIPT"] w]
-    set variablelist {portname portversion portrevision portvariants epoch categories homepage maintainers depends_run depends_lib prefix package-install description long_description}
+    set variablelist {portname portversion portrevision portvariants epoch categories homepage maintainers depends_run depends_lib prefix package-install description long_description license}
     foreach onevar $variablelist {
         if {[info exists $onevar]} {
             puts $fd "$onevar [string map {\n \\n} [set $onevar]]"
@@ -188,6 +188,9 @@ proc portimagefile::install_register_imagefile {imagefile} {
                 continue
             }
             registry_prop_store $regref $propname $imagevars($propname)
+            if {[lsearch -exact {depends_run depends_lib} $propname] != -1} {
+               registry_register_deps $imagevars($propname) $imagevars(portname)
+            }
         }
         registry_write $regref
     } catch {* errorCode errorMessage } {
