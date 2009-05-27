@@ -60,7 +60,7 @@ default livecheck.version {$version}
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
-    global homepage portname portpath workpath
+    global homepage portpath workpath
     global master_sites name distfiles
 
     set updated 0
@@ -140,7 +140,7 @@ proc portlivecheck::livecheck_main {args} {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
             if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 # let's extract the version from the file.
@@ -182,14 +182,14 @@ proc portlivecheck::livecheck_main {args} {
                 }
                 close $chan
                 if {$updated < 0} {
-                    ui_error "cannot check if $portname was updated (regex didn't match)"
+                    ui_error "cannot check if $name was updated (regex didn't match)"
                 }
             }
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
             if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 # let's compute the md5 sum.
@@ -203,7 +203,7 @@ proc portlivecheck::livecheck_main {args} {
         "moddate" {
             set port_moddate [file mtime ${portpath}/Portfile]
             if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 if {!$updated} {
@@ -222,9 +222,9 @@ proc portlivecheck::livecheck_main {args} {
 
     if {${livecheck.check} != "none"} {
         if {$updated > 0} {
-            ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
+            ui_msg "$name seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
         } elseif {$updated == 0} {
-            ui_info "$portname seems to be up to date"
+            ui_info "$name seems to be up to date"
         }
     }
 }

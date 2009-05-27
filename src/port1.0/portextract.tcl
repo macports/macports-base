@@ -110,7 +110,7 @@ proc portextract::extract_init {args} {
 proc portextract::extract_start {args} {
     global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
 }
 
 proc portextract::extract_main {args} {

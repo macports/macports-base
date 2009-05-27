@@ -1067,7 +1067,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         error "Error evaluating variants"
     }
 
-    ditem_key $mport provides [$workername eval return \$portname]
+    ditem_key $mport provides [$workername eval return \$name]
 
     return $mport
 }
@@ -1238,7 +1238,7 @@ proc _porttest {mport depspec} {
 # Determine if a port is active
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_active \${portname}]}]} {
+    if {[catch {set reslist [$workername eval registry_active \${name}]}]} {
         return 0
     } else {
         return [expr [llength $reslist] > 0]
@@ -1283,6 +1283,30 @@ proc _mportispresent {mport depspec} {
         return 0
     }
 }
+
+### _mportconflictsinstalled is private; may change without notice
+
+# Determine if the port, per the conflicts option, has any conflicts with
+# what is installed.
+#
+# mport   the port to check for conflicts
+# Returns a list of which installed ports conflict, or an empty list if none
+proc _mportconflictsinstalled {mport conflictinfo} {
+    set conflictlist {}
+    if {[llength $conflictinfo] > 0} {
+        ui_debug "Checking for conflicts against [_mportkey $mport name]"
+        foreach conflictport ${conflictinfo} {
+            if {[_mportispresent $mport port:${conflictport}]} {
+                lappend conflictlist $conflictport
+            }
+        }
+    } else {
+        ui_debug "[_mportkey $mport name] has no conflicts"
+    }
+
+    return $conflictlist
+}
+
 
 ### _mportexec is private; may change without notice
 
@@ -1898,6 +1922,17 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     if {![macports::ui_isset ports_debug]} {
         ui_info -nonewline "."
         flush stdout
+    }
+    
+    if {[info exists portinfo(conflicts)] && ($target == "" || $target == "install")} {
+        set conflictports [_mportconflictsinstalled $mport $portinfo(conflicts)]
+        if {[llength ${conflictports}] != 0} {
+            if {[macports::global_option_isset ports_force]} {
+                ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictports}"
+            } else {
+                return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictports}"
+            }
+        }
     }
 
     # Determine deptypes to look for based on target

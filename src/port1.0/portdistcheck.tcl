@@ -54,7 +54,7 @@ default distcheck.check moddate
 proc portdistcheck::distcheck_main {args} {
     global distcheck.check
     global fetch.type
-    global portname portpath
+    global name portpath
 
     set port_moddate [file mtime ${portpath}/Portfile]
 
@@ -82,16 +82,16 @@ proc portdistcheck::distcheck_main {args} {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
                     if {[catch {set urlnewer [curl isnewer $file_url $port_moddate]} error]} {
-                        ui_warn "couldn't fetch $file_url for $portname ($error)"
+                        ui_warn "couldn't fetch $file_url for $name ($error)"
                     } else {
                         if {$urlnewer} {
-                            ui_warn "port $portname: $file_url is newer than portfile"
+                            ui_warn "port $name: $file_url is newer than portfile"
                         }
                         incr count
                     }
                 }
                 if {$count == 0} {
-                    ui_error "no mirror had $distfile for $portname"
+                    ui_error "no mirror had $distfile for $name"
                 }
             } elseif {${distcheck.check} == "filesize"} {
                 set count 0
@@ -99,18 +99,18 @@ proc portdistcheck::distcheck_main {args} {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
                     if {[catch {set urlsize [curl getsize $file_url]} error]} {
-                        ui_warn "couldn't fetch $file_url for $portname ($error)"
+                        ui_warn "couldn't fetch $file_url for $name ($error)"
                     } else {
                         incr count
                         if {$urlsize > 0} {
-                            ui_info "port $portname: $distfile $urlsize bytes"
+                            ui_info "port $name: $distfile $urlsize bytes"
                             incr totalsize $urlsize
                             break
                         }
                     }
                 }
                 if {$count == 0} {
-                    ui_error "no mirror had $distfile for $portname"
+                    ui_error "no mirror had $distfile for $name"
                 }
             } else {
                 ui_error "unknown distcheck.check ${distcheck.check}"
@@ -132,7 +132,7 @@ proc portdistcheck::distcheck_main {args} {
                 set size [expr $totalsize / (1024.0*1024.0*1024.0)]
                 set humansize [format "%.1fG" $size]
             }
-            ui_msg "$portname: $humansize"
+            ui_msg "$name: $humansize"
         }
     }
 }

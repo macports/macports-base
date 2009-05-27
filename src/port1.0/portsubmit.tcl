@@ -55,7 +55,7 @@ proc portsubmit::shell_escape {str} {
 
 
 proc portsubmit::submit_main {args} {
-    global mp_remote_submit_url portname portversion portverbose prefix UI_PREFIX workpath portpath
+    global mp_remote_submit_url name version portverbose prefix UI_PREFIX workpath portpath
 
     set submiturl $mp_remote_submit_url
 
@@ -68,7 +68,7 @@ proc portsubmit::submit_main {args} {
     file mkdir ${workpath}
 
     # Create portpkg.xar in the work directory
-    set pkgpath "${workpath}/${portname}.portpkg"
+    set pkgpath "${workpath}/${name}.portpkg"
 
     # TODO: If a private key was provided, create a signed digest of the submission
 
@@ -83,13 +83,13 @@ proc portsubmit::submit_main {args} {
     set cmd [join $args]
 
     if {[tbool portverbose]} {
-        ui_msg "Submitting portpkg $pkgpath for $portname to $submiturl"
+        ui_msg "Submitting portpkg $pkgpath for $name to $submiturl"
     }
 
     # Invoke curl to do the submit
     ui_debug $cmd
     if {[system $cmd] != ""} {
-        return -code error [format [msgcat::mc "Failure during submit of port %s"] $portname]
+        return -code error [format [msgcat::mc "Failure during submit of port %s"] $name]
     }
 
     # Parse the result
@@ -108,7 +108,7 @@ proc portsubmit::submit_main {args} {
     }
     if {[info exists result(STATUS)]} {
         if { $result(STATUS) == 0 } {
-            ui_msg "Submitted portpkg for $portname"
+            ui_msg "Submitted portpkg for $name"
             if {[info exists result(DOWNLOAD_URL)]} {
                 ui_msg "    download URL => $result(DOWNLOAD_URL)"
             }
@@ -116,10 +116,10 @@ proc portsubmit::submit_main {args} {
                 ui_msg "    human readable URL => $result(HUMAN_URL)"
             }
         } else {
-            return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $portname]
+            return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $name]
         }
     } else {
-        return -code error [format [msgcat::mc "Status not received during submit of port %s"] $portname]
+        return -code error [format [msgcat::mc "Status not received during submit of port %s"] $name]
     }
 
     return
@@ -136,7 +136,7 @@ proc portsubmit::submit_main {args} {
     }
 
     if {[system $cmd] != ""} {
-    return -code error [format [msgcat::mc "Failed to archive port : %s"] $portname]
+    return -code error [format [msgcat::mc "Failed to archive port : %s"] $name]
     }
 
     set portsource ""
@@ -152,13 +152,13 @@ proc portsubmit::submit_main {args} {
         close $fd
     }
     if {$portsource == ""} {
-        ui_msg "$UI_PREFIX Submitting $portname-$portversion"
+        ui_msg "$UI_PREFIX Submitting $name-$version"
         puts -nonewline "URL: "
         flush stdout
         gets stdin portsource
     }
 
-    ui_msg "$UI_PREFIX Submitting $portname-$portversion to $portsource"
+    ui_msg "$UI_PREFIX Submitting $name-$version to $portsource"
 
     puts -nonewline "Username: "
     flush stdout
@@ -170,7 +170,7 @@ proc portsubmit::submit_main {args} {
     puts ""
     exec stty echo
 
-    set vars {portname portversion maintainers categories description \
+    set vars {name version maintainers categories description \
         long_description master_sites}
     eval "global $vars"
     foreach var $vars {
@@ -181,8 +181,8 @@ proc portsubmit::submit_main {args} {
     append cmd "--silent "
     append cmd "--url [regsub -- {^mports} $portsource {http}]/cgi-bin/portsubmit.cgi "
     append cmd "--output ${workpath}/.portsubmit.out "
-    append cmd "-F name=${portname} "
-    append cmd "-F version=${portversion} "
+    append cmd "-F name=${name} "
+    append cmd "-F version=${version} "
     append cmd "-F base_rev=${base_rev} "
     append cmd "-F md5=[md5 file ${workpath}/Portfile.tar.gz] "
     append cmd "-F attachment=@${workpath}/Portfile.tar.gz "
@@ -196,7 +196,7 @@ proc portsubmit::submit_main {args} {
 
     ui_debug $cmd
     if {[system $cmd] != ""} {
-    return -code error [format [msgcat::mc "Failed to submit port : %s"] $portname]
+    return -code error [format [msgcat::mc "Failed to submit port : %s"] $name]
     }
 
     #
@@ -217,12 +217,12 @@ proc portsubmit::submit_main {args} {
     if {[info exists result(OK)]} {
         set fd [open ".mports_source" w]
         puts $fd "source: $portsource"
-        puts $fd "port: $portname"
-        puts $fd "version: $portversion"
+        puts $fd "port: $name"
+        puts $fd "version: $version"
         puts $fd "revision: $result(revision)"
         close $fd
 
-        ui_msg "$portname-$portversion submitted successfully."
+        ui_msg "$name-$version submitted successfully."
         ui_msg "New revision: $result(revision)"
     } elseif {[info exists result(ERROR)]} {
         return -code error $result(ERROR)
@@ -232,14 +232,14 @@ proc portsubmit::submit_main {args} {
         set tmpdir [mktemp "/tmp/mports.XXXXXXXX"]
         file mkdir $tmpdir/new
         file mkdir $tmpdir/old
-        set worker [mport_open $portsource/files/$portname/$portversion/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
+        set worker [mport_open $portsource/files/$name/$version/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
         if {$base_rev != ""} {
-            set worker2 [mport_open $portsource/files/$portname/$portversion/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
-            catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$portname-$portversion/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
+            set worker2 [mport_open $portsource/files/$name/$version/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
+            catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$name-$version/Portfile $tmpdir/new/$name-$version/Portfile > $tmpdir/Portfile"}
             file rename -force "${tmpdir}/Portfile" "${portpath}/Portfile"
             mport_close $worker2
         } else {
-            catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$portname-$portversion/Portfile > $tmpdir/Portfile"}
+            catch {system "diff3 -m -E -- $portpath/Portfile $portpath/Portfile $tmpdir/new/$name-$version/Portfile > $tmpdir/Portfile"}
             file rename -force "${tmpdir}/Portfile" "${portpath}/Portfile"
         }
         mport_close $worker
@@ -247,13 +247,13 @@ proc portsubmit::submit_main {args} {
 
         set fd [open [file join "$portpath" ".mports_source"] w]
         puts $fd "source: $portsource"
-        puts $fd "port: $portname"
-        puts $fd "version: $portversion"
+        puts $fd "port: $name"
+        puts $fd "version: $version"
         puts $fd "revision: $result(revision)"
         close $fd
 
         ui_error "A newer revision of this port has already been submitted."
-        ui_error "Portfile: $portname-$portversion"
+        ui_error "Portfile: $name-$version"
         ui_error "Base revision: $base_rev"
         ui_error "Current revision: $result(revision)"
         ui_error "Please edit the Portfile to resolve any conflicts and resubmit."

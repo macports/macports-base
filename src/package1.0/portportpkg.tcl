@@ -90,18 +90,18 @@ proc portportpkg::putlist { fd listel itemel list } {
 
 
 proc portportpkg::create_portpkg {} {
-    global portname portversion prefix UI_PREFIX workpath portpath
+    global name prefix UI_PREFIX workpath portpath
 
 	set xar [xar_path]
 	
     set dirname "portpkg"
     set dirpath "${workpath}/${dirname}"
-    set pkgpath "${workpath}/${portname}.portpkg"
+    set pkgpath "${workpath}/${name}.portpkg"
     set metaname "portpkg_meta.xml"
     set metapath "${workpath}/${metaname}"
     
     # Expose and default some global variables
-    set vars " portname portversion maintainers categories description \
+    set vars " maintainers categories description \
     	long_description master_sites homepage epoch version revision \
     	PortInfo \
     	submitter_name submitter_email submitter_key \
@@ -141,7 +141,7 @@ proc portportpkg::create_portpkg {} {
 		puts $sd "</submitter>"
 		
 		puts $sd "<package>"
-			putel $sd name $portname
+			putel $sd name $name
 			putel $sd homepage $homepage
 			putlist $sd categories category $categories
 			putlist $sd maintainers maintainer $maintainers
@@ -187,7 +187,7 @@ proc portportpkg::create_portpkg {} {
     # Create portpkg.xar, including the metadata and the portpkg directory contents
     set cmd "cd ${workpath}; ${xar} -cf ${pkgpath} --exclude \\.DSStore --exclude \\.svn ${dirname} -s ${metapath} -n ${metaname}"
     if {[system $cmd] != ""} {
-		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $portname]
+		return -code error [format [msgcat::mc "Failed to create portpkg for port : %s"] $name]
     }
     
     return ${pkgpath}
@@ -195,9 +195,9 @@ proc portportpkg::create_portpkg {} {
 
 
 proc portportpkg::portpkg_main {args} {
-    global portname portversion portverbose prefix UI_PREFIX workpath portpath
+    global name version portverbose prefix UI_PREFIX workpath portpath
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating portpkg for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating portpkg for %s-%s"] ${name} ${version}]"
 
     # Make sure we have a work directory
     file mkdir ${workpath}

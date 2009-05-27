@@ -44,8 +44,8 @@ namespace eval portinstall {
 set_ui_prefix
 
 proc portinstall::install_main {args} {
-    global UI_PREFIX portname portversion portrevision portvariants
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+    global UI_PREFIX name version revision portvariants
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     return 0
 }

@@ -142,7 +142,7 @@ proc portbuild::build_getmakejobs {args} {
 proc portbuild::build_start {args} {
     global UI_PREFIX build.asroot
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option name]]"
 
     # start gsoc08-privileges
     if { [tbool build.asroot] } {

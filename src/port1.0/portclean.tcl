@@ -52,7 +52,7 @@ set_ui_prefix
 proc portclean::clean_start {args} {
     global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option name]]"
 }
 
 proc portclean::clean_main {args} {
@@ -62,19 +62,19 @@ proc portclean::clean_main {args} {
 
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option portname]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
         clean_dist
     }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_work] && $ports_clean_work == "yes" || \
         (!([info exists ports_clean_dist] && $ports_clean_dist == "yes"))} {
-         ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option portname]]"
+         ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
     }
 
     # start gsoc-08 privileges
     if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option portname]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option name]]"
         clean_altsource
     }
     # end gsoc-08 privileges
@@ -105,7 +105,7 @@ proc portclean::clean_altsource {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force portname distpath dist_subdir distfiles
+    global ports_force name distpath dist_subdir distfiles
 
     # remove known distfiles for sure (if they exist)
     set count 0
@@ -133,7 +133,7 @@ proc portclean::clean_dist {args} {
     # next remove dist_subdir if only needed for this port,
     # or if user forces us to
     set dirlist [list]
-    if {($dist_subdir != $portname)} {
+    if {($dist_subdir != $name)} {
         if {[info exists dist_subdir]} {
             set distfullpath [file join $distpath $dist_subdir]
             if {!([info exists ports_force] && $ports_force == "yes")
@@ -142,13 +142,13 @@ proc portclean::clean_dist {args} {
                 ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join $distpath $dist_subdir]]
             } else {
                 lappend dirlist $dist_subdir
-                lappend dirlist $portname
+                lappend dirlist $name
             }
         } else {
-            lappend dirlist $portname
+            lappend dirlist $name
         }
     } else {
-        lappend dirlist $portname
+        lappend dirlist $name
     }
     # loop through directories
     set count 0

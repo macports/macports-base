@@ -47,11 +47,11 @@ options package.destpath
 set_ui_prefix
 
 proc portsrpm::srpm_main {args} {
-    global portname portversion portrevision UI_PREFIX
+    global name version revision UI_PREFIX
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${name} ${version}]"
     
-    return [srpm_pkg $portname $portversion $portrevision]
+    return [srpm_pkg $name $version $revision]
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {

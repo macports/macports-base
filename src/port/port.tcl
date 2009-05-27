@@ -1450,6 +1450,7 @@ proc action_info { action portlist opts } {
             maintainers     1
             platforms       1
             variants        1
+            conflicts       1
         "
 
         # Label map for pretty printing
@@ -1466,6 +1467,7 @@ proc action_info { action portlist opts } {
             platforms   Platforms
             maintainers Maintainers
             license     License
+            conflicts   "Conflicts with"
         }
 
         # Wrap-length map for pretty printing
@@ -1480,6 +1482,7 @@ proc action_info { action portlist opts } {
             homepage 22
             platforms 22
             license 22
+            conflicts 22
             maintainers 22
         }
 
@@ -1534,6 +1537,7 @@ proc action_info { action portlist opts } {
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_build
                 ports_info_depends_lib ports_info_depends_run
+                ports_info_conflicts
                 ports_info_platforms ports_info_license
                 ports_info_maintainers
             }

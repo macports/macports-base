@@ -55,7 +55,7 @@ namespace eval portfetch::mirror_sites {
 # define options: distname master_sites
 options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
-    master_sites.mirror_subdir patch_sites.mirror_subdir portname \
+    master_sites.mirror_subdir patch_sites.mirror_subdir \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.tag svn.revision svn.method \
     git.url git.branch \
@@ -100,7 +100,7 @@ default hg.tag {tip}
 
 # Set distfiles
 default distfiles {[portfetch::suffix $distname]}
-default dist_subdir {${portname}}
+default dist_subdir {${name}}
 
 # user name & password
 default fetch.user ""
@@ -207,7 +207,7 @@ proc portfetch::assemble_url {site distfile} {
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
 # pre-registered set of sites, and if so, return them.
 proc portfetch::mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX portname porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
+    global UI_PREFIX name porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
     global global_mirror_site fallback_mirror_site
 
     set mirrorfile [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
@@ -242,7 +242,7 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
     if {$mirror_tag == "mirror"} {
         set thesubdir ${dist_subdir}
     } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
-        set thesubdir ${portname}
+        set thesubdir ${name}
     } else {
         set thesubdir ${subdir}
     }
@@ -756,9 +756,9 @@ proc portfetch::fetch_init {args} {
 }
 
 proc portfetch::fetch_start {args} {
-    global UI_PREFIX portname
+    global UI_PREFIX name
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $portname]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $name]"
 }
 
 # Main fetch routine
