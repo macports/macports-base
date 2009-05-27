@@ -11,10 +11,6 @@ set porthelp(activate) {
 Activate the given ports
 }
 
-set porthelp(archive) {
-Archive the given ports
-}
-
 set porthelp(build) {
 Build the given ports
 }
@@ -36,7 +32,6 @@ Compares the checksums for the downloaded files of the given ports
 set porthelp(clean) {
 Removes file associates with given ports
 
---archive     Removes created archives
 --dist        Removes downloaded distfiles
 --work        Removes work directory (default)
 --all         Removes everything from above

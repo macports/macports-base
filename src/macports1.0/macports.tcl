@@ -41,8 +41,8 @@ namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
-        portarchivepath portarchivetype portautoclean \
-        porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
+        portautoclean porttrace \
+        portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir universal_target universal_sysroot universal_archs \
@@ -50,8 +50,8 @@ namespace eval macports {
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
-        registry.path registry.format portimagefilepath portarchivepath \
-        portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
+        registry.path registry.format portimagefilepath portautoclean \
+        porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options \
@@ -543,27 +543,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set macports::portverbose $macports::ui_options(ports_verbose)
         }
     }
-
-    # Archive path, where to store/retrieve binary archive packages
-    set macports::portarchivepath [file join $portdbpath packages]
-    global macports::portarchivepath
-    if {![file isdirectory $portarchivepath]} {
-        if {![file exists $portarchivepath]} {
-            if {[catch {file mkdir $portarchivepath} result]} {
-                return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
-            }
-        }
-    }
-    if {![file isdirectory $portarchivepath]} {
-        return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
-    }
-
-    set macports::portarchivetype "tbz"
-    global macports::portarchivetype
-    # Convert archive type to a list for multi-archive support, colon or
-    # comma separators indicates to use multiple archive formats
-    # (reading and writing)
-    set macports::portarchivetype [split $portarchivetype {:,}]
 
     # Set rync options
     if {![info exists rsync_server]} {
@@ -1345,8 +1324,8 @@ proc mportexec {mport target} {
     set dlist {}
     if {$target == "configure" || $target == "build"
         || $target == "test"
-        || $target == "destroot" || $target == "imagefile" || $target == "install"
-        || $target == "archive"
+        || $target == "destroot" || $target == "imagefile"
+        || $target == "install"
         || $target == "dmg" || $target == "mdmg"
         || $target == "pkg" || $target == "mpkg"
         || $target == "rpm" || $target == "dpkg"
@@ -1369,7 +1348,7 @@ proc mportexec {mport target} {
         dlist_delete dlist $mport
 
         # install them
-        set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
+        set result [dlist_eval $dlist _mportactive [list _mportexec "install"]]
 
         if {$result != {}} {
             set errstring "The following dependencies failed to build:"
@@ -1390,12 +1369,6 @@ proc mportexec {mport target} {
     set clean 0
     if {[string equal ${macports::portautoclean} "yes"] && [string equal $target "install"] } {
         set clean 1
-    }
-
-    # If we're doing image installs, then we should activate after install
-    # xxx: This isn't pretty
-    if {[string equal $target "install"]} {
-        set target activate
     }
 
     # Build this port with the specified target
@@ -1674,9 +1647,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                                     set source_url $source
                                 }
                             }
-                            if {[info exists portinfo(portarchive)]} {
-                                set porturl ${source_url}/$portinfo(portarchive)
-                            } elseif {[info exists portinfo(portdir)]} {
+                            if {[info exists portinfo(portdir)]} {
                                 set porturl ${source_url}/$portinfo(portdir)
                             }
                             if {[info exists porturl]} {
@@ -1758,9 +1729,7 @@ proc mportlookup {name} {
                             set source_url $source
                         }
                     }
-                    if {[info exists portinfo(portarchive)]} {
-                        set porturl ${source_url}/$portinfo(portarchive)
-                    } elseif {[info exists portinfo(portdir)]} {
+                    if {[info exists portinfo(portdir)]} {
                         set porturl ${source_url}/$portinfo(portdir)
                     }
                     if {[info exists porturl]} {
@@ -1940,7 +1909,6 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         destroot    -
         imagefile   -
         install     -
-        archive     -
         dmg         -
         pkg         -
         portpkg     -
@@ -2397,13 +2365,10 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     }
 
 
-    # build or unarchive version_in_tree
-    set upgrade_action "archive"
-
     # avoid building again unnecessarily
     if {[info exists options(ports_force)] || $epoch_override == 1
         || ![registry::entry_exists $portname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
-        if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
+        if {[catch {set result [mportexec $workername imagefile]} result] || $result != 0} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Unable to upgrade port: $result"

@@ -1250,7 +1250,6 @@ proc target_run {ditem} {
                     # Enable the fence to prevent any creation/modification
                     # outside the sandbox.
                     if {$target != "activate"
-                      && $target != "archive"
                       && $target != "fetch"
                       && $target != "imagefile"
                       && $target != "install"} {
@@ -1274,7 +1273,6 @@ proc target_run {ditem} {
                             destroot    -
                             imagefile   -
                             install     -
-                            archive     -
                             dmg         -
                             pkg         -
                             portpkg     -
@@ -2180,73 +2178,6 @@ proc PortGroup {group version} {
     } else {
         ui_warn "Group file could not be located."
     }
-}
-
-# check if archive type is supported by current system
-# returns an error code if it is not
-proc archiveTypeIsSupported {type} {
-    global os.platform os.version
-    set errmsg ""
-    switch -regex $type {
-        cp(io|gz) {
-            set pax "pax"
-            if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
-                if {[regexp {z$} $type]} {
-                    set gzip "gzip"
-                    if {[catch {set gzip [findBinary $gzip ${portutil::autoconf::gzip_path}]} errmsg] == 0} {
-                        return 0
-                    }
-                } else {
-                    return 0
-                }
-            }
-        }
-        t(ar|bz|lz|xz|gz) {
-            set tar "tar"
-            if {[catch {set tar [findBinary $tar ${portutil::autoconf::tar_path}]} errmsg] == 0} {
-                if {[regexp {z2?$} $type]} {
-                    if {[regexp {bz2?$} $type]} {
-                        set gzip "bzip2"
-                    } elseif {[regexp {lz$} $type]} {
-                        set gzip "lzma"
-                    } elseif {[regexp {xz$} $type]} {
-                        set gzip "xz"
-                    } else {
-                        set gzip "gzip"
-                    }
-                    if {[info exists portutil::autoconf::${gzip}_path]} {
-                        set hint [set portutil::autoconf::${gzip}_path]
-                    } else {
-                        set hint ""
-                    }
-                    if {[catch {set gzip [findBinary $gzip $hint]} errmsg] == 0} {
-                        return 0
-                    }
-                } else {
-                    return 0
-                }
-            }
-        }
-        xar {
-            set xar "xar"
-            if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
-                return 0
-            }
-        }
-        zip {
-            set zip "zip"
-            if {[catch {set zip [findBinary $zip ${portutil::autoconf::zip_path}]} errmsg] == 0} {
-                set unzip "unzip"
-                if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
-                    return 0
-                }
-            }
-        }
-        default {
-            return -code error [format [msgcat::mc "Invalid port archive type '%s' specified!"] $type]
-        }
-    }
-    return -code error [format [msgcat::mc "Unsupported port archive type '%s': %s"] $type $errmsg]
 }
 
 #

@@ -24,7 +24,7 @@ upgrade::
 
 # Important directories inside ${localstatedir}/db/dports are moved to their new location, creating it first:
 	[ -d $(DESTDIR)${localstatedir}/macports ] || mkdir -vp $(DESTDIR)${localstatedir}/macports
-	for dir in distfiles packages receipts software; do \
+	for dir in distfiles images receipts software; do \
 		[ ! -d $(DESTDIR)${localstatedir}/db/dports/$${dir} ] || mv -v $(DESTDIR)${localstatedir}/db/dports/$${dir} $(DESTDIR)${localstatedir}/macports ; \
 	done
 

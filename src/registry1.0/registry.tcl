@@ -38,7 +38,7 @@ package require portuninstall 1.0
 package require msgcat
 package require Pextlib 1.0
 
-set UI_PREFIX "--> "
+set UI_PREFIX "---> "
 
 namespace eval registry {
 

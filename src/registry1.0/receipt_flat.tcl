@@ -130,11 +130,10 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
-		# If version wasn't specified, find out the version number.  This will
-		# depend on which installtype mode we're in, "direct" or "image"	
+		# If version wasn't specified, find out the version number.
 		if { $version == "" } {
-			# xxx: If we're in image mode, we really should have had the 
-			# version given to us.  How should we handle this?
+			# xxx: We really should have had the version given to us, how
+			# should we handle this?
 			set x [glob -nocomplain [file join ${receipt_path} *]]
 			if { [string length $x] } {
 				set v [lindex [file split [lindex $x 0]] end]

@@ -2971,7 +2971,6 @@ array set action_array [list \
     unload      [list action_target         [action_args_const ports]] \
     distfiles   [list action_target         [action_args_const ports]] \
     \
-    archive     [list action_target         [action_args_const ports]] \
     dmg         [list action_target         [action_args_const ports]] \
     mdmg        [list action_target         [action_args_const ports]] \
     dpkg        [list action_target         [action_args_const ports]] \
@@ -3035,7 +3034,7 @@ array set cmd_opts_array {
     selfupdate  {nosync}
     uninstall   {follow-dependents}
     variants    {index}
-    clean       {all archive dist work}
+    clean       {all dist work}
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
