@@ -47,80 +47,82 @@
 
 #include "tty.h"
 
-int IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-        Tcl_Obj *tcl_result;
-        Tcl_Channel chan;
-        int dir;
-        int fd;
-        int rval;
+    Tcl_Obj *tcl_result;
+    Tcl_Channel chan;
+    int dir;
+    int fd;
+    int rval;
 
-        if (objc != 2) {
-            Tcl_WrongNumArgs(interp, 1, objv, "channel");
-            return TCL_ERROR;
-        }
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "channel");
+        return TCL_ERROR;
+    }
 
-        chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
-        if (chan == NULL) {
-            Tcl_SetResult(interp, "no such channel", TCL_STATIC);
-            return TCL_ERROR;
-        }
+    chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
+    if (chan == NULL) {
+        Tcl_SetResult(interp, "no such channel", TCL_STATIC);
+        return TCL_ERROR;
+    }
 
-        if (Tcl_GetChannelHandle(chan,
-                dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
-                (ClientData*) &fd) == TCL_ERROR) {
-            return TCL_ERROR;
-        }
+    if (Tcl_GetChannelHandle(chan,
+            dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
+            (ClientData*) &fd) == TCL_ERROR) {
+        return TCL_ERROR;
+    }
 
-        rval = isatty(fd);
+    rval = isatty(fd);
 
-        tcl_result = Tcl_NewIntObj(rval);
-        Tcl_SetObjResult(interp, tcl_result);
+    tcl_result = Tcl_NewIntObj(rval);
+    Tcl_SetObjResult(interp, tcl_result);
 
-        return TCL_OK;
+    return TCL_OK;
 }
 
-int TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int
+TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-        Tcl_Obj *tcl_result;
-        Tcl_Channel chan;
-        int dir;
-        int fd;
-        Tcl_Obj *robjv[2];
-        struct winsize ws = {0, 0, 0, 0};
+    Tcl_Obj *tcl_result;
+    Tcl_Channel chan;
+    int dir;
+    int fd;
+    Tcl_Obj *robjv[2];
+    struct winsize ws = {0, 0, 0, 0};
 
-        if (objc != 2) {
-                Tcl_WrongNumArgs(interp, 1, objv, "channel");
-                return TCL_ERROR;
-        }
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "channel");
+        return TCL_ERROR;
+    }
 
-        chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
-        if (chan == NULL) {
-            Tcl_SetResult(interp, "no such channel", TCL_STATIC);
-            return TCL_ERROR;
-        }
+    chan = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), &dir);
+    if (chan == NULL) {
+        Tcl_SetResult(interp, "no such channel", TCL_STATIC);
+        return TCL_ERROR;
+    }
 
-        if (Tcl_GetChannelHandle(chan,
-                dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
-                (ClientData*) &fd) == TCL_ERROR) {
-            return TCL_ERROR;
-        }
+    if (Tcl_GetChannelHandle(chan,
+            dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
+            (ClientData*) &fd) == TCL_ERROR) {
+        return TCL_ERROR;
+    }
 
-        if (!isatty(fd)) {
-            Tcl_SetResult(interp, "channel is not connected to a tty", TCL_STATIC);
-            return TCL_ERROR;
-        }
+    if (!isatty(fd)) {
+        Tcl_SetResult(interp, "channel is not connected to a tty", TCL_STATIC);
+        return TCL_ERROR;
+    }
 
-        if (ioctl(fd, TIOCGWINSZ, &ws) == -1) {
-            Tcl_SetResult(interp, "ioctl failed", TCL_STATIC);
-            return TCL_ERROR;
-        }
+    if (ioctl(fd, TIOCGWINSZ, &ws) == -1) {
+        Tcl_SetResult(interp, "ioctl failed", TCL_STATIC);
+        return TCL_ERROR;
+    }
 
-        robjv[0] = Tcl_NewIntObj(ws.ws_row);
-        robjv[1] = Tcl_NewIntObj(ws.ws_col);
+    robjv[0] = Tcl_NewIntObj(ws.ws_row);
+    robjv[1] = Tcl_NewIntObj(ws.ws_col);
 
-        tcl_result = Tcl_NewListObj(2, robjv);
-        Tcl_SetObjResult(interp, tcl_result);
+    tcl_result = Tcl_NewListObj(2, robjv);
+    Tcl_SetObjResult(interp, tcl_result);
 
-        return TCL_OK;
+    return TCL_OK;
 }
