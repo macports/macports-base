@@ -39,6 +39,8 @@
 
 #include "uid.h"
 
+#include "errno.h"
+
 /*
 	getuid
 	
@@ -274,7 +276,43 @@ int uid_to_nameCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 }
 
 /*
+	uname_to_gid
+	
+	synopsis: uname_to_gid name
+	this function takes a *user* name
+*/
+int uname_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+{
+	struct passwd *pwent;
+	char* name = NULL;
+	
+	/* Check the arg count */
+	if (objc != 2) {
+		Tcl_WrongNumArgs(interp, 1, objv, "name");
+		return TCL_ERROR;
+	}
+	
+	/* Get the  name */
+	name = Tcl_GetString(objv[1]);
+	if (name == NULL || !*name)
+		return TCL_ERROR;
+	
+	/* Map the name --> uid */
+	pwent = getpwnam(name);
+
+	if (pwent == NULL)
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(-1));
+	else
+		Tcl_SetObjResult(interp, Tcl_NewIntObj(pwent->pw_gid)); 
+
+	return TCL_OK;
+}
+
+/*
     name_to_gid
+
+	synopsis: name_to_gid name
+    this function takes a *group* name
 */
 int name_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

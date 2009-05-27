@@ -2427,7 +2427,7 @@ proc dropPrivileges {} {
                 #seteuid [name_to_uid [file attributes $workpath -owner]]
                 #setegid [name_to_gid [file attributes $workpath -group]]
 
-                setegid [name_to_gid "$macportsuser"]
+                setegid [uname_to_gid "$macportsuser"]
                 seteuid [name_to_uid "$macportsuser"]
                 ui_debug "egid changed to: [getegid]"
                 ui_debug "euid changed to: [geteuid]"
