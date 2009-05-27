@@ -197,7 +197,7 @@ proc options_export {args} {
 # @param option deprecated option
 # @param action read/set
 # @param value ignored
-proc warn_deprecated_option {option action {value ""}} {
+proc handle_deprecated_option {option action {value ""}} {
     global name $option deprecated_options
     set newoption $deprecated_options($option)
     global $newoption
@@ -225,7 +225,7 @@ proc option_deprecate {option {newoption ""} } {
     # If a new option is specified, default the option to $newoption
     set deprecated_options($option) $newoption
     # Register a proc for printing a warning
-    option_proc $option warn_deprecated_option
+    option_proc $option handle_deprecated_option
 }
 
 ##
