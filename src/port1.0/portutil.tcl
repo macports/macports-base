@@ -199,7 +199,8 @@ proc options_export {args} {
 # @param value ignored
 proc handle_deprecated_option {option action {value ""}} {
     global name $option deprecated_options
-    set newoption $deprecated_options($option)
+    set newoption [lindex $deprecated_options($option) 0]
+    set refcount  [lindex $deprecated_options($option) 1]
     global $newoption
 
     if {$newoption == ""} {
@@ -207,7 +208,9 @@ proc handle_deprecated_option {option action {value ""}} {
         return
     }
 
-    ui_warn "Port $name using deprecated option \"$option\", superseded by \"$newoption\"."
+    # Increment reference counter
+    lset deprecated_options($option) 1 [expr $refcount + 1]
+
     if {$action != "read"} {
         $newoption [set $option]
     } else {
@@ -216,15 +219,23 @@ proc handle_deprecated_option {option action {value ""}} {
 }
 
 ##
-# Causes a warning to be printed when an option is set or accessed
+# Get the name of the array containing the deprecated options
+# Thin layer avoiding to share global variables without notice
+proc get_deprecated_options {} {
+    return "deprecated_options"
+}
+
+##
+# Mark an option as deprecate
+# If it is set or accessed, it will be mapped it to the new option
 #
 # @param option name of the option
 # @param newoption name of a superseding option
 proc option_deprecate {option {newoption ""} } {
     global deprecated_options
     # If a new option is specified, default the option to $newoption
-    set deprecated_options($option) $newoption
-    # Register a proc for printing a warning
+    set deprecated_options($option) [list $newoption 0]
+    # Register a proc for handling the deprecation
     option_proc $option handle_deprecated_option
 }
 

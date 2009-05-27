@@ -474,6 +474,22 @@ proc portlint::lint_main {args} {
         }
     }
 
+    # Check for use of deprecated options
+    set deprecated_options_name [get_deprecated_options]
+    global $deprecated_options_name
+    foreach option [array names $deprecated_options_name] {
+        set newoption [lindex [set ${deprecated_options_name}($option)] 0]
+        set refcount  [lindex [set ${deprecated_options_name}($option)] 1]
+
+        if {$refcount > 0} {
+            if {$newoption != ""} {
+                ui_warn "Using deprecated option '$option', superseded by '$newoption'"
+            } else {
+                ui_warn "Using deprecated option '$option'"
+            }
+        }
+    }
+
     ### TODO: more checks to Tcl variables/sections
 
     ui_debug "Name: $name"
