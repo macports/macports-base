@@ -1096,7 +1096,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         error "Error evaluating variants"
     }
 
-    ditem_key $mport provides [$workername eval return \$portname]
+    ditem_key $mport provides [$workername eval return \$name]
 
     return $mport
 }
@@ -1270,13 +1270,13 @@ proc _porttest {mport depspec} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \${portname}]
+    return [$workername eval registry_exists_for_name \${name}]
 }
 
 # Determine if a port is active (only for image mode)
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_active \${portname}]}]} {
+    if {[catch {set reslist [$workername eval registry_active \${name}]}]} {
         return 0
     } else {
         return [expr [llength $reslist] > 0]

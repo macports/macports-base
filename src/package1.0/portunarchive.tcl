@@ -63,7 +63,7 @@ set_ui_prefix
 proc portunarchive::unarchive_init {args} {
 	global UI_PREFIX target_state_fd variations workpath
 	global ports_force ports_source_only ports_binary_only
-	global portname portversion portrevision portvariants portpath
+	global name version revision portvariants portpath
 	global unarchive.srcpath unarchive.type unarchive.file unarchive.path unarchive.fullsrcpath
 
 	# Check mode in case archive called directly by user
@@ -95,20 +95,20 @@ proc portunarchive::unarchive_init {args} {
 	if {[check_statefile target org.macports.unarchive $target_state_fd]} {
 		return 0
 	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
-		ui_debug "Skipping unarchive ($portname) since source-only is set"
+		ui_debug "Skipping unarchive ($name) since source-only is set"
 		set skipped 1
 	} elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
-		ui_debug "Skipping unarchive ($portname) since destroot completed"
+		ui_debug "Skipping unarchive ($name) since destroot completed"
 		set skipped 1
 	} elseif {[info exists ports_force] && $ports_force == "yes"} {
-		ui_debug "Skipping unarchive ($portname) since force is set"
+		ui_debug "Skipping unarchive ($name) since force is set"
 		set skipped 1
 	} else {
 		set found 0
 		set unsupported 0
 		foreach unarchive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
-				set unarchive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${unarchive.type}"
+				set unarchive.file "${name}-${version}_${revision}${portvariants}.[option os.arch].${unarchive.type}"
 				set unarchive.path "[file join ${unarchive.fullsrcpath} ${unarchive.file}]"
 				if {[file exist ${unarchive.path}]} {
 					set found 1
@@ -125,12 +125,12 @@ proc portunarchive::unarchive_init {args} {
 			ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
 		} else {
 			if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-				return -code error "Archive for ${portname} ${portversion}_${portrevision}${portvariants} not found, required when binary-only is set!"
+				return -code error "Archive for ${name} ${version}_${revision}${portvariants} not found, required when binary-only is set!"
 			} else {
 				if {[llength [option portarchivetype]] == $unsupported} {
-					ui_debug "Skipping unarchive ($portname) since specified archive types not supported"
+					ui_debug "Skipping unarchive ($name) since specified archive types not supported"
 				} else {
-					ui_debug "Skipping unarchive ($portname) since no archive found"
+					ui_debug "Skipping unarchive ($name) since no archive found"
 				}
 				set skipped 1
 			}
@@ -145,10 +145,10 @@ proc portunarchive::unarchive_init {args} {
 }
 
 proc portunarchive::unarchive_start {args} {
-	global UI_PREFIX portname portversion portrevision portvariants
+	global UI_PREFIX name version revision portvariants
 	global unarchive.type
 
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $name $version $revision $portvariants]"
 
 	return 0
 }
@@ -271,7 +271,7 @@ proc portunarchive::unarchive_command_setup {args} {
 
 proc portunarchive::unarchive_main {args} {
 	global UI_PREFIX
-	global portname portversion portrevision portvariants
+	global name version revision portvariants
 	global unarchive.dir unarchive.file unarchive.pipe_cmd
 
 	# Setup unarchive command
@@ -294,10 +294,10 @@ proc portunarchive::unarchive_main {args} {
 }
 
 proc portunarchive::unarchive_finish {args} {
-	global UI_PREFIX target_state_fd unarchive.file portname workpath destpath
+	global UI_PREFIX target_state_fd unarchive.file name workpath destpath
 
 	# Reset state file with archive version
-    set statefile [file join $workpath .macports.${portname}.state]
+    set statefile [file join $workpath .macports.${name}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
 	exec touch $statefile
 

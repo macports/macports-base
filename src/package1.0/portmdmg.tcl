@@ -44,11 +44,11 @@ namespace eval portmdmg {
 set_ui_prefix
 
 proc portmdmg::mdmg_main {args} {
-    global portname portversion portrevision package.destpath UI_PREFIX
+    global name version revision package.destpath UI_PREFIX
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${name} ${version}]"
     
-    return [package_mdmg $portname $portversion $portrevision]
+    return [package_mdmg $name $version $revision]
 }
 
 proc portmdmg::package_mdmg {portname portversion portrevision} {

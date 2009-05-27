@@ -52,7 +52,7 @@ set_ui_prefix
 proc portclean::clean_start {args} {
     global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option name]]"
 }
 
 proc portclean::clean_main {args} {
@@ -62,25 +62,25 @@ proc portclean::clean_main {args} {
 
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option portname]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
         clean_dist
     }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_archive] && $ports_clean_archive == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option portname]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option name]]"
         clean_archive
     }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_work] && $ports_clean_work == "yes" || \
         (!([info exists ports_clean_dist] && $ports_clean_dist == "yes") && \
          !([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
-         ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option portname]]"
+         ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
     }
 
     # start gsoc-08 privileges
     if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option portname]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option name]]"
         clean_altsource
     }
     # end gsoc-08 privileges
@@ -111,7 +111,7 @@ proc portclean::clean_altsource {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force portname distpath dist_subdir distfiles
+    global ports_force name distpath dist_subdir distfiles
 
     # remove known distfiles for sure (if they exist)
     set count 0
@@ -139,7 +139,7 @@ proc portclean::clean_dist {args} {
     # next remove dist_subdir if only needed for this port,
     # or if user forces us to
     set dirlist [list]
-    if {($dist_subdir != $portname)} {
+    if {($dist_subdir != $name)} {
         if {[info exists dist_subdir]} {
             set distfullpath [file join $distpath $dist_subdir]
             if {!([info exists ports_force] && $ports_force == "yes")
@@ -148,13 +148,13 @@ proc portclean::clean_dist {args} {
                 ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join $distpath $dist_subdir]]
             } else {
                 lappend dirlist $dist_subdir
-                lappend dirlist $portname
+                lappend dirlist $name
             }
         } else {
-            lappend dirlist $portname
+            lappend dirlist $name
         }
     } else {
-        lappend dirlist $portname
+        lappend dirlist $name
     }
     # loop through directories
     set count 0
@@ -200,7 +200,7 @@ proc portclean::clean_work {args} {
 }
 
 proc portclean::clean_archive {args} {
-    global workpath portarchivepath portname portversion ports_version_glob
+    global workpath portarchivepath name version ports_version_glob
 
     # Define archive destination directory and target filename
     if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
@@ -210,7 +210,7 @@ proc portclean::clean_archive {args} {
     if {[info exists ports_version_glob]} {
         # Match all possible archive variatns that match the version
         # glob specified by the user for this OS.
-        set fileglob "$portname-[option ports_version_glob]*.[option os.arch].*"
+        set fileglob "$name-[option ports_version_glob]*.[option os.arch].*"
     } else {
         # Match all possible archive variants for the current version on
         # this OS. If you want to delete previous versions, use the
@@ -219,7 +219,7 @@ proc portclean::clean_archive {args} {
         # We do this because if we don't, then ports that match the
         # first part of the name (e.g. trying to remove foo-*, it will
         # pick up anything foo-bar-* as well, which is undesirable).
-        set fileglob "$portname-$portversion*.[option os.arch].*"
+        set fileglob "$name-$version*.[option os.arch].*"
     }
 
     # Remove the archive files
@@ -229,7 +229,7 @@ proc portclean::clean_archive {args} {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not
             # and accidental match with some other file that might exist.
-            if {[regexp "^$portname-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
+            if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
                 if {[file isfile $path]} {
                     ui_debug "Removing archive: $path"
                     if {[catch {delete $path} result]} {

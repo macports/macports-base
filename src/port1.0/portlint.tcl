@@ -89,12 +89,12 @@ proc portlint::seems_utf8 {str} {
 
 
 proc portlint::lint_start {args} {
-    global UI_PREFIX portname
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${portname}]"
+    global UI_PREFIX name
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${name}]"
 }
 
 proc portlint::lint_main {args} {
-    global UI_PREFIX portname portpath porturl ports_lint_nitpick
+    global UI_PREFIX name portpath porturl ports_lint_nitpick
     set portfile ${portpath}/Portfile
     set portdirs [split ${portpath} /]
     set last [llength $portdirs]
@@ -261,7 +261,7 @@ proc portlint::lint_main {args} {
     ###################################################################
 
     global os.platform os.arch os.version
-    global portversion portrevision portepoch
+    global version revision epoch
     # hoping for "noarch" :
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
@@ -294,26 +294,19 @@ proc portlint::lint_main {args} {
     }
 
     foreach req_var $lint_required {
-        if {$req_var == "name"} {
-            set var "portname"
-        } elseif {$req_var == "version"} {
-            set var "portversion"
-        } else {
-            set var $req_var
-        }
 
-        if {$var == "master_sites"} {
+        if {$req_var == "master_sites"} {
             if {${fetch.type} != "standard"} {
-                ui_info "OK: $var not required for fetch.type ${fetch.type}"
+                ui_info "OK: $req_var not required for fetch.type ${fetch.type}"
                 continue
             }
             if {[llength ${distfiles}] == 0} {
-                ui_info "OK: $var not required when there are no distfiles"
+                ui_info "OK: $req_var not required when there are no distfiles"
                 continue
             }
         }
 
-        if {![info exists $var]} {
+        if {![info exists $req_var]} {
             ui_error "Missing required variable: $req_var"
             incr errors
         } else {
@@ -322,14 +315,7 @@ proc portlint::lint_main {args} {
     }
 
     foreach opt_var $lint_optional {
-        if {$opt_var == "epoch"} {
-            set var "portepoch"
-        } elseif {$opt_var == "revision"} {
-            set var "portrevision"
-        } else {
-            set var $opt_var
-        }
-        if {[info exists $var]} {
+        if {[info exists $opt_var]} {
             # TODO: check whether it was seen (or default)
             ui_info "OK: Found optional variable: $opt_var"
         }
@@ -356,12 +342,12 @@ proc portlint::lint_main {args} {
         }
     }
 
-    if {![string is integer -strict $portepoch]} {
-        ui_error "Port epoch is not numeric:  $portepoch"
+    if {![string is integer -strict $epoch]} {
+        ui_error "Port epoch is not numeric:  $epoch"
         incr errors
     }
-    if {![string is integer -strict $portrevision]} {
-        ui_error "Port revision is not numeric: $portrevision"
+    if {![string is integer -strict $revision]} {
+        ui_error "Port revision is not numeric: $revision"
         incr errors
     }
 
@@ -472,8 +458,8 @@ proc portlint::lint_main {args} {
     } else {
         ui_info "OK: Portfile parent directory matches primary category"
     }
-    if {$portdir != $portname} {
-        ui_error "Portfile directory $portdir does not match port name $portname"
+    if {$portdir != $name} {
+        ui_error "Portfile directory $portdir does not match port name $name"
         incr errors
     } else {
         ui_info "OK: Portfile directory matches port name"
@@ -490,10 +476,10 @@ proc portlint::lint_main {args} {
 
     ### TODO: more checks to Tcl variables/sections
 
-    ui_debug "Name: $portname"
-    ui_debug "Epoch: $portepoch"
-    ui_debug "Version: $portversion"
-    ui_debug "Revision: $portrevision"
+    ui_debug "Name: $name"
+    ui_debug "Epoch: $epoch"
+    ui_debug "Version: $version"
+    ui_debug "Revision: $revision"
     ui_debug "Arch: $portarch"
     ###################################################################
 

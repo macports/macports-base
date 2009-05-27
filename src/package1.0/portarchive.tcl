@@ -67,7 +67,7 @@ proc portarchive::archive_init {args} {
 	global UI_PREFIX target_state_fd
 	global variations package.destpath workpath
 	global ports_force ports_source_only ports_binary_only
-	global portname portversion portrevision portvariants
+	global name version revision portvariants
 	global archive.destpath archive.type archive.meta
 	global archive.file archive.path archive.fulldestpath
 
@@ -100,17 +100,17 @@ proc portarchive::archive_init {args} {
 	if {[check_statefile target org.macports.archive $target_state_fd]} {
 		return 0
 	} elseif {[check_statefile target org.macports.unarchive $target_state_fd] && ([info exists ports_binary_only] && $ports_binary_only == "yes")} {
-		ui_debug "Skipping archive ($portname) since binary-only is set"
+		ui_debug "Skipping archive ($name) since binary-only is set"
 		set skipped 1
 	} elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
-		ui_debug "Skipping archive ($portname) since source-only is set"
+		ui_debug "Skipping archive ($name) since source-only is set"
 		set skipped 1
 	} else {
 		set unsupported 0
 		set any_missing no
 		foreach archive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-				set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+				set archive.file "${name}-${version}_${revision}${portvariants}.[option os.arch].${archive.type}"
 				set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 				if {![file exists ${archive.path}]} {
 				    set any_missing yes
@@ -122,14 +122,14 @@ proc portarchive::archive_init {args} {
 		}
 		if {!$any_missing} {
 			# might be nice to allow forcing, but let's fix #16061 first
-			ui_debug "Skipping archive ($portname) since archive(s) already exist"
+			ui_debug "Skipping archive ($name) since archive(s) already exist"
 			set skipped 1
 		}
 		if {${archive.type} == "xpkg"} {
 			set archive.meta true
 		}
 		if {[llength [option portarchivetype]] == $unsupported} {
-			ui_debug "Skipping archive ($portname) since specified archive types not supported"
+			ui_debug "Skipping archive ($name) since specified archive types not supported"
 			set skipped 1
 		}
 	}
@@ -143,12 +143,12 @@ proc portarchive::archive_init {args} {
 
 proc portarchive::archive_start {args} {
 	global UI_PREFIX
-	global portname portversion portrevision portvariants
+	global name version revision portvariants
 
 	if {[llength [option portarchivetype]] > 1} {
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging [join [option portarchivetype] {, }] archives for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging [join [option portarchivetype] {, }] archives for %s %s_%s%s"] $name $version $revision $portvariants]"
 	} else {
-		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging [option portarchivetype] archive for %s %s_%s%s"] $portname $portversion $portrevision $portvariants]"
+		ui_msg "$UI_PREFIX [format [msgcat::mc "Packaging [option portarchivetype] archive for %s %s_%s%s"] $name $version $revision $portvariants]"
 	}
 
 	return 0
@@ -296,7 +296,7 @@ proc portarchive::putlist { fd listel itemel list } {
 proc portarchive::archive_main {args} {
 	global UI_PREFIX variations
 	global workpath destpath portpath ports_force
-	global portname portepoch portversion portrevision portvariants
+	global name epoch version revision portvariants
 	global archive.fulldestpath archive.type archive.file archive.path
 	global archive.meta archive.metaname archive.metapath
 	global os.platform os.arch
@@ -313,7 +313,7 @@ proc portarchive::archive_main {args} {
 
 	# Copy state file into destroot for archiving
 	# +STATE contains a copy of the MacPorts state information
-    set statefile [file join $workpath .macports.${portname}.state]
+    set statefile [file join $workpath .macports.${name}.state]
 	file copy -force $statefile [file join $destpath "+STATE"]
 
 	# Copy Portfile into destroot for archiving
@@ -348,11 +348,11 @@ proc portarchive::archive_main {args} {
 	# files and checksums
 	set control [list]
 	set fd [open [file join $destpath "+CONTENTS"] w]
-	puts $fd "@name ${portname}-${portversion}_${portrevision}${portvariants}"
-	puts $fd "@portname ${portname}"
-	puts $fd "@portepoch ${portepoch}"
-	puts $fd "@portversion ${portversion}"
-	puts $fd "@portrevision ${portrevision}"
+	puts $fd "@name ${name}-${version}_${revision}${portvariants}"
+	puts $fd "@portname ${name}"
+	puts $fd "@portepoch ${epoch}"
+	puts $fd "@portversion ${version}"
+	puts $fd "@portrevision ${revision}"
 	set vlist [lsort -ascii [array names variations]]
 	foreach v $vlist {
 		if {![string equal $v [option os.platform]] && ![string equal $v [option os.arch]]} {
@@ -388,10 +388,10 @@ proc portarchive::archive_main {args} {
 		# TODO: split contents into <buildinfo> (new) and <package> (current)
 		#       see existing <portpkg> for the matching source package layout
 
-		putel $sd name ${portname}
-		putel $sd epoch ${portepoch}
-		putel $sd version ${portversion}
-		putel $sd revision ${portrevision}
+		putel $sd name ${name}
+		putel $sd epoch ${epoch}
+		putel $sd version ${version}
+		putel $sd revision ${revision}
 		putel $sd major 0
 		putel $sd minor 0
 
@@ -416,7 +416,7 @@ proc portarchive::archive_main {args} {
 
             # Emit dependencies provided by this package
             puts $sd "<provides>"
-                set name ${portname}
+                set name ${name}
                 puts $sd "<item>"
                 putel $sd name $name
                 putel $sd major 0
@@ -424,9 +424,9 @@ proc portarchive::archive_main {args} {
                 puts $sd "</item>"
             puts $sd "</provides>"
             
-    set res [mport_lookup $portname]
+    set res [mport_lookup $name]
     if {[llength $res] < 2} {
-        ui_error "Dependency $portname not found"
+        ui_error "Dependency $name not found"
     } else {
     array set portinfo [lindex $res 1]
 
@@ -458,7 +458,7 @@ proc portarchive::archive_main {args} {
 	foreach archive.type [option portarchivetype] {
 		if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
 			# Define archive file/path
-			set archive.file "${portname}-${portversion}_${portrevision}${portvariants}.[option os.arch].${archive.type}"
+			set archive.file "${name}-${version}_${revision}${portvariants}.[option os.arch].${archive.type}"
 			set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 
 			# Setup archive command
@@ -481,7 +481,7 @@ proc portarchive::archive_main {args} {
 
 proc portarchive::archive_finish {args} {
 	global UI_PREFIX
-	global portname portversion portrevision portvariants
+	global name version revision portvariants
 	global destpath
 
 	# Cleanup all control files when finished
@@ -492,9 +492,9 @@ proc portarchive::archive_finish {args} {
 	}
 
 	if {[llength [option portarchivetype]] > 1} {
-		ui_info "$UI_PREFIX [format [msgcat::mc "Archives for %s %s_%s%s packaged"] $portname $portversion $portrevision $portvariants]"
+		ui_info "$UI_PREFIX [format [msgcat::mc "Archives for %s %s_%s%s packaged"] $name $version $revision $portvariants]"
 	} else {
-		ui_info "$UI_PREFIX [format [msgcat::mc "Archive for %s %s_%s%s packaged"] $portname $portversion $portrevision $portvariants]"
+		ui_info "$UI_PREFIX [format [msgcat::mc "Archive for %s %s_%s%s packaged"] $name $version $revision $portvariants]"
 	}
 	return 0
 }

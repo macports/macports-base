@@ -55,11 +55,11 @@ default package.flat     false
 set_ui_prefix
 
 proc portpkg::pkg_main {args} {
-    global portname portversion portrevision package.type package.destpath package.flat UI_PREFIX
+    global name version revision package.type package.destpath package.flat UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${name} ${version}]"
 
-    return [package_pkg $portname $portversion $portrevision]
+    return [package_pkg $name $version $revision]
 }
 
 proc portpkg::package_pkg {portname portversion portrevision} {

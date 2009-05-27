@@ -69,7 +69,7 @@ default filesdir files
 default revision 0
 default epoch 0
 default license unknown
-default distname {${portname}-${portversion}}
+default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
@@ -78,12 +78,6 @@ default worksrcpath {[file join $workpath $worksrcdir]}
 default macportsuser {${portutil::autoconf::macportsuser}}
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
-
-# Compatibility namespace
-default portname {$name}
-default portversion {$version}
-default portrevision {$revision}
-default portepoch {$epoch}
 
 # Platform Settings
 set os_arch $tcl_platform(machine)

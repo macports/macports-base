@@ -60,7 +60,7 @@ proc portpatch::patch_main {args} {
     return 0
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option name]]"
 
     # start gsoc08-privileges
     if { [tbool patch.asroot] } {

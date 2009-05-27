@@ -47,12 +47,12 @@ options package.destpath package.flat
 set_ui_prefix
 
 proc portmpkg::mpkg_main {args} {
-    global portname portversion portrevision package.destpath package.flat UI_PREFIX
+    global name version revision package.destpath package.flat UI_PREFIX
 
     # Make sure the destination path exists.
     system "mkdir -p ${package.destpath}"
 
-    return [package_mpkg $portname $portversion $portrevision]
+    return [package_mpkg $name $version $revision]
 }
 
 proc portmpkg::make_dependency_list {portname} {

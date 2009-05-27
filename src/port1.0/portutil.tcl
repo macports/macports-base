@@ -197,16 +197,16 @@ proc options_export {args} {
 # @param action read/set
 # @param value ignored
 proc warn_deprecated_option {option action {value ""}} {
-    global portname $option deprecated_options
+    global name $option deprecated_options
     set newoption $deprecated_options($option)
     global $newoption
 
     if {$newoption == ""} {
-        ui_warn "Port $portname using deprecated option \"$option\"."
+        ui_warn "Port $name using deprecated option \"$option\"."
         return
     }
 
-    ui_warn "Port $portname using deprecated option \"$option\", superseded by \"$newoption\"."
+    ui_warn "Port $name using deprecated option \"$option\", superseded by \"$newoption\"."
     if {$action != "read"} {
         $newoption [set $option]
     } else {
@@ -1194,7 +1194,8 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd portname workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
+    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
+    set portname [option name]
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1204,18 +1205,18 @@ proc target_run {ditem} {
     }
 
     if {$procedure != ""} {
-        set name [ditem_key $ditem name]
+        set targetname [ditem_key $ditem name]
 
         if {[ditem_contains $ditem init]} {
-            set result [catch {[ditem_key $ditem init] $name} errstr]
+            set result [catch {[ditem_key $ditem init] $targetname} errstr]
         }
 
         if {$result == 0} {
             # Skip the step if required and explain why through ui_debug.
             # check if the step was already done (as mentioned in the state file)
             if {[ditem_key $ditem state] != "no"
-                    && [check_statefile target $name $target_state_fd]} {
-                ui_debug "Skipping completed $name ($portname)"
+                    && [check_statefile target $targetname $target_state_fd]} {
+                ui_debug "Skipping completed $targetname ($portname)"
                 set skipped 1
             }
 
@@ -1223,10 +1224,10 @@ proc target_run {ditem} {
             if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
-                    ui_msg "For $portname: skipping $name (dry run)"
+                    ui_msg "For $portname: skipping $targetname (dry run)"
                     set ports_dry_last_skipped $portname
                 } else {
-                    ui_info "    .. and skipping $name"
+                    ui_info "    .. and skipping $targetname"
                 }
                 set skipped 1
             }
@@ -1237,7 +1238,7 @@ proc target_run {ditem} {
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
-                    set result [catch {[ditem_key $ditem prerun] $name} errstr]
+                    set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
 
                 #start tracelib
@@ -1318,20 +1319,20 @@ proc target_run {ditem} {
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
-                        set result [catch {$pre $name} errstr]
+                        set result [catch {$pre $targetname} errstr]
                         if {$result != 0} { break }
                     }
                 }
 
                 if {$result == 0} {
-                ui_debug "Executing $name ($portname)"
-                set result [catch {$procedure $name} errstr]
+                ui_debug "Executing $targetname ($portname)"
+                set result [catch {$procedure $targetname} errstr]
                 }
 
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
-                        set result [catch {$post $name} errstr]
+                        set result [catch {$post $targetname} errstr]
                         if {$result != 0} { break }
                     }
                 }
@@ -1339,7 +1340,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem postrun] && $result == 0} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
-                    set result [catch {$postrun $name} errstr]
+                    set result [catch {$postrun $targetname} errstr]
                 }
 
                 # Check dependencies & file creations outside workpath.
@@ -1364,21 +1365,21 @@ proc target_run {ditem} {
             if {$skipped == 0
           && [ditem_key $ditem runtype] != "always"
           && [ditem_key $ditem state] != "no"} {
-            write_statefile target $name $target_state_fd
+            write_statefile target $targetname $target_state_fd
             }
         } else {
             if {$errorisprivileges != "yes"} {
                 global errorInfo
-                ui_error "Target $name returned: $errstr"
+                ui_error "Target $targetname returned: $errstr"
                 ui_debug "Backtrace: $errorInfo"
             } else {
-                ui_msg "Target $name returned: $errstr"
+                ui_msg "Target $targetname returned: $errstr"
             }
             set result 1
         }
 
     } else {
-        ui_info "Warning: $name does not have a registered procedure"
+        ui_info "Warning: $targetname does not have a registered procedure"
         set result 1
     }
 
@@ -1423,27 +1424,27 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd portname portversion portrevision portvariants ports_dryrun user_options errorisprivileges
+    global targets target_state_fd name version revision portvariants ports_dryrun user_options errorisprivileges
     set dlist $targets
     set errorisprivileges "no"
 
     # the statefile will likely be autocleaned away after install,
     # so special-case ignore already-completed install and activate
-    if {[registry_exists $portname $portversion $portrevision $portvariants]} {
+    if {[registry_exists $name $version $revision $portvariants]} {
         if {$target == "install"} {
-            ui_debug "Skipping $target ($portname) since this port is already installed"
+            ui_debug "Skipping $target ($name) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $portname $portversion $portrevision $portvariants]
+            set regref [registry_open $name $version $revision $portvariants]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
-                ui_debug "Skipping $target ($portname @${portversion}_${portrevision}${portvariants}) since this port is already active"
+                ui_debug "Skipping $target ($name @${version}_${revision}${portvariants}) since this port is already active"
             } else {
                 # do the activate here since target_run doesn't know how to selectively ignore the preceding steps
                 if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
-                    ui_msg "For $portname: skipping $target (dry run)"
+                    ui_msg "For $name: skipping $target (dry run)"
                 } else {
-                    registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+                    registry_activate $name ${version}_${revision}${portvariants} [array get user_options]
                 }
             }
             return 0
@@ -1467,7 +1468,7 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: the following items did not execute (for $portname):"
+        set errstring "Warning: the following items did not execute (for $name):"
         foreach ditem $dlist {
             append errstring " [ditem_key $ditem name]"
         }
@@ -1489,7 +1490,7 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global workpath worksymlink place_worksymlink name portpath ports_ignore_older
     global altprefix usealtworkpath env applications_dir portbuildpath distpath
 
     # start gsoc08-privileges
@@ -1571,7 +1572,7 @@ proc open_statefile {args} {
         file mkdir $workpath
     }
     # flock Portfile
-    set statefile [file join $workpath .macports.${portname}.state]
+    set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
         if {![file writable $statefile]} {
             return -code error "$statefile is not writable - check permission on port directory"

@@ -52,8 +52,8 @@ namespace eval portactivate {
 set_ui_prefix
 
 proc portactivate::activate_main {args} {
-    global env portname portversion portrevision portvariants user_options portnotes
-    registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+    global env name version revision portvariants user_options portnotes
+    registry_activate $name ${version}_${revision}${portvariants} [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists portnotes] && $portnotes ne {}} {

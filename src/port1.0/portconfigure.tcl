@@ -172,7 +172,7 @@ proc portconfigure::configure_start {args} {
     global UI_PREFIX
     global configure.compiler
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option name]]"
 
     set name ""
     switch -exact ${configure.compiler} {

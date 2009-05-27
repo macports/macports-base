@@ -55,9 +55,9 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX portname portversion portrevision variations portvariants
+    global UI_PREFIX name version revision variations portvariants
     global install.asroot prefix
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
     if { [tbool install.asroot] } {
@@ -139,10 +139,10 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
 }
 
 proc portinstall::install_main {args} {
-    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch license
+    global name version portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot revision maintainers ports_force portvariants targets depends_lib PortInfo epoch license
     
     # Begin the registry entry
-    set regref [registry_new $portname $portversion $portrevision $portvariants $epoch]
+    set regref [registry_new $name $version $revision $portvariants $epoch]
     
     # Install the files
     directory_dig ${destroot} ${destroot} ${regref}
@@ -166,16 +166,16 @@ proc portinstall::install_main {args} {
     }
     if {[info exists depends_run]} {
         registry_prop_store $regref depends_run $depends_run
-        registry_register_deps $depends_run $portname
+        registry_register_deps $depends_run $name
     }
     if {[info exists depends_lib]} {
         registry_prop_store $regref depends_lib $depends_lib
-        registry_register_deps $depends_lib $portname
+        registry_register_deps $depends_lib $name
     }
     if {[info exists installPlist]} {
         registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
         if { [registry_prop_retr $regref installtype] != "image" } {
-            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
+            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $name
         }
     }
     if {[info exists package-install]} {
