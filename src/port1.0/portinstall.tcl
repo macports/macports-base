@@ -139,7 +139,7 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
 }
 
 proc portinstall::install_main {args} {
-    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch
+    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch license
     
     # Begin the registry entry
     set regref [registry_new $portname $portversion $portrevision $portvariants $epoch]
