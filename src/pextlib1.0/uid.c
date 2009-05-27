@@ -39,8 +39,6 @@
 
 #include "uid.h"
 
-#include "errno.h"
-
 /*
 	getuid
 	
@@ -297,7 +295,7 @@ int uname_to_gidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, 
 	if (name == NULL || !*name)
 		return TCL_ERROR;
 	
-	/* Map the name --> uid */
+	/* Map the name --> user gid */
 	pwent = getpwnam(name);
 
 	if (pwent == NULL)
