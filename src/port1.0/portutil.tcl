@@ -54,32 +54,33 @@ namespace eval options {
 # option
 # This is an accessor for Portfile options.  Targets may use
 # this in the same style as the standard Tcl "set" procedure.
-#   name  - the name of the option to read or write
+#   option  - the name of the option to read or write
+#       not called 'name' because this would fail if its value was 'name'...
 #   value - an optional value to assign to the option
 
-proc option {name args} {
+proc option {option args} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $name
+    global $option
     if {[llength $args] > 0} {
-        ui_debug "setting option $name to $args"
-        set $name [lindex $args 0]
+        ui_debug "setting option $option to $args"
+        set $option [lindex $args 0]
     }
-    return [set $name]
+    return [set $option]
 }
 
 # exists
 # This is an accessor for Portfile options.  Targets may use
 # this procedure to test for the existence of a Portfile option.
-#   name - the name of the option to test for existence
+#   option - the name of the option to test for existence
 
-proc exists {name} {
+proc exists {option} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $name
-    return [info exists $name]
+    global $option
+    return [info exists $option]
 }
 
 ##
