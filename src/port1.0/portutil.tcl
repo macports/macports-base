@@ -235,6 +235,8 @@ proc option_deprecate {option {newoption ""} } {
     global deprecated_options
     # If a new option is specified, default the option to $newoption
     set deprecated_options($option) [list $newoption 0]
+    # Create a normal option for compatibility
+    options $option
     # Register a proc for handling the deprecation
     option_proc $option handle_deprecated_option
 }
