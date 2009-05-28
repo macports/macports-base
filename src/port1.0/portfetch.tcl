@@ -57,7 +57,7 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
-    svn.url svn.tag svn.revision svn.method \
+    svn.url svn.revision svn.method \
     git.url git.branch \
     hg.url hg.tag
 
@@ -85,7 +85,6 @@ default cvs.post_args {"${cvs.module}"}
 default svn.cmd {$portutil::autoconf::svn_path}
 default svn.dir {${workpath}}
 default svn.method {export}
-default svn.tag ""
 default svn.revision ""
 default svn.env {}
 default svn.pre_args {"--non-interactive"}
