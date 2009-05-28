@@ -33,6 +33,7 @@
 package provide portuninstall 1.0
 
 package require registry 1.0
+package require macports 1.0
 
 set UI_PREFIX "---> "
 
@@ -40,6 +41,7 @@ namespace eval portuninstall {
 
 proc uninstall {portname {v ""} optionslist} {
 	global uninstall.force uninstall.nochecksum UI_PREFIX
+	global macports::portimagefilepath macports::os_platform macports::os_arch
 	array set options $optionslist
 
 	set ilist [registry::installed $portname $v]
@@ -66,6 +68,7 @@ proc uninstall {portname {v ""} optionslist} {
 		set revision [lindex [lindex $ilist 0] 2]
 		set variants [lindex [lindex $ilist 0] 3]
 		set active [lindex [lindex $ilist 0] 4]
+		set epoch [lindex [lindex $ilist 0] 5]
 	}
 
 	# determine if it's the only installed port with that name or not.
@@ -149,97 +152,11 @@ proc uninstall {portname {v ""} optionslist} {
 		registry::unregister_dependencies $portname
 	}
 
-	# Now look for a contents list
-	set contents [registry::property_retrieve $ref contents]
-	if { $contents != "" } {
-		set uninst_err 0
-		set files [list]
-		foreach f $contents {
-			set fname [lindex $f 0]
-			set md5index [lsearch -regex [lrange $f 1 end] MD5]
-			if {$md5index != -1} {
-				set sumx [lindex $f [expr $md5index + 1]]
-			} else {
-				# XXX There is no MD5 listed, set sumx to an 
-				# empty list, causing the next conditional to 
-				# return a checksum error
-				set sumx {}
-			}
-			set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
-			if {![string match $sum1 NONE] && ![info exists uninstall.nochecksum] && ![string equal -nocase $uninstall.nochecksum "yes"] } {
-				if {![catch {set sum2 [md5 $fname]}]} {
-					if {![string match $sum1 $sum2]} {
-						if {![info exists uninstall.force] && ![string equal -nocase $uninstall.force "yes"] } {
-							ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, not removing"] $fname]"
-							set uninst_err 1
-							continue
-						} else {
-							ui_info "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, removing anyway [force in effect]"] $fname]"
-						}
-					}
-				}
-			}
-			# Normalize the file path to avoid removing the intermediate
-			# symlinks (remove the empty directories instead)
-			set theFile [file normalize [lindex $f 0]]
-			lappend files $theFile
-
-			# Split out the filename's subpaths and add them to the
-			# list as well.
-			set directory [file dirname $theFile]
-			while { [lsearch -exact $files $directory] == -1 } { 
-				lappend files $directory
-				set directory [file dirname $directory]
-			}
-		}
-
-		# Sort the list in reverse order, removing duplicates.
-		# Since the list is sorted in reverse order, we're sure that directories
-		# are after their elements.
-		set theList [lsort -decreasing -unique $files]
-
-		# Remove all elements.
-		if { [catch {_uninstall_list $theList} result] } {
-			return -code error $result
-		}
-
-		if {!$uninst_err || [info exists uninstall.force] && [string equal -nocase $uninstall.force "yes"] } {
-			ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
-			registry::delete_entry $ref
-			return 0
-		}
-	
-	} else {
-		return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
-	}
-}
-
-proc _uninstall_file {dstfile} {
-	if { ![catch {set type [file type $dstfile]}] } {
-		if { $type == "link" } {
-			ui_debug "uninstalling link: $dstfile"
-			file delete -- $dstfile
-		} elseif { [file isdirectory $dstfile] } {
-			# 0 item means empty.
-			if { [llength [readdir $dstfile]] == 0 } {
-				ui_debug "uninstalling directory: $dstfile"
-				file delete -- $dstfile
-			} else {
-				ui_debug "$dstfile is not empty"
-			}
-		} else {
-			ui_debug "uninstalling file: $dstfile"
-			file delete -- $dstfile
-		}
-	} else {
-		ui_debug "skip missing file: $dstfile"
-	}
-}
-
-proc _uninstall_list {filelist} {
-	foreach file $filelist {
-		_uninstall_file $file
-	}
+	set macport_filename "${portname}-${epoch}-${version}_${revision}${variants}.${macports::os_platform}.${macports::os_arch}.macport"
+	set macport_file [file join ${macports::portimagefilepath} $portname $macport_filename]
+	file delete $macport_file
+	ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
+	registry::delete_entry $ref
 }
 
 # End of portuninstall namespace
