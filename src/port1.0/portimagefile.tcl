@@ -43,15 +43,15 @@ namespace eval portimagefile {
 set_ui_prefix
 
 proc portimagefile::imagefile_start {args} {
-    global UI_PREFIX portname portversion portrevision portvariants
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Imaging %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+    global UI_PREFIX name version revision portvariants
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Imaging %s @%s_%s%s"] $name $version $revision $portvariants]"
 
     return 0
 }
 
 
 proc portimagefile::imagefile_main {args} {
-    global portname portversion portrevision portvariants epoch destpath
+    global name version revision portvariants epoch destpath
     global workpath portpath os.platform os.arch
     set startpwd [pwd]
     if {[catch {_cd $destpath} err]} {
@@ -77,7 +77,7 @@ proc portimagefile::imagefile_main {args} {
     file copy [file join $portpath Portfile] [file join $imageworkpath "+PORTFILE"]
     create_image_receipt $imageworkpath
     _cd $imageworkpath
-    set macport_filename "${portname}-${epoch}-${portversion}_${portrevision}${portvariants}.${os.platform}.${os.arch}.macport"
+    set macport_filename "${name}-${epoch}-${version}_${revision}${portvariants}.${os.platform}.${os.arch}.macport"
     set macport_file [file join $workpath $macport_filename]
     ui_debug "Creating $macport_filename"
     if {[catch {system "$tarcmd -cvf $macport_file *"} err]} {
@@ -96,11 +96,11 @@ proc portimagefile::imagefile_main {args} {
 # Create a +IMAGERECEIPT file which contains all information necessary
 # to register the port in the MacPorts registry
 proc portimagefile::create_image_receipt {imageworkpath} {
-    global portname portversion portrevision portvariants epoch categories
+    global name version revision portvariants epoch categories
     global homepage maintainers depends_run depends_lib prefix package-install
     global description long_description license destpath
     set fd [open [file join $imageworkpath "+IMAGERECEIPT"] w]
-    set variablelist {portname portversion portrevision portvariants epoch categories homepage maintainers depends_run depends_lib prefix package-install description long_description license}
+    set variablelist {name version revision portvariants epoch categories homepage maintainers depends_run depends_lib prefix package-install description long_description license}
     foreach onevar $variablelist {
         if {[info exists $onevar]} {
             puts $fd "$onevar [string map {\n \\n} [set $onevar]]"
@@ -163,7 +163,7 @@ proc portimagefile::install_register_imagefile {imagefile} {
             set imagevars([lindex $line 0]) [lrange $line 1 end]
         }
         close $fd
-        set requiredvars {portname portversion portrevision portvariants epoch categories contents prefix}
+        set requiredvars {name version revision portvariants epoch categories contents prefix}
         foreach required $requiredvars {
             if {![info exists imagevars($required)]} {
                 throw MACPORTS "Image receipt missing required variable $required"
@@ -173,14 +173,14 @@ proc portimagefile::install_register_imagefile {imagefile} {
         if {$imagevars(prefix) != $prefix} {
             throw MACPORTS "Image prefix ($imagevars(prefix)) does not match ours ($prefix)"
         }
-        set portimagepath [file join ${portimagefilepath} $imagevars(portname)]
+        set portimagepath [file join ${portimagefilepath} $imagevars(name)]
         if {![file isdirectory $portimagepath]} {
             file mkdir $portimagepath
         }
         ui_debug "Installing and registering [file tail $imagefile]"
         file copy -force $imagefile $portimagepath
 
-        set regref [registry_new $imagevars(portname) $imagevars(portversion) $imagevars(portrevision) $imagevars(portvariants) $imagevars(epoch)]
+        set regref [registry_new $imagevars(name) $imagevars(version) $imagevars(revision) $imagevars(portvariants) $imagevars(epoch)]
         registry_prop_store $regref categories $imagevars(categories)
         registry_prop_store $regref contents $imagevars(contents)
         foreach propname [array names imagevars] {
@@ -189,7 +189,7 @@ proc portimagefile::install_register_imagefile {imagefile} {
             }
             registry_prop_store $regref $propname $imagevars($propname)
             if {[lsearch -exact {depends_run depends_lib} $propname] != -1} {
-               registry_register_deps $imagevars($propname) $imagevars(portname)
+               registry_register_deps $imagevars($propname) $imagevars(name)
             }
         }
         registry_write $regref
