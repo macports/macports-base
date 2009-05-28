@@ -487,6 +487,7 @@ proc portlint::lint_main {args} {
             } else {
                 ui_warn "Using deprecated option '$option'"
             }
+            incr warnings
         }
     }
 
