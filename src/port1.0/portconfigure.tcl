@@ -314,8 +314,8 @@ proc portconfigure::configure_get_compiler {type} {
         }
         clang {
             switch -exact ${type} {
-                cc   { set ret /usr/bin/clang }
-                objc { set ret /usr/bin/clang }
+                cc   { set ret /Developer/usr/bin/clang }
+                objc { set ret /Developer/usr/bin/clang }
             }
         }
         apple-gcc-3.3 {
