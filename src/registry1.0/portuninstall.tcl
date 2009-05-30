@@ -153,8 +153,12 @@ proc uninstall {portname {v ""} optionslist} {
 	}
 
 	set macport_filename "${portname}-${epoch}-${version}_${revision}${variants}.${macports::os_platform}.${macports::os_arch}.macport"
-	set macport_file [file join ${macports::portimagefilepath} $portname $macport_filename]
+	set portimagedir [file join ${macports::portimagefilepath} $portname]
+	set macport_file [file join $portimagedir $macport_filename]
 	file delete $macport_file
+	# Try to delete the port's image dir; will fail if there are more image
+	# files so just ignore the failure
+	catch {file delete $portimagedir} ignorederr
 	ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
 	registry::delete_entry $ref
 }
