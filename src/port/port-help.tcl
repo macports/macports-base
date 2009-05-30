@@ -166,10 +166,6 @@ set porthelp(load) {
 Interface to launchctl(1) for ports providing startup items
 }
 
-set porthelp(location) {
-Returns the install location for each of the given ports
-}
-
 set porthelp(mdmg) {
 Creates a dmg containing an mpkg for each of the given ports and their dependencies
 }

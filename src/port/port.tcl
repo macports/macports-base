@@ -1688,36 +1688,6 @@ proc action_info { action portlist opts } {
 }
 
 
-proc action_location { action portlist opts } {
-    set status 0
-    if {[require_portlist portlist]} {
-        return 1
-    }
-    foreachport $portlist {
-        if { [catch {set ilist [registry_installed $portname [composite_version $portversion [array get variations]]]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "port location failed: $result" 1 status
-        } else {
-            # set portname again since the one we were passed may not have had the correct case
-            set portname [lindex $ilist 0]
-            set version [lindex $ilist 1]
-            set revision [lindex $ilist 2]
-            set variants [lindex $ilist 3]
-        }
-
-        set ref [registry::open_entry $portname $version $revision $variants]
-        set imagedir [registry::property_retrieve $ref imagedir]
-        if {![macports::ui_isset ports_quiet]} {
-            puts "Port $portname ${version}_${revision}${variants} is installed as an image in:"
-        }
-        puts $imagedir
-    }
-    
-    return $status
-}
-
-
 proc action_notes { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
@@ -2915,7 +2885,6 @@ array set action_array [list \
     echo        [list action_echo           [action_args_const ports]] \
     \
     info        [list action_info           [action_args_const ports]] \
-    location    [list action_location       [action_args_const ports]] \
     notes       [list action_notes          [action_args_const ports]] \
     provides    [list action_provides       [action_args_const strings]] \
     \
