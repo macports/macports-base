@@ -58,11 +58,11 @@ proc portimagefile::imagefile_main {args} {
         ui_error $err
         return
     }
-    if {[catch {set tarcmd [binaryInPath tar]} err]} {
+    if {[catch {set tarcmd [findBinary tar ${portutil::autoconf::tar_path}]} err]} {
         ui_error $err
         return
     }
-    if {[catch {set bzipcmd [binaryInPath bzip2]} err]} {
+    if {[catch {set bzipcmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]} err]} {
         ui_error $err
         return
     }
@@ -149,7 +149,7 @@ proc portimagefile::install_register_imagefile {imagefile} {
         if {[catch {_cd $mytempdir} err]} {
             throw MACPORTS $err
         }
-        if {[catch {set tarcmd [binaryInPath tar]} err]} {
+        if {[catch {set tarcmd [findBinary tar ${portutil::autoconf::tar_path}]} err]} {
             throw MACPORTS $err
         }
         if {[catch {system "$tarcmd -xvf $imagefile +IMAGERECEIPT"} err]} {

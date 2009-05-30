@@ -483,10 +483,10 @@ proc activate {name v optionslist} {
 		if {[catch {cd $extractdir} err]} {
 			throw MACPORTS $err
 		}
-		if {[catch {set tarcmd [macports::binaryInPath tar]} err]} {
+		if {[catch {set tarcmd [macports::findBinary tar]} err]} {
 			throw MACPORTS $err
 		}
-		if {[catch {set bzipcmd [macports::binaryInPath bzip2]} err]} {
+		if {[catch {set bzipcmd [macports::findBinary bzip2]} err]} {
 			throw MACPORTS $err
 		}
 		if {[catch {system "$tarcmd -xf $macport_file files.tar.bz2"} err]} {
