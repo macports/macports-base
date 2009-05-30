@@ -495,14 +495,11 @@ proc activate {name v optionslist} {
 		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf -"} err]} {
 			throw MACPORTS $err
 		}
-		# XXX should we delete files.tar.bz2 now here?
 		_activate_contents $name $imagefiles $extractdir
 		registry::property_store $ref active 1
 		registry::write_entry $ref
 
-		registry::open_file_map
 		registry::register_bulk_files $contents $name
-		registry::write_file_map
 	} catch {* errorCode errorMessage} {
 		ui_error $errorMessage
 	} finally {
@@ -560,6 +557,7 @@ proc deactivate {name v optionslist} {
 		registry::unregister_file $file
 	}
 	registry::write_file_map
+	registry::close_file_map
 	
 	registry::property_store $ref active 0
 
@@ -642,7 +640,6 @@ proc _activate_contents {name imagefiles extractdir} {
 	# Last, if the file exists, and belongs to another port, and force is set
 	#  we remove the file from the file_map, take ownership of it, and 
 	#  clobber it
-	registry::open_file_map
 	foreach file $imagefiles {
 		set srcfile ${extractdir}${file}
 
