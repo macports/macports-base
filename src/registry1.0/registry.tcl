@@ -67,10 +67,7 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		# (because we'll compare this with a file mtime).
 		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
 		property_store $ref receipt_f ${macports::registry.format}
-		set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
-		property_store $ref imagedir $imagedir
 		property_store $ref active 0
-		property_store $ref compact 0
 
 		return $ref
 	} else {
