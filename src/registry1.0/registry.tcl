@@ -414,7 +414,7 @@ proc write_dep_map {args} {
 # Activate a "Port Image"	
 proc activate {name v optionslist} {
 	global macports::prefix macports::registry.path UI_PREFIX env
-	global macports::portimagefilepath macports::os_platform macports::os_arch
+	global macports::portimagefilepath
 	array set options $optionslist
 	variable force
 
@@ -431,7 +431,7 @@ proc activate {name v optionslist} {
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
 	set	epoch [lindex $ilist 5]
-	set macport_filename "${name}-${epoch}-${version}_${revision}${variants}.${macports::os_platform}.${macports::os_arch}.macport"
+    set macport_filename [macports::getportimagename_from_port_info $name $epoch $version $revision $variants]
 	set macport_file [file join ${macports::portimagefilepath} $name $macport_filename]
 	if {![file exists $macport_file]} {
 		return -code error "Image error: Can't find image file $macport_file"

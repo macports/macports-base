@@ -41,7 +41,7 @@ namespace eval portuninstall {
 
 proc uninstall {portname {v ""} optionslist} {
 	global uninstall.force uninstall.nochecksum UI_PREFIX
-	global macports::portimagefilepath macports::os_platform macports::os_arch
+	global macports::portimagefilepath
 	array set options $optionslist
 
 	set ilist [registry::installed $portname $v]
@@ -152,7 +152,7 @@ proc uninstall {portname {v ""} optionslist} {
 		registry::unregister_dependencies $portname
 	}
 
-	set macport_filename "${portname}-${epoch}-${version}_${revision}${variants}.${macports::os_platform}.${macports::os_arch}.macport"
+	set macport_filename [macports::getportimagename_from_port_info $portname $epoch $version $revision $variants]
 	set portimagedir [file join ${macports::portimagefilepath} $portname]
 	set macport_file [file join $portimagedir $macport_filename]
 	file delete $macport_file

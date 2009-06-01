@@ -776,6 +776,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # Export some utility functions defined here.
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
+    $workername alias getportimagename_from_port_info macports::getportimagename_from_port_info
     $workername alias getportresourcepath macports::getportresourcepath
     $workername alias getdefaultportresourcepath macports::getdefaultportresourcepath
     $workername alias getprotocol macports::getprotocol
@@ -1455,6 +1456,11 @@ proc macports::getportworkpath_from_buildpath {portbuildpath} {
 
 proc macports::getportworkpath_from_portdir {portpath} {
     return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath]]
+}
+
+proc macports::getportimagename_from_port_info {portname portepoch portversion portrevision portvariants} {
+    global macports::os_platform macports::os_arch
+    return "${portname}-${portepoch}-${portversion}_${portrevision}${portvariants}.${os_platform}.${os_arch}.macport"
 }
 
 proc macports::getindex {source} {

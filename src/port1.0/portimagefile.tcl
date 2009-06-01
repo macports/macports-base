@@ -52,7 +52,7 @@ proc portimagefile::imagefile_start {args} {
 
 proc portimagefile::imagefile_main {args} {
     global name version revision portvariants epoch destpath
-    global workpath portpath os.platform os.arch
+    global workpath portpath
     set startpwd [pwd]
     if {[catch {_cd $destpath} err]} {
         ui_error $err
@@ -77,7 +77,7 @@ proc portimagefile::imagefile_main {args} {
     file copy [file join $portpath Portfile] [file join $imageworkpath "+PORTFILE"]
     create_image_receipt $imageworkpath
     _cd $imageworkpath
-    set macport_filename "${name}-${epoch}-${version}_${revision}${portvariants}.${os.platform}.${os.arch}.macport"
+    set macport_filename [getportimagename_from_port_info $name $epoch $version $revision $portvariants]
     set macport_file [file join $workpath $macport_filename]
     ui_debug "Creating $macport_filename"
     if {[catch {system "$tarcmd -cvf $macport_file *"} err]} {
