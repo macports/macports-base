@@ -66,7 +66,7 @@ proc portconfigure::set_configure_type {option action args} {
     if {[string equal ${action} "set"] && [tbool args]} {
         switch $option {
             use_xmkmf {
-                depends_build-append path:bin/xmkmf:imake
+                depends_build-append port:imake
             }
             default {
                 depends_build-append port:autoconf port:automake port:libtool
