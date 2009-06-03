@@ -1272,62 +1272,56 @@ proc target_run {ditem} {
                     }
 
                     # collect deps
+                    set depends {}
+                    set deptypes {}
 
-                    # Don't check dependencies for extract (they're not honored
-                    # anyway). This avoids warnings about bzip2.
-                    if {$target != "extract"} {
-                        set depends {}
-                        set deptypes {}
+                    # Determine deptypes to look for based on target
+                    switch $target {
+                        fetch       -
+                        checksum    { set deptypes "depends_fetch" }
+                        extract     -
+                        patch       { set deptypes "depends_fetch depends_extract" }
+                        configure   -
+                        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
 
-                        # Determine deptypes to look for based on target
-                        switch $target {
-                            configure   -
-                            build       { set deptypes "depends_lib depends_build" }
-
-                            test        -
-                            destroot    -
-                            install     -
-                            archive     -
-                            dmg         -
-                            pkg         -
-                            portpkg     -
-                            mpkg        -
-                            rpm         -
-                            srpm        -
-                            dpkg        -
-                            mdmg        -
-                            activate    -
-                            ""          { set deptypes "depends_lib depends_build depends_run" }
-                        }
-
-                        # Gather the dependencies for deptypes
-                        foreach deptype $deptypes {
-                            # Add to the list of dependencies if the option exists and isn't empty.
-                            if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
-                                set depends [concat $depends $PortInfo($deptype)]
-                            }
-                        }
-
-                        # Dependencies are in the form verb:[param:]port
-                        set depsPorts {}
-                        foreach depspec $depends {
-                            # grab the portname portion of the depspec
-                            set dep_portname [lindex [split $depspec :] end]
-                            lappend depsPorts $dep_portname
-                        }
-
-                        # always allow gzip in destroot as it is used to compress man pages
-                        if {$target == "destroot"} {
-                            lappend depsPorts "gzip"
-                        }
-
-                        set portlist $depsPorts
-                        foreach depName $depsPorts {
-                            set portlist [recursive_collect_deps $depName $deptypes $portlist]
-                        }
-
-                        if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
+                        test        -
+                        destroot    -
+                        install     -
+                        archive     -
+                        dmg         -
+                        pkg         -
+                        portpkg     -
+                        mpkg        -
+                        rpm         -
+                        srpm        -
+                        dpkg        -
+                        mdmg        -
+                        activate    -
+                        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
                     }
+
+                    # Gather the dependencies for deptypes
+                    foreach deptype $deptypes {
+                        # Add to the list of dependencies if the option exists and isn't empty.
+                        if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
+                            set depends [concat $depends $PortInfo($deptype)]
+                        }
+                    }
+
+                    # Dependencies are in the form verb:[param:]port
+                    set depsPorts {}
+                    foreach depspec $depends {
+                        # grab the portname portion of the depspec
+                        set dep_portname [lindex [split $depspec :] end]
+                        lappend depsPorts $dep_portname
+                    }
+
+                    set portlist $depsPorts
+                    foreach depName $depsPorts {
+                        set portlist [recursive_collect_deps $depName $deptypes $portlist]
+                    }
+
+                    if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
                 }
 
                 if {$result == 0} {

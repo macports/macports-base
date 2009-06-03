@@ -154,6 +154,12 @@ proc get_dependencies {portname includeBuildDeps} {
 		if {$includeBuildDeps != "" && [info exists portinfo(depends_build)]} { 
 			eval "lappend depends $portinfo(depends_build)"
 		}
+		if {$includeBuildDeps != "" && [info exists portinfo(depends_fetch)]} { 
+			eval "lappend depends $portinfo(depends_fetch)"
+		}
+		if {$includeBuildDeps != "" && [info exists portinfo(depends_extract)]} { 
+			eval "lappend depends $portinfo(depends_extract)"
+		}
 		foreach depspec $depends {
 			set dep [lindex [split $depspec :] end]
 			set x [get_dependencies $dep $includeBuildDeps]

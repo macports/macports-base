@@ -128,7 +128,6 @@ option_proc use_dmg   portfetch::set_extract_type
 
 option_proc fetch.type portfetch::set_fetch_type
 
-# We should probably add something like a depends_fetch; see #15161
 proc portfetch::set_extract_type {option action args} {
     global extract.suffix
     if {[string equal ${action} "set"] && [tbool args]} {
@@ -138,15 +137,15 @@ proc portfetch::set_extract_type {option action args} {
             }
             use_lzma {
                 set extract.suffix .tar.lzma
-                depends_build-append bin:lzma:lzmautils
+                depends_extract-append bin:lzma:lzmautils
             }
             use_zip {
                 set extract.suffix .zip
-                depends_build-append bin:unzip:unzip
+                depends_extract-append bin:unzip:unzip
             }
             use_7z {
                 set extract.suffix .7z
-                depends_build-append bin:7za:p7zip
+                depends_extract-append bin:7za:p7zip
             }
             use_dmg {
                 set extract.suffix .dmg
@@ -159,16 +158,16 @@ proc portfetch::set_fetch_type {option action args} {
     if {[string equal ${action} "set"]} {
         switch $args {
             cvs {
-                depends_build-append bin:cvs:cvs
+                depends_fetch-append bin:cvs:cvs
             }
             svn {
-                depends_build-append bin:svn:subversion
+                depends_fetch-append bin:svn:subversion
             }
             git {
-                depends_build-append bin:git:git-core
+                depends_fetch-append bin:git:git-core
             }
             hg {
-                depends_build-append bin:hg:mercurial
+                depends_fetch-append bin:hg:mercurial
             }
         }
     }

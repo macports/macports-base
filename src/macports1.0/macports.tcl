@@ -1390,7 +1390,9 @@ proc mportexec {mport target} {
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
     set dlist {}
-    if {$target == "configure" || $target == "build"
+    if {   $target == "fetch" || $target == "checksum"
+        || $target == "extract" || $target == "patch"
+        || $target == "configure" || $target == "build"
         || $target == "test"
         || $target == "destroot" || $target == "install"
         || $target == "archive"
@@ -1997,8 +1999,12 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
 
     # Determine deptypes to look for based on target
     switch $target {
+        fetch       -
+        checksum    { set deptypes "depends_fetch" }
+        extract     -
+        patch       { set deptypes "depends_fetch depends_extract" }
         configure   -
-        build       { set deptypes "depends_lib depends_build" }
+        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
 
         test        -
         destroot    -
@@ -2012,7 +2018,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         rpm         -
         srpm        -
         dpkg        -
-        ""          { set deptypes "depends_lib depends_build depends_run" }
+        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
     }
 
     # Gather the dependencies for deptypes
@@ -2618,7 +2624,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
     unset -nocomplain options(ports_do_dependents)
 
     # each dep type is upgraded
-    foreach dtype {depends_build depends_lib depends_run} {
+    foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [lindex [split $i :] end]

@@ -139,7 +139,7 @@ Returns information about the given ports. Most of the options specify a field
 to be included in the resulting report. Multiple fields may be specified, in
 which case all will be included.  If no fields are specified, a useful default
 set will be used.  The other options which do not correspond to fields are:
-   --depends   An abbreviation for all three depends_* fields
+   --depends   An abbreviation for all depends_* fields
    --index     Do not read the Portfile, instead rely solely on the index
                information. Note this option will prevent the information
                reported from reflecting the effects of any variants specified.

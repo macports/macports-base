@@ -433,6 +433,8 @@ proc portarchive::archive_main {args} {
             # Emit build, library, and runtime dependencies
             puts $sd "<requires>"
             foreach {key type} {
+                depends_fetch "fetch"
+                depends_extract "extract"
                 depends_build "build"
                 depends_lib "library"
                 depends_run "runtime"

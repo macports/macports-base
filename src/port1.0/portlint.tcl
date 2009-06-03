@@ -266,7 +266,7 @@ proc portlint::lint_main {args} {
     set portarch ${os.arch}
     global description long_description platforms categories all_variants
     global maintainers homepage master_sites checksums patchfiles
-    global depends_lib depends_build depends_run distfiles fetch.type
+    global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
     
     global lint_portsystem lint_platforms
     global lint_required lint_optional
@@ -412,6 +412,8 @@ proc portlint::lint_main {args} {
     }
 
     set all_depends {}
+    if {[info exists depends_fetch]} { eval "lappend all_depends $depends_fetch" }
+    if {[info exists depends_extract]} { eval "lappend all_depends $depends_extract" }
     if {[info exists depends_lib]} { eval "lappend all_depends $depends_lib" }
     if {[info exists depends_build]} { eval "lappend all_depends $depends_build" }
     if {[info exists depends_run]} { eval "lappend all_depends $depends_run" }
