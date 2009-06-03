@@ -280,18 +280,10 @@ proc _activate_file {srcfile dstfile} {
 		# Don't do anything if the directory already exists.
 		if { ![file isdirectory $dstfile] } {
 			file mkdir $dstfile
-	
 			# fix attributes on the directory.
-			set attributes [file attributes $srcfile]
-			for {set i 0} {$i < [llength $attributes]} {incr i} {
-				set opt [lindex $attributes $i]
-				incr i
-				set arg [lindex $attributes $i]
-				file attributes $dstfile $opt $arg
-			}
-	
+			eval file attributes {$dstfile} [file attributes $srcfile]
 			# set mtime on installed element
-			exec touch -r $srcfile $dstfile
+			file mtime $dstfile [file mtime $srcfile]
 		}
 	} elseif { [file type $srcfile] == "link" } {
 		file copy -force $srcfile $dstfile
