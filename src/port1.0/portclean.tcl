@@ -72,8 +72,7 @@ proc portclean::clean_main {args} {
     }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_work] && $ports_clean_work == "yes" || \
-        (!([info exists ports_clean_dist] && $ports_clean_dist == "yes") && \
-         !([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
+        (!([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
     }
