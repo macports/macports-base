@@ -1369,6 +1369,67 @@ proc action_help { action portlist opts } {
 }
 
 
+proc action_log { action portlist opts } {
+    set logfile "$macports::prefix/var/macports/logs/"
+
+    if {[llength $portlist] == 0} {
+        print_help
+        return 0
+    }
+    foreachport $portlist {
+        # If we have a url, use that, since it's most specific
+        # otherwise try to map the portname to a url
+        if {$porturl eq ""} {
+        # Verify the portname, getting portinfo to map to a porturl
+            if {[catch {mportlookup $portname} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+            set porturl $portinfo(porturl)
+            set portdir $portinfo(portdir)
+        } elseif {$porturl ne "file://."} {
+            # Extract the portdir from porturl and use it to search PortIndex.
+            # Only the last two elements of the path (porturl) make up the
+            # portdir.
+            set portdir [file split [macports::getportdir $porturl]]
+            set lsize [llength $portdir]
+            set portdir \
+                [file join [lindex $portdir [expr $lsize - 2]] \
+                           [lindex $portdir [expr $lsize - 1]]]
+            if {[catch {mportsearch $portdir no exact portdir} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+        }
+        if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+            ui_debug "$::errorInfo"
+            break_softcontinue "Unable to open port: $result" 1 status
+         }
+         array unset portinfo
+         array set portinfo [mportinfo $mport]
+
+         append logfile $portinfo(name)
+         append logfile "/main.log"
+         mportclose $mport                        
+         set fp [open $logfile r]
+         set data [read $fp]
+         close $fp
+         puts $data
+    }
+    return 0
+}
+
+
 proc action_info { action portlist opts } {
     global global_variations
     set status 0
@@ -2966,6 +3027,7 @@ array set action_array [list \
     location    [list action_location       [action_args_const ports]] \
     notes       [list action_notes          [action_args_const ports]] \
     provides    [list action_provides       [action_args_const strings]] \
+    log         [list action_log            [action_args_const ports]] \
     \
     activate    [list action_activate       [action_args_const ports]] \
     deactivate  [list action_deactivate     [action_args_const ports]] \
