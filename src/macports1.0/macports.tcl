@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs \
+        applications_dir frameworks_dir developer_dir universal_archs \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
+        applications_dir frameworks_dir developer_dir universal_archs $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -350,8 +350,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::configurepipe
     global macports::buildnicevalue
     global macports::buildmakejobs
-    global macports::universal_target
-    global macports::universal_sysroot
     global macports::universal_archs
 
     # Set the system encoding to utf-8
@@ -651,20 +649,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # Default mp universal options
-    if {![info exists macports::universal_target]} {
-        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
-            set macports::universal_target "10.5"
-        } else {
-            set macports::universal_target "10.4"
-        }
-    }
-    if {![info exists macports::universal_sysroot]} {
-        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
-            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.5.sdk"
-        } else {
-            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.4u.sdk"
-        }
-    }
     if {![info exists macports::universal_archs]} {
         set macports::universal_archs {ppc i386}
     }

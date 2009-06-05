@@ -89,12 +89,6 @@ rsync_options		-rtzv --delete-after
 
 # Options for Universal Binaries (+universal variant)
 
-# MACOSX_DEPLOYMENT_TARGET
-universal_target	@UNIVERSAL_TARGET@
-
-# the SDK "sysroot" to use 
-universal_sysroot	@UNIVERSAL_SYSROOT@
-
 # machine architectures
 universal_archs		@UNIVERSAL_ARCHS@
 
