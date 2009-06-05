@@ -132,7 +132,7 @@ options configure.universal_target configure.universal_sysroot configure.univers
 default configure.universal_target      {${universal_target}}
 default configure.universal_sysroot     {${universal_sysroot}}
 default configure.universal_archs       {${universal_archs}}
-default configure.universal_args        {[portconfigure::configure_get_universal_args]}
+default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_cppflags    {[portconfigure::configure_get_universal_cppflags]}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
@@ -189,12 +189,6 @@ proc portconfigure::configure_start {args} {
         elevateToRoot "configure"
     }
     # end gsoc08-privileges
-}
-
-# internal function to determine the universal args for configure.cmd
-proc portconfigure::configure_get_universal_args {args} {
-    set params "--disable-dependency-tracking"
-    return $params
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
