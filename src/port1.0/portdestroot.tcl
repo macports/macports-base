@@ -122,7 +122,7 @@ proc portdestroot::destroot_start {args} {
     # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
-    set mtree ${portutil::autoconf::mtree_path}
+    set mtree [findBinary mtree ${portutil::autoconf::mtree_path}]
 
     if { ${destroot.clean} == "yes" } {
         delete "${destroot}"
@@ -145,6 +145,7 @@ proc portdestroot::destroot_main {args} {
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix name startupitem.create destroot.violate_mtree
+    global applications_dir frameworks_dir developer_dir destroot.keepdirs
     global os.platform os.version
     variable oldmask
 
@@ -162,21 +163,19 @@ proc portdestroot::destroot_finish {args} {
     }
 
     # Prune empty directories in ${destroot}
-    set exclude_dirs [list]
-    set exclude_phrase ""
-    foreach path [option destroot.keepdirs] {
+    foreach path ${destroot.keepdirs} {
         if {![file isdirectory ${path}]} {
             xinstall -m 0755 -d ${path}
         }
         if {![file exists ${path}/.turd_${name}]} {
             xinstall -c -m 0644 /dev/null ${path}/.turd_${name}
         }
-        lappend exclude_dirs "-path \"${path}\""
     }
-    if { [llength ${exclude_dirs}] > 0 } {
-        set exclude_phrase "! \\( [join ${exclude_dirs} " -or "] \\)"
+    fs-traverse -depth dir ${destroot} {
+        if {[file isdirectory $dir]} {
+            catch {file delete $dir}
+        }
     }
-    catch {system "find \"${destroot}\" -depth -type d ${exclude_phrase} -exec rmdir -- \{\} \\; 2>/dev/null"}
 
     # Compress all manpages with gzip (instead)
     # but NOT on Jaguar (Darwin 6.x)
@@ -309,9 +308,8 @@ proc portdestroot::destroot_finish {args} {
                 } else {
                     # these files are outside of the prefix
                     switch $dfile {
-                        /Applications -
-                        /Developer -
-                        /Library { ui_debug "port installs files in $dfile" }
+                        $applications_dir -
+                        $developer_dir { ui_debug "port installs files in $dfile" }
                         default {
                             ui_warn "violation by $dfile"
                             set mtree_violation "yes"

@@ -21,6 +21,9 @@ portinstalltype		image
 # paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
 #binpath		@prefix_expanded@/bin:@prefix_expanded@/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
+# Directory containing Xcode Tools
+developer_dir       @DEVELOPER_DIR@
+
 # Directory containing Applications from ports.
 applications_dir	@MPAPPLICATIONSDIR@
 

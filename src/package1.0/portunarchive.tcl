@@ -299,7 +299,7 @@ proc portunarchive::unarchive_finish {args} {
 	# Reset state file with archive version
     set statefile [file join $workpath .macports.${name}.state]
 	file copy -force [file join $destpath "+STATE"] $statefile
-	exec touch $statefile
+	file mtime $statefile [clock seconds]
 
 # Hack to temporarily move com.apple.* strings in statefiles extracted from old archives
 # to the org.macports.* namespace. "temporarily" because old archives will still have a

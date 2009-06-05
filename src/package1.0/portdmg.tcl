@@ -89,20 +89,23 @@ proc portdmg::package_dmg {portname portversion portrevision} {
         set subdev 2
     }
     
-    if {[system "hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
+    set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
+    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
-    if {[catch {set devicename [exec hdid ${tmp_image} | grep s${subdev} | awk "{ print \$1 }"]} error]} {
+    if {[catch {set attach_output [exec $hdiutil attach -puppetstrings ${tmp_image} | grep s${subdev}]} error]} {
         return -code error [format [msgcat::mc "Failed to attach temporary image: %s"] ${error}]
     }
-    set mount_point [exec mount | grep "${devicename}"]
+    set attach_output [split $attach_output "\t"]
+    set devicename [string trim [lindex $attach_output 0]]
+    set mount_point [string trim [lindex $attach_output 2]]
     regexp {(\/Volumes/[A-Za-z0-9\-\_\s].+)\s\(} $mount_point code mount_point
-    system "ditto -rsrcFork ${pkgpath} '${mount_point}/${portname}-${portversion}.pkg'"
-    system "hdiutil detach ${devicename} -quiet"
-    if {[system "hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
+    system "[findBinary ditto $portutil::autoconf::ditto_path] -rsrcFork ${pkgpath} '${mount_point}/${portname}-${portversion}.pkg'"
+    system "$hdiutil detach ${devicename} -quiet"
+    if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
-    if {[system "hdiutil internet-enable -quiet -yes ${final_image}"] != ""} {
+    if {[system "$hdiutil internet-enable -quiet -yes ${final_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to internet-enable: %s"] ${final_image}]
     }
     file delete -force "${tmp_image}"

@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs \
+        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options"
+        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -644,20 +644,25 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists macports::buildmakejobs]} {
         set macports::buildmakejobs 0
     }
+    
+    # Default Xcode Tools path
+    if {![info exists macports::developer_dir]} {
+        set macports::developer_dir "/Developer"
+    }
 
     # Default mp universal options
     if {![info exists macports::universal_target]} {
-        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
             set macports::universal_target "10.5"
         } else {
             set macports::universal_target "10.4"
         }
     }
     if {![info exists macports::universal_sysroot]} {
-        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
-            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.5.sdk"
+        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
+            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.5.sdk"
         } else {
-            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.4u.sdk"
         }
     }
     if {![info exists macports::universal_archs]} {
@@ -910,11 +915,11 @@ proc macports::fetch_port {url} {
     if {![file writable $fetchdir]} {
         return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
-    if {[catch {exec curl -L -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
+    if {[catch {curl fetch $url [file join $fetchdir $fetchfile]} result]} {
         return -code error "Port remote fetch failed: $result"
     }
     cd $fetchdir
-    if {[catch {exec tar -zxf $fetchfile} result]} {
+    if {[catch {exec [findBinary tar $macports::autoconf::tar_path] -zxf $fetchfile} result]} {
         return -code error "Port extract failed: $result"
     }
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
@@ -1647,7 +1652,7 @@ proc mportsync {{optionslist {}}} {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
                     file mkdir [file dirname $indexfile]
-                    exec curl -L -s -S -o $indexfile $source/PortIndex
+                    curl $source/PortIndex $indexfile
                 }
             }
             default {
@@ -2153,9 +2158,8 @@ proc macports::selfupdate {{optionslist {}}} {
             set owner [file attributes ${prefix} -owner]
             set group [file attributes ${prefix} -group]
             set perms [string range [file attributes ${prefix} -permissions] end-3 end]
-            set installing_user [exec /usr/bin/id -un]
-            if {![string equal $installing_user $owner]} {
-                return -code error "User $installing_user does not own ${prefix} - try using sudo"
+            if {![string equal $tcl_platform(user) $owner]} {
+                return -code error "User $tcl_platform(user) does not own ${prefix} - try using sudo"
             }
             ui_debug "Permissions OK"
 
@@ -2193,7 +2197,7 @@ proc macports::selfupdate {{optionslist {}}} {
     # set the MacPorts sources to the right owner
     set sources_owner [file attributes [file join $portdbpath sources/] -owner]
     ui_debug "Setting MacPorts sources ownership to $sources_owner"
-    if { [catch { exec chown -R $sources_owner [file join $portdbpath sources/] } result] } {
+    if { [catch { exec [findBinary chown $macports::autoconf::chown_path] -R $sources_owner [file join $portdbpath sources/] } result] } {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to $sources_owner: $result"
     }
 

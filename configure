@@ -714,6 +714,8 @@ SED_EXT
 OPEN
 XAR
 PAX
+MKBOM
+LSBOM
 BZIP2
 GNUMAKE
 GNUTAR
@@ -732,7 +734,10 @@ GZIP
 GIT
 SVN
 CVS
+DITTO
+CPIO
 CP
+CHOWN
 MTREE
 LN_S
 SET_MAKE
@@ -749,6 +754,7 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+DEVELOPER_DIR
 XCODE_SELECT
 DEFAULTS
 SW_VERS
@@ -2348,7 +2354,10 @@ $as_echo_n "checking Xcode location... " >&6; }
   DEVELOPER_DIR=`$XCODE_SELECT -print-path`
   { $as_echo "$as_me:$LINENO: result: $DEVELOPER_DIR" >&5
 $as_echo "$DEVELOPER_DIR" >&6; }
+else
+  DEVELOPER_DIR=/Developer
 fi
+
 
 XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
@@ -3748,6 +3757,47 @@ $as_echo "no" >&6; }
 fi
 
 
+# Extract the first word of "chown", so it can be a program name with args.
+set dummy chown; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_CHOWN+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $CHOWN in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CHOWN="$CHOWN" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="$PATH:/usr/sbin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_CHOWN="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CHOWN=$ac_cv_path_CHOWN
+if test -n "$CHOWN"; then
+  { $as_echo "$as_me:$LINENO: result: $CHOWN" >&5
+$as_echo "$CHOWN" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
 # Extract the first word of "cp", so it can be a program name with args.
 set dummy cp; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
@@ -3782,6 +3832,86 @@ CP=$ac_cv_path_CP
 if test -n "$CP"; then
   { $as_echo "$as_me:$LINENO: result: $CP" >&5
 $as_echo "$CP" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "cpio", so it can be a program name with args.
+set dummy cpio; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_CPIO+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $CPIO in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_CPIO="$CPIO" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_CPIO="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+CPIO=$ac_cv_path_CPIO
+if test -n "$CPIO"; then
+  { $as_echo "$as_me:$LINENO: result: $CPIO" >&5
+$as_echo "$CPIO" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "ditto", so it can be a program name with args.
+set dummy ditto; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_DITTO+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $DITTO in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DITTO="$DITTO" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_DITTO="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+DITTO=$ac_cv_path_DITTO
+if test -n "$DITTO"; then
+  { $as_echo "$as_me:$LINENO: result: $DITTO" >&5
+$as_echo "$DITTO" >&6; }
 else
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
@@ -4511,6 +4641,86 @@ BZIP2=$ac_cv_path_BZIP2
 if test -n "$BZIP2"; then
   { $as_echo "$as_me:$LINENO: result: $BZIP2" >&5
 $as_echo "$BZIP2" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "lsbom", so it can be a program name with args.
+set dummy lsbom; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_LSBOM+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $LSBOM in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_LSBOM="$LSBOM" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_LSBOM="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+LSBOM=$ac_cv_path_LSBOM
+if test -n "$LSBOM"; then
+  { $as_echo "$as_me:$LINENO: result: $LSBOM" >&5
+$as_echo "$LSBOM" >&6; }
+else
+  { $as_echo "$as_me:$LINENO: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "mkbom", so it can be a program name with args.
+set dummy mkbom; ac_word=$2
+{ $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_MKBOM+set}" = set; then
+  $as_echo_n "(cached) " >&6
+else
+  case $MKBOM in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MKBOM="$MKBOM" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MKBOM="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+MKBOM=$ac_cv_path_MKBOM
+if test -n "$MKBOM"; then
+  { $as_echo "$as_me:$LINENO: result: $MKBOM" >&5
+$as_echo "$MKBOM" >&6; }
 else
   { $as_echo "$as_me:$LINENO: result: no" >&5
 $as_echo "no" >&6; }
@@ -7565,9 +7775,9 @@ fi
 
 	if test "x$UNIVERSAL_SYSROOT" = "x"; then
 	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
+		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
 	    else
-		UNIVERSAL_SYSROOT=/Developer/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
+		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
 	    fi
 	fi
 
@@ -10446,7 +10656,7 @@ fi
 
 # Check whether --with-trace-sdk was given.
 if test "${with_trace_sdk+set}" = set; then
-  withval=$with_trace_sdk; test -d /Developer/SDKs/$withval && cat >>confdefs.h <<_ACEOF
+  withval=$with_trace_sdk; test -d ${DEVELOPER_DIR}/SDKs/$withval && cat >>confdefs.h <<_ACEOF
 #define TRACE_SDK "${withval}"
 _ACEOF
 

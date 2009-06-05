@@ -359,7 +359,10 @@ proc portarchive::archive_main {args} {
 			puts $fd "@portvariant +${v}"
 		}
 	}
-	foreach fullpath [exec find $destpath ! -type d] {
+	fs-traverse fullpath $destpath {
+	    if {[file isdirectory $fullpath]} {
+	        continue
+	    }
 		set relpath [strsed $fullpath "s|^$destpath/||"]
 		if {![regexp {^[+]} $relpath]} {
 			puts $fd "$relpath"

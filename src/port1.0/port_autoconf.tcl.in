@@ -33,6 +33,8 @@ package provide port 1.0
 namespace eval portutil::autoconf {
 	variable bzip2_path "@BZIP2@"
 	variable cp_path "@CP@"
+	variable cpio_path "@CPIO@"
+	variable ditto_path "@DITTO@"
 	variable cvs_path "@CVS@"
 	variable svn_path "@SVN@"
 	variable git_path "@GIT@"
@@ -41,6 +43,8 @@ namespace eval portutil::autoconf {
 	variable rsync_path "@RSYNC@"
 	variable unzip_path "@UNZIP@"
 	variable zip_path "@ZIP@"
+	variable lsbom_path "@LSBOM@"
+	variable mkbom_path "@MKBOM@"
 	variable mtree_path "@MTREE@"
 	variable pax_path "@PAX@"
 	variable xar_path "@XAR@"
