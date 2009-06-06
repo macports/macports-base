@@ -1219,6 +1219,9 @@ proc target_run {ditem} {
 
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
+        if { [tbool ${targetname}.asroot] } {
+            elevateToRoot $targetname
+        }
 
         if {[ditem_contains $ditem init]} {
             set result [catch {[ditem_key $ditem init] $targetname} errstr]
@@ -1496,10 +1499,6 @@ proc open_statefile {args} {
             ui_debug "mkdir $workpath: $errorInfo"
         }
     }
-    chownAsRoot $workpath
-    
-    # de-escalate privileges - only run if MacPorts was started with sudo
-    dropPrivileges
 
     # if unable to write to workpath, implies running without either root privileges
     # or a shared directory owned by the group so use ~/.macports
@@ -1567,6 +1566,7 @@ proc open_statefile {args} {
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
     }
+
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
@@ -1580,20 +1580,23 @@ proc open_statefile {args} {
             file mkdir [file join $workpath]
         }
     }
+    chownAsRoot $workpath
 
     # Create a symlink to the workpath for port authors
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
         ui_debug "Attempting ln -sf $workpath $worksymlink"
         ln -sf $workpath $worksymlink
     }
+    # de-escalate privileges - only run if MacPorts was started with sudo
+    dropPrivileges
 
     set fd [open $statefile a+]
     if {[catch {flock $fd -exclusive -noblock} result]} {
         if {"$result" == "EAGAIN"} {
             ui_msg "Waiting for lock on $statefile"
-    } elseif {"$result" == "EOPNOTSUPP"} {
-        # Locking not supported, just return
-        return $fd
+        } elseif {"$result" == "EOPNOTSUPP"} {
+            # Locking not supported, just return
+            return $fd
         } else {
             return -code error "$result obtaining lock on $statefile"
         }
@@ -2424,10 +2427,6 @@ proc dropPrivileges {} {
                 seteuid [name_to_uid "$macportsuser"]
                 ui_debug "egid changed to: [getegid]"
                 ui_debug "euid changed to: [geteuid]"
-
-                if {![file writable $workpath]} {
-                    ui_debug "Privileges successfully de-escalated. Unable to write to default workpath."
-                }
             }]
         } {
             ui_debug "$::errorInfo"

@@ -56,14 +56,11 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX name version revision variations portvariants
-    global install.asroot prefix
+    global prefix
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
-    if { [tbool install.asroot] } {
-        # if port is marked as needing root
-        elevateToRoot "install"
-    } elseif { ![file writable $prefix] } {
+    if { ![file writable $prefix] } {
         # if install location is not writable, need root privileges to install
         elevateToRoot "install"
     }
