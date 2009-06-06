@@ -122,7 +122,7 @@ proc portdestroot::destroot_start {args} {
     # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
-    set mtree ${portutil::autoconf::mtree_path}
+    set mtree [findBinary mtree ${portutil::autoconf::mtree_path}]
 
     if { ${destroot.clean} == "yes" } {
         delete "${destroot}"
@@ -145,6 +145,7 @@ proc portdestroot::destroot_main {args} {
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix name startupitem.create destroot.violate_mtree
+    global applications_dir frameworks_dir developer_dir destroot.keepdirs
     global os.platform os.version
     variable oldmask
 
@@ -162,114 +163,107 @@ proc portdestroot::destroot_finish {args} {
     }
 
     # Prune empty directories in ${destroot}
-    set exclude_dirs [list]
-    set exclude_phrase ""
-    foreach path [option destroot.keepdirs] {
+    foreach path ${destroot.keepdirs} {
         if {![file isdirectory ${path}]} {
             xinstall -m 0755 -d ${path}
         }
         if {![file exists ${path}/.turd_${name}]} {
             xinstall -c -m 0644 /dev/null ${path}/.turd_${name}
         }
-        lappend exclude_dirs "-path \"${path}\""
     }
-    if { [llength ${exclude_dirs}] > 0 } {
-        set exclude_phrase "! \\( [join ${exclude_dirs} " -or "] \\)"
+    fs-traverse -depth dir ${destroot} {
+        if {[file isdirectory $dir]} {
+            catch {file delete $dir}
+        }
     }
-    catch {system "find \"${destroot}\" -depth -type d ${exclude_phrase} -exec rmdir -- \{\} \\; 2>/dev/null"}
 
     # Compress all manpages with gzip (instead)
-    # but NOT on Jaguar (Darwin 6.x)
-    if {![regexp {darwin6} "${os.platform}${os.version}"]} {
-        set manpath "${destroot}${prefix}/share/man"
-        set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
-        set gunzip "$gzip -d"
-        set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
-        if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
-            ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${name}]"
-            set found 0
-            set manlinks [list]
-            foreach mandir [readdir "${manpath}"] {
-                if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
-                set mandirpath [file join ${manpath} ${mandir}]
-                if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
-                    ui_debug "Scanning ${mandir}"
-                    foreach manfile [readdir ${mandirpath}] {
-                        set manfilepath [file join ${mandirpath} ${manfile}]
-                        if {[file isfile ${manfilepath}] && [file type ${manfilepath}] == "file"} {
-                            if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
-                                set found 1
-                                system "cd ${manpath} && \
-                                $gunzip -f [file join ${mandir} ${gzfile}] && \
-                                $gzip -9vf [file join ${mandir} ${manfile}]"
-                            } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
-                                set found 1
-                                system "cd ${manpath} && \
-                                $bunzip2 -f [file join ${mandir} ${bz2file}] && \
-                                $gzip -9vf [file join ${mandir} ${manfile}]"
-                            } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
-                                set found 1
-                                system "cd ${manpath} && \
-                                $gzip -9vf [file join ${mandir} ${manfile}]"
-                            }
-                            set gzmanfile ${manfile}.gz
-                            set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
-                            if {[file exists ${gzmanfilepath}]} {
-                                set desired 00444
-                                set current [file attributes ${gzmanfilepath} -permissions]
-                                if {$current != $desired} {
-                                    ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
-                                    file attributes ${gzmanfilepath} -permissions $desired
-                                }
-                            }
-                        } elseif {[file type ${manfilepath}] == "link"} {
-                            lappend manlinks [file join ${mandir} ${manfile}]
+    set manpath "${destroot}${prefix}/share/man"
+    set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
+    set gunzip "$gzip -d"
+    set bunzip2 "[findBinary bzip2 ${portutil::autoconf::bzip2_path}] -d"
+    if {[file isdirectory ${manpath}] && [file type ${manpath}] == "directory"} {
+        ui_info "$UI_PREFIX [format [msgcat::mc "Compressing man pages for %s"] ${name}]"
+        set found 0
+        set manlinks [list]
+        foreach mandir [readdir "${manpath}"] {
+            if {![regexp {^(cat|man)(.)$} ${mandir} match ignore manindex]} { continue }
+            set mandirpath [file join ${manpath} ${mandir}]
+            if {[file isdirectory ${mandirpath}] && [file type ${mandirpath}] == "directory"} {
+                ui_debug "Scanning ${mandir}"
+                foreach manfile [readdir ${mandirpath}] {
+                    set manfilepath [file join ${mandirpath} ${manfile}]
+                    if {[file isfile ${manfilepath}] && [file type ${manfilepath}] == "file"} {
+                        if {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]gz\$" ${manfile} gzfile manfile]} {
+                            set found 1
+                            system "cd ${manpath} && \
+                            $gunzip -f [file join ${mandir} ${gzfile}] && \
+                            $gzip -9vf [file join ${mandir} ${manfile}]"
+                        } elseif {[regexp "^(.*\[.\]${manindex}\[a-z\]*)\[.\]bz2\$" ${manfile} bz2file manfile]} {
+                            set found 1
+                            system "cd ${manpath} && \
+                            $bunzip2 -f [file join ${mandir} ${bz2file}] && \
+                            $gzip -9vf [file join ${mandir} ${manfile}]"
+                        } elseif {[regexp "\[.\]${manindex}\[a-z\]*\$" ${manfile}]} {
+                            set found 1
+                            system "cd ${manpath} && \
+                            $gzip -9vf [file join ${mandir} ${manfile}]"
                         }
+                        set gzmanfile ${manfile}.gz
+                        set gzmanfilepath [file join ${mandirpath} ${gzmanfile}]
+                        if {[file exists ${gzmanfilepath}]} {
+                            set desired 00444
+                            set current [file attributes ${gzmanfilepath} -permissions]
+                            if {$current != $desired} {
+                                ui_info "[file join ${mandir} ${gzmanfile}]: changing permissions from $current to $desired"
+                                file attributes ${gzmanfilepath} -permissions $desired
+                            }
+                        }
+                    } elseif {[file type ${manfilepath}] == "link"} {
+                        lappend manlinks [file join ${mandir} ${manfile}]
                     }
                 }
-            }
-            if {$found == 1} {
-                # check man page links and rename/repoint them if necessary
-                foreach manlink $manlinks {
-                    set manlinkpath [file join $manpath $manlink]
-                    # if link destination is not gzipped, check it
-                    set manlinksrc [file readlink $manlinkpath]
-                    # if link destination is an absolute path, convert it to a
-                    # relative path
-                    if {[file pathtype $manlinksrc] eq "absolute"} {
-                        set manlinksrc [file tail $manlinksrc]
-                    }
-                    if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
-                        set mandir [file dirname $manlink]
-                        set mandirpath [file join $manpath $mandir]
-                        set pwd [pwd]
-                        if {[catch {_cd $mandirpath} err]} {
-                            puts $err
-                            return
-                        }
-                        # if gzipped destination exists, fix link
-                        if {[file isfile ${manlinksrc}.gz]} {
-                            # if actual link name does not end with gz, rename it
-                            if {![regexp "\[.\]gz\$" ${manlink}]} {
-                                ui_debug "renaming link: $manlink to ${manlink}.gz"
-                                file rename $manlinkpath ${manlinkpath}.gz
-                                set manlink ${manlink}.gz
-                                set manlinkpath [file join $manpath $manlink]
-                            }
-                            # repoint the link
-                            ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
-                            file delete $manlinkpath
-                            ln -s "${manlinksrc}.gz" "${manlinkpath}"
-                        }
-                        _cd $pwd
-                    }
-                }
-            } else {
-                ui_debug "No man pages found to compress."
             }
         }
-    } else {
-        ui_debug "No man page compression on ${os.platform}${os.version}."
+        if {$found == 1} {
+            # check man page links and rename/repoint them if necessary
+            foreach manlink $manlinks {
+                set manlinkpath [file join $manpath $manlink]
+                # if link destination is not gzipped, check it
+                set manlinksrc [file readlink $manlinkpath]
+                # if link destination is an absolute path, convert it to a
+                # relative path
+                if {[file pathtype $manlinksrc] eq "absolute"} {
+                    set manlinksrc [file tail $manlinksrc]
+                }
+                if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
+                    set mandir [file dirname $manlink]
+                    set mandirpath [file join $manpath $mandir]
+                    set pwd [pwd]
+                    if {[catch {_cd $mandirpath} err]} {
+                        puts $err
+                        return
+                    }
+                    # if gzipped destination exists, fix link
+                    if {[file isfile ${manlinksrc}.gz]} {
+                        # if actual link name does not end with gz, rename it
+                        if {![regexp "\[.\]gz\$" ${manlink}]} {
+                            ui_debug "renaming link: $manlink to ${manlink}.gz"
+                            file rename $manlinkpath ${manlinkpath}.gz
+                            set manlink ${manlink}.gz
+                            set manlinkpath [file join $manpath $manlink]
+                        }
+                        # repoint the link
+                        ui_debug "repointing link: $manlink from $manlinksrc to ${manlinksrc}.gz"
+                        file delete $manlinkpath
+                        ln -s "${manlinksrc}.gz" "${manlinkpath}"
+                    }
+                    _cd $pwd
+                }
+            }
+        } else {
+            ui_debug "No man pages found to compress."
+        }
     }
 
     # test for violations of mtree
@@ -309,9 +303,8 @@ proc portdestroot::destroot_finish {args} {
                 } else {
                     # these files are outside of the prefix
                     switch $dfile {
-                        /Applications -
-                        /Developer -
-                        /Library { ui_debug "port installs files in $dfile" }
+                        $applications_dir -
+                        $developer_dir { ui_debug "port installs files in $dfile" }
                         default {
                             ui_warn "violation by $dfile"
                             set mtree_violation "yes"

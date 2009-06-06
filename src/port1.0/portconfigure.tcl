@@ -128,18 +128,11 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-# backwards compatibility for hardcoded ports
-if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
-    set sysroot "/Developer/SDKs/MacOSX10.5.sdk"
-} else {
-    set sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
-}
-
 options configure.universal_target configure.universal_sysroot configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_target      {${universal_target}}
 default configure.universal_sysroot     {${universal_sysroot}}
 default configure.universal_archs       {${universal_archs}}
-default configure.universal_args        {[portconfigure::configure_get_universal_args]}
+default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_cppflags    {[portconfigure::configure_get_universal_cppflags]}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
@@ -196,12 +189,6 @@ proc portconfigure::configure_start {args} {
         elevateToRoot "configure"
     }
     # end gsoc08-privileges
-}
-
-# internal function to determine the universal args for configure.cmd
-proc portconfigure::configure_get_universal_args {args} {
-    set params "--disable-dependency-tracking"
-    return $params
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
@@ -264,7 +251,7 @@ proc portconfigure::configure_get_default_compiler {args} {
 
 # internal function to find correct compilers
 proc portconfigure::configure_get_compiler {type} {
-    global configure.compiler prefix
+    global configure.compiler prefix developer_dir
     set ret ""
     switch -exact ${configure.compiler} {
         gcc {
@@ -300,16 +287,16 @@ proc portconfigure::configure_get_compiler {type} {
         }
         llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                objc { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                cxx  { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
-                cpp  { set ret /Developer/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
+                cc   { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
+                objc { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
+                cxx  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
+                cpp  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
             }
         }
         clang {
             switch -exact ${type} {
-                cc   { set ret /Developer/usr/bin/clang }
-                objc { set ret /Developer/usr/bin/clang }
+                cc   { set ret ${developer_dir}/usr/bin/clang }
+                objc { set ret ${developer_dir}/usr/bin/clang }
             }
         }
         apple-gcc-3.3 {
