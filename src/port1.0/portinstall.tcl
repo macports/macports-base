@@ -76,18 +76,10 @@ proc portinstall::install_element {src_element dst_element} {
     }
     
     # if the file is a symlink, do not try to set file attributes
-    # if the destination file is an existing directory,
-    # do not overwrite its file attributes
-    if {[file type $src_element] != "link" || [file isdirectory $dst_element]} {
-        set attributes [file attributes $src_element]
-        for {set i 0} {$i < [llength $attributes]} {incr i} {
-            set opt [lindex $attributes $i]
-            incr i
-            set arg [lindex $attributes $i]
-            file attributes $dst_element $opt $arg
-            # set mtime on installed element
-            exec touch -r $src_element $dst_element
-        }
+    if {[file type $src_element] != "link"} {
+        eval file attributes {$dst_element} [file attributes $src_element]
+        # set mtime on installed element
+        file mtime $dst_element [file mtime $src_element]
     }
 }
 
