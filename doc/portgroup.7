@@ -158,16 +158,6 @@ These settings should be in the X=Y form.
 .Bd -literal -offset indent -compact
 xcode.destroot.settings SKIP_INSTALL=NO
 .Ed
-.It Ic xcode.universal.settings
-Settings passed to the xcode build tool when the +universal variant is selected. These settings should be in the X=Y form.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Bd -literal -offset indent -compact
-ARCHS="${universal_archs}" MACOSX_DEPLOYMENT_TARGET=${universal_target}
-.Ed
 .It Ic xcode.universal.sdk
 SDK to use when the +universal variant is selected. The argument may be an absolute path to an SDK, or the canonical name of an SDK.
 .br
@@ -285,6 +275,7 @@ Sets GNUSTEP_SYSTEM_LIBRARY according to the FilesystemLayout
 .It Ic set_local_library
 Sets GNUSTEP_LOCAL_LIBRARY according to the FilesystemLayout
 .br
+.El
 .Pp
 .Sh GNUSTEP PORTGROUP SUGAR
 Portfiles using gnustep PortGroup do not need to define the following variables:
