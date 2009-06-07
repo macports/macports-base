@@ -1172,7 +1172,7 @@ proc lipo {} {
         foreach arch $universal_archlist {
             append lipoSources "-arch ${arch} ${workpath}/${arch}/${file} "
         }
-        system "lipo ${lipoSources}-create -output ${file}"
+        system "[findBinary lipo $portutil::autoconf::lipo_path] ${lipoSources}-create -output ${file}"
     }
 }
 
@@ -2068,12 +2068,13 @@ proc adduser {name args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        exec dscl . -create /Users/${name} Password ${passwd}
-        exec dscl . -create /Users/${name} UniqueID ${uid}
-        exec dscl . -create /Users/${name} PrimaryGroupID ${gid}
-        exec dscl . -create /Users/${name} RealName ${realname}
-        exec dscl . -create /Users/${name} NFSHomeDirectory ${home}
-        exec dscl . -create /Users/${name} UserShell ${shell}
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
+        exec $dscl . -create /Users/${name} Password ${passwd}
+        exec $dscl . -create /Users/${name} UniqueID ${uid}
+        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+        exec $dscl . -create /Users/${name} RealName ${realname}
+        exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
+        exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "WARNING: adduser is not implemented on ${os.platform}."
@@ -2099,11 +2100,12 @@ proc addgroup {name args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        exec dscl . -create /Groups/${name} Password ${passwd}
-        exec dscl . -create /Groups/${name} RealName ${realname}
-        exec dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
+        exec $dscl . -create /Groups/${name} Password ${passwd}
+        exec $dscl . -create /Groups/${name} RealName ${realname}
+        exec $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
         if {${users} ne ""} {
-            exec dscl . -create /Groups/${name} GroupMembership ${users}
+            exec $dscl . -create /Groups/${name} GroupMembership ${users}
         }
     } else {
         # XXX addgroup is only available for darwin, add more support here
@@ -2261,7 +2263,7 @@ proc merge_lipo {base target file archs} {
         set exec-lipo [concat ${exec-lipo} [list "-arch" "${arch}" "${base}/${arch}${file}"]]
     }
     set exec-lipo [concat ${exec-lipo}]
-    system "/usr/bin/lipo ${exec-lipo} -create -output ${target}${file}"
+    system "[findBinary lipo $portutil::autoconf::lipo_path] ${exec-lipo} -create -output ${target}${file}"
 }
 
 # private function
@@ -2285,7 +2287,7 @@ proc merge_file {base target file archs} {
     ui_debug "ba: '${basearch}' ('${archs}')"
     foreach arch [lrange ${archs} 1 end] {
         # checking for differences; TODO: error more gracefully on non-equal files
-        exec "/usr/bin/diff" "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
+        exec [findBinary diff $portutil::autoconf::diff_path] "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
     }
     ui_debug "ba: '${basearch}'"
     file copy "${base}/${basearch}${file}" "${target}${file}"
@@ -2314,7 +2316,7 @@ proc merge {base} {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} != ""} {
             # determine the type (dir/file/link)
-            set filetype [exec "/usr/bin/file" "-b" "${basepath}${fpath}"]
+            set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
             switch -regexp ${filetype} {
                 directory {
                     # just create directories
