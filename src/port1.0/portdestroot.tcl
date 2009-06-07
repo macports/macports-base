@@ -299,13 +299,29 @@ proc portdestroot::destroot_finish {args} {
                     # we've found a subpath of our prefix
                     lpush pathsToCheck $dfile
                 } else {
-                    # these files are outside of the prefix
-                    switch $dfile {
-                        $applications_dir -
-                        $developer_dir { ui_debug "port installs files in $dfile" }
-                        default {
-                            ui_warn "violation by $dfile"
-                            set mtree_violation "yes"
+                    set dir_allowed no
+                    # these files are (at least potentially) outside of the prefix
+                    foreach dir "$applications_dir $frameworks_dir /Library/LaunchAgents /Library/LaunchDaemons /Library/StartupItems" {
+                        if {[string equal -length [expr [string length $dfile] + 1] $dfile/ $dir]} {
+                            # it's a prefix of one of the allowed paths
+                            set dir_allowed yes
+                            break
+                        }
+                    }
+                    if {$dir_allowed} {
+                        lpush pathsToCheck $dfile
+                    } else {
+                        # not a prefix of an allowed path, so it's either the path itself or a violation
+                        switch $dfile {
+                            $applications_dir -
+                            $frameworks_dir -
+                            /Library/LaunchAgents -
+                            /Library/LaunchDaemons -
+                            /Library/StartupItems { ui_debug "port installs files in $dfile" }
+                            default {
+                                ui_warn "violation by $dfile"
+                                set mtree_violation "yes"
+                            }
                         }
                     }
                 }
