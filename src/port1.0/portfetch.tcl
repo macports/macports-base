@@ -631,8 +631,16 @@ proc portfetch::fetchfiles {args} {
 
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
-            return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
+            elevateToRoot "fetch"
+            set elevated yes
+            if {[catch {file mkdir $distpath} result]} {
+                return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
+            }
         }
+    }
+    chownAsRoot $distpath
+    if {[info exists elevated] && $elevated == yes} {
+        dropPrivileges
     }
 
     set fetch_options {}

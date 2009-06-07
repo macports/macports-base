@@ -106,9 +106,7 @@ proc portdestroot::destroot_start {args} {
     }
 
     if { [tbool destroot.asroot] && [getuid] != 0 } {
-        global errorisprivileges
-        set errorisprivileges yes
-        return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+        return -code error "You cannot run this port without root privileges. You need to re-run with 'sudo port'.";
     }
 
     if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
@@ -326,10 +324,6 @@ proc portdestroot::destroot_finish {args} {
 
     # Restore umask
     umask $oldmask
-
-    # start gsoc08-privileges
-    chownAsRoot $destroot
-    # end gsoc08-privileges
 
     return 0
 }

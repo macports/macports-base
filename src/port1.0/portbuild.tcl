@@ -131,7 +131,11 @@ proc portbuild::build_getmakejobs {args} {
     set jobs [option build.jobs]
     # if set to '0', use the number of cores for the number of jobs
     if {$jobs == 0} {
-        set jobs [exec "/usr/sbin/sysctl" "-n" "hw.ncpu"]
+        if {[catch {set jobs [exec "/usr/sbin/sysctl" "-n" "hw.availcpu"]}]} {
+            set jobs 2
+            ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
+            ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
+        }
     }
     if {![string is integer -strict $jobs] || $jobs <= 1} {
         return ""
@@ -140,17 +144,9 @@ proc portbuild::build_getmakejobs {args} {
 }
 
 proc portbuild::build_start {args} {
-    global UI_PREFIX build.asroot
+    global UI_PREFIX
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option name]]"
-
-    # start gsoc08-privileges
-    if { [tbool build.asroot] } {
-    # if port is marked as needing root
-        elevateToRoot "build"
-    }
-    # end gsoc08-privileges
-
 }
 
 proc portbuild::build_main {args} {

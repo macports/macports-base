@@ -182,13 +182,6 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
-    
-    # start gsoc08-privileges
-    if { [tbool configure.asroot] } {
-        # if port is marked as needing root
-        elevateToRoot "configure"
-    }
-    # end gsoc08-privileges
 }
 
 # internal function to determine the "-arch xy" flags for the compiler

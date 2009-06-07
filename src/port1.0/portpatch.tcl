@@ -62,13 +62,6 @@ proc portpatch::patch_main {args} {
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option name]]"
 
-    # start gsoc08-privileges
-    if { [tbool patch.asroot] } {
-    # if port is marked as needing root
-        elevateToRoot "patch"
-    }
-    # end gsoc08-privileges
-
     foreach patch [option patchfiles] {
     set patch_file [getdistname $patch]
     if {[file exists [option filespath]/$patch_file]} {

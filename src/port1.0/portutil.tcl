@@ -829,7 +829,6 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global euid macportsuser
 
     set extended 0
     while 1 {
@@ -1208,7 +1207,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
+    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
     set portname [option name]
     set result 0
     set skipped 0
@@ -1220,6 +1219,9 @@ proc target_run {ditem} {
 
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
+        if { [tbool ${targetname}.asroot] } {
+            elevateToRoot $targetname
+        }
 
         if {[ditem_contains $ditem init]} {
             set result [catch {[ditem_key $ditem init] $targetname} errstr]
@@ -1376,13 +1378,9 @@ proc target_run {ditem} {
             write_statefile target $targetname $target_state_fd
             }
         } else {
-            if {$errorisprivileges != "yes"} {
-                global errorInfo
-                ui_error "Target $targetname returned: $errstr"
-                ui_debug "Backtrace: $errorInfo"
-            } else {
-                ui_msg "Target $targetname returned: $errstr"
-            }
+            global errorInfo
+            ui_error "Target $targetname returned: $errstr"
+            ui_debug "Backtrace: $errorInfo"
             set result 1
         }
 
@@ -1432,9 +1430,8 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd name version revision portvariants ports_dryrun user_options errorisprivileges
+    global targets target_state_fd name version revision portvariants ports_dryrun user_options
     set dlist $targets
-    set errorisprivileges "no"
 
     # the statefile will likely be autocleaned away after install,
     # so special-case ignore already-completed install and activate
@@ -1486,12 +1483,6 @@ proc eval_targets {target} {
         set result 0
     }
 
-    # start gsoc08-privileges
-    if { $result == 1 && $errorisprivileges == "yes" } {
-        set result 2
-    }
-    # end gsoc08-privileges
-
     return $result
 }
 
@@ -1502,10 +1493,6 @@ proc open_statefile {args} {
     global altprefix usealtworkpath env applications_dir portbuildpath distpath
 
     # start gsoc08-privileges
-
-    # de-escalate privileges - only run if MacPorts was started with sudo
-    dropPrivileges
-
     if { ![file exists $workpath] } {
         if {[catch {set result [file mkdir $workpath]} result]} {
             global errorInfo
@@ -1522,7 +1509,7 @@ proc open_statefile {args} {
 
         if { $userid !=0 } {
             ui_msg "MacPorts running without privileges.\
-                    You may be prompted for your sudo password in order to complete certain actions (eg install)."
+                    You may be unable to complete certain actions (eg install)."
         }
 
         # set global variable indicating to other functions to use ~/.macports as well
@@ -1579,6 +1566,7 @@ proc open_statefile {args} {
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
     }
+
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
@@ -1592,20 +1580,23 @@ proc open_statefile {args} {
             file mkdir [file join $workpath]
         }
     }
+    chownAsRoot $workpath
 
     # Create a symlink to the workpath for port authors
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
         ui_debug "Attempting ln -sf $workpath $worksymlink"
         ln -sf $workpath $worksymlink
     }
+    # de-escalate privileges - only run if MacPorts was started with sudo
+    dropPrivileges
 
     set fd [open $statefile a+]
     if {[catch {flock $fd -exclusive -noblock} result]} {
         if {"$result" == "EAGAIN"} {
             ui_msg "Waiting for lock on $statefile"
-    } elseif {"$result" == "EOPNOTSUPP"} {
-        # Locking not supported, just return
-        return $fd
+        } elseif {"$result" == "EOPNOTSUPP"} {
+            # Locking not supported, just return
+            return $fd
         } else {
             return -code error "$result obtaining lock on $statefile"
         }
@@ -2139,7 +2130,7 @@ proc dirSize {dir} {
 }
 
 # check for a binary in the path
-# returns an error code if it can not be found
+# returns an error code if it cannot be found
 proc binaryInPath {binary} {
     global env
     foreach dir [split $env(PATH) :] {
@@ -2338,7 +2329,7 @@ proc chownAsRoot {path} {
 #
 # @param action the action for which privileges are being elevated
 proc elevateToRoot {action} {
-    global euid egid macportsuser errorisprivileges
+    global euid egid macportsuser
 
     if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
     # if started with sudo but have dropped the privileges
@@ -2349,8 +2340,7 @@ proc elevateToRoot {action} {
     }
 
     if { [getuid] != 0 } {
-        set errorisprivileges yes
-        return -code error "port requires root privileges for this action and needs you to type your password for sudo.";
+        return -code error "MacPorts requires root privileges for this action";
     }
 }
 
@@ -2361,8 +2351,6 @@ proc dropPrivileges {} {
     global euid egid macportsuser workpath
     if { [geteuid] == 0 } {
         if { [catch {
-                set euid [geteuid]
-                set egid [getegid]
                 ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
 
                 #seteuid [name_to_uid [file attributes $workpath -owner]]
@@ -2372,10 +2360,6 @@ proc dropPrivileges {} {
                 seteuid [name_to_uid "$macportsuser"]
                 ui_debug "egid changed to: [getegid]"
                 ui_debug "euid changed to: [geteuid]"
-
-                if {![file writable $workpath]} {
-                    ui_debug "Privileges successfully de-escalated. Unable to write to default workpath."
-                }
             }]
         } {
             ui_debug "$::errorInfo"
