@@ -334,7 +334,7 @@ proc portdestroot::destroot_finish {args} {
             # error "mtree violation!"
         }
     } else {
-        ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option name]]"
+        ui_msg "[format [msgcat::mc "Note: %s installs files outside the common directory structure."] [option name]]"
     }
 
     # Restore umask
