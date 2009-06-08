@@ -574,7 +574,7 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 
 	if(onoblock && ounlock) {
 	  /* should not be specified together */
-	  Tcl_SetResult(interp, "-noblock can not be used with -unlock", TCL_STATIC);
+	  Tcl_SetResult(interp, "-noblock cannot be used with -unlock", TCL_STATIC);
 	  return TCL_ERROR;
 	}
 	  

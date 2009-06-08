@@ -106,9 +106,7 @@ proc portdestroot::destroot_start {args} {
     }
 
     if { [tbool destroot.asroot] && [getuid] != 0 } {
-        global errorisprivileges
-        set errorisprivileges yes
-        return -code error "You can not run this port without elevated privileges. You need to re-run with 'sudo port'.";
+        return -code error "You cannot run this port without root privileges. You need to re-run with 'sudo port'.";
     }
 
     if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
@@ -301,14 +299,29 @@ proc portdestroot::destroot_finish {args} {
                     # we've found a subpath of our prefix
                     lpush pathsToCheck $dfile
                 } else {
-                    # these files are outside of the prefix
-                    switch $dfile {
-                        $applications_dir -
-                        $developer_dir { ui_debug "port installs files in $dfile" }
-                        default {
-                            ui_warn "violation by $dfile"
-                            set mtree_violation "yes"
+                    set dir_allowed no
+                    # these files are (at least potentially) outside of the prefix
+                    foreach dir "$applications_dir $frameworks_dir /Library/LaunchAgents /Library/LaunchDaemons /Library/StartupItems" {
+                        if {[string equal -length [expr [string length $dfile] + 1] $dfile/ $dir]} {
+                            # it's a prefix of one of the allowed paths
+                            set dir_allowed yes
+                            break
                         }
+                    }
+                    if {$dir_allowed} {
+                        lpush pathsToCheck $dfile
+                    } else {
+                        # not a prefix of an allowed path, so it's either the path itself or a violation
+                        switch $dfile \
+                            $applications_dir - \
+                            $frameworks_dir - \
+                            /Library/LaunchAgents - \
+                            /Library/LaunchDaemons - \
+                            /Library/StartupItems { ui_debug "port installs files in $dfile" } \
+                            default {
+                                ui_warn "violation by $dfile"
+                                set mtree_violation "yes"
+                            }
                     }
                 }
             }
@@ -321,15 +334,11 @@ proc portdestroot::destroot_finish {args} {
             # error "mtree violation!"
         }
     } else {
-        ui_warn "[format [msgcat::mc "%s requests to install files outside the common directory structure!"] [option name]]"
+        ui_msg "[format [msgcat::mc "Note: %s installs files outside the common directory structure."] [option name]]"
     }
 
     # Restore umask
     umask $oldmask
-
-    # start gsoc08-privileges
-    chownAsRoot $destroot
-    # end gsoc08-privileges
 
     return 0
 }

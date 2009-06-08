@@ -236,7 +236,7 @@ proc macports::findBinary {prog {autoconf_hint ""}} {
 }
 
 # check for a binary in the path
-# returns an error code if it can not be found
+# returns an error code if it cannot be found
 proc macports::binaryInPath {prog} {
     global env
     foreach dir [split $env(PATH) :] {

@@ -56,14 +56,11 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX name version revision variations portvariants
-    global install.asroot prefix
+    global prefix
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
-    if { [tbool install.asroot] } {
-        # if port is marked as needing root
-        elevateToRoot "install"
-    } elseif { ![file writable $prefix] } {
+    if { ![file writable $prefix] } {
         # if install location is not writable, need root privileges to install
         elevateToRoot "install"
     }
@@ -79,18 +76,10 @@ proc portinstall::install_element {src_element dst_element} {
     }
     
     # if the file is a symlink, do not try to set file attributes
-    # if the destination file is an existing directory,
-    # do not overwrite its file attributes
-    if {[file type $src_element] != "link" || [file isdirectory $dst_element]} {
-        set attributes [file attributes $src_element]
-        for {set i 0} {$i < [llength $attributes]} {incr i} {
-            set opt [lindex $attributes $i]
-            incr i
-            set arg [lindex $attributes $i]
-            file attributes $dst_element $opt $arg
-            # set mtime on installed element
-            exec touch -r $src_element $dst_element
-        }
+    if {[file type $src_element] != "link"} {
+        eval file attributes {$dst_element} [file attributes $src_element]
+        # set mtime on installed element
+        file mtime $dst_element [file mtime $src_element]
     }
 }
 

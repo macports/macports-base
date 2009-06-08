@@ -98,7 +98,7 @@ proc portextract::extract_init {args} {
         option extract.post_args ""
     } elseif {[tbool use_dmg]} {
         global worksrcdir
-        set dmg_tmp_dir [exec mktemp -d -q "/tmp/mports.XXXXXXXX"]
+        set dmg_tmp_dir [mkdtemp "/tmp/mports.XXXXXXXX"]
         set dmg_mount ${dmg_tmp_dir}/${worksrcdir}
         file mkdir ${dmg_mount}
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]

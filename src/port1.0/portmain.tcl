@@ -124,6 +124,10 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     option os.universal_supported yes
 }
 
+# Record initial euid/egid
+set euid [geteuid]
+set egid [getegid]
+
 proc portmain::main {args} {
     return 0
 }
