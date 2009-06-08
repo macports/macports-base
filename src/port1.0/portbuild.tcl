@@ -62,38 +62,35 @@ set_ui_prefix
 
 proc portbuild::build_getmaketype {args} {
     if {![exists build.type]} {
-        return make
+        return [findBinary make $portutil::autoconf::make_path]
     }
     switch -exact -- [option build.type] {
         bsd {
             if {[option os.platform] == "darwin"} {
-                return bsdmake
+                return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
             } elseif {[option os.platform] == "freebsd"} {
-                return make
+                return [binaryInPath make]
             } else {
-                return pmake
+                return [binaryInPath pmake]
             }
         }
         gnu {
             if {[option os.platform] == "darwin"} {
-                return gnumake
+                return [findBinary gnumake $portutil::autoconf::gnumake_path]
             } elseif {[option os.platform] == "linux"} {
-                return make
+                return [binaryInPath make]
             } else {
-                return gmake
+                return [binaryInPath gmake]
             }
         }
         pbx {
-            set pbxbuild "pbxbuild"
-            set xcodebuild "xcodebuild"
-
             if {[option os.platform] != "darwin"} {
                 return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
             }
 
-            if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
+            if {[catch {set xcodebuild [binaryInPath xcodebuild]}] == 0} {
                 return $xcodebuild
-            } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
+            } elseif {[catch {set pbxbuild [binaryInPath pbxbuild]}] == 0} {
                 return $pbxbuild
             } else {
                 return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
@@ -101,7 +98,7 @@ proc portbuild::build_getmaketype {args} {
         }
         default {
             ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
-            return gnumake
+            return [findBinary gnumake $portutil::autoconf::gnumake_path]
         }
     }
 }
@@ -114,7 +111,7 @@ proc portbuild::build_getnicevalue {args} {
     if {![string is integer -strict $nice] || $nice <= 0} {
         return ""
     }
-    return "nice -n $nice "
+    return "[findBinary nice $portutil::autoconf::nice_path] -n $nice "
 }
 
 proc portbuild::build_getmakejobs {args} {

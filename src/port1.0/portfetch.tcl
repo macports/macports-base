@@ -58,8 +58,8 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
-    git.url git.branch \
-    hg.url hg.tag
+    git.cmd git.url git.branch \
+    hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -70,7 +70,7 @@ commands svn
 default extract.suffix .tar.gz
 default fetch.type standard
 
-default cvs.cmd {$portutil::autoconf::cvs_path}
+default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
 default cvs.dir {${workpath}}
 default cvs.method {export}
@@ -82,7 +82,7 @@ default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
-default svn.cmd {$portutil::autoconf::svn_path}
+default svn.cmd {[findBinary svn $portutil::autoconf::svn_path]}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
@@ -91,9 +91,11 @@ default svn.pre_args {"--non-interactive"}
 default svn.args ""
 default svn.post_args {"${svn.url}"}
 
+default git.cmd {[findBinary git $portutil::autoconf::git_path]}
 default git.dir {${workpath}}
 default git.branch {}
 
+default hg.cmd {[findBinary hg $portutil::autoconf::hg_path]}
 default hg.dir {${workpath}}
 default hg.tag {tip}
 
@@ -483,7 +485,7 @@ proc portfetch::cvsfetch {args} {
         set savecmd ${cvs.cmd}
         set saveargs ${cvs.args}
         set savepost_args ${cvs.post_args}
-        set cvs.cmd "echo ${cvs.password} | $portutil::autoconf::cvs_path"
+        set cvs.cmd "echo ${cvs.password} | ${cvs.cmd}"
         set cvs.args login
         set cvs.post_args ""
         if {[catch {command_exec cvs -notty "" "2>&1"} result]} {
@@ -508,23 +510,7 @@ proc portfetch::cvsfetch {args} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global workpath prefix_frozen
-    global svn.env svn.cmd svn.args svn.post_args svn.revision svn.url svn.method
-
-    # Look for the svn command, either in the path or in the prefix
-    set goodcmd 0
-    foreach svncmd "${svn.cmd} ${prefix_frozen}/bin/svn svn" {
-        if { [file executable ${svncmd}] } {
-            set svn.cmd $svncmd
-            set goodcmd 1
-            break;
-        }
-    }
-    if { !$goodcmd } {
-        ui_error "The subversion tool (svn) is required to fetch ${svn.url}."
-        ui_error "Please install the subversion port before proceeding."
-        return -code error [msgcat::mc "Subversion check out failed"]
-    }
+    global svn.args svn.revision svn.method
 
     set svn.args "${svn.method} ${svn.args}"
     if {[string length ${svn.revision}]} {
@@ -544,22 +530,8 @@ proc portfetch::svnfetch {args} {
 
 # Perform a git fetch
 proc portfetch::gitfetch {args} {
-    global worksrcpath prefix_frozen
-    global git.url git.branch git.sha1
-
-    # Look for the git command
-    set git.cmd {}
-    foreach gitcmd "$portutil::autoconf::git_path $prefix_frozen/bin/git git" {
-        if {[file executable $gitcmd]} {
-            set git.cmd $gitcmd
-            break
-        }
-    }
-    if {${git.cmd} == {}} {
-        ui_error "git is required to fetch ${git.url}"
-        ui_error "Please install the git-core port before proceeding."
-        return -code error [msgcat::mc "Git command not found"]
-    }
+    global worksrcpath
+    global git.url git.branch git.sha1 git.cmd
 
     set options "-q"
     if {[string length ${git.branch}] == 0} {
@@ -591,21 +563,7 @@ proc portfetch::gitfetch {args} {
 # Perform a mercurial fetch.
 proc portfetch::hgfetch {args} {
     global worksrcpath prefix_frozen
-    global hg.url hg.tag
-
-    # Look for the hg command.
-    set hg.cmd {}
-    foreach hgcmd "$prefix_frozen/bin/hg hg" {
-        if {[file executable $hgcmd]} {
-            set hg.cmd $hgcmd
-            break
-        }
-    }
-    if {${hg.cmd} == {}} {
-        ui_error "hg is required to fetch ${hg.url}"
-        ui_error "Please install the mercurial port before proceeding."
-        return -code error [msgcat::mc "Mercurial command not found"]
-    }
+    global hg.url hg.tag hg.cmd
 
     set cmdstring "${hg.cmd} clone --rev ${hg.tag} ${hg.url} ${worksrcpath} 2>&1"
     ui_debug "Executing: $cmdstring"

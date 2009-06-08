@@ -49,7 +49,7 @@ options patch.asroot
 # Set up defaults
 default patch.asroot no
 default patch.dir {${worksrcpath}}
-default patch.cmd patch
+default patch.cmd {[findBinary patch $portutil::autoconf::patch_path]}
 default patch.pre_args -p0
 
 proc portpatch::patch_main {args} {
@@ -57,38 +57,35 @@ proc portpatch::patch_main {args} {
 
     # First make sure that patchfiles exists and isn't stubbed out.
     if {![exists patchfiles]} {
-    return 0
+        return 0
     }
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option name]]"
 
     foreach patch [option patchfiles] {
-    set patch_file [getdistname $patch]
-    if {[file exists [option filespath]/$patch_file]} {
-        lappend patchlist [option filespath]/$patch_file
-    } elseif {[file exists [option distpath]/$patch_file]} {
-        lappend patchlist [option distpath]/$patch_file
-    } else {
-        return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
-    }
+        set patch_file [getdistname $patch]
+        if {[file exists [option filespath]/$patch_file]} {
+            lappend patchlist [option filespath]/$patch_file
+        } elseif {[file exists [option distpath]/$patch_file]} {
+            lappend patchlist [option distpath]/$patch_file
+        } else {
+            return -code error [format [msgcat::mc "Patch file %s is missing"] $patch]
+        }
     }
     if {![info exists patchlist]} {
-    return -code error [msgcat::mc "Patch files missing"]
+        return -code error [msgcat::mc "Patch files missing"]
     }
     _cd [option worksrcpath]
+    set gzcat "[findBinary gzip $portutil::autoconf::gzip_path] -dc"
+    set bzcat "[findBinary bzip2 $portutil::autoconf::bzip2_path] -dc"
     foreach patch $patchlist {
-    ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
-    if {[option os.platform] == "linux"} {
-        set gzcat "zcat"
-    } else {
-        set gzcat "gzcat"
-    }
-    switch -glob -- [file tail $patch] {
-        *.Z -
-        *.gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
-        *.bz2 {command_exec patch "bzcat \"$patch\" | (" ")"}
-        default {command_exec patch "" "< '$patch'"}
-    }
+        ui_info "$UI_PREFIX [format [msgcat::mc "Applying %s"] $patch]"
+        switch -- [file extension $patch] {
+            .Z -
+            .gz {command_exec patch "$gzcat \"$patch\" | (" ")"}
+            .bz2 {command_exec patch "$bzcat \"$patch\" | (" ")"}
+            default {command_exec patch "" "< '$patch'"}
+        }
     }
     return 0
 }
