@@ -2053,8 +2053,12 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         if {[info exists portinfo(porturl)]} {
             set porturl $portinfo(porturl)
         } else {
-            ui_error "Dependency '$dep_portname' not found."
-            return 1
+            if {$skipSatisfied && [registry::entry_exists_for_name $dep_portname]} {
+                ui_warn "Dependency '$dep_portname' is installed but not present in the index"
+            } else {
+                ui_error "Dependency '$dep_portname' not found."
+                return 1
+            }
         }
 
         # Is that dependency satisfied or this port installed?
