@@ -1974,16 +1974,11 @@ proc _mportkey {mport key} {
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
-proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsFlag 0}} {
+proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
 
     array set portinfo [mportinfo $mport]
     set depends {}
     set deptypes {}
-    if {$accDepsFlag == 0} {
-        array set accDeps {}
-    } else {
-        upvar accDeps accDeps
-    }
 
     # progress indicator
     if {![macports::ui_isset ports_debug]} {
@@ -2035,53 +2030,46 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     }
 
     set subPorts {}
+    set options [ditem_key $mport options]
+    set variations [ditem_key $mport variations]
 
     foreach depspec $depends {
-        # grab the portname portion of the depspec
-        set dep_portname [lindex [split $depspec :] end]
-
-        # Find the porturl
-        if {[catch {set res [mportlookup $dep_portname]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Internal error: port lookup failed: $error"
-            return 1
-        }
-
-        array unset portinfo
-        array set portinfo [lindex $res 1]
-        if {[info exists portinfo(porturl)]} {
-            set porturl $portinfo(porturl)
-        } else {
-            if {$skipSatisfied && [registry::entry_exists_for_name $dep_portname]} {
-                ui_warn "Dependency '$dep_portname' is installed but not present in the index"
-            } else {
-                ui_error "Dependency '$dep_portname' not found."
-                return 1
-            }
-        }
-
         # Is that dependency satisfied or this port installed?
         # If we don't skip or if it is not, add it to the list.
         if {!$skipSatisfied || ![_mportispresent $mport $depspec]} {
-            set options [ditem_key $mport options]
-            set variations [ditem_key $mport variations]
-            # Figure out the subport.
-            set subport [mportopen $porturl $options $variations]
-            
-            # Append the sub-port's provides to the port's requirements list.
-            ditem_append_unique $mport requires "[ditem_key $subport provides]"
+            # grab the portname portion of the depspec
+            set dep_portname [lindex [split $depspec :] end]
 
-            if {$recurseDeps} {
-                # Skip the port if it's already in the accumulated list.
-                if {![info exists accDeps($dep_portname)]} {
-                    # Add it to the list
-                    set accDeps($dep_portname) 1
+            # Find the porturl
+            if {[catch {set res [mportlookup $dep_portname]} error]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Internal error: port lookup failed: $error"
+                return 1
+            }
 
-                    # We'll recursively iterate on it.
+            array unset portinfo
+            array set portinfo [lindex $res 1]
+            if {![info exists portinfo(porturl)]} {
+                ui_error "Dependency '$dep_portname' not found."
+                return 1
+            }
+
+            # Figure out the subport. Check the open_mports list first, since
+            # we potentially leak mport references if we mportopen each time,
+            # because mportexec only closes each open mport once.
+            set subport [dlist_search $macports::open_mports porturl $portinfo(porturl)]
+            if {$subport == {}} {
+                # We haven't opened this one yet.
+                set subport [mportopen $portinfo(porturl) $options $variations]
+                if {$recurseDeps} {
+                    # Add to the list we need to recurse on.
                     lappend subPorts $subport
                 }
             }
+
+            # Append the sub-port's provides to the port's requirements list.
+            ditem_append_unique $mport requires "[ditem_key $subport provides]"
         }
     }
 
@@ -2089,7 +2077,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     if {$recurseDeps} {
         foreach subport $subPorts {
             # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $subport "" $recurseDeps $skipSatisfied 1]
+            set res [mportdepends $subport "" $recurseDeps $skipSatisfied]
             if {$res != 0} {
                 return $res
             }
