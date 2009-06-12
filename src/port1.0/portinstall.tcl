@@ -55,15 +55,12 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX portname portversion portrevision variations portvariants
-    global install.asroot prefix
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $portname $portversion $portrevision $portvariants]"
+    global UI_PREFIX name version revision variations portvariants
+    global prefix
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
-    if { [tbool install.asroot] } {
-        # if port is marked as needing root
-        elevateToRoot "install"
-    } elseif { ![file writable $prefix] } {
+    if { ![file writable $prefix] } {
         # if install location is not writable, need root privileges to install
         elevateToRoot "install"
     }
@@ -79,18 +76,10 @@ proc portinstall::install_element {src_element dst_element} {
     }
     
     # if the file is a symlink, do not try to set file attributes
-    # if the destination file is an existing directory,
-    # do not overwrite its file attributes
-    if {[file type $src_element] != "link" || [file isdirectory $dst_element]} {
-        set attributes [file attributes $src_element]
-        for {set i 0} {$i < [llength $attributes]} {incr i} {
-            set opt [lindex $attributes $i]
-            incr i
-            set arg [lindex $attributes $i]
-            file attributes $dst_element $opt $arg
-            # set mtime on installed element
-            exec touch -r $src_element $dst_element
-        }
+    if {[file type $src_element] != "link"} {
+        eval file attributes {$dst_element} [file attributes $src_element]
+        # set mtime on installed element
+        file mtime $dst_element [file mtime $src_element]
     }
 }
 
@@ -139,10 +128,10 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
 }
 
 proc portinstall::install_main {args} {
-    global portname portversion portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot portrevision maintainers ports_force portvariants targets depends_lib PortInfo epoch
+    global name version portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot revision maintainers ports_force portvariants targets depends_lib PortInfo epoch license
     
     # Begin the registry entry
-    set regref [registry_new $portname $portversion $portrevision $portvariants $epoch]
+    set regref [registry_new $name $version $revision $portvariants $epoch]
     
     # Install the files
     directory_dig ${destroot} ${destroot} ${regref}
@@ -166,16 +155,16 @@ proc portinstall::install_main {args} {
     }
     if {[info exists depends_run]} {
         registry_prop_store $regref depends_run $depends_run
-        registry_register_deps $depends_run $portname
+        registry_register_deps $depends_run $name
     }
     if {[info exists depends_lib]} {
         registry_prop_store $regref depends_lib $depends_lib
-        registry_register_deps $depends_lib $portname
+        registry_register_deps $depends_lib $name
     }
     if {[info exists installPlist]} {
         registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
         if { [registry_prop_retr $regref installtype] != "image" } {
-            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $portname
+            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $name
         }
     }
     if {[info exists package-install]} {

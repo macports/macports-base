@@ -13,11 +13,11 @@ pkgIndex.tcl:
 clean::
 	rm -f pkgIndex.tcl
 
-distclean::
+distclean:: clean
 
 test::
 
-install::
+install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(SILENT)set -x; for file in ${SRCS}; do \
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}; \

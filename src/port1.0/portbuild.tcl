@@ -62,38 +62,35 @@ set_ui_prefix
 
 proc portbuild::build_getmaketype {args} {
     if {![exists build.type]} {
-        return make
+        return [findBinary make $portutil::autoconf::make_path]
     }
     switch -exact -- [option build.type] {
         bsd {
             if {[option os.platform] == "darwin"} {
-                return bsdmake
+                return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
             } elseif {[option os.platform] == "freebsd"} {
-                return make
+                return [binaryInPath make]
             } else {
-                return pmake
+                return [binaryInPath pmake]
             }
         }
         gnu {
             if {[option os.platform] == "darwin"} {
-                return gnumake
+                return [findBinary gnumake $portutil::autoconf::gnumake_path]
             } elseif {[option os.platform] == "linux"} {
-                return make
+                return [binaryInPath make]
             } else {
-                return gmake
+                return [binaryInPath gmake]
             }
         }
         pbx {
-            set pbxbuild "pbxbuild"
-            set xcodebuild "xcodebuild"
-
             if {[option os.platform] != "darwin"} {
                 return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
             }
 
-            if {[catch {set xcodebuild [binaryInPath $xcodebuild]}] == 0} {
+            if {[catch {set xcodebuild [binaryInPath xcodebuild]}] == 0} {
                 return $xcodebuild
-            } elseif {[catch {set pbxbuild [binaryInPath $pbxbuild]}] == 0} {
+            } elseif {[catch {set pbxbuild [binaryInPath pbxbuild]}] == 0} {
                 return $pbxbuild
             } else {
                 return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
@@ -101,7 +98,7 @@ proc portbuild::build_getmaketype {args} {
         }
         default {
             ui_warn "[format [msgcat::mc "Unknown build.type %s, using 'gnumake'"] [option build.type]]"
-            return gnumake
+            return [findBinary gnumake $portutil::autoconf::gnumake_path]
         }
     }
 }
@@ -114,7 +111,7 @@ proc portbuild::build_getnicevalue {args} {
     if {![string is integer -strict $nice] || $nice <= 0} {
         return ""
     }
-    return "nice -n $nice "
+    return "[findBinary nice $portutil::autoconf::nice_path] -n $nice "
 }
 
 proc portbuild::build_getmakejobs {args} {
@@ -131,7 +128,11 @@ proc portbuild::build_getmakejobs {args} {
     set jobs [option build.jobs]
     # if set to '0', use the number of cores for the number of jobs
     if {$jobs == 0} {
-        set jobs [exec "/usr/sbin/sysctl" "-n" "hw.ncpu"]
+        if {[catch {set jobs [exec "/usr/sbin/sysctl" "-n" "hw.availcpu"]}]} {
+            set jobs 2
+            ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
+            ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
+        }
     }
     if {![string is integer -strict $jobs] || $jobs <= 1} {
         return ""
@@ -140,17 +141,9 @@ proc portbuild::build_getmakejobs {args} {
 }
 
 proc portbuild::build_start {args} {
-    global UI_PREFIX build.asroot
+    global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option portname]]"
-
-    # start gsoc08-privileges
-    if { [tbool build.asroot] } {
-    # if port is marked as needing root
-        elevateToRoot "build"
-    }
-    # end gsoc08-privileges
-
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option name]]"
 }
 
 proc portbuild::build_main {args} {

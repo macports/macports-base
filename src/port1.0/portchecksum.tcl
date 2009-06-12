@@ -179,7 +179,7 @@ proc portchecksum::calc_rmd160 {file} {
 proc portchecksum::checksum_start {args} {
     global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option portname]]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
 }
 
 # checksum_main

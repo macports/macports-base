@@ -73,8 +73,11 @@ if { [regexp {\d+\.\d+\.\d+} [info patchlevel]] &&
 set dir [file join "@TCL_PACKAGE_DIR@" macports1.0]
 catch {source [file join $dir pkgIndex.tcl]}
 
-foreach dir [glob -directory "@prefix_expanded@" -join share macports Tcl *] {
-	catch {source [file join $dir pkgIndex.tcl]}
+set sharetcldir [file join "@prefix_expanded@" share macports Tcl]
+if {[file exists $sharetcldir]} {
+	foreach dir [glob -directory $sharetcldir *] {
+		catch {source [file join $dir pkgIndex.tcl]}
+	}
 }
 
 if { "@SQLITE3_DIR@" != "" } {

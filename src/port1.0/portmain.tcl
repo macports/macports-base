@@ -45,12 +45,12 @@ namespace eval portmain {
 
 # define options
 options prefix macportsuser name version revision epoch categories maintainers
-options long_description description homepage license
+options long_description description homepage license provides conflicts
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage license
+options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
@@ -61,6 +61,7 @@ default worksymlink {[file join $portpath work]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
+default developer_dir {/Developer}
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
@@ -69,7 +70,7 @@ default filesdir files
 default revision 0
 default epoch 0
 default license unknown
-default distname {${portname}-${portversion}}
+default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
@@ -78,12 +79,6 @@ default worksrcpath {[file join $workpath $worksrcdir]}
 default macportsuser {${portutil::autoconf::macportsuser}}
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
-
-# Compatibility namespace
-default portname {$name}
-default portversion {$version}
-default portrevision {$revision}
-default portepoch {$epoch}
 
 # Platform Settings
 set os_arch $tcl_platform(machine)
@@ -133,6 +128,10 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
         eval macosx_deployment_target ${universal_target}
     }
 }
+
+# Record initial euid/egid
+set euid [geteuid]
+set egid [getegid]
 
 proc portmain::main {args} {
     return 0

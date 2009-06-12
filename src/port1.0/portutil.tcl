@@ -54,32 +54,33 @@ namespace eval options {
 # option
 # This is an accessor for Portfile options.  Targets may use
 # this in the same style as the standard Tcl "set" procedure.
-#   name  - the name of the option to read or write
+#   option  - the name of the option to read or write
+#       not called 'name' because this would fail if its value was 'name'...
 #   value - an optional value to assign to the option
 
-proc option {name args} {
+proc option {option args} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $name
+    global $option
     if {[llength $args] > 0} {
-        ui_debug "setting option $name to $args"
-        set $name [lindex $args 0]
+        ui_debug "setting option $option to $args"
+        set $option [lindex $args 0]
     }
-    return [set $name]
+    return [set $option]
 }
 
 # exists
 # This is an accessor for Portfile options.  Targets may use
 # this procedure to test for the existence of a Portfile option.
-#   name - the name of the option to test for existence
+#   option - the name of the option to test for existence
 
-proc exists {name} {
+proc exists {option} {
     # XXX: right now we just transparently use globals
     # eventually this will need to bridge the options between
     # the Portfile's interpreter and the target's interpreters.
-    global $name
-    return [info exists $name]
+    global $option
+    return [info exists $option]
 }
 
 ##
@@ -196,17 +197,20 @@ proc options_export {args} {
 # @param option deprecated option
 # @param action read/set
 # @param value ignored
-proc warn_deprecated_option {option action {value ""}} {
-    global portname $option deprecated_options
-    set newoption $deprecated_options($option)
+proc handle_deprecated_option {option action {value ""}} {
+    global name $option deprecated_options
+    set newoption [lindex $deprecated_options($option) 0]
+    set refcount  [lindex $deprecated_options($option) 1]
     global $newoption
 
     if {$newoption == ""} {
-        ui_warn "Port $portname using deprecated option \"$option\"."
+        ui_warn "Port $name using deprecated option \"$option\"."
         return
     }
 
-    ui_warn "Port $portname using deprecated option \"$option\", superseded by \"$newoption\"."
+    # Increment reference counter
+    lset deprecated_options($option) 1 [expr $refcount + 1]
+
     if {$action != "read"} {
         $newoption [set $option]
     } else {
@@ -215,16 +219,26 @@ proc warn_deprecated_option {option action {value ""}} {
 }
 
 ##
-# Causes a warning to be printed when an option is set or accessed
+# Get the name of the array containing the deprecated options
+# Thin layer avoiding to share global variables without notice
+proc get_deprecated_options {} {
+    return "deprecated_options"
+}
+
+##
+# Mark an option as deprecate
+# If it is set or accessed, it will be mapped it to the new option
 #
 # @param option name of the option
 # @param newoption name of a superseding option
 proc option_deprecate {option {newoption ""} } {
     global deprecated_options
     # If a new option is specified, default the option to $newoption
-    set deprecated_options($option) $newoption
-    # Register a proc for printing a warning
-    option_proc $option warn_deprecated_option
+    set deprecated_options($option) [list $newoption 0]
+    # Create a normal option for compatibility
+    options $option
+    # Register a proc for handling the deprecation
+    option_proc $option handle_deprecated_option
 }
 
 ##
@@ -815,7 +829,6 @@ proc ldelete {list value} {
 # reinplace
 # Provides "sed in place" functionality
 proc reinplace {args}  {
-    global euid macportsuser
 
     set extended 0
     while 1 {
@@ -1159,7 +1172,7 @@ proc lipo {} {
         foreach arch $universal_archlist {
             append lipoSources "-arch ${arch} ${workpath}/${arch}/${file} "
         }
-        system "lipo ${lipoSources}-create -output ${file}"
+        system "[findBinary lipo $portutil::autoconf::lipo_path] ${lipoSources}-create -output ${file}"
     }
 }
 
@@ -1194,7 +1207,8 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd portname workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped errorisprivileges
+    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
+    set portname [option name]
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1204,18 +1218,21 @@ proc target_run {ditem} {
     }
 
     if {$procedure != ""} {
-        set name [ditem_key $ditem name]
+        set targetname [ditem_key $ditem name]
+        if { [tbool ${targetname}.asroot] } {
+            elevateToRoot $targetname
+        }
 
         if {[ditem_contains $ditem init]} {
-            set result [catch {[ditem_key $ditem init] $name} errstr]
+            set result [catch {[ditem_key $ditem init] $targetname} errstr]
         }
 
         if {$result == 0} {
             # Skip the step if required and explain why through ui_debug.
             # check if the step was already done (as mentioned in the state file)
             if {[ditem_key $ditem state] != "no"
-                    && [check_statefile target $name $target_state_fd]} {
-                ui_debug "Skipping completed $name ($portname)"
+                    && [check_statefile target $targetname $target_state_fd]} {
+                ui_debug "Skipping completed $targetname ($portname)"
                 set skipped 1
             }
 
@@ -1223,10 +1240,10 @@ proc target_run {ditem} {
             if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
-                    ui_msg "For $portname: skipping $name (dry run)"
+                    ui_msg "For $portname: skipping $targetname (dry run)"
                     set ports_dry_last_skipped $portname
                 } else {
-                    ui_info "    .. and skipping $name"
+                    ui_info "    .. and skipping $targetname"
                 }
                 set skipped 1
             }
@@ -1237,7 +1254,7 @@ proc target_run {ditem} {
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
-                    set result [catch {[ditem_key $ditem prerun] $name} errstr]
+                    set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
 
                 #start tracelib
@@ -1257,81 +1274,75 @@ proc target_run {ditem} {
                     }
 
                     # collect deps
+                    set depends {}
+                    set deptypes {}
 
-                    # Don't check dependencies for extract (they're not honored
-                    # anyway). This avoids warnings about bzip2.
-                    if {$target != "extract"} {
-                        set depends {}
-                        set deptypes {}
+                    # Determine deptypes to look for based on target
+                    switch $target {
+                        fetch       -
+                        checksum    { set deptypes "depends_fetch" }
+                        extract     -
+                        patch       { set deptypes "depends_fetch depends_extract" }
+                        configure   -
+                        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
 
-                        # Determine deptypes to look for based on target
-                        switch $target {
-                            configure   -
-                            build       { set deptypes "depends_lib depends_build" }
-
-                            test        -
-                            destroot    -
-                            install     -
-                            archive     -
-                            dmg         -
-                            pkg         -
-                            portpkg     -
-                            mpkg        -
-                            rpm         -
-                            srpm        -
-                            dpkg        -
-                            mdmg        -
-                            activate    -
-                            ""          { set deptypes "depends_lib depends_build depends_run" }
-                        }
-
-                        # Gather the dependencies for deptypes
-                        foreach deptype $deptypes {
-                            # Add to the list of dependencies if the option exists and isn't empty.
-                            if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
-                                set depends [concat $depends $PortInfo($deptype)]
-                            }
-                        }
-
-                        # Dependencies are in the form verb:[param:]port
-                        set depsPorts {}
-                        foreach depspec $depends {
-                            # grab the portname portion of the depspec
-                            set dep_portname [lindex [split $depspec :] end]
-                            lappend depsPorts $dep_portname
-                        }
-
-                        # always allow gzip in destroot as it is used to compress man pages
-                        if {$target == "destroot"} {
-                            lappend depsPorts "gzip"
-                        }
-
-                        set portlist $depsPorts
-                        foreach depName $depsPorts {
-                            set portlist [recursive_collect_deps $depName $deptypes $portlist]
-                        }
-
-                        if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
+                        test        -
+                        destroot    -
+                        install     -
+                        archive     -
+                        dmg         -
+                        pkg         -
+                        portpkg     -
+                        mpkg        -
+                        rpm         -
+                        srpm        -
+                        dpkg        -
+                        mdmg        -
+                        activate    -
+                        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
                     }
+
+                    # Gather the dependencies for deptypes
+                    foreach deptype $deptypes {
+                        # Add to the list of dependencies if the option exists and isn't empty.
+                        if {[info exists PortInfo($deptype)] && $PortInfo($deptype) != ""} {
+                            set depends [concat $depends $PortInfo($deptype)]
+                        }
+                    }
+
+                    # Dependencies are in the form verb:[param:]port
+                    set depsPorts {}
+                    foreach depspec $depends {
+                        # grab the portname portion of the depspec
+                        set dep_portname [lindex [split $depspec :] end]
+                        lappend depsPorts $dep_portname
+                    }
+
+                    set portlist $depsPorts
+                    foreach depName $depsPorts {
+                        set portlist [recursive_collect_deps $depName $deptypes $portlist]
+                    }
+
+                    if {[llength $deptypes] > 0} {tracelib setdeps $portlist}
                 }
 
                 if {$result == 0} {
                     foreach pre [ditem_key $ditem pre] {
                         ui_debug "Executing $pre"
-                        set result [catch {$pre $name} errstr]
+                        set result [catch {$pre $targetname} errstr]
                         if {$result != 0} { break }
                     }
                 }
 
                 if {$result == 0} {
-                ui_debug "Executing $name ($portname)"
-                set result [catch {$procedure $name} errstr]
+                ui_debug "Executing $targetname ($portname)"
+                set result [catch {$procedure $targetname} errstr]
                 }
 
                 if {$result == 0} {
                     foreach post [ditem_key $ditem post] {
                         ui_debug "Executing $post"
-                        set result [catch {$post $name} errstr]
+                        set result [catch {$post $targetname} errstr]
                         if {$result != 0} { break }
                     }
                 }
@@ -1339,7 +1350,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem postrun] && $result == 0} {
                     set postrun [ditem_key $ditem postrun]
                     ui_debug "Executing $postrun"
-                    set result [catch {$postrun $name} errstr]
+                    set result [catch {$postrun $targetname} errstr]
                 }
 
                 # Check dependencies & file creations outside workpath.
@@ -1364,21 +1375,17 @@ proc target_run {ditem} {
             if {$skipped == 0
           && [ditem_key $ditem runtype] != "always"
           && [ditem_key $ditem state] != "no"} {
-            write_statefile target $name $target_state_fd
+            write_statefile target $targetname $target_state_fd
             }
         } else {
-            if {$errorisprivileges != "yes"} {
-                global errorInfo
-                ui_error "Target $name returned: $errstr"
-                ui_debug "Backtrace: $errorInfo"
-            } else {
-                ui_msg "Target $name returned: $errstr"
-            }
+            global errorInfo
+            ui_error "Target $targetname returned: $errstr"
+            ui_debug "Backtrace: $errorInfo"
             set result 1
         }
 
     } else {
-        ui_info "Warning: $name does not have a registered procedure"
+        ui_info "Warning: $targetname does not have a registered procedure"
         set result 1
     }
 
@@ -1423,27 +1430,26 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd portname portversion portrevision portvariants ports_dryrun user_options errorisprivileges
+    global targets target_state_fd name version revision portvariants ports_dryrun user_options
     set dlist $targets
-    set errorisprivileges "no"
 
     # the statefile will likely be autocleaned away after install,
     # so special-case ignore already-completed install and activate
-    if {[registry_exists $portname $portversion $portrevision $portvariants]} {
+    if {[registry_exists $name $version $revision $portvariants]} {
         if {$target == "install"} {
-            ui_debug "Skipping $target ($portname) since this port is already installed"
+            ui_debug "Skipping $target ($name) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $portname $portversion $portrevision $portvariants]
+            set regref [registry_open $name $version $revision $portvariants]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
-                ui_debug "Skipping $target ($portname @${portversion}_${portrevision}${portvariants}) since this port is already active"
+                ui_debug "Skipping $target ($name @${version}_${revision}${portvariants}) since this port is already active"
             } else {
                 # do the activate here since target_run doesn't know how to selectively ignore the preceding steps
                 if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
-                    ui_msg "For $portname: skipping $target (dry run)"
+                    ui_msg "For $name: skipping $target (dry run)"
                 } else {
-                    registry_activate $portname ${portversion}_${portrevision}${portvariants} [array get user_options]
+                    registry_activate $name ${version}_${revision}${portvariants} [array get user_options]
                 }
             }
             return 0
@@ -1467,7 +1473,7 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: the following items did not execute (for $portname):"
+        set errstring "Warning: the following items did not execute (for $name):"
         foreach ditem $dlist {
             append errstring " [ditem_key $ditem name]"
         }
@@ -1477,26 +1483,16 @@ proc eval_targets {target} {
         set result 0
     }
 
-    # start gsoc08-privileges
-    if { $result == 1 && $errorisprivileges == "yes" } {
-        set result 2
-    }
-    # end gsoc08-privileges
-
     return $result
 }
 
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink portname portpath ports_ignore_older
+    global workpath worksymlink place_worksymlink name portpath ports_ignore_older
     global altprefix usealtworkpath env applications_dir portbuildpath distpath
 
     # start gsoc08-privileges
-
-    # de-escalate privileges - only run if MacPorts was started with sudo
-    dropPrivileges
-
     if { ![file exists $workpath] } {
         if {[catch {set result [file mkdir $workpath]} result]} {
             global errorInfo
@@ -1513,7 +1509,7 @@ proc open_statefile {args} {
 
         if { $userid !=0 } {
             ui_msg "MacPorts running without privileges.\
-                    You may be prompted for your sudo password in order to complete certain actions (eg install)."
+                    You may be unable to complete certain actions (eg install)."
         }
 
         # set global variable indicating to other functions to use ~/.macports as well
@@ -1570,8 +1566,9 @@ proc open_statefile {args} {
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
     }
+
     # flock Portfile
-    set statefile [file join $workpath .macports.${portname}.state]
+    set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
         if {![file writable $statefile]} {
             return -code error "$statefile is not writable - check permission on port directory"
@@ -1583,20 +1580,23 @@ proc open_statefile {args} {
             file mkdir [file join $workpath]
         }
     }
+    chownAsRoot $workpath
 
     # Create a symlink to the workpath for port authors
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
         ui_debug "Attempting ln -sf $workpath $worksymlink"
         ln -sf $workpath $worksymlink
     }
+    # de-escalate privileges - only run if MacPorts was started with sudo
+    dropPrivileges
 
     set fd [open $statefile a+]
     if {[catch {flock $fd -exclusive -noblock} result]} {
         if {"$result" == "EAGAIN"} {
             ui_msg "Waiting for lock on $statefile"
-    } elseif {"$result" == "EOPNOTSUPP"} {
-        # Locking not supported, just return
-        return $fd
+        } elseif {"$result" == "EOPNOTSUPP"} {
+            # Locking not supported, just return
+            return $fd
         } else {
             return -code error "$result obtaining lock on $statefile"
         }
@@ -1868,7 +1868,7 @@ proc default_universal_variant_allowed {args} {
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
         return no
-    } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.universal.settings]} {
+    } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.project]} {
         # Allow +universal if port uses xcode portgroup.
         ui_debug "not using configure, so not adding the default universal variant"
         return no
@@ -2068,12 +2068,13 @@ proc adduser {name args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        exec dscl . -create /Users/${name} Password ${passwd}
-        exec dscl . -create /Users/${name} UniqueID ${uid}
-        exec dscl . -create /Users/${name} PrimaryGroupID ${gid}
-        exec dscl . -create /Users/${name} RealName ${realname}
-        exec dscl . -create /Users/${name} NFSHomeDirectory ${home}
-        exec dscl . -create /Users/${name} UserShell ${shell}
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
+        exec $dscl . -create /Users/${name} Password ${passwd}
+        exec $dscl . -create /Users/${name} UniqueID ${uid}
+        exec $dscl . -create /Users/${name} PrimaryGroupID ${gid}
+        exec $dscl . -create /Users/${name} RealName ${realname}
+        exec $dscl . -create /Users/${name} NFSHomeDirectory ${home}
+        exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
         # XXX adduser is only available for darwin, add more support here
         ui_warn "WARNING: adduser is not implemented on ${os.platform}."
@@ -2099,11 +2100,12 @@ proc addgroup {name args} {
     }
 
     if {${os.platform} eq "darwin"} {
-        exec dscl . -create /Groups/${name} Password ${passwd}
-        exec dscl . -create /Groups/${name} RealName ${realname}
-        exec dscl . -create /Groups/${name} PrimaryGroupID ${gid}
+        set dscl [findBinary dscl $portutil::autoconf::dscl_path]
+        exec $dscl . -create /Groups/${name} Password ${passwd}
+        exec $dscl . -create /Groups/${name} RealName ${realname}
+        exec $dscl . -create /Groups/${name} PrimaryGroupID ${gid}
         if {${users} ne ""} {
-            exec dscl . -create /Groups/${name} GroupMembership ${users}
+            exec $dscl . -create /Groups/${name} GroupMembership ${users}
         }
     } else {
         # XXX addgroup is only available for darwin, add more support here
@@ -2130,7 +2132,7 @@ proc dirSize {dir} {
 }
 
 # check for a binary in the path
-# returns an error code if it can not be found
+# returns an error code if it cannot be found
 proc binaryInPath {binary} {
     global env
     foreach dir [split $env(PATH) :] {
@@ -2261,7 +2263,7 @@ proc merge_lipo {base target file archs} {
         set exec-lipo [concat ${exec-lipo} [list "-arch" "${arch}" "${base}/${arch}${file}"]]
     }
     set exec-lipo [concat ${exec-lipo}]
-    system "/usr/bin/lipo ${exec-lipo} -create -output ${target}${file}"
+    system "[findBinary lipo $portutil::autoconf::lipo_path] ${exec-lipo} -create -output ${target}${file}"
 }
 
 # private function
@@ -2285,7 +2287,7 @@ proc merge_file {base target file archs} {
     ui_debug "ba: '${basearch}' ('${archs}')"
     foreach arch [lrange ${archs} 1 end] {
         # checking for differences; TODO: error more gracefully on non-equal files
-        exec "/usr/bin/diff" "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
+        exec [findBinary diff $portutil::autoconf::diff_path] "-q" "${base}/${basearch}${file}" "${base}/${arch}${file}"
     }
     ui_debug "ba: '${basearch}'"
     file copy "${base}/${basearch}${file}" "${target}${file}"
@@ -2314,7 +2316,7 @@ proc merge {base} {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} != ""} {
             # determine the type (dir/file/link)
-            set filetype [exec "/usr/bin/file" "-b" "${basepath}${fpath}"]
+            set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
             switch -regexp ${filetype} {
                 directory {
                     # just create directories
@@ -2396,7 +2398,7 @@ proc chownAsRoot {path} {
 #
 # @param action the action for which privileges are being elevated
 proc elevateToRoot {action} {
-    global euid egid macportsuser errorisprivileges
+    global euid egid macportsuser
 
     if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
     # if started with sudo but have dropped the privileges
@@ -2407,8 +2409,7 @@ proc elevateToRoot {action} {
     }
 
     if { [getuid] != 0 } {
-        set errorisprivileges yes
-        return -code error "port requires root privileges for this action and needs you to type your password for sudo.";
+        return -code error "MacPorts requires root privileges for this action";
     }
 }
 
@@ -2419,21 +2420,15 @@ proc dropPrivileges {} {
     global euid egid macportsuser workpath
     if { [geteuid] == 0 } {
         if { [catch {
-                set euid [geteuid]
-                set egid [getegid]
                 ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
 
                 #seteuid [name_to_uid [file attributes $workpath -owner]]
                 #setegid [name_to_gid [file attributes $workpath -group]]
 
-                setegid [name_to_gid "$macportsuser"]
+                setegid [uname_to_gid "$macportsuser"]
                 seteuid [name_to_uid "$macportsuser"]
                 ui_debug "egid changed to: [getegid]"
                 ui_debug "euid changed to: [geteuid]"
-
-                if {![file writable $workpath]} {
-                    ui_debug "Privileges successfully de-escalated. Unable to write to default workpath."
-                }
             }]
         } {
             ui_debug "$::errorInfo"

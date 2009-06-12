@@ -47,11 +47,11 @@ options package.destpath
 set_ui_prefix
 
 proc portsrpm::srpm_main {args} {
-    global portname portversion portrevision UI_PREFIX
+    global name version revision UI_PREFIX
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating SRPM package for %s-%s"] ${name} ${version}]"
     
-    return [srpm_pkg $portname $portversion $portrevision]
+    return [srpm_pkg $name $version $revision]
 }
 
 proc portsrpm::srpm_pkg {portname portversion portrevision} {
@@ -135,10 +135,13 @@ proc portsrpm::make_dependency_list {portname} {
     foreach {name array} $res {
         array set portinfo $array
 	
-        if {[info exists portinfo(depends_build)] || [info exists portinfo(depends_lib)]} {
-            # get the union of depends_build and depends_lib
+        if {[info exists portinfo(depends_fetch)] || [info exists portinfo(depends_extract)]
+            || [info exists portinfo(depends_build)] || [info exists portinfo(depends_lib)]} {
+            # get the union of depends_fetch, depends_extract, depends_build and depends_lib
             # xxx: only examines the portfile component of the depspec
             set depends {}
+            if {[info exists portinfo(depends_fetch)]} { eval "lappend depends $portinfo(depends_fetch)" }
+            if {[info exists portinfo(depends_extract)]} { eval "lappend depends $portinfo(depends_extract)" }
             if {[info exists portinfo(depends_build)]} { eval "lappend depends $portinfo(depends_build)" }
             if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
 	    

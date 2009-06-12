@@ -46,21 +46,25 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
+options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
 
 # defaults
 default livecheck.url {$homepage}
 default livecheck.check default
+default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
 
+# Deprecation
+option_deprecate livecheck.check livecheck.type
+
 proc portlivecheck::livecheck_main {args} {
-    global livecheck.url livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
+    global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
-    global homepage portname portpath workpath
+    global homepage portpath workpath
     global master_sites name distfiles
 
     set updated 0
@@ -98,7 +102,7 @@ proc portlivecheck::livecheck_main {args} {
     # "freshmeat|gnu|...").
     set available_types [regsub -all {\.tcl} [join $available_types |] {}]
 
-    if {${livecheck.check} eq "default"} {
+    if {${livecheck.type} eq "default"} {
         # Determine the default type from the mirror.
         if {$has_master_sites} {
             foreach {master_site} ${master_sites} {
@@ -106,24 +110,25 @@ proc portlivecheck::livecheck_main {args} {
                     if {${subdir} ne "" && ${livecheck.name} eq "default"} {
                         set livecheck.name ${subdir}
                     }
-                    set livecheck.check ${site}
+                    set livecheck.type ${site}
 
                     break
                 }
             }
         }
         # If the default type cannot be determined from the mirror, use the
-        # fallback type (which is a symlink to one of the available types).
-        if {${livecheck.check} eq "default"} {
-            set livecheck.check "fallback"
+        # fallback.
+        if {${livecheck.type} eq "default"} {
+            set livecheck.type "fallback"
         }
-        # If livecheck.name is still "default", set it to $name.
-        if {${livecheck.name} eq "default"} {
-            set livecheck.name $name
-        }
-
-        # Load the defaults from _resources/port1.0/livecheck/${livecheck.check}.tcl.
-        set defaults_file "$types_dir/${livecheck.check}.tcl"
+    }
+    # If livecheck.name is still "default", set it to $name.
+    if {${livecheck.name} eq "default"} {
+        set livecheck.name $name
+    }
+    if {[lsearch -exact [split $available_types "|"] ${livecheck.type}] != -1} {
+        # Load the defaults from _resources/port1.0/livecheck/${livecheck.type}.tcl.
+        set defaults_file "$types_dir/${livecheck.type}.tcl"
         ui_debug "Loading the defaults from '$defaults_file'"
         if {[catch {source $defaults_file} result]} {
             return -code 1 "The defaults could not be loaded from '$defaults_file'."
@@ -133,13 +138,13 @@ proc portlivecheck::livecheck_main {args} {
     # de-escape livecheck.url
     set livecheck.url [join ${livecheck.url}]
 
-    switch ${livecheck.check} {
+    switch ${livecheck.type} {
         "regex" -
         "regexm" {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
             if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 # let's extract the version from the file.
@@ -147,7 +152,7 @@ proc portlivecheck::livecheck_main {args} {
                 set updated -1
                 set the_re [join ${livecheck.regex}]
                 ui_debug "The regex is \"$the_re\""
-                if {${livecheck.check} == "regexm"} {
+                if {${livecheck.type} == "regexm"} {
                     set data [read $chan]
                     if {[regexp $the_re $data matched updated_version]} {
                         if {$updated_version != ${livecheck.version}} {
@@ -181,14 +186,14 @@ proc portlivecheck::livecheck_main {args} {
                 }
                 close $chan
                 if {$updated < 0} {
-                    ui_error "cannot check if $portname was updated (regex didn't match)"
+                    ui_error "cannot check if $name was updated (regex didn't match)"
                 }
             }
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
             if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 # let's compute the md5 sum.
@@ -202,7 +207,7 @@ proc portlivecheck::livecheck_main {args} {
         "moddate" {
             set port_moddate [file mtime ${portpath}/Portfile]
             if {[catch {set updated [curl isnewer ${livecheck.url} $port_moddate]} error]} {
-                ui_error "cannot check if $portname was updated ($error)"
+                ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
                 if {!$updated} {
@@ -213,17 +218,17 @@ proc portlivecheck::livecheck_main {args} {
         "none" {
         }
         default {
-            ui_error "unknown livecheck.check ${livecheck.check}"
+            ui_error "unknown livecheck.type ${livecheck.type}"
         }
     }
 
     file delete -force $tempfile
 
-    if {${livecheck.check} != "none"} {
+    if {${livecheck.type} != "none"} {
         if {$updated > 0} {
-            ui_msg "$portname seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
+            ui_msg "$name seems to have been updated (port version: ${livecheck.version}, new version: $updated_version)"
         } elseif {$updated == 0} {
-            ui_info "$portname seems to be up to date"
+            ui_info "$name seems to be up to date"
         }
     }
 }

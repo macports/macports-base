@@ -146,7 +146,7 @@ class PortPlugin < Plugin
 	
 	def portversion(m, params)
 		if !isPseudo(m, params[:portname])
-			doPort(m, "info", "--version", params[:portname])
+			doPort(m, "info", "--version --revision --line --pretty", params[:portname])
 		end
 	end
 	

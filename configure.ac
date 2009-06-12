@@ -48,7 +48,10 @@ if test "x$XCODE_SELECT" != "x"; then
   AC_MSG_CHECKING(Xcode location)
   DEVELOPER_DIR=`$XCODE_SELECT -print-path`
   AC_MSG_RESULT([$DEVELOPER_DIR])
+else
+  DEVELOPER_DIR=/Developer
 fi
+AC_SUBST(DEVELOPER_DIR)
 
 XCODEPLIST=$DEVELOPER_DIR/Applications/Xcode.app/Contents/version.plist
 if test -r "$XCODEPLIST"; then
@@ -84,17 +87,28 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_LN_S
 AC_PATH_PROG(MTREE, [mtree], [], [$PATH:/usr/sbin])
+AC_PATH_PROG(CHOWN, [chown], [], [$PATH:/usr/sbin])
 AC_PATH_PROG(CP, [cp], [])
+AC_PATH_PROG(CPIO, [cpio], [])
+AC_PATH_PROG(DIFF, [diff], [])
+AC_PATH_PROG(DITTO, [ditto], [])
+AC_PATH_PROG(DSCL, [dscl], [])
+AC_PATH_PROG(FILE, [file], [])
 AC_PATH_PROG(CVS, [cvs], [])
 AC_PATH_PROG(SVN, [svn], [])
 AC_PATH_PROG(GIT, [git], [])
+AC_PATH_PROG(HG, [hg], [])
 AC_PATH_PROG(GZIP, [gzip], [])
+AC_PATH_PROG(LIPO, [lipo], [])
+AC_PATH_PROG(NICE, [nice], [])
+AC_PATH_PROG(PATCH, [patch], [])
 AC_PATH_PROG(RMDIR, [rmdir], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(UNZIP, [unzip])
 AC_PATH_PROG(ZIP, [zip])
+AC_PATH_PROG(BSDMAKE, [bsdmake])
 AC_PATH_PROG(MAKE, [make])
 AC_PATH_PROG(HDIUTIL, [hdiutil], [])
 AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
@@ -103,6 +117,8 @@ AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
+AC_PATH_PROG(LSBOM, [lsbom], [])
+AC_PATH_PROG(MKBOM, [mkbom], [])
 AC_PATH_PROG(PAX, [pax], [])
 AC_PATH_PROG(XAR, [xar], [])
 AC_PATH_PROG(OPEN, [open], [])
@@ -313,7 +329,7 @@ AC_ARG_WITH(
 	trace-sdk,
 	AS_HELP_STRING([--with-trace-sdk=SDK],
 		[SDK for redirection in trace lib (for example MacOSX10.4u.sdk)]),
-	[test -d /Developer/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
+	[test -d ${DEVELOPER_DIR}/SDKs/$withval && AC_DEFINE_UNQUOTED([TRACE_SDK], "${withval}")], [])
 
 # Allows building of shared libraries
 SC_ENABLE_SHARED

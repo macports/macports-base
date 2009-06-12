@@ -55,11 +55,11 @@ default package.flat     false
 set_ui_prefix
 
 proc portpkg::pkg_main {args} {
-    global portname portversion portrevision package.type package.destpath package.flat UI_PREFIX
+    global name version revision package.type package.destpath package.flat UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${portname} ${portversion}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${name} ${version}]"
 
-    return [package_pkg $portname $portversion $portrevision]
+    return [package_pkg $name $version $revision]
 }
 
 proc portpkg::package_pkg {portname portversion portrevision} {
@@ -73,7 +73,7 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         return 0
     }
 
-    set packagemaker "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
+    set packagemaker "[option developer_dir]/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
     if ([file exists "$packagemaker"]) {
         set resourcepath ${workpath}/pkg_resources
     } else {
@@ -81,7 +81,8 @@ proc portpkg::package_pkg {portname portversion portrevision} {
     }
 
     set language "English"
-    system "mkdir -p -m 0755 ${resourcepath}/$language.lproj"
+    file mkdir "${resourcepath}/${language}.lproj"
+    file attributes "${resourcepath}/${language}.lproj" -permissions 0755
 	
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
@@ -135,8 +136,8 @@ proc portpkg::package_pkg {portname portversion portrevision} {
         write_PkgInfo ${pkgpath}/Contents/PkgInfo
         write_info_plist ${pkgpath}/Contents/Info.plist $portname $portversion $portrevision
 
-        system "mkbom ${destpath} ${pkgpath}/Contents/Archive.bom"
-        system "cd ${destpath} && pax -x cpio -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
+        system "[findBinary mkbom $portutil::autoconf::mkbom_path] ${destpath} ${pkgpath}/Contents/Archive.bom"
+        system "cd ${destpath} && [findBinary pax $portutil::autoconf::pax_path] -x [findBinary cpio $portutil::autoconf::cpio_path] -w -z . > ${pkgpath}/Contents/Archive.pax.gz"
 
         write_description_plist ${resourcepath}/Description.plist $portname $portversion $description
         write_sizes_file ${resourcepath}/Archive.sizes ${portname} ${portversion} ${pkgpath} ${destpath}
@@ -146,9 +147,10 @@ proc portpkg::package_pkg {portname portversion portrevision} {
     foreach dir {etc var tmp} {
         if ([file exists "${destpath}/private/$dir"]) {
             # restore any directories that were moved, to avoid confusing the rest of the ports system.
-            system "mv ${destpath}/private/$dir ${destpath}/$dir; rmdir ${destpath}/private 2>/dev/null"
+            file rename ${destpath}/private/$dir ${destpath}/$dir
         }
     }
+    catch {file delete ${destpath}/private}
 
     return 0
 }
@@ -297,7 +299,7 @@ proc portpkg::write_welcome_html {filename portname portversion long_description
 
 proc portpkg::write_sizes_file {sizesfile portname portversion pkgpath destpath} {
     
-    if {[catch {set numFiles [exec lsbom -s ${pkgpath}/Contents/Archive.bom | wc -l]} result]} {
+    if {[catch {set numFiles [llength [split [exec [findBinary lsbom $portutil::autoconf::lsbom_path] -s ${pkgpath}/Contents/Archive.bom] "\n"]]} result]} {
         return -code error [format [msgcat::mc "Reading package bom failed: %s"] $result]
     }
     if {[catch {set compressedSize [expr [dirSize ${pkgpath}] / 1024]} result]} {

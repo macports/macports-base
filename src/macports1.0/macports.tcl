@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs \
+        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir universal_target universal_sysroot universal_archs $user_options"
+        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -250,7 +250,7 @@ proc macports::findBinary {prog {autoconf_hint ""}} {
 }
 
 # check for a binary in the path
-# returns an error code if it can not be found
+# returns an error code if it cannot be found
 proc macports::binaryInPath {prog} {
     global env
     foreach dir [split $env(PATH) :] {
@@ -658,20 +658,25 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists macports::buildmakejobs]} {
         set macports::buildmakejobs 0
     }
+    
+    # Default Xcode Tools path
+    if {![info exists macports::developer_dir]} {
+        set macports::developer_dir "/Developer"
+    }
 
     # Default mp universal options
     if {![info exists macports::universal_target]} {
-        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
+        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
             set macports::universal_target "10.5"
         } else {
             set macports::universal_target "10.4"
         }
     }
     if {![info exists macports::universal_sysroot]} {
-        if {[file exists /Developer/SDKs/MacOSX10.5.sdk]} {
-            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.5.sdk"
+        if {[file exists ${macports::developer_dir}/SDKs/MacOSX10.5.sdk]} {
+            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.5.sdk"
         } else {
-            set macports::universal_sysroot "/Developer/SDKs/MacOSX10.4u.sdk"
+            set macports::universal_sysroot "${macports::developer_dir}/SDKs/MacOSX10.4u.sdk"
         }
     }
     if {![info exists macports::universal_archs]} {
@@ -924,11 +929,11 @@ proc macports::fetch_port {url} {
     if {![file writable $fetchdir]} {
         return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
-    if {[catch {exec curl -L -s -S -o [file join $fetchdir $fetchfile] $url} result]} {
+    if {[catch {curl fetch $url [file join $fetchdir $fetchfile]} result]} {
         return -code error "Port remote fetch failed: $result"
     }
     cd $fetchdir
-    if {[catch {exec tar -zxf $fetchfile} result]} {
+    if {[catch {exec [findBinary tar $macports::autoconf::tar_path] -zxf $fetchfile} result]} {
         return -code error "Port extract failed: $result"
     }
     if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
@@ -1110,7 +1115,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         error "Error evaluating variants"
     }
 
-    ditem_key $mport provides [$workername eval return \$portname]
+    ditem_key $mport provides [$workername eval return \$name]
 
     return $mport
 }
@@ -1284,13 +1289,22 @@ proc _porttest {mport depspec} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \${portname}]
+    return [$workername eval registry_exists_for_name \${name}]
 }
 
 # Determine if a port is active (only for image mode)
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_active \${portname}]}]} {
+    if {[catch {set reslist [$workername eval registry_active \${name}]}]} {
+        return 0
+    } else {
+        return [expr [llength $reslist] > 0]
+    }
+}
+
+# Determine if the named port is active (only for image mode)
+proc _portnameactive {portname} {
+    if {[catch {set reslist [registry::active $portname]}]} {
         return 0
     } else {
         return [expr [llength $reslist] > 0]
@@ -1303,21 +1317,22 @@ proc _mportactive {mport} {
 # (and active, if we're in image mode).
 # We actually start with the registry (faster?)
 #
-# mport     the port to test (to figure out if it's present)
+# mport     the port declaring the dep (context in which to evaluate $prefix etc)
 # depspec   the dependency test specification (path, bin, lib, etc.)
 proc _mportispresent {mport depspec} {
-    ui_debug "Searching for dependency: [ditem_key $mport provides]"
+    set portname [lindex [split $depspec :] end]
+    ui_debug "Searching for dependency: $portname"
     if {[string equal ${macports::registry.installtype} "image"]} {
-        set res [_mportactive $mport]
+        set res [_portnameactive $portname]
     } else {
-        set res [_mportinstalled $mport]
+        set res [registry::entry_exists_for_name $portname]
     }
     if {$res != 0} {
-        ui_debug "Found Dependency: receipt exists for [ditem_key $mport provides]"
+        ui_debug "Found Dependency: receipt exists for $portname"
         return 1
     } else {
         # The receipt test failed, use one of the depspec regex mechanisms
-        ui_debug "Didn't find receipt, going to depspec regex for: [ditem_key $mport provides]"
+        ui_debug "Didn't find receipt, going to depspec regex for: $portname"
         set type [lindex [split $depspec :] 0]
         switch $type {
             lib { return [_libtest $mport $depspec] }
@@ -1329,6 +1344,30 @@ proc _mportispresent {mport depspec} {
         return 0
     }
 }
+
+### _mportconflictsinstalled is private; may change without notice
+
+# Determine if the port, per the conflicts option, has any conflicts with
+# what is installed.
+#
+# mport   the port to check for conflicts
+# Returns a list of which installed ports conflict, or an empty list if none
+proc _mportconflictsinstalled {mport conflictinfo} {
+    set conflictlist {}
+    if {[llength $conflictinfo] > 0} {
+        ui_debug "Checking for conflicts against [_mportkey $mport name]"
+        foreach conflictport ${conflictinfo} {
+            if {[_mportispresent $mport port:${conflictport}]} {
+                lappend conflictlist $conflictport
+            }
+        }
+    } else {
+        ui_debug "[_mportkey $mport name] has no conflicts"
+    }
+
+    return $conflictlist
+}
+
 
 ### _mportexec is private; may change without notice
 
@@ -1369,7 +1408,9 @@ proc mportexec {mport target} {
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
     set dlist {}
-    if {$target == "configure" || $target == "build"
+    if {   $target == "fetch" || $target == "checksum"
+        || $target == "extract" || $target == "patch"
+        || $target == "configure" || $target == "build"
         || $target == "test"
         || $target == "destroot" || $target == "install"
         || $target == "archive"
@@ -1624,7 +1665,7 @@ proc mportsync {{optionslist {}}} {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
                     file mkdir [file dirname $indexfile]
-                    exec curl -L -s -S -o $indexfile $source/PortIndex
+                    curl $source/PortIndex $indexfile
                 }
             }
             default {
@@ -1946,27 +1987,37 @@ proc _mportkey {mport key} {
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
-proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsFlag 0}} {
+proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
 
     array set portinfo [mportinfo $mport]
     set depends {}
     set deptypes {}
-    if {$accDepsFlag == 0} {
-        array set accDeps {}
-    } else {
-        upvar accDeps accDeps
-    }
 
     # progress indicator
     if {![macports::ui_isset ports_debug]} {
         ui_info -nonewline "."
         flush stdout
     }
+    
+    if {[info exists portinfo(conflicts)] && ($target == "" || $target == "install")} {
+        set conflictports [_mportconflictsinstalled $mport $portinfo(conflicts)]
+        if {[llength ${conflictports}] != 0} {
+            if {[macports::global_option_isset ports_force]} {
+                ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictports}"
+            } else {
+                return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictports}"
+            }
+        }
+    }
 
     # Determine deptypes to look for based on target
     switch $target {
+        fetch       -
+        checksum    { set deptypes "depends_fetch" }
+        extract     -
+        patch       { set deptypes "depends_fetch depends_extract" }
         configure   -
-        build       { set deptypes "depends_lib depends_build" }
+        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
 
         test        -
         destroot    -
@@ -1980,7 +2031,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
         rpm         -
         srpm        -
         dpkg        -
-        ""          { set deptypes "depends_lib depends_build depends_run" }
+        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
     }
 
     # Gather the dependencies for deptypes
@@ -1992,50 +2043,46 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     }
 
     set subPorts {}
+    set options [ditem_key $mport options]
+    set variations [ditem_key $mport variations]
 
     foreach depspec $depends {
-        # grab the portname portion of the depspec
-        set dep_portname [lindex [split $depspec :] end]
-
-        # Find the porturl
-        if {[catch {set res [mportlookup $dep_portname]} error]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            ui_error "Internal error: port lookup failed: $error"
-            return 1
-        }
-
-        array unset portinfo
-        array set portinfo [lindex $res 1]
-        if {[info exists portinfo(porturl)]} {
-            set porturl $portinfo(porturl)
-        } else {
-            ui_error "Dependency '$dep_portname' not found."
-            return 1
-        }
-
-        set options [ditem_key $mport options]
-        set variations [ditem_key $mport variations]
-
-        # Figure out the subport.
-        set subport [mportopen $porturl $options $variations]
-
         # Is that dependency satisfied or this port installed?
         # If we don't skip or if it is not, add it to the list.
-        if {!$skipSatisfied || ![_mportispresent $subport $depspec]} {
-            # Append the sub-port's provides to the port's requirements list.
-            ditem_append_unique $mport requires "[ditem_key $subport provides]"
+        if {!$skipSatisfied || ![_mportispresent $mport $depspec]} {
+            # grab the portname portion of the depspec
+            set dep_portname [lindex [split $depspec :] end]
 
-            if {$recurseDeps} {
-                # Skip the port if it's already in the accumulated list.
-                if {![info exists accDeps($dep_portname)]} {
-                    # Add it to the list
-                    set accDeps($dep_portname) 1
+            # Find the porturl
+            if {[catch {set res [mportlookup $dep_portname]} error]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Internal error: port lookup failed: $error"
+                return 1
+            }
 
-                    # We'll recursively iterate on it.
+            array unset portinfo
+            array set portinfo [lindex $res 1]
+            if {![info exists portinfo(porturl)]} {
+                ui_error "Dependency '$dep_portname' not found."
+                return 1
+            }
+
+            # Figure out the subport. Check the open_mports list first, since
+            # we potentially leak mport references if we mportopen each time,
+            # because mportexec only closes each open mport once.
+            set subport [dlist_search $macports::open_mports porturl $portinfo(porturl)]
+            if {$subport == {}} {
+                # We haven't opened this one yet.
+                set subport [mportopen $portinfo(porturl) $options $variations]
+                if {$recurseDeps} {
+                    # Add to the list we need to recurse on.
                     lappend subPorts $subport
                 }
             }
+
+            # Append the sub-port's provides to the port's requirements list.
+            ditem_append_unique $mport requires "[ditem_key $subport provides]"
         }
     }
 
@@ -2043,7 +2090,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDepsF
     if {$recurseDeps} {
         foreach subport $subPorts {
             # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $subport "" $recurseDeps $skipSatisfied 1]
+            set res [mportdepends $subport "" $recurseDeps $skipSatisfied]
             if {$res != 0} {
                 return $res
             }
@@ -2116,9 +2163,8 @@ proc macports::selfupdate {{optionslist {}}} {
             set owner [file attributes ${prefix} -owner]
             set group [file attributes ${prefix} -group]
             set perms [string range [file attributes ${prefix} -permissions] end-3 end]
-            set installing_user [exec /usr/bin/id -un]
-            if {![string equal $installing_user $owner]} {
-                return -code error "User $installing_user does not own ${prefix} - try using sudo"
+            if {![string equal $tcl_platform(user) $owner]} {
+                return -code error "User $tcl_platform(user) does not own ${prefix} - try using sudo"
             }
             ui_debug "Permissions OK"
 
@@ -2156,7 +2202,7 @@ proc macports::selfupdate {{optionslist {}}} {
     # set the MacPorts sources to the right owner
     set sources_owner [file attributes [file join $portdbpath sources/] -owner]
     ui_debug "Setting MacPorts sources ownership to $sources_owner"
-    if { [catch { exec chown -R $sources_owner [file join $portdbpath sources/] } result] } {
+    if { [catch { exec [findBinary chown $macports::autoconf::chown_path] -R $sources_owner [file join $portdbpath sources/] } result] } {
         return -code error "Couldn't change permissions of the MacPorts sources at $mp_source_path to $sources_owner: $result"
     }
 
@@ -2220,29 +2266,34 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if { [catch {set ilist [registry::installed $portname ""]} result] } {
         if {$result == "Registry error: $portname not registered as installed." } {
             ui_debug "$portname is *not* installed by MacPorts"
-            # open porthandle
-            set porturl $portinfo(porturl)
-            if {![info exists porturl]} {
-                set porturl file://./
-            }
-            # Merge the global variations into the specified
-            foreach { variation value } $globalvarlist {
-                if { ![info exists variations($variation)] } {
-                    set variations($variation) $value
-                }
-            }
 
-            if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
+            # We need to pass _mportispresent a reference to the mport that is
+            # actually declaring the dependency on the one we're checking for.
+            # We got here via _upgrade_dependencies, so we grab it from 2 levels up.
+            upvar 2 workername parentworker
+            if {![_mportispresent $parentworker $dspec ] } {
+                # open porthandle
+                set porturl $portinfo(porturl)
+                if {![info exists porturl]} {
+                    set porturl file://./
+                }
+                # Merge the global variations into the specified
+                foreach { variation value } $globalvarlist {
+                    if { ![info exists variations($variation)] } {
+                        set variations($variation) $value
+                    }
+                }
+
+                if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to open port: $result"
                     return 1
-            }
-            # While we're at it, update the portinfo
-            array unset portinfo
-            array set portinfo [mportinfo $workername]
-
-            if {![_mportispresent $workername $dspec ] } {
+                }
+                # While we're at it, update the portinfo
+                array unset portinfo
+                array set portinfo [mportinfo $workername]
+                
                 # upgrade its dependencies first
                 _upgrade_dependencies portinfo depscache globalvarlist variationslist options
                 # now install it
@@ -2259,8 +2310,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     return $result
                 }
                 # we just installed it, so mark it done in the cache
-                # and update ilist
                 set depscache(port:${portname}) 1
+                mportclose $workername
             } else {
                 # dependency is satisfied by something other than the named port
                 ui_debug "$portname not installed, soft dependency satisfied"
@@ -2269,7 +2320,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             }
             # the rest of the proc doesn't matter for a port that is freshly
             # installed or not installed
-            mportclose $workername
             return 0
         } else {
             ui_error "Checking installed version failed: $result"
@@ -2583,7 +2633,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
     unset -nocomplain options(ports_do_dependents)
 
     # each dep type is upgraded
-    foreach dtype {depends_build depends_lib depends_run} {
+    foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [lindex [split $i :] end]

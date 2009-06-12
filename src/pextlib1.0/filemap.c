@@ -92,7 +92,6 @@
 #endif
 
 #include <tcl.h>
-#include <tclDecls.h>
 
 #include "filemap.h"
 #include "strcasecmp.h"
@@ -707,6 +706,8 @@ Free(SNode** ioRoot)
 					ckfree((char*) theSubnode);
 					*theSubnodeCursor = 0;
 				}
+				
+				theSubnodeCursor++;
 			}
 		}
 		
