@@ -126,10 +126,18 @@ proc uninstall {portname {v ""} optionslist} {
 	}
 
 	if {[registry::property_retrieve $ref active] == 1} {
-		#return -code error [msgcat::mc "Registry Error: ${portname} ${version}_${revision}${variants} is active."]
-		registry::deactivate $portname ${version}_${revision}${variants} $optionslist
+		if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
+			ui_msg "For $portname @${version}_${revision}${variants}: skipping deactivate (dry run)"
+		} else {
+			portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
+		}
 	}
 
+	if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
+		ui_msg "For $portname @${version}_${revision}${variants}: skipping uninstall (dry run)"
+		return 0
+	}
+	
 	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
 
 	# Look to see if the port has registered an uninstall procedure
