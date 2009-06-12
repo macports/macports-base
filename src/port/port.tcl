@@ -2873,82 +2873,82 @@ proc action_args_const {arg} {
     }
 }
 array set action_array [list \
-    usage       [list action_usage          [action_args_const strings]] \
-    help        [list action_help           [action_args_const strings]] \
+    usage          [list action_usage           [action_args_const strings]] \
+    help           [list action_help            [action_args_const strings]] \
     \
-    echo        [list action_echo           [action_args_const ports]] \
+    echo           [list action_echo            [action_args_const ports]] \
     \
-    info        [list action_info           [action_args_const ports]] \
-    notes       [list action_notes          [action_args_const ports]] \
-    provides    [list action_provides       [action_args_const strings]] \
+    info           [list action_info            [action_args_const ports]] \
+    notes          [list action_notes           [action_args_const ports]] \
+    provides       [list action_provides        [action_args_const strings]] \
     \
-    activate    [list action_activate       [action_args_const ports]] \
-    deactivate  [list action_deactivate     [action_args_const ports]] \
+    activate       [list action_activate        [action_args_const ports]] \
+    deactivate     [list action_deactivate      [action_args_const ports]] \
     \
-    select      [list action_select         [action_args_const strings]] \
+    select         [list action_select          [action_args_const strings]] \
     \
-    sync        [list action_sync           [action_args_const none]] \
-    selfupdate  [list action_selfupdate     [action_args_const none]] \
+    sync           [list action_sync            [action_args_const none]] \
+    selfupdate     [list action_selfupdate      [action_args_const none]] \
     \
-    upgrade     [list action_upgrade        [action_args_const ports]] \
+    upgrade        [list action_upgrade         [action_args_const ports]] \
     \
-    version     [list action_version        [action_args_const none]] \
-    platform    [list action_platform       [action_args_const none]] \
+    version        [list action_version         [action_args_const none]] \
+    platform       [list action_platform        [action_args_const none]] \
     \
-    uninstall   [list action_uninstall      [action_args_const ports]] \
+    uninstall      [list action_uninstall       [action_args_const ports]] \
     \
-    installed   [list action_installed      [action_args_const ports]] \
-    outdated    [list action_outdated       [action_args_const ports]] \
-    contents    [list action_contents       [action_args_const ports]] \
-    dependents  [list action_dependents     [action_args_const ports]] \
-    deps        [list action_info           [action_args_const ports]] \
-    variants    [list action_variants       [action_args_const ports]] \
+    installed      [list action_installed       [action_args_const ports]] \
+    outdated       [list action_outdated        [action_args_const ports]] \
+    contents       [list action_contents        [action_args_const ports]] \
+    dependents     [list action_dependents      [action_args_const ports]] \
+    deps           [list action_info            [action_args_const ports]] \
+    variants       [list action_variants        [action_args_const ports]] \
     \
-    search      [list action_search         [action_args_const strings]] \
-    list        [list action_list           [action_args_const ports]] \
+    search         [list action_search          [action_args_const strings]] \
+    list           [list action_list            [action_args_const ports]] \
     \
-    ed          [list action_portcmds       [action_args_const ports]] \
-    edit        [list action_portcmds       [action_args_const ports]] \
-    cat         [list action_portcmds       [action_args_const ports]] \
-    dir         [list action_portcmds       [action_args_const ports]] \
-    work        [list action_portcmds       [action_args_const ports]] \
-    cd          [list action_portcmds       [action_args_const ports]] \
-    url         [list action_portcmds       [action_args_const ports]] \
-    file        [list action_portcmds       [action_args_const ports]] \
-    gohome      [list action_portcmds       [action_args_const ports]] \
+    ed             [list action_portcmds        [action_args_const ports]] \
+    edit           [list action_portcmds        [action_args_const ports]] \
+    cat            [list action_portcmds        [action_args_const ports]] \
+    dir            [list action_portcmds        [action_args_const ports]] \
+    work           [list action_portcmds        [action_args_const ports]] \
+    cd             [list action_portcmds        [action_args_const ports]] \
+    url            [list action_portcmds        [action_args_const ports]] \
+    file           [list action_portcmds        [action_args_const ports]] \
+    gohome         [list action_portcmds        [action_args_const ports]] \
     \
-    fetch       [list action_target         [action_args_const ports]] \
-    checksum    [list action_target         [action_args_const ports]] \
-    extract     [list action_target         [action_args_const ports]] \
-    patch       [list action_target         [action_args_const ports]] \
-    configure   [list action_target         [action_args_const ports]] \
-    build       [list action_target         [action_args_const ports]] \
-    imagefile   [list action_target         [action_args_const ports]] \
-    destroot    [list action_target         [action_args_const ports]] \
-    install     [list action_target         [action_args_const ports]] \
-    clean       [list action_target         [action_args_const ports]] \
-    test        [list action_target         [action_args_const ports]] \
-    lint        [list action_target         [action_args_const ports]] \
-    submit      [list action_target         [action_args_const ports]] \
-    trace       [list action_target         [action_args_const ports]] \
-    livecheck   [list action_target         [action_args_const ports]] \
-    distcheck   [list action_target         [action_args_const ports]] \
-    mirror      [list action_target         [action_args_const ports]] \
-    load        [list action_target         [action_args_const ports]] \
-    unload      [list action_target         [action_args_const ports]] \
-    distfiles   [list action_target         [action_args_const ports]] \
+    fetch          [list action_target          [action_args_const ports]] \
+    checksum       [list action_target          [action_args_const ports]] \
+    extract        [list action_target          [action_args_const ports]] \
+    patch          [list action_target          [action_args_const ports]] \
+    configure      [list action_target          [action_args_const ports]] \
+    build          [list action_target          [action_args_const ports]] \
+    imagefile      [list action_target          [action_args_const ports]] \
+    destroot       [list action_target          [action_args_const ports]] \
+    install        [list action_target          [action_args_const ports]] \
+    clean          [list action_target          [action_args_const ports]] \
+    test           [list action_target          [action_args_const ports]] \
+    lint           [list action_target          [action_args_const ports]] \
+    submit         [list action_target          [action_args_const ports]] \
+    trace          [list action_target          [action_args_const ports]] \
+    livecheck      [list action_target          [action_args_const ports]] \
+    distcheck      [list action_target          [action_args_const ports]] \
+    mirror         [list action_target          [action_args_const ports]] \
+    load           [list action_target          [action_args_const ports]] \
+    unload         [list action_target          [action_args_const ports]] \
+    distfiles      [list action_target          [action_args_const ports]] \
     \
-    dmg         [list action_target         [action_args_const ports]] \
-    mdmg        [list action_target         [action_args_const ports]] \
-    dpkg        [list action_target         [action_args_const ports]] \
-    mpkg        [list action_target         [action_args_const ports]] \
-    pkg         [list action_target         [action_args_const ports]] \
-    portpkg     [list action_target         [action_args_const ports]] \
-    rpm         [list action_target         [action_args_const ports]] \
-    srpm        [list action_target         [action_args_const ports]] \
+    dmg            [list action_target          [action_args_const ports]] \
+    mdmg           [list action_target          [action_args_const ports]] \
+    dpkg           [list action_target          [action_args_const ports]] \
+    mpkg           [list action_target          [action_args_const ports]] \
+    pkg            [list action_target          [action_args_const ports]] \
+    portpkg        [list action_target          [action_args_const ports]] \
+    rpm            [list action_target          [action_args_const ports]] \
+    srpm           [list action_target          [action_args_const ports]] \
     \
-    quit        [list action_exit           [action_args_const none]] \
-    exit        [list action_exit           [action_args_const none]] \
+    quit           [list action_exit            [action_args_const none]] \
+    exit           [list action_exit            [action_args_const none]] \
 ]
 
 proc find_action_proc { action } {
