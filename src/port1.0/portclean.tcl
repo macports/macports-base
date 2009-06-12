@@ -65,11 +65,8 @@ proc portclean::clean_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
         clean_dist
     }
-    if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_work] && $ports_clean_work == "yes"} {
-         ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
-         clean_work
-    }
+     ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
+     clean_work
 
     # start gsoc-08 privileges
     if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
