@@ -805,6 +805,9 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_installed registry::installed
     $workername alias registry_active registry::active
 
+    # Image file processing
+    $workername alias install_register_imagefile macports::install_register_imagefile
+
     # deferred options processing.
     $workername alias getoption macports::getoption
 
@@ -2657,3 +2660,81 @@ proc mportselect {command group {version ""}} {
     }
     return
 }
+
+# Procedure to install an image file; protocols currently supported
+# are file:, https?:, and ftp:.
+proc macports::install_image {imageurl} {
+    # Implement
+}
+
+# Procedure to install and register an imagefile; the file itself must
+# be local (see macports::install_image to install from varying URLs).
+# Install means to simply copy to the right path as the file is not expected
+# to be there as yet.  Registering it of course means simply adding to
+# the registry as installed, but not active.
+proc macports::install_register_imagefile {imagefile} {
+    global env macports::portimagefilepath macports::prefix
+    if {[info exists env(TMPDIR)]} {
+        set mytempdir [mkdtemp [file join $env(TMPDIR) mpimageXXXXXXXX]]
+    } else {
+        set mytempdir [mkdtemp [file join /tmp mpimageXXXXXXXX]]
+    }
+    set startpwd [pwd]
+    try {
+        if {[catch {cd $mytempdir} err]} {
+            throw MACPORTS $err
+        }
+        if {[catch {set tarcmd [findBinary tar ${macports::autoconf::tar_path}]} err]} {
+            throw MACPORTS $err
+        }
+        if {[catch {system "$tarcmd -xvf $imagefile +IMAGERECEIPT"} err]} {
+            throw MACPORTS $err
+        }
+        if {[catch {set fd [open "+IMAGERECEIPT" r]} err]} {
+            throw MACPORTS "Can't open image receipt: $err"
+        }
+        array set imagevars [list]
+        while {[gets $fd line] >= 0} {
+            set imagevars([lindex $line 0]) [lrange $line 1 end]
+        }
+        close $fd
+        set requiredvars {name version revision portvariants epoch categories contents prefix}
+        foreach required $requiredvars {
+            if {![info exists imagevars($required)]} {
+                throw MACPORTS "Image receipt missing required variable $required"
+            }
+        }
+
+        if {$imagevars(prefix) != $prefix} {
+            throw MACPORTS "Image prefix ($imagevars(prefix)) does not match ours ($prefix)"
+        }
+        set portimagepath [file join ${portimagefilepath} $imagevars(name)]
+        if {![file isdirectory $portimagepath]} {
+            file mkdir $portimagepath
+        }
+        ui_debug "Installing and registering [file tail $imagefile]"
+        file copy -force $imagefile $portimagepath
+
+        set regref [registry::new_entry $imagevars(name) $imagevars(version) $imagevars(revision) $imagevars(portvariants) $imagevars(epoch)]
+        registry::property_store $regref categories $imagevars(categories)
+        registry::property_store $regref contents $imagevars(contents)
+        foreach propname [array names imagevars] {
+            if {[lsearch -exact $requiredvars $propname] >= 0} {
+                continue
+            }
+            registry::property_store $regref $propname $imagevars($propname)
+            if {[lsearch -exact {depends_run depends_lib} $propname] != -1} {
+               registry::register_dependencies $imagevars($propname) $imagevars(name)
+            }
+        }
+        registry::write_entry $regref
+    } catch {* errorCode errorMessage } {
+        ui_error $errorMessage
+    } finally {
+        cd $startpwd
+        file delete -force $mytempdir
+    }
+
+    return 0
+}
+
