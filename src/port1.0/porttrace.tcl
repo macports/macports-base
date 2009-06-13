@@ -104,6 +104,7 @@ proc porttrace::trace_disable_fence {} {
     global env
     if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
         unset env(DARWINTRACE_SANDBOX_BOUNDS)
+        unsetenv DARWINTRACE_SANDBOX_BOUNDS
     }
 }
 
@@ -147,11 +148,9 @@ proc porttrace::trace_stop {} {
     global os.platform
     if {${os.platform} == "darwin"} {
         global env trace_fifo
-        unset env(DYLD_INSERT_LIBRARIES)
-        unset env(DYLD_FORCE_FLAT_NAMESPACE)
-        unset env(DARWINTRACE_LOG)
-        if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
-            unset env(DARWINTRACE_SANDBOX_BOUNDS)
+        foreach var {DYLD_INSERT_LIBRARIES DYLD_FORCE_FLAT_NAMESPACE DARWINTRACE_LOG DARWINTRACE_SANDBOX_BOUNDS} {
+            array unset env $var
+            unsetenv $var
         }
 
         #kill socket
