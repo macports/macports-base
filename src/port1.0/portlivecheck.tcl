@@ -54,8 +54,8 @@ default livecheck.check default
 default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
-default livecheck.name default
-default livecheck.distname default
+default livecheck.name {$name}
+default livecheck.distname {${livecheck.name}}
 default livecheck.version {$version}
 
 # Deprecation
@@ -121,14 +121,6 @@ proc portlivecheck::livecheck_main {args} {
         if {${livecheck.type} eq "default"} {
             set livecheck.type "fallback"
         }
-    }
-    # If livecheck.name is still "default", set it to $name.
-    if {${livecheck.name} eq "default"} {
-        set livecheck.name $name
-    }
-    # If livecheck.distname is still "default", set it to $name.
-    if {${livecheck.distname} eq "default"} {
-        set livecheck.distname $name
     }
     if {[lsearch -exact [split $available_types "|"] ${livecheck.type}] != -1} {
         # Load the defaults from _resources/port1.0/livecheck/${livecheck.type}.tcl.
