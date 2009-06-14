@@ -490,35 +490,11 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 #---------------------------------------
 AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
 
-    AC_ARG_WITH(universal-target,[AS_HELP_STRING([--with-universal-target=MDT],[Universal MACOSX_DEPLOYMENT_TARGET version])], UNIVERSAL_TARGET=${withval})
-    AC_ARG_WITH(universal-sysroot,[AS_HELP_STRING([--with-universal-sysroot=SDK],[Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
     AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
-
-	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
-
-	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    UNIVERSAL_TARGET=${MACOSX_MAJOR_VERSION}
-	fi
-
-	if test "x$UNIVERSAL_SYSROOT" = "x"; then
-	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
-	    else
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
-	    fi
-	fi
 
 	if test "x$UNIVERSAL_ARCHS" = "x"; then
 	    UNIVERSAL_ARCHS="ppc i386"
 	fi
-    
-    AC_MSG_CHECKING([for Universal MDT version])
-    AC_MSG_RESULT([$UNIVERSAL_TARGET])
-    AC_SUBST(UNIVERSAL_TARGET)
-
-    AC_MSG_CHECKING([for Universal SDK sysroot])
-    AC_MSG_RESULT([$UNIVERSAL_SYSROOT])
-    AC_SUBST(UNIVERSAL_SYSROOT)
 
     AC_MSG_CHECKING([for Universal CPU architectures])
     AC_MSG_RESULT([$UNIVERSAL_ARCHS])

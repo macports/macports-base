@@ -676,8 +676,6 @@ MD5_LIBS
 READLINK_IS_NOT_P1003_1A
 CPP
 UNIVERSAL_ARCHS
-UNIVERSAL_SYSROOT
-UNIVERSAL_TARGET
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
@@ -831,8 +829,6 @@ with_directory_mode
 with_shared_directory
 with_applications_dir
 with_frameworks_dir
-with_universal_target
-with_universal_sysroot
 with_universal_archs
 enable_readline
 with_tcl
@@ -1522,10 +1518,6 @@ Optional Packages:
   --with-shared-directory Use 0775 permissions for installed directories
   --with-applications-dir Applications installation directory.
   --with-frameworks-dir   Frameworks installation directory.
-  --with-universal-target=MDT
-                          Universal MACOSX_DEPLOYMENT_TARGET version
-  --with-universal-sysroot=SDK
-                          Universal SDK sysroot (with complete path)
   --with-universal-archs="CPU"
                           Universal CPU architectures (space separated)
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
@@ -8077,53 +8069,15 @@ $as_echo "$MPFRAMEWORKSDIR" >&6; }
 
 
 
-# Check whether --with-universal-target was given.
-if test "${with_universal_target+set}" = set; then
-  withval=$with_universal_target; UNIVERSAL_TARGET=${withval}
-fi
-
-
-# Check whether --with-universal-sysroot was given.
-if test "${with_universal_sysroot+set}" = set; then
-  withval=$with_universal_sysroot; UNIVERSAL_SYSROOT=${withval}
-fi
-
-
 # Check whether --with-universal-archs was given.
 if test "${with_universal_archs+set}" = set; then
   withval=$with_universal_archs; UNIVERSAL_ARCHS=${withval}
 fi
 
 
-	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
-
-	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    UNIVERSAL_TARGET=${MACOSX_MAJOR_VERSION}
-	fi
-
-	if test "x$UNIVERSAL_SYSROOT" = "x"; then
-	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
-	    else
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
-	    fi
-	fi
-
 	if test "x$UNIVERSAL_ARCHS" = "x"; then
 	    UNIVERSAL_ARCHS="ppc i386"
 	fi
-
-    { $as_echo "$as_me:$LINENO: checking for Universal MDT version" >&5
-$as_echo_n "checking for Universal MDT version... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_TARGET" >&5
-$as_echo "$UNIVERSAL_TARGET" >&6; }
-
-
-    { $as_echo "$as_me:$LINENO: checking for Universal SDK sysroot" >&5
-$as_echo_n "checking for Universal SDK sysroot... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_SYSROOT" >&5
-$as_echo "$UNIVERSAL_SYSROOT" >&6; }
-
 
     { $as_echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
 $as_echo_n "checking for Universal CPU architectures... " >&6; }

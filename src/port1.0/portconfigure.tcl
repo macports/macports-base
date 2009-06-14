@@ -128,9 +128,7 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.universal_target configure.universal_sysroot configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
-default configure.universal_target      {${universal_target}}
-default configure.universal_sysroot     {${universal_sysroot}}
+options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_archs       {${universal_archs}}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
@@ -196,34 +194,33 @@ proc portconfigure::configure_get_universal_archflags {args} {
 
 # internal function to determine the CPPFLAGS for the compiler
 proc portconfigure::configure_get_universal_cppflags {args} {
-    global configure.universal_sysroot
+    global os.arch os.major
     set flags ""
     # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
-    if {[info exists configure.universal_sysroot]} {
-        set flags "-isysroot ${configure.universal_sysroot}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-isysroot /Developer/SDKs/MacOSX10.4u.sdk"
     }
     return $flags
 }
 
 # internal function to determine the CFLAGS for the compiler
 proc portconfigure::configure_get_universal_cflags {args} {
-    global configure.universal_sysroot configure.universal_target
+    global os.arch os.major
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
-    if {[info exists configure.universal_sysroot]} {
-        set flags "-isysroot ${configure.universal_sysroot} ${flags}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-isysroot /Developer/SDKs/MacOSX10.4u.sdk ${flags}"
     }
     return $flags
 }
 
 # internal function to determine the LDFLAGS for the compiler
 proc portconfigure::configure_get_universal_ldflags {args} {
-    global configure.universal_sysroot configure.universal_target
-    global os.arch
+    global os.arch os.major
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
-    if {${os.arch} == "powerpc"} {
-        set flags "-Wl,-syslibroot,${configure.universal_sysroot} ${flags}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk ${flags}"
     }
     return $flags
 }
