@@ -82,6 +82,10 @@ static int TracelibSetNameCmd(Tcl_Interp * interp, int objc, Tcl_Obj *CONST objv
 	}
 	
 	name=strdup(Tcl_GetString(objv[2]));
+	if (!name) {
+	    Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
+	    return TCL_ERROR;
+	}
 	
 	return TCL_OK;
 }
@@ -107,8 +111,12 @@ static int TracelibSetSandboxCmd(Tcl_Interp * interp, int objc, Tcl_Obj *CONST o
 	
 	len=strlen(Tcl_GetString(objv[2]))+2;
 	sandbox=(char*)malloc(len);
+	if (!sandbox) {
+	    Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
+	    return TCL_ERROR;
+	}
 	memset(sandbox, 0, len);
-	strcpy(sandbox, Tcl_GetString(objv[2]));
+	strlcpy(sandbox, Tcl_GetString(objv[2]), len);
 	for(t=sandbox;(t=strchr(t+1, ':'));)
 	{
 		/* : -> \0 */
@@ -210,10 +218,23 @@ static void send_file_map(int sock)
 	{
 		char * t, * _;
 		
-		filemap=(char*)malloc(1024);
+		size_t remaining = 1024;
+		filemap=(char*)malloc(remaining);
+		if (!filemap) {
+		    ui_warn("send_file_map: memory allocation failed");
+	        return;
+		}
 		t=filemap;
 		
-		#define append_allow(path, resolution) do{strcpy(t, path); t+=strlen(t)+1; *t++=resolution; *t++=0;}while(0);
+		#define append_allow(path, resolution) do { strlcpy(t, path, remaining); \
+		                                            if (remaining < (strlen(t)+3)) \
+		                                                remaining=0; \
+		                                            else \
+		                                                remaining-=strlen(t)+3; \
+		                                            t+=strlen(t)+1; \
+		                                            *t++=resolution; \
+		                                            *t++=0; \
+		                                          } while(0);
 		if(enable_fence)
 		{
 			for(_=sandbox; *_; _+=strlen(_)+1)
@@ -226,22 +247,25 @@ static void send_file_map(int sock)
 			/* If there is no SDK we will allow everything in /usr /System/Library etc, else add binaries to allow, and redirect root to SDK. */
 			if(sdk&&*sdk)
 			{
-				char buf[260]="/Developer/SDKs/";
-				strcat(buf, sdk);
+				char buf[260];
+				buf[0] = '\0';
+				strlcat(buf, Tcl_GetVar(interp, "macports::developer_dir", TCL_GLOBAL_ONLY), 260);
+				strlcat(buf, "/SDKs/", 260);
+				strlcat(buf, sdk, 260);
 			
 				append_allow("/usr/bin", 0);
 				append_allow("/usr/sbin", 0);
 				append_allow("/usr/libexec/gcc", 0);
 				append_allow("/System/Library/Perl", 0);
 				append_allow("/", 1);
-				strcpy(t-1, buf);
+				strlcpy(t-1, buf, remaining);
 				t+=strlen(t)+1;
 			}else
 			{
 				append_allow("/usr", 0);
 				append_allow("/System/Library", 0);
 				append_allow("/Library", 0);
-				append_allow("/Developer", 0);
+				append_allow(Tcl_GetVar(interp, "macports::developer_dir", TCL_GLOBAL_ONLY), 0);
 			}
 		}else
 			append_allow("/", 0);
@@ -267,42 +291,40 @@ static void dep_check(int sock, const char * path)
 {
 	char * port=0;
 	size_t len=1;
-	char resolution; 
+	char resolution='!';
+		
+	Tcl_SetVar(interp, "path", path, 0);
+	Tcl_Eval(interp, "registry::file_registered $path");
+	port=strdup(Tcl_GetStringResult(interp));
+	if (!port) {
+		ui_warn("dep_check: memory allocation failed");
+	    return;
+	}
+	Tcl_UnsetVar(interp, "path", 0);
 	
-	/* If there aren't deps then allow anything. (Useful for extract) */
-	if(!depends)
-		resolution='+';
-	else
+	if(*port!='0'||port[1])
 	{
-		resolution='!';
-		
-		Tcl_SetVar(interp, "path", path, 0);
-		Tcl_Eval(interp, "registry::file_registered $path");
-		port=strdup(Tcl_GetStringResult(interp));
-		Tcl_UnsetVar(interp, "path", 0);
+		char * t;
 	
-		if(*port!='0'||port[1])
+		t=depends;
+		for(;*t;t+=strlen(t)+1)
 		{
-			char * t;
-		
-			t=depends;
-			for(;*t;t+=strlen(t)+1)
+			if(!strcmp(t, port))
 			{
-				if(!strcmp(t, port))
-				{
-					resolution='+';
-					break;
-				}
+				resolution='+';
+				break;
 			}
-		}else if(*port=='0'&&!port[1])
-			strcpy(port, "*unknown*");
+		}
 	}
 	
-	if(resolution!='+')
-		ui_info("trace: access denied to %s (%s)", path, port);
+	if(resolution!='+') {
+	    if(*port=='0'&&!port[1])
+		    ui_info("trace: access denied to %s (*unknown*)", path);
+		else
+		    ui_info("trace: access denied to %s (%s)", path, port);
+    }
 
-	if(port)
-		free(port);
+	free(port);
 	
 	if(send(sock, &len, sizeof(len), 0)==-1)
 		ui_warn("tracelib send failed");
@@ -374,7 +396,7 @@ static int TracelibRunCmd(Tcl_Interp * in)
 
 	
 	sun.sun_family=AF_UNIX;
-	strcpy(sun.sun_path, name);
+	strlcpy(sun.sun_path, name, sizeof(sun.sun_path));
 	if(bind(sock, (struct sockaddr*)&sun, sizeof(sun))==-1)
 	{
 		Tcl_SetResult(interp, "Cannot bind socket", TCL_STATIC);
@@ -518,8 +540,12 @@ static int TracelibSetDeps(Tcl_Interp * interp UNUSED, int objc, Tcl_Obj* CONST 
 	d=Tcl_GetString(objv[2]);
 	l=strlen(d);
 	depends=malloc(l+2);
+	if (!depends) {
+	    Tcl_SetResult(interp, "memory allocation failed", TCL_STATIC);
+	    return TCL_ERROR;
+	}
 	depends[l+1]=0;
-	strcpy(depends, d);
+	strlcpy(depends, d, l+2);
 	for(t=depends;*t;++t)
 		if(*t==' ')
 			*t++=0;

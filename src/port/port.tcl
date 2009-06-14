@@ -1833,10 +1833,14 @@ proc action_activate { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "port activate failed: $result" 1 status
+        if {![macports::global_option_isset ports_dryrun]} {
+            if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "port activate failed: $result" 1 status
+            }
+        } else {
+            ui_msg "Skipping activate $portname (dry run)"
         }
     }
     
@@ -1850,10 +1854,14 @@ proc action_deactivate { action portlist opts } {
         return 1
     }
     foreachport $portlist {
-        if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "port deactivate failed: $result" 1 status
+        if {![macports::global_option_isset ports_dryrun]} {
+            if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "port deactivate failed: $result" 1 status
+            }
+        } else {
+            ui_msg "Skipping deactivate $portname (dry run)"
         }
     }
     

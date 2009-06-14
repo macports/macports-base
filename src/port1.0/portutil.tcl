@@ -1268,7 +1268,6 @@ proc target_run {ditem} {
                     # outside the sandbox.
                     if {$target != "activate"
                       && $target != "archive"
-                      && $target != "fetch"
                       && $target != "install"} {
                         porttrace::trace_enable_fence
                     }
