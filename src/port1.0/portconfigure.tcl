@@ -88,11 +88,9 @@ options configure.optflags configure.cflags configure.cppflags configure.cxxflag
 default configure.optflags  {-O2}
 # compiler flags section
 default configure.cflags    {[portconfigure::configure_get_cflags]}
-#default configure.cppflags  {"-I${prefix}/include"}
 default configure.cppflags  {[portconfigure::configure_get_cppflags]}
 default configure.cxxflags  {[portconfigure::configure_get_cflags]}
 default configure.objcflags {[portconfigure::configure_get_cflags]}
-#default configure.ldflags   {"-L${prefix}/lib"}
 default configure.ldflags   {[portconfigure::configure_get_ldflags]}
 default configure.libs      {}
 default configure.fflags    {[portconfigure::configure_get_cflags]}
