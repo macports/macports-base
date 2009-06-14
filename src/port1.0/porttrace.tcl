@@ -44,7 +44,7 @@ proc porttrace::trace_start {workpath} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
         } else {
-            global env trace_fifo trace_sandboxbounds portpath
+            global env trace_fifo trace_sandboxbounds portpath distpath
             # Create a fifo.
             # path in unix socket limited to 109 chars
             # # set trace_fifo "$workpath/trace_fifo"
@@ -78,7 +78,7 @@ proc porttrace::trace_start {workpath} {
             # /Library/Caches/com.apple.Xcode
             # $CCACHE_DIR
             # $HOMEDIR/.ccache
-            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:$portpath"
+            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:${portpath}:${distpath}"
             if {[info exists env(TMPDIR)]} {
                 set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
             }
@@ -104,6 +104,7 @@ proc porttrace::trace_disable_fence {} {
     global env
     if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
         unset env(DARWINTRACE_SANDBOX_BOUNDS)
+        unsetenv DARWINTRACE_SANDBOX_BOUNDS
     }
 }
 
@@ -147,11 +148,9 @@ proc porttrace::trace_stop {} {
     global os.platform
     if {${os.platform} == "darwin"} {
         global env trace_fifo
-        unset env(DYLD_INSERT_LIBRARIES)
-        unset env(DYLD_FORCE_FLAT_NAMESPACE)
-        unset env(DARWINTRACE_LOG)
-        if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
-            unset env(DARWINTRACE_SANDBOX_BOUNDS)
+        foreach var {DYLD_INSERT_LIBRARIES DYLD_FORCE_FLAT_NAMESPACE DARWINTRACE_LOG DARWINTRACE_SANDBOX_BOUNDS} {
+            array unset env $var
+            unsetenv $var
         }
 
         #kill socket

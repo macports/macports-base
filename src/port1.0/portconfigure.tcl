@@ -46,7 +46,7 @@ namespace eval portconfigure {
 commands configure autoreconf automake autoconf xmkmf
 # defaults
 default configure.env       ""
-default configure.pre_args  {--prefix=${prefix}}
+default configure.pre_args  {[portconfigure::configure_get_pre_args]}
 default configure.cmd       ./configure
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
@@ -88,10 +88,10 @@ options configure.optflags configure.cflags configure.cppflags configure.cxxflag
 default configure.optflags  {-O2}
 # compiler flags section
 default configure.cflags    {[portconfigure::configure_get_cflags]}
-default configure.cppflags  {"-I${prefix}/include"}
+default configure.cppflags  {[portconfigure::configure_get_cppflags]}
 default configure.cxxflags  {[portconfigure::configure_get_cflags]}
 default configure.objcflags {[portconfigure::configure_get_cflags]}
-default configure.ldflags   {"-L${prefix}/lib"}
+default configure.ldflags   {[portconfigure::configure_get_ldflags]}
 default configure.libs      {}
 default configure.fflags    {[portconfigure::configure_get_cflags]}
 default configure.f90flags  {[portconfigure::configure_get_cflags]}
@@ -102,6 +102,7 @@ default configure.classpath {}
 proc portconfigure::configure_get_cflags {args} {
     global configure.optflags
     global configure.m32 configure.m64 configure.march configure.mtune
+    global configure.universal_cflags
     set flags "${configure.optflags}"
     if {[tbool configure.m64]} {
         set flags "-m64 ${flags}"
@@ -113,6 +114,27 @@ proc portconfigure::configure_get_cflags {args} {
     }
     if {[info exists configure.mtune] && ${configure.mtune} != {}} {
         set flags "${flags} -mtune=${configure.mtune}"
+    }
+    if {[variant_isset universal] && ${configure.universal_cflags} != ""} {
+        set flags "${flags} ${configure.universal_cflags}"
+    }
+    return $flags
+}
+
+proc portconfigure::configure_get_cppflags {args} {
+    global prefix configure.universal_cppflags
+    set flags "-I${prefix}/include"
+    if {[variant_isset universal] && ${configure.universal_cppflags} != ""} {
+        set flags "${flags} ${configure.universal_cppflags}"
+    }
+    return $flags
+}
+
+proc portconfigure::configure_get_ldflags {args} {
+    global prefix configure.universal_ldflags
+    set flags "-L${prefix}/lib"
+    if {[variant_isset universal] && ${configure.universal_ldflags} != ""} {
+        set flags "${flags} ${configure.universal_ldflags}"
     }
     return $flags
 }
@@ -128,9 +150,7 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.universal_target configure.universal_sysroot configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
-default configure.universal_target      {${universal_target}}
-default configure.universal_sysroot     {${universal_sysroot}}
+options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_archs       {${universal_archs}}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
@@ -184,46 +204,58 @@ proc portconfigure::configure_start {args} {
     ui_debug "Using compiler '$name'"
 }
 
+proc portconfigure::configure_get_pre_args {args} {
+    global prefix configure.universal_args
+    set result "--prefix=${prefix}"
+    if {[variant_isset universal] && ${configure.universal_args} != ""} {
+        set result "$result ${configure.universal_args}"
+    }
+    return $result
+}
+
 # internal function to determine the "-arch xy" flags for the compiler
 proc portconfigure::configure_get_universal_archflags {args} {
     global configure.universal_archs
     set flags ""
     foreach arch ${configure.universal_archs} {
-        set flags "$flags -arch $arch"
+        if {$flags == ""} {
+            set flags "-arch $arch"
+        } else {
+            set flags "$flags -arch $arch"
+        }
     }
     return $flags
 }
 
 # internal function to determine the CPPFLAGS for the compiler
 proc portconfigure::configure_get_universal_cppflags {args} {
-    global configure.universal_sysroot
+    global os.arch os.major
     set flags ""
     # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
-    if {[info exists configure.universal_sysroot]} {
-        set flags "-isysroot ${configure.universal_sysroot}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-isysroot /Developer/SDKs/MacOSX10.4u.sdk"
     }
     return $flags
 }
 
 # internal function to determine the CFLAGS for the compiler
 proc portconfigure::configure_get_universal_cflags {args} {
-    global configure.universal_sysroot configure.universal_target
+    global os.arch os.major
     set flags [configure_get_universal_archflags]
     # these flags should be valid for C/C++ and similar compiler frontends
-    if {[info exists configure.universal_sysroot]} {
-        set flags "-isysroot ${configure.universal_sysroot} ${flags}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-isysroot /Developer/SDKs/MacOSX10.4u.sdk ${flags}"
     }
     return $flags
 }
 
 # internal function to determine the LDFLAGS for the compiler
 proc portconfigure::configure_get_universal_ldflags {args} {
-    global configure.universal_sysroot configure.universal_target
-    global os.arch
+    global os.arch os.major
     set flags [configure_get_universal_archflags]
     # works around linking without using the CFLAGS, outside of automake
-    if {${os.arch} == "powerpc"} {
-        set flags "-Wl,-syslibroot,${configure.universal_sysroot} ${flags}"
+    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
+        set flags "-Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk ${flags}"
     }
     return $flags
 }
@@ -283,7 +315,6 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
                 objc { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
                 cxx  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
-                cpp  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-cpp-4.2 }
             }
         }
         clang {
