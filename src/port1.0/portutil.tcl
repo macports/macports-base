@@ -1881,9 +1881,8 @@ proc default_universal_variant_allowed {args} {
 }
 
 proc add_default_universal_variant {args} {
-    # Declare default universal variant if universal SDK is installed
-    variant universal {
-    }
+    # Declare default universal variant (all the magic happens in portconfigure now)
+    variant universal {}
 }
 
 # Target class definition.
