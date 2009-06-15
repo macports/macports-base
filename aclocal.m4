@@ -492,7 +492,14 @@ AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
   AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
   if test "x$UNIVERSAL_ARCHS" = "x"; then
-    UNIVERSAL_ARCHS="ppc i386"
+    case "$MACOSX_VERSION" in
+      10.[[0-5]]*)
+        UNIVERSAL_ARCHS="i386 ppc"
+        ;;
+      *)
+        UNIVERSAL_ARCHS="x86_64 i386"
+        ;;
+    esac
   fi
 
   AC_MSG_CHECKING([for Universal CPU architectures])
