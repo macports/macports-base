@@ -54,8 +54,8 @@ default livecheck.check default
 default livecheck.type default
 default livecheck.md5 ""
 default livecheck.regex ""
-default livecheck.name {$name}
-default livecheck.distname {${livecheck.name}}
+default livecheck.name default
+default livecheck.distname default
 default livecheck.version {$version}
 
 # Deprecation
