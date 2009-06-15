@@ -489,16 +489,15 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 # MP_UNIVERSAL_OPTIONS
 #---------------------------------------
 AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
+  AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
-    AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
+  if test "x$UNIVERSAL_ARCHS" = "x"; then
+    UNIVERSAL_ARCHS="ppc i386"
+  fi
 
-	if test "x$UNIVERSAL_ARCHS" = "x"; then
-	    UNIVERSAL_ARCHS="ppc i386"
-	fi
-
-    AC_MSG_CHECKING([for Universal CPU architectures])
-    AC_MSG_RESULT([$UNIVERSAL_ARCHS])
-    AC_SUBST(UNIVERSAL_ARCHS)
+  AC_MSG_CHECKING([for Universal CPU architectures])
+  AC_MSG_RESULT([$UNIVERSAL_ARCHS])
+  AC_SUBST(UNIVERSAL_ARCHS)
 ])
 
 # MP_LIB_MD5
