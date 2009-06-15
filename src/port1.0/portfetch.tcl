@@ -225,38 +225,39 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
 
-    # here we have the chance to take a look at tags, that possibly
-    # have been assigned in mirror_sites.tcl
-    set splitlist [split $element :]
-    # every element is a URL, so we'll always have multiple elements. no need to check
-    set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
-    set mirror_tag "[lindex $splitlist 2]"
+        # here we have the chance to take a look at tags, that possibly
+        # have been assigned in mirror_sites.tcl
+        set splitlist [split $element :]
+        # every element is a URL, so we'll always have multiple elements. no need to check
+        set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
+        set mirror_tag "[lindex $splitlist 2]"
 
-    set name_re {\$(?:name\y|\{name\})}
-    # if the URL has $name embedded, kill any mirror_tag that may have been added
-    # since a mirror_tag and $name are incompatible
-    if {[regexp $name_re $element]} {
-        set mirror_tag ""
-    }
+        set name_re {\$(?:name\y|\{name\})}
+        # if the URL has $name embedded, kill any mirror_tag that may have been added
+        # since a mirror_tag and $name are incompatible
+        if {[regexp $name_re $element]} {
+            set mirror_tag ""
+        }
 
-    if {$mirror_tag == "mirror"} {
-        set thesubdir ${dist_subdir}
-    } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
-        set thesubdir ${name}
-    } else {
-        set thesubdir ${subdir}
-    }
+        if {$mirror_tag == "mirror"} {
+            set thesubdir ${dist_subdir}
+        } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
+            set thesubdir ${name}
+        } else {
+            set thesubdir ${subdir}
+        }
 
-    # parse an embedded $name. if present, remove the subdir
-    if {[regsub $name_re $element $thesubdir element] > 0} {
-        set thesubdir ""
-    }
+        # parse an embedded $name. if present, remove the subdir
+        if {[regsub $name_re $element $thesubdir element] > 0} {
+            set thesubdir ""
+        }
 
-    if {"$tag" != ""} {
-        eval append element "${thesubdir}:${tag}"
-    } else {
-        eval append element "${thesubdir}"
-    }
+        if {"$tag" != ""} {
+            eval append element "${thesubdir}:${tag}"
+        } else {
+            eval append element "${thesubdir}"
+        }
+
         eval lappend ret $element
     }
 
