@@ -334,9 +334,9 @@ proc portfetch::checksites {args} {
 }
 
 # Checks patch files and their tags to assemble url lists for later fetching
-proc portfetch::checkpatchfiles {args} {
+proc portfetch::checkpatchfiles {urls} {
     global patchfiles all_dist_files patch_sites filespath
-    variable fetch_urls
+    upvar $urls fetch_urls
 
     if {[info exists patchfiles]} {
         foreach file $patchfiles {
@@ -357,9 +357,9 @@ proc portfetch::checkpatchfiles {args} {
 }
 
 # Checks dist files and their tags to assemble url lists for later fetching
-proc portfetch::checkdistfiles {args} {
+proc portfetch::checkdistfiles {urls} {
     global distfiles all_dist_files master_sites filespath
-    variable fetch_urls
+    upvar $urls fetch_urls
 
     if {[info exists distfiles]} {
         foreach file $distfiles {
@@ -378,9 +378,9 @@ proc portfetch::checkdistfiles {args} {
 }
 
 # sorts fetch_urls in order of ping time
-proc portfetch::sortsites {args} {
+proc portfetch::sortsites {urls} {
     global fallback_mirror_site
-    variable fetch_urls
+    upvar $urls fetch_urls
 
     set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
 
@@ -454,12 +454,12 @@ proc portfetch::sortsites {args} {
 
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
-proc portfetch::checkfiles {args} {
-    variable fetch_urls
+proc portfetch::checkfiles {urls} {
+    upvar $urls fetch_urls
 
     checksites
-    checkpatchfiles
-    checkdistfiles
+    checkpatchfiles fetch_urls
+    checkdistfiles fetch_urls
 }
 
 
@@ -628,7 +628,7 @@ proc portfetch::fetchfiles {args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
             if {!$sorted} {
-                sortsites
+                sortsites fetch_urls
                 set sorted yes
             }
             variable portfetch::$url_var
@@ -703,6 +703,7 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 proc portfetch::fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     global altprefix usealtworkpath
+    variable fetch_urls
 
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
 
@@ -717,7 +718,7 @@ proc portfetch::fetch_init {args} {
         set distpath ${distpath}/${dist_subdir}
         set fetch_init_done yes
     }
-    portfetch::checkfiles
+    portfetch::checkfiles fetch_urls
 }
 
 proc portfetch::fetch_start {args} {
