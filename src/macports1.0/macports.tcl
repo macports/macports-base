@@ -319,7 +319,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         upvar $up_variations variations
     }
 
-    global auto_path env
+    global auto_path env tcl_platform
     global macports::autoconf::macports_conf_path
     global macports::macports_user_dir
     global macports::bootstrap_options
@@ -650,7 +650,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        set macports::universal_archs {ppc i386}
+        if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+            set macports::universal_archs {x86_64 i386}
+        } else {
+            set macports::universal_archs {i386 ppc}
+        }
     }
 
     # ENV cleanup.
