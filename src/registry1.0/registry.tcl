@@ -470,11 +470,8 @@ proc activate {name v optionslist} {
 		lappend imagefiles [lindex $content_element 0]
 	}
 
-	if {[info exists env(TMPDIR)]} {
-		set extractdir [mkdtemp [file join $env(TMPDIR) mpextractXXXXXXXX]]
-	} else {
-		set extractdir [mkdtemp [file join /tmp mpextractXXXXXXXX]]
-	}
+	set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
+    ui_msg "extractdir is $extractdir"
 	set startpwd [pwd]
 	try {
 		if {[catch {cd $extractdir} err]} {
@@ -489,7 +486,7 @@ proc activate {name v optionslist} {
 		if {[catch {system "$tarcmd -xf $macport_file files.tar.bz2"} err]} {
 			throw MACPORTS $err
 		}
-		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf -"} err]} {
+		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf - --same-owner"} err]} {
 			throw MACPORTS $err
 		}
 		_activate_contents $name $imagefiles $extractdir

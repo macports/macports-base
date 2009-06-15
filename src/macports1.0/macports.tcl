@@ -2645,6 +2645,18 @@ proc mportselect {command group {version ""}} {
     return
 }
 
+# Return a good temporary directory to use; /tmp if TMPDIR is not set
+# in the environment
+proc macports::gettmpdir {args} {
+    global env
+
+    if {[info exists env(TMPDIR)]} {
+        return $env(TMPDIR)
+    } else {
+        return "/tmp"
+    }
+}
+
 # Procedure to install an image file; protocols currently supported
 # are file:, https?:, and ftp:.
 proc macports::install_image {imageurl} {
@@ -2658,11 +2670,8 @@ proc macports::install_image {imageurl} {
 # the registry as installed, but not active.
 proc macports::install_register_imagefile {imagefile} {
     global env macports::portimagefilepath macports::prefix
-    if {[info exists env(TMPDIR)]} {
-        set mytempdir [mkdtemp [file join $env(TMPDIR) mpimageXXXXXXXX]]
-    } else {
-        set mytempdir [mkdtemp [file join /tmp mpimageXXXXXXXX]]
-    }
+    set mytempdir [mkdtemp [file join [gettmpdir] mpimageXXXXXXXX]]
+    ui_msg "mytempdir is $mytempdir"
     set startpwd [pwd]
     try {
         if {[catch {cd $mytempdir} err]} {
