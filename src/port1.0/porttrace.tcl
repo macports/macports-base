@@ -212,7 +212,7 @@ proc porttrace::delete_slave {} {
 
 # Private.
 # Slave method to read a line from the trace.
-proc porttrace::lave_read_line {chan} {
+proc porttrace::slave_read_line {chan} {
     global ports_list trace_filemap sandbox_violation_list workpath
     global env
 
