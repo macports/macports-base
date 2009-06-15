@@ -471,7 +471,6 @@ proc activate {name v optionslist} {
 	}
 
 	set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
-    ui_msg "extractdir is $extractdir"
 	set startpwd [pwd]
 	try {
 		if {[catch {cd $extractdir} err]} {

@@ -2671,7 +2671,6 @@ proc macports::install_image {imageurl} {
 proc macports::install_register_imagefile {imagefile} {
     global env macports::portimagefilepath macports::prefix
     set mytempdir [mkdtemp [file join [gettmpdir] mpimageXXXXXXXX]]
-    ui_msg "mytempdir is $mytempdir"
     set startpwd [pwd]
     try {
         if {[catch {cd $mytempdir} err]} {
