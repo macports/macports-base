@@ -53,7 +53,7 @@ default build.asroot no
 default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
-default build.jobs {${buildmakejobs}}
+default build.jobs {[portbuild::build_getjobs]}
 default build.pre_args {${build.target}}
 default build.target "all"
 default use_parallel_build yes
@@ -114,7 +114,24 @@ proc portbuild::build_getnicevalue {args} {
     return "[findBinary nice $portutil::autoconf::nice_path] -n $nice "
 }
 
-proc portbuild::build_getmakejobs {args} {
+proc portbuild::build_getjobs {args} {
+    global buildmakejobs
+    set jobs $buildmakejobs
+    # if set to '0', use the number of cores for the number of jobs
+    if {$jobs == 0} {
+        if {[catch {set jobs [exec "/usr/sbin/sysctl" "-n" "hw.availcpu"]}]} {
+            set jobs 2
+            ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
+            ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
+        }
+    }
+    if {![string is integer -strict $jobs] || $jobs <= 1} {
+        set jobs 1
+    }
+    return $jobs
+}
+
+proc portbuild::build_getjobsarg {args} {
     # check if port allows a parallel build
     global use_parallel_build
     if {![tbool use_parallel_build]} {
@@ -125,19 +142,7 @@ proc portbuild::build_getmakejobs {args} {
     if {![exists build.jobs] || !([string match "*make*" [option build.cmd]] || [string match "*scons*" [option build.cmd]])} {
         return ""
     }
-    set jobs [option build.jobs]
-    # if set to '0', use the number of cores for the number of jobs
-    if {$jobs == 0} {
-        if {[catch {set jobs [exec "/usr/sbin/sysctl" "-n" "hw.availcpu"]}]} {
-            set jobs 2
-            ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
-            ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
-        }
-    }
-    if {![string is integer -strict $jobs] || $jobs <= 1} {
-        return ""
-    }
-    return " -j$jobs"
+    return " -j[option build.jobs]"
 }
 
 proc portbuild::build_start {args} {
@@ -150,7 +155,7 @@ proc portbuild::build_main {args} {
     global build.cmd
 
     set nice_prefix [build_getnicevalue]
-    set jobs_suffix [build_getmakejobs]
+    set jobs_suffix [build_getjobsarg]
 
     set realcmd ${build.cmd}
     set build.cmd "$nice_prefix${build.cmd}$jobs_suffix"

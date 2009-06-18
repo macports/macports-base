@@ -615,7 +615,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        set macports::universal_archs {ppc i386}
+        if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+            set macports::universal_archs {x86_64 i386}
+        } else {
+            set macports::universal_archs {i386 ppc}
+        }
     }
 
     # Platform Settings

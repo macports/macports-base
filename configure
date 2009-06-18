@@ -8068,20 +8068,26 @@ $as_echo "$MPFRAMEWORKSDIR" >&6; }
 # Check for universal options
 
 
-
 # Check whether --with-universal-archs was given.
 if test "${with_universal_archs+set}" = set; then
   withval=$with_universal_archs; UNIVERSAL_ARCHS=${withval}
 fi
 
 
-	if test "x$UNIVERSAL_ARCHS" = "x"; then
-	    UNIVERSAL_ARCHS="ppc i386"
-	fi
+  if test "x$UNIVERSAL_ARCHS" = "x"; then
+    case "$MACOSX_VERSION" in
+      10.[0-5]*)
+        UNIVERSAL_ARCHS="i386 ppc"
+        ;;
+      *)
+        UNIVERSAL_ARCHS="x86_64 i386"
+        ;;
+    esac
+  fi
 
-    { $as_echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
+  { $as_echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
 $as_echo_n "checking for Universal CPU architectures... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_ARCHS" >&5
+  { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_ARCHS" >&5
 $as_echo "$UNIVERSAL_ARCHS" >&6; }
 
 

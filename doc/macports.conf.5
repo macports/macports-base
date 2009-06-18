@@ -168,7 +168,10 @@ The machine architectures to use for +universal variant
 Regular architectures include: ppc, i386, ppc64, x86_64
 .br
 .Ic Default:
-ppc i386
+x86_64 i386
+.br
+.Ic Default (10.5 and earlier):
+i386 ppc
 .It Va startupitem_type
 Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a
 startupitem.type key. If set to "default", then a type will be selected that's appropriate to the OS.
