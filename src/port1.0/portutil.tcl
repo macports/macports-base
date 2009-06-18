@@ -681,11 +681,11 @@ proc platform {args} {
     # Pick up a unique name.
     if {[variant_exists $platform]} {
         set suffix 1
-        while {[variant_exists "$platform-$suffix"]} {
+        while {[variant_exists "${platform}_${suffix}"]} {
             incr suffix
         }
 
-        set platform "$platform-$suffix"
+        set platform "${platform}_${suffix}"
     }
     variant $platform $code
 
