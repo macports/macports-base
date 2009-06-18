@@ -2658,9 +2658,47 @@ proc macports::gettmpdir {args} {
 }
 
 # Procedure to install an image file; protocols currently supported
-# are file:, https?:, and ftp:.
+# are file: and anything which curl supports.
 proc macports::install_image {imageurl} {
-    # Implement
+    set filetoinstall ""
+    set tmpfetchdir [mkdtemp [file join [gettmpdir] mpimagefetchXXXXXXXX]]
+    try {
+        # Handle case where just a plain local path was passed
+        if {[file exists $imageurl]} {
+            set filetoinstall $imageurl
+        } else {
+            if {[regexp {(?x)([^:]+)://(.+)} $imageurl -> protocol imagepath] != 1} {
+                throw MACPORTS "Invalid URL spec: $imageurl (should be protocol://information)"
+            } else {
+                switch -- $protocol {
+                    file {
+                        set filetoinstall $imagepath
+                    }
+                    default {
+                        set filetoinstall [file join $tmpfetchdir [file tail $imagepath]]
+                        if {[catch {curl fetch $imageurl $filetoinstall} result]} {
+                            throw MACPORTS "Fetching remote image failed: $result"
+                        }
+                    }
+                }
+            }
+        }
+
+        if {$filetoinstall == ""} {
+            throw MACPORTS "Cannot determine/fetch file to install from $imageurl"
+        }
+        if {![file exists $filetoinstall]} {
+            throw MACPORTS "The file $filetoinstall does not exist"
+        }
+        ui_info "Installing from image at $imageurl"
+        set result [install_register_imagefile $filetoinstall]
+    } catch {* errorCode errorMessage } {
+        return -code error $errorMessage
+    } finally {
+        file delete -force $tmpfetchdir
+    }
+
+    return $result
 }
 
 # Procedure to install and register an imagefile; the file itself must
@@ -2670,6 +2708,7 @@ proc macports::install_image {imageurl} {
 # the registry as installed, but not active.
 proc macports::install_register_imagefile {imagefile} {
     global env macports::portimagefilepath macports::prefix
+
     set mytempdir [mkdtemp [file join [gettmpdir] mpimageXXXXXXXX]]
     set startpwd [pwd]
     try {
@@ -2721,7 +2760,7 @@ proc macports::install_register_imagefile {imagefile} {
         }
         registry::write_entry $regref
     } catch {* errorCode errorMessage } {
-        ui_error $errorMessage
+        return -code error $errorMessage
     } finally {
         cd $startpwd
         file delete -force $mytempdir

@@ -1790,6 +1790,30 @@ proc action_provides { action portlist opts } {
 }
 
 
+proc action_installimage { action portlist opts } {
+    # portlist here is actually a list of URLs for image files
+    if {![llength $portlist]} {
+        ui_error "Please provide at least one URL for an image file to install"
+        return 1
+    }
+    foreach imageurl $portlist {
+        if {![macports::global_option_isset ports_dryrun]} {
+            if {[catch {macports::install_image $imageurl} result] || $result != 0} {
+                ui_error "Failed to install from image: $result"
+                return 1
+            } else {
+               # Need to extract information from this image (name, version, etc)
+               ui_msg "activate here"
+            }
+        } else {
+            ui_msg "Skipping install of image $imageurl (dry run)"
+        }
+    }
+
+    return 0
+}
+
+
 proc action_activate { action portlist opts } {
     set status 0
     if {[require_portlist portlist]} {
@@ -2881,6 +2905,7 @@ array set action_array [list \
     info           [list action_info            [action_args_const ports]] \
     notes          [list action_notes           [action_args_const ports]] \
     provides       [list action_provides        [action_args_const strings]] \
+    installimage   [list action_installimage    [action_args_const strings]] \
     \
     activate       [list action_activate        [action_args_const ports]] \
     deactivate     [list action_deactivate      [action_args_const ports]] \
