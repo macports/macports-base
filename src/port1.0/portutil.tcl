@@ -681,11 +681,11 @@ proc platform {args} {
     # Pick up a unique name.
     if {[variant_exists $platform]} {
         set suffix 1
-        while {[variant_exists "$platform-$suffix"]} {
+        while {[variant_exists "${platform}_${suffix}"]} {
             incr suffix
         }
 
-        set platform "$platform-$suffix"
+        set platform "${platform}_${suffix}"
     }
     variant $platform $code
 
@@ -1698,7 +1698,7 @@ proc variant_run {ditem} {
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "Variant $name conflicts with $v"
+            ui_error "[option name]: Variant $name conflicts with $v"
             return 1
         }
     }
@@ -1707,7 +1707,7 @@ proc variant_run {ditem} {
     if {[catch "variant-${name}" result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Error executing $name: $result"
+        ui_error "[option name]: Error executing $name: $result"
         return 1
     }
     return 0
