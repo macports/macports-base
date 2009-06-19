@@ -59,7 +59,7 @@ proc portclean::clean_main {args} {
     global UI_PREFIX
     global ports_clean_dist ports_clean_work ports_clean_archive
     global ports_clean_all usealtworkpath
-
+    global	keeplogs
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
@@ -75,6 +75,9 @@ proc portclean::clean_main {args} {
         (!([info exists ports_clean_archive] && $ports_clean_archive == "yes"))} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
+    }
+    if {$keeplogs == "no"} {
+        clean_logs
     }
 
     # start gsoc-08 privileges
@@ -195,6 +198,20 @@ proc portclean::clean_work {args} {
         delete $worksymlink
     }
 
+    return 0
+}
+proc portclean::clean_logs {args} {
+    global portbuildpath worksymlink name portverbose keeplogs prefix
+ 	  set logpath "${prefix}/var/macports/logs/${name}"
+  	if {[file isdirectory $logpath]} {
+        ui_debug "Removing directory: ${logpath}"
+        if {[catch {delete $logpath} result]} {
+            ui_debug "$::errorInfo"
+            ui_error "$result"
+        }
+    } else {
+        ui_debug "No log directory found to remove at ${logpath}"
+    }           	
     return 0
 }
 

@@ -1425,10 +1425,14 @@ proc action_log { action portlist opts } {
          append logfile $portinfo(name)
          append logfile "/main.log"
          mportclose $mport                        
-         set fp [open $logfile r]
-         set data [read $fp]
-         close $fp
-         puts $data
+         if {[file exists $logfile]} {
+            set fp [open $logfile r]
+            set data [read $fp]
+            close $fp
+            puts $data
+        } else {
+            ui_msg "Log file not found"
+        }
     }
     return 0
 }

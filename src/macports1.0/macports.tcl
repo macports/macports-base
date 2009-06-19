@@ -42,7 +42,7 @@ namespace eval macports {
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
-        porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
+        porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs \
@@ -51,7 +51,7 @@ namespace eval macports {
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
-        portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
+        portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
@@ -525,6 +525,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portautoclean "yes"
         global macports::portautoclean
     }
+	# keeplogs option
+   	if {![info exists keeplogs]} {
+        set macports::keeplogs "yes"
+        global macports::keeplogs
+    }
+   
     # Check command line override for autoclean
     if {[info exists macports::global_options(ports_autoclean)]} {
         if {![string equal $macports::global_options(ports_autoclean) $portautoclean]} {
