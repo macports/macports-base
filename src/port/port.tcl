@@ -1798,12 +1798,14 @@ proc action_installimage { action portlist opts } {
     }
     foreach imageurl $portlist {
         if {![macports::global_option_isset ports_dryrun]} {
-            if {[catch {macports::install_image $imageurl} result] || $result != 0} {
+            if {[catch {macports::install_image $imageurl portinfo} result] || $result != 0} {
                 ui_error "Failed to install from image: $result"
                 return 1
             } else {
-               # Need to extract information from this image (name, version, etc)
-               ui_msg "activate here"
+                if {[catch {registry::activate $portinfo(name) "$portinfo(version)_$portinfo(revision)$portinfo(portvariants)" [array get options]} result] } {
+                    ui_error "Failed to activate: $result"
+                    return 1
+                }
             }
         } else {
             ui_msg "Skipping install of image $imageurl (dry run)"

@@ -2663,7 +2663,8 @@ proc macports::gettmpdir {args} {
 
 # Procedure to install an image file; protocols currently supported
 # are file: and anything which curl supports.
-proc macports::install_image {imageurl} {
+# Note that this installs the image but does not activate it.
+proc macports::install_image {imageurl {portinfo ""}} {
     set filetoinstall ""
     set tmpfetchdir [mkdtemp [file join [gettmpdir] mpimagefetchXXXXXXXX]]
     try {
@@ -2694,8 +2695,9 @@ proc macports::install_image {imageurl} {
         if {![file exists $filetoinstall]} {
             throw MACPORTS "The file $filetoinstall does not exist"
         }
-        ui_info "Installing from image at $imageurl"
-        set result [install_register_imagefile $filetoinstall]
+        ui_msg "---> Installing from image at $imageurl"
+        upvar $portinfo myportinfo
+        set result [install_register_imagefile $filetoinstall myportinfo]
     } catch {* errorCode errorMessage } {
         return -code error $errorMessage
     } finally {
@@ -2710,7 +2712,10 @@ proc macports::install_image {imageurl} {
 # Install means to simply copy to the right path as the file is not expected
 # to be there as yet.  Registering it of course means simply adding to
 # the registry as installed, but not active.
-proc macports::install_register_imagefile {imagefile} {
+# An optional second argument can be given which must be an array (or
+# not exist at all) which will be filled with information on the port
+# just installed & registered (eg, keys of name, version, revision, etc)
+proc macports::install_register_imagefile {imagefile {portinfo ""}} {
     global env macports::portimagefilepath macports::prefix
 
     set mytempdir [mkdtemp [file join [gettmpdir] mpimageXXXXXXXX]]
@@ -2763,6 +2768,10 @@ proc macports::install_register_imagefile {imagefile} {
             }
         }
         registry::write_entry $regref
+        if {$portinfo ne ""} {
+            upvar $portinfo myportinfo
+            array set myportinfo [array get imagevars]
+        }
     } catch {* errorCode errorMessage } {
         return -code error $errorMessage
     } finally {
