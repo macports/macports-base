@@ -859,6 +859,7 @@ SED
 TAR
 MAKE
 GNUTAR
+BSDMAKE
 GNUMAKE
 BZIP2
 XAR
@@ -1549,6 +1550,7 @@ Some influential environment variables:
   TAR         path to tar command
   MAKE        path to make command
   GNUTAR      path to gnutar command
+  BSDMAKE     path to bsdmake/pmake command
   GNUMAKE     path to gnumake command
   BZIP2       path to bzip2 command
   XAR         path to xar command
@@ -4598,8 +4600,10 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "bsdmake", so it can be a program name with args.
-set dummy bsdmake; ac_word=$2
+for ac_prog in bsdmake pmake
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if test "${ac_cv_path_BSDMAKE+set}" = set; then
@@ -4637,6 +4641,9 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$BSDMAKE" && break
+done
 
 # Extract the first word of "make", so it can be a program name with args.
 set dummy make; ac_word=$2
@@ -5169,6 +5176,7 @@ fi
 
 
 # Define some precious variables allowing user to override PATH for some programs
+
 
 
 
