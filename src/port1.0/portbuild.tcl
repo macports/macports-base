@@ -69,18 +69,18 @@ proc portbuild::build_getmaketype {args} {
             if {[option os.platform] == "darwin"} {
                 return [findBinary bsdmake $portutil::autoconf::bsdmake_path]
             } elseif {[option os.platform] == "freebsd"} {
-                return [binaryInPath make]
+                return [findBinary make $portutil::autoconf::make_path]
             } else {
-                return [binaryInPath pmake]
+                return [findBinary pmake $portutil::autoconf::bsdmake_path]
             }
         }
         gnu {
             if {[option os.platform] == "darwin"} {
                 return [findBinary gnumake $portutil::autoconf::gnumake_path]
             } elseif {[option os.platform] == "linux"} {
-                return [binaryInPath make]
+                return [findBinary make $portutil::autoconf::make_path]
             } else {
-                return [binaryInPath gmake]
+                return [findBinary gmake $portutil::autoconf::gnumake_path]
             }
         }
         pbx {
