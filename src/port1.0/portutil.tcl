@@ -2366,17 +2366,19 @@ proc chown {path user} {
 proc chownAsRoot {path} {
     global euid macportsuser
 
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
-    # if started with sudo but have dropped the privileges
-        seteuid $euid
-        ui_debug "euid changed to: [geteuid]"
-        chown  ${path} ${macportsuser}
-        ui_debug "chowned $path to $macportsuser"
-        seteuid [name_to_uid "$macportsuser"]
-        ui_debug "euid changed to: [geteuid]"
-    } elseif { [getuid] == 0 } {
-    # if started with sudo but have elevated back to root already
-        chown  ${path} ${macportsuser}
+    if { [getuid] == 0 } {
+        if {[geteuid] != 0} {
+            # if started with sudo but have dropped the privileges
+            seteuid $euid
+            ui_debug "euid changed to: [geteuid]"
+            chown  ${path} ${macportsuser}
+            ui_debug "chowned $path to $macportsuser"
+            seteuid [name_to_uid "$macportsuser"]
+            ui_debug "euid changed to: [geteuid]"
+        } else {
+            # if started with sudo but have elevated back to root already
+            chown  ${path} ${macportsuser}
+        }
     }
 }
 
@@ -2387,16 +2389,14 @@ proc chownAsRoot {path} {
 proc elevateToRoot {action} {
     global euid egid macportsuser
 
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+    if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
         setegid $egid
         seteuid $euid
         ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-    }
-
-    if { [getuid] != 0 } {
-        return -code error "MacPorts requires root privileges for this action";
+    } elseif { [getuid] != 0 } {
+        return -code error "MacPorts requires root privileges for this action"
     }
 }
 
@@ -2407,15 +2407,17 @@ proc dropPrivileges {} {
     global euid egid macportsuser workpath
     if { [geteuid] == 0 } {
         if { [catch {
-                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+                if {[name_to_uid "$macportsuser"] != 0} {
+                    ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
 
-                #seteuid [name_to_uid [file attributes $workpath -owner]]
-                #setegid [name_to_gid [file attributes $workpath -group]]
+                    #seteuid [name_to_uid [file attributes $workpath -owner]]
+                    #setegid [name_to_gid [file attributes $workpath -group]]
 
-                setegid [uname_to_gid "$macportsuser"]
-                seteuid [name_to_uid "$macportsuser"]
-                ui_debug "egid changed to: [getegid]"
-                ui_debug "euid changed to: [geteuid]"
+                    setegid [uname_to_gid "$macportsuser"]
+                    seteuid [name_to_uid "$macportsuser"]
+                    ui_debug "egid changed to: [getegid]"
+                    ui_debug "euid changed to: [geteuid]"
+                }
             }]
         } {
             ui_debug "$::errorInfo"
