@@ -170,7 +170,7 @@ proc portdestroot::destroot_finish {args} {
         }
     }
     fs-traverse -depth dir ${destroot} {
-        if {[file isdirectory $dir]} {
+        if {[file type $dir] == "directory"} {
             catch {file delete $dir}
         }
     }
