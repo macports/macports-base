@@ -681,11 +681,11 @@ proc platform {args} {
     # Pick up a unique name.
     if {[variant_exists $platform]} {
         set suffix 1
-        while {[variant_exists "$platform-$suffix"]} {
+        while {[variant_exists "${platform}_${suffix}"]} {
             incr suffix
         }
 
-        set platform "$platform-$suffix"
+        set platform "${platform}_${suffix}"
     }
     variant $platform $code
 
@@ -1268,7 +1268,6 @@ proc target_run {ditem} {
                     # outside the sandbox.
                     if {$target != "activate"
                       && $target != "archive"
-                      && $target != "fetch"
                       && $target != "install"} {
                         porttrace::trace_enable_fence
                     }
@@ -1699,7 +1698,7 @@ proc variant_run {ditem} {
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "Variant $name conflicts with $v"
+            ui_error "[option name]: Variant $name conflicts with $v"
             return 1
         }
     }
@@ -1708,7 +1707,7 @@ proc variant_run {ditem} {
     if {[catch "variant-${name}" result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Error executing $name: $result"
+        ui_error "[option name]: Error executing $name: $result"
         return 1
     }
     return 0
@@ -1882,20 +1881,8 @@ proc default_universal_variant_allowed {args} {
 }
 
 proc add_default_universal_variant {args} {
-    # Declare default universal variant if universal SDK is installed
-    variant universal {
-        pre-fetch {
-            if {![file exists ${configure.universal_sysroot}]} {
-                return -code error "Universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
-            }
-        }
-
-        eval configure.args-append ${configure.universal_args}
-        eval configure.cflags-append ${configure.universal_cflags}
-        eval configure.cppflags-append ${configure.universal_cppflags}
-        eval configure.cxxflags-append ${configure.universal_cxxflags}
-        eval configure.ldflags-append ${configure.universal_ldflags}
-    }
+    # Declare default universal variant (all the magic happens in portconfigure now)
+    variant universal {}
 }
 
 # Target class definition.

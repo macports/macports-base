@@ -122,11 +122,6 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     # the universal variant itself is now created in
     # add_default_universal_variant, which is called from mportopen
     option os.universal_supported yes
-
-    if {[info exists variations(universal)] && $variations(universal) == "+"} {
-        # cannot go into the variant, due to the amount of ports overriding it
-        eval macosx_deployment_target ${universal_target}
-    }
 }
 
 # Record initial euid/egid

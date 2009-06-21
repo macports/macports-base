@@ -122,10 +122,6 @@ proc portlivecheck::livecheck_main {args} {
             set livecheck.type "fallback"
         }
     }
-    # If livecheck.name is still "default", set it to $name.
-    if {${livecheck.name} eq "default"} {
-        set livecheck.name $name
-    }
     if {[lsearch -exact [split $available_types "|"] ${livecheck.type}] != -1} {
         # Load the defaults from _resources/port1.0/livecheck/${livecheck.type}.tcl.
         set defaults_file "$types_dir/${livecheck.type}.tcl"
