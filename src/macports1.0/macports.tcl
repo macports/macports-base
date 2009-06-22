@@ -799,6 +799,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias getdefaultportresourcepath macports::getdefaultportresourcepath
     $workername alias getprotocol macports::getprotocol
     $workername alias getportdir macports::getportdir
+    $workername alias findBinary macports::findBinary
+    $workername alias binaryInPath macports::binaryInPath
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry

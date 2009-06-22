@@ -2118,33 +2118,6 @@ proc dirSize {dir} {
     return $size;
 }
 
-# check for a binary in the path
-# returns an error code if it cannot be found
-proc binaryInPath {binary} {
-    global env
-    foreach dir [split $env(PATH) :] {
-        if {[file executable [file join $dir $binary]]} {
-            return [file join $dir $binary]
-        }
-    }
-
-    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
-}
-
-# find a binary either in a path defined at MacPorts' configuration time
-# or in the PATH environment variable through binaryInPath (fallback)
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [binaryInPath ${prog}]} result] == 0} {
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts configuration time location, did you move it?"
-        }
-    }
-}
-
 # Set the UI prefix to something standard (so it can be grepped for in output)
 proc set_ui_prefix {} {
     global UI_PREFIX env
