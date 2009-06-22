@@ -1244,7 +1244,7 @@ proc _mportactive {mport} {
     }
 }
 
-# Determine if the named port is active (only for image mode)
+# Determine if the named port is active
 proc _portnameactive {portname} {
     if {[catch {set reslist [registry::active $portname]}]} {
         return 0
