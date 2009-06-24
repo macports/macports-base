@@ -3155,7 +3155,7 @@ array set cmd_opts_array {
     selfupdate  {nosync}
     uninstall   {follow-dependents}
     variants    {index}
-    clean       {all archive dist work}
+    clean       {all archive dist work logs}
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
