@@ -38,7 +38,7 @@ package require macports_index 1.0
 package require macports_util 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_stages
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
@@ -64,6 +64,7 @@ namespace eval macports {
     variable open_mports {}
 
     variable ui_priorities "debug info msg error warn"
+    variable port_stages "fetch checksum"
 }
 
 # Provided UI instantiations
@@ -128,13 +129,23 @@ proc macports::init_logging {portname} {
     }
 }
 
-proc ui_message {priority prefix args} {
-    global macports::channels
+proc ui_message {priority prefix stage args} {
+    global macports::channels ::debuglog
     foreach chan $macports::channels($priority) {
-        if {[lindex $args 0] == "-nonewline"} {
-            puts -nonewline $chan "$prefix[lindex $args 1]"
+        if {$chan == $::debuglog} {
+            set strprefix ":$priority:$stage "
+            if {[lindex $args 0] == "-nonewline"} {
+                puts -nonewline $chan "$strprefix[lindex $args 1]"
+            } else {
+                puts $chan "$strprefix[lindex $args 0]"
+            }
+ 
         } else {
-            puts $chan "$prefix[lindex $args 0]"
+            if {[lindex $args 0] == "-nonewline"} {
+                puts -nonewline $chan "$prefix[lindex $args 1]"
+            } else {
+                puts $chan "$prefix[lindex $args 0]"
+            }
         }
     }
 }
@@ -158,13 +169,15 @@ proc macports::ui_init {priority args} {
     } catch * {
         set prefix [ui_prefix_default $priority]
     }
-
+    set stages {fetch checksum}
     try {
         eval ::ui_init $priority $prefix $channels($priority) $args
     } catch * {
-        interp alias {} ui_$priority {} ui_message $priority $prefix
+        interp alias {} ui_$priority {} ui_message $priority $prefix ""
+        foreach stage $stages {
+            interp alias {} ui_${priority}_${stage} {} ui_message $priority $prefix $stage
+        }
     }
-
     # Call ui_$priority
     eval ::ui_$priority $args
     
@@ -821,6 +834,12 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     foreach priority ${macports::ui_priorities} {
         $workername alias ui_$priority ui_$priority
     }
+    foreach priority ${macports::ui_priorities} {
+        foreach stage ${macports::port_stages} {
+            $workername alias ui_${priority}_${stage} ui_${priority}_${stage}
+        }
+    }
+ 
     $workername alias ui_prefix ui_prefix
     $workername alias ui_channels ui_channels
 
