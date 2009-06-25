@@ -132,7 +132,7 @@ proc macports::init_logging {portname} {
 proc ui_message {priority prefix stage args} {
     global macports::channels ::debuglog
     foreach chan $macports::channels($priority) {
-        if {$chan == $::debuglog} {
+        if {[info exists $::debuglog] && $chan == $::debuglog} {
             set strprefix ":$priority:$stage "
             if {[lindex $args 0] == "-nonewline"} {
                 puts -nonewline $chan "$strprefix[lindex $args 1]"
