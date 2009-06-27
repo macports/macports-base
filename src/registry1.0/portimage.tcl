@@ -286,7 +286,7 @@ proc _activate_file {srcfile dstfile} {
 			file mtime $dstfile [file mtime $srcfile]
 		}
 	} elseif { [file type $srcfile] == "link" } {
-		file copy -force $srcfile $dstfile
+		file copy -force -- $srcfile $dstfile
 	} else {
 		# Try a hard link first and if that fails, a symlink
 		if {[catch {file link -hard $dstfile $srcfile}]} {
@@ -345,7 +345,7 @@ proc _activate_contents {name imagefiles imagedir} {
 
 			if {[file exists $file]} {
 				ui_warn "File $file already exists.  Moving to: $bakfile."
-				file rename -force $file $bakfile
+				file rename -force -- $file $bakfile
 			}
 			
 			if { $port != 0 } {
