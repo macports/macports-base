@@ -43,6 +43,8 @@ target_prerun ${org.macports.fetch} portfetch::fetch_start
 namespace eval portfetch {
     namespace export suffix
     variable fetch_urls {}
+    variable urlmap
+    array set urlmap {}
 }
 
 # Name space for internal site lists storage
@@ -272,6 +274,7 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
 proc portfetch::checksites {args} {
     global patch_sites master_sites master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
+    variable urlmap
 
     append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(MASTER_SITE_LOCAL)]} {
@@ -325,9 +328,9 @@ proc portfetch::checksites {args} {
 
         foreach site $site_list {
         if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
-                lappend portfetch::$tag $site
+                lappend urlmap($tag) $site
             } else {
-                lappend portfetch::$list $site
+                lappend urlmap($list) $site
             }
         }
     }
@@ -379,19 +382,18 @@ proc portfetch::checkdistfiles {urls} {
 
 # sorts fetch_urls in order of ping time
 proc portfetch::sortsites {urls} {
-    global fallback_mirror_site
+    global fallback_mirror_site master_sites
     upvar $urls fetch_urls
+    variable urlmap
 
     set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
 
     foreach {url_var distfile} $fetch_urls {
-        variable portfetch::$url_var
-        if {![info exists $url_var]} {
+        if {![info exists urlmap($url_var)]} {
             ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-            set url_var master_sites
-            variable portfetch::$url_var
+            set urlmap($url_var) $master_sites
         }
-        set urllist [set $url_var]
+        set urllist $urlmap($url_var)
         set hosts {}
         set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 
@@ -445,9 +447,9 @@ proc portfetch::sortsites {urls} {
 
         set pinglist [ lsort -real -index 1 $pinglist ]
 
-        set $url_var {}
+        set urlmap($url_var) {}
         foreach pair $pinglist {
-            lappend $url_var [lindex $pair 0]
+            lappend urlmap($url_var) [lindex $pair 0]
         }
     }
 }
@@ -587,6 +589,7 @@ proc portfetch::fetchfiles {args} {
     global distfile site
     global portverbose
     variable fetch_urls
+    variable urlmap
 
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
@@ -631,14 +634,12 @@ proc portfetch::fetchfiles {args} {
                 sortsites fetch_urls
                 set sorted yes
             }
-            variable portfetch::$url_var
-            if {![info exists $url_var]} {
+            if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set url_var master_sites
-                variable portfetch::$url_var
+                set urlmap($url_var) $master_sites
             }
             unset -nocomplain fetched
-            foreach site [set $url_var] {
+            foreach site $urlmap($url_var) {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 set effectiveURL ""

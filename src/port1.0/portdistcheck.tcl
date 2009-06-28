@@ -64,21 +64,20 @@ proc portdistcheck::distcheck_main {args} {
     if {"${distcheck.check}" != "none"
         && "${fetch.type}" == "standard"} {
         # portfetch 1.0::checkfiles sets fetch_urls list.
-        global fetch_urls
-        checkfiles
+        set fetch_urls {}
+        portfetch::checkfiles fetch_urls
         set totalsize 0
 
         # Check all the files.
         foreach {url_var distfile} $fetch_urls {
-            global portfetch::$url_var
-            if {![info exists $url_var]} {
+            global portfetch::urlmap
+            if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set url_var master_sites
-                global portfetch::$url_var
+                set urlmap($url_var) $master_sites
             }
             if {${distcheck.check} == "moddate"} {
                 set count 0
-                foreach site [set $url_var] {
+                foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
                     if {[catch {set urlnewer [curl isnewer $file_url $port_moddate]} error]} {
@@ -95,7 +94,7 @@ proc portdistcheck::distcheck_main {args} {
                 }
             } elseif {${distcheck.check} == "filesize"} {
                 set count 0
-                foreach site [set $url_var] {
+                foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
                     if {[catch {set urlsize [curl getsize $file_url]} error]} {

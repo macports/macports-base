@@ -53,7 +53,7 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites fetch_urls url_var distfile checksums_array
+    global UI_PREFIX master_sites checksums_array
     
     # give up on ports that do not provide URLs
     if {$master_sites == "{}"} {
@@ -61,13 +61,15 @@ proc portdistfiles::distfiles_main {args} {
     }
 
     # from portfetch... process the sites, files and patches
-    portfetch::checkfiles
+    set fetch_urls {}
+    portfetch::checkfiles fetch_urls
 
     # get checksum data from the portfile and parse it
     set checksums_str [option checksums]
     set result [portchecksum::parse_checksums $checksums_str]
 
-    foreach {url_var distfile} $portfetch::fetch_urls {
+    foreach {url_var distfile} $fetch_urls {
+        global portfetch::urlmap
 
         ui_msg "\[$distfile\]"
 
@@ -79,13 +81,12 @@ proc portdistfiles::distfiles_main {args} {
         }
 
         # determine sites to download from
-        namespace import ::portfetch::$url_var
-        if {![info exists $url_var]} {
-            set url_var master_sites
+        if {![info exists urlmap($url_var)]} {
+            set urlmap($url_var) $master_sites
         }
         
         # determine URLs to download
-        foreach site [set $url_var] {
+        foreach site $urlmap($url_var) {
             set file_url [portfetch::assemble_url $site $distfile]
             ui_msg "  $file_url"
         }
