@@ -110,13 +110,13 @@ proc portconfigure::configure_get_cflags {args} {
         set flags "-m32 ${flags}"
     }
     if {[info exists configure.march] && ${configure.march} != {}} {
-        set flags "${flags} -march=${configure.march}"
+        append flags " -march=${configure.march}"
     }
     if {[info exists configure.mtune] && ${configure.mtune} != {}} {
-        set flags "${flags} -mtune=${configure.mtune}"
+        append flags " -mtune=${configure.mtune}"
     }
     if {[variant_isset universal] && ${configure.universal_cflags} != ""} {
-        set flags "${flags} ${configure.universal_cflags}"
+        append flags " ${configure.universal_cflags}"
     }
     return $flags
 }
@@ -125,7 +125,7 @@ proc portconfigure::configure_get_cppflags {args} {
     global prefix configure.universal_cppflags
     set flags "-I${prefix}/include"
     if {[variant_isset universal] && ${configure.universal_cppflags} != ""} {
-        set flags "${flags} ${configure.universal_cppflags}"
+        append flags " ${configure.universal_cppflags}"
     }
     return $flags
 }
@@ -134,7 +134,7 @@ proc portconfigure::configure_get_ldflags {args} {
     global prefix configure.universal_ldflags
     set flags "-L${prefix}/lib"
     if {[variant_isset universal] && ${configure.universal_ldflags} != ""} {
-        set flags "${flags} ${configure.universal_ldflags}"
+        append flags " ${configure.universal_ldflags}"
     }
     return $flags
 }
@@ -208,7 +208,7 @@ proc portconfigure::configure_get_pre_args {args} {
     global prefix configure.universal_args
     set result "--prefix=${prefix}"
     if {[variant_isset universal] && ${configure.universal_args} != ""} {
-        set result "$result ${configure.universal_args}"
+        append result " ${configure.universal_args}"
     }
     return $result
 }
@@ -221,7 +221,7 @@ proc portconfigure::configure_get_universal_archflags {args} {
         if {$flags == ""} {
             set flags "-arch $arch"
         } else {
-            set flags "$flags -arch $arch"
+            append flags " -arch $arch"
         }
     }
     return $flags
