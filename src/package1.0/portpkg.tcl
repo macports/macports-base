@@ -161,28 +161,6 @@ proc portpkg::write_PkgInfo {infofile} {
     close $infofd
 }
 
-# XXX: deprecated
-proc portpkg::write_info_file {infofile portname portversion description} {
-    set infofd [open ${infofile} w+]
-    puts $infofd "Title ${portname}
-Version ${portversion}
-Description ${description}
-DefaultLocation /
-DeleteWarning
-
-### Package Flags
-
-NeedsAuthorization YES
-Required NO
-Relocatable NO
-RequiresReboot NO
-UseUserMask YES
-OverwritePermissions NO
-InstallFat NO
-RootVolumeOnly NO"
-    close $infofd
-}
-
 proc portpkg::xml_escape {s} {
     regsub -all {&} $s {\&amp;} s
     regsub -all {<} $s {\&lt;} s
