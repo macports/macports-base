@@ -34,11 +34,9 @@
 #include <config.h>
 #endif
 
-#include <tcl.h>
-
-#if HAVE_DIRENT_H
 #include <dirent.h>
-#endif
+
+#include <tcl.h>
 
 #include "readdir.h"
 
