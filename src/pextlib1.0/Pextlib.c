@@ -114,6 +114,7 @@
 #include "tty.h"
 #include "get_systemconfiguration_proxies.h"
 #include "sysctl.h"
+#include "strsed.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -707,7 +708,6 @@ int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 {
 	char *pattern, *string, *res;
 	int range[2];
-	extern char *strsed(char *str, char *pat, int *range);
 	Tcl_Obj *tcl_result;
 
 	if (objc != 3) {
