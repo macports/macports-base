@@ -57,10 +57,6 @@
 #include <paths.h>
 #endif
 
-#ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL   "/dev/null"
-#endif
-
 #include <pwd.h>
 
 #if HAVE_SYS_FILE_H
