@@ -70,10 +70,6 @@
 #include <sys/types.h>
 #endif
 
-#if HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
-#endif
-
 #if HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
