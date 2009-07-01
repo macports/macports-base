@@ -59,10 +59,6 @@
 
 #include <pwd.h>
 
-#if HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
@@ -91,14 +87,6 @@
 
 #include "filemap.h"
 #include "strcasecmp.h"
-
-/* Avoid a warning with Tcl < 8.4, even if Tcl_GetIndexFromObj's tablePtr
-probably isn't modified. */
-#if (TCL_MAJOR_VERSION > 8) || (TCL_MINOR_VERSION >= 4)
-typedef CONST char* tableEntryString;
-#else
-typedef char* tableEntryString;
-#endif
 
 /* ========================================================================= **
  * Definitions
@@ -2016,7 +2004,7 @@ FilemapCmd(
     	kFilemapIsReadOnly
     } EOption;
     
-	static tableEntryString options[] = {
+	static const char *options[] = {
 		"close", "create", "exists", "get", "list", "open", "revert", "save",
 		"set", "unset", "isreadonly", NULL
 	};
