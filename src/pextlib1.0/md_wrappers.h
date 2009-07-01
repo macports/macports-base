@@ -34,13 +34,12 @@
 #define _MD_WRAPPERS_H
 
 /* wrappers for libmd-like functions:
- * char* ALGOData(const unsigned char* data, unsigned int len, char* buf)
  * char* ALGOFile(const char* filename, char* buf)
  * char* ALGOEnd(ALGO_CTX, char* buf)
  */
 
 #define CHECKSUMEnd(algo, ctxtype, digest_length)		\
-char *													\
+static char *													\
 algo##End(ctxtype *ctx, char *buf)						\
 {														\
     int i;												\
@@ -61,7 +60,7 @@ algo##End(ctxtype *ctx, char *buf)						\
 }
 
 #define CHECKSUMFile(algo, ctxtype)						\
-char *algo##File(const char *filename, char *buf)		\
+static char *algo##File(const char *filename, char *buf)		\
 {														\
     unsigned char buffer[BUFSIZ];						\
     ctxtype ctx;										\
@@ -80,15 +79,5 @@ char *algo##File(const char *filename, char *buf)		\
     return algo##End(&ctx, buf);						\
 }
 
-#define CHECKSUMData(algo, ctxtype)						\
-char *algo##Data(const unsigned char *data, unsigned int len, char *buf)	\
-{														\
-	ctxtype ctx;										\
-	algo##Init(&ctx);									\
-	algo##Update(&ctx, data, len);						\
-	return algo##End(&ctx, buf);						\
-}
-
-
 #endif
-	/* _MD_WRAPPERS_H */
+/* _MD_WRAPPERS_H */

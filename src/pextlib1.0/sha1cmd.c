@@ -39,6 +39,8 @@
 
 #include <tcl.h>
 
+#include "sha1cmd.h"
+
 #if defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD)
 
 /* Minimal wrapper around OpenSSL's libcrypto, as a compatibility
@@ -61,7 +63,6 @@
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA1, SHA_CTX, SHA_DIGEST_LENGTH)
 CHECKSUMFile(SHA1, SHA_CTX)
-CHECKSUMData(SHA1, SHA_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>

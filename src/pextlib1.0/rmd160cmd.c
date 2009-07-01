@@ -38,6 +38,8 @@
 
 #include <tcl.h>
 
+#include "rmd160cmd.h"
+
 #if !defined(HAVE_LIBMD)
 
 /* We do not have libmd.
@@ -57,7 +59,6 @@
 #include "md_wrappers.h"
 CHECKSUMEnd(RMD160, RMD160_CTX, RIPEMD160_DIGEST_LENGTH)
 CHECKSUMFile(RMD160, RMD160_CTX)
-CHECKSUMData(RMD160, RMD160_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
