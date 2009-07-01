@@ -37,7 +37,7 @@
 #include <tcl.h>
 
 #include <string.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
