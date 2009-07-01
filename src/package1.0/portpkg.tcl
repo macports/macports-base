@@ -206,7 +206,7 @@ proc portpkg::write_info_plist {infofile portname portversion portrevision} {
     <key>IFPkgFlagRestartAction</key>
     <string>NoRestart</string>
     <key>IFPkgFlagRootVolumeOnly</key>
-    <false/>
+    <true/>
     <key>IFPkgFlagUpdateInstalledLanguages</key>
     <false/>
     <key>IFPkgFormatVersion</key>
