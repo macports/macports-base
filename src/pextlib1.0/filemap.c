@@ -34,50 +34,11 @@
 #include <config.h>
 #endif
 
-#include <ctype.h>
-#include <errno.h>
-#include <grp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#if HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
-#if HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-
-#if HAVE_LIMITS_H
-#include <limits.h>
-#endif
-
-#if HAVE_PATHS_H
-#include <paths.h>
-#endif
-
-#include <pwd.h>
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#if HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#if HAVE_UNISTD_H
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <unistd.h>
-#endif
 
 #include <tcl.h>
 
