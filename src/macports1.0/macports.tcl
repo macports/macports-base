@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs \
+        applications_dir frameworks_dir developer_dir universal_archs build_arch \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs $user_options"
+        applications_dir frameworks_dir developer_dir universal_archs build_arch $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -351,6 +351,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::buildnicevalue
     global macports::buildmakejobs
     global macports::universal_archs
+    global macports::build_arch
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -654,6 +655,23 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set macports::universal_archs {x86_64 i386}
         } else {
             set macports::universal_archs {i386 ppc}
+        }
+    }
+    
+    # Default arch to build for
+    if {![info exists macports::build_arch] && $tcl_platform(os) == "Darwin"} {
+        if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+            if {[sysctl hw.cpu64bit_capable] == 1} {
+                set macports::build_arch x86_64
+            } else {
+                set macports::build_arch i386
+            }
+        } else {
+            if {$tcl_platform(machine) == "Power Macintosh"} {
+                set macports::build_arch ppc
+            } else {
+                set macports::build_arch i386
+            }
         }
     }
 

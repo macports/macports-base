@@ -53,6 +53,11 @@ portarchivepath		@localstatedir_expanded@/macports/packages
 # Supported types: tgz (default), tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
 portarchivetype		tgz
 
+# CPU architecture to compile for. Defaults to i386 or ppc on Mac OS X 10.5
+# and earlier, depending on the CPU type detected at runtime. On Mac OS X 10.6
+# the default is x86_64 if the CPU supports it, i386 otherwise.
+#build_arch			i386
+
 # Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
 configureccache		no
 

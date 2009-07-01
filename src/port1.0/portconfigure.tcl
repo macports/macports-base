@@ -100,23 +100,27 @@ default configure.classpath {}
 
 # internal function to return the system value for CFLAGS/CXXFLAGS/etc
 proc portconfigure::configure_get_cflags {args} {
-    global configure.optflags
-    global configure.m32 configure.m64 configure.march configure.mtune
+    global configure.optflags configure.archflags
+    global configure.march configure.mtune
     global configure.universal_cflags
+    
     set flags "${configure.optflags}"
-    if {[tbool configure.m64]} {
-        set flags "-m64 ${flags}"
-    } elseif {[tbool configure.m32]} {
-        set flags "-m32 ${flags}"
+    if {[variant_isset universal]} {
+        if {${configure.universal_cflags} != ""} {
+            append flags " ${configure.universal_cflags}"
+        }
+        # stop here since the rest doesn't make much sense for universal
+        return $flags
+    }
+    
+    if {${configure.archflags} != ""} {
+        append flags " ${configure.archflags}"
     }
     if {[info exists configure.march] && ${configure.march} != {}} {
         append flags " -march=${configure.march}"
     }
     if {[info exists configure.mtune] && ${configure.mtune} != {}} {
         append flags " -mtune=${configure.mtune}"
-    }
-    if {[variant_isset universal] && ${configure.universal_cflags} != ""} {
-        append flags " ${configure.universal_cflags}"
     }
     return $flags
 }
@@ -131,10 +135,12 @@ proc portconfigure::configure_get_cppflags {args} {
 }
 
 proc portconfigure::configure_get_ldflags {args} {
-    global prefix configure.universal_ldflags
+    global prefix configure.universal_ldflags configure.archflags
     set flags "-L${prefix}/lib"
     if {[variant_isset universal] && ${configure.universal_ldflags} != ""} {
         append flags " ${configure.universal_ldflags}"
+    } elseif {${configure.archflags} != ""} {
+        append flags " ${configure.archflags}"
     }
     return $flags
 }
@@ -149,6 +155,10 @@ default configure.awk               {}
 default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
+
+options configure.build_arch configure.archflags
+default configure.build_arch {${build_arch}}
+default configure.archflags  {[portconfigure::configure_get_archflags]}
 
 options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_archs       {${universal_archs}}
@@ -213,6 +223,26 @@ proc portconfigure::configure_get_pre_args {args} {
     return $result
 }
 
+# internal function to determine the compiler flags to select an arch
+proc portconfigure::configure_get_archflags {args} {
+    global configure.build_arch configure.m32 configure.m64
+    set flags ""
+    if {[tbool configure.m64]} {
+        set flags "-m64"
+    } elseif {[tbool configure.m32]} {
+        set flags "-m32"
+    } elseif {${configure.build_arch} != ""} {
+        if {[arch_flag_supported]} {
+            set flags "-arch ${configure.build_arch}"
+        } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
+            set flags "-m64"
+        } else {
+            set flags "-m32"
+        }
+    }
+    return $flags
+}
+
 # internal function to determine the "-arch xy" flags for the compiler
 proc portconfigure::configure_get_universal_archflags {args} {
     global configure.universal_archs
@@ -258,6 +288,24 @@ proc portconfigure::configure_get_universal_ldflags {args} {
         set flags "-Wl,-syslibroot,${developer_dir}/SDKs/MacOSX10.4u.sdk ${flags}"
     }
     return $flags
+}
+
+# internal proc to determine if the compiler supports -arch
+proc portconfigure::arch_flag_supported {args} {
+    global configure.compiler
+    switch -exact ${configure.compiler} {
+        gcc-4.0 -
+        gcc-4.2 -
+        llvm-gcc-4.2 -
+        clang -
+        apple-gcc-4.0 -
+        apple-gcc-4.2 {
+            return yes
+        }
+        default {
+            return no
+        }
+    }
 }
 
 # internal function to determine the default compiler
