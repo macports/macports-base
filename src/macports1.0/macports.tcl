@@ -659,19 +659,23 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # Default arch to build for
-    if {![info exists macports::build_arch] && $tcl_platform(os) == "Darwin"} {
-        if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
-            if {[sysctl hw.cpu64bit_capable] == 1} {
-                set macports::build_arch x86_64
+    if {![info exists macports::build_arch]} {
+        if {$tcl_platform(os) == "Darwin"} {
+            if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+                if {[sysctl hw.cpu64bit_capable] == 1} {
+                    set macports::build_arch x86_64
+                } else {
+                    set macports::build_arch i386
+                }
             } else {
-                set macports::build_arch i386
+                if {$tcl_platform(machine) == "Power Macintosh"} {
+                    set macports::build_arch ppc
+                } else {
+                    set macports::build_arch i386
+                }
             }
         } else {
-            if {$tcl_platform(machine) == "Power Macintosh"} {
-                set macports::build_arch ppc
-            } else {
-                set macports::build_arch i386
-            }
+            set macports::build_arch ""
         }
     }
 
