@@ -41,6 +41,8 @@
 #include <sys/types.h>
 #include <sys/sysctl.h>
 
+#include "sysctl.h"
+
 /*
  * Read-only wrapper for sysctlbyname(3). Only works for values of type CTLTYPE_INT.
  */
