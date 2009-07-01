@@ -112,6 +112,7 @@
 #include "sysctl.h"
 #include "strsed.h"
 #include "readdir.h"
+#include "pipe.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -905,39 +906,6 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 	free(tcl_mask);
 
 	Tcl_SetObjResult(interp, tcl_result);
-	return TCL_OK;
-}
-
-/**
- * Call pipe(2) to create a pipe.
- * Syntax is:
- * pipe
- *
- * Generate a Tcl error if something goes wrong.
- * Return a list with the file descriptors of the pipe. The first item is the
- * readable fd.
- */
-int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Obj* result;
-	int fildes[2];
-
-	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, NULL);
-		return TCL_ERROR;
-	}
-	
-	if (pipe(fildes) < 0) {
-		Tcl_AppendResult(interp, "pipe failed: ", strerror(errno), NULL);
-		return TCL_ERROR;
-	}
-	
-	/* build a list out of the couple */
-	result = Tcl_NewListObj(0, NULL);
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[0]));
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[1]));
-	Tcl_SetObjResult(interp, result);
-
 	return TCL_OK;
 }
 
