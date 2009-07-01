@@ -95,7 +95,7 @@ proc portdestroot::destroot_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${name}]"
 
     # start gsoc08-privileges
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+    if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
         ui_debug "Run destroot without sudo to avoid root privileges."
