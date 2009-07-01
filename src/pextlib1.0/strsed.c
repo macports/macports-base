@@ -215,13 +215,13 @@ static struct {
 /* ------------------------------------------------------------------------- **
  * Prototypes
  * ------------------------------------------------------------------------- */
-static char *mem();
-static void mem_init();
-static void mem_free();
-static char *build_map();
-static char nextch();
-static void mem_save();
-static int mem_find();
+static char *mem(int, int);
+static void mem_init(void);
+static void mem_free(char *);
+static char *build_map(char *, char *);
+static char nextch(char *, int);
+static void mem_save(int);
+static int mem_find(int);
 
 /* ------------------------------------------------------------------------- **
  * strsed
