@@ -113,6 +113,7 @@
 #include "tracelib.h"
 #include "tty.h"
 #include "get_systemconfiguration_proxies.h"
+#include "sysctl.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -1151,6 +1152,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "lchown", lchownCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
