@@ -288,6 +288,21 @@ AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 
 	])
 
+# MP_CHECK_OLDLAYOUT
+#---------------------------------------
+AC_DEFUN([MP_CHECK_OLDLAYOUT],[
+	dnl Bail if there is an existing install of DP/MP older than 1.5
+
+	AC_MSG_CHECKING([that any existing MacPorts install can be upgraded])
+
+	eval dpversionfile="${sysconfdir}/ports/dp_version"
+	if test -f $dpversionfile; then
+		AC_MSG_ERROR([Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first.])
+	else
+		AC_MSG_RESULT([yes])
+	fi
+
+	])
 
 # MP_CHECK_NOROOTPRIVILEGES
 #-------------------------------------------------

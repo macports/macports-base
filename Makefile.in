@@ -28,15 +28,10 @@ config.status: configure
 		echo "Source tree not configured. Use ./configure" ; \
 	fi
 
-
-include Mk/macports.upgrade.mk
-
-install:: upgrade
-	[ ! -f ${sysconfdir}/macports/mp_version ] || rm -vf ${sysconfdir}/macports/mp_version
-
 include Mk/macports.subdir.mk
 
 install::
+	[ ! -f ${sysconfdir}/macports/mp_version ] || rm -vf ${sysconfdir}/macports/mp_version
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
