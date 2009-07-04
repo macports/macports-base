@@ -764,6 +764,7 @@ DEVELOPER_DIR
 XCODE_SELECT
 DEFAULTS
 SW_VERS
+PATH_CLEANED
 MACPORTS_VERSION
 target_os
 target_vendor
@@ -2198,6 +2199,8 @@ $as_echo "$MACPORTS_VERSION" >&6; }
 		fi
 	done
 	PATH=$newPATH; export PATH
+	PATH_CLEANED=$newPATH
+
 	prefix=$oldprefix
 
 

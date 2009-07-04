@@ -826,6 +826,7 @@ AC_DEFUN([MP_PATH_SCAN],[
 		fi
 	done
 	PATH=$newPATH; export PATH
+	AC_SUBST(PATH_CLEANED,$newPATH)
 	prefix=$oldprefix
 ])
 

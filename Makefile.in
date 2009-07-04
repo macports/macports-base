@@ -1,5 +1,6 @@
 # $Id$
 
+PATH		= @PATH_CLEANED@
 SUBDIR		= doc src
 DISTDIR		= dist
 DISTVER		=
