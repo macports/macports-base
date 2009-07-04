@@ -225,7 +225,7 @@ proc portconfigure::configure_get_pre_args {args} {
 
 # internal function to determine the compiler flags to select an arch
 proc portconfigure::configure_get_archflags {args} {
-    global configure.build_arch configure.m32 configure.m64
+    global configure.build_arch configure.m32 configure.m64 configure.compiler
     set flags ""
     if {[tbool configure.m64]} {
         set flags "-m64"
@@ -236,7 +236,7 @@ proc portconfigure::configure_get_archflags {args} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
-        } else {
+        } elseif {${configure.compiler} != "gcc-3.3"} {
             set flags "-m32"
         }
     }
