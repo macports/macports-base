@@ -46,7 +46,7 @@ namespace eval portconfigure {
 commands configure autoreconf automake autoconf xmkmf
 # defaults
 default configure.env       ""
-default configure.pre_args  {[portconfigure::configure_get_pre_args]}
+default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
@@ -87,63 +87,16 @@ default configure.mtune     {}
 options configure.optflags configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
 default configure.optflags  {-O2}
 # compiler flags section
-default configure.cflags    {[portconfigure::configure_get_cflags]}
-default configure.cppflags  {[portconfigure::configure_get_cppflags]}
-default configure.cxxflags  {[portconfigure::configure_get_cflags]}
-default configure.objcflags {[portconfigure::configure_get_cflags]}
-default configure.ldflags   {[portconfigure::configure_get_ldflags]}
+default configure.cflags    {${configure.optflags}}
+default configure.cppflags  {-I${prefix}/include}
+default configure.cxxflags  {${configure.optflags}}
+default configure.objcflags {${configure.optflags}}
+default configure.ldflags   {-L${prefix}/lib}
 default configure.libs      {}
-default configure.fflags    {[portconfigure::configure_get_cflags]}
-default configure.f90flags  {[portconfigure::configure_get_cflags]}
-default configure.fcflags   {[portconfigure::configure_get_cflags]}
+default configure.fflags    {${configure.optflags}}
+default configure.f90flags  {${configure.optflags}}
+default configure.fcflags   {${configure.optflags}}
 default configure.classpath {}
-
-# internal function to return the system value for CFLAGS/CXXFLAGS/etc
-proc portconfigure::configure_get_cflags {args} {
-    global configure.optflags configure.archflags
-    global configure.march configure.mtune
-    global configure.universal_cflags
-    
-    set flags "${configure.optflags}"
-    if {[variant_exists universal] && [variant_isset universal]} {
-        if {${configure.universal_cflags} != ""} {
-            append flags " ${configure.universal_cflags}"
-        }
-        # stop here since the rest doesn't make much sense for universal
-        return $flags
-    }
-    
-    if {${configure.archflags} != ""} {
-        append flags " ${configure.archflags}"
-    }
-    if {[info exists configure.march] && ${configure.march} != {}} {
-        append flags " -march=${configure.march}"
-    }
-    if {[info exists configure.mtune] && ${configure.mtune} != {}} {
-        append flags " -mtune=${configure.mtune}"
-    }
-    return $flags
-}
-
-proc portconfigure::configure_get_cppflags {args} {
-    global prefix configure.universal_cppflags
-    set flags "-I${prefix}/include"
-    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_cppflags} != ""} {
-        append flags " ${configure.universal_cppflags}"
-    }
-    return $flags
-}
-
-proc portconfigure::configure_get_ldflags {args} {
-    global prefix configure.universal_ldflags configure.archflags
-    set flags "-L${prefix}/lib"
-    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_ldflags} != ""} {
-        append flags " ${configure.universal_ldflags}"
-    } elseif {${configure.archflags} != ""} {
-        append flags " ${configure.archflags}"
-    }
-    return $flags
-}
 
 # tools section
 options configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
@@ -186,8 +139,10 @@ default configure.compiler      {[portconfigure::configure_get_default_compiler]
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX
-    global configure.compiler
+    global UI_PREFIX configure.compiler configure.optflags configure.archflags
+    global configure.march configure.mtune configure.universal_cflags
+    global configure.universal_cxxflags configure.universal_cppflags 
+    global configure.universal_ldflags configure.universal_args
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option name]]"
 
@@ -212,15 +167,28 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
-}
-
-proc portconfigure::configure_get_pre_args {args} {
-    global prefix configure.universal_args
-    set result "--prefix=${prefix}"
-    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_args} != ""} {
-        append result " ${configure.universal_args}"
+    
+    # add in extra CFLAGS etc
+    if {[variant_exists universal] && [variant_isset universal]} {
+        foreach flag {cflags objcflags fflags f90flags fcflags} {
+            configure.${flag}-append ${configure.universal_cflags}
+        }
+        configure.cxxflags-append ${configure.universal_cxxflags}
+        configure.cppflags-append ${configure.universal_cppflags}
+        configure.ldflags-append ${configure.universal_ldflags}
+        configure.pre_args-append ${configure.universal_args}
+    } else {
+        foreach flag {cflags cxxflags objcflags fflags f90flags fcflags} {
+            configure.${flag}-append ${configure.archflags}
+            if {${configure.march} != {}} {
+                configure.${flag}-append "-march=${configure.march}"
+            }
+            if {${configure.mtune} != {}} {
+                configure.${flag}-append "-mtune=${configure.mtune}"
+            }
+        }
+        configure.ldflags-append ${configure.archflags}
     }
-    return $result
 }
 
 # internal function to determine the compiler flags to select an arch
