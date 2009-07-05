@@ -38,7 +38,7 @@ package require macports_index 1.0
 package require macports_util 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_stages
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_stages 
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
+        applications_dir current_stage frameworks_dir developer_dir universal_target universal_sysroot universal_archs $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -65,6 +65,7 @@ namespace eval macports {
 
     variable ui_priorities "debug info msg error warn"
     variable port_stages "fetch checksum"
+    variable current_stage "main"
 }
 
 # Provided UI instantiations
@@ -128,11 +129,17 @@ proc macports::init_logging {portname} {
         set macports::channels($key) [concat $macports::channels($key) $::debuglog]
     }
 }
-
+proc ui_phase {phase} {
+    global macports::current_stage
+    set macports::current_stage $phase
+}
 proc ui_message {priority prefix stage args} {
-    global macports::channels ::debuglog
+    global macports::channels ::debuglog macports::current_stage
     foreach chan $macports::channels($priority) {
-        if {[info exists ::debuglog] && $chan == $::debuglog} {
+        if {[info exists ::debuglog] && ($chan == $::debuglog)} {
+            if {[info exists macports::current_stage]} {
+                set stage $macports::current_stage
+            }
             set strprefix ":$priority:$stage "
             if {[lindex $args 0] == "-nonewline"} {
                 puts -nonewline $chan "$strprefix[lindex $args 1]"
@@ -829,6 +836,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias mport_open mportopen
     $workername alias mport_close mportclose
     $workername alias mport_lookup mportlookup
+    $workername alias ui_phase ui_phase
 
     # instantiate the UI call-backs
     foreach priority ${macports::ui_priorities} {

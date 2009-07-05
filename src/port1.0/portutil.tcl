@@ -1207,8 +1207,8 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
-    set portname [option name]
+    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped current_stage
+   set portname [option name]
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1250,13 +1250,14 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
+   
                 set target [ditem_key $ditem provides]
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
-
+                ui_phase  $target
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
