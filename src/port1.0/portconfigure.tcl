@@ -105,7 +105,7 @@ proc portconfigure::configure_get_cflags {args} {
     global configure.universal_cflags
     
     set flags "${configure.optflags}"
-    if {[variant_isset universal]} {
+    if {[variant_exists universal] && [variant_isset universal]} {
         if {${configure.universal_cflags} != ""} {
             append flags " ${configure.universal_cflags}"
         }
@@ -128,7 +128,7 @@ proc portconfigure::configure_get_cflags {args} {
 proc portconfigure::configure_get_cppflags {args} {
     global prefix configure.universal_cppflags
     set flags "-I${prefix}/include"
-    if {[variant_isset universal] && ${configure.universal_cppflags} != ""} {
+    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_cppflags} != ""} {
         append flags " ${configure.universal_cppflags}"
     }
     return $flags
@@ -137,7 +137,7 @@ proc portconfigure::configure_get_cppflags {args} {
 proc portconfigure::configure_get_ldflags {args} {
     global prefix configure.universal_ldflags configure.archflags
     set flags "-L${prefix}/lib"
-    if {[variant_isset universal] && ${configure.universal_ldflags} != ""} {
+    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_ldflags} != ""} {
         append flags " ${configure.universal_ldflags}"
     } elseif {${configure.archflags} != ""} {
         append flags " ${configure.archflags}"
@@ -217,7 +217,7 @@ proc portconfigure::configure_start {args} {
 proc portconfigure::configure_get_pre_args {args} {
     global prefix configure.universal_args
     set result "--prefix=${prefix}"
-    if {[variant_isset universal] && ${configure.universal_args} != ""} {
+    if {[variant_exists universal] && [variant_isset universal] && ${configure.universal_args} != ""} {
         append result " ${configure.universal_args}"
     }
     return $result
