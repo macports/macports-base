@@ -1374,8 +1374,9 @@ proc action_help { action portlist opts } {
 
 
 proc action_log { action portlist opts } {
+    global global_options 
     set logfile "$macports::prefix/var/macports/logs/"
-
+    #puts "$opts"
     if {[llength $portlist] == 0} {
         print_help
         return 0
@@ -1428,8 +1429,28 @@ proc action_log { action portlist opts } {
          if {[file exists $logfile]} {
             set fp [open $logfile r]
             set data [read $fp]
+            set data [split $data "\n"]
+            if {![info exists global_options(ports_log_stage)]} {
+                set stage "\[a-z\]*"
+            } else {
+                set stage $global_options(ports_log_stage);
+            }
+            if {![info exists global_options(ports_log_prefix)]} {
+                set prefix "\[a-z\]*"
+            } else {
+                set prefix $global_options(ports_log_prefix);
+            }
+            set match ""
+            foreach line $data {
+                set exp "^:$prefix:$stage .*$"
+                regexp $exp $line match
+                if {$match == $line} {
+                    regsub "^:$prefix:$stage "  $line "" line
+                    puts $line
+                }
+            }
+            
             close $fp
-            puts $data
         } else {
             ui_msg "Log file not found"
         }
@@ -3159,6 +3180,7 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
+    log         {{stage 1} {prefix 1}}
 }
 
 global cmd_implied_options
