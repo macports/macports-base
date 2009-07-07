@@ -676,8 +676,6 @@ MD5_LIBS
 READLINK_IS_NOT_P1003_1A
 CPP
 UNIVERSAL_ARCHS
-UNIVERSAL_SYSROOT
-UNIVERSAL_TARGET
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
@@ -766,6 +764,7 @@ DEVELOPER_DIR
 XCODE_SELECT
 DEFAULTS
 SW_VERS
+PATH_CLEANED
 MACPORTS_VERSION
 target_os
 target_vendor
@@ -831,8 +830,6 @@ with_directory_mode
 with_shared_directory
 with_applications_dir
 with_frameworks_dir
-with_universal_target
-with_universal_sysroot
 with_universal_archs
 enable_readline
 with_tcl
@@ -863,6 +860,7 @@ SED
 TAR
 MAKE
 GNUTAR
+BSDMAKE
 GNUMAKE
 BZIP2
 XAR
@@ -1522,10 +1520,6 @@ Optional Packages:
   --with-shared-directory Use 0775 permissions for installed directories
   --with-applications-dir Applications installation directory.
   --with-frameworks-dir   Frameworks installation directory.
-  --with-universal-target=MDT
-                          Universal MACOSX_DEPLOYMENT_TARGET version
-  --with-universal-sysroot=SDK
-                          Universal SDK sysroot (with complete path)
   --with-universal-archs="CPU"
                           Universal CPU architectures (space separated)
   --with-tcl              directory containing tcl configuration (tclConfig.sh)
@@ -1557,6 +1551,7 @@ Some influential environment variables:
   TAR         path to tar command
   MAKE        path to make command
   GNUTAR      path to gnutar command
+  BSDMAKE     path to bsdmake/pmake command
   GNUMAKE     path to gnumake command
   BZIP2       path to bzip2 command
   XAR         path to xar command
@@ -2204,6 +2199,8 @@ $as_echo "$MACPORTS_VERSION" >&6; }
 		fi
 	done
 	PATH=$newPATH; export PATH
+	PATH_CLEANED=$newPATH
+
 	prefix=$oldprefix
 
 
@@ -4606,8 +4603,10 @@ $as_echo "no" >&6; }
 fi
 
 
-# Extract the first word of "bsdmake", so it can be a program name with args.
-set dummy bsdmake; ac_word=$2
+for ac_prog in bsdmake pmake
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:$LINENO: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if test "${ac_cv_path_BSDMAKE+set}" = set; then
@@ -4645,6 +4644,9 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$BSDMAKE" && break
+done
 
 # Extract the first word of "make", so it can be a program name with args.
 set dummy make; ac_word=$2
@@ -5177,6 +5179,7 @@ fi
 
 
 # Define some precious variables allowing user to override PATH for some programs
+
 
 
 
@@ -8076,58 +8079,26 @@ $as_echo "$MPFRAMEWORKSDIR" >&6; }
 # Check for universal options
 
 
-
-# Check whether --with-universal-target was given.
-if test "${with_universal_target+set}" = set; then
-  withval=$with_universal_target; UNIVERSAL_TARGET=${withval}
-fi
-
-
-# Check whether --with-universal-sysroot was given.
-if test "${with_universal_sysroot+set}" = set; then
-  withval=$with_universal_sysroot; UNIVERSAL_SYSROOT=${withval}
-fi
-
-
 # Check whether --with-universal-archs was given.
 if test "${with_universal_archs+set}" = set; then
   withval=$with_universal_archs; UNIVERSAL_ARCHS=${withval}
 fi
 
 
-	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
+  if test "x$UNIVERSAL_ARCHS" = "x"; then
+    case "$MACOSX_VERSION" in
+      10.[0-5]*)
+        UNIVERSAL_ARCHS="i386 ppc"
+        ;;
+      *)
+        UNIVERSAL_ARCHS="x86_64 i386"
+        ;;
+    esac
+  fi
 
-	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    UNIVERSAL_TARGET=${MACOSX_MAJOR_VERSION}
-	fi
-
-	if test "x$UNIVERSAL_SYSROOT" = "x"; then
-	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
-	    else
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
-	    fi
-	fi
-
-	if test "x$UNIVERSAL_ARCHS" = "x"; then
-	    UNIVERSAL_ARCHS="ppc i386"
-	fi
-
-    { $as_echo "$as_me:$LINENO: checking for Universal MDT version" >&5
-$as_echo_n "checking for Universal MDT version... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_TARGET" >&5
-$as_echo "$UNIVERSAL_TARGET" >&6; }
-
-
-    { $as_echo "$as_me:$LINENO: checking for Universal SDK sysroot" >&5
-$as_echo_n "checking for Universal SDK sysroot... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_SYSROOT" >&5
-$as_echo "$UNIVERSAL_SYSROOT" >&6; }
-
-
-    { $as_echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
+  { $as_echo "$as_me:$LINENO: checking for Universal CPU architectures" >&5
 $as_echo_n "checking for Universal CPU architectures... " >&6; }
-    { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_ARCHS" >&5
+  { $as_echo "$as_me:$LINENO: result: $UNIVERSAL_ARCHS" >&5
 $as_echo "$UNIVERSAL_ARCHS" >&6; }
 
 
@@ -11052,6 +11023,24 @@ oldprefix=$prefix
 if test "x$prefix" = "xNONE" ; then
    prefix=$ac_default_prefix
 fi
+
+# Check if there's an existing DP/MP install too old to upgrade
+
+
+	{ $as_echo "$as_me:$LINENO: checking that any existing MacPorts install can be upgraded" >&5
+$as_echo_n "checking that any existing MacPorts install can be upgraded... " >&6; }
+
+	eval dpversionfile="${sysconfdir}/ports/dp_version"
+	if test -f $dpversionfile; then
+		{ { $as_echo "$as_me:$LINENO: error: Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first." >&5
+$as_echo "$as_me: error: Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first." >&2;}
+   { (exit 1); exit 1; }; }
+	else
+		{ $as_echo "$as_me:$LINENO: result: yes" >&5
+$as_echo "yes" >&6; }
+	fi
+
+
 
 eval "prefix_expanded=$prefix"
 

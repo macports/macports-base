@@ -95,7 +95,7 @@ proc portdestroot::destroot_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${name}]"
 
     # start gsoc08-privileges
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+    if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
         ui_debug "Run destroot without sudo to avoid root privileges."
@@ -170,7 +170,7 @@ proc portdestroot::destroot_finish {args} {
         }
     }
     fs-traverse -depth dir ${destroot} {
-        if {[file isdirectory $dir]} {
+        if {[file type $dir] == "directory"} {
             catch {file delete $dir}
         }
     }
@@ -229,11 +229,6 @@ proc portdestroot::destroot_finish {args} {
                 set manlinkpath [file join $manpath $manlink]
                 # if link destination is not gzipped, check it
                 set manlinksrc [file readlink $manlinkpath]
-                # if link destination is an absolute path, convert it to a
-                # relative path
-                if {[file pathtype $manlinksrc] eq "absolute"} {
-                    set manlinksrc [file tail $manlinksrc]
-                }
                 if {![regexp "\[.\]gz\$" ${manlinksrc}]} {
                     set mandir [file dirname $manlink]
                     set mandirpath [file join $manpath $mandir]
@@ -242,8 +237,13 @@ proc portdestroot::destroot_finish {args} {
                         puts $err
                         return
                     }
+                    # if link source is an absolute path, check for it under destroot
+                    set mls_check "$manlinksrc"
+                    if {[file pathtype $mls_check] eq "absolute"} {
+                        set mls_check "${destroot}${mls_check}"
+                    }
                     # if gzipped destination exists, fix link
-                    if {[file isfile ${manlinksrc}.gz]} {
+                    if {[file isfile ${mls_check}.gz]} {
                         # if actual link name does not end with gz, rename it
                         if {![regexp "\[.\]gz\$" ${manlink}]} {
                             ui_debug "renaming link: $manlink to ${manlink}.gz"

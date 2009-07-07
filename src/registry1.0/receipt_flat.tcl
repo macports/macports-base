@@ -74,7 +74,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 
     # regex match case
     if {$portversion == 0} {
-	set x [glob -nocomplain [file join ${macports::registry.path} receipts ${portname}-*]]
+	set x [glob -nocomplain -directory [file join ${macports::registry.path} receipts] -- ${portname}-*]
 	if {[string length $x]} {
 	    set matchfile [lindex $x 0]
 		# Remove trailing .bz2, if any.
@@ -136,7 +136,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 		if { $version == "" } {
 			# xxx: If we're in image mode, we really should have had the 
 			# version given to us.  How should we handle this?
-			set x [glob -nocomplain [file join ${receipt_path} *]]
+			set x [glob -nocomplain -directory ${receipt_path} *]
 			if { [string length $x] } {
 				set v [lindex [file split [lindex $x 0]] end]
 				regexp {([-_a-zA-Z0-9\.]+)_([0-9]*)([+-_a-zA-Z0-9]*)$} $v match version revision variants
@@ -180,7 +180,7 @@ proc open_entry {name {version ""} {revision 0} {variants ""}} {
 		# move the old receipt
 		set convertedDirPath [file join ${macports::registry.path} receipts_converted]
 		file mkdir $convertedDirPath
-		file rename $receipt_file $convertedDirPath
+		file rename -- $receipt_file $convertedDirPath
 	} elseif {[string match "# Version: *" $receipt_contents]} {
 		# This is new format
 		if {![string match "# Version: 1.0*" $receipt_contents]} {
@@ -329,12 +329,12 @@ proc write_entry {ref name version {revision 0} {variants ""}} {
 	close $receipt_handle
 
 	if { [file exists ${receipt_file}] } {
-		file delete -force "${receipt_file}"
+		file delete -force -- "${receipt_file}"
 	} elseif { [file exists ${receipt_file}.bz2] } {
-		file delete -force "${receipt_file}.bz2"
+		file delete -force -- "${receipt_file}.bz2"
 	}
 
-	file rename -force "${receipt_file}.tmp" "${receipt_file}"
+	file rename -force -- "${receipt_file}.tmp" "${receipt_file}"
 
 	if { [file exists ${receipt_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${receipt_file}"
@@ -423,14 +423,14 @@ proc delete_entry {name version {revision 0} {variants ""}} {
 	if { [file exists ${receipt_path}] } {
 		# remove port receipt directory
 		ui_debug "deleting directory: ${receipt_path}"
-		file delete -force ${receipt_path}
+		file delete -force -- ${receipt_path}
 		# remove port receipt parent directory (if empty)
 		set receipt_dir [file join ${macports::registry.path} receipts ${name}]
 		if { [file isdirectory ${receipt_dir}] } {
 			# 0 item means empty.
 			if { [llength [readdir ${receipt_dir}]] == 0 } {
 				ui_debug "deleting directory: ${receipt_dir}"
-				file delete -force ${receipt_dir}
+				file delete -force -- ${receipt_dir}
 			} else {
 				ui_debug "${receipt_dir} is not empty"
 			}
@@ -848,9 +848,9 @@ proc write_dep_map {args} {
 	close $map_handle
 
     # don't both checking for presence, file delete doesn't error if file doesn't exist
-    file delete ${map_file} ${map_file}.bz2
+    file delete -- ${map_file} ${map_file}.bz2
 
-    file rename ${map_file}.tmp ${map_file}
+    file rename -- ${map_file}.tmp ${map_file}
 
 	if { [file exists ${map_file}] && [file exists ${registry::autoconf::bzip2_path}] && ![info exists registry.nobzip] } {
 		system "${registry::autoconf::bzip2_path} -f ${map_file}"

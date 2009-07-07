@@ -288,6 +288,21 @@ AC_DEFUN([MP_PATH_MPCONFIGDIR],[
 
 	])
 
+# MP_CHECK_OLDLAYOUT
+#---------------------------------------
+AC_DEFUN([MP_CHECK_OLDLAYOUT],[
+	dnl Bail if there is an existing install of DP/MP older than 1.5
+
+	AC_MSG_CHECKING([that any existing MacPorts install can be upgraded])
+
+	eval dpversionfile="${sysconfdir}/ports/dp_version"
+	if test -f $dpversionfile; then
+		AC_MSG_ERROR([Existing MacPorts or DarwinPorts install is too old to be upgraded. Install MacPorts 1.7.1 first.])
+	else
+		AC_MSG_RESULT([yes])
+	fi
+
+	])
 
 # MP_CHECK_NOROOTPRIVILEGES
 #-------------------------------------------------
@@ -489,40 +504,22 @@ AC_DEFUN([MP_PATH_FRAMEWORKS],[
 # MP_UNIVERSAL_OPTIONS
 #---------------------------------------
 AC_DEFUN([MP_UNIVERSAL_OPTIONS],[
+  AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
 
-    AC_ARG_WITH(universal-target,[AS_HELP_STRING([--with-universal-target=MDT],[Universal MACOSX_DEPLOYMENT_TARGET version])], UNIVERSAL_TARGET=${withval})
-    AC_ARG_WITH(universal-sysroot,[AS_HELP_STRING([--with-universal-sysroot=SDK],[Universal SDK sysroot (with complete path)])], UNIVERSAL_SYSROOT=${withval})
-    AC_ARG_WITH(universal-archs,[AS_HELP_STRING([--with-universal-archs="CPU"],[Universal CPU architectures (space separated)])], UNIVERSAL_ARCHS=${withval})
+  if test "x$UNIVERSAL_ARCHS" = "x"; then
+    case "$MACOSX_VERSION" in
+      10.[[0-5]]*)
+        UNIVERSAL_ARCHS="i386 ppc"
+        ;;
+      *)
+        UNIVERSAL_ARCHS="x86_64 i386"
+        ;;
+    esac
+  fi
 
-	MACOSX_MAJOR_VERSION=`$SW_VERS -productVersion | cut -f-2 -d.`
-
-	if test "x$UNIVERSAL_TARGET" = "x"; then
-	    UNIVERSAL_TARGET=${MACOSX_MAJOR_VERSION}
-	fi
-
-	if test "x$UNIVERSAL_SYSROOT" = "x"; then
-	    if test "${MACOSX_MAJOR_VERSION}" = "10.4"; then
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}u.sdk
-	    else
-		UNIVERSAL_SYSROOT=${DEVELOPER_DIR}/SDKs/MacOSX${MACOSX_MAJOR_VERSION}.sdk
-	    fi
-	fi
-
-	if test "x$UNIVERSAL_ARCHS" = "x"; then
-	    UNIVERSAL_ARCHS="ppc i386"
-	fi
-    
-    AC_MSG_CHECKING([for Universal MDT version])
-    AC_MSG_RESULT([$UNIVERSAL_TARGET])
-    AC_SUBST(UNIVERSAL_TARGET)
-
-    AC_MSG_CHECKING([for Universal SDK sysroot])
-    AC_MSG_RESULT([$UNIVERSAL_SYSROOT])
-    AC_SUBST(UNIVERSAL_SYSROOT)
-
-    AC_MSG_CHECKING([for Universal CPU architectures])
-    AC_MSG_RESULT([$UNIVERSAL_ARCHS])
-    AC_SUBST(UNIVERSAL_ARCHS)
+  AC_MSG_CHECKING([for Universal CPU architectures])
+  AC_MSG_RESULT([$UNIVERSAL_ARCHS])
+  AC_SUBST(UNIVERSAL_ARCHS)
 ])
 
 # MP_LIB_MD5
@@ -829,6 +826,7 @@ AC_DEFUN([MP_PATH_SCAN],[
 		fi
 	done
 	PATH=$newPATH; export PATH
+	AC_SUBST(PATH_CLEANED,$newPATH)
 	prefix=$oldprefix
 ])
 

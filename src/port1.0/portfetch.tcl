@@ -43,6 +43,8 @@ target_prerun ${org.macports.fetch} portfetch::fetch_start
 namespace eval portfetch {
     namespace export suffix
     variable fetch_urls {}
+    variable urlmap
+    array set urlmap {}
 }
 
 # Name space for internal site lists storage
@@ -225,38 +227,39 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
     set ret [list]
     foreach element $portfetch::mirror_sites::sites($mirrors) {
 
-    # here we have the chance to take a look at tags, that possibly
-    # have been assigned in mirror_sites.tcl
-    set splitlist [split $element :]
-    # every element is a URL, so we'll always have multiple elements. no need to check
-    set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
-    set mirror_tag "[lindex $splitlist 2]"
+        # here we have the chance to take a look at tags, that possibly
+        # have been assigned in mirror_sites.tcl
+        set splitlist [split $element :]
+        # every element is a URL, so we'll always have multiple elements. no need to check
+        set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
+        set mirror_tag "[lindex $splitlist 2]"
 
-    set name_re {\$(?:name\y|\{name\})}
-    # if the URL has $name embedded, kill any mirror_tag that may have been added
-    # since a mirror_tag and $name are incompatible
-    if {[regexp $name_re $element]} {
-        set mirror_tag ""
-    }
+        set name_re {\$(?:name\y|\{name\})}
+        # if the URL has $name embedded, kill any mirror_tag that may have been added
+        # since a mirror_tag and $name are incompatible
+        if {[regexp $name_re $element]} {
+            set mirror_tag ""
+        }
 
-    if {$mirror_tag == "mirror"} {
-        set thesubdir ${dist_subdir}
-    } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
-        set thesubdir ${name}
-    } else {
-        set thesubdir ${subdir}
-    }
+        if {$mirror_tag == "mirror"} {
+            set thesubdir ${dist_subdir}
+        } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
+            set thesubdir ${name}
+        } else {
+            set thesubdir ${subdir}
+        }
 
-    # parse an embedded $name. if present, remove the subdir
-    if {[regsub $name_re $element $thesubdir element] > 0} {
-        set thesubdir ""
-    }
+        # parse an embedded $name. if present, remove the subdir
+        if {[regsub $name_re $element $thesubdir element] > 0} {
+            set thesubdir ""
+        }
 
-    if {"$tag" != ""} {
-        eval append element "${thesubdir}:${tag}"
-    } else {
-        eval append element "${thesubdir}"
-    }
+        if {"$tag" != ""} {
+            eval append element "${thesubdir}:${tag}"
+        } else {
+            eval append element "${thesubdir}"
+        }
+
         eval lappend ret $element
     }
 
@@ -271,6 +274,7 @@ proc portfetch::mirror_sites {mirrors tag subdir} {
 proc portfetch::checksites {args} {
     global patch_sites master_sites master_sites.mirror_subdir \
         patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
+    variable urlmap
 
     append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
     if {[info exists env(MASTER_SITE_LOCAL)]} {
@@ -324,18 +328,18 @@ proc portfetch::checksites {args} {
 
         foreach site $site_list {
         if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
-                lappend portfetch::$tag $site
+                lappend urlmap($tag) $site
             } else {
-                lappend portfetch::$list $site
+                lappend urlmap($list) $site
             }
         }
     }
 }
 
 # Checks patch files and their tags to assemble url lists for later fetching
-proc portfetch::checkpatchfiles {args} {
+proc portfetch::checkpatchfiles {urls} {
     global patchfiles all_dist_files patch_sites filespath
-    variable fetch_urls
+    upvar $urls fetch_urls
 
     if {[info exists patchfiles]} {
         foreach file $patchfiles {
@@ -356,9 +360,9 @@ proc portfetch::checkpatchfiles {args} {
 }
 
 # Checks dist files and their tags to assemble url lists for later fetching
-proc portfetch::checkdistfiles {args} {
+proc portfetch::checkdistfiles {urls} {
     global distfiles all_dist_files master_sites filespath
-    variable fetch_urls
+    upvar $urls fetch_urls
 
     if {[info exists distfiles]} {
         foreach file $distfiles {
@@ -377,20 +381,19 @@ proc portfetch::checkdistfiles {args} {
 }
 
 # sorts fetch_urls in order of ping time
-proc portfetch::sortsites {args} {
-    global fallback_mirror_site
-    variable fetch_urls
+proc portfetch::sortsites {urls} {
+    global fallback_mirror_site master_sites
+    upvar $urls fetch_urls
+    variable urlmap
 
     set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
 
     foreach {url_var distfile} $fetch_urls {
-        variable portfetch::$url_var
-        if {![info exists $url_var]} {
+        if {![info exists urlmap($url_var)]} {
             ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-            set url_var master_sites
-            variable portfetch::$url_var
+            set urlmap($url_var) $master_sites
         }
-        set urllist [set $url_var]
+        set urllist $urlmap($url_var)
         set hosts {}
         set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
 
@@ -444,21 +447,21 @@ proc portfetch::sortsites {args} {
 
         set pinglist [ lsort -real -index 1 $pinglist ]
 
-        set $url_var {}
+        set urlmap($url_var) {}
         foreach pair $pinglist {
-            lappend $url_var [lindex $pair 0]
+            lappend urlmap($url_var) [lindex $pair 0]
         }
     }
 }
 
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
-proc portfetch::checkfiles {args} {
-    variable fetch_urls
+proc portfetch::checkfiles {urls} {
+    upvar $urls fetch_urls
 
     checksites
-    checkpatchfiles
-    checkdistfiles
+    checkpatchfiles fetch_urls
+    checkdistfiles fetch_urls
 }
 
 
@@ -586,6 +589,7 @@ proc portfetch::fetchfiles {args} {
     global distfile site
     global portverbose
     variable fetch_urls
+    variable urlmap
 
     if {![file isdirectory $distpath]} {
         if {[catch {file mkdir $distpath} result]} {
@@ -627,17 +631,15 @@ proc portfetch::fetchfiles {args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
             if {!$sorted} {
-                sortsites
+                sortsites fetch_urls
                 set sorted yes
             }
-            variable portfetch::$url_var
-            if {![info exists $url_var]} {
+            if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set url_var master_sites
-                variable portfetch::$url_var
+                set urlmap($url_var) $master_sites
             }
             unset -nocomplain fetched
-            foreach site [set $url_var] {
+            foreach site $urlmap($url_var) {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 set effectiveURL ""
@@ -702,6 +704,7 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 proc portfetch::fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
     global altprefix usealtworkpath
+    variable fetch_urls
 
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
 
@@ -716,7 +719,7 @@ proc portfetch::fetch_init {args} {
         set distpath ${distpath}/${dist_subdir}
         set fetch_init_done yes
     }
-    portfetch::checkfiles
+    portfetch::checkfiles fetch_urls
 }
 
 proc portfetch::fetch_start {args} {

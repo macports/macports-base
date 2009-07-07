@@ -681,11 +681,11 @@ proc platform {args} {
     # Pick up a unique name.
     if {[variant_exists $platform]} {
         set suffix 1
-        while {[variant_exists "$platform-$suffix"]} {
+        while {[variant_exists "${platform}_${suffix}"]} {
             incr suffix
         }
 
-        set platform "$platform-$suffix"
+        set platform "${platform}_${suffix}"
     }
     variant $platform $code
 
@@ -1269,7 +1269,6 @@ proc target_run {ditem} {
                     # outside the sandbox.
                     if {$target != "activate"
                       && $target != "archive"
-                      && $target != "fetch"
                       && $target != "install"} {
                         porttrace::trace_enable_fence
                     }
@@ -1700,7 +1699,7 @@ proc variant_run {ditem} {
     # test for conflicting variants
     foreach v [ditem_key $ditem conflicts] {
         if {[variant_isset $v]} {
-            ui_error "Variant $name conflicts with $v"
+            ui_error "[option name]: Variant $name conflicts with $v"
             return 1
         }
     }
@@ -1709,7 +1708,7 @@ proc variant_run {ditem} {
     if {[catch "variant-${name}" result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Error executing $name: $result"
+        ui_error "[option name]: Error executing $name: $result"
         return 1
     }
     return 0
@@ -1721,18 +1720,13 @@ proc variant_run {ditem} {
     # was turned on or off, a particular instance of the port is uniquely
     # characterized by the set of variants that are *on*. Thus, record those
     # variants in a string in a standard order as +var1+var2 etc.
-    # We can skip the platform and architecture since those are always
-    # requested.  XXX: Is that really true? What if the user explicitly
-    # overrides the platform and architecture variants? Will the registry get
-    # bollixed? It would seem safer to me to just leave in all the variants that
-    # are on, but for now I'm just leaving the skipping code as it was in the
-    # previous version.
+    # XXX: this doesn't quite work because of default variants, see ticket #2377
 proc canonicalize_variants {variants} {
     array set vara $variants
     set result ""
     set vlist [lsort -ascii [array names vara]]
     foreach v $vlist {
-        if {$vara($v) == "+" && $v ne [option os.platform] && $v ne [option os.arch]} {
+        if {$vara($v) == "+"} {
             append result +$v
         }
     }
@@ -1883,20 +1877,8 @@ proc default_universal_variant_allowed {args} {
 }
 
 proc add_default_universal_variant {args} {
-    # Declare default universal variant if universal SDK is installed
-    variant universal {
-        pre-fetch {
-            if {![file exists ${configure.universal_sysroot}]} {
-                return -code error "Universal SDK is not installed (are we running on 10.3? did you forget to install it?) and building with +universal will very likely fail"
-            }
-        }
-
-        eval configure.args-append ${configure.universal_args}
-        eval configure.cflags-append ${configure.universal_cflags}
-        eval configure.cppflags-append ${configure.universal_cppflags}
-        eval configure.cxxflags-append ${configure.universal_cxxflags}
-        eval configure.ldflags-append ${configure.universal_ldflags}
-    }
+    # Declare default universal variant (all the magic happens in portconfigure now)
+    variant universal {}
 }
 
 # Target class definition.
@@ -2132,33 +2114,6 @@ proc dirSize {dir} {
     return $size;
 }
 
-# check for a binary in the path
-# returns an error code if it cannot be found
-proc binaryInPath {binary} {
-    global env
-    foreach dir [split $env(PATH) :] {
-        if {[file executable [file join $dir $binary]]} {
-            return [file join $dir $binary]
-        }
-    }
-
-    return -code error [format [msgcat::mc "Failed to locate '%s' in path: '%s'"] $binary $env(PATH)];
-}
-
-# find a binary either in a path defined at MacPorts' configuration time
-# or in the PATH environment variable through binaryInPath (fallback)
-proc findBinary {prog {autoconf_hint ""}} {
-    if {${autoconf_hint} != "" && [file executable ${autoconf_hint}]} {
-        return ${autoconf_hint}
-    } else {
-        if {[catch {set cmd_path [binaryInPath ${prog}]} result] == 0} {
-            return ${cmd_path}
-        } else {
-            return -code error "${result} or at its MacPorts configuration time location, did you move it?"
-        }
-    }
-}
-
 # Set the UI prefix to something standard (so it can be grepped for in output)
 proc set_ui_prefix {} {
     global UI_PREFIX env
@@ -2380,17 +2335,19 @@ proc chown {path user} {
 proc chownAsRoot {path} {
     global euid macportsuser
 
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
-    # if started with sudo but have dropped the privileges
-        seteuid $euid
-        ui_debug "euid changed to: [geteuid]"
-        chown  ${path} ${macportsuser}
-        ui_debug "chowned $path to $macportsuser"
-        seteuid [name_to_uid "$macportsuser"]
-        ui_debug "euid changed to: [geteuid]"
-    } elseif { [getuid] == 0 } {
-    # if started with sudo but have elevated back to root already
-        chown  ${path} ${macportsuser}
+    if { [getuid] == 0 } {
+        if {[geteuid] != 0} {
+            # if started with sudo but have dropped the privileges
+            seteuid $euid
+            ui_debug "euid changed to: [geteuid]"
+            chown  ${path} ${macportsuser}
+            ui_debug "chowned $path to $macportsuser"
+            seteuid [name_to_uid "$macportsuser"]
+            ui_debug "euid changed to: [geteuid]"
+        } else {
+            # if started with sudo but have elevated back to root already
+            chown  ${path} ${macportsuser}
+        }
     }
 }
 
@@ -2401,16 +2358,14 @@ proc chownAsRoot {path} {
 proc elevateToRoot {action} {
     global euid egid macportsuser
 
-    if { [getuid] == 0 && [geteuid] == [name_to_uid "$macportsuser"] } {
+    if { [getuid] == 0 && [geteuid] != 0 } {
     # if started with sudo but have dropped the privileges
         ui_debug "Can't run $action on this port without elevated privileges. Escalating privileges back to root."
         setegid $egid
         seteuid $euid
         ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-    }
-
-    if { [getuid] != 0 } {
-        return -code error "MacPorts requires root privileges for this action";
+    } elseif { [getuid] != 0 } {
+        return -code error "MacPorts requires root privileges for this action"
     }
 }
 
@@ -2421,15 +2376,17 @@ proc dropPrivileges {} {
     global euid egid macportsuser workpath
     if { [geteuid] == 0 } {
         if { [catch {
-                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+                if {[name_to_uid "$macportsuser"] != 0} {
+                    ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
 
-                #seteuid [name_to_uid [file attributes $workpath -owner]]
-                #setegid [name_to_gid [file attributes $workpath -group]]
+                    #seteuid [name_to_uid [file attributes $workpath -owner]]
+                    #setegid [name_to_gid [file attributes $workpath -group]]
 
-                setegid [uname_to_gid "$macportsuser"]
-                seteuid [name_to_uid "$macportsuser"]
-                ui_debug "egid changed to: [getegid]"
-                ui_debug "euid changed to: [geteuid]"
+                    setegid [uname_to_gid "$macportsuser"]
+                    seteuid [name_to_uid "$macportsuser"]
+                    ui_debug "egid changed to: [getegid]"
+                    ui_debug "euid changed to: [geteuid]"
+                }
             }]
         } {
             ui_debug "$::errorInfo"

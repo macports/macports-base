@@ -161,16 +161,6 @@ Automatic cleaning of the build directory of a given port after it has been inst
 .br
 .Ic Default:
 yes
-.It Va universal_target
-The MACOSX_DEPLOYMENT_TARGET to use for +universal variant
-.br
-.Ic Example:
-10.4
-.It Va universal_sysroot
-The SDK "sysroot" full path to use for +universal variant
-.br
-.Ic Example:
-/Developer/SDKs/MacOSX10.4u.sdk
 .It Va universal_archs
 The machine architectures to use for +universal variant
 (multiple architecture entries should be space separated)
@@ -178,7 +168,10 @@ The machine architectures to use for +universal variant
 Regular architectures include: ppc, i386, ppc64, x86_64
 .br
 .Ic Default:
-ppc i386
+x86_64 i386
+.br
+.Ic Default (10.5 and earlier):
+i386 ppc
 .It Va startupitem_type
 Set the default type of startupitems to be generated, overridable by Portfiles that explicitly state a
 startupitem.type key. If set to "default", then a type will be selected that's appropriate to the OS.

@@ -38,6 +38,8 @@
 
 #include <tcl.h>
 
+#include "md5cmd.h"
+
 #if defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD)
 
 /* Minimal wrapper around OpenSSL's libcrypto, as a compatibility
@@ -63,7 +65,6 @@
 #include "md_wrappers.h"
 CHECKSUMEnd(MD5, MD5_CTX, LENGTH)
 CHECKSUMFile(MD5, MD5_CTX)
-CHECKSUMData(MD5, MD5_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
