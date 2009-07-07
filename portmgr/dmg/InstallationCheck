@@ -13,5 +13,11 @@ if [[ ${base_version} != __DARWINVERS__ ]]; then
    # like this script
    exit 112
 fi
+
+if [[ -f /opt/local/etc/ports/dp_version ]]; then
+   # message 17 in InstallationCheck.strings
+   exit 113
+fi
+
 exit 0
 

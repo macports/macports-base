@@ -45,7 +45,7 @@ namespace eval macports {
         portverbose destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs \
+        applications_dir frameworks_dir developer_dir universal_archs build_arch \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -54,7 +54,7 @@ namespace eval macports {
         porttrace portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs $user_options \
+        applications_dir frameworks_dir developer_dir universal_archs build_arch $user_options \
         os_arch os_endian os_major os_platform os_version"
 
     # deferred options are only computed when needed.
@@ -352,6 +352,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::buildnicevalue
     global macports::buildmakejobs
     global macports::universal_archs
+    global macports::build_arch
     global macports::os_arch
     global macports::os_endian
     global macports::os_major
@@ -621,6 +622,27 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set macports::universal_archs {i386 ppc}
         }
     }
+    
+    # Default arch to build for
+    if {![info exists macports::build_arch]} {
+        if {$tcl_platform(os) == "Darwin"} {
+            if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+                if {[sysctl hw.cpu64bit_capable] == 1} {
+                    set macports::build_arch x86_64
+                } else {
+                    set macports::build_arch i386
+                }
+            } else {
+                if {$tcl_platform(machine) == "Power Macintosh"} {
+                    set macports::build_arch ppc
+                } else {
+                    set macports::build_arch i386
+                }
+            }
+        } else {
+            set macports::build_arch ""
+        }
+    }
 
     # Platform Settings
     set os_arch $tcl_platform(machine)
@@ -728,6 +750,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # load the quick index
     _mports_load_quickindex
+
+    set default_source_url [lindex ${sources_default} 0]
+    if {[macports::getprotocol $default_source_url] == "file"} {
+        set default_portindex [macports::getindex $default_source_url]
+        if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
+            ui_warn "port definitions are more than two weeks old, consider using selfupdate"
+        }
+    }
 }
 
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
@@ -978,6 +1008,38 @@ proc macports::getdefaultportresourcepath {{path ""}} {
     return $proposedpath
 }
 
+
+# mport_filtervariants
+# returns the given list of variants with implicitly-set ones removed
+proc mport_filtervariants {variations {warn yes}} {
+    # Iterate through the variants, filtering out
+    # implicit ones. At the moment, the only implicit variants are
+    # platform variants.
+    set filteredvariations {}
+
+    foreach {variation value} $variations {
+        switch -regexp $variation {
+            ^(pure)?darwin         -
+            ^(free|net|open){1}bsd -
+            ^i386                  -
+            ^linux                 -
+            ^macosx                -
+            ^powerpc               -
+            ^solaris               -
+            ^sunos {
+                if {$warn} {
+                    ui_warn "Implicit variants should not be explicitly set or unset. $variation will be ignored."
+                }
+            }
+            default {
+                lappend filteredvariations $variation $value
+            }
+        }
+    }
+    return $filteredvariations
+}
+
+
 # mportopen
 # Opens a MacPorts portfile specified by a URL.  The Portfile is
 # opened with the given list of options and variations.  The result
@@ -1016,29 +1078,6 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         return -code error "Could not find Portfile in $portpath"
     }
 
-    # Iterate through the explicitly set/unset variants, filtering out
-    # implicit variants. At the moment, the only implicit variants are
-    # platform variants.
-    set filteredvariations {}
-
-    foreach {variation value} $variations {
-        switch -regexp $variation {
-            ^(pure)?darwin         -
-            ^(free|net|open){1}bsd -
-            ^i386                  -
-            ^linux                 -
-            ^macosx                -
-            ^powerpc               -
-            ^solaris               -
-            ^sunos {
-                ui_debug "Implicit variants should not be explicitly set or unset. $variation will be ignored."
-            }
-            default {
-                lappend filteredvariations $variation $value
-            }
-        }
-    }
-
     set workername [interp create]
 
     set mport [ditem_create]
@@ -1047,10 +1086,10 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     ditem_key $mport portpath $portpath
     ditem_key $mport workername $workername
     ditem_key $mport options $options
-    ditem_key $mport variations $filteredvariations
+    ditem_key $mport variations $variations
     ditem_key $mport refcnt 1
 
-    macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $filteredvariations
+    macports::worker_init $workername $portpath $porturl [macports::getportbuildpath $portpath] $options $variations
 
     $workername eval source Portfile
 
@@ -1580,7 +1619,8 @@ proc mportsync {{optionslist {}}} {
                         }
                     }
 
-                    if { [catch { system "cd $destdir/.. && tar ${verboseflag} ${extflag} -xf $filename" } error] } {
+                    set tar [findBinary tar $macports::autoconf::tar_path]
+                    if { [catch { system "cd $destdir/.. && $tar ${verboseflag} ${extflag} -xf $filename" } error] } {
                         ui_error "Extracting $source failed ($error)"
                         incr numfailed
                         continue
@@ -2311,21 +2351,28 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         set porturl file://./
     }
 
-    # check if the variants is present in $version_in_tree
-    set variant [split $oldvariant +]
+    # will break if we start recording negative variants (#2377)
+    set variant [lrange [split $oldvariant +] 1 end]
     ui_debug "Merging existing variants $variant into variants"
+    set oldvariantlist [list]
+    foreach v $variant {
+        lappend oldvariantlist $v "+"
+    }
+    # remove implicit variants, without printing warnings
+    set oldvariantlist [mport_filtervariants $oldvariantlist no]
+
+    # check if the variants are present in $version_in_tree
     if {[info exists portinfo(variants)]} {
         set avariants $portinfo(variants)
     } else {
         set avariants {}
     }
     ui_debug "available variants are : $avariants"
-    foreach v $variant {
-        if {[lsearch $avariants $v] == -1} {
-        } else {
-            ui_debug "variant $v is present in $portname $version_in_tree"
-            if { ![info exists variations($v)]} {
-                set variations($v) "+"
+    foreach {variation value} $oldvariantlist {
+        if {[lsearch $avariants $variation] != -1} {
+            ui_debug "variant $variation is present in $portname $version_in_tree"
+            if { ![info exists variations($variation)]} {
+                set variations($variation) $value
             }
         }
     }

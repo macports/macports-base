@@ -362,6 +362,9 @@ if test "x$prefix" = "xNONE" ; then
    prefix=$ac_default_prefix
 fi
 
+# Check if there's an existing DP/MP install too old to upgrade
+MP_CHECK_OLDLAYOUT
+
 eval "prefix_expanded=$prefix"
 AC_SUBST(prefix_expanded)
 # do this twice, since there is a nested variable of

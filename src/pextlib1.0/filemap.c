@@ -34,75 +34,16 @@
 #include <config.h>
 #endif
 
-#include <ctype.h>
-#include <errno.h>
-#include <grp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#if HAVE_STRINGS_H
-#include <strings.h>
-#endif
-
-#if HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-
-#if HAVE_LIMITS_H
-#include <limits.h>
-#endif
-
-#if HAVE_PATHS_H
-#include <paths.h>
-#endif
-
-#ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL   "/dev/null"
-#endif
-
-#include <pwd.h>
-
-#if HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#if HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
-#endif
-
-#if HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#if HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
-
-#if HAVE_UNISTD_H
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
 #include <unistd.h>
-#endif
 
 #include <tcl.h>
 
 #include "filemap.h"
 #include "strcasecmp.h"
-
-/* Avoid a warning with Tcl < 8.4, even if Tcl_GetIndexFromObj's tablePtr
-probably isn't modified. */
-#if (TCL_MAJOR_VERSION > 8) || (TCL_MINOR_VERSION >= 4)
-typedef CONST char* tableEntryString;
-#else
-typedef char* tableEntryString;
-#endif
 
 /* ========================================================================= **
  * Definitions
@@ -2020,7 +1961,7 @@ FilemapCmd(
     	kFilemapIsReadOnly
     } EOption;
     
-	static tableEntryString options[] = {
+	static const char *options[] = {
 		"close", "create", "exists", "get", "list", "open", "revert", "save",
 		"set", "unset", "isreadonly", NULL
 	};

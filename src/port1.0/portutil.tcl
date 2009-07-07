@@ -1719,18 +1719,13 @@ proc variant_run {ditem} {
     # was turned on or off, a particular instance of the port is uniquely
     # characterized by the set of variants that are *on*. Thus, record those
     # variants in a string in a standard order as +var1+var2 etc.
-    # We can skip the platform and architecture since those are always
-    # requested.  XXX: Is that really true? What if the user explicitly
-    # overrides the platform and architecture variants? Will the registry get
-    # bollixed? It would seem safer to me to just leave in all the variants that
-    # are on, but for now I'm just leaving the skipping code as it was in the
-    # previous version.
+    # XXX: this doesn't quite work because of default variants, see ticket #2377
 proc canonicalize_variants {variants} {
     array set vara $variants
     set result ""
     set vlist [lsort -ascii [array names vara]]
     foreach v $vlist {
-        if {$vara($v) == "+" && $v ne [option os.platform] && $v ne [option os.arch]} {
+        if {$vara($v) == "+"} {
             append result +$v
         }
     }

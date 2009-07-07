@@ -48,10 +48,6 @@
 #include <strings.h>
 #endif
 
-#if HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-
 #if HAVE_LIMITS_H
 #include <limits.h>
 #endif
@@ -72,10 +68,6 @@
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-
-#if HAVE_SYS_FCNTL_H
-#include <sys/fcntl.h>
 #endif
 
 #if HAVE_FCNTL_H
@@ -113,6 +105,10 @@
 #include "tracelib.h"
 #include "tty.h"
 #include "get_systemconfiguration_proxies.h"
+#include "sysctl.h"
+#include "strsed.h"
+#include "readdir.h"
+#include "pipe.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -379,151 +375,6 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	return status;
 }
 
-int SudoCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char *buf;
-	struct linebuf circbuf[CBUFSIZ];
-	size_t linelen;
-	char *args[4];
-	char *cmdstring, *passwd;
-	FILE *pdes;
-	int fdset[2];
-	int fline, pos, ret;
-	pid_t pid;
-	Tcl_Obj *errbuf;
-	Tcl_Obj *tcl_result;
-
-	if (objc != 3) {
-		Tcl_WrongNumArgs(interp, 1, objv, "password command");
-		return TCL_ERROR;
-	}
-	passwd = Tcl_GetString(objv[1]);
-	cmdstring = Tcl_GetString(objv[2]);
-
-	if (pipe(fdset) == -1)
-		return TCL_ERROR;
-
-	/*
-	 * Fork a child to run the command, in a popen() like fashion -
-	 * popen() itself is not used because stderr is also desired.
-	 */
-	pid = fork();
-	if (pid == -1)
-		return TCL_ERROR;
-	if (pid == 0) {
-		dup2(fdset[0], STDIN_FILENO);
-		dup2(fdset[1], STDOUT_FILENO);
-		dup2(fdset[1], STDERR_FILENO);
-		args[0] = "sudo";
-		args[1] = "-S";
-		args[2] = cmdstring;
-		args[3] = NULL;
-		execve("/usr/bin/sudo", args, environ);
-		/* Now throw away the privs we just acquired */
-		args[1] = "-k";
-		args[2] = NULL;
-		execve("/usr/bin/sudo", args, environ);
-		_exit(1);
-	} else {
-		write(fdset[1], passwd, strlen(passwd));
-		write(fdset[1], "\n", 1);
-		close(fdset[1]);
-	}
-	pdes = fdopen(fdset[0], "r");
-
-	/* read from simulated popen() pipe */
-	pos = 0;
-	bzero(circbuf, sizeof(circbuf));
-	while ((buf = fgetln(pdes, &linelen)) != NULL) {
-		char *sbuf;
-		int slen;
-
-		/*
-		 * Allocate enough space to insert a terminating
-		 * '\0' if the line is not terminated with a '\n'
-		 */
-		if (buf[linelen - 1] == '\n')
-			slen = linelen;
-		else
-			slen = linelen + 1;
-
-		if (circbuf[pos].len == 0)
-			sbuf = malloc(slen);
-		else {
-			sbuf = realloc(circbuf[pos].line, slen);
-		}
-
-		if (sbuf == NULL) {
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len != 0)
-					free(circbuf[pos % CBUFSIZ].line);
-			}
-			return TCL_ERROR;
-		}
-
-		memcpy(sbuf, buf, linelen);
-		/* terminate line with '\0',replacing '\n' if it exists */
-		sbuf[slen - 1] = '\0';
-
-		circbuf[pos].line = sbuf;
-		circbuf[pos].len = slen;
-
-		if (pos++ == CBUFSIZ - 1)
-			pos = 0;
-		ret = ui_info(interp, sbuf);
-		if (ret != TCL_OK) {
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len != 0)
-					free(circbuf[pos % CBUFSIZ].line);
-			}
-			return ret;
-		}
-	}
-	fclose(pdes);
-
-	if (wait(&ret) != pid)
-		return TCL_ERROR;
-	if (WIFEXITED(ret)) {
-		if (WEXITSTATUS(ret) == 0)
-			return TCL_OK;
-		else {
-			/* Copy the contents of the circular buffer to errbuf */
-		  	Tcl_Obj* errorCode;
-			errbuf = Tcl_NewStringObj(NULL, 0);
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len == 0)
-				continue; /* skip empty lines */
-
-				/* Append line, minus trailing NULL */
-				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
-						circbuf[pos % CBUFSIZ].len - 1);
-
-				/* Re-add previously stripped newline */
-				Tcl_AppendToObj(errbuf, "\n", 1);
-				free(circbuf[pos % CBUFSIZ].line);
-			}
-
-			/* set errorCode [list CHILDSTATUS <pid> <code>] */
-			errorCode = Tcl_NewListObj(0, NULL);
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_SetObjErrorCode(interp, errorCode);
-
-			/* set result */
-			tcl_result = Tcl_NewStringObj("sudo command \"", -1);
-			Tcl_AppendToObj(tcl_result, cmdstring, -1);
-			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
-			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
-			Tcl_AppendObjToObj(tcl_result, errbuf);
-			Tcl_SetObjResult(interp, tcl_result);
-			return TCL_ERROR;
-		}
-	} else
-		return TCL_ERROR;
-}
-
 int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
@@ -661,52 +512,10 @@ int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj
 	return TCL_OK;
 }
 
-/**
- *
- * Return the list of elements in a directory.
- * Since 1.60.4.2, the list doesn't include . and ..
- *
- * Synopsis: readdir directory
- */
-int ReaddirCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	DIR *dirp;
-	struct dirent *mp;
-	Tcl_Obj *tcl_result;
-	char *path;
-
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "directory");
-		return TCL_ERROR;
-	}
-
-	path = Tcl_GetString(objv[1]);
-	dirp = opendir(path);
-	if (!dirp) {
-		Tcl_SetResult(interp, "Cannot read directory", TCL_STATIC);
-		return TCL_ERROR;
-	}
-	tcl_result = Tcl_NewListObj(0, NULL);
-	while ((mp = readdir(dirp))) {
-		/* Skip . and .. */
-		if ((mp->d_name[0] != '.') ||
-			((mp->d_name[1] != 0)	/* "." */
-				&&
-			((mp->d_name[1] != '.') || (mp->d_name[2] != 0)))) /* ".." */ {
-			Tcl_ListObjAppendElement(interp, tcl_result, Tcl_NewStringObj(mp->d_name, -1));
-		}
-	}
-	closedir(dirp);
-	Tcl_SetObjResult(interp, tcl_result);
-	
-	return TCL_OK;
-}
-
 int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *pattern, *string, *res;
 	int range[2];
-	extern char *strsed(char *str, char *pat, int *range);
 	Tcl_Obj *tcl_result;
 
 	if (objc != 3) {
@@ -952,39 +761,6 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 }
 
 /**
- * Call pipe(2) to create a pipe.
- * Syntax is:
- * pipe
- *
- * Generate a Tcl error if something goes wrong.
- * Return a list with the file descriptors of the pipe. The first item is the
- * readable fd.
- */
-int PipeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Obj* result;
-	int fildes[2];
-
-	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, NULL);
-		return TCL_ERROR;
-	}
-	
-	if (pipe(fildes) < 0) {
-		Tcl_AppendResult(interp, "pipe failed: ", strerror(errno), NULL);
-		return TCL_ERROR;
-	}
-	
-	/* build a list out of the couple */
-	result = Tcl_NewListObj(0, NULL);
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[0]));
-	Tcl_ListObjAppendElement(interp, result, Tcl_NewIntObj(fildes[1]));
-	Tcl_SetObjResult(interp, result);
-
-	return TCL_OK;
-}
-
-/**
  * symlink value target
  * Create a symbolic link at target pointing to value
  * See symlink(2) for possible errors
@@ -1145,12 +921,12 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "sudo", SudoCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "curl", CurlCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "lchown", lchownCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
 	
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
