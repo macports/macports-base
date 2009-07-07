@@ -171,15 +171,15 @@ proc portconfigure::configure_start {args} {
     # add in extra CFLAGS etc
     if {[variant_exists universal] && [variant_isset universal]} {
         foreach flag {cflags objcflags fflags f90flags fcflags} {
-            configure.${flag}-append ${configure.universal_cflags}
+            eval configure.${flag}-append ${configure.universal_cflags}
         }
-        configure.cxxflags-append ${configure.universal_cxxflags}
-        configure.cppflags-append ${configure.universal_cppflags}
-        configure.ldflags-append ${configure.universal_ldflags}
-        configure.pre_args-append ${configure.universal_args}
+        eval configure.cxxflags-append ${configure.universal_cxxflags}
+        eval configure.cppflags-append ${configure.universal_cppflags}
+        eval configure.ldflags-append ${configure.universal_ldflags}
+        eval configure.pre_args-append ${configure.universal_args}
     } else {
         foreach flag {cflags cxxflags objcflags fflags f90flags fcflags} {
-            configure.${flag}-append ${configure.archflags}
+            eval configure.${flag}-append ${configure.archflags}
             if {${configure.march} != {}} {
                 configure.${flag}-append "-march=${configure.march}"
             }
@@ -187,7 +187,7 @@ proc portconfigure::configure_start {args} {
                 configure.${flag}-append "-mtune=${configure.mtune}"
             }
         }
-        configure.ldflags-append ${configure.archflags}
+        eval configure.ldflags-append ${configure.archflags}
     }
 }
 
