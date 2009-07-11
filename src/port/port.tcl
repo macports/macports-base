@@ -1772,6 +1772,16 @@ proc action_notes { action portlist opts } {
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         }
+        
+        # Add any global_variations to the variations
+        # specified for the port
+        array unset merged_variations
+        array set merged_variations [array get variations]
+        foreach { variation value } [array get global_variations] { 
+            if { ![info exists merged_variations($variation)] } { 
+                set merged_variations($variation) $value 
+            } 
+        }
 
         # Open the Portfile associated with this port.
         if {[catch {set mport [mportopen $porturl [array get options] \
