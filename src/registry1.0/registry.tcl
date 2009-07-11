@@ -66,7 +66,6 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 			set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
 			property_store $ref imagedir $imagedir
 			property_store $ref active 0
-			property_store $ref compact 0
 		}
 
 		return $ref

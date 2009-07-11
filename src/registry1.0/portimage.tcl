@@ -55,9 +55,6 @@ set UI_PREFIX "--> "
 # will also remove all of the references of the files from the registry's 
 # file_map
 #
-# Compacting and Uncompacting of port images to save space will be implemented
-# at some point.
-#
 # For the creating and removing of links during activation and deactivation,
 # code very similar to what is used in portinstall is used.
 #
@@ -113,9 +110,6 @@ proc activate {name v optionslist} {
 	}
 	if { [registry::property_retrieve $ref active] != 0 } {
 		return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
-	} 
-	if { [registry::property_retrieve $ref compact] != 0 } {
-		return -code error "Image error: ${name} @${version}_${revision}${variants} is compactd."
 	} 
 
 	set imagedir [registry::property_retrieve $ref imagedir]
@@ -179,10 +173,7 @@ proc deactivate {name v optionslist} {
 	}
 	if { [registry::property_retrieve $ref active] != 1 } {
 		return -code error "Image error: ${name} @${fqversion} is not active."
-	} 
-	if { [registry::property_retrieve $ref compact] != 0 } {
-		return -code error "Image error: ${name} @${fqversion} is compactd."
-	} 
+	}
 
 	set imagedir [registry::property_retrieve $ref imagedir]
 
@@ -200,20 +191,6 @@ proc deactivate {name v optionslist} {
 	registry::property_store $ref active 0
 
 	registry::write_entry $ref
-
-}
-
-proc compact {name v} {
-	global UI_PREFIX
-
-	return -code error "Image error: compact/uncompact not yet implemented."
-
-}
-
-proc uncompact {name v} {
-	global UI_PREFIX
-
-	return -code error "Image error: compact/uncompact not yet implemented."
 
 }
 
