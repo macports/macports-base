@@ -44,7 +44,6 @@ endif
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
 	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
-	@echo "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually."; echo ""
 
 group::
 	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
