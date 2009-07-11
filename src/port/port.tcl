@@ -260,6 +260,7 @@ proc add_to_portlist {listname portentry} {
     #   name
     #   version         (version_revision)
     #   variants array  (variant=>+-)
+    #   requested_variants array  (variant=>+-)
     #   options array   (key=>value)
     #   fullname        (name/version_revision+-variants)
 
@@ -268,6 +269,7 @@ proc add_to_portlist {listname portentry} {
     if {![info exists port(name)]}      { set port(name) "" }
     if {![info exists port(version)]}   { set port(version) "" }
     if {![info exists port(variants)]}  { set port(variants) "" }
+    if {![info exists port(requested_variants)]}  { set port(requested_variants) "" }
     if {![info exists port(options)]}   { set port(options) [array get global_options] }
 
     # If neither portname nor url is specified, then default to the current port
@@ -300,7 +302,8 @@ proc add_ports_to_portlist {listname ports {overridelist ""}} {
     foreach portentry $ports {
         array set port $portentry
         if ([info exists overrides(version)])   { set port(version) $overrides(version) }
-        if ([info exists overrides(variants)])  { set port(variants) $overrides(variants)   }
+        if ([info exists overrides(variants)])  { set port(variants) $overrides(variants) }
+        if ([info exists overrides(requested_variants)])  { set port(requested_variants) $overrides(requested_variants) }
         if ([info exists overrides(options)])   { set port(options) $overrides(options) }
         add_to_portlist portlist [array get port]
     }
@@ -364,6 +367,8 @@ proc foreachport {portlist block} {
             set portversion $portspec(version)
             array unset variations
             array set variations $portspec(variants)
+            array unset requested_variations
+            array set requested_variations $portspec(requested_variants)
             array unset options
             array set options $portspec(options)
         }
@@ -877,7 +882,7 @@ proc element { resname } {
     set url ""
     set name ""
     set version ""
-    array unset variants
+    array unset requested_variants
     array unset options
     
     set token [lookahead]
@@ -971,11 +976,12 @@ proc element { resname } {
             advance
             set name [url_to_portname $token]
             if {$name != ""} {
-                parsePortSpec version variants options
+                parsePortSpec version requested_variants options
                 add_to_portlist reslist [list url $token \
                   name $name \
                   version $version \
-                  variants [array get variants] \
+                  requested_variants [array get requested_variants] \
+                  variants [array get requested_variants] \
                   options [array get options]]
             } else {
                 ui_error "Can't open URL '$token' as a port"
@@ -986,11 +992,12 @@ proc element { resname } {
 
         default             { # Treat anything else as a portspec (portname, version, variants, options
             # or some combination thereof).
-            parseFullPortSpec url name version variants options
+            parseFullPortSpec url name version requested_variants options
             add_to_portlist reslist [list url $url \
               name $name \
               version $version \
-              variants [array get variants] \
+              requested_variants [array get requested_variants] \
+              variants [array get requested_variants] \
               options [array get options]]
             set el 1
         }
@@ -1010,7 +1017,12 @@ proc add_multiple_ports { resname ports {remainder ""} } {
     
     array unset overrides
     if {$version != ""} { set overrides(version) $version }
-    if {[array size variants]} { set overrides(variants) [array get variants] }
+    if {[array size variants]} {
+        # we always record the requested variants separately,
+        # but requested ones always override existing ones
+        set overrides(requested_variants) [array get variants]
+        set overrides(variants) [array get variants]
+    }
     if {[array size options]} { set overrides(options) [array get options] }
 
     add_ports_to_portlist reslist $ports [array get overrides]
@@ -1723,6 +1735,16 @@ proc action_notes { action portlist opts } {
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
         }
+        
+        # Add any global_variations to the variations
+        # specified for the port
+        array unset merged_variations
+        array set merged_variations [array get variations]
+        foreach { variation value } [array get global_variations] { 
+            if { ![info exists merged_variations($variation)] } { 
+                set merged_variations($variation) $value 
+            } 
+        }
 
         # Open the Portfile associated with this port.
         if {[catch {set mport [mportopen $porturl [array get options] \
@@ -1984,7 +2006,7 @@ proc action_upgrade { action portlist opts } {
             
             # First filter out implicit variants from the explicitly set/unset variants.
             set global_variations_list [mport_filtervariants [array get global_variations] yes]
-            set variations_list [mport_filtervariants [array get variations] yes]
+            set variations_list [mport_filtervariants [array get requested_variations] yes]
             
             macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache
         }
@@ -2804,12 +2826,13 @@ proc action_target { action portlist opts } {
             set porturl $portinfo(porturl)
         }
         
-        # Add any global_variations to the variations
-        # specified for the port
-        foreach { variation value } [array get global_variations] {
-            if { ![info exists variations($variation)] } {
-                set variations($variation) $value
-            }
+        # use existing variants iff none were explicitly requested
+        if {[array get requested_variations] == "" && [array get variations] != ""} {
+            array unset requested_variations
+            array set requested_variations [array get variations]
+            set filtered_variations [mport_filtervariants [array get variations] no]
+        } else {
+            set filtered_variations [mport_filtervariants [array get requested_variations] yes]
         }
         # Filter out implicit variants from the explicitly set/unset variants.
         # Except we need to keep them for some targets to work right...
@@ -2817,9 +2840,16 @@ proc action_target { action portlist opts } {
             distfiles -
             mirror {}
             default {
-                set variationslist [mport_filtervariants [array get variations] yes]
-                array unset variations
-                array set variations $variationslist
+                array unset requested_variations
+                array set requested_variations $filtered_variations
+            }
+        }
+        
+        # Add any global_variations to the variations
+        # specified for the port
+        foreach { variation value } [array get global_variations] {
+            if { ![info exists requested_variations($variation)] } {
+                set requested_variations($variation) $value
             }
         }
 
@@ -2828,7 +2858,7 @@ proc action_target { action portlist opts } {
         if {[string length $portversion]} {
             set options(ports_version_glob) $portversion
         }
-        if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
+        if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "Unable to open port: $result" 1 status
