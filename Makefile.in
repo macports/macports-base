@@ -41,7 +41,7 @@ ifeq ($(DESTDIR),)
 # Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
 	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
 endif
-	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, open a new terminal and run:"; echo ""
+	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
 	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
 	@echo "Stray sources might have been left in the legacy ${localstatedir}/db/dports directory after this upgrade, which moved most of what it could to ${localstatedir}/macports, so you might want to look in the former and cleanup manually."; echo ""
