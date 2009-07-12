@@ -82,13 +82,8 @@ proc activate {name v optionslist} {
 	set version [lindex $ilist 1]
 	set revision [lindex $ilist 2]
 	set	variants [lindex $ilist 3]
-	
-    if {$v != ""} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
-    } else {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
-    }
 
+	# if another version of this port is active, deactivate it first
 	set ilist [registry::installed $name]
 	if { [llength $ilist] > 1 } {
 		foreach i $ilist {
@@ -98,10 +93,16 @@ proc activate {name v optionslist} {
 			set	ivariants [lindex $i 3]
 			set iactive [lindex $i 4]
 			if { ![string equal ${iversion}_${irevision}${ivariants} ${version}_${revision}${variants}] && $iactive == 1 } {
-				return -code error "Image error: Another version of this port ($iname @${iversion}_${irevision}${ivariants}) is already active."
+				deactivate $iname ${iversion}_${irevision}${ivariants} $optionslist
 			}
 		}
 	}
+	
+    if {$v != ""} {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
+    } else {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
+    }
 
 	set ref [registry::open_entry $name $version $revision $variants]
 	
