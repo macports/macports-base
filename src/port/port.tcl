@@ -1344,6 +1344,7 @@ proc action_usage { action portlist opts } {
             return 1
         }
     }
+    return 0
 }
 
 
@@ -1755,6 +1756,7 @@ proc action_notes { action portlist opts } {
         return 1
     }
 
+    set status 0
     foreachport $portlist {
         if {$porturl eq ""} {
             # Look up the port.
@@ -1815,6 +1817,7 @@ proc action_notes { action portlist opts } {
             }
         }
     }
+    return $status
 }
 
 
@@ -2005,6 +2008,7 @@ proc action_upgrade { action portlist opts } {
     }
     # shared depscache for all ports in the list
     array set depscache {}
+    set status 0
     foreachport $portlist {
         if {![registry::entry_exists_for_name $portname]} {
             break_softcontinue "$portname is not installed" 1 status
@@ -2058,6 +2062,7 @@ proc action_dependents { action portlist opts } {
 
     registry::open_dep_map
 
+    set status 0
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
         if { [catch {set ilist [registry::installed $portname $composite_version]} result] } {
@@ -2085,7 +2090,7 @@ proc action_dependents { action portlist opts } {
             ui_msg "$portname has no dependents!"
         }
     }
-    return 0
+    return $status
 }
 
 
@@ -2114,7 +2119,7 @@ proc action_uninstall { action portlist opts } {
         }
     }
 
-    return 0
+    return $status
 }
 
 

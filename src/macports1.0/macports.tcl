@@ -2654,6 +2654,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     # close the port handle
     mportclose $workername
+    return 0
 }
 
 # upgrade_dependencies: helper proc for upgrade
