@@ -2312,7 +2312,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 array set portinfo [mportinfo $workername]
                 
                 # upgrade its dependencies first
-                _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+                set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+                if {$status != 0 && ![ui_isset ports_processall]} {
+                    catch {mportclose $workername}
+                    return $status
+                }
                 # now install it
                 if {[catch {set result [mportexec $workername install]} result]} {
                     global errorInfo
@@ -2340,7 +2344,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             return 0
         } else {
             ui_error "Checking installed version failed: $result"
-            exit 1
+            return 1
         }
     } else {
         # we'll now take care of upgrading it, so we can add it to the cache
@@ -2458,7 +2462,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
-        _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+        set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+        if {$status != 0 && ![ui_isset ports_processall]} {
+            catch {mportclose $workername}
+            return $status
+        }
     } else {
         ui_debug "Not following dependencies"
     }
@@ -2487,7 +2495,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     foreach dep $deplist {
                         set mpname [lindex $dep 2]
                         if {![llength [array get depscache port:${mpname}]]} {
-                            macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache
+                            set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                            if {$status != 0 && ![ui_isset ports_processall]} {
+                                catch {mportclose $workername}
+                                return $status
+                            }
                         }
                     }
                 }
@@ -2625,7 +2637,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
-                    macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache
+                    set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                    if {$status != 0 && ![ui_isset ports_processall]} {
+                        catch {mportclose $workername}
+                        return $status
+                    }
                 }
             }
         }
@@ -2656,21 +2672,25 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
     set saved_do_dependents [info exists options(ports_do_dependents)]
     unset -nocomplain options(ports_do_dependents)
 
+    set status 0
     # each dep type is upgraded
     foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [lindex [split $i :] end]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
-                    upgrade $d $i $globalvarlist $variationslist [array get options] depscache
+                    set status [upgrade $d $i $globalvarlist $variationslist [array get options] depscache]
+                    if {$status != 0 && ![ui_isset ports_processall]} break
                 }
             }
         }
+        if {$status != 0 && ![ui_isset ports_processall]} break
     }
     # restore dependent-following to its former value
     if {$saved_do_dependents} {
         set options(ports_do_dependents) yes
     }
+    return $status
 }
 
 # mportselect

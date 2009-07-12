@@ -2007,8 +2007,7 @@ proc action_upgrade { action portlist opts } {
     array set depscache {}
     foreachport $portlist {
         if {![registry::entry_exists_for_name $portname]} {
-            ui_error "$portname is not installed"
-            return 1
+            break_softcontinue "$portname is not installed" 1 status
         }
         if {![info exists depscache(port:$portname)]} {
             # Global variations will have to be merged into the specified
@@ -2019,11 +2018,14 @@ proc action_upgrade { action portlist opts } {
             set global_variations_list [mport_filtervariants [array get global_variations] yes]
             set variations_list [mport_filtervariants [array get requested_variations] yes]
             
-            macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache
+            set status [macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache]
+            if {$status != 0 && ![macports::ui_isset ports_processall]} {
+                return $status
+            }
         }
     }
 
-    return 0
+    return $status
 }
 
 
@@ -3216,11 +3218,6 @@ proc parse_options { action ui_options_name global_options_name } {
                         # Ignore errors while processing within a command
                         set ui_options(ports_processall) yes
                     }
-                    x {
-                        # Exit with error from any command while in batch/interactive mode
-                        set ui_options(ports_exit) yes
-                    }
-
                     f {
                         set global_options(ports_force) yes
                     }
@@ -3292,7 +3289,7 @@ proc process_cmd { argv } {
     set action_status 0
 
     # Process an action if there is one
-    while {$action_status == 0 && [moreargs]} {
+    while {($action_status == 0 || [macports::ui_isset ports_processall]) && [moreargs]} {
         set action [lookahead]
         advance
         
@@ -3375,11 +3372,6 @@ proc process_cmd { argv } {
 
         # semaphore to exit
         if {$action_status == -999} break
-
-        # If we're not in exit mode then ignore the status from the command
-        if { ![macports::ui_isset ports_exit] } {
-            set action_status 0
-        }
     }
     
     return $action_status
@@ -3502,7 +3494,7 @@ proc process_command_file { in } {
 
     # Main command loop
     set exit_status 0
-    while { $exit_status == 0 } {
+    while { $exit_status == 0 || [macports::ui_isset ports_processall] } {
 
         # Calculate our prompt
         if { $noisy } {
@@ -3522,11 +3514,9 @@ proc process_command_file { in } {
         set exit_status [process_cmd $line]
         
         # Check for semaphore to exit
-        if {$exit_status == -999} break
-        
-        # Ignore status unless we're in error-exit mode
-        if { ![macports::ui_isset ports_exit] } {
+        if {$exit_status == -999} {
             set exit_status 0
+            break
         }
     }
 
@@ -3568,15 +3558,9 @@ proc process_command_files { filelist } {
             close $in
         }
 
-        # Check for semaphore to exit
-        if {$exit_status == -999} {
-            set exit_status 0
-            break
-        }
-
-        # Ignore status unless we're in error-exit mode
-        if { ![macports::ui_isset ports_exit] } {
-            set exit_status 0
+        # Exit on first failure unless -p was given
+        if {$exit_status != 0 && ![macports::ui_isset ports_processall]} {
+            return $exit_status
         }
     }
 
@@ -3662,16 +3646,11 @@ set exit_status 0
 if { [llength $remaining_args] > 0 } {
 
     # If there are remaining arguments, process those as a command
-
-    # Exit immediately, by default, unless we're going to be processing command files
-    if {![info exists ui_options(ports_commandfiles)]} {
-        set ui_options(ports_exit) yes
-    }
     set exit_status [process_cmd $remaining_args]
 }
 
 # Process any prescribed command files, including standard input
-if { $exit_status == 0 && [info exists ui_options(ports_commandfiles)] } {
+if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exists ui_options(ports_commandfiles)] } {
     set exit_status [process_command_files $ui_options(ports_commandfiles)]
 }
 
