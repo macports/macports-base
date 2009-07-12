@@ -109,9 +109,9 @@ proc macports::global_option_isset {val} {
 
 proc macports::ui_init {priority args} {
     # Get the list of channels.
-    try {
+    if {[llength [info commands ui_channels]] > 0} {
         set channels [ui_channels $priority]
-    } catch * {
+    } else {
         set channels [ui_channels_default $priority]
     }
 
@@ -120,15 +120,15 @@ proc macports::ui_init {priority args} {
     if {$nbchans == 0} {
         proc ::ui_$priority {args} {}
     } else {
-        try {
+        if {[llength [info commands ui_prefix]] > 0} {
             set prefix [ui_prefix $priority]
-        } catch * {
+        } else {
             set prefix [ui_prefix_default $priority]
         }
 
-        try {
+        if {[llength [info commands ::ui_init]] > 0} {
             eval ::ui_init $priority $prefix $channels $args
-        } catch * {
+        } else {
             if {$nbchans == 1} {
                 set chan [lindex $channels 0]
                 proc ::ui_$priority {args} [subst {
@@ -1862,12 +1862,16 @@ proc mportlookup {name} {
                     lappend matches $name
                     lappend matches $line
                     close $fd
-                    break
+                    set fd -1
                 } catch {*} {
                     ui_warn "It looks like your PortIndex file may be corrupt."
-                    throw
                 } finally {
-                    catch {close $fd}
+                    if {$fd != -1} {
+                        close $fd
+                    }
+                }
+                if {[llength $matches] > 0} {
+                    break
                 }
             }
         } else {
