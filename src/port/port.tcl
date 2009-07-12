@@ -2103,6 +2103,10 @@ proc action_uninstall { action portlist opts } {
     }
 
     foreachport $portlist {
+        if {![registry::entry_exists_for_name $portname]} {
+            ui_info "$portname is already uninstalled"
+            continue
+        }
         if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
