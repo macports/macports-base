@@ -110,9 +110,9 @@ proc macports::global_option_isset {val} {
 
 proc macports::ui_init {priority args} {
     # Get the list of channels.
-    try {
+    if {[llength [info commands ui_channels]] > 0} {
         set channels [ui_channels $priority]
-    } catch * {
+    } else {
         set channels [ui_channels_default $priority]
     }
 
@@ -121,15 +121,15 @@ proc macports::ui_init {priority args} {
     if {$nbchans == 0} {
         proc ::ui_$priority {args} {}
     } else {
-        try {
+        if {[llength [info commands ui_prefix]] > 0} {
             set prefix [ui_prefix $priority]
-        } catch * {
+        } else {
             set prefix [ui_prefix_default $priority]
         }
 
-        try {
+        if {[llength [info commands ::ui_init]] > 0} {
             eval ::ui_init $priority $prefix $channels $args
-        } catch * {
+        } else {
             if {$nbchans == 1} {
                 set chan [lindex $channels 0]
                 proc ::ui_$priority {args} [subst {
@@ -1811,12 +1811,16 @@ proc mportlookup {name} {
                     lappend matches $name
                     lappend matches $line
                     close $fd
-                    break
+                    set fd -1
                 } catch {*} {
                     ui_warn "It looks like your PortIndex file may be corrupt."
-                    throw
                 } finally {
-                    catch {close $fd}
+                    if {$fd != -1} {
+                        close $fd
+                    }
+                }
+                if {[llength $matches] > 0} {
+                    break
                 }
             }
         } else {
@@ -1846,8 +1850,8 @@ proc _mports_load_quickindex {args} {
         if {![file exists ${index}]} {
             continue
         }
-        if {![file exists ${index}.quick] || [file mtime ${index}] > [file mtime ${index}.quick]} {
-            # stale or nonexistent quick index file, so generate a new one
+        if {![file exists ${index}.quick]} {
+            ui_warn "No quick index file found, attempting to generate one for source: $source"
             if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
                 continue
             }
@@ -2259,7 +2263,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 array set portinfo [mportinfo $workername]
                 
                 # upgrade its dependencies first
-                _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+                set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+                if {$status != 0 && ![ui_isset ports_processall]} {
+                    catch {mportclose $workername}
+                    return $status
+                }
                 # now install it
                 if {[catch {set result [mportexec $workername install]} result]} {
                     global errorInfo
@@ -2287,7 +2295,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             return 0
         } else {
             ui_error "Checking installed version failed: $result"
-            exit 1
+            return 1
         }
     } else {
         # we'll now take care of upgrading it, so we can add it to the cache
@@ -2405,7 +2413,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
-        _upgrade_dependencies portinfo depscache globalvarlist variationslist options
+        set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+        if {$status != 0 && ![ui_isset ports_processall]} {
+            catch {mportclose $workername}
+            return $status
+        }
     } else {
         ui_debug "Not following dependencies"
     }
@@ -2434,7 +2446,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     foreach dep $deplist {
                         set mpname [lindex $dep 2]
                         if {![llength [array get depscache port:${mpname}]]} {
-                            macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache
+                            set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                            if {$status != 0 && ![ui_isset ports_processall]} {
+                                catch {mportclose $workername}
+                                return $status
+                            }
                         }
                     }
                 }
@@ -2544,7 +2560,11 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
-                    macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache
+                    set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                    if {$status != 0 && ![ui_isset ports_processall]} {
+                        catch {mportclose $workername}
+                        return $status
+                    }
                 }
             }
         }
@@ -2553,6 +2573,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     # close the port handle
     mportclose $workername
+    return 0
 }
 
 # upgrade_dependencies: helper proc for upgrade
@@ -2575,21 +2596,25 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
     set saved_do_dependents [info exists options(ports_do_dependents)]
     unset -nocomplain options(ports_do_dependents)
 
+    set status 0
     # each dep type is upgraded
     foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [lindex [split $i :] end]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
-                    upgrade $d $i $globalvarlist $variationslist [array get options] depscache
+                    set status [upgrade $d $i $globalvarlist $variationslist [array get options] depscache]
+                    if {$status != 0 && ![ui_isset ports_processall]} break
                 }
             }
         }
+        if {$status != 0 && ![ui_isset ports_processall]} break
     }
     # restore dependent-following to its former value
     if {$saved_do_dependents} {
         set options(ports_do_dependents) yes
     }
+    return $status
 }
 
 # mportselect
