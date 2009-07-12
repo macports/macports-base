@@ -1901,8 +1901,8 @@ proc _mports_load_quickindex {args} {
         if {![file exists ${index}]} {
             continue
         }
-        if {![file exists ${index}.quick] || [file mtime ${index}] > [file mtime ${index}.quick]} {
-            # stale or nonexistent quick index file, so generate a new one
+        if {![file exists ${index}.quick]} {
+            ui_warn "No quick index file found, attempting to generate one for source: $source"
             if {[catch {set quicklist [mports_generate_quickindex ${index}]}]} {
                 continue
             }
