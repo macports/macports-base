@@ -1573,10 +1573,13 @@ proc open_statefile {args} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            ui_msg "Portfile changed since last build; discarding previous state."
-            #file delete $statefile
-            delete [file join $workpath]
-            file mkdir [file join $workpath]
+            if {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
+                ui_msg "Portfile changed since last build; discarding previous state."
+                delete [file join $workpath]
+                file mkdir [file join $workpath]
+            } else {
+                ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
+            }
         }
     }
     chownAsRoot $workpath
