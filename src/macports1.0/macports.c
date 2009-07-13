@@ -37,6 +37,8 @@
 
 #include <tcl.h>
 
+#include "get_systemconfiguration_proxies.h"
+
 static int
 macports__version(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[])
 {
@@ -54,6 +56,7 @@ Macports_Init(Tcl_Interp *interp)
 	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
 		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "get_systemconfiguration_proxies", GetSystemConfigurationProxiesCmd, NULL, NULL);
 	if (Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
 		return TCL_ERROR;
 	return TCL_OK;

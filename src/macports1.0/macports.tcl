@@ -975,6 +975,9 @@ proc macports::getportresourcepath {url {path ""} {fallback yes}} {
         file {
             set proposedpath [file normalize [file join [getportdir $url] .. ..]]
         }
+        default {
+            set proposedpath [getsourcepath $url]
+        }
     }
 
     # append requested path
@@ -1635,7 +1638,8 @@ proc mportsync {{optionslist {}}} {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
                     file mkdir [file dirname $indexfile]
-                    curl $source/PortIndex $indexfile
+                    curl fetch ${source}/PortIndex $indexfile
+                    curl fetch ${source}/PortIndex.quick ${indexfile}.quick
                 }
             }
             default {
