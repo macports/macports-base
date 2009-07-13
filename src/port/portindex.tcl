@@ -60,15 +60,15 @@ proc pindex {portdir} {
             set portinfo(portarchive) [file join [file dirname $portdir] [file tail $portdir]].tgz
             cd [file join $directory [file dirname $portinfo(portdir)]]
             puts "Archiving port $portinfo(name) to [file join $outdir $portinfo(portarchive)]"
-            set tar [findBinary tar $macports::autoconf::tar_path]
-            set gzip [findBinary gzip $macports::autoconf::gzip_path]
+            set tar [macports::findBinary tar $macports::autoconf::tar_path]
+            set gzip [macports::findBinary gzip $macports::autoconf::gzip_path]
             if {[catch {exec $tar -cf - [file tail $portdir] | $gzip -c >[file join $outdir $portinfo(portarchive)]} result]} {
                 puts stderr "Failed to create port archive $portinfo(portarchive): $result"
                 exit 1
             }
         }
 
-        set keepkeys {categories depends_fetch depends_extract depends_build depends_lib depends_run description epoch homepage long_description maintainers name platforms revision variants version portdir}
+        set keepkeys {categories depends_fetch depends_extract depends_build depends_lib depends_run description epoch homepage long_description maintainers name platforms revision variants version portdir portarchive}
         foreach availkey [array names portinfo] {
             if {[lsearch -exact ${keepkeys} $availkey] == -1} {
                 unset portinfo($availkey)
