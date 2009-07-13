@@ -1,12 +1,16 @@
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
 		macports_autoconf.tcl macports_index.tcl macports_fastload.tcl
-OBJS=		macports.o
+OBJS=		macports.o get_systemconfiguration_proxies.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/macports1.0
 
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
+
+ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
+	LIBS+= -framework CoreFoundation -framework SystemConfiguration
+endif
 
 test::
 	${TCLSH} tests/macports_dlist.tcl
