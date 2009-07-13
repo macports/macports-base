@@ -165,6 +165,9 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
+if test x$prefix = x/usr/local; then
+    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported])
+fi
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
 

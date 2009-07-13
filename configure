@@ -7797,6 +7797,11 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 
+if test x$prefix = x/usr/local; then
+    { { $as_echo "$as_me:$LINENO: error: Installing MacPorts into /usr/local is not supported" >&5
+$as_echo "$as_me: error: Installing MacPorts into /usr/local is not supported" >&2;}
+   { (exit 1); exit 1; }; }
+fi
 
 
 
