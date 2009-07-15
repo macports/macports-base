@@ -1,5 +1,5 @@
 /*
- * strsed.h
+ * Pextlib.h
  * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-char *strsed(char *, char *, int *);
+int ui_info(Tcl_Interp *, char *);

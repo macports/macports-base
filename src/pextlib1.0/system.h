@@ -1,5 +1,5 @@
 /*
- * strsed.h
+ * system.h
  * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
@@ -30,4 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-char *strsed(char *, char *, int *);
+int SystemCmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
