@@ -1121,11 +1121,9 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
 
     $workername eval source Portfile
 
-    # add the default universal variant, but only if
-    # it will work and another one isn't already present
-    if {[$workername eval default_universal_variant_allowed]} {
-        $workername eval add_default_universal_variant
-    }
+    # add the default universal variant if appropriate, and set up flags that
+    # are conditional on whether universal is set
+    $workername eval universal_setup
 
     # evaluate the variants
     if {[$workername eval eval_variants variations] != 0} {

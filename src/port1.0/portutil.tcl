@@ -1854,33 +1854,51 @@ proc check_variants {variations target} {
     return $result
 }
 
-proc default_universal_variant_allowed {args} {
-
+# add the default universal variant if appropriate, and set up flags that are
+# conditional on whether universal is set
+proc universal_setup {args} {
+    global configure.archflags
+    global configure.march configure.mtune configure.universal_cflags
+    global configure.universal_cxxflags configure.universal_cppflags 
+    global configure.universal_ldflags configure.universal_args
+    
     if {[variant_exists universal]} {
         ui_debug "universal variant already exists, so not adding the default one"
-        return no
     } elseif {[exists universal_variant] && ![option universal_variant]} {
         ui_debug "'universal_variant no' specified, so not adding the default universal variant"
-        return no
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
-        return no
     } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.project]} {
         # Allow +universal if port uses xcode portgroup.
         ui_debug "not using configure, so not adding the default universal variant"
-        return no
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
-        return no
     } else {
         ui_debug "adding the default universal variant"
-        return yes
+        variant universal {}
     }
-}
 
-proc add_default_universal_variant {args} {
-    # Declare default universal variant (all the magic happens in portconfigure now)
-    variant universal {}
+    # add in extra CFLAGS etc
+    if {[variant_exists universal] && [variant_isset universal]} {
+        foreach flag {cflags objcflags fflags f90flags fcflags} {
+            eval configure.${flag}-append ${configure.universal_cflags}
+        }
+        eval configure.cxxflags-append ${configure.universal_cxxflags}
+        eval configure.cppflags-append ${configure.universal_cppflags}
+        eval configure.ldflags-append ${configure.universal_ldflags}
+        eval configure.pre_args-append ${configure.universal_args}
+    } else {
+        foreach flag {cflags cxxflags objcflags fflags f90flags fcflags} {
+            eval configure.${flag}-append ${configure.archflags}
+            if {${configure.march} != {}} {
+                configure.${flag}-append "-march=${configure.march}"
+            }
+            if {${configure.mtune} != {}} {
+                configure.${flag}-append "-mtune=${configure.mtune}"
+            }
+        }
+        eval configure.ldflags-append ${configure.archflags}
+    }
 }
 
 # Target class definition.
