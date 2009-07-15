@@ -539,11 +539,11 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	int cur;
 
 	cur = MIN_USABLE_UID;
-	
+
 	while (getpwuid(cur) != NULL) {
 		cur++;
 	}
-	
+
 	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
@@ -562,7 +562,7 @@ int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	while (getgrgid(cur) != NULL) {
 		cur++;
 	}
-	
+
 	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
@@ -627,15 +627,15 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *value, *target;
-    
+
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "value target");
         return TCL_ERROR;
     }
-    
+
     value = Tcl_GetString(objv[1]);
     target = Tcl_GetString(objv[2]);
-    
+
     if (symlink(value, target) != 0) {
         Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
         return TCL_ERROR;
@@ -659,7 +659,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     int listLength;
     Tcl_Obj **listArray;
     int loopCounter;
-    
+
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "name");
         return TCL_ERROR;
@@ -786,10 +786,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "lchown", lchownCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "getuid", getuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "geteuid", geteuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "getgid", getgidCmd, NULL, NULL);
@@ -803,7 +803,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "uname_to_gid", uname_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "name_to_gid", name_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "gid_to_name", gid_to_nameCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "tracelib", TracelibCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "isatty", IsattyCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "term_get_size", TermGetSizeCmd, NULL, NULL);
