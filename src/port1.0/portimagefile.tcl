@@ -121,7 +121,7 @@ proc portimagefile::filelist_for_path {startpath} {
     }
     set filelist {}
     fs-traverse element $startpath {
-        if {![file isdirectory $element]} {
+        if {[file type $element] != "directory"} {
             # registry_fileinfo_for_file only works on files which exist
             # so we must run it against the stuff in the destroot, then strip
             # out that path to get to what will be the final install path
