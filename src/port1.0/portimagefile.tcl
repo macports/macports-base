@@ -126,7 +126,7 @@ proc portimagefile::filelist_for_path {startpath} {
             # so we must run it against the stuff in the destroot, then strip
             # out that path to get to what will be the final install path
             set fileinfo [registry_fileinfo_for_file $element]
-            lappend filelist [regsub -all "$startpath" $fileinfo ""]
+            lappend filelist [regsub -all "^$startpath" $fileinfo ""]
         }
     }
 
