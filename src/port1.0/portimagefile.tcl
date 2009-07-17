@@ -129,7 +129,7 @@ proc portimagefile::filelist_for_path {startpath} {
             # twice in $fileinfo.
             # Also, there is a theoretical possiblity that $startpath
             # will occur a second time in the full path, but
-            # the likelihood is very, very, very small. eg, how often
+            # the likelihood is very, very, very small. e.g., how often
             # will /opt/local/var/macports/build/_opt_local_var_macports_sources_rsync.macports.org_release_ports_<category>_<portname>/work/destroot
             # appear in a path besides what MacPorts uses (or its equivalent)?
             lappend filelist [regsub -all "(?q)$startpath" $fileinfo ""]
