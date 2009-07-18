@@ -1635,6 +1635,8 @@ proc write_statefile {class name fd} {
 proc check_statefile_variants {variations fd} {
     upvar $variations upvariations
 
+    array set oldvariations {}
+
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
@@ -1643,15 +1645,13 @@ proc check_statefile_variants {variations fd} {
     }
 
     set mismatch 0
-    if {[array size oldvariations] > 0} {
-        if {[array size oldvariations] != [array size upvariations]} {
-            set mismatch 1
-        } else {
-            foreach key [array names upvariations *] {
-                if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
+    if {[array size oldvariations] != [array size upvariations]} {
+        set mismatch 1
+    } else {
+        foreach key [array names upvariations *] {
+            if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
                 set mismatch 1
                 break
-                }
             }
         }
     }
