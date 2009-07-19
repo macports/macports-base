@@ -1637,6 +1637,12 @@ proc check_statefile_variants {variations fd} {
 
     array set oldvariations {}
 
+    seek $fd 0 end
+    if {[tell $fd] == 0} {
+        # Statefile is empty, skipping further tests
+        return 0
+    }
+
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
