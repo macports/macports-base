@@ -1630,12 +1630,18 @@ proc write_statefile {class name fd} {
     flush $fd
 }
 
-# check_statefile_variants
+##
 # Check that recorded selection of variants match the current selection
-proc check_statefile_variants {variations fd} {
+#
+# @param variations input array name of new variants
+# @param oldvariations output array name of old variants
+# @param fd file descriptor of the state file
+# @return 0 if variants match, 1 otherwise
+proc check_statefile_variants {variations oldvariations fd} {
     upvar $variations upvariations
+    upvar $oldvariations upoldvariations
 
-    array set oldvariations {}
+    array set upoldvariations {}
 
     seek $fd 0 end
     if {[tell $fd] == 0} {
@@ -1646,16 +1652,16 @@ proc check_statefile_variants {variations fd} {
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
-            set oldvariations([string range $name 1 end]) [string range $name 0 0]
+            set upoldvariations([string range $name 1 end]) [string range $name 0 0]
         }
     }
 
     set mismatch 0
-    if {[array size oldvariations] != [array size upvariations]} {
+    if {[array size upoldvariations] != [array size upvariations]} {
         set mismatch 1
     } else {
         foreach key [array names upvariations *] {
-            if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
+            if {![info exists upoldvariations($key)] || $upvariations($key) != $upoldvariations($key)} {
                 set mismatch 1
                 break
             }
@@ -1844,8 +1850,9 @@ proc check_variants {variations target} {
 
         set state_fd [open_statefile]
 
-        if {[check_statefile_variants upvariations $state_fd]} {
-            ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
+        array set oldvariations {}
+        if {[check_statefile_variants upvariations oldvariations $state_fd]} {
+            ui_error "Requested variants \"[canonicalize_variants [array get upvariations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean $portname' or specify the force option (-f)."
             set result 1
         } elseif {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
             # Write variations out to the statefile
