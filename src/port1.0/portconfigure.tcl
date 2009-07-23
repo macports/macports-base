@@ -139,10 +139,7 @@ default configure.compiler      {[portconfigure::configure_get_default_compiler]
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX configure.compiler configure.optflags configure.archflags
-    global configure.march configure.mtune configure.universal_cflags
-    global configure.universal_cxxflags configure.universal_cppflags 
-    global configure.universal_ldflags configure.universal_args
+    global UI_PREFIX configure.compiler
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option name]]"
 
@@ -167,28 +164,6 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
-    
-    # add in extra CFLAGS etc
-    if {[variant_exists universal] && [variant_isset universal]} {
-        foreach flag {cflags objcflags fflags f90flags fcflags} {
-            eval configure.${flag}-append ${configure.universal_cflags}
-        }
-        eval configure.cxxflags-append ${configure.universal_cxxflags}
-        eval configure.cppflags-append ${configure.universal_cppflags}
-        eval configure.ldflags-append ${configure.universal_ldflags}
-        eval configure.pre_args-append ${configure.universal_args}
-    } else {
-        foreach flag {cflags cxxflags objcflags fflags f90flags fcflags} {
-            eval configure.${flag}-append ${configure.archflags}
-            if {${configure.march} != {}} {
-                configure.${flag}-append "-march=${configure.march}"
-            }
-            if {${configure.mtune} != {}} {
-                configure.${flag}-append "-mtune=${configure.mtune}"
-            }
-        }
-        eval configure.ldflags-append ${configure.archflags}
-    }
 }
 
 # internal function to determine the compiler flags to select an arch
