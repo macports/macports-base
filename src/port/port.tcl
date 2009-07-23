@@ -2158,6 +2158,8 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
+    global private_options
+
     set status 0
 
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
