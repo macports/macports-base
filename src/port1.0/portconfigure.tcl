@@ -109,9 +109,12 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.build_arch configure.archflags
+options configure.build_arch
 default configure.build_arch {${build_arch}}
-default configure.archflags  {[portconfigure::configure_get_archflags]}
+foreach tool {cc cxx objc f77 f90 fc} {
+    options configure.${tool}_archflags
+    default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
+}
 
 options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_archs       {${universal_archs}}
@@ -167,7 +170,7 @@ proc portconfigure::configure_start {args} {
 }
 
 # internal function to determine the compiler flags to select an arch
-proc portconfigure::configure_get_archflags {args} {
+proc portconfigure::configure_get_archflags {tool} {
     global configure.build_arch configure.m32 configure.m64 configure.compiler
     set flags ""
     if {[tbool configure.m64]} {
@@ -175,7 +178,7 @@ proc portconfigure::configure_get_archflags {args} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported]} {
+        if {[arch_flag_supported] && $tool == "cc" || $tool == "cxx" || $tool == "objc"} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -410,9 +413,15 @@ proc portconfigure::configure_get_compiler {type} {
 proc portconfigure::configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
-    global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
+    global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac
+    global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune
+    foreach tool {cc cxx objc f77 f90 fc} {
+        global configure.${tool} configure.${tool}_archflags
+    }
+    foreach flags {cflags cppflags cxxflags objcflags ldflags fflags f90flags fcflags} {
+        global configure.${flags} configure.universal_${flags}
+    }
     
     if {[tbool use_autoreconf]} {
         if {[catch {command_exec autoreconf} result]} {
@@ -490,6 +499,27 @@ proc portconfigure::configure_main {args} {
         append_list_to_environment_value configure "BISON" ${configure.bison}
         append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
         append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        
+        # add extra flags that are conditional on whether we're building universal
+        if {[variant_exists universal] && [variant_isset universal]} {
+            foreach flags {CFLAGS OBJCFLAGS} {
+                append_list_to_environment_value configure $flags ${configure.universal_cflags}
+            }
+            append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
+            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
+            append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
+            eval configure.pre_args-append ${configure.universal_args}
+        } else {
+            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS} {
+                append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
+                if {${configure.march} != {}} {
+                    append_list_to_environment_value configure $flags "-march=${configure.march}"
+                }
+                if {${configure.mtune} != {}} {
+                    append_list_to_environment_value configure $flags "-mtune=${configure.mtune}"
+                }
+            }
+        }
 
         # Execute the command (with the new environment).
         if {[catch {command_exec configure} result]} {
