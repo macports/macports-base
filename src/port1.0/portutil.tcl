@@ -911,7 +911,7 @@ proc reinplace {args}  {
             return -code error "reinplace copy failed"
         }
 
-        eval file attributes {$file} $attributes
+        fileAttrsAsRoot $file $attributes
 
         file delete "$tmpfile"
     }
@@ -1219,7 +1219,9 @@ proc target_run {ditem} {
 
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
-        if { [tbool ${targetname}.asroot] } {
+        set target [ditem_key $ditem provides]
+        global ${target}.asroot
+        if { [tbool ${target}.asroot] } {
             elevateToRoot $targetname
         }
 
@@ -2354,6 +2356,26 @@ proc chownAsRoot {path} {
             # if started with sudo but have elevated back to root already
             chown  ${path} ${macportsuser}
         }
+    }
+}
+
+##
+# Change attributes of file while running as root
+#
+# @param file the file in question
+# @param attributes the attributes for the file
+proc fileAttrsAsRoot {file attributes} {
+    global euid macportsuser
+    if {[getuid] == 0 && [geteuid] != 0} {
+        # Started as root, but not root now
+        seteuid $euid
+        ui_debug "euid changed to: [geteuid]"
+        ui_debug "setting attributes on $file"
+        eval file attributes {$file} $attributes
+        seteuid [name_to_uid "$macportsuser"]
+        ui_debug "euid changed to: [geteuid]"
+    } else {
+        eval file attributes {$file} $attributes
     }
 }
 
