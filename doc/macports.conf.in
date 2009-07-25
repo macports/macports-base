@@ -135,4 +135,3 @@ startupitem_type	default
 # hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS,
 # and FTP, but not rsync):
 #proxy_skip            internal1, internal2, internal3
-
