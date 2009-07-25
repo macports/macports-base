@@ -1430,22 +1430,24 @@ proc action_log { action portlist opts } {
             set fp [open $logfile r]
             set data [read $fp]
             set data [split $data "\n"]
-            if {![info exists global_options(ports_log_stage)]} {
-                set stage "\[a-z\]*"
-            } else {
+
+            if {[info exists global_options(ports_log_stage)]} {
                 set stage $global_options(ports_log_stage);
-            }
-            if {![info exists global_options(ports_log_prefix)]} {
-                set prefix "\[a-z\]*"
             } else {
+                set stage "\[a-z\]*"
+            }
+
+            if {[info exists global_options(ports_log_prefix)]} {
                 set prefix $global_options(ports_log_prefix);
+            } else {
+                set prefix "\[a-z\]*"
             }
             set match ""
             foreach line $data {
-                set exp "^:$prefix:$stage .*$"
+                set exp "^:($prefix|any):($stage|any) .*$"
                 regexp $exp $line match
                 if {$match == $line} {
-                    regsub "^:$prefix:$stage "  $line "" line
+                    regsub "^:\[a-z\]*:\[a-z\]* "  $line "" line
                     puts $line
                 }
             }

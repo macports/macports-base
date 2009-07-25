@@ -63,8 +63,8 @@ namespace eval macports {
 
     variable open_mports {}
 
-    variable ui_priorities "debug info msg error warn"
-    variable port_stages "fetch checksum"
+    variable ui_priorities "debug info msg error warn any"
+    variable port_stages "any fetch checksum"
     variable current_stage "main"
 }
 
@@ -132,6 +132,10 @@ proc macports::init_logging {portname} {
 proc ui_phase {phase} {
     global macports::current_stage
     set macports::current_stage $phase
+    if {$phase != "main"} {
+        set cur_time [clock format [clock seconds] -format  {%+}]
+        ui_any "--->  Stage $phase started at $cur_time"
+    }
 }
 proc ui_message {priority prefix stage args} {
     global macports::channels ::debuglog macports::current_stage
