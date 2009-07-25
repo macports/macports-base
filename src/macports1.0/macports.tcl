@@ -2486,7 +2486,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         ui_debug "No need to upgrade! $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}"
         if {[info exists portinfo(canonical_active_variants)]
             && $portinfo(canonical_active_variants) != $oldvariant} {
-            ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variant $oldvariant does not match $portinfo(canonical_active_variants). Specify -f to force upgrade."
+            ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Specify -f to force upgrade."
         }
         if { $epoch_installed >= $epoch_in_tree } {
             # Check if we have to do dependents
