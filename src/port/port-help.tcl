@@ -286,6 +286,8 @@ version of the port, then the variants.conf file.
                     skipped (e.g. not outdated).
 --enforce-variants  If the installed variants do not match those requested,
                     upgrade even if the port is not outdated.
+--no-replace        Do not replace one port with another according to the
+                    replaced_by field
 }
 
 set porthelp(url) {

@@ -45,13 +45,13 @@ namespace eval portmain {
 
 # define options
 options prefix macportsuser name version revision epoch categories maintainers
-options long_description description homepage license provides conflicts
+options long_description description homepage license provides conflicts replaced_by
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 options compiler.cpath compiler.library_path
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts
+options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts replaced_by
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
