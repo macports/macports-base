@@ -277,10 +277,15 @@ set porthelp(unload) $porthelp(load)
 
 set porthelp(upgrade) {
 Upgrades the given ports to the latest version. Respects global options
--n, -R, -u, and -f (see the port man page).  Note that in selecting variants
+-n, -R, and -u (see the port man page).  Note that in selecting variants
 to use in the upgraded build of the port, the order of precedence is variants
 specified on the command line, then variants active in the latest installed
 version of the port, then the variants.conf file.
+
+--force             Ignore circumstances that would normally cause ports to be
+                    skipped (e.g. not outdated).
+--enforce-variants  If the installed variants do not match those requested,
+                    upgrade even if the port is not outdated.
 }
 
 set porthelp(url) {

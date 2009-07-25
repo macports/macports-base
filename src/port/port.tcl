@@ -3115,6 +3115,7 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
+    upgrade     {force enforce-variants}
 }
 
 global cmd_implied_options
