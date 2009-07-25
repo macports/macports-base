@@ -358,6 +358,12 @@ proc command_exec {command args} {
     if {[option macosx_deployment_target] ne ""} {
         set ${command}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
+    if {[option compiler.cpath] ne ""} {
+        set ${command}.env_array(CPATH) [join [option compiler.cpath] :]
+    }
+    if {[option compiler.library_path] ne ""} {
+        set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
+    }
 
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"

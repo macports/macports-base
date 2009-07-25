@@ -48,6 +48,7 @@ options prefix macportsuser name version revision epoch categories maintainers
 options long_description description homepage license provides conflicts
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
+options compiler.cpath compiler.library_path
 
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts
@@ -112,6 +113,9 @@ ui_debug "System Arch: [option os.arch]"
 default macosx_deployment_target {$macosx_version}
 
 default universal_variant yes
+
+default compiler.cpath {${prefix}/include}
+default compiler.library_path {${prefix}/lib}
 
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
