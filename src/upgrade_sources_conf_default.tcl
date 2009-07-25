@@ -41,14 +41,25 @@ while {[gets $sourcesConfChannel line] >= 0} {
          } elseif {[regexp {rsync://rsync\.(macports|darwinports)\.org/(release|dpupdate)/d?ports} $url]} {
             set addDefault true
          } elseif {[regexp {file://(/.+)} $url -> filepath]} {
-            if {[file exists [file join ${filepath} .svn]] && ![catch {set svnChannel [open "|svn info ${filepath}" r]}]} {
-               set svnURL {}
-               while {[gets $svnChannel svnLine] >= 0} {
-                  regexp {^URL: (.*)} $svnLine -> svnURL
-               }
-               close $svnChannel
-               if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
-                  set addDefault true
+            if {[file exists [file join ${filepath} .svn]]} {
+               if {![catch {set svnChannel [open "|svn info ${filepath}" r]} err]} {
+                  set svnURL {}
+                  while {[gets $svnChannel svnLine] >= 0} {
+                     regexp {^URL: (.*)} $svnLine -> svnURL
+                  }
+                  if {[catch {close $svnChannel} err]} {
+                     if {![string match "*This client is too old to work with working copy*" $err]} {
+                        return -code error $err
+                     } else {
+                        puts $err
+                        puts "WARNING: Unable to check svn URL for '$filepath' as it has been checked out with a newer Subversion client; please manually verify $sourcesConf!"
+                     }
+                  }
+                  if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
+                     set addDefault true
+                  }
+               } else {
+                  return -code error $err
                }
             }
          }
