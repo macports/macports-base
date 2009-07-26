@@ -24,7 +24,7 @@ Release 1.8.0 (unreleased):
       also allows ports to be renamed. Upgrade accepts a --no-replace option
       which disables this behaviour. (#20157, jmr in r54378)
 
-    - The upgrade target now accepts --force and --enforce-variants options.
+    - The upgrade action now accepts --force and --enforce-variants options.
       The former causes ports to be rebuilt even if they are not outdated, and
       the global -f option no longer has this effect (it had too many effects
       already). The latter causes ports to be rebuilt if the requested
@@ -396,7 +396,7 @@ Release 1.7.0 (2008-12-13 by blb):
 
     - Change default +universal platform back to: 10.4/10.4u.sdk/i386 ppc (r33087, r33107).
 
-    - Add `port platform` info target that outputs current platform (#12302, afb in r32724).
+    - Add `port platform` info action that outputs current platform (#12302, afb in r32724).
 
     - Enable 64 bit environment, ppc64 x86_64, for all +universal builds (mww in r32194).
 
