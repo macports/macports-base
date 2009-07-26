@@ -5,38 +5,162 @@
 
 
 Release 1.8.0 (unreleased):
+    - There is now a 'build_arch' variable, available in portfiles and
+      configurable in macports.conf, which sets the CPU architecture that
+      ports should be compiled for (when not building universal). Its default
+      is the same as that of the Apple-supplied /usr/bin/gcc.
+      (#19874, jmr in r53217,r53386,r53420,r53494,r53860,r54236)
+
+    - MacPorts base now works on and has appropriate default settings for
+      Mac OS X 10.6 Snow Leopard. (#19874, toby/mww/jkh in r38271,r40060,
+      r40836,r43976,r52397)
+
+    - The universal_sysroot and universal_target keys have been removed from
+      macports.conf. These settings are now handled automatically.
+      (toby in r52324)
+
+    - Added a 'replaced_by' portfile option. This causes upgrade to deactivate
+      the current port and install the port specified by this option. This
+      also allows ports to be renamed. Upgrade accepts a --no-replace option
+      which disables this behaviour. (#20157, jmr in r54378)
+
+    - The upgrade target now accepts --force and --enforce-variants options.
+      The former causes ports to be rebuilt even if they are not outdated, and
+      the global -f option no longer has this effect (it had too many effects
+      already). The latter causes ports to be rebuilt if the requested
+      variants do not match those installed (even if they are not outdated).
+      (#20156, jmr in r54376)
+
+    - Dependencies can be satisfied by ports that are installed but not
+      available in the ports tree (useful for testing uncommitted ports).
+      (jmr in r52075, r52160)
+
+    - Ports that are installed but not available in the ports tree no longer
+      cause an error when running commands like 'port clean installed'. They
+      are skipped and a warning is printed. (#19253, jmr in r50865)
+
+    - Selfupdate no longer disables readline support unless readline is found
+      in /usr/local, which has historically caused failures.
+      (#19035, jmr in r50868)
+
+    - Uninstalling a port that is not installed now produces an informational
+      message rather than an error. (#18984, jmr in r53709)
+
+    - Added a 'conflicts' portfile option. Conflicting ports will be detected
+      during dependency calculation. (#18794, blb/jmr in r51525)
+
+    - 'port selfupdate' now explicitly states precisely what it does. (#18512)
+
+    - Operating system and architecture information is now shown in debug
+      output. (#18435, raimue in r46669)
+
+    - Fixed a bug that could break some symlinks to man pages. (#18302)
+
+    - Switched to a more efficient algorithm for looking up port information
+      in the index, which makes many operations faster.
+      (#18259, jmr/blb in r47110)
+
+    - MacPorts base now tries to avoid using commands that come from ports, so
+      that a broken port can't break the base code. (#18149)
+
+    - Deleting all the contents of a portfile option no longer unsets the
+      option entirely. (#17865, toby in r44901)
+
+    - Removed the code that upgrades from the old DarwinPorts filesystem
+      layout. Trying to upgrade to 1.8.0+ from a version older than 1.5.0 will
+      produce an error message saying you need to install 1.7.1 first.
+      (#17619, jmr in r53260)
+
+    - port(1) now reports its version as dotted-decimal rather than floating
+      point. (#17420)
+
+    - Dependencies are now always obtained by parsing the Portfile and not
+      from the PortIndex, since the latter can't provide expanded variables
+      like $prefix which may be used in path: depspecs. (#17182)
+
+    - Newline characters in long_description can no longer cause receipt
+      corruption. (#16619, blb in r50663)
+
+    - Now unlocking the filemap when it is not in use. This allows e.g.
+      'port contents' to be run while another port instance is performing
+      installs. Note that running more than one simultaneous port instance
+      that will modify the registry can easily fail, though hopefully
+      without corrupting anything. (#16246, jmr in r51133)
+
+    - Removed some irrelevant debug output that was being printed when a port
+      failed. (#16203, jmr in r53706)
+
+    - Added new depends_fetch and depends_extract options, for dependencies
+      that are needed to fetch or extract the port, respectively.
+      (#15161, jmr in r51780)
+
+    - Packages (including the one for MacPorts base) now correctly indicate
+      that they can only be installed on the root volume.
+      (#14809, jmr in r53250)
+
+    - Using an alternative fetch or extract type now adds appropriate
+      dependencies automatically, e.g. 'use_zip yes' adds a dep on unzip, and
+      'fetch.type svn' adds a dep on subversion. (#13981, jmr in r43782)
+
+    - port(1) should now exit with an appropriate status code when an error is
+      encountered. Use the -p option to continue despite errors.
+      (#13918, jmr in r53704)
+
+    - Proxy information can now be obtained from System Preferences and from
+      macports.conf. The older method using environment variables no longer
+      works out of the box on Leopard due to changes that Apple made to the
+      default /etc/sudoers. (#13158, blb in r47194)
+
+    - Improved handling of malformed variant definitions.
+      (#12596, jmr in r50719, r50721)
+
+    - Cope a little better with missing receipt files. (#19540, jmr in r51138)
+
+    - Fixed a major memory leak in the filemap code.
+      (#12022, pguyot in r51419)
+
+    - Improved the logic for determining whether phases can be skipped. This
+      fixes the specific problems of being unable to build packages of ports
+      that are installed, port not running specific phases (e.g. build)
+      when told to if the port is installed, and inactive dependencies being
+      rebuilt instead of simply activated. (#10881, #16260, jmr in r50490)
+
+    - When archive mode is enabled, ports will no longer be rebuilt if an
+      archive is available. (#10785, jmr in r50416)
+
+    - Activating a port will now first deactivate any other version of the
+      same port that is already active. (#10571, jmr in r53711)
+
+    - Added a 'license' portfile option, which is displayed in 'port info'
+      output. (#7493, jmr in r50801)
+
     - port lint recognizes new top-level category php (#19329, ryandesign)
 
     - Do not print header lines when the quiet option -q is set
-    (r48558, raimue)
+      (raimue in r48558)
 
-    - svn.tag is deprecated, use svn.revision instead (r48222-48223, raimue)
+    - svn.tag is deprecated, use svn.revision instead (raimue in r48222-48223)
 
-    - port -i option has been removed (r48218, blb)
+    - port -i option has been removed (blb in r48218)
 
-    - ui_warn logs to stderr instead of stdout (r48217, raimue)
+    - ui_warn logs to stderr instead of stdout (raimue in r48217)
 
     - Remove --pretend option for port selfupdate, use global dry-run option
-      instead (r48125, raimue)
+      instead (raimue in r48125)
 
-    - port(1) option -y for dry-run (#11892, gwhitney) 
+    - port(1) option -y for dry-run (#11892, gwhitney/jmr in r43726) 
 
     - New pseudo-port 'obsolete' to identify ports which are installed but no
-      longer in the PortIndex (r47253, raimue)
+      longer in the PortIndex (raimue in r47253)
 
-    - MacPorts now performs fetch, extract, patch, configure and build in a
+    - MacPorts can now perform fetch, extract, patch, configure and build in a
       user rather than system owned location. By default, this is
       ~/.macports/opt. This allows MacPorts to do all but the install of the
       port without root privileges. (gsoc08-privileges)
 
-    - MacPorts now automatically drops privileges whenever possible so as to
-      avoid running as root whenever possible. (gsoc08-privileges)
-
-    - MacPorts will prompt for the root password if you attempt to install a
-      port into the /opt/local hierarchy and did not start MacPorts with sudo.
-      It will not do so however until the install stage. The fetch, extract,
-      patch, configure and build will proceed first under the privileges
-      MacPorts is started with. (gsoc08-privileges)
+    - MacPorts can now automatically drop privileges so as to avoid running as
+      root whenever possible. To enable this, pass the desired user to run as
+      to configure with the --with-macports-user option. (gsoc08-privileges)
 
     - The Portfile format has a number of new boolean attributes to indicate
       when an action should or should not be run with root privileges:
@@ -71,11 +195,11 @@ Release 1.8.0 (unreleased):
     - Make dependencies displayed in port info respect variants
       specified in variants.conf; collapse port deps to be an alias
       for port info with appropriate flags. Note this changes output
-      format of port deps somewhat.  (#11891, gwhitney)
+      format of port deps somewhat.  (#11891, gwhitney in r44340)
 
     - Make dependencies in port upgrade respect variants as specified
       (in order of precedence) on command line, latest installed
-      version, or variants.conf .  (#8221, gwhitney)
+      version, or variants.conf .  (#8221, gwhitney in r44362)
 
     - Add select action, which integrates *_select tools into port.
       (#17477, perry)
@@ -84,9 +208,12 @@ Release 1.8.0 (unreleased):
       variants and variants' dependencies. (#14178, #15628, perry)
 
     - Implicit variants (e.g., darwin) can no longer be explicitly
-      set/unset. (#12563, perry)
+      set/unset. (#12563, perry in r46938, jmr in r53371)
 
 Release 1.7.1 (2009-03-28 by raimue):
+    - Trailing slashes are stripped from the prefix passed to configure, which
+      prevents incorrect mtree violation warnings. (#13789)
+
     - Fix freshmeat-based livecheck (#18887)
 
     - Fix issue on direct-mode installs where checking for installed ports
@@ -317,7 +444,7 @@ Release 1.6.0 (16-December-2007 by jmpp):
 
     - readline is now disabled by default, in order to avoid support issues.
       use --enable-readine parameter to configure to enable support for readine.
-      (jberry r31139, r31140).
+      (#10651, jberry in r31139, r31140).
 
     - daemondo now monitors kevents for the death of the daemon process, which means that it
       now detects the death of processes (even those that aren't direct child processes)
