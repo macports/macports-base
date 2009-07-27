@@ -1875,8 +1875,7 @@ proc check_variants {variations target} {
     return $result
 }
 
-# add the default universal variant if appropriate, and set up flags that are
-# conditional on whether universal is set
+# add the default universal variant if appropriate
 proc universal_setup {args} {
     if {[variant_exists universal]} {
         ui_debug "universal variant already exists, so not adding the default one"
