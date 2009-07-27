@@ -2424,6 +2424,24 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     # remove implicit variants, without printing warnings
     set oldvariantlist [mport_filtervariants $oldvariantlist no]
 
+    # merge in the old variants
+    foreach {variation value} $oldvariantlist {
+        if { ![info exists variations($variation)]} {
+            set variations($variation) $value
+        }
+    }
+
+    # Now merge in the global (i.e. variants.conf) variations.
+    # We wait until now so that existing variants for this port
+    # override global variations
+    foreach { variation value } $globalvarlist {
+        if { ![info exists variations($variation)] } {
+            set variations($variation) $value
+        }
+    }
+
+    ui_debug "new fully merged portvariants: [array get variations]"
+    
     # at this point we need to check if a different port will be replacing this one
     if {[info exists portinfo(replaced_by)] && ![info exists options(ports_upgrade_no-replace)]} {
         ui_debug "$portname is replaced by $portinfo(replaced_by)"
@@ -2440,7 +2458,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
         array unset portinfo
         array set portinfo [lindex $result 1]
         set newname $portinfo(name)
-        set version_in_tree "$portinfo(version)"
 
         set porturl $portinfo(porturl)
         if {![info exists porturl]} {
@@ -2450,33 +2467,6 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     } else {
         set newname $portname
     }
-
-    # check if the variants are present in $version_in_tree
-    if {[info exists portinfo(variants)]} {
-        set avariants $portinfo(variants)
-    } else {
-        set avariants {}
-    }
-    ui_debug "available variants are : $avariants"
-    foreach {variation value} $oldvariantlist {
-        if {[lsearch $avariants $variation] != -1} {
-            ui_debug "variant $variation is present in $newname $version_in_tree"
-            if { ![info exists variations($variation)]} {
-                set variations($variation) $value
-            }
-        }
-    }
-
-    # Now merge in the global (i.e. variants.conf) variations.
-    # We wait until now so that existing variants for this port
-    # override global variations
-    foreach { variation value } $globalvarlist {
-        if { ![info exists variations($variation)] } {
-            set variations($variation) $value
-        }
-    }
-
-    ui_debug "new fully merged portvariants: [array get variations]"
 
     if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
         global errorInfo
