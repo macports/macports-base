@@ -185,6 +185,8 @@ Release 1.8.0 (unreleased):
       --prefix=/Users/{your-user-name-here}/.macports/opt
       --with-no-root-privileges" (gsoc08-privileges)
 
+    - MacPorts now requires Mac OS X 10.4 Tiger or later. (gsoc08-privileges)
+
     - Add several new options to port search, looks in name and description by
       default (#15434, raimue)
 
