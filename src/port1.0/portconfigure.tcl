@@ -302,6 +302,7 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret /usr/bin/gcc-4.2 }
                 objc { set ret /usr/bin/gcc-4.2 }
                 cxx  { set ret /usr/bin/g++-4.2 }
+                cpp  { set ret /usr/bin/cpp-4.2 }
             }
         }
         llvm-gcc-4.2 {
@@ -474,7 +475,6 @@ proc portconfigure::configure_main {args} {
 
         # Append configure flags.
         append_list_to_environment_value configure "CC" ${filter}${configure.cc}
-        append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
         append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
         append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
         append_list_to_environment_value configure "FC" ${configure.fc}
