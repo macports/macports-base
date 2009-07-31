@@ -56,9 +56,7 @@ options_export name version revision epoch categories maintainers platforms desc
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 
-default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
-default worksymlink {[file join $portpath work]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
@@ -128,9 +126,52 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     option os.universal_supported yes
 }
 
+# start gsoc08-privileges
+
 # Record initial euid/egid
 set euid [geteuid]
 set egid [getegid]
+
+# if unable to write to workpath, implies running without either root privileges
+# or a shared directory owned by the group so use ~/.macports
+if { ([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || [info exists portbuildpath] && ![file writable $portbuildpath] } {
+
+    set userid [getuid]
+    set username [uid_to_name $userid]
+
+    if { $userid !=0 } {
+        ui_msg "MacPorts running without privileges.\
+                You may be unable to complete certain actions (eg install)."
+    }
+
+    # set global variable indicating to other functions to use ~/.macports as well
+    set usealtworkpath yes
+
+    # do tilde expansion manually - Tcl won't expand tildes automatically for curl, etc.
+    if {[info exists env(HOME)]} {
+        # HOME environment var is set, use it.
+        set userhome "$env(HOME)"
+    } else {
+        # the environment var isn't set, expand ~user instead
+        set userhome [file normalize "~${username}"]
+    }
+
+    # set alternative prefix global variable
+    set altprefix [file join $userhome .macports]
+
+    default worksymlink {[file join ${altprefix}${portpath} work]}
+    default distpath {[file join ${altprefix}${portdbpath} distfiles]}
+    set portbuildpath "${altprefix}${portbuildpath}"
+
+    ui_debug "Going to use alternate build prefix: $altprefix"
+    ui_debug "portbuildpath = $portbuildpath"
+    ui_debug "workpath = $workpath"
+} else {
+    set usealtworkpath no
+    default worksymlink {[file join $portpath work]}
+    default distpath {[file join $portdbpath distfiles]}
+}
+# end gsoc08-privileges
 
 proc portmain::main {args} {
     return 0

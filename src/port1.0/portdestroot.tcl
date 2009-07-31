@@ -88,7 +88,7 @@ set_ui_prefix
 
 proc portdestroot::destroot_start {args} {
     global UI_PREFIX prefix name porturl destroot os.platform destroot.clean portsharepath
-    global destroot.umask destroot.asroot macportsuser euid egid usealtworkpath altprefix
+    global destroot.umask destroot.asroot macportsuser euid egid
     global applications_dir frameworks_dir
     variable oldmask
 
@@ -107,14 +107,6 @@ proc portdestroot::destroot_start {args} {
 
     if { [tbool destroot.asroot] && [getuid] != 0 } {
         return -code error "You cannot run this port without root privileges. You need to re-run with 'sudo port'.";
-    }
-
-    if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-        # rewrite destroot.args
-        set argprefix "=[option prefix]"
-        set newargprefix "=${altprefix}[option prefix]"
-        set newdestrootargs [string map [list $argprefix $newargprefix] [option destroot.args]]
-        option destroot.args $newdestrootargs
     }
 
     # end gsoc08-privileges
