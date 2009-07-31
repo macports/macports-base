@@ -228,7 +228,7 @@ proc portclean::clean_archive {args} {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not
             # and accidental match with some other file that might exist.
-            if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z\]+\$" $file]} {
+            if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z2\]+\$" $file]} {
                 if {[file isfile $path]} {
                     ui_debug "Removing archive: $path"
                     if {[catch {delete $path} result]} {
