@@ -136,13 +136,7 @@ set egid [getegid]
 # or a shared directory owned by the group so use ~/.macports
 if { $euid != 0 && ([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || [info exists portdbpath] && ![file writable [file join $portdbpath build]] } {
 
-    set userid [getuid]
-    set username [uid_to_name $userid]
-
-    if { $userid !=0 } {
-        ui_msg "MacPorts running without privileges.\
-                You may be unable to complete certain actions (eg install)."
-    }
+    set username [uid_to_name [getuid]]
 
     # set global variable indicating to other functions to use ~/.macports as well
     set usealtworkpath yes
