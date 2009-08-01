@@ -1497,11 +1497,11 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink name portpath ports_ignore_older
-    global usealtworkpath altprefix env applications_dir
+    global usealtworkpath altprefix env applications_dir portbuildpath
 
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
-        chownAsRoot $workpath
+        chownAsRoot $portbuildpath
     }
     
     if { [getuid] != 0 } {
@@ -1541,7 +1541,8 @@ proc open_statefile {args} {
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             if {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
                 ui_msg "Portfile changed since last build; discarding previous state."
-                eval delete [glob -nocomplain -directory -- $workpath * .*]
+                delete $workpath
+                file mkdir $workpath
             } else {
                 ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
             }
