@@ -330,7 +330,7 @@ proc portlint::lint_main {args} {
     }
     
     if {[info exists name]} {
-        if {[regexp {(![[:alnum:]_.-])*} $name]} {
+        if {[regexp {[^[:alnum:]_.-]} $name]} {
             ui_error "Port name '$name' contains unsafe characters. Names should only contain alphanumeric characters, underscores, dashes or dots."
             incr errors
         }
