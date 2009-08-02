@@ -13,7 +13,7 @@ all:: ${SHLIB_NAME} pkgIndex.tcl
 $(SHLIB_NAME):: ${OBJS}
 	${SHLIB_LD} ${OBJS} -o ${SHLIB_NAME} ${TCL_STUB_LIB_SPEC} ${SHLIB_LDFLAGS} ${LIBS}
 
-pkgIndex.tcl:
+pkgIndex.tcl: $(SHLIB_NAME)
 	$(SILENT) ../pkg_mkindex.sh .
 
 clean::
