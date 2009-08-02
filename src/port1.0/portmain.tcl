@@ -82,7 +82,7 @@ default install.group {${portutil::autoconf::install_group}}
 # Platform Settings
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
+if {$os_arch == "i586" || $os_arch == "i686" || $os_arch == "x86_64"} { set os_arch "i386" }
 set os_version $tcl_platform(osVersion)
 set os_major [lindex [split $os_version .] 0]
 set os_platform [string tolower $tcl_platform(os)]
