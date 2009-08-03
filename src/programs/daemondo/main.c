@@ -47,7 +47,11 @@
     
         com.apple.system.config.network_change
 */
-    
+
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
@@ -707,7 +711,7 @@ Restart(void)
 
 
 void
-ScheduledRestartCallback(CFRunLoopTimerRef timer, void *info)
+ScheduledRestartCallback(CFRunLoopTimerRef timer UNUSED, void *info UNUSED)
 {
     if (verbosity >= 3)
         LogMessage("Scheduled restart time has arrived.\n");
@@ -759,9 +763,9 @@ ScheduleDelayedRestart(void)
 
 void
 DynamicStoreChanged(
-                    SCDynamicStoreRef   store,
+                    SCDynamicStoreRef   store UNUSED,
                     CFArrayRef          changedKeys,
-                    void                *info
+                    void                *info UNUSED
                     )
 {
     if (verbosity >= 3)
@@ -789,7 +793,7 @@ DynamicStoreChanged(
 
 
 void
-PowerCallBack(void *x, io_service_t y, natural_t messageType, void *messageArgument)
+PowerCallBack(void *x UNUSED, io_service_t y UNUSED, natural_t messageType, void *messageArgument)
 {
     switch (messageType)
     {
@@ -814,11 +818,11 @@ PowerCallBack(void *x, io_service_t y, natural_t messageType, void *messageArgum
 
 void
 NotificationCenterCallback(
-                                CFNotificationCenterRef center, 
-                                void *observer, 
-                                CFStringRef name, 
-                                const void *object, 
-                                CFDictionaryRef userInfo)
+                                CFNotificationCenterRef center UNUSED,
+                                void *observer UNUSED,
+                                CFStringRef name,
+                                const void *object UNUSED,
+                                CFDictionaryRef userInfo UNUSED)
 {
     if (verbosity >= 3)
     {
@@ -832,7 +836,7 @@ NotificationCenterCallback(
 
 
 void
-SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
+SignalCallback(CFMachPortRef port UNUSED, void *msg, CFIndex size UNUSED, void *info UNUSED)
 {
     mach_msg_header_t* hdr = (mach_msg_header_t*)msg;
     switch (hdr->msgh_id)
@@ -865,8 +869,8 @@ SignalCallback(CFMachPortRef port, void *msg, CFIndex size, void *info)
 }
 
 
-void KQueueCallBack (CFSocketRef socketRef, CFSocketCallBackType type,
-             CFDataRef address, const void *data, void *context)
+void KQueueCallBack (CFSocketRef socketRef, CFSocketCallBackType type UNUSED,
+             CFDataRef address UNUSED, const void *data UNUSED, void *context UNUSED)
 {
     int fd = CFSocketGetNative(socketRef);
     

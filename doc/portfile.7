@@ -883,6 +883,17 @@ working directory instead of a subdirectory.
 .Sh CONFIGURE OPTIONS
 MacPorts provide special support for configure flags (CFLAGS, LDFLAGS, CPPFLAGS, CXXFLAGS, CC, CXX, CPP, FC, F77, F90). Please note that the previous way to alter these flags (using configure.env) may become deprecated at some point. The following options are defined:
 .Bl -tag -width lc
+.It Ic configure.optflags
+Flags to use for optimization.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em -O2
+.br
+.Sy Example:
+.Dl configure.optflags -O3
 .It Ic configure.cflags
 Flags to put in the CFLAGS environment variable when invoking the configure script.
 .br
@@ -890,7 +901,7 @@ Flags to put in the CFLAGS environment variable when invoking the configure scri
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .br
 .Sy Example:
 .Dl configure.cflags-append -DHAS_LRINTF
@@ -909,7 +920,7 @@ Flags to put in the CXXFLAGS environment variable when invoking the configure sc
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .It Ic configure.objcflags
 Flags to put in the OBJCFLAGS environment variable when invoking the configure script.
 .br
@@ -917,7 +928,7 @@ Flags to put in the OBJCFLAGS environment variable when invoking the configure s
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .It Ic configure.ldflags
 Flags to put in the LDFLAGS environment variable when invoking the configure script.
 .br
@@ -933,7 +944,7 @@ Flags to put in the FFLAGS environment variable when invoking the configure scri
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .It Ic configure.f90flags
 Flags to put in the F90FLAGS environment variable when invoking the configure script.
 .br 
@@ -941,7 +952,7 @@ Flags to put in the F90FLAGS environment variable when invoking the configure sc
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .It Ic configure.fcflags
 Flags to put in the FCFLAGS environment variable when invoking the configure script.
 .br 
@@ -949,7 +960,7 @@ Flags to put in the FCFLAGS environment variable when invoking the configure scr
 .Em optional
 .br
 .Sy Default:
-.Em -O2
+.Em ${configure.optflags}
 .It Ic configure.classpath
 Flags to put in the CLASSPATH environment variable when invoking the configure script.
 .br 

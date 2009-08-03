@@ -1489,11 +1489,13 @@ proc action_info { action portlist opts } {
             maintainers Maintainers
             license     License
             conflicts   "Conflicts with"
+            replaced_by "Replaced by"
         }
 
         # Wrap-length map for pretty printing
         array set pretty_wrap {
             heading 0
+            replaced_by 22
             variants 22
             depends_fetch 22
             depends_extract 22
@@ -1557,7 +1559,9 @@ proc action_info { action portlist opts } {
         set opts_todo [array names options ports_info_*]
         set fields_tried {}
         if {![llength $opts_todo]} {
-            set opts_todo {ports_info_heading ports_info_variants 
+            set opts_todo {ports_info_heading
+                ports_info_replaced_by
+                ports_info_variants 
                 ports_info_skip_line
                 ports_info_long_description ports_info_homepage 
                 ports_info_skip_line ports_info_depends_fetch
@@ -3080,7 +3084,7 @@ array set cmd_opts_array {
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
-                 revision variant variants version}
+                 replaced_by revision variant variants version}
     search      {case-sensitive category categories depends_fetch
                  depends_extract depends_build depends_lib depends_run
                  depends description epoch exact glob homepage line
@@ -3093,6 +3097,7 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
+    upgrade     {force enforce-variants no-replace}
 }
 
 global cmd_implied_options
