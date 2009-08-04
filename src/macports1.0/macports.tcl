@@ -1437,6 +1437,11 @@ proc mportexec {mport target} {
         || $target == "rpm" || $target == "dpkg"
         || $target == "srpm"|| $target == "portpkg" } {
 
+        # upgrade dependencies that are already installed
+        if {![macports::global_option_isset ports_nodeps]} {
+            macports::_upgrade_mport_deps $mport $target
+        }
+
         ui_msg -nonewline "--->  Computing dependencies for [_mportkey $mport name]"
         if {[macports::ui_isset ports_debug]} {
             # play nice with debug messages
@@ -1501,6 +1506,37 @@ proc mportexec {mport target} {
     }
 
     return $result
+}
+
+# upgrade any dependencies of mport that are installed and needed for target
+proc macports::_upgrade_mport_deps {mport target} {
+    set options [ditem_key $mport options]
+    set variations [mport_filtervariants [ditem_key $mport variations] no]
+    set deptypes [macports::_deptypes_for_target $target]
+    array set portinfo [mportinfo $mport]
+    set depends {}
+    array set depscache {}
+    
+    # keep recursion under control
+    set macports::global_options(ports_nodeps) yes
+    
+    foreach deptype $deptypes {
+        # Add to the list of dependencies if the option exists and isn't empty.
+        if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
+            set depends [concat $depends $portinfo($deptype)]
+        }
+    }
+    
+    foreach depspec $depends {
+        set dep_portname [lindex [split $depspec :] end]
+        if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
+            set status [macports::upgrade $dep_portname "port:$dep_portname" {} $variations $options depscache]
+            if {$status != 0 && ![macports::ui_isset ports_processall]} {
+                return -code error "upgrade $portname failed"
+            }
+        }
+    }
+    unset macports::global_options(ports_nodeps)
 }
 
 proc macports::getsourcepath {url} {
@@ -2034,29 +2070,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         }
     }
 
-    # Determine deptypes to look for based on target
-    switch $target {
-        fetch       -
-        checksum    { set deptypes "depends_fetch" }
-        extract     -
-        patch       { set deptypes "depends_fetch depends_extract" }
-        configure   -
-        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
-
-        test        -
-        destroot    -
-        install     -
-        archive     -
-        dmg         -
-        pkg         -
-        portpkg     -
-        mdmg        -
-        mpkg        -
-        rpm         -
-        srpm        -
-        dpkg        -
-        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
-    }
+    set deptypes [macports::_deptypes_for_target $target]
 
     # Gather the dependencies for deptypes
     foreach deptype $deptypes {
@@ -2122,6 +2136,33 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
     }
 
     return 0
+}
+
+# Determine dependency types required for target
+proc macports::_deptypes_for_target {target} {
+    switch $target {
+        fetch       -
+        checksum    { set deptypes "depends_fetch" }
+        extract     -
+        patch       { set deptypes "depends_fetch depends_extract" }
+        configure   -
+        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
+
+        test        -
+        destroot    -
+        install     -
+        archive     -
+        dmg         -
+        pkg         -
+        portpkg     -
+        mdmg        -
+        mpkg        -
+        rpm         -
+        srpm        -
+        dpkg        -
+        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+    }
+    return $deptypes
 }
 
 # selfupdate procedure
