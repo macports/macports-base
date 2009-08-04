@@ -158,7 +158,6 @@ if { $euid != 0 && ([info exists workpath] && [file exists $workpath] && ![file 
     set portbuildpath "${altprefix}${portbuildpath}"
 
     ui_debug "Going to use alternate build prefix: $altprefix"
-    ui_debug "portbuildpath = $portbuildpath"
     ui_debug "workpath = $workpath"
 } else {
     set usealtworkpath no
