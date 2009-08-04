@@ -2035,7 +2035,7 @@ proc action_upgrade { action portlist opts } {
             set status [macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
                 if {!$orig_nodeps} {
-                    unset macports::global_options(ports_nodeps)
+                    unset -nocomplain macports::global_options(ports_nodeps)
                 }
                 return $status
             }
@@ -2043,7 +2043,7 @@ proc action_upgrade { action portlist opts } {
     }
 
     if {!$orig_nodeps} {
-        unset macports::global_options(ports_nodeps)
+        unset -nocomplain macports::global_options(ports_nodeps)
     }
     return $status
 }
