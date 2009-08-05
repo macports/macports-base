@@ -1410,7 +1410,9 @@ proc mportexec {mport target} {
         if {[mportdepends $mport $target] != 0} {
             return 1
         }
-        ui_msg ""
+        if {![macports::ui_isset ports_debug]} {
+            ui_msg ""
+        }
 
         # Select out the dependents along the critical path,
         # but exclude this mport, we might not be installing it.

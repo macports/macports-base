@@ -1999,6 +1999,12 @@ proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
+    # stop upgrade from being called via mportexec as well
+    set orig_nodeps yes
+    if {![info exists macports::global_options(ports_nodeps)]} {
+        set macports::global_options(ports_nodeps) yes
+        set orig_nodeps no
+    }
     # shared depscache for all ports in the list
     array set depscache {}
     set status 0
@@ -2017,11 +2023,17 @@ proc action_upgrade { action portlist opts } {
             
             set status [macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
+                if {!$orig_nodeps} {
+                    unset -nocomplain macports::global_options(ports_nodeps)
+                }
                 return $status
             }
         }
     }
 
+    if {!$orig_nodeps} {
+        unset -nocomplain macports::global_options(ports_nodeps)
+    }
     return $status
 }
 
