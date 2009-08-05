@@ -90,7 +90,7 @@ default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
 default svn.env {}
-default svn.pre_args "--non-interactive --trust-server-cert"
+default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args {"${svn.url}"}
 
