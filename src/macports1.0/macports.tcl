@@ -1534,7 +1534,7 @@ proc macports::_upgrade_mport_deps {mport target} {
         if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
             set status [macports::upgrade $dep_portname "port:$dep_portname" {} $variations $options depscache]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
-                return -code error "upgrade $portname failed"
+                return -code error "upgrade $dep_portname failed"
             }
         }
     }
