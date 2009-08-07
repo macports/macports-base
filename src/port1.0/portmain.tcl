@@ -134,7 +134,7 @@ set egid [getegid]
 
 # if unable to write to workpath, implies running without either root privileges
 # or a shared directory owned by the group so use ~/.macports
-if { $euid != 0 && ([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || [info exists portdbpath] && ![file writable [file join $portdbpath build]] } {
+if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
 
     set username [uid_to_name [getuid]]
 
