@@ -447,6 +447,22 @@ proc portlint::lint_main {args} {
         }
     }
 
+    # Check for multiple dependencies
+    foreach deptype {depends_extract depends_lib depends_build depends_run} {
+        if {[info exists $deptype]} {
+            array set depwarned {}
+            foreach depspec [set $deptype] {
+                if {![info exists depwarned($depspec)]
+                        && [llength [lsearch -exact -all [set $deptype] $depspec]] > 1} {
+                    ui_warn "Dependency $depspec specified multiple times in $deptype"
+                    incr warnings
+                    # Report each depspec only once
+                    set depwarned($depspec) yes
+                }
+            }
+        }
+    }
+
     if {[regexp "^(.+)nomaintainer(@macports.org)?(.+)$" $maintainers] } {
         ui_error "Using nomaintainer together with other maintainer"
         incr errors
