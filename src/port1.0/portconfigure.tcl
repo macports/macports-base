@@ -62,14 +62,57 @@ option_proc use_automake    portconfigure::set_configure_type
 option_proc use_autoconf    portconfigure::set_configure_type
 option_proc use_xmkmf       portconfigure::set_configure_type
 
+option_proc autoreconf.cmd  portconfigure::set_configure_type
+option_proc automake.cmd    portconfigure::set_configure_type
+option_proc autoconf.cmd    portconfigure::set_configure_type
+option_proc xmkmf.cmd       portconfigure::set_configure_type
+
+##
+# Local helper proc
+proc portconfigure::add_build_dep { type dep } {
+    global ${type}.cmd
+
+    if {![info exists ${type}.cmd] || (
+        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
+        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == "${type}")
+        )} {
+            eval depends_build-append $dep
+    }
+}
+
+##
+# Adds dependencies for the binaries which will be called, but only if it is
+# the default. If .cmd was overwritten the port has to care for deps itself.
 proc portconfigure::set_configure_type {option action args} {
-    if {[string equal ${action} "set"] && [tbool args]} {
+    global option_defaults
+    global autoreconf.cmd automake.cmd autoconf.cmd xmkmf.cmd
+
+    array set configure_map {
+        autoconf    {port:autoconf port:automake port:libtool}
+        xmkmf       port:imake
+    }
+
+    if {[string equal ${action} "set"]} {
         switch $option {
+            autoreconf.cmd  -
+            automake.cmd    -
+            autoconf.cmd {
+                eval depends_build-delete $configure_map(autoconf)
+            }
+            xmkmf.cmd {
+                depends_build-delete $configure_map(xmkmf)
+            }
             use_xmkmf {
-                depends_build-append port:imake
+                if {[tbool args]} {
+                    depends_build-append $configure_map(xmkmf)
+                }
             }
             default {
-                depends_build-append port:autoconf port:automake port:libtool
+                # strip "use_"
+                set type [string range $option 4 end]
+                if {[tbool args]} {
+                    add_build_dep $type $configure_map(autoconf)
+                }
             }
         }
     }
