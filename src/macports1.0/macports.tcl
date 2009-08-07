@@ -2597,8 +2597,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if {[info exists options(ports_upgrade_force)] || $epoch_override == 1
         || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
         if {[catch {set result [mportexec $workername $upgrade_action]} result] || $result != 0} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            if {[info exists ::errorInfo]} {
+                ui_debug "$::errorInfo"
+            }
             ui_error "Unable to upgrade port: $result"
             catch {mportclose $workername}
             return 1
