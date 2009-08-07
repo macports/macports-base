@@ -70,7 +70,7 @@ option_proc xmkmf.cmd       portconfigure::set_configure_type
 ##
 # Local helper proc
 proc portconfigure::add_build_dep { type dep } {
-    global ${type}.cmd
+    global ${type}.cmd option_defaults
 
     if {![info exists ${type}.cmd] || (
         ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
@@ -84,7 +84,6 @@ proc portconfigure::add_build_dep { type dep } {
 # Adds dependencies for the binaries which will be called, but only if it is
 # the default. If .cmd was overwritten the port has to care for deps itself.
 proc portconfigure::set_configure_type {option action args} {
-    global option_defaults
     global autoreconf.cmd automake.cmd autoconf.cmd xmkmf.cmd
 
     array set configure_map {
