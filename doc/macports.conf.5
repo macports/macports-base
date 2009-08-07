@@ -55,11 +55,6 @@ characters should be avoided, as this can broke some ports. This key is often re
 .br
 .Ic Default:
 /opt/local
-.It Va x11prefix
-Path containing an X11 installation on your system.
-.br
-.Ic Default:
-/usr/X11R6
 .It Va portdbpath
 Directory where MacPorts keeps working data as downloaded sources, installed ports receipts
 and the main registry. Same path restrictions apply as for '${prefix}'.
@@ -207,7 +202,7 @@ Sets the directory search path for locating system executables used by MacPorts.
 the paths for locating utilities such as rsync, tar, cvs and others.
 .br
 .Ic Default:
-${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin:${x11prefix}/bin
+${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
 .El
