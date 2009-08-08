@@ -44,7 +44,7 @@
 #include "sysctl.h"
 
 /*
- * Read-only wrapper for sysctlbyname(3). Only works for values of type CTLTYPE_INT.
+ * Read-only wrapper for sysctlbyname(3). Only works for values of type CTLTYPE_INT and CTLTYPE_QUAD.
  */
 int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -53,6 +53,7 @@ int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int res;
     char *name;
     int value;
+    Tcl_WideInt long_value;
     size_t len = sizeof(value);
 
     if (objc != 2) {
@@ -62,14 +63,25 @@ int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 
     name = Tcl_GetString(objv[1]);
     res = sysctlbyname(name, &value, &len, NULL, 0);
-    if (res == -1) {
+    if (res == -1 && errno != ENOMEM && errno != ERANGE) {
         tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
         Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(strerror(errno), -1));
         Tcl_SetObjResult(interp, tcl_result);
         return TCL_ERROR;
+    } else if (res == -1) {
+        len = sizeof(long_value);
+        res = sysctlbyname(name, &long_value, &len, NULL, 0);
+        if (res == -1) {
+            tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
+            Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(strerror(errno), -1));
+            Tcl_SetObjResult(interp, tcl_result);
+            return TCL_ERROR;
+        }
+        tcl_result = Tcl_NewWideIntObj(long_value);
+    } else {
+        tcl_result = Tcl_NewIntObj(value);
     }
-
-    tcl_result = Tcl_NewIntObj(value);
+    
     Tcl_SetObjResult(interp, tcl_result);
     return TCL_OK;
 }

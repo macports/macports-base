@@ -119,10 +119,13 @@ proc portbuild::build_getjobs {args} {
     set jobs $buildmakejobs
     # if set to '0', use the number of cores for the number of jobs
     if {$jobs == 0} {
-        if {[catch {set jobs [sysctl hw.activecpu]}]} {
+        if {[catch {set jobs [sysctl hw.activecpu]}] || [catch {set memsize [sysctl hw.memsize]}]} {
             set jobs 2
             ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
             ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
+        }
+        if {$jobs > $memsize / 1000000000 + 1} {
+            set jobs [expr $memsize / 1000000000 + 1]
         }
     }
     if {![string is integer -strict $jobs] || $jobs <= 1} {
