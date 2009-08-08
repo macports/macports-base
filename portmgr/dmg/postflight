@@ -35,12 +35,13 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=1.7.0
+VERSION=1.8.0
 
 # Abstraction variables:
 PREFIX=/opt/local
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
+CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
@@ -48,6 +49,14 @@ TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
 BACKUP_SUFFIX=macports-saved_${TIMESTAMP}
 OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
+# Create config files from defaults if not present
+function setup_configs {
+    for f in macports.conf sources.conf variants.conf ; do
+        if [ ! -f ${CONFIGPATH}/${f} ]; then
+            /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
+        fi
+    done
+}
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
@@ -99,6 +108,9 @@ function cleanup_man () {
 
 
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
+
+# Set up config files
+setup_configs
 
 # Remove old stuff
 cleanup_man
