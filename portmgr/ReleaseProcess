@@ -49,16 +49,9 @@ optional for beta snapshots) into the /tags svn directory.
 
 Only the base subdirectory, not the ports subdirectory, is branched for a given release.
 
-It is strongly recommended to use the svnmerge.py tool (provided by the subversion port) to
-maintain merge tracking information between release branches and trunk/base if you intend to
-merge revisions back and forth between them, which is a very likely scenario. To do this, you
-must initialize the tracking information from within the "base" directory of your checkout of
-the branch you intend to manage:
-
- svn co http://svn.macports.org/repository/macports/branches/release_1_6 branches/release_1_6
- cd branches/release_1_6/base
- svnmerge.py init
- svn ci -F svnmerge-commit-message.txt
+It is strongly recommended to use the latest version of the subversion port so that merge
+tracking information can be maintained between release branches and trunk/base if you intend
+to merge revisions back and forth between them, which is a very likely scenario.
 
 
 === Prepare the code for Release ===
@@ -155,9 +148,7 @@ was built.
 To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
 downloads section of the site (wherefrom the sources are fetched by the MacPorts port to build the dmg
-for the release). Make sure the ports tree you're using to build the dmg's is fully up to date, as to
-insure the resource files in the files/ directory of the port are current (fetched through svn:externals
-off the base/portmgr/dmg directory of the current final release tag).
+for the release). Make sure the ports tree you're using to build the dmg's is fully up to date.
 
  sudo port -d dmg MacPorts
 
@@ -183,7 +174,6 @@ create the destroot of the port and examine it for:
 	     ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
 	     ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
 	     ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
-	     ${destroot}/opt/local/share/macports/Tcl/tclobjc1.0/tclobjc.dylib
  * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
    step above also need to be confirmed of the universal type. A way to do this is through the file(1) command:
              file ${destroot}/opt/local/bin/daemondo:
