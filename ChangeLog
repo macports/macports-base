@@ -14,6 +14,8 @@ Release 1.8.0 (unreleased):
     - MacPorts base now works on and has appropriate default settings for
       Mac OS X 10.6 Snow Leopard. (#19874, toby/mww/jkh in r38271,r40060,
       r40836,r43976,r52397)
+      
+    - MacPorts no longer works on Mac OS X 10.3 Panther.
 
     - The universal_sysroot and universal_target keys have been removed from
       macports.conf. These settings are now handled automatically.
