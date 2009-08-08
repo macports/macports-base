@@ -1481,8 +1481,9 @@ proc macports::_upgrade_mport_deps {mport target} {
         set dep_portname [lindex [split $depspec :] end]
         if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
             set status [macports::upgrade $dep_portname "port:$dep_portname" {} $variations $options depscache]
-            if {$status != 0 && ![macports::ui_isset ports_processall]} {
-                return -code error "upgrade $portname failed"
+            # status 2 means the port was not found in the index
+            if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
+                return -code error "upgrade $dep_portname failed"
             }
         }
     }
@@ -2231,6 +2232,7 @@ proc macports::selfupdate {{optionslist {}}} {
 }
 
 # upgrade procedure
+# return codes: 0 = success, 1 = general failure, 2 = port name not found in index
 proc macports::upgrade {portname dspec globalvarlist variationslist optionslist {depscachename ""}} {
     array set options $optionslist
 
@@ -2259,8 +2261,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     }
     # argh! port doesnt exist!
     if {$result == ""} {
-        ui_error "No port $portname found."
-        return 1
+        ui_warn "No port $portname found in the index."
+        return 2
     }
     # fill array with information
     array set portinfo [lindex $result 1]
@@ -2535,8 +2537,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     if {[info exists options(ports_upgrade_force)] || $epoch_override == 1
         || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
         if {[catch {set result [mportexec $workername imagefile]} result] || $result != 0} {
-            global errorInfo
-            ui_debug "$errorInfo"
+            if {[info exists ::errorInfo]} {
+                ui_debug "$::errorInfo"
+            }
             ui_error "Unable to upgrade port: $result"
             catch {mportclose $workername}
             return 1

@@ -649,8 +649,8 @@ proc portfetch::fetchfiles {args} {
 
                     # Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
                     if {![string equal $effectiveURL $file_url] &&
-                        [string match "*sourceforge*" $file_url] &&
-                        [string match "*failedmirror*" $effectiveURL]} {
+                        [string match "http://*sourceforge.net/*" $file_url] &&
+                        [string match "http://*sourceforge.net/projects/*/files/" $effectiveURL]} {
 
                         # *SourceForge hackage in effect*
                         # The url seen by curl seems to have been a redirect to the sourceforge mirror page
