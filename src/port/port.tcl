@@ -2259,6 +2259,10 @@ proc action_outdated { action portlist opts } {
             array set portinfo [lindex $res 1]
             
             # Get information about latest available version and revision
+            if {![info exists portinfo(version)]} {
+                ui_warn "$portname has no version field"
+                continue
+            }
             set latest_version $portinfo(version)
             set latest_revision 0
             if {[info exists portinfo(revision)] && $portinfo(revision) > 0} { 
