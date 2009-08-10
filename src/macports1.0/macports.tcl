@@ -123,7 +123,7 @@ proc macports::init_logging {portname} {
         file delete -force $::debuglogname
     }
     set ::debuglog [open $::debuglogname w]
-
+    puts $::debuglog "version:1"
     # Add our log-channel to all already initialized channels
     foreach key [array names channels] {
         set macports::channels($key) [concat $macports::channels($key) $::debuglog]
