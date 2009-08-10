@@ -1515,7 +1515,6 @@ proc mportexec {mport target} {
 # upgrade any dependencies of mport that are installed and needed for target
 proc macports::_upgrade_mport_deps {mport target} {
     set options [ditem_key $mport options]
-    set variations [mport_filtervariants [ditem_key $mport variations] no]
     set deptypes [macports::_deptypes_for_target $target]
     array set portinfo [mportinfo $mport]
     set depends {}
@@ -1531,7 +1530,7 @@ proc macports::_upgrade_mport_deps {mport target} {
     foreach depspec $depends {
         set dep_portname [lindex [split $depspec :] end]
         if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
-            set status [macports::upgrade $dep_portname "port:$dep_portname" $variations $options depscache]
+            set status [macports::upgrade $dep_portname "port:$dep_portname" {} $options depscache]
             # status 2 means the port was not found in the index
             if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrade $dep_portname failed"
