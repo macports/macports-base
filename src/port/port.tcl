@@ -1431,14 +1431,14 @@ proc action_log { action portlist opts } {
             set data [read $fp]
             set data [split $data "\n"]
 
-            if {[info exists global_options(ports_log_stage)]} {
-                set stage $global_options(ports_log_stage);
+            if {[info exists global_options(ports_log_phase)]} {
+                set stage $global_options(ports_log_phase);
             } else {
                 set stage "\[a-z\]*"
             }
 
-            if {[info exists global_options(ports_log_prefix)]} {
-                set prefix $global_options(ports_log_prefix);
+            if {[info exists global_options(ports_log_verbosity)]} {
+                set prefix $global_options(ports_log_verbosity);
             } else {
                 set prefix "\[a-z\]*"
             }
@@ -3198,7 +3198,7 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
-    log         {{stage 1} {prefix 1}}
+    log         {{phase 1} {verbosity 1}}
 }
 
 global cmd_implied_options
