@@ -2006,45 +2006,21 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    global global_variations
     if {[require_portlist portlist]} {
         return 1
-    }
-    # stop upgrade from being called via mportexec as well
-    set orig_nodeps yes
-    if {![info exists macports::global_options(ports_nodeps)]} {
-        set macports::global_options(ports_nodeps) yes
-        set orig_nodeps no
     }
     # shared depscache for all ports in the list
     array set depscache {}
     set status 0
     foreachport $portlist {
-        if {![registry::entry_exists_for_name $portname]} {
-            break_softcontinue "$portname is not installed" 1 status
-        }
         if {![info exists depscache(port:$portname)]} {
-            # Global variations will have to be merged into the specified
-            # variations, but perhaps after the installed variations are
-            # merged. So we pass them into upgrade.
-            
-            # First filter out implicit variants from the explicitly set/unset variants.
-            set global_variations_list [mport_filtervariants [array get global_variations] yes]
-            set variations_list [mport_filtervariants [array get requested_variations] yes]
-            
-            set status [macports::upgrade $portname "port:$portname" $global_variations_list $variations_list [array get options] depscache]
+            set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
-                if {!$orig_nodeps} {
-                    unset -nocomplain macports::global_options(ports_nodeps)
-                }
                 return $status
             }
         }
     }
 
-    if {!$orig_nodeps} {
-        unset -nocomplain macports::global_options(ports_nodeps)
-    }
     return $status
 }
 

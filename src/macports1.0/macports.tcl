@@ -472,6 +472,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             ui_debug "$variants_conf does not exist, variants_conf setting ignored."
         }
     }
+    global macports::global_variations
+    array set macports::global_variations [mport_filtervariants [array get variations] yes]
 
     if {![info exists portdbpath]} {
         return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
@@ -1518,10 +1520,7 @@ proc macports::_upgrade_mport_deps {mport target} {
     array set portinfo [mportinfo $mport]
     set depends {}
     array set depscache {}
-    
-    # keep recursion under control
-    set macports::global_options(ports_nodeps) yes
-    
+
     foreach deptype $deptypes {
         # Add to the list of dependencies if the option exists and isn't empty.
         if {[info exists portinfo($deptype)] && $portinfo($deptype) != ""} {
@@ -1532,14 +1531,13 @@ proc macports::_upgrade_mport_deps {mport target} {
     foreach depspec $depends {
         set dep_portname [lindex [split $depspec :] end]
         if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
-            set status [macports::upgrade $dep_portname "port:$dep_portname" {} $variations $options depscache]
+            set status [macports::upgrade $dep_portname "port:$dep_portname" $variations $options depscache]
             # status 2 means the port was not found in the index
             if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrade $dep_portname failed"
             }
         }
     }
-    unset macports::global_options(ports_nodeps)
 }
 
 proc macports::getsourcepath {url} {
@@ -2282,11 +2280,42 @@ proc macports::selfupdate {{optionslist {}}} {
     return 0
 }
 
-# upgrade procedure
+# upgrade API wrapper procedure
 # return codes: 0 = success, 1 = general failure, 2 = port name not found in index
-proc macports::upgrade {portname dspec globalvarlist variationslist optionslist {depscachename ""}} {
+proc macports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
+    # only installed ports can be upgraded
+    if {![registry::entry_exists_for_name $portname]} {
+        ui_error "$portname is not installed"
+        return 1
+    }
+    if {![string match "" $depscachename]} {
+        upvar $depscachename depscache
+    } else {
+        array set depscache {}
+    }
+    # stop upgrade from being called via mportexec as well
+    set orig_nodeps yes
+    if {![info exists macports::global_options(ports_nodeps)]} {
+        set macports::global_options(ports_nodeps) yes
+        set orig_nodeps no
+    }
+    # filter out implicit variants from the explicitly set/unset variants.
+    set variationslist [mport_filtervariants $variationslist yes]
+    
+    # run the actual upgrade
+    set status [macports::_upgrade $portname $dspec $variationslist $optionslist depscache]
+    
+    if {!$orig_nodeps} {
+        unset -nocomplain macports::global_options(ports_nodeps)
+    }
+    return $status
+}
+
+# main internal upgrade procedure
+proc macports::_upgrade {portname dspec variationslist optionslist {depscachename ""}} {
     global macports::registry.installtype
     global macports::portarchivemode
+    global macports::global_variations
     array set options $optionslist
 
     # Note $variationslist is left alone and so retains the original
@@ -2294,6 +2323,8 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
     # upgrade; while variations gets existing variants and global variations
     # merged in later on, so it applies only to this port's upgrade
     array set variations $variationslist
+    
+    set globalvarlist [array get macports::global_variations]
 
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache
@@ -2364,7 +2395,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                 array set portinfo [mportinfo $workername]
                 
                 # upgrade its dependencies first
-                set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+                set status [_upgrade_dependencies portinfo depscache variationslist options]
                 if {$status != 0 && ![ui_isset ports_processall]} {
                     catch {mportclose $workername}
                     return $status
@@ -2530,7 +2561,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
-        set status [_upgrade_dependencies portinfo depscache globalvarlist variationslist options]
+        set status [_upgrade_dependencies portinfo depscache variationslist options]
         if {$status != 0 && ![ui_isset ports_processall]} {
             catch {mportclose $workername}
             return $status
@@ -2571,7 +2602,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
                     foreach dep $deplist {
                         set mpname [lindex $dep 2]
                         if {![llength [array get depscache port:${mpname}]]} {
-                            set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                            set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
                             if {$status != 0 && ![ui_isset ports_processall]} {
                                 catch {mportclose $workername}
                                 return $status
@@ -2718,7 +2749,7 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
             foreach dep $deplist {
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
-                    set status [macports::upgrade $mpname port:${mpname} $globalvarlist $variationslist [array get options] depscache]
+                    set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
                     if {$status != 0 && ![ui_isset ports_processall]} {
                         catch {mportclose $workername}
                         return $status
@@ -2737,9 +2768,9 @@ proc macports::upgrade {portname dspec globalvarlist variationslist optionslist 
 # upgrade_dependencies: helper proc for upgrade
 # Calls upgrade on each dependency listed in the PortInfo.
 # Uses upvar to access the variables.
-proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistname variationslistname optionsname} {
+proc macports::_upgrade_dependencies {portinfoname depscachename variationslistname optionsname} {
     upvar $portinfoname portinfo $depscachename depscache \
-          $globalvarlistname globalvarlist $variationslistname variationslist \
+          $variationslistname variationslist \
           $optionsname options
 
     # If we're following dependents, we only want to follow this port's
@@ -2761,7 +2792,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename globalvarlistna
             foreach i $portinfo($dtype) {
                 set d [lindex [split $i :] end]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
-                    set status [upgrade $d $i $globalvarlist $variationslist [array get options] depscache]
+                    set status [macports::_upgrade $d $i $variationslist [array get options] depscache]
                     if {$status != 0 && ![ui_isset ports_processall]} break
                 }
             }
