@@ -84,12 +84,13 @@ default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
-default svn.cmd {[findBinary svn $portutil::autoconf::svn_path]}
+# we want the svn port so we know --trust-server-cert will work
+default svn.cmd {${prefix}/bin/svn}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
 default svn.env {}
-default svn.pre_args {"--non-interactive"}
+default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
 default svn.post_args {"${svn.url}"}
 
@@ -165,7 +166,7 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                depends_fetch-append bin:svn:subversion
+                depends_fetch-append port:subversion
             }
             git {
                 depends_fetch-append bin:git:git-core
@@ -648,8 +649,8 @@ proc portfetch::fetchfiles {args} {
 
                     # Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
                     if {![string equal $effectiveURL $file_url] &&
-                        [string match "*sourceforge*" $file_url] &&
-                        [string match "*failedmirror*" $effectiveURL]} {
+                        [string match "http://*sourceforge.net/*" $file_url] &&
+                        [string match "http://*sourceforge.net/projects/*/files/" $effectiveURL]} {
 
                         # *SourceForge hackage in effect*
                         # The url seen by curl seems to have been a redirect to the sourceforge mirror page
@@ -703,19 +704,9 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
     global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
-    global altprefix usealtworkpath
     variable fetch_urls
 
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
-
-        # start gsoc08-privileges
-        if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-            # I have removed ![file writable $distpath] from the if condition as
-            # the writable condition seems to get confused by effective uids.
-            set distpath "$altprefix/[ string range $distpath 1 end ]"
-            ui_debug "Going to use $distpath for fetch."
-        }
-        # end gsoc08-privileges
         set distpath ${distpath}/${dist_subdir}
         set fetch_init_done yes
     }

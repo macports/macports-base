@@ -1,5 +1,5 @@
 /*
- * sysctl.c
+ * Pextlib.h
  * $Id$
  *
  * Copyright (c) 2009 The MacPorts Project
@@ -30,46 +30,4 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#include <tcl.h>
-
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-
-#include "sysctl.h"
-
-/*
- * Read-only wrapper for sysctlbyname(3). Only works for values of type CTLTYPE_INT.
- */
-int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-    const char error_message[] = "sysctl failed: ";
-    Tcl_Obj *tcl_result;
-    int res;
-    char *name;
-    int value;
-    size_t len = sizeof(value);
-
-    if (objc != 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "name");
-        return TCL_ERROR;
-    }
-
-    name = Tcl_GetString(objv[1]);
-    res = sysctlbyname(name, &value, &len, NULL, 0);
-    if (res == -1) {
-        tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
-        Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(strerror(errno), -1));
-        Tcl_SetObjResult(interp, tcl_result);
-        return TCL_ERROR;
-    }
-
-    tcl_result = Tcl_NewIntObj(value);
-    Tcl_SetObjResult(interp, tcl_result);
-    return TCL_OK;
-}
+int ui_info(Tcl_Interp *, char *);

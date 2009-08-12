@@ -45,19 +45,18 @@ namespace eval portmain {
 
 # define options
 options prefix macportsuser name version revision epoch categories maintainers
-options long_description description homepage license provides conflicts
+options long_description description homepage license provides conflicts replaced_by
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 options copy_log_files
+options compiler.cpath compiler.library_path
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts
+options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts replaced_by
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
 
-default distpath {[file join $portdbpath distfiles]}
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
-default worksymlink {[file join $portpath work]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
@@ -83,7 +82,7 @@ default install.group {${portutil::autoconf::install_group}}
 # Platform Settings
 set os_arch $tcl_platform(machine)
 if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
+if {$os_arch == "i586" || $os_arch == "i686" || $os_arch == "x86_64"} { set os_arch "i386" }
 set os_version $tcl_platform(osVersion)
 set os_major [lindex [split $os_version .] 0]
 set os_platform [string tolower $tcl_platform(os)]
@@ -113,6 +112,9 @@ default macosx_deployment_target {$macosx_version}
 
 default universal_variant yes
 
+default compiler.cpath {${prefix}/include}
+default compiler.library_path {${prefix}/lib}
+
 # Select implicit variants
 if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
 if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
@@ -124,9 +126,45 @@ if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     option os.universal_supported yes
 }
 
+# start gsoc08-privileges
+
 # Record initial euid/egid
 set euid [geteuid]
 set egid [getegid]
+
+# if unable to write to workpath, implies running without either root privileges
+# or a shared directory owned by the group so use ~/.macports
+if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
+
+    set username [uid_to_name [getuid]]
+
+    # set global variable indicating to other functions to use ~/.macports as well
+    set usealtworkpath yes
+
+    # do tilde expansion manually - Tcl won't expand tildes automatically for curl, etc.
+    if {[info exists env(HOME)]} {
+        # HOME environment var is set, use it.
+        set userhome "$env(HOME)"
+    } else {
+        # the environment var isn't set, expand ~user instead
+        set userhome [file normalize "~${username}"]
+    }
+
+    # set alternative prefix global variable
+    set altprefix [file join $userhome .macports]
+
+    default worksymlink {[file join ${altprefix}${portpath} work]}
+    default distpath {[file join ${altprefix}${portdbpath} distfiles]}
+    set portbuildpath "${altprefix}${portbuildpath}"
+
+    ui_debug "Going to use alternate build prefix: $altprefix"
+    ui_debug "workpath = $workpath"
+} else {
+    set usealtworkpath no
+    default worksymlink {[file join $portpath work]}
+    default distpath {[file join $portdbpath distfiles]}
+}
+# end gsoc08-privileges
 
 proc portmain::main {args} {
     return 0

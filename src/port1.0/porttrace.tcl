@@ -44,7 +44,7 @@ proc porttrace::trace_start {workpath} {
         if {[catch {package require Thread} error]} {
             ui_warn "trace requires Tcl Thread package ($error)"
         } else {
-            global env trace_fifo trace_sandboxbounds portpath distpath
+            global env trace_fifo trace_sandboxbounds portpath distpath altprefix
             # Create a fifo.
             # path in unix socket limited to 109 chars
             # # set trace_fifo "$workpath/trace_fifo"

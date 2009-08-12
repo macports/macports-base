@@ -328,6 +328,13 @@ proc portlint::lint_main {args} {
             ui_info "OK: Found optional variable: $opt_var"
         }
     }
+    
+    if {[info exists name]} {
+        if {[regexp {[^[:alnum:]_.-]} $name]} {
+            ui_error "Port name '$name' contains unsafe characters. Names should only contain alphanumeric characters, underscores, dashes or dots."
+            incr errors
+        }
+    }
 
     if {[info exists platforms]} {
         foreach platform $platforms {
@@ -437,6 +444,22 @@ proc portlint::lint_main {args} {
             incr errors
         } else {
             ui_info "OK: Found dependency: $dep"
+        }
+    }
+
+    # Check for multiple dependencies
+    foreach deptype {depends_extract depends_lib depends_build depends_run} {
+        if {[info exists $deptype]} {
+            array set depwarned {}
+            foreach depspec [set $deptype] {
+                if {![info exists depwarned($depspec)]
+                        && [llength [lsearch -exact -all [set $deptype] $depspec]] > 1} {
+                    ui_warn "Dependency $depspec specified multiple times in $deptype"
+                    incr warnings
+                    # Report each depspec only once
+                    set depwarned($depspec) yes
+                }
+            }
         }
     }
 

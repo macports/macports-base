@@ -62,14 +62,56 @@ option_proc use_automake    portconfigure::set_configure_type
 option_proc use_autoconf    portconfigure::set_configure_type
 option_proc use_xmkmf       portconfigure::set_configure_type
 
+option_proc autoreconf.cmd  portconfigure::set_configure_type
+option_proc automake.cmd    portconfigure::set_configure_type
+option_proc autoconf.cmd    portconfigure::set_configure_type
+option_proc xmkmf.cmd       portconfigure::set_configure_type
+
+##
+# Local helper proc
+proc portconfigure::add_build_dep { type dep } {
+    global ${type}.cmd option_defaults
+
+    if {![info exists ${type}.cmd] || (
+        ([info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == $option_defaults(${type}.cmd)) ||
+        (![info exists option_defaults(${type}.cmd)] && [set ${type}.cmd] == "${type}")
+        )} {
+            eval depends_build-append $dep
+    }
+}
+
+##
+# Adds dependencies for the binaries which will be called, but only if it is
+# the default. If .cmd was overwritten the port has to care for deps itself.
 proc portconfigure::set_configure_type {option action args} {
-    if {[string equal ${action} "set"] && [tbool args]} {
+    global autoreconf.cmd automake.cmd autoconf.cmd xmkmf.cmd
+
+    array set configure_map {
+        autoconf    {port:autoconf port:automake port:libtool}
+        xmkmf       port:imake
+    }
+
+    if {[string equal ${action} "set"]} {
         switch $option {
+            autoreconf.cmd  -
+            automake.cmd    -
+            autoconf.cmd {
+                eval depends_build-delete $configure_map(autoconf)
+            }
+            xmkmf.cmd {
+                depends_build-delete $configure_map(xmkmf)
+            }
             use_xmkmf {
-                depends_build-append port:imake
+                if {[tbool args]} {
+                    depends_build-append $configure_map(xmkmf)
+                }
             }
             default {
-                depends_build-append port:autoconf port:automake port:libtool
+                # strip "use_"
+                set type [string range $option 4 end]
+                if {[tbool args]} {
+                    add_build_dep $type $configure_map(autoconf)
+                }
             }
         }
     }
@@ -109,9 +151,12 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.build_arch configure.archflags
+options configure.build_arch
 default configure.build_arch {${build_arch}}
-default configure.archflags  {[portconfigure::configure_get_archflags]}
+foreach tool {cc cxx objc f77 f90 fc} {
+    options configure.${tool}_archflags
+    default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
+}
 
 options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
 default configure.universal_archs       {${universal_archs}}
@@ -139,10 +184,7 @@ default configure.compiler      {[portconfigure::configure_get_default_compiler]
 set_ui_prefix
 
 proc portconfigure::configure_start {args} {
-    global UI_PREFIX configure.compiler configure.optflags configure.archflags
-    global configure.march configure.mtune configure.universal_cflags
-    global configure.universal_cxxflags configure.universal_cppflags 
-    global configure.universal_ldflags configure.universal_args
+    global UI_PREFIX configure.compiler
     
     ui_msg "$UI_PREFIX [format [msgcat::mc "Configuring %s"] [option name]]"
 
@@ -167,32 +209,10 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
-    
-    # add in extra CFLAGS etc
-    if {[variant_exists universal] && [variant_isset universal]} {
-        foreach flag {cflags objcflags fflags f90flags fcflags} {
-            eval configure.${flag}-append ${configure.universal_cflags}
-        }
-        eval configure.cxxflags-append ${configure.universal_cxxflags}
-        eval configure.cppflags-append ${configure.universal_cppflags}
-        eval configure.ldflags-append ${configure.universal_ldflags}
-        eval configure.pre_args-append ${configure.universal_args}
-    } else {
-        foreach flag {cflags cxxflags objcflags fflags f90flags fcflags} {
-            eval configure.${flag}-append ${configure.archflags}
-            if {${configure.march} != {}} {
-                configure.${flag}-append "-march=${configure.march}"
-            }
-            if {${configure.mtune} != {}} {
-                configure.${flag}-append "-mtune=${configure.mtune}"
-            }
-        }
-        eval configure.ldflags-append ${configure.archflags}
-    }
 }
 
 # internal function to determine the compiler flags to select an arch
-proc portconfigure::configure_get_archflags {args} {
+proc portconfigure::configure_get_archflags {tool} {
     global configure.build_arch configure.m32 configure.m64 configure.compiler
     set flags ""
     if {[tbool configure.m64]} {
@@ -200,7 +220,7 @@ proc portconfigure::configure_get_archflags {args} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported]} {
+        if {[arch_flag_supported] && $tool == "cc" || $tool == "cxx" || $tool == "objc"} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -324,6 +344,7 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret /usr/bin/gcc-4.2 }
                 objc { set ret /usr/bin/gcc-4.2 }
                 cxx  { set ret /usr/bin/g++-4.2 }
+                cpp  { set ret /usr/bin/cpp-4.2 }
             }
         }
         llvm-gcc-4.2 {
@@ -435,9 +456,15 @@ proc portconfigure::configure_get_compiler {type} {
 proc portconfigure::configure_main {args} {
     global [info globals]
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
-    global configure.env configure.pipe configure.cflags configure.cppflags configure.cxxflags configure.objcflags configure.ldflags configure.libs configure.fflags configure.f90flags configure.fcflags configure.classpath
+    global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cc configure.cxx configure.cpp configure.objc configure.f77 configure.f90 configure.fc configure.javac
+    global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune
+    foreach tool {cc cxx objc f77 f90 fc} {
+        global configure.${tool} configure.${tool}_archflags
+    }
+    foreach flags {cflags cppflags cxxflags objcflags ldflags fflags f90flags fcflags} {
+        global configure.${flags} configure.universal_${flags}
+    }
     
     if {[tbool use_autoreconf]} {
         if {[catch {command_exec autoreconf} result]} {
@@ -490,7 +517,6 @@ proc portconfigure::configure_main {args} {
 
         # Append configure flags.
         append_list_to_environment_value configure "CC" ${filter}${configure.cc}
-        append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
         append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
         append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
         append_list_to_environment_value configure "FC" ${configure.fc}
@@ -515,6 +541,27 @@ proc portconfigure::configure_main {args} {
         append_list_to_environment_value configure "BISON" ${configure.bison}
         append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
         append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
+        
+        # add extra flags that are conditional on whether we're building universal
+        if {[variant_exists universal] && [variant_isset universal]} {
+            foreach flags {CFLAGS OBJCFLAGS} {
+                append_list_to_environment_value configure $flags ${configure.universal_cflags}
+            }
+            append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
+            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
+            append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
+            eval configure.pre_args-append ${configure.universal_args}
+        } else {
+            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS} {
+                append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
+                if {${configure.march} != {}} {
+                    append_list_to_environment_value configure $flags "-march=${configure.march}"
+                }
+                if {${configure.mtune} != {}} {
+                    append_list_to_environment_value configure $flags "-mtune=${configure.mtune}"
+                }
+            }
+        }
 
         # Execute the command (with the new environment).
         if {[catch {command_exec configure} result]} {

@@ -358,6 +358,12 @@ proc command_exec {command args} {
     if {[option macosx_deployment_target] ne ""} {
         set ${command}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
+    if {[option compiler.cpath] ne ""} {
+        set ${command}.env_array(CPATH) [join [option compiler.cpath] :]
+    }
+    if {[option compiler.library_path] ne ""} {
+        set ${command}.env_array(LIBRARY_PATH) [join [option compiler.library_path] :]
+    }
 
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
@@ -911,7 +917,7 @@ proc reinplace {args}  {
             return -code error "reinplace copy failed"
         }
 
-        eval file attributes {$file} $attributes
+        fileAttrsAsRoot $file $attributes
 
         file delete "$tmpfile"
     }
@@ -1219,7 +1225,9 @@ proc target_run {ditem} {
 
     if {$procedure != ""} {
         set targetname [ditem_key $ditem name]
-        if { [tbool ${targetname}.asroot] } {
+        set target [ditem_key $ditem provides]
+        global ${target}.asroot
+        if { [tbool ${target}.asroot] } {
             elevateToRoot $targetname
         }
 
@@ -1502,81 +1510,39 @@ proc eval_targets {target} {
 # open file to store name of completed targets
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink name portpath ports_ignore_older
-    global altprefix usealtworkpath env applications_dir portbuildpath distpath
+    global usealtworkpath altprefix env applications_dir portbuildpath
 
-    # start gsoc08-privileges
-    if { ![file exists $workpath] } {
-        if {[catch {set result [file mkdir $workpath]} result]} {
-            global errorInfo
-            ui_debug "mkdir $workpath: $errorInfo"
-        }
+    if {![file isdirectory $workpath]} {
+        file mkdir $workpath
+        chownAsRoot $portbuildpath
     }
-
-    # if unable to write to workpath, implies running without either root privileges
-    # or a shared directory owned by the group so use ~/.macports
-    if { ![file writable $workpath] } {
-
-        set userid [getuid]
-        set username [uid_to_name $userid]
-
-        if { $userid !=0 } {
-            ui_msg "MacPorts running without privileges.\
-                    You may be unable to complete certain actions (eg install)."
-        }
-
-        # set global variable indicating to other functions to use ~/.macports as well
-        set usealtworkpath yes
-
-        # do tilde expansion manually - tcl won't expand tildes automatically for curl, etc.
-        if {[info exists env(HOME)]} {
-            # HOME environment var is set, use it.
-            set userhome "$env(HOME)"
-        } else {
-            # the environment var isn't set, expand ~user instead
-            set userhome [file normalize "~${username}"]
-        }
-
-        # set alternative prefix global variables
-        set altprefix "$userhome/.macports"
-
-        # get alternative paths
-        set newworkpath "$altprefix$workpath"
-        set newworksymlink "$altprefix$worksymlink"
-        set newportbuildpath "$altprefix$portbuildpath"
-        set newdistpath "$altprefix$distpath"
-
-        set sourcepath [string map {"work" ""} $worksymlink]
-        set newsourcepath "$altprefix/[ string range $sourcepath 1 end ]"
-
+    
+    if { [getuid] != 0 } {
+        ui_msg "MacPorts running without privileges.\
+                You may be unable to complete certain actions (eg install)."
+    }
+    
+    # de-escalate privileges if MacPorts was started with sudo
+    dropPrivileges
+    
+    if {$usealtworkpath} {
+        set newsourcepath "$altprefix/$portpath"
+    
         # copy Portfile (and patch files) if not there already
         # note to maintainers/devs: the original portfile in /opt/local is ALWAYS the one that will be
         #    read by macports. The copying of the portfile is done to preserve the symlink provided
         #    historically by macports from the portfile directory to the work directory.
         #    It is NOT read by MacPorts.
-        if {![file exists ${newsourcepath}Portfile] } {
+        if {![file exists ${newsourcepath}/Portfile] } {
             file mkdir $newsourcepath
             ui_debug "$newsourcepath created"
-            ui_debug "Going to copy: ${sourcepath}Portfile"
-            file copy ${sourcepath}Portfile $newsourcepath
-            if {[file exists ${sourcepath}files] } {
-                ui_debug "Going to copy: ${sourcepath}files"
-                file copy ${sourcepath}files $newsourcepath
+            ui_debug "Going to copy: ${portpath}/Portfile"
+            file copy ${portpath}/Portfile $newsourcepath
+            if {[file exists ${portpath}/files] } {
+                ui_debug "Going to copy: ${portpath}/files"
+                file copy ${portpath}/files $newsourcepath
             }
         }
-
-        set workpath $newworkpath
-        set worksymlink $newworksymlink
-        set portbuildpath $newportbuildpath
-        set distpath $newdistpath
-
-        ui_debug "Going to use $newworkpath for statefile."
-    } else {
-        set usealtworkpath no
-    }
-    # end gsoc08-privileges
-
-    if {![file isdirectory $workpath]} {
-        file mkdir $workpath
     }
 
     # flock Portfile
@@ -1586,21 +1552,21 @@ proc open_statefile {args} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            ui_msg "Portfile changed since last build; discarding previous state."
-            #file delete $statefile
-            delete [file join $workpath]
-            file mkdir [file join $workpath]
+            if {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
+                ui_msg "Portfile changed since last build; discarding previous state."
+                delete $workpath
+                file mkdir $workpath
+            } else {
+                ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
+            }
         }
     }
-    chownAsRoot $workpath
 
     # Create a symlink to the workpath for port authors
     if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
         ui_debug "Attempting ln -sf $workpath $worksymlink"
         ln -sf $workpath $worksymlink
     }
-    # de-escalate privileges - only run if MacPorts was started with sudo
-    dropPrivileges
 
     set fd [open $statefile a+]
     if {[catch {flock $fd -exclusive -noblock} result]} {
@@ -1640,28 +1606,40 @@ proc write_statefile {class name fd} {
     flush $fd
 }
 
-# check_statefile_variants
+##
 # Check that recorded selection of variants match the current selection
-proc check_statefile_variants {variations fd} {
+#
+# @param variations input array name of new variants
+# @param oldvariations output array name of old variants
+# @param fd file descriptor of the state file
+# @return 0 if variants match, 1 otherwise
+proc check_statefile_variants {variations oldvariations fd} {
     upvar $variations upvariations
+    upvar $oldvariations upoldvariations
+
+    array set upoldvariations {}
+
+    seek $fd 0 end
+    if {[tell $fd] == 0} {
+        # Statefile is empty, skipping further tests
+        return 0
+    }
 
     seek $fd 0
     while {[gets $fd line] >= 0} {
         if {[regexp "variant: (.*)" $line match name]} {
-            set oldvariations([string range $name 1 end]) [string range $name 0 0]
+            set upoldvariations([string range $name 1 end]) [string range $name 0 0]
         }
     }
 
     set mismatch 0
-    if {[array size oldvariations] > 0} {
-        if {[array size oldvariations] != [array size upvariations]} {
-            set mismatch 1
-        } else {
-            foreach key [array names upvariations *] {
-                if {![info exists oldvariations($key)] || $upvariations($key) != $oldvariations($key)} {
+    if {[array size upoldvariations] != [array size upvariations]} {
+        set mismatch 1
+    } else {
+        foreach key [array names upvariations *] {
+            if {![info exists upoldvariations($key)] || $upvariations($key) != $upoldvariations($key)} {
                 set mismatch 1
                 break
-                }
             }
         }
     }
@@ -1848,8 +1826,9 @@ proc check_variants {variations target} {
 
         set state_fd [open_statefile]
 
-        if {[check_statefile_variants upvariations $state_fd]} {
-            ui_error "Requested variants do not match original selection.\nPlease perform 'port clean $portname' or specify the force option."
+        array set oldvariations {}
+        if {[check_statefile_variants upvariations oldvariations $state_fd]} {
+            ui_error "Requested variants \"[canonicalize_variants [array get upvariations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean $portname' or specify the force option (-f)."
             set result 1
         } elseif {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
             # Write variations out to the statefile
@@ -1864,33 +1843,23 @@ proc check_variants {variations target} {
     return $result
 }
 
-proc default_universal_variant_allowed {args} {
-
+# add the default universal variant if appropriate
+proc universal_setup {args} {
     if {[variant_exists universal]} {
         ui_debug "universal variant already exists, so not adding the default one"
-        return no
     } elseif {[exists universal_variant] && ![option universal_variant]} {
         ui_debug "'universal_variant no' specified, so not adding the default universal variant"
-        return no
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
-        return no
     } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.project]} {
         # Allow +universal if port uses xcode portgroup.
         ui_debug "not using configure, so not adding the default universal variant"
-        return no
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
-        return no
     } else {
         ui_debug "adding the default universal variant"
-        return yes
+        variant universal {}
     }
-}
-
-proc add_default_universal_variant {args} {
-    # Declare default universal variant (all the magic happens in portconfigure now)
-    variant universal {}
 }
 
 # Target class definition.
@@ -2360,6 +2329,26 @@ proc chownAsRoot {path} {
             # if started with sudo but have elevated back to root already
             chown  ${path} ${macportsuser}
         }
+    }
+}
+
+##
+# Change attributes of file while running as root
+#
+# @param file the file in question
+# @param attributes the attributes for the file
+proc fileAttrsAsRoot {file attributes} {
+    global euid macportsuser
+    if {[getuid] == 0 && [geteuid] != 0} {
+        # Started as root, but not root now
+        seteuid $euid
+        ui_debug "euid changed to: [geteuid]"
+        ui_debug "setting attributes on $file"
+        eval file attributes {$file} $attributes
+        seteuid [name_to_uid "$macportsuser"]
+        ui_debug "euid changed to: [geteuid]"
+    } else {
+        eval file attributes {$file} $attributes
     }
 }
 

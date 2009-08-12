@@ -1,9 +1,10 @@
-OBJS=		Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
-		fs-traverse.o strcasecmp.o vercomp.o filemap.o \
-		sha1cmd.o curl.o rmd160cmd.o readline.o uid.o\
-		tracelib.o tty.o get_systemconfiguration_proxies.o\
-		sysctl.o readdir.o pipe.o
-SHLIB_NAME=	Pextlib${SHLIB_SUFFIX}
+OBJS= \
+	Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
+	fs-traverse.o strcasecmp.o vercomp.o filemap.o \
+	sha1cmd.o curl.o rmd160cmd.o readline.o uid.o \
+	tracelib.o tty.o readdir.o pipe.o flock.o \
+	system.o
+SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
 
 include ../../Mk/macports.autoconf.mk
@@ -11,9 +12,6 @@ include ../../Mk/macports.tea.mk
 
 CFLAGS+= ${CURL_CFLAGS} ${MD5_CFLAGS} ${READLINE_CFLAGS}
 LIBS+= ${CURL_LIBS} ${MD5_LIBS} ${READLINE_LIBS}
-ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
-   LIBS+= -framework CoreFoundation -framework SystemConfiguration
-endif
 
 .PHONY: test
 

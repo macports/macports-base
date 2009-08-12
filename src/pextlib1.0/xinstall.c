@@ -70,6 +70,8 @@
 
 #include <tcl.h>
 
+#include "Pextlib.h"
+
 #if HAVE_PATHS_H
 #include <paths.h>
 #endif
@@ -138,8 +140,6 @@ static u_long	numeric_id(Tcl_Interp *interp, const char *, const char *, int *rv
 static void	strip(const char *);
 static int	trymmap(int);
 static void	usage(Tcl_Interp *interp);
-
-extern int	ui_info(Tcl_Interp *interp, char *mesg);
 
 int
 InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])

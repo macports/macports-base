@@ -52,19 +52,7 @@
 #include <limits.h>
 #endif
 
-#if HAVE_PATHS_H
-#include <paths.h>
-#endif
-
-#ifndef _PATH_DEVNULL
-#define _PATH_DEVNULL   "/dev/null"
-#endif
-
 #include <pwd.h>
-
-#if HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
 
 #if HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -92,6 +80,8 @@
 
 #include <tcl.h>
 
+#include "Pextlib.h"
+
 #include "md5cmd.h"
 #include "sha1cmd.h"
 #include "rmd160cmd.h"
@@ -104,11 +94,11 @@
 #include "uid.h"
 #include "tracelib.h"
 #include "tty.h"
-#include "get_systemconfiguration_proxies.h"
-#include "sysctl.h"
 #include "strsed.h"
 #include "readdir.h"
 #include "pipe.h"
+#include "flock.h"
+#include "system.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -126,8 +116,6 @@ extern char **environ;
 #if !HAVE_FGETLN
 char *fgetln(FILE *stream, size_t *len);
 #endif
-
-#define CBUFSIZ 30
 
 static char *
 ui_escape(const char *source)
@@ -194,322 +182,6 @@ ui_info(Tcl_Interp *interp, char *mesg)
 	rval = Tcl_EvalEx(interp, script, scriptlen - 1, 0);
 	free(script);
 	return rval;
-}
-
-struct linebuf {
-	size_t len;
-	char *line;
-};
-
-int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char *buf;
-	struct linebuf circbuf[CBUFSIZ];
-	size_t linelen;
-	char *args[4];
-	char *cmdstring;
-	FILE *pdes;
-	int fdset[2], nullfd;
-	int fline, pos, ret;
-	int osetsid = 0;
-	pid_t pid;
-	Tcl_Obj *errbuf;
-	Tcl_Obj *tcl_result;
-	int read_failed, status;
-
-	/* usage: system [-notty] command */
-	if (objc == 2) {
-		cmdstring = Tcl_GetString(objv[1]);
-	} else if (objc == 3) {
-		char *arg = Tcl_GetString(objv[1]);
-		cmdstring = Tcl_GetString(objv[2]);
-
-		if (strcmp(arg, "-notty") == 0) {
-			osetsid = 1;
-		} else {
-			tcl_result = Tcl_NewStringObj("bad option ", -1);
-			Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
-			Tcl_SetObjResult(interp, tcl_result);
-			return TCL_ERROR;
-		}
-	} else {
-		Tcl_WrongNumArgs(interp, 1, objv, "command");
-		return TCL_ERROR;
-	}
-
-	/*
-	 * Fork a child to run the command, in a popen() like fashion -
-	 * popen() itself is not used because stderr is also desired.
-	 */
-	if (pipe(fdset) != 0) {
-		return TCL_ERROR;
-	}
-
-	pid = fork();
-	switch (pid) {
-	case -1: /* error */
-		return TCL_ERROR;
-		break;
-	case 0: /* child */
-		close(fdset[0]);
-
-		if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			_exit(1);
-		dup2(nullfd, STDIN_FILENO);
-		dup2(fdset[1], STDOUT_FILENO);
-		dup2(fdset[1], STDERR_FILENO);
-		/* drop the controlling terminal if requested */
-		if (osetsid) {
-			if (setsid() == -1)
-				_exit(1);
-		}
-		/* XXX ugly string constants */
-		args[0] = "sh";
-		args[1] = "-c";
-		args[2] = cmdstring;
-		args[3] = NULL;
-		execve("/bin/sh", args, environ);
-		_exit(1);
-		break;
-	default: /* parent */
-		break;
-	}
-
-	close(fdset[1]);
-
-	/* read from simulated popen() pipe */
-	read_failed = 0;
-	pos = 0;
-	bzero(circbuf, sizeof(circbuf));
-	pdes = fdopen(fdset[0], "r");
-	while ((buf = fgetln(pdes, &linelen)) != NULL) {
-		char *sbuf;
-		int slen;
-
-		/*
-		 * Allocate enough space to insert a terminating
-		 * '\0' if the line is not terminated with a '\n'
-		 */
-		if (buf[linelen - 1] == '\n')
-			slen = linelen;
-		else
-			slen = linelen + 1;
-
-		if (circbuf[pos].len == 0)
-			sbuf = malloc(slen);
-		else {
-			sbuf = realloc(circbuf[pos].line, slen);
-		}
-
-		if (sbuf == NULL) {
-			read_failed = 1;
-			break;
-		}
-
-		memcpy(sbuf, buf, linelen);
-		/* terminate line with '\0',replacing '\n' if it exists */
-		sbuf[slen - 1] = '\0';
-
-		circbuf[pos].line = sbuf;
-		circbuf[pos].len = slen;
-
-		if (pos++ == CBUFSIZ - 1) {
-			pos = 0;
-		}
-
-		if (ui_info(interp, sbuf) != TCL_OK) {
-			read_failed = 1;
-			break;
-		}
-	}
-	fclose(pdes);
-
-	status = TCL_ERROR;
-
-	if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
-		/* Normal exit, and reading from the pipe didn't fail. */
-		if (WEXITSTATUS(ret) == 0) {
-			status = TCL_OK;
-		} else {
-			/* Copy the contents of the circular buffer to errbuf */
-		  	Tcl_Obj* errorCode;
-			errbuf = Tcl_NewStringObj(NULL, 0);
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len == 0)
-				continue; /* skip empty lines */
-
-				/* Append line, minus trailing NULL */
-				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
-						circbuf[pos % CBUFSIZ].len - 1);
-
-				/* Re-add previously stripped newline */
-				Tcl_AppendToObj(errbuf, "\n", 1);
-			}
-
-			/* set errorCode [list CHILDSTATUS <pid> <code>] */
-			errorCode = Tcl_NewListObj(0, NULL);
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_SetObjErrorCode(interp, errorCode);
-
-			/* set result */
-			tcl_result = Tcl_NewStringObj("shell command \"", -1);
-			Tcl_AppendToObj(tcl_result, cmdstring, -1);
-			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
-			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
-			Tcl_AppendObjToObj(tcl_result, errbuf);
-			Tcl_SetObjResult(interp, tcl_result);
-		}
-	}
-
-	/* Cleanup. */
-	close(fdset[0]);
-	for (fline = 0; fline < CBUFSIZ; fline++) {
-		if (circbuf[fline].len != 0) {
-			free(circbuf[fline].line);
-		}
-	}
-
-	return status;
-}
-
-int FlockCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	static const char errorstr[] = "use one of \"-shared\", \"-exclusive\", or \"-unlock\", and optionally \"-noblock\"";
-	int operation = 0, fd, i, ret;
-	int errnoval = 0;
-	int oshared = 0, oexclusive = 0, ounlock = 0, onoblock = 0;
-#if defined(HAVE_LOCKF) && !defined(HAVE_FLOCK)
-	off_t curpos;
-#endif
-	char *res;
-	Tcl_Channel channel;
-	ClientData handle;
-
-	if (objc < 3 || objc > 4) {
-		Tcl_WrongNumArgs(interp, 1, objv, "channelId switches");
-		return TCL_ERROR;
-	}
-
-    	if ((channel = Tcl_GetChannel(interp, Tcl_GetString(objv[1]), NULL)) == NULL)
-		return TCL_ERROR;
-
-	if (Tcl_GetChannelHandle(channel, TCL_READABLE|TCL_WRITABLE, &handle) != TCL_OK) {
-		Tcl_SetResult(interp, "error getting channel handle", TCL_STATIC);
-		return TCL_ERROR;
-	}
-	fd = (int)(intptr_t)handle;
-
-	for (i = 2; i < objc; i++) {
-		char *arg = Tcl_GetString(objv[i]);
-		if (!strcmp(arg, "-shared")) {
-		  oshared = 1;
-		} else if (!strcmp(arg, "-exclusive")) {
-		  oexclusive = 1;
-		} else if (!strcmp(arg, "-unlock")) {
-		  ounlock = 1;
-		} else if (!strcmp(arg, "-noblock")) {
-		  onoblock = 1;
-		}
-	}
-
-	/* verify the arguments */
-
-	if((oshared + oexclusive + ounlock) != 1) {
-	  /* only one of the options should have been specified */
-	  Tcl_SetResult(interp, (void *) &errorstr, TCL_STATIC);
-	  return TCL_ERROR;
-	}
-
-	if(onoblock && ounlock) {
-	  /* should not be specified together */
-	  Tcl_SetResult(interp, "-noblock cannot be used with -unlock", TCL_STATIC);
-	  return TCL_ERROR;
-	}
-	  
-#if HAVE_FLOCK
-	/* prefer flock if present */
-	if(oshared) operation |= LOCK_SH;
-
-	if(oexclusive) operation |= LOCK_EX;
-
-	if(ounlock) operation |= LOCK_UN;
-
-	if(onoblock) operation |= LOCK_NB;
-
-	ret = flock(fd, operation);
-	if(ret == -1) {
-	  errnoval = errno;
-	}
-#else
-#if HAVE_LOCKF
-	if(ounlock) operation = F_ULOCK;
-
-	/* lockf semantics don't map to shared locks. */
-	if(oshared || oexclusive) {
-	  if(onoblock) {
-	    operation = F_TLOCK;
-	  } else {
-	    operation = F_LOCK;
-	  }
-	}
-
-	curpos = lseek(fd, 0, SEEK_CUR);
-	if(curpos == -1) {
-		Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
-		return TCL_ERROR;
-	}
-
-	ret = lockf(fd, operation, 0); /* lock entire file */
-
-	curpos = lseek(fd, curpos, SEEK_SET);
-	if(curpos == -1) {
-		Tcl_SetResult(interp, (void *) "Seek error", TCL_STATIC);
-		return TCL_ERROR;
-	}
-
-	if(ret == -1) {
-	  errnoval = errno;
-	  if((oshared || oexclusive)) {
-	    /* map the errno val to what we would expect for flock */
-	    if(onoblock && errnoval == EAGAIN) {
-	      /* on some systems, EAGAIN=EWOULDBLOCK, but lets be safe */
-	      errnoval = EWOULDBLOCK;
-	    } else if(errnoval == EINVAL) {
-	      errnoval = EOPNOTSUPP;
-	    }
-	  }
-	}
-#else
-#error no available locking implementation
-#endif /* HAVE_LOCKF */
-#endif /* HAVE_FLOCK */
-
-	if (ret != 0)
-	{
-		switch(errnoval) {
-			case EAGAIN:
-				res = "EAGAIN";
-				break;
-			case EBADF:
-				res = "EBADF";
-				break;
-			case EINVAL:
-				res = "EINVAL";
-				break;
-			case EOPNOTSUPP:
-				res = "EOPNOTSUPP";
-				break;
-			default:
-				res = strerror(errno);
-				break;
-		}
-		Tcl_SetResult(interp, (void *) res, TCL_STATIC);
-		return TCL_ERROR;
-	}
-	return TCL_OK;
 }
 
 int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -680,11 +352,11 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	int cur;
 
 	cur = MIN_USABLE_UID;
-	
+
 	while (getpwuid(cur) != NULL) {
 		cur++;
 	}
-	
+
 	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
@@ -703,7 +375,7 @@ int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	while (getgrgid(cur) != NULL) {
 		cur++;
 	}
-	
+
 	tcl_result = Tcl_NewIntObj(cur);
 	Tcl_SetObjResult(interp, tcl_result);
 	return TCL_OK;
@@ -768,15 +440,15 @@ int UmaskCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, 
 int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *value, *target;
-    
+
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 1, objv, "value target");
         return TCL_ERROR;
     }
-    
+
     value = Tcl_GetString(objv[1]);
     target = Tcl_GetString(objv[2]);
-    
+
     if (symlink(value, target) != 0) {
         Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
         return TCL_ERROR;
@@ -800,7 +472,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     int listLength;
     Tcl_Obj **listArray;
     int loopCounter;
-    
+
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "name");
         return TCL_ERROR;
@@ -926,11 +598,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "symlink", CreateSymlinkCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "unsetenv", UnsetEnvCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "lchown", lchownCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "readline", ReadlineCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rl_history", RLHistoryCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "getuid", getuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "geteuid", geteuidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "getgid", getgidCmd, NULL, NULL);
@@ -944,11 +615,10 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "uname_to_gid", uname_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "name_to_gid", name_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "gid_to_name", gid_to_nameCmd, NULL, NULL);
-	
+
 	Tcl_CreateObjCommand(interp, "tracelib", TracelibCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "isatty", IsattyCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "term_get_size", TermGetSizeCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "get_systemconfiguration_proxies", GetSystemConfigurationProxiesCmd, NULL, NULL);
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
