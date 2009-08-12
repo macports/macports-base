@@ -14,6 +14,9 @@ Release 1.8.0 (unreleased):
     - MacPorts base now works on and has appropriate default settings for
       Mac OS X 10.6 Snow Leopard. (#19874, toby/mww/jkh in r38271,r40060,
       r40836,r43976,r52397)
+      
+    - MacPorts now requires Mac OS X 10.4 Tiger or later. (Panther is not
+      just "unsupported", it really won't work.)
 
     - The universal_sysroot and universal_target keys have been removed from
       macports.conf. These settings are now handled automatically.
@@ -184,8 +187,6 @@ Release 1.8.0 (unreleased):
       command would be "./configure
       --prefix=/Users/{your-user-name-here}/.macports/opt
       --with-no-root-privileges" (gsoc08-privileges)
-
-    - MacPorts now requires Mac OS X 10.4 Tiger or later. (gsoc08-privileges)
 
     - Add several new options to port search, looks in name and description by
       default (#15434, raimue)
