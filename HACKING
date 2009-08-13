@@ -1,6 +1,6 @@
 # Project naming and copyright attribution:
 
- *  "The MacPorts Project" is the string that shall be used whereever
+ *  "The MacPorts Project" is the string that shall be used wherever
     there's a need to reference our project name, such as in copyright
     notices.
 
@@ -23,7 +23,7 @@
 
  *  Commits with user-visible affect made to the "base" component of the
     repository should be accompanied by a corresponding entry in the
-    base/ChanegeLog file, with references to pertitent Trac ticket
+    base/ChangeLog file, with references to pertinent Trac ticket
     numbers and svn commit revisions where appropriate.
 
  *  Such entries to the ChangeLog need not be full duplications of their
