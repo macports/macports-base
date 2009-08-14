@@ -28,15 +28,15 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.0*|10.1*|10.2*)
-    AC_MSG_WARN([This version of Mac OS X is not supported])
-    AC_MSG_WARN([Please upgrade at http://store.apple.com/])
+  10.0*|10.1*|10.2*|10.3*)
+    AC_MSG_ERROR([This version of Mac OS X is not supported
+                  Please upgrade at http://store.apple.com/])
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-6]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.3*|10.4*|10.5*)
+  10.4*|10.5*|10.6*)
     dnl Supported version
     ;;
   *)
@@ -73,7 +73,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  1.5*|2.4*|3.*)
+  1.5*|2.*|3.*)
     dnl Supported version
     ;;
   *)
