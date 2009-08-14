@@ -65,15 +65,15 @@ if test -r "$XCODEPLIST"; then
 fi
 
 case "$XCODE_VERSION" in
-  1.[[0-1]]*|2.[[0-1]]*)
+  1.*|2.[[0-1]]*)
     AC_MSG_WARN([This version of Xcode Tools is not supported])
     AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
     ;;
-  1.[[2-4]]*|2.[[2-3]]*|3.[[0]]*)
+  2.[[2-3]]*|3.[[0]]*)
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  1.5*|2.*|3.*)
+  2.*|3.*)
     dnl Supported version
     ;;
   *)
