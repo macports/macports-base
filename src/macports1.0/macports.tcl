@@ -109,13 +109,12 @@ proc macports::global_option_isset {val} {
 }
 
 proc macports::init_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::prefix
-    set logname $macports::prefix
-    
-    append logname "/var/macports/logs/$portname"
-    file mkdir $logname
+    global ::debuglog ::debuglogname macports::channels macports::portdbpath
 
-    append logname "/main.log"
+    set logname [file join $macports::portdbpath "logs/$portname"]
+    file mkdir $logname
+    set logname [file join $logname "main.log"]
+    ui_msg $logname
     set ::debuglogname $logname
 
     # Recreate the file if already exists
@@ -130,22 +129,19 @@ proc macports::init_logging {portname} {
     }
 }
 proc macports::ch_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::prefix
-    set logname $macports::prefix
-    
-    append logname "/var/macports/logs/$portname"
+    global ::debuglog ::debuglogname macports::channels macports::portdbpath
+
+    set logname [file join $macports::portdbpath "logs/$portname"]
     file mkdir $logname
+    set logname [file join $logname "main.log"]
 
-    append logname "/main.log"
     set ::debuglogname $logname
-
+ 
     # Recreate the file if already exists
     if {[file exists $::debuglogname]} {
         file delete -force $::debuglogname
     }
-    ui_msg $::debuglogname
     set ::debuglog [open $::debuglogname w]
-    ui_msg $::debuglog
     puts $::debuglog "version:1"
 } 
 
@@ -1465,7 +1461,7 @@ proc _mportexec {target mport} {
     global ::debuglog
     set previouslog $::debuglog
     set portname [_mportkey $mport name]
-    ui_msg "Changing LOG FILE to $portname"
+    ui_debug "Starting logging for $portname"
     macports::ch_logging $portname
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
