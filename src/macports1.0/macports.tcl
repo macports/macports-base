@@ -126,9 +126,29 @@ proc macports::init_logging {portname} {
     puts $::debuglog "version:1"
     # Add our log-channel to all already initialized channels
     foreach key [array names channels] {
-        set macports::channels($key) [concat $macports::channels($key) $::debuglog]
+        set macports::channels($key) [concat $macports::channels($key) "debuglog"]
     }
 }
+proc macports::ch_logging {portname} {
+    global ::debuglog ::debuglogname macports::channels macports::prefix
+    set logname $macports::prefix
+    
+    append logname "/var/macports/logs/$portname"
+    file mkdir $logname
+
+    append logname "/main.log"
+    set ::debuglogname $logname
+
+    # Recreate the file if already exists
+    if {[file exists $::debuglogname]} {
+        file delete -force $::debuglogname
+    }
+    ui_msg $::debuglogname
+    set ::debuglog [open $::debuglogname w]
+    ui_msg $::debuglog
+    puts $::debuglog "version:1"
+} 
+
 proc ui_phase {phase} {
     global macports::current_stage
     set macports::current_stage $phase
@@ -140,7 +160,8 @@ proc ui_phase {phase} {
 proc ui_message {priority prefix stage args} {
     global macports::channels ::debuglog macports::current_stage
     foreach chan $macports::channels($priority) {
-        if {[info exists ::debuglog] && ($chan == $::debuglog)} {
+        if {[info exists ::debuglog] && ($chan == "debuglog")} {
+            set chan $::debuglog
             if {[info exists macports::current_stage]} {
                 set stage $macports::current_stage
             }
@@ -172,7 +193,7 @@ proc macports::ui_init {priority args} {
     
     # if some priority initialized after log file is being created
     if [info exist ::debuglog] {
-        set channels($priority) [concat $channels($priority) $::debuglog]
+        set channels($priority) [concat $channels($priority) "debuglog"]
     }
     # Simplify ui_$priority.
     try {
@@ -1441,6 +1462,11 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
+    global ::debuglog
+    set previouslog $::debuglog
+    set portname [_mportkey $mport name]
+    ui_msg "Changing LOG FILE to $portname"
+    macports::ch_logging $portname
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
@@ -1456,9 +1482,11 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
+        set ::debuglog $previouslog
         return 0
     } else {
         # An error occurred.
+        set ::debuglog $previouslog
         return 1
     }
 }
