@@ -220,7 +220,7 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported] && $tool == "cc" || $tool == "cxx" || $tool == "objc"} {
+        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
