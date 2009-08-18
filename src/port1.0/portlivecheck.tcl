@@ -121,6 +121,13 @@ proc portlivecheck::livecheck_main {args} {
         if {${livecheck.type} eq "default"} {
             set livecheck.type "fallback"
         }
+        if {$has_homepage} {
+            if {[regexp {^http://code.google.com/p/([^/]+)} $homepage _ tag]} {
+                set livecheck.type "googlecode"
+            } elseif {[regexp {^http://www.gnu.org/software/([^/]+)} $homepage _ tag]} {
+                set livecheck.type "gnu"
+            }
+        }
     }
     if {[lsearch -exact [split $available_types "|"] ${livecheck.type}] != -1} {
         # Load the defaults from _resources/port1.0/livecheck/${livecheck.type}.tcl.
