@@ -2168,7 +2168,7 @@ proc macports::_deptypes_for_target {target} {
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}}} {
     global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
-    global macports::autoconf::macports_version macports::autoconf::rsync_path
+    global macports::autoconf::macports_version macports::autoconf::rsync_path tcl_platform
     array set options $optionslist
 
     # syncing ports tree.
