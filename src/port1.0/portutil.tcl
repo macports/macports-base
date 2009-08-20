@@ -1403,7 +1403,12 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
     set res [mport_lookup $portname]
     if {[llength $res] < 2} \
     {
-        return {}
+        # Even if this port cannot be found in the index,
+        # it is still listed as dependency
+        if {[lsearch -exact $depsfound $portname] == -1} {
+            lappend depsfound $portname
+        }
+        return $depsfound
     }
 
     set depends {}
