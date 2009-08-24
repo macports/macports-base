@@ -160,14 +160,14 @@ proc portfetch::set_extract_type {option action args} {
 }
 
 proc portfetch::set_fetch_type {option action args} {
-    global os.major
+    global os.platform os.major
     if {[string equal ${action} "set"]} {
         switch $args {
             cvs {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                if {${os.major} >= 10} {
+                if {${os.platform} == "darwin" && ${os.major} >= 10} {
                     depends_fetch-append bin:svn:subversion
                 } else {
                     depends_fetch-append port:subversion
@@ -184,8 +184,8 @@ proc portfetch::set_fetch_type {option action args} {
 }
 
 proc portfetch::find_svn_path {args} {
-    global prefix os.major
-    if {${os.major} >= 10} {
+    global prefix os.platform os.major
+    if {${os.platform} == "darwin" && ${os.major} >= 10} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
         return ${prefix}/bin/svn
