@@ -349,9 +349,9 @@ proc portconfigure::configure_get_compiler {type} {
         }
         llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                objc { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                cxx  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
+                cc   { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
+                objc { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
+                cxx  { set ret ${developer_dir}/usr/bin/llvm-g++-4.2 }
             }
         }
         clang {
