@@ -241,6 +241,8 @@
     ..
     var
         macports
+            build
+            ..
             distfiles
             ..
             receipts
