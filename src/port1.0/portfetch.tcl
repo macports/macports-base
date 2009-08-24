@@ -85,7 +85,7 @@ default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
 # we want the svn port so we know --trust-server-cert will work
-default svn.cmd {${prefix}/bin/svn}
+default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
@@ -160,13 +160,18 @@ proc portfetch::set_extract_type {option action args} {
 }
 
 proc portfetch::set_fetch_type {option action args} {
+    global os.major
     if {[string equal ${action} "set"]} {
         switch $args {
             cvs {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-                depends_fetch-append port:subversion
+                if {${os.major} >= 10} {
+                    depends_fetch-append bin:svn:subversion
+                } else {
+                    depends_fetch-append port:subversion
+                }
             }
             git {
                 depends_fetch-append bin:git:git-core
@@ -175,6 +180,15 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:hg:mercurial
             }
         }
+    }
+}
+
+proc portfetch::find_svn_path {args} {
+    global prefix os.major
+    if {${os.major} >= 10} {
+        return [findBinary svn $portutil::autoconf::svn_path]
+    } else {
+        return ${prefix}/bin/svn
     }
 }
 
