@@ -4,7 +4,7 @@
 ###
 
 
-Release 1.8.0 (unreleased):
+Release 1.8.0 (2009-08-28 by jmr):
     - There is now a 'build_arch' variable, available in portfiles and
       configurable in macports.conf, which sets the CPU architecture that
       ports should be compiled for (when not building universal). Its default
