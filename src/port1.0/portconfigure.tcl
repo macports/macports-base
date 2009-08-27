@@ -305,6 +305,7 @@ proc portconfigure::configure_get_default_compiler {args} {
         "darwin 8" { set compiler gcc-4.0 }
         "darwin 9" { set compiler gcc-4.0 }
         "darwin 10" { set compiler gcc-4.2 }
+        "darwin 11" { set compiler llvm-gcc-4.2 }
         default { set compiler gcc }
     }
     return $compiler
@@ -349,9 +350,10 @@ proc portconfigure::configure_get_compiler {type} {
         }
         llvm-gcc-4.2 {
             switch -exact ${type} {
-                cc   { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                objc { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-gcc-4.2 }
-                cxx  { set ret ${developer_dir}/usr/llvm-gcc-4.2/bin/llvm-g++-4.2 }
+                cc   { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
+                objc { set ret ${developer_dir}/usr/bin/llvm-gcc-4.2 }
+                cxx  { set ret ${developer_dir}/usr/bin/llvm-g++-4.2 }
+                cpp  { set ret ${developer_dir}/usr/bin/llvm-cpp-4.2 }
             }
         }
         clang {
