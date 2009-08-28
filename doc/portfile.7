@@ -430,33 +430,33 @@ Location to store downloaded distfiles.
 .Sy Default:
 .Em ${sysportpath}/distfiles/${dist_subdir}/
 .It Ic os.arch
-Identifies hardware type (eg "powerpc").
+Identifies hardware type (e.g. "powerpc").
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.version
-Version number of operating system (eg "7.0").
+Version number of operating system (e.g. "7.0").
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.endian
-Endianness of the processor (eg "bigEndian").
+Endianness of the processor (e.g. "bigEndian").
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.platform
-Operating system name (eg "darwin").
+Operating system name (e.g. "darwin").
 .br
 .Sy Type:
 .Em read-only
 .It Ic install.user
-User for MacPorts installation (eg
+User for MacPorts installation (e.g.
 .Pa root )
 .br
 .Sy Type:
 .Em read-only
 .It Ic install.group
-Group for MacPorts installation (eg
+Group for MacPorts installation (e.g.
 .Pa wheel )
 .br
 .Sy Type:
@@ -1958,7 +1958,7 @@ Compute the MD5 hashes of the file(s).
 Compare two RPM-format versions for equality.  The return value is like
 strcmp(), returning -1, 0, or 1 when versionA is earlier, equal to, or
 later than versionB, respectively.  Note that some comparisions featuring
-floating-point notation may compare incorrectly, eg, 2.101 is considered
+floating-point notation may compare incorrectly, e.g. 2.101 is considered
 later than 2.2 (101 is larger than 2) which may be incorrect per some
 projects versioning methods (see ticket #11873).
 .It Xo

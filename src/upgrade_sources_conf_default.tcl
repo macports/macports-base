@@ -94,7 +94,7 @@ Warning, your source config file at:
 needs to have a \[default\] tag added to the primary MacPorts repository,
 however the proper entry could not be determined.  Please add the tag
 manually by either appending \[default\] to the end of the correct line,
-or if there are already tags, adding it to the list, eg,
+or if there are already tags, adding it to the list, e.g.
 \[nosync,default\].
 [string repeat - 72]"
    }

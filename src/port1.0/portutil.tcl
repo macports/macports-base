@@ -1495,7 +1495,7 @@ proc open_statefile {args} {
     
     if { [getuid] != 0 } {
         ui_msg "MacPorts running without privileges.\
-                You may be unable to complete certain actions (eg install)."
+                You may be unable to complete certain actions (e.g. install)."
     }
     
     # de-escalate privileges if MacPorts was started with sudo
