@@ -306,6 +306,32 @@ target to configure the build.
 .br
 .Sy Example:
 .Dl use_configure no
+.It Ic conflicts
+Used to list ports which conflict with the one containing the
+.Cm conflicts
+declaration.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none (empty)
+.br
+.Sy Example:
+.Dl conflicts cdrtools
+.It Ic replaced_by
+When a particular port is deprecated in favor of another, use
+.Cm replaced_by
+in the deprecated port and list the new one to be used.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none (empty)
+.br
+.Sy Example:
+.Dl replaced_by xorg-renderproto
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard
