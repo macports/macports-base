@@ -166,7 +166,7 @@ fi
 
 # We gather the path into a variable of our own for faster operation:
 ORIGINAL_MANPATH="$(${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
-# Adding out setting to the MANPATH variable only if it exists:
+# Adding our setting to the MANPATH variable only if it exists:
 if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
 # and following that, if it's not empty:
   [ -z "${ORIGINAL_MANPATH}" ] || \
