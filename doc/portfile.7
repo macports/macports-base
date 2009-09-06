@@ -250,6 +250,17 @@ checksums md5 ac8c28fe87508d6bfb06344ec496b1dd \e\
 	sha1 a633a9a811a138eac5ed440d583473b644135ef5 \e\ 
 	rmd160 941cf8f2ef8459ec4f9ce65772e134505d46566
 .Ed
+.It Ic macosx_deployment_target
+Value for MACOSX_DEPLOYMENT_TARGET environment variable when invoking the configure script.
+.br 
+.Sy Type:
+.Em optional
+.br 
+.Sy Default:
+.Em (current OS version)
+.br
+.Sy Example:
+.Dl macosx_deployment_target 10.4
 .It Ic use_parallel_build
 If set to yes (and the user has enabled buildmakejobs in
 .Pa macports.conf
@@ -992,14 +1003,6 @@ Flags to put in the CLASSPATH environment variable when invoking the configure s
 .br 
 .Sy Type:
 .Em optional
-.It Ic configure.macosx_deployment_target
-Flags to put in the MACOSX_DEPLOYMENT_TARGET environment variable when invoking the configure script.
-.br 
-.Sy Type:
-.Em optional
-.br 
-.Sy Example:
-.Dl configure.macosx_deployment_target 10.4
 .It Ic configure.cc
 C-compiler to put in the CC environment variable when invoking the configure script.
 .br
