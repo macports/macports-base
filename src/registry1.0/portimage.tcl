@@ -365,9 +365,6 @@ proc _activate_contents {name imagefiles imagedir} {
 		_deactivate_contents $name $imagefiles
 		return -code error $result
 	}
-
-	#_activate_list $files $imagedir
-
 }
 
 proc _deactivate_file {dstfile} {
