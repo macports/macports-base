@@ -194,8 +194,9 @@ proc uninstall {portname {v ""} optionslist} {
 			lappend files $theFile
 
 			# Split out the filename's subpaths and add them to the
-			# list as well.
-			set directory [file dirname $theFile]
+			# list as well. The realpath call is necessary because file normalize
+			# does not resolve symlinks on OS X < 10.6
+			set directory [realpath [file dirname $theFile]]
 			while { [lsearch -exact $files $directory] == -1 } { 
 				lappend files $directory
 				set directory [file dirname $directory]

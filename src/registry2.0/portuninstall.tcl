@@ -129,7 +129,7 @@ proc uninstall {portname {specifier ""} optionslist} {
 
         # Split out the filename's subpaths and add them to the
         # list as well.
-        set directory [file dirname $theFile]
+        set directory [realpath [file dirname $theFile]]
         while { [lsearch -exact $files $directory] == -1 } { 
             lappend files $directory
             set directory [file dirname $directory]
