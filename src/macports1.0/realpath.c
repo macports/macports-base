@@ -37,6 +37,7 @@
 #include <tcl.h>
 
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -54,7 +55,8 @@ int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     const char error_message[] = "realpath failed: ";
     Tcl_Obj *tcl_result;
     char *path;
-    char *rpath;
+    char *rpath = malloc(PATH_MAX+1);
+    char *res;
 
     if (objc != 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "path");
@@ -62,8 +64,9 @@ int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
     }
 
     path = Tcl_GetString(objv[1]);
-    rpath = realpath(path, NULL);
-    if (!rpath) {
+    res = realpath(path, rpath);
+    if (!res) {
+        free(rpath);
         tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
         Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(strerror(errno), -1));
         Tcl_SetObjResult(interp, tcl_result);
