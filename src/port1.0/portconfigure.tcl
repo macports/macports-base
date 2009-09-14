@@ -521,7 +521,6 @@ proc portconfigure::configure_main {args} {
         append_list_to_environment_value configure "CC" ${filter}${configure.cc}
         append_list_to_environment_value configure "CXX" ${filter}${configure.cxx}
         append_list_to_environment_value configure "OBJC" ${filter}${configure.objc}
-        append_list_to_environment_value configure "CPP" ${filter}${configure.cpp}
         append_list_to_environment_value configure "FC" ${configure.fc}
         append_list_to_environment_value configure "F77" ${configure.f77}
         append_list_to_environment_value configure "F90" ${configure.f90}
