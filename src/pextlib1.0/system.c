@@ -40,14 +40,11 @@
 #include <paths.h>
 #endif
 
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#if HAVE_SYS_WAIT_H
-#include <sys/wait.h>
-#endif
 
 #include "system.h"
 #include "Pextlib.h"
