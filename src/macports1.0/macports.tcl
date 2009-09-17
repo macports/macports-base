@@ -1820,7 +1820,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                         }
                     }
                 } catch {*} {
-                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
                     throw
                 } finally {
                     close $fd
@@ -1904,7 +1904,7 @@ proc mportlookup {name} {
                     close $fd
                     set fd -1
                 } catch {*} {
-                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
                 } finally {
                     if {$fd != -1} {
                         close $fd
@@ -1988,7 +1988,7 @@ proc mports_generate_quickindex {index} {
             }
             puts -nonewline $quickfd $quicklist
         } catch {*} {
-            ui_warn "It looks like your PortIndex file may be corrupt."
+            ui_warn "It looks like your PortIndex file $index may be corrupt."
             throw
         } finally {
             close $indexfd
