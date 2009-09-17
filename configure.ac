@@ -393,7 +393,6 @@ AC_CONFIG_FILES([
 	doc/macosx.mtree
 	doc/macports.conf
 	portmgr/freebsd/Makefile
-	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
