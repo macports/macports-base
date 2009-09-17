@@ -40,6 +40,7 @@
 #include <paths.h>
 #endif
 
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>

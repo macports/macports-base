@@ -75,7 +75,7 @@ proc portpatch::patch_main {args} {
     if {![info exists patchlist]} {
         return -code error [msgcat::mc "Patch files missing"]
     }
-    _cd [option worksrcpath]
+
     set gzcat "[findBinary gzip $portutil::autoconf::gzip_path] -dc"
     set bzcat "[findBinary bzip2 $portutil::autoconf::bzip2_path] -dc"
     foreach patch $patchlist {

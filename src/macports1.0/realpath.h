@@ -1,9 +1,8 @@
 /*
- * macports.c
+ * realpath.h
  * $Id$
  *
- * Copyright (c) 2009 The MacPorts Project
- * Copyright (c) 2003 Apple Inc.
+ * Copyright (c) 2009 The MacPorts Project.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the copyright owner nor the names of contributors
+ * 3. Neither the name of MacPorts Team nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
@@ -31,37 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#if HAVE_CONFIG_H
-#include <config.h>
-#endif
+#ifndef _REALPATH_H
+#define _REALPATH_H
 
 #include <tcl.h>
 
-#include "get_systemconfiguration_proxies.h"
-#include "realpath.h"
-#include "sysctl.h"
+/**
+ * A native command to handle a limitation of old versions of Tcl.
+ *
+ * The syntax is:
+ * realpath path
+ *	Normalize path like file normalize does.
+ *  Fixes a problem with Tcl installations affected by not defining HAVE_REALPATH (this is
+ *	the case with the Tcl in OS X shipped prior to 10.6)
+ */
+int RealpathCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
-static int
-macports__version(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj * CONST objv[])
-{
-	if (objc != 1) {
-		Tcl_WrongNumArgs(interp, 1, objv, NULL);
-		return TCL_ERROR;
-	}
-	Tcl_SetObjResult(interp, Tcl_GetVar2Ex(interp, "macports::autoconf::macports_version", NULL, 0));
-	return TCL_OK;
-}
-
-int
-Macports_Init(Tcl_Interp *interp)
-{
-	if (Tcl_InitStubs(interp, "8.4", 0) == NULL)
-		return TCL_ERROR;
-	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "get_systemconfiguration_proxies", GetSystemConfigurationProxiesCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "realpath", RealpathCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
-	if (Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
-		return TCL_ERROR;
-	return TCL_OK;
-}
+#endif /* _REALPATH_H */

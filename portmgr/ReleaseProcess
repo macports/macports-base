@@ -204,6 +204,12 @@ makes the code available via rsync. See base/portmgr/mprsyncup. Though not stric
 practice to update the same file accordingly in its branched guise.
 
 
+=== Update trunk's version for next release ===
+Once trunk is to be used for development of the next major version, increase its version information to
+indicate it's moved past the release version by setting the patch-level version to 99, e.g., 1.8.99 (in
+trunk/base/config/macports_version).
+
+
 === Notify the Public of the Release ===
 
 Once the release has been posted, notification of the release should be sent/posted to the following places:

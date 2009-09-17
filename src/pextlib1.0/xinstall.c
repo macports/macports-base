@@ -436,7 +436,9 @@ install(Tcl_Interp *interp, const char *from_name, const char *to_name, u_long f
 	int devnull, files_match, from_fd = 0, serrno, target;
 	int tempcopy, temp_fd, to_fd = 0;
 	char backup[MAXPATHLEN], *p, pathbuf[MAXPATHLEN], tempfile[MAXPATHLEN];
-	char msg[256];
+
+        /* message contains function name, two paths and a little bit extra formatting */
+        char msg[MAXPATHLEN * 2 + 32];
 
 	files_match = 0;
 
