@@ -486,7 +486,7 @@ proc activate {name v optionslist} {
 		if {[catch {system "$tarcmd -xf $macport_file files.tar.bz2"} err]} {
 			throw MACPORTS $err
 		}
-		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf - --same-owner"} err]} {
+		if {[catch {system "$bzipcmd -dc files.tar.bz2 | $tarcmd -xpvf -"} err]} {
 			throw MACPORTS $err
 		}
 		_activate_contents $name $imagefiles $extractdir
