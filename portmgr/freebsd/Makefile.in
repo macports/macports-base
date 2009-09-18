@@ -8,7 +8,7 @@
 PORTNAME=	macports
 PORTVERSION=	@MACPORTS_VERSION@
 CATEGORIES=	sysutils
-MASTER_SITES=	http://svn.macosforge.org/repository/macports/distfiles/MacPorts/
+MASTER_SITES=	http://distfiles.macports.org/MacPorts/
 DISTNAME=	MacPorts-${PORTVERSION}
 
 MAINTAINER=	afb@macports.org
@@ -18,7 +18,7 @@ RUN_DEPENDS=	rsync:${PORTSDIR}/net/rsync \
 		ginstall:${PORTSDIR}/sysutils/coreutils \
 		gtar:${PORTSDIR}/archivers/gtar \
 		gmake:${PORTSDIR}/devel/gmake
-LIB_DEPENDS=	tcl84:${PORTSDIR}/lang/tcl84-thread \
+LIB_DEPENDS=	tcl85:${PORTSDIR}/lang/tcl85-thread \
 		curl:${PORTSDIR}/ftp/curl \
 		sqlite3:${PORTSDIR}/databases/sqlite3
 BUILD_DEPENDS=	${LOCALBASE}/lib/thread2.6.5:${PORTSDIR}/devel/tclthread \
@@ -40,12 +40,13 @@ PREFIX?=	/opt/local
 MTREE_FILE=	${WRKSRC}/doc/prefix.mtree
 
 GNU_CONFIGURE=	yes
-CONFIGURE_ARGS+=--with-tcl=${LOCALBASE}/lib/tcl8.4 \
-		--with-tclinclude=${LOCALBASE}/include/tcl8.4 \
+CFLAGS+=	-DPIC -fPIC
+CONFIGURE_ARGS+=--with-tcl=${LOCALBASE}/lib/tcl8.5 \
+		--with-tclinclude=${LOCALBASE}/include/tcl8.5 \
 		--without-included-tclthread --without-included-sqlite3 \
 		--with-objc-runtime=GNU --with-objc-foundation=GNUstep
 CONFIGURE_ENV=	RSYNC=${LOCALBASE}/bin/rsync \
-		TCLSH=${LOCALBASE}/bin/tclsh8.4-threads \
+		TCLSH=${LOCALBASE}/bin/tclsh8.5-threads \
 		GNUTAR=${LOCALBASE}/bin/gtar \
 		GNUMAKE=${LOCALBASE}/bin/gmake \
 		OBJC="${CC}" OBJCFLAGS="${CFLAGS}"
@@ -53,6 +54,8 @@ CONFIGURE_ENV=	RSYNC=${LOCALBASE}/bin/rsync \
 pre-configure:
 	@# foundation.m4 is somewhat bashist (MacPorts Bug #12252)
 	@${REINPLACE_CMD} -e 's|#! /bin/sh|#!/usr/bin/env bash|' ${WRKSRC}/configure
+	@# should really have been #!/bin/sh
+	@${REINPLACE_CMD} -e 's|#!/bin/bash|#!/usr/bin/env bash|' ${WRKSRC}/src/pkg_mkindex.sh.in
 post-configure:
 	@# Makefile only works with GNU make (MacPorts Bug #12247)
 	@${LN} -s Makefile ${WRKSRC}/GNUmakefile
@@ -61,18 +64,19 @@ post-install:
 	@# move tcl from /usr/local, to /opt/local (for packaging)
 	${RM} -rf ${PREFIX}/share/macports/Tcl/macports1.0
 	${MKDIR} ${PREFIX}/share/macports/Tcl
-	test -L ${LOCALBASE}/lib/tcl8.4/macports1.0 || \
-	${MV} ${LOCALBASE}/lib/tcl8.4/macports1.0 \
+	test -L ${LOCALBASE}/lib/tcl8.5/macports1.0 || \
+	${MV} ${LOCALBASE}/lib/tcl8.5/macports1.0 \
 	      ${PREFIX}/share/macports/Tcl/macports1.0
-	test -L ${LOCALBASE}/lib/tcl8.4/macports1.0 || \
+	test -L ${LOCALBASE}/lib/tcl8.5/macports1.0 || \
 	${LN} -s ${PREFIX}/share/macports/Tcl/macports1.0 \
-	         ${LOCALBASE}/lib/tcl8.4/macports1.0
+	         ${LOCALBASE}/lib/tcl8.5/macports1.0
 
 test: build
 	${GMAKE} -C ${WRKSRC} test
 
 # MacPorts mtree demands ${prefix}/share/man
 MANPREFIX=	${PREFIX}/share
+MANCOMPRESSED=	yes
 
 MAN1=		port.1
 MAN5=		macports.conf.5

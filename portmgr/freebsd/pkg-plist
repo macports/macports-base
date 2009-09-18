@@ -6,7 +6,6 @@ etc/macports/macports.conf
 etc/macports/sources.conf
 etc/macports/variants.conf
 share/macports/Tcl/darwintrace1.0/darwintrace.so
-share/macports/Tcl/darwintrace1.0/pkgIndex.tcl
 share/macports/Tcl/macports1.0/MacPorts.so
 share/macports/Tcl/macports1.0/macports.tcl
 share/macports/Tcl/macports1.0/macports_autoconf.tcl
@@ -57,20 +56,6 @@ share/macports/Tcl/registry1.0/receipt_flat.tcl
 share/macports/Tcl/registry1.0/receipt_sqlite.tcl
 share/macports/Tcl/registry1.0/registry.tcl
 share/macports/Tcl/registry1.0/registry_autoconf.tcl
-share/macports/Tcl/tclobjc1.0/tclobjc.so
-share/macports/Tcl/tclobjc1.0/pkgIndex.tcl
-share/macports/resources/port1.0/fetch/mirror_sites.tcl
-share/macports/resources/port1.0/group/gnustep-1.0.tcl
-share/macports/resources/port1.0/group/perl5-1.0.tcl
-share/macports/resources/port1.0/group/python-1.0.tcl
-share/macports/resources/port1.0/group/python24-1.0.tcl
-share/macports/resources/port1.0/group/python25-1.0.tcl
-share/macports/resources/port1.0/group/ruby-1.0.tcl
-share/macports/resources/port1.0/group/xcode-1.0.tcl
-share/macports/resources/port1.0/group/zope-1.0.tcl
-share/macports/resources/port1.0/install/macosx.mtree
-share/macports/resources/port1.0/install/prefix.mtree
-share/macports/resources/port1.0/package/background.tiff
 var/macports/.tclpackage
 @unexec /bin/rm -f %D/var/macports/.mprename
 @dirrm var/macports/receipts
@@ -92,4 +77,4 @@ var/macports/.tclpackage
 @dirrm share/macports
 @dirrm share/macports/Tcl
 @dirrm etc/macports
-@unexec test -L %%LOCALBASE%%/lib/tcl8.4/macports1.0 && /bin/rm %%LOCALBASE%%/lib/tcl8.4/macports1.0
+@unexec test -L %%LOCALBASE%%/lib/tcl8.5/macports1.0 && /bin/rm %%LOCALBASE%%/lib/tcl8.5/macports1.0
