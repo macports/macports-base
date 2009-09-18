@@ -45,6 +45,10 @@ proc main {pextlibname} {
 		puts {[rmd160 file $testfile] != "b654ecbdced69aba8a4ea8d6824dd1ac103b3116"}
 		exit 1
 	}
+	if {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"} {
+		puts {[sha256 file $testfile] != "424359e1002a1d117f12f95346a81987037b3fde60a564a7aacb48c65a518fe5"}
+		exit 1
+	}
 
 	# delete the file.
 	file delete -force $testfile
