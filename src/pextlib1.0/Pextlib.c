@@ -363,9 +363,7 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	return TCL_OK;
 }
 
-/* Just as with NextuidCmd, return the first unused gid > 100
-   groups aren't visible on the login screen, but I see no reason
-   to create group 502 when I can create group 100 */
+/* Just as with NextuidCmd, return the first unused gid > 500 */
 int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
