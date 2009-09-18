@@ -344,9 +344,9 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	return TCL_OK;
 }
 
-/* Find the first unused UID > 100
-   previously this would find the highest used UID and add 1
-   but UIDs > 500 are visible on the login screen of OS X */
+/* Find the first unused UID > 500
+   UIDs > 500 are visible on the login screen of OS X,
+   but UIDs < 500 are reserved by Apple */
 int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
