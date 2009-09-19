@@ -3,6 +3,18 @@
 # $Id$
 ###
 
+Release 1.8.1 (unreleased):
+    - Fixed syncing using the daily tarball. (#21034, toby in r56889)
+
+    - Fixed 'port load' (#21128, raimue in r57055)
+
+    - Improved error message when an expression on the command line does not
+      match any ports (jmr in r57026)
+
+    - Stopped recording the completion of the install phase in the
+      statefile, which lead to errors if the port was uninstalled but the work
+      dir was not cleaned, and the port was then installed again.
+      (jmr/raimue in r57801, 57820)
 
 Release 1.8.0 (2009-08-28 by jmr):
     - There is now a 'build_arch' variable, available in portfiles and
