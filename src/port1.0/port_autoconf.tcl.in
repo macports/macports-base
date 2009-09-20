@@ -46,6 +46,7 @@ namespace eval portutil::autoconf {
 	variable lipo_path "@LIPO@"
 	variable nice_path "@NICE@"
 	variable patch_path "@PATCH@"
+	variable gnupatch_path "@GNUPATCH@"
 	variable rmdir_path "@RMDIR@"
 	variable rsync_path "@RSYNC@"
 	variable unzip_path "@UNZIP@"

@@ -116,6 +116,7 @@ AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
+AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
@@ -140,6 +141,7 @@ AC_ARG_VAR(OPEN, [path to open command])
 
 MP_SED_EXTENDED_REGEXP
 MP_TAR_NO_SAME_OWNER
+MP_PATCH_GNU_VERSION
 
 # Quiche eaters options.
 if test x$GCC = xyes; then

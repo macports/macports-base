@@ -877,6 +877,22 @@ AC_DEFUN([MP_TAR_NO_SAME_OWNER],[
 	fi
 ])
 
+dnl This macro tests for GNU patch
+AC_DEFUN([MP_PATCH_GNU_VERSION],[
+	AC_PATH_PROG(PATCH, [patch])
+	AC_PATH_PROG(GNUPATCH, [gpatch])
+	
+	AC_MSG_CHECKING([for GNU (FSF) patch])
+	AS_IF([test -n "$GNUPATCH"], [PATCH_CMD=$GNUPATCH], [PATCH_CMD=$PATCH])
+	[fsf_version=`$PATCH_CMD --version 2>&1 | grep "Free Software Foundation"`]
+	if test -z "$fsf_version" ; then
+		AC_MSG_RESULT([none])
+	else
+		AC_MSG_RESULT([$PATCH_CMD])
+		GNUPATCH="$PATCH_CMD"
+	fi
+])
+
 #------------------------------------------------------------------------
 # MP_CHECK_READLINK_IS_P1003_1A --
 #
