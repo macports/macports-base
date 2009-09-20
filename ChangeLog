@@ -4,6 +4,16 @@
 ###
 
 Release 1.8.1 (unreleased):
+
+    - Installer error messages now display properly even from the Snow Leopard
+      MacPorts dmg. (jmr in r56448)
+
+    - 'fetch.type svn' no longer requires the installation of the subversion
+      port as of Snow Leopard. (toby in r56160; raimue in r56162)
+
+    - Updated manpages and 'port help' output (ryandesign in r56472, r56473,
+      r56474; blb in r56666, r57048, r57131)
+
     - Fixed syncing using the daily tarball. (#21034, toby in r56889)
 
     - Fixed 'port load' (#21128, raimue in r57055)
