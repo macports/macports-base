@@ -34,27 +34,21 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <tcl.h>
 
 #include "sha256cmd.h"
 
-#if !defined(HAVE_LIBMD) || defined(__APPLE__)
+#if HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
-/* We do not have libmd.
- * let's use our own version of sha256* libraries.
- */
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
+#define COMMON_DIGEST_FOR_OPENSSL
+#include <CommonCrypto/CommonDigest.h>
 
-#include <sys/types.h>
-
-#include "sha2.h"
-#include "sha2.c"
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
@@ -64,7 +58,7 @@ CHECKSUMFile(SHA256_, SHA256_CTX)
 #include <sha256.h>
 #define SHA256_DIGEST_LENGTH 32
 #else
-#error libcrypto or libmd are required
+#error CommonCrypto or libmd required
 #endif
 
 int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])

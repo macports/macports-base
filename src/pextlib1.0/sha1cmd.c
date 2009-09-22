@@ -35,41 +35,30 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <tcl.h>
 
 #include "sha1cmd.h"
 
-#if defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD)
+#if HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
-/* Minimal wrapper around OpenSSL's libcrypto, as a compatibility
- * layer for FreeBSD's libmd library.
- * Originally written by: Rob Braun (bbraun) 1/18/2002
- */
-
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-
-#include <openssl/sha.h>
-
-#define SHA1Init(x) SHA1_Init(x)
-#define SHA1Update(x,y,z) SHA1_Update(x,y,z)
-#define SHA1Final(x,y) SHA1_Final(x,y)
+#define COMMON_DIGEST_FOR_OPENSSL
+#include <CommonCrypto/CommonDigest.h>
 
 #include "md_wrappers.h"
-CHECKSUMEnd(SHA1, SHA_CTX, SHA_DIGEST_LENGTH)
-CHECKSUMFile(SHA1, SHA_CTX)
+CHECKSUMEnd(SHA1_, SHA_CTX, SHA_DIGEST_LENGTH)
+CHECKSUMFile(SHA1_, SHA_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
 #include <sha.h>
-#define SHA1File(x, y) SHA1_File(x, y)
 #else
-#error libcrypto or libmd are required
+#error CommonCrypto or libmd required
 #endif
 
 int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
@@ -96,7 +85,7 @@ int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
 	}
 	file = Tcl_GetString(objv[2]);
 
-	if (!SHA1File(file, buf)) {
+	if (!SHA1_File(file, buf)) {
 		tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
 		Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(file, -1));
 		Tcl_SetObjResult(interp, tcl_result);
