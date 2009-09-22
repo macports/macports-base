@@ -40,7 +40,7 @@
 
 #include "rmd160cmd.h"
 
-#if !defined(HAVE_LIBMD)
+#if HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
 /* We do not have libmd.
  * let's use our own version of rmd160* libraries.
@@ -65,7 +65,7 @@ CHECKSUMFile(RMD160, RMD160_CTX)
 #include <ripemd.h>
 #define RMD160File(x, y) RIPEMD160_File(x, y)
 #else
-#error libcrypto or libmd are required
+#error CommonCrypto or libmd required
 #endif
 
 int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
