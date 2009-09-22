@@ -78,7 +78,15 @@ proc portinstall::install_element {src_element dst_element} {
     
     # if the file is a symlink, do not try to set file attributes
     if {[file type $src_element] != "link"} {
-        eval file attributes {$dst_element} [file attributes $src_element]
+        # tclsh on 10.6 doesn't like the combination of 0444 perm and
+        # '-creator {}' (which is returned from 'file attributes <file>'; so
+        # instead just set the attributes which are needed
+        set wantedattrs {owner group permissions}
+        set file_attr_cmd {file attributes $dst_element}
+        foreach oneattr $wantedattrs {
+            set file_attr_cmd "$file_attr_cmd -$oneattr \[file attributes \$src_element -$oneattr\]"
+        }
+        eval $file_attr_cmd
         # set mtime on installed element
         file mtime $dst_element [file mtime $src_element]
     }
