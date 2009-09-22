@@ -760,9 +760,14 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	fi
 
 	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
-	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
-	# Get rid of them.
-	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
+	if test "x$curlprefix" = "x"; then
+		# System curl-config emits absurd output for --libs
+		LDFLAGS_LIBCURL="-lcurl"
+	else
+		# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
+		# Get rid of them.
+		LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
+	fi
 
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
