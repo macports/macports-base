@@ -18,6 +18,9 @@
 /* Define to 1 if you have the `clearenv' function. */
 #undef HAVE_CLEARENV
 
+/* Define to 1 if you have the <CommonCrypto/CommonDigest.h> header file. */
+#undef HAVE_COMMONCRYPTO_COMMONDIGEST_H
+
 /* Define to 1 if you have the `copyfile' function. */
 #undef HAVE_COPYFILE
 
