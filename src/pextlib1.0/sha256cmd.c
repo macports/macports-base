@@ -40,7 +40,7 @@
 
 #include "sha256cmd.h"
 
-#if !defined(HAVE_LIBMD)
+#if !defined(HAVE_LIBMD) || defined(__APPLE__)
 
 /* We do not have libmd.
  * let's use our own version of sha256* libraries.
