@@ -8244,7 +8244,7 @@ $as_echo "#define HAVE_SYS_WAIT_H 1" >>confdefs.h
 fi
 
 for ac_header in limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h CommonCrypto/CommonDigest.h
+	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -8328,6 +8328,12 @@ $as_echo "#define READLINK_IS_NOT_P1003_1A /**/" >>confdefs.h
 
 
 # Check for md5 implementation
+ac_fn_c_check_header_mongrel "$LINENO" "CommonCrypto/CommonDigest.h" "ac_cv_header_CommonCrypto_CommonDigest_h" "$ac_includes_default"
+if test "x$ac_cv_header_CommonCrypto_CommonDigest_h" = x""yes; then :
+
+$as_echo "#define HAVE_COMMONCRYPTO_COMMONDIGEST_H 1" >>confdefs.h
+
+else
 
 
 	# Check for libmd, which is prefered
@@ -8402,87 +8408,12 @@ $as_echo "#define HAVE_LIBMD /**/" >>confdefs.h
 
 fi
 
-	if test "x$MD5_LIBS" = "x" ; then
-		# If libmd is not found, check for libcrypto from OpenSSL
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MD5_Update in -lcrypto" >&5
-$as_echo_n "checking for MD5_Update in -lcrypto... " >&6; }
-if test "${ac_cv_lib_crypto_MD5_Update+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcrypto  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char MD5_Update ();
-int
-main ()
-{
-return MD5_Update ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_crypto_MD5_Update=yes
-else
-  ac_cv_lib_crypto_MD5_Update=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_MD5_Update" >&5
-$as_echo "$ac_cv_lib_crypto_MD5_Update" >&6; }
-if test "x$ac_cv_lib_crypto_MD5_Update" = x""yes; then :
-
-			for ac_header in openssl/md5.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "openssl/md5.h" "ac_cv_header_openssl_md5_h" "$ac_includes_default"
-if test "x$ac_cv_header_openssl_md5_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_OPENSSL_MD5_H 1
-_ACEOF
-
-else
-
-				case $host_os in
-					darwin*)
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install the BSD SDK package from the Xcode Developer Tools CD." >&5
-$as_echo "$as_me: Please install the BSD SDK package from the Xcode Developer Tools CD." >&6;}
-						;;
-					*)
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install the libmd developer headers for your platform." >&5
-$as_echo "$as_me: Please install the libmd developer headers for your platform." >&6;}
-						;;
-				esac
-				as_fn_error "libcrypt was found, but header file openssl/md5.h is missing." "$LINENO" 5
-
-fi
-
-done
-
-
-$as_echo "#define HAVE_LIBCRYPTO /**/" >>confdefs.h
-
-			MD5_LIBS="-lcrypto"
-
-else
-
-			as_fn_error "Neither OpenSSL or libmd were found. A working md5 implementation is required." "$LINENO" 5
-
-fi
-
-	fi
 	if test "x$MD5_LIBS" = "x"; then
-		as_fn_error "Neither OpenSSL or libmd were found. A working md5 implementation is required." "$LINENO" 5
+		as_fn_error "Neither CommonCrypto nor libmd were found. A working md5 implementation is required." "$LINENO" 5
 	fi
+
+
+fi
 
 
 

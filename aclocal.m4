@@ -542,28 +542,8 @@ AC_DEFUN([MP_LIB_MD5],[
 		AC_DEFINE([HAVE_LIBMD], ,[Define if you have the `md' library (-lmd).])
 		MD5_LIBS="-lmd"]
 	)
-	if test "x$MD5_LIBS" = "x" ; then
-		# If libmd is not found, check for libcrypto from OpenSSL
-		AC_CHECK_LIB([crypto], [MD5_Update],[
-			AC_CHECK_HEADERS([openssl/md5.h],,[
-				case $host_os in
-					darwin*)	
-					AC_MSG_NOTICE([Please install the BSD SDK package from the Xcode Developer Tools CD.])
-						;;
-					*)	
-					AC_MSG_NOTICE([Please install the libmd developer headers for your platform.])
-						;;
-				esac
-				AC_MSG_ERROR([libcrypt was found, but header file openssl/md5.h is missing.])
-			])
-			AC_DEFINE([HAVE_LIBCRYPTO],,[Define if you have the `crypto' library (-lcrypto).])
-			MD5_LIBS="-lcrypto"
-		], [
-			AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
-		])
-	fi
 	if test "x$MD5_LIBS" = "x"; then
-		AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
+		AC_MSG_ERROR([Neither CommonCrypto nor libmd were found. A working md5 implementation is required.])
 	fi
 	AC_SUBST([MD5_LIBS])
 ])

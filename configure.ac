@@ -195,7 +195,7 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([limits.h paths.h sys/file.h crt_externs.h fcntl.h sys/fcntl.h sys/cdefs.h err.h sys/socket.h \
-	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h CommonCrypto/CommonDigest.h])
+	readline/readline.h readline/history.h pwd.h sys/paths.h utime.h])
 
 INCLUDES="-I.. -I. $INCLUDES"
 
@@ -204,7 +204,7 @@ AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp s
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
-MP_LIB_MD5
+AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
 AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),

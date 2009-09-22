@@ -18,7 +18,7 @@
 /* Define to 1 if you have the `clearenv' function. */
 #undef HAVE_CLEARENV
 
-/* Define to 1 if you have the <CommonCrypto/CommonDigest.h> header file. */
+/* Define if CommonCrypto is available. */
 #undef HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
 /* Define to 1 if you have the `copyfile' function. */
@@ -83,9 +83,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if you have the `crypto' library (-lcrypto). */
-#undef HAVE_LIBCRYPTO
-
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
@@ -112,9 +109,6 @@
 
 /* Define to 1 if you have the <objc/objc.h> header file. */
 #undef HAVE_OBJC_OBJC_H
-
-/* Define to 1 if you have the <openssl/md5.h> header file. */
-#undef HAVE_OPENSSL_MD5_H
 
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
