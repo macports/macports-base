@@ -762,6 +762,7 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
 	if test "x$curlprefix" = "x"; then
 		# System curl-config emits absurd output for --libs
+		# See rdar://7244457
 		LDFLAGS_LIBCURL="-lcurl"
 	else
 		# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
