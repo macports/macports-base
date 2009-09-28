@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 1.8.1 (unreleased):
+Release 1.8.1 (2009-09-28 by jmr):
 
     - Installer error messages now display properly even from the Snow Leopard
       MacPorts dmg. (jmr in r56448)
@@ -22,7 +22,7 @@ Release 1.8.1 (unreleased):
       match any ports (jmr in r57026)
 
     - Stopped recording the completion of the install phase in the
-      statefile, which lead to errors if the port was uninstalled but the work
+      statefile, which led to errors if the port was uninstalled but the work
       dir was not cleaned, and the port was then installed again.
       (jmr/raimue in r57801, 57820)
 
