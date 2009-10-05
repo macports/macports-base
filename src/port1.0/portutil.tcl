@@ -2171,12 +2171,11 @@ proc archiveTypeIsSupported {type} {
 # e.g. 'merge_lipo ${workpath}/pre-dest ${destroot} ${prefix}/bin/pstree i386 ppc
 # will merge binary files with lipo which have to be in the same (relative) path
 proc merge_lipo {base target file archs} {
-    set exec-lipo ""
+    set exec-lipo [list [findBinary lipo $portutil::autoconf::lipo_path]]
     foreach arch ${archs} {
-        set exec-lipo [concat ${exec-lipo} [list "-arch" "${arch}" "${base}/${arch}${file}"]]
+        lappend exec-lipo -arch ${arch} ${base}/${arch}${file}
     }
-    set exec-lipo [concat ${exec-lipo}]
-    system "[findBinary lipo $portutil::autoconf::lipo_path] ${exec-lipo} -create -output ${target}${file}"
+    eval exec ${exec-lipo} [list -create -output ${target}${file}]
 }
 
 # private function
