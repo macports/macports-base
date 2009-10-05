@@ -2231,30 +2231,34 @@ proc merge {base} {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} != ""} {
             # determine the type (dir/file/link)
-            set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
-            switch -regexp ${filetype} {
+            switch [file type ${basepath}${fpath}] {
                 directory {
                     # just create directories
                     ui_debug "mrg: directory ${fpath}"
                     file mkdir "${destroot}${fpath}"
                 }
-                symbolic\ link.* {
+                link {
                     # copy symlinks, TODO: check if targets match!
                     ui_debug "mrg: symlink ${fpath}"
                     file copy "${basepath}${fpath}" "${destroot}${fpath}"
                 }
-                Mach-O.* {
-                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
-                current\ ar\ archive {
-                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
-                ASCII\ C\ program\ text {
-                    merge_cpp "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
                 default {
-                    ui_debug "unknown file type: ${filetype}"
-                    merge_file "${base}" "${destroot}" "${fpath}" "${archs}"
+                    set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
+                    switch -regexp ${filetype} {
+                        Mach-O.* {
+                            merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        current\ ar\ archive {
+                            merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        ASCII\ C\ program\ text {
+                            merge_cpp "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        default {
+                            ui_debug "unknown file type: ${filetype}"
+                            merge_file "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                    }
                 }
             }
         }
