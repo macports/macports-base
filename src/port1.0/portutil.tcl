@@ -2221,6 +2221,9 @@ proc merge {base} {
             set base_arch ${arch}
         }
     }
+    if {"" == ${base_arch}} {
+        return -code error [format [msgcat::mc "Cannot merge because directory '%s' contains no architecture directories."] ${base}]
+    }
     ui_debug "merging architectures ${archs}, base_arch is ${base_arch}"
 
     # traverse the base-architecture directory
