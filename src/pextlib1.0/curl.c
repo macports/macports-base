@@ -842,31 +842,25 @@ CurlCmd(
 				0,
 				(int*) &theOptionIndex);
 	if (theResult == TCL_OK) {
-		switch (theOptionIndex)
-		{
-			case kCurlFetch:
-				theResult = CurlFetchCmd(interp, objc, objv);
-				break;
-
-			case kCurlIsNewer:
-				theResult = CurlIsNewerCmd(interp, objc, objv);
-				break;
-
-			case kCurlGetSize:
-				theResult = CurlGetSizeCmd(interp, objc, objv);
-				break;
+		switch (theOptionIndex) {
+		case kCurlFetch:
+			theResult = CurlFetchCmd(interp, objc, objv);
+			break;
+		case kCurlIsNewer:
+			theResult = CurlIsNewerCmd(interp, objc, objv);
+			break;
+		case kCurlGetSize:
+			theResult = CurlGetSizeCmd(interp, objc, objv);
+			break;
 		}
 	}
-	
+
 	return theResult;
 }
 
 /**
  * curl init entry point.
- *
  * libcurl will never be cleaned (where should I plug the hook?)
- *
- * @param interp		current interpreter
  */
 void
 CurlInit()
