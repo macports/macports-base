@@ -40,10 +40,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef HAVE_UTIME_H
 #include <utime.h>
-#endif
 
 #include <curl/curl.h>
 
@@ -396,7 +393,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 #endif
 
-#ifdef HAVE_UTIME_H
 		if (remotetime) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theFileTime);
 			if (theFileTime > 0) {
@@ -406,7 +402,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				utime(theFilePath, &times); /* set the time we got */
 			}
 		}
-#endif /*HAVE_UTIME_H*/
 		
 		/* free header memory */
 		curl_slist_free_all(headers);
