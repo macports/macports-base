@@ -36,12 +36,6 @@
 #include <tcl.h>
 
 /**
- * Init libcurl.
- * libcurl will never be cleaned (where should I plug the hook?)
- */
-int CurlInit(Tcl_Interp* interp);
-
-/**
  * A native command to use libcurl.
  *
  * The syntax is:

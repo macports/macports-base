@@ -623,8 +623,5 @@ int Pextlib_Init(Tcl_Interp *interp)
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
 
-	/* init libcurl */
-	CurlInit(interp);
-
 	return TCL_OK;
 }

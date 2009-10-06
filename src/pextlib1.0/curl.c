@@ -36,6 +36,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +71,8 @@ int SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode);
 int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+
+void CurlInit(void);
 
 /* ========================================================================= **
  * Entry points
@@ -821,6 +824,10 @@ CurlCmd(
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
+	static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+	/* TODO: use dispatch_once when we drop Leopard support */
+	pthread_once(&once, CurlInit);
 
 	if (objc < 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "option ?arg ...?");
@@ -857,11 +864,12 @@ CurlCmd(
 /**
  * curl init entry point.
  *
+ * libcurl will never be cleaned (where should I plug the hook?)
+ *
  * @param interp		current interpreter
  */
-int
-CurlInit(Tcl_Interp* interp)
+void
+CurlInit()
 {
-	CURLcode theCurlCode = curl_global_init(CURL_GLOBAL_ALL);
-	return SetResultFromCurlErrorCode(interp, theCurlCode);
+	curl_global_init(CURL_GLOBAL_ALL);
 }
