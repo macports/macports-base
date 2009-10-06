@@ -86,30 +86,18 @@ void CurlInit(void);
  * @return TCL_OK if inErrorCode is 0, TCL_ERROR otherwise.
  */
 int
-SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode)
+SetResultFromCurlErrorCode(Tcl_Interp *interp, CURLcode inErrorCode)
 {
-	int theResult;
+	int result = TCL_ERROR;
 
-	switch(inErrorCode)
-	{
-		case CURLE_OK:
-			Tcl_SetResult(interp, "", TCL_STATIC);
-			theResult = TCL_OK;
-			break;
-		
-		default: {
-#if LIBCURL_VERSION_NUM >= 0x070c00 /* 7.12.0 */
-			Tcl_SetResult(interp, (char *)curl_easy_strerror(inErrorCode), TCL_VOLATILE);
-#else
-			char theErrorString[512];
-			(void)snprintf(theErrorString, sizeof(theErrorString), "curl error %i", inErrorCode);
-			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-#endif
-			theResult = TCL_ERROR;
-		}
+	if (inErrorCode == CURLE_OK) {
+		Tcl_SetResult(interp, "", TCL_STATIC);
+		result = TCL_OK;
+	} else {
+		Tcl_SetResult(interp, (char *)curl_easy_strerror(inErrorCode), TCL_VOLATILE);
 	}
-	
-	return theResult;
+
+	return result;
 }
 
 /**
