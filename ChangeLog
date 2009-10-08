@@ -21,6 +21,10 @@ Release 1.9.0 (unreleased):
     - Add new "use_xz yes" port option to allow distfiles in xz format.
       (afb in r57827)
 
+    - Archivemode now uses build_arch to create and extract archives.
+      This is a step in the direction of enabling binary distribution.
+      (snc in r58977)
+
 Release 1.8.1 (2009-09-28 by jmr):
 
     - Installer error messages now display properly even from the Snow Leopard
