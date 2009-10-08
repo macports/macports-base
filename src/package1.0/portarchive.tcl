@@ -70,6 +70,7 @@ proc portarchive::archive_init {args} {
 	global name version revision portvariants
 	global archive.destpath archive.type archive.meta
 	global archive.file archive.path archive.fulldestpath
+    global configure.build_arch
 
 	# Check mode in case archive called directly by user
 	if {[option portarchivemode] != "yes"} {
@@ -90,7 +91,7 @@ proc portarchive::archive_init {args} {
 
 	# Define archive destination directory and target filename
 	if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-		set archive.fulldestpath [file join ${archive.destpath} [option os.platform] [option os.arch]]
+		set archive.fulldestpath [file join ${archive.destpath} [option os.platform] ${configure.build_arch}]
 	} else {
 	    set archive.fulldestpath ${archive.destpath}
 	}
@@ -299,7 +300,7 @@ proc portarchive::archive_main {args} {
 	global name epoch version revision portvariants
 	global archive.fulldestpath archive.type archive.file archive.path
 	global archive.meta archive.metaname archive.metapath
-	global os.platform os.arch
+	global os.platform os.arch configure.build_arch
 
 	# Create archive destination path (if needed)
 	if {![file isdirectory ${archive.fulldestpath}]} {
@@ -463,7 +464,7 @@ proc portarchive::archive_main {args} {
 	foreach archive.type [option portarchivetype] {
 		if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
 			# Define archive file/path
-			set archive.file "${name}-${version}_${revision}${portvariants}.[option os.arch].${archive.type}"
+			set archive.file "${name}-${version}_${revision}${portvariants}.${configure.build_arch}.${archive.type}"
 			set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 
 			# Setup archive command
