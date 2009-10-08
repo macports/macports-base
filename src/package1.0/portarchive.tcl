@@ -111,7 +111,7 @@ proc portarchive::archive_init {args} {
 		set any_missing no
 		foreach archive.type [option portarchivetype] {
 			if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-				set archive.file "${name}-${version}_${revision}${portvariants}.[option os.arch].${archive.type}"
+				set archive.file "${name}-${version}_${revision}${portvariants}.${configure.build_arch}.${archive.type}"
 				set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 				if {![file exists ${archive.path}]} {
 				    set any_missing yes
