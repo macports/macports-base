@@ -58,7 +58,7 @@ proc portclean::clean_start {args} {
 proc portclean::clean_main {args} {
     global UI_PREFIX
     global ports_clean_dist ports_clean_work ports_clean_archive
-    global ports_clean_all usealtworkpath
+    global ports_clean_all usealtworkpath 
 
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
@@ -200,16 +200,17 @@ proc portclean::clean_work {args} {
 
 proc portclean::clean_archive {args} {
     global workpath portarchivepath name version ports_version_glob
+    global configure.build_arch
 
     # Define archive destination directory and target filename
     if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
-        set archivepath [file join $portarchivepath [option os.platform] [option os.arch]]
+        set archivepath [file join $portarchivepath [option os.platform] ${configure.build_arch}]
     }
 
     if {[info exists ports_version_glob]} {
         # Match all possible archive variatns that match the version
         # glob specified by the user for this OS.
-        set fileglob "$name-[option ports_version_glob]*.[option os.arch].*"
+        set fileglob "$name-[option ports_version_glob]*.${configure.build_arch}.*"
     } else {
         # Match all possible archive variants for the current version on
         # this OS. If you want to delete previous versions, use the
@@ -218,7 +219,7 @@ proc portclean::clean_archive {args} {
         # We do this because if we don't, then ports that match the
         # first part of the name (e.g. trying to remove foo-*, it will
         # pick up anything foo-bar-* as well, which is undesirable).
-        set fileglob "$name-$version*.[option os.arch].*"
+        set fileglob "$name-$version*.${configure.build_arch}.*"
     }
 
     # Remove the archive files
@@ -228,7 +229,7 @@ proc portclean::clean_archive {args} {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not
             # and accidental match with some other file that might exist.
-            if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\][option os.arch]\[\.\]\[a-z2\]+\$" $file]} {
+            if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\]${configure.build_arch}\[\.\]\[a-z2\]+\$" $file]} {
                 if {[file isfile $path]} {
                     ui_debug "Removing archive: $path"
                     if {[catch {delete $path} result]} {
