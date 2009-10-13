@@ -392,12 +392,9 @@ proc _deactivate_list {filelist} {
 }
 
 proc _deactivate_contents {name imagefiles} {
-	variable force
-
 	set files [list]
 	
 	foreach file $imagefiles {
-		set port [registry::file_registered $file]
 		if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
 			# Normalize the file path to avoid removing the intermediate
 			# symlinks (remove the empty directories instead)
