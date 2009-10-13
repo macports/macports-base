@@ -188,18 +188,21 @@ proc uninstall {portname {v ""} optionslist} {
 					}
 				}
 			}
-			# Normalize the file path to avoid removing the intermediate
-			# symlinks (remove the empty directories instead)
-			set theFile [file normalize [lindex $f 0]]
-			lappend files $theFile
+			
+			if { [file exists $f] || (![catch {file type $f}] && [file type $f] == "link") } {
+			    # Normalize the file path to avoid removing the intermediate
+			    # symlinks (remove the empty directories instead)
+			    set theFile [file normalize [lindex $f 0]]
+			    lappend files $theFile
 
-			# Split out the filename's subpaths and add them to the
-			# list as well. The realpath call is necessary because file normalize
-			# does not resolve symlinks on OS X < 10.6
-			set directory [realpath [file dirname $theFile]]
-			while { [lsearch -exact $files $directory] == -1 } { 
-				lappend files $directory
-				set directory [file dirname $directory]
+			    # Split out the filename's subpaths and add them to the
+			    # list as well. The realpath call is necessary because file normalize
+			    # does not resolve symlinks on OS X < 10.6
+			    set directory [realpath [file dirname $theFile]]
+			    while { [lsearch -exact $files $directory] == -1 } { 
+				    lappend files $directory
+				    set directory [file dirname $directory]
+			    }
 			}
 		}
 
