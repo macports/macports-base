@@ -1,8 +1,8 @@
 /*
- * curl.h
+ * sha256cmd.h
  * $Id$
  *
- * Copyright (c) 2005 Paul Guyot, The MacPorts Project.
+ * Copyright (c) 2009 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of MacPorts Team nor the names of its contributors
+ * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
@@ -30,30 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _CURL_H
-#define _CURL_H
+#ifndef _SHA256CMD_H
+#define _SHA256CMD_H
 
 #include <tcl.h>
 
 /**
- * A native command to use libcurl.
- *
- * The syntax is:
- * curl fetch [options] url file
- *	Fetch a URL to file. Return an error if it failed.
- *  -v display progress meter
- *  --disable-epsv - like curl(1)
- *  -u user:pass - like curl(1)
- *
- * curl isnewer url date
- *	Determine if some resource is newer than date. Try to not fetch the resource
- *  if possible. The date is the number of seconds since epoch.
- *
- * curl getsize url
- *	Determine the file size of some resource. Try to not fetch the resource
- *  if possible. The size returned is the number of bytes.
+ * A native command for sha256 checksums.
  */
-int CurlCmd(ClientData clientData, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
+int SHA256Cmd(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST objv[]);
 
 #endif
-		/* _CURL_H */
+	/* _SHA256CMD_H */

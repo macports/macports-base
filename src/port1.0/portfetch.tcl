@@ -55,7 +55,7 @@ namespace eval portfetch::mirror_sites {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
@@ -127,6 +127,7 @@ option_deprecate svn.tag svn.revision
 # Option-executed procedures
 option_proc use_bzip2 portfetch::set_extract_type
 option_proc use_lzma  portfetch::set_extract_type
+option_proc use_xz    portfetch::set_extract_type
 option_proc use_zip   portfetch::set_extract_type
 option_proc use_7z    portfetch::set_extract_type
 option_proc use_dmg   portfetch::set_extract_type
@@ -143,6 +144,10 @@ proc portfetch::set_extract_type {option action args} {
             use_lzma {
                 set extract.suffix .tar.lzma
                 depends_extract-append bin:lzma:lzmautils
+            }
+            use_xz {
+                set extract.suffix .tar.xz
+                depends_extract-append bin:xz:xz-devel
             }
             use_zip {
                 set extract.suffix .zip

@@ -49,8 +49,23 @@ options patch.asroot
 # Set up defaults
 default patch.asroot no
 default patch.dir {${worksrcpath}}
-default patch.cmd {[findBinary patch $portutil::autoconf::patch_path]}
+default patch.cmd {[portpatch::build_getpatchtype]}
 default patch.pre_args -p0
+
+proc portpatch::build_getpatchtype {args} {
+    if {![exists patch.type]} {
+        return [findBinary patch $portutil::autoconf::patch_path]
+    }
+    switch -exact -- [option patch.type] {
+        gnu {
+            return [findBinary gpatch $portutil::autoconf::gnupatch_path]
+        }
+        default {
+            ui_warn "[format [msgcat::mc "Unknown patch.type %s, using 'patch'"] [option patch.type]]"
+            return [findBinary patch $portutil::autoconf::patch_path]
+        }
+    }
+}
 
 proc portpatch::patch_main {args} {
     global UI_PREFIX

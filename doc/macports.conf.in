@@ -38,6 +38,9 @@ variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 # the default is x86_64 if the CPU supports it, i386 otherwise.
 #build_arch			i386
 
+# CPU architectures to use for Universal Binaries (+universal variant)
+universal_archs		@UNIVERSAL_ARCHS@
+
 # Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
 configureccache		no
 
@@ -73,11 +76,6 @@ rsync_dir			release/base/
 # Rsync options
 rsync_options		-rtzv --delete-after
 
-# Options for Universal Binaries (+universal variant)
-
-# machine architectures
-universal_archs		@UNIVERSAL_ARCHS@
-
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", "launchd", or "none";
 # if the option is empty or "default" then a startupitem type appropriate
@@ -101,7 +99,7 @@ startupitem_type	default
 # Note that System Preferences doesn't have an rsync proxy definition.
 # Also note, on 10.5, sudo will clear many environment variables including
 # those for proxy support.
-# Equivalent envioronment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
+# Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
 # RSYNC_PROXY, NO_PROXY
 #
 #proxy_override_env    yes

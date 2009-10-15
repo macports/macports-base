@@ -542,28 +542,8 @@ AC_DEFUN([MP_LIB_MD5],[
 		AC_DEFINE([HAVE_LIBMD], ,[Define if you have the `md' library (-lmd).])
 		MD5_LIBS="-lmd"]
 	)
-	if test "x$MD5_LIBS" = "x" ; then
-		# If libmd is not found, check for libcrypto from OpenSSL
-		AC_CHECK_LIB([crypto], [MD5_Update],[
-			AC_CHECK_HEADERS([openssl/md5.h],,[
-				case $host_os in
-					darwin*)	
-					AC_MSG_NOTICE([Please install the BSD SDK package from the Xcode Developer Tools CD.])
-						;;
-					*)	
-					AC_MSG_NOTICE([Please install the libmd developer headers for your platform.])
-						;;
-				esac
-				AC_MSG_ERROR([libcrypt was found, but header file openssl/md5.h is missing.])
-			])
-			AC_DEFINE([HAVE_LIBCRYPTO],,[Define if you have the `crypto' library (-lcrypto).])
-			MD5_LIBS="-lcrypto"
-		], [
-			AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
-		])
-	fi
 	if test "x$MD5_LIBS" = "x"; then
-		AC_MSG_ERROR([Neither OpenSSL or libmd were found. A working md5 implementation is required.])
+		AC_MSG_ERROR([Neither CommonCrypto nor libmd were found. A working md5 implementation is required.])
 	fi
 	AC_SUBST([MD5_LIBS])
 ])
@@ -780,9 +760,15 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	fi
 
 	CFLAGS_LIBCURL=$($CURL_CONFIG --cflags)
-	# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
-	# Get rid of them.
-	LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
+	if test "x$curlprefix" = "x"; then
+		# System curl-config emits absurd output for --libs
+		# See rdar://7244457
+		LDFLAGS_LIBCURL="-lcurl"
+	else
+		# Due to a bug in dist, --arch flags are improperly supplied by curl-config.
+		# Get rid of them.
+		LDFLAGS_LIBCURL=$($CURL_CONFIG --libs | [sed 's/-arch [A-Za-z0-9_]* //g'])
+	fi
 
 	AC_SUBST(CFLAGS_LIBCURL)
 	AC_SUBST(LDFLAGS_LIBCURL)
@@ -874,6 +860,22 @@ AC_DEFUN([MP_TAR_NO_SAME_OWNER],[
 	else
 		AC_MSG_RESULT([yes])
 		TAR_CMD="$TAR_CMD --no-same-owner"
+	fi
+])
+
+dnl This macro tests for GNU patch
+AC_DEFUN([MP_PATCH_GNU_VERSION],[
+	AC_PATH_PROG(PATCH, [patch])
+	AC_PATH_PROG(GNUPATCH, [gpatch])
+	
+	AC_MSG_CHECKING([for GNU (FSF) patch])
+	AS_IF([test -n "$GNUPATCH"], [PATCH_CMD=$GNUPATCH], [PATCH_CMD=$PATCH])
+	[fsf_version=`$PATCH_CMD --version 2>&1 | grep "Free Software Foundation"`]
+	if test -z "$fsf_version" ; then
+		AC_MSG_RESULT([none])
+	else
+		AC_MSG_RESULT([$PATCH_CMD])
+		GNUPATCH="$PATCH_CMD"
 	fi
 ])
 

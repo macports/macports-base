@@ -1,6 +1,6 @@
 Summary: MacPorts allows installing software on Mac OS X (and other platforms)
 Name: macports
-Version: @MACPORTS_VERSION@
+Version: 1.6.0
 Release: 0%{?dist}
 License: BSD
 Group: System Environment/Base

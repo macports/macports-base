@@ -116,6 +116,7 @@ AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
+AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
@@ -140,6 +141,7 @@ AC_ARG_VAR(OPEN, [path to open command])
 
 MP_SED_EXTENDED_REGEXP
 MP_TAR_NO_SAME_OWNER
+MP_PATCH_GNU_VERSION
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
@@ -202,7 +204,7 @@ AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp s
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
-MP_LIB_MD5
+AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
 AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
@@ -393,7 +395,6 @@ AC_CONFIG_FILES([
 	doc/macosx.mtree
 	doc/macports.conf
 	portmgr/freebsd/Makefile
-	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl
