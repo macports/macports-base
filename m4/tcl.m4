@@ -2230,7 +2230,7 @@ AC_DEFUN(SC_TIME_HANDLER, [
 	AC_DEFINE(HAVE_TIMEZONE_VAR)
     else
 	#
-	# On some systems (eg IRIX 6.2), timezone is a time_t and not a long.
+	# On some systems (e.g. IRIX 6.2), timezone is a time_t and not a long.
 	#
 	AC_MSG_CHECKING([time_t timezone variable])
 	AC_CACHE_VAL(tcl_cv_timezone_time,

@@ -400,7 +400,7 @@ proc _deactivate_contents {port force} {
 
             # Split out the filename's subpaths and add them to the image list
             # as well.
-            set directory [file dirname $theFile]
+            set directory [realpath [file dirname $theFile]]
             while { [lsearch -exact $files $directory] == -1 } {
                 lappend files $directory
                 set directory [file dirname $directory]

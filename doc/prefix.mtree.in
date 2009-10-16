@@ -12,6 +12,8 @@
     include
     ..
     lib
+        pkgconfig
+        ..
     ..
     libexec
     ..
@@ -239,6 +241,8 @@
     ..
     var
         macports
+            build
+            ..
             distfiles
             ..
             receipts

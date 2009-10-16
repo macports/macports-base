@@ -1,9 +1,8 @@
 /*
- * sha1cmd.c
+ * sha256cmd.c
  * $Id$
- * Copied from md5cmd.c 20040903 EH
  *
- * Copyright (c) 2002 - 2003 Apple Computer, Inc.
+ * Copyright (c) 2009 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +42,7 @@
 
 #include <tcl.h>
 
-#include "sha1cmd.h"
+#include "sha256cmd.h"
 
 #if HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
@@ -51,21 +50,22 @@
 #include <CommonCrypto/CommonDigest.h>
 
 #include "md_wrappers.h"
-CHECKSUMEnd(SHA1_, SHA_CTX, SHA_DIGEST_LENGTH)
-CHECKSUMFile(SHA1_, SHA_CTX)
+CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
+CHECKSUMFile(SHA256_, SHA256_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
-#include <sha.h>
+#include <sha256.h>
+#define SHA256_DIGEST_LENGTH 32
 #else
 #error CommonCrypto or libmd required
 #endif
 
-int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
+int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	char *file, *action;
-	char buf[2*SHA_DIGEST_LENGTH + 1];
-	const char usage_message[] = "Usage: sha1 file ?file?";
+	char buf[2*SHA256_DIGEST_LENGTH + 1];
+	const char usage_message[] = "Usage: sha256 file";
 	const char error_message[] = "Could not open file: ";
 	Tcl_Obj *tcl_result;
 
@@ -85,7 +85,7 @@ int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj 
 	}
 	file = Tcl_GetString(objv[2]);
 
-	if (!SHA1_File(file, buf)) {
+	if (!SHA256_File(file, buf)) {
 		tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
 		Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(file, -1));
 		Tcl_SetObjResult(interp, tcl_result);

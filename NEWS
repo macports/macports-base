@@ -1,3 +1,42 @@
+== Overview of changes from MacPorts 1.7.1 to 1.8.0 ==
+
+# For regular users:
+
+*) Compatible with Mac OS X 10.6 Snow Leopard, requires at least 10.4 Tiger
+*) CPU architecture to build for is now configurable
+*) Performance and memory usage improvements
+*) New -y option for dry-run
+*) 'port search' has many new options that make it more flexible
+*) 'port upgrade' now follows the right dependencies when variants change them
+*) 'port info' and 'port variants' indicate selected and default variants;
+   'port variants' also shows conflicts and dependencies between variants
+*) A port can be marked as being replaced by another port; upgrading will
+   perform the replacement
+*) upgrade accepts new options: --force, --enforce-variants, --no-replace
+*) Ports can be marked as conflicting, and conflicts will be detected before
+   the install process starts
+*) Proxy information can now be obtained from System Preferences and from
+   macports.conf
+*) Activating a port will now first deactivate any other version of the same
+   port that is already active
+*) MacPorts can be configured to drop root privileges when not needed
+*) port(1) will exit with an appropriate status code when an error is
+   encountered (use -p to continue despite errors)
+
+# For Portfile writers:
+
+*) New options: replaced_by, conflicts, depends_fetch, depends_extract, license
+*) build_arch variable indicates which architecture should be targeted. Flags
+   used to implement this are configured per-compiler, for example,
+   configure.cc_archflags will be passed to configure.cc in CFLAGS
+*) Dependencies can be satisfied by ports that are installed but not
+   available in the ports tree
+*) Deleting all the contents of an option no longer unsets the option entirely
+*) Using an alternative fetch or extract type now adds appropriate
+   dependencies automatically, e.g. 'use_zip yes' adds a dep on unzip, and
+   'fetch.type svn' adds a dep on subversion
+*) Running phases prior to install should now work reliably when the port is
+   already installed
 
 == Overview of changes from MacPorts 1.6.0 to 1.7.0 ==
 

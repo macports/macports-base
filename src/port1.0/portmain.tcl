@@ -50,6 +50,7 @@ options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os
 options universal_variant os.universal_supported
 options copy_log_files
 options compiler.cpath compiler.library_path
+
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts replaced_by
 
@@ -96,17 +97,13 @@ default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
 default os.universal_supported no
 
 set macosx_version {}
+set macosx_version_text {}
 if {$os_platform == "darwin"} {
     # This will probably break when Apple changes versioning
     set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
+    set macosx_version_text "(Mac OS X ${macosx_version}) "
 }
-
-ui_debug "OS Platform: [option os.platform]"
-ui_debug "OS Version: [option os.version]"
-if {$macosx_version != ""} {
-    ui_debug "Mac OS X Version: ${macosx_version}"
-}
-ui_debug "System Arch: [option os.arch]"
+ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
 
 default macosx_deployment_target {$macosx_version}
 

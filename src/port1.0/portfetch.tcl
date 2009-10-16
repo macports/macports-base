@@ -55,7 +55,7 @@ namespace eval portfetch::mirror_sites {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_zip use_bzip2 use_lzma use_7z use_dmg dist_subdir \
+options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
@@ -85,7 +85,7 @@ default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
 # we want the svn port so we know --trust-server-cert will work
-default svn.cmd {${prefix}/bin/svn}
+default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
 default svn.method {export}
 default svn.revision ""
@@ -127,6 +127,7 @@ option_deprecate svn.tag svn.revision
 # Option-executed procedures
 option_proc use_bzip2 portfetch::set_extract_type
 option_proc use_lzma  portfetch::set_extract_type
+option_proc use_xz    portfetch::set_extract_type
 option_proc use_zip   portfetch::set_extract_type
 option_proc use_7z    portfetch::set_extract_type
 option_proc use_dmg   portfetch::set_extract_type
@@ -144,6 +145,10 @@ proc portfetch::set_extract_type {option action args} {
                 set extract.suffix .tar.lzma
                 depends_extract-append bin:lzma:lzmautils
             }
+            use_xz {
+                set extract.suffix .tar.xz
+                depends_extract-append bin:xz:xz-devel
+            }
             use_zip {
                 set extract.suffix .zip
                 depends_extract-append bin:unzip:unzip
@@ -160,13 +165,22 @@ proc portfetch::set_extract_type {option action args} {
 }
 
 proc portfetch::set_fetch_type {option action args} {
+    global os.platform os.major
     if {[string equal ${action} "set"]} {
         switch $args {
             cvs {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
+<<<<<<< .working
                 depends_fetch-append port:subversion
+=======
+                if {${os.platform} == "darwin" && ${os.major} >= 10} {
+                    depends_fetch-append bin:svn:subversion
+                } else {
+                    depends_fetch-append port:subversion
+                }
+>>>>>>> .merge-right.r59490
             }
             git {
                 depends_fetch-append bin:git:git-core
@@ -175,6 +189,15 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:hg:mercurial
             }
         }
+    }
+}
+
+proc portfetch::find_svn_path {args} {
+    global prefix os.platform os.major
+    if {${os.platform} == "darwin" && ${os.major} >= 10} {
+        return [findBinary svn $portutil::autoconf::svn_path]
+    } else {
+        return ${prefix}/bin/svn
     }
 }
 

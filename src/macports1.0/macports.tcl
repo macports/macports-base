@@ -901,6 +901,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias findBinary macports::findBinary
     $workername alias binaryInPath macports::binaryInPath
     $workername alias sysctl sysctl
+    $workername alias realpath realpath
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -1777,7 +1778,7 @@ proc mportsync {{optionslist {}}} {
                         }
                     }
 
-                    set tar [findBinary tar $macports::autoconf::tar_path]
+                    set tar [macports::findBinary tar $macports::autoconf::tar_path]
                     if { [catch { system "cd $destdir/.. && $tar ${verboseflag} ${extflag} -xf $filename" } error] } {
                         ui_error "Extracting $source failed ($error)"
                         incr numfailed
@@ -1892,7 +1893,7 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                         }
                     }
                 } catch {*} {
-                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
                     throw
                 } finally {
                     close $fd
@@ -1976,7 +1977,7 @@ proc mportlookup {name} {
                     close $fd
                     set fd -1
                 } catch {*} {
-                    ui_warn "It looks like your PortIndex file may be corrupt."
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
                 } finally {
                     if {$fd != -1} {
                         close $fd
@@ -2060,7 +2061,7 @@ proc mports_generate_quickindex {index} {
             }
             puts -nonewline $quickfd $quicklist
         } catch {*} {
-            ui_warn "It looks like your PortIndex file may be corrupt."
+            ui_warn "It looks like your PortIndex file $index may be corrupt."
             throw
         } finally {
             close $indexfd
@@ -2241,7 +2242,7 @@ proc macports::_deptypes_for_target {target} {
 # selfupdate procedure
 proc macports::selfupdate {{optionslist {}}} {
     global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
-    global macports::autoconf::macports_version macports::autoconf::rsync_path
+    global macports::autoconf::macports_version macports::autoconf::rsync_path tcl_platform
     array set options $optionslist
 
     # syncing ports tree.

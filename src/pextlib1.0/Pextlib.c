@@ -85,6 +85,7 @@
 #include "md5cmd.h"
 #include "sha1cmd.h"
 #include "rmd160cmd.h"
+#include "sha256cmd.h"
 #include "fs-traverse.h"
 #include "filemap.h"
 #include "curl.h"
@@ -99,6 +100,7 @@
 #include "pipe.h"
 #include "flock.h"
 #include "system.h"
+#include "mktemp.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -208,87 +210,6 @@ int StrsedCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	return TCL_OK;
 }
 
-int MkdtempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char *template, *sp;
-	Tcl_Obj *tcl_result;
-
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "template");
-		return TCL_ERROR;
-	}
-
-	template = strdup(Tcl_GetString(objv[1]));
-	if (template == NULL)
-		return TCL_ERROR;
-
-	if ((sp = mkdtemp(template)) == NULL) {
-		Tcl_AppendResult(interp, "mkdtemp failed: ", strerror(errno), NULL);
-		free(template);
-		return TCL_ERROR;
-	}
-
-	tcl_result = Tcl_NewStringObj(sp, -1);
-	Tcl_SetObjResult(interp, tcl_result);
-	free(template);
-	return TCL_OK;
-}
-
-int MktempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	char *template, *sp;
-	Tcl_Obj *tcl_result;
-
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "template");
-		return TCL_ERROR;
-	}
-
-	template = strdup(Tcl_GetString(objv[1]));
-	if (template == NULL)
-		return TCL_ERROR;
-
-	if ((sp = mktemp(template)) == NULL) {
-		Tcl_AppendResult(interp, "mktemp failed: ", strerror(errno), NULL);
-		free(template);
-		return TCL_ERROR;
-	}
-
-	tcl_result = Tcl_NewStringObj(sp, -1);
-	Tcl_SetObjResult(interp, tcl_result);
-	free(template);
-	return TCL_OK;
-}
-
-int MkstempCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
-{
-	Tcl_Channel channel;
-	char *template, *channelname;
-	int fd;
-
-	if (objc != 2) {
-		Tcl_WrongNumArgs(interp, 1, objv, "template");
-		return TCL_ERROR;
-	}
-
-	template = strdup(Tcl_GetString(objv[1]));
-	if (template == NULL)
-		return TCL_ERROR;
-
-	if ((fd = mkstemp(template)) < 0) {
-		Tcl_AppendResult(interp, "mkstemp failed: ", strerror(errno), NULL);
-		free(template);
-		return TCL_ERROR;
-	}
-
-	channel = Tcl_MakeFileChannel((ClientData)(intptr_t)fd, TCL_READABLE|TCL_WRITABLE);
-	Tcl_RegisterChannel(interp, channel);
-	channelname = (char *)Tcl_GetChannelName(channel);
-	Tcl_AppendResult(interp, channelname, " ", template, NULL);
-	free(template);
-	return TCL_OK;
-}
-
 int ExistsuserCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
 	Tcl_Obj *tcl_result;
@@ -343,9 +264,9 @@ int ExistsgroupCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, T
 	return TCL_OK;
 }
 
-/* Find the first unused UID > 100
-   previously this would find the highest used UID and add 1
-   but UIDs > 500 are visible on the login screen of OS X */
+/* Find the first unused UID > 500
+   UIDs > 500 are visible on the login screen of OS X,
+   but UIDs < 500 are reserved by Apple */
 int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
@@ -362,9 +283,7 @@ int NextuidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED
 	return TCL_OK;
 }
 
-/* Just as with NextuidCmd, return the first unused gid > 100
-   groups aren't visible on the login screen, but I see no reason
-   to create group 502 when I can create group 100 */
+/* Just as with NextuidCmd, return the first unused gid > 500 */
 int NextgidCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc UNUSED, Tcl_Obj *CONST objv[] UNUSED)
 {
 	Tcl_Obj *tcl_result;
@@ -512,7 +431,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         (void) unsetenv(name);
     }
     /* Tcl appears to become out of sync with the environment when we
-       unset things, eg, 'info exists env(CC)' will succeed where
+       unset things, e.g. 'info exists env(CC)' will succeed where
        'puts $env(CC)' will fail since it doesn't actually exist after
        being unset here.  This forces Tcl to resync to the current state
        (don't care about the actual result, so reset it) */
@@ -591,6 +510,7 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "filemap", FilemapCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "sha256", SHA256Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
@@ -622,9 +542,6 @@ int Pextlib_Init(Tcl_Interp *interp)
 
 	if (Tcl_PkgProvide(interp, "Pextlib", "1.0") != TCL_OK)
 		return TCL_ERROR;
-
-	/* init libcurl */
-	CurlInit(interp);
 
 	return TCL_OK;
 }

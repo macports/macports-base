@@ -74,7 +74,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_lzma use_zip use_7z use_dmg workpath
+    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg workpath
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
@@ -88,6 +88,8 @@ proc portextract::extract_init {args} {
         option extract.cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
     } elseif {[tbool use_lzma]} {
         option extract.cmd [binaryInPath "lzma"]
+    } elseif {[tbool use_xz]} {
+        option extract.cmd [binaryInPath "xz"]
     } elseif {[tbool use_zip]} {
         option extract.cmd [findBinary unzip ${portutil::autoconf::unzip_path}]
         option extract.pre_args -q

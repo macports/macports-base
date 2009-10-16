@@ -36,13 +36,11 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef HAVE_UTIME_H
 #include <utime.h>
-#endif
 
 #include <curl/curl.h>
 
@@ -71,6 +69,8 @@ int CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
 
+void CurlInit(void);
+
 /* ========================================================================= **
  * Entry points
  * ========================================================================= */
@@ -86,30 +86,18 @@ int CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]);
  * @return TCL_OK if inErrorCode is 0, TCL_ERROR otherwise.
  */
 int
-SetResultFromCurlErrorCode(Tcl_Interp* interp, CURLcode inErrorCode)
+SetResultFromCurlErrorCode(Tcl_Interp *interp, CURLcode inErrorCode)
 {
-	int theResult;
+	int result = TCL_ERROR;
 
-	switch(inErrorCode)
-	{
-		case CURLE_OK:
-			Tcl_SetResult(interp, "", TCL_STATIC);
-			theResult = TCL_OK;
-			break;
-		
-		default: {
-#if LIBCURL_VERSION_NUM >= 0x070c00 /* 7.12.0 */
-			Tcl_SetResult(interp, (char *)curl_easy_strerror(inErrorCode), TCL_VOLATILE);
-#else
-			char theErrorString[512];
-			(void)snprintf(theErrorString, sizeof(theErrorString), "curl error %i", inErrorCode);
-			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-#endif
-			theResult = TCL_ERROR;
-		}
+	if (inErrorCode == CURLE_OK) {
+		Tcl_SetResult(interp, "", TCL_STATIC);
+		result = TCL_OK;
+	} else {
+		Tcl_SetResult(interp, (char *)curl_easy_strerror(inErrorCode), TCL_VOLATILE);
 	}
-	
-	return theResult;
+
+	return result;
 }
 
 /**
@@ -393,7 +381,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		}
 #endif
 
-#ifdef HAVE_UTIME_H
 		if (remotetime) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theFileTime);
 			if (theFileTime > 0) {
@@ -403,7 +390,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				utime(theFilePath, &times); /* set the time we got */
 			}
 		}
-#endif /*HAVE_UTIME_H*/
 		
 		/* free header memory */
 		curl_slist_free_all(headers);
@@ -821,6 +807,10 @@ CurlCmd(
 	};
 	int theResult = TCL_OK;
     EOption theOptionIndex;
+	static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+	/* TODO: use dispatch_once when we drop Leopard support */
+	pthread_once(&once, CurlInit);
 
 	if (objc < 3) {
 		Tcl_WrongNumArgs(interp, 1, objv, "option ?arg ...?");
@@ -835,33 +825,28 @@ CurlCmd(
 				0,
 				(int*) &theOptionIndex);
 	if (theResult == TCL_OK) {
-		switch (theOptionIndex)
-		{
-			case kCurlFetch:
-				theResult = CurlFetchCmd(interp, objc, objv);
-				break;
-
-			case kCurlIsNewer:
-				theResult = CurlIsNewerCmd(interp, objc, objv);
-				break;
-
-			case kCurlGetSize:
-				theResult = CurlGetSizeCmd(interp, objc, objv);
-				break;
+		switch (theOptionIndex) {
+		case kCurlFetch:
+			theResult = CurlFetchCmd(interp, objc, objv);
+			break;
+		case kCurlIsNewer:
+			theResult = CurlIsNewerCmd(interp, objc, objv);
+			break;
+		case kCurlGetSize:
+			theResult = CurlGetSizeCmd(interp, objc, objv);
+			break;
 		}
 	}
-	
+
 	return theResult;
 }
 
 /**
  * curl init entry point.
- *
- * @param interp		current interpreter
+ * libcurl will never be cleaned (where should I plug the hook?)
  */
-int
-CurlInit(Tcl_Interp* interp)
+void
+CurlInit()
 {
-	CURLcode theCurlCode = curl_global_init(CURL_GLOBAL_ALL);
-	return SetResultFromCurlErrorCode(interp, theCurlCode);
+	curl_global_init(CURL_GLOBAL_ALL);
 }

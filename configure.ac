@@ -28,15 +28,15 @@ if test "x$SW_VERS" != "x"; then
 fi
 
 case "$MACOSX_VERSION" in
-  10.0*|10.1*|10.2*)
-    AC_MSG_WARN([This version of Mac OS X is not supported])
-    AC_MSG_WARN([Please upgrade at http://store.apple.com/])
+  10.0*|10.1*|10.2*|10.3*)
+    AC_MSG_ERROR([This version of Mac OS X is not supported
+                  Please upgrade at http://store.apple.com/])
     ;;
-  10.1.[[0-4]]|10.2.[[0-7]]|10.3.[[0-8]]|10.4.[[0-9]]|10.4.10|10.5.[[0-6]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.3*|10.4*|10.5*)
+  10.4*|10.5*|10.6*)
     dnl Supported version
     ;;
   *)
@@ -65,15 +65,15 @@ if test -r "$XCODEPLIST"; then
 fi
 
 case "$XCODE_VERSION" in
-  1.[[0-1]]*|2.[[0-1]]*)
+  1.*|2.[[0-1]]*)
     AC_MSG_WARN([This version of Xcode Tools is not supported])
     AC_MSG_WARN([Please upgrade at http://connect.apple.com/])
     ;;
-  1.[[2-4]]*|2.[[2-3]]*|3.[[0]]*)
+  2.[[2-3]]*|3.[[0]]*)
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  1.5*|2.4*|3.*)
+  2.*|3.*)
     dnl Supported version
     ;;
   *)
@@ -116,6 +116,7 @@ AC_PATH_PROG(LAUNCHCTL, [launchctl], [])
 AC_PATH_PROG(XCODEBUILD, [xcodebuild], [])
 AC_PATH_PROGS(GNUTAR, [gnutar gtar], [], [$PATH:/usr/local/bin])
 AC_PATH_PROGS(GNUMAKE, [gnumake gmake], [], [$PATH:/usr/local/bin])
+AC_PATH_PROGS(GNUPATCH, [gnupatch gpatch], [], [$PATH:/usr/local/bin])
 AC_PATH_PROG(BZIP2, [bzip2], [])
 AC_PATH_PROG(LSBOM, [lsbom], [])
 AC_PATH_PROG(MKBOM, [mkbom], [])
@@ -140,6 +141,7 @@ AC_ARG_VAR(OPEN, [path to open command])
 
 MP_SED_EXTENDED_REGEXP
 MP_TAR_NO_SAME_OWNER
+MP_PATCH_GNU_VERSION
 
 # Quiche eaters options.
 if test x$GCC = xyes; then
@@ -165,6 +167,9 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
+if test x$prefix = x/usr/local; then
+    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported])
+fi
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
 
@@ -199,7 +204,7 @@ AC_CHECK_FUNCS([bzero memset fgetln lockf flock setmode strcasecmp strncasecmp s
 MP_CHECK_READLINK_IS_P1003_1A
 
 # Check for md5 implementation
-MP_LIB_MD5
+AC_CHECK_HEADER([CommonCrypto/CommonDigest.h], [AC_DEFINE([HAVE_COMMONCRYPTO_COMMONDIGEST_H], [1], [Define if CommonCrypto is available.])], [MP_LIB_MD5])
 
 # Check for readline
 AC_ARG_ENABLE(readline, AS_HELP_STRING([--enable-readline],[Enable addition of readline support, if readline present.]),
@@ -390,7 +395,6 @@ AC_CONFIG_FILES([
 	doc/macosx.mtree
 	doc/macports.conf
 	portmgr/freebsd/Makefile
-	portmgr/fedora/macports.spec
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl
 	src/port1.0/port_autoconf.tcl

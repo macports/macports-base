@@ -58,6 +58,9 @@ portarchivetype		tgz
 # the default is x86_64 if the CPU supports it, i386 otherwise.
 #build_arch			i386
 
+# CPU architectures to use for Universal Binaries (+universal variant)
+universal_archs		@UNIVERSAL_ARCHS@
+
 # Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
 configureccache		no
 
@@ -72,7 +75,8 @@ buildnicevalue		0
 
 # Number of simultaneous make jobs (commands) to use when building ports. This
 # value may be set to 0 so the number of simultaneous make jobs will be set to
-# the number of CPU cores that are automatically detected.
+# the number of CPU cores that are automatically detected, or the number of GB
+# of physical memory plus one, whichever is less.
 #buildmakejobs		0
 
 # Set whether to automatically execute "clean" after "install" of ports
@@ -95,11 +99,6 @@ rsync_dir			release/base/
 
 # Rsync options
 rsync_options		-rtzv --delete-after
-
-# Options for Universal Binaries (+universal variant)
-
-# machine architectures
-universal_archs		@UNIVERSAL_ARCHS@
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", "launchd", or "none";
@@ -124,7 +123,7 @@ startupitem_type	default
 # Note that System Preferences doesn't have an rsync proxy definition.
 # Also note, on 10.5, sudo will clear many environment variables including
 # those for proxy support.
-# Equivalent envioronment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
+# Equivalent environment variables: http_proxy, HTTPS_PROXY, FTP_PROXY,
 # RSYNC_PROXY, NO_PROXY
 #
 #proxy_override_env    yes

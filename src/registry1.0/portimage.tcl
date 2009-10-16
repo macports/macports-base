@@ -365,9 +365,6 @@ proc _activate_contents {name imagefiles imagedir} {
 		_deactivate_contents $name $imagefiles
 		return -code error $result
 	}
-
-	#_activate_list $files $imagedir
-
 }
 
 proc _deactivate_file {dstfile} {
@@ -395,12 +392,9 @@ proc _deactivate_list {filelist} {
 }
 
 proc _deactivate_contents {name imagefiles} {
-	variable force
-
 	set files [list]
 	
 	foreach file $imagefiles {
-		set port [registry::file_registered $file]
 		if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
 			# Normalize the file path to avoid removing the intermediate
 			# symlinks (remove the empty directories instead)
@@ -414,8 +408,9 @@ proc _deactivate_contents {name imagefiles} {
 			lappend files $theFile
 			
 			# Split out the filename's subpaths and add them to the image list as
-			# well.
-			set directory [file dirname $theFile]
+			# well. The realpath call is necessary because file normalize
+			# does not resolve symlinks on OS X < 10.6
+			set directory [realpath [file dirname $theFile]]
 			while { [lsearch -exact $files $directory] == -1 } { 
 				lappend files $directory
 				set directory [file dirname $directory]

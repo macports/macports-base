@@ -1,9 +1,9 @@
 OBJS= \
 	Pextlib.o strsed.o fgetln.o md5cmd.o setmode.o xinstall.o \
 	fs-traverse.o strcasecmp.o vercomp.o filemap.o \
-	sha1cmd.o curl.o rmd160cmd.o readline.o uid.o \
+	sha1cmd.o curl.o rmd160cmd.o sha256cmd.o readline.o uid.o \
 	tracelib.o tty.o readdir.o pipe.o flock.o \
-	system.o
+	system.o mktemp.o
 SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
 

@@ -34,43 +34,35 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <tcl.h>
 
 #include "md5cmd.h"
 
-#if defined(HAVE_LIBCRYPTO) && !defined(HAVE_LIBMD)
+#if HAVE_COMMONCRYPTO_COMMONDIGEST_H
 
-/* Minimal wrapper around OpenSSL's libcrypto, as a compatibility
- * layer for FreeBSD's libmd library.
- * Originally written by: Rob Braun (bbraun) 1/18/2002
- */
+#define COMMON_DIGEST_FOR_OPENSSL
+#include <CommonCrypto/CommonDigest.h>
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-
-#include <openssl/md5.h>
-
-/* This is a magic number taken from the FreeBSD libmd Makefile */
-#define LENGTH 16
-
+/* md5 functions are named differently */
 #define MD5Init(x) MD5_Init(x)
 #define MD5Update(x,y,z) MD5_Update(x,y,z)
 #define MD5Final(x,y) MD5_Final(x,y)
 
 #include "md_wrappers.h"
-CHECKSUMEnd(MD5, MD5_CTX, LENGTH)
+CHECKSUMEnd(MD5, MD5_CTX, MD5_DIGEST_LENGTH)
 CHECKSUMFile(MD5, MD5_CTX)
 
 #elif defined(HAVE_LIBMD)
 #include <sys/types.h>
 #include <md5.h>
 #else
-#error libcrypto or libmd are required
+#error CommonCrypto or libmd required
 #endif
 
 int MD5Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])

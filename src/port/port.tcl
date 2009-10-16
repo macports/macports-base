@@ -44,7 +44,7 @@ package require Pextlib 1.0
 proc print_usage {{verbose 1}} {
     global cmdname
     set syntax {
-        [-bcdfknopqRstuvxy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
+        [-bcdfknopqRstuvy] [-D portdir] [-F cmdfile] action [privopts] [actionflags]
         [[portname|pseudo-portname|port-url] [@version] [+-variant]... [option=value]...]...
     }
 
@@ -78,11 +78,10 @@ proc print_help {args} {
         set cmds "$cmds$new"
     }
 
-    set cmdText [string range "
-Supported commands
+    set cmdText "Supported commands
 ------------------
 $cmds
-" 1 end-1]
+"
 
     set text {
 Pseudo-portnames
@@ -116,7 +115,7 @@ See man pages: port(1), macports.conf(5), portfile(7), portgroup(7),
 porthier(7), portstyle(7). Also, see http://www.macports.org.
     }
 
-    puts "$cmdText $text"
+    puts "$cmdText$text"
 }
 
 
@@ -334,7 +333,7 @@ proc require_portlist { nameportlist } {
     upvar $nameportlist portlist
 
     if {[llength $portlist] == 0 && (![info exists private_options(ports_no_args)] || $private_options(ports_no_args) == "no")} {
-        ui_error "No ports found"
+        ui_error "No ports matched the given expression"
         return 1
     }
 

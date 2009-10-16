@@ -36,7 +36,7 @@
 .Ar ports
 .Sh SYNOPSIS
 .Nm
-.Op Fl vdqfonRusbckixpyt
+.Op Fl bcdfknopqRstuvy
 .Op Fl D Ar portdir
 .Op Fl F Ar cmdfile
 .Op Ar action
@@ -233,8 +233,6 @@ specify
 Read and process the
 .Ar file
 of commands specified by the argument. If the argument is '-', then read commands from stdin. If the option is given multiple times, then multiple files will be read.
-.It Fl x
-In batch and interactive mode, exit on the first error encountered. Otherwise, errors during batch execution are simply reported.
 .It Fl p
 Despite any errors encountered, proceed to process multiple ports and commands.
 .It Fl y
@@ -366,7 +364,7 @@ and the ports that depend on it:
 .Pp
 To force an upgrade (rebuild) use:
 .Pp
-.Dl "port -f upgrade vim"
+.Dl "port upgrade --force vim"
 .Pp
 To upgrade
 .Ar portname
@@ -381,7 +379,7 @@ port, any variants specified on the command line take highest precedence,
 then the variants active in the latest installed version of the port, and 
 finally the global variants specified in variants.conf, if any.  Note that 
 upgrade will not normally rebuild a port only to change the selected 
-variants; you can either specify -f, or deactivate the port and reinstall it 
+variants; you can either specify --enforce-variants, or deactivate the port and reinstall it 
 with different variants. 
 .Ss clean
 Clean the files used for building
@@ -480,8 +478,6 @@ in /Library/LaunchDaemons).  It runs:
 .Dl launchctl load -w /Library/LaunchDaemons/org.macports.${port}.plist
 .Ss unload
 A shortcut to launchctl, like load, but unloads the daemon.
-.Ss platform
-Prints out the current platform information for the running system.
 .Ss gohome
 Loads the home page for the given 
 .Ar portname 
