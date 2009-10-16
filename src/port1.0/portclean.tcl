@@ -60,6 +60,7 @@ proc portclean::clean_main {args} {
     global ports_clean_dist ports_clean_work ports_clean_archive ports_clean_logs
     global ports_clean_all usealtworkpath 
     global	keeplogs
+
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"

@@ -172,15 +172,11 @@ proc portfetch::set_fetch_type {option action args} {
                 depends_fetch-append bin:cvs:cvs
             }
             svn {
-<<<<<<< .working
-                depends_fetch-append port:subversion
-=======
                 if {${os.platform} == "darwin" && ${os.major} >= 10} {
                     depends_fetch-append bin:svn:subversion
                 } else {
                     depends_fetch-append port:subversion
                 }
->>>>>>> .merge-right.r59490
             }
             git {
                 depends_fetch-append bin:git:git-core

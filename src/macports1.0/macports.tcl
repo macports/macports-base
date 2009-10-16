@@ -1492,13 +1492,16 @@ proc _mportexec {target mport} {
 # Execute the specified target of the given mport.
 proc mportexec {mport target} {
     global macports::registry.installtype
+
     set workername [ditem_key $mport workername]
+
     # check variants
     if {[$workername eval check_variants variations $target] != 0} {
         return 1
     }
     set portname [_mportkey $mport name]
     macports::init_logging $portname
+
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
     set dlist {}
