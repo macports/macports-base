@@ -79,6 +79,9 @@ universal_archs		@UNIVERSAL_ARCHS@
 # of physical memory plus one, whichever is less.
 #buildmakejobs		0
 
+# umask value to use when a port installs its files
+#destroot_umask 022
+
 # Set whether to automatically execute "clean" after "install" of ports
 #portautoclean		yes
 
