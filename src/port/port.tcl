@@ -3629,6 +3629,9 @@ set cmd_argv $argv
 set cmd_argc $argc
 set cmd_argn 0
 
+# make sure we're using a sane umask
+umask 022
+
 # If we've been invoked as portf, then the first argument is assumed
 # to be the name of a command file (i.e., there is an implicit -F
 # before any arguments).
