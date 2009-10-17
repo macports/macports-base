@@ -56,7 +56,7 @@ variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 # CPU architecture to compile for. Defaults to i386 or ppc on Mac OS X 10.5
 # and earlier, depending on the CPU type detected at runtime. On Mac OS X 10.6
 # the default is x86_64 if the CPU supports it, i386 otherwise.
-#build_arch			i386
+#build_arch			@host_cpu@
 
 # CPU architectures to use for Universal Binaries (+universal variant)
 universal_archs		@UNIVERSAL_ARCHS@
