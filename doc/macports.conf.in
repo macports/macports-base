@@ -12,10 +12,10 @@ portdbpath		@localstatedir_expanded@/macports
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"
 # NOTE: sqlite not yet supported.
-portdbformat		flat
+#portdbformat		flat
 
 # Type of installation to do for ports, "direct" or "image".  See macports.conf(5) and online documentation.
-portinstalltype		image
+#portinstalltype		image
 
 # PATH settings that are used for external tools (configure, make, etc.) while installing ports. The default
 # paths are given in the example; it need not be uncommented.  Customizing binpath is intended for advanced users only.
@@ -37,10 +37,10 @@ sources_conf		@MPCONFIGDIR_EXPANDED@/sources.conf
 variants_conf		@MPCONFIGDIR_EXPANDED@/variants.conf
 
 # Create and use binary archive packages for installation/reinstallation ease
-portarchivemode		no
+#portarchivemode		no
 
 # Where to store/retrieve ports binary archive files
-portarchivepath		@localstatedir_expanded@/macports/packages
+#portarchivepath		@localstatedir_expanded@/macports/packages
 
 # Type of binary archive packages to create when using archive mode
 #
@@ -51,7 +51,7 @@ portarchivepath		@localstatedir_expanded@/macports/packages
 # first archive to match one of the specified types in order is used.
 #
 # Supported types: tgz (default), tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
-portarchivetype		tgz
+#portarchivetype		tgz
 
 # CPU architecture to compile for. Defaults to i386 or ppc on Mac OS X 10.5
 # and earlier, depending on the CPU type detected at runtime. On Mac OS X 10.6
@@ -62,16 +62,16 @@ portarchivetype		tgz
 universal_archs		@UNIVERSAL_ARCHS@
 
 # Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
-configureccache		no
+#configureccache		no
 
 # Use distcc (distributed compiler) - see http://distcc.samba.org/
-configuredistcc		no
+#configuredistcc		no
 
 # Use pipes rather than intermediate files when compiling C/C++/etc
-configurepipe		no
+#configurepipe		no
 
 # Lowered scheduling priority (0-20) to use for make when building ports
-buildnicevalue		0
+#buildnicevalue		0
 
 # Number of simultaneous make jobs (commands) to use when building ports. This
 # value may be set to 0 so the number of simultaneous make jobs will be set to
@@ -80,7 +80,7 @@ buildnicevalue		0
 #buildmakejobs		0
 
 # Set whether to automatically execute "clean" after "install" of ports
-portautoclean		yes
+#portautoclean		yes
 
 # Rsync server to fetch MacPorts sources from. Note that this is only used
 # for selfupdate. The source(s) for the ports tree are set in sources.conf.
@@ -88,13 +88,13 @@ portautoclean		yes
 # for the current list):
 #   rsync.macports.org        - California, USA (master)
 #   trd.no.rsync.macports.org - Trondheim, Norway
-rsync_server		rsync.macports.org
+#rsync_server		rsync.macports.org
 
 # Rsync directory from which to pull the base/ component (infrastructure) of MacPorts
-rsync_dir			release/base/
+#rsync_dir			release/base/
 
 # Rsync options
-rsync_options		-rtzv --delete-after
+#rsync_options		-rtzv --delete-after
 
 # Options for generated startup items
 # startupitem_type may be "default", "systemstarter", "launchd", or "none";
@@ -103,7 +103,7 @@ rsync_options		-rtzv --delete-after
 # launchd, while older Mac OS X systems will default to systemstarter. If
 # option "none" is chosen, port startupitems are ignored and no startupitems
 # are installed.
-startupitem_type	default
+#startupitem_type	default
 
 # Extra environment variables to keep. Any variables listed here are added
 # to the list of variables that are not removed from the environment used

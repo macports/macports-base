@@ -547,7 +547,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Archive mode, whether to create/use binary archive packages
     if {![info exists portarchivemode]} {
-        set macports::portarchivemode "yes"
+        set macports::portarchivemode "no"
         global macports::portarchivemode
     }
 
@@ -572,7 +572,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Archive type, what type of binary archive to use (CPIO, gzipped
     # CPIO, XAR, etc.)
     if {![info exists portarchivetype]} {
-        set macports::portarchivetype "cpgz"
+        set macports::portarchivetype "tgz"
         global macports::portarchivetype
     }
     # Convert archive type to a list for multi-archive support, colon or
