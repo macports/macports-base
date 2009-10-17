@@ -635,7 +635,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::configuredistcc no
     }
     if {![info exists macports::configurepipe]} {
-        set macports::configurepipe no
+        set macports::configurepipe yes
     }
 
     # Default mp build options

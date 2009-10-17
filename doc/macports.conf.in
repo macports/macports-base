@@ -68,7 +68,7 @@ universal_archs		@UNIVERSAL_ARCHS@
 #configuredistcc		no
 
 # Use pipes rather than intermediate files when compiling C/C++/etc
-#configurepipe		no
+#configurepipe		yes
 
 # Lowered scheduling priority (0-20) to use for make when building ports
 #buildnicevalue		0
