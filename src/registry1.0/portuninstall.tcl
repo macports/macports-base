@@ -189,10 +189,10 @@ proc uninstall {portname {v ""} optionslist} {
 				}
 			}
 			
-			if { [file exists $f] || (![catch {file type $f}] && [file type $f] == "link") } {
+			set theFile [file normalize $fname]
+			if { [file exists $theFile] || (![catch {file type $theFile}] && [file type $theFile] == "link") } {
 			    # Normalize the file path to avoid removing the intermediate
 			    # symlinks (remove the empty directories instead)
-			    set theFile [file normalize [lindex $f 0]]
 			    lappend files $theFile
 
 			    # Split out the filename's subpaths and add them to the
