@@ -14,13 +14,13 @@ $(bindir)/port:
 test:
 	@echo port install $(TESTPORT1)
 	@sed 's/@name@/$(TESTPORT1)/' Portfile.in > Portfile
-	@PORTSRC=$(PORTSRC) $(bindir)/port -x install > output 2>&1 || (cat output; exit 1)
+	@PORTSRC=$(PORTSRC) $(bindir)/port install > output 2>&1 || (cat output; exit 1)
 	@if [ ! -f $(TESTFILE) ]; then \
 		echo "FAILED: File should exist after install: $(TESTFILE)" && exit 1; \
 	fi
 	@echo port uninstall $(TESTPORT2)
 	@sed 's/@name@/$(TESTPORT2)/' Portfile.in > Portfile
-	@PORTSRC=$(PORTSRC) $(bindir)/port -x uninstall > output 2>&1 || (cat output; exit 1)
+	@PORTSRC=$(PORTSRC) $(bindir)/port uninstall > output 2>&1 || (cat output; exit 1)
 	@if [ -f $(TESTFILE) ]; then \
 		rm $(TESTFILE); \
 		echo "FAILED: File should NOT exist after uninstall: $(TESTFILE)" && exit 1; \

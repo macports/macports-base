@@ -51,7 +51,7 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 			( cd $$subdir && \
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port clean > /dev/null && \
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port test > output 2>&1 \
-					|| (cat output; exit 1) && \
+					|| ([ -e error_expected ] || (cat output; exit 1)) && \
 			sed -e "s|${PWD}|PWD|g" < output > output.sed && \
 			diff output.sed master 2>&1 | tee difference && \
 			if [ -s difference ]; then \
