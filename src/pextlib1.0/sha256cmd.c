@@ -49,6 +49,15 @@
 #define COMMON_DIGEST_FOR_OPENSSL
 #include <CommonCrypto/CommonDigest.h>
 
+/* Tiger compatibility */
+#ifndef SHA256_DIGEST_LENGTH
+#define SHA256_DIGEST_LENGTH            CC_SHA256_DIGEST_LENGTH
+#define SHA256_CTX                      CC_SHA256_CTX
+#define SHA256_Init(c)                  CC_SHA256_Init(c)
+#define SHA256_Update(c,d,l)            CC_SHA256_Update(c,d,l)
+#define SHA256_Final(m, c)              CC_SHA256_Final(m,c)
+#endif
+
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
