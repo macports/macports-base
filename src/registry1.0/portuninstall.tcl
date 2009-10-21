@@ -46,7 +46,7 @@ proc uninstall {portname {v ""} optionslist} {
 	if { [llength $ilist] > 1 } {
 	    set portname [lindex [lindex $ilist 0] 0]
 		ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
-		foreach i $ilist { 
+		foreach i [portlist_sortint $ilist] { 
 			set iname [lindex $i 0]
 			set iversion [lindex $i 1]
 			set irevision [lindex $i 2]
