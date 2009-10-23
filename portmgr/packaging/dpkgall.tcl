@@ -347,7 +347,7 @@ proc main {argc argv} {
 
 	# If no portlist file was specified, create a portlist that includes all ports
 	if {[llength $portlist] == 0 || "$buildall_flag" == "true"} {
-		set res [mportsearch {.*}]
+		set res [mportlistall]
 		foreach {name array} $res {
 			lappend portlist $name
 		}
@@ -757,7 +757,7 @@ proc do_portexec {port options variants target} {
 
 proc get_portinfo {port} {
 	set searchstring [regex_escape_portname $port]
-	set res [mportsearch "^${searchstring}\$"]
+	set res [mportlookup ${searchstring}]
 
 	if {[llength $res] < 2} {
 		return -code error "Port \"$port\" not found in index."

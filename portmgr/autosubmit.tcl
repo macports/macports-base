@@ -34,7 +34,7 @@ proc sql_date { datetime } {
 proc submit_ports {} {
 	global prefix submit_options verbose
 
-	if {[catch {set res [mportsearch "^.*\$"]} result]} {
+	if {[catch {set res [mportlistall]} result]} {
 		puts "port search failed: $result"
 		exit 1
 	}

@@ -270,6 +270,14 @@ foreach priority ${macports::ui_priorities} {
     proc ui_$priority {args} [subst { eval macports::ui_init $priority \$args }]
 }
 
+proc ui_warn_once {id msg} {
+    variable macports::warning_done
+    if {![info exists macports::warning_done($id)]} {
+        ui_warn $msg
+        set macports::warning_done($id) 1
+    }
+}
+
 # Replace puts to catch errors (typically broken pipes when being piped to head)
 rename puts tcl::puts
 proc puts {args} {
@@ -608,7 +616,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Archive mode, whether to create/use binary archive packages
     if {![info exists portarchivemode]} {
-        set macports::portarchivemode "yes"
+        set macports::portarchivemode "no"
         global macports::portarchivemode
     }
 
@@ -633,7 +641,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     # Archive type, what type of binary archive to use (CPIO, gzipped
     # CPIO, XAR, etc.)
     if {![info exists portarchivetype]} {
-        set macports::portarchivetype "cpgz"
+        set macports::portarchivetype "tgz"
         global macports::portarchivetype
     }
     # Convert archive type to a list for multi-archive support, colon or
@@ -696,7 +704,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::configuredistcc no
     }
     if {![info exists macports::configurepipe]} {
-        set macports::configurepipe no
+        set macports::configurepipe yes
     }
 
     # Default mp build options
@@ -890,6 +898,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
 
     $workername alias ui_prefix ui_prefix
     $workername alias ui_channels ui_channels
+    
+    $workername alias ui_warn_once ui_warn_once
 
     # Export some utility functions defined here.
     $workername alias macports_create_thread macports::create_thread
@@ -1032,23 +1042,22 @@ proc macports::getprotocol {url} {
 # fetched port will be downloaded to (currently only applies to
 # mports:// sources).
 proc macports::getportdir {url {destdir "."}} {
-    if {[regexp {(?x)([^:]+)://(.+)} $url match protocol string] == 1} {
-        switch -regexp -- ${protocol} {
-            {^file$} {
-                return [file normalize $string]
-            }
-            {^mports$} {
-                return [macports::index::fetch_port $url $destdir]
-            }
-            {^https?$|^ftp$} {
-                return [macports::fetch_port $url]
-            }
-            default {
-                return -code error "Unsupported protocol $protocol"
-            }
+    set protocol [macports::getprotocol $url]
+    switch ${protocol} {
+        file {
+            return [file normalize [string range $url [expr [string length $protocol] + 3] end]]
         }
-    } else {
-        return -code error "Can't parse url $url"
+        mports {
+            return [macports::index::fetch_port $url $destdir]
+        }
+        https -
+        http -
+        ftp {
+            return [macports::fetch_port $url]
+        }
+        default {
+            return -code error "Unsupported protocol $protocol"
+        }
     }
 }
 
@@ -1819,11 +1828,10 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
 
     set found 0
     foreach source $sources {
-        set flags [lrange $source 1 end]
         set source [lindex $source 0]
-        if {[macports::getprotocol $source] == "mports"} {
-            array set attrs [list name $pattern]
-            set res [macports::index::search $macports::portdbpath $source [array get attrs]]
+        set protocol [macports::getprotocol $source]
+        if {$protocol == "mports"} {
+            set res [macports::index::search $macports::portdbpath $source [list name $pattern]]
             eval lappend matches $res
         } else {
             if {[catch {set fd [open [macports::getindex $source] r]} result]} {
@@ -1862,12 +1870,14 @@ proc mportsearch {pattern {case_sensitive yes} {matchstyle regexp} {field name}}
                             if {$easy} {
                                 array set portinfo $line
                             }
-                            switch -regexp -- [macports::getprotocol ${source}] {
-                                {^rsync$} {
+                            switch $protocol {
+                                rsync {
                                     # Rsync files are local
                                     set source_url "file://[macports::getsourcepath $source]"
                                 }
-                                {^https?$|^ftp$} {
+                                https -
+                                http -
+                                ftp {
                                     if {[_source_is_snapshot $source filename extension]} {
                                         # daily snapshot tarball
                                         set source_url "file://[macports::getsourcepath $source]"
@@ -1923,7 +1933,8 @@ proc mportlookup {name} {
     set matches [list]
     foreach source $sources {
         set source [lindex $source 0]
-        if {[macports::getprotocol $source] != "mports"} {
+        set protocol [macports::getprotocol $source]
+        if {$protocol != "mports"} {
             global macports::quick_index
             if {![info exists quick_index($sourceno,[string tolower $name])]} {
                 incr sourceno 1
@@ -1946,17 +1957,16 @@ proc mportlookup {name} {
 
                     array set portinfo $line
 
-                    switch -regexp -- [macports::getprotocol ${source}] {
-                        {^rsync$} {
-                            # Rsync files are local
+                    switch $protocol {
+                        rsync {
                             set source_url "file://[macports::getsourcepath $source]"
                         }
-                        {^https?$|^ftp$} {
+                        https -
+                        http -
+                        ftp {
                             if {[_source_is_snapshot $source filename extension]} {
-                                # daily snapshot tarball
                                 set source_url "file://[macports::getsourcepath $source]"
                              } else {
-                                # default action
                                 set source_url $source
                              }
                         }
@@ -1971,9 +1981,6 @@ proc mportlookup {name} {
                     }
                     if {[info exists porturl]} {
                         lappend line porturl $porturl
-                        ui_debug "Found port in $porturl"
-                    } else {
-                        ui_debug "Found port info: $line"
                     }
                     lappend matches $name
                     lappend matches $line
@@ -1991,8 +1998,7 @@ proc mportlookup {name} {
                 }
             }
         } else {
-            array set attrs [list name $name]
-            set res [macports::index::search $macports::portdbpath $source [array get attrs]]
+            set res [macports::index::search $macports::portdbpath $source [list name $name]]
             if {[llength $res] > 0} {
                 eval lappend matches $res
                 break
@@ -2002,6 +2008,76 @@ proc mportlookup {name} {
 
     return $matches
 }
+
+# Returns all ports in the indices. Faster than 'mportsearch .*'
+proc mportlistall {args} {
+    global macports::portdbpath macports::sources
+    set matches [list]
+
+    set found 0
+    foreach source $sources {
+        set source [lindex $source 0]
+        set protocol [macports::getprotocol $source]
+        if {$protocol != "mports"} {
+            if {![catch {set fd [open [macports::getindex $source] r]} result]} {
+                try {
+                    incr found 1
+                    while {[gets $fd line] >= 0} {
+                        array unset portinfo
+                        set name [lindex $line 0]
+                        set len [lindex $line 1]
+                        set line [read $fd $len]
+
+                        array set portinfo $line
+
+                        switch $protocol {
+                            rsync {
+                                set source_url "file://[macports::getsourcepath $source]"
+                            }
+                            https -
+                            http -
+                            ftp {
+                                if {[_source_is_snapshot $source filename extension]} {
+                                    set source_url "file://[macports::getsourcepath $source]"
+                                } else {
+                                    set source_url $source
+                                }
+                            }
+                            default {
+                                set source_url $source
+                            }
+                        }
+                        if {[info exists portinfo(portdir)]} {
+                            set porturl ${source_url}/$portinfo(portdir)
+                        } elseif {[info exists portinfo(portarchive)]} {
+                            set porturl ${source_url}/$portinfo(portarchive)
+                        }
+                        if {[info exists porturl]} {
+                            lappend line porturl $porturl
+                        }
+                        lappend matches $name $line
+                    }
+                } catch {*} {
+                    ui_warn "It looks like your PortIndex file for $source may be corrupt."
+                    throw
+                } finally {
+                    close $fd
+                }
+            } else {
+                ui_warn "Can't open index file for source: $source"
+            }
+        } else {
+            set res [macports::index::search $macports::portdbpath $source [list name .*]]
+            eval lappend matches $res
+        }
+    }
+    if {!$found} {
+        return -code error "No index(es) found! Have you synced your source indexes?"
+    }
+
+    return $matches
+}
+
 
 # Loads PortIndex.quick from each source into the quick_index, generating
 # it first if necessary.
@@ -2179,6 +2255,9 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
             array unset portinfo
             array set portinfo [lindex $res 1]
             if {![info exists portinfo(porturl)]} {
+                if {![macports::ui_isset ports_debug]} {
+                    ui_msg ""
+                }
                 ui_error "Dependency '$dep_portname' not found."
                 return 1
             }
