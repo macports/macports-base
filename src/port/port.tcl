@@ -435,11 +435,11 @@ proc term_init_size {} {
         if {[isatty stdout]} {
             set size [term_get_size stdout]
 
-            if {![info exists env(LINES)]} {
+            if {![info exists env(LINES)] && [lindex $size 0] > 0} {
                 set env(LINES) [lindex $size 0]
             }
 
-            if {![info exists env(COLUMNS)]} {
+            if {![info exists env(COLUMNS)] && [lindex $size 1] > 0} {
                 set env(COLUMNS) [lindex $size 1]
             }
         }
