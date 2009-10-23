@@ -215,6 +215,14 @@ foreach priority ${macports::ui_priorities} {
     proc ui_$priority {args} [subst { eval macports::ui_init $priority \$args }]
 }
 
+proc ui_warn_once {id msg} {
+    variable macports::warning_done
+    if {![info exists macports::warning_done($id)]} {
+        ui_warn $msg
+        set macports::warning_done($id) 1
+    }
+}
+
 # Replace puts to catch errors (typically broken pipes when being piped to head)
 rename puts tcl::puts
 proc puts {args} {
@@ -823,6 +831,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
     $workername alias ui_prefix ui_prefix
     $workername alias ui_channels ui_channels
+    
+    $workername alias ui_warn_once ui_warn_once
 
     # Export some utility functions defined here.
     $workername alias macports_create_thread macports::create_thread
