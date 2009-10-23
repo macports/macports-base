@@ -600,7 +600,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::configuredistcc no
     }
     if {![info exists macports::configurepipe]} {
-        set macports::configurepipe no
+        set macports::configurepipe yes
     }
 
     # Default mp build options
@@ -2052,6 +2052,9 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
             array unset portinfo
             array set portinfo [lindex $res 1]
             if {![info exists portinfo(porturl)]} {
+                if {![macports::ui_isset ports_debug]} {
+                    ui_msg ""
+                }
                 ui_error "Dependency '$dep_portname' not found."
                 return 1
             }

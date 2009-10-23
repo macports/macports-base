@@ -618,6 +618,7 @@ proc _activate_contents {name imagefiles extractdir} {
 	global macports::prefix
 
 	set files [list]
+	set timestamp [clock seconds]
 	
 	# This is big and hairy and probably could be done better.
 	# First, we need to check the source file, make sure it exists
@@ -637,8 +638,6 @@ proc _activate_contents {name imagefiles extractdir} {
 		}
 
 		set port [registry::file_registered $file] 
-
-		set timestamp [clock seconds]
 
 		if { $port != 0  && $force != 1 && $port != $name } {
 			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."

@@ -21,15 +21,14 @@ all:
 	cp sources.conf /tmp/macports-tests/opt/local/etc/macports/
 
 /tmp/macports-tests/ports/PortIndex: /tmp/macports-tests/opt/local/etc/macports/sources.conf PortIndex
-	cp PortIndex /tmp/macports-tests/ports/PortIndex
+	cp PortIndex PortIndex.quick /tmp/macports-tests/ports/
 
 PortIndex:
 	$(bindir)/portindex
 
 clean:
 	rm -rf /tmp/macports-tests/
-	rm -f PortIndex
-	rm -f PortIndex.quick
+	rm -f PortIndex PortIndex.quick
 	for testname in $(TESTS); do \
 		rm -f test/$$testname/{output,output.sed,difference,work}; \
 	done
@@ -52,7 +51,7 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 			( cd $$subdir && \
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port clean > /dev/null && \
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port test > output 2>&1 \
-					|| (cat output; exit 1) && \
+					|| ([ -e error_expected ] || (cat output; exit 1)) && \
 			sed -e "s|${PWD}|PWD|g" < output > output.sed && \
 			diff output.sed master 2>&1 | tee difference && \
 			if [ -s difference ]; then \
@@ -63,7 +62,7 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 		fi || exit 1; \
 	done
 	@rm -rf /tmp/macports-tests/
-	@rm -f PortIndex
+	@rm -f PortIndex PortIndex.quick
 
 # Run specific test
 # Prepend the directory name with "test-" and use it as target

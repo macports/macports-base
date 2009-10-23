@@ -1,5 +1,6 @@
 Warning: depends option is not handled yet
 Warning: depends option is not handled yet
+--->  Computing dependencies for dependencies-d
 --->  Fetching dependencies-b
 --->  Verifying checksum(s) for dependencies-b
 --->  Extracting dependencies-b

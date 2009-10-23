@@ -1836,6 +1836,10 @@ proc universal_setup {args} {
         ui_debug "adding the default universal variant"
         variant universal {}
     }
+    
+    if {[variant_isset universal] && ![variant_exists universal]} {
+        ui_warn "[option name] has no universal variant"
+    }
 }
 
 # Target class definition.
@@ -2254,16 +2258,22 @@ proc chownAsRoot {path} {
 # @param attributes the attributes for the file
 proc fileAttrsAsRoot {file attributes} {
     global euid macportsuser
-    if {[getuid] == 0 && [geteuid] != 0} {
-        # Started as root, but not root now
-        seteuid $euid
-        ui_debug "euid changed to: [geteuid]"
-        ui_debug "setting attributes on $file"
-        eval file attributes {$file} $attributes
-        seteuid [name_to_uid "$macportsuser"]
-        ui_debug "euid changed to: [geteuid]"
+    if {[getuid] == 0} {
+        if {[geteuid] != 0} {
+            # Started as root, but not root now
+            seteuid $euid
+            ui_debug "euid changed to: [geteuid]"
+            ui_debug "setting attributes on $file"
+            eval file attributes {$file} $attributes
+            seteuid [name_to_uid "$macportsuser"]
+            ui_debug "euid changed to: [geteuid]"
+        } else {
+            eval file attributes {$file} $attributes
+        }
     } else {
-        eval file attributes {$file} $attributes
+        # not root, so can't set owner/group
+        set permissions [lindex $attributes [expr [lsearch $attributes "-permissions"] + 1]]
+        file attributes $file -permissions $permissions
     }
 }
 
