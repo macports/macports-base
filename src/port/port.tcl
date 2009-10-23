@@ -588,7 +588,19 @@ proc get_all_ports {} {
     global all_ports_cache
 
     if {![info exists all_ports_cache]} {
-        set all_ports_cache [get_matching_ports "*"]
+         if {[catch {set res [mportlistall]} result]} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            fatal "listing all ports failed: $result"
+        }
+        set results {}
+        foreach {name info} $res {
+            array unset portinfo
+            array set portinfo $info
+            add_to_portlist results [list url $portinfo(porturl) name $name]
+        }
+
+        set all_ports_cache [portlist_sort $results]
     }
     return $all_ports_cache
 }
@@ -2616,15 +2628,18 @@ proc action_list { action portlist opts } {
     
     foreachport $portlist {
         if {$portname == "-all-"} {
-            set search_string ".+"
+           if {[catch {set res [mportlistall]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "listing all ports failed: $result" 1 status
+            }
         } else {
             set search_string [regex_pat_sanitize $portname]
-        }
-        
-        if {[catch {set res [mportsearch ^$search_string\$ no]} result]} {
-            global errorInfo
-            ui_debug "$errorInfo"
-            break_softcontinue "search for portname $search_string failed: $result" 1 status
+            if {[catch {set res [mportsearch ^$search_string\$ no]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                break_softcontinue "search for portname $search_string failed: $result" 1 status
+            }
         }
 
         foreach {name array} $res {
