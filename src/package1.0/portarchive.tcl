@@ -70,7 +70,7 @@ proc portarchive::archive_init {args} {
     global name version revision portvariants
     global archive.destpath archive.type archive.meta
     global archive.file archive.path archive.fulldestpath
-    global configure.build_arch
+    global configure.build_arch configure.universal_archs
 
     # Check mode in case archive called directly by user
     if {[option portarchivemode] != "yes"} {
@@ -91,7 +91,11 @@ proc portarchive::archive_init {args} {
 
     # Define archive destination directory and target filename
     if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-        set archive.fulldestpath [file join ${archive.destpath} [option os.platform] ${configure.build_arch}]
+        if {[variant_exists universal] && [variant_isset universal]} {
+            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] "universal"]
+        } else {
+            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] ${configure.build_arch}]
+        }
     } else {
         set archive.fulldestpath ${archive.destpath}
     }
@@ -111,7 +115,12 @@ proc portarchive::archive_init {args} {
         set any_missing no
         foreach archive.type [option portarchivetype] {
             if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-                set archive.file "${name}-${version}_${revision}${portvariants}.${configure.build_arch}.${archive.type}"
+                if {[variant_exists universal] && [variant_isset universal]} {
+                    set archstring [join [lsort -ascii ${configure.universal_archs}] -]
+                } else {
+                    set archstring ${configure.build_arch}
+                }
+                set archive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${archive.type}"
                 set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
                 if {![file exists ${archive.path}]} {
                     set any_missing yes
@@ -300,7 +309,7 @@ proc portarchive::archive_main {args} {
     global name epoch version revision portvariants
     global archive.fulldestpath archive.type archive.file archive.path
     global archive.meta archive.metaname archive.metapath
-    global os.platform os.arch configure.build_arch
+    global os.platform os.arch configure.build_arch configure.universal_archs
 
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
@@ -354,6 +363,11 @@ proc portarchive::archive_main {args} {
     puts $fd "@portepoch ${epoch}"
     puts $fd "@portversion ${version}"
     puts $fd "@portrevision ${revision}"
+    if {[variant_exists universal] && [variant_isset universal]} {
+        puts $fd "@archs ${configure.universal_archs}"
+    } else {
+        puts $fd "@archs ${configure.build_arch}"
+    }
     set vlist [lsort -ascii [array names variations]]
     foreach v $vlist {
         if {![string equal $v [option os.platform]] && ![string equal $v [option os.arch]]} {
@@ -400,7 +414,11 @@ proc portarchive::archive_main {args} {
         putel $sd minor 0
 
         putel $sd platform ${os.platform}
-        putel $sd arch ${os.arch}
+        if {[variant_exists universal] && [variant_isset universal]} {
+            putlist $sd archs arch [lsort -ascii ${configure.universal_archs}]
+        } else {
+            putel $sd arch ${configure.build_arch}
+        }
         set vlist [lsort -ascii [array names variations]]
         putlist $sd variants variant $vlist
 
@@ -459,12 +477,17 @@ proc portarchive::archive_main {args} {
         close $sd
     }
 
+    if {[variant_exists universal] && [variant_isset universal]} {
+        set archstring [join [lsort -ascii ${configure.universal_archs}] -]
+    } else {
+        set archstring ${configure.build_arch}
+    }
     # Now create the archive(s)
     # Loop through archive types
     foreach archive.type [option portarchivetype] {
         if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
             # Define archive file/path
-            set archive.file "${name}-${version}_${revision}${portvariants}.${configure.build_arch}.${archive.type}"
+            set archive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${archive.type}"
             set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
 
             # Setup archive command
