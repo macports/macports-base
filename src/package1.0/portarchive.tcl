@@ -374,7 +374,7 @@ proc portarchive::archive_main {args} {
             puts $fd "@portvariant +${v}"
         }
     }
-    fs-traverse fullpath $destpath {
+    fs-traverse -depth fullpath $destpath {
         if {[file isdirectory $fullpath]} {
             continue
         }
