@@ -309,7 +309,7 @@ proc portarchive::archive_main {args} {
     global name epoch version revision portvariants
     global archive.fulldestpath archive.type archive.file archive.path
     global archive.meta archive.metaname archive.metapath
-    global os.platform os.arch configure.build_arch configure.universal_archs
+    global os.platform configure.build_arch configure.universal_archs
 
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
@@ -370,7 +370,7 @@ proc portarchive::archive_main {args} {
     }
     set vlist [lsort -ascii [array names variations]]
     foreach v $vlist {
-        if {![string equal $v [option os.platform]] && ![string equal $v [option os.arch]]} {
+        if {$variations($v) == "+"} {
             puts $fd "@portvariant +${v}"
         }
     }
