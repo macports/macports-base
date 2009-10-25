@@ -78,8 +78,8 @@ proc portunarchive::unarchive_init {args} {
 		set vlist [lsort -ascii [array names variations]]
 		# Put together variants in the form +foo+bar for the archive name
 		foreach v $vlist {
-			if { ![string equal $v [option os.platform]] && ![string equal $v [option os.arch]] } {
-				set portvariants "${portvariants}+${v}"
+			if {$variations($v) == "+"} {
+				append portvariants "+${v}"
 			}
 		}
 	}
