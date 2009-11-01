@@ -358,6 +358,8 @@ proc command_exec {command args} {
     if {[option macosx_deployment_target] ne ""} {
         set ${command}.env_array(MACOSX_DEPLOYMENT_TARGET) [option macosx_deployment_target]
     }
+    set ${command}.env_array(CC_PRINT_OPTIONS) "YES"
+    set ${command}.env_array(CC_PRINT_OPTIONS_FILE) [file join [option workpath] ".CC_PRINT_OPTIONS"]
     if {[option compiler.cpath] ne ""} {
         set ${command}.env_array(CPATH) [join [option compiler.cpath] :]
     }
