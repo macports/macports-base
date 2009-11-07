@@ -35,7 +35,6 @@ namespace eval portutil::autoconf {
 	variable cp_path "@CP@"
 	variable cpio_path "@CPIO@"
 	variable diff_path "@DIFF@"
-	variable ditto_path "@DITTO@"
 	variable dscl_path "@DSCL@"
 	variable file_path "@FILE@"
 	variable cvs_path "@CVS@"
