@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portdmg.tcl
 # $Id$
 #
@@ -58,7 +58,7 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     if {[expr (${portrevision} > 0)]} {
         set imagename "${portname}-${portversion}-${portrevision}"
     } else {
-	set imagename "${portname}-${portversion}"
+        set imagename "${portname}-${portversion}"
     }
     
     set tmp_image ${package.destpath}/${imagename}.tmp.dmg
@@ -67,15 +67,15 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     
     if {[file readable $final_image] && ([file mtime ${final_image}] >= [file mtime ${portpath}/Portfile])} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
-	return 0
+        return 0
     }
 
     # partition for .dmg
     if {${os.major} >= 9 && ${os.arch} == "i386"} {
-	# GUID_partition_scheme
+        # GUID_partition_scheme
         set subdev 1
     } else {
-	# Apple_partition_scheme (Apple_partition_map is at s1)
+        # Apple_partition_scheme (Apple_partition_map is at s1)
         set subdev 2
     }
     
