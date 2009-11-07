@@ -714,7 +714,7 @@ Set(SNode** ioRoot, const char* inPath, const char* inValue)
 		{
 			int theCompResult;
 			theSubnode = *theSubnodeCursor++;
-			theCompResult = strncmp(theSubnode->fKeySubpart, beginCursor, partLength);
+			theCompResult = strncasecmp(theSubnode->fKeySubpart, beginCursor, partLength);
 			if (theCompResult == 0)
 			{
 				/* first partLength bytes are equal, we need to check that fKeySubpart
@@ -854,7 +854,7 @@ Get(SNode* inRoot, const char* inPath)
 		{
 			int theCompResult;
 			theSubnode = *theSubnodeCursor++;
-			theCompResult = strncmp(theSubnode->fKeySubpart, beginCursor, partLength);
+			theCompResult = strncasecmp(theSubnode->fKeySubpart, beginCursor, partLength);
 			if (theCompResult == 0)
 			{
 				/* first partLength bytes are equal, we need to check that fKeySubpart
@@ -1053,7 +1053,7 @@ Delete(SNode** ioRoot, const char* inPath)
 		{
 			int theCompResult;
 			theSubnode = *theSubnodeCursor++;
-			theCompResult = strncmp(theSubnode->fKeySubpart, beginCursor, partLength);
+			theCompResult = strncasecmp(theSubnode->fKeySubpart, beginCursor, partLength);
 			if (theCompResult == 0)
 			{
 				/* first partLength bytes are equal, we need to check that fKeySubpart
