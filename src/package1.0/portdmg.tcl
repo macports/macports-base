@@ -69,17 +69,7 @@ proc portdmg::package_dmg {portname portversion portrevision} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Disk Image for %s-%s is up-to-date"] ${portname} ${portversion}]"
 	return 0
     }
-    
-    # size for .dmg
-    set size [dirSize ${pkgpath}]
-    if {[expr ($size < 4194304)]} {
-	# there is a minimum of 8292 512 blocks in a dmg
-        set blocks 8292
-    } else {
-	# this should later be replaced with hdiutil create -srcfolder
-        set blocks [expr ($size/512) + ((($size/512)*3)/100)]
-    }
-    
+
     # partition for .dmg
     if {${os.major} >= 9 && ${os.arch} == "i386"} {
 	# GUID_partition_scheme
@@ -90,18 +80,9 @@ proc portdmg::package_dmg {portname portversion portrevision} {
     }
     
     set hdiutil [findBinary hdiutil $portutil::autoconf::hdiutil_path]
-    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -size ${blocks}b ${tmp_image}"] != ""} {
+    if {[system "$hdiutil create -quiet -fs HFS+ -volname ${imagename} -srcfolder ${pkgpath} ${tmp_image}"] != ""} {
         return -code error [format [msgcat::mc "Failed to create temporary image: %s"] ${imagename}]
     }
-    if {[catch {set attach_output [exec $hdiutil attach -puppetstrings ${tmp_image} | grep s${subdev}]} error]} {
-        return -code error [format [msgcat::mc "Failed to attach temporary image: %s"] ${error}]
-    }
-    set attach_output [split $attach_output "\t"]
-    set devicename [string trim [lindex $attach_output 0]]
-    set mount_point [string trim [lindex $attach_output 2]]
-    regexp {(\/Volumes/[A-Za-z0-9\-\_\s].+)\s\(} $mount_point code mount_point
-    system "[findBinary ditto $portutil::autoconf::ditto_path] -rsrcFork ${pkgpath} '${mount_point}/${portname}-${portversion}.pkg'"
-    system "$hdiutil detach ${devicename} -quiet"
     if {[system "$hdiutil convert ${tmp_image} -format UDCO -o ${final_image} -quiet"] != ""} {
         return -code error [format [msgcat::mc "Failed to convert to final image: %s"] ${final_image}]
     }
