@@ -208,7 +208,7 @@ proc portclean::clean_archive {args} {
     }
 
     if {[info exists ports_version_glob]} {
-        # Match all possible archive variatns that match the version
+        # Match all possible archive variants that match the version
         # glob specified by the user for this OS.
         set fileglob "$name-[option ports_version_glob]*.${configure.build_arch}.*"
     } else {
@@ -217,7 +217,7 @@ proc portclean::clean_archive {args} {
         # version glob argument to clean.
         #
         # We do this because if we don't, then ports that match the
-        # first part of the name (e.g. trying to remove foo-*, it will
+        # first part of the name (e.g. trying to remove foo-* will
         # pick up anything foo-bar-* as well, which is undesirable).
         set fileglob "$name-$version*.${configure.build_arch}.*"
     }
@@ -228,7 +228,7 @@ proc portclean::clean_archive {args} {
         foreach path $archivelist {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not
-            # and accidental match with some other file that might exist.
+            # an accidental match with some other file that might exist.
             if {[regexp "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\]${configure.build_arch}\[\.\]\[a-z2\]+\$" $file]} {
                 if {[file isfile $path]} {
                     ui_debug "Removing archive: $path"
