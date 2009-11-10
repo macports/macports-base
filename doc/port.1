@@ -394,10 +394,13 @@ To remove the archive(s) for the current version of a port, pass
 .Fl -archive .
 To remove the work files, distribution files and archives, pass
 .Fl -all .
+To remove log files for certain port, pass
+.Fl -logs .
 For example:
 .Pp
 .Dl "port clean --dist vim"
 .Dl "port clean --archive vim"
+.Dl "port clean --logs vim"
 .Pp
 To remove only certain version(s) of a port's archives (
 .Ar version
@@ -408,6 +411,19 @@ is any valid UNIX glob pattern), you can use:
 or:
 .Pp
 .Dl "port clean --archive vim '6.*'"
+.Ss log
+Parses and shows log files for
+.Ar portname .
+To filter log files by some criterions use
+.Fl -phase 
+to specify phase you want to show and
+.Fl -verbosity
+to specify message category (msg, info, debug)
+For example:
+.Pp
+.Dl "port log --phase configure vim"
+.Dl "port log --phase fetch --verbosity debug vim"
+.Pp
 .Ss echo
 Writes to stdout the arguments passed to
 .Nm .

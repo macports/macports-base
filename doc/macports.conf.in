@@ -85,6 +85,10 @@ universal_archs		@UNIVERSAL_ARCHS@
 # Set whether to automatically execute "clean" after "install" of ports
 #portautoclean		yes
 
+# Uncomment if you dont want logs to be saved (but you will not be able to get 
+# help if something goes wrong)
+#keeplogs no
+
 # Rsync server to fetch MacPorts sources from. Note that this is only used
 # for selfupdate. The source(s) for the ports tree are set in sources.conf.
 # Known mirrors at time of writing (see http://trac.macports.org/wiki/Mirrors

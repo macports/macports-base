@@ -1199,7 +1199,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped
+    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped current_stage worksrcpath prefix
     set portname [option name]
     set result 0
     set skipped 0
@@ -1250,7 +1250,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
-
+                ui_phase  $target
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
@@ -1357,6 +1357,18 @@ proc target_run {ditem} {
 
                     # End of trace.
                     porttrace::trace_stop
+                }
+            }
+        }
+        if {[exists copy_log_files]} {
+            set log_files [option copy_log_files]
+            set log_dir "$prefix/var/macports/logs/$portname"
+            file mkdir $log_dir
+ 
+            foreach log_file $log_files {
+                set from "$worksrcpath/$log_file"
+                if {[file exists $from]} {
+                    file copy -force $from $log_dir
                 }
             }
         }

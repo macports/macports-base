@@ -40,6 +40,14 @@ Removes file associates with given ports
 --dist        Removes downloaded distfiles
 --work        Removes work directory (default)
 --all         Removes everything from above
+--logs 				Removes log files for port
+}
+
+set porthelp(log) {
+Shows main log for given ports
+
+--phase <phase>		Filteres log file by phase (configure, fetch, etc..)
+--verbosity <ver>	Filteres log file by verbosity level (msg, debug, info)	
 }
 
 set porthelp(configure) {

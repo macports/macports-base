@@ -155,7 +155,6 @@ proc break_softcontinue { msg status name_status } {
     }
 }
 
-
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations {emptyVersionOkay 0}} {
     # Form a composite version out of the version and variations
@@ -1394,6 +1393,94 @@ proc action_help { action portlist opts } {
         puts stderr $porthelp($topic)
     }
 
+    return 0
+}
+
+
+proc action_log { action portlist opts } {
+    global global_options 
+    set logfile "$macports::prefix/var/macports/logs/"
+    #puts "$opts"
+    if {[llength $portlist] == 0} {
+        print_help
+        return 0
+    }
+    foreachport $portlist {
+        # If we have a url, use that, since it's most specific
+        # otherwise try to map the portname to a url
+        if {$porturl eq ""} {
+        # Verify the portname, getting portinfo to map to a porturl
+            if {[catch {mportlookup $portname} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+            set porturl $portinfo(porturl)
+            set portdir $portinfo(portdir)
+        } elseif {$porturl ne "file://."} {
+            # Extract the portdir from porturl and use it to search PortIndex.
+            # Only the last two elements of the path (porturl) make up the
+            # portdir.
+            set portdir [file split [macports::getportdir $porturl]]
+            set lsize [llength $portdir]
+            set portdir \
+                [file join [lindex $portdir [expr $lsize - 2]] \
+                           [lindex $portdir [expr $lsize - 1]]]
+            if {[catch {mportsearch $portdir no exact portdir} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+        }
+        if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+            ui_debug "$::errorInfo"
+            break_softcontinue "Unable to open port: $result" 1 status
+         }
+         array unset portinfo
+         array set portinfo [mportinfo $mport]
+
+         append logfile $portinfo(name)
+         append logfile "/main.log"
+         mportclose $mport                        
+         if {[file exists $logfile]} {
+            set fp [open $logfile r]
+            set data [read $fp]
+            set data [split $data "\n"]
+
+            if {[info exists global_options(ports_log_phase)]} {
+                set stage $global_options(ports_log_phase);
+            } else {
+                set stage "\[a-z\]*"
+            }
+
+            if {[info exists global_options(ports_log_verbosity)]} {
+                set prefix $global_options(ports_log_verbosity);
+            } else {
+                set prefix "\[a-z\]*"
+            }
+            set match ""
+            foreach line $data {
+                set exp "^:($prefix|any):($stage|any) .*$"
+                regexp $exp $line match
+                if {$match == $line} {
+                    regsub "^:\[a-z\]*:\[a-z\]* "  $line "" line
+                    puts $line
+                }
+            }
+            
+            close $fp
+        } else {
+            ui_msg "Log file not found"
+        }
+    }
     return 0
 }
 
@@ -2998,6 +3085,7 @@ array set action_array [list \
     location    [list action_location       [action_args_const ports]] \
     notes       [list action_notes          [action_args_const ports]] \
     provides    [list action_provides       [action_args_const strings]] \
+    log         [list action_log            [action_args_const ports]] \
     \
     activate    [list action_activate       [action_args_const ports]] \
     deactivate  [list action_deactivate     [action_args_const ports]] \
@@ -3121,10 +3209,11 @@ array set cmd_opts_array {
     selfupdate  {nosync}
     uninstall   {follow-dependents}
     variants    {index}
-    clean       {all archive dist work}
+    clean       {all archive dist work logs}
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
+    log         {{phase 1} {verbosity 1}}
     upgrade     {force enforce-variants no-replace}
 }
 
@@ -3665,6 +3754,7 @@ global global_options_base
 set global_options_base [array get global_options]
 
 # First process any remaining args as action(s)
+global exit_status
 set exit_status 0
 if { [llength $remaining_args] > 0 } {
 

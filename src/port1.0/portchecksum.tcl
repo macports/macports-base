@@ -236,7 +236,7 @@ proc portchecksum::checksum_main {args} {
                         ui_debug "[format [msgcat::mc "Correct (%s) checksum for %s"] $type $distfile]"
                     } else {
                         ui_error "[format [msgcat::mc "Checksum (%s) mismatch for %s"] $type $distfile]"
-                        ui_info "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
+                        ui_info_fetch "[format [msgcat::mc "Portfile checksum: %s %s %s"] $distfile $type $sum]"
                         ui_info "[format [msgcat::mc "Distfile checksum: %s %s %s"] $distfile $type $calculated_sum]"
 
                         # Raise the failure flag
