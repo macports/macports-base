@@ -209,7 +209,7 @@ debug mode (generate debugging messages, implies
 .It Fl q
 quiet mode (suppress messages)
 .It Fl n
-don't follow dependencies in upgrade (only for upgrading)
+don't upgrade dependencies (affects upgrade and install)
 .It Fl R
 also upgrade dependents (only for upgrading)
 .It Fl u
@@ -386,10 +386,25 @@ To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
 To remove the work and distribution files, pass
 .Fl -all .
+To remove log files for certain port, pass
+.Fl -logs .
 For example:
 .Pp
 .Dl "port clean --dist vim"
-.Dl "port clean --all vim"
+.Dl "port clean --logs vim"
+.Ss log
+Parses and shows log files for
+.Ar portname .
+To filter log files by some criterions use
+.Fl -phase 
+to specify phase you want to show and
+.Fl -verbosity
+to specify message category (msg, info, debug)
+For example:
+.Pp
+.Dl "port log --phase configure vim"
+.Dl "port log --phase fetch --verbosity debug vim"
+.Pp
 .Ss echo
 Writes to stdout the arguments passed to
 .Nm .

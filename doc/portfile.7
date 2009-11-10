@@ -317,6 +317,14 @@ target to configure the build.
 .br
 .Sy Example:
 .Dl use_configure no
+.It Ic copy_log_files Ar path/to/logfile1 Ar path/to/logfile2 Ar ...
+Copy specific log files from the workdir to the main macports log dir
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl copy_log_files config.log
 .It Ic conflicts
 Used to list ports which conflict with the one containing the
 .Cm conflicts
