@@ -1934,7 +1934,7 @@ proc action_provides { action portlist opts } {
     foreach filename $portlist {
         set file [file normalize $filename]
         if {[file exists $file]} {
-            if {![file isdirectory $file]} {
+            if {![file isdirectory $file] || [file type $file] == "link"} {
                 set port [registry::file_registered $file]
                 if { $port != 0 } {
                     puts "$file is provided by: $port"
