@@ -112,7 +112,7 @@ proc macports::init_logging {portname} {
     global ::debuglog ::debuglogname macports::channels macports::portdbpath
 
     set logspath [file join $macports::portdbpath logs]
-    if {![file writable $logspath]} {
+    if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
         ui_debug "logging disabled, can't write to $logspath"
         return
     }
@@ -1474,7 +1474,9 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 
 proc _mportexec {target mport} {
     global ::debuglog
-    set previouslog $::debuglog
+    if {[info exists ::debuglog]} {
+        set previouslog $::debuglog
+    }
     set portname [_mportkey $mport name]
     ui_debug "Starting logging for $portname"
     macports::ch_logging $portname
@@ -1493,11 +1495,15 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
-        set ::debuglog $previouslog
+        if {[info exists previouslog]} {
+            set ::debuglog $previouslog
+        }
         return 0
     } else {
         # An error occurred.
-        set ::debuglog $previouslog
+        if {[info exists previouslog]} {
+            set ::debuglog $previouslog
+        }
         return 1
     }
 }
