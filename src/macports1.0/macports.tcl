@@ -114,7 +114,7 @@ proc macports::init_logging {portname} {
     set logname [file join $macports::portdbpath "logs/$portname"]
     file mkdir $logname
     set logname [file join $logname "main.log"]
-    ui_msg $logname
+    ui_debug "logging to $logname"
     set ::debuglogname $logname
 
     # Recreate the file if already exists
@@ -150,7 +150,7 @@ proc ui_phase {phase} {
     set macports::current_stage $phase
     if {$phase != "main"} {
         set cur_time [clock format [clock seconds] -format  {%+}]
-        ui_any "--->  Stage $phase started at $cur_time"
+        ui_debug "--->  Stage $phase started at $cur_time"
     }
 }
 proc ui_message {priority prefix stage args} {
