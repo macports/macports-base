@@ -111,7 +111,12 @@ proc macports::global_option_isset {val} {
 proc macports::init_logging {portname} {
     global ::debuglog ::debuglogname macports::channels macports::portdbpath
 
-    set logname [file join $macports::portdbpath "logs/$portname"]
+    set logspath [file join $macports::portdbpath logs]
+    if {![file writable $logspath]} {
+        ui_debug "logging disabled, can't write to $logspath"
+        return
+    }
+    set logname [file join $logspath $portname]
     file mkdir $logname
     set logname [file join $logname "main.log"]
     ui_debug "logging to $logname"
