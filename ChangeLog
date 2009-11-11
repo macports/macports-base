@@ -25,6 +25,9 @@ Release 1.9.0 (unreleased):
       This is a step in the direction of enabling binary distribution.
       (snc in r58977)
 
+    - Add new log command and keeping of debug output for easy access
+      after port has run (GSoC 2009 logging project by enl, merged in r60372)
+
 Release 1.8.1 (2009-09-28 by jmr):
 
     - Installer error messages now display properly even from the Snow Leopard
