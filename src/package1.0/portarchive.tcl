@@ -100,7 +100,7 @@ proc portarchive::archive_init {args} {
         set archive.fulldestpath ${archive.destpath}
     }
 
-    if {![file exists ${archive.fulldestpath}] {
+    if {![file exists ${archive.fulldestpath}]} {
         file mkdir ${archive.fulldestpath}
     }
 
