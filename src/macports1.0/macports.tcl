@@ -112,10 +112,15 @@ proc macports::global_option_isset {val} {
 proc macports::init_logging {portname} {
     global ::debuglog ::debuglogname macports::channels macports::portdbpath
 
-    set logname [file join $macports::portdbpath "logs/$portname"]
+    set logspath [file join $macports::portdbpath logs]
+    if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
+        ui_debug "logging disabled, can't write to $logspath"
+        return
+    }
+    set logname [file join $logspath $portname]
     file mkdir $logname
     set logname [file join $logname "main.log"]
-    ui_msg $logname
+    ui_debug "logging to $logname"
     set ::debuglogname $logname
 
     # Recreate the file if already exists
@@ -151,7 +156,7 @@ proc ui_phase {phase} {
     set macports::current_stage $phase
     if {$phase != "main"} {
         set cur_time [clock format [clock seconds] -format  {%+}]
-        ui_any "--->  Stage $phase started at $cur_time"
+        ui_debug "$phase phase started at $cur_time"
     }
 }
 proc ui_message {priority prefix stage args} {
@@ -1431,7 +1436,9 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 
 proc _mportexec {target mport} {
     global ::debuglog
-    set previouslog $::debuglog
+    if {[info exists ::debuglog]} {
+        set previouslog $::debuglog
+    }
     set portname [_mportkey $mport name]
     ui_debug "Starting logging for $portname"
     macports::ch_logging $portname
@@ -1450,11 +1457,15 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
-        set ::debuglog $previouslog
+        if {[info exists previouslog]} {
+            set ::debuglog $previouslog
+        }
         return 0
     } else {
         # An error occurred.
-        set ::debuglog $previouslog
+        if {[info exists previouslog]} {
+            set ::debuglog $previouslog
+        }
         return 1
     }
 }
