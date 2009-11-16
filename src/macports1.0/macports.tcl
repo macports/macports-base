@@ -155,7 +155,7 @@ proc ui_phase {phase} {
     set macports::current_stage $phase
     if {$phase != "main"} {
         set cur_time [clock format [clock seconds] -format  {%+}]
-        ui_debug "--->  Stage $phase started at $cur_time"
+        ui_debug "$phase phase started at $cur_time"
     }
 }
 proc ui_message {priority prefix stage args} {
