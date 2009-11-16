@@ -533,11 +533,15 @@ proc portfetch::cvsfetch {args} {
 
 # Perform an svn fetch
 proc portfetch::svnfetch {args} {
-    global svn.args svn.revision svn.method
+    global svn.args svn.method svn.revision svn.url
+
+    if {[regexp {\s} ${svn.url}]} {
+        return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
+    }
 
     set svn.args "${svn.method} ${svn.args}"
     if {[string length ${svn.revision}]} {
-        set svn.args "${svn.args} -r ${svn.revision}"
+        append svn.url "@${svn.revision}"
     }
 
     if {[catch {command_exec svn "" "2>&1"} result]} {

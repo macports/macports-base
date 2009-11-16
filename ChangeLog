@@ -5,6 +5,10 @@
 
 Release 1.9.0 (unreleased):
 
+    - svn checkouts now use peg revisions instead of operative revisions,
+      so they'll continue to work if a repository gets reorganized
+      (#20777, ryandesign)
+
     - Use CommonCrypto/CommonDigest instead of OpenSSL libcrypto. (toby)
 
     - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160. (afb)
