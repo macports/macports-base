@@ -153,7 +153,9 @@ default configure.pkg_config_path   {}
 
 options configure.build_arch
 default configure.build_arch {${build_arch}}
-foreach tool {cc cxx objc f77 f90 fc ld} {
+options configure.ld_archflags
+default configure.ld_archflags {[portconfigure::configure_get_ld_archflags]}
+foreach tool {cc cxx objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
@@ -220,7 +222,7 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc" || $tool == "ld")} {
+        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -229,6 +231,19 @@ proc portconfigure::configure_get_archflags {tool} {
         }
     }
     return $flags
+}
+
+# internal function to determine the ld flags to select an arch
+# Unfortunately there's no consistent way to do this when the compiler
+# doesn't support -arch, because it could be used to link rather than using
+# ld directly. So we punt and let portfiles deal with that case.
+proc portconfigure::configure_get_ld_archflags {args} {
+    global configure.build_arch
+    if {${configure.build_arch} != "" && [arch_flag_supported]} {
+        set flags "-arch ${configure.build_arch}"
+    } else {
+        return ""
+    }
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
