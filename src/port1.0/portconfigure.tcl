@@ -153,7 +153,7 @@ default configure.pkg_config_path   {}
 
 options configure.build_arch
 default configure.build_arch {${build_arch}}
-foreach tool {cc cxx objc f77 f90 fc} {
+foreach tool {cc cxx objc f77 f90 fc ld} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
 }
@@ -220,7 +220,7 @@ proc portconfigure::configure_get_archflags {tool} {
     } elseif {[tbool configure.m32]} {
         set flags "-m32"
     } elseif {${configure.build_arch} != ""} {
-        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc")} {
+        if {[arch_flag_supported] && ($tool == "cc" || $tool == "cxx" || $tool == "objc" || $tool == "ld")} {
             set flags "-arch ${configure.build_arch}"
         } elseif {${configure.build_arch} == "x86_64" || ${configure.build_arch} == "ppc64"} {
             set flags "-m64"
@@ -461,7 +461,7 @@ proc portconfigure::configure_main {args} {
     global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
     global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune
-    foreach tool {cc cxx objc f77 f90 fc} {
+    foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
     foreach flags {cflags cppflags cxxflags objcflags ldflags fflags f90flags fcflags} {
@@ -554,7 +554,7 @@ proc portconfigure::configure_main {args} {
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval configure.pre_args-append ${configure.universal_args}
         } else {
-            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS} {
+            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
                 append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
                 if {${configure.march} != {}} {
                     append_list_to_environment_value configure $flags "-march=${configure.march}"
