@@ -34,13 +34,13 @@ Compares the checksums for the downloaded files of the given ports
 }
 
 set porthelp(clean) {
-Removes file associates with given ports
+Removes files associated with the given ports
 
 --archive     Removes created archives
 --dist        Removes downloaded distfiles
+--logs        Removes log files
 --work        Removes work directory (default)
 --all         Removes everything from above
---logs 				Removes log files for port
 }
 
 set porthelp(log) {
