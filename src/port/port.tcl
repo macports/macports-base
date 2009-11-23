@@ -156,6 +156,16 @@ proc break_softcontinue { msg status name_status } {
     }
 }
 
+# show the URL for the ticket reporting instructions
+proc print_tickets_url {args} {
+    if {![macports::ui_isset ports_quiet]} {
+        if {[macports::ui_isset ports_debug]} {
+            ui_msg "To report a bug, see <http://guide.macports.org/#project.tickets>"
+        } else {
+            ui_msg "Before reporting a bug, first run the command again with the -d flag to get complete output."
+        }
+    }
+}
 
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations {emptyVersionOkay 0}} {
@@ -2037,13 +2047,16 @@ proc action_upgrade { action portlist opts } {
                 if {!$orig_nodeps} {
                     unset -nocomplain macports::global_options(ports_nodeps)
                 }
-                return $status
+                break
             }
         }
     }
 
     if {!$orig_nodeps} {
         unset -nocomplain macports::global_options(ports_nodeps)
+    }
+    if {$status != 0} {
+        print_tickets_url
     }
     return $status
 }
@@ -2932,6 +2945,9 @@ proc action_target { action portlist opts } {
         }
     }
     
+    if {$status != 0} {
+        print_tickets_url
+    }
     return $status
 }
 

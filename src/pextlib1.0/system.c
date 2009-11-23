@@ -196,20 +196,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		if (WEXITSTATUS(ret) == 0) {
 			status = TCL_OK;
 		} else {
-			/* Copy the contents of the circular buffer to errbuf */
-		  	Tcl_Obj* errorCode;
-			errbuf = Tcl_NewStringObj(NULL, 0);
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len == 0)
-				continue; /* skip empty lines */
-
-				/* Append line, minus trailing NULL */
-				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
-						circbuf[pos % CBUFSIZ].len - 1);
-
-				/* Re-add previously stripped newline */
-				Tcl_AppendToObj(errbuf, "\n", 1);
-			}
+		    Tcl_Obj* errorCode;
+		    const char *portverbose;
 
 			/* set errorCode [list CHILDSTATUS <pid> <code>] */
 			errorCode = Tcl_NewListObj(0, NULL);
@@ -223,8 +211,27 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 			Tcl_AppendToObj(tcl_result, cmdstring, -1);
 			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
 			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
-			Tcl_AppendObjToObj(tcl_result, errbuf);
+			
+			portverbose = Tcl_GetVar(interp, "portverbose", TCL_GLOBAL_ONLY);
+			/* include last 30 lines of output only if they haven't already
+			   been shown due to debug or verbose mode */
+			if (portverbose && strcmp("yes", portverbose) != 0) {
+			    /* Copy the contents of the circular buffer to errbuf */
+                errbuf = Tcl_NewStringObj(NULL, 0);
+                for (fline = pos; pos < fline + CBUFSIZ; pos++) {
+                    if (circbuf[pos % CBUFSIZ].len == 0)
+                    continue; /* skip empty lines */
+
+                    /* Append line, minus trailing NULL */
+                    Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
+                            circbuf[pos % CBUFSIZ].len - 1);
+
+                    /* Re-add previously stripped newline */
+                    Tcl_AppendToObj(errbuf, "\n", 1);
+                }
+			    Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
+			    Tcl_AppendObjToObj(tcl_result, errbuf);
+			}
 			Tcl_SetObjResult(interp, tcl_result);
 		}
 	}
