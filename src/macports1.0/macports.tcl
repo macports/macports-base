@@ -633,7 +633,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$portarchivemode == "yes"} {
         if {![file isdirectory $portarchivepath]} {
             if {![file exists $portarchivepath]} {
-                if {[catch {file mkdir $portarchivepath} result]} {
+                if {![file owned $portdbpath]} {
+                    file lstat $portdbpath stat
+                    return -code error "insufficient privileges for portdbpath $portdbpath (uid $stat(uid)); cannot create portarchivepath"
+                } elseif {[catch {file mkdir $portarchivepath} result]} {
                     return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
                 }
             }
