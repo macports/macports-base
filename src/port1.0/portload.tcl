@@ -42,6 +42,9 @@ target_requires ${org.macports.load} main
 namespace eval portload {
 }
 
+options load.asroot
+default load.asroot yes
+
 set_ui_prefix
 
 proc portload::load_main {args} {

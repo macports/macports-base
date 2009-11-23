@@ -42,6 +42,9 @@ target_requires ${org.macports.unload} main
 namespace eval portunload {
 }
 
+options unload.asroot
+default unload.asroot yes
+
 set_ui_prefix
 
 proc portunload::unload_main {args} {
