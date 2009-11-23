@@ -100,10 +100,6 @@ proc portarchive::archive_init {args} {
         set archive.fulldestpath ${archive.destpath}
     }
 
-    if {![file exists ${archive.fulldestpath}]} {
-        file mkdir ${archive.fulldestpath}
-    }
-
     # Determine if archive should be skipped
     set skipped 0
     if {[check_statefile target org.macports.archive $target_state_fd]} {
