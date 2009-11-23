@@ -155,6 +155,13 @@ proc break_softcontinue { msg status name_status } {
     }
 }
 
+# show the URL for the ticket reporting instructions
+proc print_tickets_url {args} {
+    if {![macports::ui_isset ports_quiet]} {
+        ui_msg "To report a bug, see <http://guide.macports.org/#project.tickets>"
+    }
+}
+
 # Form a composite version as is sometimes used for registry functions
 proc composite_version {version variations {emptyVersionOkay 0}} {
     # Form a composite version out of the version and variations
@@ -2114,9 +2121,13 @@ proc action_upgrade { action portlist opts } {
         if {![info exists depscache(port:$portname)]} {
             set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
             if {$status != 0 && ![macports::ui_isset ports_processall]} {
-                return $status
+                break
             }
         }
+    }
+    
+    if {$status != 0} {
+        print_tickets_url
     }
 
     return $status
@@ -3007,6 +3018,10 @@ proc action_target { action portlist opts } {
         if {$result} {
             break_softcontinue "Status $result encountered during processing." 1 status
         }
+    }
+    
+    if {$status != 0} {
+        print_tickets_url
     }
     
     return $status

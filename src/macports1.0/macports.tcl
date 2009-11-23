@@ -1605,6 +1605,11 @@ proc mportexec {mport target} {
         catch {cd $portpath}
         $workername eval eval_targets clean
     }
+    
+    global ::debuglogname
+    if {$result != 0 && ![macports::ui_isset ports_quiet] && [info exists ::debuglogname]} {
+        ui_msg "Log for $portname is at: $::debuglogname"
+    }
 
     return $result
 }
