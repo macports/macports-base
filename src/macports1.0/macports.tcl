@@ -2403,7 +2403,7 @@ proc macports::selfupdate {{optionslist {}}} {
             set owner [file attributes ${prefix} -owner]
             set group [file attributes ${prefix} -group]
             set perms [string range [file attributes ${prefix} -permissions] end-3 end]
-            if {![string equal $tcl_platform(user) $owner]} {
+            if {$tcl_platform(user) != "root" && ![string equal $tcl_platform(user) $owner]} {
                 return -code error "User $tcl_platform(user) does not own ${prefix} - try using sudo"
             }
             ui_debug "Permissions OK"
