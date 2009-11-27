@@ -1273,7 +1273,7 @@ proc mporttraverse {func {root .}} {
 # search_path -> directories to search
 # executable -> whether we want to check that the file is executable by current
 #               user or not.
-proc _mportsearchpath {depregex search_path {executable 0}} {
+proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
     set found 0
     foreach path $search_path {
         if {![file isdirectory $path]} {
@@ -1282,7 +1282,6 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
 
         if {[catch {set filelist [readdir $path]} result]} {
             return -code error "$result ($path)"
-            set filelist ""
         }
 
         foreach filename $filelist {
@@ -1294,7 +1293,15 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
             }
         }
     }
-    return $found
+    if {$return_match} {
+        if {$found} {
+            return [file join $path $filename]
+        } else {
+            return ""
+        }
+    } else {
+        return $found
+    }
 }
 
 ### _libtest is private; subject to change without notice
@@ -1307,7 +1314,7 @@ proc _mportsearchpath {depregex search_path {executable 0}} {
 # Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
 # DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
 
-proc _libtest {mport depspec} {
+proc _libtest {mport depspec {return_match 0}} {
     global env tcl_platform
     set depline [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
@@ -1340,12 +1347,12 @@ proc _libtest {mport depspec} {
         set depregex \^${depname}\\.so${depversion}\$
     }
 
-    return [_mportsearchpath $depregex $search_path]
+    return [_mportsearchpath $depregex $search_path 0 $return_match]
 }
 
 ### _bintest is private; subject to change without notice
 
-proc _bintest {mport depspec} {
+proc _bintest {mport depspec {return_match 0}} {
     global env
     set depregex [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
@@ -1354,12 +1361,12 @@ proc _bintest {mport depspec} {
 
     set depregex \^$depregex\$
 
-    return [_mportsearchpath $depregex $search_path 1]
+    return [_mportsearchpath $depregex $search_path 1 $return_match]
 }
 
 ### _pathtest is private; subject to change without notice
 
-proc _pathtest {mport depspec} {
+proc _pathtest {mport depspec {return_match 0}} {
     global env
     set depregex [lindex [split $depspec :] 1]
     set prefix [_mportkey $mport prefix]
@@ -1376,7 +1383,7 @@ proc _pathtest {mport depspec} {
 
     set depregex \^$depregex\$
 
-    return [_mportsearchpath $depregex $search_path]
+    return [_mportsearchpath $depregex $search_path 0 $return_match]
 }
 
 ### _porttest is private; subject to change without notice
@@ -1633,13 +1640,50 @@ proc macports::_upgrade_mport_deps {mport target} {
     }
     
     foreach depspec $depends {
-        set dep_portname [lindex [split $depspec :] end]
-        if {![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
+        set dep_portname [_get_dep_port $mport $depspec]
+        if {$dep_portname != "" && ![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
             set status [macports::upgrade $dep_portname "port:$dep_portname" {} $options depscache]
             # status 2 means the port was not found in the index
             if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrade $dep_portname failed"
             }
+        }
+    }
+}
+
+# returns the name of the port that will actually be satisfying $depspec
+proc macports::_get_dep_port {mport depspec} {
+    set speclist [split $depspec :]
+    set portname [lindex $speclist end]
+    if {[string equal ${macports::registry.installtype} "image"]} {
+        set res [_portnameactive $portname]
+    } else {
+        set res [registry::entry_exists_for_name $portname]
+    }
+    if {$res != 0} {
+        return $portname
+    }
+    
+    set depfile ""
+    switch [lindex $speclist 0] {
+        bin {
+            set depfile [_bintest $mport $depspec 1]
+        }
+        lib {
+            set depfile [_libtest $mport $depspec 1]
+        }
+        path {
+            set depfile [_pathtest $mport $depspec 1]
+        }
+    }
+    if {$depfile == ""} {
+        return $portname
+    } else {
+        set theport [registry::file_registered $depfile]
+        if {$theport != 0} {
+            return $theport
+        } else {
+            return ""
         }
     }
 }
@@ -2946,6 +2990,7 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     upvar $portinfoname portinfo $depscachename depscache \
           $variationslistname variationslist \
           $optionsname options
+    upvar workername parentworker
 
     # If we're following dependents, we only want to follow this port's
     # dependents, not those of all its dependencies. Otherwise, we would
@@ -2964,9 +3009,15 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
-                set d [lindex [split $i :] end]
+                set d [_get_dep_port $parentworker $i]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
-                    set status [macports::_upgrade $d $i $variationslist [array get options] depscache]
+                    if {$d != ""} {
+                        set dspec port:$d
+                    } else {
+                        set dspec $i
+                        set d [lindex [split $i :] end]
+                    }
+                    set status [macports::_upgrade $d $dspec $variationslist [array get options] depscache]
                     if {$status != 0 && ![ui_isset ports_processall]} break
                 }
             }
