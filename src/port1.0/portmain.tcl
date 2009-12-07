@@ -94,7 +94,6 @@ default os.major {$os_major}
 default os.arch {$os_arch}
 # Remove trailing "Endian"
 default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
-default os.universal_supported no
 
 set macosx_version {}
 set macosx_version_text {}
@@ -120,7 +119,9 @@ if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirecto
 if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
     # the universal variant itself is now created in
     # add_default_universal_variant, which is called from mportopen
-    option os.universal_supported yes
+    default os.universal_supported yes
+} else {
+    default os.universal_supported no
 }
 
 # start gsoc08-privileges
