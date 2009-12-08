@@ -37,6 +37,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -115,9 +116,10 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	int theResult = TCL_OK;
 	CURL* theHandle = NULL;
 	FILE* theFile = NULL;
+	bool performFailed = false;
+	char theErrorString[CURL_ERROR_SIZE];
 
 	do {
-		long theResponseCode = 0;
 		int noprogress = 1;
 		int useepsv = 1;
 		int ignoresslcert = 0;
@@ -331,13 +333,19 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* actually fetch the resource */
-		theCurlCode = curl_easy_perform(theHandle);
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_ERRORBUFFER, theErrorString);
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
 		}
-		
+
+		/* actually fetch the resource */
+		theCurlCode = curl_easy_perform(theHandle);
+		if (theCurlCode != CURLE_OK) {
+			performFailed = true;
+			break;
+		}
+
 		/* close the file */
 		(void) fclose( theFile );
 		theFile = NULL;
@@ -402,37 +410,23 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				0);
 		}
 		
-		/* check everything went fine */
-		theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_HTTP_CODE, &theResponseCode);
-		if (theCurlCode != CURLE_OK) {
-			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-			break;
-		}
-		
-		/* we need something between 200 (incl.) and 300 (excl.).*/
-		/* (actually, we sometimes get 0 from GNU FTP servers) */
-		if (((theResponseCode != 0)  && (theResponseCode < 200))
-			|| (theResponseCode >= 300)) {
-			char theErrorString[512];
-			(void) snprintf(theErrorString, sizeof(theErrorString),
-				"Download failed (code = %li)", theResponseCode);
-			Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
-			theResult = TCL_ERROR;
-			break;
-		}
-		
 		/* clean up */
 		curl_easy_cleanup( theHandle );
 		theHandle = NULL;
-    } while (0);
-    
-    if (theHandle != NULL) {
-    	curl_easy_cleanup( theHandle );
-    }
-    if (theFile != NULL) {
-    	fclose( theFile );
-    }
-    
+	} while (0);
+
+	if (performFailed) {
+		Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+		theResult = TCL_ERROR;
+	}
+
+	if (theHandle != NULL) {
+		curl_easy_cleanup( theHandle );
+	}
+	if (theFile != NULL) {
+		fclose( theFile );
+	}
+
 	return theResult;
 }
 
