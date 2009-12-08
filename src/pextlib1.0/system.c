@@ -40,6 +40,7 @@
 #include <paths.h>
 #endif
 
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -79,6 +80,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	int fline, pos, ret;
 	int osetsid = 0;
 	pid_t pid;
+	uid_t euid;
 	Tcl_Obj *tcl_result;
 	int read_failed, status;
 
@@ -127,6 +129,12 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		if (osetsid) {
 			if (setsid() == -1)
 				_exit(1);
+		}
+		/* drop privileges entirely for child */
+		if (getuid() == 0 && (euid = geteuid()) != 0) {
+		    if (seteuid(0) || setuid(euid)) {
+		        _exit(1);
+		    }
 		}
 		/* XXX ugly string constants */
 		args[0] = "sh";
