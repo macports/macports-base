@@ -52,7 +52,7 @@ namespace eval macports {
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
-        rsync_options rsync_dir startupitem_type place_worksymlink \
+        rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_stage frameworks_dir developer_dir universal_archs build_arch $user_options"
 
@@ -111,6 +111,9 @@ proc macports::global_option_isset {val} {
 proc macports::init_logging {portname} {
     global ::debuglog ::debuglogname macports::channels macports::portdbpath
 
+    if {[getuid] == 0 && [geteuid] != 0} {
+        seteuid 0
+    }
     set logspath [file join $macports::portdbpath logs]
     if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
         ui_debug "logging disabled, can't write to $logspath"
@@ -722,7 +725,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists macports::buildmakejobs]} {
         set macports::buildmakejobs 0
     }
-    
+
+    # default user to run as when privileges can be dropped
+    if {![info exists macports::macportsuser]} {
+        set macports::macportsuser $macports::autoconf::macportsuser
+    }
+
     # Default Xcode Tools path
     if {![info exists macports::developer_dir]} {
         set macports::developer_dir "/Developer"

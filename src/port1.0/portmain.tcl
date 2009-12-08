@@ -44,7 +44,7 @@ namespace eval portmain {
 }
 
 # define options
-options prefix macportsuser name version revision epoch categories maintainers
+options prefix name version revision epoch categories maintainers
 options long_description description homepage license provides conflicts replaced_by
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
@@ -76,7 +76,6 @@ default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
 
 # Configure settings
-default macportsuser {${portutil::autoconf::macportsuser}}
 default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 

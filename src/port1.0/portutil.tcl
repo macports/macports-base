@@ -1505,6 +1505,11 @@ proc open_statefile {args} {
     if {![file isdirectory $workpath]} {
         file mkdir $workpath
         chownAsRoot $portbuildpath
+        # Create a symlink to the workpath for port authors
+        if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+            ui_debug "Attempting ln -sf $workpath $worksymlink"
+            ln -sf $workpath $worksymlink
+        }
     }
     
     if { [getuid] != 0 } {
@@ -1550,12 +1555,6 @@ proc open_statefile {args} {
                 ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
             }
         }
-    }
-
-    # Create a symlink to the workpath for port authors
-    if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-        ui_debug "Attempting ln -sf $workpath $worksymlink"
-        ln -sf $workpath $worksymlink
     }
 
     set fd [open $statefile a+]
