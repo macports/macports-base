@@ -53,7 +53,7 @@ IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *C
     Tcl_Obj *tcl_result;
     Tcl_Channel chan;
     int dir;
-    int fd;
+    ClientData fd;
     int rval;
 
     if (objc != 2) {
@@ -69,11 +69,11 @@ IsattyCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *C
 
     if (Tcl_GetChannelHandle(chan,
             dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
-            (ClientData*) &fd) == TCL_ERROR) {
+            &fd) == TCL_ERROR) {
         return TCL_ERROR;
     }
 
-    rval = isatty(fd);
+    rval = isatty((int)(intptr_t)fd);
 
     tcl_result = Tcl_NewIntObj(rval);
     Tcl_SetObjResult(interp, tcl_result);
@@ -87,7 +87,7 @@ TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
     Tcl_Obj *tcl_result;
     Tcl_Channel chan;
     int dir;
-    int fd;
+    ClientData fd;
     Tcl_Obj *robjv[2];
     struct winsize ws = {0, 0, 0, 0};
 
@@ -104,16 +104,16 @@ TermGetSizeCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_O
 
     if (Tcl_GetChannelHandle(chan,
             dir & TCL_READABLE ? TCL_READABLE : TCL_WRITABLE,
-            (ClientData*) &fd) == TCL_ERROR) {
+            &fd) == TCL_ERROR) {
         return TCL_ERROR;
     }
 
-    if (!isatty(fd)) {
+    if (!isatty((int)(intptr_t)fd)) {
         Tcl_SetResult(interp, "channel is not connected to a tty", TCL_STATIC);
         return TCL_ERROR;
     }
 
-    if (ioctl(fd, TIOCGWINSZ, &ws) == -1) {
+    if (ioctl((int)(intptr_t)fd, TIOCGWINSZ, &ws) == -1) {
         Tcl_SetResult(interp, "ioctl failed", TCL_STATIC);
         return TCL_ERROR;
     }
