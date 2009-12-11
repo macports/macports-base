@@ -865,7 +865,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     _mports_load_quickindex
 
     set default_source_url [lindex ${sources_default} 0]
-    if {[macports::getprotocol $default_source_url] == "file"} {
+    if {[macports::getprotocol $default_source_url] == "file" || [macports::getprotocol $default_source_url] == "rsync"} {
         set default_portindex [macports::getindex $default_source_url]
         if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
             ui_warn "port definitions are more than two weeks old, consider using selfupdate"
