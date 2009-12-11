@@ -40,6 +40,7 @@
 #include <paths.h>
 #endif
 
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -79,7 +80,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	int fline, pos, ret;
 	int osetsid = 0;
 	pid_t pid;
-	Tcl_Obj *errbuf;
+	uid_t euid;
 	Tcl_Obj *tcl_result;
 	int read_failed, status;
 
@@ -128,6 +129,12 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		if (osetsid) {
 			if (setsid() == -1)
 				_exit(1);
+		}
+		/* drop privileges entirely for child */
+		if (getuid() == 0 && (euid = geteuid()) != 0) {
+		    if (seteuid(0) || setuid(euid)) {
+		        _exit(1);
+		    }
 		}
 		/* XXX ugly string constants */
 		args[0] = "sh";
@@ -197,36 +204,25 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 		if (WEXITSTATUS(ret) == 0) {
 			status = TCL_OK;
 		} else {
-			/* Copy the contents of the circular buffer to errbuf */
-		  	Tcl_Obj* errorCode;
-			errbuf = Tcl_NewStringObj(NULL, 0);
-			for (fline = pos; pos < fline + CBUFSIZ; pos++) {
-				if (circbuf[pos % CBUFSIZ].len == 0)
-				continue; /* skip empty lines */
-
-				/* Append line, minus trailing NULL */
-				Tcl_AppendToObj(errbuf, circbuf[pos % CBUFSIZ].line,
-						circbuf[pos % CBUFSIZ].len - 1);
-
-				/* Re-add previously stripped newline */
-				Tcl_AppendToObj(errbuf, "\n", 1);
-			}
-
-			/* set errorCode [list CHILDSTATUS <pid> <code>] */
-			errorCode = Tcl_NewListObj(0, NULL);
+		    char *errorstr;
+		    size_t errorstrlen;
+		  	/* set errorCode [list CHILDSTATUS <pid> <code>] */
+			Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
 			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
 			Tcl_SetObjErrorCode(interp, errorCode);
 
-			/* set result */
-			tcl_result = Tcl_NewStringObj("shell command \"", -1);
-			Tcl_AppendToObj(tcl_result, cmdstring, -1);
-			Tcl_AppendToObj(tcl_result, "\" returned error ", -1);
-			Tcl_AppendObjToObj(tcl_result, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_AppendToObj(tcl_result, "\nCommand output: ", -1);
-			Tcl_AppendObjToObj(tcl_result, errbuf);
-			Tcl_SetObjResult(interp, tcl_result);
+			/* print error */
+			errorstrlen = strlen("shell command \"")+strlen(cmdstring)+strlen("\" returned error ")+12;
+			errorstr = malloc(errorstrlen);
+			if (errorstr) {
+                *errorstr = '\0';
+                snprintf(errorstr, errorstrlen, "%s%s%s%d", "shell command \"", cmdstring, "\" returned error ", WEXITSTATUS(ret));
+			    ui_info(interp, errorstr);
+			    free(errorstr);
+			}
+			Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed", -1));
 		}
 	}
 

@@ -37,6 +37,7 @@ namespace eval macports::autoconf {
     variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
     variable macports_version "@MACPORTS_VERSION@"
     variable macports_user_dir "~/.macports"
+    variable macportsuser "@RUNUSR@"
     variable open_path "@OPEN@"
     variable rsync_path "@RSYNC@"
     variable tar_command "@TAR_CMD@"

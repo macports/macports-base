@@ -42,7 +42,20 @@ while {[gets $sourcesConfChannel line] >= 0} {
             set addDefault true
          } elseif {[regexp {file://(/.+)} $url -> filepath]} {
             if {[file exists [file join ${filepath} .svn]]} {
-               if {![catch {set svnChannel [open "|svn info ${filepath}" r]} err]} {
+               if {![info exists svnCmd]} {
+                  set svnCmd ""
+                  foreach path [concat [list ${prefix}/bin] [split $env(PATH) :]] {
+                     if {[file executable ${path}/svn]} {
+                        set svnCmd ${path}/svn
+                        break
+                     }
+                  }
+               }
+               if {$svnCmd == ""} {
+                  puts "WARNING: Unable to check svn URL for '$filepath' because no svn command could be found; please manually verify $sourcesConf!"
+                  continue
+               }
+               if {![catch {set svnChannel [open "|$svnCmd info ${filepath}" r]} err]} {
                   set svnURL {}
                   while {[gets $svnChannel svnLine] >= 0} {
                      regexp {^URL: (.*)} $svnLine -> svnURL

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl $Id$
 AC_PREREQ(2.63)
 AC_DEFUN([MACPORTS_VERSION_MACRO], [esyscmd(cat config/macports_version | tr -d '\n')])
-AC_INIT([MacPorts],[MACPORTS_VERSION_MACRO],[macports-dev@lists.macosforge.org],[macports])
+AC_INIT([MacPorts],MACPORTS_VERSION_MACRO,[macports-dev@lists.macosforge.org],[macports])
 AC_CONFIG_SRCDIR([src/pextlib1.0/Pextlib.c])
 AC_CONFIG_HEADERS([src/config.h])
 
@@ -32,7 +32,7 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-1]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;

@@ -88,7 +88,7 @@ set_ui_prefix
 
 proc portdestroot::destroot_start {args} {
     global UI_PREFIX prefix name porturl destroot os.platform destroot.clean portsharepath
-    global destroot.umask destroot.asroot macportsuser euid egid
+    global destroot.umask destroot.asroot euid egid
     global applications_dir frameworks_dir
     variable oldmask
 
