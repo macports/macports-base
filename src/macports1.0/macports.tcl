@@ -1608,11 +1608,7 @@ proc macports::_upgrade_mport_deps {mport target} {
 proc macports::_get_dep_port {mport depspec} {
     set speclist [split $depspec :]
     set portname [lindex $speclist end]
-    if {[string equal ${macports::registry.installtype} "image"]} {
-        set res [_portnameactive $portname]
-    } else {
-        set res [registry::entry_exists_for_name $portname]
-    }
+    set res [_portnameactive $portname]
     if {$res != 0} {
         return $portname
     }
