@@ -51,13 +51,13 @@ itself:
 .Bl -tag -width lc
 .It Va prefix
 Sets the directory where ports are installed. Any path may be used but those with spaces and/or non ascii
-characters should be avoided, as this can broke some ports. This key is often referred to as '${prefix}'.
+characters should be avoided, as this can break some ports. This key is often referred to as '${prefix}'.
 .br
 .Ic Default:
 /opt/local
 .It Va portdbpath
-Directory where MacPorts keeps working data as downloaded sources, installed ports receipts
-and the main registry. Same path restrictions apply as for '${prefix}'.
+Directory where MacPorts keeps working data such as downloaded sources, installed ports' receipts
+and the main registry. The same path restrictions apply as for '${prefix}'.
 .br
 .Ic Default:
 ${prefix}/var/macports
@@ -107,7 +107,7 @@ Key governing the creation of binary archives of installed ports for installatio
 .Ic Default:
 yes
 .It Va portarchivepath
-Location where to store/retrieve ports binary archive files from when archive mode is active.
+Location to store ports' binary archive files when archive mode is active.
 .br
 .Ic Default:
 ${portdbpath}/packages
@@ -135,17 +135,19 @@ no
 Use pipes rather than intermediate files when compiling C/C++/etc (gcc -pipe)
 .br
 .Ic Default:
-no
+yes
 .It Va buildnicevalue
 Lowered scheduling priority (0-20) to use for make when building ports
 .br
 .Ic Default:
 0
 .It Va buildmakejobs
-Number of simultaneous make jobs (commands) to use when building ports
+Number of simultaneous make jobs (commands) to use when building ports. 0 is a
+special value meaning "the number of CPU cores or the number of GB
+of physical memory plus one, whichever is less."
 .br
 .Ic Default:
-1
+0
 .It Va portautoclean
 Automatic cleaning of the build directory of a given port after it has been installed.
 .br
@@ -185,15 +187,15 @@ Supported types are: none, SystemStarter, launchd, default, rcNG.
 .Ic Default:
 default
 .It Va destroot_umask
-Umask value to use during the destrooting or a port.
+Umask value to use during the destrooting of a port.
 .br
 .Ic Default:
 022
 .It Va rsync_server
 Default rsync server to connect to when running "selfupdate" through the
 .Nm port
-command to update your entire MacPorts
-installation (spanning both the MacPorts infrastructure and the ports tree).
+command to update your base MacPorts infrastructure. While selfupdate also
+syncs the ports tree, it uses the settings from ${sources_conf} to do so.
 .br
 .Ic Default:
 rsync.macports.org
@@ -209,7 +211,8 @@ Default rsync options to use when connecting to the rsync server.
 -rtzv --delete-after
 .It Va binpath
 Sets the directory search path for locating system executables used by MacPorts. This variable should contain
-the paths for locating utilities such as rsync, tar, cvs and others.
+the paths for locating utilities such as rsync, tar, cvs and others. Don't change this unless you understand
+and accept the consequences.
 .br
 .Ic Default:
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
