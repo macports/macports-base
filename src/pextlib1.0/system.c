@@ -153,7 +153,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	/* read from simulated popen() pipe */
 	read_failed = 0;
 	pos = 0;
-	bzero(circbuf, sizeof(circbuf));
+	memset(circbuf, 0, sizeof(circbuf));
 	pdes = fdopen(fdset[0], "r");
 	while ((buf = fgetln(pdes, &linelen)) != NULL) {
 		char *sbuf;

@@ -84,12 +84,6 @@
 extern char **environ;
 #endif
 
-#if !HAVE_BZERO
-#if HAVE_MEMSET
-#define bzero(b, len) (void)memset(b, 0x00, len)
-#endif
-#endif
-
 #if !HAVE_FGETLN
 char *fgetln(FILE *stream, size_t *len);
 #endif
