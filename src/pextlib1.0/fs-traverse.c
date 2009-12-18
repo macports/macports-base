@@ -37,24 +37,14 @@
 #include <config.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <fts.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#if HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#if HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-
-#include <fts.h>
-#include <errno.h>
-
-#if HAVE_LIMITS_H
-#include <limits.h>
-#endif
 
 #include <tcl.h>
 
