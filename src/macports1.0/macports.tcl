@@ -125,12 +125,12 @@ proc macports::init_logging {portname} {
     ui_debug "logging to $logname"
     set ::debuglogname $logname
 
+    if {[info exists ::debuglog]} {
+        close $::debuglog
+    }
     # Recreate the file if already exists
     if {[file exists $::debuglogname]} {
         file delete -force $::debuglogname
-    }
-    if {[info exists ::debuglog]} {
-        close $::debuglog
     }
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
@@ -1495,9 +1495,10 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
-    global ::debuglog
+    global ::debuglog ::debuglogname
     if {[info exists ::debuglog]} {
         set previouslog $::debuglog
+        set previouslogname $::debuglogname
     }
     set portname [_mportkey $mport name]
     ui_debug "Starting logging for $portname"
@@ -1519,12 +1520,13 @@ proc _mportexec {target mport} {
         }
         if {[info exists previouslog]} {
             set ::debuglog $previouslog
+            set ::debuglogname $previouslogname
         }
         return 0
     } else {
         # An error occurred.
-        if {[info exists previouslog]} {
-            set ::debuglog $previouslog
+        if {[info exists ::debuglogname]} {
+            ui_msg "Log for $portname is at: $::debuglogname"
         }
         return 1
     }
@@ -1542,7 +1544,9 @@ proc mportexec {mport target} {
         return 1
     }
     set portname [_mportkey $mport name]
-    macports::init_logging $portname
+    if {$target != "clean"} {
+        macports::init_logging $portname
+    }
 
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
@@ -1638,6 +1642,11 @@ proc mportexec {mport target} {
 
 # upgrade any dependencies of mport that are installed and needed for target
 proc macports::_upgrade_mport_deps {mport target} {
+    global ::debuglog ::debuglogname
+    if {[info exists ::debuglog]} {
+        set previouslog $::debuglog
+        set previouslogname $::debuglogname
+    }
     set options [ditem_key $mport options]
     set deptypes [macports::_deptypes_for_target $target]
     array set portinfo [mportinfo $mport]
@@ -1660,6 +1669,10 @@ proc macports::_upgrade_mport_deps {mport target} {
                 return -code error "upgrade $dep_portname failed"
             }
         }
+    }
+    if {[info exists previouslog]} {
+        set ::debuglog $previouslog
+        set ::debuglogname $previouslogname
     }
 }
 
