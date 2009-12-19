@@ -129,6 +129,9 @@ proc macports::init_logging {portname} {
     if {[file exists $::debuglogname]} {
         file delete -force $::debuglogname
     }
+    if {[info exists ::debuglog]} {
+        close $::debuglog
+    }
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
     # Add our log-channel to all already initialized channels
@@ -149,6 +152,7 @@ proc macports::ch_logging {portname} {
     if {[file exists $::debuglogname]} {
         file delete -force $::debuglogname
     }
+    close $::debuglog
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
 } 
