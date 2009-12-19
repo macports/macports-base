@@ -109,7 +109,7 @@ proc macports::global_option_isset {val} {
 }
 
 proc macports::init_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::portdbpath
+    global macports::channels macports::portdbpath
 
     if {[getuid] == 0 && [geteuid] != 0} {
         seteuid 0
@@ -117,30 +117,19 @@ proc macports::init_logging {portname} {
     set logspath [file join $macports::portdbpath logs]
     if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
         ui_debug "logging disabled, can't write to $logspath"
-        return
+        return 1
     }
-    set logname [file join $logspath $portname]
-    file mkdir $logname
-    set logname [file join $logname "main.log"]
-    ui_debug "logging to $logname"
-    set ::debuglogname $logname
-
-    if {[info exists ::debuglog]} {
-        close $::debuglog
-    }
-    # Recreate the file if already exists
-    if {[file exists $::debuglogname]} {
-        file delete -force $::debuglogname
-    }
-    set ::debuglog [open $::debuglogname w]
-    puts $::debuglog "version:1"
+    macports::ch_logging $portname
     # Add our log-channel to all already initialized channels
     foreach key [array names channels] {
         set macports::channels($key) [concat $macports::channels($key) "debuglog"]
     }
+    return 0
 }
 proc macports::ch_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::portdbpath
+    global ::debuglog ::debuglogname macports::portdbpath
+    
+    ui_debug "Starting logging for $portname"
 
     set logname [file join $macports::portdbpath "logs/$portname"]
     file mkdir $logname
@@ -148,14 +137,44 @@ proc macports::ch_logging {portname} {
 
     set ::debuglogname $logname
  
-    # Recreate the file if already exists
-    if {[file exists $::debuglogname]} {
-        file delete -force $::debuglogname
-    }
-    close $::debuglog
+    # Truncate the file if already exists
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
-} 
+}
+proc macports::push_log {portname} {
+    global ::logstack ::logenabled ::debuglog ::debuglogname
+    if {![info exists ::logenabled]} {
+        if {[macports::init_logging $portname] == 0} {
+            set ::logenabled yes
+            set ::logstack [list [list $::debuglog $::debuglogname]]
+            return
+        } else {
+            set ::logenabled no
+        }
+    }
+    if {$::logenabled} {
+        macports::ch_logging $portname
+        lappend ::logstack [list $::debuglog $::debuglogname]
+    }
+}
+proc macports::pop_log {} {
+    global ::logenabled ::logstack ::debuglog ::debuglogname
+    if {![info exists ::logenabled]} {
+        return -code error "pop_log called before push_log"
+    }
+    if {$::logenabled && [llength $::logstack] > 0} {
+        close $::debuglog
+        set ::logstack [lreplace $::logstack end end]
+        if {[llength $::logstack] > 0} {
+            set top [lindex $::logstack end]
+            set ::debuglog [lindex $top 0]
+            set ::debuglogname [lindex $top 1]
+        } else {
+            unset ::debuglog
+            unset ::debuglogname
+        }
+    }
+}
 
 proc ui_phase {phase} {
     global macports::current_stage
@@ -200,7 +219,7 @@ proc macports::ui_init {priority args} {
     }
     
     # if some priority initialized after log file is being created
-    if [info exist ::debuglog] {
+    if {[info exists ::debuglog]} {
         set channels($priority) [concat $channels($priority) "debuglog"]
     }
     # Simplify ui_$priority.
@@ -1495,14 +1514,8 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
-    global ::debuglog ::debuglogname
-    if {[info exists ::debuglog]} {
-        set previouslog $::debuglog
-        set previouslogname $::debuglogname
-    }
     set portname [_mportkey $mport name]
-    ui_debug "Starting logging for $portname"
-    macports::ch_logging $portname
+    macports::push_log $portname
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
@@ -1518,16 +1531,15 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
-        if {[info exists previouslog]} {
-            set ::debuglog $previouslog
-            set ::debuglogname $previouslogname
-        }
+        macports::pop_log
         return 0
     } else {
         # An error occurred.
+        global ::debuglogname
         if {[info exists ::debuglogname]} {
             ui_msg "Log for $portname is at: $::debuglogname"
         }
+        macports::pop_log
         return 1
     }
 }
@@ -1545,7 +1557,7 @@ proc mportexec {mport target} {
     }
     set portname [_mportkey $mport name]
     if {$target != "clean"} {
-        macports::init_logging $portname
+        macports::push_log $portname
     }
 
     # Before we build the port, we must build its dependencies.
@@ -1633,8 +1645,11 @@ proc mportexec {mport target} {
     }
     
     global ::debuglogname
-    if {$result != 0 && ![macports::ui_isset ports_quiet] && [info exists ::debuglogname]} {
-        ui_msg "Log for $portname is at: $::debuglogname"
+    if {[info exists ::debuglogname]} {
+        if {$result != 0 && ![macports::ui_isset ports_quiet]} {
+            ui_msg "Log for $portname is at: $::debuglogname"
+        }
+        macports::pop_log
     }
 
     return $result
@@ -1642,11 +1657,6 @@ proc mportexec {mport target} {
 
 # upgrade any dependencies of mport that are installed and needed for target
 proc macports::_upgrade_mport_deps {mport target} {
-    global ::debuglog ::debuglogname
-    if {[info exists ::debuglog]} {
-        set previouslog $::debuglog
-        set previouslogname $::debuglogname
-    }
     set options [ditem_key $mport options]
     set deptypes [macports::_deptypes_for_target $target]
     array set portinfo [mportinfo $mport]
@@ -1669,10 +1679,6 @@ proc macports::_upgrade_mport_deps {mport target} {
                 return -code error "upgrade $dep_portname failed"
             }
         }
-    }
-    if {[info exists previouslog]} {
-        set ::debuglog $previouslog
-        set ::debuglogname $previouslogname
     }
 }
 
