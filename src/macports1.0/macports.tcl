@@ -606,9 +606,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portautoclean "yes"
         global macports::portautoclean
     }
-	# keeplogs option
+	# whether to keep logs after successful builds
    	if {![info exists keeplogs]} {
-        set macports::keeplogs "yes"
+        set macports::keeplogs "no"
         global macports::keeplogs
     }
    
