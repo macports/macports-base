@@ -2100,13 +2100,18 @@ proc action_select { action portlist opts } {
 
 proc action_selfupdate { action portlist opts } {
     global global_options
-    if { [catch {macports::selfupdate [array get global_options]} result ] } {
+    if { [catch {macports::selfupdate [array get global_options] base_updated} result ] } {
         global errorInfo
         ui_debug "$errorInfo"
         fatal "port selfupdate failed: $result"
     }
     
-    return 0
+    if {$base_updated} {
+        # exit immediately if in batch/interactive mode
+        return -999
+    } else {
+        return 0
+    }
 }
 
 

@@ -2416,10 +2416,16 @@ proc macports::_deptypes_for_target {target} {
 }
 
 # selfupdate procedure
-proc macports::selfupdate {{optionslist {}}} {
+proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
     global macports::autoconf::macports_version macports::autoconf::rsync_path tcl_platform
     array set options $optionslist
+    
+    # variable that indicates whether we actually updated base
+    if {$updatestatusvar != ""} {
+        upvar $updatestatusvar updatestatus
+        set updatestatus no
+    }
 
     # syncing ports tree.
     if {![info exists options(ports_selfupdate_nosync)] || $options(ports_selfupdate_nosync) != "yes"} {
@@ -2506,6 +2512,9 @@ proc macports::selfupdate {{optionslist {}}} {
             ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
             if { [catch { system "cd $mp_source_path && ./configure $configure_args && make && make install" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
+            }
+            if {[info exists updatestatus]} {
+                set updatestatus yes
             }
         }
     } elseif {$comp < 0} {
