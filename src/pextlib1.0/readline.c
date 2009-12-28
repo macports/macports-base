@@ -13,11 +13,8 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>
-
-#if HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
+#include <string.h>
 
 #if HAVE_READLINE_READLINE_H
 #include <readline/readline.h>

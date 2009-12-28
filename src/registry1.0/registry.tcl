@@ -639,26 +639,36 @@ proc _activate_contents {name imagefiles extractdir} {
 
 		set port [registry::file_registered $file] 
 
-		if { $port != 0  && $force != 1 && $port != $name } {
-			return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."
-		} elseif { [file exists $file] && $force != 1 } {
-			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
-		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
-			set bakfile ${file}.mp_${timestamp}
+        if { $port != 0  && $force != 1 && $port != $name } {
+            if {[catch {mportlookup $port} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                return -code error "port lookup failed: $result"
+            }
+            array set portinfo [lindex $result 1]
+            if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) $name] != -1} {
+                deactivate $port "" ""
+            } else {
+                return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."
+            }
+        } elseif { [file exists $file] && $force != 1 } {
+            return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
+        } elseif { $force == 1 && [file exists $file] || $port != 0 } {
+            set bakfile ${file}.mp_${timestamp}
 
-			if {[file exists $file]} {
-				ui_warn "File $file already exists.  Moving to: $bakfile."
-				file rename -force $file $bakfile
-			}
-			
-			if { $port != 0 } {
-				set bakport [registry::file_registered $file]
-				registry::unregister_file $file
-				if {[file exists $file]} {
-					registry::register_file $bakfile $bakport
-				}
-			}
-		}
+            if {[file exists $file]} {
+                ui_warn "File $file already exists.  Moving to: $bakfile."
+                file rename -force $file $bakfile
+            }
+
+            if { $port != 0 } {
+                set bakport [registry::file_registered $file]
+                registry::unregister_file $file
+                if {[file exists $file]} {
+                    registry::register_file $bakfile $bakport
+                }
+            }
+        }
 		
 		# Split out the filename's subpaths and add them to the imagefile list.
 		# We need directories first to make sure they will be there before

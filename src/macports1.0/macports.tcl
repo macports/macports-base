@@ -110,7 +110,7 @@ proc macports::global_option_isset {val} {
 }
 
 proc macports::init_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::portdbpath
+    global macports::channels macports::portdbpath
 
     if {[getuid] == 0 && [geteuid] != 0} {
         seteuid 0
@@ -118,27 +118,19 @@ proc macports::init_logging {portname} {
     set logspath [file join $macports::portdbpath logs]
     if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
         ui_debug "logging disabled, can't write to $logspath"
-        return
+        return 1
     }
-    set logname [file join $logspath $portname]
-    file mkdir $logname
-    set logname [file join $logname "main.log"]
-    ui_debug "logging to $logname"
-    set ::debuglogname $logname
-
-    # Recreate the file if already exists
-    if {[file exists $::debuglogname]} {
-        file delete -force $::debuglogname
-    }
-    set ::debuglog [open $::debuglogname w]
-    puts $::debuglog "version:1"
+    macports::ch_logging $portname
     # Add our log-channel to all already initialized channels
     foreach key [array names channels] {
         set macports::channels($key) [concat $macports::channels($key) "debuglog"]
     }
+    return 0
 }
 proc macports::ch_logging {portname} {
-    global ::debuglog ::debuglogname macports::channels macports::portdbpath
+    global ::debuglog ::debuglogname macports::portdbpath
+    
+    ui_debug "Starting logging for $portname"
 
     set logname [file join $macports::portdbpath "logs/$portname"]
     file mkdir $logname
@@ -146,13 +138,44 @@ proc macports::ch_logging {portname} {
 
     set ::debuglogname $logname
  
-    # Recreate the file if already exists
-    if {[file exists $::debuglogname]} {
-        file delete -force $::debuglogname
-    }
+    # Truncate the file if already exists
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
-} 
+}
+proc macports::push_log {portname} {
+    global ::logstack ::logenabled ::debuglog ::debuglogname
+    if {![info exists ::logenabled]} {
+        if {[macports::init_logging $portname] == 0} {
+            set ::logenabled yes
+            set ::logstack [list [list $::debuglog $::debuglogname]]
+            return
+        } else {
+            set ::logenabled no
+        }
+    }
+    if {$::logenabled} {
+        macports::ch_logging $portname
+        lappend ::logstack [list $::debuglog $::debuglogname]
+    }
+}
+proc macports::pop_log {} {
+    global ::logenabled ::logstack ::debuglog ::debuglogname
+    if {![info exists ::logenabled]} {
+        return -code error "pop_log called before push_log"
+    }
+    if {$::logenabled && [llength $::logstack] > 0} {
+        close $::debuglog
+        set ::logstack [lreplace $::logstack end end]
+        if {[llength $::logstack] > 0} {
+            set top [lindex $::logstack end]
+            set ::debuglog [lindex $top 0]
+            set ::debuglogname [lindex $top 1]
+        } else {
+            unset ::debuglog
+            unset ::debuglogname
+        }
+    }
+}
 
 proc ui_phase {phase} {
     global macports::current_stage
@@ -197,7 +220,7 @@ proc macports::ui_init {priority args} {
     }
     
     # if some priority initialized after log file is being created
-    if [info exist ::debuglog] {
+    if {[info exists ::debuglog]} {
         set channels($priority) [concat $channels($priority) "debuglog"]
     }
     # Simplify ui_$priority.
@@ -583,9 +606,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set macports::portautoclean "yes"
         global macports::portautoclean
     }
-	# keeplogs option
+	# whether to keep logs after successful builds
    	if {![info exists keeplogs]} {
-        set macports::keeplogs "yes"
+        set macports::keeplogs "no"
         global macports::keeplogs
     }
    
@@ -1450,13 +1473,8 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
-    global ::debuglog
-    if {[info exists ::debuglog]} {
-        set previouslog $::debuglog
-    }
     set portname [_mportkey $mport name]
-    ui_debug "Starting logging for $portname"
-    macports::ch_logging $portname
+    macports::push_log $portname
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
@@ -1472,15 +1490,15 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
-        if {[info exists previouslog]} {
-            set ::debuglog $previouslog
-        }
+        macports::pop_log
         return 0
     } else {
         # An error occurred.
-        if {[info exists previouslog]} {
-            set ::debuglog $previouslog
+        global ::debuglogname
+        if {[info exists ::debuglogname]} {
+            ui_msg "Log for $portname is at: $::debuglogname"
         }
+        macports::pop_log
         return 1
     }
 }
@@ -1495,7 +1513,9 @@ proc mportexec {mport target} {
         return 1
     }
     set portname [_mportkey $mport name]
-    macports::init_logging $portname
+    if {$target != "clean"} {
+        macports::push_log $portname
+    }
 
     # Before we build the port, we must build its dependencies.
     # XXX: need a more general way of comparing against targets
@@ -1570,8 +1590,11 @@ proc mportexec {mport target} {
     }
     
     global ::debuglogname
-    if {$result != 0 && ![macports::ui_isset ports_quiet] && [info exists ::debuglogname]} {
-        ui_msg "Log for $portname is at: $::debuglogname"
+    if {[info exists ::debuglogname]} {
+        if {$result != 0 && ![macports::ui_isset ports_quiet]} {
+            ui_msg "Log for $portname is at: $::debuglogname"
+        }
+        macports::pop_log
     }
 
     return $result
@@ -2561,7 +2584,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 array set portinfo [mportinfo $workername]
                 
                 # upgrade its dependencies first
-                set status [_upgrade_dependencies portinfo depscache variationslist options]
+                set status [_upgrade_dependencies portinfo depscache variationslist options yes]
                 if {$status != 0 && ![ui_isset ports_processall]} {
                     catch {mportclose $workername}
                     return $status
@@ -2724,19 +2747,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set revision_in_tree "$portinfo(revision)"
     set epoch_in_tree "$portinfo(epoch)"
 
-
-    # first upgrade dependencies
-    if {![info exists options(ports_nodeps)]} {
-        set status [_upgrade_dependencies portinfo depscache variationslist options]
-        if {$status != 0 && ![ui_isset ports_processall]} {
-            catch {mportclose $workername}
-            return $status
-        }
-    } else {
-        ui_debug "Not following dependencies"
-    }
-
     set epoch_override 0
+    set will_install yes
     # check installed version against version in ports
     if { ( [rpm-vercomp $version_installed $version_in_tree] > 0
             || ([rpm-vercomp $version_installed $version_in_tree] == 0
@@ -2756,36 +2768,55 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             } else {
                 ui_debug "No need to upgrade! $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}"
             }
-            # Check if we have to do dependents
-            if {[info exists options(ports_do_dependents)]} {
-                # We do dependents ..
-                set options(ports_nodeps) 1
+            set will_install no
+        }
+    }
 
-                registry::open_dep_map
-                set deplist [registry::list_dependents $portname]
+    set will_build no
+    # avoid building again unnecessarily
+    if {$will_install && ([info exists options(ports_upgrade_force)] || $epoch_override == 1
+        || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)])} {
+        set will_build yes
+    }
 
-                if { [llength deplist] > 0 } {
-                    foreach dep $deplist {
-                        set mpname [lindex $dep 2]
-                        if {![llength [array get depscache port:${mpname}]]} {
-                            set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
-                            if {$status != 0 && ![ui_isset ports_processall]} {
-                                catch {mportclose $workername}
-                                return $status
-                            }
+    # first upgrade dependencies
+    if {![info exists options(ports_nodeps)]} {
+        set status [_upgrade_dependencies portinfo depscache variationslist options $will_build]
+        if {$status != 0 && ![ui_isset ports_processall]} {
+            catch {mportclose $workername}
+            return $status
+        }
+    } else {
+        ui_debug "Not following dependencies"
+    }
+
+    if {!$will_install} {
+        # nothing to do for this port, so just check if we have to do dependents
+        if {[info exists options(ports_do_dependents)]} {
+            # We do dependents ..
+            set options(ports_nodeps) 1
+
+            registry::open_dep_map
+            set deplist [registry::list_dependents $portname]
+
+            if { [llength deplist] > 0 } {
+                foreach dep $deplist {
+                    set mpname [lindex $dep 2]
+                    if {![llength [array get depscache port:${mpname}]]} {
+                        set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
+                        if {$status != 0 && ![ui_isset ports_processall]} {
+                            catch {mportclose $workername}
+                            return $status
                         }
                     }
                 }
             }
-            mportclose $workername
-            return 0
         }
+        mportclose $workername
+        return 0
     }
 
-
-    # avoid building again unnecessarily
-    if {[info exists options(ports_upgrade_force)] || $epoch_override == 1
-        || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]} {
+    if {$will_build} {
         if {[catch {set result [mportexec $workername imagefile]} result] || $result != 0} {
             if {[info exists ::errorInfo]} {
                 ui_debug "$::errorInfo"
@@ -2906,7 +2937,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 # upgrade_dependencies: helper proc for upgrade
 # Calls upgrade on each dependency listed in the PortInfo.
 # Uses upvar to access the variables.
-proc macports::_upgrade_dependencies {portinfoname depscachename variationslistname optionsname} {
+proc macports::_upgrade_dependencies {portinfoname depscachename variationslistname optionsname {build_needed yes}} {
     upvar $portinfoname portinfo $depscachename depscache \
           $variationslistname variationslist \
           $optionsname options
@@ -2925,8 +2956,13 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     unset -nocomplain options(ports_do_dependents)
 
     set status 0
-    # each dep type is upgraded
-    foreach dtype {depends_fetch depends_extract depends_build depends_lib depends_run} {
+    # each required dep type is upgraded
+    if {$build_needed} {
+        set dtypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+    } else {
+        set dtypes {depends_lib depends_run}
+    }
+    foreach dtype $dtypes {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
                 set d [_get_dep_port $parentworker $i]

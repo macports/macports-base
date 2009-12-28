@@ -12,28 +12,13 @@
 #include <config.h>
 #endif
 
-#include <grp.h>
-#include <string.h>
-
-#if HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
-#if HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-
-#if HAVE_STDIO_H
-#include <stdio.h>
-#endif
-
-#if HAVE_PWD_H
+#include <grp.h>
 #include <pwd.h>
-#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include <tcl.h>
 

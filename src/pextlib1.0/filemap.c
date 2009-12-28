@@ -210,7 +210,7 @@ Load(
 		ssize_t theFileSize;
 
 		/* Open the file for reading, creating it if necessary. */
-		int theFD = open(inDatabasePath, O_RDONLY | O_CREAT, 0664);
+		theFD = open(inDatabasePath, O_RDONLY | O_CREAT, 0664);
 		if (theFD < 0)
 		{
 			theErr = errno;
