@@ -240,7 +240,7 @@ proc portconfigure::configure_get_archflags {tool} {
 proc portconfigure::configure_get_ld_archflags {args} {
     global configure.build_arch
     if {${configure.build_arch} != "" && [arch_flag_supported]} {
-        set flags "-arch ${configure.build_arch}"
+        return "-arch ${configure.build_arch}"
     } else {
         return ""
     }
