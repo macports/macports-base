@@ -1801,14 +1801,18 @@ proc mportsync {{optionslist {}}} {
                     ui_debug $svn_commandline
                     if {
                         [catch {
-                            set euid [geteuid]
-                            set egid [getegid]
-                            ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
-                            setegid [name_to_gid [file attributes $portdir -group]]
-                            seteuid [name_to_uid [file attributes $portdir -owner]]
+                            if {[getuid] == 0} {
+                                set euid [geteuid]
+                                set egid [getegid]
+                                ui_debug "changing euid/egid - current euid: $euid - current egid: $egid"
+                                setegid [name_to_gid [file attributes $portdir -group]]
+                                seteuid [name_to_uid [file attributes $portdir -owner]]
+                            }
                             system $svn_commandline
-                            seteuid $euid
-                            setegid $egid
+                            if {[getuid] == 0} {
+                                seteuid $euid
+                                setegid $egid
+                            }
                         }]
                     } {
                         ui_debug "$::errorInfo"
