@@ -32,6 +32,34 @@ Release 1.9.0 (unreleased):
     - Add new log command and keeping of debug output for easy access
       after port has run (GSoC 2009 logging project by enl, merged in r60372)
 
+Release 1.8.2 (unreleased):
+
+    - Fixed a bug that could cause port to hit the open file limit
+      (#22959, jmr in r61770)
+
+    - Fixed an error when installing from source or selfupdating on Tiger with
+      an svn-based ports tree (#20760, jmr in r61302)
+
+    - Fixed an error when selfupdating as root with a prefix that is not owned
+      by root (#21010, jmr in r60798)
+
+    - Stopped uninstall from failing when files in the port image have already
+      been deleted (#22001, jmr in r59318, r59654)
+
+    - Stopped printing command output multiple times on failure (#21084,
+      jmr in r60770)
+
+    - Started showing bug reporting instructions on failure (jmr in r60770)
+
+    - Fixed a bug where 'port dmg' could create too small an image and run out
+      of space (#22404, jmr in r60260)
+
+    - Fixed a bug where reinplace could fail when running port without root
+      privileges (#20896, jmr in r59597)
+
+    - Started setting our own umask since Snow Leopard makes us inherit
+      the user's even when using sudo (#21389, jmr in r59585)
+
 Release 1.8.1 (2009-09-28 by jmr):
 
     - Installer error messages now display properly even from the Snow Leopard
