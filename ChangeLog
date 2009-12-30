@@ -7,17 +7,23 @@ Release 1.9.0 (unreleased):
 
     - svn checkouts now use peg revisions instead of operative revisions,
       so they'll continue to work if a repository gets reorganized
-      (#20777, ryandesign)
+      (#20777, ryandesign in r60573)
 
-    - Use CommonCrypto/CommonDigest instead of OpenSSL libcrypto. (toby)
+    - Print the location of the log file when a target fails (jmr in r60769)
 
-    - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160. (afb)
+    - Use CommonCrypto/CommonDigest instead of OpenSSL libcrypto.
+      (toby in r58131, jberry in r59715)
+
+    - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
+      (afb in r57888, r57913)
 
     - New "patch.type gnu" for GNU patch, similar to "build.type gnu"
       for GNU make. Only makes a difference for BSD patch and BSD make.
+      (afb in r58020)
 
     - Update the FreeBSD package, drop the old Fedora/Ubuntu packages.
       (MacPorts now requires BSD, but objc/Foundation is now optional)
+      (afb in r57858, r57889)
 
     - Don't use "make -j1" for build.jobs=1, but prefer "make" instead.
       (afb in r57998)
