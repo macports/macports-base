@@ -1803,6 +1803,9 @@ proc check_variants {variations target} {
     # Assume we do not need the statefile
     set statereq 0
     set ditems [dlist_search $targets provides $target]
+    if {[llength $ditems] > 0} {
+        set ditems [dlist_append_dependents $targets [lindex $ditems 0] [list]]
+    }
     foreach d $ditems {
         if {[ditem_key $d state] != "no"} {
             # At least one matching target requires the state file
