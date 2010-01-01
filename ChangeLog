@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 1.8.2 (unreleased):
+Release 1.8.2 (2010-01-01 by jmr):
 
     - Fixed a bug that could cause port to hit the open file limit
       (#22959, jmr in r61770)
