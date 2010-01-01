@@ -38,7 +38,7 @@ Release 1.9.0 (unreleased):
     - Add new log command and keeping of debug output for easy access
       after port has run (GSoC 2009 logging project by enl, merged in r60372)
 
-Release 1.8.2 (unreleased):
+Release 1.8.2 (2010-01-01 by jmr):
 
     - Fixed a bug that could cause port to hit the open file limit
       (#22959, jmr in r61770)
