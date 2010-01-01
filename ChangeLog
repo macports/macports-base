@@ -40,6 +40,12 @@ Release 1.9.0 (unreleased):
     - Add new log command and keeping of debug output for easy access
       after port has run (GSoC 2009 logging project by enl, merged in r60372)
 
+Release 1.8.3 (unreleased):
+
+    - Fixed 'merge' proc for paths with spaces, and for symlinks on Snow
+      Leopard, and added an error message for when 'merge' is not called
+      correctly (ryandesign in r58776, r58777, r58778)
+
 Release 1.8.2 (2010-01-01 by jmr):
 
     - Fixed 'port load' for non-root installations (#21713, jmr in r60774)
