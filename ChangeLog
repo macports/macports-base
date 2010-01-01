@@ -42,6 +42,8 @@ Release 1.9.0 (unreleased):
 
 Release 1.8.2 (2010-01-01 by jmr):
 
+    - Fixed 'port load' for non-root installations (#21713, jmr in r60774)
+
     - Fixed a bug that could cause port to hit the open file limit
       (#22959, jmr in r61770)
 
