@@ -5,6 +5,8 @@
 
 Release 1.9.0 (unreleased):
 
+    - Allow gcc45 port to be used in configure.compiler (ryandesign in r62223)
+
     - svn checkouts now use peg revisions instead of operative revisions,
       so they'll continue to work if a repository gets reorganized
       (#20777, ryandesign in r60573)
