@@ -2184,12 +2184,11 @@ proc archiveTypeIsSupported {type} {
 # e.g. 'merge_lipo ${workpath}/pre-dest ${destroot} ${prefix}/bin/pstree i386 ppc
 # will merge binary files with lipo which have to be in the same (relative) path
 proc merge_lipo {base target file archs} {
-    set exec-lipo ""
+    set exec-lipo [list [findBinary lipo $portutil::autoconf::lipo_path]]
     foreach arch ${archs} {
-        set exec-lipo [concat ${exec-lipo} [list "-arch" "${arch}" "${base}/${arch}${file}"]]
+        lappend exec-lipo -arch ${arch} ${base}/${arch}${file}
     }
-    set exec-lipo [concat ${exec-lipo}]
-    system "[findBinary lipo $portutil::autoconf::lipo_path] ${exec-lipo} -create -output ${target}${file}"
+    eval exec ${exec-lipo} [list -create -output ${target}${file}]
 }
 
 # private function
@@ -2234,6 +2233,9 @@ proc merge {base} {
             set base_arch ${arch}
         }
     }
+    if {"" == ${base_arch}} {
+        return -code error [format [msgcat::mc "Cannot merge because directory '%s' contains no architecture directories."] ${base}]
+    }
     ui_debug "merging architectures ${archs}, base_arch is ${base_arch}"
 
     # traverse the base-architecture directory
@@ -2242,30 +2244,34 @@ proc merge {base} {
         set fpath [string range "${file}" [string length "${basepath}"] [string length "${file}"]]
         if {${fpath} != ""} {
             # determine the type (dir/file/link)
-            set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
-            switch -regexp ${filetype} {
+            switch [file type ${basepath}${fpath}] {
                 directory {
                     # just create directories
                     ui_debug "mrg: directory ${fpath}"
                     file mkdir "${destroot}${fpath}"
                 }
-                symbolic\ link.* {
+                link {
                     # copy symlinks, TODO: check if targets match!
                     ui_debug "mrg: symlink ${fpath}"
                     file copy "${basepath}${fpath}" "${destroot}${fpath}"
                 }
-                Mach-O.* {
-                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
-                current\ ar\ archive {
-                    merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
-                ASCII\ C\ program\ text {
-                    merge_cpp "${base}" "${destroot}" "${fpath}" "${archs}"
-                }
                 default {
-                    ui_debug "unknown file type: ${filetype}"
-                    merge_file "${base}" "${destroot}" "${fpath}" "${archs}"
+                    set filetype [exec [findBinary file $portutil::autoconf::file_path] "-b" "${basepath}${fpath}"]
+                    switch -regexp ${filetype} {
+                        Mach-O.* {
+                            merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        current\ ar\ archive {
+                            merge_lipo "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        ASCII\ C\ program\ text {
+                            merge_cpp "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                        default {
+                            ui_debug "unknown file type: ${filetype}"
+                            merge_file "${base}" "${destroot}" "${fpath}" "${archs}"
+                        }
+                    }
                 }
             }
         }
