@@ -8614,15 +8614,14 @@ else
 	    # check in a few common install locations
 	    if test x"${ac_cv_c_tclconfig}" = x ; then
 		for i in `ls -d ${libdir} 2>/dev/null` \
+			`ls -d /usr/lib 2>/dev/null` \
 			`ls -d /usr/local/lib 2>/dev/null` \
 			`ls -d /usr/contrib/lib 2>/dev/null` \
-			`ls -d /usr/lib 2>/dev/null` \
 			`ls -d /usr/pkg/lib 2>/dev/null` \
-			`ls -d /System/Library/Tcl/8.3 2>/dev/null` \
+			`ls -d /usr/local/lib/tcl8.5 2>/dev/null` \
 			`ls -d /usr/local/lib/tcl8.4 2>/dev/null` \
-			`ls -d /usr/local/lib/tcl8.3 2>/dev/null` \
+			`ls -d /usr/lib/tcl8.5 2>/dev/null` \
 			`ls -d /usr/lib/tcl8.4 2>/dev/null` \
-			`ls -d /usr/lib/tcl8.3 2>/dev/null` \
 			; do
 		    if test -f "$i/tclConfig.sh" ; then
 			ac_cv_c_tclconfig=`(cd $i; pwd)`
@@ -8745,7 +8744,7 @@ else
 		# check some other possible local system locations.
 
 		for i in \
-			/usr/local/include /usr/include /usr/local/include/tcl${TCL_VERSION} /usr/include/tcl${TCL_VERSION}; do
+			/usr/include /usr/local/include /usr/local/include/tcl${TCL_VERSION} /usr/include/tcl${TCL_VERSION}; do
 		    if test -f "$i/tcl.h" ; then
 			ac_cv_c_tclh=$i
 			break
