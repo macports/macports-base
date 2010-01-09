@@ -42,6 +42,10 @@ Release 1.9.0 (unreleased):
 
 Release 1.8.3 (unreleased):
 
+    - Some of the build_arch flags now appear in LDFLAGS as well, fixing
+      several ports when building for a different architecture (jeremyhu in
+      r60662, jmr in r60680)
+
     - Fixed 'merge' proc for paths with spaces, and for symlinks on Snow
       Leopard, and added an error message for when 'merge' is not called
       correctly (ryandesign in r58776, r58777, r58778)
