@@ -153,6 +153,8 @@ default configure.pkg_config_path   {}
 
 options configure.build_arch
 default configure.build_arch {${build_arch}}
+options configure.ld_archflags
+default configure.ld_archflags {[portconfigure::configure_get_ld_archflags]}
 foreach tool {cc cxx objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
@@ -229,6 +231,19 @@ proc portconfigure::configure_get_archflags {tool} {
         }
     }
     return $flags
+}
+
+# internal function to determine the ld flags to select an arch
+# Unfortunately there's no consistent way to do this when the compiler
+# doesn't support -arch, because it could be used to link rather than using
+# ld directly. So we punt and let portfiles deal with that case.
+proc portconfigure::configure_get_ld_archflags {args} {
+    global configure.build_arch
+    if {${configure.build_arch} != "" && [arch_flag_supported]} {
+        set flags "-arch ${configure.build_arch}"
+    } else {
+        return ""
+    }
 }
 
 # internal function to determine the "-arch xy" flags for the compiler
@@ -459,7 +474,7 @@ proc portconfigure::configure_main {args} {
     global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
     global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune
-    foreach tool {cc cxx objc f77 f90 fc} {
+    foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
     foreach flags {cflags cppflags cxxflags objcflags ldflags fflags f90flags fcflags} {
@@ -552,7 +567,7 @@ proc portconfigure::configure_main {args} {
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval configure.pre_args-append ${configure.universal_args}
         } else {
-            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS} {
+            foreach {tool flags} {cc CFLAGS cxx CXXFLAGS objc OBJCFLAGS f77 FFLAGS f90 F90FLAGS fc FCFLAGS ld LDFLAGS} {
                 append_list_to_environment_value configure $flags [set configure.${tool}_archflags]
                 if {${configure.march} != {}} {
                     append_list_to_environment_value configure $flags "-march=${configure.march}"
