@@ -2274,11 +2274,15 @@ proc action_installed { action portlist opts } {
             }
         }
     } elseif { $restrictedList } {
-        puts "None of the specified ports are installed."
+        if {![macports::ui_isset ports_quiet]} {
+            puts "None of the specified ports are installed."
+        }
     } else {
-        puts "No ports are installed."
+        if {![macports::ui_isset ports_quiet]} {
+            puts "No ports are installed."
+        }
     }
-    
+
     return $status
 }
 
