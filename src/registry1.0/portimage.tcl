@@ -338,7 +338,7 @@ proc _activate_contents {name imagefiles imagedir} {
 			if { $port != 0 } {
 				set bakport [registry::file_registered $file]
 				registry::unregister_file $file
-				if {[file exists $file]} {
+				if {[file exists $bakfile]} {
 					registry::register_file $bakfile $bakport
 				}
 			}
