@@ -129,6 +129,37 @@ long_description The GNU Image Manipulation Program \e\
 
     painting, processing, and rendering tools.
 .Ed
+.It Ic notes
+Notes for setup and use of the port.  This is shown after the port is
+activated and anytime the
+.Ic notes
+command is used; for example:
+.Pp
+.Dl "port notes python26"
+.Pp
+The advantage to using
+.Ic notes
+instead of
+.Ic ui_msg
+is that it can be queried after a port is installed but
+.Ic ui_msg
+is only printed during an install.  Therefore
+.Ic notes
+is good for any information which may be needed anytime after an install.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Bd -literal -offset indent -compact
+notes To fully complete your installation and make python \e\
+
+   ${branch} the default, please run: \e\
+
+   sudo port install python_select \e\
+
+   sudo python_select ${name}
+.Ed
 .It Ic revision
 Local revision number of
 .Nm .
