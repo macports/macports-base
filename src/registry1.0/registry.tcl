@@ -33,7 +33,6 @@ package provide registry 1.0
 
 package require macports 1.0
 package require receipt_flat 1.0
-package require receipt_sqlite 1.0
 package require portimage 1.0
 package require portuninstall 1.0
 package require msgcat

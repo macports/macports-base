@@ -1,6 +1,6 @@
 INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/registry1.0
 
-SRCS= registry.tcl registry_autoconf.tcl receipt_flat.tcl receipt_sqlite.tcl portimage.tcl portuninstall.tcl
+SRCS= registry.tcl registry_autoconf.tcl receipt_flat.tcl portimage.tcl portuninstall.tcl
 
 include ../../Mk/macports.autoconf.mk
 
