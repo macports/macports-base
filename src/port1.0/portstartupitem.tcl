@@ -79,7 +79,7 @@ proc portstartupitem::startupitem_create_rcng {args} {
     global startupitem.start startupitem.stop startupitem.restart
     global startupitem.type
 
-    set scriptdir ${destroot}/${prefix}/etc/rc.d
+    set scriptdir ${destroot}${prefix}/etc/rc.d
 
     if { ![exists startupitem.requires] } {
         set startupitem.requires ""

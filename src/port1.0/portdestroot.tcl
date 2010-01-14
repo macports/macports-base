@@ -121,11 +121,11 @@ proc portdestroot::destroot_start {args} {
     file mkdir "${destroot}"
     if { ${os.platform} == "darwin" } {
         system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
-        file mkdir "${destroot}/${applications_dir}"
-        file mkdir "${destroot}/${frameworks_dir}"
+        file mkdir "${destroot}${applications_dir}"
+        file mkdir "${destroot}${frameworks_dir}"
     }
-    file mkdir "${destroot}/${prefix}"
-    system "cd \"${destroot}/${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
+    file mkdir "${destroot}${prefix}"
+    system "cd \"${destroot}${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
 proc portdestroot::destroot_main {args} {
