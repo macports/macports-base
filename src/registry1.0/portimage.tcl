@@ -1,3 +1,4 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portimage.tcl
 # $Id$
 #
@@ -43,16 +44,16 @@ set UI_PREFIX "--> "
 # ${macports::registry.path}/software/${name}/${version}_${revision}${variants}
 # They allow the user to install multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
-#  
+#
 # From there, the user can "activate" a port image.  This creates {sym,hard}links for
-# all files in the image into the ${prefix}.  Directories are created.  
+# all files in the image into the ${prefix}.  Directories are created.
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
 # The conflicting port must be deactivated first.
 #
 # The user can also "deactivate" an active port.  This will remove all {sym,hard}links
-# from ${prefix}, and if any directories are empty, remove them as well.  It 
-# will also remove all of the references of the files from the registry's 
+# from ${prefix}, and if any directories are empty, remove them as well.  It
+# will also remove all of the references of the files from the registry's
 # file_map
 #
 # For the creating and removing of links during activation and deactivation,
@@ -63,255 +64,255 @@ namespace eval portimage {
 
 variable force
 namespace export force
-	
-# Activate a "Port Image"	
+
+# Activate a "Port Image"
 proc activate {name v optionslist} {
-	global macports::prefix macports::registry.path UI_PREFIX
-	array set options $optionslist
-	variable force
+    global macports::prefix macports::registry.path UI_PREFIX
+    array set options $optionslist
+    variable force
 
-	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
-		set force 1
-	} else {
-		set force 0
-	}
+    if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
+        set force 1
+    } else {
+        set force 0
+    }
 
-	set ilist [_check_registry $name $v]
-	# set name again since the one we were passed may not have had the correct case
-	set name [lindex $ilist 0]
-	set version [lindex $ilist 1]
-	set revision [lindex $ilist 2]
-	set	variants [lindex $ilist 3]
+    set ilist [_check_registry $name $v]
+    # set name again since the one we were passed may not have had the correct case
+    set name [lindex $ilist 0]
+    set version [lindex $ilist 1]
+    set revision [lindex $ilist 2]
+    set variants [lindex $ilist 3]
 
-	# if another version of this port is active, deactivate it first
-	set ilist [registry::installed $name]
-	if { [llength $ilist] > 1 } {
-		foreach i $ilist {
-			set iname [lindex $i 0]
-			set iversion [lindex $i 1]
-			set irevision [lindex $i 2]
-			set	ivariants [lindex $i 3]
-			set iactive [lindex $i 4]
-			if { ![string equal ${iversion}_${irevision}${ivariants} ${version}_${revision}${variants}] && $iactive == 1 } {
-				deactivate $iname ${iversion}_${irevision}${ivariants} $optionslist
-			}
-		}
-	}
-	
+    # if another version of this port is active, deactivate it first
+    set ilist [registry::installed $name]
+    if { [llength $ilist] > 1 } {
+        foreach i $ilist {
+            set iname [lindex $i 0]
+            set iversion [lindex $i 1]
+            set irevision [lindex $i 2]
+            set ivariants [lindex $i 3]
+            set iactive [lindex $i 4]
+            if { ![string equal ${iversion}_${irevision}${ivariants} ${version}_${revision}${variants}] && $iactive == 1 } {
+                deactivate $iname ${iversion}_${irevision}${ivariants} $optionslist
+            }
+        }
+    }
+
     if {$v != ""} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
     }
 
-	set ref [registry::open_entry $name $version $revision $variants]
-	
-	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
-	}
-	if { [registry::property_retrieve $ref active] != 0 } {
-		return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
-	} 
+    set ref [registry::open_entry $name $version $revision $variants]
 
-	set imagedir [registry::property_retrieve $ref imagedir]
+    if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
+        return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
+    }
+    if { [registry::property_retrieve $ref active] != 0 } {
+        return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
+    } 
 
-	set contents [registry::property_retrieve $ref contents]
-	
-	set imagefiles [_check_contents $name $contents $imagedir]
-	
-	registry::open_file_map
-	_activate_contents $name $imagefiles $imagedir
+    set imagedir [registry::property_retrieve $ref imagedir]
 
-	registry::property_store $ref active 1
+    set contents [registry::property_retrieve $ref contents]
 
-	registry::write_entry $ref
+    set imagefiles [_check_contents $name $contents $imagedir]
 
-	foreach file $imagefiles {
-		registry::register_file $file $name
-	}
-	registry::write_file_map
-	registry::close_file_map
+    registry::open_file_map
+    _activate_contents $name $imagefiles $imagedir
+
+    registry::property_store $ref active 1
+
+    registry::write_entry $ref
+
+    foreach file $imagefiles {
+        registry::register_file $file $name
+    }
+    registry::write_file_map
+    registry::close_file_map
 }
 
 proc deactivate {name v optionslist} {
-	global UI_PREFIX
-	array set options $optionslist
-	variable force
+    global UI_PREFIX
+    array set options $optionslist
+    variable force
 
-	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
-		set force 1
-	} else {
-		set force 0
-	}
+    if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
+        set force 1
+    } else {
+        set force 0
+    }
 
-	set ilist [registry::active $name]
-	if { [llength $ilist] > 1 } {
-		return -code error "Registry error: Please specify the name of the port."
-	} else {
-		set ilist [lindex $ilist 0]
-	}
-	# set name again since the one we were passed may not have had the correct case
-	set name [lindex $ilist 0]
-	set version [lindex $ilist 1]
-	set revision [lindex $ilist 2]
-	set	variants [lindex $ilist 3]
-	set fqversion ${version}_${revision}${variants}
-	
+    set ilist [registry::active $name]
+    if { [llength $ilist] > 1 } {
+        return -code error "Registry error: Please specify the name of the port."
+    } else {
+        set ilist [lindex $ilist 0]
+    }
+    # set name again since the one we were passed may not have had the correct case
+    set name [lindex $ilist 0]
+    set version [lindex $ilist 1]
+    set revision [lindex $ilist 2]
+    set variants [lindex $ilist 3]
+    set fqversion ${version}_${revision}${variants}
+
     if {$v != ""} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
     }
-	
-	if { $v != "" && ![string equal ${fqversion} $v] } {
-		return -code error "Active version of $name is not $v but ${fqversion}."
-	}
-	
-	set ref [registry::open_entry $name $version $revision $variants]
 
-	if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
-		return -code error "Image error: ${name} @${fqversion} not installed as an image."
-	}
-	if { [registry::property_retrieve $ref active] != 1 } {
-		return -code error "Image error: ${name} @${fqversion} is not active."
-	}
+    if { $v != "" && ![string equal ${fqversion} $v] } {
+        return -code error "Active version of $name is not $v but ${fqversion}."
+    }
 
-	set imagedir [registry::property_retrieve $ref imagedir]
+    set ref [registry::open_entry $name $version $revision $variants]
 
-	registry::open_file_map
-	set imagefiles [registry::port_registered $name]
+    if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
+        return -code error "Image error: ${name} @${fqversion} not installed as an image."
+    }
+    if { [registry::property_retrieve $ref active] != 1 } {
+        return -code error "Image error: ${name} @${fqversion} is not active."
+    }
 
-	_deactivate_contents $name $imagefiles
+    set imagedir [registry::property_retrieve $ref imagedir]
 
-	foreach file $imagefiles {
-		registry::unregister_file $file
-	}
-	registry::write_file_map
-	registry::close_file_map
-	
-	registry::property_store $ref active 0
+    registry::open_file_map
+    set imagefiles [registry::port_registered $name]
 
-	registry::write_entry $ref
+    _deactivate_contents $name $imagefiles
+
+    foreach file $imagefiles {
+        registry::unregister_file $file
+    }
+    registry::write_file_map
+    registry::close_file_map
+
+    registry::property_store $ref active 0
+
+    registry::write_entry $ref
 
 }
 
 proc _check_registry {name v} {
-	global UI_PREFIX
+    global UI_PREFIX
 
-	set ilist [registry::installed $name $v]
-	if { [string equal $v ""] } {
-		if { [llength $ilist] > 1 } {
-		    # set name again since the one we were passed may not have had the correct case
-		    set name [lindex [lindex $ilist 0] 0]
-			ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
-			foreach i $ilist { 
-				set iname [lindex $i 0]
-				set iversion [lindex $i 1]
-				set irevision [lindex $i 2]
-				set	ivariants [lindex $i 3]
-				set iactive [lindex $i 4]
-				if { $iactive == 0 } {
-					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
-				} elseif { $iactive == 1 } {
-					ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
-				}
-			}
-			return -code error "Registry error: Please specify the full version as recorded in the port registry."
-		} else {
-			return [lindex $ilist 0]
-		}
-	} else {
-			return [lindex $ilist 0]
-	}
-	return -code error "Registry error: No port of $name installed."
+    set ilist [registry::installed $name $v]
+    if { [string equal $v ""] } {
+        if { [llength $ilist] > 1 } {
+            # set name again since the one we were passed may not have had the correct case
+            set name [lindex [lindex $ilist 0] 0]
+            ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
+            foreach i $ilist { 
+                set iname [lindex $i 0]
+                set iversion [lindex $i 1]
+                set irevision [lindex $i 2]
+                set ivariants [lindex $i 3]
+                set iactive [lindex $i 4]
+                if { $iactive == 0 } {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
+                } elseif { $iactive == 1 } {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+                }
+            }
+            return -code error "Registry error: Please specify the full version as recorded in the port registry."
+        } else {
+            return [lindex $ilist 0]
+        }
+    } else {
+            return [lindex $ilist 0]
+    }
+    return -code error "Registry error: No port of $name installed."
 }
 
 proc _check_contents {name contents imagedir} {
-	variable force
+    variable force
 
-	set imagefiles [list]
+    set imagefiles [list]
 
-	# This is big and hairy and probably could be done better.
-	# First, we need to check the source file, make sure it exists
-	# Then we remove the $imagedir from the path of the file in the contents
-	#  list  and check to see if that file exists
-	# Last, if the file exists, and belongs to another port, and force is set
-	#  we remove the file from the file_map, take ownership of it, and 
-	#  clobber it
-	foreach fe $contents {
-		if { ![file isdirectory [lindex $fe 0]] || [file type [lindex $fe 0]] == "link" } {
-			set srcfile [lindex $fe 0]
-			set file [string range [lindex $fe 0] [string length $imagedir] [string length [lindex $fe 0]]]
+    # This is big and hairy and probably could be done better.
+    # First, we need to check the source file, make sure it exists
+    # Then we remove the $imagedir from the path of the file in the contents
+    #  list  and check to see if that file exists
+    # Last, if the file exists, and belongs to another port, and force is set
+    #  we remove the file from the file_map, take ownership of it, and
+    #  clobber it
+    foreach fe $contents {
+        if { ![file isdirectory [lindex $fe 0]] || [file type [lindex $fe 0]] == "link" } {
+            set srcfile [lindex $fe 0]
+            set file [string range [lindex $fe 0] [string length $imagedir] [string length [lindex $fe 0]]]
 
-			if { ![string equal $srcfile ""] } {
-				lappend imagefiles $file
-			}
-		}
-	}
+            if { ![string equal $srcfile ""] } {
+                lappend imagefiles $file
+            }
+        }
+    }
 
-	return $imagefiles
+    return $imagefiles
 }
 
 proc _activate_file {srcfile dstfile} {
-	# Don't recursively copy directories
-	if { [file isdirectory $srcfile] && [file type $srcfile] != "link" } {
-		# Don't do anything if the directory already exists.
-		if { ![file isdirectory $dstfile] } {
-			file mkdir $dstfile
-			# fix attributes on the directory.
-			eval file attributes {$dstfile} [file attributes $srcfile]
-			# set mtime on installed element
-			file mtime $dstfile [file mtime $srcfile]
-		}
-	} elseif { [file type $srcfile] == "link" } {
-		file copy -force -- $srcfile $dstfile
-	} else {
-		# Try a hard link first and if that fails, a symlink
-		if {[catch {file link -hard $dstfile $srcfile}]} {
-			ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-			file link -symbolic $dstfile $srcfile
-		}
-	}
+    # Don't recursively copy directories
+    if { [file isdirectory $srcfile] && [file type $srcfile] != "link" } {
+        # Don't do anything if the directory already exists.
+        if { ![file isdirectory $dstfile] } {
+            file mkdir $dstfile
+            # fix attributes on the directory.
+            eval file attributes {$dstfile} [file attributes $srcfile]
+            # set mtime on installed element
+            file mtime $dstfile [file mtime $srcfile]
+        }
+    } elseif { [file type $srcfile] == "link" } {
+        file copy -force -- $srcfile $dstfile
+    } else {
+        # Try a hard link first and if that fails, a symlink
+        if {[catch {file link -hard $dstfile $srcfile}]} {
+            ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
+            file link -symbolic $dstfile $srcfile
+        }
+    }
 }
 
 proc _activate_list {flist imagedir} {
-	foreach file $flist {
-		if { [file type ${imagedir}${file}] == "link" } {
-			ui_debug "activating link: $file"
-		} elseif { [file isdirectory ${imagedir}${file}] } {
-			ui_debug "activating directory: $file"
-		} else {
-			ui_debug "activating file: $file"
-		}
-		_activate_file ${imagedir}${file} $file
-	}
+    foreach file $flist {
+        if { [file type ${imagedir}${file}] == "link" } {
+            ui_debug "activating link: $file"
+        } elseif { [file isdirectory ${imagedir}${file}] } {
+            ui_debug "activating directory: $file"
+        } else {
+            ui_debug "activating file: $file"
+        }
+        _activate_file ${imagedir}${file} $file
+    }
 }
 
 proc _activate_contents {name imagefiles imagedir} {
-	variable force
-	global macports::prefix
+    variable force
+    global macports::prefix
 
-	set files [list]
-	set timestamp [clock seconds]
-	
-	# This is big and hairy and probably could be done better.
-	# First, we need to check the source file, make sure it exists
-	# Then we remove the $imagedir from the path of the file in the contents
-	#  list  and check to see if that file exists
-	# Last, if the file exists, and belongs to another port, and force is set
-	#  we remove the file from the file_map, take ownership of it, and 
-	#  clobber it
-	foreach file $imagefiles {
-		set srcfile ${imagedir}${file}
+    set files [list]
+    set timestamp [clock seconds]
 
-		# To be able to install links, we test if we can lstat the file to figure
-		# out if the source file exists (file exists will return false for symlinks on
-		# files that do not exist)
-		if { [catch {file lstat $srcfile dummystatvar}] } {
-			return -code error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port $name."
-		}
+    # This is big and hairy and probably could be done better.
+    # First, we need to check the source file, make sure it exists
+    # Then we remove the $imagedir from the path of the file in the contents
+    #  list  and check to see if that file exists
+    # Last, if the file exists, and belongs to another port, and force is set
+    #  we remove the file from the file_map, take ownership of it, and
+    #  clobber it
+    foreach file $imagefiles {
+        set srcfile ${imagedir}${file}
 
-		set port [registry::file_registered $file]
+        # To be able to install links, we test if we can lstat the file to figure
+        # out if the source file exists (file exists will return false for symlinks on
+        # files that do not exist)
+        if { [catch {file lstat $srcfile dummystatvar}] } {
+            return -code error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port $name."
+        }
+
+        set port [registry::file_registered $file]
 
         if { $port != 0  && $force != 1 && $port != $name } {
             if {[catch {mportlookup $port} result]} {
@@ -325,119 +326,119 @@ proc _activate_contents {name imagefiles imagedir} {
             } else {
                 return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."
             }
-		} elseif { [file exists $file] && $force != 1 } {
-			return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
-		} elseif { $force == 1 && [file exists $file] || $port != 0 } {
-			set bakfile ${file}.mp_${timestamp}
+        } elseif { [file exists $file] && $force != 1 } {
+            return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name."
+        } elseif { $force == 1 && [file exists $file] || $port != 0 } {
+            set bakfile ${file}.mp_${timestamp}
 
-			if {[file exists $file]} {
-				ui_warn "File $file already exists.  Moving to: $bakfile."
-				file rename -force -- $file $bakfile
-			}
-			
-			if { $port != 0 } {
-				set bakport [registry::file_registered $file]
-				registry::unregister_file $file
-				if {[file exists $bakfile]} {
-					registry::register_file $bakfile $bakport
-				}
-			}
-		}
-		
-		# Split out the filename's subpaths and add them to the imagefile list.
-		# We need directories first to make sure they will be there before
-		# links. However, because file mkdir creates all parent directories,
-		# we don't need to have them sorted from root to subpaths. We do need,
-		# nevertheless, all sub paths to make sure we'll set the directory
-		# attributes properly for all directories.
-		set directory [file dirname $file]
-		while { [lsearch -exact $files $directory] == -1 } { 
-			lappend files $directory
-			set directory [file dirname $directory]
-		}
+            if {[file exists $file]} {
+                ui_warn "File $file already exists.  Moving to: $bakfile."
+                file rename -force -- $file $bakfile
+            }
 
-		# Also add the filename to the imagefile list.
-		lappend files $file
-	}
-	registry::write_file_map
+            if { $port != 0 } {
+                set bakport [registry::file_registered $file]
+                registry::unregister_file $file
+                if {[file exists $bakfile]} {
+                    registry::register_file $bakfile $bakport
+                }
+            }
+        }
 
-	# Sort the list in forward order, removing duplicates.
-	# Since the list is sorted in forward order, we're sure that directories
-	# are before their elements.
-	# We don't have to do this as mentioned above, but it makes the
-	# debug output of activate make more sense.
-	set theList [lsort -increasing -unique $files]
+        # Split out the filename's subpaths and add them to the imagefile list.
+        # We need directories first to make sure they will be there before
+        # links. However, because file mkdir creates all parent directories,
+        # we don't need to have them sorted from root to subpaths. We do need,
+        # nevertheless, all sub paths to make sure we'll set the directory
+        # attributes properly for all directories.
+        set directory [file dirname $file]
+        while { [lsearch -exact $files $directory] == -1 } { 
+            lappend files $directory
+            set directory [file dirname $directory]
+        }
 
-	# Activate it, and catch errors so we can roll-back
-	if { [catch {set files [_activate_list $theList $imagedir] } result] } {
-		ui_debug "Activation failed, rolling back."
-		_deactivate_contents $name $imagefiles
-		return -code error $result
-	}
+        # Also add the filename to the imagefile list.
+        lappend files $file
+    }
+    registry::write_file_map
+
+    # Sort the list in forward order, removing duplicates.
+    # Since the list is sorted in forward order, we're sure that directories
+    # are before their elements.
+    # We don't have to do this as mentioned above, but it makes the
+    # debug output of activate make more sense.
+    set theList [lsort -increasing -unique $files]
+
+    # Activate it, and catch errors so we can roll-back
+    if { [catch {set files [_activate_list $theList $imagedir] } result] } {
+        ui_debug "Activation failed, rolling back."
+        _deactivate_contents $name $imagefiles
+        return -code error $result
+    }
 }
 
 proc _deactivate_file {dstfile} {
-	if { [file type $dstfile] == "link" } {
-		ui_debug "deactivating link: $dstfile"
-		file delete -- $dstfile
-	} elseif { [file isdirectory $dstfile] } {
-		# 0 item means empty.
-		if { [llength [readdir $dstfile]] == 0 } {
-			ui_debug "deactivating directory: $dstfile"
-			file delete -- $dstfile
-		} else {
-			ui_debug "$dstfile is not empty"
-		}
-	} else {
-		ui_debug "deactivating file: $dstfile"
-		file delete -- $dstfile
-	}
+    if { [file type $dstfile] == "link" } {
+        ui_debug "deactivating link: $dstfile"
+        file delete -- $dstfile
+    } elseif { [file isdirectory $dstfile] } {
+        # 0 item means empty.
+        if { [llength [readdir $dstfile]] == 0 } {
+            ui_debug "deactivating directory: $dstfile"
+            file delete -- $dstfile
+        } else {
+            ui_debug "$dstfile is not empty"
+        }
+    } else {
+        ui_debug "deactivating file: $dstfile"
+        file delete -- $dstfile
+    }
 }
 
 proc _deactivate_list {filelist} {
-	foreach file $filelist {
-		_deactivate_file $file
-	}
+    foreach file $filelist {
+        _deactivate_file $file
+    }
 }
 
 proc _deactivate_contents {name imagefiles} {
-	set files [list]
-	
-	foreach file $imagefiles {
-		if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
-			# Normalize the file path to avoid removing the intermediate
-			# symlinks (remove the empty directories instead)
-			# Remark: paths in the registry may be not normalized.
-			# This is not really a problem and it is in fact preferable.
-			# Indeed, if I change the activate code to include normalized paths
-			# instead of the paths we currently have, users' registry won't
-			# match and activate will say that some file exists but doesn't
-			# belong to any port.
-			set theFile [file normalize $file]
-			lappend files $theFile
-			
-			# Split out the filename's subpaths and add them to the image list as
-			# well. The realpath call is necessary because file normalize
-			# does not resolve symlinks on OS X < 10.6
-			set directory [realpath [file dirname $theFile]]
-			while { [lsearch -exact $files $directory] == -1 } { 
-				lappend files $directory
-				set directory [file dirname $directory]
-			}
-		} else {
-			ui_debug "$file does not exist."
-		}
-	}
+    set files [list]
 
-	# Sort the list in reverse order, removing duplicates.
-	# Since the list is sorted in reverse order, we're sure that directories
-	# are after their elements.
-	set theList [lsort -decreasing -unique $files]
+    foreach file $imagefiles {
+        if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
+            # Normalize the file path to avoid removing the intermediate
+            # symlinks (remove the empty directories instead)
+            # Remark: paths in the registry may be not normalized.
+            # This is not really a problem and it is in fact preferable.
+            # Indeed, if I change the activate code to include normalized paths
+            # instead of the paths we currently have, users' registry won't
+            # match and activate will say that some file exists but doesn't
+            # belong to any port.
+            set theFile [file normalize $file]
+            lappend files $theFile
 
-	# Remove all elements.
-	if { [catch {_deactivate_list $theList} result] } {
-		return -code error $result
-	}
+            # Split out the filename's subpaths and add them to the image list as
+            # well. The realpath call is necessary because file normalize
+            # does not resolve symlinks on OS X < 10.6
+            set directory [realpath [file dirname $theFile]]
+            while { [lsearch -exact $files $directory] == -1 } { 
+                lappend files $directory
+                set directory [file dirname $directory]
+            }
+        } else {
+            ui_debug "$file does not exist."
+        }
+    }
+
+    # Sort the list in reverse order, removing duplicates.
+    # Since the list is sorted in reverse order, we're sure that directories
+    # are after their elements.
+    set theList [lsort -decreasing -unique $files]
+
+    # Remove all elements.
+    if { [catch {_deactivate_list $theList} result] } {
+        return -code error $result
+    }
 }
 
 # End of portimage namespace
