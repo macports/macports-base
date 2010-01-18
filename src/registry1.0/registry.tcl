@@ -33,7 +33,6 @@ package provide registry 1.0
 
 package require macports 1.0
 package require receipt_flat 1.0
-package require receipt_sqlite 1.0
 package require portuninstall 1.0
 package require msgcat
 package require Pextlib 1.0
@@ -664,7 +663,7 @@ proc _activate_contents {name imagefiles extractdir} {
             if { $port != 0 } {
                 set bakport [registry::file_registered $file]
                 registry::unregister_file $file
-                if {[file exists $file]} {
+                if {[file exists $bakfile]} {
                     registry::register_file $bakfile $bakport
                 }
             }

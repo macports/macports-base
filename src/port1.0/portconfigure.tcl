@@ -208,6 +208,7 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
         macports-gcc-4.3 { set name "MacPorts gcc 4.3" }
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
+        macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -240,7 +241,7 @@ proc portconfigure::configure_get_archflags {tool} {
 proc portconfigure::configure_get_ld_archflags {args} {
     global configure.build_arch
     if {${configure.build_arch} != "" && [arch_flag_supported]} {
-        set flags "-arch ${configure.build_arch}"
+        return "-arch ${configure.build_arch}"
     } else {
         return ""
     }
@@ -464,6 +465,17 @@ proc portconfigure::configure_get_compiler {type} {
                 fc   { set ret ${prefix}/bin/gfortran-mp-4.4 }
                 f77  { set ret ${prefix}/bin/gfortran-mp-4.4 }
                 f90  { set ret ${prefix}/bin/gfortran-mp-4.4 }
+            }
+        }
+        macports-gcc-4.5 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/gcc-mp-4.5 }
+                objc { set ret ${prefix}/bin/gcc-mp-4.5 }
+                cxx  { set ret ${prefix}/bin/g++-mp-4.5 }
+                cpp  { set ret ${prefix}/bin/cpp-mp-4.5 }
+                fc   { set ret ${prefix}/bin/gfortran-mp-4.5 }
+                f77  { set ret ${prefix}/bin/gfortran-mp-4.5 }
+                f90  { set ret ${prefix}/bin/gfortran-mp-4.5 }
             }
         }
     }

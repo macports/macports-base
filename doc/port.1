@@ -278,6 +278,10 @@ For example:
 .Dl "port info --line --category --name all"
 .Dl "port info --pretty --fullname --depends gtk2"
 .Dl "port info --index python24"
+.Ss notes
+Displays notes for 
+.Ar portname
+(useful information concerning setup and use of the port).
 .Ss variants
 Lists the build variants available for
 .Ar portname .
@@ -311,7 +315,11 @@ Activate the installed
 Deactivate the installed
 .Ar portname .
 .Ss installed
-List all installed ports.
+Show the installed versions and variants for
+.Ar portname .
+If no
+.Ar portname
+is given, all installed ports are shown.
 .Ss contents
 Lists the files installed by
 .Ar portname .

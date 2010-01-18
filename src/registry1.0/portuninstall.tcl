@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portuninstall.tcl
 # $Id$
 #
@@ -16,7 +16,7 @@
 # 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -40,80 +40,80 @@ set UI_PREFIX "---> "
 namespace eval portuninstall {
 
 proc uninstall {portname {v ""} optionslist} {
-	global uninstall.force uninstall.nochecksum UI_PREFIX
-	global macports::portimagefilepath
-	array set options $optionslist
+    global uninstall.force uninstall.nochecksum UI_PREFIX
+    global macports::portimagefilepath
+    array set options $optionslist
 
-	set ilist [registry::installed $portname $v]
-	if { [llength $ilist] > 1 } {
-	    set portname [lindex [lindex $ilist 0] 0]
-		ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
-		foreach i [portlist_sortint $ilist] { 
-			set iname [lindex $i 0]
-			set iversion [lindex $i 1]
-			set irevision [lindex $i 2]
-			set ivariants [lindex $i 3]
-			set iactive [lindex $i 4]
-			if { $iactive == 0 } {
-				ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
-			} elseif { $iactive == 1 } {
-				ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
-			}
-		}
-		return -code error "Registry error: Please specify the full version as recorded in the port registry."
-	} else {
-	    # set portname again since the one we were passed may not have had the correct case
-	    set portname [lindex [lindex $ilist 0] 0]
-		set version [lindex [lindex $ilist 0] 1]
-		set revision [lindex [lindex $ilist 0] 2]
-		set variants [lindex [lindex $ilist 0] 3]
-		set active [lindex [lindex $ilist 0] 4]
-		set epoch [lindex [lindex $ilist 0] 5]
-	}
+    set ilist [registry::installed $portname $v]
+    if { [llength $ilist] > 1 } {
+        set portname [lindex [lindex $ilist 0] 0]
+        ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
+        foreach i [portlist_sortint $ilist] { 
+            set iname [lindex $i 0]
+            set iversion [lindex $i 1]
+            set irevision [lindex $i 2]
+            set ivariants [lindex $i 3]
+            set iactive [lindex $i 4]
+            if { $iactive == 0 } {
+                ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
+            } elseif { $iactive == 1 } {
+                ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+            }
+        }
+        return -code error "Registry error: Please specify the full version as recorded in the port registry."
+    } else {
+        # set portname again since the one we were passed may not have had the correct case
+        set portname [lindex [lindex $ilist 0] 0]
+        set version [lindex [lindex $ilist 0] 1]
+        set revision [lindex [lindex $ilist 0] 2]
+        set variants [lindex [lindex $ilist 0] 3]
+        set active [lindex [lindex $ilist 0] 4]
+        set epoch [lindex [lindex $ilist 0] 5]
+    }
 
-	# determine if it's the only installed port with that name or not.
-	if {$v == ""} {
-		set nb_versions_installed 1
-	} else {
-		set ilist [registry::installed $portname ""]
-		set nb_versions_installed [llength $ilist]
-	}
+    # determine if it's the only installed port with that name or not.
+    if {$v == ""} {
+        set nb_versions_installed 1
+    } else {
+        set ilist [registry::installed $portname ""]
+        set nb_versions_installed [llength $ilist]
+    }
 
-	set ref [registry::open_entry $portname $version $revision $variants]
+    set ref [registry::open_entry $portname $version $revision $variants]
 
-	# If global forcing is on, make it the same as a local force flag.
-	if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
-		set uninstall.force "yes"
-	}
+    # If global forcing is on, make it the same as a local force flag.
+    if {[info exists options(ports_force)] && [string equal -nocase $options(ports_force) "yes"] } {
+        set uninstall.force "yes"
+    }
 
-	# Check and make sure no ports depend on this one
-	registry::open_dep_map	
-	set deplist [registry::list_dependents $portname]
-	if { [llength $deplist] > 0 } {
-		set dl [list]
-		# Check the deps first
-		foreach dep $deplist { 
-			set depport [lindex $dep 2]
-			ui_debug "$depport depends on this port"
-			if {[registry::entry_exists_for_name $depport]} {
-				lappend dl $depport
-			}
-		}
-		# Now see if we need to error
-		if { [llength $dl] > 0 } {
-			if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
-				foreach depport $dl {
-					# make sure it's still installed, since a previous dep uninstall may have removed it
-					if {[registry::entry_exists_for_name $depport]} {
-						portuninstall::uninstall $depport "" [array get options]
-					}
-				}
-			} else {
+    # Check and make sure no ports depend on this one
+    registry::open_dep_map  
+    set deplist [registry::list_dependents $portname]
+    if { [llength $deplist] > 0 } {
+        set dl [list]
+        # Check the deps first
+        foreach dep $deplist { 
+            set depport [lindex $dep 2]
+            ui_debug "$depport depends on this port"
+            if {[registry::entry_exists_for_name $depport]} {
+                lappend dl $depport
+            }
+        }
+        # Now see if we need to error
+        if { [llength $dl] > 0 } {
+            if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
+                foreach depport $dl {
+                    # make sure it's still installed, since a previous dep uninstall may have removed it
+                    if {[registry::entry_exists_for_name $depport]} {
+                        portuninstall::uninstall $depport "" [array get options]
+                    }
+                }
+            } else {
                 # will need to change this when we get version/variant dependencies
                 if {$nb_versions_installed == 1 || $active == 1} {
                     ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall %s %s_%s%s, the following ports depend on it:"] $portname $version $revision $variants]"
                     foreach depport $dl {
-                        ui_msg "$UI_PREFIX [format [msgcat::mc "	%s"] $depport]"
+                        ui_msg "$UI_PREFIX [format [msgcat::mc "    %s"] $depport]"
                     }
                     if { [info exists uninstall.force] && [string equal ${uninstall.force} "yes"] } {
                         ui_warn "Uninstall forced.  Proceeding despite dependencies."
@@ -121,54 +121,54 @@ proc uninstall {portname {v ""} optionslist} {
                         return -code error "Please uninstall the ports that depend on $portname first."
                     }
                 }
-			}
-		}
-	}
+            }
+        }
+    }
 
-	if {[registry::property_retrieve $ref active] == 1} {
-		if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
-			ui_msg "For $portname @${version}_${revision}${variants}: skipping deactivate (dry run)"
-		} else {
-			registry::deactivate $portname ${version}_${revision}${variants} $optionslist
-		}
-	}
+    if {[registry::property_retrieve $ref active] == 1} {
+        if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
+            ui_msg "For $portname @${version}_${revision}${variants}: skipping deactivate (dry run)"
+        } else {
+            registry::deactivate $portname ${version}_${revision}${variants} $optionslist
+        }
+    }
 
-	if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
-		ui_msg "For $portname @${version}_${revision}${variants}: skipping uninstall (dry run)"
-		return 0
-	}
-	
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
+    if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
+        ui_msg "For $portname @${version}_${revision}${variants}: skipping uninstall (dry run)"
+        return 0
+    }
+    
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s_%s%s"] $portname $version $revision $variants]"
 
-	# Look to see if the port has registered an uninstall procedure
-	set uninstall [registry::property_retrieve $ref pkg_uninstall] 
-	if { $uninstall != 0 } {
-		if {![catch {eval $uninstall} err]} {
-			pkg_uninstall $portname ${version}_${revision}${variants}
-		} else {
-			global errorInfo
-			ui_debug "$errorInfo"
-			ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
-		}
-	}
+    # Look to see if the port has registered an uninstall procedure
+    set uninstall [registry::property_retrieve $ref pkg_uninstall] 
+    if { $uninstall != 0 } {
+        if {![catch {eval $uninstall} err]} {
+            pkg_uninstall $portname ${version}_${revision}${variants}
+        } else {
+            global errorInfo
+            ui_debug "$errorInfo"
+            ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
+        }
+    }
 
-	# Remove the port from the deps_map if only one version was installed.
-	# This is a temporary fix for a deeper problem that is that the dependency
-	# map doesn't take the port version into account (but should).
-	# Fixing it means transitionning to a new dependency map format.
-	if {$nb_versions_installed == 1} {
-		registry::unregister_dependencies $portname
-	}
+    # Remove the port from the deps_map if only one version was installed.
+    # This is a temporary fix for a deeper problem that is that the dependency
+    # map doesn't take the port version into account (but should).
+    # Fixing it means transitionning to a new dependency map format.
+    if {$nb_versions_installed == 1} {
+        registry::unregister_dependencies $portname
+    }
 
-	set macport_filename [macports::getportimagename_from_port_info $portname $epoch $version $revision $variants]
-	set portimagedir [file join ${macports::portimagefilepath} $portname]
-	set macport_file [file join $portimagedir $macport_filename]
-	file delete $macport_file
-	# Try to delete the port's image dir; will fail if there are more image
-	# files so just ignore the failure
-	catch {file delete $portimagedir} ignorederr
-	ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
-	registry::delete_entry $ref
+    set macport_filename [macports::getportimagename_from_port_info $portname $epoch $version $revision $variants]
+    set portimagedir [file join ${macports::portimagefilepath} $portname]
+    set macport_file [file join $portimagedir $macport_filename]
+    file delete $macport_file
+    # Try to delete the port's image dir; will fail if there are more image
+    # files so just ignore the failure
+    catch {file delete $portimagedir} ignorederr
+    ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
+    registry::delete_entry $ref
 }
 
 # End of portuninstall namespace
