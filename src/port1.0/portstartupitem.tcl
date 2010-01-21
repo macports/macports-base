@@ -607,7 +607,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     ui_msg "# by default. Execute the following command to start it,"
     ui_msg "# and to cause it to launch at startup:"
     ui_msg "#"
-    ui_msg "# sudo launchctl load -w /Library/${daemondest}/${plistname}"
+    ui_msg "# sudo port load ${name}"
     ui_msg "###########################################################"
 }
 
