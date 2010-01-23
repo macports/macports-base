@@ -787,6 +787,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         } else {
             set macports::build_arch ""
         }
+    } else {
+        set macports::build_arch [lindex $macports::build_arch 0]
     }
 
     # ENV cleanup.
