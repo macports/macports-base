@@ -574,7 +574,6 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     puts ${plist} "<key>Debug</key><false/>"
     puts ${plist} "<key>Disabled</key><true/>"
     puts ${plist} "<key>OnDemand</key><false/>"
-    puts ${plist} "<key>RunAtLoad</key><false/>"
     
     if { [llength ${startupitem.logfile}] } {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
