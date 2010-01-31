@@ -1430,8 +1430,7 @@ proc action_help { action portlist opts } {
 
 
 proc action_log { action portlist opts } {
-    global global_options 
-    #puts "$opts"
+    global global_options
     if {[require_portlist portlist]} {
         return 1
     }
