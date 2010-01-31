@@ -108,43 +108,44 @@ proc macports::global_option_isset {val} {
     return 0
 }
 
-proc macports::init_logging {portname} {
+proc macports::init_logging {mport} {
     global macports::channels macports::portdbpath
 
     if {[getuid] == 0 && [geteuid] != 0} {
         seteuid 0
     }
-    set logspath [file join $macports::portdbpath logs]
-    if {([file exists $logspath] && ![file writable $logspath]) || (![file exists $logspath] && ![file writable $macports::portdbpath])} {
-        ui_debug "logging disabled, can't write to $logspath"
+    if {[catch {macports::ch_logging $mport} err]} {
+        ui_debug "Logging disabled, error opening log file: $err"
         return 1
     }
-    macports::ch_logging $portname
     # Add our log-channel to all already initialized channels
     foreach key [array names channels] {
         set macports::channels($key) [concat $macports::channels($key) "debuglog"]
     }
     return 0
 }
-proc macports::ch_logging {portname} {
-    global ::debuglog ::debuglogname macports::portdbpath
-    
+proc macports::ch_logging {mport} {
+    global ::debuglog ::debuglogname
+
+    set portname [_mportkey $mport name]
+    set portpath [_mportkey $mport portpath]
+
     ui_debug "Starting logging for $portname"
 
-    set logname [file join $macports::portdbpath "logs/$portname"]
+    set logname [macports::getportlogpath $portpath]
     file mkdir $logname
     set logname [file join $logname "main.log"]
 
     set ::debuglogname $logname
- 
+
     # Truncate the file if already exists
     set ::debuglog [open $::debuglogname w]
     puts $::debuglog "version:1"
 }
-proc macports::push_log {portname} {
+proc macports::push_log {mport} {
     global ::logstack ::logenabled ::debuglog ::debuglogname
     if {![info exists ::logenabled]} {
-        if {[macports::init_logging $portname] == 0} {
+        if {[macports::init_logging $mport] == 0} {
             set ::logenabled yes
             set ::logstack [list [list $::debuglog $::debuglogname]]
             return
@@ -153,7 +154,10 @@ proc macports::push_log {portname} {
         }
     }
     if {$::logenabled} {
-        macports::ch_logging $portname
+        if {[catch {macports::ch_logging $mport} err]} {
+            ui_debug "Logging disabled, error opening log file: $err"
+            return
+        }
         lappend ::logstack [list $::debuglog $::debuglogname]
     }
 }
@@ -1517,7 +1521,7 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 
 proc _mportexec {target mport} {
     set portname [_mportkey $mport name]
-    macports::push_log $portname
+    macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
@@ -1559,7 +1563,7 @@ proc mportexec {mport target} {
     }
     set portname [_mportkey $mport name]
     if {$target != "clean"} {
-        macports::push_log $portname
+        macports::push_log $mport
     }
 
     # Before we build the port, we must build its dependencies.
@@ -1759,6 +1763,13 @@ proc macports::getportbuildpath {id} {
     regsub {://} $id {.} port_path
     regsub -all {/} $port_path {_} port_path
     return [file join $portdbpath build $port_path]
+}
+
+proc macports::getportlogpath {id} {
+    global macports::portdbpath
+    regsub {://} $id {.} port_path
+    regsub -all {/} $port_path {_} port_path
+    return [file join $portdbpath logs $port_path]
 }
 
 proc macports::getportworkpath_from_buildpath {portbuildpath} {
