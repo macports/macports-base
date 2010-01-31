@@ -2781,20 +2781,24 @@ proc action_list { action portlist opts } {
 proc action_echo { action portlist opts } {
     # Simply echo back the port specs given to this command
     foreachport $portlist {
-        set opts {}
-        foreach { key value } [array get options] {
-            lappend opts "$key=$value"
-        }
-        
-        set composite_version [composite_version $portversion [array get variations] 1]
-        if { $composite_version != "" } {
-            set ver_field "@$composite_version"
+        if {![macports::ui_isset ports_quiet]} {
+            set opts {}
+            foreach { key value } [array get options] {
+                lappend opts "$key=$value"
+            }
+
+            set composite_version [composite_version $portversion [array get variations] 1]
+            if { $composite_version != "" } {
+                set ver_field "@$composite_version"
+            } else {
+                set ver_field ""
+            }
+            puts [format "%-30s %s %s" $portname $ver_field  [join $opts " "]]
         } else {
-            set ver_field ""
+            puts "$portname"
         }
-        puts [format "%-30s %s %s" $portname $ver_field  [join $opts " "]]
     }
-    
+
     return 0
 }
 
