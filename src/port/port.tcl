@@ -1473,7 +1473,9 @@ proc action_log { action portlist opts } {
         set portpath [macports::getportdir $porturl]
         set logfile [file join [macports::getportlogpath $portpath] "main.log"]
         if {[file exists $logfile]} {
-            set fp [open $logfile r]
+            if {[catch {set fp [open $logfile r]} result} {
+                break_softcontinue "Could not open file $logfile: $result" 1 status
+            }
             set data [read $fp]
             set data [split $data "\n"]
 
