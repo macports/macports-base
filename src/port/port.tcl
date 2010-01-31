@@ -1432,9 +1432,8 @@ proc action_help { action portlist opts } {
 proc action_log { action portlist opts } {
     global global_options 
     #puts "$opts"
-    if {[llength $portlist] == 0} {
-        print_help
-        return 0
+    if {[require_portlist portlist]} {
+        return 1
     }
     foreachport $portlist {
         # If we have a url, use that, since it's most specific
