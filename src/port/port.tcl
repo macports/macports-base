@@ -1491,14 +1491,12 @@ proc action_log { action portlist opts } {
             }
             set match ""
             foreach line $data {
-                set exp "^:($prefix|any):($stage|any) .*$"
-                regexp $exp $line match
-                if {$match == $line} {
-                    regsub "^:\[a-z\]*:\[a-z\]* "  $line "" line
-                    puts $line
+                set exp "^:($prefix|any):($stage|any) (.*)$"
+                if {[regexp $exp $line -> priority phase msg] == 1} {
+                    puts "[macports::ui_prefix_default $priority]$msg"
                 }
             }
-            
+
             close $fp
         } else {
             ui_msg "Log file for port $portname not found"
