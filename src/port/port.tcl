@@ -1431,7 +1431,6 @@ proc action_help { action portlist opts } {
 
 proc action_log { action portlist opts } {
     global global_options 
-    set logfile "$macports::prefix/var/macports/logs/"
     #puts "$opts"
     if {[llength $portlist] == 0} {
         print_help
@@ -1472,17 +1471,9 @@ proc action_log { action portlist opts } {
             array unset portinfo
             array set portinfo [lindex $result 1]
         }
-        if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
-            ui_debug "$::errorInfo"
-            break_softcontinue "Unable to open port: $result" 1 status
-         }
-         array unset portinfo
-         array set portinfo [mportinfo $mport]
-
-         append logfile $portinfo(name)
-         append logfile "/main.log"
-         mportclose $mport                        
-         if {[file exists $logfile]} {
+        set portpath [macports::getportdir $porturl]
+        set logfile [file join [macports::getportlogpath $portpath] "main.log"]
+        if {[file exists $logfile]} {
             set fp [open $logfile r]
             set data [read $fp]
             set data [split $data "\n"]
