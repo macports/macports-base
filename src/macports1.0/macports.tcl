@@ -590,9 +590,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Format for receipts, can currently be either "flat" or "sqlite"
     if {[info exists portdbformat]} {
-        if { $portdbformat == "sqlite" } {
-            return -code error "SQLite is not yet supported for registry storage."
-        }
         set registry.format receipt_${portdbformat}
     } else {
         set registry.format receipt_flat

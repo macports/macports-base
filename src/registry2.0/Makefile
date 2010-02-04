@@ -1,6 +1,6 @@
 # $Id$
 
-SRCS = registry_util.tcl portimage.tcl portuninstall.tcl
+SRCS = registry.tcl registry_autoconf.tcl registry_util.tcl receipt_flat.tcl portimage.tcl portuninstall.tcl
 OBJS = registry.o util.o \
 	entry.o entryobj.o
 	#graph.o graphobj.o
@@ -18,6 +18,9 @@ LIBS+=	../cregistry/cregistry.a ${SQLITE3_LIBS}
 test:: ${SHLIB_NAME}
 	${TCLSH} tests/entry.tcl ${SHLIB_NAME}
 	${TCLSH} tests/depends.tcl ${SHLIB_NAME}
+
+distclean:: clean
+	rm -f registry_autoconf.tcl
 
 install:: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
