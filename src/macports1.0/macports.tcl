@@ -590,7 +590,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Format for receipts, can currently be either "flat" or "sqlite"
     if {[info exists portdbformat]} {
-        set registry.format receipt_${portdbformat}
+        if {$portdbformat == "flat" || $portdbformat == "sqlite"} {
+            set registry.format receipt_${portdbformat}
+        } else {
+            return -code error "unknown registry format '$portdbformat' set in macports.conf"
+        }
     } else {
         set registry.format receipt_flat
     }
