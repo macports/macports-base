@@ -11,8 +11,11 @@ package require registry 1.0
 
 mportinit
 
-registry::open_dep_map
-registry::clean_dep_map
-registry::write_dep_map
+# Only the flat format had the bug which needs to be corrected
+if {${macports::registry.format} == "flat"} {
+    registry::open_dep_map
+    registry::clean_dep_map
+    registry::write_dep_map
+}
 
 exit 0
