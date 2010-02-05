@@ -204,9 +204,9 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
             && (sqlite3_bind_text(stmt, 5, epoch, -1, SQLITE_STATIC)
                 == SQLITE_OK)) {
         int r;
+        Tcl_HashEntry* hash;
+        int is_new;
         do {
-            Tcl_HashEntry* hash;
-            int is_new;
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_DONE:
@@ -675,15 +675,20 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
     int result = 0;
     sqlite3_stmt* stmt;
     char* query;
+    const char *text;
     query = sqlite3_mprintf("SELECT %q FROM registry.ports WHERE id=%lld", key,
             entry->id);
     if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
-        int r = sqlite3_step(stmt);
+        int r;
         do {
+            r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
-                    *value = strdup((const char*)sqlite3_column_text(stmt, 0));
-                    result = 1;
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        *value = strdup(text);
+                        result = 1;
+                    }
                     break;
                 case SQLITE_DONE:
                     errPtr->code = REG_INVALID;
@@ -884,14 +889,18 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
         int result_count = 0;
         int result_space = 10;
         int r;
+        const char *text;
+        char* element;
         do {
-            char* element;
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
-                    element = strdup((const char*)sqlite3_column_text(stmt, 0));
-                    reg_listcat((void***)&result, &result_count, &result_space,
-                            element);
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        element = strdup(text);
+                        reg_listcat((void***)&result, &result_count, &result_space,
+                                element);
+                    }
                     break;
                 case SQLITE_DONE:
                 case SQLITE_BUSY:
@@ -942,14 +951,18 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
         int result_count = 0;
         int result_space = 10;
         int r;
+        const char *text;
+        char* element;
         do {
-            char* element;
             r = sqlite3_step(stmt);
             switch (r) {
                 case SQLITE_ROW:
-                    element = strdup((const char*)sqlite3_column_text(stmt, 0));
-                    reg_listcat((void***)&result, &result_count, &result_space,
-                            element);
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        element = strdup(text);
+                        reg_listcat((void***)&result, &result_count, &result_space,
+                                element);
+                    }
                     break;
                 case SQLITE_DONE:
                 case SQLITE_BUSY:
