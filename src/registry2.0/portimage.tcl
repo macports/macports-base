@@ -159,7 +159,7 @@ proc activate {name v optionslist} {
     }
 
     if {$use_reg2} {
-        _activate_contents $port
+        _activate_contents $requested
         $requested state active
     } else {
         set imagedir [registry::property_retrieve $ref imagedir]

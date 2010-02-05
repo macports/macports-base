@@ -56,7 +56,7 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX name version revision variations portvariants
+    global UI_PREFIX name version revision portvariants
     global prefix
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
@@ -92,26 +92,18 @@ proc portinstall::install_element {src_element dst_element} {
     }
 }
 
-proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
+proc portinstall::directory_dig {rootdir workdir imagedir {cwd ""} {prepend 1}} {
     global installPlist
     set pwd [pwd]
     if {[catch {_cd $workdir} err]} {
         puts $err
         return
     }
-    
+
+    set root [file join [file separator] $imagedir]
     foreach name [readdir .] {
         set element [file join $cwd $name]
-        
-        if {![info exists root]} {
-            set root [file separator]
-        }
-        
-        if { [registry_prop_retr $regref installtype] == "image" } {
-            set imagedir [registry_prop_retr $regref imagedir]
-            set root [file join $root $imagedir]
-        }
-        
+
         set dst_element [file join $root $element]
         set src_element [file join $rootdir $element]
         # overwrites files but not directories
@@ -126,65 +118,115 @@ proc portinstall::directory_dig {rootdir workdir regref {cwd ""}} {
             install_element $src_element $dst_element
             # only track files/links for registry, not directories
             if {[file type $dst_element] != "directory"} {
-                lappend installPlist $dst_element
+                if {$prepend} {
+                    lappend installPlist $dst_element
+                } else {
+                    lappend installPlist [file join [file separator] $element]
+                }
             }
         }
         if {[file isdirectory $name] && [file type $name] != "link"} {
-            directory_dig $rootdir $name $regref [file join $cwd $name]
+            directory_dig $rootdir $name $imagedir [file join $cwd $name]
         }
     }
     _cd $pwd
 }
 
 proc portinstall::install_main {args} {
-    global name version portpath categories description long_description homepage depends_run installPlist package-install uninstall workdir worksrcdir pregrefix UI_PREFIX destroot revision maintainers ports_force portvariants targets depends_lib PortInfo epoch license
-    
-    # Begin the registry entry
-    set regref [registry_new $name $version $revision $portvariants $epoch]
-    
-    # Install the files
-    directory_dig ${destroot} ${destroot} ${regref}
-    
-    registry_prop_store $regref categories $categories
-    
-    if {[info exists description]} {
-        registry_prop_store $regref description [string map {\n \\n} ${description}]
-    }
-    if {[info exists long_description]} {
-        registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
-    }
-    if {[info exists license]} {
-        registry_prop_store $regref license ${license}
-    }
-    if {[info exists homepage]} {
-        registry_prop_store $regref homepage ${homepage}
-    }
-    if {[info exists maintainers]} {
-        registry_prop_store $regref maintainers ${maintainers}
-    }
-    if {[info exists depends_run]} {
-        registry_prop_store $regref depends_run $depends_run
-        registry_register_deps $depends_run $name
-    }
-    if {[info exists depends_lib]} {
-        registry_prop_store $regref depends_lib $depends_lib
-        registry_register_deps $depends_lib $name
-    }
-    if {[info exists installPlist]} {
-        registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
-        if { [registry_prop_retr $regref installtype] != "image" } {
-            registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $name
+    global name version portpath categories description long_description \
+    homepage depends_run installPlist package-install uninstall workdir \
+    worksrcdir UI_PREFIX destroot revision maintainers ports_force \
+    portvariants targets depends_lib PortInfo epoch license registry.installtype registry.path
+
+    if {[string equal ${registry.format} "receipt_sqlite"]} {
+        # registry2.0
+        registry::write {
+
+            set regref [registry::entry create $name $version $revision $portvariants $epoch]
+
+            # XXX this fails to describe path deps
+            if {[info exists depends_run]} {
+                foreach dep $depends_run {
+                    $regref depends [lindex [split $dep :] end]
+                }
+            }
+            if {[info exists depends_lib]} {
+                foreach dep $depends_lib {
+                    $regref depends [lindex [split $dep :] end]
+                }
+            }
+
+            if {${registry.installtype} == "image"} {
+                $regref installtype image
+                $regref state imaged
+                set imagedir [file join ${registry.path} software ${name} ${version}_${revision}${portvariants}]
+                $regref location $imagedir
+            } else {
+                $regref installtype direct
+                $regref state installed
+                set imagedir ""
+            }
+
+            # Install the files, requesting that the list not have the image dir prepended
+            directory_dig ${destroot} ${destroot} ${imagedir} "" 0
+            
+            if {[info exists installPlist]} {
+                # register files
+                $regref map $installPlist
+            }
         }
+    } else {
+        # Begin the registry entry
+        set regref [registry_new $name $version $revision $portvariants $epoch]
+
+        set imagedir ""
+        if { [registry_prop_retr $regref installtype] == "image" } {
+            set imagedir [registry_prop_retr $regref imagedir]
+        }
+        # Install the files
+        directory_dig ${destroot} ${destroot} ${imagedir}
+
+        registry_prop_store $regref categories $categories
+
+        if {[info exists description]} {
+            registry_prop_store $regref description [string map {\n \\n} ${description}]
+        }
+        if {[info exists long_description]} {
+            registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
+        }
+        if {[info exists license]} {
+            registry_prop_store $regref license ${license}
+        }
+        if {[info exists homepage]} {
+            registry_prop_store $regref homepage ${homepage}
+        }
+        if {[info exists maintainers]} {
+            registry_prop_store $regref maintainers ${maintainers}
+        }
+        if {[info exists depends_run]} {
+            registry_prop_store $regref depends_run $depends_run
+            registry_register_deps $depends_run $name
+        }
+        if {[info exists depends_lib]} {
+            registry_prop_store $regref depends_lib $depends_lib
+            registry_register_deps $depends_lib $name
+        }
+        if {[info exists installPlist]} {
+            registry_prop_store $regref contents [registry_fileinfo_for_index $installPlist]
+            if { [registry_prop_retr $regref installtype] != "image" } {
+                registry_bulk_register_files [registry_fileinfo_for_index $installPlist] $name
+            }
+        }
+        if {[info exists package-install]} {
+            registry_prop_store $regref package-install ${package-install}
+        }
+        if {[info proc pkg_uninstall] == "pkg_uninstall"} {
+            registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
+        }
+
+        registry_write $regref
     }
-    if {[info exists package-install]} {
-        registry_prop_store $regref package-install ${package-install}
-    }
-    if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-        registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
-    }
-    
-    registry_write $regref
-    
+
     return 0
 }
 

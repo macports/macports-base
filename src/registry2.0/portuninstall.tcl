@@ -235,7 +235,8 @@ proc uninstall {portname {v ""} optionslist} {
 
     # Now look for a contents list
     if {$use_reg2} {
-        set contents [$port files]
+        # imagefiles gives the actual installed files in direct mode
+        set contents [$port imagefiles]
     } else {
         set contents [registry::property_retrieve $ref contents]
         if { $contents == "" } {
