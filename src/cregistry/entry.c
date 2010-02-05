@@ -688,6 +688,8 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
                     if (text) {
                         *value = strdup(text);
                         result = 1;
+                    } else {
+                        reg_sqlite_error(reg->db, errPtr, query);
                     }
                     break;
                 case SQLITE_DONE:
