@@ -136,7 +136,8 @@ proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
     homepage depends_run installPlist package-install uninstall workdir \
     worksrcdir UI_PREFIX destroot revision maintainers ports_force \
-    portvariants targets depends_lib PortInfo epoch license registry.installtype registry.path
+    portvariants targets depends_lib PortInfo epoch license \
+    registry.installtype registry.path registry.format
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
         # registry2.0
