@@ -203,7 +203,7 @@ proc portclean::clean_work {args} {
 }
 proc portclean::clean_logs {args} {
     global portpath portbuildpath worksymlink name portverbose keeplogs prefix
-    set logpath [file join [getportlogpath $portpath]]
+    set logpath [getportlogpath $portpath]
   	if {[file isdirectory $logpath]} {
         ui_debug "Removing directory: ${logpath}"
         if {[catch {delete $logpath} result]} {

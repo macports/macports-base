@@ -1362,7 +1362,7 @@ proc target_run {ditem} {
         }
         if {[exists copy_log_files]} {
             set log_files [option copy_log_files]
-            set log_dir [file join [getportlogpath $portpath]]
+            set log_dir [getportlogpath $portpath]
             file mkdir $log_dir
  
             foreach log_file $log_files {
