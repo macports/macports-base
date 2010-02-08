@@ -951,6 +951,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias macports_create_thread macports::create_thread
     $workername alias getportworkpath_from_buildpath macports::getportworkpath_from_buildpath
     $workername alias getportresourcepath macports::getportresourcepath
+    $workername alias getportlogpath macports::getportlogpath
     $workername alias getdefaultportresourcepath macports::getdefaultportresourcepath
     $workername alias getprotocol macports::getprotocol
     $workername alias getportdir macports::getportdir

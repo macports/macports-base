@@ -202,8 +202,8 @@ proc portclean::clean_work {args} {
     return 0
 }
 proc portclean::clean_logs {args} {
-    global portbuildpath worksymlink name portverbose keeplogs prefix
- 	  set logpath "${prefix}/var/macports/logs/${name}"
+    global portpath portbuildpath worksymlink name portverbose keeplogs prefix
+    set logpath [file join [getportlogpath $portpath]]
   	if {[file isdirectory $logpath]} {
         ui_debug "Removing directory: ${logpath}"
         if {[catch {delete $logpath} result]} {

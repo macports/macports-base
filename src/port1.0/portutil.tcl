@@ -1199,7 +1199,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped current_stage worksrcpath prefix
+    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped current_stage worksrcpath prefix
     set portname [option name]
     set result 0
     set skipped 0
@@ -1362,7 +1362,7 @@ proc target_run {ditem} {
         }
         if {[exists copy_log_files]} {
             set log_files [option copy_log_files]
-            set log_dir "$prefix/var/macports/logs/$portname"
+            set log_dir [file join [getportlogpath $portpath]]
             file mkdir $log_dir
  
             foreach log_file $log_files {
