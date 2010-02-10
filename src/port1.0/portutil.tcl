@@ -449,7 +449,23 @@ proc default_check {optionName index op} {
 proc notes {args} {
     global PortInfo portnotes
 
-    set PortInfo(notes) [string trim [join $args]]
+    # Strip trailing empty lines
+    set notes [string trim [join $args] "\n"]
+    # Determine indent level
+    set indent ""
+    for {set i 0} {$i < [string length $notes]} {incr i} {
+        set c [string index $notes $i]
+        if {$c != " " && $c != "\t"} {
+            break
+        }
+        append indent $c
+    }
+    # Remove indent on first line
+    set notes [string replace $notes 0 [expr $i - 1]]
+    # Remove indent on each other line
+    set notes [string map "\"\n$indent\" \"\n\"" $notes]
+
+    set PortInfo(notes) $notes
     set portnotes $PortInfo(notes)
 }
 
