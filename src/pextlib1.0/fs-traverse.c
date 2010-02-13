@@ -191,7 +191,8 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             {
                 if (!(flags & F_IGNORE_ERRORS)) {
                     Tcl_SetErrno(ent->fts_errno);
-                    Tcl_SetResult(interp, (char *)Tcl_PosixError(interp),  TCL_STATIC);
+                    Tcl_ResetResult(interp);
+                    Tcl_AppendResult(interp, ent->fts_path, ": ", (char *)Tcl_PosixError(interp), NULL); 
                     fts_close(root_fts);
                     return TCL_ERROR;
                 }
