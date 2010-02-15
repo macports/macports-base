@@ -856,7 +856,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists proxy_override_env] } {
         set proxy_override_env "no"
     }
-    array set sysConfProxies [get_systemconfiguration_proxies]
+    if {[catch {array set sysConfProxies [get_systemconfiguration_proxies]} result]} {
+        return -code error "Unable to get proxy configuration from system: $result"
+    }
     if {![info exists env(http_proxy)] || $proxy_override_env == "yes" } {
         if {[info exists proxy_http]} {
             set env(http_proxy) $proxy_http
