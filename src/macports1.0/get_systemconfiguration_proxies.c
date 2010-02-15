@@ -91,6 +91,7 @@ int GetSystemConfigurationProxiesCmd( ClientData clientData UNUSED, Tcl_Interp *
         CFRelease( proxies );
     }
     if( cmdResult == TCL_ERROR )
+        Tcl_SetErrno( errno );
         Tcl_SetResult( interp, (char *) Tcl_PosixError( interp ), TCL_STATIC );
 #endif
    return cmdResult;

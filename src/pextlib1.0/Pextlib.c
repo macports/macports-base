@@ -338,7 +338,9 @@ int CreateSymlinkCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc,
     target = Tcl_GetString(objv[2]);
 
     if (symlink(value, target) != 0) {
-        Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "symlink: ", target, " -> ", value, ": ", (char *)Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
     return TCL_OK;
@@ -450,7 +452,9 @@ int lchownCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
     }
     if (lchown(path, (uid_t) user, (gid_t) group) != 0) {
-        Tcl_SetResult(interp, (char *)Tcl_PosixError(interp), TCL_STATIC);
+        Tcl_SetErrno(errno);
+        Tcl_ResetResult(interp);
+        Tcl_AppendResult(interp, "lchown: ", path, ": ", (char *)Tcl_PosixError(interp), NULL);
         return TCL_ERROR;
     }
 
