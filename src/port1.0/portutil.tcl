@@ -1475,7 +1475,12 @@ proc eval_targets {target} {
                 if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
                     ui_msg "For $name: skipping $target (dry run)"
                 } else {
-                    registry_activate $name ${version}_${revision}${portvariants} [array get user_options]
+                    if {[catch {registry_activate $name ${version}_${revision}${portvariants} [array get user_options]} result]} {
+                        global errorInfo
+                        ui_debug "$errorInfo"
+                        ui_error "activating $name @${version}_${revision}${portvariants} failed: $result"
+                        return 1
+                    }
                 }
             }
             return 0
