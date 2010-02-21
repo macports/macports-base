@@ -33,6 +33,7 @@ package provide registry 1.0
 
 package require macports 1.0
 package require receipt_flat 1.0
+package require receipt_sqlite 1.0
 package require portimage 2.0
 package require portuninstall 2.0
 package require msgcat
@@ -115,10 +116,10 @@ proc delete_entry {ref} {
 }
 
 # Open a registry entry.
-proc open_entry {name {version ""} {revision 0} {variants ""}} {
+proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	global macports::registry.format
 
-	return [${macports::registry.format}::open_entry $name $version $revision $variants]
+	return [${macports::registry.format}::open_entry $name $version $revision $variants $epoch]
 
 }
 
@@ -139,40 +140,36 @@ proc property_retrieve {ref property} {
 proc installed {{name ""} {version ""}} {
 	global macports::registry.format
 
-	set ilist [${macports::registry.format}::installed $name $version]
-	set rlist [list]
-
-	if { [llength $ilist] > 1 } {
-		foreach installed $ilist {
-			set iname [lindex $installed 0]
-			set iversion [lindex $installed 1]
-			set irevision [lindex $installed 2]
-			set ivariants [lindex $installed 3]
-			set iref [open_entry $iname $iversion $irevision $ivariants]
-			set iactive	[property_retrieve $iref active]
-			set iepoch [property_retrieve $iref epoch]
-			lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-		}
-	} elseif { [llength $ilist] < 1 } {
-		if { $name == "" } {
-			return -code error "Registry error: No ports registered as installed."
-		} else {
-			if { $version == "" } {
-				return -code error "Registry error: $name not registered as installed."
-			} else {
-				return -code error "Registry error: $name $version not registered as installed."
-			}
-		}
-	} else {
-		set iname [lindex [lindex $ilist 0] 0]
-		set iversion [lindex [lindex $ilist 0] 1]
-		set irevision [lindex [lindex $ilist 0] 2]
-		set ivariants [lindex [lindex $ilist 0] 3]
-		set iref [open_entry $iname $iversion $irevision $ivariants]
-		set iactive	[property_retrieve $iref active]
-		set iepoch [property_retrieve $iref epoch]
-		lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-	}
+    if {${macports::registry.format} == "receipt_flat"} {
+        set ilist [${macports::registry.format}::installed $name $version]
+        set rlist [list]
+    
+        foreach installed $ilist {
+            set iname [lindex $installed 0]
+            set iversion [lindex $installed 1]
+            set irevision [lindex $installed 2]
+            set ivariants [lindex $installed 3]
+            set iref [open_entry $iname $iversion $irevision $ivariants]
+            set iactive	[property_retrieve $iref active]
+            set iepoch [property_retrieve $iref epoch]
+            lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
+        }
+    } else {
+        set rlist [${macports::registry.format}::installed $name $version]
+    }
+    
+    if { [llength $rlist] < 1 } {
+        if { $name == "" } {
+            return -code error "Registry error: No ports registered as installed."
+        } else {
+            if { $version == "" } {
+                return -code error "Registry error: $name not registered as installed."
+            } else {
+                return -code error "Registry error: $name $version not registered as installed."
+            }
+        }
+    }
+    
 	return $rlist
 }
 
@@ -180,24 +177,26 @@ proc installed {{name ""} {version ""}} {
 # all ports if name is "").
 proc active {{name ""}} {
 	global macports::registry.format
-
-	set ilist [${macports::registry.format}::installed $name]
-	set rlist [list]
-
-	if { [llength $ilist] > 0 } {
-		foreach installed $ilist {
-			set iname [lindex $installed 0]
-			set iversion [lindex $installed 1]
-			set irevision [lindex $installed 2]
-			set ivariants [lindex $installed 3]
-			set iref [open_entry $iname $iversion $irevision $ivariants]
-			set iactive	[property_retrieve $iref active]
-			set iepoch [property_retrieve $iref epoch]
-			if {$iactive} {
-				lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
-			}
-		}
-	}
+    
+    if {${macports::registry.format} == "receipt_flat"} {
+        set rlist [list]
+        set ilist [${macports::registry.format}::installed $name]
+    
+        foreach installed $ilist {
+            set iname [lindex $installed 0]
+            set iversion [lindex $installed 1]
+            set irevision [lindex $installed 2]
+            set ivariants [lindex $installed 3]
+            set iref [open_entry $iname $iversion $irevision $ivariants]
+            set iactive	[property_retrieve $iref active]
+            set iepoch [property_retrieve $iref epoch]
+            if {$iactive} {
+                lappend rlist [list $iname $iversion $irevision $ivariants $iactive $iepoch]
+            }
+        }
+    } else {
+        set rlist [${macports::registry.format}::active $name]
+    }
 	
 	if { [llength $rlist] < 1 } {
 		if { $name == "" } {
@@ -365,9 +364,9 @@ proc list_depends {name} {
 }
 
 # List all the ports that depend on this port
-proc list_dependents {name} {
+proc list_dependents {name version revision variants} {
 	global macports::registry.format
-	return [${macports::registry.format}::list_dependents $name]
+	return [${macports::registry.format}::list_dependents $name $version $revision $variants]
 }
 
 proc register_dep {dep type port} {

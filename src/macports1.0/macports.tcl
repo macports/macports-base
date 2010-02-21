@@ -968,15 +968,12 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_write registry::write_entry
     $workername alias registry_prop_store registry::property_store
     $workername alias registry_prop_retr registry::property_retrieve
-    $workername alias registry_delete registry::delete_entry
     $workername alias registry_exists registry::entry_exists
     $workername alias registry_exists_for_name registry::entry_exists_for_name
     $workername alias registry_activate portimage::activate
-    $workername alias registry_deactivate portimage::deactivate
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_bulk_register_files registry::register_bulk_files
-    $workername alias registry_installed registry::installed
     $workername alias registry_active registry::active
 
     # deferred options processing.
@@ -2887,7 +2884,11 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set options(ports_nodeps) 1
 
             registry::open_dep_map
-            set deplist [registry::list_dependents $portname]
+            if {$anyactive} {
+                set deplist [registry::list_dependents $portname $version_active $revision_active $variant_active]
+            } else {
+                set deplist [registry::list_dependents $portname $version_installed $revision_installed $variant_installed]
+            }
 
             if { [llength deplist] > 0 } {
                 foreach dep $deplist {
@@ -3026,9 +3027,15 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set options(ports_nodeps) 1
 
         registry::open_dep_map
-        set deplist [registry::list_dependents $newname]
         if {$portname != $newname} {
-            set deplist [concat $deplist [registry::list_dependents $portname]]
+            set deplist [registry::list_dependents $newname "" "" ""]
+        } else {
+            set deplist [list]
+        }
+        if {$anyactive} {
+            set deplist [concat $deplist [registry::list_dependents $portname $version_active $revision_active $variant_active]]
+        } else {
+            set deplist [concat $deplist [registry::list_dependents $portname $version_installed $revision_installed $variant_installed]]
         }
 
         if { [llength deplist] > 0 } {

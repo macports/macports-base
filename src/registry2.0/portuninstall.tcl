@@ -154,7 +154,7 @@ proc uninstall {portname {v ""} optionslist} {
     
         # Check and make sure no ports depend on this one
         registry::open_dep_map  
-        set deplist [registry::list_dependents $portname]
+        set deplist [registry::list_dependents $portname $version $revision $variants]
         if { [llength $deplist] > 0 } {
             set dl [list]
             # Check the deps first

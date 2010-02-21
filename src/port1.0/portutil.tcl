@@ -1456,7 +1456,7 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd name version revision portvariants ports_dryrun user_options
+    global targets target_state_fd name version revision portvariants epoch ports_dryrun user_options
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
@@ -1466,7 +1466,7 @@ proc eval_targets {target} {
             ui_debug "Skipping $target ($name) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $name $version $revision $portvariants]
+            set regref [registry_open $name $version $revision $portvariants $epoch]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($name @${version}_${revision}${portvariants}) since this port is already active"

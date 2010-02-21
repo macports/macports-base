@@ -423,6 +423,9 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
 
 
 /*
+ * registry::entry owner filename
+ *
+ * Returns the port that owns the given filename (empty string if none).
  */
 static int entry_owner(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);

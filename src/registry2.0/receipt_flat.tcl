@@ -100,7 +100,7 @@ proc get_head_entry_receipt_path {portname portversion} {
 ##
 #
 # Open an existing entry and return its reference number.
-proc open_entry {name {version ""} {revision 0} {variants ""}} {
+proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 	global macports::registry.installtype
 	global macports::registry.path
 	variable ref_index
@@ -779,7 +779,7 @@ proc list_depends {name} {
 }
 
 # List all the ports that depend on this port
-proc list_dependents {name} {
+proc list_dependents {name version revision variants} {
 	variable dep_map
 	if { [llength $dep_map] < 1 && [info exists dep_map] } {
 		open_dep_map

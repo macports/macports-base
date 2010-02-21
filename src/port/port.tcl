@@ -2190,11 +2190,26 @@ proc action_dependents { action portlist opts } {
             ui_debug "$errorInfo"
             break_softcontinue "$result" 1 status
         } else {
+            # choose the active version if there is one
+            set index 0
+            foreach i $ilist {
+                if {[lindex $i 4]} {
+                    set found 1
+                    break
+                }
+                incr index
+            }
+            if {![info exists found]} {
+                set index 0
+            }
             # set portname again since the one we were passed may not have had the correct case
-            set portname [lindex [lindex $ilist 0] 0]
+            set portname [lindex [lindex $ilist $index] 0]
+            set iversion [lindex [lindex $ilist $index] 1]
+            set irevision [lindex [lindex $ilist $index] 2]
+            set ivariants [lindex [lindex $ilist $index] 3]
         }
         
-        set deplist [registry::list_dependents $portname]
+        set deplist [registry::list_dependents $portname $iversion $irevision $ivariants]
         if { [llength $deplist] > 0 } {
             set dl [list]
             # Check the deps first
