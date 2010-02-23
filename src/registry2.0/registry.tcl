@@ -364,7 +364,7 @@ proc list_depends {name} {
 }
 
 # List all the ports that depend on this port
-proc list_dependents {name version revision variants} {
+proc list_dependents {name {version ""} {revision ""} {variants ""}} {
 	global macports::registry.format
 	return [${macports::registry.format}::list_dependents $name $version $revision $variants]
 }
