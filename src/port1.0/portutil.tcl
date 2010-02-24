@@ -2536,7 +2536,7 @@ proc _get_dep_port {depspec} {
     if {$depfile == ""} {
         return $portname
     } else {
-        set theport [registry::file_registered $depfile]
+        set theport [registry_file_registered $depfile]
         if {$theport != 0} {
             return $theport
         } else {
