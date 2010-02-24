@@ -152,7 +152,7 @@ proc installed {{name ""} {version ""}} {
 	    set searchcmd "registry::entry search"
 	    registry::decode_spec $version version revision variants
 	    foreach key {name version revision variants} {
-            if {[set $key] != ""} {
+            if {[info exists $key] && [set $key] != ""} {
                 append searchcmd " $key [set $key]"
             }
 	    }
