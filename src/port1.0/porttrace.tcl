@@ -282,7 +282,9 @@ proc porttrace::slave_start {fifo p_workpath} {
     set ports_list {}
     set sandbox_violation_list {}
     tracelib setname $fifo
-    tracelib run
+    if [catch {tracelib run} err] {
+        ui_warn "Error in tracelib: $err"
+    }
 }
 
 # Private.
