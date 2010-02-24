@@ -380,6 +380,13 @@ static int TracelibRunCmd(Tcl_Interp * in)
 		return 0;
 	}
 	sock=socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sock == -1) {
+		Tcl_SetErrno(errno);
+		Tcl_ResetResult(interp);
+		Tcl_AppendResult(interp, "socket: ", (char *) Tcl_PosixError(interp), NULL);
+		pthread_mutex_unlock(&sock_mutex);
+		return TCL_ERROR;
+	}
 	pthread_mutex_unlock(&sock_mutex);
 	
 	interp=in;
@@ -397,13 +404,19 @@ static int TracelibRunCmd(Tcl_Interp * in)
 	
 	sun.sun_family=AF_UNIX;
 	strlcpy(sun.sun_path, name, sizeof(sun.sun_path));
-	if(bind(sock, (struct sockaddr*)&sun, sizeof(sun))==-1)
-	{
-		Tcl_SetResult(interp, "Cannot bind socket", TCL_STATIC);
+	if (bind(sock, (struct sockaddr*)&sun, sizeof(sun)) == -1) {
+		Tcl_SetErrno(errno);
+		Tcl_ResetResult(interp);
+		Tcl_AppendResult(interp, "bind: ", (char *) Tcl_PosixError(interp), NULL);
 		return TCL_ERROR;
 	}
 	
-	listen(sock, 5);
+	if (listen(sock, 5) == -1) {
+		Tcl_SetErrno(errno);
+		Tcl_ResetResult(interp);
+		Tcl_AppendResult(interp, "listen: ", (char *) Tcl_PosixError(interp), NULL);
+		return TCL_ERROR;
+	}
 	max_used=0;
 	max_fd=sock;
 	
