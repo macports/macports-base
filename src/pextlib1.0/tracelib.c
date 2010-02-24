@@ -158,7 +158,9 @@ static char process_line(int sock)
 		return 0;
 	if(!len)
 		return 0;
-	buf[len]=0;
+	
+	buf[len] = '\0';
+	
 	for(t=buf;*t&&t-buf<(int)sizeof(buf);t=next_t)
 	{
 		next_t = t+strlen(t)+1;
@@ -176,7 +178,7 @@ static char process_line(int sock)
 						ui_warn("recv failed");
 						return 0;
 					}
-					if(*end_of_t++ == 0)
+					if(*end_of_t++ == '\0')
 						break;
 				}
 			}
@@ -188,7 +190,11 @@ static char process_line(int sock)
 			ui_warn("malformed command %s", t);
 			break;
 		}
-		*f++=0;
+
+		/* Replace \t with \0 */
+		*f = '\0';
+		/* Advance pointer to arguments */
+		f++;
 
 		if(!strcmp(t, "filemap"))
 		{
