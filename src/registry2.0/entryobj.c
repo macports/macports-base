@@ -278,7 +278,7 @@ static int entry_obj_dependencies(Tcl_Interp* interp, reg_entry* entry,
         int objc, Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
     if (objc != 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "dependents");
+        Tcl_WrongNumArgs(interp, 1, objv, "dependencies");
         return TCL_ERROR;
     } else if (reg == NULL) {
         return TCL_ERROR;

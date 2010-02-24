@@ -2427,3 +2427,120 @@ proc dropPrivileges {} {
     }
 }
 
+# dependency analysis helpers
+
+### _libtest is private; subject to change without notice
+# XXX - Architecture specific
+# XXX - Rely on information from internal defines in cctools/dyld:
+# define DEFAULT_FALLBACK_FRAMEWORK_PATH
+# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
+# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
+#   -- Since /usr/local is bad, using /lib:/usr/lib only.
+# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
+# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
+
+proc _libtest {depspec {return_match 0}} {
+    global env prefix frameworks_dir os.platform
+    set depline [lindex [split $depspec :] 1]
+
+    if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
+        lappend search_path $env(DYLD_FRAMEWORK_PATH)
+    } else {
+        lappend search_path ${frameworks_dir} /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
+    }
+    if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
+        lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
+    }
+    if {[info exists env(DYLD_LIBRARY_PATH)]} {
+        lappend search_path $env(DYLD_LIBRARY_PATH)
+    }
+    lappend search_path /lib /usr/lib ${prefix}/lib
+    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
+        lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
+    }
+
+    set i [string first . $depline]
+    if {$i < 0} {set i [string length $depline]}
+    set depname [string range $depline 0 [expr $i - 1]]
+    set depversion [string range $depline $i end]
+    regsub {\.} $depversion {\.} depversion
+    if {${os.platform} == "darwin"} {
+        set depregex \^${depname}${depversion}\\.dylib\$
+    } else {
+        set depregex \^${depname}\\.so${depversion}\$
+    }
+
+    return [_mportsearchpath $depregex $search_path 0 $return_match]
+}
+
+### _bintest is private; subject to change without notice
+
+proc _bintest {depspec {return_match 0}} {
+    global env prefix
+    set depregex [lindex [split $depspec :] 1]
+
+    set search_path [split $env(PATH) :]
+
+    set depregex \^$depregex\$
+
+    return [_mportsearchpath $depregex $search_path 1 $return_match]
+}
+
+### _pathtest is private; subject to change without notice
+
+proc _pathtest {depspec {return_match 0}} {
+    global env prefix
+    set depregex [lindex [split $depspec :] 1]
+
+    # separate directory from regex
+    set fullname $depregex
+
+    regexp {^(.*)/(.*?)$} "$fullname" match search_path depregex
+
+    if {[string index $search_path 0] != "/"} {
+        # Prepend prefix if not an absolute path
+        set search_path "${prefix}/${search_path}"
+    }
+
+    set depregex \^$depregex\$
+
+    return [_mportsearchpath $depregex $search_path 0 $return_match]
+}
+
+# returns the name of the port that will actually be satisfying $depspec
+proc _get_dep_port {depspec} {
+    global registry.installtype
+    set speclist [split $depspec :]
+    set portname [lindex $speclist end]
+    if {[string equal ${registry.installtype} "image"]} {
+        set res [_portnameactive $portname]
+    } else {
+        set res [registry_exists_for_name $portname]
+    }
+    if {$res != 0} {
+        return $portname
+    }
+    
+    set depfile ""
+    switch [lindex $speclist 0] {
+        bin {
+            set depfile [_bintest $depspec 1]
+        }
+        lib {
+            set depfile [_libtest $depspec 1]
+        }
+        path {
+            set depfile [_pathtest $depspec 1]
+        }
+    }
+    if {$depfile == ""} {
+        return $portname
+    } else {
+        set theport [registry::file_registered $depfile]
+        if {$theport != 0} {
+            return $theport
+        } else {
+            return ""
+        }
+    }
+}

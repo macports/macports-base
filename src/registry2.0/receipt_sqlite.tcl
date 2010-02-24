@@ -189,7 +189,6 @@ proc list_dependents {name version revision variants} {
     foreach port $ports {
         set dependents [$port dependents]
         foreach dependent $dependents {
-            # XXX need to store path deps
             lappend rlist [list [$port name] port [$dependent name]]
         }
     }

@@ -136,7 +136,7 @@ proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
     homepage depends_run installPlist package-install uninstall workdir \
     worksrcdir UI_PREFIX destroot revision maintainers ports_force \
-    portvariants targets depends_lib PortInfo epoch license \
+    portvariants default_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
@@ -144,16 +144,21 @@ proc portinstall::install_main {args} {
         registry::write {
 
             set regref [registry::entry create $name $version $revision $portvariants $epoch]
-
-            # XXX this fails to describe path deps
-            if {[info exists depends_run]} {
-                foreach dep $depends_run {
-                    $regref depends [lindex [split $dep :] end]
-                }
+            
+            # Trick to have a portable GMT-POSIX epoch-based time.
+            $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
+            if {[info exists default_variants} {
+                $regref default_variants $default_variants
             }
-            if {[info exists depends_lib]} {
-                foreach dep $depends_lib {
-                    $regref depends [lindex [split $dep :] end]
+
+            foreach deplist {depends_lib depends_run} {
+                if {[info exists $deplist]} {
+                    foreach dep [set $deplist] {
+                        set dep_portname [_get_dep_port $dep]
+                        if {$dep_portname != ""} {
+                            $regref depends $dep_portname
+                        }
+                    }
                 }
             }
 
@@ -175,6 +180,11 @@ proc portinstall::install_main {args} {
                 # register files
                 $regref map $installPlist
             }
+            
+            # store portfile
+            set fd [open [file join ${portpath} Portfile]]
+            $regref portfile [read $fd]
+            close $fd
         }
     } else {
         # Begin the registry entry

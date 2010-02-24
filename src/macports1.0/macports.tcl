@@ -961,6 +961,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias binaryInPath macports::binaryInPath
     $workername alias sysctl sysctl
     $workername alias realpath realpath
+    $workername alias _mportsearchpath _mportsearchpath
+    $workername alias _portnameactive _portnameactive
 
     # New Registry/Receipts stuff
     $workername alias registry_new registry::new_entry
@@ -975,6 +977,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_bulk_register_files registry::register_bulk_files
     $workername alias registry_active registry::active
+    $workername alias registry_file_registered registry::file_registered
 
     # deferred options processing.
     $workername alias getoption macports::getoption
@@ -1342,95 +1345,6 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
     }
 }
 
-### _libtest is private; subject to change without notice
-# XXX - Architecture specific
-# XXX - Rely on information from internal defines in cctools/dyld:
-# define DEFAULT_FALLBACK_FRAMEWORK_PATH
-# /Library/Frameworks:/Library/Frameworks:/Network/Library/Frameworks:/System/Library/Frameworks
-# define DEFAULT_FALLBACK_LIBRARY_PATH /lib:/usr/local/lib:/lib:/usr/lib
-#   -- Since /usr/local is bad, using /lib:/usr/lib only.
-# Environment variables DYLD_FRAMEWORK_PATH, DYLD_LIBRARY_PATH,
-# DYLD_FALLBACK_FRAMEWORK_PATH, and DYLD_FALLBACK_LIBRARY_PATH take precedence
-
-proc _libtest {mport depspec {return_match 0}} {
-    global env tcl_platform
-    set depline [lindex [split $depspec :] 1]
-    set prefix [_mportkey $mport prefix]
-    set frameworks_dir [_mportkey $mport frameworks_dir]
-
-    if {[info exists env(DYLD_FRAMEWORK_PATH)]} {
-        lappend search_path $env(DYLD_FRAMEWORK_PATH)
-    } else {
-        lappend search_path ${frameworks_dir} /Library/Frameworks /Network/Library/Frameworks /System/Library/Frameworks
-    }
-    if {[info exists env(DYLD_FALLBACK_FRAMEWORK_PATH)]} {
-        lappend search_path $env(DYLD_FALLBACK_FRAMEWORK_PATH)
-    }
-    if {[info exists env(DYLD_LIBRARY_PATH)]} {
-        lappend search_path $env(DYLD_LIBRARY_PATH)
-    }
-    lappend search_path /lib /usr/lib ${prefix}/lib
-    if {[info exists env(DYLD_FALLBACK_LIBRARY_PATH)]} {
-        lappend search_path $env(DYLD_FALLBACK_LIBRARY_PATH)
-    }
-
-    set i [string first . $depline]
-    if {$i < 0} {set i [string length $depline]}
-    set depname [string range $depline 0 [expr $i - 1]]
-    set depversion [string range $depline $i end]
-    regsub {\.} $depversion {\.} depversion
-    if {$tcl_platform(os) == "Darwin"} {
-        set depregex \^${depname}${depversion}\\.dylib\$
-    } else {
-        set depregex \^${depname}\\.so${depversion}\$
-    }
-
-    return [_mportsearchpath $depregex $search_path 0 $return_match]
-}
-
-### _bintest is private; subject to change without notice
-
-proc _bintest {mport depspec {return_match 0}} {
-    global env
-    set depregex [lindex [split $depspec :] 1]
-    set prefix [_mportkey $mport prefix]
-
-    set search_path [split $env(PATH) :]
-
-    set depregex \^$depregex\$
-
-    return [_mportsearchpath $depregex $search_path 1 $return_match]
-}
-
-### _pathtest is private; subject to change without notice
-
-proc _pathtest {mport depspec {return_match 0}} {
-    global env
-    set depregex [lindex [split $depspec :] 1]
-    set prefix [_mportkey $mport prefix]
-
-    # separate directory from regex
-    set fullname $depregex
-
-    regexp {^(.*)/(.*?)$} "$fullname" match search_path depregex
-
-    if {[string index $search_path 0] != "/"} {
-        # Prepend prefix if not an absolute path
-        set search_path "${prefix}/${search_path}"
-    }
-
-    set depregex \^$depregex\$
-
-    return [_mportsearchpath $depregex $search_path 0 $return_match]
-}
-
-### _porttest is private; subject to change without notice
-
-proc _porttest {mport depspec} {
-    # We don't actually look for the port, but just return false
-    # in order to let the mportdepends handle the dependency
-    return 0
-}
 
 ### _mportinstalled is private; may change without notice
 
@@ -1482,12 +1396,13 @@ proc _mportispresent {mport depspec} {
     } else {
         # The receipt test failed, use one of the depspec regex mechanisms
         ui_debug "Didn't find receipt, going to depspec regex for: $portname"
+        set workername [ditem_key $mport workername]
         set type [lindex [split $depspec :] 0]
         switch $type {
-            lib { return [_libtest $mport $depspec] }
-            bin { return [_bintest $mport $depspec] }
-            path { return [_pathtest $mport $depspec] }
-            port { return [_porttest $mport $depspec] }
+            lib { return [$workername eval _libtest $depspec] }
+            bin { return [$workername eval _bintest $depspec] }
+            path { return [$workername eval _pathtest $depspec] }
+            port { return 0 }
             default {return -code error "unknown depspec type: $type"}
         }
         return 0
@@ -1678,50 +1593,14 @@ proc macports::_upgrade_mport_deps {mport target} {
     }
     
     foreach depspec $depends {
-        set dep_portname [_get_dep_port $mport $depspec]
+        set workername [ditem_key $mport workername]
+        set dep_portname [$workername eval _get_dep_port $depspec]
         if {$dep_portname != "" && ![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
             set status [macports::upgrade $dep_portname "port:$dep_portname" {} $options depscache]
             # status 2 means the port was not found in the index
             if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrade $dep_portname failed"
             }
-        }
-    }
-}
-
-# returns the name of the port that will actually be satisfying $depspec
-proc macports::_get_dep_port {mport depspec} {
-    set speclist [split $depspec :]
-    set portname [lindex $speclist end]
-    if {[string equal ${macports::registry.installtype} "image"]} {
-        set res [_portnameactive $portname]
-    } else {
-        set res [registry::entry_exists_for_name $portname]
-    }
-    if {$res != 0} {
-        return $portname
-    }
-    
-    set depfile ""
-    switch [lindex $speclist 0] {
-        bin {
-            set depfile [_bintest $mport $depspec 1]
-        }
-        lib {
-            set depfile [_libtest $mport $depspec 1]
-        }
-        path {
-            set depfile [_pathtest $mport $depspec 1]
-        }
-    }
-    if {$depfile == ""} {
-        return $portname
-    } else {
-        set theport [registry::file_registered $depfile]
-        if {$theport != 0} {
-            return $theport
-        } else {
-            return ""
         }
     }
 }
@@ -3089,7 +2968,8 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
     foreach dtype $dtypes {
         if {[info exists portinfo($dtype)]} {
             foreach i $portinfo($dtype) {
-                set d [_get_dep_port $parentworker $i]
+                set parent_interp [ditem_key $parentworker workername]
+                set d [$parent_interp eval _get_dep_port $i]
                 if {![llength [array get depscache port:${d}]] && ![llength [array get depscache $i]]} {
                     if {$d != ""} {
                         set dspec port:$d
