@@ -841,6 +841,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         # should ship with macports1.0 API?
         package require Pextlib 1.0
         package require registry 1.0
+        package require registry2 2.0
     } else {
         return -code error "Library directory '$libpath' must exist"
     }
@@ -902,6 +903,14 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         if {[file exists $default_portindex] && [expr [clock seconds] - [file mtime $default_portindex]] > 1209600} {
             ui_warn "port definitions are more than two weeks old, consider using selfupdate"
         }
+    }
+    
+    # init registry if needed
+    if {$portdbformat == "sqlite"} {
+        registry::open [file join ${registry.path} registry registry.db]
+        # for the benefit of the portimage code that is called from multiple interpreters
+        global registry_open
+        set registry_open yes
     }
 }
 

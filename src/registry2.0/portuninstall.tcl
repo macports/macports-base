@@ -41,7 +41,8 @@ set UI_PREFIX "---> "
 namespace eval portuninstall {
 
 proc uninstall {portname {v ""} optionslist} {
-    global uninstall.force uninstall.nochecksum UI_PREFIX macports::registry.format
+    global uninstall.force uninstall.nochecksum UI_PREFIX \
+           macports::registry.format macports::registry.installtype
     array set options $optionslist
 
     if {![info exists uninstall.force]} {
@@ -55,38 +56,48 @@ proc uninstall {portname {v ""} optionslist} {
     set use_reg2 [string equal ${macports::registry.format} "receipt_sqlite"]
 
     if {$use_reg2} {
+        if {${macports::registry.installtype} == "image"} {
+	        set imaged_or_installed imaged
+	    } else {
+	        set imaged_or_installed installed
+	    }
         if { [registry::decode_spec $v version revision variants] } {
-            set ilist [registry::entry imaged $portname $version $revision $variants]
+            set ilist [registry::entry $imaged_or_installed $portname $version $revision $variants]
             set valid 1
         } else {
             set valid [string equal $v {}]
-            set ilist [registry::entry imaged $portname]
+            set ilist [registry::entry $imaged_or_installed $portname]
         }
     } else {
         set ilist [registry::installed $portname $v]
         set valid 1
     }
     if { [llength $ilist] > 1 } {
-        set portname [lindex [lindex $ilist 0] 0]
+        # set portname again since the one we were passed may not have had the correct case
+        if {$use_reg2} {
+            set portname [[lindex $ilist 0] name]
+        } else {
+            set portname [lindex [lindex $ilist 0] 0]
+        }
         ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $portname are currently installed:"]"
-        foreach i [portlist_sortint $ilist] { 
-            set iname [lindex $i 0]
-            set iactive [lindex $i 4]
+        foreach i [portlist_sortint $ilist] {
             if {$use_reg2} {
                 set ispec "[$i version]_[$i revision][$i variants]"
                 if { [string equal [$i state] installed] } {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] $iname $ispec]"
-                } elseif { $iactive == 1 } {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] $iname $ispec]"
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s (active)"] [$i name] $ispec]"
+                } else {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
                 }
             } else {
+                set iname [lindex $i 0]
                 set iversion [lindex $i 1]
                 set irevision [lindex $i 2]
                 set ivariants [lindex $i 3]
-                if { $iactive == 0 } {
-                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
-                } elseif { $iactive == 1 } {
+                set iactive [lindex $i 4]
+                if { $iactive == 1 } {
                     ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s (active)"] $iname $iversion $irevision $ivariants]"
+                } else {
+                    ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
                 }
             }
         }
@@ -96,10 +107,9 @@ proc uninstall {portname {v ""} optionslist} {
             throw registry::invalid "Registry error: Invalid version specified. Please specify a version as recorded in the port registry."
         }
     } elseif { [llength $ilist] == 1 } {
-        # set portname again since the one we were passed may not have had the correct case
-        set portname [lindex [lindex $ilist 0] 0]
         if {$use_reg2} {
             set port [lindex $ilist 0]
+            ui_debug "$port exists? [registry::entry exists $port]"
             if {$v == ""} {
                 set v "[$port version]_[$port revision][$port variants]"
             }
@@ -237,6 +247,7 @@ proc uninstall {portname {v ""} optionslist} {
     if {$use_reg2} {
         # imagefiles gives the actual installed files in direct mode
         set contents [$port imagefiles]
+        set imagedir [$port location]
     } else {
         set contents [registry::property_retrieve $ref contents]
         if { $contents == "" } {
@@ -247,7 +258,7 @@ proc uninstall {portname {v ""} optionslist} {
     set files [list]
     foreach f $contents {
         if {$use_reg2} {
-            set fname $f
+            set fname "${imagedir}${f}"
             set sum1 [$port md5sum $f]
         } else {
             set fname [lindex $f 0]
@@ -264,8 +275,8 @@ proc uninstall {portname {v ""} optionslist} {
         }
         if {![string match $sum1 NONE] && !([info exists uninstall.nochecksum] && [string is true -strict ${uninstall.nochecksum}]) } {
             if {![catch {set sum2 [md5 $fname]}] && ![string match $sum1 $sum2]} {
-                ui_warn "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $file ${file}${bak_suffix}]"
-                catch {file copy $file "${file}${bak_suffix}"}
+                ui_warn "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $fname ${fname}${bak_suffix}]"
+                catch {file copy $fname "${fname}${bak_suffix}"}
             }
         }
         

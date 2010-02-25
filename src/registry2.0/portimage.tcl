@@ -69,7 +69,7 @@ variable use_reg2 0
 
 # Activate a "Port Image"
 proc activate {name v optionslist} {
-    global macports::prefix macports::registry.path UI_PREFIX
+    global macports::prefix macports::registry.format macports::registry.path registry_open UI_PREFIX
     array set options $optionslist
     variable force
     variable use_reg2
@@ -77,7 +77,13 @@ proc activate {name v optionslist} {
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
     }
-    set use_reg2 [string equal ${macports::registry.format} "receipt_sqlite"]
+    if {[string equal ${macports::registry.format} "receipt_sqlite"]} {
+        set use_reg2 1
+        if {![info exists registry_open]} {
+            registry::open [file join ${macports::registry.path} registry registry.db]
+            set registry_open yes
+        }
+    }
     set todeactivate [list]
 
     if {$use_reg2} {
@@ -160,7 +166,7 @@ proc activate {name v optionslist} {
 
     if {$use_reg2} {
         _activate_contents $requested
-        $requested state active
+        $requested state installed
     } else {
         set imagedir [registry::property_retrieve $ref imagedir]
 
@@ -184,7 +190,7 @@ proc activate {name v optionslist} {
 }
 
 proc deactivate {name v optionslist} {
-    global UI_PREFIX
+    global UI_PREFIX macports::registry.format macports::registry.path registry_open
     array set options $optionslist
     variable use_reg2
 
@@ -194,7 +200,13 @@ proc deactivate {name v optionslist} {
         # the activation is being forced
         set force 1
     }
-    set use_reg2 [string equal ${macports::registry.format} "receipt_sqlite"]
+    if {[string equal ${macports::registry.format} "receipt_sqlite"]} {
+        set use_reg2 1
+        if {![info exists registry_open]} {
+            registry::open [file join ${macports::registry.path} registry registry.db]
+            set registry_open yes
+        }
+    }
 
     if {$use_reg2} {
         if { [string equal $name ""] } {
@@ -278,7 +290,7 @@ proc deactivate {name v optionslist} {
 }
 
 proc _check_registry {name v} {
-    global UI_PREFIX
+    global UI_PREFIX macports::registry.installtype
     variable use_reg2
 
     if {$use_reg2} {
@@ -400,7 +412,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     set files [list]
     set baksuffix .mp_[clock seconds]
     if {$use_reg2} {
-        set imagedir [$port imagedir]
+        set imagedir [$port location]
         set imagefiles [$port imagefiles]
     } else {
         set name $port
@@ -494,17 +506,22 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
 
                 # Activate it, and catch errors so we can roll-back
                 try {
-                    [$port activate $imagefiles]
+                    $port activate $imagefiles
                     foreach file $theList {
                         _activate_file "${imagedir}${file}" $file
                     }
                 } catch {*} {
                     ui_debug "Activation failed, rolling back."
-                    _deactivate_contents $port {} yes
+                    # can't do it here since we're already inside a transaction
+                    set deactivate_this yes
                     throw
                 }
             }
         } catch {*} {
+            # roll back activation of this port
+            if {[info exists deactivate_this]} {
+                _deactivate_contents $port {} yes
+            }
             # if any errors occurred, move backed-up files back to their original
             # locations, then rethrow the error. Transaction rollback will take care
             # of this in the registry.

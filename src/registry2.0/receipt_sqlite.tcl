@@ -68,7 +68,7 @@ proc entry_exists {name version {revision 0} {variants ""}} {
     foreach key {name version revision variants} {
         append searchcmd " $key [set $key]"
     }
-    if {![catch {[eval $searchcmd]}]} {
+    if {![catch {set ports [eval $searchcmd]}] && [llength $ports] > 0} {
         return 1
     }
 	return 0
@@ -105,10 +105,14 @@ proc file_registered {file} {
 # - port	the port to test
 # returns 0 if the port is not registered, the list of its files otherwise.
 proc port_registered {name} {
-	if {![catch {set ports [registry::entry search name $name state installed]}]} {
+	if {![catch {set ports [registry::entry installed $name]}]
+	    && [llength $ports] > 0} {
 	    # should never return more than one port
 	    set port [lindex $ports 0]
 		return [$port files]
+	} elseif {![catch {set ports [registry::entry imaged $name]}]
+	    && [llength $ports] > 0} {
+	    return ""
 	} else {
         return 0
     }

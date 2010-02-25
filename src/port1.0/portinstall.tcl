@@ -33,6 +33,7 @@
 
 package provide portinstall 1.0
 package require portutil 1.0
+package require registry2 2.0
 
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install
@@ -57,7 +58,7 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX name version revision portvariants
-    global prefix
+    global prefix registry_open registry.format registry.path
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
@@ -66,6 +67,11 @@ proc portinstall::install_start {args} {
         elevateToRoot "install"
     }
     # end gsoc08-privileges
+    
+    if {${registry.format} == "receipt_sqlite" && ![info exists registry_open]} {
+        registry::open [file join ${registry.path} registry registry.db]
+        set registry_open yes
+    }
 }
 
 proc portinstall::install_element {src_element dst_element} {
@@ -126,7 +132,7 @@ proc portinstall::directory_dig {rootdir workdir imagedir {cwd ""} {prepend 1}} 
             }
         }
         if {[file isdirectory $name] && [file type $name] != "link"} {
-            directory_dig $rootdir $name $imagedir [file join $cwd $name]
+            directory_dig $rootdir $name $imagedir [file join $cwd $name] $prepend
         }
     }
     _cd $pwd
@@ -147,7 +153,7 @@ proc portinstall::install_main {args} {
             
             # Trick to have a portable GMT-POSIX epoch-based time.
             $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-            if {[info exists default_variants} {
+            if {[info exists default_variants]} {
                 $regref default_variants $default_variants
             }
 
@@ -166,12 +172,12 @@ proc portinstall::install_main {args} {
                 $regref installtype image
                 $regref state imaged
                 set imagedir [file join ${registry.path} software ${name} ${version}_${revision}${portvariants}]
-                $regref location $imagedir
             } else {
                 $regref installtype direct
                 $regref state installed
                 set imagedir ""
             }
+            $regref location $imagedir
 
             # Install the files, requesting that the list not have the image dir prepended
             directory_dig ${destroot} ${destroot} ${imagedir} "" 0

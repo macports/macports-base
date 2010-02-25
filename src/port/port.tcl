@@ -2470,7 +2470,7 @@ proc action_contents { action portlist opts } {
                 }
             } else {
                 if {![macports::ui_isset ports_quiet]} {
-                    puts "Port $portname does not contain any file or is not active."
+                    puts "Port $portname does not contain any files or is not active."
                 }
             }
         } else {
