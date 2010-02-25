@@ -3218,11 +3218,10 @@ proc find_action_proc { action } {
 
 # Returns whether an action expects text arguments at all,
 # expects text arguments or wants an expanded list of ports
-# Return value:
-#   0 none        Does not expect any text argument
-#   1 strings     Expects some strings as text argument
-#   2 ports       Wants an expanded list of ports as text argument
-# Use action_args_const to translate them
+# Return values are constants:
+#   [ACTION_ARGS_NONE]     Does not expect any text argument
+#   [ACTION_ARGS_STRINGS]  Expects some strings as text argument
+#   [ACTION_ARGS_PORTS]    Wants an expanded list of ports as text argument
 proc action_needs_portlist { action } {
     global action_array
 
