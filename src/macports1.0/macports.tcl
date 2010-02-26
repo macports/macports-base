@@ -906,7 +906,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     
     # init registry if needed
-    if {$portdbformat == "sqlite"} {
+    if {${registry.format} == "receipt_sqlite"} {
         registry::open [file join ${registry.path} registry registry.db]
         # for the benefit of the portimage code that is called from multiple interpreters
         global registry_open
