@@ -233,7 +233,6 @@ int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
         set_sqlite_result(interp, db, query);
         return TCL_ERROR;
     }
-    return TCL_ERROR;
 }
 
 const char* string_or_null(Tcl_Obj* obj) {
