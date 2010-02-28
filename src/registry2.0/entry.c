@@ -366,14 +366,15 @@ static int entry_imaged(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         entry_count = reg_entry_imaged(reg, name, version, revision, variants,
                 &entries, &error);
         if (entry_count >= 0) {
-            Tcl_Obj* resultObj;
             Tcl_Obj** objs;
-            list_entry_to_obj(interp, &objs, entries, entry_count, &error);
-            resultObj = Tcl_NewListObj(entry_count, objs);
-            Tcl_SetObjResult(interp, resultObj);
+            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)) {
+                Tcl_Obj* resultObj = Tcl_NewListObj(entry_count, objs);
+                Tcl_SetObjResult(interp, resultObj);
+                free(entries);
+                free(objs);
+                return TCL_OK;
+            }
             free(entries);
-            free(objs);
-            return TCL_OK;
         }
         return registry_failed(interp, &error);
     }
@@ -408,14 +409,15 @@ static int entry_installed(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]){
         }
         entry_count = reg_entry_installed(reg, name, &entries, &error);
         if (entry_count >= 0) {
-            Tcl_Obj* resultObj;
             Tcl_Obj** objs;
-            list_entry_to_obj(interp, &objs, entries, entry_count, &error);
-            resultObj = Tcl_NewListObj(entry_count, objs);
-            Tcl_SetObjResult(interp, resultObj);
+            if (list_entry_to_obj(interp, &objs, entries, entry_count, &error)) {
+                Tcl_Obj* resultObj = Tcl_NewListObj(entry_count, objs);
+                Tcl_SetObjResult(interp, resultObj);
+                free(entries);
+                free(objs);
+                return TCL_OK;
+            }
             free(entries);
-            free(objs);
-            return TCL_OK;
         }
         return registry_failed(interp, &error);
     }
