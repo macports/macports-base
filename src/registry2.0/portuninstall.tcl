@@ -109,7 +109,6 @@ proc uninstall {portname {v ""} optionslist} {
     } elseif { [llength $ilist] == 1 } {
         if {$use_reg2} {
             set port [lindex $ilist 0]
-            ui_debug "$port exists? [registry::entry exists $port]"
             if {$v == ""} {
                 set v "[$port version]_[$port revision][$port variants]"
             }
@@ -259,7 +258,10 @@ proc uninstall {portname {v ""} optionslist} {
     foreach f $contents {
         if {$use_reg2} {
             set fname "${imagedir}${f}"
-            set sum1 [$port md5sum $f]
+            #set sum1 [$port md5sum $f]
+            # there's an md5 column in registry.files in the db, but
+            # no way to get or set it seems to be implemented
+            set sum1 NONE
         } else {
             set fname [lindex $f 0]
             set md5index [lsearch -regex [lrange $f 1 end] MD5]
