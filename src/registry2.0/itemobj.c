@@ -110,7 +110,7 @@ static int item_obj_key(Tcl_Interp* interp, item_t* item, int objc,
             int len;
             const char* result;
             Tcl_Obj* resultObj;
-            sprintf(query, "SELECT %s FROM items WHERE rowid=?", key);
+            snprintf(query, sizeof(query), "SELECT %s FROM items WHERE rowid=?", key);
             sqlite3_prepare(item->db, query, -1, &stmt, NULL);
             sqlite3_bind_int64(stmt, 1, item->rowid);
             sqlite3_step(stmt);
@@ -133,7 +133,7 @@ static int item_obj_key(Tcl_Interp* interp, item_t* item, int objc,
             char query[64];
             char* key = Tcl_GetString(objv[2]);
             char* value = Tcl_GetString(objv[3]);
-            sprintf(query, "UPDATE items SET %s=? WHERE rowid=?", key);
+            snprintf(query, sizeof(query), "UPDATE items SET %s=? WHERE rowid=?", key);
             sqlite3_prepare(item->db, query, -1, &stmt, NULL);
             sqlite3_bind_text(stmt, 1, value, -1, SQLITE_STATIC);
             sqlite3_bind_int64(stmt, 2, item->rowid);

@@ -110,7 +110,7 @@ static void update_objc_string (Tcl_Obj *objPtr) {
 
 	/* objPtr->bytes must be allocated with Tcl_Alloc */
 	objPtr->bytes = Tcl_Alloc(length);
-	strcpy(objPtr->bytes, string);
+	strncpy(objPtr->bytes, string, length);
 	free(string);
 }
 

@@ -150,13 +150,16 @@ static int item_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     sqlite3_stmt* stmt;
     Tcl_Obj* result;
     /* 40 + 20 per clause is safe */
-    char* query = (char*)malloc((20*objc)*sizeof(char));
+    int query_size = (20*objc)*sizeof(char);
+    char* query = (char*)malloc(query_size);
+    char* query_start = "SELECT proc FROM items";
     char* insert;
+    int insert_size = query_size - strlen(query_start);
     if (db == NULL) {
         return TCL_ERROR;
     }
-    strcpy(query, "SELECT proc FROM items");
-    insert = query + strlen("SELECT proc FROM items");
+    strncpy(query, query_start, query_size);
+    insert = query + strlen(query_start);
     for (i=2; i<objc; i++) {
         int len;
         int index;
@@ -179,11 +182,13 @@ static int item_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         }
         key = Tcl_GetString(keyObj);
         if (i == 2) {
-            sprintf(insert, " WHERE %s=?", key);
+            snprintf(insert, insert_size, " WHERE %s=?", key);
             insert += 9 + strlen(key);
+            insert_size -= 9 + strlen(key);
         } else {
-            sprintf(insert, " AND %s=?", key);
+            snprintf(insert, insert_size, " AND %s=?", key);
             insert += 7 + strlen(key);
+            insert_size -= 7 + strlen(key);
         }
     }
     r = sqlite3_prepare(db, query, -1, &stmt, NULL);

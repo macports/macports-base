@@ -342,9 +342,9 @@ static void ui_msg(const char * severity, const char * format, va_list va)
 {
 	char buf[1024], tclcmd[32];
 	
-	vsprintf(buf, format, va);
+	vsnprintf(buf, sizeof(buf), format, va);
 	
-	sprintf(tclcmd, "ui_%s $warn", severity);
+	snprintf(tclcmd, sizeof(tclcmd), "ui_%s $warn", severity);
 	
 	Tcl_SetVar(interp, "warn", buf, 0);
 	

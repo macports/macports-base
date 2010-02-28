@@ -239,8 +239,10 @@ inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) 
 	if (varValue) {
 		int theSize = strlen(varName) + strlen(varValue) + 2;
 		theResult = (char*) malloc(theSize);
-		sprintf(theResult, "%s=%s", varName, varValue);
-		theResult[theSize - 1] = 0;
+		if (theResult) {
+		    snprintf(theResult, theSize, "%s=%s", varName, varValue);
+		    theResult[theSize - 1] = 0;
+		}
 	}
 	
 	return theResult;
@@ -334,7 +336,7 @@ inline void __darwintrace_setup() {
 			int sock=socket(AF_UNIX, SOCK_STREAM, 0);
 			struct sockaddr_un sun;
 			sun.sun_family=AF_UNIX;
-			strcpy(sun.sun_path, __env_darwintrace_log);
+			strncpy(sun.sun_path, __env_darwintrace_log, sizeof(sun.sun_path));
 			if(connect(sock, (struct sockaddr*)&sun, strlen(__env_darwintrace_log)+1+sizeof(sun.sun_family))!=-1)
 			{
 				dprintf("darwintrace: connect successful. socket %d\n", sock);
@@ -474,8 +476,8 @@ static int ask_for_dependency(char * path)
 	if(is_directory(path))
 		return 1;
 	
-	strcpy(buffer, "dep_check\t");
-	strcpy(buffer+10, path);
+	strncpy(buffer, "dep_check\t", sizeof(buffer));
+	strncpy(buffer+10, path, sizeof(buffer)-10);
 	p=exchange_with_port(buffer, strlen(buffer)+1, 1, 0);
 	if(p==(char*)-1||!p)
 		return 0;

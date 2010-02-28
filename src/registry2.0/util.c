@@ -51,11 +51,12 @@
  * N^2 to N. It'll be alchemy for the 21st century.
  */
 char* unique_name(Tcl_Interp* interp, char* prefix) {
-    char* result = malloc(strlen(prefix) + TCL_INTEGER_SPACE + 1);
+    int result_size = strlen(prefix) + TCL_INTEGER_SPACE + 1;
+    char* result = malloc(result_size);
     Tcl_CmdInfo info;
     int i;
     for (i=0; ; i++) {
-        sprintf(result, "%s%d", prefix, i);
+        snprintf(result, result_size, "%s%d", prefix, i);
         if (Tcl_GetCommandInfo(interp, result, &info) == 0) {
             break;
         }
