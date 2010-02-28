@@ -199,6 +199,8 @@ proc deactivate {name v optionslist} {
         # needs to be able to force deactivate independently of whether
         # the activation is being forced
         set force 1
+    } else {
+        set force 0
     }
     if {[string equal ${macports::registry.format} "receipt_sqlite"]} {
         set use_reg2 1
@@ -258,7 +260,7 @@ proc deactivate {name v optionslist} {
             return -code error "Image error: ${name} @${specifier} is not active."
         }
 
-        registry::check_dependents $port $force
+        registry::check_dependents $requested $force
 
         _deactivate_contents $requested {} $force
         $requested state imaged

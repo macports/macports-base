@@ -266,7 +266,7 @@ int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
 int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
         reg_error* errPtr) {
     if (entry->proc == NULL) {
-        char* name = unique_name(interp, "registry::entry");
+        char* name = unique_name(interp, "::registry::entry");
         if (!set_entry(interp, name, entry, errPtr)) {
             free(name);
             return 0;
