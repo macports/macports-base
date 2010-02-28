@@ -117,7 +117,7 @@ proc activate {name v optionslist} {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
             }
 
-            if { [string equal [$requested state] "active"] } {
+            if { [string equal [$requested state] "installed"] } {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
             }
         }
@@ -451,6 +451,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                         array set portinfo [lindex $result 1]
                         if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) [$port name]] != -1} {
                             lappend deactivated $owner
+                            # XXX this is bad, deactivate does another write transaction (probably deadlocks)
                             deactivate [$owner name] "" ""
                             set owner {}
                         }

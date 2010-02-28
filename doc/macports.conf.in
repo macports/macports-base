@@ -11,6 +11,7 @@ prefix			@prefix_expanded@
 portdbpath		@localstatedir_expanded@/macports
 
 # Type of storage to use for the port registry information, "flat" or "sqlite"
+# default is flat, sqlite is still experimental
 #portdbformat		flat
 
 # Type of installation to do for ports, "direct" or "image".  See macports.conf(5) and online documentation.

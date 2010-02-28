@@ -147,6 +147,20 @@ proc portinstall::install_main {args} {
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
         # registry2.0
+
+        # can't do this inside the write transaction due to deadlock issues with _get_dep_port
+        set dep_portnames [list]
+        foreach deplist {depends_lib depends_run} {
+            if {[info exists $deplist]} {
+                foreach dep [set $deplist] {
+                    set dep_portname [_get_dep_port $dep]
+                    if {$dep_portname != ""} {
+                        lappend dep_portnames $dep_portname
+                    }
+                }
+            }
+        }
+
         registry::write {
 
             set regref [registry::entry create $name $version $revision $portvariants $epoch]
@@ -157,15 +171,8 @@ proc portinstall::install_main {args} {
                 $regref default_variants $default_variants
             }
 
-            foreach deplist {depends_lib depends_run} {
-                if {[info exists $deplist]} {
-                    foreach dep [set $deplist] {
-                        set dep_portname [_get_dep_port $dep]
-                        if {$dep_portname != ""} {
-                            $regref depends $dep_portname
-                        }
-                    }
-                }
+            foreach dep_portname $dep_portnames {
+                $regref depends $dep_portname
             }
 
             if {${registry.installtype} == "image"} {
