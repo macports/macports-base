@@ -574,7 +574,6 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     puts ${plist} "<key>Debug</key><false/>"
     puts ${plist} "<key>Disabled</key><true/>"
     puts ${plist} "<key>OnDemand</key><false/>"
-    puts ${plist} "<key>RunAtLoad</key><false/>"
     
     if { [llength ${startupitem.logfile}] } {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
@@ -607,7 +606,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     ui_msg "# by default. Execute the following command to start it,"
     ui_msg "# and to cause it to launch at startup:"
     ui_msg "#"
-    ui_msg "# sudo launchctl load -w /Library/${daemondest}/${plistname}"
+    ui_msg "# sudo port load ${name}"
     ui_msg "###########################################################"
 }
 
