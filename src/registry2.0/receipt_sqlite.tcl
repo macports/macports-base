@@ -64,11 +64,7 @@ proc open_entry {name version revision variants epoch} {
 
 # Check to see if an entry exists
 proc entry_exists {name version {revision 0} {variants ""}} {
-	set searchcmd "registry::entry search"
-    foreach key {name version revision variants} {
-        append searchcmd " $key [set $key]"
-    }
-    if {![catch {set ports [eval $searchcmd]}] && [llength $ports] > 0} {
+    if {![catch {set ports [registry::entry search name $name version $version revision $revision variants $variants]}] && [llength $ports] > 0} {
         return 1
     }
 	return 0
@@ -153,14 +149,13 @@ proc installed {{name ""} {version ""}} {
 	        set ports [registry::entry installed]
 	    }
 	} else {
-	    set searchcmd "registry::entry search"
 	    registry::decode_spec $version version revision variants
-	    foreach key {name version revision variants} {
-            if {[info exists $key] && [set $key] != ""} {
-                append searchcmd " $key [set $key]"
+	    foreach key {version revision variants} {
+            if {![info exists $key]} {
+                set $key ""
             }
 	    }
-	    if {[catch {set ports [eval $searchcmd]}]} {
+	    if {[catch {set ports [registry::entry search name $name version $version revision $revision variants $variants]}]} {
 	        set ports [list]
 	    }
 	}
