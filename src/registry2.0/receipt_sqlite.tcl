@@ -149,13 +149,14 @@ proc installed {{name ""} {version ""}} {
 	        set ports [registry::entry installed]
 	    }
 	} else {
+	    set searchcmd "registry::entry search"
 	    registry::decode_spec $version version revision variants
-	    foreach key {version revision variants} {
-            if {![info exists $key]} {
-                set $key ""
+	    foreach key {name version revision variants} {
+            if {[info exists $key] && [set $key] != ""} {
+                append searchcmd " $key {[set $key]}"
             }
 	    }
-	    if {[catch {set ports [registry::entry search name $name version $version revision $revision variants $variants]}]} {
+	    if {[catch {set ports [eval $searchcmd]}]} {
 	        set ports [list]
 	    }
 	}
