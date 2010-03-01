@@ -58,6 +58,9 @@ static item_t* get_item(Tcl_Interp* interp, char* name) {
 static int set_item(Tcl_Interp* interp, char* name, sqlite_int64 rowid) {
     sqlite3* db = registry_db(interp, 0);
     item_t* new_item = malloc(sizeof(item_t));
+    if (!new_item) {
+        return TCL_ERROR;
+    }
     new_item->rowid = rowid;
     new_item->db = db;
     if (set_object(interp, name, new_item, "item", item_obj_cmd, delete_item)
@@ -102,7 +105,7 @@ static int item_create(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         }
     } else {
         /* item create */
-        char* name = unique_name(interp, "registry::item");
+        char* name = unique_name(interp, "::registry::item");
         if (set_item(interp, name, item) == TCL_OK) {
             Tcl_Obj* res = Tcl_NewStringObj(name, -1);
             Tcl_SetObjResult(interp, res);
@@ -155,7 +158,7 @@ static int item_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
     char* query_start = "SELECT proc FROM items";
     char* insert;
     int insert_size = query_size - strlen(query_start);
-    if (db == NULL) {
+    if (db == NULL || query == NULL) {
         return TCL_ERROR;
     }
     strncpy(query, query_start, query_size);

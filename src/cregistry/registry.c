@@ -104,6 +104,9 @@ void reg_throw(reg_error* errPtr, char* code, char* fmt, ...) {
  */
 int reg_open(reg_registry** regPtr, reg_error* errPtr) {
     reg_registry* reg = malloc(sizeof(reg_registry));
+    if (!reg) {
+        return 0;
+    }
     if (sqlite3_open(NULL, &reg->db) == SQLITE_OK) {
         if (init_db(reg->db, errPtr)) {
             reg->status = reg_none;

@@ -81,6 +81,9 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
     reg_entry** entries;
     int entry_count = reg_all_open_entries(reg, &entries);
     int i;
+    if (entry_count == -1) {
+        return 0;
+    }
     for (i=0; i<entry_count; i++) {
         if (entries[i]->proc) {
             Tcl_DeleteCommand(interp, entries[i]->proc);

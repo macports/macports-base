@@ -55,6 +55,8 @@ char* unique_name(Tcl_Interp* interp, char* prefix) {
     char* result = malloc(result_size);
     Tcl_CmdInfo info;
     int i;
+    if (!result)
+        return NULL;
     for (i=0; ; i++) {
         snprintf(result, result_size, "%s%d", prefix, i);
         if (Tcl_GetCommandInfo(interp, result, &info) == 0) {
@@ -175,6 +177,9 @@ int set_entry(Tcl_Interp* interp, char* name, reg_entry* entry,
                 errPtr)) {
         int size = strlen(name) + 1;
         entry->proc = malloc(size*sizeof(char));
+        if (!entry->proc) {
+            return 0;
+        }
         memcpy(entry->proc, name, size);
         return 1;
     }
@@ -219,6 +224,9 @@ int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             sqlite_int64 rowid = sqlite3_column_int64(stmt, 0);
             char* name = unique_name(interp, prefix);
+            if (!name) {
+                return TCL_ERROR;
+            }
             if (setter(interp, name, rowid) == TCL_OK) {
                 Tcl_Obj* element = Tcl_NewStringObj(name, -1);
                 Tcl_ListObjAppendElement(interp, result, element);
@@ -249,6 +257,9 @@ int recast(void* userdata, cast_function* fn, free_function* del, void*** outv,
         void** inv, int inc, reg_error* errPtr) {
     void** result = malloc(inc*sizeof(void*));
     int i;
+    if (!result) {
+        return 0;
+    }
     for (i=0; i<inc; i++) {
         if (!fn(userdata, &result[i], inv[i], errPtr)) {
             if (del != NULL) {
@@ -268,6 +279,9 @@ int entry_to_obj(Tcl_Interp* interp, Tcl_Obj** obj, reg_entry* entry,
         reg_error* errPtr) {
     if (entry->proc == NULL) {
         char* name = unique_name(interp, "::registry::entry");
+        if (!name) {
+            return 0;
+        }
         if (!set_entry(interp, name, entry, errPtr)) {
             free(name);
             return 0;

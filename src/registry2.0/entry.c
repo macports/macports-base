@@ -151,8 +151,13 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         if (list_handle) {
             entry_list* list = *list_handle;
             *list_handle = malloc(sizeof(entry_list*));
-            (*list_handle)->entry = entry;
-            (*list_handle)->next = list;
+            if (*list_handle) {
+                (*list_handle)->entry = entry;
+                (*list_handle)->next = list;
+            } else {
+                reg_entry_free(entry);
+                return TCL_ERROR;
+            }
         } else {
             reg_entry_free(entry);
         }
@@ -280,6 +285,9 @@ static int entry_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         }
         keys = malloc(key_count * sizeof(char*));
         vals = malloc(key_count * sizeof(char*));
+        if (!keys || !vals) {
+            return TCL_ERROR;
+        }
         for (i=0; i<key_count; i+=1) {
             keys[i] = Tcl_GetString(objv[2*i+start]);
             vals[i] = Tcl_GetString(objv[2*i+start+1]);

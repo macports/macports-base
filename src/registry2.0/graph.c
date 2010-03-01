@@ -90,8 +90,11 @@ int GraphCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                             == SQLITE_OK)
                         && (sqlite3_step(stmt) == SQLITE_DONE))) {
                 graph* g = malloc(sizeof(graph));
-                g->db = db;
                 sqlite3_free(query);
+                if (!g) {
+                    return TCL_ERROR;
+                }
+                g->db = db;
                 if (objc == 4) {
                     /* graph create dbfile name */
                     if (SetGraph(interp, Tcl_GetString(objv[3]), g) == TCL_OK) {
@@ -100,7 +103,7 @@ int GraphCreateCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
                     }
                 } else {
                     /* graph create dbfile; generate a name */
-                    char* name = UniqueName(interp, "registry::graph");
+                    char* name = unique_name(interp, "::registry::graph");
                     if (SetGraph(interp, name, g) == TCL_OK) {
                         Tcl_Obj* res = Tcl_NewStringObj(name, -1);
                         Tcl_SetObjResult(interp, res);

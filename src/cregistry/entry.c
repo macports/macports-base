@@ -78,21 +78,24 @@
  * @param [in,out] dst_space number of characters `dst` can hold
  * @param [in] src           string to concatenate to `dst`
  */
-void reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
+static int reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
     int src_len = strlen(src);
     int result_len = *dst_len + src_len;
     if (result_len >= *dst_space) {
-        char* old_dst = *dst;
+        char* new_dst;
         *dst_space *= 2;
         if (*dst_space < result_len) {
             *dst_space = result_len;
         }
-        *dst = malloc(*dst_space * sizeof(char) + 1);
-        memcpy(*dst, old_dst, *dst_len);
-        free(old_dst);
+        new_dst = realloc(*dst, *dst_space * sizeof(char) + 1);
+        if (!new_dst)
+            return 0;
+        else
+            *dst = new_dst;
     }
     memcpy(*dst + *dst_len, src, src_len+1);
     *dst_len = result_len;
+    return 1;
 }
 
 /**
@@ -104,16 +107,19 @@ void reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
  * @param [in,out] dst_space number of elements `dst` can hold
  * @param [in] src           elements to append to `dst`
  */
-static void reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
+static int reg_listcat(void*** dst, int* dst_len, int* dst_space, void* src) {
     if (*dst_len == *dst_space) {
-        void** old_dst = *dst;
+        void** new_dst;
         *dst_space *= 2;
-        *dst = malloc(*dst_space * sizeof(void*));
-        memcpy(*dst, old_dst, *dst_len);
-        free(old_dst);
+        new_dst = realloc(*dst, *dst_space * sizeof(void*));
+        if (!new_dst)
+            return 0;
+        else
+            *dst = new_dst;
     }
     (*dst)[*dst_len] = src;
     (*dst_len)++;
+    return 1;
 }
 
 /**
@@ -148,8 +154,8 @@ static char* reg_strategy_op(reg_strategy strategy, reg_error* errPtr) {
  * @param [in] userdata sqlite3 database
  * @param [out] entry   entry described by `stmt`
  * @param [in] stmt     `sqlite3_stmt` with appropriate columns
- * @param [out] errPtr  unused, since this function doesn't fail
- * @return              true, since this function doesn't fail
+ * @param [out] errPtr  unused
+ * @return              true if success; false if failure
  */
 static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
         reg_error* errPtr UNUSED) {
@@ -160,6 +166,9 @@ static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
             (const char*)&id, &is_new);
     if (is_new) {
         reg_entry* e = malloc(sizeof(reg_entry));
+        if (!e) {
+            return 0;
+        }
         e->reg = reg;
         e->id = id;
         e->proc = NULL;
@@ -211,12 +220,14 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
             switch (r) {
                 case SQLITE_DONE:
                     entry = malloc(sizeof(reg_entry));
-                    entry->id = sqlite3_last_insert_rowid(reg->db);
-                    entry->reg = reg;
-                    entry->proc = NULL;
-                    hash = Tcl_CreateHashEntry(&reg->open_entries,
-                            (const char*)&entry->id, &is_new);
-                    Tcl_SetHashValue(hash, entry);
+                    if (entry) {
+                        entry->id = sqlite3_last_insert_rowid(reg->db);
+                        entry->reg = reg;
+                        entry->proc = NULL;
+                        hash = Tcl_CreateHashEntry(&reg->open_entries,
+                                (const char*)&entry->id, &is_new);
+                        Tcl_SetHashValue(hash, entry);
+                    }
                     break;
                 case SQLITE_BUSY:
                     break;
@@ -405,6 +416,9 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
     int result_count = 0;
     int result_space = 10;
     sqlite3_stmt* stmt;
+    if (!results) {
+        return -1;
+    }
     if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
         int r;
         reg_entry* entry;
@@ -413,8 +427,9 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
             switch (r) {
                 case SQLITE_ROW:
                     if (fn(reg, (void**)&entry, stmt, errPtr)) {
-                        reg_listcat(&results, &result_count, &result_space,
-                                entry);
+                        if (!reg_listcat(&results, &result_count, &result_space, entry)) {
+                            r = SQLITE_ERROR;
+                        }
                     } else {
                         r = SQLITE_ERROR;
                     }
@@ -492,10 +507,16 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     }
     /* build the query */
     query = strdup("SELECT id FROM registry.ports");
+    if (!query) {
+        return -1;
+    }
     for (i=0; i<key_count; i++) {
         char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
-        reg_strcat(&query, &query_len, &query_space, kwd);
-        reg_strcat(&query, &query_len, &query_space, cond);
+        if (!cond || !reg_strcat(&query, &query_len, &query_space, kwd)
+            || !reg_strcat(&query, &query_len, &query_space, cond)) {
+            free(query);
+            return -1;
+        }
         sqlite3_free(cond);
         kwd = " AND ";
     }
@@ -893,6 +914,9 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
         int r;
         const char *text;
         char* element;
+        if (!result) {
+            return -1;
+        }
         do {
             r = sqlite3_step(stmt);
             switch (r) {
@@ -900,8 +924,9 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
                     text = (const char*)sqlite3_column_text(stmt, 0);
                     if (text) {
                         element = strdup(text);
-                        reg_listcat((void***)&result, &result_count, &result_space,
-                                element);
+                        if (!element || !reg_listcat((void***)&result, &result_count, &result_space, element)) {
+                            r = SQLITE_ERROR;
+                        }
                     }
                     break;
                 case SQLITE_DONE:
@@ -955,6 +980,9 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
         int r;
         const char *text;
         char* element;
+        if (!result) {
+            return -1;
+        }
         do {
             r = sqlite3_step(stmt);
             switch (r) {
@@ -962,8 +990,9 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
                     text = (const char*)sqlite3_column_text(stmt, 0);
                     if (text) {
                         element = strdup(text);
-                        reg_listcat((void***)&result, &result_count, &result_space,
-                                element);
+                        if (!element || !reg_listcat((void***)&result, &result_count, &result_space, element)) {
+                            r = SQLITE_ERROR;
+                        }
                     }
                     break;
                 case SQLITE_DONE:
@@ -1242,7 +1271,7 @@ int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr) {
  *
  * @param [in] reg      registry to fetch entries from
  * @param [out] entries a list of open entries
- * @return              the number of open entries
+ * @return              the number of open entries, -1 on error
  */
 int reg_all_open_entries(reg_registry* reg, reg_entry*** entries) {
     reg_entry* entry;
@@ -1251,10 +1280,16 @@ int reg_all_open_entries(reg_registry* reg, reg_entry*** entries) {
     Tcl_HashEntry* hash;
     Tcl_HashSearch search;
     *entries = malloc(10*sizeof(void*));
+    if (!*entries) {
+        return -1;
+    }
     for (hash = Tcl_FirstHashEntry(&reg->open_entries, &search); hash != NULL;
             hash = Tcl_NextHashEntry(&search)) {
         entry = Tcl_GetHashValue(hash);
-        reg_listcat((void***)entries, &entry_count, &entry_space, entry);
+        if (!reg_listcat((void***)entries, &entry_count, &entry_space, entry)) {
+            free(*entries);
+            return -1;
+        }
     }
     return entry_count;
 }
