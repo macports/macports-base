@@ -1856,9 +1856,10 @@ proc action_location { action portlist opts } {
             set version [lindex $ilist 1]
             set revision [lindex $ilist 2]
             set variants [lindex $ilist 3]
+            set epoch [lindex $ilist 5]
         }
 
-        set ref [registry::open_entry $portname $version $revision $variants]
+        set ref [registry::open_entry $portname $version $revision $variants $epoch]
         if { [string equal [registry::property_retrieve $ref installtype] "image"] } {
             set imagedir [registry::property_retrieve $ref imagedir]
             if {![macports::ui_isset ports_quiet]} {
