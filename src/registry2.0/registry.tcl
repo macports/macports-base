@@ -389,7 +389,65 @@ proc write_dep_map {args} {
 	return [${macports::registry.format}::write_dep_map $args]
 }
 
+# upgrade flat receipts to registry2.0 sqlite db
+proc convert_to_sqlite {} {
+    set ilist [receipt_flat::installed "" ""]
+
+    foreach installed $ilist {
+        set iname [lindex $installed 0]
+        set iversion [lindex $installed 1]
+        set irevision [lindex $installed 2]
+        set ivariants [lindex $installed 3]
+        set proplist [list name $iname version $iversion revision $irevision variants $ivariants]
+
+        set iref [receipt_flat::open_entry $iname $iversion $irevision $ivariants]
+        
+        lappend proplist date [receipt_flat::property_retrieve $iref date]
+        lappend proplist epoch [receipt_flat::property_retrieve $iref epoch]
+        
+        set installtype [receipt_flat::property_retrieve $iref installtype]
+        lappend proplist installtype $installtype
+        if { $installtype == "image" } {
+            set imagedir [receipt_flat::property_retrieve $iref imagedir]
+            set contents [receipt_flat::property_retrieve $iref contents]
+            set imagefiles [list]
+            set idlen [string length $imagedir]
+            foreach f $contents {
+                set fullpath [lindex $f 0]
+                # strip image dir from start
+                set path [string range $fullpath $idlen [string length $fullpath]]
+                lappend imagefiles $path
+            }
+            lappend proplist imagefiles $imagefiles
+            set active [receipt_flat::property_retrieve $iref active]
+            if {$active} {
+                set state installed
+                lappend proplist files [receipt_flat::port_registered $iname]
+            } else {
+                set state imaged
+            }
+        } else {
+            set imagedir ""
+            set state installed
+            lappend proplist files [receipt_flat::port_registered $iname]
+        }
+        lappend proplist location $imagedir
+        lappend proplist state $state
+        
+        receipt_flat::open_dep_map
+        set deplist [receipt_flat::list_depends $iname]
+        set depnames [list]
+        foreach dep $deplist {
+            lappend depnames [lindex $dep 0]
+        }
+        lappend proplist depends $depnames
+        
+        lappend proplist portfile ""
+        
+        # add the entry to the db
+        receipt_sqlite::create_entry_l $proplist
+    }
+}
 
 # End of registry namespace
 }
-

@@ -130,7 +130,7 @@ proc uninstall {portname {v ""} optionslist} {
         if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
             foreach depport [$port dependents] {
                 # make sure it's still installed, since a previous dep uninstall may have removed it
-                if {[$depport state] == "imaged" || [$depport state] == "installed"} {
+                if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
                     set depname [$depport name]
                     set depver "[$depport version]_[$depport revision][$depport variants]"
                     portuninstall::uninstall $depname $depver [array get options]

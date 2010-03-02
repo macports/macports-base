@@ -907,10 +907,16 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
     # init registry if needed
     if {${registry.format} == "receipt_sqlite"} {
-        registry::open [file join ${registry.path} registry registry.db]
+        set db_path [file join ${registry.path} registry registry.db]
+        set db_exists [file exists $db_path]
+        registry::open $db_path
         # for the benefit of the portimage code that is called from multiple interpreters
         global registry_open
         set registry_open yes
+        # convert any flat receipts if we just created a new db
+        if {$db_exists == 0 && [file writable $db_path]} {
+            registry::convert_to_sqlite
+        }
     }
 }
 

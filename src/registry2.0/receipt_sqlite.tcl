@@ -72,7 +72,7 @@ proc entry_exists {name version {revision 0} {variants ""}} {
 
 # Check to see if an entry exists
 proc entry_exists_for_name {name} {
-	if {![catch {registry::entry search name $name}]} {
+	if {![catch {set ports [registry::entry search name $name]}] && [llength $ports] > 0} {
 	    return 1
 	}
 	return 0
@@ -194,6 +194,30 @@ proc list_dependents {name version revision variants} {
     }
 	
 	return $rlist
+}
+
+# adds a registry entry from a list of keys and values
+proc create_entry_l {proplist} {
+    array set props $proplist
+    registry::write {
+        set regref [registry::entry create $props(name) $props(version) $props(revision) $props(variants) $props(epoch)]
+        $regref date $props(date)
+        $regref location $props(location)
+        $regref state $props(state)
+        $regref installtype $props(installtype)
+        if {$props(installtype) == "image"} {
+            $regref map $props(imagefiles)
+            if {$props(state) == "installed"} {
+                $regref activate $props(imagefiles) $props(files)
+            }
+        } else {
+            $regref map $props(files)
+        }
+        foreach dep_portname $props(depends) {
+            $regref depends $dep_portname
+        }
+        $regref portfile $props(portfile)
+    }
 }
 
 # End of receipt_sqlite namespace
