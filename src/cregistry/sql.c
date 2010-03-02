@@ -282,7 +282,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         /* ports table */
         "CREATE TABLE registry.ports ("
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "name, portfile, url, location, epoch, version COLLATE VERSION, "
+            "name COLLATE NOCASE, portfile, url, location, epoch, version COLLATE VERSION, "
             "revision COLLATE VERSION, variants, default_variants, state, "
             "date, installtype, "
             "UNIQUE (name, epoch, version, revision, variants), "
