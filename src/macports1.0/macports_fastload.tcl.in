@@ -80,7 +80,7 @@ if {[file exists $sharetcldir]} {
 	}
 }
 
-if { "@SQLITE3_DIR@" != "" } {
-	set dir "@SQLITE3_DIR@"
+if { "@SQLITE3_TCL_DIR@" != "" } {
+	set dir "@SQLITE3_TCL_DIR@"
 	catch {source [file join $dir pkgIndex.tcl]}
 }

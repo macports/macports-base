@@ -774,6 +774,68 @@ AC_DEFUN([MP_LIBCURL_FLAGS],[
 	AC_SUBST(LDFLAGS_LIBCURL)
 ])
 
+# MP_SQLITE3_FLAGS
+#	Sets the flags to compile with libsqlite3 and tclsqlite3.
+#
+# Arguments:
+#	None.
+#
+# Requires:
+#   pkgconfig, libsqlite3 in /usr/lib, or user parameters to define the flags.
+#
+# Results:
+#   defines some help strings.
+#   sets CFLAGS_SQLITE3 and LDFLAGS_SQLITE3
+#---------------------------------------
+AC_DEFUN([MP_SQLITE3_FLAGS],[
+    # first sqlite3 itself
+	AC_ARG_WITH(sqlite3prefix,
+		   [  --with-sqlite3prefix       base directory for the sqlite3 install '/usr', '/usr/local',...],
+		   [  sqlite3prefix=$withval ])
+
+	if test "x$sqlite3prefix" = "x"; then
+		AC_PATH_PROG([PKG_CONFIG], [pkg-config])
+		if test "x$PKG_CONFIG" = "x" || ! $PKG_CONFIG --exists sqlite3; then
+		    # assume it's somewhere like /usr that needs no extra flags
+		    AC_CHECK_HEADER(sqlite3.h, [], [AC_MSG_ERROR([cannot find sqlite3 header])])
+            CFLAGS_SQLITE3=""
+		    LDFLAGS_SQLITE3="-lsqlite3"
+        else
+            CFLAGS_SQLITE3=$($PKG_CONFIG --cflags sqlite3)
+            LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
+            # for tclsqlite below
+            mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
+            if test "x$mp_sqlite3_dir" = "x"; then
+                mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
+            fi
+        fi
+	else
+	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
+		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
+	fi
+
+	AC_SUBST(CFLAGS_SQLITE3)
+	AC_SUBST(LDFLAGS_SQLITE3)
+
+	# now the sqlite Tcl bindings
+	AC_ARG_WITH(tcl-sqlite3,
+		AS_HELP_STRING([--with-tcl-sqlite3=DIR],
+			[directory for Tcl sqlite3 (default /usr/lib/sqlite3)]),
+		[mp_sqlite3_dir=$withval])
+
+    if test "x$mp_sqlite3_dir" = "x"; then
+        mp_sqlite3_dir=/usr/lib/sqlite3
+    fi
+
+	AC_CACHE_CHECK([for Tcl sqlite3 location], [mp_cv_sqlite3_dir],
+		[mp_cv_sqlite3_dir=
+		test -r "${mp_sqlite3_dir}/pkgIndex.tcl" && mp_cv_sqlite3_dir=$mp_sqlite3_dir
+		])
+
+	SQLITE3_TCL_DIR=$mp_cv_sqlite3_dir
+	AC_SUBST(SQLITE3_TCL_DIR)
+])
+
 dnl This macro tests if the compiler supports GCC's
 dnl __attribute__ syntax for unused variables/parameters
 AC_DEFUN([MP_COMPILER_ATTRIBUTE_UNUSED], [
