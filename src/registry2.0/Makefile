@@ -12,7 +12,7 @@ INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/registry2.0
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
 
-LIBS+=	../cregistry/cregistry.a ${SQLITE3_LIBS}
+LIBS+=	${SQLITE3_LIBS}
 
 .PHONY: test
 
