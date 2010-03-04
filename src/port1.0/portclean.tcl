@@ -218,29 +218,17 @@ proc portclean::clean_logs {args} {
 
 proc portclean::clean_archive {args} {
     global workpath portarchivepath name version ports_version_glob
-    global configure.build_arch configure.universal_archs
 
-    # Define archive destination directory, target filename, regex for archive name,
-    # and universal arch string
+    # Define archive destination directory, target filename, regex for archive name
     if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
-        if {[variant_exists universal] && [variant_isset universal]} {
-            set archstring [join [lsort -ascii ${configure.universal_archs}] -]
-            set archivepath [file join $portarchivepath [option os.platform] "universal"]
-            set regexstring "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\]${archstring}\[\.\]\[a-z2\]+\$"
-        } else {
-            set archivepath [file join $portarchivepath [option os.platform] ${configure.build_arch}]
-            set regexstring "^$name-\[-_a-zA-Z0-9\.\]+_\[0-9\]*\[+-_a-zA-Z0-9\]*\[\.\]${configure.build_arch}\[\.\]\[a-z2\]+\$"
-        }
+        set archivepath [file join $portarchivepath [option os.platform]]
+        set regexstring "^$name-\[\\-_a-zA-Z0-9\\.\]+_\[0-9\]*\[+\\-_a-zA-Z0-9\]*\[\\.\].*[\\.\]\[a-z2\]+\$"
     }
 
     if {[info exists ports_version_glob]} {
         # Match all possible archive variants that match the version
         # glob specified by the user for this OS.
-        if {[variant_exists universal] && [variant_isset universal]} {
-            set fileglob "$name-[option ports_version_glob]*+universal.${archstring}.*"
-        } else {
-            set fileglob "$name-[option ports_version_glob]*.${configure.build_arch}.*"
-        }
+        set fileglob "$name-[option ports_version_glob]*.*.*"
     } else {
         # Match all possible archive variants for the current version on
         # this OS. If you want to delete previous versions, use the
@@ -249,16 +237,12 @@ proc portclean::clean_archive {args} {
         # We do this because if we don't, then ports that match the
         # first part of the name (e.g. trying to remove foo-* will
         # pick up anything foo-bar-* as well, which is undesirable).
-        if {[variant_exists universal] && [variant_isset universal]} {
-            set fileglob "$name-$version*+universal.${archstring}.*"
-        } else {
-            set fileglob "$name-$version*.${configure.build_arch}.*"
-        }
+        set fileglob "$name-$version*.*.*"
     }
 
     # Remove the archive files
     set count 0
-    if {![catch {set archivelist [glob [file join $archivepath $fileglob]]} result]} {
+    if {![catch {set archivelist [glob [file join $archivepath * $fileglob]]} result]} {
         foreach path $archivelist {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not

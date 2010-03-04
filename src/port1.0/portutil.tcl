@@ -1869,6 +1869,8 @@ proc universal_setup {args} {
         ui_debug "not using configure, so not adding the default universal variant"
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
+    } elseif {[llength [option supported_archs]] == 1} {
+        ui_debug "only one arch supported, so not adding the default universal variant"
     } else {
         ui_debug "adding the default universal variant"
         variant universal {}

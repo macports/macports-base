@@ -143,7 +143,8 @@ proc portinstall::install_main {args} {
     homepage depends_run installPlist package-install uninstall workdir \
     worksrcdir UI_PREFIX destroot revision maintainers ports_force \
     portvariants default_variants targets depends_lib PortInfo epoch license \
-    registry.installtype registry.path registry.format
+    registry.installtype registry.path registry.format \
+    os.arch configure.build_arch configure.universal_archs supported_archs
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
         # registry2.0
@@ -164,7 +165,16 @@ proc portinstall::install_main {args} {
         registry::write {
 
             set regref [registry::entry create $name $version $revision $portvariants $epoch]
-            
+
+            if {$supported_archs == "noarch"} {
+                $regref archs noarch
+            } elseif {[variant_exists universal] && [variant_isset universal]} {
+                $regref archs [lsort -ascii ${configure.universal_archs}]
+            } elseif {${configure.build_arch} != ""} {
+                $regref archs ${configure.build_arch}
+            } else {
+                $regref archs ${os.arch}
+            }
             # Trick to have a portable GMT-POSIX epoch-based time.
             $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
             if {[info exists default_variants]} {

@@ -52,6 +52,7 @@ const char* entry_props[] = {
     "date",
     "state",
     "installtype",
+    "archs",
     NULL
 };
 
@@ -372,6 +373,7 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "date", entry_obj_prop },
     { "state", entry_obj_prop },
     { "installtype", entry_obj_prop },
+    { "archs", entry_obj_prop },
     /* filemap */
     { "map", entry_obj_filemap },
     { "unmap", entry_obj_filemap },

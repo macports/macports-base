@@ -70,7 +70,7 @@ proc portarchive::archive_init {args} {
     global name version revision portvariants
     global archive.destpath archive.type archive.meta
     global archive.file archive.path archive.fulldestpath
-    global configure.build_arch configure.universal_archs
+    global os.arch configure.build_arch configure.universal_archs supported_archs
 
     # Check mode in case archive called directly by user
     if {[option portarchivemode] != "yes"} {
@@ -91,10 +91,14 @@ proc portarchive::archive_init {args} {
 
     # Define archive destination directory and target filename
     if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-        if {[variant_exists universal] && [variant_isset universal]} {
+        if {$supported_archs == "noarch"} {
+            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] noarch]
+        } elseif {[variant_exists universal] && [variant_isset universal]} {
             set archive.fulldestpath [file join ${archive.destpath} [option os.platform] "universal"]
-        } else {
+        } elseif {${configure.build_arch} != ""} {
             set archive.fulldestpath [file join ${archive.destpath} [option os.platform] ${configure.build_arch}]
+        } else {
+            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] ${os.arch}]
         }
     } else {
         set archive.fulldestpath ${archive.destpath}
@@ -115,10 +119,14 @@ proc portarchive::archive_init {args} {
         set any_missing no
         foreach archive.type [option portarchivetype] {
             if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-                if {[variant_exists universal] && [variant_isset universal]} {
+                if {$supported_archs == "noarch"} {
+                    set archstring noarch
+                } elseif {[variant_exists universal] && [variant_isset universal]} {
                     set archstring [join [lsort -ascii ${configure.universal_archs}] -]
-                } else {
+                } elseif {${configure.build_arch} != ""} {
                     set archstring ${configure.build_arch}
+                } else {
+                    set archstring ${os.arch}
                 }
                 set archive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${archive.type}"
                 set archive.path "[file join ${archive.fulldestpath} ${archive.file}]"
@@ -309,7 +317,7 @@ proc portarchive::archive_main {args} {
     global name epoch version revision portvariants
     global archive.fulldestpath archive.type archive.file archive.path
     global archive.meta archive.metaname archive.metapath
-    global os.platform configure.build_arch configure.universal_archs
+    global os.platform os.arch configure.build_arch configure.universal_archs supported_archs
 
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
@@ -363,10 +371,14 @@ proc portarchive::archive_main {args} {
     puts $fd "@portepoch ${epoch}"
     puts $fd "@portversion ${version}"
     puts $fd "@portrevision ${revision}"
-    if {[variant_exists universal] && [variant_isset universal]} {
-        puts $fd "@archs ${configure.universal_archs}"
-    } else {
+    if {$supported_archs == "noarch"} {
+        puts $fd "@archs noarch"
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
+        puts $fd "@archs [lsort -ascii ${configure.universal_archs}]"
+    } elseif {${configure.build_arch} != ""} {
         puts $fd "@archs ${configure.build_arch}"
+    } else {
+        puts $fd "@archs ${os.arch}"
     }
     set vlist [lsort -ascii [array names variations]]
     foreach v $vlist {
@@ -414,10 +426,14 @@ proc portarchive::archive_main {args} {
         putel $sd minor 0
 
         putel $sd platform ${os.platform}
-        if {[variant_exists universal] && [variant_isset universal]} {
+        if {$supported_archs == "noarch"} {
+            putel $sd arch noarch
+        } elseif {[variant_exists universal] && [variant_isset universal]} {
             putlist $sd archs arch [lsort -ascii ${configure.universal_archs}]
-        } else {
+        } elseif {${configure.build_arch} != ""} {
             putel $sd arch ${configure.build_arch}
+        } else {
+            putel $sd arch ${os.arch}
         }
         set vlist [lsort -ascii [array names variations]]
         putlist $sd variants variant $vlist
@@ -477,10 +493,14 @@ proc portarchive::archive_main {args} {
         close $sd
     }
 
-    if {[variant_exists universal] && [variant_isset universal]} {
+    if {$supported_archs == "noarch"} {
+        set archstring noarch
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
         set archstring [join [lsort -ascii ${configure.universal_archs}] -]
-    } else {
+    } elseif {${configure.build_arch} != ""} {
         set archstring ${configure.build_arch}
+    } else {
+        set archstring ${os.arch}
     }
     # Now create the archive(s)
     # Loop through archive types
