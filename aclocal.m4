@@ -824,7 +824,17 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 		[mp_sqlite3_dir=$withval])
 
     if test "x$mp_sqlite3_dir" = "x"; then
-        mp_sqlite3_dir=/usr/lib/sqlite3
+        case $host_os in
+            darwin*)
+                mp_sqlite3_dir="/usr/lib/sqlite3"
+                ;;
+            freebsd*)
+                mp_sqlite3_dir="/usr/local/lib/sqlite"
+                ;;
+            *)
+                mp_sqlite3_dir="/usr/share/tcl${TCL_VERSION}/sqlite3"
+                ;;
+        esac
     fi
 
 	AC_CACHE_CHECK([for Tcl sqlite3 location], [mp_cv_sqlite3_dir],

@@ -9172,7 +9172,17 @@ fi
 
 
     if test "x$mp_sqlite3_dir" = "x"; then
-        mp_sqlite3_dir=/usr/lib/sqlite3
+        case $host_os in
+            darwin*)
+                mp_sqlite3_dir="/usr/lib/sqlite3"
+                ;;
+            freebsd*)
+                mp_sqlite3_dir="/usr/local/lib/sqlite"
+                ;;
+            *)
+                mp_sqlite3_dir="/usr/share/tcl${TCL_VERSION}/sqlite3"
+                ;;
+        esac
     fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Tcl sqlite3 location" >&5
