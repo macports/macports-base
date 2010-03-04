@@ -222,6 +222,16 @@ proc portinstall::install_main {args} {
 
         registry_prop_store $regref categories $categories
 
+        if {$supported_archs == "noarch"} {
+            registry_prop_store $regref archs noarch
+        } elseif {[variant_exists universal] && [variant_isset universal]} {
+            registry_prop_store $regref archs [lsort -ascii ${configure.universal_archs}]
+        } elseif {${configure.build_arch} != ""} {
+            registry_prop_store $regref archs ${configure.build_arch}
+        } else {
+            registry_prop_store $regref archs ${os.arch}
+        }
+
         if {[info exists description]} {
             registry_prop_store $regref description [string map {\n \\n} ${description}]
         }
