@@ -281,10 +281,12 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* ports table */
         "CREATE TABLE registry.ports ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "name COLLATE NOCASE, portfile, url, location, epoch, version COLLATE VERSION, "
-            "revision COLLATE VERSION, variants, default_variants, state, "
-            "date, installtype, "
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "name TEXT COLLATE NOCASE, portfile CLOB, url TEXT, "
+            "location TEXT, epoch INTEGER, version TEXT COLLATE VERSION, "
+            "revision INTEGER, variants TEXT, default_variants TEXT, "
+            "state TEXT, date DATETIME, installtype TEXT, archs TEXT, "
+            "requested INT, "
             "UNIQUE (name, epoch, version, revision, variants), "
             "UNIQUE (url, epoch, version, revision, variants)"
             ")",
@@ -295,14 +297,16 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         "CREATE INDEX registry.port_state ON ports (state)",
 
         /* file map */
-        "CREATE TABLE registry.files (id, path, actual_path, active, mtime, "
-            "md5sum, editable)",
+        "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
+            "active INT, mtime DATETIME, md5sum TEXT, editable INT, "
+            "FOREIGN KEY(id) REFERENCES registry.ports(id))",
         "CREATE INDEX registry.file_port ON files (id)",
         "CREATE INDEX registry.file_path ON files(path)",
         "CREATE INDEX registry.file_actual ON files(actual_path)",
 
         /* dependency map */
-        "CREATE TABLE registry.dependencies (id, name)",
+        "CREATE TABLE registry.dependencies (id INTEGER, name TEXT, variants TEXT, "
+        "FOREIGN KEY(id) REFERENCES registry.ports(id))",
         "CREATE INDEX registry.dep_name ON dependencies (name)",
 
         "COMMIT",
