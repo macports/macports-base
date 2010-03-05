@@ -222,7 +222,7 @@ proc portclean::clean_archive {args} {
     # Define archive destination directory, target filename, regex for archive name
     if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
         set archivepath [file join $portarchivepath [option os.platform]]
-        set regexstring "^$name-\[\\-_a-zA-Z0-9\\.\]+_\[0-9\]*\[+\\-_a-zA-Z0-9\]*\[\\.\].*[\\.\]\[a-z2\]+\$"
+        set regexstring "^$name-\[\\-_a-zA-Z0-9\\.\]+_\[0-9\]*\[+\\-_a-zA-Z0-9\]*\[\\.\].*\[\\.\]\[a-z2\]+\$"
     }
 
     if {[info exists ports_version_glob]} {
