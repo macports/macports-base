@@ -56,6 +56,10 @@ function export_path() {
 function export_manpath() {
     mpath="@prefix_expanded@/share/man"
 
+    if [ -z "$MANPATH" ]; then
+        return
+    fi
+
     local IFS=":"
     for p in $MANPATH; do
         if [ "$p" == "$mpath" ]; then
