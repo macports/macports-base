@@ -99,16 +99,13 @@ proc activate {name v optionslist} {
 
             # if another version of this port is active, deactivate it first
             set current [registry::entry installed $name]
-            if { [llength $current] > 1 } {
-                foreach i $current {
-                    set iversion [$i version]
-                    set irevision [$i revision]
-                    set ivariants [$i variants]
-                    set ispecifier "${iversion}_${irevision}${ivariants}"
-                    if { ![string equal $specifier $ispecifier]
-                            && [string equal [$i state] "installed"] } {
-                        lappend todeactivate $ispecifier
-                    }
+            foreach i $current {
+                set iversion [$i version]
+                set irevision [$i revision]
+                set ivariants [$i variants]
+                set ispecifier "${iversion}_${irevision}${ivariants}"
+                if { ![string equal $specifier $ispecifier] } {
+                    lappend todeactivate $ispecifier
                 }
             }
 
@@ -155,7 +152,7 @@ proc activate {name v optionslist} {
     }
 
     foreach a $todeactivate {
-        deactivate $name $a [list ports_force 1]
+        deactivate $name $a [list ports_nodepcheck 1]
     }
 
     if {$v != ""} {
@@ -260,7 +257,9 @@ proc deactivate {name v optionslist} {
             return -code error "Image error: ${name} @${specifier} is not active."
         }
 
-        registry::check_dependents $requested $force
+        if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
+            registry::check_dependents $requested $force
+        }
 
         _deactivate_contents $requested {} $force
         $requested state imaged
@@ -452,7 +451,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                         if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) [$port name]] != -1} {
                             lappend deactivated $owner
                             # XXX this is bad, deactivate does another write transaction (probably deadlocks)
-                            deactivate [$owner name] "" ""
+                            deactivate [$owner name] "" [list ports_nodepcheck 1]
                             set owner {}
                         }
                     }
