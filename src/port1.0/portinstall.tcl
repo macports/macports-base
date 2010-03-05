@@ -144,7 +144,8 @@ proc portinstall::install_main {args} {
     worksrcdir UI_PREFIX destroot revision maintainers ports_force \
     portvariants default_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
-    os.arch configure.build_arch configure.universal_archs supported_archs
+    os.arch configure.build_arch configure.universal_archs supported_archs \
+    os.platform os.major
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
         # registry2.0
@@ -166,6 +167,8 @@ proc portinstall::install_main {args} {
 
             set regref [registry::entry create $name $version $revision $portvariants $epoch]
 
+            $regref os_platform ${os.platform}
+            $regref os_major ${os.major}
             if {$supported_archs == "noarch"} {
                 $regref archs noarch
             } elseif {[variant_exists universal] && [variant_isset universal]} {
@@ -222,6 +225,8 @@ proc portinstall::install_main {args} {
 
         registry_prop_store $regref categories $categories
 
+        registry_prop_store $regref os_platform ${os.platform}
+        registry_prop_store $regref os_major ${os.major}
         if {$supported_archs == "noarch"} {
             registry_prop_store $regref archs noarch
         } elseif {[variant_exists universal] && [variant_isset universal]} {
