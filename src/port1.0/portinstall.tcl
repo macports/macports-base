@@ -142,7 +142,7 @@ proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
     homepage depends_run installPlist package-install uninstall workdir \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
-    portvariants default_variants targets depends_lib PortInfo epoch license \
+    portvariants negated_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
     os.arch configure.build_arch configure.universal_archs supported_archs \
     os.platform os.major
@@ -181,8 +181,8 @@ proc portinstall::install_main {args} {
             }
             # Trick to have a portable GMT-POSIX epoch-based time.
             $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-            if {[info exists default_variants]} {
-                $regref default_variants $default_variants
+            if {[info exists negated_variants]} {
+                $regref negated_variants $negated_variants
             }
 
             foreach dep_portname $dep_portnames {
@@ -216,6 +216,9 @@ proc portinstall::install_main {args} {
     } else {
         # Begin the registry entry
         set regref [registry_new $name $version $revision $portvariants $epoch]
+        if {[info exists negated_variants]} {
+            registry_prop_store $regref negated_variants $negated_variants
+        }
 
         set imagedir ""
         if { [registry_prop_retr $regref installtype] == "image" } {

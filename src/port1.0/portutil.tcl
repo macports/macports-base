@@ -1665,6 +1665,7 @@ proc choose_variants {dlist variations} {
     upvar $variations upvariations
 
     set selected [list]
+    set negated [list]
 
     foreach ditem $dlist {
         # Enumerate through the provides, tallying the pros and cons.
@@ -1683,13 +1684,14 @@ proc choose_variants {dlist variations} {
             }
         }
 
-        if {$cons > 0} { continue }
-
+        if {$cons > 0} {
+            lappend negated $ditem
+        }
         if {$pros > 0 && $ignored == 0} {
             lappend selected $ditem
         }
     }
-    return $selected
+    return [list $selected $negated]
 }
 
 proc variant_run {ditem} {
@@ -1720,24 +1722,26 @@ proc variant_run {ditem} {
     # was turned on or off, a particular instance of the port is uniquely
     # characterized by the set of variants that are *on*. Thus, record those
     # variants in a string in a standard order as +var1+var2 etc.
-    # XXX: this doesn't quite work because of default variants, see ticket #2377
-proc canonicalize_variants {variants} {
+    # Can also do the same for -variants, for recording the negated list.
+proc canonicalize_variants {variants {sign "+"}} {
     array set vara $variants
     set result ""
     set vlist [lsort -ascii [array names vara]]
     foreach v $vlist {
-        if {$vara($v) == "+"} {
-            append result +$v
+        if {$vara($v) == $sign} {
+            append result "${sign}${v}"
         }
     }
     return $result
 }
 
 proc eval_variants {variations} {
-    global all_variants ports_force PortInfo portvariants
+    global all_variants ports_force PortInfo portvariants negated_variants
     set dlist $all_variants
     upvar $variations upvariations
     set chosen [choose_variants $dlist upvariations]
+    set negated [lindex $chosen 1]
+    set chosen [lindex $chosen 0]
     set portname $PortInfo(name)
 
     # Check to make sure the requested variations are available with this
@@ -1775,7 +1779,7 @@ proc eval_variants {variations} {
     # it's convenient to check for inconsistent requests for
     # variations, namely foo +requirer -required where the 'requirer'
     # variant requires the 'required' one.
-    array set activevariants [list]
+    set activevariants [list]
     foreach dvar $newlist {
         set thevar [ditem_key $dvar provides]
         if {[info exists upvariations($thevar)] && $upvariations($thevar) eq "-"} {
@@ -1786,33 +1790,31 @@ proc eval_variants {variations} {
             ui_error "Inconsistent variant specification: $portname variant +$thevar is required by at least one of $chosenlist, but specified -$thevar"
             return 1
         }
-        set activevariants($thevar) "+"
+        lappend activevariants $thevar "+"
     }
 
     # Record a canonical variant string, used e.g. in accessing the registry
-    set portvariants [canonicalize_variants [array get activevariants]]
+    set portvariants [canonicalize_variants $activevariants]
 
     # Make this important information visible in PortInfo
-    set PortInfo(active_variants) [array get activevariants]
+    set PortInfo(active_variants) $activevariants
     set PortInfo(canonical_active_variants) $portvariants
 
-    # XXX: I suspect it would actually work better in the following
-    # block to record the activevariants in the statefile rather than
-    # the upvariations, since as far as I can see different sets of
-    # upvariations which amount to the same activevariants in the end
-    # can share all aspects of the build. But I'm leaving this alone
-    # for the time being, so that someone with more extensive
-    # experience can examine the idea before putting it into
-    # action. -- GlenWhitney
+    # now set the negated variants
+    set negated_list [list]
+    foreach dvar $negated {
+        set thevar [ditem_key $dvar provides]
+        lappend negated_list $thevar "-"
+    }
+    set negated_variants [canonicalize_variants $negated_list "-"]
 
     return 0
 }
 
-proc check_variants {variations target} {
+proc check_variants {target} {
     global targets ports_force ports_dryrun PortInfo
-    upvar $variations upvariations
     set result 0
-    set portname $PortInfo(name)
+    array set variations $PortInfo(active_variants)
 
     # Make sure the variations match those stored in the statefile.
     # If they don't match, print an error indicating a 'port clean'
@@ -1840,13 +1842,13 @@ proc check_variants {variations target} {
         set state_fd [open_statefile]
 
         array set oldvariations {}
-        if {[check_statefile_variants upvariations oldvariations $state_fd]} {
-            ui_error "Requested variants \"[canonicalize_variants [array get upvariations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean $portname' or specify the force option (-f)."
+        if {[check_statefile_variants variations oldvariations $state_fd]} {
+            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean [option name]' or specify the force option (-f)."
             set result 1
         } elseif {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
             # Write variations out to the statefile
-            foreach key [array names upvariations *] {
-            write_statefile variant $upvariations($key)$key $state_fd
+            foreach key [array names variations *] {
+                write_statefile variant $variations($key)$key $state_fd
             }
         }
 

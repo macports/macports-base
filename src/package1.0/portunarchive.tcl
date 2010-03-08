@@ -61,7 +61,7 @@ default unarchive.path {}
 set_ui_prefix
 
 proc portunarchive::unarchive_init {args} {
-    global UI_PREFIX target_state_fd variations workpath
+    global UI_PREFIX target_state_fd workpath
     global ports_force ports_source_only ports_binary_only
     global name version revision portvariants portpath
     global unarchive.srcpath unarchive.type unarchive.file unarchive.path unarchive.fullsrcpath
@@ -70,18 +70,6 @@ proc portunarchive::unarchive_init {args} {
     # Check mode in case archive called directly by user
     if {[option portarchivemode] != "yes"} {
         return -code error "Archive mode is not enabled!"
-    }
-
-    # Define port variants if not already defined
-    if { ![info exists portvariants] } {
-        set portvariants ""
-        set vlist [lsort -ascii [array names variations]]
-        # Put together variants in the form +foo+bar for the archive name
-        foreach v $vlist {
-            if {$variations($v) == "+"} {
-                append portvariants "+${v}"
-            }
-        }
     }
 
     # Define archive directory, file, and path
@@ -289,7 +277,6 @@ proc portunarchive::unarchive_command_setup {args} {
 
 proc portunarchive::unarchive_main {args} {
     global UI_PREFIX
-    global name version revision portvariants
     global unarchive.dir unarchive.file unarchive.pipe_cmd
 
     # Setup unarchive command

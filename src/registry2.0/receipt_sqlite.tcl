@@ -128,7 +128,10 @@ proc property_retrieve {ref property} {
             set ret [$ref location]
         }
         default {
-            set ret [$ref $property]
+            if {[catch {set ret [$ref $property]}]} {
+                # match behaviour of receipt_flat
+                set ret 0
+            }
         }
     }
     return $ret

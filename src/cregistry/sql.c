@@ -284,7 +284,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "name TEXT COLLATE NOCASE, portfile CLOB, url TEXT, "
             "location TEXT, epoch INTEGER, version TEXT COLLATE VERSION, "
-            "revision INTEGER, variants TEXT, default_variants TEXT, "
+            "revision INTEGER, variants TEXT, negated_variants TEXT, "
             "state TEXT, date DATETIME, installtype TEXT, archs TEXT, "
             "requested INT, os_platform TEXT, os_major INTEGER, "
             "UNIQUE (name, epoch, version, revision, variants), "

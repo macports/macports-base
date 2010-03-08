@@ -1458,7 +1458,7 @@ proc _mportexec {target mport} {
     macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
-    if {![catch {$workername eval check_variants variations $target} result] && $result == 0 &&
+    if {![catch {$workername eval check_variants $target} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
         if {[string equal ${macports::portautoclean} "yes"]} {
@@ -1492,7 +1492,7 @@ proc mportexec {mport target} {
     set workername [ditem_key $mport workername]
 
     # check variants
-    if {[$workername eval check_variants variations $target] != 0} {
+    if {[$workername eval check_variants $target] != 0} {
         return 1
     }
     set portname [_mportkey $mport name]
@@ -1561,12 +1561,12 @@ proc mportexec {mport target} {
         }
     }
 
+    set clean 0
     if {[string equal $target "install"]} {
         # mark port as explicitly requested
         $workername eval set user_options(ports_requested) 1
         
         # If we're doing an install, check if we should clean after
-        set clean 0
         if {[string equal ${macports::portautoclean} "yes"]} {
             set clean 1
         }
@@ -2640,6 +2640,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set version_active $version
             set revision_active $revision
             set variant_active $variant
+            set epoch_active $epoch
         }
     }
 
@@ -2649,32 +2650,36 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     ui_debug "$portname ${version_installed}_${revision_installed} $variant_installed is the latest installed"
     if {$anyactive} {
         ui_debug "$portname ${version_active}_${revision_active} $variant_active is active"
+        # save existing variant for later use
+        set oldvariant $variant_active
+        set regref [registry::open_entry $portname $version_active $revision_active $variant_active $epoch_active]
     } else {
         ui_debug "no version of $portname is active"
-    }
-
-    # save existing variant for later use
-    if {$anyactive} {
-        set oldvariant $variant_active
-    } else {
         set oldvariant $variant_installed
+        set regref [registry::open_entry $portname $version_installed $revision_installed $variant_installed $epoch_installed]
+    }
+    set oldnegatedvariant [registry::property_retrieve $regref negated_variants]
+    if {$oldnegatedvariant == 0} {
+        set oldnegatedvariant {}
     }
 
     # Before we do
     # dependencies, we need to figure out the final variants,
     # open the port, and update the portinfo.
-
     set porturl $portinfo(porturl)
     if {![info exists porturl]} {
         set porturl file://./
     }
 
-    # will break if we start recording negative variants (#2377)
-    set variant [lrange [split $oldvariant +] 1 end]
-    ui_debug "Merging existing variants $variant into variants"
+    set minusvariant [lrange [split $oldnegatedvariant -] 1 end]
+    set plusvariant [lrange [split $oldvariant +] 1 end]
+    ui_debug "Merging existing variants '${oldvariant}${oldnegatedvariant}' into variants"
     set oldvariantlist [list]
-    foreach v $variant {
+    foreach v $plusvariant {
         lappend oldvariantlist $v "+"
+    }
+    foreach v $minusvariant {
+        lappend oldvariantlist $v "-"
     }
     # remove implicit variants, without printing warnings
     set oldvariantlist [mport_filtervariants $oldvariantlist no]

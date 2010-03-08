@@ -65,7 +65,7 @@ set_ui_prefix
 
 proc portarchive::archive_init {args} {
     global UI_PREFIX target_state_fd
-    global variations package.destpath workpath
+    global package.destpath workpath
     global ports_force ports_source_only ports_binary_only
     global name version revision portvariants
     global archive.destpath archive.type archive.meta
@@ -75,18 +75,6 @@ proc portarchive::archive_init {args} {
     # Check mode in case archive called directly by user
     if {[option portarchivemode] != "yes"} {
         return -code error "Archive mode is not enabled!"
-    }
-
-    # Define port variants if not already defined
-    if { ![info exists portvariants] } {
-        set portvariants ""
-        set vlist [lsort -ascii [array names variations]]
-        # Put together variants in the form +foo+bar for the archive name
-        foreach v $vlist {
-            if {$variations($v) == "+"} {
-                append portvariants "+${v}"
-            }
-        }
     }
 
     # Define archive destination directory and target filename
@@ -312,7 +300,7 @@ proc portarchive::putlist { fd listel itemel list } {
 }
 
 proc portarchive::archive_main {args} {
-    global UI_PREFIX variations
+    global UI_PREFIX PortInfo
     global workpath destpath portpath ports_force
     global name epoch version revision portvariants
     global archive.fulldestpath archive.type archive.file archive.path
@@ -380,9 +368,10 @@ proc portarchive::archive_main {args} {
     } else {
         puts $fd "@archs ${os.arch}"
     }
-    set vlist [lsort -ascii [array names variations]]
+    array set ourvariations $PortInfo(active_variants)
+    set vlist [lsort -ascii [array names ourvariations]]
     foreach v $vlist {
-        if {$variations($v) == "+"} {
+        if {$ourvariations($v) == "+"} {
             puts $fd "@portvariant +${v}"
         }
     }
@@ -435,7 +424,6 @@ proc portarchive::archive_main {args} {
         } else {
             putel $sd arch ${os.arch}
         }
-        set vlist [lsort -ascii [array names variations]]
         putlist $sd variants variant $vlist
 
         if {[exists categories]} {
