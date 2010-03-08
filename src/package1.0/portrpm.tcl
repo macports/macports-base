@@ -55,7 +55,7 @@ proc portrpm::rpm_main {args} {
 
 proc portrpm::rpm_pkg {portname portversion portrevision} {
     global UI_PREFIX package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
-	global os.platform os.arch os.version os.major
+	global os.platform os.arch os.version os.major supported_archs configure.build_arch license
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
@@ -67,17 +67,18 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
                    ${pkgpath}/SRPMS
         set rpmdestpath "--define '_topdir ${pkgpath}'"
     }
-    
+
     set rpmbuildarch ""
-    if {[variant_isset "universal"]} {
-        set rpmbuildarch "--target fat"
-    }
-    if {false} {
+    if {$supported_archs == "noarch"} {
         set rpmbuildarch "--target noarch"
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
+        set rpmbuildarch "--target fat"
+    } elseif {${configure.build_arch} != ""} {
+        set rpmbuildarch "--target ${configure.build_arch}"
     }
     
     foreach dir [list "${prefix}/src/macports/RPMS" "${prefix}/src/apple/RPMS" "/usr/src/apple/RPMS" "/macports/rpms/RPMS"] {
-        foreach arch {"ppc" "i386" "fat" "noarch"} {
+        foreach arch [list ${configure.build_arch} ${os.arch} "fat" "noarch"] {
             set rpmpath "$dir/${arch}/${portname}-${portversion}-${portrevision}.${arch}.rpm"
 	    if {[file readable $rpmpath] && ([file mtime ${rpmpath}] >= [file mtime ${portpath}/Portfile])} {
                 ui_debug "$rpmpath"
@@ -97,7 +98,6 @@ proc portrpm::rpm_pkg {portname portversion portrevision} {
         }
     }
     set category   [lindex [split $categories " "] 0]
-    set license    "Unknown"
     set maintainer $maintainers
     
     set dependencies {}
