@@ -55,6 +55,7 @@ const char* entry_props[] = {
     "archs",
     "os_platform",
     "os_major",
+    "requested",
     NULL
 };
 
@@ -378,6 +379,7 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "archs", entry_obj_prop },
     { "os_platform", entry_obj_prop },
     { "os_major", entry_obj_prop },
+    { "requested", entry_obj_prop },
     /* filemap */
     { "map", entry_obj_filemap },
     { "unmap", entry_obj_filemap },

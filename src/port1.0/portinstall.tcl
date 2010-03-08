@@ -141,7 +141,7 @@ proc portinstall::directory_dig {rootdir workdir imagedir {cwd ""} {prepend 1}} 
 proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
     homepage depends_run installPlist package-install uninstall workdir \
-    worksrcdir UI_PREFIX destroot revision maintainers ports_force \
+    worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants default_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
     os.arch configure.build_arch configure.universal_archs supported_archs \
@@ -167,6 +167,7 @@ proc portinstall::install_main {args} {
 
             set regref [registry::entry create $name $version $revision $portvariants $epoch]
 
+            $regref requested $user_options(ports_requested)
             $regref os_platform ${os.platform}
             $regref os_major ${os.major}
             if {$supported_archs == "noarch"} {
@@ -223,6 +224,7 @@ proc portinstall::install_main {args} {
         # Install the files
         directory_dig ${destroot} ${destroot} ${imagedir}
 
+        registry_prop_store $regref requested $user_options(ports_requested)
         registry_prop_store $regref categories $categories
 
         registry_prop_store $regref os_platform ${os.platform}

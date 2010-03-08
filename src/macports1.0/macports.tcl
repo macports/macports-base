@@ -1242,6 +1242,9 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     } else {
         set portdir ""
     }
+    if {![info exists options_array(ports_requested)]} {
+        lappend options ports_requested 0
+    }
 
     set portpath [macports::getportdir $porturl $portdir]
     ui_debug "Changing to port directory: $portpath"
@@ -1558,16 +1561,21 @@ proc mportexec {mport target} {
         }
     }
 
-    # If we're doing an install, check if we should clean after
-    set clean 0
-    if {[string equal ${macports::portautoclean} "yes"] && [string equal $target "install"] } {
-        set clean 1
-    }
-
-    # If we're doing image installs, then we should activate after install
-    # xxx: This isn't pretty
-    if { [string equal ${macports::registry.installtype} "image"] && [string equal $target "install"] } {
-        set target activate
+    if {[string equal $target "install"]} {
+        # mark port as explicitly requested
+        $workername eval set user_options(ports_requested) 1
+        
+        # If we're doing an install, check if we should clean after
+        set clean 0
+        if {[string equal ${macports::portautoclean} "yes"]} {
+            set clean 1
+        }
+    
+        # If we're doing image installs, then we should activate after install
+        # xxx: This isn't pretty
+        if { [string equal ${macports::registry.installtype} "image"] } {
+            set target activate
+        }
     }
 
     # Build this port with the specified target
