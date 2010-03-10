@@ -205,6 +205,7 @@ proc create_entry_l {proplist} {
     registry::write {
         set regref [registry::entry create $props(name) $props(version) $props(revision) $props(variants) $props(epoch)]
         $regref date $props(date)
+        $regref requested $props(requested)
         $regref location $props(location)
         $regref state $props(state)
         $regref installtype $props(installtype)
@@ -215,6 +216,13 @@ proc create_entry_l {proplist} {
             }
         } else {
             $regref map $props(files)
+        }
+        foreach key {negated_variants os_platform os_major archs} {
+            if {$props($key) != 0} {
+                $regref $key $props($key)
+            } else {
+                $regref $key ""
+            }
         }
         foreach dep_portname $props(depends) {
             $regref depends $dep_portname

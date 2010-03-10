@@ -401,10 +401,15 @@ proc convert_to_sqlite {} {
         set proplist [list name $iname version $iversion revision $irevision variants $ivariants]
 
         set iref [receipt_flat::open_entry $iname $iversion $irevision $ivariants]
-        
+
         lappend proplist date [receipt_flat::property_retrieve $iref date]
         lappend proplist epoch [receipt_flat::property_retrieve $iref epoch]
-        
+        lappend proplist negated_variants [receipt_flat::property_retrieve $iref negated_variants]
+        lappend proplist requested [receipt_flat::property_retrieve $iref requested]
+        lappend proplist os_platform [receipt_flat::property_retrieve $iref os_platform]
+        lappend proplist os_major [receipt_flat::property_retrieve $iref os_major]
+        lappend proplist archs [receipt_flat::property_retrieve $iref archs]
+
         set installtype [receipt_flat::property_retrieve $iref installtype]
         lappend proplist installtype $installtype
         if { $installtype == "image" } {
