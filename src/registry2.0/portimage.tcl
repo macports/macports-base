@@ -419,7 +419,6 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         set name $port
     }
 
-    set deactivated [list]
     set backups [list]
     # This is big and hairy and probably could be done better.
     # First, we need to check the source file, make sure it exists
@@ -429,6 +428,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     #  we remove the file from the file_map, take ownership of it, and
     #  clobber it
     if {$use_reg2} {
+        array set todeactivate {}
         try {
             registry::write {
                 foreach file $imagefiles {
@@ -449,35 +449,36 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                         array unset portinfo
                         array set portinfo [lindex $result 1]
                         if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) [$port name]] != -1} {
-                            lappend deactivated $owner
-                            # XXX this is bad, deactivate does another write transaction (probably deadlocks)
-                            deactivate [$owner name] "" [list ports_nodepcheck 1]
-                            set owner {}
+                            # we'll deactivate the owner later, but before activating our files
+                            set todeactivate($owner) yes
+                            set owner "replaced"
                         }
                     }
 
-                    if { [string is true -strict $force] } {
-                        # if we're forcing the activation, then we move any existing
-                        # files to a backup file, both in the filesystem and in the
-                        # registry
-                        if { [file exists $file] } {
-                            set bakfile "${file}${baksuffix}"
-                            ui_warn "File $file already exists.  Moving to: $bakfile."
-                            file rename -force -- $file $bakfile
-                            lappend backups $file
-                        }
-                        if { $owner != {} } {
-                            $owner deactivate [list $file]
-                            $owner activate [list $file] [list "${file}${baksuffix}"]
-                        }
-                    } else {
-                        # if we're not forcing the activation, then we bail out if
-                        # we find any files that already exist, or have entries in
-                        # the registry
-                        if { $owner != {} && $owner != $port } {
-                            throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
-                        } elseif { $owner == {} && [file exists $file] } {
-                            throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
+                    if {$owner != "replaced"} {
+                        if { [string is true -strict $force] } {
+                            # if we're forcing the activation, then we move any existing
+                            # files to a backup file, both in the filesystem and in the
+                            # registry
+                            if { [file exists $file] } {
+                                set bakfile "${file}${baksuffix}"
+                                ui_warn "File $file already exists.  Moving to: $bakfile."
+                                file rename -force -- $file $bakfile
+                                lappend backups $file
+                            }
+                            if { $owner != {} } {
+                                $owner deactivate [list $file]
+                                $owner activate [list $file] [list "${file}${baksuffix}"]
+                            }
+                        } else {
+                            # if we're not forcing the activation, then we bail out if
+                            # we find any files that already exist, or have entries in
+                            # the registry
+                            if { $owner != {} && $owner != $port } {
+                                throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
+                            } elseif { $owner == {} && [file exists $file] } {
+                                throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
+                            }
                         }
                     }
 
@@ -498,14 +499,21 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                     # Also add the filename to the imagefile list.
                     lappend files $file
                 }
+            }
 
-                # Sort the list in forward order, removing duplicates.
-                # Since the list is sorted in forward order, we're sure that
-                # directories are before their elements.
-                # We don't have to do this as mentioned above, but it makes the
-                # debug output of activate make more sense.
-                set theList [lsort -increasing -unique $files]
+            # deactivate ports replaced_by this one
+            foreach owner [array names todeactivate] {
+                deactivate [$owner name] "" [list ports_nodepcheck 1]
+            }
 
+            # Sort the list in forward order, removing duplicates.
+            # Since the list is sorted in forward order, we're sure that
+            # directories are before their elements.
+            # We don't have to do this as mentioned above, but it makes the
+            # debug output of activate make more sense.
+            set theList [lsort -increasing -unique $files]
+
+            registry::write {
                 # Activate it, and catch errors so we can roll-back
                 try {
                     $port activate $imagefiles
@@ -531,14 +539,17 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 file rename -force -- "${file}${baksuffix}" $file
             }
             # reactivate deactivated ports
-            foreach entry $deactivated {
-                set pvers "[$entry version]_[$entry revision][$entry variants]"
-                activate [$entry name] $pvers ""
+            foreach entry [array names todeactivate] {
+                if {[$entry state] == "imaged"} {
+                    set pvers "[$entry version]_[$entry revision][$entry variants]"
+                    activate [$entry name] $pvers ""
+                }
             }
             throw
         }
     } else {
         # registry1.0
+        set deactivated [list]
         foreach file $imagefiles {
             set srcfile "${imagedir}${file}"
 
