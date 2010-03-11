@@ -56,17 +56,12 @@ proc uninstall {portname {v ""} optionslist} {
     set use_reg2 [string equal ${macports::registry.format} "receipt_sqlite"]
 
     if {$use_reg2} {
-        if {${macports::registry.installtype} == "image"} {
-	        set imaged_or_installed imaged
-	    } else {
-	        set imaged_or_installed installed
-	    }
         if { [registry::decode_spec $v version revision variants] } {
-            set ilist [registry::entry $imaged_or_installed $portname $version $revision $variants]
+            set ilist [registry::entry imaged $portname $version $revision $variants]
             set valid 1
         } else {
             set valid [string equal $v {}]
-            set ilist [registry::entry $imaged_or_installed $portname]
+            set ilist [registry::entry imaged $portname]
         }
     } else {
         set ilist [registry::installed $portname $v]

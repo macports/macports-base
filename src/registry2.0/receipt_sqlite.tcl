@@ -144,13 +144,9 @@ proc property_retrieve {ref property} {
 # What we call version here is version_revision+variants.
 proc installed {{name ""} {version ""}} {
     global macports::registry.installtype
-	
+
 	if { $name == "" && $version == "" } {
-	    if {${macports::registry.installtype} == "image"} {
-	        set ports [registry::entry imaged]
-	    } else {
-	        set ports [registry::entry installed]
-	    }
+	    set ports [registry::entry imaged]
 	} else {
 	    set searchcmd "registry::entry search"
 	    registry::decode_spec $version version revision variants
