@@ -2895,30 +2895,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         return 1
     }
 
-    if {[info exists uninstall_later] && $uninstall_later == yes} {
-        foreach i $ilist {
-            set version [lindex $i 1]
-            set revision [lindex $i 2]
-            set variant [lindex $i 3]
-            if {$version == $version_in_tree && $revision == $revision_in_tree && $variant == $portinfo(canonical_active_variants) && $portname == $newname} {
-                continue
-            }
-            ui_debug "Uninstalling $portname ${version}_${revision}${variant}"
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
-            } elseif {[catch {portuninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
-                if {$result != "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
-                    ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
-                    catch {mportclose $workername}
-                    return 1
-                }
-            }
-        }
-    }
-
     # Check if we have to do dependents
     if {[info exists options(ports_do_dependents)]} {
         # We do dependents ..
@@ -2950,6 +2926,29 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
     }
 
+    if {[info exists uninstall_later] && $uninstall_later == yes} {
+        foreach i $ilist {
+            set version [lindex $i 1]
+            set revision [lindex $i 2]
+            set variant [lindex $i 3]
+            if {$version == $version_in_tree && $revision == $revision_in_tree && $variant == $portinfo(canonical_active_variants) && $portname == $newname} {
+                continue
+            }
+            ui_debug "Uninstalling $portname ${version}_${revision}${variant}"
+            if {$is_dryrun eq "yes"} {
+                ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
+            } elseif {[catch {portuninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents
+                if {$result != "Please uninstall the ports that depend on $portname first." && ![ui_isset ports_processall]} {
+                    ui_error "Uninstall $portname @${version}_${revision}${variant} failed: $result"
+                    catch {mportclose $workername}
+                    return 1
+                }
+            }
+        }
+    }
 
     # close the port handle
     mportclose $workername
