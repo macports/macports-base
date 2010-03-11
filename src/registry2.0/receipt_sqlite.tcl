@@ -147,15 +147,22 @@ proc installed {{name ""} {version ""}} {
 
 	if { $name == "" && $version == "" } {
 	    set ports [registry::entry imaged]
+	} elseif { $name != "" && $version == ""} {
+	    set ports [registry::entry imaged $name]
 	} else {
-	    set searchcmd "registry::entry search"
+	    set cmd "registry::entry imaged $name"
 	    registry::decode_spec $version version revision variants
-	    foreach key {name version revision variants} {
-            if {[info exists $key] && [set $key] != ""} {
-                append searchcmd " $key {[set $key]}"
-            }
-	    }
-	    if {[catch {set ports [eval $searchcmd]}]} {
+	    if {[info exists version] && $version != ""} {
+                append cmd " $version"
+                if {[info exists revision] && $revision != ""} {
+                    append cmd " $revision"
+                    if {![info exists variants]} {
+                        set variants ""
+                    }
+                    append cmd " {$variants}"
+                }
+        }
+	    if {[catch {set ports [eval $cmd]}]} {
 	        set ports [list]
 	    }
 	}
@@ -177,11 +184,10 @@ proc open_dep_map {args} {
 proc list_dependents {name version revision variants} {
 	set rlist [list]
 	set searchcmd "registry::entry search"
-    foreach key {name version revision variants} {
-        if {[set $key] != ""} {
-            append searchcmd " $key [set $key]"
-        }
+    foreach key {name version revision} {
+        append searchcmd " $key [set $key]"
     }
+    append searchcmd " variants {$variants}"
     if {[catch {set ports [eval $searchcmd]}]} {
         set ports [list]
     }
