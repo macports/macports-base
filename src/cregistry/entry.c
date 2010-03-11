@@ -1185,8 +1185,6 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
  * could potentially break any port listed in its dependents, and could not
  * break any other.
  *
- * N.B.: an inactive port has no dependents, since it can be safely removed.
- *
  * @param [in] entry       a port
  * @param [out] dependents a list of ports dependent on the given port
  * @param [out] errPtr     on error, a description of the error that occurred
@@ -1197,8 +1195,7 @@ int reg_entry_dependents(reg_entry* entry, reg_entry*** dependents,
     reg_registry* reg = entry->reg;
     char* query = sqlite3_mprintf("SELECT dependent.id FROM ports port "
             "INNER JOIN dependencies USING(name) INNER JOIN ports dependent "
-            "USING(id) WHERE port.id=%lld AND port.state = 'installed' "
-            "AND dependent.state = 'installed'",
+            "USING(id) WHERE port.id=%lld",
             entry->id);
     int result = reg_all_entries(reg, query, -1, dependents, errPtr);
     sqlite3_free(query);
@@ -1220,8 +1217,8 @@ int reg_entry_dependencies(reg_entry* entry, reg_entry*** dependencies,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     char* query = sqlite3_mprintf("SELECT ports.id FROM registry.dependencies "
-        "INNER JOIN registry.ports USING(name) WHERE dependencies.id=%lld AND "
-        "ports.state = 'installed'", entry->id);
+        "INNER JOIN registry.ports USING(name) WHERE dependencies.id=%lld",
+        entry->id);
     int result = reg_all_entries(reg, query, -1, dependencies, errPtr);
     sqlite3_free(query);
     return result;

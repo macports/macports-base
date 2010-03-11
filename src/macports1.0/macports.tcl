@@ -2875,18 +2875,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 set anyactive no
             }
         }
-        if {$anyactive} {
-            # deactivate version_active
-            if {$is_dryrun eq "yes"} {
-                ui_msg "Skipping deactivate $portname @${version_active}_${revision_active} (dry run)"
-            } elseif {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"
-                catch {mportclose $workername}
-                return 1
-            }
-        }
         if {[info exists options(port_uninstall_old)]} {
             # uninstalling now could fail due to dependents when not forced,
             # because the new version is not installed
@@ -2895,11 +2883,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     }
 
     if {$is_dryrun eq "yes"} {
-        ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree} (dry run)"
+        if {$anyactive} {
+            ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
+        }
+        ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
     } elseif {[catch {set result [mportexec $workername install]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
-        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}: $result"
+        ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
         catch {mportclose $workername}
         return 1
     }

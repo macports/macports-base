@@ -62,17 +62,19 @@ proc decode_spec {specifier version revision variants} {
 ## @param [in] force if true, continue even if there are dependents
 proc check_dependents {port force} {
     global UI_PREFIX
-    # Check and make sure no ports depend on this one
-    set deplist [$port dependents]
-    if { [llength $deplist] > 0 } {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall/deactivate %s @%s_%s%s, the following ports depend on it:"] [$port name] [$port version] [$port revision] [$port variants]]"
-        foreach depport $deplist {
-            ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] [$depport name] [$depport version] [$depport revision] [$depport variants]]"
-        }
-        if { [string is true -strict $force] } {
-            ui_warn "Uninstall/deactivate forced.  Proceeding despite dependencies."
-        } else {
-            throw registry::uninstall-error "Please uninstall the ports that depend on [$port name] first."
+    if {[$port state] == "installed" || [llength [registry::entry imaged [$port name]]] == 1} {
+        # Check and make sure no ports depend on this one
+        set deplist [$port dependents]
+        if { [llength $deplist] > 0 } {
+            ui_msg "$UI_PREFIX [format [msgcat::mc "Unable to uninstall/deactivate %s @%s_%s%s, the following ports depend on it:"] [$port name] [$port version] [$port revision] [$port variants]]"
+            foreach depport $deplist {
+                ui_msg "$UI_PREFIX [format [msgcat::mc "	%s @%s_%s%s"] [$depport name] [$depport version] [$depport revision] [$depport variants]]"
+            }
+            if { [string is true -strict $force] } {
+                ui_warn "Uninstall/deactivate forced.  Proceeding despite dependencies."
+            } else {
+                throw registry::uninstall-error "Please uninstall the ports that depend on [$port name] first."
+            }
         }
     }
 }

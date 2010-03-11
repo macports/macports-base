@@ -192,7 +192,7 @@ proc list_dependents {name version revision variants} {
         }
     }
 	
-	return $rlist
+	return [lsort -unique $rlist]
 }
 
 # adds a registry entry from a list of keys and values
