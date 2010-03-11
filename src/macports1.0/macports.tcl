@@ -2902,7 +2902,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
         registry::open_dep_map
         if {$portname != $newname} {
-            set deplist [registry::list_dependents $newname "" "" ""]
+            set deplist [registry::list_dependents $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
         } else {
             set deplist [list]
         }
