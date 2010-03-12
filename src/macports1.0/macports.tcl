@@ -960,7 +960,9 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     }
 
     $workername alias ui_prefix ui_prefix
-    $workername alias ui_channels ui_channels
+    if {[llength [info commands ui_channels]] > 0} {
+        $workername alias ui_channels ui_channels
+    }
     
     $workername alias ui_warn_once ui_warn_once
 
