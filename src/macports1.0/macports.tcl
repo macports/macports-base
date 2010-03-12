@@ -988,6 +988,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_exists registry::entry_exists
     $workername alias registry_exists_for_name registry::entry_exists_for_name
     $workername alias registry_activate portimage::activate
+    $workername alias registry_deactivate portimage::deactivate
+    $workername alias registry_uninstall portuninstall::uninstall
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_bulk_register_files registry::register_bulk_files
@@ -1281,6 +1283,50 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     ditem_key $mport provides [$workername eval return \$name]
 
     return $mport
+}
+
+# mportopen_installed
+# opens a portfile stored in the registry
+proc mportopen_installed {name version revision variants options} {
+    global macports::registry.format macports::registry.path
+    if {${registry.format} != "receipt_sqlite"} {
+        return -code error "mportopen_installed requires sqlite registry"
+    }
+    set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
+    set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_${revision}${variants}"]
+    file mkdir $portfile_dir
+    set fd [open ${portfile_dir}/Portfile w]
+    puts $fd [$regref portfile]
+    close $fd
+    
+    set variations {}
+    set minusvariant [lrange [split [$regref negated_variants] -] 1 end]
+    set plusvariant [lrange [split [$regref variants] +] 1 end]
+    foreach v $plusvariant {
+        lappend variations $v "+"
+    }
+    foreach v $minusvariant {
+        lappend variations $v "-"
+    }
+    set variations [mport_filtervariants $variations no]
+    
+    return [mportopen "file://${portfile_dir}/" $options $variations]
+}
+
+# mportclose_installed
+# close mport opened with mportopen_installed and clean up associated files
+proc mportclose_installed {mport} {
+    global macports::registry.path
+    foreach key {name version revision portvariants} {
+        set $key [_mportkey $mport $key]
+    }
+    mportclose $mport
+    set portfiles_dir [file join ${registry.path} registry portfiles $name]
+    set portfile [file join $portfiles_dir "${version}_${revision}${portvariants}" Portfile]
+    file delete -force $portfile [file dirname $portfile]
+    if {[llength [glob -nocomplain -directory $portfiles_dir *]] == 0} {
+        file delete -force $portfiles_dir
+    }
 }
 
 # Traverse a directory with ports, calling a function on the path of ports

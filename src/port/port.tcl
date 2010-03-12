@@ -1977,13 +1977,33 @@ proc action_provides { action portlist opts } {
 
 
 proc action_activate { action portlist opts } {
+    global macports::registry.format
     set status 0
     if {[require_portlist portlist]} {
         return 1
     }
     foreachport $portlist {
+        set composite_version [composite_version $portversion [array get variations]]
+        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+            set i [lindex $ilist 0]
+            set iversion [lindex $i 1]
+            set irevision [lindex $i 2]
+            set ivariants [lindex $i 3]
+            if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
+                if {[catch {set result [mportexec $mport activate]} result]} {
+                    global errorInfo
+                    mportclose_installed $mport
+                    ui_debug "$errorInfo"
+                    break_softcontinue "Unable to execute port: $result" 1 status
+                }
+                mportclose_installed $mport
+                continue
+            } else {
+                ui_warn "Could not open Portfile from registry for $portname $composite_version"
+            }
+        }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+            if { [catch {portimage::activate $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port activate failed: $result" 1 status
@@ -1998,13 +2018,37 @@ proc action_activate { action portlist opts } {
 
 
 proc action_deactivate { action portlist opts } {
+    global macports::registry.format
     set status 0
     if {[require_portlist portlist]} {
         return 1
     }
     foreachport $portlist {
+        set composite_version [composite_version $portversion [array get variations]]
+        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::active $portname]}]} {
+            set i [lindex $ilist 0]
+            set iversion [lindex $i 1]
+            set irevision [lindex $i 2]
+            set ivariants [lindex $i 3]
+            if {$composite_version == "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
+                if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
+                    if {[catch {set result [mportexec $mport deactivate]} result]} {
+                        global errorInfo
+                        mportclose_installed $mport
+                        ui_debug "$errorInfo"
+                        break_softcontinue "Unable to execute port: $result" 1 status
+                    }
+                    mportclose_installed $mport
+                    continue
+                } else {
+                    global errorInfo
+                    ui_debug "$errorInfo"
+                    ui_warn "Could not open Portfile from registry for $portname $composite_version"
+                }
+            }
+        }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+            if { [catch {portimage::deactivate $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port deactivate failed: $result" 1 status
@@ -2231,6 +2275,7 @@ proc action_dependents { action portlist opts } {
 
 
 proc action_uninstall { action portlist opts } {
+    global macports::registry.format
     set status 0
     if {[macports::global_option_isset port_uninstall_old]} {
         # if -u then uninstall all inactive ports
@@ -2248,7 +2293,27 @@ proc action_uninstall { action portlist opts } {
             ui_info "$portname is already uninstalled"
             continue
         }
-        if { [catch {portuninstall::uninstall $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+        set composite_version [composite_version $portversion [array get variations]]
+        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+            set i [lindex $ilist 0]
+            set iversion [lindex $i 1]
+            set irevision [lindex $i 2]
+            set ivariants [lindex $i 3]
+            if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
+                if {[catch {set result [mportexec $mport uninstall]} result]} {
+                    global errorInfo
+                    mportclose_installed $mport
+                    ui_debug "$errorInfo"
+                    break_softcontinue "Unable to execute port: $result" 1 status
+                }
+                mportclose_installed $mport
+                continue
+            } else {
+                ui_warn "Could not open Portfile from registry for $portname $composite_version"
+            }
+        }
+
+        if { [catch {portuninstall::uninstall $portname $composite_version [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "port uninstall failed: $result" 1 status

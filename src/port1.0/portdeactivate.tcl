@@ -1,8 +1,8 @@
-# et:ts=4
-# port.tcl
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# portdeactivate.tcl
 # $Id$
 #
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2010 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -13,10 +13,10 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of The MacPorts Project nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -29,32 +29,26 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 #
-# standard package load
-package provide port 1.0
 
-package require mp_package 1.0
-package require portmain 1.0
-package require portdepends 1.0
-package require portfetch 1.0
-package require portchecksum 1.0
-package require portextract 1.0
-package require portpatch 1.0
-package require portconfigure 1.0
-package require portbuild 1.0
-package require portdestroot 1.0
-package require portinstall 1.0
-package require portuninstall 1.0
-package require portactivate 1.0
-package require portdeactivate 1.0
-package require portclean 1.0
-package require porttest 1.0
-package require portlint 1.0
-package require portsubmit 1.0
-package require porttrace 1.0
-package require portdistcheck 1.0
-package require portlivecheck 1.0
-package require portmirror 1.0
-package require portload 1.0
-package require portunload 1.0
+# the 'deactivate' target is provided by this package
 
-package require portdistfiles 1.0
+package provide portdeactivate 1.0
+package require portutil 1.0
+
+set org.macports.deactivate [target_new org.macports.deactivate portdeactivate::deactivate_main]
+target_runtype ${org.macports.deactivate} always
+target_state ${org.macports.deactivate} no
+target_provides ${org.macports.deactivate} deactivate
+target_requires ${org.macports.deactivate} main
+
+namespace eval portdeactivate {
+}
+
+options deactivate.asroot
+default deactivate.asroot yes
+
+proc portdeactivate::deactivate_main {args} {
+    global name version revision portvariants user_options
+    registry_deactivate $name "${version}_${revision}${portvariants}" [array get user_options]
+    return 0
+}

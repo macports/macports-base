@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portactivate.tcl
 # $Id$
 #
@@ -49,11 +49,12 @@ if {[option portarchivemode] == "yes"} {
 namespace eval portactivate {
 }
 
-set_ui_prefix
+options activate.asroot
+default activate.asroot yes
 
 proc portactivate::activate_main {args} {
     global env name version revision portvariants user_options portnotes
-    registry_activate $name ${version}_${revision}${portvariants} [array get user_options]
+    registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists portnotes] && $portnotes ne {}} {
