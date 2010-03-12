@@ -32,7 +32,7 @@ config.status: configure
 include Mk/macports.subdir.mk
 
 install::
-	[ ! -f ${sysconfdir}/macports/mp_version ] || rm -vf ${sysconfdir}/macports/mp_version
+	[ ! -f $(DESTDIR)${sysconfdir}/macports/mp_version ] || rm -vf $(DESTDIR)${sysconfdir}/macports/mp_version
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
