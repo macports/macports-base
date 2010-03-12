@@ -30,7 +30,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-package provide portuninstall 2.0
+package provide registry_uninstall 2.0
 
 package require registry 1.0
 package require registry2 2.0
@@ -38,7 +38,7 @@ package require registry_util 2.0
 
 set UI_PREFIX "---> "
 
-namespace eval portuninstall {
+namespace eval registry_uninstall {
 
 proc uninstall {portname {v ""} optionslist} {
     global uninstall.force uninstall.nochecksum UI_PREFIX \
@@ -128,7 +128,7 @@ proc uninstall {portname {v ""} optionslist} {
                 if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
                     set depname [$depport name]
                     set depver "[$depport version]_[$depport revision][$depport variants]"
-                    portuninstall::uninstall $depname $depver [array get options]
+                    registry_uninstall::uninstall $depname $depver [array get options]
                 }
             }
         } else {
@@ -175,7 +175,7 @@ proc uninstall {portname {v ""} optionslist} {
                     foreach depport $dl {
                         # make sure it's still installed, since a previous dep uninstall may have removed it
                         if {[registry::entry_exists_for_name $depport]} {
-                            portuninstall::uninstall $depport "" [array get options]
+                            registry_uninstall::uninstall $depport "" [array get options]
                         }
                     }
                 } else {
@@ -339,5 +339,5 @@ proc _uninstall_list {filelist} {
     }
 }
 
-# End of portuninstall namespace
+# End of registry_uninstall namespace
 }

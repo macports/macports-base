@@ -704,7 +704,7 @@ proc initialize_system {args} {
 			set port [lindex $portlist 0]
 
 			ui_msg "Uninstalling $port."
-			if { [catch {portuninstall::uninstall $portname $portversion} result] } {
+			if { [catch {registry_uninstall::uninstall $portname $portversion} result] } {
 				global errorInfo
 				ui_debug "$errorInfo"
 				ui_noisy_errorr "Fatal error: Uninstalling $port failed: $result"

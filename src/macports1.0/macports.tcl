@@ -989,7 +989,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_exists_for_name registry::entry_exists_for_name
     $workername alias registry_activate portimage::activate
     $workername alias registry_deactivate portimage::deactivate
-    $workername alias registry_uninstall portuninstall::uninstall
+    $workername alias registry_uninstall registry_uninstall::uninstall
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_bulk_register_files registry::register_bulk_files
@@ -2886,7 +2886,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set options(ports_force) yes
         if {$is_dryrun eq "yes"} {
             ui_msg "Skipping uninstall $portname @${version_installed}_${revision_installed}${variant_installed} (dry run)"
-        } elseif {[catch {portuninstall::uninstall $portname ${version_installed}_${revision_installed}${variant_installed} [array get options]} result]} {
+            # XXX need to use mportopen_installed and mportexec here (and below) instead
+        } elseif {[catch {registry_uninstall::uninstall $portname ${version_installed}_${revision_installed}${variant_installed} [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Uninstall $portname ${version_installed}_${revision_installed}${variant_installed} failed: $result"
@@ -2906,7 +2907,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set options(ports_force) yes
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-            } elseif {[catch {portuninstall::uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
+            } elseif {[catch {registry_uninstall::uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
@@ -2983,7 +2984,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_debug "Uninstalling $portname ${version}_${revision}${variant}"
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
-            } elseif {[catch {portuninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
+            } elseif {[catch {registry_uninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents

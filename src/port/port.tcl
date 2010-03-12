@@ -2313,7 +2313,7 @@ proc action_uninstall { action portlist opts } {
             }
         }
 
-        if { [catch {portuninstall::uninstall $portname $composite_version [array get options]} result] } {
+        if { [catch {registry_uninstall::uninstall $portname $composite_version [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "port uninstall failed: $result" 1 status
