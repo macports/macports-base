@@ -1460,7 +1460,7 @@ proc eval_targets {target} {
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
-    # so special-case ignore already-completed install and activate
+    # so special-case already-completed install and activate
     if {[registry_exists $name $version $revision $portvariants]} {
         if {$target == "install"} {
             ui_debug "Skipping $target ($name) since this port is already installed"
@@ -1470,20 +1470,11 @@ proc eval_targets {target} {
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
                 ui_debug "Skipping $target ($name @${version}_${revision}${portvariants}) since this port is already active"
+                return 0
             } else {
-                # do the activate here since target_run doesn't know how to selectively ignore the preceding steps
-                if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
-                    ui_msg "For $name: skipping $target (dry run)"
-                } else {
-                    if {[catch {registry_activate $name ${version}_${revision}${portvariants} [array get user_options]} result]} {
-                        global errorInfo
-                        ui_debug "$errorInfo"
-                        ui_error "activating $name @${version}_${revision}${portvariants} failed: $result"
-                        return 1
-                    }
-                }
+                # run the activate target but ignore its (completed) dependencies
+                return [target_run [lindex [dlist_search $dlist provides $target] 0]]
             }
-            return 0
         }
     }
 

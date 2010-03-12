@@ -1295,10 +1295,11 @@ proc mportopen_installed {name version revision variants options} {
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
     set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_${revision}${variants}"]
     file mkdir $portfile_dir
-    set fd [open ${portfile_dir}/Portfile w]
+    set fd [open "${portfile_dir}/Portfile" w]
     puts $fd [$regref portfile]
     close $fd
-    
+    file mtime "${portfile_dir}/Portfile" [$regref date]
+
     set variations {}
     set minusvariant [lrange [split [$regref negated_variants] -] 1 end]
     set plusvariant [lrange [split [$regref variants] +] 1 end]
@@ -1611,17 +1612,16 @@ proc mportexec {mport target} {
     if {[string equal $target "install"]} {
         # mark port as explicitly requested
         $workername eval set user_options(ports_requested) 1
-        
-        # If we're doing an install, check if we should clean after
-        if {[string equal ${macports::portautoclean} "yes"]} {
-            set clean 1
-        }
-    
+
         # If we're doing image installs, then we should activate after install
         # xxx: This isn't pretty
         if { [string equal ${macports::registry.installtype} "image"] } {
             set target activate
         }
+    }
+    if {[string equal ${macports::portautoclean} "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
+        # If we're doing an install, check if we should clean after
+        set clean 1
     }
 
     # Build this port with the specified target
