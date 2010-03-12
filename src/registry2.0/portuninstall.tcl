@@ -212,15 +212,15 @@ proc uninstall {portname {v ""} optionslist} {
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $v]"
 
-    if {$use_reg2} {
-        # pkg_uninstall isn't used anywhere as far as I can tell and I intend to add
-        # some proper pre-/post- hooks to uninstall/deactivate.
-    } else {
+    if {!$use_reg2} {
         # Look to see if the port has registered an uninstall procedure
         set uninstall [registry::property_retrieve $ref pkg_uninstall] 
         if { $uninstall != 0 } {
-            if {![catch {eval $uninstall} err]} {
-                pkg_uninstall $portname $v
+            if {![catch {eval [string map { \\n \n } $uninstall]} err]} {
+                ui_info "Executing pkg_uninstall procedure"
+                if {[catch {pkg_uninstall $portname "${version}_${revision}${variants}" } err]} {
+                    ui_error [format [msgcat::mc "Error executing pkg_uninstall procedure: %s"] $err]
+                }
             } else {
                 global errorInfo
                 ui_debug "$errorInfo"

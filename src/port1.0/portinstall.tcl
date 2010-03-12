@@ -140,7 +140,7 @@ proc portinstall::directory_dig {rootdir workdir imagedir {cwd ""} {prepend 1}} 
 
 proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
-    homepage depends_run installPlist package-install uninstall workdir \
+    homepage depends_run installPlist package-install workdir \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
@@ -275,7 +275,7 @@ proc portinstall::install_main {args} {
             registry_prop_store $regref package-install ${package-install}
         }
         if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-            registry_prop_store $regref uninstall [proc_disasm pkg_uninstall]
+            registry_prop_store $regref pkg_uninstall [proc_disasm pkg_uninstall]
         }
 
         registry_write $regref
@@ -284,9 +284,22 @@ proc portinstall::install_main {args} {
     return 0
 }
 
+# apparent usage of pkg_uninstall variable in the (flat) registry
+# the Portfile needs to define a procedure
+# proc pkg_uninstall {portname portver} {
+#     body of proc
+# }
+# which gets stored above in the receipt's pkg_uninstall property
+# this is then called by the portuninstall procedure
+# note that the portuninstall procedure is not called within
+# the context of the portfile so many usual port variables do not exist
+# e.g. destroot/workpath/filespath
+ 
+# this procedure encodes the pkg_uninstall body so that it can be stored in the
+# the receipt file
 proc portinstall::proc_disasm {pname} {
     set p "proc "
-    append p $pname " \{"
+    append p $pname " {"
     set space ""
     foreach arg [info args $pname] {
         if {[info default $pname $arg value]} {
@@ -296,6 +309,6 @@ proc portinstall::proc_disasm {pname} {
         }
         set space " "
     }
-    append p "\} \{" [info body $pname] "\}"
+    append p "} {" [string map { \n \\n } [info body $pname] ] " }"
     return $p
 }
