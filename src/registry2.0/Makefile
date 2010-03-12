@@ -25,6 +25,7 @@ distclean:: clean
 	rm -f registry_autoconf.tcl
 
 install:: all
+	[ ! -d $(DESTDIR)${datadir}/macports/Tcl/registry1.0 ] || rm -vrf $(DESTDIR)${datadir}/macports/Tcl/registry1.0
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 ${SHLIB_NAME} ${INSTALLDIR}
 	$(SILENT) set -x; for file in ${SRCS}; do \

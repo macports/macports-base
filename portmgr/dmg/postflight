@@ -43,6 +43,7 @@ BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
+REG1DIR=${PREFIX}/share/macports/Tcl/registry1.0
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
@@ -106,6 +107,12 @@ function cleanup_man () {
     echo -e "Done.\n"
 }
 
+# Delete the old registry1.0 directory
+function delete_reg1 {
+    if [ -d ${REG1DIR} ]; then
+        rm -vrf ${REG1DIR}
+    fi
+}
 
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
@@ -114,6 +121,7 @@ setup_configs
 
 # Remove old stuff
 cleanup_man
+delete_reg1
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
