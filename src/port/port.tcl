@@ -3024,9 +3024,8 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
+    set target $action
     foreachport $portlist {
-        set target $action
-
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
         if {$porturl == ""} {
@@ -3081,6 +3080,10 @@ proc action_target { action portlist opts } {
         # in port actions (e.g. clean).
         if {[string length $portversion]} {
             set options(ports_version_glob) $portversion
+        }
+        # if installing, mark the port as explicitly requested
+        if {$target == "install"} {
+            set options(ports_requested) 1
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo

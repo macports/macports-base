@@ -1609,15 +1609,10 @@ proc mportexec {mport target} {
     }
 
     set clean 0
-    if {[string equal $target "install"]} {
-        # mark port as explicitly requested
-        $workername eval set user_options(ports_requested) 1
-
+    if {[string equal $target "install"] && [string equal ${macports::registry.installtype} "image"]} {
         # If we're doing image installs, then we should activate after install
         # xxx: This isn't pretty
-        if { [string equal ${macports::registry.installtype} "image"] } {
-            set target activate
-        }
+        set target activate
     }
     if {[string equal ${macports::portautoclean} "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
         # If we're doing an install, check if we should clean after
@@ -2708,6 +2703,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     if {$oldnegatedvariant == 0} {
         set oldnegatedvariant {}
     }
+    set requestedflag [registry::property_retrieve $regref requested]
 
     # Before we do
     # dependencies, we need to figure out the final variants,
@@ -2774,12 +2770,16 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set newname $portname
     }
 
-    if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
+    array set interp_options [array get options]
+    set interp_options(ports_requested) $requestedflag
+
+    if {[catch {set workername [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         ui_error "Unable to open port: $result"
         return 1
     }
+    array unset interp_options
 
     array unset portinfo
     array set portinfo [mportinfo $workername]
