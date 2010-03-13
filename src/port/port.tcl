@@ -1986,32 +1986,9 @@ proc action_activate { action portlist opts } {
         set composite_version [composite_version $portversion [array get variations]]
         if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
             set i [lindex $ilist 0]
-            set iversion [lindex $i 1]
-            set irevision [lindex $i 2]
-            set ivariants [lindex $i 3]
-            if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                if {[catch {set result [mportexec $mport activate]} result] || $result != 0} {
-                    global errorInfo
-                    catch {mportclose_installed $mport}
-                    ui_debug "$errorInfo"
-                    ui_warn "Unable to execute portfile from registry: $result"
-                    if {![catch {set ilist [registry::active $portname]}] && [llength $ilist] > 0} {
-                        set i [lindex $ilist 0]
-                        set aversion [lindex $i 1]
-                        set arevision [lindex $i 2]
-                        set avariants [lindex $i 3]
-                        if {[string equal "${aversion}_${arevision}${avariants}" "${iversion}_${irevision}${ivariants}"]} {
-                            continue
-                        }
-                    }
-                } else {
-                    mportclose_installed $mport
-                    continue
-                }
-            } else {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_warn "Could not open Portfile from registry for $portname $composite_version"
+            set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+            if {[registry::run_target $regref activate [array get options]]} {
+                continue
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
@@ -2043,23 +2020,9 @@ proc action_deactivate { action portlist opts } {
             set irevision [lindex $i 2]
             set ivariants [lindex $i 3]
             if {$composite_version == "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
-                if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                    if {[catch {set result [mportexec $mport deactivate]} result] || $result != 0} {
-                        global errorInfo
-                        catch {mportclose_installed $mport}
-                        ui_debug "$errorInfo"
-                        ui_warn "Unable to execute portfile from registry: $result"
-                        if {[catch {set ilist [registry::active $portname]}] || [llength $ilist] == 0} {
-                            continue
-                        }
-                    } else {
-                        mportclose_installed $mport
-                        continue
-                    }
-                } else {
-                    global errorInfo
-                    ui_debug "$errorInfo"
-                    ui_warn "Could not open Portfile from registry for $portname $composite_version"
+                set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
+                if {[registry::run_target $regref deactivate [array get options]]} {
+                    continue
                 }
             }
         }
@@ -2312,28 +2275,11 @@ proc action_uninstall { action portlist opts } {
         set composite_version [composite_version $portversion [array get variations]]
         if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
             set i [lindex $ilist 0]
-            set iversion [lindex $i 1]
-            set irevision [lindex $i 2]
-            set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
-            if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                if {($iactive && ([catch {set result [mportexec $mport deactivate]} result] || $result != 0))
-                    || ([catch {set result [mportexec $mport uninstall]} result] || $result != 0)} {
-                    global errorInfo
-                    catch {mportclose_installed $mport}
-                    ui_debug "$errorInfo"
-                    ui_warn "Unable to execute portfile from registry: $result"
-                    if {![registry::entry_exists $portname $iversion $irevision $ivariants]} {
-                        continue
-                    }
-                } else {
-                    mportclose_installed $mport
-                    continue
-                }
-            } else {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_warn "Could not open Portfile from registry for $portname $composite_version"
+            set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+            if {(!$iactive || [registry::run_target $regref deactivate [array get options]])
+                && [registry::run_target $regref uninstall [array get options]]} {
+                continue
             }
         }
 

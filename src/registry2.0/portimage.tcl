@@ -100,12 +100,8 @@ proc activate {name v optionslist} {
             # if another version of this port is active, deactivate it first
             set current [registry::entry installed $name]
             foreach i $current {
-                set iversion [$i version]
-                set irevision [$i revision]
-                set ivariants [$i variants]
-                set ispecifier "${iversion}_${irevision}${ivariants}"
-                if { ![string equal $specifier $ispecifier] } {
-                    lappend todeactivate $ispecifier
+                if { ![string equal $specifier "[$i version]_[$i revision][$i variants]"] } {
+                    lappend todeactivate $i
                 }
             }
 
@@ -116,6 +112,11 @@ proc activate {name v optionslist} {
 
             if { [string equal [$requested state] "installed"] } {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
+            }
+        }
+        foreach a $todeactivate {
+            if {![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
+                deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
             }
         }
     } else {
@@ -149,10 +150,10 @@ proc activate {name v optionslist} {
         if { [registry::property_retrieve $ref active] != 0 } {
             return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
         }
-    }
 
-    foreach a $todeactivate {
-        deactivate $name $a [list ports_nodepcheck 1]
+        foreach a $todeactivate {
+            deactivate $name $a [list ports_nodepcheck 1]
+        }
     }
 
     if {$v != ""} {
@@ -503,7 +504,9 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
 
             # deactivate ports replaced_by this one
             foreach owner [array names todeactivate] {
-                deactivate [$owner name] "" [list ports_nodepcheck 1]
+                if {![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
+                    deactivate [$owner name] "" [list ports_nodepcheck 1]
+                }
             }
 
             # Sort the list in forward order, removing duplicates.
@@ -540,7 +543,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             }
             # reactivate deactivated ports
             foreach entry [array names todeactivate] {
-                if {[$entry state] == "imaged"} {
+                if {[$entry state] == "imaged" && ![registry::run_target $entry activate ""]} {
                     set pvers "[$entry version]_[$entry revision][$entry variants]"
                     activate [$entry name] $pvers ""
                 }
