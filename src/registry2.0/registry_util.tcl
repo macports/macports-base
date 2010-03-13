@@ -83,7 +83,7 @@ proc check_dependents {port force} {
 ## @return   true if successful, false otherwise
 proc run_target {port target options} {
     set portspec "[$port name] @[$port version]_[$port revision][$port variants]"
-    if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] [array get options]]}]} {
+    if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $options]}]} {
         if {[catch {set result [mportexec $mport $target]} result] || $result != 0} {
             global errorInfo
             ui_debug "$errorInfo"
