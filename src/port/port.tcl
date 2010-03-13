@@ -2299,8 +2299,10 @@ proc action_uninstall { action portlist opts } {
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
             set ivariants [lindex $i 3]
+            set iactive [lindex $i 4]
             if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                if {[catch {set result [mportexec $mport uninstall]} result]} {
+                if {($iactive && [catch {set result [mportexec $mport deactivate]} result])
+                    || [catch {set result [mportexec $mport uninstall]} result]} {
                     global errorInfo
                     mportclose_installed $mport
                     ui_debug "$errorInfo"
