@@ -1990,15 +1990,27 @@ proc action_activate { action portlist opts } {
             set irevision [lindex $i 2]
             set ivariants [lindex $i 3]
             if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                if {[catch {set result [mportexec $mport activate]} result]} {
+                if {[catch {set result [mportexec $mport activate]} result] || $result != 0} {
                     global errorInfo
-                    mportclose_installed $mport
+                    catch {mportclose_installed $mport}
                     ui_debug "$errorInfo"
-                    break_softcontinue "Unable to execute port: $result" 1 status
+                    ui_warn "Unable to execute portfile from registry: $result"
+                    if {![catch {set ilist [registry::active $portname]}] && [llength $ilist] > 0} {
+                        set i [lindex $ilist 0]
+                        set aversion [lindex $i 1]
+                        set arevision [lindex $i 2]
+                        set avariants [lindex $i 3]
+                        if {[string equal "${aversion}_${arevision}${avariants}" "${iversion}_${irevision}${ivariants}"]} {
+                            continue
+                        }
+                    }
+                } else {
+                    mportclose_installed $mport
+                    continue
                 }
-                mportclose_installed $mport
-                continue
             } else {
+                global errorInfo
+                ui_debug "$errorInfo"
                 ui_warn "Could not open Portfile from registry for $portname $composite_version"
             }
         }
@@ -2032,14 +2044,18 @@ proc action_deactivate { action portlist opts } {
             set ivariants [lindex $i 3]
             if {$composite_version == "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
                 if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                    if {[catch {set result [mportexec $mport deactivate]} result]} {
+                    if {[catch {set result [mportexec $mport deactivate]} result] || $result != 0} {
                         global errorInfo
-                        mportclose_installed $mport
+                        catch {mportclose_installed $mport}
                         ui_debug "$errorInfo"
-                        break_softcontinue "Unable to execute port: $result" 1 status
+                        ui_warn "Unable to execute portfile from registry: $result"
+                        if {[catch {set ilist [registry::active $portname]}] || [llength $ilist] == 0} {
+                            continue
+                        }
+                    } else {
+                        mportclose_installed $mport
+                        continue
                     }
-                    mportclose_installed $mport
-                    continue
                 } else {
                     global errorInfo
                     ui_debug "$errorInfo"
@@ -2301,16 +2317,22 @@ proc action_uninstall { action portlist opts } {
             set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
             if {![catch {set mport [mportopen_installed $portname $iversion $irevision $ivariants [array get options]]}]} {
-                if {($iactive && [catch {set result [mportexec $mport deactivate]} result])
-                    || [catch {set result [mportexec $mport uninstall]} result]} {
+                if {($iactive && ([catch {set result [mportexec $mport deactivate]} result] || $result != 0))
+                    || ([catch {set result [mportexec $mport uninstall]} result] || $result != 0)} {
                     global errorInfo
-                    mportclose_installed $mport
+                    catch {mportclose_installed $mport}
                     ui_debug "$errorInfo"
-                    break_softcontinue "Unable to execute port: $result" 1 status
+                    ui_warn "Unable to execute portfile from registry: $result"
+                    if {![registry::entry_exists $portname $iversion $irevision $ivariants]} {
+                        continue
+                    }
+                } else {
+                    mportclose_installed $mport
+                    continue
                 }
-                mportclose_installed $mport
-                continue
             } else {
+                global errorInfo
+                ui_debug "$errorInfo"
                 ui_warn "Could not open Portfile from registry for $portname $composite_version"
             }
         }
