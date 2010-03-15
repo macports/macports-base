@@ -1498,7 +1498,7 @@ proc action_log { action portlist opts } {
 
             close $fp
         } else {
-            ui_msg "Log file for port $portname not found"
+            break_softcontinue "Log file for port $portname not found" 1 status
         }
     }
     return 0
