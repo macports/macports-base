@@ -1489,7 +1489,6 @@ proc action_log { action portlist opts } {
             } else {
                 set prefix "\[a-z\]*"
             }
-            set match ""
             foreach line $data {
                 set exp "^:($prefix|any):($phase|any) (.*)$"
                 if {[regexp $exp $line -> lpriority lphase lmsg] == 1} {
