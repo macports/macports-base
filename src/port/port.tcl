@@ -1479,9 +1479,9 @@ proc action_log { action portlist opts } {
             set data [split $data "\n"]
 
             if {[info exists global_options(ports_log_phase)]} {
-                set stage $global_options(ports_log_phase);
+                set phase $global_options(ports_log_phase);
             } else {
-                set stage "\[a-z\]*"
+                set phase "\[a-z\]*"
             }
 
             if {[info exists global_options(ports_log_verbosity)]} {
@@ -1491,9 +1491,9 @@ proc action_log { action portlist opts } {
             }
             set match ""
             foreach line $data {
-                set exp "^:($prefix|any):($stage|any) (.*)$"
-                if {[regexp $exp $line -> priority phase msg] == 1} {
-                    puts "[macports::ui_prefix_default $priority]$msg"
+                set exp "^:($prefix|any):($phase|any) (.*)$"
+                if {[regexp $exp $line -> lpriority lphase lmsg] == 1} {
+                    puts "[macports::ui_prefix_default $lpriority]$lmsg"
                 }
             }
 
