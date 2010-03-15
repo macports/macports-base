@@ -45,12 +45,21 @@ if {[option portarchivemode] == "yes"} {
 } else {
     target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
 }
+target_prerun ${org.macports.activate} portactivate::activate_start
 
 namespace eval portactivate {
 }
 
 options activate.asroot
-default activate.asroot yes
+default activate.asroot no
+
+proc portactivate::activate_start {args} {
+    global prefix
+    if { ![file writable $prefix] } {
+        # if install location is not writable, need root privileges
+        elevateToRoot "activate"
+    }
+}
 
 proc portactivate::activate_main {args} {
     global env name version revision portvariants user_options portnotes

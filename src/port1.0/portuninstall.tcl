@@ -40,12 +40,21 @@ target_runtype ${org.macports.uninstall} always
 target_state ${org.macports.uninstall} no
 target_provides ${org.macports.uninstall} uninstall
 target_requires ${org.macports.uninstall} main
+target_prerun ${org.macports.uninstall} portuninstall::uninstall_start
 
 namespace eval portuninstall {
 }
 
 options uninstall.asroot
-default uninstall.asroot yes
+default uninstall.asroot no
+
+proc portuninstall::uninstall_start {args} {
+    global prefix
+    if { ![file writable $prefix] } {
+        # if install location is not writable, need root privileges
+        elevateToRoot "uninstall"
+    }
+}
 
 proc portuninstall::uninstall_main {args} {
     global name version revision portvariants user_options

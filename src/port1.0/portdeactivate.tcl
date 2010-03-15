@@ -40,12 +40,21 @@ target_runtype ${org.macports.deactivate} always
 target_state ${org.macports.deactivate} no
 target_provides ${org.macports.deactivate} deactivate
 target_requires ${org.macports.deactivate} main
+target_prerun ${org.macports.deactivate} portdeactivate::deactivate_start
 
 namespace eval portdeactivate {
 }
 
 options deactivate.asroot
-default deactivate.asroot yes
+default deactivate.asroot no
+
+proc portdeactivate::deactivate_start {args} {
+    global prefix
+    if { ![file writable $prefix] } {
+        # if install location is not writable, need root privileges
+        elevateToRoot "deactivate"
+    }
+}
 
 proc portdeactivate::deactivate_main {args} {
     global name version revision portvariants user_options
