@@ -31,6 +31,7 @@
 #
 
 package provide portfetch 1.0
+package require fetch_common 1.0
 package require portutil 1.0
 package require Pextlib 1.0
 
@@ -43,15 +44,6 @@ target_prerun ${org.macports.fetch} portfetch::fetch_start
 namespace eval portfetch {
     namespace export suffix
     variable fetch_urls {}
-    variable urlmap
-    array set urlmap {}
-}
-
-# Name space for internal site lists storage
-namespace eval portfetch::mirror_sites {
-    variable sites
-
-    array set sites {}
 }
 
 # define options: distname master_sites
@@ -216,146 +208,6 @@ proc portfetch::suffix {distname} {
 # Portfiles, but should better go somewhere else
 namespace import portfetch::suffix
 
-# Given a site url and the name of the distfile, assemble url and
-# return it.
-proc portfetch::assemble_url {site distfile} {
-    if {[string index $site end] != "/"} {
-        return "${site}/${distfile}"
-    } else {
-        return "${site}${distfile}"
-    }
-}
-
-# For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
-# pre-registered set of sites, and if so, return them.
-proc portfetch::mirror_sites {mirrors tag subdir} {
-    global UI_PREFIX name porturl mirror_sites.listfile mirror_sites.listpath dist_subdir
-    global global_mirror_site fallback_mirror_site
-
-    set mirrorfile [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
-    if {[file exists $mirrorfile]} {
-        source $mirrorfile
-    }
-
-    if {![info exists portfetch::mirror_sites::sites($mirrors)]} {
-        if {$mirrors != $global_mirror_site && $mirrors != $fallback_mirror_site} {
-            ui_warn "[format [msgcat::mc "No mirror sites on file for class %s"] $mirrors]"
-        }
-        return {}
-    }
-
-    set ret [list]
-    foreach element $portfetch::mirror_sites::sites($mirrors) {
-
-        # here we have the chance to take a look at tags, that possibly
-        # have been assigned in mirror_sites.tcl
-        set splitlist [split $element :]
-        # every element is a URL, so we'll always have multiple elements. no need to check
-        set element "[lindex $splitlist 0]:[lindex $splitlist 1]"
-        set mirror_tag "[lindex $splitlist 2]"
-
-        set name_re {\$(?:name\y|\{name\})}
-        # if the URL has $name embedded, kill any mirror_tag that may have been added
-        # since a mirror_tag and $name are incompatible
-        if {[regexp $name_re $element]} {
-            set mirror_tag ""
-        }
-
-        if {$mirror_tag == "mirror"} {
-            set thesubdir ${dist_subdir}
-        } elseif {$subdir == "" && $mirror_tag != "nosubdir"} {
-            set thesubdir ${name}
-        } else {
-            set thesubdir ${subdir}
-        }
-
-        # parse an embedded $name. if present, remove the subdir
-        if {[regsub $name_re $element $thesubdir element] > 0} {
-            set thesubdir ""
-        }
-
-        if {"$tag" != ""} {
-            eval append element "${thesubdir}:${tag}"
-        } else {
-            eval append element "${thesubdir}"
-        }
-
-        eval lappend ret $element
-    }
-
-    return $ret
-}
-
-# Checks sites.
-# sites tags create variables in the portfetch:: namespace containing all sites
-# within that tag distfiles are added in $site $distfile format, where $site is
-# the name of a variable in the portfetch:: namespace containing a list of fetch
-# sites
-proc portfetch::checksites {args} {
-    global patch_sites master_sites master_sites.mirror_subdir \
-        patch_sites.mirror_subdir fallback_mirror_site global_mirror_site env
-    variable urlmap
-
-    append master_sites " ${global_mirror_site} ${fallback_mirror_site}"
-    if {[info exists env(MASTER_SITE_LOCAL)]} {
-    set master_sites [concat $env(MASTER_SITE_LOCAL) $master_sites]
-    }
-
-    append patch_sites " ${global_mirror_site} ${fallback_mirror_site}"
-    if {[info exists env(PATCH_SITE_LOCAL)]} {
-    set patch_sites [concat $env(PATCH_SITE_LOCAL) $patch_sites]
-    }
-
-    foreach list {master_sites patch_sites} {
-        upvar #0 $list uplist
-        if {![info exists uplist]} {
-            continue
-        }
-
-        set site_list [list]
-        foreach site $uplist {
-            if {[regexp {([a-zA-Z]+://.+)} $site match site]} {
-                set site_list [concat $site_list $site]
-            } else {
-            set splitlist [split $site :]
-        if {[llength $splitlist] > 3 || [llength $splitlist] <1} {
-                    ui_error [format [msgcat::mc "Unable to process mirror sites for: %s, ignoring."] $site]
-        }
-        set mirrors "[lindex $splitlist 0]"
-        set subdir "[lindex $splitlist 1]"
-        set tag "[lindex $splitlist 2]"
-                if {[info exists $list.mirror_subdir]} {
-                    append subdir "[set ${list}.mirror_subdir]"
-                }
-                set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir]]
-            }
-        }
-
-        # add in the global and fallback mirrors for each tag
-        foreach site $site_list {
-            if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
-                if {![info exists extras_added($tag)]} {
-                    set site_list [concat $site_list [mirror_sites $global_mirror_site $tag ""] [mirror_sites $fallback_mirror_site $tag ""]]
-                    if {[string equal $list master_sites] && [info exists env(MASTER_SITE_LOCAL)]} {
-                        set site_list [concat [list $env(MASTER_SITE_LOCAL)] $site_list]
-                    } elseif {[string equal $list patch_sites] && [info exists env(PATCH_SITE_LOCAL)]} {
-                        set site_list [concat [list $env(PATCH_SITE_LOCAL)] $site_list]
-                    }
-                    set extras_added($tag) yes
-                }
-            }
-        }
-
-        foreach site $site_list {
-        if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
-                lappend urlmap($tag) $site
-            } else {
-                lappend urlmap($list) $site
-            }
-        }
-    }
-}
-
 # Checks patch files and their tags to assemble url lists for later fetching
 proc portfetch::checkpatchfiles {urls} {
     global patchfiles all_dist_files patch_sites filespath
@@ -381,7 +233,7 @@ proc portfetch::checkpatchfiles {urls} {
 
 # Checks dist files and their tags to assemble url lists for later fetching
 proc portfetch::checkdistfiles {urls} {
-    global distfiles all_dist_files master_sites filespath
+    global distfiles all_dist_files filespath
     upvar $urls fetch_urls
 
     if {[info exists distfiles]} {
@@ -400,90 +252,24 @@ proc portfetch::checkdistfiles {urls} {
     }
 }
 
-# sorts fetch_urls in order of ping time
-proc portfetch::sortsites {urls} {
-    global fallback_mirror_site master_sites
-    upvar $urls fetch_urls
-    variable urlmap
-
-    set fallback_mirror_list [mirror_sites $fallback_mirror_site {} {}]
-
-    foreach {url_var distfile} $fetch_urls {
-        if {![info exists urlmap($url_var)]} {
-            ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-            set urlmap($url_var) $master_sites
-        }
-        set urllist $urlmap($url_var)
-        set hosts {}
-        set hostregex {[a-zA-Z]+://([a-zA-Z0-9\.\-_]+)}
-
-        if {[llength $urllist] - [llength $fallback_mirror_list] <= 1} {
-            # there is only one mirror, no need to ping or sort
-            continue
-        }
-
-        foreach site $urllist {
-            regexp $hostregex $site -> host
-
-            if { [info exists seen($host)] } {
-                continue
-            }
-            foreach fallback $fallback_mirror_list {
-                if {[string match [append fallback *] $site]} {
-                    # don't bother pinging fallback mirrors
-                    set seen($host) yes
-                    # and make them sort to the very end of the list
-                    set pingtimes($host) 20000
-                    break
-                }
-            }
-            if { ![info exists seen($host)] } {
-                if {[catch {set fds($host) [open "|ping -noq -c3 -t3 $host | grep round-trip | cut -d / -f 5"]}]} {
-                    ui_debug "Spawning ping for $host failed"
-                    # will end up after all hosts that were pinged OK but before those that didn't respond
-                    set pingtimes($host) 5000
-                } else {
-                    ui_debug "Pinging $host..."
-                    set seen($host) yes
-                    lappend hosts $host
-                }
-            }
-        }
-
-        foreach host $hosts {
-            set len [gets $fds($host) pingtimes($host)]
-            if { [catch { close $fds($host) }] || ![string is double -strict $pingtimes($host)] } {
-                # ping failed, so put it last in the list (but before the fallback mirrors)
-                set pingtimes($host) 10000
-            }
-            ui_debug "$host ping time is $pingtimes($host)"
-        }
-
-        set pinglist {}
-        foreach site $urllist {
-            regexp $hostregex $site -> host
-            lappend pinglist [ list $site $pingtimes($host) ]
-        }
-
-        set pinglist [ lsort -real -index 1 $pinglist ]
-
-        set urlmap($url_var) {}
-        foreach pair $pinglist {
-            lappend urlmap($url_var) [lindex $pair 0]
-        }
-    }
+# returns full path to mirror list file
+proc portfetch::get_full_mirror_sites_path {} {
+    global mirror_sites.listfile mirror_sites.listpath porturl
+    return [getportresourcepath $porturl [file join ${mirror_sites.listpath} ${mirror_sites.listfile}]]
 }
 
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
+    global patch_sites master_sites global_mirror_site fallback_mirror_site env
     upvar $urls fetch_urls
 
-    checksites
+    checksites [list patch_sites [list $global_mirror_site $fallback_mirror_site PATCH_SITE_LOCAL] \
+                master_sites [list $global_mirror_site $fallback_mirror_site MASTER_SITE_LOCAL]] \
+               [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
 }
-
 
 # Perform a CVS login and fetch, storing the CVS login
 # information in a custom .cvspass file
@@ -610,7 +396,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
-    global distfile site
+    global distfile site fallback_mirror_site
     global portverbose
     variable fetch_urls
     variable urlmap
@@ -655,7 +441,7 @@ proc portfetch::fetchfiles {args} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
             }
             if {!$sorted} {
-                sortsites fetch_urls
+                sortsites fetch_urls [mirror_sites $fallback_mirror_site {} {} [get_full_mirror_sites_path]] master_sites
                 set sorted yes
             }
             if {![info exists urlmap($url_var)]} {
@@ -726,7 +512,7 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global distfiles distname distpath all_dist_files dist_subdir fetch.type fetch_init_done
+    global distpath dist_subdir fetch_init_done
     variable fetch_urls
 
     if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
@@ -747,7 +533,7 @@ proc portfetch::fetch_start {args} {
 # there are no files to download. Otherwise, either do a cvs checkout
 # or call the standard fetchfiles procedure
 proc portfetch::fetch_main {args} {
-    global distname distpath all_dist_files fetch.type
+    global all_dist_files fetch.type
 
     # Check for files, download if necessary
     if {![info exists all_dist_files] && "${fetch.type}" == "standard"} {
