@@ -123,15 +123,15 @@ proc portfetch::checksites {sitelists mirrorfile} {
     global env
     variable urlmap
 
-    foreach {list extras} $sitelists {
-        upvar #0 $list uplist
-        if {![info exists uplist]} {
+    foreach {listname extras} $sitelists {
+        upvar #0 $listname $listname
+        if {![info exists $listname]} {
             continue
         }
-        global ${list}.mirror_subdir
+        global ${listname}.mirror_subdir
         # add the specified global, fallback and user-defined mirrors
         set sglobal [lindex $extras 0]; set sfallback [lindex $extras 1]; set senv [lindex $extras 2]
-        set full_list $uplist
+        set full_list [set $listname]
         append full_list " $sglobal $sfallback"
         if {[info exists env($senv)]} {
             set full_list [concat $env($senv) $full_list]
@@ -149,8 +149,8 @@ proc portfetch::checksites {sitelists mirrorfile} {
                 set mirrors "[lindex $splitlist 0]"
                 set subdir "[lindex $splitlist 1]"
                 set tag "[lindex $splitlist 2]"
-                if {[info exists $list.mirror_subdir]} {
-                    append subdir "[set ${list}.mirror_subdir]"
+                if {[info exists ${listname}.mirror_subdir]} {
+                    append subdir "[set ${listname}.mirror_subdir]"
                 }
                 set site_list [concat $site_list [mirror_sites $mirrors $tag $subdir $mirrorfile]]
             }
@@ -176,7 +176,7 @@ proc portfetch::checksites {sitelists mirrorfile} {
         if {[regexp {([a-zA-Z]+://.+/?):([0-9A-Za-z_-]+)$} $site match site tag]} {
                 lappend urlmap($tag) $site
             } else {
-                lappend urlmap($list) $site
+                lappend urlmap($listname) $site
             }
         }
     }

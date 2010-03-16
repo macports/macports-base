@@ -15,6 +15,10 @@ set porthelp(archive) {
 Archive the given ports
 }
 
+set porthelp(archivefetch) {
+Fetch archive for the given ports
+}
+
 set porthelp(build) {
 Build the given ports
 }

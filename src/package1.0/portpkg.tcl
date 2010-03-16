@@ -37,7 +37,7 @@ set org.macports.pkg [target_new org.macports.pkg portpkg::pkg_main]
 target_runtype ${org.macports.pkg} always
 target_provides ${org.macports.pkg} pkg
 if {[option portarchivemode] == "yes"} {
-    target_requires ${org.macports.pkg} unarchive destroot
+    target_requires ${org.macports.pkg} archivefetch unarchive destroot
 } else {
     target_requires ${org.macports.pkg} destroot
 }

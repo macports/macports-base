@@ -3233,6 +3233,7 @@ array set action_array [list \
     distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
     \
     archive     [list action_target         [ACTION_ARGS_PORTS]] \
+    archivefetch [list action_target         [ACTION_ARGS_PORTS]] \
     unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
     dmg         [list action_target         [ACTION_ARGS_PORTS]] \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \

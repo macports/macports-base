@@ -37,7 +37,7 @@ package require portutil 1.0
 set org.macports.archive [target_new org.macports.archive portarchive::archive_main]
 target_init ${org.macports.archive} portarchive::archive_init
 target_provides ${org.macports.archive} archive
-target_requires ${org.macports.archive} main unarchive fetch extract checksum patch configure build destroot
+target_requires ${org.macports.archive} main archivefetch unarchive fetch extract checksum patch configure build destroot
 target_prerun ${org.macports.archive} portarchive::archive_start
 target_postrun ${org.macports.archive} portarchive::archive_finish
 
@@ -123,7 +123,7 @@ proc portarchive::archive_init {args} {
                 }
             } else {
                 ui_debug "Skipping [string toupper ${archive.type}] archive: $errmsg"
-                set unsupported [expr $unsupported + 1]
+                incr unsupported
             }
         }
         if {!$any_missing} {

@@ -38,7 +38,7 @@ set org.macports.unarchive [target_new org.macports.unarchive portunarchive::una
 target_runtype ${org.macports.unarchive} always
 target_init ${org.macports.unarchive} portunarchive::unarchive_init
 target_provides ${org.macports.unarchive} unarchive
-target_requires ${org.macports.unarchive} main
+target_requires ${org.macports.unarchive} main archivefetch
 target_prerun ${org.macports.unarchive} portunarchive::unarchive_start
 target_postrun ${org.macports.unarchive} portunarchive::unarchive_finish
 
@@ -124,7 +124,7 @@ proc portunarchive::unarchive_init {args} {
                 }
             } else {
                 ui_debug "Skipping [string toupper ${unarchive.type}] archive: $errmsg"
-                set unsupported [expr $unsupported + 1]
+                incr unsupported
             }
         }
         if {$found == 1} {

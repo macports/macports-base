@@ -261,7 +261,7 @@ proc portfetch::get_full_mirror_sites_path {} {
 # Perform the full checksites/checkpatchfiles/checkdistfiles sequence.
 # This method is used by distcheck target.
 proc portfetch::checkfiles {urls} {
-    global patch_sites master_sites global_mirror_site fallback_mirror_site env
+    global global_mirror_site fallback_mirror_site
     upvar $urls fetch_urls
 
     checksites [list patch_sites [list $global_mirror_site $fallback_mirror_site PATCH_SITE_LOCAL] \
@@ -396,8 +396,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
-    global distfile site fallback_mirror_site
-    global portverbose
+    global fallback_mirror_site portverbose
     variable fetch_urls
     variable urlmap
 

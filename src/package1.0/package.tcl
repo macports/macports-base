@@ -40,5 +40,6 @@ package require portdmg 1.0
 package require portmdmg 1.0
 package require portdpkg 1.0
 package require portportpkg 1.0
+package require portarchivefetch 1.0
 package require portunarchive 1.0
 package require portarchive 1.0
