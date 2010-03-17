@@ -270,8 +270,7 @@ proc portlint::lint_main {args} {
 
     global os.platform os.arch os.version
     global version revision epoch
-    # hoping for "noarch" :
-    set portarch ${os.arch}
+    set portarch [get_canonical_archs]
     global description long_description platforms categories all_variants
     global maintainers homepage master_sites checksums patchfiles
     global depends_fetch depends_extract depends_lib depends_build depends_run distfiles fetch.type
@@ -530,7 +529,7 @@ proc portlint::lint_main {args} {
     ui_debug "Epoch: $epoch"
     ui_debug "Version: $version"
     ui_debug "Revision: $revision"
-    ui_debug "Arch: $portarch"
+    ui_debug "Archs: $portarch"
     ###################################################################
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"

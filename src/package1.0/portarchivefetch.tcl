@@ -66,35 +66,22 @@ set_ui_prefix
 
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
-    global all_archive_files supported_archs configure.build_arch os.arch \
-           configure.universal_archs archivefetch.fulldestpath \
+    global all_archive_files archivefetch.fulldestpath \
            portarchivepath name version revision portvariants archive_sites
     upvar $urls fetch_urls
 
     # Define archive directory, file, and path
-    if {$supported_archs == "noarch"} {
-        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] noarch]
-    } elseif {[variant_exists universal] && [variant_isset universal]} {
+    if {[llength [get_canonical_archs]] > 1} {
         set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] "universal"]
-    } elseif {${configure.build_arch} != ""} {
-        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] ${configure.build_arch}]
     } else {
-        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] ${os.arch}]
+        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] [get_canonical_archs]]
     }
 
     set unsupported 0
     set found 0
     foreach archive.type [option portarchivetype] {
         if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-            if {$supported_archs == "noarch"} {
-                set archstring noarch
-            } elseif {[variant_exists universal] && [variant_isset universal]} {
-                set archstring [join [lsort -ascii ${configure.universal_archs}] -]
-            } elseif {${configure.build_arch} != ""} {
-                set archstring ${configure.build_arch}
-            } else {
-                set archstring ${os.arch}
-            }
+            set archstring [join [get_canonical_archs] -]
             set archive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${archive.type}"
             set archive.path [file join ${archivefetch.fulldestpath} ${archive.file}]
             if {[file exists ${archive.path}]} {

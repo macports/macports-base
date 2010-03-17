@@ -65,7 +65,6 @@ proc portunarchive::unarchive_init {args} {
     global ports_force ports_source_only ports_binary_only
     global name version revision portvariants portpath
     global unarchive.srcpath unarchive.type unarchive.file unarchive.path unarchive.fullsrcpath
-    global os.arch configure.build_arch configure.universal_archs supported_archs
 
     # Check mode in case archive called directly by user
     if {[option portarchivemode] != "yes"} {
@@ -74,14 +73,10 @@ proc portunarchive::unarchive_init {args} {
 
     # Define archive directory, file, and path
     if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
-        if {$supported_archs == "noarch"} {
-            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] noarch]
-        } elseif {[variant_exists universal] && [variant_isset universal]} {
+        if {[llength [get_canonical_archs]] > 1} {
             set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] "universal"]
-        } elseif {${configure.build_arch} != ""} {
-            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] ${configure.build_arch}]
         } else {
-            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] ${os.arch}]
+            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] [get_canonical_archs]]
         }
     } else {
         set unarchive.fullsrcpath ${unarchive.srcpath}
@@ -105,15 +100,7 @@ proc portunarchive::unarchive_init {args} {
         set unsupported 0
         foreach unarchive.type [option portarchivetype] {
             if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
-                if {$supported_archs == "noarch"} {
-                    set archstring noarch
-                } elseif {[variant_exists universal] && [variant_isset universal]} {
-                    set archstring [join [lsort -ascii ${configure.universal_archs}] -]
-                } elseif {${configure.build_arch} != ""} {
-                    set archstring ${configure.build_arch}
-                } else {
-                    set archstring ${os.arch}
-                }
+                set archstring [join [get_canonical_archs] -]
                 set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
                 set unarchive.path "[file join ${unarchive.fullsrcpath} ${unarchive.file}]"
                 if {[file exist ${unarchive.path}]} {

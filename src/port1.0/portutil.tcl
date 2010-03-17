@@ -2539,3 +2539,17 @@ proc _get_dep_port {depspec} {
         }
     }
 }
+
+# returns the list of archs that the port is targeting
+proc get_canonical_archs {} {
+    global supported_archs os.arch configure.build_arch configure.universal_archs
+    if {$supported_archs == "noarch"} {
+        return "noarch"
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
+        return [lsort -ascii ${configure.universal_archs}]
+    } elseif {${configure.build_arch} != ""} {
+        return ${configure.build_arch}
+    } else {
+        return ${os.arch}
+    }
+}

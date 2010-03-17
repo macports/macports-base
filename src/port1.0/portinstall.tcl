@@ -144,7 +144,6 @@ proc portinstall::install_main {args} {
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
-    os.arch configure.build_arch configure.universal_archs supported_archs \
     os.platform os.major
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
@@ -170,15 +169,7 @@ proc portinstall::install_main {args} {
             $regref requested $user_options(ports_requested)
             $regref os_platform ${os.platform}
             $regref os_major ${os.major}
-            if {$supported_archs == "noarch"} {
-                $regref archs noarch
-            } elseif {[variant_exists universal] && [variant_isset universal]} {
-                $regref archs [lsort -ascii ${configure.universal_archs}]
-            } elseif {${configure.build_arch} != ""} {
-                $regref archs ${configure.build_arch}
-            } else {
-                $regref archs ${os.arch}
-            }
+            $regref archs [get_canonical_archs]
             # Trick to have a portable GMT-POSIX epoch-based time.
             $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
             if {[info exists negated_variants]} {
@@ -232,15 +223,7 @@ proc portinstall::install_main {args} {
 
         registry_prop_store $regref os_platform ${os.platform}
         registry_prop_store $regref os_major ${os.major}
-        if {$supported_archs == "noarch"} {
-            registry_prop_store $regref archs noarch
-        } elseif {[variant_exists universal] && [variant_isset universal]} {
-            registry_prop_store $regref archs [lsort -ascii ${configure.universal_archs}]
-        } elseif {${configure.build_arch} != ""} {
-            registry_prop_store $regref archs ${configure.build_arch}
-        } else {
-            registry_prop_store $regref archs ${os.arch}
-        }
+        registry_prop_store $regref archs [get_canonical_archs]
 
         if {[info exists description]} {
             registry_prop_store $regref description [string map {\n \\n} ${description}]
