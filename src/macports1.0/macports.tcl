@@ -2804,8 +2804,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants) eq "yes"
                   && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
             ui_debug "variant override ... upgrading!"
-        } elseif {[_mportkey $workername os.platform] != $os_platform_installed
-                  || [_mportkey $workername os.major] != $os_major_installed} {
+        } elseif {[_mportkey $workername "{os.platform}"] != $os_platform_installed
+                  || [_mportkey $workername "{os.major}"] != $os_major_installed} {
             ui_debug "platform mismatch ... upgrading!"
             set build_override 1
         } else {
