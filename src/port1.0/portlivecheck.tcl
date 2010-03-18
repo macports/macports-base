@@ -134,6 +134,8 @@ proc portlivecheck::livecheck_main {args} {
         set defaults_file "$types_dir/${livecheck.type}.tcl"
         ui_debug "Loading the defaults from '$defaults_file'"
         if {[catch {source $defaults_file} result]} {
+            global errorInfo
+            ui_debug "$errorInfo: result"
             return -code 1 "The defaults could not be loaded from '$defaults_file'."
         }
     }
