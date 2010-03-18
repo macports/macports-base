@@ -2704,6 +2704,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set oldnegatedvariant {}
     }
     set requestedflag [registry::property_retrieve $regref requested]
+    set os_platform_installed [registry::property_retrieve $regref os_platform]
+    set os_major_installed [registry::property_retrieve $regref os_major]
 
     # Before we do
     # dependencies, we need to figure out the final variants,
@@ -2787,7 +2789,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     set revision_in_tree "$portinfo(revision)"
     set epoch_in_tree "$portinfo(epoch)"
 
-    set epoch_override 0
+    set build_override 0
     set will_install yes
     # check installed version against version in ports
     if { ( [rpm-vercomp $version_installed $version_in_tree] > 0
@@ -2797,11 +2799,15 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {$portname != $newname} { 
             ui_debug "ignoring versions, installing replacement port"
         } elseif { $epoch_installed < $epoch_in_tree } {
-            set epoch_override 1
+            set build_override 1
             ui_debug "epoch override ... upgrading!"
         } elseif {[info exists options(ports_upgrade_enforce-variants)] && $options(ports_upgrade_enforce-variants) eq "yes"
                   && [info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
             ui_debug "variant override ... upgrading!"
+        } elseif {[_mportkey $workername os.platform] != $os_platform_installed
+                  || [_mportkey $workername os.major] != $os_major_installed} {
+            ui_debug "platform mismatch ... upgrading!"
+            set build_override 1
         } else {
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
                 ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
@@ -2814,7 +2820,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     set will_build no
     # avoid building again unnecessarily
-    if {$will_install && ([info exists options(ports_upgrade_force)] || $epoch_override == 1
+    if {$will_install && ([info exists options(ports_upgrade_force)] || $build_override == 1
         || ![registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)])} {
         set will_build yes
     }
@@ -2901,7 +2907,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     } else {
         # are we installing an existing version due to force or epoch override?
         if {[registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
-            && ([info exists options(ports_upgrade_force)] || $epoch_override == 1)} {
+            && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
              ui_debug "Uninstalling $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)"
             # we have to force the uninstall in case of dependents
             set force_cur [info exists options(ports_force)]

@@ -723,6 +723,9 @@ proc get_outdated_ports {} {
     # Now process the list, keeping only those ports that are outdated
     set results {}
     if { [llength $ilist] > 0 } {
+        global tcl_platform
+        set os_platform [string tolower $tcl_platform(os)]
+        set os_major [lindex [split $tcl_platform(osVersion) .] 0]
         foreach i $ilist {
 
             # Get information about the installed port
@@ -770,6 +773,16 @@ proc get_outdated_ports {} {
                 set comp_result [rpm-vercomp $installed_version $latest_version]
                 if { $comp_result == 0 } {
                     set comp_result [rpm-vercomp $installed_revision $latest_revision]
+                }
+            }
+            if {$comp_result == 0} {
+                set regref [registry::open_entry $portname $installed_version $installed_revision $installed_variants $installed_epoch]
+                set os_platform_installed [registry::property_retrieve $regref os_platform]
+                set os_major_installed [registry::property_retrieve $regref os_major]
+                if {$os_platform_installed != "" && $os_platform_installed != 0
+                    && $os_major_installed != "" && $os_major_installed != 0
+                    && ($os_platform_installed != $os_platform || $os_major_installed != $os_major)} {
+                    set comp_result -1
                 }
             }
 
@@ -2386,8 +2399,11 @@ proc action_outdated { action portlist opts } {
     }
 
     set num_outdated 0
-    if { [llength $ilist] > 0 } {   
-        foreach i $ilist { 
+    if { [llength $ilist] > 0 } {
+        global tcl_platform
+        set os_platform [string tolower $tcl_platform(os)]
+        set os_major [lindex [split $tcl_platform(osVersion) .] 0]
+        foreach i $ilist {
         
             # Get information about the installed port
             set portname [lindex $i 0]
@@ -2433,11 +2449,24 @@ proc action_outdated { action portlist opts } {
             }
             
             # Compare versions, first checking epoch, then version, then revision
-            set comp_result [expr $installed_epoch - $latest_epoch]
+            set epoch_comp_result [expr $installed_epoch - $latest_epoch]
+            set comp_result [rpm-vercomp $installed_version $latest_version]
             if { $comp_result == 0 } {
-                set comp_result [rpm-vercomp $installed_version $latest_version]
-                if { $comp_result == 0 } {
-                    set comp_result [rpm-vercomp $installed_revision $latest_revision]
+                set comp_result [rpm-vercomp $installed_revision $latest_revision]
+            }
+            set reason ""
+            if {$comp_result == 0 && $epoch_comp_result != 0} {
+                set reason { (epoch $installed_epoch $relation $latest_epoch)}
+                set comp_result $epoch_comp_result
+            } elseif {$comp_result == 0 && $epoch_comp_result == 0} {
+                set regref [registry::open_entry $portname $installed_version $installed_revision [lindex $i 3] $installed_epoch]
+                set os_platform_installed [registry::property_retrieve $regref os_platform]
+                set os_major_installed [registry::property_retrieve $regref os_major]
+                if {$os_platform_installed != "" && $os_platform_installed != 0
+                    && $os_major_installed != "" && $os_major_installed != 0
+                    && ($os_platform_installed != $os_platform || $os_major_installed != $os_major)} {
+                    set comp_result -1
+                    set reason { (platform $os_platform_installed $os_major_installed != $os_platform $os_major)}
                 }
             }
             
@@ -2461,7 +2490,7 @@ proc action_outdated { action portlist opts } {
                     }
                     incr num_outdated
 
-                    puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound" $flag]
+                    puts [format "%-30s %-24s %1s" $portname "$installed_compound $relation $latest_compound [subst $reason]" $flag]
                 }
                 
             }
