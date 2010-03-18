@@ -152,7 +152,7 @@ default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
 options configure.build_arch
-default configure.build_arch {${build_arch}}
+default configure.build_arch {[portconfigure::choose_supported_archs ${build_arch}]}
 options configure.ld_archflags
 default configure.ld_archflags {[portconfigure::configure_get_ld_archflags]}
 foreach tool {cc cxx objc f77 f90 fc} {
@@ -161,7 +161,7 @@ foreach tool {cc cxx objc f77 f90 fc} {
 }
 
 options configure.universal_archs configure.universal_args configure.universal_cflags configure.universal_cppflags configure.universal_cxxflags configure.universal_ldflags
-default configure.universal_archs       {${universal_archs}}
+default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_cppflags    {[portconfigure::configure_get_universal_cppflags]}
@@ -212,6 +212,27 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
+}
+
+# internal function to choose the default configure.build_arch and
+# configure.universal_archs based on supported_archs and build_arch or
+# universal_archs
+proc portconfigure::choose_supported_archs {archs} {
+    global supported_archs
+    if {$supported_archs == ""} {
+        return $archs
+    }
+    set ret {}
+    foreach arch $archs {
+        if {[lsearch -exact $supported_archs $arch] != -1} {
+            lappend ret $arch
+        } elseif {$arch == "x86_64" && [lsearch -exact $supported_archs "i386"] != -1 && [lsearch -exact $ret "i386"] == -1} {
+            lappend ret "i386"
+        } elseif {$arch == "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1 && [lsearch -exact $ret "ppc"] == -1} {
+            lappend ret "ppc"
+        }
+    }
+    return $ret
 }
 
 # internal function to determine the compiler flags to select an arch
