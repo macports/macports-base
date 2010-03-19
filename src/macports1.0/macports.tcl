@@ -3085,7 +3085,9 @@ proc mportselect {command group {version ""}} {
 
     switch -- $command {
         list {
-            if {[catch {set versions [glob -directory $conf_path *]}]} {
+            if {[catch {set versions [glob -directory $conf_path *]} result]} {
+                global errorInfo
+                ui_debug "$result: $errorInfo"
                 return -code error [concat "No configurations associated " \
                                            "with '$group' were found."]
             }
@@ -3104,17 +3106,19 @@ proc mportselect {command group {version ""}} {
         }
         set {
             # Use $conf_path/$version to read in sources.
-            if {[catch {set src_file [open "$conf_path/$version"]}]} {
-                return -code error [concat "Verify that the specified " \
-                                           "version '$version' is valid " \
-                                           "(i.e., Is it listed when you " \
-                                           "specify the --list command?)."]
+            if {$version == "base" || $version == "current"
+                    || [catch {set src_file [open "$conf_path/$version"]} result]} {
+                global errorInfo
+                ui_debug "$result: $errorInfo"
+                return -code error "The specified version '$version' is not valid."
             }
             set srcs [split [read -nonewline $src_file] "\n"]
             close $src_file
 
             # Use $conf_path/base to read in targets.
-            if {[catch {set tgt_file [open "$conf_path/base"]}]} {
+            if {[catch {set tgt_file [open "$conf_path/base"]} result]} {
+                global errorInfo
+                ui_debug "$result: $errorInfo"
                 return -code error [concat "The configuration file " \
                                            "'$conf_path/base' could not be " \
                                            "opened."]
