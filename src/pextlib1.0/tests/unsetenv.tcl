@@ -5,15 +5,12 @@ proc main {pextlibname} {
     load $pextlibname
 
     global env
-    puts [array get env]
 
     array unset env *
-    puts [array get env]
     if {[array size env] > 0} {
         puts "note: your TclUnsetEnv is broken... (need to use unsetenv too)"
     }
     unsetenv *
-    puts [array get env]
     if {[array size env] > 0} {
         error "env not empty as expected"
     }
