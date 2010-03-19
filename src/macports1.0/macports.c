@@ -38,7 +38,6 @@
 #include <tcl.h>
 
 #include "get_systemconfiguration_proxies.h"
-#include "realpath.h"
 #include "sysctl.h"
 
 static int
@@ -59,7 +58,6 @@ Macports_Init(Tcl_Interp *interp)
 		return TCL_ERROR;
 	Tcl_CreateObjCommand(interp, "macports::version", macports__version, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "get_systemconfiguration_proxies", GetSystemConfigurationProxiesCmd, NULL, NULL);
-	Tcl_CreateObjCommand(interp, "realpath", RealpathCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sysctl", SysctlCmd, NULL, NULL);
 	if (Tcl_PkgProvide(interp, "macports", "1.0") != TCL_OK)
 		return TCL_ERROR;

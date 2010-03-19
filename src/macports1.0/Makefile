@@ -1,6 +1,6 @@
 SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
 		macports_autoconf.tcl macports_index.tcl macports_fastload.tcl
-OBJS=		macports.o get_systemconfiguration_proxies.o realpath.o sysctl.o
+OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
 INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/macports1.0
