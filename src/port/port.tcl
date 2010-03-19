@@ -95,7 +95,7 @@ Additional pseudo-portnames start with...
 variants:, variant:, description:, depends:, depends_lib:, depends_run:,
 depends_build:, depends_fetch:, depends_extract:, portdir:, homepage:, epoch:,
 platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
-categories:, category:, version:, and revision:.
+categories:, category:, version:, revision:, and license:.
 These each select a set of ports based on a regex search of metadata
 about the ports. In all such cases, a standard regex pattern following
 the colon will be used to select the set of ports to which the
@@ -997,7 +997,8 @@ proc element { resname } {
         ^depends_run:       -
         ^depends_extract:   -
         ^depends_fetch:     -
-        ^revision:          { # Handle special port selectors
+        ^revision:          -
+        ^license:           { # Handle special port selectors
             advance
 
             # Break up the token, because older Tcl switch doesn't support -matchvar
