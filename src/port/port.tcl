@@ -2094,15 +2094,28 @@ proc action_select { action portlist opts } {
                                 "arguments. Extra arguments will be ignored."]
             }
 
+            if {[catch {mportselect show $group} selected_version]} {
+                ui_warn "Unable to get active selected version: $selected_version"
+            }
+
             # On error mportselect returns with the code 'error'.
             if {[catch {mportselect $command $group} versions]} {
                 ui_error "The 'list' command failed: $versions"
                 return 1
             }
 
-            puts "Available Versions:"
+            if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
+                puts "Available versions:"
+            }
             foreach v $versions {
-                puts "\t$v"
+                if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
+                    puts -nonewline "\t"
+                }
+                if {$selected_version == $v} {
+                    puts "$v (active)"
+                } else {
+                    puts "$v"
+                }
             }
             return 0
         }
