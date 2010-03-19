@@ -28,8 +28,9 @@ proc main {pextlibname} {
 	test {[md5 file $tempfile] == "a4b0f4a5fbd8bec23002ad8023e01729"}
 	
 	# use -u
-	curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/sfio.2005-02-01.tgz $tempfile
-	test {[md5 file $tempfile] == "48f45c7c77c23ab0ccca48c22b3870de"}
+	# This URL does not work anymore, disabled the test
+	#curl fetch -u "I accept www.opensource.org/licenses/cpl:." http://www.research.att.com/~gsf/download/tgz/sfio.2005-02-01.tgz $tempfile
+	#test {[md5 file $tempfile] == "48f45c7c77c23ab0ccca48c22b3870de"}
 	
 	file delete -force $tempfile
 }
