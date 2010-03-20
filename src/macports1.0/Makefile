@@ -3,7 +3,8 @@ SRCS=		macports.tcl macports_dlist.tcl macports_util.tcl \
 OBJS=		macports.o get_systemconfiguration_proxies.o sysctl.o
 SHLIB_NAME=	MacPorts${SHLIB_SUFFIX}
 
-INSTALLDIR=	${DESTDIR}${TCL_PACKAGE_DIR}/macports1.0
+INSTALLDIR=	${DESTDIR}${datadir}/macports/Tcl/macports1.0
+INSTALLPKGLINK=	${TCL_PACKAGE_DIR}/macports1.0
 
 include ../../Mk/macports.autoconf.mk
 include ../../Mk/macports.tea.mk
@@ -26,6 +27,9 @@ install:: all
 		$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 $$file ${INSTALLDIR}/$$file; \
 	done
 
-	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
-
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
+	
+	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
+	if test -z "${DESTDIR}" && ! test -e "${INSTALLPKGLINK}" && test -w "${TCL_PACKAGE_DIR}"; then \
+		ln -s "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
+	fi

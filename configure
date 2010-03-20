@@ -598,6 +598,7 @@ ac_default_prefix=/opt/local
 enable_option_checking=no
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+macports_tcl_dir
 localstatedir_expanded
 MPCONFIGDIR_EXPANDED
 prefix_expanded
@@ -9338,6 +9339,9 @@ eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR"
 eval "MPCONFIGDIR_EXPANDED=$MPCONFIGDIR_EXPANDED"
 
 eval "localstatedir_expanded=$localstatedir"
+
+eval "macports_tcl_dir=${datadir}/macports/Tcl"
+eval "macports_tcl_dir=$macports_tcl_dir"
 
 
 prefix=$oldprefix

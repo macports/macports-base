@@ -43,7 +43,8 @@ BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
-REG1DIR=${PREFIX}/share/macports/Tcl/registry1.0
+MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
+REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
@@ -72,7 +73,7 @@ function update_macports {
     # Add [default] tag to the central MacPorts repository, if it isn't already
     ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
     # Remove any duplicates from the dep map (could occur with 1.6 and earlier)
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/dep_map_clean.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
@@ -114,10 +115,19 @@ function delete_reg1 {
     fi
 }
 
+# link macports1.0 into tcl package dir if possible
+function link_tcl_package {
+    if ! test -e "${TCL_PACKAGE_DIR}/macports1.0" && test -w "${TCL_PACKAGE_DIR}"; then
+		ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
+	fi
+}
+
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
 # Set up config files
 setup_configs
+# link macports1.0 pkg
+link_tcl_package
 
 # Remove old stuff
 cleanup_man

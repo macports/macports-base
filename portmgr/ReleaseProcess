@@ -169,9 +169,9 @@ create the destroot of the port and examine it for:
    on a vanilla Mac OS X installation + developer tools, excluding even the MacPorts installation prefix;
    this can be accomplished through the use of otool's -L flag. Currently the libraries and binaries in need
    of linking validation are:
-             ${destroot}/Library/Tcl/macports1.0/MacPorts.dylib
              ${destroot}/opt/local/bin/daemondo
              ${destroot}/opt/local/share/macports/Tcl/darwintrace1.0/darwintrace.dylib
+             ${destroot}/opt/local/share/macports/Tcl/macports1.0/MacPorts.dylib
              ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
              ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
  * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
@@ -186,7 +186,7 @@ create the destroot of the port and examine it for:
              #\
              exec /usr/bin/tclsh "$0" "$@"
    thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
- * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its default location in /Library/Tcl/macports1.0
+ * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its default location in /opt/local/share/macports/Tcl/macports1.0
    in every single one of our scripts in ${destroot}/opt/local/bin.
  * Miscellaneous: anything else that might seem out of the ordinary for a fully default-configured MacPorts
    installation.

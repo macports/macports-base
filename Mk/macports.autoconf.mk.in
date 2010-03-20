@@ -50,6 +50,7 @@ BZIP2			= @BZIP2@
 
 TCLSH			= @TCLSH@
 TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@
+macports_tcl_dir	= @macports_tcl_dir@
 
 DSTUSR			= @DSTUSR@
 DSTGRP			= @DSTGRP@

@@ -12,7 +12,7 @@ exec @TCLSH@ "$0" "$@"
 # Uses the database.
 
 catch {source \
-    [file join "@TCL_PACKAGE_DIR@" macports1.0 macports_fastload.tcl]}
+    [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]}
 package require macports
 package require Pextlib
 

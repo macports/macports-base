@@ -2450,7 +2450,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
             }
             ui_debug "Permissions OK"
 
-            # where to install our macports1.0 tcl package
+            # where to install a link to our macports1.0 tcl package
             set mp_tclpackage_path [file join $portdbpath .tclpackage]
             if { [file exists $mp_tclpackage_path]} {
                 set fd [open $mp_tclpackage_path r]

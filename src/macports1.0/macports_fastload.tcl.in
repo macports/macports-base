@@ -70,10 +70,7 @@ if { [regexp {\d+\.\d+\.\d+} [info patchlevel]] &&
 	}
 }
 
-set dir [file join "@TCL_PACKAGE_DIR@" macports1.0]
-catch {source [file join $dir pkgIndex.tcl]}
-
-set sharetcldir [file join "@prefix_expanded@" share macports Tcl]
+set sharetcldir "@macports_tcl_dir@"
 if {[file exists $sharetcldir]} {
 	foreach dir [glob -directory $sharetcldir *] {
 		catch {source [file join $dir pkgIndex.tcl]}

@@ -39,7 +39,7 @@ ifeq ($(DESTDIR),)
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) src/upgrade_sources_conf_default.tcl ${prefix}
 # Remove duplicate entries from the dependency map (could occur with 1.6 and earlier):
-	$(TCLSH) src/dep_map_clean.tcl ${TCL_PACKAGE_DIR}
+	$(TCLSH) src/dep_map_clean.tcl "${macports_tcl_dir}"
 endif
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
