@@ -1683,7 +1683,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                     set res [mportlookup $dep_portname]
                     array unset dep_portinfo
                     array set dep_portinfo [lindex $res 1]
-                    if {[lsearch $dep_portinfo(variants) universal] != -1} {
+                    if {[info exists dep_portinfo(variants)] && [lsearch $dep_portinfo(variants) universal] != -1} {
                         # dep offers a universal variant
                         if {[llength $active_archs] == 1} {
                             # not installed universal
@@ -2404,7 +2404,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                     mportclose $subport
                     set arch_mismatch 1
                     set has_universal 0
-                    if {[lsearch -exact $portinfo(variants) universal] != -1} {
+                    if {[info exists portinfo(variants)] && [lsearch -exact $portinfo(variants) universal] != -1} {
                         # a universal variant is offered
                         set has_universal 1
                         array unset variation_array
