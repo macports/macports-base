@@ -50,6 +50,7 @@ namespace eval portfetch {
 options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir \
     fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
     master_sites.mirror_subdir patch_sites.mirror_subdir \
+    bzr.url bzr.revision \
     cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
     svn.url svn.revision svn.method \
     git.cmd git.url git.branch \
@@ -57,12 +58,20 @@ options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 u
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
+commands bzr
 commands cvs
 commands svn
 
 # Defaults
 default extract.suffix .tar.gz
 default fetch.type standard
+
+default bzr.cmd {[findBinary bzr $portutil::autoconf::bzr_path]}
+default bzr.dir {${workpath}}
+default bzr.revision {-1}
+default bzr.pre_args {"--builtin --no-aliases checkout --lightweight"}
+default bzr.args ""
+default bzr.post_args {"-r ${bzr.revision} ${bzr.url} ${worksrcdir}"}
 
 default cvs.cmd {[findBinary cvs $portutil::autoconf::cvs_path]}
 default cvs.password ""
@@ -160,6 +169,9 @@ proc portfetch::set_fetch_type {option action args} {
     global os.platform os.major
     if {[string equal ${action} "set"]} {
         switch $args {
+            bzr {
+                depends_fetch-append bin:bzr:bzr
+            }
             cvs {
                 depends_fetch-append bin:cvs:cvs
             }
@@ -196,6 +208,7 @@ set_ui_prefix
 proc portfetch::suffix {distname} {
     global extract.suffix fetch.type
     switch -- "${fetch.type}" {
+        bzr         -
         cvs         -
         svn         -
         git         -
@@ -269,6 +282,19 @@ proc portfetch::checkfiles {urls} {
                [get_full_mirror_sites_path]
     checkpatchfiles fetch_urls
     checkdistfiles fetch_urls
+}
+
+# Perform a bzr fetch
+proc portfetch::bzrfetch {args} {
+    if {[catch {command_exec bzr "" "2>&1"} result]} {
+        return -code error [msgcat::mc "Bazaar checkout failed"]
+    }
+
+    if {[info exists patchfiles]} {
+        return [portfetch::fetchfiles]
+    }
+
+    return 0
 }
 
 # Perform a CVS login and fetch, storing the CVS login
@@ -541,6 +567,7 @@ proc portfetch::fetch_main {args} {
 
     # Fetch the files
     switch -- "${fetch.type}" {
+        bzr     { return [bzrfetch] }
         cvs     { return [cvsfetch] }
         svn     { return [svnfetch] }
         git     { return [gitfetch] }
