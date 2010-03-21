@@ -1644,10 +1644,13 @@ proc mportexec {mport target} {
 # upgrade any dependencies of mport that are installed and needed for target
 proc macports::_upgrade_mport_deps {mport target} {
     set options [ditem_key $mport options]
+    set workername [ditem_key $mport workername]
     set deptypes [macports::_deptypes_for_target $target]
     array set portinfo [mportinfo $mport]
     set depends {}
     array set depscache {}
+
+    set required_archs [$workername eval get_canonical_archs]
 
     foreach deptype $deptypes {
         # Add to the list of dependencies if the option exists and isn't empty.
@@ -1656,17 +1659,84 @@ proc macports::_upgrade_mport_deps {mport target} {
         }
     }
     
+    if {[string equal ${macports::registry.installtype} "image"]} {
+        set test _portnameactive
+    } else {
+        set test registry::entry_exists_for_name
+    }
+
     foreach depspec $depends {
-        set workername [ditem_key $mport workername]
         set dep_portname [$workername eval _get_dep_port $depspec]
-        if {$dep_portname != "" && ![info exists depscache(port:$dep_portname)] && [registry::entry_exists_for_name $dep_portname]} {
-            set status [macports::upgrade $dep_portname "port:$dep_portname" {} $options depscache]
+        if {$dep_portname != "" && ![info exists depscache(port:$dep_portname)] && [$test $dep_portname]} {
+            set variants {}
+
+            # check that the dep has the required archs
+            set active_archs [_get_registry_archs $dep_portname]
+            if {$active_archs != "" && $active_archs != "noarch" && $required_archs != "noarch"} {
+                set missing {}
+                foreach arch $required_archs {
+                    if {[lsearch -exact $active_archs $arch] == -1} {
+                        lappend missing $arch
+                    }
+                }
+                if {[llength $missing] > 0} {
+                    set res [mportlookup $dep_portname]
+                    array unset dep_portinfo
+                    array set dep_portinfo [lindex $res 1]
+                    if {[lsearch $dep_portinfo(variants) universal] != -1} {
+                        # dep offers a universal variant
+                        if {[llength $active_archs] == 1} {
+                            # not installed universal
+                            set missing {}
+                            foreach arch $required_archs {
+                                if {[lsearch -exact $macports::universal_archs $arch] == -1} {
+                                    lappend missing $arch
+                                }
+                            }
+                            if {[llength $missing] > 0} {
+                                ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                                ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
+                                ui_error "and the configured universal_archs '$macports::universal_archs' are not sufficient."
+                                return -code error "architecture mismatch"
+                            } else {
+                                # upgrade the dep with +universal
+                                lappend variants universal +
+                                lappend options ports_upgrade_enforce-variants yes
+                            }
+                        } else {
+                            # already universal
+                            ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                            ui_error "its dependency $dep_portname is only installed for the archs '$active_archs'."
+                            return -code error "architecture mismatch"
+                        }
+                    } else {
+                        ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                        ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
+                        ui_error "and does not have a universal variant."
+                        return -code error "architecture mismatch"
+                    }
+                }
+            }
+
+            set status [macports::upgrade $dep_portname "port:$dep_portname" $variants $options depscache]
             # status 2 means the port was not found in the index
             if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 return -code error "upgrade $dep_portname failed"
             }
         }
     }
+}
+
+# get the archs with which the active version of portname is installed
+proc macports::_get_registry_archs {portname} {
+    set ilist [registry::active $portname]
+    set i [lindex $ilist 0]
+    set regref [registry::open_entry [lindex $i 0] [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+    set archs [registry::property_retrieve $regref archs]
+    if {$archs == 0} {
+        set archs ""
+    }
+    return $archs
 }
 
 proc macports::getsourcepath {url} {
@@ -2289,8 +2359,11 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
     }
 
     set subPorts {}
-    set options [ditem_key $mport options]
-    set variations [ditem_key $mport variations]
+    if {[llength $depends] > 0} {
+        set options [ditem_key $mport options]
+        set variations [ditem_key $mport variations]
+        set required_archs [[ditem_key $mport workername] eval get_canonical_archs]
+    }
 
     foreach depspec $depends {
         # Is that dependency satisfied or this port installed?
@@ -2324,6 +2397,33 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
             if {$subport == {}} {
                 # We haven't opened this one yet.
                 set subport [mportopen $portinfo(porturl) $options $variations]
+
+                # check archs
+                if {![macports::_mport_supports_archs $subport $required_archs]} {
+                    set supported_archs [_mportkey $subport supported_archs]
+                    mportclose $subport
+                    set arch_mismatch 1
+                    set has_universal 0
+                    if {[lsearch -exact $portinfo(variants) universal] != -1} {
+                        # a universal variant is offered
+                        set has_universal 1
+                        array unset variation_array
+                        array set variation_array $variations
+                        if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
+                            set variation_array(universal) +
+                            # try again with +universal
+                            set subport [mportopen $portinfo(porturl) $options [array get variation_array]]
+                            if {[macports::_mport_supports_archs $subport $required_archs]} {
+                                set arch_mismatch 0
+                            }
+                        }
+                    }
+                    if {$arch_mismatch} {
+                        macports::_explain_arch_mismatch [_mportkey $mport name] $dep_portname $required_archs $supported_archs $has_universal
+                        return -code error "architecture mismatch"
+                    }
+                }
+                
                 if {$recurseDeps} {
                     # Add to the list we need to recurse on.
                     lappend subPorts $subport
@@ -2347,6 +2447,54 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
     }
 
     return 0
+}
+
+# check if the given mport can support dependents with the given archs
+proc macports::_mport_supports_archs {mport required_archs} {
+    if {$required_archs == "noarch"} {
+        return 1
+    }
+    set workername [ditem_key $mport workername]
+    set provided_archs [$workername eval get_canonical_archs]
+    if {$provided_archs == "noarch"} {
+        return 1
+    }
+    foreach arch $required_archs {
+        if {[lsearch -exact $provided_archs $arch] == -1} {
+            return 0
+        }
+    }
+    return 1
+}
+
+# print an error message explaining why a port's archs are not provided by a dependency
+proc macports::_explain_arch_mismatch {port dep required_archs supported_archs has_universal} {
+    global macports::universal_archs
+    if {![macports::ui_isset ports_debug]} {
+        ui_msg ""
+    }
+    ui_error "Cannot install $port for the arch(s) '$required_archs' because"
+    if {$supported_archs != ""} {
+        foreach arch $required_archs {
+            if {[lsearch -exact $supported_archs $arch] == -1} {
+                ui_error "its dependency $dep only supports the arch(s) '$supported_archs'."
+                return
+            }
+        }
+    }
+    if {$has_universal} {
+        foreach arch $required_archs {
+            if {[lsearch -exact $universal_archs $arch] == -1} {
+                ui_error "its dependency $dep does not build for the required arch(s) by default"
+                ui_error "and the configured universal_archs '$universal_archs' are not sufficient."
+                return
+            }
+        }
+        ui_error "its dependency $dep cannot build for the required arch(s)."
+        return
+    }
+    ui_error "its dependency $dep does not build for the required arch(s) by default"
+    ui_error "and does not have a universal variant."
 }
 
 # Determine dependency types required for target
