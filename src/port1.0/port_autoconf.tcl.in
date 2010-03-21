@@ -43,7 +43,6 @@ namespace eval portutil::autoconf {
 	variable hg_path "@HG@"
 	variable gzip_path "@GZIP@"
 	variable lipo_path "@LIPO@"
-	variable nice_path "@NICE@"
 	variable patch_path "@PATCH@"
 	variable gnupatch_path "@GNUPATCH@"
 	variable rmdir_path "@RMDIR@"
