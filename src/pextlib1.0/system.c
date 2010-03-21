@@ -43,10 +43,12 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/resource.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include "system.h"
 #include "Pextlib.h"
@@ -69,6 +71,7 @@ struct linebuf {
     char *line;
 };
 
+/* usage: system ?-notty? ?-nice value? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *buf;
@@ -80,29 +83,36 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int fdset[2], nullfd;
     int fline, pos, ret;
     int osetsid = 0;
+    int oniceval = INT_MAX; /* magic value indicating no change */
     pid_t pid;
     uid_t euid;
     Tcl_Obj *tcl_result;
     int read_failed, status;
+    int i;
 
-    /* usage: system [-notty] command */
-    if (objc == 2) {
-        cmdstring = Tcl_GetString(objv[1]);
-    } else if (objc == 3) {
-        char *arg = Tcl_GetString(objv[1]);
-        cmdstring = Tcl_GetString(objv[2]);
+    if (objc < 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "?-notty? ?-nice value? command");
+        return TCL_ERROR;
+    }
 
+    cmdstring = Tcl_GetString(objv[objc - 1]);
+
+    for (i = 1; i < objc - 1; i++) {
+        char *arg = Tcl_GetString(objv[i]);
         if (strcmp(arg, "-notty") == 0) {
             osetsid = 1;
+        } else if (strcmp(arg, "-nice") == 0) {
+            i++;
+            if (Tcl_GetIntFromObj(interp, objv[i], &oniceval) != TCL_OK) {
+                Tcl_SetResult(interp, "invalid value for -nice", TCL_STATIC);
+                return TCL_ERROR;
+            }
         } else {
             tcl_result = Tcl_NewStringObj("bad option ", -1);
             Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
             Tcl_SetObjResult(interp, tcl_result);
             return TCL_ERROR;
         }
-    } else {
-        Tcl_WrongNumArgs(interp, 1, objv, "command");
-        return TCL_ERROR;
     }
 
     /*
@@ -130,6 +140,12 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         if (osetsid) {
             if (setsid() == -1)
                 _exit(1);
+        }
+        /* change scheduling priority if requested */
+        if (oniceval != INT_MAX) {
+            if (setpriority(PRIO_PROCESS, getpid(), oniceval) != 0) {
+                /* ignore failure, just continue */
+            }
         }
         /* drop privileges entirely for child */
         if (getuid() == 0 && (euid = geteuid()) != 0) {

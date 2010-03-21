@@ -289,7 +289,7 @@ proc option_proc_trace {optionName index op} {
 # and used to form a standard set of command options.
 proc commands {args} {
     foreach option $args {
-        options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.type ${option}.cmd
+        options use_${option} ${option}.dir ${option}.pre_args ${option}.args ${option}.post_args ${option}.env ${option}.nice ${option}.type ${option}.cmd
     }
 }
 
@@ -328,14 +328,14 @@ proc command_string {command} {
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-    global ${command}.env ${command}.env_array env
-    set notty 0
+    global ${command}.env ${command}.env_array ${command}.nice env
+    set notty ""
     set command_prefix ""
     set command_suffix ""
 
     if {[llength $args] > 0} {
         if {[lindex $args 0] == "-notty"} {
-            set notty 1
+            set notty "-notty"
             set args [lrange $args 1 end]
         }
 
@@ -370,6 +370,12 @@ proc command_exec {command args} {
     # Debug that.
     ui_debug "Environment: [environment_array_to_string ${command}.env_array]"
 
+    # Prepare nice value change
+    set nice ""
+    if {[info exists ${command}.nice] && [set ${command}.nice] != ""} {
+        set nice "-nice [set ${command}.nice]"
+    }
+
     # Get the command string.
     set cmdstring [command_string ${command}]
 
@@ -381,11 +387,8 @@ proc command_exec {command args} {
     array set env [array get ${command}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
-    if {$notty} {
-        set code [catch {system -notty $fullcmdstring} result]
-    } else {
-        set code [catch {system $fullcmdstring} result]
-    }
+    set code [catch {eval system $notty $nice \$fullcmdstring} result]
+
     # Unset the command array until next time.
     array unset ${command}.env_array
 

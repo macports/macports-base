@@ -43,7 +43,6 @@ namespace eval portbuild {
 
 # define options
 options build.target
-options build.nice
 options build.jobs
 options build.asroot
 options use_parallel_build
@@ -103,17 +102,6 @@ proc portbuild::build_getmaketype {args} {
     }
 }
 
-proc portbuild::build_getnicevalue {args} {
-    if {![exists build.nice] || [string match "* *" [option build.cmd]]} {
-        return ""
-    }
-    set nice [option build.nice]
-    if {![string is integer -strict $nice] || $nice <= 0} {
-        return ""
-    }
-    return "[findBinary nice $portutil::autoconf::nice_path] -n $nice "
-}
-
 proc portbuild::build_getjobs {args} {
     global buildmakejobs
     set jobs $buildmakejobs
@@ -161,11 +149,10 @@ proc portbuild::build_start {args} {
 proc portbuild::build_main {args} {
     global build.cmd
 
-    set nice_prefix [build_getnicevalue]
     set jobs_suffix [build_getjobsarg]
 
     set realcmd ${build.cmd}
-    set build.cmd "$nice_prefix${build.cmd}$jobs_suffix"
+    set build.cmd "${build.cmd}$jobs_suffix"
     command_exec build
     set build.cmd ${realcmd}
     return 0
