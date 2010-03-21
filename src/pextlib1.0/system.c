@@ -1,3 +1,4 @@
+/* vim: set et sw=4 ts=4 sts=4: */
 /*
  * system.c
  * $Id$
@@ -64,175 +65,194 @@ extern char **environ;
 #define CBUFSIZ 30
 
 struct linebuf {
-	size_t len;
-	char *line;
+        size_t len;
+        char *line;
 };
 
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
-	char *buf;
-	struct linebuf circbuf[CBUFSIZ];
-	size_t linelen;
-	char *args[4];
-	char *cmdstring;
-	FILE *pdes;
-	int fdset[2], nullfd;
-	int fline, pos, ret;
-	int osetsid = 0;
-	pid_t pid;
-	uid_t euid;
-	Tcl_Obj *tcl_result;
-	int read_failed, status;
+        char *buf;
+        struct linebuf circbuf[CBUFSIZ];
+        size_t linelen;
+        char *args[4];
+        char *cmdstring;
+        FILE *pdes;
+        int fdset[2], nullfd;
+        int fline, pos, ret;
+        int osetsid = 0;
+        pid_t pid;
+        uid_t euid;
+        Tcl_Obj *tcl_result;
+        int read_failed, status;
 
-	/* usage: system [-notty] command */
-	if (objc == 2) {
-		cmdstring = Tcl_GetString(objv[1]);
-	} else if (objc == 3) {
-		char *arg = Tcl_GetString(objv[1]);
-		cmdstring = Tcl_GetString(objv[2]);
+        /* usage: system ?-notty? ?-nice value? command */
+        for (i = 1; i < objc; i++) {
+                char *arg = Tcl_GetString(objv[i]);
+                if (strcmp(arg, "-notty") == 0) {
+                        osetsid = 1;
+                } else if (strcmp(arg, "-nice") == 0) {
+                        i++;
+                        Tcl_GetIntFromObj(objv[i]);
+                } else if (strcmp(arg, "--") == 0) {
+                        if (i != objc - 2) {
+                            Tcl_WrongNumArgs(interp, 1, objv, "?-notty? ?-nice value? command");
+                            return TCL_ERROR;
+                        }
+                } else if (strncmp(arg, "-", 1) == 0) {
+                        tcl_result = Tcl_NewStringObj("bad option ", -1);
+                        Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
+                        Tcl_SetObjResult(interp, tcl_result);
+                        return TCL_ERROR;
+                }
+        }
+        /* if (objc == 2) { */
+                /* cmdstring = Tcl_GetString(objv[1]); */
+        /* } else if (objc == 3) { */
+                /* char *arg = Tcl_GetString(objv[1]); */
+                /* cmdstring = Tcl_GetString(objv[2]); */
 
-		if (strcmp(arg, "-notty") == 0) {
-			osetsid = 1;
-		} else {
-			tcl_result = Tcl_NewStringObj("bad option ", -1);
-			Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1));
-			Tcl_SetObjResult(interp, tcl_result);
-			return TCL_ERROR;
-		}
-	} else {
-		Tcl_WrongNumArgs(interp, 1, objv, "command");
-		return TCL_ERROR;
-	}
+                /* if (strcmp(arg, "-notty") == 0) { */
+                        /* osetsid = 1; */
+                /* } else { */
+                        /* tcl_result = Tcl_NewStringObj("bad option ", -1); */
+                        /* Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(arg, -1)); */
+                        /* Tcl_SetObjResult(interp, tcl_result); */
+                        /* return TCL_ERROR; */
+                /* } */
+        /* } else { */
+                /* Tcl_WrongNumArgs(interp, 1, objv, "command"); */
+                /* return TCL_ERROR; */
+        /* } */
 
-	/*
-	 * Fork a child to run the command, in a popen() like fashion -
-	 * popen() itself is not used because stderr is also desired.
-	 */
-	if (pipe(fdset) != 0) {
-		return TCL_ERROR;
-	}
+        /*
+         * Fork a child to run the command, in a popen() like fashion -
+         * popen() itself is not used because stderr is also desired.
+         */
+        if (pipe(fdset) != 0) {
+                return TCL_ERROR;
+        }
 
-	pid = fork();
-	switch (pid) {
-	case -1: /* error */
-		return TCL_ERROR;
-		break;
-	case 0: /* child */
-		close(fdset[0]);
+        pid = fork();
+        switch (pid) {
+        case -1: /* error */
+                return TCL_ERROR;
+                break;
+        case 0: /* child */
+                close(fdset[0]);
 
-		if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			_exit(1);
-		dup2(nullfd, STDIN_FILENO);
-		dup2(fdset[1], STDOUT_FILENO);
-		dup2(fdset[1], STDERR_FILENO);
-		/* drop the controlling terminal if requested */
-		if (osetsid) {
-			if (setsid() == -1)
-				_exit(1);
-		}
-		/* drop privileges entirely for child */
-		if (getuid() == 0 && (euid = geteuid()) != 0) {
-		    if (seteuid(0) || setuid(euid)) {
-		        _exit(1);
-		    }
-		}
-		/* XXX ugly string constants */
-		args[0] = "sh";
-		args[1] = "-c";
-		args[2] = cmdstring;
-		args[3] = NULL;
-		execve("/bin/sh", args, environ);
-		_exit(1);
-		break;
-	default: /* parent */
-		break;
-	}
+                if ((nullfd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+                        _exit(1);
+                dup2(nullfd, STDIN_FILENO);
+                dup2(fdset[1], STDOUT_FILENO);
+                dup2(fdset[1], STDERR_FILENO);
+                /* drop the controlling terminal if requested */
+                if (osetsid) {
+                        if (setsid() == -1)
+                                _exit(1);
+                }
+                /* drop privileges entirely for child */
+                if (getuid() == 0 && (euid = geteuid()) != 0) {
+                    if (seteuid(0) || setuid(euid)) {
+                        _exit(1);
+                    }
+                }
+                /* XXX ugly string constants */
+                args[0] = "sh";
+                args[1] = "-c";
+                args[2] = cmdstring;
+                args[3] = NULL;
+                execve("/bin/sh", args, environ);
+                _exit(1);
+                break;
+        default: /* parent */
+                break;
+        }
 
-	close(fdset[1]);
+        close(fdset[1]);
 
-	/* read from simulated popen() pipe */
-	read_failed = 0;
-	pos = 0;
-	memset(circbuf, 0, sizeof(circbuf));
-	pdes = fdopen(fdset[0], "r");
-	while ((buf = fgetln(pdes, &linelen)) != NULL) {
-		char *sbuf;
-		int slen;
+        /* read from simulated popen() pipe */
+        read_failed = 0;
+        pos = 0;
+        memset(circbuf, 0, sizeof(circbuf));
+        pdes = fdopen(fdset[0], "r");
+        while ((buf = fgetln(pdes, &linelen)) != NULL) {
+                char *sbuf;
+                int slen;
 
-		/*
-		 * Allocate enough space to insert a terminating
-		 * '\0' if the line is not terminated with a '\n'
-		 */
-		if (buf[linelen - 1] == '\n')
-			slen = linelen;
-		else
-			slen = linelen + 1;
+                /*
+                 * Allocate enough space to insert a terminating
+                 * '\0' if the line is not terminated with a '\n'
+                 */
+                if (buf[linelen - 1] == '\n')
+                        slen = linelen;
+                else
+                        slen = linelen + 1;
 
-		if (circbuf[pos].len == 0)
-			sbuf = malloc(slen);
-		else {
-			sbuf = realloc(circbuf[pos].line, slen);
-		}
+                if (circbuf[pos].len == 0)
+                        sbuf = malloc(slen);
+                else {
+                        sbuf = realloc(circbuf[pos].line, slen);
+                }
 
-		if (sbuf == NULL) {
-			read_failed = 1;
-			break;
-		}
+                if (sbuf == NULL) {
+                        read_failed = 1;
+                        break;
+                }
 
-		memcpy(sbuf, buf, linelen);
-		/* terminate line with '\0',replacing '\n' if it exists */
-		sbuf[slen - 1] = '\0';
+                memcpy(sbuf, buf, linelen);
+                /* terminate line with '\0',replacing '\n' if it exists */
+                sbuf[slen - 1] = '\0';
 
-		circbuf[pos].line = sbuf;
-		circbuf[pos].len = slen;
+                circbuf[pos].line = sbuf;
+                circbuf[pos].len = slen;
 
-		if (pos++ == CBUFSIZ - 1) {
-			pos = 0;
-		}
+                if (pos++ == CBUFSIZ - 1) {
+                        pos = 0;
+                }
 
-		if (ui_info(interp, sbuf) != TCL_OK) {
-			read_failed = 1;
-			break;
-		}
-	}
-	fclose(pdes);
+                if (ui_info(interp, sbuf) != TCL_OK) {
+                        read_failed = 1;
+                        break;
+                }
+        }
+        fclose(pdes);
 
-	status = TCL_ERROR;
+        status = TCL_ERROR;
 
-	if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
-		/* Normal exit, and reading from the pipe didn't fail. */
-		if (WEXITSTATUS(ret) == 0) {
-			status = TCL_OK;
-		} else {
-		    char *errorstr;
-		    size_t errorstrlen;
-		  	/* set errorCode [list CHILDSTATUS <pid> <code>] */
-			Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
-			Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
-			Tcl_SetObjErrorCode(interp, errorCode);
+        if (wait(&ret) == pid && WIFEXITED(ret) && !read_failed) {
+                /* Normal exit, and reading from the pipe didn't fail. */
+                if (WEXITSTATUS(ret) == 0) {
+                        status = TCL_OK;
+                } else {
+                    char *errorstr;
+                    size_t errorstrlen;
+                        /* set errorCode [list CHILDSTATUS <pid> <code>] */
+                        Tcl_Obj* errorCode = Tcl_NewListObj(0, NULL);
+                        Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewStringObj("CHILDSTATUS", -1));
+                        Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(pid));
+                        Tcl_ListObjAppendElement(interp, errorCode, Tcl_NewIntObj(WEXITSTATUS(ret)));
+                        Tcl_SetObjErrorCode(interp, errorCode);
 
-			/* print error */
-			errorstrlen = strlen("shell command \"")+strlen(cmdstring)+strlen("\" returned error ")+12;
-			errorstr = malloc(errorstrlen);
-			if (errorstr) {
+                        /* print error */
+                        errorstrlen = strlen("shell command \"")+strlen(cmdstring)+strlen("\" returned error ")+12;
+                        errorstr = malloc(errorstrlen);
+                        if (errorstr) {
                 *errorstr = '\0';
                 snprintf(errorstr, errorstrlen, "%s%s%s%d", "shell command \"", cmdstring, "\" returned error ", WEXITSTATUS(ret));
-			    ui_info(interp, errorstr);
-			    free(errorstr);
-			}
-			Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed", -1));
-		}
-	}
+                            ui_info(interp, errorstr);
+                            free(errorstr);
+                        }
+                        Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed", -1));
+                }
+        }
 
-	/* Cleanup. */
-	close(fdset[0]);
-	for (fline = 0; fline < CBUFSIZ; fline++) {
-		if (circbuf[fline].len != 0) {
-			free(circbuf[fline].line);
-		}
-	}
+        /* Cleanup. */
+        close(fdset[0]);
+        for (fline = 0; fline < CBUFSIZ; fline++) {
+                if (circbuf[fline].len != 0) {
+                        free(circbuf[fline].line);
+                }
+        }
 
-	return status;
+        return status;
 }
