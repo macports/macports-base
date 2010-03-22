@@ -252,6 +252,7 @@ inline char* __darwintrace_alloc_env(const char* varName, const char* varValue) 
  * This function checks that envp contains the global variables we had when the
  * library was loaded and modifies it if it doesn't.
  */
+__attribute__((always_inline))
 inline char* const* __darwintrace_restore_env(char* const envp[]) {
 	/* allocate the strings. */
 	/* we don't care about the leak here because we're going to call execve,
