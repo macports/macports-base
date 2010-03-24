@@ -2096,6 +2096,8 @@ proc action_select { action portlist opts } {
             }
 
             if {[catch {mportselect show $group} selected_version]} {
+                global errorInfo
+                ui_debug $errorInfo
                 ui_warn "Unable to get active selected version: $selected_version"
             }
 
@@ -2106,7 +2108,7 @@ proc action_select { action portlist opts } {
             }
 
             if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
-                puts "Available versions:"
+                puts "Available versions for $group:"
             }
             foreach v $versions {
                 if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
