@@ -498,8 +498,10 @@ proc wrap {string maxlen {indent ""} {indentfirstline 1}} {
     }
 
     set splitstring {}
+    set indentline $indentfirstline
     foreach line [split $string "\n"] {
-        lappend splitstring [wrapline $line $maxlen $indent $indentfirstline]
+        lappend splitstring [wrapline $line $maxlen $indent $indentline]
+        set indentline 1
     }
     return [join $splitstring "\n"]
 }
