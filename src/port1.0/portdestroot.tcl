@@ -167,6 +167,16 @@ proc portdestroot::destroot_finish {args} {
         }
     }
 
+    if {![file isdirectory ${destroot}]} {
+        ui_error "No files have been installed in the destroot directory!"
+        ui_error "Please make sure that this software supports\
+                  'make install DESTDIR=\${destroot}' or implement an\
+                  alternative destroot mechanism in the Portfile."
+        ui_error "Files might have been installed directly into your system,\
+                  check before proceeding."
+        return -code error "Staging $portname into destroot failed"
+    }
+
     # Compress all manpages with gzip (instead)
     set manpath "${destroot}${prefix}/share/man"
     set gzip [findBinary gzip ${portutil::autoconf::gzip_path}]
