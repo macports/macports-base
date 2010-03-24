@@ -1729,7 +1729,11 @@ proc macports::_upgrade_mport_deps {mport target} {
 
 # get the archs with which the active version of portname is installed
 proc macports::_get_registry_archs {portname} {
-    set ilist [registry::active $portname]
+    if {[string equal ${macports::registry.installtype} "image"]} {
+        set ilist [registry::active $portname]
+    } else {
+        set ilist [registry::installed $portname]
+    }
     set i [lindex $ilist 0]
     set regref [registry::open_entry [lindex $i 0] [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
     set archs [registry::property_retrieve $regref archs]
