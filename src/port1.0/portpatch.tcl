@@ -71,7 +71,7 @@ proc portpatch::patch_main {args} {
     global UI_PREFIX
 
     # First make sure that patchfiles exists and isn't stubbed out.
-    if {![exists patchfiles]} {
+    if {![exists patchfiles] || [option patchfiles] == ""} {
         return 0
     }
 
