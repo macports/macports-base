@@ -56,6 +56,7 @@ function setup_configs {
     for f in macports.conf sources.conf variants.conf ; do
         if [ ! -f ${CONFIGPATH}/${f} ]; then
             /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
+            /bin/chmod 644 ${CONFIGPATH}/${f}
         fi
     done
 }
