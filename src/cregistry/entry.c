@@ -30,13 +30,13 @@
 #include <config.h>
 #endif
 
+#include "entry.h"
+#include "registry.h"
+#include "sql.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-
-#include <cregistry/entry.h>
-#include <cregistry/registry.h>
-#include <cregistry/sql.h>
 
 /*
  * TODO: possibly, allow reg_entry_search to take different matching strategies

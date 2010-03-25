@@ -30,13 +30,13 @@
 #include <config.h>
 #endif
 
+#include "registry.h"
+#include "sql.h"
+#include "vercomp.h"
+
 #include <tcl.h>
 #include <sqlite3.h>
 #include <time.h>
-
-#include <cregistry/registry.h>
-#include <cregistry/sql.h>
-#include <cregistry/vercomp.h>
 
 /*
  * TODO: maybe this could be made into something that could be separately loaded

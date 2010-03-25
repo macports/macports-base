@@ -30,6 +30,9 @@
 #include <config.h>
 #endif
 
+#include "entry.h"
+#include "sql.h"
+
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -39,9 +42,6 @@
 #include <sqlite3.h>
 #include <sys/stat.h>
 #include <errno.h>
-
-#include <cregistry/entry.h>
-#include <cregistry/sql.h>
 
 /*
  * TODO: maybe all the errPtrs could be made a property of `reg_registry`
