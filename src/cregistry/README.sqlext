@@ -9,4 +9,4 @@ Example:
 
 $ sqlite3 /opt/local/var/macports/registry/registry.db
 ...
-sqlite> .load ~/src/macports/trunk/base/src/cregistry/macports.sqlext
+sqlite> .load /Users/julesverne/src/macports/trunk/base/src/cregistry/macports.sqlext
