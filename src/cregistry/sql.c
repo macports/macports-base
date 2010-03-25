@@ -32,12 +32,11 @@
 
 #include <tcl.h>
 #include <sqlite3.h>
-#include <string.h>
 #include <time.h>
-#include <ctype.h>
 
 #include <cregistry/registry.h>
 #include <cregistry/sql.h>
+#include <cregistry/vercomp.h>
 
 /*
  * TODO: maybe this could be made into something that could be separately loaded
@@ -117,148 +116,6 @@ static void sql_regexp(sqlite3_context* context, int argc UNUSED,
 static void sql_now(sqlite3_context* context, int argc UNUSED,
         sqlite3_value** argv UNUSED) {
     sqlite3_result_int(context, time(NULL));
-}
-
-/**
- * RPM version comparison. Shamelessly copied from Pextlib, with some changes to
- * use string lengths instead of strlen by default. That's necessary to make it
- * work with sqlite3 collations. It should be shared with Pextlib, rather than
- * just copied though.
- *
- * @param [in] versionA first version string, i.e. "1.4.1"
- * @param [in] lengthA  length of first version string, or -1 to use strlen
- * @param [in] versionB second version string, i.e. "1.4.2"
- * @param [in] lengthA  length of second version string, or -1 to use strlen
- * @return              -1 if A < B; 0 if A = B; 1 if A > B
- */
-static int rpm_vercomp (const char *versionA, int lengthA, const char *versionB,
-        int lengthB) {
-    const char *endA, *endB;
-	const char *ptrA, *ptrB;
-	const char *eptrA, *eptrB;
-
-    if (lengthA < 0)
-        lengthA = strlen(versionA);
-    if (lengthB < 0)
-        lengthB = strlen(versionB);
-
-	/* if versions equal, return zero */
-	if(lengthA == lengthB && !strncmp(versionA, versionB, lengthA))
-		return 0;
-
-	ptrA = versionA;
-	ptrB = versionB;
-    endA = versionA + lengthA;
-    endB = versionB + lengthB;
-	while (ptrA != endA && ptrB != endB) {
-		/* skip all non-alphanumeric characters */
-		while (ptrA != endB && !isalnum(*ptrA))
-			ptrA++;
-		while (ptrB != endB && !isalnum(*ptrB))
-			ptrB++;
-
-		eptrA = ptrA;
-		eptrB = ptrB;
-
-		/* Somewhat arbitrary rules as per RPM's implementation.
-		 * This code could be more clever, but we're aiming
-		 * for clarity instead. */
-
-		/* If versionB's segment is not a digit segment, but
-		 * versionA's segment IS a digit segment, return 1.
-		 * (Added for redhat compatibility. See redhat bugzilla
-		 * #50977 for details) */
-		if (!isdigit(*ptrB)) {
-			if (isdigit(*ptrA))
-				return 1;
-		}
-
-		/* Otherwise, if the segments are of different types,
-		 * return -1 */
-
-		if ((isdigit(*ptrA) && isalpha(*ptrB)) || (isalpha(*ptrA) && isdigit(*ptrB)))
-			return -1;
-
-		/* Find the first segment composed of entirely alphabetical
-		 * or numeric members */
-		if (isalpha(*ptrA)) {
-			while (eptrA != endA && isalpha(*eptrA))
-				eptrA++;
-
-			while (eptrB != endB && isalpha(*eptrB))
-				eptrB++;
-		} else {
-			int countA = 0, countB = 0;
-			while (eptrA != endA && isdigit(*eptrA)) {
-				countA++;
-				eptrA++;
-			}
-			while (eptrB != endB && isdigit(*eptrB)) {
-				countB++;
-				eptrB++;
-			}
-
-			/* skip leading '0' characters */
-			while (ptrA != eptrA && *ptrA == '0') {
-				ptrA++;
-				countA--;
-			}
-			while (ptrB != eptrB && *ptrB == '0') {
-				ptrB++;
-				countB--;
-			}
-
-			/* If A is longer than B, return 1 */
-			if (countA > countB)
-				return 1;
-
-			/* If B is longer than A, return -1 */
-			if (countB > countA)
-				return -1;
-		}
-		/* Compare strings lexicographically */
-		while (ptrA != eptrA && ptrB != eptrB && *ptrA == *ptrB) {
-				ptrA++;
-				ptrB++;
-		}
-		if (ptrA != eptrA && ptrB != eptrB)
-			return *ptrA - *ptrB;
-
-		ptrA = eptrA;
-		ptrB = eptrB;
-	}
-
-	/* If both pointers are null, all alphanumeric
-	 * characters were identical and only seperating
-	 * characters differed. According to RPM, these
-	 * version strings are equal */
-	if (ptrA == endA && ptrB == endB)
-		return 0;
-
-	/* If A has unchecked characters, return 1
-	 * Otherwise, if B has remaining unchecked characters,
-	 * return -1 */
-	if (ptrA != endA)
-		return 1;
-	else
-		return -1;
-}
-
-/**
- * VERSION collation for sqlite3. This function collates text according to
- * pextlib's rpm-vercomp function. This allows direct comparison and sorting of
- * version columns, such as port.version and port.revision.
- *
- * @param [in] userdata unused
- * @param [in] alen     length of first string
- * @param [in] a        first string
- * @param [in] blen     length of second string
- * @param [in] b        second string
- * @return              -1 if a < b; 0 if a = b; 1 if a > b
- */
-static int sql_version(void* userdata UNUSED, int alen, const void* a, int blen,
-        const void* b) {
-    return rpm_vercomp((const char*)a, alen, (const char*)b, blen);
 }
 
 /**
