@@ -1,0 +1,12 @@
+The macports.sqlext is meant to ease debugging the registry database by
+providing the necessary SQLite extensions to examine and modify the database
+using the sqlite3 command line tool.
+
+To use this SQLite extension, use '.load macports.sqlext' at the sqlite3 prompt
+right after attaching the registry.db file.
+
+Example:
+
+$ sqlite3 /opt/local/var/macports/registry/registry.db
+...
+sqlite> .load ~/src/macports/trunk/base/src/cregistry/macports.sqlext

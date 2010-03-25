@@ -1,0 +1,29 @@
+#if HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include "vercomp.h"
+
+#include <string.h>
+#include <sqlite3ext.h>
+SQLITE_EXTENSION_INIT1
+
+/**
+ * Extension for sqlite3 defining collates being used in our DB. This can be
+ * used by any sqlite3 client to load the required collates.
+ *
+ * @param [in] db         database connection
+ * @param [out] pzErrMsg  error messages string
+ * @param [in] pApi       API methods
+ */
+int sqlite3_extension_init(
+    sqlite3 *db,          /* The database connection */
+    char **pzErrMsg UNUSED,      /* Write error messages here */
+    const sqlite3_api_routines *pApi  /* API methods */
+) {
+    SQLITE_EXTENSION_INIT2(pApi)
+
+    sqlite3_create_collation(db, "VERSION", SQLITE_UTF8, NULL, sql_version);
+
+    return 0;
+}
