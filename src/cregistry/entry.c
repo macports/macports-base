@@ -281,8 +281,10 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
                     break;
                 case SQLITE_DONE:
                     errPtr->code = REG_NOT_FOUND;
-                    errPtr->description = "no matching port found";
-                    errPtr->free = NULL;
+                    errPtr->description = sqlite3_mprintf("no matching port found for: " \
+                            "name=%s, version=%s, revision=%s, variants=%s, epoch=%s", \
+                            name, version, revision, variants, epoch);
+                    errPtr->free = (reg_error_destructor*) sqlite3_free;
                     break;
                 case SQLITE_BUSY:
                     continue;
