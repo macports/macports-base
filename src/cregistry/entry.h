@@ -32,8 +32,9 @@
 #include <config.h>
 #endif
 
+#include "registry.h"
+
 #include <sqlite3.h>
-#include <cregistry/registry.h>
 
 typedef enum {
     reg_strategy_exact = 1,

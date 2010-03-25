@@ -32,9 +32,9 @@
 #include <config.h>
 #endif
 
-#include <sqlite3.h>
+#include "registry.h"
 
-#include <cregistry/registry.h>
+#include <sqlite3.h>
 
 int create_tables(sqlite3* db, reg_error* errPtr);
 int init_db(sqlite3* db, reg_error* errPtr);
