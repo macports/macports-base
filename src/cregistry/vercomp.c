@@ -39,6 +39,13 @@
 #include <string.h>
 #include <ctype.h>
 
+/*
+ * TODO: share this function between pextlib and cregistry. The version here is
+ *       slightly modified so as to take explicit string lengths. Since these
+ *       are available in Tcl it's an easy change and might be a tiny bit
+ *       faster; it's necessary for the application here.
+ */
+
 /**
  * RPM version comparison. Shamelessly copied from Pextlib, with some changes to
  * use string lengths instead of strlen by default. That's necessary to make it
