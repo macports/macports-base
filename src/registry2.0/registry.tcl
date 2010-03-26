@@ -57,9 +57,7 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		property_store $ref revision $revision
 		property_store $ref variants $variants
 		property_store $ref epoch $epoch
-		# Trick to have a portable GMT-POSIX epoch-based time.
-		# (because we'll compare this with a file mtime).
-		property_store $ref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
+		property_store $ref date [clock seconds]
 		property_store $ref installtype ${macports::registry.installtype}
 		property_store $ref receipt_f ${macports::registry.format}
 		if { ${macports::registry.installtype} == "image" } {
