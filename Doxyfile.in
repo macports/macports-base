@@ -93,7 +93,7 @@ EXAMPLE_PATTERNS       =
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = 
 INPUT_FILTER           = 
-FILTER_PATTERNS        = *.tcl=tcl-dox
+FILTER_PATTERNS        = *.tcl=@prefix@/bin/tcl-dox
 FILTER_SOURCE_FILES    = NO
 #---------------------------------------------------------------------------
 # configuration options related to source browsing
@@ -222,7 +222,7 @@ CALLER_GRAPH           = NO
 GRAPHICAL_HIERARCHY    = YES
 DIRECTORY_GRAPH        = YES
 DOT_IMAGE_FORMAT       = png
-DOT_PATH               = 
+DOT_PATH               = @prefix@/bin/
 DOTFILE_DIRS           = 
 DOT_GRAPH_MAX_NODES    = 50
 MAX_DOT_GRAPH_DEPTH    = 0

@@ -88,10 +88,14 @@ ifeq ($(ARC),yes)
 endif
 
 tcldoc:
-	find src -name '*.tcl' | xargs tcldoc --verbose --title "MacPorts Documentation" --force tcldoc
+	@[ -e "${prefix}/bin/tcldoc" ] \
+		|| { echo "Install tcldoc with MacPorts in ${prefix} first."; exit 1; }
+	find src -name '*.tcl' | xargs ${TCLDOC} --verbose --title "MacPorts Documentation" --force tcldoc
 
 tcldox:
-	doxygen
+	@[ -e "${prefix}/bin/doxygen" -a -e "${prefix}/bin/tcl-dox" -a -e "${prefix}/bin/dot" ] \
+		|| { echo "Install doxygen, tcl-dox and graphviz with MacPorts in ${prefix} first."; exit 1; }
+	${prefix}/bin/doxygen
 
 test::
 
