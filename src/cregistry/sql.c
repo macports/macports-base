@@ -106,19 +106,6 @@ static void sql_regexp(sqlite3_context* context, int argc UNUSED,
 }
 
 /**
- * NOW function for sqlite3. Takes no arguments. Returns the unix timestamp of
- * the current time.
- *
- * @param [in] context sqlite3-defined structure
- * @param [in] argc    number of arguments - always 2 and hence unused
- * @param [in] argv    0: value to match; 1: pattern to match against
- */
-static void sql_now(sqlite3_context* context, int argc UNUSED,
-        sqlite3_value** argv UNUSED) {
-    sqlite3_result_int(context, time(NULL));
-}
-
-/**
  * Creates tables in the registry. This function is called upon an uninitialized
  * database to create the tables needed to record state between invocations of
  * `port`.
@@ -134,7 +121,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
         /* metadata table */
         "CREATE TABLE registry.metadata (key UNIQUE, value)",
         "INSERT INTO registry.metadata (key, value) VALUES ('version', 1.000)",
-        "INSERT INTO registry.metadata (key, value) VALUES ('created', NOW())",
+        "INSERT INTO registry.metadata (key, value) VALUES ('created', strftime('%s', 'now'))",
 
         /* ports table */
         "CREATE TABLE registry.ports ("
@@ -199,8 +186,6 @@ int init_db(sqlite3* db, reg_error* errPtr) {
     /* I'm not error-checking these. I don't think I need to. */
     sqlite3_create_function(db, "REGEXP", 2, SQLITE_UTF8, NULL, sql_regexp,
             NULL, NULL);
-    sqlite3_create_function(db, "NOW", 0, SQLITE_ANY, NULL, sql_now, NULL,
-            NULL);
 
     sqlite3_create_collation(db, "VERSION", SQLITE_UTF8, NULL, sql_version);
 
