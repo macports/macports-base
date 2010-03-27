@@ -1218,7 +1218,7 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped current_stage worksrcpath prefix
+    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped worksrcpath prefix
     set portname [option name]
     set result 0
     set skipped 0
