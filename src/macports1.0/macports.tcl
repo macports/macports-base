@@ -38,7 +38,7 @@ package require macports_index 1.0
 package require macports_util 1.0
 
 namespace eval macports {
-    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_stages 
+    namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases 
     variable bootstrap_options "\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
@@ -54,7 +54,7 @@ namespace eval macports {
         portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir current_stage frameworks_dir developer_dir universal_archs build_arch $user_options"
+        applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -64,8 +64,8 @@ namespace eval macports {
     variable open_mports {}
 
     variable ui_priorities "debug info msg error warn any"
-    variable port_stages "any fetch checksum"
-    variable current_stage "main"
+    variable port_phases "any fetch checksum"
+    variable current_phase "main"
 }
 
 # Provided UI instantiations
@@ -181,22 +181,22 @@ proc macports::pop_log {} {
 }
 
 proc ui_phase {phase} {
-    global macports::current_stage
-    set macports::current_stage $phase
+    global macports::current_phase
+    set macports::current_phase $phase
     if {$phase != "main"} {
         set cur_time [clock format [clock seconds] -format  {%+}]
         ui_debug "$phase phase started at $cur_time"
     }
 }
-proc ui_message {priority prefix stage args} {
-    global macports::channels ::debuglog macports::current_stage
+proc ui_message {priority prefix phase args} {
+    global macports::channels ::debuglog macports::current_phase
     foreach chan $macports::channels($priority) {
         if {[info exists ::debuglog] && ($chan == "debuglog")} {
             set chan $::debuglog
-            if {[info exists macports::current_stage]} {
-                set stage $macports::current_stage
+            if {[info exists macports::current_phase]} {
+                set phase $macports::current_phase
             }
-            set strprefix ":$priority:$stage "
+            set strprefix ":$priority:$phase "
             if {[lindex $args 0] == "-nonewline"} {
                 puts -nonewline $chan "$strprefix[lindex $args 1]"
             } else {
@@ -232,13 +232,13 @@ proc macports::ui_init {priority args} {
     } catch * {
         set prefix [ui_prefix_default $priority]
     }
-    set stages {fetch checksum}
+    set phases {fetch checksum}
     try {
         eval ::ui_init $priority $prefix $channels($priority) $args
     } catch * {
         interp alias {} ui_$priority {} ui_message $priority $prefix ""
-        foreach stage $stages {
-            interp alias {} ui_${priority}_${stage} {} ui_message $priority $prefix $stage
+        foreach phase $phases {
+            interp alias {} ui_${priority}_${phase} {} ui_message $priority $prefix $phase
         }
     }
     # Call ui_$priority
@@ -955,8 +955,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     # instantiate the UI call-backs
     foreach priority ${macports::ui_priorities} {
         $workername alias ui_$priority ui_$priority
-        foreach stage ${macports::port_stages} {
-            $workername alias ui_${priority}_${stage} ui_${priority}_${stage}
+        foreach phase ${macports::port_phases} {
+            $workername alias ui_${priority}_${phase} ui_${priority}_${phase}
         }
  
     }
