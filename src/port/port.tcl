@@ -820,6 +820,42 @@ proc get_obsolete_ports {} {
     return [portlist_sort $results]
 }
 
+# return ports that have registry property $propname set to $propval
+proc get_ports_with_prop {propname propval} {
+    set ilist {}
+    if { [catch {set ilist [registry::installed]} result] } {
+        if {$result != "Registry error: No ports registered as installed."} {
+            global errorInfo
+            ui_debug "$errorInfo"
+            fatal "port installed failed: $result"
+        }
+    }
+
+    set results {}
+    foreach i $ilist {
+        set iname [lindex $i 0]
+        set iversion [lindex $i 1]
+        set irevision [lindex $i 2]
+        set ivariants [lindex $i 3]
+        set iepoch [lindex $i 5]
+        set regref [registry::open_entry $iname $iversion $irevision $ivariants $iepoch]
+        if {[registry::property_retrieve $regref $propname] == $propval} {
+            add_to_portlist results [list name $iname version "${iversion}_${irevision}" variants [split_variants $ivariants]]
+        }
+    }
+
+    # Return the list of ports, sorted
+    return [portlist_sort $results]
+}
+
+proc get_requested_ports {} {
+    return [get_ports_with_prop requested 1]
+}
+
+proc get_unrequested_ports {} {
+    return [get_ports_with_prop requested 0]
+}
+
 
 ##########################################
 # Port expressions
@@ -967,6 +1003,8 @@ proc element { resname } {
         ^inactive(@.*)?$    -
         ^outdated(@.*)?$    -
         ^obsolete(@.*)?$    -
+        ^requested(@.*)?$   -
+        ^unrequested(@.*)?$ -
         ^current(@.*)?$     {
             # A simple pseudo-port name
             advance
@@ -2183,6 +2221,32 @@ proc action_selfupdate { action portlist opts } {
 }
 
 
+proc action_setrequested { action portlist opts } {
+    set status 0
+    if {[require_portlist portlist]} {
+        return 1
+    }
+    # set or unset?
+    set val [string equal $action setrequested]
+    foreachport $portlist {
+        set composite_version [composite_version $portversion [array get variations]]
+        if {![catch {set ilist [registry::installed $portname $composite_version]}]} {
+            ui_info "Setting requested flag for $portname to $val"
+            foreach i $ilist {
+                set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+                registry::property_store $regref requested $val
+            }
+        } else {
+            global errorInfo
+            ui_debug "$errorInfo"
+            break_softcontinue "$result" 1 status
+        }
+    }
+    
+    return $status
+}
+
+
 proc action_upgrade { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
@@ -3231,6 +3295,9 @@ array set action_array [list \
     \
     sync        [list action_sync           [ACTION_ARGS_NONE]] \
     selfupdate  [list action_selfupdate     [ACTION_ARGS_NONE]] \
+    \
+    setrequested   [list action_setrequested  [ACTION_ARGS_PORTS]] \
+    unsetrequested [list action_setrequested  [ACTION_ARGS_PORTS]] \
     \
     upgrade     [list action_upgrade        [ACTION_ARGS_PORTS]] \
     \

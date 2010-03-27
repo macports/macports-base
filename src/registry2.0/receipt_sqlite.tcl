@@ -137,6 +137,30 @@ proc property_retrieve {ref property} {
     return $ret
 }
 
+##
+# Store a property in a registry entry.
+#
+# ref			reference to the entry.
+# property		key for the property to set.
+# value         value to set it to.
+proc property_store {ref property value} {
+    switch $property {
+        active {
+            if {!$value} {
+                $ref state "imaged"
+            } else {
+                $ref state "installed"
+            }
+        }
+        imagedir {
+            $ref location $value
+        }
+        default {
+            $ref $property $value
+        }
+    }
+}
+
 # Return installed ports
 #
 # If version is "", return all ports of that name.
