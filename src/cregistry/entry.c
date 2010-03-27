@@ -1197,7 +1197,9 @@ int reg_entry_dependents(reg_entry* entry, reg_entry*** dependents,
     reg_registry* reg = entry->reg;
     char* query = sqlite3_mprintf("SELECT dependent.id FROM ports port "
             "INNER JOIN dependencies USING(name) INNER JOIN ports dependent "
-            "USING(id) WHERE port.id=%lld",
+            "USING(id) WHERE port.id=%lld ORDER BY dependent.name,"
+            "dependent.epoch, dependent.version, dependent.revision,"
+            "dependent.variants",
             entry->id);
     int result = reg_all_entries(reg, query, -1, dependents, errPtr);
     sqlite3_free(query);
