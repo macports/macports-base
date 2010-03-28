@@ -196,8 +196,9 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     if (initialized || can_write) {
         sqlite3_stmt* stmt;
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
-        if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+        if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
             int r;
+            /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
             do {
                 r = sqlite3_step(stmt);
                 switch (r) {
@@ -214,6 +215,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
                     default:
                         reg_sqlite_error(reg->db, errPtr, query);
                 }
+                sqlite3_reset(stmt);
             } while (r == SQLITE_BUSY);
         } else {
             reg_sqlite_error(reg->db, errPtr, query);
@@ -244,11 +246,12 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
         reg_throw(errPtr,REG_MISUSE,"no database is attached to this registry");
         return 0;
     }
-    if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
+    if (sqlite3_prepare_v2(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
         int r;
         reg_entry* entry;
         Tcl_HashEntry* curr;
         Tcl_HashSearch search;
+        /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
         do {
             r = sqlite3_step(stmt);
             switch (r) {
@@ -271,6 +274,7 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
                     reg_sqlite_error(reg->db, errPtr, query);
                     break;
             }
+            sqlite3_reset(stmt);
         } while (r == SQLITE_BUSY);
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
