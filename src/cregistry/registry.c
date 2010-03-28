@@ -76,11 +76,12 @@ void reg_sqlite_error(sqlite3* db, reg_error* errPtr, char* query) {
     errPtr->code = REG_SQLITE_ERROR;
     errPtr->free = (reg_error_destructor*)sqlite3_free;
     if (query == NULL) {
-        errPtr->description = sqlite3_mprintf("sqlite error: %s",
-                sqlite3_errmsg(db));
+        errPtr->description = sqlite3_mprintf("sqlite error: %s (%d)",
+                sqlite3_errmsg(db), sqlite3_errcode(db));
     } else {
-        errPtr->description = sqlite3_mprintf("sqlite error: %s while "
-                "executing query: %s", sqlite3_errmsg(db), query);
+        errPtr->description = sqlite3_mprintf("sqlite error: %s (%d) while "
+                "executing query: %s", sqlite3_errmsg(db), sqlite3_errcode(db),
+                query);
     }
 }
 
