@@ -2371,8 +2371,7 @@ proc action_uninstall { action portlist opts } {
             set i [lindex $ilist 0]
             set iactive [lindex $i 4]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-            if {(!$iactive || [registry::run_target $regref deactivate [array get options]])
-                && [registry::run_target $regref uninstall [array get options]]} {
+            if {[registry::run_target $regref uninstall [array get options]]} {
                 continue
             }
         }

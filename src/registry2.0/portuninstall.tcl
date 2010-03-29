@@ -126,9 +126,11 @@ proc uninstall {portname {v ""} optionslist} {
             foreach depport [$port dependents] {
                 # make sure it's still installed, since a previous dep uninstall may have removed it
                 if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
-                    set depname [$depport name]
-                    set depver "[$depport version]_[$depport revision][$depport variants]"
-                    registry_uninstall::uninstall $depname $depver [array get options]
+                    if {![registry::run_target $depport uninstall $optionslist]} {
+                        set depname [$depport name]
+                        set depver "[$depport version]_[$depport revision][$depport variants]"
+                        registry_uninstall::uninstall $depname $depver $optionslist
+                    }
                 }
             }
         } else {
@@ -140,7 +142,9 @@ proc uninstall {portname {v ""} optionslist} {
             if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
                 ui_msg "For $portname @${v}: skipping deactivate (dry run)"
             } else {
-                portimage::deactivate $portname $v $optionslist
+                if {![registry::run_target $port deactivate $optionslist]} {
+                    portimage::deactivate $portname $v $optionslist
+                }
             }
         }
     } else {
@@ -175,7 +179,7 @@ proc uninstall {portname {v ""} optionslist} {
                     foreach depport $dl {
                         # make sure it's still installed, since a previous dep uninstall may have removed it
                         if {[registry::entry_exists_for_name $depport]} {
-                            registry_uninstall::uninstall $depport "" [array get options]
+                            registry_uninstall::uninstall $depport "" $optionslist
                         }
                     }
                 } else {
