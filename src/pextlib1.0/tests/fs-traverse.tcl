@@ -333,15 +333,6 @@ proc setup_trees {root} {
         $root/b/c/b     file
         $root/b/c/c     file
     "
-    
-    set trees(6) "
-        $root           directory
-        $root/a         directory
-        $root/a/a       file
-        $root/a/b       file
-        $root/a/c       directory
-        $root/a/c/a     {link ../d}
-    "
 }
 
 main $argv
