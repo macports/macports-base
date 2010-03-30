@@ -2902,7 +2902,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     
     # at this point we need to check if a different port will be replacing this one
     if {[info exists portinfo(replaced_by)] && ![info exists options(ports_upgrade_no-replace)]} {
-        ui_debug "$portname is replaced by $portinfo(replaced_by)"
+        ui_msg "--->  $portname is replaced by $portinfo(replaced_by)"
         if {[catch {mportlookup $portinfo(replaced_by)} result]} {
             global errorInfo
             ui_debug "$errorInfo"
