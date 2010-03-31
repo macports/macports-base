@@ -92,6 +92,28 @@ proc main {pextlibname} {
         }
         check_output $output $trees(5)
         
+        # Test -tails option
+        set output [list]
+        fs-traverse -tails file $root {
+            lappend output $file
+        }
+        check_output $output $trees(6) $root
+        
+        # Test -tails option with trailing slash
+        set output [list]
+        fs-traverse -tails file $root/ {
+            lappend output $file
+        }
+        check_output $output $trees(6) $root
+        
+        # Test -tails option with multiple paths
+        # It should error out
+        if {![catch {
+            fs-traverse -tails file {$root/a $root/b} {}
+        }]} {
+            error "fs-traverse did not error when using multiple paths with -tails"
+        }
+        
         # Test cutting the traversal short
         set output [list]
         fs-traverse file $root {
@@ -159,15 +181,15 @@ proc main {pextlibname} {
     }
 }
 
-proc check_output {output tree} {
+proc check_output {output tree {root ""}} {
     foreach file $output {entry typelist} $tree {
         set type [lindex $typelist 0]
         set link [lindex $typelist 1]
         if {$file ne $entry} {
             error "Found `$file', expected `$entry'"
-        } elseif {[file type $file] ne $type} {
+        } elseif {[file type [file join $root $file]] ne $type} {
             error "File `$file' had type `[file type $file]', expected type `$type'"
-        } elseif {$type eq "link" && [file readlink $file] ne $link} {
+        } elseif {$type eq "link" && [file readlink [file join $root $file]] ne $link} {
             error "File `$file' linked to `[file readlink $file]', expected link to `$link'"
         }
     }
@@ -332,6 +354,34 @@ proc setup_trees {root} {
         $root/b/c       directory
         $root/b/c/b     file
         $root/b/c/c     file
+    "
+    
+    set trees(6) "
+        .         directory
+        a         directory
+        a/a       file
+        a/b       file
+        a/c       directory
+        a/c/a     {link ../d}
+        a/c/b     file
+        a/c/c     directory
+        a/c/d     file
+        a/d       directory
+        a/d/a     file
+        a/d/b     {link ../../b/a}
+        a/d/c     directory
+        a/d/d     file
+        a/e       file
+        b         directory
+        b/a       directory
+        b/a/a     file
+        b/a/b     file
+        b/a/c     file
+        b/b       directory
+        b/c       directory
+        b/c/a     file
+        b/c/b     file
+        b/c/c     file
     "
 }
 

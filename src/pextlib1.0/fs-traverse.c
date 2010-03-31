@@ -3,9 +3,10 @@
  * $Id$
  *
  * Find files and execute arbitrary expressions on them.
- * Author: Jordan K. Hubbard, Kevin Ballard
+ * Author: Jordan K. Hubbard, Kevin Ballard, Rainer Mueller
  *
  * Copyright (c) 2004 Apple Computer, Inc.
+ * Copyright (c) 2010 The MacPorts Project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +55,9 @@ static int do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl
 
 #define F_DEPTH 0x1
 #define F_IGNORE_ERRORS 0x2
+#define F_TAILS 0x4
 
-/* fs-traverse ?-depth? ?-ignoreErrors? ?--? varname target-list body */
+/* fs-traverse ?-depth? ?-ignoreErrors? ?-tails? ?--? varname target-list body */
 int
 FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -84,6 +86,11 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             ++objv, --objc;
             continue;
         }
+        if (!strcmp(arg, "-tails")) {
+            flags |= F_TAILS;
+            ++objv, --objc;
+            continue;
+        }
         if (!strcmp(arg, "--")) {
             ++objv, --objc;
             break;
@@ -93,7 +100,7 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     
     /* Parse remaining args */
     if (objc != 3) {
-        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?--? varname target-list body");
+        Tcl_WrongNumArgs(interp, 1, objv_orig, "?-depth? ?-ignoreErrors? ?-tails? ?--? varname target-list body");
         return TCL_ERROR;
     }
     
@@ -106,8 +113,17 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     body = *objv;
     
     if ((rval = Tcl_ListObjGetElements(interp, listPtr, &lobjc, &lobjv)) == TCL_OK) {
-        char **entries = calloc(lobjc+1, sizeof(char *));
-        char **iter = (char **)entries;
+        char **entries;
+        char **iter;
+
+        if (flags & F_TAILS && lobjc > 1) {
+            /* result would be ambiguous with multiple paths, so we do not allow this */
+            Tcl_SetResult(interp, "-tails cannot be used with multiple paths", TCL_STATIC);
+            return TCL_ERROR;
+        }
+
+        entries = calloc(lobjc+1, sizeof(char *));
+        iter = (char **)entries;
         while (lobjc > 0) {
             *iter++ = Tcl_GetString(*lobjv);
             --lobjc, ++lobjv;
@@ -117,6 +133,23 @@ FsTraverseCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         free(entries);
     }
     return rval;
+}
+
+static const char *
+extract_tail(const char *target, const char *path)
+{
+    const char *xpath = path;
+    size_t tlen = strlen(target);
+
+    if (strncmp(xpath, target, tlen) == 0) {
+        if (*(xpath + tlen) == '\0') {
+            xpath = ".";
+        } else if (*(xpath + tlen) == '/') {
+            xpath += tlen + 1;
+        }
+    }
+
+    return xpath;
 }
 
 static int
@@ -140,7 +173,14 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             case FTS_DP: /* directory in post-order*/
             {
                 if (!(flags & F_DEPTH) != !(ent->fts_info == FTS_D)) {
-                    Tcl_Obj *rpath, *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                    Tcl_Obj *rpath, *path;
+                    if (flags & F_TAILS) {
+                        /* there cannot be multiple targets */
+                        const char *xpath = extract_tail(targets[0], ent->fts_path);
+                        path = Tcl_NewStringObj(xpath, -1);
+                    } else {
+                        path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                    }
                     Tcl_IncrRefCount(path);
                     rpath = Tcl_ObjSetVar2(interp, varname, NULL, path, TCL_LEAVE_ERR_MSG);
                     Tcl_DecrRefCount(path);
@@ -165,7 +205,14 @@ do_traverse(Tcl_Interp *interp, int flags, char * CONST *targets, Tcl_Obj *varna
             case FTS_SLNONE: /* symbolic link with non-existant target */
             case FTS_DEFAULT: /* file type not otherwise handled (e.g., fifo) */
             {
-                Tcl_Obj *rpath, *path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                Tcl_Obj *rpath, *path;
+                if (flags & F_TAILS) {
+                    /* there cannot be multiple targets */
+                    const char *xpath = extract_tail(targets[0], ent->fts_path);
+                    path = Tcl_NewStringObj(xpath, -1);
+                } else {
+                    path = Tcl_NewStringObj(ent->fts_path, ent->fts_pathlen);
+                }
                 Tcl_IncrRefCount(path);
                 rpath = Tcl_ObjSetVar2(interp, varname, NULL, path, TCL_LEAVE_ERR_MSG);
                 Tcl_DecrRefCount(path);
