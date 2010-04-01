@@ -63,6 +63,7 @@ default destroot.pre_args {${destroot.target}}
 default destroot.target install
 default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
+default destroot.nice {${buildnicevalue}}
 default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""

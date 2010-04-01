@@ -48,6 +48,7 @@ commands configure autoreconf automake autoconf xmkmf
 default configure.env       ""
 default configure.pre_args  {--prefix=${prefix}}
 default configure.cmd       ./configure
+default configure.nice      {${buildnicevalue}}
 default configure.dir       {${worksrcpath}}
 default autoreconf.dir      {${worksrcpath}}
 default autoreconf.pre_args {--install}
