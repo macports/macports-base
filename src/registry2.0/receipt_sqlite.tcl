@@ -209,9 +209,13 @@ proc list_dependents {name version revision variants} {
 	set rlist [list]
 	set searchcmd "registry::entry search"
     foreach key {name version revision} {
-        append searchcmd " $key [set $key]"
+        if {[set $key] != ""} {
+            append searchcmd " $key [set $key]"
+        }
     }
-    append searchcmd " variants {$variants}"
+    if {$variants != 0} {
+        append searchcmd " variants {$variants}"
+    }
     if {[catch {set ports [eval $searchcmd]}]} {
         set ports [list]
     }
