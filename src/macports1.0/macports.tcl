@@ -2366,7 +2366,10 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
 
     set subPorts {}
     if {[llength $depends] > 0} {
-        set options [ditem_key $mport options]
+        array set optionsarray [ditem_key $mport options]
+        # avoid propagating requested flag from parent
+        set optionsarray(ports_requested) 0
+        set options [array get optionsarray]
         set variations [ditem_key $mport variations]
         set required_archs [[ditem_key $mport workername] eval get_canonical_archs]
     }
