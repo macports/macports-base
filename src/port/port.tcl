@@ -856,6 +856,43 @@ proc get_unrequested_ports {} {
     return [get_ports_with_prop requested 0]
 }
 
+proc get_dependent_ports {portname recursive} {
+    registry::open_dep_map
+    set deplist [registry::list_dependents $portname]
+    # could return specific versions here using registry2.0 features
+    set results {}
+    foreach dep $deplist {
+        add_to_portlist results [list name [lindex $dep 2]]
+    }
+
+    # actually do this iteratively to avoid hitting Tcl's recursion limit
+    if {$recursive} {
+        while 1 {
+            set rportlist {}
+            set newlist {}
+            foreach dep $deplist {
+                set depname [lindex $dep 2]
+                if {![info exists seen($depname)]} {
+                    set seen($depname) 1
+                    set rdeplist [registry::list_dependents $depname]
+                    foreach rdep $rdeplist {
+                        lappend newlist $rdep
+                        add_to_portlist rportlist [list name [lindex $rdep 2]]
+                    }
+                }
+            }
+            if {[llength $rportlist] > 0} {
+                set results [opUnion $results $rportlist]
+                set deplist $newlist
+            } else {
+                break
+            }
+        }
+    }
+
+    return [portlist_sort $results]
+}
+
 
 ##########################################
 # Port expressions
@@ -1063,6 +1100,19 @@ proc element { resname } {
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_extract"]
             add_multiple_ports reslist [get_matching_ports $pat no regexp "depends_fetch"]
 
+            set el 1
+        }
+
+        ^dependentof:       -
+        ^rdependentof:      {
+            advance
+
+            # Break up the token, because older Tcl switch doesn't support -matchvar
+            regexp {^(\w+):(.*)} $token matchvar selector portname
+
+            set recursive [string equal $selector rdependentof]
+            add_multiple_ports reslist [get_dependent_ports $portname $recursive]
+            
             set el 1
         }
 
