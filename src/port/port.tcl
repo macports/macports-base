@@ -651,8 +651,6 @@ proc get_current_port {} {
     set portname [url_to_portname $url]
     if {$portname == ""} {
         ui_msg "To use the current port, you must be in a port's directory."
-        ui_msg "(you might also see this message if a pseudo-port such as"
-        ui_msg "outdated or installed expands to no ports)."
         return [list]
     }
 
