@@ -805,7 +805,7 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
             LDFLAGS_SQLITE3=$($PKG_CONFIG --libs sqlite3)
             # for tclsqlite below
             mp_sqlite3_dir=$($PKG_CONFIG --variable=prefix sqlite3)
-            if test "x$mp_sqlite3_dir" = "x"; then
+            if test "x$mp_sqlite3_dir" != "x"; then
                 mp_sqlite3_dir=${mp_sqlite3_dir}/lib/sqlite3
             fi
         fi
@@ -813,6 +813,12 @@ AC_DEFUN([MP_SQLITE3_FLAGS],[
 	    CFLAGS_SQLITE3="-I${sqlite3prefix}/include"
 		LDFLAGS_SQLITE3="-L${sqlite3prefix}/lib -lsqlite3"
 	fi
+
+    # check if we have sqlite3ext.h, using the appropriate cppflags
+    CPPFLAGS_OLD="${CPPFLAGS}"
+    CPPFLAGS="${CPPFLAGS} ${CFLAGS_SQLITE3}"
+    AC_CHECK_HEADERS(sqlite3ext.h)
+    CPPFLAGS="${CPPFLAGS_OLD}"
 
 	AC_SUBST(CFLAGS_SQLITE3)
 	AC_SUBST(LDFLAGS_SQLITE3)

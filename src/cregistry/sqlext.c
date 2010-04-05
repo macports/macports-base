@@ -5,8 +5,12 @@
 #include "vercomp.h"
 
 #include <string.h>
+#if HAVE_SQLITE3EXT_H
 #include <sqlite3ext.h>
 SQLITE_EXTENSION_INIT1
+#else
+#include <sqlite3.h>
+#endif
 
 /**
  * Extension for sqlite3 defining collates being used in our DB. This can be
@@ -21,9 +25,10 @@ int sqlite3_extension_init(
     char **pzErrMsg UNUSED,      /* Write error messages here */
     const sqlite3_api_routines *pApi  /* API methods */
 ) {
+#if HAVE_SQLITE3EXT_H
     SQLITE_EXTENSION_INIT2(pApi)
 
     sqlite3_create_collation(db, "VERSION", SQLITE_UTF8, NULL, sql_version);
-
+#endif
     return 0;
 }

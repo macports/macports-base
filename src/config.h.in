@@ -128,6 +128,9 @@
 /* Define to 1 if you have the `setmode' function. */
 #undef HAVE_SETMODE
 
+/* Define to 1 if you have the <sqlite3ext.h> header file. */
+#undef HAVE_SQLITE3EXT_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
