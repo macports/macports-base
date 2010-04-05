@@ -1950,7 +1950,7 @@ proc action_installimage { action portlist opts } {
                 ui_error "Failed to install from image: $result"
                 return 1
             } else {
-                if {[catch {registry::activate $portinfo(name) "$portinfo(version)_$portinfo(revision)$portinfo(portvariants)" [array get options]} result] } {
+                if {[catch {portimage::activate $portinfo(name) "$portinfo(version)_$portinfo(revision)$portinfo(portvariants)" [array get options]} result] } {
                     ui_error "Failed to activate: $result"
                     return 1
                 }
@@ -1971,7 +1971,7 @@ proc action_activate { action portlist opts } {
     }
     foreachport $portlist {
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {registry::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+            if { [catch {portimage::activate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port activate failed: $result" 1 status
@@ -1992,7 +1992,7 @@ proc action_deactivate { action portlist opts } {
     }
     foreachport $portlist {
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {registry::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
+            if { [catch {portimage::deactivate $portname [composite_version $portversion [array get variations]] [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port deactivate failed: $result" 1 status

@@ -939,8 +939,8 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_delete registry::delete_entry
     $workername alias registry_exists registry::entry_exists
     $workername alias registry_exists_for_name registry::entry_exists_for_name
-    $workername alias registry_activate registry::activate
-    $workername alias registry_deactivate registry::deactivate
+    $workername alias registry_activate portimage::activate
+    $workername alias registry_deactivate portimage::deactivate
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
     $workername alias registry_fileinfo_for_file registry::fileinfo_for_file
@@ -2881,7 +2881,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         # deactivate version_active
         if {$is_dryrun eq "yes"} {
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active} (dry run)"
-        } elseif {[catch {registry::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
+        } elseif {[catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} $optionslist} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Deactivating $portname ${version_active}_${revision_active} failed: $result"

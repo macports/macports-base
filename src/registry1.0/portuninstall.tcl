@@ -129,7 +129,7 @@ proc uninstall {portname {v ""} optionslist} {
         if {[info exists options(ports_dryrun)] && $options(ports_dryrun) == "yes"} {
             ui_msg "For $portname @${version}_${revision}${variants}: skipping deactivate (dry run)"
         } else {
-            registry::deactivate $portname ${version}_${revision}${variants} $optionslist
+            portimage::deactivate $portname ${version}_${revision}${variants} $optionslist
         }
     }
 
