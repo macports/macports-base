@@ -2397,18 +2397,72 @@ proc action_dependents { action portlist opts } {
         
         set deplist [registry::list_dependents $portname $iversion $irevision $ivariants]
         if { [llength $deplist] > 0 } {
-            set dl [list]
-            # Check the deps first
-            foreach dep $deplist {
-                set depport [lindex $dep 2]
-                if {![macports::ui_isset ports_verbose]} {
-                    ui_msg "$depport depends on $portname"
-                } else {
-                    ui_msg "$depport depends on $portname (by [lindex $dep 1]:)"
+            if {$action == "rdependents"} {
+                set toplist $deplist
+                while 1 {
+                    set newlist {}
+                    foreach dep $deplist {
+                        set depname [lindex $dep 2]
+                        if {![info exists seen($depname)]} {
+                            set seen($depname) 1
+                            set rdeplist [registry::list_dependents $depname]
+                            foreach rdep $rdeplist {
+                                lappend newlist $rdep
+                            }
+                            set dependentsof($depname) $rdeplist
+                        }
+                    }
+                    if {[llength $newlist] > 0} {
+                        set deplist $newlist
+                    } else {
+                        break
+                    }
+                }
+                set portstack [list $toplist]
+                set pos_stack [list 0]
+                array unset seen
+                ui_msg "The following ports are dependent on ${portname}:"
+                while 1 {
+                    set cur_portlist [lindex $portstack end]
+                    set cur_pos [lindex $pos_stack end]
+                    if {$cur_pos >= [llength $cur_portlist]} {
+                        set portstack [lreplace $portstack end end]
+                        set pos_stack [lreplace $pos_stack end end]
+                        if {[llength $portstack] <= 0} {
+                            break
+                        } else {
+                            continue
+                        }
+                    }
+                    set cur_port [lindex $cur_portlist $cur_pos]
+                    set cur_portname [lindex $cur_port 2]
+                    set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
+                    if {![info exists seen($cur_portname)]} {
+                        puts "${spaces}${cur_portname}"
+                        set seen($cur_portname) 1
+                        incr cur_pos
+                        set pos_stack [lreplace $pos_stack end end $cur_pos]
+                        if {[info exists dependentsof($cur_portname)]} {
+                            lappend portstack $dependentsof($cur_portname)
+                            lappend pos_stack 0
+                        }
+                        continue
+                    }
+                    incr cur_pos
+                    set pos_stack [lreplace $pos_stack end end $cur_pos]
+                }
+            } else {
+                foreach dep $deplist {
+                    set depport [lindex $dep 2]
+                    if {![macports::ui_isset ports_verbose]} {
+                        ui_msg "$depport depends on $portname"
+                    } else {
+                        ui_msg "$depport depends on $portname (by [lindex $dep 1]:)"
+                    }
                 }
             }
         } else {
-            ui_msg "$portname has no dependents!"
+            ui_msg "$portname has no dependents."
         }
     }
     return $status
@@ -3377,6 +3431,7 @@ array set action_array [list \
     outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
     dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
+    rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
     deps        [list action_info           [ACTION_ARGS_PORTS]] \
     variants    [list action_variants       [ACTION_ARGS_PORTS]] \
     \
