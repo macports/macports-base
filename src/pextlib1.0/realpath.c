@@ -73,8 +73,9 @@ int RealpathCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
         return TCL_ERROR;
     } else {
         tcl_result = Tcl_NewStringObj(rpath, -1);
+        free(rpath);
     }
-    
+
     Tcl_SetObjResult(interp, tcl_result);
     return TCL_OK;
 }
