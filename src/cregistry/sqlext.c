@@ -23,7 +23,11 @@ SQLITE_EXTENSION_INIT1
 int sqlite3_extension_init(
     sqlite3 *db,          /* The database connection */
     char **pzErrMsg UNUSED,      /* Write error messages here */
+#if HAVE_SQLITE3EXT_H
     const sqlite3_api_routines *pApi  /* API methods */
+#else
+    const void *pApi
+#endif
 ) {
 #if HAVE_SQLITE3EXT_H
     SQLITE_EXTENSION_INIT2(pApi)
