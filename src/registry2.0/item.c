@@ -213,6 +213,7 @@ static int item_search(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
         Tcl_ListObjAppendElement(interp, result, procObj);
         r = sqlite3_step(stmt);
     }
+    sqlite3_finalize(stmt);
     Tcl_SetObjResult(interp, result);
     return TCL_OK;
 }

@@ -49,6 +49,7 @@ void DeleteGraph(graph* g) {
         fprintf(stderr, "error: registry db not detached correctly (%s)\n",
                 sqlite3_errmsg(g->db));
     }
+    sqlite3_finalize(stmt);
     free(g);
 }
 

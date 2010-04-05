@@ -236,9 +236,10 @@ int all_objects(Tcl_Interp* interp, sqlite3* db, char* query, char* prefix,
                 return TCL_ERROR;
             }
         }
+        sqlite3_finalize(stmt);
         return TCL_OK;
     } else {
-        sqlite3_free(query);
+        sqlite3_finalize(stmt);
         set_sqlite_result(interp, db, query);
         return TCL_ERROR;
     }
