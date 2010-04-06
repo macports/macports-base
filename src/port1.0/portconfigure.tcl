@@ -337,16 +337,13 @@ proc portconfigure::arch_flag_supported {args} {
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
     global os.platform os.major
-    set compiler ""
     switch -exact "${os.platform} ${os.major}" {
-        "darwin 7" { set compiler gcc-3.3 }
-        "darwin 8" { set compiler gcc-4.0 }
-        "darwin 9" { set compiler gcc-4.0 }
-        "darwin 10" { set compiler gcc-4.2 }
-        "darwin 11" { set compiler llvm-gcc-4.2 }
-        default { set compiler gcc }
+        "darwin 8"  -
+        "darwin 9"  { return gcc-4.0 }
+        "darwin 10" { return gcc-4.2 }
+        "darwin 11" { return llvm-gcc-4.2 }
+        default     { return gcc }
     }
-    return $compiler
 }
 
 # internal function to find correct compilers
