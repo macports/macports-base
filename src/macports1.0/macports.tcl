@@ -2288,7 +2288,7 @@ proc mports_generate_quickindex {index} {
 
 proc mportinfo {mport} {
     set workername [ditem_key $mport workername]
-    return [$workername eval array get PortInfo]
+    return [$workername eval array get ::PortInfo]
 }
 
 proc mportclose {mport} {
@@ -2386,9 +2386,9 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                     return 1
                 }
     
-                array unset portinfo
-                array set portinfo [lindex $res 1]
-                if {![info exists portinfo(porturl)]} {
+                array unset dep_portinfo
+                array set dep_portinfo [lindex $res 1]
+                if {![info exists dep_portinfo(porturl)]} {
                     if {![macports::ui_isset ports_debug]} {
                         ui_msg ""
                     }
@@ -2399,10 +2399,10 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                 # Figure out the subport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
-                set subport [dlist_search $macports::open_mports porturl $portinfo(porturl)]
+                set subport [dlist_search $macports::open_mports porturl $dep_portinfo(porturl)]
                 if {$subport == {}} {
                     # We haven't opened this one yet.
-                    set subport [mportopen $portinfo(porturl) $options $variations]
+                    set subport [mportopen $dep_portinfo(porturl) $options $variations]
     
                     # check archs
                     if {$deptype != "depends_fetch" && $deptype != "depends_extract"
@@ -2412,7 +2412,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                         mportclose $subport
                         set arch_mismatch 1
                         set has_universal 0
-                        if {[info exists portinfo(variants)] && [lsearch -exact $portinfo(variants) universal] != -1} {
+                        if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
                             # a universal variant is offered
                             set has_universal 1
                             array unset variation_array
@@ -2420,7 +2420,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                             if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
                                 set variation_array(universal) +
                                 # try again with +universal
-                                set subport [mportopen $portinfo(porturl) $options [array get variation_array]]
+                                set subport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
                                 if {[macports::_mport_supports_archs $subport $required_archs]} {
                                     set arch_mismatch 0
                                 }
@@ -2514,11 +2514,12 @@ proc macports::_deptypes_for_target {target} {
         extract     -
         patch       { set deptypes "depends_fetch depends_extract" }
         configure   -
-        build       { set deptypes "depends_fetch depends_extract depends_lib depends_build" }
+        build       { set deptypes "depends_fetch depends_extract depends_build depends_lib" }
 
         test        -
         destroot    -
         install     -
+        activate    -
         archive     -
         dmg         -
         pkg         -
@@ -2528,7 +2529,7 @@ proc macports::_deptypes_for_target {target} {
         rpm         -
         srpm        -
         dpkg        -
-        ""          { set deptypes "depends_fetch depends_extract depends_lib depends_build depends_run" }
+        ""          { set deptypes "depends_fetch depends_extract depends_build depends_lib depends_run" }
     }
     return $deptypes
 }
