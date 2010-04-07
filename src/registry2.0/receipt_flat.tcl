@@ -764,7 +764,7 @@ proc open_dep_map {args} {
 }
 
 # List all ports this one depends on
-proc list_depends {name} {
+proc list_depends {name version revision variants} {
 	variable dep_map
 	if { [llength $dep_map] < 1 && [info exists dep_map] } {
 		open_dep_map

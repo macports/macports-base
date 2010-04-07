@@ -3832,7 +3832,7 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
-    uninstall   {follow-dependents}
+    uninstall   {follow-dependents follow-dependencies}
     variants    {index}
     clean       {all archive dist work logs}
     mirror      {new}

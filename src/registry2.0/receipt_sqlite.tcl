@@ -204,6 +204,30 @@ proc close_file_map {args} {
 proc open_dep_map {args} {
 }
 
+# List all the ports that this port depends on
+proc list_depends {name version revision variants} {
+	set rlist [list]
+	set searchcmd "registry::entry search"
+    foreach key {name version revision} {
+        if {[set $key] != ""} {
+            append searchcmd " $key [set $key]"
+        }
+    }
+    if {$variants != 0} {
+        append searchcmd " variants {$variants}"
+    }
+    if {[catch {set ports [eval $searchcmd]}]} {
+        set ports [list]
+    }
+    foreach port $ports {
+        foreach dep [$port dependencies] {
+            lappend rlist [list [$dep name] port [$port name]]
+        }
+    }
+	
+	return [lsort -unique $rlist]
+}
+
 # List all the ports that depend on this port
 proc list_dependents {name version revision variants} {
 	set rlist [list]

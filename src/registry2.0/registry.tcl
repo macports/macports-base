@@ -356,9 +356,9 @@ proc fileinfo_for_index {flist} {
 }
 
 # List all ports this one depends on
-proc list_depends {name} {
+proc list_depends {name {version ""} {revision ""} {variants 0}} {
 	global macports::registry.format
-	return [${macports::registry.format}::list_depends $name]
+	return [${macports::registry.format}::list_depends $name $version $revision $variants]
 }
 
 # List all the ports that depend on this port

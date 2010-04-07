@@ -208,110 +208,194 @@ proc uninstall {portname {v ""} optionslist} {
             }
         }
     }
+    
+    # note deps before we uninstall if we're going to uninstall them too
+    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+        set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+        set all_dependencies {}
+        # look up deps from the saved portfile if possible
+        if {$use_reg2 && ![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $optionslist]}]} {
+            array set depportinfo [mportinfo $mport]
+            mportclose_installed $mport
+            foreach type $deptypes {
+                if {[info exists depportinfo($type)]} {
+                    foreach dep $depportinfo($type) {
+                        lappend all_dependencies [lindex [split $dep :] end]
+                    }
+                }
+            }
+        } else {
+            # grab the deps from the dep map
+            set depmaplist [registry::list_depends $portname $version $revision $variants]
+            foreach dep $depmaplist {
+                lappend all_dependencies [lindex $dep 0]
+            }
+            # and the ones from the current portfile
+            if {![catch {mportlookup $portname} result] && [llength $result] >= 2} {
+                array set depportinfo [lindex $result 1]
+                set porturl $depportinfo(porturl)
+                set variations {}
+                set minusvariant [lrange [split [$port negated_variants] -] 1 end]
+                set plusvariant [lrange [split [$port variants] +] 1 end]
+                foreach v $plusvariant {
+                    lappend variations $v "+"
+                }
+                foreach v $minusvariant {
+                    lappend variations $v "-"
+                }
+                if {![catch {set mport [mportopen $porturl $optionslist [array get variations]]} result]} {
+                    array unset depportinfo
+                    array set depportinfo [mportinfo $mport]
+                    mportclose $mport
+                }
+                foreach type $deptypes {
+                    if {[info exists depportinfo($type)]} {
+                        foreach dep $depportinfo($type) {
+                            lappend all_dependencies [lindex [split $dep :] end]
+                        }
+                    }
+                }
+            }
+        }
+        array unset depportinfo
+    }
 
     if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
         ui_msg "For $portname @${v}: skipping uninstall (dry run)"
-        return 0
-    }
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $v]"
-
-    if {!$use_reg2} {
-        # Look to see if the port has registered an uninstall procedure
-        set uninstall [registry::property_retrieve $ref pkg_uninstall] 
-        if { $uninstall != 0 } {
-            if {![catch {eval [string map { \\n \n } $uninstall]} err]} {
-                ui_info "Executing pkg_uninstall procedure"
-                if {[catch {pkg_uninstall $portname "${version}_${revision}${variants}" } err]} {
-                    ui_error [format [msgcat::mc "Error executing pkg_uninstall procedure: %s"] $err]
+    } else {
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $v]"
+    
+        if {!$use_reg2} {
+            # Look to see if the port has registered an uninstall procedure
+            set uninstall [registry::property_retrieve $ref pkg_uninstall] 
+            if { $uninstall != 0 } {
+                if {![catch {eval [string map { \\n \n } $uninstall]} err]} {
+                    ui_info "Executing pkg_uninstall procedure"
+                    if {[catch {pkg_uninstall $portname "${version}_${revision}${variants}" } err]} {
+                        ui_error [format [msgcat::mc "Error executing pkg_uninstall procedure: %s"] $err]
+                    }
+                } else {
+                    global errorInfo
+                    ui_debug "$errorInfo"
+                    ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
                 }
-            } else {
-                global errorInfo
-                ui_debug "$errorInfo"
-                ui_error [format [msgcat::mc "Could not evaluate pkg_uninstall procedure: %s"] $err]
+            }
+        
+            # Remove the port from the dep_map if only one version was installed.
+            # This is a temporary fix for a deeper problem that is that the dependency
+            # map doesn't take the port version into account (but should).
+            # Fixing it means transitioning to a new dependency map format.
+            if {$nb_versions_installed == 1} {
+                registry::unregister_dependencies $portname
             }
         }
     
-        # Remove the port from the dep_map if only one version was installed.
-        # This is a temporary fix for a deeper problem that is that the dependency
-        # map doesn't take the port version into account (but should).
-        # Fixing it means transitionning to a new dependency map format.
-        if {$nb_versions_installed == 1} {
-            registry::unregister_dependencies $portname
-        }
-    }
-
-    # Now look for a contents list
-    if {$use_reg2} {
-        # imagefiles gives the actual installed files in direct mode
-        set contents [$port imagefiles]
-        set imagedir [$port location]
-    } else {
-        set contents [registry::property_retrieve $ref contents]
-        if { $contents == "" } {
-            return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
-        }
-    }
-    set bak_suffix ".mp_[clock seconds]"
-    set files [list]
-    foreach f $contents {
+        # Now look for a contents list
         if {$use_reg2} {
-            set fname "${imagedir}${f}"
-            #set sum1 [$port md5sum $f]
-            # there's an md5 column in registry.files in the db, but
-            # no way to get or set it seems to be implemented
-            set sum1 NONE
+            # imagefiles gives the actual installed files in direct mode
+            set contents [$port imagefiles]
+            set imagedir [$port location]
         } else {
-            set fname [lindex $f 0]
-            set md5index [lsearch -regex [lrange $f 1 end] MD5]
-            if {$md5index != -1} {
-                set sumx [lindex $f [expr $md5index + 1]]
+            set contents [registry::property_retrieve $ref contents]
+            if { $contents == "" } {
+                return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
+            }
+        }
+        set bak_suffix ".mp_[clock seconds]"
+        set files [list]
+        foreach f $contents {
+            if {$use_reg2} {
+                set fname "${imagedir}${f}"
+                #set sum1 [$port md5sum $f]
+                # there's an md5 column in registry.files in the db, but
+                # no way to get or set it seems to be implemented
+                set sum1 NONE
             } else {
-                # XXX There is no MD5 listed, set sumx to an
-                # empty list, causing the next conditional to
-                # return a checksum error
-                set sumx {}
+                set fname [lindex $f 0]
+                set md5index [lsearch -regex [lrange $f 1 end] MD5]
+                if {$md5index != -1} {
+                    set sumx [lindex $f [expr $md5index + 1]]
+                } else {
+                    # XXX There is no MD5 listed, set sumx to an
+                    # empty list, causing the next conditional to
+                    # return a checksum error
+                    set sumx {}
+                }
+                set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
             }
-            set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
+            if {![string match $sum1 NONE] && !([info exists uninstall.nochecksum] && [string is true -strict ${uninstall.nochecksum}]) } {
+                if {![catch {set sum2 [md5 $fname]}] && ![string match $sum1 $sum2]} {
+                    ui_warn "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $fname ${fname}${bak_suffix}]"
+                    catch {file copy $fname "${fname}${bak_suffix}"}
+                }
+            }
+            
+            set theFile [file normalize $fname]
+            if { [file exists $theFile] || (![catch {file type $theFile}] && [file type $theFile] == "link") } {
+                # Normalize the file path to avoid removing the intermediate
+                # symlinks (remove the empty directories instead)
+                lappend files $theFile
+    
+                # Split out the filename's subpaths and add them to the
+                # list as well. The realpath call is necessary because file normalize
+                # does not resolve symlinks on OS X < 10.6
+                set directory [realpath [file dirname $theFile]]
+                while { [lsearch -exact $files $directory] == -1 } { 
+                    lappend files $directory
+                    set directory [file dirname $directory]
+                }
+            }
         }
-        if {![string match $sum1 NONE] && !([info exists uninstall.nochecksum] && [string is true -strict ${uninstall.nochecksum}]) } {
-            if {![catch {set sum2 [md5 $fname]}] && ![string match $sum1 $sum2]} {
-                ui_warn "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $fname ${fname}${bak_suffix}]"
-                catch {file copy $fname "${fname}${bak_suffix}"}
-            }
-        }
-        
-        set theFile [file normalize $fname]
-        if { [file exists $theFile] || (![catch {file type $theFile}] && [file type $theFile] == "link") } {
-            # Normalize the file path to avoid removing the intermediate
-            # symlinks (remove the empty directories instead)
-            lappend files $theFile
-
-            # Split out the filename's subpaths and add them to the
-            # list as well. The realpath call is necessary because file normalize
-            # does not resolve symlinks on OS X < 10.6
-            set directory [realpath [file dirname $theFile]]
-            while { [lsearch -exact $files $directory] == -1 } { 
-                lappend files $directory
-                set directory [file dirname $directory]
-            }
+    
+        # Sort the list in reverse order, removing duplicates.
+        # Since the list is sorted in reverse order, we're sure that directories
+        # are after their elements.
+        set theList [lsort -decreasing -unique $files]
+    
+        # Remove all elements.
+        _uninstall_list $theList
+    
+        if {$use_reg2} {
+            registry::entry delete $port
+        } else {
+            ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
+            registry::delete_entry $ref
         }
     }
-
-    # Sort the list in reverse order, removing duplicates.
-    # Since the list is sorted in reverse order, we're sure that directories
-    # are after their elements.
-    set theList [lsort -decreasing -unique $files]
-
-    # Remove all elements.
-    _uninstall_list $theList
-
-    if {$use_reg2} {
-        registry::entry delete $port
-    } else {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Uninstall is removing %s from the port registry."] $portname]"
-        registry::delete_entry $ref
+    
+    # uninstall dependencies if requested
+    if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+        while 1 {
+            set remaining_list {}
+            foreach dep $all_dependencies {
+                if {![catch {set ilist [registry::installed $dep]}]} {
+                    set remaining 0
+                    foreach i $ilist {
+                        set iversion [lindex $i 1]
+                        set irevision [lindex $i 2]
+                        set ivariants [lindex $i 3]
+                        if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
+                            set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
+                            if {![registry::property_retrieve $regref requested] && (!$use_reg2 || ![registry::run_target $regref uninstall $optionslist])} {
+                                set depver "${iversion}_${irevision}${ivariants}"
+                                registry_uninstall::uninstall $dep $depver $optionslist
+                            }
+                        } else {
+                            set remaining 1
+                        }
+                    }
+                    if {$remaining} {
+                        lappend remaining_list $dep
+                    }
+                }
+            }
+            if {[llength $remaining_list] == 0 || [llength $remaining_list] == [llength $all_dependencies]} {
+                break
+            }
+            set all_dependencies $remaining_list
+        }
     }
+    
     return 0
 }
 
