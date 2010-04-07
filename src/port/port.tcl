@@ -2552,7 +2552,7 @@ proc action_dependents { action portlist opts } {
                     set cur_port [lindex $cur_portlist $cur_pos]
                     set cur_portname [lindex $cur_port 2]
                     set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-                    if {![info exists seen($cur_portname)]} {
+                    if {![info exists seen($cur_portname)] || ([info exists options(ports_rdependents_full)] && [string is true -strict $options(ports_rdependents_full)])} {
                         puts "${spaces}${cur_portname}"
                         set seen($cur_portname) 1
                         incr cur_pos
@@ -2740,7 +2740,7 @@ proc action_rdeps { action portlist opts } {
             set cur_port [lindex $cur_portlist $cur_pos]
             set cur_portname [lindex [split $cur_port :] end]
             set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-            if {![info exists seen($cur_portname)]} {
+            if {![info exists seen($cur_portname)] || ([info exists options(ports_rdeps_full)] && [string is true -strict $options(ports_rdeps_full)])} {
                 if {[macports::ui_isset ports_verbose]} {
                     puts "${spaces}${cur_port}"
                 } else {
@@ -3822,7 +3822,8 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
-    rdeps       {index no-build}
+    rdeps       {index no-build full}
+    rdependents {full}
     search      {case-sensitive category categories depends_fetch
                  depends_extract depends_build depends_lib depends_run
                  depends description epoch exact glob homepage line
