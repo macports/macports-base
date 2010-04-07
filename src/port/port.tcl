@@ -2454,7 +2454,9 @@ proc action_dependents { action portlist opts } {
             } else {
                 foreach dep $deplist {
                     set depport [lindex $dep 2]
-                    if {![macports::ui_isset ports_verbose]} {
+                    if {[macports::ui_isset ports_quiet]} {
+                        puts "$depport"
+                    } elseif {![macports::ui_isset ports_verbose]} {
                         ui_msg "$depport depends on $portname"
                     } else {
                         ui_msg "$depport depends on $portname (by [lindex $dep 1]:)"
