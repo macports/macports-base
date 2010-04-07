@@ -911,6 +911,108 @@ proc get_dependent_ports {portname recursive} {
 }
 
 
+proc get_dep_ports {portname recursive} {
+    global global_variations
+
+    # look up portname
+    if {[catch {mportlookup $portname} result]} {
+        ui_debug "$::errorInfo"
+        return -code error "lookup of portname $portname failed: $result"
+    }
+    if {[llength $result] < 2} {
+        return -code error "Port $portname not found"
+    }
+    array unset portinfo
+    array set portinfo [lindex $result 1]
+    set porturl $portinfo(porturl)
+
+    # open portfile
+    if {[catch {set mport [mportopen $porturl {} [array get global_variations]]} result]} {
+        ui_debug "$::errorInfo"
+        return -code error "Unable to open port: $result"
+    }
+    array unset portinfo
+    array set portinfo [mportinfo $mport]
+    mportclose $mport
+
+    # gather its deps
+    set results {}
+    set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+
+    set deplist {}
+    foreach type $deptypes {
+        if {[info exists portinfo($type)]} {
+            foreach dep $portinfo($type) {
+                add_to_portlist results [list name [lindex [split $dep :] end]]
+                lappend deplist $dep
+            }
+        }
+    }
+
+    # actually do this iteratively to avoid hitting Tcl's recursion limit
+    if {$recursive} {
+        while 1 {
+            set rportlist {}
+            set newlist {}
+            foreach dep $deplist {
+                set depname [lindex [split $dep :] end]
+                if {![info exists seen($depname)]} {
+                    set seen($depname) 1
+
+                    # look up the dep
+                    if {[catch {mportlookup $depname} result]} {
+                        ui_debug "$::errorInfo"
+                        return -code error "lookup of portname $depname failed: $result"
+                    }
+                    if {[llength $result] < 2} {
+                        ui_error "Port $depname not found"
+                        continue
+                    }
+                    array unset portinfo
+                    array set portinfo [lindex $result 1]
+                    set porturl $portinfo(porturl)
+                
+                    # open its portfile
+                    if {[catch {set mport [mportopen $porturl {} [array get global_variations]]} result]} {
+                        ui_debug "$::errorInfo"
+                        ui_error "Unable to open port: $result"
+                        continue
+                    }
+                    array unset portinfo
+                    array set portinfo [mportinfo $mport]
+                    mportclose $mport
+
+                    # collect its deps
+                    set rdeplist {}
+                    foreach type $deptypes {
+                        if {[info exists portinfo($type)]} {
+                            foreach rdep $portinfo($type) {
+                                add_to_portlist results [list name [lindex [split $rdep :] end]]
+                                lappend rdeplist $rdep
+                            }
+                        }
+                    }
+
+                    # add them to the lists
+                    foreach rdep $rdeplist {
+                        lappend newlist $rdep
+                        add_to_portlist rportlist [list name [lindex [split $rdep :] end]]
+                    }
+                }
+            }
+            if {[llength $rportlist] > 0} {
+                set results [opUnion $results $rportlist]
+                set deplist $newlist
+            } else {
+                break
+            }
+        }
+    }
+
+    return [portlist_sort $results]
+}
+
+
 ##########################################
 # Port expressions
 ##########################################
@@ -1130,6 +1232,19 @@ proc element { resname } {
 
             set recursive [string equal $selector rdependentof]
             add_multiple_ports reslist [get_dependent_ports $portname $recursive]
+            
+            set el 1
+        }
+        
+        ^depof:             -
+        ^rdepof:            {
+            advance
+
+            # Break up the token, because older Tcl switch doesn't support -matchvar
+            regexp {^(\w+):(.*)} $token matchvar selector portname
+
+            set recursive [string equal $selector rdepof]
+            add_multiple_ports reslist [get_dep_ports $portname $recursive]
             
             set el 1
         }
@@ -2471,6 +2586,183 @@ proc action_dependents { action portlist opts } {
 }
 
 
+proc action_rdeps { action portlist opts } {
+    global global_variations
+    set status 0
+    if {[require_portlist portlist]} {
+        return 1
+    }
+
+    foreachport $portlist {
+        if {[info exists options(ports_rdeps_no-build)] && [string is true -strict $options(ports_rdeps_no-build)]} {
+            set deptypes {depends_lib depends_run}
+        } else {
+            set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
+        }
+        
+        # If we have a url, use that, since it's most specific
+        # otherwise try to map the portname to a url
+        if {$porturl eq ""} {
+        # Verify the portname, getting portinfo to map to a porturl
+            if {[catch {mportlookup $portname} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "lookup of portname $portname failed: $result" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Port $portname not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+            set porturl $portinfo(porturl)
+        } elseif {$porturl ne "file://."} {
+            # Extract the portdir from porturl and use it to search PortIndex.
+            # Only the last two elements of the path (porturl) make up the
+            # portdir.
+            set portdir [file split [macports::getportdir $porturl]]
+            set lsize [llength $portdir]
+            set portdir \
+                [file join [lindex $portdir [expr $lsize - 2]] \
+                           [lindex $portdir [expr $lsize - 1]]]
+            if {[catch {mportsearch $portdir no exact portdir} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            if {[llength $result] < 2} {
+                break_softcontinue "Portdir $portdir not found" 1 status
+            }
+            array unset portinfo
+            array set portinfo [lindex $result 1]
+        }
+
+        if {!([info exists options(ports_rdeps_index)] && $options(ports_rdeps_index) eq "yes")} {
+            # Add any global_variations to the variations
+            # specified for the port, so we get dependencies right
+            array unset merged_variations
+            array set merged_variations [array get variations]
+            foreach { variation value } [array get global_variations] { 
+                if { ![info exists merged_variations($variation)] } { 
+                    set merged_variations($variation) $value 
+                } 
+            }
+            if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+                ui_debug "$::errorInfo"
+                break_softcontinue "Unable to open port: $result" 1 status
+            }
+            array unset portinfo
+            array set portinfo [mportinfo $mport]
+            mportclose $mport
+        } elseif {![info exists portinfo]} {
+            ui_warn "port rdeps --index does not work with the 'current' pseudo-port"
+            continue
+        }
+
+        set deplist {}
+        # get list of direct deps
+        foreach type $deptypes {
+            if {[info exists portinfo($type)]} {
+                foreach dep $portinfo($type) {
+                    lappend deplist $dep
+                }
+            }
+        }
+
+        set toplist $deplist
+        # gather all the deps
+        while 1 {
+            set newlist {}
+            foreach dep $deplist {
+                set depname [lindex [split $dep :] end]
+                if {![info exists seen($depname)]} {
+                    set seen($depname) 1
+                    
+                    # look up the dep
+                    if {[catch {mportlookup $depname} result]} {
+                        ui_debug "$::errorInfo"
+                        break_softcontinue "lookup of portname $depname failed: $result" 1 status
+                    }
+                    if {[llength $result] < 2} {
+                        break_softcontinue "Port $depname not found" 1 status
+                    }
+                    array unset portinfo
+                    array set portinfo [lindex $result 1]
+                    set porturl $portinfo(porturl)
+                    
+                    # open the portfile if requested
+                    if {!([info exists options(ports_rdeps_index)] && $options(ports_rdeps_index) eq "yes")} {
+                        if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
+                            ui_debug "$::errorInfo"
+                            break_softcontinue "Unable to open port: $result" 1 status
+                        }
+                        array unset portinfo
+                        array set portinfo [mportinfo $mport]
+                        mportclose $mport
+                    }
+                    
+                    # get list of the dep's deps
+                    set rdeplist {}
+                    foreach type $deptypes {
+                        if {[info exists portinfo($type)]} {
+                            foreach rdep $portinfo($type) {
+                                lappend rdeplist $rdep
+                                lappend newlist $rdep
+                            }
+                        }
+                    }
+                    set depsof($depname) $rdeplist
+                }
+            }
+            if {[llength $newlist] > 0} {
+                set deplist $newlist
+            } else {
+                break
+            }
+        }
+        set portstack [list $toplist]
+        set pos_stack [list 0]
+        array unset seen
+        if {[llength $toplist] > 0} {
+            ui_msg "The following ports are dependencies of ${portname}:"
+        } else {
+            ui_msg "No ports are dependencies of ${portname}."
+        }
+        while 1 {
+            set cur_portlist [lindex $portstack end]
+            set cur_pos [lindex $pos_stack end]
+            if {$cur_pos >= [llength $cur_portlist]} {
+                set portstack [lreplace $portstack end end]
+                set pos_stack [lreplace $pos_stack end end]
+                if {[llength $portstack] <= 0} {
+                    break
+                } else {
+                    continue
+                }
+            }
+            set cur_port [lindex $cur_portlist $cur_pos]
+            set cur_portname [lindex [split $cur_port :] end]
+            set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
+            if {![info exists seen($cur_portname)]} {
+                if {[macports::ui_isset ports_verbose]} {
+                    puts "${spaces}${cur_port}"
+                } else {
+                    puts "${spaces}${cur_portname}"
+                }
+                set seen($cur_portname) 1
+                incr cur_pos
+                set pos_stack [lreplace $pos_stack end end $cur_pos]
+                if {[info exists depsof($cur_portname)]} {
+                    lappend portstack $depsof($cur_portname)
+                    lappend pos_stack 0
+                }
+                continue
+            }
+            incr cur_pos
+            set pos_stack [lreplace $pos_stack end end $cur_pos]
+        }
+    }
+    return $status
+}
+
+
 proc action_uninstall { action portlist opts } {
     global macports::registry.format
     set status 0
@@ -3435,6 +3727,7 @@ array set action_array [list \
     dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
     rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
     deps        [list action_info           [ACTION_ARGS_PORTS]] \
+    rdeps       [list action_rdeps          [ACTION_ARGS_PORTS]] \
     variants    [list action_variants       [ACTION_ARGS_PORTS]] \
     \
     search      [list action_search         [ACTION_ARGS_STRINGS]] \
@@ -3529,6 +3822,7 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
+    rdeps       {index no-build}
     search      {case-sensitive category categories depends_fetch
                  depends_extract depends_build depends_lib depends_run
                  depends description epoch exact glob homepage line
