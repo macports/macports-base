@@ -73,8 +73,27 @@ Note: Don't get fooled by the language!
 Dependents are those ports which depend on the given port, not vice-versa!
 }
 
+set porthelp(rdependents) {
+Recursive version of dependents
+
+--full          Display all branches of the tree of dependents instead of only
+                showing each port once.
+}
+
 set porthelp(deps) {
 This action is an alias for 'info --pretty --fullname --depends'
+}
+
+set porthelp(rdeps) {
+Display a recursive dependency listing for the given ports
+
+--full          Display all branches of the dependency tree instead of only
+                showing each port once.
+--index         Do not read the Portfile, instead rely solely on the PortIndex
+                information. Note this option will prevent the dependencies
+                reported from reflecting the effects of any variants specified.
+--no-build      Exclude dependencies only required at build time, i.e.
+                depends_fetch, depends_extract, and depends_build.
 }
 
 set porthelp(destroot) {
@@ -263,6 +282,14 @@ Upgrade MacPorts itself and run the sync target
 
 set porthelp(srpm) {
 Creates a srpm for each of the given ports
+}
+
+set porthelp(setrequested) {
+Marks each of the given ports as requested
+}
+
+set porthelp(unsetrequested) {
+Marks each of the given ports as unrequested
 }
 
 set porthelp(submit) {

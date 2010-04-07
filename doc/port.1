@@ -119,6 +119,18 @@ installed ports that are out of date with respect to their current version/revis
 .Ar obsolete :
 set of ports that are installed but no longer exist in any port tree
 .Pp
+.It
+.Ar requested :
+installed ports that were explicitly asked for.
+.Pp
+.It
+.Ar unrequested :
+installed ports that were installed only to satisfy dependencies.
+.Pp
+.It
+.Ar leaves :
+installed ports that are unrequested and have no dependents.
+.Pp
 .El
 Other options, also known as
 .Ar pseudo-portname selectors ,
@@ -164,6 +176,22 @@ are also accepted, in both singular and plural form where applicable. These are:
 Search strings that will expand to a set of matching ports can be constructed based on the 
 .Ar \(rqpseudo-portname selector\(lq:regex
 combination used.
+.Pp
+Other pseudo-portname selectors match ports which have a particular relationship to
+another port. These will match ports that are direct or recursive dependencies or dependents
+of the given portname:
+.Pp
+.Bl -bullet -offset indent -compact
+.It
+.Ar depof
+.It
+.Ar rdepof
+.It
+.Ar dependentof
+.It
+.Ar rdependentof
+.El
+.Pp
 .Ar portnames
 containing valid UNIX glob patterns will also expand to the set of matching ports. Any
 .Ar action
@@ -173,6 +201,7 @@ will be invoked on each of them. For example:
 .Pp
 .Dl port list variant:no_ssl
 .Dl port uninstall name:sql
+.Dl port echo depof:mysql5
 .\" COMMENT: glob pattern expansion in portnames:
 .\" write an example here that illustrats better glob pattern expansion in portnames, but that does not employ
 .\" logical operators (and, or, not, !) because I still haven't gotten to them yet.
@@ -293,9 +322,25 @@ Lists the build variants available for
 Lists the other ports that are required to build and run
 .Ar portname .
 This is simply an alias for "info --pretty --fullname --depends".
+.Ss rdeps
+Recursively lists the other ports that are required to build and run
+.Ar portname .
+To display the full dependency tree instead of only showing each port once, use
+.Fl -full .
+To take dependency information from the PortIndex instead of the Portfile
+(faster, but does not take variant selections into account), use
+.Fl -index .
+To exclude dependencies that are only needed at build time (i.e.
+depends_fetch, depends_extract, depends_build), use
+.Fl -no-build .
 .Ss dependents
 Lists the installed ports that depend on the port
 .Ar portname .
+.Ss dependents
+Recursively lists the installed ports that depend on the port
+.Ar portname .
+To display the full tree of dependents instead of only showing each port once, use
+.Fl -full .
 .Ss install
 Install and activate
 .Ar portname .
@@ -318,6 +363,14 @@ Activate the installed
 .Ss deactivate
 Deactivate the installed
 .Ar portname .
+.Ss setrequested
+Mark
+.Ar portname
+as requested.
+.Ss unsetrequested
+Mark
+.Ar portname
+as unrequested.
 .Ss installed
 Show the installed versions and variants for
 .Ar portname .
