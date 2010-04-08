@@ -472,7 +472,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         lappend conf_files ${PORTSRC}
     }
 
-    # Process the first configuration file we find on conf_files list
+    # Process all configuration files we find on conf_files list
     foreach file $conf_files {
         if [file exists $file] {
             set portconf $file
