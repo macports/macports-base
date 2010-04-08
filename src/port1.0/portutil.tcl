@@ -1259,7 +1259,7 @@ proc target_run {ditem} {
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
-                ui_phase  $target
+                set_phase  $target
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]

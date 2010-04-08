@@ -180,7 +180,7 @@ proc macports::pop_log {} {
     }
 }
 
-proc ui_phase {phase} {
+proc set_phase {phase} {
     global macports::current_phase
     set macports::current_phase $phase
     if {$phase != "main"} {
@@ -188,6 +188,7 @@ proc ui_phase {phase} {
         ui_debug "$phase phase started at $cur_time"
     }
 }
+
 proc ui_message {priority prefix phase args} {
     global macports::channels ::debuglog macports::current_phase
     foreach chan $macports::channels($priority) {
@@ -950,7 +951,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias mport_open mportopen
     $workername alias mport_close mportclose
     $workername alias mport_lookup mportlookup
-    $workername alias ui_phase ui_phase
+    $workername alias set_phase set_phase
 
     # instantiate the UI call-backs
     foreach priority ${macports::ui_priorities} {
