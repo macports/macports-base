@@ -242,9 +242,6 @@ proc macports::ui_init {priority args} {
             interp alias {} ui_${priority}_${phase} {} ui_message $priority $prefix $phase
         }
     }
-    # Call ui_$priority
-    eval ::ui_$priority $args
-    
 }
 
 # Default implementation of ui_prefix
@@ -300,10 +297,6 @@ proc macports::ui_channels_default {priority} {
             return {stdout}
         }
     }
-}
-
-foreach priority ${macports::ui_priorities} {
-    proc ui_$priority {args} [subst { eval macports::ui_init $priority \$args }]
 }
 
 proc ui_warn_once {id msg} {
@@ -416,6 +409,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         array set variations {}
     } else {
         upvar $up_variations variations
+    }
+
+    # Initialize ui_*
+    foreach priority ${macports::ui_priorities} {
+        macports::ui_init $priority
     }
 
     global auto_path env tcl_platform
