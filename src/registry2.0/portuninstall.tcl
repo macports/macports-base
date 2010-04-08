@@ -224,6 +224,10 @@ proc uninstall {portname {v ""} optionslist} {
                     }
                 }
             }
+            # append those from the registry (could be different because of path deps)
+            foreach dep [$port dependencies] {
+                lappend all_dependencies [$dep name]
+            }
         } else {
             # grab the deps from the dep map
             set depmaplist [registry::list_depends $portname $version $revision $variants]
@@ -258,6 +262,7 @@ proc uninstall {portname {v ""} optionslist} {
             }
         }
         array unset depportinfo
+        set all_dependencies [lsort -unique $all_dependencies]
     }
 
     if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
