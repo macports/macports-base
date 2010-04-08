@@ -680,7 +680,7 @@ proc variant_desc {porturl variant} {
 # Basically, just a fancy 'if', so that Portfiles' platform declarations can
 # be more readable, and support arch and version specifics
 proc platform {args} {
-    global os.platform os.arch os.major
+    global os.platform os.subplatform os.arch os.major
 
     set len [llength $args]
     if {$len < 2} {
@@ -698,20 +698,11 @@ proc platform {args} {
         }
     }
 
-    # sub-platforms of darwin
-    if {${os.platform} == "darwin"} {
-        if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
-            set subplatform macosx
-        } else {
-            set subplatform puredarwin
-        }
-    }
-
     set match 0
     # 'os' could be a platform or an arch when it's alone
-    if {$len == 2 && ($os == ${os.platform} || ([info exists subplatform] && $os == $subplatform) || $os == ${os.arch})} {
+    if {$len == 2 && ($os == ${os.platform} || ([info exists os.subplatform] && $os == ${os.subplatform}) || $os == ${os.arch})} {
         set match 1
-    } elseif {($os == ${os.platform} || ([info exists subplatform] && $os == $subplatform))
+    } elseif {($os == ${os.platform} || ([info exists os.subplatform] && $os == ${os.subplatform}))
               && (![info exists release] || ${os.major} == $release)
               && (![info exists arch] || ${os.arch} == $arch)} {
         set match 1

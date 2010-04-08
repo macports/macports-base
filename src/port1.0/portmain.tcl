@@ -46,7 +46,7 @@ namespace eval portmain {
 # define options
 options prefix name version revision epoch categories maintainers
 options long_description description homepage license provides conflicts replaced_by
-options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
+options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.subplatform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 options supported_archs depends_skip_archcheck
 options copy_log_files
@@ -111,8 +111,17 @@ default macosx_deployment_target {$macosx_version}
 
 default universal_variant yes
 
+# sub-platforms of darwin
+if {${os.platform} == "darwin"} {
+    if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
+        default os.subplatform macosx
+    } else {
+        default os.subplatform puredarwin
+    }
+}
+
 # check if we're on Mac OS X and can therefore build universal
-if {${os.platform} == "darwin" && [file isdirectory /System/Library/Frameworks/Carbon.framework]} {
+if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
     # the universal variant itself is now created in
     # universal_setup, which is called from mportopen
     default os.universal_supported yes
