@@ -63,7 +63,7 @@ namespace eval macports {
 
     variable open_mports {}
 
-    variable ui_priorities "debug info msg error warn any"
+    variable ui_priorities "error warn msg info debug any"
     variable port_phases "any fetch checksum"
     variable current_phase "main"
 }

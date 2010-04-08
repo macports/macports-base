@@ -1723,8 +1723,13 @@ proc action_log { action portlist opts } {
                 set phase "\[a-z\]*"
             }
 
-            if {[info exists global_options(ports_log_verbosity)]} {
-                set prefix $global_options(ports_log_verbosity);
+            if {[info exists global_options(ports_log_level)]} {
+                set index [lsearch -exact ${macports::ui_priorities} $global_options(ports_log_level)]
+                if {$index == -1} {
+                    set prefix ""
+                } else {
+                    set prefix [join [lrange ${macports::ui_priorities} 0 $index] "|"]
+                }
             } else {
                 set prefix "\[a-z\]*"
             }
@@ -3825,7 +3830,7 @@ array set cmd_opts_array {
     mirror      {new}
     lint        {nitpick}
     select      {list set show}
-    log         {{phase 1} {verbosity 1}}
+    log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace}
 }
 
