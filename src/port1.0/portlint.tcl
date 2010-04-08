@@ -243,7 +243,7 @@ proc portlint::lint_main {args} {
         if {[string match "platform\[ \t\]*" $line]} {
             regexp {platform\s+(?:\w+\s+(?:\w+\s+)?)?(\w+)} $line -> platform_arch
             if {$platform_arch == "ppc"} {
-                ui_error "Arch 'ppc' in platform variant on line $lineno should be 'powerpc'"
+                ui_error "Arch 'ppc' in platform on line $lineno should be 'powerpc'"
                 incr errors
             }
         }

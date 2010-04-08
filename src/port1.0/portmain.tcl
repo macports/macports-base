@@ -111,21 +111,17 @@ default macosx_deployment_target {$macosx_version}
 
 default universal_variant yes
 
-default compiler.cpath {${prefix}/include}
-default compiler.library_path {${prefix}/lib}
-
-# Select implicit variants
-if {[info exists os.platform] && ![info exists variations(${os.platform})]} { variant_set ${os.platform}}
-if {[info exists os.arch] && ![info exists variations(${os.arch})]} { variant_set ${os.arch} }
-if {[info exists os.platform] && (${os.platform} == "darwin") && ![file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(puredarwin)]} { variant_set puredarwin }
-if {[info exists os.platform] && (${os.platform} == "darwin") && [file isdirectory /System/Library/Frameworks/Carbon.framework] && ![info exists variations(macosx)]} { variant_set macosx }
-if {[info exists variations(macosx)] && $variations(macosx) == "+"} {
+# check if we're on Mac OS X and can therefore build universal
+if {${os.platform} == "darwin" && [file isdirectory /System/Library/Frameworks/Carbon.framework]} {
     # the universal variant itself is now created in
-    # add_default_universal_variant, which is called from mportopen
+    # universal_setup, which is called from mportopen
     default os.universal_supported yes
 } else {
     default os.universal_supported no
 }
+
+default compiler.cpath {${prefix}/include}
+default compiler.library_path {${prefix}/lib}
 
 # start gsoc08-privileges
 

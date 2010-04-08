@@ -675,22 +675,20 @@ proc variant_desc {porturl variant} {
     }
 }
 
-# platform <os> [<release>] [<arch>]
+# platform [<os> [<release>]] [<arch>]
 # Portfile level procedure to provide support for declaring platform-specifics
-# Basically, just wrap 'variant', so that Portfiles' platform declarations can
+# Basically, just a fancy 'if', so that Portfiles' platform declarations can
 # be more readable, and support arch and version specifics
 proc platform {args} {
-    global all_variants PortInfo os.platform os.arch os.version os.major
+    global os.platform os.arch os.major
 
     set len [llength $args]
     if {$len < 2} {
-        return -code error "Malformed platform variant specification"
+        return -code error "Malformed platform specification"
     }
     set code [lindex $args end]
     set os [lindex $args 0]
     set args [lrange $args 1 [expr $len - 2]]
-
-    set ditem [variant_new "temp-variant"]
 
     foreach arg $args {
         if {[regexp {(^[0-9]+$)} $arg match result]} {
@@ -700,27 +698,28 @@ proc platform {args} {
         }
     }
 
-    # Add the variant for this platform
-    set platform $os
-    if {[info exists release]} { set platform ${platform}_${release} }
-    if {[info exists arch]} { set platform ${platform}_${arch} }
-
-    # Pick up a unique name.
-    if {[variant_exists $platform]} {
-        set suffix 1
-        while {[variant_exists "${platform}_${suffix}"]} {
-            incr suffix
+    # sub-platforms of darwin
+    if {${os.platform} == "darwin"} {
+        if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
+            set subplatform macosx
+        } else {
+            set subplatform puredarwin
         }
-
-        set platform "${platform}_${suffix}"
     }
-    variant $platform $code
 
-    # Set the variant if this platform matches the platform we're on
-    if {([info exists os.platform] && ${os.platform} == $os)
-            && !([info exists os.major] && [info exists release] && ${os.major} != $release)
-            && !([info exists arch] && [info exists os.arch] && ${os.arch} != $arch)} {
-        variant_set $platform
+    set match 0
+    # 'os' could be a platform or an arch when it's alone
+    if {$len == 2 && ($os == ${os.platform} || ([info exists subplatform] && $os == $subplatform) || $os == ${os.arch})} {
+        set match 1
+    } elseif {($os == ${os.platform} || ([info exists subplatform] && $os == $subplatform))
+              && (![info exists release] || ${os.major} == $release)
+              && (![info exists arch] || ${os.arch} == $arch)} {
+        set match 1
+    }
+
+    # Execute the code if this platform matches the platform we're on
+    if {$match} {
+        uplevel #0 $code
     }
 }
 

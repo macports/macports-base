@@ -571,7 +571,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
     global macports::global_variations
-    array set macports::global_variations [mport_filtervariants [array get variations] yes]
+    array set macports::global_variations [array get variations]
 
     if {![info exists portdbpath]} {
         return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
@@ -1185,37 +1185,6 @@ proc macports::getdefaultportresourcepath {{path ""}} {
 }
 
 
-# mport_filtervariants
-# returns the given list of variants with implicitly-set ones removed
-proc mport_filtervariants {variations {warn yes}} {
-    # Iterate through the variants, filtering out
-    # implicit ones. At the moment, the only implicit variants are
-    # platform variants.
-    set filteredvariations {}
-
-    foreach {variation value} $variations {
-        switch -regexp $variation {
-            ^(pure)?darwin         -
-            ^(free|net|open){1}bsd -
-            ^i386                  -
-            ^linux                 -
-            ^macosx                -
-            ^powerpc               -
-            ^solaris               -
-            ^sunos {
-                if {$warn} {
-                    ui_warn "Implicit variants should not be explicitly set or unset. $variation will be ignored."
-                }
-            }
-            default {
-                lappend filteredvariations $variation $value
-            }
-        }
-    }
-    return $filteredvariations
-}
-
-
 # mportopen
 # Opens a MacPorts portfile specified by a URL.  The Portfile is
 # opened with the given list of options and variations.  The result
@@ -1311,7 +1280,6 @@ proc mportopen_installed {name version revision variants options} {
     foreach v $minusvariant {
         lappend variations $v "-"
     }
-    set variations [mport_filtervariants $variations no]
     
     return [mportopen "file://${portfile_dir}/" $options $variations]
 }
@@ -2676,8 +2644,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         set macports::global_options(ports_nodeps) yes
         set orig_nodeps no
     }
-    # filter out implicit variants from the explicitly set/unset variants.
-    set variationslist [mport_filtervariants $variationslist yes]
     
     # run the actual upgrade
     set status [macports::_upgrade $portname $dspec $variationslist $optionslist depscache]
@@ -2883,8 +2849,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     foreach v $minusvariant {
         lappend oldvariantlist $v "-"
     }
-    # remove implicit variants, without printing warnings
-    set oldvariantlist [mport_filtervariants $oldvariantlist no]
 
     # merge in the old variants
     foreach {variation value} $oldvariantlist {

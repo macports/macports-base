@@ -3575,26 +3575,13 @@ proc action_target { action portlist opts } {
             array set portinfo [lindex $res 1]
             set porturl $portinfo(porturl)
         }
-        
+
         # use existing variants iff none were explicitly requested
         if {[array get requested_variations] == "" && [array get variations] != ""} {
             array unset requested_variations
             array set requested_variations [array get variations]
-            set filtered_variations [mport_filtervariants [array get variations] no]
-        } else {
-            set filtered_variations [mport_filtervariants [array get requested_variations] yes]
         }
-        # Filter out implicit variants from the explicitly set/unset variants.
-        # Except we need to keep them for some targets to work right...
-        switch -exact $target {
-            distfiles -
-            mirror {}
-            default {
-                array unset requested_variations
-                array set requested_variations $filtered_variations
-            }
-        }
-        
+
         # Add any global_variations to the variations
         # specified for the port
         foreach { variation value } [array get global_variations] {
