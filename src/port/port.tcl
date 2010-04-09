@@ -1451,7 +1451,7 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
     if { [moreargs] } {
         # Look first for a potential portname
         #
-        # We need to allow a wide variaty of tokens here, because of actions like "provides"
+        # We need to allow a wide variety of tokens here, because of actions like "provides"
         # so we take a rather lenient view of what a "portname" is. We allow
         # anything that doesn't look like either a version, a variant, or an option
         set token [lookahead]
