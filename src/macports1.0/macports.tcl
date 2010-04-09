@@ -1552,6 +1552,15 @@ proc mportexec {mport target} {
         set dlist [dlist_append_dependents $macports::open_mports $mport {}]
 
         dlist_delete dlist $mport
+        
+        # print the dep list
+        if {[llength $dlist] > 0} {
+            set depstring "--->  Dependencies to be installed:"
+            foreach ditem $dlist {
+                append depstring " [ditem_key $ditem provides]"
+            }
+            ui_msg $depstring
+        }
 
         # install them
         # xxx: as with below, this is ugly.  and deps need to be fixed to
