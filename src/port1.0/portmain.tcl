@@ -112,7 +112,7 @@ default macosx_deployment_target {$macosx_version}
 default universal_variant yes
 
 # sub-platforms of darwin
-if {${os.platform} == "darwin"} {
+if {[option os.platform] == "darwin"} {
     if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
         default os.subplatform macosx
     } else {
