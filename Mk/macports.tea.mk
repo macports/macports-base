@@ -14,7 +14,7 @@ $(SHLIB_NAME):: ${OBJS}
 	${SHLIB_LD} ${OBJS} -o ${SHLIB_NAME} ${TCL_STUB_LIB_SPEC} ${SHLIB_LDFLAGS} ${LIBS}
 
 pkgIndex.tcl: $(SHLIB_NAME)
-	$(SILENT) ../pkg_mkindex.sh . || rm -f $@
+	$(SILENT) ../pkg_mkindex.sh . || ( rm -rf $@ && exit 1 )
 
 clean::
 	rm -f ${OBJS} ${SHLIB_NAME} so_locations pkgIndex.tcl
