@@ -121,7 +121,7 @@ if {[option os.platform] == "darwin"} {
 }
 
 # check if we're on Mac OS X and can therefore build universal
-if {[exists os.subplatform] && [option os.subplatform] == "macosx"} {
+if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
     # the universal variant itself is now created in
     # universal_setup, which is called from mportopen
     default os.universal_supported yes
