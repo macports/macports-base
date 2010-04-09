@@ -89,8 +89,8 @@ proc portlint::seems_utf8 {str} {
 
 
 proc portlint::lint_start {args} {
-    global UI_PREFIX name
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${name}]"
+    global name
+    ui_phase lint "[format [msgcat::mc "Verifying Portfile for %s"] ${name}]"
 }
 
 proc portlint::lint_main {args} {

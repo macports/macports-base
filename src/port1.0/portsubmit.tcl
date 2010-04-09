@@ -152,13 +152,13 @@ proc portsubmit::submit_main {args} {
         close $fd
     }
     if {$portsource == ""} {
-        ui_msg "$UI_PREFIX Submitting $name-$version"
+        ui_phase submit "Submitting $name-$version"
         puts -nonewline "URL: "
         flush stdout
         gets stdin portsource
     }
 
-    ui_msg "$UI_PREFIX Submitting $name-$version to $portsource"
+    ui_phase submit "Submitting $name-$version to $portsource"
 
     puts -nonewline "Username: "
     flush stdout

@@ -50,9 +50,7 @@ namespace eval portclean {
 set_ui_prefix
 
 proc portclean::clean_start {args} {
-    global UI_PREFIX
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option name]]"
+    ui_phase clean "[format [msgcat::mc "Cleaning %s"] [option name]]"
 }
 
 proc portclean::clean_main {args} {

@@ -88,12 +88,12 @@ default startupitem.netchange   no
 set_ui_prefix
 
 proc portdestroot::destroot_start {args} {
-    global UI_PREFIX prefix name porturl destroot os.platform destroot.clean portsharepath
+    global prefix name porturl destroot os.platform destroot.clean portsharepath
     global destroot.umask destroot.asroot euid egid
     global applications_dir frameworks_dir
     variable oldmask
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${name}]"
+    ui_phase destroot "[format [msgcat::mc "Staging %s into destroot"] ${name}]"
 
     # start gsoc08-privileges
     if { [getuid] == 0 && [geteuid] != 0 } {

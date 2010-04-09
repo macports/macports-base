@@ -141,9 +141,7 @@ proc portbuild::build_getjobsarg {args} {
 }
 
 proc portbuild::build_start {args} {
-    global UI_PREFIX
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Building %s"] [option name]]"
+    ui_phase build "[format [msgcat::mc "Building %s"] [option name]]"
 }
 
 proc portbuild::build_main {args} {

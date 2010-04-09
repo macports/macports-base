@@ -177,9 +177,7 @@ proc portchecksum::calc_rmd160 {file} {
 # Target prerun procedure; simply prints a message about what we're doing.
 #
 proc portchecksum::checksum_start {args} {
-    global UI_PREFIX
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
+    ui_phase checksum "[format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
 }
 
 # checksum_main
