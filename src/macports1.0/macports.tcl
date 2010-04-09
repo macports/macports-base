@@ -2966,7 +2966,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
         set status [_upgrade_dependencies portinfo depscache variationslist options $will_build]
-        if {$status != 0 && && $status != 2 ![ui_isset ports_processall]} {
+        if {$status != 0 && $status != 2 ![ui_isset ports_processall]} {
             catch {mportclose $workername}
             return $status
         }
