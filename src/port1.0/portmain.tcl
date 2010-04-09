@@ -112,7 +112,7 @@ default macosx_deployment_target {$macosx_version}
 default universal_variant yes
 
 # sub-platforms of darwin
-if {${os.platform} == "darwin"} {
+if {[option os.platform] == "darwin"} {
     if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
         default os.subplatform macosx
     } else {
@@ -121,7 +121,7 @@ if {${os.platform} == "darwin"} {
 }
 
 # check if we're on Mac OS X and can therefore build universal
-if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
+if {[exists os.subplatform] && [option os.subplatform] == "macosx"} {
     # the universal variant itself is now created in
     # universal_setup, which is called from mportopen
     default os.universal_supported yes
