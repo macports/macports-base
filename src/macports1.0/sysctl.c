@@ -39,7 +39,10 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
+
+#if HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
 
 #include "sysctl.h"
 
@@ -48,6 +51,7 @@
  */
 int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
+#if HAVE_SYSCTLBYNAME
     const char error_message[] = "sysctl failed: ";
     Tcl_Obj *tcl_result;
     int res;
@@ -84,4 +88,8 @@ int SysctlCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     
     Tcl_SetObjResult(interp, tcl_result);
     return TCL_OK;
+#else
+    Tcl_SetObjResult(interp, Tcl_NewStringObj("sysctl not available", -1));
+    return TCL_ERROR;
+#endif
 }
