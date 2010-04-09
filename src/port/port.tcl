@@ -4346,6 +4346,11 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
 
+# If we have a tty, enable xterm titles
+if [isatty stdout] {
+    set ui_options(ports_xterm_titles) yes
+}
+
 # Initialize mport
 # This must be done following parse of global options, as some options are
 # evaluated by mportinit.

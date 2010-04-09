@@ -63,7 +63,7 @@ namespace eval macports {
 
     variable open_mports {}
 
-    variable ui_priorities "error warn msg info debug any"
+    variable ui_priorities "error warn phase msg info debug any"
     variable port_phases "any fetch checksum"
     variable current_phase "main"
 }
@@ -189,6 +189,22 @@ proc set_phase {phase} {
     }
 }
 
+proc xterm_title {chan str} {
+    if {[macports::ui_isset ports_xterm_titles]} {
+        puts -nonewline $chan "\033]0;$str\007"
+    }
+}
+
+proc ui_phase {phase args} {
+    # set_phase $phase
+    foreach chan $macports::channels(phase) {
+        if {$chan == "stdout"} {
+            xterm_title $chan "port: [lindex $args 0]"
+        }
+        puts $chan "--->  [lindex $args 0]"
+    }
+}
+
 proc ui_message {priority prefix phase args} {
     global macports::channels ::debuglog macports::current_phase
     foreach chan $macports::channels($priority) {
@@ -237,9 +253,11 @@ proc macports::ui_init {priority args} {
     try {
         eval ::ui_init $priority $prefix $channels($priority) $args
     } catch * {
-        interp alias {} ui_$priority {} ui_message $priority $prefix ""
-        foreach phase $phases {
-            interp alias {} ui_${priority}_${phase} {} ui_message $priority $prefix $phase
+        if {[llength [info commands ::ui_$priority]] == 0} {
+            interp alias {} ui_$priority {} ui_message $priority $prefix ""
+            foreach phase $phases {
+                interp alias {} ui_${priority}_${phase} {} ui_message $priority $prefix $phase
+            }
         }
     }
 }
