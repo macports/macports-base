@@ -16,7 +16,7 @@ include ../../Mk/macports.autoconf.mk
 all:: pkgIndex.tcl
 
 pkgIndex.tcl:
-	$(SILENT) ../pkg_mkindex.sh .
+	$(SILENT) ../pkg_mkindex.sh . || rm -rf $@
 
 clean::
 	rm -f pkgIndex.tcl
