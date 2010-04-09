@@ -1914,6 +1914,11 @@ proc mportsync {{optionslist {}}} {
         }
     }
 
+    # refresh the quick index if necessary (batch or interactive run)
+    if {[info exists macports::ui_options(ports_commandfiles)]} {
+        _mports_load_quickindex
+    }
+
     if {$numfailed > 0} {
         return -code error "Synchronization of $numfailed source(s) failed"
     }
@@ -2181,6 +2186,8 @@ proc mportlistall {args} {
 # it first if necessary.
 proc _mports_load_quickindex {args} {
     global macports::sources macports::quick_index
+
+    unset -nocomplain macports::quick_index
 
     set sourceno 0
     foreach source $sources {

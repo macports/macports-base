@@ -4346,6 +4346,12 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
 
+# If we have no arguments remaining after option processing then force
+# interactive mode
+if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
+    lappend ui_options(ports_commandfiles) -
+}
+
 # Initialize mport
 # This must be done following parse of global options, as some options are
 # evaluated by mportinit.
@@ -4353,12 +4359,6 @@ if {[catch {mportinit ui_options global_options global_variations} result]} {
     global errorInfo
     puts "$errorInfo"
     fatal "Failed to initialize MacPorts, $result"
-}
-
-# If we have no arguments remaining after option processing then force
-# interactive mode
-if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
-    lappend ui_options(ports_commandfiles) -
 }
 
 # Set up some global state for our code
