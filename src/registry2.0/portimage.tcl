@@ -449,7 +449,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                         set result [mportlookup [$owner name]]
                         array unset portinfo
                         array set portinfo [lindex $result 1]
-                        if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) [$port name]] != -1} {
+                        if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) "(?i)^[$port name]\$"] != -1} {
                             # we'll deactivate the owner later, but before activating our files
                             set todeactivate($owner) yes
                             set owner "replaced"
@@ -574,7 +574,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 }
                 array unset portinfo
                 array set portinfo [lindex $result 1]
-                if {[info exists portinfo(replaced_by)] && [lsearch -exact -nocase $portinfo(replaced_by) $name] != -1} {
+                if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) "(?i)^${name}\$"] != -1} {
                     lappend deactivated [lindex [registry::active $port] 0]
                     deactivate $port "" ""
                     set port 0
