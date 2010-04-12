@@ -770,6 +770,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         } else {
             set macports::universal_archs {i386 ppc}
         }
+    } elseif {[llength $macports::universal_archs] < 2} {
+        ui_warn "invalid universal_archs configured (should contain at least 2 archs)"
     }
     
     # Default arch to build for
