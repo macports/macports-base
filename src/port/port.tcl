@@ -2227,7 +2227,11 @@ proc action_activate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_activate_no-exec)]
+            && ![catch {set ilist [registry::installed $portname $composite_version]}]
+            && [llength $ilist] == 1} {
+
             set i [lindex $ilist 0]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
             if {[registry::run_target $regref activate [array get options]]} {
@@ -2257,7 +2261,10 @@ proc action_deactivate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::active $portname]}]} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_deactivate_no-exec)]
+            && ![catch {set ilist [registry::active $portname]}]} {
+
             set i [lindex $ilist 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -2790,7 +2797,11 @@ proc action_uninstall { action portlist opts } {
             continue
         }
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_uninstall_no-exec)]
+            && ![catch {set ilist [registry::installed $portname $composite_version]}]
+            && [llength $ilist] == 1} {
+
             set i [lindex $ilist 0]
             set iactive [lindex $i 4]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
@@ -3824,7 +3835,9 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
-    uninstall   {follow-dependents follow-dependencies}
+    activate    {no-exec}
+    deactivate  {no-exec}
+    uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all archive dist work logs}
     mirror      {new}

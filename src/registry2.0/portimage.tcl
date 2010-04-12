@@ -66,6 +66,7 @@ namespace eval portimage {
 
 variable force 0
 variable use_reg2 0
+variable noexec 0
 
 # Activate a "Port Image"
 proc activate {name v optionslist} {
@@ -73,9 +74,13 @@ proc activate {name v optionslist} {
     array set options $optionslist
     variable force
     variable use_reg2
+    variable noexec
 
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
+    }
+    if {[info exists options(ports_activate_no-exec)]} {
+        set noexec $options(ports_activate_no-exec)
     }
     if {[string equal ${macports::registry.format} "receipt_sqlite"]} {
         set use_reg2 1
@@ -115,7 +120,7 @@ proc activate {name v optionslist} {
             }
         }
         foreach a $todeactivate {
-            if {![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
+            if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
                 deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
             }
         }
@@ -409,6 +414,7 @@ proc _activate_file {srcfile dstfile} {
 proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     variable force
     variable use_reg2
+    variable noexec
     global macports::prefix
 
     set files [list]
@@ -504,7 +510,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
 
             # deactivate ports replaced_by this one
             foreach owner [array names todeactivate] {
-                if {![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
+                if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
                     deactivate [$owner name] "" [list ports_nodepcheck 1]
                 }
             }
@@ -543,9 +549,9 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             }
             # reactivate deactivated ports
             foreach entry [array names todeactivate] {
-                if {[$entry state] == "imaged" && ![registry::run_target $entry activate ""]} {
+                if {[$entry state] == "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
                     set pvers "[$entry version]_[$entry revision][$entry variants]"
-                    activate [$entry name] $pvers ""
+                    activate [$entry name] $pvers [list ports_activate_no-exec $noexec]
                 }
             }
             throw
