@@ -23,7 +23,7 @@ if {[catch {set sourcesConfChannel [open $sourcesConf r]}]} {
 }
 
 
-set mktempChannel [open "|/usr/bin/mktemp -t macports_sources_upgrade" r]
+set mktempChannel [open "|/usr/bin/mktemp -t macports_sources_upgrade.XXXXXXXXXX" r]
 set tempfile [read -nonewline $mktempChannel]
 close $mktempChannel
 
