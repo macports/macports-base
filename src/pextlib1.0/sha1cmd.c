@@ -58,6 +58,7 @@ CHECKSUMFile(SHA1_, SHA_CTX)
 #include <sys/types.h>
 #include <sha.h>
 #define SHA_DIGEST_LENGTH (SHA_HASHBYTES)
+#define SHA1_File(x,y) SHAFile(x,y)
 #else
 #error CommonCrypto or libmd required
 #endif
