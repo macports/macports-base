@@ -40,9 +40,7 @@
 
 #include "rmd160cmd.h"
 
-#if !defined(HAVE_LIBMD)
-
-/* We do not have libmd.
+/*
  * let's use our own version of rmd160* libraries.
  */
 #include <stdio.h>
@@ -60,11 +58,6 @@
 CHECKSUMEnd(RMD160, RMD160_CTX, RIPEMD160_DIGEST_LENGTH)
 CHECKSUMFile(RMD160, RMD160_CTX)
 
-#else
-#include <sys/types.h>
-#include <rmd160.h>
-#define RIPEMD160_DIGEST_LENGTH (RIPEMD160_HASHBYTES)
-#endif
 
 int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
