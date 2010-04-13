@@ -6,6 +6,8 @@ test::
 
 include ../../Mk/macports.autoconf.mk
 
+CFLAGS+= -fPIC
+
 all:: ${SHLIB_NAME}
 
 $(SHLIB_NAME):: ${OBJS}
