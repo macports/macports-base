@@ -58,17 +58,18 @@
 #define SHA256_Final(m, c)              CC_SHA256_Final(m,c)
 #endif
 
+#else
+/* We do not have CommonCrypto.
+* let's use our own version of sha256* libraries.
+*/
+#include <sys/types.h>
+#include "sha2.h"
+#include "sha2.c"
+#endif
+
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
-
-#elif defined(HAVE_LIBMD)
-#include <sys/types.h>
-#include <sha256.h>
-#define SHA256_DIGEST_LENGTH 32
-#else
-#error CommonCrypto or libmd required
-#endif
 
 int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
