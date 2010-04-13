@@ -22,7 +22,7 @@ ${SQLEXT_NAME}: ${SQLEXT_OBJS}
 	${SHLIB_LD} ${SQLEXT_OBJS} -o $@
 
 clean::
-	rm -f ${STLIB_NAME} ${SQLEXT_NAME} ${OBJS}
+	rm -f ${STLIB_NAME} ${SQLEXT_NAME} ${SQLEXT_OBJS} ${OBJS}
 
 distclean:: clean
 
