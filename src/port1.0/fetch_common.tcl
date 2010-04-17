@@ -190,8 +190,12 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
 
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
-            ui_error [format [msgcat::mc "No defined site for tag: %s, using $default_listvar"] $url_var]
-            set urlmap($url_var) [set $default_listvar]
+            if {$url_var != $default_listvar} {
+                ui_error [format [msgcat::mc "No defined site for tag: %s, using $default_listvar"] $url_var]
+                set urlmap($url_var) [set $default_listvar]
+            } else {
+                set urlmap($url_var) {}
+            }
         }
         set urllist $urlmap($url_var)
         set hosts {}
