@@ -112,7 +112,7 @@ proc portbuild::build_getjobs {args} {
             ui_warn "failed to determine the number of available CPUs (probably not supported on this platform)"
             ui_warn "defaulting to $jobs jobs, consider setting buildmakejobs to a nonzero value in macports.conf"
         }
-        if {$jobs > $memsize / 1000000000 + 1} {
+        if {[info exists memsize] && $jobs > $memsize / 1000000000 + 1} {
             set jobs [expr $memsize / 1000000000 + 1]
         }
     }
