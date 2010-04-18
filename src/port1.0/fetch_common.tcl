@@ -257,3 +257,23 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         }
     }
 }
+
+proc portfetch::get_urls {} {
+    variable fetch_urls
+    variable urlmap
+    set urls {}
+
+    portfetch::checkfiles fetch_urls
+
+    foreach {url_var distfile} $fetch_urls {
+        if {![info exists urlmap($url_var)]} {
+            ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
+            set urlmap($url_var) $master_sites
+        }
+        foreach site $urlmap($url_var) {
+            lappend urls $site
+        }
+    }
+
+    return $urls
+}
