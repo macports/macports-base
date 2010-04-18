@@ -57,8 +57,7 @@ default archivefetch.use_epsv no
 # Ignore SSL certificate
 default archivefetch.ignore_sslcert no
 
-# TODO: enable this when binaries are available on a macports server
-#default archive_sites macports_archives
+default archive_sites macports_archives
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
 

@@ -9,6 +9,8 @@
 
 set porthelp(activate) {
 Activate the given ports
+
+--no-exec   Do not execute any stored pre- or post-activate procedures
 }
 
 set porthelp(archive) {
@@ -64,6 +66,8 @@ Returns a list of files installed by given ports
 
 set porthelp(deactivate) {
 Deactivates the given ports
+
+--no-exec   Do not execute any stored pre- or post-deactivate procedures
 }
 
 set porthelp(dependents) {
@@ -310,6 +314,8 @@ Unarchive the given ports
 
 set porthelp(uninstall) {
 Uninstall the given ports
+
+--no-exec   Do not execute any stored pre- or post-uninstall procedures
 }
 
 set porthelp(unload) $porthelp(load)

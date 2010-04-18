@@ -788,6 +788,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         } else {
             set macports::universal_archs {i386 ppc}
         }
+    } elseif {[llength $macports::universal_archs] < 2} {
+        ui_warn "invalid universal_archs configured (should contain at least 2 archs)"
     }
     
     # Default arch to build for
@@ -1570,6 +1572,15 @@ proc mportexec {mport target} {
         set dlist [dlist_append_dependents $macports::open_mports $mport {}]
 
         dlist_delete dlist $mport
+        
+        # print the dep list
+        if {[llength $dlist] > 0} {
+            set depstring "--->  Dependencies to be installed:"
+            foreach ditem $dlist {
+                append depstring " [ditem_key $ditem provides]"
+            }
+            ui_msg $depstring
+        }
 
         # install them
         # xxx: as with below, this is ugly.  and deps need to be fixed to
@@ -1932,6 +1943,11 @@ proc mportsync {{optionslist {}}} {
         }
     }
 
+    # refresh the quick index if necessary (batch or interactive run)
+    if {[info exists macports::ui_options(ports_commandfiles)]} {
+        _mports_load_quickindex
+    }
+
     if {$numfailed > 0} {
         return -code error "Synchronization of $numfailed source(s) failed"
     }
@@ -2199,6 +2215,8 @@ proc mportlistall {args} {
 # it first if necessary.
 proc _mports_load_quickindex {args} {
     global macports::sources macports::quick_index
+
+    unset -nocomplain macports::quick_index
 
     set sourceno 0
     foreach source $sources {
@@ -2756,7 +2774,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 
                 # upgrade its dependencies first
                 set status [_upgrade_dependencies portinfo depscache variationslist options yes]
-                if {$status != 0 && ![ui_isset ports_processall]} {
+                if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                     catch {mportclose $workername}
                     return $status
                 }
@@ -2968,7 +2986,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # first upgrade dependencies
     if {![info exists options(ports_nodeps)]} {
         set status [_upgrade_dependencies portinfo depscache variationslist options $will_build]
-        if {$status != 0 && ![ui_isset ports_processall]} {
+        if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
             catch {mportclose $workername}
             return $status
         }
@@ -2994,7 +3012,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     set mpname [lindex $dep 2]
                     if {![llength [array get depscache port:${mpname}]]} {
                         set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
-                        if {$status != 0 && ![ui_isset ports_processall]} {
+                        if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                             catch {mportclose $workername}
                             return $status
                         }
@@ -3113,7 +3131,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 set mpname [lindex $dep 2]
                 if {![llength [array get depscache port:${mpname}]]} {
                     set status [macports::_upgrade $mpname port:${mpname} $variationslist [array get options] depscache]
-                    if {$status != 0 && ![ui_isset ports_processall]} {
+                    if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} {
                         catch {mportclose $workername}
                         return $status
                     }
@@ -3195,11 +3213,11 @@ proc macports::_upgrade_dependencies {portinfoname depscachename variationslistn
                         set d [lindex [split $i :] end]
                     }
                     set status [macports::_upgrade $d $dspec $variationslist [array get options] depscache]
-                    if {$status != 0 && ![ui_isset ports_processall]} break
+                    if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} break
                 }
             }
         }
-        if {$status != 0 && ![ui_isset ports_processall]} break
+        if {$status != 0 && $status != 2 && ![ui_isset ports_processall]} break
     }
     # restore dependent-following to its former value
     if {$saved_do_dependents} {

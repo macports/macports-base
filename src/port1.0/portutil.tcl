@@ -710,7 +710,7 @@ proc platform {args} {
 
     # Execute the code if this platform matches the platform we're on
     if {$match} {
-        uplevel #0 $code
+        uplevel 1 $code
     }
 }
 

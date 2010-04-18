@@ -14,12 +14,15 @@ all: ${SCRIPTS}
 
 portmirror: portmirror.tcl ../../Mk/macports.autoconf.mk
 	${edit} portmirror.tcl > $@
+	chmod +x $@
 
 portindex: portindex.tcl ../../Mk/macports.autoconf.mk
 	${edit} portindex.tcl > $@
+	chmod +x $@
 
 port: port.tcl ../../Mk/macports.autoconf.mk
 	${edit} port.tcl > $@
+	chmod +x $@
 
 mkdirs:
 	cat ../../doc/prefix.mtree | $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null

@@ -34,8 +34,14 @@ exec @TCLSH@ "$0" "$@"
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-catch {source \
-    [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]}
+if {([file tail [pwd]] == "src" && [file exists [set dir macports1.0]/macports_fastload.tcl])
+        || ([file tail [pwd]] == "base" && [file exists [set dir src/macports1.0]/macports_fastload.tcl])} {
+    # developer mode, source packages from current directory
+    source [file join $dir macports_fastload.tcl]
+} else {
+    source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
+}
+
 package require macports
 package require Pextlib 1.0
 
@@ -1451,7 +1457,7 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
     if { [moreargs] } {
         # Look first for a potential portname
         #
-        # We need to allow a wide variaty of tokens here, because of actions like "provides"
+        # We need to allow a wide variety of tokens here, because of actions like "provides"
         # so we take a rather lenient view of what a "portname" is. We allow
         # anything that doesn't look like either a version, a variant, or an option
         set token [lookahead]
@@ -2227,7 +2233,11 @@ proc action_activate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_activate_no-exec)]
+            && ![catch {set ilist [registry::installed $portname $composite_version]}]
+            && [llength $ilist] == 1} {
+
             set i [lindex $ilist 0]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
             if {[registry::run_target $regref activate [array get options]]} {
@@ -2257,7 +2267,10 @@ proc action_deactivate { action portlist opts } {
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::active $portname]}]} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_deactivate_no-exec)]
+            && ![catch {set ilist [registry::active $portname]}]} {
+
             set i [lindex $ilist 0]
             set iversion [lindex $i 1]
             set irevision [lindex $i 2]
@@ -2790,7 +2803,11 @@ proc action_uninstall { action portlist opts } {
             continue
         }
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite" && ![catch {set ilist [registry::installed $portname $composite_version]}] && [llength $ilist] == 1} {
+        if {${macports::registry.format} == "receipt_sqlite"
+            && ![info exists options(ports_uninstall_no-exec)]
+            && ![catch {set ilist [registry::installed $portname $composite_version]}]
+            && [llength $ilist] == 1} {
+
             set i [lindex $ilist 0]
             set iactive [lindex $i 4]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
@@ -3824,7 +3841,9 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
-    uninstall   {follow-dependents follow-dependencies}
+    activate    {no-exec}
+    deactivate  {no-exec}
+    uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
     clean       {all archive dist work logs}
     mirror      {new}
@@ -4346,6 +4365,12 @@ if {[catch {parse_options "global" ui_options global_options} result]} {
 # Get arguments remaining after option processing
 set remaining_args [lrange $cmd_argv $cmd_argn end]
 
+# If we have no arguments remaining after option processing then force
+# interactive mode
+if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
+    lappend ui_options(ports_commandfiles) -
+}
+
 # If we have a tty, enable xterm titles
 if [isatty stdout] {
     set ui_options(ports_xterm_titles) yes
@@ -4358,12 +4383,6 @@ if {[catch {mportinit ui_options global_options global_variations} result]} {
     global errorInfo
     puts "$errorInfo"
     fatal "Failed to initialize MacPorts, $result"
-}
-
-# If we have no arguments remaining after option processing then force
-# interactive mode
-if { [llength $remaining_args] == 0 && ![info exists ui_options(ports_commandfiles)] } {
-    lappend ui_options(ports_commandfiles) -
 }
 
 # Set up some global state for our code

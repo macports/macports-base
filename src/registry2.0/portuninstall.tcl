@@ -52,6 +52,10 @@ proc uninstall {portname {v ""} optionslist} {
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)]} {
         set uninstall.force yes
     }
+    # if no-exec is set for uninstall, set for deactivate too
+    if {[info exists options(ports_uninstall_no-exec)]} {
+        set options(ports_deactivate_no-exec) $options(ports_uninstall_no-exec)
+    }
     # check which registry API to use
     set use_reg2 [string equal ${macports::registry.format} "receipt_sqlite"]
 
@@ -126,7 +130,7 @@ proc uninstall {portname {v ""} optionslist} {
             foreach depport [$port dependents] {
                 # make sure it's still installed, since a previous dep uninstall may have removed it
                 if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
-                    if {![registry::run_target $depport uninstall $optionslist]} {
+                    if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $depport uninstall $optionslist]} {
                         set depname [$depport name]
                         set depver "[$depport version]_[$depport revision][$depport variants]"
                         registry_uninstall::uninstall $depname $depver $optionslist
@@ -142,8 +146,8 @@ proc uninstall {portname {v ""} optionslist} {
             if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
                 ui_msg "For $portname @${v}: skipping deactivate (dry run)"
             } else {
-                if {![registry::run_target $port deactivate $optionslist]} {
-                    portimage::deactivate $portname $v $optionslist
+                if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
+                    portimage::deactivate $portname $v [array get options]
                 }
             }
         }
@@ -381,7 +385,7 @@ proc uninstall {portname {v ""} optionslist} {
                         set ivariants [lindex $i 3]
                         if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
                             set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
-                            if {![registry::property_retrieve $regref requested] && (!$use_reg2 || ![registry::run_target $regref uninstall $optionslist])} {
+                            if {![registry::property_retrieve $regref requested] && (!$use_reg2 || [info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall $optionslist])} {
                                 set depver "${iversion}_${irevision}${ivariants}"
                                 registry_uninstall::uninstall $dep $depver $optionslist
                             }
