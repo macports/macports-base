@@ -34,8 +34,8 @@ exec @TCLSH@ "$0" "$@"
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-if {([file tail [pwd]] == "src" && [file exists [set dir macports1.0]/macports_fastload.tcl]])
-        || ([file tail [pwd]] == "base" && [file exists [set dir src/macports1.0]/macports_fastload.tcl]])} {
+if {([file tail [pwd]] == "src" && [file exists [set dir macports1.0]/macports_fastload.tcl])
+        || ([file tail [pwd]] == "base" && [file exists [set dir src/macports1.0]/macports_fastload.tcl])} {
     # developer mode, source packages from current directory
     source [file join $dir macports_fastload.tcl]
 } else {
