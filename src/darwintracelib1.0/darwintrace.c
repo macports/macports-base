@@ -344,7 +344,8 @@ inline void __darwintrace_setup() {
 				__darwintrace_fd=sock;
 				ask_for_filemap();
 			} else {
-				dprintf("connect failed %d :-(\n", errno);
+				dprintf("connect failed: %s\n", strerror(errno));
+				abort();
 			}
 			errno = olderrno;
 		}
@@ -549,12 +550,14 @@ inline int __darwintrace_is_in_sandbox(const char* path, char * newpath) {
 		p=strdup(path);
 	else
 	{
-		p=(char*)malloc(BUFFER_SIZE);
-		(void) getcwd(p, BUFFER_SIZE-1);
-		_=p+strlen(p)+1;
-		if(_[-1]!='/')
-			*_++='/';
-		strncpy(_, path, BUFFER_SIZE-(_-p));
+		p=(char*)malloc(MAXPATHLEN);
+		if (getcwd(p, MAXPATHLEN-1) == NULL) {
+			fprintf(stderr, "darwintrace: getcwd: %s, path was: %s\n", strerror(errno), path);
+			abort();
+		}
+		if (p[strlen(p)-1] != '/')
+			strcat(p, "/");
+		strcat(p, path);
 	}
 	__darwintrace_cleanup_path(p);
 			
