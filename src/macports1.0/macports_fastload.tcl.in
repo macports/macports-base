@@ -1,3 +1,4 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # macports_fastload.tcl.in
 # $Id$
 #
@@ -45,39 +46,39 @@
 #
 if { [regexp {\d+\.\d+\.\d+} [info patchlevel]] &&
         ([package vcompare [info patchlevel] 8.4.7] < 0) } {
-	global allpackages
-	if {![info exists allpackages]} {
-		# Only patch once.
-		array set allpackages {}
-		rename package package_native
-		proc package {args} {
-				global allpackages
-				if {([lindex $args 0] == "ifneeded") && ([llength $args] == 4)} {
-						set package_name [lindex $args 1]
-						set package_version [lindex $args 2]
-						set package_key ${package_name}::${package_version}
-						if {![info exists allpackages($package_key)]} {
-								set allpackages($package_key) 1
-								set result [eval package_native $args]
-						} else {
-								set result ""
-						}
-				} else {
-						set result [eval package_native $args]
-				}
-				return $result
-		}
-	}
+    global allpackages
+    if {![info exists allpackages]} {
+        # Only patch once.
+        array set allpackages {}
+        rename package package_native
+        proc package {args} {
+            global allpackages
+            if {([lindex $args 0] == "ifneeded") && ([llength $args] == 4)} {
+                set package_name [lindex $args 1]
+                set package_version [lindex $args 2]
+                set package_key ${package_name}::${package_version}
+                if {![info exists allpackages($package_key)]} {
+                    set allpackages($package_key) 1
+                    set result [eval package_native $args]
+                    } else {
+                        set result ""
+                    }
+            } else {
+                set result [eval package_native $args]
+            }
+            return $result
+        }
+    }
 }
 
 set sharetcldir "@macports_tcl_dir@"
 if {[file exists $sharetcldir]} {
-	foreach dir [glob -directory $sharetcldir *] {
-		catch {source [file join $dir pkgIndex.tcl]}
-	}
+    foreach dir [glob -directory $sharetcldir *] {
+        catch {source [file join $dir pkgIndex.tcl]}
+    }
 }
 
 if { "@SQLITE3_TCL_DIR@" != "" } {
-	set dir "@SQLITE3_TCL_DIR@"
-	catch {source [file join $dir pkgIndex.tcl]}
+    set dir "@SQLITE3_TCL_DIR@"
+    catch {source [file join $dir pkgIndex.tcl]}
 }
