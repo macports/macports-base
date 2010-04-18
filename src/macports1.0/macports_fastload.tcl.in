@@ -71,7 +71,7 @@ if { [regexp {\d+\.\d+\.\d+} [info patchlevel]] &&
     }
 }
 
-set sharetcldir "@macports_tcl_dir@"
+set sharetcldir [file normalize [file join [file dirname [info script]] ..]]
 if {[file exists $sharetcldir]} {
     foreach dir [glob -directory $sharetcldir *] {
         set pkgindex [file join $dir pkgIndex.tcl]
