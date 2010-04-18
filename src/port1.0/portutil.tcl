@@ -566,6 +566,13 @@ proc variant {args} {
     array set vinfo [list $variant_provides [array get variant]]
     set PortInfo(vinfo) [array get vinfo]
 
+    if {[variant_isset $variant_provides]} {
+        # set variants that this one requires
+        foreach req [ditem_key $ditem requires] {
+            variant_set $req
+        }
+    }
+
     # Finally append the ditem to the dlist.
     lappend all_variants $ditem
 }
