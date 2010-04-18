@@ -156,7 +156,16 @@ static char* __env_darwintrace_log;
 #endif
 #else
 #if DARWINTRACE_DEBUG_OUTPUT
-#define dprintf(format, param) fprintf(stderr, format, param)
+__attribute__ ((format (printf, 1, 2)))
+static inline
+int dprintf(const char *format, ...) {
+    int ret;
+    va_list args;
+    va_start(args, format);
+    ret = vfprintf(stderr, format, args);
+    va_end(args);
+    return ret;
+}
 #else
 #define dprintf(format, param)
 #endif
