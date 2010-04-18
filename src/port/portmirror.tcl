@@ -11,14 +11,8 @@ exec @TCLSH@ "$0" "$@"
 # Updates the distfiles to current distfiles by deleting old stuff.
 # Uses the database.
 
-if {([file tail [pwd]] == "src" && [file exists [set dir macports1.0]/macports_fastload.tcl])
-        || ([file tail [pwd]] == "base" && [file exists [set dir src/macports1.0]/macports_fastload.tcl])} {
-    # developer mode, source packages from current directory
-    source [file join $dir macports_fastload.tcl]
-} else {
-    source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
-}
-
+catch {source \
+    [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]}
 package require macports
 package require Pextlib
 
