@@ -273,9 +273,21 @@ enable trace mode debug facilities on platforms that support it (Mac OS X). This
 .Sh USER TARGETS
 Targets most commonly used by regular MacPorts users are:
 .Ss search
-Search for an available port whose name matches a regular expression. For example:
+Search for an available port. By default, the search string is treated as a case-insensitive glob,
+and is matched against the name and description fields. To have the search string treated as
+a regular expression, as a literal, or in a case-sensitive manner, use
+.Fl -regex,
+.Fl -exact,
+or
+.Fl -case-sensitive,
+respectively. To match against a different set of fields, use one or more
+.Fl -<field-name>
+options. To display each result on a single line, use
+.Fl -line.
+For example:
 .Pp
 .Dl "port search vim"
+.Dl "port search --regex --depends_build 'docbook.*[0-9]+'"
 .Pp
 .Ss info
 Displays meta-information available for
