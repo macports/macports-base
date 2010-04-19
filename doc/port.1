@@ -132,11 +132,15 @@ installed ports that were installed only to satisfy dependencies.
 installed ports that are unrequested and have no dependents.
 .Pp
 .El
-Other options, also known as
+Sets of ports can also be specified with
 .Ar pseudo-portname selectors ,
-matching the most common keys used in a
+which expand to the ports in which the value of the
 .Ar Portfile
-are also accepted, in both singular and plural form where applicable. These are:
+key corresponding to the selector's name (in either singular or plural form where applicable)
+matches the given regular expression. Usage is:
+.Ar selector:regex
+.Pp
+Available selectors are:
 .Pp
 .Bl -bullet -offset indent -compact
 .It
@@ -173,9 +177,6 @@ are also accepted, in both singular and plural form where applicable. These are:
 .Ar portdir
 .El
 .Pp
-Search strings that will expand to a set of matching ports can be constructed based on the 
-.Ar \(rqpseudo-portname selector\(lq:regex
-combination used.
 .Pp
 Other pseudo-portname selectors match ports which have a particular relationship to
 another port. These will match ports that are direct or recursive dependencies or dependents
