@@ -2860,6 +2860,7 @@ proc action_installed { action portlist opts } {
             set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
             set extra ""
+            set nvariants ""
             if {[macports::ui_isset ports_verbose]} {
                 set regref [registry::open_entry $iname $iversion $irevision $ivariants [lindex $i 5]]
                 set nvariants [registry::property_retrieve $regref negated_variants]
