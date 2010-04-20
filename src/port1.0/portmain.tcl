@@ -138,26 +138,31 @@ default compiler.library_path {${prefix}/lib}
 set euid [geteuid]
 set egid [getegid]
 
-# if unable to write to workpath, implies running without either root privileges
-# or a shared directory owned by the group so use ~/.macports
-if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
-
-    set username [uid_to_name [getuid]]
-
-    # set global variable indicating to other functions to use ~/.macports as well
-    set usealtworkpath yes
+# resolve the alternate work path in ~/.macports
+proc portmain::set_altprefix {} {
+    global altprefix env euid
 
     # do tilde expansion manually - Tcl won't expand tildes automatically for curl, etc.
     if {[info exists env(HOME)]} {
         # HOME environment var is set, use it.
         set userhome "$env(HOME)"
+    } elseif {$euid == 0 && [info exists env(SUDO_USER)]} {
+        set userhome [file normalize "~$env(SUDO_USER)"]
     } else {
         # the environment var isn't set, expand ~user instead
-        set userhome [file normalize "~${username}"]
+        set userhome [file normalize "~[uid_to_name [getuid]]"]
     }
 
-    # set alternative prefix global variable
     set altprefix [file join $userhome .macports]
+}
+
+# if unable to write to workpath, implies running without either root privileges
+# or a shared directory owned by the group so use ~/.macports
+portmain::set_altprefix
+if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file writable $workpath]) || ([info exists portdbpath] && ![file writable [file join $portdbpath build]])) } {
+
+    # set global variable indicating to other functions to use ~/.macports as well
+    set usealtworkpath yes
 
     default worksymlink {[file join ${altprefix}${portpath} work]}
     default distpath {[file join ${altprefix}${portdbpath} distfiles ${dist_subdir}]}
@@ -170,6 +175,7 @@ if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file
     default worksymlink {[file join $portpath work]}
     default distpath {[file join $portdbpath distfiles ${dist_subdir}]}
 }
+
 # end gsoc08-privileges
 
 proc portmain::main {args} {

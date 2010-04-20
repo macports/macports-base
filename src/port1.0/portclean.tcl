@@ -1,4 +1,4 @@
-# et:ts=4
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # portclean.tcl
 # $Id$
 #
@@ -58,8 +58,8 @@ proc portclean::clean_start {args} {
 proc portclean::clean_main {args} {
     global UI_PREFIX
     global ports_clean_dist ports_clean_work ports_clean_archive ports_clean_logs
-    global ports_clean_all usealtworkpath 
-    global	keeplogs
+    global ports_clean_all 
+    global keeplogs
 
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
@@ -79,31 +79,6 @@ proc portclean::clean_main {args} {
     }
     if {([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no")} {
         clean_logs
-    }
-
-    # start gsoc-08 privileges
-    if {[info exists usealtworkpath] && $usealtworkpath == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing alt source directory for %s"] [option name]]"
-        clean_altsource
-    }
-    # end gsoc-08 privileges
-
-    return 0
-}
-
-proc portclean::clean_altsource {args} {
-    global usealtworkpath worksymlink
-
-    set sourcepath [string map {"work" ""} $worksymlink]
-
-    if {[file isdirectory $sourcepath]} {
-        ui_debug "Removing directory: ${sourcepath}"
-        if {[catch {delete $sourcepath} result]} {
-            ui_debug "$::errorInfo"
-            ui_error "$result"
-        }
-    } else {
-        ui_debug "No alt source directory found to remove."
     }
 
     return 0
@@ -126,7 +101,15 @@ proc portclean::clean_dist {args} {
                 ui_debug "$::errorInfo"
                 ui_error "$result"
             }
-            set count [expr $count + 1]
+            incr count
+        }
+        if {!$usealtworkpath && [file isfile ${altprefix}${distfile}]} {
+            ui_debug "Removing file: ${altprefix}${distfile}"
+            if {[catch {delete ${altprefix}${distfile}} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
         }
     }
     if {$count > 0} {
@@ -153,18 +136,22 @@ proc portclean::clean_dist {args} {
     # loop through directories
     set count 0
     foreach dir $dirlist {
-        if {$usealtworkpath} {
-            set distdir [file join ${altprefix}${portdbpath} distfiles $dir]
-        } else {
-            set distdir [file join ${portdbpath} distfiles $dir]
-        }
+        set distdir [file join ${portdbpath} distfiles $dir]
         if {[file isdirectory $distdir]} {
             ui_debug "Removing directory: ${distdir}"
             if {[catch {delete $distdir} result]} {
                 ui_debug "$::errorInfo"
                 ui_error "$result"
             }
-            set count [expr $count + 1]
+            incr count
+        }
+        if {!$usealtworkpath && [file isdirectory ${altprefix}${distdir}]} {
+            ui_debug "Removing directory: ${altprefix}${distdir}"
+            if {[catch {delete ${altprefix}${distdir}} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
         }
     }
     if {$count > 0} {
@@ -176,7 +163,7 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath worksymlink
+    global portbuildpath worksymlink usealtworkpath altprefix
 
     if {[file isdirectory $portbuildpath]} {
         ui_debug "Removing directory: ${portbuildpath}"
@@ -186,6 +173,16 @@ proc portclean::clean_work {args} {
         }
     } else {
         ui_debug "No work directory found to remove at ${portbuildpath}"
+    }
+
+    if {!$usealtworkpath && [file isdirectory ${altprefix}${portbuildpath}]} {
+        ui_debug "Removing directory: ${altprefix}${portbuildpath}"
+        if {[catch {delete ${altprefix}${portbuildpath}} result]} {
+            ui_debug "$::errorInfo"
+            ui_error "$result"
+        }
+    } else {
+        ui_debug "No work directory found to remove at ${altprefix}${portbuildpath}"
     }
 
     # Clean symlink, if necessary
@@ -242,15 +239,13 @@ proc portclean::clean_archive {args} {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not
             # an accidental match with some other file that might exist.
-            if {[regexp $regexstring $file]} {
-                if {[file isfile $path]} {
-                    ui_debug "Removing archive: $path"
-                    if {[catch {delete $path} result]} {
-                        ui_debug "$::errorInfo"
-                        ui_error "$result"
-                    }
-                    set count [expr $count + 1]
+            if {[regexp $regexstring $file] && [file isfile $path]} {
+                ui_debug "Removing archive: $path"
+                if {[catch {delete $path} result]} {
+                    ui_debug "$::errorInfo"
+                    ui_error "$result"
                 }
+                incr count
             }
         }
     }
