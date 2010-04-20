@@ -483,7 +483,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                             # the registry
                             if { $owner != {} && $owner != $port } {
                                 throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
-                            } elseif { $owner == {} && [file exists $file] } {
+                            } elseif { $owner == {} && ![catch {[file type $file]}] } {
                                 throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
                             }
                         }
