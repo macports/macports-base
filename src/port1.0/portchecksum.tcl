@@ -188,6 +188,7 @@ proc portchecksum::checksum_start {args} {
 #
 proc portchecksum::checksum_main {args} {
     global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip
+    global usealtworkpath altprefix
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -217,6 +218,13 @@ proc portchecksum::checksum_main {args} {
 
             # get the full path of the distfile.
             set fullpath [file join $distpath $distfile]
+            if {![file isfile $fullpath]} {
+                if {!$usealtworkpath && [file isfile "${altprefix}${fullpath}"]} {
+                    set fullpath "${altprefix}${fullpath}"
+                } else {
+                    return -code error "$distfile does not exist in $distpath"
+                }
+            }
 
             # check that there is at least one checksum for the distfile.
             if {![info exists checksums_array($distfile)]} {
@@ -261,6 +269,9 @@ proc portchecksum::checksum_main {args} {
             }
 
             set fullpath [file join $distpath $distfile]
+            if {![file isfile $fullpath] && (!$usealtworkpath && [file isfile "${altprefix}${fullpath}"])} {
+                set fullpath "${altprefix}${fullpath}"
+            }
             foreach type $checksum_types {
                 lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
             }

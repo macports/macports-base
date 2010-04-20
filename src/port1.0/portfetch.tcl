@@ -422,7 +422,7 @@ proc portfetch::hgfetch {args} {
 proc portfetch::fetchfiles {args} {
     global distpath all_dist_files UI_PREFIX
     global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert fetch.remote_time
-    global fallback_mirror_site portverbose
+    global fallback_mirror_site portverbose usealtworkpath altprefix
     variable fetch_urls
     variable urlmap
 
@@ -460,7 +460,7 @@ proc portfetch::fetchfiles {args} {
     set sorted no
 
     foreach {url_var distfile} $fetch_urls {
-        if {![file isfile $distpath/$distfile]} {
+        if {![file isfile $distpath/$distfile] && ($usealtworkpath || ![file isfile ${altprefix}${distpath}/$distfile])} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]

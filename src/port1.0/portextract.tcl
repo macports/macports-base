@@ -116,7 +116,7 @@ proc portextract::extract_start {args} {
 }
 
 proc portextract::extract_main {args} {
-    global UI_PREFIX filespath worksrcpath extract.dir
+    global UI_PREFIX filespath worksrcpath extract.dir usealtworkpath altprefix
 
     if {![exists distfiles] && ![exists extract.only]} {
         # nothing to do
@@ -127,6 +127,8 @@ proc portextract::extract_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
         if {[file exists $filespath/$distfile]} {
             option extract.args "$filespath/$distfile"
+        } elseif {![file exists "[option distpath]/$distfile"] && !$usealtworkpath && [file exists "${altprefix}[option distpath]/$distfile"]} {
+            option extract.args "${altprefix}[option distpath]/$distfile"
         } else {
             option extract.args "[option distpath]/$distfile"
         }
