@@ -129,7 +129,11 @@ proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
     
     set itemname            ${startupitem.name}
     set uppername           [string toupper ${startupitem.name}]
-    set itemdir             /Library/StartupItems/${itemname}
+    if {[getuid] == 0} {
+        set itemdir         /Library/StartupItems/${itemname}
+    } else {
+        set itemdir         ${prefix}/Library/StartupItems/${itemname}
+    }
     set startupItemDir      ${destroot}${itemdir}
     set startupItemScript   ${startupItemDir}/${itemname}
     set startupItemPlist    ${startupItemDir}/StartupParameters.plist
@@ -585,9 +589,11 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     close ${plist}
 
     # Make a symlink to the plist file
-    file mkdir "${destroot}/Library/${daemondest}"
-    ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
-    
+    if {[getuid] == 0} {
+        file mkdir "${destroot}/Library/${daemondest}"
+        ln -sf "${itemdir}/${plistname}" "${destroot}/Library/${daemondest}"
+    }
+
     # If launchd is not available, warn the user
     set haveLaunchd ${portutil::autoconf::have_launchd}
     if {![tbool haveLaunchd]} {
@@ -595,7 +601,7 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         ui_msg "# WARNING:"
         ui_msg "# We're building a launchd startup item, but launchd wasn't"
         ui_msg "# found by configure. Are you sure you didn't mess up your"
-        ui_msg "# ports.conf settings?"
+        ui_msg "# macports.conf settings?"
         ui_msg "###########################################################"
     }
     
