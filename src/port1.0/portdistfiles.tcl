@@ -53,7 +53,7 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites checksums_array
+    global UI_PREFIX master_sites checksums_array portdbpath dist_subdir
     
     # give up on ports that do not provide URLs
     if {$master_sites == "{}"} {
@@ -71,7 +71,7 @@ proc portdistfiles::distfiles_main {args} {
     foreach {url_var distfile} $fetch_urls {
         global portfetch::urlmap
 
-        ui_msg "\[$distfile\]"
+        ui_msg "\[$distfile\] [file join $portdbpath distfiles $dist_subdir $distfile]"
 
         # print checksums if available
         if {$result == "yes" && [array get checksums_array $distfile] != ""} {
