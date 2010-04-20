@@ -114,16 +114,12 @@ proc portclean::clean_altsource {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force name distpath dist_subdir distfiles
+    global ports_force name distpath dist_subdir distfiles usealtworkpath portdbpath altprefix
 
     # remove known distfiles for sure (if they exist)
     set count 0
     foreach file $distfiles {
-        if {[info exist distpath] && [info exists dist_subdir]} {
-            set distfile [file join $distpath $dist_subdir $file]
-        } else {
-            set distfile [file join $distpath $file]
-        }
+        set distfile [file join $distpath $file]
         if {[file isfile $distfile]} {
             ui_debug "Removing file: $distfile"
             if {[catch {delete $distfile} result]} {
@@ -142,18 +138,13 @@ proc portclean::clean_dist {args} {
     # next remove dist_subdir if only needed for this port,
     # or if user forces us to
     set dirlist [list]
-    if {($dist_subdir != $name)} {
-        if {[info exists dist_subdir]} {
-            set distfullpath [file join $distpath $dist_subdir]
-            if {!([info exists ports_force] && $ports_force == "yes")
-                && [file isdirectory $distfullpath]
-                && [llength [readdir $distfullpath]] > 0} {
-                ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] [file join $distpath $dist_subdir]]
-            } else {
-                lappend dirlist $dist_subdir
-                lappend dirlist $name
-            }
+    if {$dist_subdir != $name} {
+        if {!([info exists ports_force] && $ports_force == "yes")
+            && [file isdirectory $distpath]
+            && [llength [readdir $distpath]] > 0} {
+            ui_warn [format [msgcat::mc "Distfiles directory '%s' may contain distfiles needed for other ports, use the -f flag to force removal" ] $distpath]
         } else {
+            lappend dirlist $dist_subdir
             lappend dirlist $name
         }
     } else {
@@ -162,7 +153,11 @@ proc portclean::clean_dist {args} {
     # loop through directories
     set count 0
     foreach dir $dirlist {
-        set distdir [file join $distpath $dir]
+        if {$usealtworkpath} {
+            set distdir [file join ${altprefix}${portdbpath} distfiles $dir]
+        } else {
+            set distdir [file join ${portdbpath} distfiles $dir]
+        }
         if {[file isdirectory $distdir]} {
             ui_debug "Removing directory: ${distdir}"
             if {[catch {delete $distdir} result]} {

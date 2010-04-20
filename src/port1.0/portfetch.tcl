@@ -537,13 +537,8 @@ proc portfetch::fetch_addfilestomap {filemapname} {
 
 # Initialize fetch target and call checkfiles.
 proc portfetch::fetch_init {args} {
-    global distpath dist_subdir fetch_init_done
     variable fetch_urls
 
-    if {[info exists distpath] && [info exists dist_subdir] && ![info exists fetch_init_done]} {
-        set distpath ${distpath}/${dist_subdir}
-        set fetch_init_done yes
-    }
     portfetch::checkfiles fetch_urls
 }
 

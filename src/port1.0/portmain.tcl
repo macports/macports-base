@@ -160,7 +160,7 @@ if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file
     set altprefix [file join $userhome .macports]
 
     default worksymlink {[file join ${altprefix}${portpath} work]}
-    default distpath {[file join ${altprefix}${portdbpath} distfiles]}
+    default distpath {[file join ${altprefix}${portdbpath} distfiles ${dist_subdir}]}
     set portbuildpath "${altprefix}${portbuildpath}"
 
     ui_debug "Going to use alternate build prefix: $altprefix"
@@ -168,7 +168,7 @@ if { $euid != 0 && (([info exists workpath] && [file exists $workpath] && ![file
 } else {
     set usealtworkpath no
     default worksymlink {[file join $portpath work]}
-    default distpath {[file join $portdbpath distfiles]}
+    default distpath {[file join $portdbpath distfiles ${dist_subdir}]}
 }
 # end gsoc08-privileges
 
