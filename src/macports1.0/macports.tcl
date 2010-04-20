@@ -595,7 +595,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             return -code error "unknown registry format '$portdbformat' set in macports.conf"
         }
     } else {
-        set registry.format receipt_flat
+        set registry.format receipt_sqlite
     }
 
     # Installation type, whether to use port "images" or install "direct"
