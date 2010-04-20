@@ -2027,6 +2027,13 @@ proc handle_default_variants {option action {value ""}} {
 
 proc adduser {name args} {
     global os.platform
+
+    if {[getuid] != 0} {
+        ui_warn "adduser only works when running as root."
+        ui_warn "The requested user '$name' was not created."
+        return
+    }
+
     set passwd {*}
     set uid [nextuid]
     set gid [existsgroup nogroup]
@@ -2054,13 +2061,20 @@ proc adduser {name args} {
         exec $dscl . -create /Users/${name} UserShell ${shell}
     } else {
         # XXX adduser is only available for darwin, add more support here
-        ui_warn "WARNING: adduser is not implemented on ${os.platform}."
-        ui_warn "The requested user was not created."
+        ui_warn "adduser is not implemented on ${os.platform}."
+        ui_warn "The requested user '$name' was not created."
     }
 }
 
 proc addgroup {name args} {
     global os.platform
+
+    if {[getuid] != 0} {
+        ui_warn "addgroup only works when running as root."
+        ui_warn "The requested group '$name' was not created."
+        return
+    }
+
     set gid [nextgid]
     set realname ${name}
     set passwd {*}
@@ -2086,7 +2100,7 @@ proc addgroup {name args} {
         }
     } else {
         # XXX addgroup is only available for darwin, add more support here
-        ui_warn "WARNING: addgroup is not implemented on ${os.platform}."
+        ui_warn "addgroup is not implemented on ${os.platform}."
         ui_warn "The requested group was not created."
     }
 }
