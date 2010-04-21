@@ -146,11 +146,9 @@ proc portmain::set_altprefix {} {
     if {[info exists env(HOME)]} {
         # HOME environment var is set, use it.
         set userhome "$env(HOME)"
-    } elseif {$euid == 0 && [info exists env(SUDO_USER)]} {
-        set userhome [file normalize "~$env(SUDO_USER)"]
     } else {
-        # the environment var isn't set, expand ~user instead
-        set userhome [file normalize "~[uid_to_name [getuid]]"]
+        # apparently there's no way to expand ~user without HOME
+        set userhome ""
     }
 
     set altprefix [file join $userhome .macports]
