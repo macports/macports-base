@@ -166,7 +166,7 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath worksymlink usealtworkpath altprefix
+    global portbuildpath worksymlink usealtworkpath altprefix portpath
 
     if {[file isdirectory $portbuildpath]} {
         ui_debug "Removing directory: ${portbuildpath}"
@@ -192,6 +192,12 @@ proc portclean::clean_work {args} {
     if {![catch {file type $worksymlink} result] && $result eq "link"} {
         ui_debug "Removing symlink: $worksymlink"
         delete $worksymlink
+    }
+    
+    # clean port dir in alt prefix
+    if {[file exists "${altprefix}${portpath}"]} {
+        ui_debug "removing ${altprefix}${portpath}"
+        delete "${altprefix}${portpath}"
     }
 
     return 0
