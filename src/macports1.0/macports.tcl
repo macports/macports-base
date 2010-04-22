@@ -1493,8 +1493,8 @@ proc _mportexec {target mport} {
         return 0
     } else {
         # An error occurred.
-        global ::debuglogname
-        if {[info exists ::debuglogname]} {
+        global ::logenabled ::debuglogname
+        if {$::logenabled && [info exists ::debuglogname]} {
             ui_msg "Log for $portname is at: $::debuglogname"
         }
         macports::pop_log
@@ -1615,8 +1615,8 @@ proc mportexec {mport target} {
         $workername eval eval_targets clean
     }
     
-    global ::debuglogname
-    if {[info exists ::debuglogname]} {
+    global ::logenabled ::debuglogname
+    if {$::logenabled && [info exists ::debuglogname]} {
         if {$result != 0 && ![macports::ui_isset ports_quiet]} {
             ui_msg "Log for $portname is at: $::debuglogname"
         }
