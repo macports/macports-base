@@ -20,7 +20,7 @@ if [[ ${base_version} != __DARWINVERS__ ]]; then
    exit 113
 fi
 
-if [[ -f /opt/local/etc/ports/dp_version ]]; then
+if [[ -f __PREFIX__/etc/ports/dp_version ]]; then
    # message 18 in InstallationCheck.strings
    exit 114
 fi

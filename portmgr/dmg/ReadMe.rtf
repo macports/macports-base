@@ -26,7 +26,7 @@ This disk image is built for Mac OS X __XVERS__.x and requires valid TCL, curl a
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
 
 \f0\b0 \cf0 \
-The MacPorts installer copies MacPorts to the target directory /opt/local. If you wish to install to any path other than that, you must install MacPorts via its source code. See {\field{\*\fldinst{HYPERLINK "http://www.macports.org/install.php"}}{\fldrslt Installing MacPorts}} on the MacPorts webpage for instructions on installation alternatives.\
+The MacPorts installer copies MacPorts to the target directory __PREFIX__. If you wish to install to any path other than that, you must install MacPorts via its source code. See {\field{\*\fldinst{HYPERLINK "http://www.macports.org/install.php"}}{\fldrslt Installing MacPorts}} on the MacPorts webpage for instructions on installation alternatives.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
 
 \f1\b \cf0 \
@@ -35,7 +35,7 @@ What is Installed:\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
 
 \f0\b0 \cf0 \
-Aside from a few MacPorts executable commands in /opt/local/bin, most MacPorts files are installed in /opt/local/var/macports. Within these directories you will find a "sources" directory containing the Portfiles that hold the necessary instructions to install individual ports, and also the source code for MacPorts itself. Both are kept up to date by using the 
+Aside from a few MacPorts executable commands in __PREFIX__/bin, most MacPorts files are installed in __PREFIX__/var/macports. Within these directories you will find a "sources" directory containing the Portfiles that hold the necessary instructions to install individual ports, and also the source code for MacPorts itself. Both are kept up to date by using the 
 \f2\i port selfupdate
 \f0\i0  command as shown below. Please read the port(1) man page for more information.\
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural
@@ -45,7 +45,7 @@ Aside from a few MacPorts executable commands in /opt/local/bin, most MacPorts f
 Shell Environment:
 \f0\b0 \
 \
-A file named ~/.profile is created for the "bash" shell (default on Mac OS X 10.3 and newer) during the MacPorts installation. It contains the necessary statements to append MacPorts' binary paths within /opt/local/ to your shell environment, so MacPorts is available to you on subsequent terminal sessions. You may have to quit and restart your terminal application for this change to take effect.\
+A file named ~/.profile is created for the "bash" shell (default on Mac OS X 10.3 and newer) during the MacPorts installation. It contains the necessary statements to append MacPorts' binary paths within __PREFIX__/ to your shell environment, so MacPorts is available to you on subsequent terminal sessions. You may have to quit and restart your terminal application for this change to take effect.\
 \
 
 \f1\b \

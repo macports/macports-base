@@ -38,7 +38,7 @@
 VERSION=1.8.0
 
 # Abstraction variables:
-PREFIX=/opt/local
+PREFIX=__PREFIX__
 BINPATH=${PREFIX}/bin
 SBINPATH=${PREFIX}/sbin
 CONFIGPATH=${PREFIX}/etc/macports
