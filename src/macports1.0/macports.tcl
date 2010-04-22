@@ -668,18 +668,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         global macports::portarchivepath
     }
     if {$portarchivemode == "yes"} {
-        if {![file isdirectory $portarchivepath]} {
-            if {![file exists $portarchivepath]} {
-                if {![file owned $portdbpath]} {
-                    file lstat $portdbpath stat
-                    return -code error "insufficient privileges for portdbpath $portdbpath (uid $stat(uid)); cannot create portarchivepath"
-                } elseif {[catch {file mkdir $portarchivepath} result]} {
-                    return -code error "portarchivepath $portarchivepath does not exist and could not be created: $result"
-                }
-            }
-        }
-        if {![file isdirectory $portarchivepath]} {
-            return -code error "$portarchivepath is not a directory. Please create the directory $portarchivepath and try again"
+        if {![file exists $portarchivepath] && [catch {file mkdir $portarchivepath} result]} {
+            ui_warn "portarchivepath $portarchivepath does not exist and could not be created; disabling archive mode"
+            set portarchivemode no
+        } elseif {![file isdirectory $portarchivepath]} {
+            return -code error "Archive dir $portarchivepath is not a directory. Please create the directory or reconfigure portarchivepath"
         }
     }
 

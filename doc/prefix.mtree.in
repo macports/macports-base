@@ -247,6 +247,8 @@
             ..
             logs
             ..
+            packages
+            ..
             receipts
             ..
             registry
