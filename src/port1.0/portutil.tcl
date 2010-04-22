@@ -2568,3 +2568,37 @@ proc get_canonical_archs {} {
         return ${os.arch}
     }
 }
+
+# check if the installed xcode version is new enough
+proc _check_xcode_version {} {
+    global os.subplatform macosx_version xcodeversion
+
+    if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
+        switch $macosx_version {
+            10.4 {
+                set min 2.0
+                set ok 2.4.1
+                set rec 2.5
+            }
+            10.5 {
+                set min 3.0
+                set ok 3.1
+                set rec 3.1.4
+            }
+            default {
+                set min 3.2
+                set ok 3.2
+                set rec 3.2.2
+            }
+        }
+        if {$xcodeversion == "none"} {
+            ui_warn "Xcode does not appear to be installed; most ports will likely fail to build."
+        } elseif {[rpm-vercomp $xcodeversion $min] < 0} {
+            ui_error "The installed version of Xcode (${xcodeversion}) is too old to use on the installed OS version. Version $rec or later is recommended on Mac OS X ${macosx_version}."
+            return 1
+        } elseif {[rpm-vercomp $xcodeversion $ok] < 0} {
+            ui_warn "The installed version of Xcode (${xcodeversion}) is known to cause problems. Version $rec or later is recommended on Mac OS X ${macosx_version}."
+        }
+    }
+    return 0
+}

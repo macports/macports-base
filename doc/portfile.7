@@ -1188,15 +1188,18 @@ Make command to run relative to
 .Em make
 .br
 .Sy Example:
-.Dl build.cmd pbxbuild
+.Dl build.cmd scons
 .It Ic build.type
-Defines which 'make' is required, either 'gnu' or 'bsd'.
+Defines which 'make' is required, either 'gnu' or 'bsd'. Can also choose
+'xcode' (or the deprecated synonym 'pbx'), however you should generally use
+the xcode PortGroup rather than setting this directly.
 Sets
 .Ic build.cmd
 to either
-.Pa gnumake
-or
+.Pa gnumake,
 .Pa bsdmake
+or
+.Pa xcodebuild
 accordingly.
 .br
 .Sy Type:
@@ -1235,25 +1238,7 @@ Install command to run relative to
 .Em ${build.cmd}
 .br
 .Sy Example:
-.Dl destroot.cmd pbxbuild
-.It Ic destroot.type
-Defines which 'make' is required, either 'gnu' or 'bsd'.
-Sets
-.Ic destroot.cmd
-to either
-.Pa gnumake
-or
-.Pa bsdmake
-accordingly.
-.br
-.Sy Type:
-.Em optional
-.br
-.Sy Default:
-.Em ${build.type}
-.br
-.Sy Example:
-.Dl destroot.type gnu
+.Dl destroot.cmd scons
 .It Ic destroot.destdir
 Arguments passed to
 .Ic destroot.cmd

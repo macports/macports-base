@@ -356,10 +356,27 @@ proc macports::setxcodeinfo {name1 name2 op} {
     if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
         if {![info exists xcodeversion]} {
             # Determine xcode version (<= 2.0 or 2.1)
-            if {[catch {set xcodebuildversion [exec xcodebuild -version]}] == 0} {
-                if {[regexp "DevToolsCore-(.*); DevToolsSupport-(.*)" $xcodebuildversion devtoolscore_v devtoolssupport_v] == 1} {
-                    if {$devtoolscore_v >= 620.0 && $devtoolssupport_v >= 610.0} {
-                        # for now, we don't need to distinguish 2.1 from 2.1 or higher.
+            if {[catch {set xcodebuildversion [exec $xcodebuild -version]}] == 0} {
+                if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
+                    set macports::xcodeversion $xcode_v
+                } elseif {[regexp "DevToolsCore-(.*);" $xcodebuildversion - devtoolscore_v] == 1} {
+                    if {$devtoolscore_v >= 921.0} {
+                        set macports::xcodeversion "3.0"
+                    } elseif {$devtoolscore_v >= 798.0} {
+                        set macports::xcodeversion "2.5"
+                    } elseif {$devtoolscore_v >= 762.0} {
+                        set macports::xcodeversion "2.4.1"
+                    } elseif {$devtoolscore_v >= 757.0} {
+                        set macports::xcodeversion "2.4"
+                    } elseif {$devtoolscore_v > 650.0} {
+                        # XXX find actual version corresponding to 2.3
+                        set macports::xcodeversion "2.3"
+                    } elseif {$devtoolscore_v >= 650.0} {
+                        set macports::xcodeversion "2.2.1"
+                    } elseif {$devtoolscore_v > 620.0} {
+                        # XXX find actual version corresponding to 2.2
+                        set macports::xcodeversion "2.2"
+                    } elseif {$devtoolscore_v >= 620.0} {
                         set macports::xcodeversion "2.1"
                     } else {
                         set macports::xcodeversion "2.0orlower"
@@ -367,20 +384,10 @@ proc macports::setxcodeinfo {name1 name2 op} {
                 } else {
                     set macports::xcodeversion "2.0orlower"
                 }
-            } else {
-                set macports::xcodeversion "2.0orlower"
             }
         }
-
         if {![info exists xcodebuildcmd]} {
-            set macports::xcodebuildcmd "xcodebuild"
-        }
-    } elseif {[catch {set pbxbuild [binaryInPath "pbxbuild"]}] == 0} {
-        if {![info exists xcodeversion]} {
-            set macports::xcodeversion "pb"
-        }
-        if {![info exists xcodebuildcmd]} {
-            set macports::xcodebuildcmd "pbxbuild"
+            set macports::xcodebuildcmd "$xcodebuild"
         }
     } else {
         if {![info exists xcodeversion]} {
@@ -1531,6 +1538,11 @@ proc mportexec {mport target} {
         || $target == "pkg" || $target == "mpkg"
         || $target == "rpm" || $target == "dpkg"
         || $target == "srpm"|| $target == "portpkg" } {
+
+        # possibly warn or error out depending on how old xcode is
+        if {[$workername eval _check_xcode_version] != 0} {
+            return 1
+        }
 
         # upgrade dependencies that are already installed
         if {![macports::global_option_isset ports_nodeps]} {

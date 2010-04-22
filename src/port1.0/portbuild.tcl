@@ -82,17 +82,17 @@ proc portbuild::build_getmaketype {args} {
                 return [findBinary gmake $portutil::autoconf::gnumake_path]
             }
         }
-        pbx {
+        pbx -
+        xcode {
             if {[option os.platform] != "darwin"} {
-                return -code error "[format [msgcat::mc "This port requires 'pbxbuild/xcodebuild', which is not available on %s."] [option os.platform]]"
+                return -code error "[format [msgcat::mc "This port requires 'xcodebuild', which is not available on %s."] [option os.platform]]"
             }
 
-            if {[catch {set xcodebuild [binaryInPath xcodebuild]}] == 0} {
-                return $xcodebuild
-            } elseif {[catch {set pbxbuild [binaryInPath pbxbuild]}] == 0} {
-                return $pbxbuild
+            global xcodebuildcmd
+            if {$xcodebuildcmd != "none"} {
+                return $xcodebuildcmd
             } else {
-                return -code error "Neither pbxbuild nor xcodebuild were found on this system!"
+                return -code error "xcodebuild was not found on this system!"
             }
         }
         default {
