@@ -253,6 +253,13 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
+		/* echo any cookies received on a redirect */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_COOKIEJAR, "/dev/null");
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
 		/* -f option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
 		if (theCurlCode != CURLE_OK) {
@@ -499,6 +506,13 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
+		/* echo any cookies received on a redirect */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_COOKIEJAR, "/dev/null");
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
 		/* -f option */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_FAILONERROR, 1);
 		if (theCurlCode != CURLE_OK) {
@@ -675,6 +689,13 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 		/* --max-redirs option, same default as curl command line */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_MAXREDIRS, 50);
+		if (theCurlCode != CURLE_OK) {
+			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+			break;
+		}
+
+		/* echo any cookies received on a redirect */
+		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_COOKIEJAR, "/dev/null");
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
