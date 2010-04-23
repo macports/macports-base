@@ -3835,19 +3835,19 @@ array set cmd_opts_array {
 # Checks whether the given option is valid
 #
 # œparam action for which action
-# @param option the option to check
-# @param upoptargc reference to upvar for storing the number of arguments for
-#                  this option
-proc cmd_option_exists { action option {upoptargc ""}} {
+# @param option the prefix of the option to check
+# @return list of pairs {name argc} for all matching options
+proc cmd_option_matches {action option} {
     global cmd_opts_array
-    upvar 1 $upoptargc optargc
 
     # This could be so easy with lsearch -index,
     # but that's only available as of Tcl 8.5
 
     if {![info exists cmd_opts_array($action)]} {
-        return 0
+        return {}
     }
+
+    set result {}
 
     foreach item $cmd_opts_array($action) {
         if {[llength $item] == 1} {
@@ -3859,12 +3859,14 @@ proc cmd_option_exists { action option {upoptargc ""}} {
         }
 
         if {$name == $option} {
-            set optargc $argc
-            return 1
+            set result [list [list $name $argc]]
+            break
+        } elseif {[string first $option $name] == 0} {
+            lappend result [list $name $argc]
         }
     }
 
-    return 0
+    return $result
 }
 
 # Parse global options
@@ -3893,10 +3895,18 @@ proc parse_options { action ui_options_name global_options_name } {
                 }
                 default {
                     set key [string range $arg 2 end]
-                    set kargc 0
-                    if {![cmd_option_exists $action $key kargc]} {
+                    set kopts [cmd_option_matches $action $key]
+                    if {[llength $kopts] == 0} {
                         return -code error "${action} does not accept --${key}"
+                    } elseif {[llength $kopts] > 1} {
+                        set errlst {}
+                        foreach e $kopts {
+                            lappend errlst "--[lindex $e 0]"
+                        }
+                        return -code error "${action} --${key} is ambiguous: \n  [join $errlst "\n  "]"
                     }
+                    set key   [lindex [lindex $kopts 0] 0]
+                    set kargc [lindex [lindex $kopts 0] 1]
                     if {$kargc == 0} {
                         set global_options(ports_${action}_${key}) yes
                     } else {
