@@ -184,9 +184,7 @@ proc break_softcontinue { msg status name_status } {
 
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
-    if {![macports::ui_isset ports_quiet]} {
-        ui_msg "To report a bug, see <http://guide.macports.org/#project.tickets>"
-    }
+    ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
 }
 
 # Form a composite version as is sometimes used for registry functions
@@ -261,9 +259,7 @@ proc registry_installed {portname {portversion ""}} {
     if { [llength $ilist] > 1 } {
         # set portname again since the one we were passed may not have had the correct case
         set portname [lindex [lindex $ilist 0] 0]
-        if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
-            puts "The following versions of $portname are currently installed:"
-        }
+        ui_notice "The following versions of $portname are currently installed:"
         foreach i [portlist_sortint $ilist] { 
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
@@ -2105,9 +2101,7 @@ proc action_location { action portlist opts } {
         set ref [registry::open_entry $portname $version $revision $variants $epoch]
         if { [string equal [registry::property_retrieve $ref installtype] "image"] } {
             set imagedir [registry::property_retrieve $ref imagedir]
-            if {![macports::ui_isset ports_quiet]} {
-                puts "Port $portname ${version}_${revision}${variants} is installed as an image in:"
-            }
+            ui_notice "Port $portname ${version}_${revision}${variants} is installed as an image in:"
             puts $imagedir
         } else {
             break_softcontinue "Port $portname is not installed as an image." 1 status
@@ -2175,13 +2169,11 @@ proc action_notes { action portlist opts } {
         set portname $portinfo(name)
 
         # Display the notes.
-        if {![macports::ui_isset ports_quiet]} {
-            if {$portnotes ne {}} {
-                puts "$portname has the following notes:"
-                puts [wrap $portnotes 0 "  " 1]
-            } else {
-                puts "$portname has no notes."
-            }
+        if {$portnotes ne {}} {
+            ui_notice "$portname has the following notes:"
+            puts [wrap $portnotes 0 "  " 1]
+        } else {
+            puts "$portname has no notes."
         }
     }
     return $status
@@ -2344,17 +2336,13 @@ proc action_select { action portlist opts } {
                 return 1
             }
 
-            if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
-                puts "Available versions for $group:"
-            }
+            ui_notice "Available versions for $group:"
             foreach v $versions {
-                if {![macports::ui_isset ports_quiet] && [isatty stdout]} {
-                    puts -nonewline "\t"
-                }
+                ui_notice -nonewline "\t"
                 if {$selected_version == $v} {
-                    puts "$v (active)"
+                    ui_msg "$v (active)"
                 } else {
-                    puts "$v"
+                    ui_msg "$v"
                 }
             }
             return 0
@@ -2371,12 +2359,12 @@ proc action_select { action portlist opts } {
             }
             set version [lindex $portlist 1]
 
-            puts -nonewline "Selecting '$version' for '$group' "
+            ui_msg -nonewline "Selecting '$version' for '$group' "
             if {[catch {mportselect $command $group $version} result]} {
-                puts "failed: $result"
+                ui_msg "failed: $result"
                 return 1
             }
-            puts "succeeded. '$version' is now active."
+            ui_msg "succeeded. '$version' is now active."
             return 0
         }
         show {
@@ -2584,7 +2572,7 @@ proc action_dependents { action portlist opts } {
                 foreach dep $deplist {
                     set depport [lindex $dep 2]
                     if {[macports::ui_isset ports_quiet]} {
-                        puts "$depport"
+                        ui_msg "$depport"
                     } elseif {![macports::ui_isset ports_verbose]} {
                         ui_msg "$depport depends on $portname"
                     } else {
@@ -2850,9 +2838,7 @@ proc action_installed { action portlist opts } {
         }
     }
     if { [llength $ilist] > 0 } {
-        if {![macports::ui_isset ports_quiet]} {
-            puts "The following ports are currently installed:"
-        }
+        ui_notice "The following ports are currently installed:"
         foreach i [portlist_sortint $ilist] {
             set iname [lindex $i 0]
             set iversion [lindex $i 1]
@@ -2884,13 +2870,9 @@ proc action_installed { action portlist opts } {
             }
         }
     } elseif { $restrictedList } {
-        if {![macports::ui_isset ports_quiet]} {
-            puts "None of the specified ports are installed."
-        }
+        ui_notice "None of the specified ports are installed."
     } else {
-        if {![macports::ui_isset ports_quiet]} {
-            puts "No ports are installed."
-        }
+        ui_notice "No ports are installed."
     }
 
     return $status
@@ -3018,8 +3000,8 @@ proc action_outdated { action portlist opts } {
                 # Emit information
                 if {$comp_result < 0 || [macports::ui_isset ports_verbose]} {
                 
-                    if { $num_outdated == 0 && ![macports::ui_isset ports_quiet]} {
-                        puts "The following installed ports are outdated:"
+                    if {$num_outdated == 0} {
+                        ui_notice "The following installed ports are outdated:"
                     }
                     incr num_outdated
 
@@ -3029,17 +3011,13 @@ proc action_outdated { action portlist opts } {
             }
         }
         
-        if { $num_outdated == 0 && ![macports::ui_isset ports_quiet]} {
-            puts "No installed ports are outdated."
+        if {$num_outdated == 0} {
+            ui_notice "No installed ports are outdated."
         }
     } elseif { $restrictedList } {
-        if {![macports::ui_isset ports_quiet]} {
-            puts "None of the specified ports are outdated."
-        }
+        ui_notice "None of the specified ports are outdated."
     } else {
-        if {![macports::ui_isset ports_quiet]} {
-            puts "No ports are installed."
-        }
+        ui_notice "No ports are installed."
     }
     
     return $status
@@ -3059,21 +3037,15 @@ proc action_contents { action portlist opts } {
         set files [registry::port_registered $portname]
         if { $files != 0 } {
             if { [llength $files] > 0 } {
-                if {![macports::ui_isset ports_quiet]} {
-                    puts "Port $portname contains:"
-                }
+                ui_notice "Port $portname contains:"
                 foreach file $files {
                     puts "  $file"
                 }
             } else {
-                if {![macports::ui_isset ports_quiet]} {
-                    puts "Port $portname does not contain any files or is not active."
-                }
+                ui_notice "Port $portname does not contain any files or is not active."
             }
         } else {
-            if {![macports::ui_isset ports_quiet]} {
-                puts "Port $portname is not installed."
-            }
+            ui_notice "Port $portname is not installed."
         }
     }
     registry::close_file_map
@@ -3127,9 +3099,7 @@ proc action_variants { action portlist opts } {
 
         # if this fails the port doesn't have any variants
         if {![info exists portinfo(variants)]} {
-            if {![macports::ui_isset ports_quiet]} {
-                puts "$portname has no variants"
-            }
+            ui_notice "$portname has no variants"
         } else {
             array unset vinfo
             # Use the new format if it exists.
@@ -3141,9 +3111,7 @@ proc action_variants { action portlist opts } {
             }
 
             # print out all the variants
-            if {![macports::ui_isset ports_quiet]} {
-                puts "$portname has the variants:"
-            }
+            ui_notice "$portname has the variants:"
             foreach v [lsort $portinfo(variants)] {
                 unset -nocomplain vconflicts vdescription vrequires
                 # Retrieve variants' information from the new format.
@@ -3329,14 +3297,11 @@ proc action_search { action portlist opts } {
             set portfound 1
         }
         if { !$portfound } {
-            if {![macports::ui_isset ports_quiet]} {
-                ui_msg "No match for $portname found"
-            }
+            ui_notice "No match for $portname found"
         } elseif {[llength $res] > 1} {
             if {(![info exists global_options(ports_search_line)]
-                    || $global_options(ports_search_line) != "yes")
-                    && ![macports::ui_isset ports_quiet]} {
-                ui_msg "\nFound [llength $res] ports."
+                    || $global_options(ports_search_line) != "yes")} {
+                ui_notice "\nFound [llength $res] ports."
             }
         }
 
