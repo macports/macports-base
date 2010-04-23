@@ -45,14 +45,40 @@ namespace eval portfetch::mirror_sites {
     array set sites {}
 }
 
+# percent-encode all characters in str that are not unreserved in URIs
+proc portfetch::percent_encode {str} {
+    set outstr ""
+    while {[string length $str] > 0} {
+        set char [string index $str 0]
+        set str [string range $str 1 end]
+        switch $char {
+            {-} -
+            {.} -
+            {_} -
+            {~} {
+                append outstr $char
+            }
+            default {
+                if {[string is ascii -strict $char] && [string is alnum -strict $char]} {
+                    append outstr $char
+                } else {
+                    foreach {a b} [split [format %02X [scan $char %c]] {}] {
+                        append outstr "%${a}${b}"
+                    }
+                }
+            }
+        }
+    }
+    return $outstr
+}
+
 # Given a site url and the name of the distfile, assemble url and
 # return it.
 proc portfetch::assemble_url {site distfile} {
     if {[string index $site end] != "/"} {
-        return "${site}/${distfile}"
-    } else {
-        return "${site}${distfile}"
+        set site "${site}/"
     }
+    return "${site}[percent_encode ${distfile}]"
 }
 
 # For a given mirror site type, e.g. "gnu" or "x11", check to see if there's a
