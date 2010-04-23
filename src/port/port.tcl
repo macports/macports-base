@@ -2538,7 +2538,7 @@ proc action_dependents { action portlist opts } {
                 set portstack [list $toplist]
                 set pos_stack [list 0]
                 array unset seen
-                ui_msg "The following ports are dependent on ${portname}:"
+                ui_notice "The following ports are dependent on ${portname}:"
                 while 1 {
                     set cur_portlist [lindex $portstack end]
                     set cur_pos [lindex $pos_stack end]
@@ -2581,7 +2581,7 @@ proc action_dependents { action portlist opts } {
                 }
             }
         } else {
-            ui_msg "$portname has no dependents."
+            ui_notice "$portname has no dependents."
         }
     }
     return $status
@@ -2723,9 +2723,9 @@ proc action_rdeps { action portlist opts } {
         set pos_stack [list 0]
         array unset seen
         if {[llength $toplist] > 0} {
-            ui_msg "The following ports are dependencies of ${portname}:"
+            ui_notice "The following ports are dependencies of ${portname}:"
         } else {
-            ui_msg "No ports are dependencies of ${portname}."
+            ui_notice "No ports are dependencies of ${portname}."
         }
         while 1 {
             set cur_portlist [lindex $portstack end]
