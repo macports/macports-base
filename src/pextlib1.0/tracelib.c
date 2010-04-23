@@ -394,12 +394,9 @@ static void ui_info(const char * format, ...)
 	va_end(va);
 }
 
-static int TracelibRunCmd(Tcl_Interp * in)
+static int TracelibOpenSocketCmd(Tcl_Interp * in)
 {
 	struct sockaddr_un sun;
-	fd_set fdr;
-	int i;
-	int max_fd, max_used, socks[MAX_SOCKETS];
 	struct rlimit rl;
 	
 	pthread_mutex_lock(&sock_mutex);
@@ -446,6 +443,17 @@ static int TracelibRunCmd(Tcl_Interp * in)
 		Tcl_AppendResult(interp, "listen: ", (char *) Tcl_PosixError(interp), NULL);
 		return TCL_ERROR;
 	}
+
+        return TCL_OK;
+}
+
+
+static int TracelibRunCmd(Tcl_Interp * in UNUSED)
+{
+	int max_fd, max_used, socks[MAX_SOCKETS];
+	fd_set fdr;
+	int i;
+
 	max_used=0;
 	max_fd=sock;
 	
@@ -607,10 +615,11 @@ static int TracelibEnableFence(Tcl_Interp * interp UNUSED)
 int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 {
 	int result=TCL_OK;
-	static const char * options[]={"setname", "run", "clean", "setsandbox", "closesocket", "setdeps", "enablefence", 0};
+	static const char * options[]={"setname", "opensocket", "run", "clean", "setsandbox", "closesocket", "setdeps", "enablefence", 0};
 	typedef enum 
 	{
 		kSetName,
+		kOpenSocket,
 		kRun,
 		kClean,
 		kSetSandbox,
@@ -634,6 +643,9 @@ int TracelibCmd(ClientData clientData UNUSED, Tcl_Interp* interp, int objc, Tcl_
 		{
 		case kSetName:
 			result=TracelibSetNameCmd(interp, objc, objv);
+			break;
+		case kOpenSocket:
+			result=TracelibOpenSocketCmd(interp);
 			break;
 		case kRun:
 			result=TracelibRunCmd(interp);
