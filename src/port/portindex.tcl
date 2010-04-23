@@ -14,8 +14,10 @@ package require Pextlib
 
 # Globals
 set archive 0
+set full_reindex 0
 set stats(total) 0
 set stats(failed) 0
+set stats(skipped) 0
 array set ui_options        [list]
 array set global_options    [list]
 array set global_variations [list]
@@ -30,14 +32,42 @@ proc print_usage args {
     puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
     puts "-d:\tOutput debugging information"
+    puts "-f:\tDo a full re-index instead of updating"
 }
 
 proc pindex {portdir} {
-    global target fd directory archive outdir stats
-    incr stats(total)
-    global macports::prefix
+    global target oldfd oldmtime qindex fd directory archive outdir stats full_reindex
+    global macports::prefix ui_options
     set save_prefix $prefix
     set prefix {\${prefix}}
+
+    # try to reuse the existing entry if it's still valid
+    if {$full_reindex != "1" && $archive != "1" && [info exists qindex([string tolower [file tail $portdir]])]} {
+        try {
+            set mtime [file mtime [file join $directory $portdir Portfile]]
+            if {$oldmtime > $mtime} {
+                set offset $qindex([string tolower [file tail $portdir]])
+                seek $oldfd $offset
+                gets $oldfd line
+                set name [lindex $line 0]
+                set len [lindex $line 1]
+                set line [read $oldfd $len]
+
+                if {[info exists ui_options(ports_debug)]} {
+                    puts "Reusing existing entry for $portdir"
+                }
+
+                puts $fd [list $name $len]
+                puts -nonewline $fd $line
+
+                incr stats(skipped)
+                return
+            }
+        } catch {*} {
+            ui_warn "failed to open old entry for ${portdir}, making a new one"
+        }
+    }
+
     if {[catch {set interp [mportopen file://[file join $directory $portdir]]} result]} {
         puts stderr "Failed to parse file $portdir/Portfile: $result"
         # revert the prefix.
@@ -78,6 +108,7 @@ proc pindex {portdir} {
         set len [expr [string length $output] + 1]
         puts $fd [list $portinfo(name) $len]
         puts $fd $output
+        incr stats(total)
     }
 }
 
@@ -97,6 +128,8 @@ for {set i 0} {$i < $argc} {incr i} {
             } elseif {$arg == "-o"} { # Set output directory
                 incr i
                 set outdir [lindex $argv $i]
+            } elseif {$arg == "-f"} { # Completely rebuild index
+                set full_reindex yes
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -144,12 +177,30 @@ if {[info exists outdir]} {
 }
 
 puts "Creating software index in $outdir"
+set outpath [file join $outdir PortIndex]
+# open old index for comparison
+if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
+    set oldmtime [file mtime $outpath]
+    if {![catch {set oldfd [open $outpath r]}] && ![catch {set quickfd [open ${outpath}.quick r]}]} {
+        if {![catch {set quicklist [read $quickfd]}]} {
+            foreach entry [split $quicklist "\n"] {
+                set qindex([lindex $entry 0]) [lindex $entry 1]
+            }
+        }
+        close $quickfd
+    }
+}
+
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
 mporttraverse pindex $directory
+if {[info exists oldfd]} {
+    close $oldfd
+}
 close $fd
-file rename -force $tempportindex [file join $outdir PortIndex]
-mports_generate_quickindex [file join $outdir PortIndex]
+file rename -force $tempportindex $outpath
+mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
-      \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\t\
-      \nPorts failed:\t\t\t$stats(failed)\n"
+      \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\
+      \nPorts failed:\t\t\t$stats(failed)\
+      \nUp-to-date ports skipped:\t$stats(skipped)\n"
