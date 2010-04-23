@@ -13,6 +13,8 @@ ifeq ($(OBJC_RUNTIME), APPLE_RUNTIME)
 	LIBS+= -framework CoreFoundation -framework SystemConfiguration
 endif
 
+pkgIndex.tcl: $(SRCS)
+
 test::
 	${TCLSH} tests/macports_dlist.tcl
 	${TCLSH} tests/macports_util.tcl
