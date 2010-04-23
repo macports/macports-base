@@ -2588,7 +2588,7 @@ proc action_dependents { action portlist opts } {
 }
 
 
-proc action_rdeps { action portlist opts } {
+proc action_deps { action portlist opts } {
     global global_variations
     set status 0
     if {[require_portlist portlist]} {
@@ -2596,7 +2596,7 @@ proc action_rdeps { action portlist opts } {
     }
 
     foreachport $portlist {
-        if {[info exists options(ports_rdeps_no-build)] && [string is true -strict $options(ports_rdeps_no-build)]} {
+        if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
             set deptypes {depends_lib depends_run}
         } else {
             set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
@@ -2636,7 +2636,7 @@ proc action_rdeps { action portlist opts } {
             array set portinfo [lindex $result 1]
         }
 
-        if {!([info exists options(ports_rdeps_index)] && $options(ports_rdeps_index) eq "yes")} {
+        if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
             # Add any global_variations to the variations
             # specified for the port, so we get dependencies right
             array unset merged_variations
@@ -2654,7 +2654,7 @@ proc action_rdeps { action portlist opts } {
             array set portinfo [mportinfo $mport]
             mportclose $mport
         } elseif {![info exists portinfo]} {
-            ui_warn "port rdeps --index does not work with the 'current' pseudo-port"
+            ui_warn "port ${action} --index does not work with the 'current' pseudo-port"
             continue
         }
 
@@ -2670,7 +2670,7 @@ proc action_rdeps { action portlist opts } {
 
         set toplist $deplist
         # gather all the deps
-        while 1 {
+        while {${action} == "rdeps"} {
             set newlist {}
             foreach dep $deplist {
                 set depname [lindex [split $dep :] end]
@@ -2690,7 +2690,7 @@ proc action_rdeps { action portlist opts } {
                     set porturl $portinfo(porturl)
                     
                     # open the portfile if requested
-                    if {!([info exists options(ports_rdeps_index)] && $options(ports_rdeps_index) eq "yes")} {
+                    if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
                         if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                             ui_debug "$::errorInfo"
                             break_softcontinue "Unable to open port: $result" 1 status
@@ -2742,7 +2742,7 @@ proc action_rdeps { action portlist opts } {
             set cur_port [lindex $cur_portlist $cur_pos]
             set cur_portname [lindex [split $cur_port :] end]
             set spaces [string repeat " " [expr {[llength $pos_stack] * 2}]]
-            if {![info exists seen($cur_portname)] || ([info exists options(ports_rdeps_full)] && [string is true -strict $options(ports_rdeps_full)])} {
+            if {![info exists seen($cur_portname)] || ([info exists options(ports_${action}_full)] && [string is true -strict $options(ports_${action}_full)])} {
                 if {[macports::ui_isset ports_verbose]} {
                     puts "${spaces}${cur_port}"
                 } else {
@@ -3714,8 +3714,8 @@ array set action_array [list \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
     dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
     rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
-    deps        [list action_info           [ACTION_ARGS_PORTS]] \
-    rdeps       [list action_rdeps          [ACTION_ARGS_PORTS]] \
+    deps        [list action_deps           [ACTION_ARGS_PORTS]] \
+    rdeps       [list action_deps           [ACTION_ARGS_PORTS]] \
     variants    [list action_variants       [ACTION_ARGS_PORTS]] \
     \
     search      [list action_search         [ACTION_ARGS_STRINGS]] \
@@ -3810,6 +3810,7 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
+    deps        {index no-build full}
     rdeps       {index no-build full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
@@ -3829,12 +3830,6 @@ array set cmd_opts_array {
     log         {{phase 1} {level 1}}
     upgrade     {force enforce-variants no-replace}
 }
-
-global cmd_implied_options
-array set cmd_implied_options {
-    deps   {ports_info_fullname yes ports_info_depends yes ports_info_pretty yes}
-}
-                                 
 
 ##
 # Checks whether the given option is valid
@@ -4003,7 +3998,6 @@ proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn
     global global_options global_options_base private_options ui_options
     global current_portdir
-    global cmd_implied_options
     set cmd_argv $argv
     set cmd_argc [llength $argv]
     set cmd_argn 0
@@ -4033,10 +4027,6 @@ proc process_cmd { argv } {
         array unset global_options
         array set global_options $global_options_base
         
-        if {[info exists cmd_implied_options($action)]} {
-            array set global_options $cmd_implied_options($action)
-        }
-
         # Find an action to execute
         set action_proc [find_action_proc $action]
         if { $action_proc == "" } {

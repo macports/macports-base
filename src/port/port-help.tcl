@@ -85,7 +85,15 @@ Recursive version of dependents
 }
 
 set porthelp(deps) {
-This action is an alias for 'info --pretty --fullname --depends'
+Display a dependency listing for the given ports
+
+--full          Display all branches of the dependency tree instead of only
+                showing each port once.
+--index         Do not read the Portfile, instead rely solely on the PortIndex
+                information. Note this option will prevent the dependencies
+                reported from reflecting the effects of any variants specified.
+--no-build      Exclude dependencies only required at build time, i.e.
+                depends_fetch, depends_extract, and depends_build.
 }
 
 set porthelp(rdeps) {
