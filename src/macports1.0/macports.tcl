@@ -1848,14 +1848,20 @@ proc mportsync {{optionslist {}}} {
             }
             {^rsync$} {
                 # Where to, boss?
-                set destdir [file dirname [macports::getindex $source]]
+                set indexfile [macports::getindex $source]
+                set destdir [file dirname $indexfile]
                 file mkdir $destdir
                 # Keep rsync happy with a trailing slash
                 if {[string index $source end] != "/"} {
                     set source "${source}/"
                 }
+                # don't sync PortIndex unless it doesn't exist
+                set exclude_option ""
+                if {[file isfile $indexfile]} {
+                    set exclude_option " '--exclude=/PortIndex*'"
+                }
                 # Do rsync fetch
-                set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${source} ${destdir}"
+                set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options}${exclude_option} ${source} ${destdir}"
                 ui_debug $rsync_commandline
                 if {[catch {system $rsync_commandline}]} {
                     ui_error "Synchronization of the local ports tree failed doing rsync"
