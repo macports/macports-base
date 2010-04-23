@@ -76,7 +76,7 @@ proc portfetch::percent_encode {str} {
 # return it.
 proc portfetch::assemble_url {site distfile} {
     if {[string index $site end] != "/"} {
-        set site "${site}/"
+        append site /
     }
     return "${site}[percent_encode ${distfile}]"
 }
