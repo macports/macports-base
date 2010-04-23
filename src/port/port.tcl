@@ -3810,7 +3810,7 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
-    deps        {index no-build full}
+    deps        {index no-build}
     rdeps       {index no-build full}
     rdependents {full}
     search      {case-sensitive category categories depends_fetch
