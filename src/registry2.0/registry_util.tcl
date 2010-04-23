@@ -85,7 +85,7 @@ proc run_target {port target options} {
     set portspec "[$port name] @[$port version]_[$port revision][$port variants]"
     if {[$port portfile] == ""} {
         ui_debug "no portfile in registry for $portspec"
-        return 0
+        return 1
     }
 
     if {![catch {set mport [mportopen_installed [$port name] [$port version] [$port revision] [$port variants] $options]}]} {
