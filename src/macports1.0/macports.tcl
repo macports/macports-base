@@ -1811,6 +1811,7 @@ proc mportsync {{optionslist {}}} {
             ui_debug "Skipping $source"
             continue
         }
+        set needs_portindex 0
         ui_info "Synchronizing local ports tree from $source"
         switch -regexp -- [macports::getprotocol $source] {
             {^file$} {
@@ -1840,6 +1841,7 @@ proc mportsync {{optionslist {}}} {
                         continue
                     }
                 }
+                set needs_portindex 1
             }
             {^mports$} {
                 macports::index::sync $macports::portdbpath $source
@@ -1863,6 +1865,7 @@ proc mportsync {{optionslist {}}} {
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                     ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
                 }
+                set needs_portindex 1
             }
             {^https?$|^ftp$} {
                 if {[_source_is_snapshot $source filename extension]} {
@@ -1919,6 +1922,8 @@ proc mportsync {{optionslist {}}} {
                     }
 
                     file delete $tarpath
+                    
+                    set needs_portindex 1
                 } else {
                     # sync just a PortIndex file
                     set indexfile [macports::getindex $source]
@@ -1929,6 +1934,14 @@ proc mportsync {{optionslist {}}} {
             }
             default {
                 ui_warn "Unknown synchronization protocol for $source"
+            }
+        }
+        
+        if {$needs_portindex} {
+            global macports::prefix
+            set indexdir [file dirname [macports::getindex $source]]
+            if {[catch {system "${macports::prefix}/bin/portindex $indexdir"}]} {
+                ui_error "updating PortIndex for $source failed"
             }
         }
     }
