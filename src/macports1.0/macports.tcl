@@ -1494,7 +1494,7 @@ proc _mportexec {target mport} {
     } else {
         # An error occurred.
         global ::logenabled ::debuglogname
-        if {$::logenabled && [info exists ::debuglogname]} {
+        if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_msg "Log for $portname is at: $::debuglogname"
         }
         macports::pop_log
@@ -1616,7 +1616,7 @@ proc mportexec {mport target} {
     }
     
     global ::logenabled ::debuglogname
-    if {$::logenabled && [info exists ::debuglogname]} {
+    if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
         if {$result != 0 && ![macports::ui_isset ports_quiet]} {
             ui_msg "Log for $portname is at: $::debuglogname"
         }
