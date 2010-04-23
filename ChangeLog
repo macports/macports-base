@@ -5,7 +5,7 @@
 
 Release 1.9.0 (unreleased):
 
-    - Add "fs-traverse" -tails which only returns the part following the
+    - Add "fs-traverse -tails" which only returns the part following the
       specified directory (raimue in r65785)
 
     - Allow gcc45 port to be used in configure.compiler (ryandesign in r62223)
