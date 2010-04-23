@@ -174,12 +174,15 @@ proc porttrace::create_slave {workpath trace_fifo} {
     set trace_thread [macports_create_thread]
 
     # The slave thread requires the registry package.
-    thread::send -async $trace_thread "package require registry 1.0"
+    thread::send $trace_thread "package require registry 1.0"
     # and this file as well.
-    thread::send -async $trace_thread "package require porttrace 1.0"
+    thread::send $trace_thread "package require porttrace 1.0"
 
-    # Start the slave work.
-    thread::send -async $trace_thread "porttrace::slave_start $trace_fifo $workpath"
+    # Initialize the slave
+    thread::send $trace_thread "porttrace::slave_init $trace_fifo $workpath"
+
+    # Run slave asynchronously
+    thread::send -async $trace_thread "porttrace::slave_run"
 }
 
 # Private
@@ -273,7 +276,7 @@ proc porttrace::slave_read_line {chan} {
 
 # Private.
 # Slave init method.
-proc porttrace::slave_start {fifo p_workpath} {
+proc porttrace::slave_init {fifo p_workpath} {
     global ports_list trace_filemap sandbox_violation_list
     # Save the workpath.
     set workpath $p_workpath
@@ -282,8 +285,19 @@ proc porttrace::slave_start {fifo p_workpath} {
     set ports_list {}
     set sandbox_violation_list {}
     tracelib setname $fifo
-    if [catch {tracelib run} err] {
+
+    if [catch {tracelib opensocket} err] {
+        global errorInfo
         ui_warn "Error in tracelib: $err"
+        ui_debug "Backtrace: $errorInfo"
+    }
+}
+
+proc porttrace::slave_run {} {
+    if [catch {tracelib run} err] {
+        global errorInfo
+        ui_warn "Error in tracelib: $err"
+        ui_debug "Backtrace: $errorInfo"
     }
 }
 
