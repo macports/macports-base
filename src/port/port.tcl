@@ -2302,11 +2302,11 @@ proc action_select { action portlist opts } {
                          "one argument was specified.  Defaulting to the " \
                          "'set' command..."]
     # If no command (--set, --show, --list) is specified *and* less than two
-    # argument are specified, default to the show command.
+    # argument are specified, default to the list command.
     } elseif {[llength $commands] < 1} {
-        set command show
+        set command list
         ui_debug [concat "No command was specified. Defaulting to the " \
-                         "'show' command..."]
+                         "'list' command..."]
     # Only allow one command to be specified at a time.
     } elseif {[llength $commands] > 1} {
         ui_error [concat "Multiple commands were specified. Only one " \
