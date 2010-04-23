@@ -63,7 +63,7 @@ namespace eval macports {
 
     variable open_mports {}
 
-    variable ui_priorities "error warn msg info debug any"
+    variable ui_priorities "error warn msg notice info debug any"
     variable port_phases "any fetch checksum"
     variable current_phase "main"
 }
@@ -282,12 +282,15 @@ proc macports::ui_channels_default {priority} {
                 return {}
             }
         }
-        msg {
+        notice {
             if {[ui_isset ports_quiet]} {
                 return {}
             } else {
                 return {stdout}
             }
+        }
+        msg {
+            return {stdout}
         }
         warn -
         error {
@@ -1495,7 +1498,7 @@ proc _mportexec {target mport} {
         # An error occurred.
         global ::logenabled ::debuglogname
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
-            ui_msg "Log for $portname is at: $::debuglogname"
+            ui_notice "Log for $portname is at: $::debuglogname"
         }
         macports::pop_log
         return 1
@@ -1617,8 +1620,8 @@ proc mportexec {mport target} {
     
     global ::logenabled ::debuglogname
     if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
-        if {$result != 0 && ![macports::ui_isset ports_quiet]} {
-            ui_msg "Log for $portname is at: $::debuglogname"
+        if {$result != 0} {
+            ui_notice "Log for $portname is at: $::debuglogname"
         }
         macports::pop_log
     }
