@@ -2977,7 +2977,11 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set build_override 1
         } else {
             if {[info exists portinfo(canonical_active_variants)] && $portinfo(canonical_active_variants) != $oldvariant} {
-                ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
+                if {[llength $variationslist] > 0} {
+                    ui_warn "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\". Use 'upgrade --enforce-variants' to switch to the requested variants."
+                } else {
+                    ui_debug "Skipping upgrade since $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}, even though installed variants \"$oldvariant\" do not match \"$portinfo(canonical_active_variants)\"."
+                }
             } else {
                 ui_debug "No need to upgrade! $portname ${version_installed}_${revision_installed} >= $portname ${version_in_tree}_${revision_in_tree}"
             }
