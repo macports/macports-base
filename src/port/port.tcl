@@ -2659,18 +2659,34 @@ proc action_deps { action portlist opts } {
         }
 
         set deplist {}
+        array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime}
         # get list of direct deps
         foreach type $deptypes {
             if {[info exists portinfo($type)]} {
-                foreach dep $portinfo($type) {
-                    lappend deplist $dep
+                if {$action == "rdeps" || [macports::ui_isset ports_verbose]} {
+                    foreach dep $portinfo($type) {
+                        lappend deplist $dep
+                    }
+                } else {
+                    foreach dep $portinfo($type) {
+                        lappend deplist [lindex [split $dep :] end]
+                    }
+                }
+                if {$action == "deps"} {
+                    set label "$labeldict($type) Dependencies"
+                    puts [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
+                    set deplist {}
                 }
             }
         }
 
+        if {$action == "deps"} {
+            return $status
+        }
+
         set toplist $deplist
         # gather all the deps
-        while {${action} == "rdeps"} {
+        while 1 {
             set newlist {}
             foreach dep $deplist {
                 set depname [lindex [split $dep :] end]
