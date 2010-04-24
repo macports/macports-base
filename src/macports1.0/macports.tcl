@@ -1397,11 +1397,19 @@ proc _mportinstalled {mport} {
 # Determine if a port is active (only for image mode)
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {[catch {set reslist [$workername eval registry_active \${name}]}]} {
-        return 0
-    } else {
-        return [expr [llength $reslist] > 0]
+    if {![catch {set reslist [$workername eval registry_active \${name}]}] && [llength $reslist] > 0} {
+        set i [lindex $reslist 0]
+        set name [lindex $i 0]
+        set version [lindex $i 1]
+        set revision [lindex $i 2]
+        set variants [lindex $i 3]
+        array set portinfo [mportinfo $mport]
+        if {$name == $portinfo(name) && $version == $portinfo(version)
+            && $revision == $portinfo(revision) && $variants == $portinfo(canonical_active_variants)} {
+            return 1
+        }
     }
+    return 0
 }
 
 # Determine if the named port is active (only for image mode)
@@ -2386,10 +2394,16 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         foreach depspec $portinfo($deptype) {
             # Is that dependency satisfied or this port installed?
             # If we don't skip or if it is not, add it to the list.
-            if {!$skipSatisfied || ![_mportispresent $mport $depspec]} {
-                # grab the portname portion of the depspec
-                set dep_portname [lindex [split $depspec :] end]
-    
+            set present [_mportispresent $mport $depspec]
+
+            # grab the portname portion of the depspec
+            set dep_portname [lindex [split $depspec :] end]
+            
+            set check_archs [expr {"$deptype"} != {"depends_fetch"} && {"$deptype"} != {"depends_extract"} && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1]
+
+            # need to open the portfile even if the dep is installed if it doesn't have the right archs
+            set parse [expr !$skipSatisfied || !$present || ($check_archs && ![macports::_active_supports_archs $dep_portname $required_archs])]
+            if {$parse} {
                 # Find the porturl
                 if {[catch {set res [mportlookup $dep_portname]} error]} {
                     global errorInfo
@@ -2397,7 +2411,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                     ui_error "Internal error: port lookup failed: $error"
                     return 1
                 }
-    
+
                 array unset dep_portinfo
                 array set dep_portinfo [lindex $res 1]
                 if {![info exists dep_portinfo(porturl)]} {
@@ -2407,47 +2421,49 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                     ui_error "Dependency '$dep_portname' not found."
                     return 1
                 }
-    
                 # Figure out the subport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
                 set subport [dlist_search $macports::open_mports porturl $dep_portinfo(porturl)]
+                
                 if {$subport == {}} {
                     # We haven't opened this one yet.
                     set subport [mportopen $dep_portinfo(porturl) $options $variations]
-    
-                    # check archs
-                    if {$deptype != "depends_fetch" && $deptype != "depends_extract"
-                        && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1
-                        && ![macports::_mport_supports_archs $subport $required_archs]} {
-                        set supported_archs [_mportkey $subport supported_archs]
-                        mportclose $subport
-                        set arch_mismatch 1
-                        set has_universal 0
-                        if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
-                            # a universal variant is offered
-                            set has_universal 1
-                            array unset variation_array
-                            array set variation_array $variations
-                            if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
-                                set variation_array(universal) +
-                                # try again with +universal
-                                set subport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
-                                if {[macports::_mport_supports_archs $subport $required_archs]} {
-                                    set arch_mismatch 0
-                                }
-                            }
-                        }
-                        if {$arch_mismatch} {
-                            macports::_explain_arch_mismatch [_mportkey $mport name] $dep_portname $required_archs $supported_archs $has_universal
-                            return -code error "architecture mismatch"
+                }
+            }
+
+            # check archs
+            if {$parse && $check_archs
+                && ![macports::_mport_supports_archs $subport $required_archs]} {
+
+                set supported_archs [_mportkey $subport supported_archs]
+                mportclose $subport
+                set arch_mismatch 1
+                set has_universal 0
+                if {[info exists dep_portinfo(variants)] && [lsearch -exact $dep_portinfo(variants) universal] != -1} {
+                    # a universal variant is offered
+                    set has_universal 1
+                    array unset variation_array
+                    array set variation_array $variations
+                    if {![info exists variation_array(universal)] || $variation_array(universal) != "+"} {
+                        set variation_array(universal) +
+                        # try again with +universal
+                        set subport [mportopen $dep_portinfo(porturl) $options [array get variation_array]]
+                        if {[macports::_mport_supports_archs $subport $required_archs]} {
+                            set arch_mismatch 0
                         }
                     }
-                    
-                    if {$recurseDeps} {
-                        # Add to the list we need to recurse on.
-                        lappend subPorts $subport
-                    }
+                }
+                if {$arch_mismatch} {
+                    macports::_explain_arch_mismatch [_mportkey $mport name] $dep_portname $required_archs $supported_archs $has_universal
+                    return -code error "architecture mismatch"
+                }
+            }
+
+            if {$parse} {
+                if {$recurseDeps} {
+                    # Add to the list we need to recurse on.
+                    lappend subPorts $subport
                 }
     
                 # Append the sub-port's provides to the port's requirements list.
@@ -2478,6 +2494,28 @@ proc macports::_mport_supports_archs {mport required_archs} {
     set workername [ditem_key $mport workername]
     set provided_archs [$workername eval get_canonical_archs]
     if {$provided_archs == "noarch"} {
+        return 1
+    }
+    foreach arch $required_archs {
+        if {[lsearch -exact $provided_archs $arch] == -1} {
+            return 0
+        }
+    }
+    return 1
+}
+
+# check if the active version of a port supports the given archs
+proc macports::_active_supports_archs {portname required_archs} {
+    if {$required_archs == "noarch"} {
+        return 1
+    }
+    if {[catch {set ilist [registry::active $portname]}]} {
+        return 0
+    }
+    set i [lindex $ilist 0]
+    set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+    set provided_archs [registry::property_retrieve $regref archs]
+    if {$provided_archs == "noarch" || $provided_archs == "" || $provided_archs == 0} {
         return 1
     }
     foreach arch $required_archs {
