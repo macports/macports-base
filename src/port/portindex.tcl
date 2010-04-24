@@ -21,6 +21,7 @@ set stats(skipped) 0
 array set ui_options        [list]
 array set global_options    [list]
 array set global_variations [list]
+set port_options            [list]
 
 # Pass global options into mportinit
 mportinit ui_options global_options global_variations
@@ -28,16 +29,17 @@ mportinit ui_options global_options global_variations
 # Standard procedures
 proc print_usage args {
     global argv0
-    puts "Usage: $argv0 \[-ad\] \[-o output directory\] \[directory\]"
+    puts "Usage: $argv0 \[-adf\] \[-p plat_ver_arch\] \[-o output directory\] \[directory\]"
     puts "-a:\tArchive port directories (for remote sites). Requires -o option"
     puts "-o:\tOutput all files to specified directory"
     puts "-d:\tOutput debugging information"
     puts "-f:\tDo a full re-index instead of updating"
+    puts "-p:\tPretend to be on another platform"
 }
 
 proc pindex {portdir} {
     global target oldfd oldmtime qindex fd directory archive outdir stats full_reindex
-    global macports::prefix ui_options
+    global macports::prefix ui_options port_options
     set save_prefix $prefix
     set prefix {\${prefix}}
 
@@ -68,7 +70,7 @@ proc pindex {portdir} {
         }
     }
 
-    if {[catch {set interp [mportopen file://[file join $directory $portdir]]} result]} {
+    if {[catch {set interp [mportopen file://[file join $directory $portdir] $port_options]} result]} {
         puts stderr "Failed to parse file $portdir/Portfile: $result"
         # revert the prefix.
         set prefix $save_prefix
@@ -128,6 +130,13 @@ for {set i 0} {$i < $argc} {incr i} {
             } elseif {$arg == "-o"} { # Set output directory
                 incr i
                 set outdir [lindex $argv $i]
+            } elseif {$arg == "-p"} { # Set platform
+                incr i
+                set platlist [split [lindex $argv $i] _]
+                set os_platform [lindex $platlist 0]
+                set os_major [lindex $platlist 1]
+                set os_arch [lindex $platlist 2]
+                lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg == "-f"} { # Completely rebuild index
                 set full_reindex yes
             } else {
