@@ -70,6 +70,7 @@ proc pindex {portdir} {
         }
     }
 
+    incr stats(total)
     if {[catch {set interp [mportopen file://[file join $directory $portdir] $port_options]} result]} {
         puts stderr "Failed to parse file $portdir/Portfile: $result"
         # revert the prefix.
@@ -110,7 +111,6 @@ proc pindex {portdir} {
         set len [expr [string length $output] + 1]
         puts $fd [list $portinfo(name) $len]
         puts $fd $output
-        incr stats(total)
     }
 }
 
