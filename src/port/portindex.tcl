@@ -176,7 +176,7 @@ if {[info exists outdir]} {
     set outdir $directory
 }
 
-puts "Creating software index in $outdir"
+puts "Creating port index in $outdir"
 set outpath [file join $outdir PortIndex]
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
