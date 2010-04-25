@@ -1511,10 +1511,10 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink name portpath ports_ignore_older
+    global workpath worksymlink place_worksymlink name portpath ports_ignore_older ports_dryrun
     global usealtworkpath altprefix env applications_dir portbuildpath
 
-    if {![file isdirectory $workpath]} {
+    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
         file mkdir $workpath
         chownAsRoot $portbuildpath
         # Create a symlink to the workpath for port authors
@@ -1538,7 +1538,7 @@ proc open_statefile {args} {
         #    read by macports. The copying of the portfile is done to preserve the symlink provided
         #    historically by macports from the portfile directory to the work directory.
         #    It is NOT read by MacPorts.
-        if {![file exists ${newsourcepath}/Portfile] } {
+        if {![file exists ${newsourcepath}/Portfile] && ![tbool ports_dryrun]} {
             file mkdir $newsourcepath
             ui_debug "$newsourcepath created"
             ui_debug "Going to copy: ${portpath}/Portfile"
@@ -1553,14 +1553,14 @@ proc open_statefile {args} {
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
-        if {![file writable $statefile]} {
+        if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
         if {[file mtime ${portpath}/Portfile] >= [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
-            if {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
+            if {![tbool ports_dryrun]} {
                 ui_msg "Portfile changed since last build; discarding previous state."
                 delete $workpath
                 file mkdir $workpath
@@ -1568,20 +1568,24 @@ proc open_statefile {args} {
                 ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
             }
         }
+    } elseif {[tbool ports_dryrun]} {
+        set statefile /dev/null
     }
 
     set fd [open $statefile a+]
-    if {[catch {flock $fd -exclusive -noblock} result]} {
-        if {"$result" == "EAGAIN"} {
-            ui_msg "Waiting for lock on $statefile"
-        } elseif {"$result" == "EOPNOTSUPP"} {
-            # Locking not supported, just return
-            return $fd
-        } else {
-            return -code error "$result obtaining lock on $statefile"
+    if {![tbool ports_dryrun]} {
+        if {[catch {flock $fd -exclusive -noblock} result]} {
+            if {"$result" == "EAGAIN"} {
+                ui_msg "Waiting for lock on $statefile"
+            } elseif {"$result" == "EOPNOTSUPP"} {
+                # Locking not supported, just return
+                return $fd
+            } else {
+                return -code error "$result obtaining lock on $statefile"
+            }
         }
+        flock $fd -exclusive
     }
-    flock $fd -exclusive
     return $fd
 }
 
