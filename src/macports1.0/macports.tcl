@@ -2743,14 +2743,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     global macports::global_variations
     array set options $optionslist
 
-    # Note $variationslist is left alone and so retains the original
-    # requested variations, which should be passed to recursive calls to
-    # upgrade; while variations gets existing variants and global variations
-    # merged in later on, so it applies only to this port's upgrade
-    array set variations $variationslist
-    
-    set globalvarlist [array get macports::global_variations]
-
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache
     }
@@ -2778,15 +2770,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     # set portname again since the one we were passed may not have had the correct case
     set portname $portinfo(name)
 
-    # set version_in_tree and revision_in_tree
-    if {![info exists portinfo(version)]} {
-        ui_error "Invalid port entry for $portname, missing version"
-        return 1
-    }
-    set version_in_tree "$portinfo(version)"
-    set revision_in_tree "$portinfo(revision)"
-    set epoch_in_tree "$portinfo(epoch)"
-
     set ilist {}
     if { [catch {set ilist [registry::installed $portname ""]} result] } {
         if {$result == "Registry error: $portname not registered as installed." } {
@@ -2802,12 +2785,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 if {![info exists porturl]} {
                     set porturl file://./
                 }
-                # Merge the global variations into the specified
-                foreach { variation value } $globalvarlist {
-                    if { ![info exists variations($variation)] } {
-                        set variations($variation) $value
-                    }
-                }
+                # Grab the variations from the parent
+                upvar 2 variations variations
 
                 if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result]} {
                     global errorInfo
@@ -2858,13 +2837,19 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         # we'll now take care of upgrading it, so we can add it to the cache
         set depscache(port:${portname}) 1
     }
-    set anyactive no
-    set version_installed {}
-    set revision_installed {}
-    set epoch_installed 0
-    set variant_installed ""
+    
+    # set version_in_tree and revision_in_tree
+    if {![info exists portinfo(version)]} {
+        ui_error "Invalid port entry for $portname, missing version"
+        return 1
+    }
+    set version_in_tree "$portinfo(version)"
+    set revision_in_tree "$portinfo(revision)"
+    set epoch_in_tree "$portinfo(epoch)"
 
     # find latest version installed and active version (if any)
+    set anyactive no
+    set version_installed {}
     foreach i $ilist {
         set variant [lindex $i 3]
         set version [lindex $i 1]
@@ -2874,7 +2859,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 ($epoch == $epoch_installed && [rpm-vercomp $version $version_installed] > 0)
                 || ($epoch == $epoch_installed
                     && [rpm-vercomp $version $version_installed] == 0
-                    && [rpm-vercomp $revision $revision_installed] > 0)} {
+                    && $revision > $revision_installed)} {
             set version_installed $version
             set revision_installed $revision
             set variant_installed $variant
@@ -2920,6 +2905,14 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
     if {![info exists porturl]} {
         set porturl file://./
     }
+
+    # Note $variationslist is left alone and so retains the original
+    # requested variations, which should be passed to recursive calls to
+    # upgrade; while variations gets existing variants and global variations
+    # merged in later on, so it applies only to this port's upgrade
+    array set variations $variationslist
+    
+    set globalvarlist [array get macports::global_variations]
 
     set minusvariant [lrange [split $oldnegatedvariant -] 1 end]
     set plusvariant [lrange [split $oldvariant +] 1 end]
