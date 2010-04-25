@@ -112,6 +112,10 @@ proc run_target {port target options} {
                 }
             }
         } else {
+            global macports::keeplogs
+            if {(![info exists keeplogs] || !$keeplogs) && $target != "activate"} {
+                catch {mportexec $mport clean}
+            }
             mportclose_installed $mport
             return 1
         }
