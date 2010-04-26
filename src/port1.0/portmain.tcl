@@ -96,8 +96,6 @@ if {[option os.platform] == "darwin"} {
 }
 ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
 
-default macosx_deployment_target {$macosx_version}
-
 default universal_variant yes
 
 # sub-platforms of darwin

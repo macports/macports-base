@@ -152,10 +152,10 @@ default configure.bison             {}
 default configure.pkg_config        {}
 default configure.pkg_config_path   {}
 
-options configure.build_arch
+options configure.build_arch configure.ld_archflags configure.sdkroot
 default configure.build_arch {[portconfigure::choose_supported_archs ${build_arch}]}
-options configure.ld_archflags
 default configure.ld_archflags {[portconfigure::configure_get_ld_archflags]}
+default configure.sdkroot {[portconfigure::configure_get_sdkroot]}
 foreach tool {cc cxx objc f77 f90 fc} {
     options configure.${tool}_archflags
     default configure.${tool}_archflags  "\[portconfigure::configure_get_archflags $tool\]"
@@ -165,7 +165,7 @@ options configure.universal_archs configure.universal_args configure.universal_c
 default configure.universal_archs       {[portconfigure::choose_supported_archs ${universal_archs}]}
 default configure.universal_args        {--disable-dependency-tracking}
 default configure.universal_cflags      {[portconfigure::configure_get_universal_cflags]}
-default configure.universal_cppflags    {[portconfigure::configure_get_universal_cppflags]}
+default configure.universal_cppflags    {}
 default configure.universal_cxxflags    {[portconfigure::configure_get_universal_cflags]}
 default configure.universal_ldflags     {[portconfigure::configure_get_universal_ldflags]}
 
@@ -269,6 +269,22 @@ proc portconfigure::configure_get_ld_archflags {args} {
     }
 }
 
+proc portconfigure::configure_get_sdkroot {} {
+    global developer_dir macosx_deployment_target macosx_version os.major os.arch os.platform
+    if {${os.platform} == "darwin" && ($macosx_deployment_target != $macosx_version
+        || ([variant_isset universal] && ${os.arch} == "powerpc" && ${os.major} == "8"))} {
+        if {${os.major} == "8"} {
+            set sdk "${developer_dir}/SDKs/MacOSX10.4u.sdk"
+        } else {
+            set sdk "${developer_dir}/SDKs/MacOSX${macosx_deployment_target}.sdk"
+        }
+        if {[file exists $sdk]} {
+            return $sdk
+        }
+    }
+    return ""
+}
+
 # internal function to determine the "-arch xy" flags for the compiler
 proc portconfigure::configure_get_universal_archflags {args} {
     global configure.universal_archs
@@ -283,37 +299,14 @@ proc portconfigure::configure_get_universal_archflags {args} {
     return $flags
 }
 
-# internal function to determine the CPPFLAGS for the compiler
-proc portconfigure::configure_get_universal_cppflags {args} {
-    global os.arch os.major developer_dir
-    set flags ""
-    # include sysroot in CPPFLAGS too (twice), for the benefit of autoconf
-    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
-        set flags "-isysroot ${developer_dir}/SDKs/MacOSX10.4u.sdk"
-    }
-    return $flags
-}
-
 # internal function to determine the CFLAGS for the compiler
 proc portconfigure::configure_get_universal_cflags {args} {
-    global os.arch os.major developer_dir
-    set flags [configure_get_universal_archflags]
-    # these flags should be valid for C/C++ and similar compiler frontends
-    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
-        set flags "-isysroot ${developer_dir}/SDKs/MacOSX10.4u.sdk ${flags}"
-    }
-    return $flags
+    return [configure_get_universal_archflags]
 }
 
 # internal function to determine the LDFLAGS for the compiler
 proc portconfigure::configure_get_universal_ldflags {args} {
-    global os.arch os.major developer_dir
-    set flags [configure_get_universal_archflags]
-    # works around linking without using the CFLAGS, outside of automake
-    if {${os.arch} == "powerpc" && ${os.major} == "8"} {
-        set flags "-Wl,-syslibroot,${developer_dir}/SDKs/MacOSX10.4u.sdk ${flags}"
-    }
-    return $flags
+    return [configure_get_universal_archflags]
 }
 
 # internal proc to determine if the compiler supports -arch
@@ -336,12 +329,12 @@ proc portconfigure::arch_flag_supported {args} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    global os.platform os.major
-    switch -exact "${os.platform} ${os.major}" {
-        "darwin 8"  -
-        "darwin 9"  { return gcc-4.0 }
-        "darwin 10" { return gcc-4.2 }
-        "darwin 11" { return llvm-gcc-4.2 }
+    global macosx_deployment_target
+    switch -exact ${macosx_deployment_target} {
+        "10.4"      -
+        "10.5"      { return gcc-4.0 }
+        "10.6"      { return gcc-4.2 }
+        "10.7"      { return llvm-gcc-4.2 }
         default     { return gcc }
     }
 }
@@ -506,7 +499,7 @@ proc portconfigure::configure_main {args} {
     global worksrcpath use_configure use_autoreconf use_autoconf use_automake use_xmkmf
     global configure.env configure.pipe configure.libs configure.classpath configure.universal_args
     global configure.perl configure.python configure.ruby configure.install configure.awk configure.bison configure.pkg_config configure.pkg_config_path
-    global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune
+    global configure.ccache configure.distcc configure.cpp configure.javac configure.march configure.mtune configure.sdkroot
     foreach tool {cc cxx objc f77 f90 fc ld} {
         global configure.${tool} configure.${tool}_archflags
     }
@@ -589,14 +582,21 @@ proc portconfigure::configure_main {args} {
         append_list_to_environment_value configure "BISON" ${configure.bison}
         append_list_to_environment_value configure "PKG_CONFIG" ${configure.pkg_config}
         append_list_to_environment_value configure "PKG_CONFIG_PATH" ${configure.pkg_config_path}
-        
+
+        # add SDK flags if cross-compiling (or universal on ppc tiger)
+        if {${configure.sdkroot} != ""} {
+            foreach flags {CPPFLAGS CFLAGS CXXFLAGS OBJCFLAGS} {
+                append_list_to_environment_value configure $flags "-isysroot ${configure.sdkroot}"
+            }
+            append_list_to_environment_value configure "LDFLAGS" "-Wl,-syslibroot,${configure.sdkroot}"
+        }
+
         # add extra flags that are conditional on whether we're building universal
         if {[variant_exists universal] && [variant_isset universal]} {
             foreach flags {CFLAGS OBJCFLAGS} {
                 append_list_to_environment_value configure $flags ${configure.universal_cflags}
             }
             append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
-            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval configure.pre_args-append ${configure.universal_args}
         } else {

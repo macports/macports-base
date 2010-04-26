@@ -45,7 +45,7 @@ namespace eval macports {
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir frameworks_dir developer_dir universal_archs build_arch \
+        applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
@@ -55,7 +55,7 @@ namespace eval macports {
         rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
-        os_arch os_endian os_version os_major os_platform macosx_version $user_options"
+        os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -466,6 +466,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::os_major
     global macports::os_platform
     global macports::macosx_version
+    global macports::macosx_deployment_target
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -820,6 +821,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     } else {
         set macports::build_arch [lindex $macports::build_arch 0]
+    }
+
+    if {![info exists macports::macosx_deployment_target]} {
+        set macports::macosx_deployment_target $macosx_version
     }
 
     # ENV cleanup.
