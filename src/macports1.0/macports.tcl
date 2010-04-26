@@ -786,7 +786,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default Xcode Tools path
     if {![info exists macports::developer_dir]} {
-        set macports::developer_dir "/Developer"
+        if {$os_platform != "darwin" || $os_major < 9 
+            || [catch {set macports::developer_dir [exec xcode-select -print-path]}]} {
+            set macports::developer_dir "/Developer"
+        }
     }
 
     # Default mp universal options
