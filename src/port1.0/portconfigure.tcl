@@ -272,7 +272,7 @@ proc portconfigure::configure_get_ld_archflags {args} {
 proc portconfigure::configure_get_sdkroot {} {
     global developer_dir macosx_deployment_target macosx_version os.arch os.platform
     if {${os.platform} == "darwin" && ($macosx_deployment_target != $macosx_version
-        || ([variant_isset universal] && ${os.arch} == "powerpc" && $macosx_version == "10.4"))} {
+        || (${os.arch} == "powerpc" && $macosx_version == "10.4" && [variant_exists universal] && [variant_isset universal]))} {
         if {$macosx_deployment_target == "10.4"} {
             set sdk "${developer_dir}/SDKs/MacOSX10.4u.sdk"
         } else {
