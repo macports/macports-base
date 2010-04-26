@@ -597,6 +597,7 @@ proc portconfigure::configure_main {args} {
                 append_list_to_environment_value configure $flags ${configure.universal_cflags}
             }
             append_list_to_environment_value configure "CXXFLAGS" ${configure.universal_cxxflags}
+            append_list_to_environment_value configure "CPPFLAGS" ${configure.universal_cppflags}
             append_list_to_environment_value configure "LDFLAGS" ${configure.universal_ldflags}
             eval configure.pre_args-append ${configure.universal_args}
         } else {
