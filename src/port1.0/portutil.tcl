@@ -843,7 +843,7 @@ proc reinplace {args}  {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
             set args [lrange $args 1 end]
-            switch [string range $arg 1 end] {
+            switch -- [string range $arg 1 end] {
                 E {
                     set extended 1
                 }

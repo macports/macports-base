@@ -315,7 +315,7 @@ proc portdestroot::destroot_finish {args} {
                         lpush pathsToCheck $dfile
                     } else {
                         # not a prefix of an allowed path, so it's either the path itself or a violation
-                        switch $dfile \
+                        switch -- $dfile \
                             $applications_dir - \
                             $frameworks_dir - \
                             /Library/LaunchAgents - \

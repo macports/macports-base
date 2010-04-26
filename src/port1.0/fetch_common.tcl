@@ -51,7 +51,7 @@ proc portfetch::percent_encode {str} {
     while {[string length $str] > 0} {
         set char [string index $str 0]
         set str [string range $str 1 end]
-        switch $char {
+        switch -- $char {
             {-} -
             {.} -
             {_} -
