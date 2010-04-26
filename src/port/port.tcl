@@ -721,9 +721,6 @@ proc get_outdated_ports {} {
     # Now process the list, keeping only those ports that are outdated
     set results {}
     if { [llength $ilist] > 0 } {
-        global tcl_platform
-        set os_platform [string tolower $tcl_platform(os)]
-        set os_major [lindex [split $tcl_platform(osVersion) .] 0]
         foreach i $ilist {
 
             # Get information about the installed port
@@ -779,7 +776,7 @@ proc get_outdated_ports {} {
                 set os_major_installed [registry::property_retrieve $regref os_major]
                 if {$os_platform_installed != "" && $os_platform_installed != 0
                     && $os_major_installed != "" && $os_major_installed != 0
-                    && ($os_platform_installed != $os_platform || $os_major_installed != $os_major)} {
+                    && ($os_platform_installed != ${macports::os_platform} || $os_major_installed != ${macports::os_major})} {
                     set comp_result -1
                 }
             }
@@ -2463,16 +2460,7 @@ proc action_version { action portlist opts } {
 
 
 proc action_platform { action portlist opts } {
-#   global os.platform os.major os.arch 
-    global tcl_platform
-    set os_platform [string tolower $tcl_platform(os)]
-    set os_version $tcl_platform(osVersion)
-    set os_arch $tcl_platform(machine)
-    if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-    if {$os_arch == "i586" || $os_arch == "i686"} { set os_arch "i386" }
-    set os_major [lindex [split $tcl_platform(osVersion) .] 0]
-#   puts "Platform: ${os.platform} ${os.major} ${os.arch}"
-    puts "Platform: ${os_platform} ${os_major} ${os_arch}"
+    puts "Platform: ${macports::os_platform} ${macports::os_major} ${macports::os_arch}"
     return 0
 }
 
@@ -2931,9 +2919,6 @@ proc action_outdated { action portlist opts } {
 
     set num_outdated 0
     if { [llength $ilist] > 0 } {
-        global tcl_platform
-        set os_platform [string tolower $tcl_platform(os)]
-        set os_major [lindex [split $tcl_platform(osVersion) .] 0]
         foreach i $ilist {
         
             # Get information about the installed port
@@ -2995,9 +2980,9 @@ proc action_outdated { action portlist opts } {
                 set os_major_installed [registry::property_retrieve $regref os_major]
                 if {$os_platform_installed != "" && $os_platform_installed != 0
                     && $os_major_installed != "" && $os_major_installed != 0
-                    && ($os_platform_installed != $os_platform || $os_major_installed != $os_major)} {
+                    && ($os_platform_installed != ${macports::os_platform} || $os_major_installed != ${macports::os_major})} {
                     set comp_result -1
-                    set reason { (platform $os_platform_installed $os_major_installed != $os_platform $os_major)}
+                    set reason { (platform $os_platform_installed $os_major_installed != ${macports::os_platform} ${macports::os_major})}
                 }
             }
             

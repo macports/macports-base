@@ -84,25 +84,14 @@ default install.user {${portutil::autoconf::install_user}}
 default install.group {${portutil::autoconf::install_group}}
 
 # Platform Settings
-set os_arch $tcl_platform(machine)
-if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
-if {$os_arch == "i586" || $os_arch == "i686" || $os_arch == "x86_64"} { set os_arch "i386" }
-set os_version $tcl_platform(osVersion)
-set os_major [lindex [split $os_version .] 0]
-set os_platform [string tolower $tcl_platform(os)]
-
 default os.platform {$os_platform}
 default os.version {$os_version}
 default os.major {$os_major}
 default os.arch {$os_arch}
-# Remove trailing "Endian"
-default os.endian {[string range $tcl_platform(byteOrder) 0 end-6]}
+default os.endian {$os_endian}
 
-set macosx_version {}
 set macosx_version_text {}
-if {$os_platform == "darwin"} {
-    # This will probably break when Apple changes versioning
-    set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
+if {[option os.platform] == "darwin"} {
     set macosx_version_text "(Mac OS X ${macosx_version}) "
 }
 ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"

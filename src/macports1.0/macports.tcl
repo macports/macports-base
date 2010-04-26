@@ -54,7 +54,8 @@ namespace eval macports {
         portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
         rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
-        applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch $user_options"
+        applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
+        os_arch os_endian os_version os_major os_platform macosx_version $user_options"
 
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
@@ -459,6 +460,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::buildmakejobs
     global macports::universal_archs
     global macports::build_arch
+    global macports::os_arch
+    global macports::os_endian
+    global macports::os_version
+    global macports::os_major
+    global macports::os_platform
+    global macports::macosx_version
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -469,6 +476,21 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     } else {
         # Otherwise define the user directory as a direcotory that will never exist
         set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
+    }
+
+    # set up platform info variables
+    set os_arch $tcl_platform(machine)
+    if {$os_arch == "Power Macintosh"} { set os_arch "powerpc" }
+    if {$os_arch == "i586" || $os_arch == "i686" || $os_arch == "x86_64"} { set os_arch "i386" }
+    set os_version $tcl_platform(osVersion)
+    set os_major [lindex [split $os_version .] 0]
+    set os_platform [string tolower $tcl_platform(os)]
+    # Remove trailing "Endian"
+    set os_endian [string range $tcl_platform(byteOrder) 0 end-6]
+    set macosx_version {}
+    if {$os_platform == "darwin"} {
+        # This will probably break when Apple changes versioning
+        set macosx_version [expr 10.0 + ($os_major - 4) / 10.0]
     }
 
     # Configure the search path for configuration files
@@ -768,7 +790,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Default mp universal options
     if {![info exists macports::universal_archs]} {
-        if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+        if {$os_major >= 10} {
             set macports::universal_archs {x86_64 i386}
         } else {
             set macports::universal_archs {i386 ppc}
@@ -779,15 +801,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     
     # Default arch to build for
     if {![info exists macports::build_arch]} {
-        if {$tcl_platform(os) == "Darwin"} {
-            if {[lindex [split $tcl_platform(osVersion) .] 0] >= 10} {
+        if {$os_platform == "darwin"} {
+            if {$os_major >= 10} {
                 if {[sysctl hw.cpu64bit_capable] == 1} {
                     set macports::build_arch x86_64
                 } else {
                     set macports::build_arch i386
                 }
             } else {
-                if {$tcl_platform(machine) == "Power Macintosh"} {
+                if {$os_arch == "powerpc"} {
                     set macports::build_arch ppc
                 } else {
                     set macports::build_arch i386
