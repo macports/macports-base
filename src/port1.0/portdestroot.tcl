@@ -136,7 +136,7 @@ proc portdestroot::destroot_main {args} {
 
 proc portdestroot::destroot_finish {args} {
     global UI_PREFIX destroot prefix name startupitem.create destroot.violate_mtree
-    global applications_dir frameworks_dir developer_dir destroot.keepdirs
+    global applications_dir frameworks_dir destroot.keepdirs
     global os.platform os.version
     variable oldmask
 

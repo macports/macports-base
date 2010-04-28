@@ -62,7 +62,7 @@ default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}
-default developer_dir {/Developer}
+default developer_dir {[portmain::get_developer_dir]}
 default destdir destroot
 default destpath {${workpath}/${destdir}}
 # destroot is provided as a clearer name for the "destpath" variable
@@ -118,6 +118,13 @@ if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
 
 default compiler.cpath {${prefix}/include}
 default compiler.library_path {${prefix}/lib}
+
+proc portmain::get_developer_dir {} {
+    if {![catch {binaryInPath xcode-select}]} {
+        return [exec xcode-select -print-path]
+    }
+    return "/Developer"
+}
 
 # start gsoc08-privileges
 

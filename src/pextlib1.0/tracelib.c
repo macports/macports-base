@@ -272,13 +272,13 @@ static void send_file_map(int sock)
 			append_allow("/bin", 0);
 			append_allow("/sbin", 0);
 			append_allow("/dev", 0);
-			append_allow(Tcl_GetVar(interp, "macports::prefix", TCL_GLOBAL_ONLY), 2);
+			append_allow(Tcl_GetVar(interp, "prefix", TCL_GLOBAL_ONLY), 2);
 			/* If there is no SDK we will allow everything in /usr /System/Library etc, else add binaries to allow, and redirect root to SDK. */
 			if(sdk&&*sdk)
 			{
 				char buf[260];
 				buf[0] = '\0';
-				strlcat(buf, Tcl_GetVar(interp, "macports::developer_dir", TCL_GLOBAL_ONLY), 260);
+				strlcat(buf, Tcl_GetVar(interp, "developer_dir", TCL_GLOBAL_ONLY), 260);
 				strlcat(buf, "/SDKs/", 260);
 				strlcat(buf, sdk, 260);
 			
@@ -294,7 +294,7 @@ static void send_file_map(int sock)
 				append_allow("/usr", 0);
 				append_allow("/System/Library", 0);
 				append_allow("/Library", 0);
-				append_allow(Tcl_GetVar(interp, "macports::developer_dir", TCL_GLOBAL_ONLY), 0);
+				append_allow(Tcl_GetVar(interp, "developer_dir", TCL_GLOBAL_ONLY), 0);
 			}
 		}else
 			append_allow("/", 0);
