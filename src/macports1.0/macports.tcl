@@ -1724,6 +1724,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                                     # upgrade the dep with +universal
                                     lappend variants universal +
                                     lappend options ports_upgrade_enforce-variants yes
+                                    ui_debug "enforcing +universal upgrade for $dep_portname"
                                 }
                             } else {
                                 # already universal
