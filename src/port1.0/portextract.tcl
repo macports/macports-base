@@ -74,7 +74,7 @@ proc portextract::disttagclean {list} {
 }
 
 proc portextract::extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir distfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg workpath
+    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
@@ -99,13 +99,11 @@ proc portextract::extract_init {args} {
         option extract.pre_args x
         option extract.post_args ""
     } elseif {[tbool use_dmg]} {
-        global worksrcdir
-        set dmg_tmp_dir [mkdtemp "/tmp/mports.XXXXXXXX"]
-        set dmg_mount ${dmg_tmp_dir}/${worksrcdir}
-        file mkdir ${dmg_mount}
+        global distname
+        set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
-        option extract.post_args "-private -readonly -nobrowse -mountpoint ${dmg_mount} && [findBinary cp  ${portutil::autoconf::cp_path}] -Rp ${dmg_mount} ${extract.dir} && ${extract.cmd} detach ${dmg_mount} && [findBinary rmdir  ${portutil::autoconf::rmdir_path}] ${dmg_mount} ${dmg_tmp_dir}"
+        option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && [findBinary cp ${portutil::autoconf::cp_path}] -Rp \\\"${dmg_mount}\\\" \\\"${extract.dir}/${distname}\\\" && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\""
     }
 }
 
