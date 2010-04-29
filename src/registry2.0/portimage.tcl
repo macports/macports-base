@@ -267,7 +267,7 @@ proc deactivate {name v optionslist} {
             registry::check_dependents $requested $force
         }
 
-        _deactivate_contents $requested {} $force
+        _deactivate_contents $requested [$requested files] $force
         $requested state imaged
     } else {
         set ref [registry::open_entry $name $version $revision $variants]
@@ -521,6 +521,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             # We don't have to do this as mentioned above, but it makes the
             # debug output of activate make more sense.
             set theList [lsort -increasing -unique $files]
+            set rollback_filelist {}
 
             registry::write {
                 # Activate it, and catch errors so we can roll-back
@@ -528,6 +529,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                     $port activate $imagefiles
                     foreach file $theList {
                         _activate_file "${imagedir}${file}" $file
+                        lappend rollback_filelist $file
                     }
                 } catch {*} {
                     ui_debug "Activation failed, rolling back."
@@ -539,7 +541,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         } catch {*} {
             # roll back activation of this port
             if {[info exists deactivate_this]} {
-                _deactivate_contents $port {} yes
+                _deactivate_contents $port $rollback_filelist yes yes
             }
             # if any errors occurred, move backed-up files back to their original
             # locations, then rethrow the error. Transaction rollback will take care
@@ -632,13 +634,15 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
         set theList [lsort -increasing -unique $files]
+        set rollback_filelist {}
 
         # Activate it, and catch errors so we can roll-back
         if { [catch { foreach file $theList {
                         _activate_file "${imagedir}${file}" $file
+                        lappend rollback_filelist $file
                     }} result]} {
             ui_debug "Activation failed, rolling back."
-            _deactivate_contents $name $imagefiles
+            _deactivate_contents $name $rollback_filelist yes yes
             # return backed up files to their old locations
             foreach f $backups {
                 set bakfile "${f}${baksuffix}"
@@ -680,12 +684,9 @@ proc _deactivate_file {dstfile} {
     }
 }
 
-proc _deactivate_contents {port imagefiles {force 0}} {
+proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     variable use_reg2
     set files [list]
-    if {$use_reg2} {
-        set imagefiles [$port files]
-    }
 
     foreach file $imagefiles {
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
@@ -719,7 +720,7 @@ proc _deactivate_contents {port imagefiles {force 0}} {
     set theList [lsort -decreasing -unique $files]
 
     # Remove all elements.
-    if {$use_reg2} {
+    if {$use_reg2 && !$rollback} {
         registry::write {
             $port deactivate $imagefiles
             foreach file $theList {
