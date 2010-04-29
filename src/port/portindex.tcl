@@ -38,10 +38,8 @@ proc print_usage args {
 }
 
 proc pindex {portdir} {
-    global target oldfd oldmtime qindex fd directory archive outdir stats full_reindex
-    global macports::prefix ui_options port_options
-    set save_prefix $prefix
-    set prefix {\${prefix}}
+    global target oldfd oldmtime qindex fd directory archive outdir stats full_reindex \
+           ui_options port_options save_prefix keepkeys
 
     # try to reuse the existing entry if it's still valid
     if {$full_reindex != "1" && $archive != "1" && [info exists qindex([string tolower [file tail $portdir]])]} {
@@ -71,6 +69,7 @@ proc pindex {portdir} {
     }
 
     incr stats(total)
+    set prefix {\${prefix}}
     if {[catch {set interp [mportopen file://[file join $directory $portdir] $port_options]} result]} {
         puts stderr "Failed to parse file $portdir/Portfile: $result"
         # revert the prefix.
@@ -101,9 +100,8 @@ proc pindex {portdir} {
             }
         }
 
-        set keepkeys {categories depends_fetch depends_extract depends_build depends_lib depends_run description epoch homepage long_description maintainers name platforms revision variants version portdir portarchive replaced_by license}
         foreach availkey [array names portinfo] {
-            if {[lsearch -exact ${keepkeys} $availkey] == -1} {
+            if {![info exists keepkeys($availkey)]} {
                 unset portinfo($availkey)
             }
         }
@@ -138,7 +136,7 @@ for {set i 0} {$i < $argc} {incr i} {
                 set os_arch [lindex $platlist 2]
                 lappend port_options os.platform $os_platform os.major $os_major os.arch $os_arch
             } elseif {$arg == "-f"} { # Completely rebuild index
-                set full_reindex yes
+                set full_reindex 1
             } else {
                 puts stderr "Unknown option: $arg"
                 print_usage
@@ -202,6 +200,13 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
 
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
 set fd [open $tempportindex w]
+set save_prefix ${macports::prefix}
+foreach key {categories depends_fetch depends_extract depends_build \
+             depends_lib depends_run description epoch homepage \
+             long_description maintainers name platforms revision variants \
+             version portdir portarchive replaced_by license} {
+    set keepkeys($key) 1
+}
 mporttraverse pindex $directory
 if {[info exists oldfd]} {
     close $oldfd
