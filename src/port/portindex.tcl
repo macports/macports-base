@@ -127,7 +127,7 @@ for {set i 0} {$i < $argc} {incr i} {
                 set ui_options(ports_debug) yes
             } elseif {$arg == "-o"} { # Set output directory
                 incr i
-                set outdir [lindex $argv $i]
+                set outdir [file join [pwd] [lindex $argv $i]]
             } elseif {$arg == "-p"} { # Set platform
                 incr i
                 set platlist [split [lindex $argv $i] _]
@@ -144,7 +144,7 @@ for {set i 0} {$i < $argc} {incr i} {
             }
         }
         default {
-            set directory $arg
+            set directory [file join [pwd] $arg]
         }
     }
 }
