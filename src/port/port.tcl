@@ -4217,7 +4217,7 @@ proc process_command_file { in } {
 
     # Main command loop
     set exit_status 0
-    while { $exit_status == 0 || [macports::ui_isset ports_processall] } {
+    while { $exit_status == 0 || $isstdin || [macports::ui_isset ports_processall] } {
 
         # Calculate our prompt
         if { $noisy } {
