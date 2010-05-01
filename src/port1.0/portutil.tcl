@@ -1514,24 +1514,14 @@ proc open_statefile {args} {
     global workpath worksymlink place_worksymlink name portpath ports_ignore_older ports_dryrun
     global usealtworkpath altprefix env applications_dir portbuildpath
 
-    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
-        file mkdir $workpath
-        chownAsRoot $portbuildpath
-        # Create a symlink to the workpath for port authors
-        if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
-            ui_debug "Attempting ln -sf $workpath $worksymlink"
-            ln -sf $workpath $worksymlink
-        }
-    }
-
     # de-escalate privileges if MacPorts was started with sudo
     dropPrivileges
-    
+
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
                 You may be unable to complete certain actions (e.g. install)."
 
-        set newsourcepath "$altprefix/$portpath"
+        set newsourcepath "${altprefix}${portpath}"
     
         # copy Portfile (and patch files) if not there already
         # note to maintainers/devs: the original portfile in /opt/local is ALWAYS the one that will be
@@ -1547,6 +1537,16 @@ proc open_statefile {args} {
                 ui_debug "Going to copy: ${portpath}/files"
                 file copy ${portpath}/files $newsourcepath
             }
+        }
+    }
+
+    if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
+        file mkdir $workpath
+        chownAsRoot $portbuildpath
+        # Create a symlink to the workpath for port authors
+        if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
+            ui_debug "Attempting ln -sf $workpath $worksymlink"
+            ln -sf $workpath $worksymlink
         }
     }
 
