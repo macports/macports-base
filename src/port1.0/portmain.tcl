@@ -45,18 +45,22 @@ namespace eval portmain {
 
 # define options
 options prefix name version revision epoch categories maintainers
-options long_description description homepage license provides conflicts replaced_by
+options long_description description homepage notes license provides conflicts replaced_by
 options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.subplatform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
 options universal_variant os.universal_supported
 options supported_archs depends_skip_archcheck
 options copy_log_files
 options compiler.cpath compiler.library_path
 
-# Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description homepage license provides conflicts replaced_by
+# Order of option_proc and option_export matters. Filter before exporting.
 
 # Assign option procedure to default_variants
 option_proc default_variants handle_default_variants
+# Handle notes special for better formatting
+option_proc notes handle_option_string
+
+# Export options via PortInfo
+options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by
 
 default workpath {[getportworkpath_from_buildpath $portbuildpath]}
 default prefix /opt/local

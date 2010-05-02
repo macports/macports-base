@@ -447,29 +447,41 @@ proc default_check {optionName index op} {
     }
 }
 
-# Notes are displayed at (1) the end of the activation phase and (2) when
-# action_notes is executed.
-proc notes {args} {
-    global PortInfo portnotes
+##
+# Filter options which take strings removing indent to ease Portfile writing
+proc handle_option_string {option action args} {
+    global $option
 
-    # Strip trailing empty lines
-    set notes [string trim [join $args] "\n"]
-    # Determine indent level
-    set indent ""
-    for {set i 0} {$i < [string length $notes]} {incr i} {
-        set c [string index $notes $i]
-        if {$c != " " && $c != "\t"} {
-            break
+    switch $action {
+        set {
+            set args [join $args]
+
+            set fulllist {}
+            # args is a list of strings/list
+            foreach arg $args {
+                # Strip trailing empty lines
+                set txt [string trim $arg "\n"]
+
+                # Determine indent level
+                set indent ""
+                for {set i 0} {$i < [string length $txt]} {incr i} {
+                    set c [string index $txt $i]
+                    if {$c != " " && $c != "\t"} {
+                        break
+                    }
+                    append indent $c
+                }
+                # Remove indent on first line
+                set txt [string replace $txt 0 [expr $i - 1]]
+                # Remove indent on each other line
+                set txt [string map "\"\n$indent\" \"\n\"" $txt]
+
+                lappend fulllist $txt
+            }
+
+            set $option $fulllist
         }
-        append indent $c
     }
-    # Remove indent on first line
-    set notes [string replace $notes 0 [expr $i - 1]]
-    # Remove indent on each other line
-    set notes [string map "\"\n$indent\" \"\n\"" $notes]
-
-    set PortInfo(notes) $notes
-    set portnotes $PortInfo(notes)
 }
 
 # variant <provides> [<provides> ...] [requires <requires> [<requires>]]

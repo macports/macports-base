@@ -2168,7 +2168,9 @@ proc action_notes { action portlist opts } {
         # Display the notes.
         if {$portnotes ne {}} {
             ui_notice "$portname has the following notes:"
-            puts [wrap $portnotes 0 "  " 1]
+            foreach note $portnotes {
+                puts [wrap $note 0 "  " 1]
+            }
         } else {
             puts "$portname has no notes."
         }
