@@ -5,8 +5,147 @@
 
 Release 1.9.0 (unreleased):
 
+    - Using a Portfile with a modification date in the future now causes an
+      informative error early on, instead of just discarding the workdir at
+      the start of every phase. (#24717, raimue in r65246)
+
+    - Fetching from servers that require a cookie to be set now works.
+      (#24584, raimue in r66785)
+
+    - Fixed an error when everything is deleted from the patchfiles list.
+      (#24178, raimue in r65243)
+
+    - Added 'license:' pseudo-port selector. (#24123, perry in r65033)
+
+    - Added new fetch.type 'bzr'. (#23436, perry in r65096)
+
+    - Added 'rdeps' and 'rdependents' actions, recursive versions of 'deps'
+      and 'dependents' respectively. Also added 'depof:', 'rdepof:',
+      'dependentof:' and 'rdependentof:' pseudo-port selectors, for specifying
+      the ports that are dependencies or dependents of the given port.
+      (#22346, jmr in r65858/r66198)
+
+    - Updated the description of the search action in the port(1) man page.
+      (#23749, jmr in r66670)
+
+    - Dry-run now uses /dev/null as the statefile, which prevents a couple of
+      problems involving locking and variant checks.
+      (#21794, #21962; jmr in r66921)
+
+    - The list of dependencies to be installed is now displayed immediately
+      after computing them. (#21540, jmr in r66321)
+
+    - The quick index is now reloaded after syncing in interactive mode, which
+      prevents errors due to it not matching the updated PortIndex.
+      (#20874, jmr in r66319, refinement of patch from carrel.org:edward)
+
+    - The architectures of dependencies are checked when installing a port. If
+      a dependency does not provide the required arch(s), it is rebuilt with
+      +universal if that is possible and will help, otherwise the install fails
+      and an error message explains why. (#20728, jmr in r65087)
+
+    - New supported_archs option allows ports to indicate which architectures
+      they can be built for. The default values of configure.build_arch and
+      configure.universal_archs change based on this list. Set this to
+      'noarch' if a port installs only architecture-independent files.
+      (#20739, jmr in r64372/r64945)
+
+    - Declaring a variant that requires one or more other variants will now
+      correctly set the required variants, so they can be checked with
+      variant_isset. (#19224, jmr in r66642)
+
+    - 'port outdated' now indicates the reason why a port that appears to have
+      the same version as that in the tree is considered outdated. Possible
+      reasons are that the epoch is higher, or the installed version was built
+      on a different OS version. (#19138, jmr in r64960)
+
+    - Distfile names are now percent-escaped in the download URLs when needed.
+      (#18736, jmr in r66794)
+
+    - buildnicevalue is now applied to configure and destroot commands, and to
+      build commands with unusual names. (#18304, raimue in r65076/r65808)
+
+    - Removed hardcoded /opt/local prefix from the base dmg resources.
+      (#17633, jmr in r66776)
+
+    - Fixed an error that occurred when archive mode was enabled but
+      ${prefix}/var/macports/packages did not exist. (#17579, jmr in r66775)
+
+    - Syncing rsync sources now tries to get a platform-specific version of
+      the PortIndex from the server, and skips this if the local copy is less
+      than a day old. All sync methods now update the PortIndex at the end.
+      (#17157, jmr in r66846/r67207)
+
+    - portindex(1) now skips parsing Portfiles whose modification time is
+      older than the current PortIndex, instead reusing the existing entry.
+      (#16235, jmr in r66845)
+
+    - Added a 'requested' flag to the registry that indicates which ports were
+      installed explicitly (as opposed to as a dependency of something else).
+      This enables the new 'requested', 'unrequested' and 'leaves' pseudo-
+      ports, as well as the --follow-dependencies option for uninstall.
+      (#15260, jmr in r64517, r64663, r65546, r66037, r66200, r66215)
+
+    - The macports1.0 directory is now installed to
+      ${prefix}/share/macports/Tcl rather than /Library/Tcl. A symlink will be
+      installed in the old location if there is nothing there already, so
+      'package require macports' will still work in tclsh.
+      (#12943, jmr in r65055)
+
+    - Added warning and error messags when Xcode is old enough to cause
+      problems or too old to use at all, respectively. (#12794, jmr in r66771)
+
+    - Removed the rather outdated copy of sqlite3 from the source tree, made
+      the sqlite3 directory configurable, and added defaults for non-darwin
+      platforms. (#12231, jmr in r64358/r64363)
+
+    - There is a new 'archivefetch' target which is run before unarchive when
+      archive mode is enabled, and attempts to download the archive from a
+      server. There are currently no sites configured to download from (these
+      are stored in the ports tree like the mirror sites used for fetch), but
+      you can set ARCHIVE_SITE_LOCAL in the environment. Note that there is no
+      integrity checking for archives yet. (#8571, jmr in r64816)
+
+    - Now recording negative variants in the registry, which stops deselected
+      variants from being reactivated on upgrade due to default_variants or
+      variants.conf settings. (#2377, jmr in r64533)
+
+    - Added support for pre- and post- procedures for the activate, deactivate
+      and uninstall targets. This feature requires portdbformat sqlite. There
+      was limited support for pre- and post-activate previously, but the
+      procedures were only run when installing the port, not when activating
+      an inactive version. (#1068, #4228, #18273; jmr in r64638/r64639)
+
+    - Integrated the sqlite-based registry2.0 code. The portdbformat variable
+      in macports.conf can be set to 'sqlite' to enable it. Existing flat
+      receipts will be converted the first time port(1) is run with sufficient
+      privileges. Original code by sfiera, fixed and integrated by jmr in
+      r63398 and following. The new format lacks a number of problems that the
+      old one suffers from, including #13054 (dependencies from old port
+      versions stick around across upgrades) and #14123 (files whose paths
+      differ only in case are left behind when uninstalling).
+
+    - Fixed file list in +CONTENTS file in archives. (#21864, jmr in r59882)
+
+    - Fixed a few issues reported with building MacPorts on Linux. (#22716)
+
+    - Upgrade will now always choose the port that is active when following
+      dependencies that could be satisfied by more than one port and more than
+      one of these is installed, instead of choosing the one actually named in
+      the depspec. (#23921, jmr in r60883)
+
+    - Extracting from a disk image ("use_dmg yes") no longer fails when there
+      is a space in $worksrcdir. (#23456, raimue in r67089)
+
+    - Added a configure.sdkroot option which can be used to build against a
+      Mac OS X SDK. It is empty by default unless the value of
+      macosx_deployment_target is not the current OS version, or the universal
+      variant is set and the current platform is PowerPC Tiger. It is also
+      possible to set macosx_deployment_target globally in macports.conf now,
+      but this is unsupported. (#19875, jmr in r66924)
+
     - Add "fs-traverse -tails" which only returns the part following the
-      specified directory (raimue in r65785)
+      specified directory (#21873, raimue in r65785)
 
     - Allow gcc45 port to be used in configure.compiler (ryandesign in r62223)
 
@@ -26,9 +165,8 @@ Release 1.9.0 (unreleased):
       for GNU make. Only makes a difference for BSD patch and BSD make.
       (afb in r58020)
 
-    - Update the FreeBSD package, drop the old Fedora/Ubuntu packages.
-      (MacPorts now requires BSD, but objc/Foundation is now optional)
-      (afb in r57858, r57889)
+    - Updated the FreeBSD package (ObjC/Foundation is now optional).
+      (afb in r57889)
 
     - Don't use "make -j1" for build.jobs=1, but prefer "make" instead.
       (afb in r57998)
@@ -36,14 +174,11 @@ Release 1.9.0 (unreleased):
     - Add new "use_xz yes" port option to allow distfiles in xz format.
       (afb in r57827)
 
-    - Archivemode now uses build_arch to create and extract archives.
-      This is a step in the direction of enabling binary distribution.
+    - Archive mode now uses build_arch in archive names rather than os.arch.
       (snc in r58977)
 
     - Add new log command and keeping of debug output for easy access
       after port has run (GSoC 2009 logging project by enl, merged in r60372)
-
-Release 1.8.3 (unreleased):
 
     - Some of the build_arch flags now appear in LDFLAGS as well, fixing
       several ports when building for a different architecture (jeremyhu in
@@ -51,7 +186,7 @@ Release 1.8.3 (unreleased):
 
     - Fixed 'merge' proc for paths with spaces, and for symlinks on Snow
       Leopard, and added an error message for when 'merge' is not called
-      correctly (ryandesign in r58776, r58777, r58778)
+      correctly (#21852, ryandesign in r58776, r58777, r58778)
 
 Release 1.8.2 (2010-01-01 by jmr):
 
