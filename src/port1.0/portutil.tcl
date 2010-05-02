@@ -460,23 +460,28 @@ proc handle_option_string {option action args} {
             # args is a list of strings/list
             foreach arg $args {
                 # Strip trailing empty lines
-                set txt [string trim $arg "\n"]
+                if {[string index $arg 0] == "\n"} {
+                    set arg [string range $arg 1 end]
+                }
+                if {[string index $arg end] == "\n"} {
+                    set arg [string range $arg 0 end-1]
+                }
 
                 # Determine indent level
                 set indent ""
-                for {set i 0} {$i < [string length $txt]} {incr i} {
-                    set c [string index $txt $i]
+                for {set i 0} {$i < [string length $arg]} {incr i} {
+                    set c [string index $arg $i]
                     if {$c != " " && $c != "\t"} {
                         break
                     }
                     append indent $c
                 }
                 # Remove indent on first line
-                set txt [string replace $txt 0 [expr $i - 1]]
+                set arg [string replace $arg 0 [expr $i - 1]]
                 # Remove indent on each other line
-                set txt [string map "\"\n$indent\" \"\n\"" $txt]
+                set arg [string map "\"\n$indent\" \"\n\"" $arg]
 
-                lappend fulllist $txt
+                lappend fulllist $arg
             }
 
             set $option $fulllist
