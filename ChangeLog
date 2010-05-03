@@ -5,6 +5,12 @@
 
 Release 1.9.0 (unreleased):
 
+    - Added a new variable 'os.subplatform'. When os.platform is darwin, the
+      subplatform is either 'macosx' or 'puredarwin'.
+
+    - 'platform' no longer creates a variant, instead it executes the code in
+      the body immediately if the current platform matches the one specified.
+
     - Using a Portfile with a modification date in the future now causes an
       informative error early on, instead of just discarding the workdir at
       the start of every phase. (#24717, raimue in r65246)
