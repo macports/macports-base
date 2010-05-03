@@ -359,7 +359,8 @@ proc macports::setxcodeinfo {name1 name2 op} {
 
     if {[catch {set xcodebuild [binaryInPath "xcodebuild"]}] == 0} {
         if {![info exists xcodeversion]} {
-            # Determine xcode version (<= 2.0 or 2.1)
+            # Determine xcode version
+            set macports::xcodeversion "2.0orlower"
             if {[catch {set xcodebuildversion [exec $xcodebuild -version]}] == 0} {
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
@@ -382,11 +383,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion "2.2"
                     } elseif {$devtoolscore_v >= 620.0} {
                         set macports::xcodeversion "2.1"
-                    } else {
-                        set macports::xcodeversion "2.0orlower"
                     }
-                } else {
-                    set macports::xcodeversion "2.0orlower"
                 }
             }
         }
