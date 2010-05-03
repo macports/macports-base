@@ -5,6 +5,9 @@
 
 Release 1.9.0 (unreleased):
 
+    - Command line options can be abbreviated if unambiguous
+      (raimue in r66837)
+
     - Added a new variable 'os.subplatform'. When os.platform is darwin, the
       subplatform is either 'macosx' or 'puredarwin'.
 
