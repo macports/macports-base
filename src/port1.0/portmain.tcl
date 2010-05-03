@@ -106,17 +106,14 @@ default universal_variant yes
 if {[option os.platform] == "darwin"} {
     if {[file isdirectory /System/Library/Frameworks/Carbon.framework]} {
         default os.subplatform macosx
+        # we're on Mac OS X and can therefore build universal
+        default os.universal_supported yes
     } else {
         default os.subplatform puredarwin
+        default os.universal_supported no
     }
-}
-
-# check if we're on Mac OS X and can therefore build universal
-if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
-    # the universal variant itself is now created in
-    # universal_setup, which is called from mportopen
-    default os.universal_supported yes
 } else {
+    default os.subplatform {}
     default os.universal_supported no
 }
 

@@ -724,9 +724,9 @@ proc platform {args} {
 
     set match 0
     # 'os' could be a platform or an arch when it's alone
-    if {$len == 2 && ($os == ${os.platform} || ([info exists os.subplatform] && $os == ${os.subplatform}) || $os == ${os.arch})} {
+    if {$len == 2 && ($os == ${os.platform} || $os == ${os.subplatform} || $os == ${os.arch})} {
         set match 1
-    } elseif {($os == ${os.platform} || ([info exists os.subplatform] && $os == ${os.subplatform}))
+    } elseif {($os == ${os.platform} || $os == ${os.subplatform})
               && (![info exists release] || ${os.major} == $release)
               && (![info exists arch] || ${os.arch} == $arch)} {
         set match 1
@@ -2594,7 +2594,7 @@ proc get_canonical_archs {} {
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion
 
-    if {[info exists os.subplatform] && ${os.subplatform} == "macosx"} {
+    if {${os.subplatform} == "macosx"} {
         switch $macosx_version {
             10.4 {
                 set min 2.0
