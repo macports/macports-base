@@ -515,13 +515,23 @@ Version number of operating system (e.g. "7.0").
 .br
 .Sy Type:
 .Em read-only
+.It Ic os.major
+Major version number of operating system (e.g. "7").
+.br
+.Sy Type:
+.Em read-only
 .It Ic os.endian
-Endianness of the processor (e.g. "bigEndian").
+Endianness of the processor (e.g. "big").
 .br
 .Sy Type:
 .Em read-only
 .It Ic os.platform
 Operating system name (e.g. "darwin").
+.br
+.Sy Type:
+.Em read-only
+.It Ic os.subplatform
+Name of specific operating system variant (e.g. "macosx").
 .br
 .Sy Type:
 .Em read-only
@@ -585,6 +595,42 @@ installed file.
 .Sy Example:
 .Dl lib:libX11.6:XFree86
 .Bl -tag -width lc
+.It Ic depends_fetch
+List of dependencies to check before
+.Cm fetch ,
+.Cm checksum ,
+.Cm extract ,
+.Cm patch ,
+.Cm configure ,
+.Cm build ,
+.Cm destroot ,
+.Cm install ,
+and
+.Cm package
+targets.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_fetch port:mercurial
+.It Ic depends_extract
+List of dependencies to check before
+.Cm extract ,
+.Cm patch ,
+.Cm configure ,
+.Cm build ,
+.Cm destroot ,
+.Cm install ,
+and
+.Cm package
+targets.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Example:
+.Dl depends_extract port:xz-devel
 .It Ic depends_build
 List of dependencies to check before
 .Cm configure ,
@@ -606,7 +652,8 @@ List of dependencies to check before
 .Cm install
 and
 .Cm package
-targets.
+targets. Will be recorded in the registry as being required by the dependent
+port when it is installed.
 .br
 .Sy Type:
 .Em optional
@@ -621,7 +668,8 @@ List of dependencies to check before
 .Cm install ,
 and
 .Cm package
-targets.
+targets. Will be recorded in the registry as being required by the dependent
+port when it is installed.
 .br
 .Sy Type:
 .Em optional
@@ -1641,7 +1689,7 @@ allowing for user-customization of a software's build-time settings.
 .Op Cm conflicts Ar variant
 .Op Cm description Ar "description"
 .Xc
-The value is usually a TCL script which modifies other port's
+The value is usually a TCL script which modifies one or more
 .Nm
 variables. Dependencies and conflicts with other variants in the same
 port can be expressed with
@@ -1693,10 +1741,10 @@ option.
 .Dl universal_variant no
 .El
 .Sh PLATFORM OPTIONS
-MacPorts allows for platform-specific conditional modification to be
+MacPorts allows for platform-specific conditional code to be
 specified in a
 .Nm ,
-much like variants, for handling differences between platforms and
+for handling differences between platforms and
 versions of the same platform.
 .Bl -tag -width lc
 .It Xo
@@ -1704,9 +1752,11 @@ versions of the same platform.
 .Ar platform
 .Op Ar version
 .Op Ar arch
+.Ar body
 .Xc
-The platform key is used to begin the darwin platform definitions as
-shown in the examples from the databases/db4 and devel/libidl1
+The body is executed if the given platform/version/arch combination matches
+os.platform or os.subplatform and/or os.major and/or os.arch.
+The following examples are from the databases/db4 and devel/libidl1
 .Nm Portfiles
 respectively.
 .br
