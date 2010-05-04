@@ -361,7 +361,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
         if {![info exists xcodeversion]} {
             # Determine xcode version
             set macports::xcodeversion "2.0orlower"
-            if {[catch {set xcodebuildversion [exec $xcodebuild -version]}] == 0} {
+            if {[catch {set xcodebuildversion [exec -- $xcodebuild -version 2> /dev/null]}] == 0} {
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
                 } elseif {[regexp "DevToolsCore-(.*);" $xcodebuildversion - devtoolscore_v] == 1} {

@@ -122,7 +122,7 @@ default compiler.library_path {${prefix}/lib}
 
 proc portmain::get_developer_dir {} {
     if {![catch {binaryInPath xcode-select}]} {
-        return [exec xcode-select -print-path]
+        return [exec xcode-select -print-path 2> /dev/null]
     }
     return "/Developer"
 }
