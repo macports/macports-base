@@ -36,7 +36,7 @@ package require portutil 1.0
 
 set org.macports.configure [target_new org.macports.configure portconfigure::configure_main]
 target_provides ${org.macports.configure} configure
-target_requires ${org.macports.configure} main fetch extract checksum patch
+target_requires ${org.macports.configure} main fetch checksum extract patch
 target_prerun ${org.macports.configure} portconfigure::configure_start
 
 namespace eval portconfigure {

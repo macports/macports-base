@@ -7,7 +7,7 @@ package require portutil 1.0
 
 set org.macports.test [target_new org.macports.test porttest::test_main]
 target_provides ${org.macports.test} test
-target_requires ${org.macports.test} main fetch extract checksum patch configure build
+target_requires ${org.macports.test} main fetch checksum extract patch configure build
 target_prerun ${org.macports.test} porttest::test_start
 
 namespace eval porttest {

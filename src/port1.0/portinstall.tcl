@@ -39,9 +39,9 @@ set org.macports.install [target_new org.macports.install portinstall::install_m
 target_provides ${org.macports.install} install
 target_runtype ${org.macports.install} always
 if {[option portarchivemode] == "yes"} {
-    target_requires ${org.macports.install} main archivefetch unarchive fetch extract checksum patch configure build destroot archive
+    target_requires ${org.macports.install} main archivefetch unarchive fetch checksum extract patch configure build destroot archive
 } else {
-    target_requires ${org.macports.install} main fetch extract checksum patch configure build destroot
+    target_requires ${org.macports.install} main fetch checksum extract patch configure build destroot
 }
 target_prerun ${org.macports.install} portinstall::install_start
 

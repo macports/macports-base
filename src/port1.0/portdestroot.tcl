@@ -36,7 +36,7 @@ package require portutil 1.0
 
 set org.macports.destroot [target_new org.macports.destroot portdestroot::destroot_main]
 target_provides ${org.macports.destroot} destroot
-target_requires ${org.macports.destroot} main fetch extract checksum patch configure build
+target_requires ${org.macports.destroot} main fetch checksum extract patch configure build
 target_prerun ${org.macports.destroot} portdestroot::destroot_start
 target_postrun ${org.macports.destroot} portdestroot::destroot_finish
 

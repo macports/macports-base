@@ -41,9 +41,9 @@ target_runtype ${org.macports.activate} always
 target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
 if {[option portarchivemode] == "yes"} {
-    target_requires ${org.macports.activate} main archivefetch unarchive fetch extract checksum patch configure build destroot archive install
+    target_requires ${org.macports.activate} main archivefetch unarchive fetch checksum extract patch configure build destroot archive install
 } else {
-    target_requires ${org.macports.activate} main fetch extract checksum patch configure build destroot install
+    target_requires ${org.macports.activate} main fetch checksum extract patch configure build destroot install
 }
 target_prerun ${org.macports.activate} portactivate::activate_start
 

@@ -35,7 +35,7 @@ package require portutil 1.0
 
 set org.macports.build [target_new org.macports.build portbuild::build_main]
 target_provides ${org.macports.build} build
-target_requires ${org.macports.build} main fetch extract checksum patch configure
+target_requires ${org.macports.build} main fetch checksum extract patch configure
 target_prerun ${org.macports.build} portbuild::build_start
 
 namespace eval portbuild {
