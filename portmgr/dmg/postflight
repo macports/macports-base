@@ -119,7 +119,7 @@ function delete_reg1 {
 # link macports1.0 into tcl package dir if possible
 function link_tcl_package {
     # delete old directory if present
-    if test -d "${TCL_PACKAGE_DIR}/macports1.0"; then
+    if ! test -L "${TCL_PACKAGE_DIR}/macports1.0" && test -d "${TCL_PACKAGE_DIR}/macports1.0"; then
         rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
     fi
     if ! test -e "${TCL_PACKAGE_DIR}/macports1.0" && test -w "${TCL_PACKAGE_DIR}"; then

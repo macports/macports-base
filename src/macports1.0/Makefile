@@ -30,8 +30,13 @@ install:: all
 	done
 
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
-	
+
 	echo "${TCL_PACKAGE_DIR}" > ${DESTDIR}${prefix}/var/macports/.tclpackage
-	if test -z "${DESTDIR}" && ! test -e "${INSTALLPKGLINK}" && test -w "${TCL_PACKAGE_DIR}"; then \
-		ln -s "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
+	if test -z "${DESTDIR}" && test "${INSTALLPKGLINK}" != "${INSTALLDIR}" && test -w "${TCL_PACKAGE_DIR}"; then \
+		if ! test -L "${INSTALLPKGLINK}" && test -d "${INSTALLPKGLINK}"; then \
+			rm -rf "${INSTALLPKGLINK}" || true; \
+		fi; \
+		if ! test -e "${INSTALLPKGLINK}"; then \
+			ln -s "${INSTALLDIR}" "${INSTALLPKGLINK}" || true; \
+		fi; \
 	fi
