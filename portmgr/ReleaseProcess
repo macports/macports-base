@@ -125,8 +125,8 @@ The following commands issued to the top level Makefile will generate all the ta
 
 Note that if you omit the "ARC=yes" flag at the start of the make call then the full archive tarballs will not be produced.
 
-All these tarballs are uploaded via svn to the http://svn.macports.org/repository/macports/downloads/MacPorts-1.6.0/
-directory.
+All these tarballs are uploaded to the http://distfiles.macports.org/MacPorts/ directory. At present, this must
+be done with the help of the MacOSForge sysadmin.
 
 Additionally, a file is created, and posted to the same location, that contains md5, sha1, and rmd160 checksums
 for each of the files:
@@ -174,8 +174,9 @@ create the destroot of the port and examine it for:
              ${destroot}/opt/local/share/macports/Tcl/macports1.0/MacPorts.dylib
              ${destroot}/opt/local/share/macports/Tcl/pextlib1.0/Pextlib.dylib
              ${destroot}/opt/local/share/macports/Tcl/registry2.0/registry.dylib
- * Universal building: When building for Tiger and above, all the files that need linking confirmation in the
-   step above also need to be confirmed of the universal type. A way to do this is through the file(1) command:
+ * Universal building: All the files that need linking confirmation in the step above also need to be
+   confirmed to be universal (i386/ppc on 10.5 and earlier, i386/x86_64 on 10.6 and later). A way to do this
+   is with the file(1) command:
              file ${destroot}/opt/local/bin/daemondo:
                   ${destroot}/opt/local/bin/daemondo: Mach-O universal binary with 2 architectures
                   ${destroot}/opt/local/bin/daemondo (for architecture ppc):  Mach-O executable ppc
@@ -186,7 +187,7 @@ create the destroot of the port and examine it for:
              #\
              exec /usr/bin/tclsh "$0" "$@"
    thus ensuring that the default Mac OS X bundled Tcl is used in our scripts.
- * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its default location in /opt/local/share/macports/Tcl/macports1.0
+ * macports1.0 Tcl package: The macports1.0 Tcl package should be sourced off its location in /opt/local/share/macports/Tcl/macports1.0
    in every single one of our scripts in ${destroot}/opt/local/bin.
  * Miscellaneous: anything else that might seem out of the ordinary for a fully default-configured MacPorts
    installation.
