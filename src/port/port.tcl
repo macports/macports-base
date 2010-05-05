@@ -78,7 +78,7 @@ proc print_help {args} {
         set cmds "$cmds$new"
     }
 
-    set cmdText "Supported commands
+    set cmdText "Supported actions
 ------------------
 $cmds
 "
