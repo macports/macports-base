@@ -2413,27 +2413,37 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         set optionsarray(ports_requested) 0
         set options [array get optionsarray]
         set variations [ditem_key $mport variations]
-        set required_archs [[ditem_key $mport workername] eval get_canonical_archs]
+        set workername [ditem_key $mport workername]
+        set required_archs [$workername eval get_canonical_archs]
         set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
     }
 
     # Process the dependencies for each of the deptypes
     foreach deptype $deptypes {
         if {![info exists portinfo($deptype)]} {
-            set portinfo($deptype) ""
+            continue
         }
         foreach depspec $portinfo($deptype) {
             # Is that dependency satisfied or this port installed?
             # If we don't skip or if it is not, add it to the list.
             set present [_mportispresent $mport $depspec]
 
-            # grab the portname portion of the depspec
-            set dep_portname [lindex [split $depspec :] end]
-            
-            set check_archs [expr {"$deptype"} != {"depends_fetch"} && {"$deptype"} != {"depends_extract"} && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1]
+            # get the portname that satisfies the depspec
+            set dep_portname [$workername eval _get_dep_port $depspec]
+            if {!$skipSatisfied && $dep_portname == ""} {
+                set dep_portname [lindex [split $depspec :] end]
+            }
+
+            set check_archs 0
+            if {$dep_portname != "" && $deptype != "depends_fetch" && $deptype != "depends_extract" && [lsearch -exact $depends_skip_archcheck $dep_portname] == -1} {
+                set check_archs 1
+            }
 
             # need to open the portfile even if the dep is installed if it doesn't have the right archs
-            set parse [expr !$skipSatisfied || !$present || ($check_archs && ![macports::_active_supports_archs $dep_portname $required_archs])]
+            set parse 0
+            if {!$skipSatisfied || !$present || ($check_archs && ![macports::_active_supports_archs $dep_portname $required_archs])} {
+                set parse 1
+            }
             if {$parse} {
                 # Find the porturl
                 if {[catch {set res [mportlookup $dep_portname]} error]} {
