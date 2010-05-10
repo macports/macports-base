@@ -2674,7 +2674,11 @@ proc action_deps { action portlist opts } {
 
         set version $portinfo(version)
         set revision $portinfo(revision)
-        set variants $portinfo(canonical_active_variants)
+        if {[info exists portinfo(canonical_active_variants)]} {
+            set variants $portinfo(canonical_active_variants)
+        } else {
+            set variants {}
+        }
 
         if {$action == "deps"} {
             if {$ndeps == 0} {
