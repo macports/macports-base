@@ -2649,6 +2649,7 @@ proc action_deps { action portlist opts } {
         }
 
         set deplist {}
+        set ndeps 0
         array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime}
         # get list of direct deps
         foreach type $deptypes {
@@ -2665,12 +2666,20 @@ proc action_deps { action portlist opts } {
                 if {$action == "deps"} {
                     set label "$labeldict($type) Dependencies"
                     puts [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
+                    incr ndeps [llength $deplist]
                     set deplist {}
                 }
             }
         }
 
+        set version $portinfo(version)
+        set revision $portinfo(revision)
+        set variants $portinfo(canonical_active_variants)
+
         if {$action == "deps"} {
+            if {$ndeps == 0} {
+                ui_notice "$portname @${version}_${revision}${variants} has no dependencies."
+            }
             return $status
         }
 
@@ -2729,9 +2738,9 @@ proc action_deps { action portlist opts } {
         set pos_stack [list 0]
         array unset seen
         if {[llength $toplist] > 0} {
-            ui_notice "The following ports are dependencies of ${portname}:"
+            ui_notice "The following ports are dependencies of $portname @${version}_${revision}${variants}:"
         } else {
-            ui_notice "No ports are dependencies of ${portname}."
+            ui_notice "$portname @${version}_${revision}${variants} has no dependencies."
         }
         while 1 {
             set cur_portlist [lindex $portstack end]
