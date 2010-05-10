@@ -1890,10 +1890,6 @@ proc universal_setup {args} {
         ui_debug "adding the default universal variant"
         variant universal {}
     }
-    
-    if {[variant_isset universal] && ![variant_exists universal]} {
-        ui_warn "[option name] has no universal variant"
-    }
 }
 
 # Target class definition.
