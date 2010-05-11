@@ -93,6 +93,8 @@ Release 1.9.0 (unreleased):
       installed explicitly (as opposed to as a dependency of something else).
       This enables the new 'requested', 'unrequested' and 'leaves' pseudo-
       ports, as well as the --follow-dependencies option for uninstall.
+      The setrequested and unsetrequested actions will set and clear the flag,
+      respectively.
       (#15260, jmr in r64517, r64663, r65546, r66037, r66200, r66215)
 
     - The macports1.0 directory is now installed to
