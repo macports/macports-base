@@ -1,3 +1,35 @@
+== Overview of changes from MacPorts 1.8.2 to 1.9.0 ==
+
+# For regular users:
+
+*) All output is now logged to a file, whose location will be shown if a port
+   target fails. This should be attached to bug reports. The new 'log' action
+   can also be used to view the log for a port.
+*) Command line options can be abbreviated if unambigious.
+*) New actions: rdeps, rdependents, setrequested, unsetrequested
+*) --follow-dependencies option for uninstall (ports with the requested flag
+   set or with other dependents are skipped).
+*) New pseudo-ports and selectors: requested, unrequested, leaves, depof:,
+   rdepof:, dependentof:, rdependentof:.
+*) Architectures of dependencies are checked before install, and in many cases
+   will be automatically fixed by upgrading with +universal.
+*) New sqlite registry format which is faster and lacks some of the old
+   format's inconvenient limitations.
+*) Explicitly deselected variants (e.g. -foo) are now recorded, so they will
+   not be set to + when upgrading if +foo appears in variants.conf or
+   the port's default_variants.
+
+# For Portfile writers:
+
+*) New os.subplatform variable.
+*) New configure.ld_archflags option to match configure.cc_archflags et al.
+*) 'platform' acts like an 'if' statement rather than a variant.
+*) New supported_archs option for indicating a port only supports certain
+   archs or is noarch.
+*) pre-/post-deactivate and pre-/post-uninstall procedures can now be used,
+   and pre-/post-activate procedures are run every time the port is activated,
+   not just the first time when it is installed.
+
 == Overview of changes from MacPorts 1.7.1 to 1.8.0 ==
 
 # For regular users:
