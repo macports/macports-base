@@ -266,7 +266,19 @@ proc create_entry_l {proplist} {
         if {$props(installtype) == "image"} {
             $regref map $props(imagefiles)
             if {$props(state) == "installed"} {
-                $regref activate $props(imagefiles) $props(files)
+                if {[llength $props(imagefiles)] != [llength $props(files)]} {
+                    # deal with this mess, just drop the extras...
+                    set i 0
+                    set ilist {}; set flist {}
+                    while {$i < [llength $props(imagefiles)] && $i < [llength $props(files)]} {
+                        lappend ilist [lindex $props(imagefiles) $i]
+                        lappend flist [lindex $props(files) $i]
+                        incr i
+                    }
+                    $regref activate $ilist $flist
+                } else {
+                    $regref activate $props(imagefiles) $props(files)
+                }
             }
         } else {
             $regref map $props(files)
