@@ -1060,7 +1060,7 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
                 == SQLITE_OK)
                 && (sqlite3_bind_int64(update, 3, entry->id) == SQLITE_OK)) {
             for (i=0; i<file_count && result; i++) {
-                if ((sqlite3_bind_text(select, 1, files[i], -1, SQLITE_STATIC)
+                if ((sqlite3_bind_text(select, 1, as_files[i], -1, SQLITE_STATIC)
                             == SQLITE_OK)
                         && (sqlite3_bind_text(update, 1, as_files[i], -1,
                                 SQLITE_STATIC) == SQLITE_OK)
