@@ -2718,9 +2718,16 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
                 ui_warn "Disabling readline support due to readline in /usr/local"
             }
 
+            set cc_arg ""
+            switch -glob -- $::macports::macosx_version {
+                10.{4,5} { set cc_arg "CC=/usr/bin/gcc-4.0 " }
+                10.6     { set cc_arg "CC=/usr/bin/gcc-4.2 " }
+                10.*     { set cc_arg "CC=/usr/bin/llvm-gcc-4.2 " }
+            }
+
             # do the actual configure, build and installation of new base
             ui_msg "Installing new MacPorts release in $prefix as $owner:$group; permissions $perms; Tcl-Package in $tclpackage\n"
-            if { [catch { system "cd $mp_source_path && ./configure $configure_args && make && make install" } result] } {
+            if { [catch { system "cd $mp_source_path && ${cc_arg}./configure $configure_args && make && make install" } result] } {
                 return -code error "Error installing new MacPorts base: $result"
             }
             if {[info exists updatestatus]} {
