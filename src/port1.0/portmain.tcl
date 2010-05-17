@@ -100,7 +100,7 @@ if {[option os.platform] == "darwin"} {
 }
 ui_debug "OS [option os.platform]/[option os.version] ${macosx_version_text}arch [option os.arch]"
 
-default universal_variant yes
+default universal_variant {${use_configure}}
 
 # sub-platforms of darwin
 if {[option os.platform] == "darwin"} {

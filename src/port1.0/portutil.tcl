@@ -1876,12 +1876,9 @@ proc universal_setup {args} {
     if {[variant_exists universal]} {
         ui_debug "universal variant already exists, so not adding the default one"
     } elseif {[exists universal_variant] && ![option universal_variant]} {
-        ui_debug "'universal_variant no' specified, so not adding the default universal variant"
+        ui_debug "universal_variant is false, so not adding the default universal variant"
     } elseif {[exists use_xmkmf] && [option use_xmkmf]} {
         ui_debug "using xmkmf, so not adding the default universal variant"
-    } elseif {[exists use_configure] && ![option use_configure] && ![exists xcode.project]} {
-        # Allow +universal if port uses xcode portgroup.
-        ui_debug "not using configure, so not adding the default universal variant"
     } elseif {![exists os.universal_supported] || ![option os.universal_supported]} {
         ui_debug "OS doesn't support universal builds, so not adding the default universal variant"
     } elseif {[llength [option supported_archs]] == 1} {
