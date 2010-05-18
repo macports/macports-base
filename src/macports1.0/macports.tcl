@@ -1619,6 +1619,9 @@ proc mportexec {mport target} {
                 append errstring " [ditem_key $ditem provides]"
             }
             ui_error $errstring
+            foreach ditem $dlist {
+                catch {mportclose $ditem}
+            }
             return 1
         }
 
