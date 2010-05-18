@@ -289,25 +289,14 @@ proc portunarchive::unarchive_finish {args} {
     global UI_PREFIX target_state_fd unarchive.file name workpath destpath
 
     # Reset state file with archive version
+    close $target_state_fd
     set statefile [file join $workpath .macports.${name}.state]
     file copy -force [file join $destpath "+STATE"] $statefile
     file mtime $statefile [clock seconds]
 
-# Hack to temporarily move com.apple.* strings in statefiles extracted from old archives
-# to the org.macports.* namespace. "temporarily" because old archives will still have a
-# +STATE file with the old strings in it, as we only update them on the unpacked statefile.
-    set fd_new_sf [open $statefile r]
-    set fd_tmp [open ${statefile}.tmp w+]
-    while {[gets $fd_new_sf line] >= 0} {
-    puts $fd_tmp "[regsub com.apple $line org.macports]"
-    }
-    close $fd_new_sf
-    close $fd_tmp
-    file rename -force ${statefile}.tmp $statefile
-
     # Update the state from unpacked archive version
     set target_state_fd [open_statefile]
-    
+
     # Cleanup all control files when finished
     set control_files [glob -nocomplain -types f [file join $destpath +*]]
     foreach file $control_files {
