@@ -1524,6 +1524,8 @@ proc _mportexec {target mport} {
             catch {cd $portpath}
             $workername eval eval_targets clean
         }
+        # XXX hack to avoid running out of fds due to sqlite temp files, ticket #24857
+        interp delete $workername
         macports::pop_log
         return 0
     } else {
@@ -2353,7 +2355,10 @@ proc mportclose {mport} {
     if {$refcnt == 0} {
         dlist_delete macports::open_mports $mport
         set workername [ditem_key $mport workername]
-        interp delete $workername
+        # the hack in _mportexec might have already deleted the worker
+        if {[interp exists $workername]} {
+            interp delete $workername
+        }
         ditem_delete $mport
     }
 }
