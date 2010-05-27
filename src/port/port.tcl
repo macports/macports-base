@@ -2647,6 +2647,7 @@ proc action_deps { action portlist opts } {
             ui_warn "port ${action} --index does not work with the 'current' pseudo-port"
             continue
         }
+        set portname $portinfo(name)
 
         set deplist {}
         set ndeps 0
