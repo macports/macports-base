@@ -5,6 +5,9 @@
 
 Release 1.9.0 (unreleased):
 
+    - It is no longer possible to use include statements in Portfiles
+      (raimue in r68206)
+
     - Command line options can be abbreviated if unambiguous
       (raimue in r66837)
 
