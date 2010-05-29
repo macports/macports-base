@@ -1134,32 +1134,6 @@ proc ln {args} {
     return
 }
 
-# filefindbypath
-# Provides searching of the standard path for included files
-proc filefindbypath {fname} {
-    global distpath filesdir worksrcdir portpath
-
-    if {[file readable $portpath/$fname]} {
-        return $portpath/$fname
-    } elseif {[file readable $portpath/$filesdir/$fname]} {
-        return $portpath/$filesdir/$fname
-    } elseif {[file readable $distpath/$fname]} {
-        return $distpath/$fname
-    }
-    return ""
-}
-
-# include
-# Source a file, looking for it along a standard search path.
-proc include {fname} {
-    set tgt [filefindbypath $fname]
-    if {[string length $tgt]} {
-        uplevel "source $tgt"
-    } else {
-        return -code error "Unable to find include file $fname"
-    }
-}
-
 # makeuserproc
 # This procedure re-writes the user-defined custom target to include
 # all the globals in its scope.  This is undeniably ugly, but I haven't
