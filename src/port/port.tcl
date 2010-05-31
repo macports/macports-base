@@ -2988,7 +2988,9 @@ proc action_outdated { action portlist opts } {
             }
             set reason ""
             if {$epoch_comp_result != 0} {
-                set reason { (epoch $installed_epoch $relation $latest_epoch)}
+                if {($comp_result >= 0 && $epoch_comp_result < 0) || ($comp_result <= 0 && $epoch_comp_result > 0)} {
+                    set reason { (epoch $installed_epoch $relation $latest_epoch)}
+                }
                 set comp_result $epoch_comp_result
             } elseif {$comp_result == 0} {
                 set regref [registry::open_entry $portname $installed_version $installed_revision [lindex $i 3] $installed_epoch]
