@@ -2987,10 +2987,10 @@ proc action_outdated { action portlist opts } {
                 set comp_result [rpm-vercomp $installed_revision $latest_revision]
             }
             set reason ""
-            if {$comp_result == 0 && $epoch_comp_result != 0} {
+            if {$epoch_comp_result != 0} {
                 set reason { (epoch $installed_epoch $relation $latest_epoch)}
                 set comp_result $epoch_comp_result
-            } elseif {$comp_result == 0 && $epoch_comp_result == 0} {
+            } elseif {$comp_result == 0} {
                 set regref [registry::open_entry $portname $installed_version $installed_revision [lindex $i 3] $installed_epoch]
                 set os_platform_installed [registry::property_retrieve $regref os_platform]
                 set os_major_installed [registry::property_retrieve $regref os_major]
