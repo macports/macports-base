@@ -1910,6 +1910,8 @@ proc mportsync {{optionslist {}}} {
                     ui_debug $rsync_commandline
                     if {[catch {system $rsync_commandline}]} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
+                    } else {
+                        mports_generate_quickindex $indexfile
                     }
                 }
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
