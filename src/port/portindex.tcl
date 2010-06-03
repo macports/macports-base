@@ -38,14 +38,14 @@ proc print_usage args {
 }
 
 proc pindex {portdir} {
-    global target oldfd oldmtime qindex fd directory archive outdir stats full_reindex \
+    global target oldfd oldmtime newest qindex fd directory archive outdir stats full_reindex \
            ui_options port_options save_prefix keepkeys
 
     # try to reuse the existing entry if it's still valid
     if {$full_reindex != "1" && $archive != "1" && [info exists qindex([string tolower [file tail $portdir]])]} {
         try {
             set mtime [file mtime [file join $directory $portdir Portfile]]
-            if {$oldmtime > $mtime} {
+            if {$oldmtime >= $mtime} {
                 set offset $qindex([string tolower [file tail $portdir]])
                 seek $oldfd $offset
                 gets $oldfd line
@@ -109,6 +109,10 @@ proc pindex {portdir} {
         set len [expr [string length $output] + 1]
         puts $fd [list $portinfo(name) $len]
         puts $fd $output
+        set mtime [file mtime [file join $directory $portdir Portfile]]
+        if {$mtime > $newest} {
+            set newest $mtime
+        }
     }
 }
 
@@ -188,6 +192,7 @@ set outpath [file join $outdir PortIndex]
 # open old index for comparison
 if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
     set oldmtime [file mtime $outpath]
+    set newest $oldmtime
     if {![catch {set oldfd [open $outpath r]}] && ![catch {set quickfd [open ${outpath}.quick r]}]} {
         if {![catch {set quicklist [read $quickfd]}]} {
             foreach entry [split $quicklist "\n"] {
@@ -196,6 +201,8 @@ if {[file isfile $outpath] && [file isfile ${outpath}.quick]} {
         }
         close $quickfd
     }
+} else {
+    set newest 0
 }
 
 set tempportindex [mktemp "/tmp/mports.portindex.XXXXXXXX"]
@@ -213,6 +220,7 @@ if {[info exists oldfd]} {
 }
 close $fd
 file rename -force $tempportindex $outpath
+file mtime $outpath $newest
 mports_generate_quickindex $outpath
 puts "\nTotal number of ports parsed:\t$stats(total)\
       \nPorts successfully parsed:\t[expr $stats(total) - $stats(failed)]\
