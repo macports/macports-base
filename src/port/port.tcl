@@ -2414,7 +2414,7 @@ proc action_setrequested { action portlist opts } {
     set val [string equal $action setrequested]
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {![catch {set ilist [registry::installed $portname $composite_version]}]} {
+        if {![catch {set ilist [registry::installed $portname $composite_version]} result]} {
             ui_info "Setting requested flag for $portname to $val"
             foreach i $ilist {
                 set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
