@@ -267,9 +267,9 @@ proc registry_installed {portname {portversion ""}} {
             set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
             if { $iactive == 0 } {
-                puts "  $iname ${iversion}_${irevision}${ivariants}"
+                puts "  $iname @${iversion}_${irevision}${ivariants}"
             } elseif { $iactive == 1 } {
-                puts "  $iname ${iversion}_${irevision}${ivariants} (active)"
+                puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
             }
         }
         return -code error "Registry error: Please specify the full version as recorded in the port registry."
