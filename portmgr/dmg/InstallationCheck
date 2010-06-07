@@ -12,17 +12,22 @@ if ! which uname > /dev/null || ! which sed > /dev/null; then
     exit 112
 fi
 
+if ! [[ -x /usr/bin/xcodebuild ]]; then
+    # message 17
+    exit 113
+fi
+
 base_version=`uname -r | sed 's/\..*//'`
 if [[ ${base_version} != __DARWINVERS__ ]]; then
-   # This maps to message 17 in InstallationCheck.strings (Apple allows
+   # This maps to message 18 in InstallationCheck.strings (Apple allows
    # 16-31 for custom messages); that message should also be customized
    # like this script
-   exit 113
+   exit 114
 fi
 
 if [[ -f __PREFIX__/etc/ports/dp_version ]]; then
-   # message 18 in InstallationCheck.strings
-   exit 114
+   # message 19 in InstallationCheck.strings
+   exit 115
 fi
 
 exit 0
