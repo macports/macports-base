@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 1.9.0 (unreleased):
+Release 1.9.0 (2010-06-08 by jmr):
 
     - It is no longer possible to use include statements in Portfiles
       (raimue in r68206)
