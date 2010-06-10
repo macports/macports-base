@@ -101,10 +101,12 @@ proc porttrace::trace_enable_fence {} {
 # Disable the fence.
 # Unused yet.
 proc porttrace::trace_disable_fence {} {
-    global env
+    global env macosx_version
     if [info exists env(DARWINTRACE_SANDBOX_BOUNDS)] {
         unset env(DARWINTRACE_SANDBOX_BOUNDS)
-        unsetenv DARWINTRACE_SANDBOX_BOUNDS
+        if {$macosx_version == "10.5"} {
+            unsetenv DARWINTRACE_SANDBOX_BOUNDS
+        }
     }
 }
 
@@ -147,10 +149,12 @@ proc porttrace::trace_check_violations {} {
 proc porttrace::trace_stop {} {
     global os.platform
     if {${os.platform} == "darwin"} {
-        global env trace_fifo
+        global env trace_fifo macosx_version
         foreach var {DYLD_INSERT_LIBRARIES DYLD_FORCE_FLAT_NAMESPACE DARWINTRACE_LOG DARWINTRACE_SANDBOX_BOUNDS} {
             array unset env $var
-            unsetenv $var
+            if {$macosx_version == "10.5"} {
+                unsetenv $var
+            }
         }
 
         #kill socket

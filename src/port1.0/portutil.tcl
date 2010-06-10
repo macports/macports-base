@@ -328,7 +328,7 @@ proc command_string {command} {
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-    global ${command}.env ${command}.env_array ${command}.nice env
+    global ${command}.env ${command}.env_array ${command}.nice env macosx_version
     set notty ""
     set command_prefix ""
     set command_suffix ""
@@ -394,7 +394,9 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    unsetenv *
+    if {$macosx_version == "10.5"} {
+        unsetenv *
+    }
     array set env [array get saved_env]
 
     # Return as if system had been called directly.

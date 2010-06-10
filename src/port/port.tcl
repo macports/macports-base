@@ -3452,7 +3452,11 @@ proc action_portcmds { action portlist opts } {
                     # We need it to evaluate the editor, and the editor
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
-                    array unset env *; unsetenv *; array set env [array get boot_env]
+                    array unset env *
+                    if {${macports::macosx_version} == "10.5"} {
+                        unsetenv *
+                    }
+                    array set env [array get boot_env]
                     
                     # Find an editor to edit the portfile
                     set editor ""
@@ -3478,7 +3482,11 @@ proc action_portcmds { action portlist opts } {
                     }
                     
                     # Restore internal MacPorts environment
-                    array unset env *; unsetenv *; array set env [array get env_save]
+                    array unset env *
+                    if {${macports::macosx_version} == "10.5"} {
+                        unsetenv *
+                    }
+                    array set env [array get env_save]
                 }
 
                 dir {
