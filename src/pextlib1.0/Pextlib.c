@@ -94,10 +94,10 @@ ui_escape(const char *source)
 {
 	char *d, *dest;
 	const char *s;
-	int slen, dlen;
+	size_t dlen;
 
 	s = source;
-	slen = dlen = strlen(source) * 2 + 1;
+	dlen = strlen(source) * 2 + 1;
 	d = dest = malloc(dlen);
 	if (dest == NULL) {
 		return NULL;
@@ -132,8 +132,9 @@ ui_info(Tcl_Interp *interp, char *mesg)
 {
 	const char ui_proc_start[] = "ui_info [subst -nocommands -novariables {";
 	const char ui_proc_end[] = "}]";
-	char *script, *string, *p;
-	int scriptlen, len, rval;
+	char *script, *string;
+	size_t scriptlen, len, remaining;
+	int rval;
 
 	string = ui_escape(mesg);
 	if (string == NULL)
@@ -144,14 +145,14 @@ ui_info(Tcl_Interp *interp, char *mesg)
 	script = malloc(scriptlen);
 	if (script == NULL)
 		return TCL_ERROR;
-	else
-		p = script;
 
 	memcpy(script, ui_proc_start, sizeof(ui_proc_start));
-	strcat(script, string);
-	strcat(script, ui_proc_end);
+	remaining = scriptlen - sizeof(ui_proc_start);
+	strncat(script, string, remaining);
+	remaining -= len;
+	strncat(script, ui_proc_end, remaining);
 	free(string);
-	rval = Tcl_EvalEx(interp, script, scriptlen - 1, 0);
+	rval = Tcl_EvalEx(interp, script, -1, 0);
 	free(script);
 	return rval;
 }

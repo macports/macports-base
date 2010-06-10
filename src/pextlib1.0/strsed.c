@@ -592,6 +592,12 @@ int *range;
      */
 
     do {
+#ifdef HS_REGEX
+	    /* XXX Not even trying to use custom memory routines */
+	    if (!(exp_regs = calloc(str_len, sizeof(regmatch_t)))) {
+		return 0;
+	    }
+#endif
 	if (match_all){
 	    /* Fake a match instead of calling re_search() or regexec(). */
 	    match = 1;
@@ -605,10 +611,6 @@ int *range;
 	    match = re_search(&re_comp_buf, str, str_len, 0, str_len, &regs);
 #endif
 #ifdef HS_REGEX
-	    /* XXX Not even trying to use custom memory routines */
-	    if (!(exp_regs = calloc(str_len, sizeof(regmatch_t)))) {
-		return 0;
-	    }
 	    match = regexec(&exp, str, str_len, exp_regs, 0) ? NO_MATCH : 1;
 #endif
 	}

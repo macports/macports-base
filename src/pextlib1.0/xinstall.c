@@ -146,7 +146,7 @@ InstallCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *
 {
 	struct stat from_sb, to_sb;
 	mode_t *set;
-	u_long fset;
+	u_long fset = 0;
 	int no_target, rval;
 	u_int iflags;
 	char *flags, *curdir;
@@ -1026,6 +1026,7 @@ strip(const char *to_name)
 		if (wait(&status) == -1 || status) {
 			serrno = errno;
 			(void)unlink(to_name);
+			errno = serrno;
 			return;
 		}
 	}
