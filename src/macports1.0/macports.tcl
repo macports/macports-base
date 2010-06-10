@@ -871,9 +871,11 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # unset environment an extra time, to work around bugs in Leopard Tcl
-    foreach envkey $env_names {
-        if {[lsearch -exact $keepenvkeys $envkey] == -1} {
-            unsetenv $envkey
+    if {$macosx_version == "10.5"} {
+        foreach envkey $env_names {
+            if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+                unsetenv $envkey
+            }
         }
     }
 
