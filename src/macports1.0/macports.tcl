@@ -834,9 +834,10 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         set keepenvkeys [concat ${keepenvkeys} ${extra_env}]
     }
 
-    foreach envkey [array names env] {
-        if {[lsearch $keepenvkeys $envkey] == -1} {
-            array unset env $envkey
+    set env_names [array names env]
+    foreach envkey $env_names {
+        if {[lsearch -exact $keepenvkeys $envkey] == -1} {
+            unset env($envkey)
         }
     }
 
@@ -870,8 +871,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     # unset environment an extra time, to work around bugs in Leopard Tcl
-    foreach envkey [array names env] {
-        if {[lsearch $keepenvkeys $envkey] == -1} {
+    foreach envkey $env_names {
+        if {[lsearch -exact $keepenvkeys $envkey] == -1} {
             unsetenv $envkey
         }
     }
