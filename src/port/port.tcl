@@ -2225,7 +2225,7 @@ proc action_activate { action portlist opts } {
 
             set i [lindex $ilist 0]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-            if {[registry::run_target $regref activate [array get options]]} {
+            if {[$regref installtype] == "image" && [registry::run_target $regref activate [array get options]]} {
                 continue
             }
         }
@@ -2262,7 +2262,7 @@ proc action_deactivate { action portlist opts } {
             set ivariants [lindex $i 3]
             if {$composite_version == "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
                 set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
-                if {[registry::run_target $regref deactivate [array get options]]} {
+                if {[$regref installtype] == "image" && [registry::run_target $regref deactivate [array get options]]} {
                     continue
                 }
             }
@@ -3577,7 +3577,6 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    set target $action
     foreachport $portlist {
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
@@ -3622,8 +3621,12 @@ proc action_target { action portlist opts } {
             set options(ports_version_glob) $portversion
         }
         # if installing, mark the port as explicitly requested
-        if {$target == "install"} {
+        if {$action == "install"} {
             set options(ports_requested) 1
+            # we actually activate as well
+            set target activate
+        } else {
+            set target $action
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo

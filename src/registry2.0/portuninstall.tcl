@@ -147,7 +147,9 @@ proc uninstall {portname {v ""} optionslist} {
                 ui_msg "For $portname @${v}: skipping deactivate (dry run)"
             } else {
                 if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                    portimage::deactivate $portname $v [array get options]
+                    if {[$port installtype] == "image"} {
+                        portimage::deactivate $portname $v [array get options]
+                    }
                 }
             }
         }
