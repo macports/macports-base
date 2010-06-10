@@ -1637,11 +1637,6 @@ proc mportexec {mport target} {
     }
 
     set clean 0
-    if {[string equal $target "install"] && [string equal ${macports::registry.installtype} "image"]} {
-        # If we're doing image installs, then we should activate after install
-        # xxx: This isn't pretty
-        set target activate
-    }
     if {[string equal ${macports::portautoclean} "yes"] && ([string equal $target "install"] || [string equal $target "activate"])} {
         # If we're doing an install, check if we should clean after
         set clean 1

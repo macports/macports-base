@@ -54,16 +54,20 @@ options activate.asroot
 default activate.asroot no
 
 proc portactivate::activate_start {args} {
-    global prefix
-    if { ![file writable $prefix] } {
+    global prefix registry.installtype
+    if { ![file writable $prefix] && ${registry.installtype} == "image"} {
         # if install location is not writable, need root privileges
         elevateToRoot "activate"
     }
 }
 
 proc portactivate::activate_main {args} {
-    global env name version revision portvariants user_options PortInfo
-    registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
+    global env name version revision portvariants user_options PortInfo registry.installtype
+
+    # skip the actual activation in direct mode (we still want the notes and the pre/post procs)
+    if {${registry.installtype} == "image"} {
+        registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
+    }
 
     # Display notes at the end of the activation phase.
     if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {
