@@ -197,7 +197,7 @@ static int reg_stmt_to_entry(void* userdata, void** entry, void* stmt,
  */
 reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
     char* query = "INSERT INTO registry.ports "
         "(name, version, revision, variants, epoch) VALUES (?, ?, ?, ?, ?)";
@@ -239,7 +239,9 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return entry;
 }
 
@@ -257,7 +259,7 @@ reg_entry* reg_entry_create(reg_registry* reg, char* name, char* version,
  */
 reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
         char* revision, char* variants, char* epoch, reg_error* errPtr) {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     reg_entry* entry = NULL;
     char* query = "SELECT id FROM registry.ports WHERE name=? AND version=? "
         "AND revision=? AND variants=? AND epoch=?";
@@ -296,7 +298,9 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return entry;
 }
 
@@ -312,9 +316,9 @@ reg_entry* reg_entry_open(reg_registry* reg, char* name, char* version,
 int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 0;
-    sqlite3_stmt* ports;
-    sqlite3_stmt* files;
-    sqlite3_stmt* dependencies;
+    sqlite3_stmt* ports = NULL;
+    sqlite3_stmt* files = NULL;
+    sqlite3_stmt* dependencies = NULL;
     char* ports_query = "DELETE FROM registry.ports WHERE id=?";
     char* files_query = "DELETE FROM registry.files WHERE id=?";
     char* dependencies_query = "DELETE FROM registry.dependencies WHERE id=?";
@@ -375,9 +379,15 @@ int reg_entry_delete(reg_entry* entry, reg_error* errPtr) {
     } else {
         reg_sqlite_error(reg->db, errPtr, NULL);
     }
-    sqlite3_finalize(ports);
-    sqlite3_finalize(files);
-    sqlite3_finalize(dependencies);
+    if (ports) {
+        sqlite3_finalize(ports);
+    }
+    if (files) {
+        sqlite3_finalize(files);
+    }
+    if (dependencies) {
+        sqlite3_finalize(dependencies);
+    }
     return result;
 }
 
@@ -417,7 +427,7 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
     void** results = malloc(10*sizeof(void*));
     int result_count = 0;
     int result_space = 10;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     if (!results) {
         return -1;
     }
@@ -455,7 +465,9 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
             }
         }
     } else {
-        sqlite3_finalize(stmt);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
         reg_sqlite_error(reg->db, errPtr, query);
     }
     free(results);
@@ -619,7 +631,7 @@ int reg_entry_installed(reg_registry* reg, char* name, reg_entry*** entries,
 int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
         reg_error* errPtr) {
     int result = 0;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "SELECT id FROM registry.files WHERE actual_path=? AND active";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_text(stmt, 1, path, -1, SQLITE_STATIC)
@@ -646,7 +658,9 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 
@@ -663,7 +677,7 @@ int reg_entry_owner(reg_registry* reg, char* path, reg_entry** entry,
  * @return          id of owner, or 0 for none
  */
 sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path) {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     sqlite_int64 result = 0;
     char* query = "SELECT id FROM registry.files WHERE actual_path=? AND active";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
@@ -677,7 +691,9 @@ sqlite_int64 reg_entry_owner_id(reg_registry* reg, char* path) {
             }
         } while (r == SQLITE_BUSY);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 
@@ -696,7 +712,7 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 0;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query;
     const char *text;
     query = sqlite3_mprintf("SELECT %q FROM registry.ports WHERE id=%lld", key,
@@ -730,7 +746,9 @@ int reg_entry_propget(reg_entry* entry, char* key, char** value,
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     sqlite3_free(query);
     return result;
 }
@@ -753,7 +771,7 @@ int reg_entry_propset(reg_entry* entry, char* key, char* value,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 0;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query;
     query = sqlite3_mprintf("UPDATE registry.ports SET %q = '%q' WHERE id=%lld",
             key, value, entry->id);
@@ -781,7 +799,9 @@ int reg_entry_propset(reg_entry* entry, char* key, char* value,
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     sqlite3_free(query);
     return result;
 }
@@ -800,7 +820,7 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 1;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* insert = "INSERT INTO registry.files (id, path, mtime, active) "
         "VALUES (?, ?, 0, 0)";
     if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
@@ -833,7 +853,9 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
         reg_sqlite_error(reg->db, errPtr, insert);
         result = 0;
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 
@@ -851,7 +873,7 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 1;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "DELETE FROM registry.files WHERE path=? AND id=?";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 2, entry->id) == SQLITE_OK)) {
@@ -889,7 +911,9 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_sqlite_error(reg->db, errPtr, query);
         result = 0;
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 
@@ -906,7 +930,7 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
  */
 int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "SELECT path FROM registry.files WHERE id=? ORDER BY path";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
@@ -953,7 +977,9 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
         }
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_finalize(stmt);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
         return -1;
     }
 }
@@ -971,7 +997,7 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
  */
 int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "SELECT actual_path FROM registry.files WHERE id=? "
         "AND active ORDER BY actual_path";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
@@ -1019,7 +1045,9 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
         }
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
-        sqlite3_finalize(stmt);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
         return -1;
     }
 }
@@ -1043,8 +1071,8 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
     reg_registry* reg = entry->reg;
     int result = 1;
     int i;
-    sqlite3_stmt* select;
-    sqlite3_stmt* update;
+    sqlite3_stmt* select = NULL;
+    sqlite3_stmt* update = NULL;
     char* select_query = "SELECT id FROM registry.files WHERE actual_path=? "
         "AND active";
     char* update_query = "UPDATE registry.files SET actual_path=?, active=1 "
@@ -1117,12 +1145,16 @@ int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
             reg_sqlite_error(reg->db, errPtr, update_query);
             result = 0;
         }
-        sqlite3_finalize(update);
+        if (update) {
+            sqlite3_finalize(update);
+        }
     } else {
         reg_sqlite_error(reg->db, errPtr, select_query);
         result = 0;
     }
-    sqlite3_finalize(select);
+    if (select) {
+        sqlite3_finalize(select);
+    }
     return result;
 }
 
@@ -1141,7 +1173,7 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
     reg_registry* reg = entry->reg;
     int result = 1;
     int i;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "UPDATE registry.files SET active=0 WHERE actual_path=? AND id=?";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 2, entry->id) == SQLITE_OK)) {
@@ -1178,7 +1210,9 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
         reg_sqlite_error(reg->db, errPtr, query);
         result = 0;
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 
@@ -1240,7 +1274,7 @@ int reg_entry_dependencies(reg_entry* entry, reg_entry*** dependencies,
 int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 0;
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     char* query = "INSERT INTO registry.dependencies (id, name) VALUES (?,?)";
     if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)
@@ -1263,7 +1297,9 @@ int reg_entry_depends(reg_entry* entry, char* name, reg_error* errPtr) {
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 

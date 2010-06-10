@@ -398,7 +398,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 
 		if (remotetime) {
 			theCurlCode = curl_easy_getinfo(theHandle, CURLINFO_FILETIME, &theFileTime);
-			if (theFileTime > 0) {
+			if (theCurlCode == CURLE_OK && theFileTime > 0) {
 				struct utimbuf times;
 				times.actime = (time_t)theFileTime;
 				times.modtime = (time_t)theFileTime;
