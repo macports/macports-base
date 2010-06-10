@@ -78,10 +78,10 @@
  * @param [in,out] dst_space number of characters `dst` can hold
  * @param [in] src           string to concatenate to `dst`
  */
-static int reg_strcat(char** dst, int* dst_len, int* dst_space, char* src) {
-    int src_len = strlen(src);
-    int result_len = *dst_len + src_len;
-    if (result_len >= *dst_space) {
+static int reg_strcat(char** dst, size_t* dst_len, size_t* dst_space, char* src) {
+    size_t src_len = strlen(src);
+    size_t result_len = *dst_len + src_len;
+    if (result_len > *dst_space) {
         char* new_dst;
         *dst_space *= 2;
         if (*dst_space < result_len) {
@@ -511,8 +511,7 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     int i;
     char* kwd = " WHERE ";
     char* query;
-    int query_len = 29;
-    int query_space = 29;
+    size_t query_len, query_space;
     int result;
     /* get the strategy */
     char* op = reg_strategy_op(strategy, errPtr);
@@ -524,6 +523,7 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
     if (!query) {
         return -1;
     }
+    query_len = query_space = strlen(query);
     for (i=0; i<key_count; i++) {
         char* cond = sqlite3_mprintf(op, keys[i], vals[i]);
         if (!cond || !reg_strcat(&query, &query_len, &query_space, kwd)
@@ -535,7 +535,7 @@ int reg_entry_search(reg_registry* reg, char** keys, char** vals, int key_count,
         kwd = " AND ";
     }
     /* do the query */
-    result = reg_all_entries(reg, query, query_len, entries, errPtr);
+    result = reg_all_entries(reg, query, -1, entries, errPtr);
     free(query);
     return result;
 }
