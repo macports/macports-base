@@ -5,7 +5,7 @@
 *) All output is now logged to a file, whose location will be shown if a port
    target fails. This should be attached to bug reports. The new 'log' action
    can also be used to view the log for a port.
-*) Command line options can be abbreviated if unambigious.
+*) Command line options can be abbreviated if unambiguous.
 *) New actions: rdeps, rdependents, setrequested, unsetrequested
 *) --follow-dependencies option for uninstall (ports with the requested flag
    set or with other dependents are skipped).
