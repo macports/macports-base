@@ -226,11 +226,16 @@ proc portconfigure::choose_supported_archs {archs} {
     set ret {}
     foreach arch $archs {
         if {[lsearch -exact $supported_archs $arch] != -1} {
-            lappend ret $arch
-        } elseif {$arch == "x86_64" && [lsearch -exact $supported_archs "i386"] != -1 && [lsearch -exact $ret "i386"] == -1} {
-            lappend ret "i386"
-        } elseif {$arch == "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1 && [lsearch -exact $ret "ppc"] == -1} {
-            lappend ret "ppc"
+            set add_arch $arch
+        } elseif {$arch == "x86_64" && [lsearch -exact $supported_archs "i386"] != -1} {
+            set add_arch "i386"
+        } elseif {$arch == "ppc64" && [lsearch -exact $supported_archs "ppc"] != -1} {
+            set add_arch "ppc"
+        } else {
+            continue
+        }
+        if {[lsearch -exact $ret $add_arch] == -1} {
+            lappend ret $add_arch
         }
     }
     return $ret
