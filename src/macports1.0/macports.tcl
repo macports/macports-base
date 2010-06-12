@@ -1515,6 +1515,7 @@ proc _mportexec {target mport} {
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants $target} result] && $result == 0 &&
+        ![catch {$workername eval check_supported_archs $target} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
         if {[string equal ${macports::portautoclean} "yes"]} {
@@ -1574,6 +1575,10 @@ proc mportexec {mport target} {
 
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval _check_xcode_version] != 0} {
+            return 1
+        }
+        # error out if selected arch(s) not supported by this port
+        if {[$workername eval check_supported_archs] != 0} {
             return 1
         }
 

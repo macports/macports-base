@@ -2559,6 +2559,25 @@ proc get_canonical_archs {} {
     }
 }
 
+# check that the selected archs are supported
+proc check_supported_archs {} {
+    global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs name
+    if {$supported_archs == "noarch"} {
+        return 0
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
+        if {[llength ${configure.universal_archs}] > 1 || $universal_archs == ${configure.universal_archs}} {
+            return 0
+        } else {
+            ui_error "$name cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
+            return 1
+        }
+    } elseif {$build_arch == "" || ${configure.build_arch} != ""} {
+        return 0
+    }
+    ui_error "$name cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
+    return 1
+}
+
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion
