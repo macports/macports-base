@@ -1615,7 +1615,7 @@ proc mportexec {mport target} {
         if { [string equal ${macports::registry.installtype} "image"] } {
             set result [dlist_eval $dlist _mportactive [list _mportexec "activate"]]
         } else {
-            set result [dlist_eval $dlist _mportinstalled [list _mportexec "install"]]
+            set result [dlist_eval $dlist _mportinstalled [list _mportexec "activate"]]
         }
 
         if {$result != {}} {
