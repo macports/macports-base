@@ -690,7 +690,7 @@ proc initialize_system {args} {
 	set variations ""
 
 	foreach port [get_required_ports] {
-		if {[catch {do_portexec $port [array get options] [array get variants] install} result]} {
+		if {[catch {do_portexec $port [array get options] [array get variants] activate} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"
 			ui_noisy_error "Fatal error: $result"
@@ -745,7 +745,7 @@ proc do_portexec {port options variants target} {
 		exit 1
 	}
 
-	if {[catch {set result [mportexec $workername install]} result] || $result == 1} {
+	if {[catch {set result [mportexec $workername $target]} result] || $result == 1} {
 
 		# Close the port
 		mportclose $workername

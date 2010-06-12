@@ -457,7 +457,7 @@ foreach {name array} $allpackages {
 				ui_error "Internal error: unable to install ${prebuild}... exiting"
 				exit 1
 			}
-			if {[catch {set result [mportexec $workername install]} result] ||
+			if {[catch {set result [mportexec $workername activate]} result] ||
 				$result == 1} {
 				global errorInfo
 				ui_debug "$errorInfo"
