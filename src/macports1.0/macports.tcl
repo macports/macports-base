@@ -2861,7 +2861,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                     return $status
                 }
                 # now install it
-                if {[catch {set result [mportexec $workername install]} result]} {
+                if {[catch {set result [mportexec $workername activate]} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
                     ui_error "Unable to exec port: $result"
@@ -3201,7 +3201,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
         }
         ui_msg "Skipping activate $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-    } elseif {[catch {set result [mportexec $workername install]} result]} {
+    } elseif {[catch {set result [mportexec $workername activate]} result]} {
         global errorInfo
         ui_debug "$errorInfo"
         ui_error "Couldn't activate $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants): $result"
