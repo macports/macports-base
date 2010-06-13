@@ -59,7 +59,7 @@ proc portdeactivate::deactivate_start {args} {
 proc portdeactivate::deactivate_main {args} {
     global name version revision portvariants user_options registry.installtype
     # we still want to be able to run this target in direct mode for the pre/post procs
-    if {${registry.installtype} == "image"}
+    if {${registry.installtype} == "image"} {
         registry_deactivate $name "${version}_${revision}${portvariants}" [array get user_options]
     }
     return 0
