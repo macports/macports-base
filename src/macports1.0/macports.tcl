@@ -1515,7 +1515,7 @@ proc _mportexec {target mport} {
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
     if {![catch {$workername eval check_variants $target} result] && $result == 0 &&
-        ![catch {$workername eval check_supported_archs $target} result] && $result == 0 &&
+        ![catch {$workername eval check_supported_archs} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
         # If auto-clean mode, clean-up after dependency install
         if {[string equal ${macports::portautoclean} "yes"]} {
