@@ -1560,18 +1560,8 @@ proc mportexec {mport target} {
     }
 
     # Before we build the port, we must build its dependencies.
-    # XXX: need a more general way of comparing against targets
     set dlist {}
-    if {   $target == "fetch" || $target == "checksum"
-        || $target == "extract" || $target == "patch"
-        || $target == "configure" || $target == "build"
-        || $target == "test"
-        || $target == "destroot" || $target == "install"
-        || $target == "archive"
-        || $target == "dmg" || $target == "mdmg"
-        || $target == "pkg" || $target == "mpkg"
-        || $target == "rpm" || $target == "dpkg"
-        || $target == "srpm"|| $target == "portpkg" } {
+    if {[macports::_target_needs_deps $target]} {
 
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval _check_xcode_version] != 0} {
@@ -2613,6 +2603,33 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     }
     ui_error "its dependency $dep does not build for the required arch(s) by default"
     ui_error "and does not have a universal variant."
+}
+
+# check if the given target needs dependencies installed first
+proc macports::_target_needs_deps {target} {
+    # XXX: need a better way than checking this hardcoded list
+    switch -- $target {
+        fetch -
+        checksum -
+        extract -
+        patch -
+        configure -
+        build -
+        test -
+        destroot -
+        install -
+        archive -
+        activate -
+        dmg -
+        mdmg -
+        pkg -
+        mpkg -
+        rpm -
+        dpkg -
+        srpm -
+        portpkg { return 1 }
+        default { return 0 }
+    }
 }
 
 # Determine dependency types required for target
