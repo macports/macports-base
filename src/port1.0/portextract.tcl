@@ -124,11 +124,11 @@ proc portextract::extract_main {args} {
     foreach distfile [option extract.only] {
         ui_info "$UI_PREFIX [format [msgcat::mc "Extracting %s"] $distfile]"
         if {[file exists $filespath/$distfile]} {
-            option extract.args "$filespath/$distfile"
+            option extract.args "'$filespath/$distfile'"
         } elseif {![file exists "[option distpath]/$distfile"] && !$usealtworkpath && [file exists "${altprefix}[option distpath]/$distfile"]} {
-            option extract.args "${altprefix}[option distpath]/$distfile"
+            option extract.args "'${altprefix}[option distpath]/$distfile'"
         } else {
-            option extract.args "[option distpath]/$distfile"
+            option extract.args "'[option distpath]/$distfile'"
         }
         if {[catch {command_exec extract} result]} {
             return -code error "$result"
