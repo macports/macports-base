@@ -381,11 +381,13 @@ proc _check_contents {name contents imagedir} {
 ##
 ## @param [in] srcfile path to file in image
 ## @param [in] dstfile path to activate file to
+## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
     switch [file type $srcfile] {
         link {
             ui_debug "activating link: $dstfile"
             file copy -force -- $srcfile $dstfile
+            return 1
         }
         directory {
             # Don't recursively copy directories
@@ -398,6 +400,7 @@ proc _activate_file {srcfile dstfile} {
                 # set mtime on installed element
                 file mtime $dstfile [file mtime $srcfile]
             }
+            return 0
         }
         default {
             ui_debug "activating file: $dstfile"
@@ -406,6 +409,7 @@ proc _activate_file {srcfile dstfile} {
                 ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
                 file link -symbolic $dstfile $srcfile
             }
+            return 1
         }
     }
 }
@@ -528,8 +532,9 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 try {
                     $port activate $imagefiles
                     foreach file $theList {
-                        _activate_file "${imagedir}${file}" $file
-                        lappend rollback_filelist $file
+                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                            lappend rollback_filelist $file
+                        }
                     }
                 } catch {*} {
                     ui_debug "Activation failed, rolling back."
@@ -638,8 +643,9 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
 
         # Activate it, and catch errors so we can roll-back
         if { [catch { foreach file $theList {
-                        _activate_file "${imagedir}${file}" $file
-                        lappend rollback_filelist $file
+                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                            lappend rollback_filelist $file
+                        }
                     }} result]} {
             ui_debug "Activation failed, rolling back."
             _deactivate_contents $name $rollback_filelist yes yes
