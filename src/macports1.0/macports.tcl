@@ -3216,6 +3216,26 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
                 set anyactive no
             }
         }
+        if {$anyactive && $portname != $newname} {
+            # replaced_by in effect, deactivate the old port
+            # we have to force the deactivate in case of dependents
+            set force_cur [info exists options(ports_force)]
+            set options(ports_force) yes
+            if {$is_dryrun eq "yes"} {
+                ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
+            } elseif {!(${registry.format} == "receipt_sqlite" && [registry::run_target $regref deactivate [array get options]])
+                      && [catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} [array get options]} result]} {
+                global errorInfo
+                ui_debug "$errorInfo"
+                ui_error "Deactivating $portname @${version_active}_${revision_active}${variant_active} failed: $result"
+                catch {mportclose $workername}
+                return 1
+            }
+            if {!$force_cur} {
+                unset options(ports_force)
+            }
+            set anyactive no
+        }
         if {[info exists options(port_uninstall_old)]} {
             # uninstalling now could fail due to dependents when not forced,
             # because the new version is not installed
