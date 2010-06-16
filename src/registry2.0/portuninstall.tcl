@@ -340,17 +340,17 @@ proc uninstall {portname {v ""} optionslist} {
                     catch {file copy $fname "${fname}${bak_suffix}"}
                 }
             }
-            
-            set theFile [file normalize $fname]
-            if { [file exists $theFile] || (![catch {file type $theFile}] && [file type $theFile] == "link") } {
+
+            if { [file exists $fname] || (![catch {file type $fname}] && [file type $fname] == "link") } {
                 # Normalize the file path to avoid removing the intermediate
                 # symlinks (remove the empty directories instead)
-                lappend files $theFile
+                # The custom realpath proc is necessary because file normalize
+                # does not resolve symlinks on OS X < 10.6
+                set directory [realpath [file dirname $fname]]
+                lappend files [file join $directory [file tail $fname]]
     
                 # Split out the filename's subpaths and add them to the
-                # list as well. The realpath call is necessary because file normalize
-                # does not resolve symlinks on OS X < 10.6
-                set directory [realpath [file dirname $theFile]]
+                # list as well.
                 while { [lsearch -exact $files $directory] == -1 } { 
                     lappend files $directory
                     set directory [file dirname $directory]
@@ -361,10 +361,10 @@ proc uninstall {portname {v ""} optionslist} {
         # Sort the list in reverse order, removing duplicates.
         # Since the list is sorted in reverse order, we're sure that directories
         # are after their elements.
-        set theList [lsort -decreasing -unique $files]
+        set files [lsort -decreasing -unique $files]
     
         # Remove all elements.
-        _uninstall_list $theList
+        _uninstall_list $files
     
         if {$use_reg2} {
             registry::entry delete $port

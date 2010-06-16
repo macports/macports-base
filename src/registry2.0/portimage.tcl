@@ -524,14 +524,14 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             # directories are before their elements.
             # We don't have to do this as mentioned above, but it makes the
             # debug output of activate make more sense.
-            set theList [lsort -increasing -unique $files]
+            set files [lsort -increasing -unique $files]
             set rollback_filelist {}
 
             registry::write {
                 # Activate it, and catch errors so we can roll-back
                 try {
                     $port activate $imagefiles
-                    foreach file $theList {
+                    foreach file $files {
                         if {[_activate_file "${imagedir}${file}" $file] == 1} {
                             lappend rollback_filelist $file
                         }
@@ -638,11 +638,11 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         # are before their elements.
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
-        set theList [lsort -increasing -unique $files]
+        set files [lsort -increasing -unique $files]
         set rollback_filelist {}
 
         # Activate it, and catch errors so we can roll-back
-        if { [catch { foreach file $theList {
+        if { [catch { foreach file $files {
                         if {[_activate_file "${imagedir}${file}" $file] == 1} {
                             lappend rollback_filelist $file
                         }
@@ -704,14 +704,14 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # instead of the paths we currently have, users' registry won't
             # match and activate will say that some file exists but doesn't
             # belong to any port.
-            set theFile [file normalize $file]
-            lappend files $theFile
-
-            # Split out the filename's subpaths and add them to the image list as
-            # well. The realpath call is necessary because file normalize
+            # The custom realpath proc is necessary because file normalize
             # does not resolve symlinks on OS X < 10.6
-            set directory [realpath [file dirname $theFile]]
-            while { [lsearch -exact $files $directory] == -1 } { 
+            set directory [realpath [file dirname $file]]
+            lappend files [file join $directory [file tail $file]]
+
+            # Split out the filename's subpaths and add them to the image list
+            # as well.
+            while { [lsearch -exact $files $directory] == -1 } {
                 lappend files $directory
                 set directory [file dirname $directory]
             }
@@ -723,18 +723,18 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     # Sort the list in reverse order, removing duplicates.
     # Since the list is sorted in reverse order, we're sure that directories
     # are after their elements.
-    set theList [lsort -decreasing -unique $files]
+    set files [lsort -decreasing -unique $files]
 
     # Remove all elements.
     if {$use_reg2 && !$rollback} {
         registry::write {
             $port deactivate $imagefiles
-            foreach file $theList {
+            foreach file $files {
                 _deactivate_file $file
             }
         }
     } else {
-        foreach file $theList {
+        foreach file $files {
             _deactivate_file $file
         }
     }
