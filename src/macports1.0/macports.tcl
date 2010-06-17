@@ -3223,7 +3223,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set options(ports_force) yes
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
-            } elseif {!(${registry.format} == "receipt_sqlite" && [registry::run_target $regref deactivate [array get options]])
+            } elseif {![catch {registry::active $portname}] &&
+                      !(${registry.format} == "receipt_sqlite" && [registry::run_target $regref deactivate [array get options]])
                       && [catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} [array get options]} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
