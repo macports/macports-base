@@ -858,6 +858,7 @@ proc get_leaves_ports {} {
             fatal "port installed failed: $result"
         }
     }
+    registry::open_dep_map
     set results {}
     foreach i $ilist {
         set iname [lindex $i 0]
