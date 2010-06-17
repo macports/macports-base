@@ -2418,7 +2418,7 @@ proc action_setrequested { action portlist opts } {
         if {![catch {set ilist [registry::installed $portname $composite_version]} result]} {
             ui_info "Setting requested flag for $portname to $val"
             foreach i $ilist {
-                set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+                set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
                 registry::property_store $regref requested $val
             }
         } else {
