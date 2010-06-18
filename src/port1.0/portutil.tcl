@@ -1507,9 +1507,6 @@ proc open_statefile {args} {
     global workpath worksymlink place_worksymlink name portpath ports_ignore_older ports_dryrun
     global usealtworkpath altprefix env applications_dir portbuildpath
 
-    # de-escalate privileges if MacPorts was started with sudo
-    dropPrivileges
-
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
                 You may be unable to complete certain actions (e.g. install)."
@@ -1542,6 +1539,9 @@ proc open_statefile {args} {
             ln -sf $workpath $worksymlink
         }
     }
+
+    # de-escalate privileges if MacPorts was started with sudo
+    dropPrivileges
 
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
