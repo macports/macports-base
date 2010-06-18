@@ -52,7 +52,7 @@ default checksum.skip false
 set_ui_prefix
 
 # The list of the types of checksums we know.
-set checksum_types "md5 sha1 rmd160"
+set checksum_types "md5 sha1 rmd160 sha256"
 
 # The number of types we know.
 set checksum_types_count [llength $checksum_types]
@@ -170,6 +170,15 @@ proc portchecksum::calc_sha1 {file} {
 #
 proc portchecksum::calc_rmd160 {file} {
     return [rmd160 file $file]
+}
+
+# calc_sha256
+#
+# Calculate the sha256 checksum for the given file.
+# Return the checksum.
+#
+proc portchecksum::calc_sha256 {file} {
+    return [sha256 file $file]
 }
 
 # checksum_start
