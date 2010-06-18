@@ -2585,6 +2585,7 @@ proc action_deps { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
+    set separator ""
 
     foreachport $portlist {
         if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
@@ -2651,6 +2652,7 @@ proc action_deps { action portlist opts } {
         set portname $portinfo(name)
 
         set deplist {}
+        set deps_output {}
         set ndeps 0
         array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime}
         # get list of direct deps
@@ -2667,7 +2669,7 @@ proc action_deps { action portlist opts } {
                 }
                 if {$action == "deps"} {
                     set label "$labeldict($type) Dependencies"
-                    puts [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
+                    lappend deps_output [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
                     incr ndeps [llength $deplist]
                     set deplist {}
                 }
@@ -2682,11 +2684,16 @@ proc action_deps { action portlist opts } {
             set variants {}
         }
 
+        puts -nonewline $separator
         if {$action == "deps"} {
             if {$ndeps == 0} {
                 ui_notice "$portname @${version}_${revision}${variants} has no dependencies."
+            } else {
+                ui_notice "Full Name: $portname @${version}_${revision}${variants}"
+                puts [join $deps_output "\n"]
             }
-            return $status
+            set separator "--\n"
+            continue
         }
 
         set toplist $deplist
@@ -2781,6 +2788,7 @@ proc action_deps { action portlist opts } {
             incr cur_pos
             set pos_stack [lreplace $pos_stack end end $cur_pos]
         }
+        set separator "--\n"
     }
     return $status
 }
