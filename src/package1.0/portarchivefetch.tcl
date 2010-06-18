@@ -174,7 +174,7 @@ proc portarchivefetch::fetchfiles {args} {
             }
             if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using archive_sites"] $url_var]
-                set urlmap($url_var) $archive_sites
+                set urlmap($url_var) $urlmap(archive_sites)
             }
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
