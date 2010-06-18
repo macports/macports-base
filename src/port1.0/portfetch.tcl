@@ -471,7 +471,7 @@ proc portfetch::fetchfiles {args} {
             }
             if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set urlmap($url_var) $master_sites
+                set urlmap($url_var) $urlmap(master_sites)
             }
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {

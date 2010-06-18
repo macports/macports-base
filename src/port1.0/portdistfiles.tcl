@@ -82,7 +82,7 @@ proc portdistfiles::distfiles_main {args} {
 
         # determine sites to download from
         if {![info exists urlmap($url_var)]} {
-            set urlmap($url_var) $master_sites
+            set urlmap($url_var) $urlmap(master_sites)
         }
         
         # determine URLs to download
