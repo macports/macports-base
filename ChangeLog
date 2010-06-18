@@ -2,8 +2,13 @@
 # This is a log of major user-visible changes in each MacPorts release.
 # $Id$
 ###
+Release 1.9.2 (future):
+    - Fixed sha256 checksum (snc in r68955)
 
-Release 1.9.1 (2010-06-18)
+    - Fixed premature privilege dropping (jmr in r68952)
+
+
+Release 1.9.1 (2010-06-18):
     - Fixed a couple of problems with new 1.9 features when using the flat
       registry format (jmr in r68910, r68913)
 
