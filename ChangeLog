@@ -3,6 +3,29 @@
 # $Id$
 ###
 
+Release 1.9.1 (2010-06-18)
+    - Fixed a couple of problems with new 1.9 features when using the flat
+      registry format (jmr in r68910, r68913)
+
+    - Ports using the replaced_by option will once again be deactivated when
+      an upgrade is performed on them (#25270, jmr in r68872)
+
+    - Fixed the possibility of some empty directories being left behind when
+      a port is deactivated (#25268, jmr in r68864)
+
+    - Fixed failure to detect conflicts with files that are not provided by
+      a port before activation starts (#25255, jmr in r68849)
+
+    - Fixed problems with distfile names containing spaces (#25245, #25246;
+      jmr in r68816, r68817)
+
+    - Fixed a problem with uninstall when using direct mode, and started
+      running pre/post activate and deactivate procedures when installing and
+      uninstalling in direct mode, respectively (#11562, jmr in r68697)
+
+    - fixed a crasher that affected Tiger (#25194, jmr in r68675, r68680,
+      r68691)
+
 Release 1.9.0 (2010-06-08 by jmr):
 
     - It is no longer possible to use include statements in Portfiles
