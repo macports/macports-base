@@ -47,7 +47,7 @@ namespace eval portarchivefetch {
 
 options archive_sites archivefetch.user archivefetch.password \
     archivefetch.use_epsv archivefetch.ignore_sslcert \
-    archive_sites.mirror_subdir
+    archive_sites.mirror_subdir archivefetch.pubkeys
 
 # user name & password
 default archivefetch.user ""
@@ -56,6 +56,7 @@ default archivefetch.password ""
 default archivefetch.use_epsv no
 # Ignore SSL certificate
 default archivefetch.ignore_sslcert no
+default archivefetch.pubkeys {$archivefetch_pubkeys}
 
 default archive_sites macports_archives
 default archive_sites.listfile {"archive_sites.tcl"}
@@ -125,7 +126,7 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global archivefetch.fulldestpath UI_PREFIX
+    global portarchivepath archivefetch.fulldestpath UI_PREFIX
     global archivefetch.user archivefetch.password archivefetch.use_epsv \
            archivefetch.ignore_sslcert
     global portverbose ports_binary_only
@@ -141,7 +142,18 @@ proc portarchivefetch::fetchfiles {args} {
             }
         }
     }
+    set incoming_path [file join ${portarchivepath} incoming]
+    if {![file isdirectory $incoming_path]} {
+        if {[catch {file mkdir $incoming_path} result]} {
+            elevateToRoot "archivefetch"
+            set elevated yes
+            if {[catch {file mkdir $incoming_path} result]} {
+                return -code error [format [msgcat::mc "Unable to create archive fetch path: %s"] $result]
+            }
+        }
+    }
     chownAsRoot ${archivefetch.fulldestpath}
+    chownAsRoot $incoming_path
     if {[info exists elevated] && $elevated == yes} {
         dropPrivileges
     }
@@ -168,6 +180,9 @@ proc portarchivefetch::fetchfiles {args} {
             if {![file writable ${archivefetch.fulldestpath}]} {
                 return -code error [format [msgcat::mc "%s must be writable"] ${archivefetch.fulldestpath}]
             }
+            if {![file writable $incoming_path]} {
+                return -code error [format [msgcat::mc "%s must be writable"] $incoming_path]
+            }
             if {!$sorted} {
                 portfetch::sortsites archivefetch_urls {} archive_sites
                 set sorted yes
@@ -181,17 +196,43 @@ proc portarchivefetch::fetchfiles {args} {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive $site]"
                 set file_url [portfetch::assemble_url $site $archive]
                 set effectiveURL ""
-                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${archivefetch.fulldestpath}/${archive}.TMP} result] &&
-                    ![catch {file rename -force "${archivefetch.fulldestpath}/${archive}.TMP" "${archivefetch.fulldestpath}/${archive}"} result]} {
+                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}} result]} {
                     # Successful fetch
                     set fetched 1
                     break
                 } else {
                     ui_debug "[msgcat::mc "Fetching archive failed:"]: $result"
-                    file delete -force "${archivefetch.fulldestpath}/${archive}.TMP"
+                    file delete -force "${incoming_path}/${archive}.TMP"
                 }
             }
             if {[info exists fetched]} {
+                # there should be an rmd160 digest of the archive signed with one of the trusted keys
+                set signature "${incoming_path}/${archive}.rmd160"
+                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] ${archive}.rmd160 $site]"
+                # reusing $file_url from the last iteration of the loop above
+                if {[catch {eval curl fetch --effective-url effectiveURL $fetch_options {${file_url}.rmd160} {$signature}} result]} {
+                    ui_debug "$::errorInfo"
+                    return -code error "Failed to fetch signature for archive: $result"
+                }
+                set verified 0
+                foreach pubkey [option archivefetch.pubkeys] {
+                    set openssl [findBinary openssl $portutil::autoconf::openssl_path]
+                    if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature "${incoming_path}/${archive}.TMP"} result]} {
+                        set verified 1
+                        break
+                    } else {
+                        ui_debug "failed verification with key $pubkey"
+                        ui_debug "openssl output: $result"
+                    }
+                }
+                if {!$verified} {
+                    return -code error "Failed to verify signature for archive!"
+                }
+                if {[catch {file rename -force "${incoming_path}/${archive}.TMP" "${archivefetch.fulldestpath}/${archive}"} result]} {
+                    ui_debug "$::errorInfo"
+                    return -code error "Failed to move downloaded archive into place: $result"
+                }
+                file delete -force $signature
                 return 0
             }
         } else {

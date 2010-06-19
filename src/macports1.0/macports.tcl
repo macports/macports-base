@@ -51,8 +51,8 @@ namespace eval macports {
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
-        portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
-        rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
+        portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
+        rsync_server rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
         mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target $user_options"
@@ -464,6 +464,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::os_platform
     global macports::macosx_version
     global macports::macosx_deployment_target
+    global macports::archivefetch_pubkeys
 
     # Set the system encoding to utf-8
     encoding system utf-8
@@ -601,6 +602,21 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
     global macports::global_variations
     array set macports::global_variations [array get variations]
+
+    # pubkeys.conf
+    set macports::archivefetch_pubkeys {}
+    if {[file isfile [file join ${macports_conf_path} pubkeys.conf]]} {
+        set fd [open [file join ${macports_conf_path} pubkeys.conf] r]
+        while {[gets $fd line] >= 0} {
+            set line [string trim $line]
+            if {![regexp {^[\ \t]*#.*$|^$} $line]} {
+                lappend macports::archivefetch_pubkeys $line
+            }
+        }
+        close $fd
+    } else {
+        ui_debug "pubkeys.conf does not exist."
+    }
 
     if {![info exists portdbpath]} {
         return -code error "portdbpath must be set in ${macports_conf_path}/macports.conf or in your ${macports_user_dir}/macports.conf"
