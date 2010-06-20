@@ -3256,7 +3256,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             }
             set anyactive no
         }
-        if {[info exists options(port_uninstall_old)]} {
+        if {[info exists options(port_uninstall_old)] && $portname == $newname} {
             # uninstalling now could fail due to dependents when not forced,
             # because the new version is not installed
             set uninstall_later yes
