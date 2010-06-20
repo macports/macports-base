@@ -385,6 +385,9 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion "2.1"
                     }
                 }
+            } else {
+                ui_warn "xcodebuild exists but failed to execute"
+                set macports::xcodeversion "none"
             }
         }
         if {![info exists xcodebuildcmd]} {
