@@ -78,11 +78,7 @@ proc portarchive::archive_init {args} {
 
     # Define archive destination directory and target filename
     if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-        if {[llength [get_canonical_archs]] > 1} {
-            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] "universal"]
-        } else {
-            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] [get_canonical_archs]]
-        }
+        set archive.fulldestpath [file join ${archive.destpath} [option archive.subdir]]
     } else {
         set archive.fulldestpath ${archive.destpath}
     }

@@ -47,7 +47,8 @@ namespace eval portarchivefetch {
 
 options archive_sites archivefetch.user archivefetch.password \
     archivefetch.use_epsv archivefetch.ignore_sslcert \
-    archive_sites.mirror_subdir archivefetch.pubkeys
+    archive_sites.mirror_subdir archivefetch.pubkeys \
+    archive.subdir
 
 # user name & password
 default archivefetch.user ""
@@ -61,8 +62,18 @@ default archivefetch.pubkeys {$archivefetch_pubkeys}
 default archive_sites macports_archives
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
+default archive.subdir {[portarchivefetch::get_archive_subdir]}
 
 set_ui_prefix
+
+proc portarchivefetch::get_archive_subdir {} {
+    set archs [get_canonical_archs]
+    if {[llength $archs] > 1} {
+        return [file join [option os.platform]_[option os.major] "universal" [option name]]
+    } else {
+        return [file join [option os.platform]_[option os.major] $archs [option name]]
+    }
+}
 
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
@@ -71,11 +82,7 @@ proc portarchivefetch::checkarchivefiles {urls} {
     upvar $urls fetch_urls
 
     # Define archive directory, file, and path
-    if {[llength [get_canonical_archs]] > 1} {
-        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] "universal"]
-    } else {
-        set archivefetch.fulldestpath [file join ${portarchivepath} [option os.platform] [get_canonical_archs]]
-    }
+    set archivefetch.fulldestpath [file join ${portarchivepath} [option archive.subdir]]
 
     set unsupported 0
     set found 0
@@ -193,7 +200,12 @@ proc portarchivefetch::fetchfiles {args} {
             }
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive $site]"
+                if {[string index $site end] != "/"} {
+                    append site "/[option archive.subdir]"
+                } else {
+                    append site [option archive.subdir]
+                }
+                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $archive ${site}]"
                 set file_url [portfetch::assemble_url $site $archive]
                 set effectiveURL ""
                 if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${incoming_path}/${archive}.TMP"}} result]} {
