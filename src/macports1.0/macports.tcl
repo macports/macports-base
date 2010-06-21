@@ -1582,18 +1582,21 @@ proc mportexec {mport target} {
     set dlist {}
     if {[macports::_target_needs_deps $target]} {
 
-        # possibly warn or error out depending on how old xcode is
-        if {[$workername eval _check_xcode_version] != 0} {
-            return 1
-        }
-        # error out if selected arch(s) not supported by this port
-        if {[$workername eval check_supported_archs] != 0} {
-            return 1
-        }
-
-        # upgrade dependencies that are already installed
-        if {![macports::global_option_isset ports_nodeps]} {
-            macports::_upgrade_mport_deps $mport $target
+        # see if we actually need to build this port
+        if {![$workername eval registry_exists \$name \$version \$revision \$portvariants]} {
+            # possibly warn or error out depending on how old xcode is
+            if {[$workername eval _check_xcode_version] != 0} {
+                return 1
+            }
+            # error out if selected arch(s) not supported by this port
+            if {[$workername eval check_supported_archs] != 0} {
+                return 1
+            }
+    
+            # upgrade dependencies that are already installed
+            if {![macports::global_option_isset ports_nodeps]} {
+                macports::_upgrade_mport_deps $mport $target
+            }
         }
 
         ui_msg -nonewline "--->  Computing dependencies for [_mportkey $mport name]"
@@ -1682,7 +1685,7 @@ proc mportexec {mport target} {
 proc macports::_upgrade_mport_deps {mport target} {
     set options [ditem_key $mport options]
     set workername [ditem_key $mport workername]
-    set deptypes [macports::_deptypes_for_target $target]
+    set deptypes [macports::_deptypes_for_target $target $workername]
     array set portinfo [mportinfo $mport]
     array set depscache {}
 
@@ -2431,7 +2434,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         }
     }
 
-    set deptypes [macports::_deptypes_for_target $target]
+    set workername [ditem_key $mport workername]
+    set deptypes [macports::_deptypes_for_target $target $workername]
 
     set subPorts {}
     if {[llength $deptypes] > 0} {
@@ -2440,7 +2444,6 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         set optionsarray(ports_requested) 0
         set options [array get optionsarray]
         set variations [ditem_key $mport variations]
-        set workername [ditem_key $mport workername]
         set required_archs [$workername eval get_canonical_archs]
         set depends_skip_archcheck [_mportkey $mport depends_skip_archcheck]
     }
@@ -2645,38 +2648,48 @@ proc macports::_target_needs_deps {target} {
         mpkg -
         rpm -
         dpkg -
-        srpm -
-        portpkg { return 1 }
+        srpm { return 1 }
         default { return 0 }
     }
 }
 
 # Determine dependency types required for target
-proc macports::_deptypes_for_target {target} {
+proc macports::_deptypes_for_target {target workername} {
     switch $target {
         fetch       -
-        checksum    { set deptypes "depends_fetch" }
+        checksum    { return "depends_fetch" }
         extract     -
-        patch       { set deptypes "depends_fetch depends_extract" }
+        patch       { return "depends_fetch depends_extract" }
         configure   -
-        build       { set deptypes "depends_fetch depends_extract depends_build depends_lib" }
-
+        build       { return "depends_fetch depends_extract depends_build depends_lib" }
         test        -
-        destroot    -
-        install     -
-        activate    -
+        srpm        -
+        destroot    { return "depends_fetch depends_extract depends_build depends_lib depends_run" }
         archive     -
         dmg         -
         pkg         -
-        portpkg     -
         mdmg        -
         mpkg        -
         rpm         -
-        srpm        -
-        dpkg        -
-        ""          { set deptypes "depends_fetch depends_extract depends_build depends_lib depends_run" }
+        dpkg        {
+            if {[$workername eval _archive_available]} {
+                return "depends_lib depends_run"
+            } else {
+                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+            }
+        }
+        install     -
+        activate    -
+        ""          {
+            if {[$workername eval registry_exists \$name \$version \$revision \$portvariants]
+                || [$workername eval _archive_available]} {
+                return "depends_lib depends_run"
+            } else {
+                return "depends_fetch depends_extract depends_build depends_lib depends_run"
+            }
+        }
     }
-    return $deptypes
+    return ""
 }
 
 # selfupdate procedure

@@ -2611,3 +2611,37 @@ proc _check_xcode_version {} {
     }
     return 0
 }
+
+# check if we can unarchive this port
+proc _archive_available {} {
+    global name version revision portvariants ports_source_only
+    global unarchive.srcpath workpath
+
+    if {[option portarchivemode] != "yes" || [tbool ports_source_only]} {
+        return 0
+    }
+
+    # Define archive directory, file, and path
+    if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
+        if {[llength [get_canonical_archs]] > 1} {
+            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] "universal"]
+        } else {
+            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] [get_canonical_archs]]
+        }
+    } else {
+        set unarchive.fullsrcpath ${unarchive.srcpath}
+    }
+
+    set found 0
+    foreach unarchive.type [option portarchivetype] {
+        if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
+            set archstring [join [get_canonical_archs] -]
+            set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
+            if {[file isfile [file join ${unarchive.fullsrcpath} ${unarchive.file}]]} {
+                set found 1
+                break
+            }
+        }
+    }
+    return $found
+}

@@ -103,7 +103,7 @@ proc portunarchive::unarchive_init {args} {
                 set archstring [join [get_canonical_archs] -]
                 set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
                 set unarchive.path "[file join ${unarchive.fullsrcpath} ${unarchive.file}]"
-                if {[file exist ${unarchive.path}]} {
+                if {[file isfile ${unarchive.path}]} {
                     set found 1
                     break
                 } else {
