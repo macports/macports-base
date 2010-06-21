@@ -260,20 +260,17 @@ proc portarchivefetch::fetchfiles {args} {
 
 # Initialize archivefetch target and call checkfiles.
 proc portarchivefetch::archivefetch_init {args} {
-    variable archivefetch_urls
-    global ports_source_only
-
     if {[option portarchivemode] != "yes"} {
         return -code error "Archive mode is not enabled!"
-    }
-
-    if {![tbool ports_source_only]} {
-        portarchivefetch::checkfiles archivefetch_urls
     }
 }
 
 proc portarchivefetch::archivefetch_start {args} {
-    global UI_PREFIX name all_archive_files
+    variable archivefetch_urls
+    global UI_PREFIX name all_archive_files ports_source_only
+    if {![tbool ports_source_only]} {
+        portarchivefetch::checkfiles archivefetch_urls
+    }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $name]"
     }
