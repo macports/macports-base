@@ -35,7 +35,6 @@ package provide portextract 1.0
 package require portutil 1.0
 
 set org.macports.extract [target_new org.macports.extract portextract::extract_main]
-target_init ${org.macports.extract} portextract::extract_init
 target_provides ${org.macports.extract} extract
 target_requires ${org.macports.extract} fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
@@ -73,8 +72,10 @@ proc portextract::disttagclean {list} {
     return $val
 }
 
-proc portextract::extract_init {args} {
-    global extract.only extract.dir extract.cmd extract.pre_args extract.post_args extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
+proc portextract::extract_start {args} {
+    global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
+
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
@@ -83,7 +84,6 @@ proc portextract::extract_init {args} {
         file mkdir ${worksrcpath}
         set extract.dir ${worksrcpath}
     }
-
     if {[tbool use_bzip2]} {
         option extract.cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
     } elseif {[tbool use_lzma]} {
@@ -93,24 +93,18 @@ proc portextract::extract_init {args} {
     } elseif {[tbool use_zip]} {
         option extract.cmd [findBinary unzip ${portutil::autoconf::unzip_path}]
         option extract.pre_args -q
-        option extract.post_args "-d [option extract.dir]"
+        option extract.post_args "-d ${extract.dir}"
     } elseif {[tbool use_7z]} {
         option extract.cmd [binaryInPath "7za"]
         option extract.pre_args x
         option extract.post_args ""
     } elseif {[tbool use_dmg]} {
-        global distname
+        global distname extract.cmd
         set dmg_mount [mkdtemp "/tmp/mports.XXXXXXXX"]
         option extract.cmd [findBinary hdiutil ${portutil::autoconf::hdiutil_path}]
         option extract.pre_args attach
         option extract.post_args "-private -readonly -nobrowse -mountpoint \\\"${dmg_mount}\\\" && [findBinary cp ${portutil::autoconf::cp_path}] -Rp \\\"${dmg_mount}\\\" \\\"${extract.dir}/${distname}\\\" && ${extract.cmd} detach \\\"${dmg_mount}\\\" && [findBinary rmdir ${portutil::autoconf::rmdir_path}] \\\"${dmg_mount}\\\""
     }
-}
-
-proc portextract::extract_start {args} {
-    global UI_PREFIX
-
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
 }
 
 proc portextract::extract_main {args} {
