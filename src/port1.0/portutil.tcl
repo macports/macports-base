@@ -2623,7 +2623,7 @@ proc _archive_available {} {
 
     # Define archive directory, file, and path
     if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
-        unarchive.fullsrcpath [file join ${unarchive.srcpath} [option archive.subdir]]
+        set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option archive.subdir]]
     } else {
         set unarchive.fullsrcpath ${unarchive.srcpath}
     }
