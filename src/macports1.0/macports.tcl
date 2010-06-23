@@ -2429,6 +2429,9 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
             if {[macports::global_option_isset ports_force]} {
                 ui_warn "Force option set; installing $portinfo(name) despite conflicts with: ${conflictports}"
             } else {
+                if {![macports::ui_isset ports_debug]} {
+                    ui_msg ""
+                }
                 return -code error "Can't install $portinfo(name) because conflicting ports are installed: ${conflictports}"
             }
         }
