@@ -2423,7 +2423,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
         flush stdout
     }
     
-    if {[info exists portinfo(conflicts)] && ($target == "" || $target == "install")} {
+    if {[info exists portinfo(conflicts)] && ($target == "" || $target == "install" || $target == "activate")} {
         set conflictports [_mportconflictsinstalled $mport $portinfo(conflicts)]
         if {[llength ${conflictports}] != 0} {
             if {[macports::global_option_isset ports_force]} {
