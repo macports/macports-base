@@ -57,6 +57,9 @@ set checksum_types "md5 sha1 rmd160 sha256"
 # The number of types we know.
 set checksum_types_count [llength $checksum_types]
 
+# types to recommend if none are specified in the portfile
+set default_checksum_types {sha1 rmd160}
+
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
 #
@@ -197,7 +200,7 @@ proc portchecksum::checksum_start {args} {
 #
 proc portchecksum::checksum_main {args} {
     global UI_PREFIX all_dist_files checksum_types checksums_array portverbose checksum.skip
-    global usealtworkpath altprefix
+    global usealtworkpath altprefix default_checksum_types
 
     # If no files have been downloaded, there is nothing to checksum.
     if {![info exists all_dist_files]} {
@@ -236,11 +239,8 @@ proc portchecksum::checksum_main {args} {
             }
 
             # check that there is at least one checksum for the distfile.
-            if {![info exists checksums_array($distfile)]} {
+            if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
                 ui_error "[format [msgcat::mc "No checksum set for %s"] $distfile]"
-                foreach type $checksum_types {
-                    ui_info "[format [msgcat::mc "Distfile checksum: %s $type %s"] $distfile [calc_$type $fullpath]]"
-                }
                 set fail yes
             } else {
                 # retrieve the list of types/values from the array.
@@ -281,8 +281,16 @@ proc portchecksum::checksum_main {args} {
             if {![file isfile $fullpath] && (!$usealtworkpath && [file isfile "${altprefix}${fullpath}"])} {
                 set fullpath "${altprefix}${fullpath}"
             }
-            foreach type $checksum_types {
-                lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
+            if {![info exists checksums_array($distfile)] || [llength $checksums_array($distfile)] < 1} {
+                # no checksums specified; output the default set
+                foreach type $default_checksum_types {
+                    lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
+                }
+            } else {
+                # output just the types that were already used
+                foreach {type sum} $checksums_array($distfile) {
+                    lappend sums [format "%-8s%s" $type [calc_$type $fullpath]]
+                }
             }
         }
         ui_info "The correct checksum line may be:"
