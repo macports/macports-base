@@ -62,10 +62,11 @@ and the main registry. The same path restrictions apply as for '${prefix}'.
 .Ic Default:
 ${prefix}/var/macports
 .It Va portdbformat
-Storage type to use for the MacPorts registry. Currently the only supported format is "flat".
+Storage type to use for the MacPorts registry. The preferred format is "sqlite", with "flat"
+also available as a legacy format.
 .br
 .Ic Default:
-flat
+sqlite
 .It Va portinstalltype
 Sets the mode in which ports are installed by MacPorts. Supported values are 'direct' or 'image'.
 The 'direct' mode is often used on systems that do not support 'image' due to limitations in their
