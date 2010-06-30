@@ -108,17 +108,17 @@ proc uninstall {portname {v ""} optionslist} {
     } elseif { [llength $ilist] == 1 } {
         if {$use_reg2} {
             set port [lindex $ilist 0]
-            if {$v == ""} {
-                set v "[$port version]_[$port revision][$port variants]"
-            }
+            set version [$port version]
+            set revision [$port revision]
+            set variants [$port variants]
         } else {
             set version [lindex [lindex $ilist 0] 1]
             set revision [lindex [lindex $ilist 0] 2]
             set variants [lindex [lindex $ilist 0] 3]
             set active [lindex [lindex $ilist 0] 4]
-            if {$v == ""} {
-                set v "${version}_${revision}${variants}"
-            }
+        }
+        if {$v == ""} {
+            set v "${version}_${revision}${variants}"
         }
     } else {
         throw registry::invalid "Registry error: $portname not registered as installed"
