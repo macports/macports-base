@@ -124,25 +124,27 @@ proc portclean::clean_dist {args} {
     }
 
     set count 0
-    foreach file [option patchfiles] {
-        set patchfile [getdistname $file]
-        ui_debug "Looking for $patchfile"
-        set patchfile [file join $distpath $patchfile]
-        if {[file isfile $patchfile]} {
-            ui_debug "Removing file: $patchfile"
-            if {[catch {delete $patchfile} result]} {
-                ui_debug "$::errorInfo"
-                ui_error "$result"
+    if {info exists patchfiles} {
+        foreach file [option patchfiles] {
+            set patchfile [getdistname $file]
+            ui_debug "Looking for $patchfile"
+            set patchfile [file join $distpath $patchfile]
+            if {[file isfile $patchfile]} {
+                ui_debug "Removing file: $patchfile"
+                if {[catch {delete $patchfile} result]} {
+                    ui_debug "$::errorInfo"
+                    ui_error "$result"
+                }
+                incr count
             }
-            incr count
-        }
-        if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
-            ui_debug "Removing file: ${altprefix}${patchfile}"
-            if {[catch {delete ${altprefix}${patchfile}} result]} {
-                ui_debug "$::errorInfo"
-                ui_error "$result"
+            if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
+                ui_debug "Removing file: ${altprefix}${patchfile}"
+                if {[catch {delete ${altprefix}${patchfile}} result]} {
+                    ui_debug "$::errorInfo"
+                    ui_error "$result"
+                }
+                incr count
             }
-            incr count
         }
     }
     if {$count > 0} {
