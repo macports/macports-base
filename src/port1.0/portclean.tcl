@@ -124,7 +124,7 @@ proc portclean::clean_dist {args} {
     }
 
     set count 0
-    if {info exists patchfiles} {
+    if {[info exists patchfiles]} {
         foreach file [option patchfiles] {
             set patchfile [getdistname $file]
             ui_debug "Looking for $patchfile"
