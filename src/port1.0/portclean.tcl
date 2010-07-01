@@ -97,7 +97,8 @@ proc portclean::clean_dist {args} {
     # remove known distfiles for sure (if they exist)
     set count 0
     foreach file $distfiles {
-        set distfile [file join $distpath $file]
+        set distfile [file join $distpath [getdistname $file]]
+        ui_debug "Looking for $distfile"
         if {[file isfile $distfile]} {
             ui_debug "Removing file: $distfile"
             if {[catch {delete $distfile} result]} {
@@ -119,6 +120,33 @@ proc portclean::clean_dist {args} {
         ui_debug "$count distfile(s) removed."
     } else {
         ui_debug "No distfiles found to remove at $distpath"
+    }
+
+    set count 0
+    foreach file [option patchfiles] {
+        set patchfile [file join $distpath [getdistname $file]]
+        ui_debug "Looking for $patchfile"
+        if {[file isfile $patchfile]} {
+            ui_debug "Removing file: $patchfile"
+            if {[catch {delete $patchfile} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
+        }
+        if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
+            ui_debug "Removing file: ${altprefix}${patchfile}"
+            if {[catch {delete ${altprefix}${patchfile}} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
+        }
+    }
+    if {$count > 0} {
+        ui_debug "$count patchfile(s) removed."
+    } else {
+        ui_debug "No patchfiles found to remove at $distpath"
     }
 
     # next remove dist_subdir if only needed for this port,
