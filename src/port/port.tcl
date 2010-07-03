@@ -2407,6 +2407,7 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_setrequested { action portlist opts } {
+    global macports::registry.format
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -2420,6 +2421,9 @@ proc action_setrequested { action portlist opts } {
             foreach i $ilist {
                 set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
                 registry::property_store $regref requested $val
+                if {${macports::registry.format} != "receipt_sqlite"} {
+                    registry::write_entry $regref
+                }
             }
         } else {
             global errorInfo
