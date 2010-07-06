@@ -92,7 +92,7 @@ proc portclean::clean_main {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force name distpath dist_subdir distfiles usealtworkpath portdbpath altprefix
+    global ports_force name distpath dist_subdir distfiles patchfiles usealtworkpath portdbpath altprefix
 
     # remove known distfiles for sure (if they exist)
     set count 0
@@ -124,27 +124,28 @@ proc portclean::clean_dist {args} {
     }
 
     set count 0
-    if {[info exists patchfiles]} {
-        foreach file [option patchfiles] {
-            set patchfile [getdistname $file]
-            ui_debug "Looking for $patchfile"
-            set patchfile [file join $distpath $patchfile]
-            if {[file isfile $patchfile]} {
-                ui_debug "Removing file: $patchfile"
-                if {[catch {delete $patchfile} result]} {
-                    ui_debug "$::errorInfo"
-                    ui_error "$result"
-                }
-                incr count
+    if {![info exists patchfiles]} {
+        set patchfiles ""
+    }
+    foreach file $patchfiles {
+        set patchfile [getdistname $file]
+        ui_debug "Looking for $patchfile"
+        set patchfile [file join $distpath $patchfile]
+        if {[file isfile $patchfile]} {
+            ui_debug "Removing file: $patchfile"
+            if {[catch {delete $patchfile} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
             }
-            if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
-                ui_debug "Removing file: ${altprefix}${patchfile}"
-                if {[catch {delete ${altprefix}${patchfile}} result]} {
-                    ui_debug "$::errorInfo"
-                    ui_error "$result"
-                }
-                incr count
+            incr count
+        }
+        if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
+            ui_debug "Removing file: ${altprefix}${patchfile}"
+            if {[catch {delete ${altprefix}${patchfile}} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
             }
+            incr count
         }
     }
     if {$count > 0} {
