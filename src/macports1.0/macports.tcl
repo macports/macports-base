@@ -155,6 +155,9 @@ proc macports::push_log {mport} {
         }
     }
     if {$::logenabled} {
+        if {[getuid] == 0 && [geteuid] != 0} {
+            seteuid 0
+        }
         if {[catch {macports::ch_logging $mport} err]} {
             ui_debug "Logging disabled, error opening log file: $err"
             return

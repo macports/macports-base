@@ -290,6 +290,10 @@ proc portarchive::archive_main {args} {
     global archive.meta archive.metaname archive.metapath
     global os.platform
 
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot "archive"
+    }
+
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
         file mkdir ${archive.fulldestpath}

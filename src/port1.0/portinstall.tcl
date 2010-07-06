@@ -62,8 +62,10 @@ proc portinstall::install_start {args} {
     ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
-    if { ![file writable $prefix] } {
+    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
         # if install location is not writable, need root privileges to install
+        # Also elevate if started as root, since 'file writable' doesn't seem
+        # to take euid into account.
         elevateToRoot "install"
     }
     # end gsoc08-privileges
