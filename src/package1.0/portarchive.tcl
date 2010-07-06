@@ -292,12 +292,12 @@ proc portarchive::archive_main {args} {
 
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
-        system "mkdir -p ${archive.fulldestpath}"
+        file mkdir ${archive.fulldestpath}
     }
 
     # Create (if no files) destroot for archiving
     if {![file isdirectory ${destpath}]} {
-        system "mkdir -p ${destpath}"
+        file mkdir ${destpath}
     }
 
     # Copy state file into destroot for archiving
