@@ -3232,7 +3232,8 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             # we have to force the uninstall in case of dependents
             set force_cur [info exists options(ports_force)]
             set options(ports_force) yes
-            set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $epoch_in_tree]
+            set existing_epoch [lindex [lindex [registry::installed $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants)] 0] 5]
+            set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $existing_epoch]
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
             } elseif {!(${registry.format} == "receipt_sqlite" && [registry::run_target $newregref uninstall [array get options]])
