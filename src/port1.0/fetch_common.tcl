@@ -232,6 +232,14 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
             continue
         }
 
+        # can't do the ping with dropped privileges (though it works fine if we didn't start as root)
+        if {[getuid] == 0 && [geteuid] != 0} {
+            set oldeuid [geteuid]
+            set oldegid [getegid]
+            seteuid 0
+            setegid 0
+        }
+
         foreach site $urllist {
             regexp $hostregex $site -> host
 
@@ -267,6 +275,11 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
                 set pingtimes($host) 10000
             }
             ui_debug "$host ping time is $pingtimes($host)"
+        }
+
+        if {[info exists oldeuid]} {
+            setegid $oldegid
+            seteuid $oldeuid
         }
 
         set pinglist {}
