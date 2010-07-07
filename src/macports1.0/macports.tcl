@@ -113,7 +113,7 @@ proc macports::init_logging {mport} {
     global macports::channels macports::portdbpath
 
     if {[getuid] == 0 && [geteuid] != 0} {
-        seteuid 0
+        seteuid 0; setegid 0
     }
     if {[catch {macports::ch_logging $mport} err]} {
         ui_debug "Logging disabled, error opening log file: $err"
@@ -156,7 +156,7 @@ proc macports::push_log {mport} {
     }
     if {$::logenabled} {
         if {[getuid] == 0 && [geteuid] != 0} {
-            seteuid 0
+            seteuid 0; setegid 0
         }
         if {[catch {macports::ch_logging $mport} err]} {
             ui_debug "Logging disabled, error opening log file: $err"

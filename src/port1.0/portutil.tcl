@@ -2337,15 +2337,17 @@ proc chown {path user} {
 #
 # @param path the file/directory to be chowned
 proc chownAsRoot {path} {
-    global euid macportsuser
+    global euid egid macportsuser
 
     if { [getuid] == 0 } {
         if {[geteuid] != 0} {
             # if started with sudo but have dropped the privileges
+            setegid $egid
             seteuid $euid
             ui_debug "euid changed to: [geteuid]"
             chown  ${path} ${macportsuser}
             ui_debug "chowned $path to $macportsuser"
+            setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
             ui_debug "euid changed to: [geteuid]"
         } else {
@@ -2361,14 +2363,16 @@ proc chownAsRoot {path} {
 # @param file the file in question
 # @param attributes the attributes for the file
 proc fileAttrsAsRoot {file attributes} {
-    global euid macportsuser
+    global euid egid macportsuser
     if {[getuid] == 0} {
         if {[geteuid] != 0} {
             # Started as root, but not root now
+            setegid $egid
             seteuid $euid
             ui_debug "euid changed to: [geteuid]"
             ui_debug "setting attributes on $file"
             eval file attributes {$file} $attributes
+            setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
             ui_debug "euid changed to: [geteuid]"
         } else {
