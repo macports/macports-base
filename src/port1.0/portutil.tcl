@@ -1466,7 +1466,11 @@ proc eval_targets {target} {
                 return 0
             } else {
                 # run the activate target but ignore its (completed) dependencies
-                return [target_run [lindex [dlist_search $dlist provides $target] 0]]
+                set result [target_run [lindex [dlist_search $dlist provides $target] 0]]
+                if {[getuid] == 0 && [geteuid] != 0} {
+                    setegid 0; seteuid 0
+                }
+                return $result
             }
         }
     }
@@ -1485,6 +1489,10 @@ proc eval_targets {target} {
     }
 
     set dlist [dlist_eval $dlist "" target_run]
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        setegid 0; seteuid 0
+    }
 
     if {[llength $dlist] > 0} {
         # somebody broke!
