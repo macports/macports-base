@@ -2948,7 +2948,7 @@ proc action_outdated { action portlist opts } {
 
     set num_outdated 0
     if { [llength $ilist] > 0 } {
-        foreach i $ilist {
+        foreach i [portlist_sortint $ilist] {
         
             # Get information about the installed port
             set portname [lindex $i 0]
