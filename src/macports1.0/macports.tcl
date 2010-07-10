@@ -40,7 +40,6 @@ package require macports_util 1.0
 namespace eval macports {
     namespace export bootstrap_options user_options portinterp_options open_mports ui_priorities port_phases 
     variable bootstrap_options "\
-        config_paths config_files\
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
@@ -50,7 +49,6 @@ namespace eval macports {
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
-        config_paths config_files\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype portautoclean porttrace keeplogs portverbose destroot_umask rsync_server \
@@ -427,8 +425,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 
     global auto_path env tcl_platform
-    global macports::config_paths
-    global macports::config_files
     global macports::autoconf::macports_conf_path
     global macports::macports_user_dir
     global macports::bootstrap_options
