@@ -15,4 +15,4 @@ bash_macports
     source "$HOME"/.bash_macports
 
 gsocmake
-  changes to branch, configures and makes
+  changes to branch, configures and makes. After install edit sources.conf to point to standard installation source.

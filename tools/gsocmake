@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 source ~/.bash_macports
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
