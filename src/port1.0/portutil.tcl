@@ -1563,6 +1563,7 @@ proc open_statefile {args} {
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             if {![tbool ports_dryrun]} {
                 ui_msg "Portfile changed since last build; discarding previous state."
+                chownAsRoot $portbuildpath
                 delete $workpath
                 file mkdir $workpath
             } else {
