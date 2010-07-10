@@ -51,6 +51,7 @@ options universal_variant os.universal_supported
 options supported_archs depends_skip_archcheck
 options copy_log_files
 options compiler.cpath compiler.library_path
+options config_path config_files
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
@@ -79,6 +80,8 @@ default distname {${name}-${version}}
 default worksrcdir {$distname}
 default filespath {[file join $portpath $filesdir]}
 default worksrcpath {[file join $workpath $worksrcdir]}
+default config_path {${prefix}/etc}
+default config_files {}
 # empty list means all archs are supported
 default supported_archs {}
 default depends_skip_archcheck {}
