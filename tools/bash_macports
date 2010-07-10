@@ -45,10 +45,10 @@ port() {
     echo "$PORT_SOURCES"/users
     ;;
   "local")
-    echo $PORT_PREFIX/var/macports/sources/local
+    echo $PORT_SVN_SOURCES/var/macports/sources/local
     ;;
   "svn")
-    echo $PORT_PREFIX/var/macports/sources/svn.macports.org
+    echo $PORT_SVN_SOURCES/var/macports/sources/svn.macports.org
     ;;
   "gsoc")
     echo $PORT_SVN_SOURCES/branches/gsoc10-configfiles/base/
