@@ -1,0 +1,122 @@
+## Andrea D'Amore - 20100710
+
+## MacPorts handle
+## edit and uncomment next line 
+#export PORT_HANDLE=<your handle here>
+
+## MacPorts' port wrapper
+port() {
+  PORT_BIN=$(which port)
+  
+  ## tries to set environment variables if they are not set
+  if [ -z "$PORT_PREFIX" ]; then export PORT_PREFIX="/opt/local"; fi
+  if [ -z "$PORT_HANDLE" ]; then export PORT_HANDLE=$(id -p | grep uid | cut -f 2); fi
+  
+  ## patch to well behave with mpswitch, this directory is not going to change from one mp installation to another
+#  PORT_BASE="/opt/local/var/macports/sources/svn.macports.org/trunk/base"
+  PORT_BASE="$PORT_PREFIX/var/macports/sources/svn.macports.org/trunk/base"
+  PORT_ETC="$PORT_PREFIX/etc"
+  ## patch to well behave with mpswitch, this directory is not going to change from one mp installation to another
+#  PORT_SVN_SOURCES="$PORT_PREFIX/var/macports/sources/svn.macports.org"
+  PORT_SVN_SOURCES="/opt/local/var/macports/sources/svn.macports.org"
+  PORT_SOURCES="$PORT_SVN_SOURCES"
+  
+  case "$1" in
+   "search")
+    shift
+    $PORT_BIN search --line "$@"
+    ;;
+  "base") 
+    echo "$PORT_BASE"
+    ;;
+  "prefix")
+    echo "$PORT_PREFIX"
+    ;;
+  "etc")
+    echo "$PORT_ETC"
+    ;;
+  "sources")
+    echo "$PORT_SOURCES"
+    ;;
+  "user")
+    echo "$PORT_SOURCES"/users/"$PORT_HANDLE"
+    ;;
+  "users")
+    echo "$PORT_SOURCES"/users
+    ;;
+  "local")
+    echo $PORT_PREFIX/var/macports/sources/local
+    ;;
+  "svn")
+    echo $PORT_PREFIX/var/macports/sources/svn.macports.org
+    ;;
+  "gsoc")
+    echo $PORT_SVN_SOURCES/branches/gsoc10-configfiles/base/
+    ;;
+  "dports")
+    echo $(grep default $(port prefix)/etc/macports/sources.conf | cut -d " " -f 1 | grep "^file" |grep "^file" | sed "s|file://||") 
+    ;;
+  "cd") 
+    case "$2" in
+    "base")
+      cd $(port base)
+      ;;
+    "prefix")
+      cd $(port prefix)
+      ;;
+    "etc")
+      cd $(port etc)
+      ;;
+    "conf")
+      cd $(port etc)/macports
+      ;;
+    "sources")
+      cd $(port sources)
+      ;;
+    "local")
+      cd $(port local)
+      ;;
+    "svn")
+      cd $(port svn)
+      ;;
+    "gsoc")
+      cd $(port gsoc)
+      ;;
+    "dports")
+      cd $(port dports)
+      ;;
+    "user")
+      cd $(port users)/"$PORT_HANDLE"
+      ;;
+    "users")
+      cd $(port users)
+      ;;
+	*)
+      shift 1
+      cd $("$PORT_BIN" dir "$@")
+      ;;  
+    esac
+    ;;
+  "real")
+    shift
+    "$PORT_BIN" $@
+    ;;
+  *)  
+    "$PORT_BIN" $@
+    ;;  
+  esac
+}
+
+## GSoC section
+
+## switch from regular installation to alternate prefix
+mpswitch () {
+  if [[ "$PATH" = */opt/local/* ]]; then
+    export PATH=$(echo "$PATH" | sed -e 's,/opt/local,/opt/mp-gsoc,g');
+    export PORT_PREFIX="/opt/mp-gsoc"
+  else
+    export PATH=$(echo "$PATH" | sed -e 's,/opt/mp-gsoc,/opt/local,g');
+    export PORT_PREFIX="/opt/local"
+  fi
+}
+

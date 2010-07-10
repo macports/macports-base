@@ -1,0 +1,18 @@
+Utilities for gsoc-configfiles branch.
+
+gsoc
+  edits main base/src/[port|macports1.0|port1.0] comes handy with TextWrangler's edit
+
+gsocdummyupdate (gsocdummyupdate.c) 
+  wrapper built from gsocdummyupdate.c, runs gsocdummyupdate.sh shell script with setuid
+
+gsocdummyupdate.sh 
+  updates gsoc-dummy tarball, will update tarball for gsoc-dummy port, print the checksums that you can cop
+
+bash_macports
+  bash function wrapping port command, remember to edit PORT_HANDLE in order to use "user" target,
+  copy it to ~/.bash_macports and source it adding the following line to .bash_profile:
+    source "$HOME"/.bash_macports
+
+gsocmake
+  changes to branch, configures and makes

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+source ~/.bash_macports
+DIR=$(port gsoc)
+if [ "$1" == port ]; then
+    DIR="$DIR"src/port/
+elif [ "$1" == macports ] || [ "$1" == macports1.0 ]; then
+    DIR="$DIR"src/macports1.0/
+elif [ "$1" == ports ] || [ "$1" == port1.0 ]; then
+    DIR="$DIR"src/port1.0/
+else
+  echo -e "Usage:\ngsoc port | [macports | macports] | [ports | port1.0]"
+  exit 1
+fi
+
+$EDITOR "$DIR"
+exit 0

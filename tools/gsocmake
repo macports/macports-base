@@ -1,0 +1,9 @@
+#!/bin/bash -x
+
+source ~/.bash_macports
+export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+MP_PREFIX=/opt/mp-gsoc
+port cd gsoc
+make distclean
+./configure --prefix=$MP_PREFIX --with-tclpackage=$MP_PREFIX/Library/Tcl --with-applications-dir=$MP_PREFIX/Applications
+make
