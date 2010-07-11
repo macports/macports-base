@@ -45,13 +45,13 @@ port() {
     echo "$PORT_SOURCES"/users
     ;;
   "local")
-    echo $PORT_SVN_SOURCES/var/macports/sources/local
+    echo /opt/local/var/macports/sources/local
     ;;
   "svn")
-    echo $PORT_SVN_SOURCES/var/macports/sources/svn.macports.org
+    echo "$PORT_SVN_SOURCES"
     ;;
   "gsoc")
-    echo $PORT_SVN_SOURCES/branches/gsoc10-configfiles/base/
+    echo "$PORT_SVN_SOURCES"/branches/gsoc10-configfiles/base/
     ;;
   "dports")
     echo $(grep default $(port prefix)/etc/macports/sources.conf | cut -d " " -f 1 | grep "^file" |grep "^file" | sed "s|file://||") 
