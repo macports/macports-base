@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TARFILE=gsoc-dummy-0.1.tar.gz 
+TARFILE=gsoc-dummy.tar.gz 
 PORTFILE=$(port dir gsoc-dummy)/Portfile
 USER=$(id -p | grep login | cut -f 2)
 #edit following line to point GSOCDUMMYDIR to the directory containing
@@ -32,6 +32,7 @@ printf "Portfile updated with:\n%s\n%s\n%s\n\n" "$md5" "$sha" "$rmd"
 #update Portfile
 cp "$TMPFILE" "$PORTFILE"
 #update distfile
+mkdir -p /opt/mp-gsoc/var/macports/distfiles/gsoc-dummy/
 cp "$TARFILE" /opt/mp-gsoc/var/macports/distfiles/gsoc-dummy
 #clean status
 port clean gsoc-dummy

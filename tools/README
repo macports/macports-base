@@ -16,3 +16,9 @@ bash_macports
 
 gsocmake
   changes to branch, configures and makes. After install edit sources.conf to point to standard installation source.
+
+gsoc-dummy
+  content of dummy package created with gsocdummyupdate
+
+Portfile
+  Portfile for gsoc-dummy package, put it into a local repository into 'devel' category
