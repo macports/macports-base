@@ -2,7 +2,7 @@
 
 TARFILE=gsoc-dummy.tar.gz 
 PORTFILE=$(port dir gsoc-dummy)/Portfile
-USER=$(id -p | grep login | cut -f 2)
+read _ USER <<< $(id -p | grep login)
 #edit following line to point GSOCDUMMYDIR to the directory containing
 #"gsoc-dummy" tree
 GSOCDUMMYDIR=/Users/"$USER"/.macports/GSoC
