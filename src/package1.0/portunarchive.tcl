@@ -73,11 +73,7 @@ proc portunarchive::unarchive_init {args} {
 
     # Define archive directory, file, and path
     if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
-        if {[llength [get_canonical_archs]] > 1} {
-            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] "universal"]
-        } else {
-            set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option os.platform] [get_canonical_archs]]
-        }
+        set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option archive.subdir]]
     } else {
         set unarchive.fullsrcpath ${unarchive.srcpath}
     }
@@ -103,7 +99,7 @@ proc portunarchive::unarchive_init {args} {
                 set archstring [join [get_canonical_archs] -]
                 set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
                 set unarchive.path "[file join ${unarchive.fullsrcpath} ${unarchive.file}]"
-                if {[file exist ${unarchive.path}]} {
+                if {[file isfile ${unarchive.path}]} {
                     set found 1
                     break
                 } else {

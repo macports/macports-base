@@ -267,9 +267,9 @@ proc registry_installed {portname {portversion ""}} {
             set ivariants [lindex $i 3]
             set iactive [lindex $i 4]
             if { $iactive == 0 } {
-                puts "  $iname ${iversion}_${irevision}${ivariants}"
+                puts "  $iname @${iversion}_${irevision}${ivariants}"
             } elseif { $iactive == 1 } {
-                puts "  $iname ${iversion}_${irevision}${ivariants} (active)"
+                puts "  $iname @${iversion}_${irevision}${ivariants} (active)"
             }
         }
         return -code error "Registry error: Please specify the full version as recorded in the port registry."
@@ -858,6 +858,7 @@ proc get_leaves_ports {} {
             fatal "port installed failed: $result"
         }
     }
+    registry::open_dep_map
     set results {}
     foreach i $ilist {
         set iname [lindex $i 0]
@@ -2225,7 +2226,7 @@ proc action_activate { action portlist opts } {
 
             set i [lindex $ilist 0]
             set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
-            if {[registry::run_target $regref activate [array get options]]} {
+            if {[$regref installtype] == "image" && [registry::run_target $regref activate [array get options]]} {
                 continue
             }
         }
@@ -2262,7 +2263,7 @@ proc action_deactivate { action portlist opts } {
             set ivariants [lindex $i 3]
             if {$composite_version == "" || $composite_version == "${iversion}_${irevision}${ivariants}"} {
                 set regref [registry::entry open $portname $iversion $irevision $ivariants [lindex $i 5]]
-                if {[registry::run_target $regref deactivate [array get options]]} {
+                if {[$regref installtype] == "image" && [registry::run_target $regref deactivate [array get options]]} {
                     continue
                 }
             }
@@ -2406,6 +2407,7 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_setrequested { action portlist opts } {
+    global macports::registry.format
     set status 0
     if {[require_portlist portlist]} {
         return 1
@@ -2414,11 +2416,14 @@ proc action_setrequested { action portlist opts } {
     set val [string equal $action setrequested]
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {![catch {set ilist [registry::installed $portname $composite_version]}]} {
+        if {![catch {set ilist [registry::installed $portname $composite_version]} result]} {
             ui_info "Setting requested flag for $portname to $val"
             foreach i $ilist {
-                set regref [registry::entry open $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
+                set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
                 registry::property_store $regref requested $val
+                if {${macports::registry.format} != "receipt_sqlite"} {
+                    registry::write_entry $regref
+                }
             }
         } else {
             global errorInfo
@@ -2584,6 +2589,7 @@ proc action_deps { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
+    set separator ""
 
     foreachport $portlist {
         if {[info exists options(ports_${action}_no-build)] && [string is true -strict $options(ports_${action}_no-build)]} {
@@ -2647,8 +2653,10 @@ proc action_deps { action portlist opts } {
             ui_warn "port ${action} --index does not work with the 'current' pseudo-port"
             continue
         }
+        set portname $portinfo(name)
 
         set deplist {}
+        set deps_output {}
         set ndeps 0
         array set labeldict {depends_fetch Fetch depends_extract Extract depends_build Build depends_lib Library depends_run Runtime}
         # get list of direct deps
@@ -2665,7 +2673,7 @@ proc action_deps { action portlist opts } {
                 }
                 if {$action == "deps"} {
                     set label "$labeldict($type) Dependencies"
-                    puts [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
+                    lappend deps_output [wraplabel $label [join $deplist ", "] 0 [string repeat " " 22]]
                     incr ndeps [llength $deplist]
                     set deplist {}
                 }
@@ -2680,11 +2688,16 @@ proc action_deps { action portlist opts } {
             set variants {}
         }
 
+        puts -nonewline $separator
         if {$action == "deps"} {
             if {$ndeps == 0} {
                 ui_notice "$portname @${version}_${revision}${variants} has no dependencies."
+            } else {
+                ui_notice "Full Name: $portname @${version}_${revision}${variants}"
+                puts [join $deps_output "\n"]
             }
-            return $status
+            set separator "--\n"
+            continue
         }
 
         set toplist $deplist
@@ -2779,6 +2792,7 @@ proc action_deps { action portlist opts } {
             incr cur_pos
             set pos_stack [lreplace $pos_stack end end $cur_pos]
         }
+        set separator "--\n"
     }
     return $status
 }
@@ -2934,7 +2948,7 @@ proc action_outdated { action portlist opts } {
 
     set num_outdated 0
     if { [llength $ilist] > 0 } {
-        foreach i $ilist {
+        foreach i [portlist_sortint $ilist] {
         
             # Get information about the installed port
             set portname [lindex $i 0]
@@ -2986,10 +3000,12 @@ proc action_outdated { action portlist opts } {
                 set comp_result [rpm-vercomp $installed_revision $latest_revision]
             }
             set reason ""
-            if {$comp_result == 0 && $epoch_comp_result != 0} {
-                set reason { (epoch $installed_epoch $relation $latest_epoch)}
+            if {$epoch_comp_result != 0} {
+                if {($comp_result >= 0 && $epoch_comp_result < 0) || ($comp_result <= 0 && $epoch_comp_result > 0)} {
+                    set reason { (epoch $installed_epoch $relation $latest_epoch)}
+                }
                 set comp_result $epoch_comp_result
-            } elseif {$comp_result == 0 && $epoch_comp_result == 0} {
+            } elseif {$comp_result == 0} {
                 set regref [registry::open_entry $portname $installed_version $installed_revision [lindex $i 3] $installed_epoch]
                 set os_platform_installed [registry::property_retrieve $regref os_platform]
                 set os_major_installed [registry::property_retrieve $regref os_major]
@@ -3449,7 +3465,11 @@ proc action_portcmds { action portlist opts } {
                     # We need it to evaluate the editor, and the editor
                     # may want stuff from it as well, like TERM.
                     array unset env_save; array set env_save [array get env]
-                    array unset env *; unsetenv *; array set env [array get boot_env]
+                    array unset env *
+                    if {${macports::macosx_version} == "10.5"} {
+                        unsetenv *
+                    }
+                    array set env [array get boot_env]
                     
                     # Find an editor to edit the portfile
                     set editor ""
@@ -3475,7 +3495,11 @@ proc action_portcmds { action portlist opts } {
                     }
                     
                     # Restore internal MacPorts environment
-                    array unset env *; unsetenv *; array set env [array get env_save]
+                    array unset env *
+                    if {${macports::macosx_version} == "10.5"} {
+                        unsetenv *
+                    }
+                    array set env [array get env_save]
                 }
 
                 dir {
@@ -3566,7 +3590,6 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    set target $action
     foreachport $portlist {
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
@@ -3611,8 +3634,12 @@ proc action_target { action portlist opts } {
             set options(ports_version_glob) $portversion
         }
         # if installing, mark the port as explicitly requested
-        if {$target == "install"} {
+        if {$action == "install"} {
             set options(ports_requested) 1
+            # we actually activate as well
+            set target activate
+        } else {
+            set target $action
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo
@@ -3759,7 +3786,6 @@ array set action_array [list \
     test        [list action_target         [ACTION_ARGS_PORTS]] \
     lint        [list action_target         [ACTION_ARGS_PORTS]] \
     submit      [list action_target         [ACTION_ARGS_PORTS]] \
-    trace       [list action_target         [ACTION_ARGS_PORTS]] \
     livecheck   [list action_target         [ACTION_ARGS_PORTS]] \
     distcheck   [list action_target         [ACTION_ARGS_PORTS]] \
     mirror      [list action_target         [ACTION_ARGS_PORTS]] \

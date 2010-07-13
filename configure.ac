@@ -103,6 +103,7 @@ AC_PATH_PROG(LIPO, [lipo], [])
 AC_PATH_PROG(PATCH, [patch], [])
 AC_PATH_PROG(RMDIR, [rmdir], [])
 AC_PATH_PROG(RSYNC, [rsync], [])
+AC_PATH_PROG(OPENSSL, [openssl], [])
 AC_PATH_PROG(SED, [sed])
 AC_PATH_PROG(TAR, [tar])
 AC_PATH_PROG(UNZIP, [unzip])
@@ -127,6 +128,7 @@ AC_PATH_PROG(OPEN, [open], [])
 AC_ARG_VAR(MTREE, [path to mtree command])
 AC_ARG_VAR(CVS, [path to cvs command])
 AC_ARG_VAR(SVN, [path to svn command])
+AC_ARG_VAR(OPENSSL, [path to openssl command])
 AC_ARG_VAR(RSYNC, [path to rsync command])
 AC_ARG_VAR(SED, [path to sed command])
 AC_ARG_VAR(TAR, [path to tar command])
@@ -346,6 +348,7 @@ AC_CONFIG_FILES([
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
+	doc/pubkeys.conf
 	portmgr/freebsd/Makefile
 	src/Makefile
 	src/macports1.0/macports_autoconf.tcl

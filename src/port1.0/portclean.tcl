@@ -69,8 +69,9 @@ proc portclean::clean_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
         clean_dist
     }
-    if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_archive] && $ports_clean_archive == "yes"} {
+    if {([info exists ports_clean_all] && $ports_clean_all == "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive == "yes")
+        && !$usealtworkpath} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option name]]"
         clean_archive
     }
@@ -80,7 +81,8 @@ proc portclean::clean_main {args} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
     }
-    if {([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no")} {
+    if {(([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no"))
+        && !$usealtworkpath} {
         clean_logs
     }
 
@@ -92,12 +94,14 @@ proc portclean::clean_main {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force name distpath dist_subdir distfiles usealtworkpath portdbpath altprefix
+    global ports_force name distpath dist_subdir distfiles patchfiles usealtworkpath portdbpath altprefix
 
     # remove known distfiles for sure (if they exist)
     set count 0
     foreach file $distfiles {
-        set distfile [file join $distpath $file]
+        set distfile [getdistname $file]
+        ui_debug "Looking for $distfile"
+        set distfile [file join $distpath $distfile]
         if {[file isfile $distfile]} {
             ui_debug "Removing file: $distfile"
             if {[catch {delete $distfile} result]} {
@@ -121,6 +125,37 @@ proc portclean::clean_dist {args} {
         ui_debug "No distfiles found to remove at $distpath"
     }
 
+    set count 0
+    if {![info exists patchfiles]} {
+        set patchfiles ""
+    }
+    foreach file $patchfiles {
+        set patchfile [getdistname $file]
+        ui_debug "Looking for $patchfile"
+        set patchfile [file join $distpath $patchfile]
+        if {[file isfile $patchfile]} {
+            ui_debug "Removing file: $patchfile"
+            if {[catch {delete $patchfile} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
+        }
+        if {!$usealtworkpath && [file isfile ${altprefix}${patchfile}]} {
+            ui_debug "Removing file: ${altprefix}${patchfile}"
+            if {[catch {delete ${altprefix}${patchfile}} result]} {
+                ui_debug "$::errorInfo"
+                ui_error "$result"
+            }
+            incr count
+        }
+    }
+    if {$count > 0} {
+        ui_debug "$count patchfile(s) removed."
+    } else {
+        ui_debug "No patchfiles found to remove at $distpath"
+    }
+
     # next remove dist_subdir if only needed for this port,
     # or if user forces us to
     set dirlist [list]
@@ -139,7 +174,11 @@ proc portclean::clean_dist {args} {
     # loop through directories
     set count 0
     foreach dir $dirlist {
-        set distdir [file join ${portdbpath} distfiles $dir]
+        if {$usealtworkpath} {
+            set distdir [file join ${altprefix}${portdbpath} distfiles $dir]
+        } else {
+            set distdir [file join ${portdbpath} distfiles $dir]
+        }
         if {[file isdirectory $distdir]} {
             ui_debug "Removing directory: ${distdir}"
             if {[catch {delete $distdir} result]} {
@@ -222,7 +261,7 @@ proc portclean::clean_archive {args} {
 
     # Define archive destination directory, target filename, regex for archive name
     if {$portarchivepath ne $workpath && $portarchivepath ne ""} {
-        set archivepath [file join $portarchivepath [option os.platform]]
+        set archivepath [file join $portarchivepath [option os.platform]_[option os.major]]
         set regexstring "^$name-\[\\-_a-zA-Z0-9\\.\]+_\[0-9\]*\[+\\-_a-zA-Z0-9\]*\[\\.\].*\[\\.\]\[a-z2\]+\$"
     }
 
@@ -243,7 +282,7 @@ proc portclean::clean_archive {args} {
 
     # Remove the archive files
     set count 0
-    if {![catch {set archivelist [glob [file join $archivepath * $fileglob]]} result]} {
+    if {![catch {set archivelist [glob [file join $archivepath * $name $fileglob]]} result]} {
         foreach path $archivelist {
             set file [file tail $path]
             # Make sure file is truly a port archive file, and not

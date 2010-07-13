@@ -108,17 +108,17 @@ proc uninstall {portname {v ""} optionslist} {
     } elseif { [llength $ilist] == 1 } {
         if {$use_reg2} {
             set port [lindex $ilist 0]
-            if {$v == ""} {
-                set v "[$port version]_[$port revision][$port variants]"
-            }
+            set version [$port version]
+            set revision [$port revision]
+            set variants [$port variants]
         } else {
             set version [lindex [lindex $ilist 0] 1]
             set revision [lindex [lindex $ilist 0] 2]
             set variants [lindex [lindex $ilist 0] 3]
             set active [lindex [lindex $ilist 0] 4]
-            if {$v == ""} {
-                set v "${version}_${revision}${variants}"
-            }
+        }
+        if {$v == ""} {
+            set v "${version}_${revision}${variants}"
         }
     } else {
         throw registry::invalid "Registry error: $portname not registered as installed"
@@ -147,7 +147,9 @@ proc uninstall {portname {v ""} optionslist} {
                 ui_msg "For $portname @${v}: skipping deactivate (dry run)"
             } else {
                 if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                    portimage::deactivate $portname $v [array get options]
+                    if {[$port installtype] == "image"} {
+                        portimage::deactivate $portname $v [array get options]
+                    }
                 }
             }
         }
@@ -338,17 +340,17 @@ proc uninstall {portname {v ""} optionslist} {
                     catch {file copy $fname "${fname}${bak_suffix}"}
                 }
             }
-            
-            set theFile [file normalize $fname]
-            if { [file exists $theFile] || (![catch {file type $theFile}] && [file type $theFile] == "link") } {
+
+            if { [file exists $fname] || (![catch {file type $fname}] && [file type $fname] == "link") } {
                 # Normalize the file path to avoid removing the intermediate
                 # symlinks (remove the empty directories instead)
-                lappend files $theFile
+                # The custom realpath proc is necessary because file normalize
+                # does not resolve symlinks on OS X < 10.6
+                set directory [realpath [file dirname $fname]]
+                lappend files [file join $directory [file tail $fname]]
     
                 # Split out the filename's subpaths and add them to the
-                # list as well. The realpath call is necessary because file normalize
-                # does not resolve symlinks on OS X < 10.6
-                set directory [realpath [file dirname $theFile]]
+                # list as well.
                 while { [lsearch -exact $files $directory] == -1 } { 
                     lappend files $directory
                     set directory [file dirname $directory]
@@ -359,10 +361,10 @@ proc uninstall {portname {v ""} optionslist} {
         # Sort the list in reverse order, removing duplicates.
         # Since the list is sorted in reverse order, we're sure that directories
         # are after their elements.
-        set theList [lsort -decreasing -unique $files]
+        set files [lsort -decreasing -unique $files]
     
         # Remove all elements.
-        _uninstall_list $theList
+        _uninstall_list $files
     
         if {$use_reg2} {
             registry::entry delete $port

@@ -328,7 +328,7 @@ proc command_string {command} {
 # command_prefix    additional command prefix (typically pipe command)
 # command_suffix    additional command suffix (typically redirection)
 proc command_exec {command args} {
-    global ${command}.env ${command}.env_array ${command}.nice env
+    global ${command}.env ${command}.env_array ${command}.nice env macosx_version
     set notty ""
     set command_prefix ""
     set command_suffix ""
@@ -394,7 +394,9 @@ proc command_exec {command args} {
 
     # Restore the environment.
     array unset env *
-    unsetenv *
+    if {$macosx_version == "10.5"} {
+        unsetenv *
+    }
     array set env [array get saved_env]
 
     # Return as if system had been called directly.
@@ -1134,32 +1136,6 @@ proc ln {args} {
     return
 }
 
-# filefindbypath
-# Provides searching of the standard path for included files
-proc filefindbypath {fname} {
-    global distpath filesdir worksrcdir portpath
-
-    if {[file readable $portpath/$fname]} {
-        return $portpath/$fname
-    } elseif {[file readable $portpath/$filesdir/$fname]} {
-        return $portpath/$filesdir/$fname
-    } elseif {[file readable $distpath/$fname]} {
-        return $distpath/$fname
-    }
-    return ""
-}
-
-# include
-# Source a file, looking for it along a standard search path.
-proc include {fname} {
-    set tgt [filefindbypath $fname]
-    if {[string length $tgt]} {
-        uplevel "source $tgt"
-    } else {
-        return -code error "Unable to find include file $fname"
-    }
-}
-
 # makeuserproc
 # This procedure re-writes the user-defined custom target to include
 # all the globals in its scope.  This is undeniably ugly, but I haven't
@@ -1490,7 +1466,11 @@ proc eval_targets {target} {
                 return 0
             } else {
                 # run the activate target but ignore its (completed) dependencies
-                return [target_run [lindex [dlist_search $dlist provides $target] 0]]
+                set result [target_run [lindex [dlist_search $dlist provides $target] 0]]
+                if {[getuid] == 0 && [geteuid] != 0} {
+                    setegid 0; seteuid 0
+                }
+                return $result
             }
         }
     }
@@ -1509,6 +1489,10 @@ proc eval_targets {target} {
     }
 
     set dlist [dlist_eval $dlist "" target_run]
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+        setegid 0; seteuid 0
+    }
 
     if {[llength $dlist] > 0} {
         # somebody broke!
@@ -1530,9 +1514,6 @@ proc eval_targets {target} {
 proc open_statefile {args} {
     global workpath worksymlink place_worksymlink name portpath ports_ignore_older ports_dryrun
     global usealtworkpath altprefix env applications_dir portbuildpath
-
-    # de-escalate privileges if MacPorts was started with sudo
-    dropPrivileges
 
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
@@ -1567,6 +1548,9 @@ proc open_statefile {args} {
         }
     }
 
+    # de-escalate privileges if MacPorts was started with sudo
+    dropPrivileges
+
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
     if {[file exists $statefile]} {
@@ -1579,6 +1563,7 @@ proc open_statefile {args} {
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             if {![tbool ports_dryrun]} {
                 ui_msg "Portfile changed since last build; discarding previous state."
+                chownAsRoot $portbuildpath
                 delete $workpath
                 file mkdir $workpath
             } else {
@@ -2361,15 +2346,17 @@ proc chown {path user} {
 #
 # @param path the file/directory to be chowned
 proc chownAsRoot {path} {
-    global euid macportsuser
+    global euid egid macportsuser
 
     if { [getuid] == 0 } {
         if {[geteuid] != 0} {
             # if started with sudo but have dropped the privileges
+            setegid $egid
             seteuid $euid
             ui_debug "euid changed to: [geteuid]"
             chown  ${path} ${macportsuser}
             ui_debug "chowned $path to $macportsuser"
+            setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
             ui_debug "euid changed to: [geteuid]"
         } else {
@@ -2385,14 +2372,16 @@ proc chownAsRoot {path} {
 # @param file the file in question
 # @param attributes the attributes for the file
 proc fileAttrsAsRoot {file attributes} {
-    global euid macportsuser
+    global euid egid macportsuser
     if {[getuid] == 0} {
         if {[geteuid] != 0} {
             # Started as root, but not root now
+            setegid $egid
             seteuid $euid
             ui_debug "euid changed to: [geteuid]"
             ui_debug "setting attributes on $file"
             eval file attributes {$file} $attributes
+            setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
             ui_debug "euid changed to: [geteuid]"
         } else {
@@ -2583,6 +2572,25 @@ proc get_canonical_archs {} {
     }
 }
 
+# check that the selected archs are supported
+proc check_supported_archs {} {
+    global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs name
+    if {$supported_archs == "noarch"} {
+        return 0
+    } elseif {[variant_exists universal] && [variant_isset universal]} {
+        if {[llength ${configure.universal_archs}] > 1 || $universal_archs == ${configure.universal_archs}} {
+            return 0
+        } else {
+            ui_error "$name cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
+            return 1
+        }
+    } elseif {$build_arch == "" || ${configure.build_arch} != ""} {
+        return 0
+    }
+    ui_error "$name cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
+    return 1
+}
+
 # check if the installed xcode version is new enough
 proc _check_xcode_version {} {
     global os.subplatform macosx_version xcodeversion
@@ -2615,4 +2623,34 @@ proc _check_xcode_version {} {
         }
     }
     return 0
+}
+
+# check if we can unarchive this port
+proc _archive_available {} {
+    global name version revision portvariants ports_source_only
+    global unarchive.srcpath workpath
+
+    if {[option portarchivemode] != "yes" || [tbool ports_source_only]} {
+        return 0
+    }
+
+    # Define archive directory, file, and path
+    if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
+        set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option archive.subdir]]
+    } else {
+        set unarchive.fullsrcpath ${unarchive.srcpath}
+    }
+
+    set found 0
+    foreach unarchive.type [option portarchivetype] {
+        if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
+            set archstring [join [get_canonical_archs] -]
+            set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
+            if {[file isfile [file join ${unarchive.fullsrcpath} ${unarchive.file}]]} {
+                set found 1
+                break
+            }
+        }
+    }
+    return $found
 }

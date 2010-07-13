@@ -381,11 +381,13 @@ proc _check_contents {name contents imagedir} {
 ##
 ## @param [in] srcfile path to file in image
 ## @param [in] dstfile path to activate file to
+## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
     switch [file type $srcfile] {
         link {
             ui_debug "activating link: $dstfile"
             file copy -force -- $srcfile $dstfile
+            return 1
         }
         directory {
             # Don't recursively copy directories
@@ -398,6 +400,7 @@ proc _activate_file {srcfile dstfile} {
                 # set mtime on installed element
                 file mtime $dstfile [file mtime $srcfile]
             }
+            return 0
         }
         default {
             ui_debug "activating file: $dstfile"
@@ -406,6 +409,7 @@ proc _activate_file {srcfile dstfile} {
                 ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
                 file link -symbolic $dstfile $srcfile
             }
+            return 1
         }
     }
 }
@@ -486,7 +490,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                             # the registry
                             if { $owner != {} && $owner != $port } {
                                 throw registry::image-error "Image error: $file is being used by the active [$owner name] port.  Please deactivate this port first, or use 'port -f activate [$port name]' to force the activation."
-                            } elseif { $owner == {} && ![catch {[file type $file]}] } {
+                            } elseif { $owner == {} && ![catch {file type $file}] } {
                                 throw registry::image-error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port [$port name]. Use 'port -f activate [$port name]' to force the activation."
                             }
                         }
@@ -523,16 +527,17 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             # directories are before their elements.
             # We don't have to do this as mentioned above, but it makes the
             # debug output of activate make more sense.
-            set theList [lsort -increasing -unique $files]
+            set files [lsort -increasing -unique $files]
             set rollback_filelist {}
             ui_msg "GSOC DBG: let's activate actual files"
             registry::write {
                 # Activate it, and catch errors so we can roll-back
                 try {
                     $port activate $imagefiles
-                    foreach file $theList {
-                        _activate_file "${imagedir}${file}" $file
-                        lappend rollback_filelist $file
+                    foreach file $files {
+                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                            lappend rollback_filelist $file
+                        }
                     }
                 } catch {*} {
                     ui_debug "Activation failed, rolling back."
@@ -637,13 +642,14 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         # are before their elements.
         # We don't have to do this as mentioned above, but it makes the
         # debug output of activate make more sense.
-        set theList [lsort -increasing -unique $files]
+        set files [lsort -increasing -unique $files]
         set rollback_filelist {}
 
         # Activate it, and catch errors so we can roll-back
-        if { [catch { foreach file $theList {
-                        _activate_file "${imagedir}${file}" $file
-                        lappend rollback_filelist $file
+        if { [catch { foreach file $files {
+                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                            lappend rollback_filelist $file
+                        }
                     }} result]} {
             ui_debug "Activation failed, rolling back."
             _deactivate_contents $name $rollback_filelist yes yes
@@ -703,14 +709,14 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             # instead of the paths we currently have, users' registry won't
             # match and activate will say that some file exists but doesn't
             # belong to any port.
-            set theFile [file normalize $file]
-            lappend files $theFile
-
-            # Split out the filename's subpaths and add them to the image list as
-            # well. The realpath call is necessary because file normalize
+            # The custom realpath proc is necessary because file normalize
             # does not resolve symlinks on OS X < 10.6
-            set directory [realpath [file dirname $theFile]]
-            while { [lsearch -exact $files $directory] == -1 } { 
+            set directory [realpath [file dirname $file]]
+            lappend files [file join $directory [file tail $file]]
+
+            # Split out the filename's subpaths and add them to the image list
+            # as well.
+            while { [lsearch -exact $files $directory] == -1 } {
                 lappend files $directory
                 set directory [file dirname $directory]
             }
@@ -722,18 +728,18 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     # Sort the list in reverse order, removing duplicates.
     # Since the list is sorted in reverse order, we're sure that directories
     # are after their elements.
-    set theList [lsort -decreasing -unique $files]
+    set files [lsort -decreasing -unique $files]
 
     # Remove all elements.
     if {$use_reg2 && !$rollback} {
         registry::write {
             $port deactivate $imagefiles
-            foreach file $theList {
+            foreach file $files {
                 _deactivate_file $file
             }
         }
     } else {
-        foreach file $theList {
+        foreach file $files {
             _deactivate_file $file
         }
     }

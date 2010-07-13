@@ -51,11 +51,13 @@
 int do_queries(sqlite3* db, char** queries, reg_error* errPtr) {
     char** query;
     for (query = queries; *query != NULL; query++) {
-        sqlite3_stmt* stmt;
+        sqlite3_stmt* stmt = NULL;
         if ((sqlite3_prepare(db, *query, -1, &stmt, NULL) != SQLITE_OK)
                 || (sqlite3_step(stmt) != SQLITE_DONE)) {
             reg_sqlite_error(db, errPtr, *query);
-            sqlite3_finalize(stmt);
+            if (stmt) {
+                sqlite3_finalize(stmt);
+            }
             return 0;
         }
         sqlite3_finalize(stmt);

@@ -78,11 +78,7 @@ proc portarchive::archive_init {args} {
 
     # Define archive destination directory and target filename
     if {![string equal ${archive.destpath} ${workpath}] && ![string equal ${archive.destpath} ""]} {
-        if {[llength [get_canonical_archs]] > 1} {
-            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] "universal"]
-        } else {
-            set archive.fulldestpath [file join ${archive.destpath} [option os.platform] [get_canonical_archs]]
-        }
+        set archive.fulldestpath [file join ${archive.destpath} [option archive.subdir]]
     } else {
         set archive.fulldestpath ${archive.destpath}
     }
@@ -294,14 +290,18 @@ proc portarchive::archive_main {args} {
     global archive.meta archive.metaname archive.metapath
     global os.platform
 
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot "archive"
+    }
+
     # Create archive destination path (if needed)
     if {![file isdirectory ${archive.fulldestpath}]} {
-        system "mkdir -p ${archive.fulldestpath}"
+        file mkdir ${archive.fulldestpath}
     }
 
     # Create (if no files) destroot for archiving
     if {![file isdirectory ${destpath}]} {
-        system "mkdir -p ${destpath}"
+        file mkdir ${destpath}
     }
 
     # Copy state file into destroot for archiving

@@ -194,7 +194,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         }
     }
     if (initialized || can_write) {
-        sqlite3_stmt* stmt;
+        sqlite3_stmt* stmt = NULL;
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
         if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
             int r;
@@ -220,7 +220,9 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
         } else {
             reg_sqlite_error(reg->db, errPtr, query);
         }
-        sqlite3_finalize(stmt);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
         sqlite3_free(query);
     } else {
         reg_throw(errPtr, REG_CANNOT_INIT, "port registry doesn't exist at "
@@ -239,7 +241,7 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
  * @return             true if success; false if failure
  */
 int reg_detach(reg_registry* reg, reg_error* errPtr) {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = NULL;
     int result = 0;
     char* query = "DETACH DATABASE registry";
     if (!(reg->status & reg_attached)) {
@@ -279,7 +281,9 @@ int reg_detach(reg_registry* reg, reg_error* errPtr) {
     } else {
         reg_sqlite_error(reg->db, errPtr, query);
     }
-    sqlite3_finalize(stmt);
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
     return result;
 }
 

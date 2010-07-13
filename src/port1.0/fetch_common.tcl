@@ -218,7 +218,7 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         if {![info exists urlmap($url_var)]} {
             if {$url_var != $default_listvar} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using $default_listvar"] $url_var]
-                set urlmap($url_var) [set $default_listvar]
+                set urlmap($url_var) $urlmap($default_listvar)
             } else {
                 set urlmap($url_var) {}
             }
@@ -230,6 +230,14 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         if {[llength $urllist] - [llength $fallback_mirror_list] <= 1} {
             # there is only one mirror, no need to ping or sort
             continue
+        }
+
+        # can't do the ping with dropped privileges (though it works fine if we didn't start as root)
+        if {[getuid] == 0 && [geteuid] != 0} {
+            set oldeuid [geteuid]
+            set oldegid [getegid]
+            seteuid 0
+            setegid 0
         }
 
         foreach site $urllist {
@@ -269,6 +277,11 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
             ui_debug "$host ping time is $pingtimes($host)"
         }
 
+        if {[info exists oldeuid]} {
+            setegid $oldegid
+            seteuid $oldeuid
+        }
+
         set pinglist {}
         foreach site $urllist {
             regexp $hostregex $site -> host
@@ -294,7 +307,7 @@ proc portfetch::get_urls {} {
     foreach {url_var distfile} $fetch_urls {
         if {![info exists urlmap($url_var)]} {
             ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-            set urlmap($url_var) $master_sites
+            set urlmap($url_var) $urlmap(master_sites)
         }
         foreach site $urlmap($url_var) {
             lappend urls $site

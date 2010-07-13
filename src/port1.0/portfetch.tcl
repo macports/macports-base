@@ -471,14 +471,14 @@ proc portfetch::fetchfiles {args} {
             }
             if {![info exists urlmap($url_var)]} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
-                set urlmap($url_var) $master_sites
+                set urlmap($url_var) $urlmap(master_sites)
             }
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 set effectiveURL ""
-                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} ${distpath}/${distfile}.TMP} result] &&
+                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
                     ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
 
                     # Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
