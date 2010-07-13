@@ -449,12 +449,15 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                     }
 
                     set owner [registry::entry owner $file]
+                    ui_msg "GSOC: $file owner is \"$owner\""
 
                     if {$owner != {} && $owner != $port} {
                         # deactivate conflicting port if it is replaced_by this one
                         set result [mportlookup [$owner name]]
                         array unset portinfo
                         array set portinfo [lindex $result 1]
+                        #GSoC10
+                        #here we'll check if you should replace a config file testing a --drop-config option from CLI
                         if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) "(?i)^[$port name]\$"] != -1} {
                             # we'll deactivate the owner later, but before activating our files
                             set todeactivate($owner) yes
@@ -522,7 +525,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             # debug output of activate make more sense.
             set theList [lsort -increasing -unique $files]
             set rollback_filelist {}
-
+            ui_msg "GSOC DBG: let's activate actual files"
             registry::write {
                 # Activate it, and catch errors so we can roll-back
                 try {
@@ -539,6 +542,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 }
             }
         } catch {*} {
+            ui_msg "GSOC DBG: rollback"
             # roll back activation of this port
             if {[info exists deactivate_this]} {
                 _deactivate_contents $port $rollback_filelist yes yes
@@ -664,6 +668,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             return -code error $result
         }
     }
+    ui_msg "GSOC DBG: end of _activate_contents"
 }
 
 proc _deactivate_file {dstfile} {
