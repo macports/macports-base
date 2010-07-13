@@ -10,4 +10,4 @@ else
     echo "1 to 0"
     sed -e 's,\(revision[ ]*\)1,\10,' Portfile >"$PORTPATH"/NewPortfile
 fi
-#mv "$PORTPATH"/NewPortfile "$PORTPATH"/Portfile
+mv "$PORTPATH"/NewPortfile "$PORTPATH"/Portfile
