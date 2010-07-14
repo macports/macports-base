@@ -745,5 +745,15 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     }
 }
 
+proc gsocdebug {command-string op} {puts "GSOCBDBG: ${command-string}" }
+#the following 2 traces breaks macports at activate/deactivate phase, let's keep them commented
+#trace add execution ::portimage::activate enter gsocdebug
+#trace add execution ::portimage::deactivate enter gsocdebug
+trace add execution ::portimage::_check_registry enter gsocdebug
+trace add execution ::portimage::_check_contents enter gsocdebug
+trace add execution ::portimage::_activate_file enter gsocdebug
+trace add execution ::portimage::_activate_contents enter gsocdebug
+trace add execution ::portimage::_deactivate_file enter gsocdebug
+trace add execution ::portimage::_deactivate_contents enter gsocdebug
 # End of portimage namespace
 }
