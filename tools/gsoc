@@ -8,6 +8,8 @@ elif [ "$1" == macports ] || [ "$1" == macports1.0 ]; then
     DIR="$DIR"src/macports1.0/
 elif [ "$1" == ports ] || [ "$1" == port1.0 ]; then
     DIR="$DIR"src/port1.0/
+elif [ "$1" == registry ] || [ "$1" == registry2.0 ]; then
+    DIR="$DIR"src/registry2.0/
 else
   echo -e "Usage:\ngsoc port | [macports | macports1.0] | [ports | port1.0]"
   exit 1
