@@ -413,9 +413,12 @@ proc foreachport {portlist block} {
 proc portlist_compare { a b } {
     array set a_ $a
     array set b_ $b
-    set namecmp [string compare -nocase $a_(name) $b_(name)]
-    if {$namecmp != 0} {
-        return $namecmp
+    set namecmp [string equal -nocase $a_(name) $b_(name)]
+    if {$namecmp != 1} {
+        if {$a_(name) eq [lindex [lsort -dictionary [list $a_(name) $b_(name)]] 0]} {
+            return -1
+        }
+        return 1
     }
     set avr_ [split $a_(version) "_"]
     set bvr_ [split $b_(version) "_"]
