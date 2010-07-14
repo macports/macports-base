@@ -788,7 +788,7 @@ proc get_outdated_ports {} {
         }
     }
 
-    return $results
+    return [portlist_sort $results]
 }
 
 
