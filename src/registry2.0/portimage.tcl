@@ -91,6 +91,7 @@ proc activate {name v optionslist} {
     }
     set todeactivate [list]
 
+    # before activating new image we handle deactivation of old version
     if {$use_reg2} {
         registry::read {
 
@@ -161,12 +162,14 @@ proc activate {name v optionslist} {
         }
     }
 
+    #eventually print variants
     if {$v != ""} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
     } else {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
     }
 
+    #activate new image
     if {$use_reg2} {
         _activate_contents $requested
         $requested state installed
@@ -213,6 +216,7 @@ proc deactivate {name v optionslist} {
         }
     }
 
+    #branch on sqlite-registry-db or old–flatfile
     if {$use_reg2} {
         if { [string equal $name ""] } {
             throw registry::image-error "Registry error: Please specify the name of the port."
@@ -254,6 +258,7 @@ proc deactivate {name v optionslist} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
     }
 
+    #here we go - 
     if {$use_reg2} {
         if { ![string equal [$requested installtype] "image"] } {
             return -code error "Image error: ${name} @${specifier} not installed as an image."
@@ -453,14 +458,12 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                     }
 
                     set owner [registry::entry owner $file]
-                    ui_msg "GSOC: $file owner is \"$owner\""
 
                     if {$owner != {} && $owner != $port} {
                         # deactivate conflicting port if it is replaced_by this one
                         set result [mportlookup [$owner name]]
                         array unset portinfo
                         array set portinfo [lindex $result 1]
-                        #GSoC10
                         #here we'll check if you should replace a config file testing a --drop-config option from CLI
                         if {[info exists portinfo(replaced_by)] && [lsearch -regexp $portinfo(replaced_by) "(?i)^[$port name]\$"] != -1} {
                             # we'll deactivate the owner later, but before activating our files
@@ -529,7 +532,6 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             # debug output of activate make more sense.
             set files [lsort -increasing -unique $files]
             set rollback_filelist {}
-            ui_msg "GSOC DBG: let's activate actual files"
             registry::write {
                 # Activate it, and catch errors so we can roll-back
                 try {
@@ -547,7 +549,6 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 }
             }
         } catch {*} {
-            ui_msg "GSOC DBG: rollback"
             # roll back activation of this port
             if {[info exists deactivate_this]} {
                 _deactivate_contents $port $rollback_filelist yes yes
@@ -674,7 +675,6 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             return -code error $result
         }
     }
-    ui_msg "GSOC DBG: end of _activate_contents"
 }
 
 proc _deactivate_file {dstfile} {
@@ -700,6 +700,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [list]
 
     foreach file $imagefiles {
+        #GSOC10 we should avoid adding file to $files and instead handle them putting into a separate registry table  
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
@@ -735,6 +736,10 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
         registry::write {
             $port deactivate $imagefiles
             foreach file $files {
+                  if {[is_config_file $file]} {
+                          puts "GSOC: $file is config file, skipping for now"
+                          continue
+                      }                  
                 _deactivate_file $file
             }
         }
@@ -745,15 +750,19 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     }
 }
 
-proc gsocdebug {command-string op} {puts "GSOCBDBG: ${command-string}" }
-#the following 2 traces breaks macports at activate/deactivate phase, let's keep them commented
-#trace add execution ::portimage::activate enter gsocdebug
-#trace add execution ::portimage::deactivate enter gsocdebug
-trace add execution ::portimage::_check_registry enter gsocdebug
-trace add execution ::portimage::_check_contents enter gsocdebug
-trace add execution ::portimage::_activate_file enter gsocdebug
-trace add execution ::portimage::_activate_contents enter gsocdebug
-trace add execution ::portimage::_deactivate_file enter gsocdebug
-trace add execution ::portimage::_deactivate_contents enter gsocdebug
+#proc gsocdebug {command-string op} {puts "GSOCDBG: ${command-string}" }
+#trace add execution ::portimage::_check_registry enter gsocdebug
+#trace add execution ::portimage::_check_contents enter gsocdebug
+#trace add execution ::portimage::_activate_file enter gsocdebug
+#trace add execution ::portimage::_activate_contents enter gsocdebug
+#trace add execution ::portimage::_deactivate_file enter gsocdebug
+#trace add execution ::portimage::_deactivate_contents enter gsocdebug
+
+
+proc is_config_file {filename} {
+    #replace hardcoded path with $config_path from portmain.tcl, what namespace does "option" add options to?
+    if {[string match ${::macports::prefix} "$filename"]} {return 1} {return 0}
+}
+
 # End of portimage namespace
 }
