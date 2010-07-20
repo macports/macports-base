@@ -3491,7 +3491,7 @@ proc action_portcmds { action portlist opts } {
                     
                     # Invoke the editor, with a reasonable canned default.
                     if { $editor == "" } { set editor "/usr/bin/vi" }
-                    if {[catch {eval exec >/dev/stdout </dev/stdin $editor $portfile} result]} {
+                    if {[catch {eval exec >@stdout <@stdin 2>@stderr $editor {$portfile}} result]} {
                         global errorInfo
                         ui_debug "$errorInfo"
                         break_softcontinue "unable to invoke editor $editor: $result" 1 status
