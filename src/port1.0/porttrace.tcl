@@ -181,6 +181,8 @@ proc porttrace::create_slave {workpath trace_fifo} {
     thread::send $trace_thread "package require registry 1.0"
     # and this file as well.
     thread::send $trace_thread "package require porttrace 1.0"
+    # slave needs ui_warn and ui_debug...
+    thread::send $trace_thread "macports::ui_init warn; macports::ui_init debug"
 
     # Initialize the slave
     thread::send $trace_thread "porttrace::slave_init $trace_fifo $workpath"

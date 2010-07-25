@@ -535,7 +535,7 @@ static int TracelibRunCmd(Tcl_Interp * in UNUSED)
 	return TCL_OK;
 }
 
-static int TracelibCleanCmd(Tcl_Interp * interp)
+static int TracelibCleanCmd(Tcl_Interp * interp UNUSED)
 {
 	#define safe_free(x) do{free(x); x=0;}while(0);
 	cleanuping=1;
@@ -559,7 +559,6 @@ static int TracelibCleanCmd(Tcl_Interp * interp)
 	enable_fence=0;
 	#undef safe_free
 	cleanuping=0;
-	Tcl_Eval(interp, "registry::close_file_map");
 	return TCL_OK;
 }
 
