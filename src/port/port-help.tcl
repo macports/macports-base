@@ -228,6 +228,10 @@ set porthelp(mpkg) {
 Creates an mpkg for each of the given ports and their dependencies
 }
 
+set porthelp(notes) {
+Displays informational notes for each of the given ports
+}
+
 set porthelp(outdated) {
 Returns a list of outdated ports
 }
