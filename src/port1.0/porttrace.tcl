@@ -80,7 +80,7 @@ proc porttrace::trace_start {workpath} {
             # /Library/Caches/com.apple.Xcode
             # $CCACHE_DIR
             # $HOMEDIR/.ccache
-            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/dev/:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:${portpath}:${distpath}"
+            set trace_sandboxbounds "/tmp:/private/tmp:/var/tmp:/private/var/tmp:/var/empty:/private/var/empty:/dev:/etc/passwd:/etc/groups:/etc/localtime:/Library/Caches/com.apple.Xcode:$env(HOME)/.ccache:${workpath}:${portpath}:${distpath}"
             if {[info exists env(TMPDIR)]} {
                 set trace_sandboxbounds "${trace_sandboxbounds}:$env(TMPDIR)"
             }
