@@ -49,13 +49,6 @@ Removes files associated with the given ports
 --all         Removes everything from above
 }
 
-set porthelp(log) {
-Shows main log for given ports
-
---phase <phase>		Filters by phase (fetch, checksum, extract, patch, configure, build, destroot)
---level <level>	        Filter messages above verbosity level (error, warn, msg, info, debug)
-}
-
 set porthelp(configure) {
 Configure the given ports
 }
@@ -214,6 +207,13 @@ Interface to launchctl(1) for ports providing startup items
 
 set porthelp(location) {
 Returns the install location for each of the given ports
+}
+
+set porthelp(log) {
+Shows main log for given ports
+
+--phase <phase>		Filters by phase (fetch, checksum, extract, patch, configure, build, destroot)
+--level <level>	        Filter messages above verbosity level (error, warn, msg, info, debug)
 }
 
 set porthelp(mdmg) {
