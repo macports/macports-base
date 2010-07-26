@@ -34,6 +34,7 @@
 
 package provide porttrace 1.0
 package require Pextlib 1.0
+package require portutil 1.0
 
 namespace eval porttrace {
 }
@@ -50,6 +51,7 @@ proc porttrace::trace_start {workpath} {
             # # set trace_fifo "$workpath/trace_fifo"
             set trace_fifo "/tmp/macports/[pid]_[expr {int(rand()*1000)}]"
             file mkdir "/tmp/macports"
+            chownAsRoot "/tmp/macports"
             file delete -force $trace_fifo
 
             # Create the thread/process.
@@ -173,7 +175,7 @@ proc porttrace::trace_stop {} {
 # Private
 # Create the slave thread.
 proc porttrace::create_slave {workpath trace_fifo} {
-    global trace_thread
+    global trace_thread prefix developer_dir
     # Create the thread.
     set trace_thread [macports_create_thread]
 
@@ -183,6 +185,8 @@ proc porttrace::create_slave {workpath trace_fifo} {
     thread::send $trace_thread "package require porttrace 1.0"
     # slave needs ui_warn and ui_debug...
     thread::send $trace_thread "macports::ui_init warn; macports::ui_init debug"
+    # and these variables
+    thread::send $trace_thread "set prefix \"$prefix\"; set developer_dir \"$developer_dir\""
 
     # Initialize the slave
     thread::send $trace_thread "porttrace::slave_init $trace_fifo $workpath"
