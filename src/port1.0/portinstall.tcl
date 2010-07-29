@@ -142,11 +142,17 @@ proc portinstall::directory_dig {rootdir workdir imagedir {cwd ""} {prepend 1}} 
 
 proc portinstall::install_main {args} {
     global name version portpath categories description long_description \
-    homepage depends_run installPlist package-install workdir \
+    homepage depends_run installPlist package-install workdir workpath \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
     registry.installtype registry.path registry.format \
     os.platform os.major
+
+    set oldpwd [pwd]
+    if {$oldpwd == ""} {
+        set oldpwd $portpath
+    }
+    _cd $workpath
 
     if {[string equal ${registry.format} "receipt_sqlite"]} {
         # registry2.0
@@ -266,6 +272,7 @@ proc portinstall::install_main {args} {
         registry_write $regref
     }
 
+    _cd $oldpwd
     return 0
 }
 
