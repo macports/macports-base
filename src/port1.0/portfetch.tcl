@@ -477,29 +477,10 @@ proc portfetch::fetchfiles {args} {
             foreach site $urlmap($url_var) {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
-                set effectiveURL ""
-                if {![catch {eval curl fetch --effective-url effectiveURL $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
+                if {![catch {eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
                     ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
-
-                    # Special hack to check for sourceforge mirrors, which don't return a proper error code on failure
-                    if {![string equal $effectiveURL $file_url] &&
-                        [string match "http://*sourceforge.net/*" $file_url] &&
-                        [string match "http://*sourceforge.net/projects/*/files/" $effectiveURL]} {
-
-                        # *SourceForge hackage in effect*
-                        # The url seen by curl seems to have been a redirect to the sourceforge mirror page
-                        ui_debug "[msgcat::mc "Fetching from sourceforge mirror failed"]"
-                        file delete -force "${distpath}/${distfile}.TMP"
-
-                        # Continue on to try the next mirror, if any
-                    } else {
-
-                        # Successful fetch
-                        set fetched 1
-                        break
-
-                    }
-
+                    set fetched 1
+                    break
                 } else {
                     ui_debug "[msgcat::mc "Fetching failed:"]: $result"
                     file delete -force "${distpath}/${distfile}.TMP"
