@@ -196,8 +196,11 @@ int reg_attach(reg_registry* reg, const char* path, reg_error* errPtr) {
     if (initialized || can_write) {
         sqlite3_stmt* stmt = NULL;
         char* query = sqlite3_mprintf("ATTACH DATABASE '%q' AS registry", path);
-        if (sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK) {
-            int r;
+        int r;
+        do {
+            r = sqlite3_prepare(reg->db, query, -1, &stmt, NULL);
+        } while (r == SQLITE_BUSY);
+        if (r == SQLITE_OK) {
             /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
             do {
                 sqlite3_step(stmt);
