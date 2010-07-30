@@ -2031,6 +2031,8 @@ proc adduser {name args} {
         ui_warn "adduser only works when running as root."
         ui_warn "The requested user '$name' was not created."
         return
+    } elseif {[geteuid] != 0} {
+        seteuid 0; setegid 0
     }
 
     set passwd {*}
@@ -2072,6 +2074,8 @@ proc addgroup {name args} {
         ui_warn "addgroup only works when running as root."
         ui_warn "The requested group '$name' was not created."
         return
+    } elseif {[geteuid] != 0} {
+        seteuid 0; setegid 0
     }
 
     set gid [nextgid]
