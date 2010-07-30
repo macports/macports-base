@@ -49,13 +49,6 @@ Removes files associated with the given ports
 --all         Removes everything from above
 }
 
-set porthelp(log) {
-Shows main log for given ports
-
---phase <phase>		Filters by phase (fetch, checksum, extract, patch, configure, build, destroot)
---level <level>	        Filter messages above verbosity level (error, warn, msg, info, debug)
-}
-
 set porthelp(configure) {
 Configure the given ports
 }
@@ -216,6 +209,13 @@ set porthelp(location) {
 Returns the install location for each of the given ports
 }
 
+set porthelp(log) {
+Shows main log for given ports
+
+--phase <phase>		Filters by phase (fetch, checksum, extract, patch, configure, build, destroot)
+--level <level>	        Filter messages above verbosity level (error, warn, msg, info, debug)
+}
+
 set porthelp(mdmg) {
 Creates a dmg containing an mpkg for each of the given ports and their dependencies
 }
@@ -226,6 +226,10 @@ Fetches distfiles for the given ports
 
 set porthelp(mpkg) {
 Creates an mpkg for each of the given ports and their dependencies
+}
+
+set porthelp(notes) {
+Displays informational notes for each of the given ports
 }
 
 set porthelp(outdated) {
