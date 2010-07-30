@@ -1924,7 +1924,7 @@ proc mportsync {{optionslist {}}} {
                         continue
                     }
 
-                    file mkdir [file dirname $indexfile]
+                    file mkdir $destdir
 
                     set verboseflag {}
                     if {$macports::portverbose == "yes"} {
@@ -1956,6 +1956,11 @@ proc mportsync {{optionslist {}}} {
 
                     if {[catch {system "chmod -R a+r \"$destdir\""}]} {
                         ui_warn "Setting world read permissions on parts of the ports tree failed, need root?"
+                    }
+
+                    set platindex "PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
+                    if {[file isfile ${destdir}/${platindex}] && [file isfile ${destdir}/${platindex}.quick]} {
+                        file rename -force "${destdir}/${platindex}" "${destdir}/${platindex}.quick" $destdir
                     }
 
                     file delete $tarpath
