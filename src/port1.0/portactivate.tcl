@@ -55,7 +55,7 @@ default activate.asroot no
 
 proc portactivate::activate_start {args} {
     global prefix registry.installtype
-    if { ![file writable $prefix] && ${registry.installtype} == "image"} {
+    if { (![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)) && ${registry.installtype} == "image"} {
         # if install location is not writable, need root privileges
         elevateToRoot "activate"
     }

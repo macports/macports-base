@@ -50,7 +50,7 @@ default deactivate.asroot no
 
 proc portdeactivate::deactivate_start {args} {
     global prefix registry.installtype
-    if { ![file writable $prefix] && ${registry.installtype} == "image"} {
+    if { (![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)) && ${registry.installtype} == "image"} {
         # if install location is not writable, need root privileges
         elevateToRoot "deactivate"
     }
