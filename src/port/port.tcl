@@ -1484,6 +1484,18 @@ proc parseFullPortSpec { urlname namename vername varname optname } {
     }
 }
 
+# check if the install prefix is writable
+# should be called by actions that will modify it
+proc prefix_unwritable {} {
+    global macports::portdbpath
+    if {[file writable $portdbpath]} {
+        return 0
+    } else {
+        ui_error "Insufficient privileges to write to MacPorts install prefix."
+        return 1
+    }
+}
+
     
 proc parsePortSpec { vername varname optname {remainder ""} } {
     upvar $vername portversion
@@ -2217,7 +2229,7 @@ proc action_provides { action portlist opts } {
 proc action_activate { action portlist opts } {
     global macports::registry.format
     set status 0
-    if {[require_portlist portlist]} {
+    if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
@@ -2251,7 +2263,7 @@ proc action_activate { action portlist opts } {
 proc action_deactivate { action portlist opts } {
     global macports::registry.format
     set status 0
-    if {[require_portlist portlist]} {
+    if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
@@ -2412,7 +2424,7 @@ proc action_selfupdate { action portlist opts } {
 proc action_setrequested { action portlist opts } {
     global macports::registry.format
     set status 0
-    if {[require_portlist portlist]} {
+    if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     # set or unset?
@@ -2440,7 +2452,7 @@ proc action_setrequested { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist]} {
+    if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     # shared depscache for all ports in the list
@@ -2813,6 +2825,9 @@ proc action_uninstall { action portlist opts } {
         if {[require_portlist portlist]} {
             return 1
         }
+    }
+    if {[prefix_unwritable]} {
+        return 1
     }
 
     foreachport $portlist {
@@ -3591,6 +3606,9 @@ proc action_target { action portlist opts } {
     global global_variations
     set status 0
     if {[require_portlist portlist]} {
+        return 1
+    }
+    if {($action == "install" || $action == "archive") && [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
