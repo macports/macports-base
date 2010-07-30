@@ -395,10 +395,10 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 #else
         clearenv();
 #endif
-        /* "If the entire env array is unset then Tcl will stop monitoring
-            env accesses and will not update environment variables."
-            - <http://www.tcl.tk/man/tcl8.4/TclCmd/tclvars.htm#M4> */
+#ifndef __APPLE__
+        /* Crashes on Linux without this. */
         setenv("MACPORTS_DUMMY", "", 0);
+#endif
     } else {
         (void) unsetenv(name);
     }
