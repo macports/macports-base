@@ -69,8 +69,9 @@ proc portclean::clean_main {args} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
         clean_dist
     }
-    if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
-        [info exists ports_clean_archive] && $ports_clean_archive == "yes"} {
+    if {([info exists ports_clean_all] && $ports_clean_all == "yes" || \
+        [info exists ports_clean_archive] && $ports_clean_archive == "yes")
+        && !$usealtworkpath} {
         ui_info "$UI_PREFIX [format [msgcat::mc "Removing archives for %s"] [option name]]"
         clean_archive
     }
@@ -80,7 +81,8 @@ proc portclean::clean_main {args} {
          ui_info "$UI_PREFIX [format [msgcat::mc "Removing build directory for %s"] [option name]]"
          clean_work
     }
-    if {([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no")} {
+    if {(([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no"))
+        && !$usealtworkpath} {
         clean_logs
     }
 
@@ -172,7 +174,11 @@ proc portclean::clean_dist {args} {
     # loop through directories
     set count 0
     foreach dir $dirlist {
-        set distdir [file join ${portdbpath} distfiles $dir]
+        if {$usealtworkpath} {
+            set distdir [file join ${altprefix}${portdbpath} distfiles $dir]
+        } else {
+            set distdir [file join ${portdbpath} distfiles $dir]
+        }
         if {[file isdirectory $distdir]} {
             ui_debug "Removing directory: ${distdir}"
             if {[catch {delete $distdir} result]} {
