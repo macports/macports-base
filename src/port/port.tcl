@@ -4066,6 +4066,24 @@ proc parse_options { action ui_options_name global_options_name } {
     }
 }
 
+# acquire exclusive registry lock for actions that need it
+# returns 1 if locked, 0 otherwise
+proc lock_reg_if_needed {action} {
+    switch -- $action {
+        activate -
+        deactivate -
+        select -
+        setrequested -
+        unsetrequested -
+        upgrade -
+        uninstall -
+        install {
+            registry::exclusive_lock
+            return 1
+        }
+    }
+    return 0
+}
 
 proc process_cmd { argv } {
     global cmd_argc cmd_argv cmd_argn
@@ -4092,7 +4110,8 @@ proc process_cmd { argv } {
             while { [moreargs] } { advance }
             break
         }
-        
+
+        set locked [lock_reg_if_needed $action]
         # Always start out processing an action in current_portdir
         cd $current_portdir
         
@@ -4154,6 +4173,11 @@ proc process_cmd { argv } {
         
         # execute the action
         set action_status [$action_proc $action $portlist [array get global_options]]
+
+        # unlock if needed
+        if {$locked} {
+            registry::exclusive_unlock
+        }
 
         # semaphore to exit
         if {$action_status == -999} break

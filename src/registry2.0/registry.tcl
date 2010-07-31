@@ -39,6 +39,8 @@ package require registry_uninstall 2.0
 package require msgcat
 
 namespace eval registry {
+    variable lockfd
+    variable nlocked 0
 
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
@@ -385,6 +387,49 @@ proc clean_dep_map {args} {
 proc write_dep_map {args} {
 	global macports::registry.format
 	return [${macports::registry.format}::write_dep_map $args]
+}
+
+# acquire exclusive lock on registry, do this before modifying it or reading
+# any info which will affect a decision on what to modify
+proc exclusive_lock {} {
+    global macports::registry.path
+    variable lockfd
+    variable nlocked
+    incr nlocked
+    if {$nlocked > 1} {
+        return
+    }
+    set lockpath [file join ${registry.path} registry .registry.lock]
+    if {![info exists lockfd]} {
+        set lockfd [::open $lockpath w]
+    }
+    if {[catch {flock $lockfd -exclusive -noblock} result]} {
+        if {$result == "EAGAIN"} {
+            ui_msg "Waiting for lock on $lockpath"
+            flock $lockfd -exclusive
+        } elseif {$result == "EOPNOTSUPP"} {
+            # Locking not supported, just return
+            ui_debug "flock not supported, not locking registry"
+        } else {
+            return -code error "$result obtaining lock on $lockpath"
+        }
+    }
+}
+
+# release exclusive lock on registry, do this when done writing to it
+proc exclusive_unlock {} {
+    variable lockfd
+    variable nlocked
+    incr nlocked -1
+    if {$nlocked > 0} {
+        return
+    } elseif {$nlocked < 0} {
+        ui_warn "exclusive_unlock called more often than exclusive_lock!"
+    }
+    if {[info exists lockfd]} {
+        # not much point trying to handle errors
+        catch {flock $lockfd -unlock}
+    }
 }
 
 # upgrade flat receipts to registry2.0 sqlite db

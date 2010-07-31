@@ -1584,7 +1584,7 @@ proc mportexec {mport target} {
     # Before we build the port, we must build its dependencies.
     set dlist {}
     if {[macports::_target_needs_deps $target]} {
-
+        registry::exclusive_lock
         # see if we actually need to build this port
         if {($target != "activate" && $target != "install") ||
             ![$workername eval registry_exists \$name \$version \$revision \$portvariants]} {
@@ -1638,6 +1638,7 @@ proc mportexec {mport target} {
         } else {
             set result [dlist_eval $dlist _mportinstalled [list _mportexec "activate"]]
         }
+        registry::exclusive_unlock
 
         if {$result != {}} {
             set errstring "The following dependencies failed to build:"
