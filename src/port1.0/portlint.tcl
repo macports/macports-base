@@ -90,7 +90,7 @@ proc portlint::seems_utf8 {str} {
 
 proc portlint::lint_start {args} {
     global UI_PREFIX name
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${name}]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Verifying Portfile for %s"] ${name}]"
 }
 
 proc portlint::lint_main {args} {
@@ -532,7 +532,7 @@ proc portlint::lint_main {args} {
     ui_debug "Archs: $portarch"
     ###################################################################
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "%d errors and %d warnings found."] $errors $warnings]"
 
     return {$errors > 0}
 }
