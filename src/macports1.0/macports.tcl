@@ -1564,7 +1564,7 @@ proc mportexec {mport target} {
     # Before we build the port, we must build its dependencies.
     set dlist {}
     if {[macports::_target_needs_deps $target]} {
-
+        registry::exclusive_lock
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval _check_xcode_version] != 0} {
             return 1
@@ -1610,6 +1610,7 @@ proc mportexec {mport target} {
         } else {
             set result [dlist_eval $dlist _mportinstalled [list _mportexec "activate"]]
         }
+        registry::exclusive_unlock
 
         if {$result != {}} {
             set errstring "The following dependencies failed to build:"
