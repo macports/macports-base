@@ -1586,7 +1586,8 @@ proc mportexec {mport target} {
     if {[macports::_target_needs_deps $target]} {
 
         # see if we actually need to build this port
-        if {![$workername eval registry_exists \$name \$version \$revision \$portvariants]} {
+        if {($target != "activate" && $target != "install") ||
+            ![$workername eval registry_exists \$name \$version \$revision \$portvariants]} {
             # possibly warn or error out depending on how old xcode is
             if {[$workername eval _check_xcode_version] != 0} {
                 return 1
