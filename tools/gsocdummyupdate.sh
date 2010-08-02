@@ -1,18 +1,18 @@
 #!/bin/bash
 
-TARFILE=gsoc-dummy.tar.gz 
-PORTFILE=$(port dir gsoc-dummy)/Portfile
+TARFILE=gsocdummy.tar.gz 
+PORTFILE=$(port dir gsocdummy)/Portfile
 read _ USER <<< $(id -p | grep login)
-#edit following line to point GSOCDUMMYDIR to the directory containing
-#"gsoc-dummy" tree
-GSOCDUMMYDIR=/Users/"$USER"/.macports/GSoC
+#make GSOCDUMMYDIR point to the directory containing "gsoc-dummy" tree
+#GSOCDUMMYDIR=/Users/"$USER"/.macports/GSoC
+GSOCDUMMYDIR=/opt/local/var/macports/sources/svn.macports.org/branches/gsoc10-configfiles/tools
 
 cd "$GSOCDUMMYDIR" && \
-tar zcf "$TARFILE" gsoc-dummy && \
+tar zcf "$TARFILE" --exclude '*.svn*' gsocdummy && \
 chown "$USER" "$TARFILE"
 
 TMPFILE=/tmp/TempPortfile$(date +"%Y%m%d%H%M")
-#just don't be nice, we need an empty file
+#let's just not be nice, we need an empty file
 if [ -f "$TMPFILE" ]; then rm "$TMPFILE"; fi;
 touch /tmp/tempPortfile
 
