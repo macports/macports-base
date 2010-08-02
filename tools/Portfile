@@ -1,9 +1,9 @@
 # $Id$
 PortSystem          1.0
 
-name                gsoc-dummy
+name                gsocdummy
 version             0.1
-revision            1
+revision            0
 categories          devel
 maintainers         and.damore
 description         dummy package for GSoC config files handling task
@@ -12,12 +12,12 @@ homepage            http://trac.macports.org/wiki/SummerOfCode2010
 platforms           darwin
 master_sites        
 use_configure       no
-dist_subdir         gsoc-dummy
-distfiles           gsoc-dummy.tar.gz
-worksrcdir          gsoc-dummy
+dist_subdir         gsocdummy
+distfiles           gsocdummy.tar.gz
+worksrcdir          gsocdummy
 destroot.args-append    PREFIX=$prefix
 
 
-checksums           md5     576d9d6d40cc2bfbc4cec8442ece9df8 \
-                    sha1    f1b6f028dcca995827e5b76e3cd35c061d8a6500 \
-                    rmd160  da72afb00f58f4c8140845e3293d76a9ff531262
+checksums           md5     3d17a980294fdfcae43fb443281ef593 \
+                    sha1    774ff5faa548aa16ad9a6ecb93f7e844031ac2b3 \
+                    rmd160  6ff94757a7d29ac72ea224b8c1103341499fce6a
