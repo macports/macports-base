@@ -401,6 +401,10 @@ proc exclusive_lock {} {
     }
     set lockpath [file join ${registry.path} registry .registry.lock]
     if {![info exists lockfd]} {
+        if {![file writable [file dirname $lockpath]]} {
+            # skip locking, registry can't be modified anyway
+            return
+        }
         set lockfd [::open $lockpath w]
     }
     if {[catch {flock $lockfd -exclusive -noblock} result]} {
