@@ -460,10 +460,18 @@ proc portfetch::fetchfiles {args} {
     set sorted no
 
     foreach {url_var distfile} $fetch_urls {
-        if {![file isfile $distpath/$distfile] && ($usealtworkpath || ![file isfile ${altprefix}${distpath}/$distfile])} {
+        if {![file isfile "${distpath}/${distfile}"]} {
             ui_info "$UI_PREFIX [format [msgcat::mc "%s doesn't seem to exist in %s"] $distfile $distpath]"
             if {![file writable $distpath]} {
                 return -code error [format [msgcat::mc "%s must be writable"] $distpath]
+            }
+            if {!$usealtworkpath && [file isfile ${altprefix}${distpath}/${distfile}]} {
+                if {[catch {file link -hard "${distpath}/${distfile}" "${altprefix}${distpath}/${distfile}"}]} {
+                    ui_debug "failed to hardlink ${distfile} into distpath, copying instead"
+                    file copy "${altprefix}${distpath}/${distfile}" "${distpath}/${distfile}"
+                }
+                ui_info "Found $distfile in ${altprefix}${distpath}"
+                continue
             }
             if {!$sorted} {
                 sortsites fetch_urls [mirror_sites $fallback_mirror_site {} {} [get_full_mirror_sites_path]] master_sites
