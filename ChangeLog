@@ -2,11 +2,51 @@
 # This is a log of major user-visible changes in each MacPorts release.
 # $Id$
 ###
+
+Unreleased changes:
+
+    - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
+      (afb in r57888, r57913; snc in r68955)
+
 Release 1.9.2 (future):
-    - Fixed sha256 checksum (snc in r68955)
 
-    - Fixed premature privilege dropping (jmr in r68952)
+    - Added more locking to avoid TOCTOU errors when running multiple port(1)
+      instances (#19935, jmr in r70174)
 
+    - Fixed -q not suppressing output from 'port lint' (#25880, jmr in r70163)
+
+    - Added a helpful message when there is a checksum mismatch and the
+      distfile appears to incorrectly be a HTML document (#25128,
+      ryandesign/jmr in r70143)
+
+    - Now checking early on if there are sufficient privileges to install,
+      and failing before building anything if not (#25671, jmr in r70135)
+
+    - Avoided possible failure when the -u option is used when upgrading a
+      port that is marked as being replaced by another (jmr in r69022)
+
+    - Using the platform-specific PortIndex when syncing using a daily tarball
+      (jmr in r68786)
+
+    - Fixed failures when fetch target is run without root privileges and the
+      port is then installed with them (#25418, #25937; jmr in r69334, r70271)
+
+    - Fixed upgrading ports where the new version differs from the old version
+      only in epoch (jmr in r69436)
+
+    - Fixed [un]setrequested when using the flat registry format
+      (jmr in r69387)
+
+    - Fixed checking for conflicting ports before installation
+      (#25386, jmr in r69105)
+
+    - Now gracefully handling distfiles that use a tag that is not
+      associated with any sites (#25332, jmr in r68965)
+
+    - Fixed running 'port deps' on multiple ports, and changed its output
+      format back to how it was in 1.8 (#25324, jmr in r68950)
+
+    - Fixed premature privilege dropping (#25331, jmr in r68952)
 
 Release 1.9.1 (2010-06-18):
     - Fixed a couple of problems with new 1.9 features when using the flat
@@ -199,9 +239,6 @@ Release 1.9.0 (2010-06-08 by jmr):
 
     - Use CommonCrypto/CommonDigest instead of OpenSSL libcrypto.
       (toby in r58131, jberry in r59715)
-
-    - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
-      (afb in r57888, r57913)
 
     - New "patch.type gnu" for GNU patch, similar to "build.type gnu"
       for GNU make. Only makes a difference for BSD patch and BSD make.
