@@ -354,9 +354,7 @@ AC_DEFUN([MP_CHECK_RUNUSER],[
 	
 	AC_MSG_CHECKING([for macports user])
 	if test "x$RUNUSR" = "x" ; then
-# dropping root privs is still buggy
-#	   RUNUSR=`id -un`
-	   RUNUSR=root
+	   RUNUSR=nobody
 	fi
 
 	AC_MSG_RESULT([$RUNUSR])

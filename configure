@@ -7698,9 +7698,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for macports user" >&5
 $as_echo_n "checking for macports user... " >&6; }
 	if test "x$RUNUSR" = "x" ; then
-# dropping root privs is still buggy
-#	   RUNUSR=`id -un`
-	   RUNUSR=root
+	   RUNUSR=nobody
 	fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $RUNUSR" >&5
