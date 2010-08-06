@@ -4069,7 +4069,6 @@ proc lock_reg_if_needed {action} {
     switch -- $action {
         activate -
         deactivate -
-        select -
         setrequested -
         unsetrequested -
         upgrade -
