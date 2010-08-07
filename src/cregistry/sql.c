@@ -130,7 +130,7 @@ int create_tables(sqlite3* db, reg_error* errPtr) {
 
         /* file map */
         "CREATE TABLE registry.files (id INTEGER, path TEXT, actual_path TEXT, "
-            "active INT, mtime DATETIME, md5sum TEXT, editable INT, is_config INT, modified INT, "
+            "active INT, mtime DATETIME, md5sum TEXT, editable INT, "
             "FOREIGN KEY(id) REFERENCES ports(id))",
         "CREATE INDEX registry.file_port ON files (id)",
         "CREATE INDEX registry.file_path ON files(path)",
