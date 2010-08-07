@@ -860,6 +860,60 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
 }
 
 /**
+ * gsoc10-configfiles
+ * Maps files to the given port in the filemap. The list of files must not
+ * contain files that are already mapped to the given port.
+ *
+ * @param [in] entry      the entry to map the files to
+ * @param [in] tupels      a list of tupels to map in form {file checksum}
+ * @param [in] tupel_count the number of tupels
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_map_with_md5(reg_entry* entry, char** tupels, int tupel_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* insert = "INSERT INTO registry.files (id, path, mtime, active, md5sum) "
+        "VALUES (?, ?, 0, 0, ?)";
+    if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        int i;
+        for (i=0; i<tupel_count && result; i++) {
+            if (sqlite3_bind_text(stmt, 2, tupels[i], -1, SQLITE_STATIC)
+                    == SQLITE_OK) {
+                int r;
+                do {
+                    r = sqlite3_step(stmt);
+                    switch (r) {
+                        case SQLITE_DONE:
+                            sqlite3_reset(stmt);
+                            break;
+                        case SQLITE_BUSY:
+                            break;
+                        default:
+                            reg_sqlite_error(reg->db, errPtr, insert);
+                            result = 0;
+                            break;
+                    }
+                } while (r == SQLITE_BUSY);
+            } else {
+                reg_sqlite_error(reg->db, errPtr, insert);
+                result = 0;
+            }
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, insert);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+/**
  * Unaps files from the given port in the filemap. The files must be owned by
  * the given entry.
  *
