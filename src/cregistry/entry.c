@@ -879,13 +879,12 @@ int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int a
     sqlite3_stmt* stmt = NULL;
     char* insert = "INSERT INTO registry.files (id, path, mtime, active, md5sum) "
         "VALUES (?, ?, 0, 0, ?)";
-    printf("GSOCDBG: we're into reg_entry_map_with_md5\n");
     /*  sqlite3_prepare() is documented as legacy, http://www.sqlite.org/c3ref/step.html
         use sqlite3_prepare_v2() should be used instead */
     if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;
-        for (i=0; i<arg_count && result; i++) {
+        for (i=0; i<(arg_count/2) && result; i++) {
             /*  cycles through files[] array of strings,
                 the if argument parse a file from the array and put in into
                 the SQL statement */
