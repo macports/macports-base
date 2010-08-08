@@ -923,7 +923,7 @@ int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int a
 }
         
 /**
- * Unaps files from the given port in the filemap. The files must be owned by
+ * Unmaps files from the given port in the filemap. The files must be owned by
  * the given entry.
  *
  * @param [in] entry      the entry to unmap the files from
