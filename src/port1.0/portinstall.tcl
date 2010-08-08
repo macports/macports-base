@@ -198,7 +198,7 @@ proc portinstall::install_main {args} {
             
             if {[info exists installPlist]} {
                 # register files
-                $regref map $installPlist
+                $regref map_with_md5 $installPlist
             }
             
             # store portfile

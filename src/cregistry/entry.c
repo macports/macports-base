@@ -37,6 +37,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sqlite3.h>
+#include <stdio.h>
 
 /*
  * TODO: possibly, allow reg_entry_search to take different matching strategies
@@ -878,6 +879,7 @@ int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int a
     sqlite3_stmt* stmt = NULL;
     char* insert = "INSERT INTO registry.files (id, path, mtime, active, md5sum) "
         "VALUES (?, ?, 0, 0, ?)";
+    printf("GSOCDBG: we're into reg_entry_map_with_md5\n");
     /*  sqlite3_prepare() is documented as legacy, http://www.sqlite.org/c3ref/step.html
         use sqlite3_prepare_v2() should be used instead */
     if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)

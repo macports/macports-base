@@ -38,6 +38,7 @@
 #include "entryobj.h"
 #include "registry.h"
 #include "util.h"
+#include <stdio.h>
 
 const char* entry_props[] = {
     "name",
@@ -158,6 +159,7 @@ static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
 static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
+    printf("GSOCDBG: we're into entry_obj_filemap_with_md5\n");
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "map {file md5checksum}-list");
         return TCL_ERROR;
