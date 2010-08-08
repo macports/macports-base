@@ -443,6 +443,7 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "requested", entry_obj_prop },
     /* filemap */
     { "map", entry_obj_filemap },
+    { "map_with_md5", entry_obj_filemap_with_md5 },
     { "unmap", entry_obj_filemap },
     { "files", entry_obj_files },
     { "imagefiles", entry_obj_imagefiles },
