@@ -860,6 +860,69 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
 }
 
 /**
+ * Maps files to the given port in the filemap along with their md5 checksums.
+ * The list of files must not contain files that are already mapped to the
+ * given port.
+ *
+ * @param [in] entry      the entry to map the files to
+ * @param [in] files      a list of files to map
+ * @param [in] md5sums      a list of files to map
+ * @param [in] arg_count the number of files
+ * @param [out] errPtr    on error, a description of the error that occurred
+ * @return                true if success; false if failure
+ */
+int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int arg_count,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    int result = 1;
+    sqlite3_stmt* stmt = NULL;
+    char* insert = "INSERT INTO registry.files (id, path, mtime, active, md5sum) "
+        "VALUES (?, ?, 0, 0, ?)";
+    /*  sqlite3_prepare() is documented as legacy, http://www.sqlite.org/c3ref/step.html
+        use sqlite3_prepare_v2() should be used instead */
+    if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        int i;
+        for (i=0; i<arg_count && result; i++) {
+            /*  cycles through files[] array of strings,
+                the if argument parse a file from the array and put in into
+                the SQL statement */
+            if (sqlite3_bind_text(stmt, 2, files[i], -1, SQLITE_STATIC)
+                    == SQLITE_OK) {
+                if (sqlite3_bind_text(stmt, 3, md5sums[i], -1, SQLITE_STATIC)
+                        == SQLITE_OK) {
+                    int r;
+                    do {
+                        r = sqlite3_step(stmt);
+                        switch (r) {
+                            case SQLITE_DONE:
+                                sqlite3_reset(stmt);
+                                break;
+                            case SQLITE_BUSY:
+                                break;
+                            default:
+                                reg_sqlite_error(reg->db, errPtr, insert);
+                                result = 0;
+                                break;
+                        }
+                    } while (r == SQLITE_BUSY);
+                }
+            } else {
+                reg_sqlite_error(reg->db, errPtr, insert);
+                result = 0;
+            }
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, insert);
+        result = 0;
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+        
+/**
  * Unaps files from the given port in the filemap. The files must be owned by
  * the given entry.
  *

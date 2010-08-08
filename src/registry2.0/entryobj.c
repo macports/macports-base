@@ -155,6 +155,67 @@ static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
+static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 3) {
+        Tcl_WrongNumArgs(interp, 2, objv, "map {file md5checksum}-list");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** files;
+        char** md5sums;
+        reg_error error;
+        Tcl_Obj *element; 
+        Tcl_Obj** listv;
+        int listc;
+        int result = TCL_ERROR;
+        int i;
+
+        if (Tcl_ListObjGetElements(interp, objv[2], &listc, &listv) != TCL_OK) {
+            return TCL_ERROR;
+        }
+        files=malloc(listc*sizeof(char *));
+        md5sums=malloc(listc*sizeof(char*));
+        /*  remember to add check for malloc return values */
+        for (i = 0; i < listc; i++) { 
+            if (Tcl_ListObjIndex(interp, listv[i], 0, &element) != TCL_OK) {
+                free(files); free(md5sums); return TCL_ERROR; } 
+            else if(element != NULL)
+                files[i] = Tcl_GetString(element);
+            else {
+                Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
+
+            if (Tcl_ListObjIndex(interp, listv[i], 1, &element) != TCL_OK) {
+                free(files); free(md5sums); return TCL_ERROR; } 
+            else if(element != NULL)
+                md5sums[i] = Tcl_GetString(element); 
+            else {
+                Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
+        }
+        
+        /*  change the condition, */
+        /*  it used to be list_obj_to_string() but now we're filling arrays by hand  */
+        if ( 1 ) {
+            if (reg_entry_map_with_md5(entry, files, md5sums, listc, &error)) {
+                result = TCL_OK;
+            } else {
+                result = registry_failed(interp, &error);
+            }
+            free(files);
+            free(md5sums);
+        }
+        /*  the else branch is useless because if condition is a constant
+            cf. previous comment 
+        else {
+            result = registry_failed(interp, &error);
+        }
+        */
+        return result;
+    }
+}
+
 static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);

@@ -77,6 +77,8 @@ int reg_entry_propset(reg_entry* entry, char* key, char* value,
 
 int reg_entry_map(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
+int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int arg_count,
+        reg_error* errPtr);
 int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
         reg_error* errPtr);
 
