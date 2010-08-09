@@ -266,6 +266,43 @@ static int entry_obj_files(Tcl_Interp* interp, reg_entry* entry, int objc,
     }
 }
 
+static int entry_obj_files_with_md5(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "files_with_md5");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** files;
+        char** md5sums;
+        reg_error error;
+        /*  call to entry.c function */
+        int file_count = reg_entry_files_with_md5(entry, &files, &md5sums, &error);
+        int i;
+        if (file_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_string_to_obj(&objs, files, file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+                /*  sending the result to Tcl, an object in this case */
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            for (i=0; i<file_count; i++) {
+                free(files[i]);
+            }
+            free(files);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 static int entry_obj_imagefiles(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -278,6 +315,41 @@ static int entry_obj_imagefiles(Tcl_Interp* interp, reg_entry* entry, int objc,
         char** files;
         reg_error error;
         int file_count = reg_entry_imagefiles(entry, &files, &error);
+        int i;
+        if (file_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_string_to_obj(&objs, files, file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            for (i=0; i<file_count; i++) {
+                free(files[i]);
+            }
+            free(files);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
+static int entry_obj_imagefiles_with_md5(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "imagefiles_with_md5");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** files;
+        char** md5sums;
+        reg_error error;
+        int file_count = reg_entry_imagefiles_with_md5(entry, &files, &md5sums, &error);
         int i;
         if (file_count >= 0) {
             Tcl_Obj** objs;
@@ -462,7 +534,9 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "map_with_md5", entry_obj_filemap_with_md5 },
     { "unmap", entry_obj_filemap },
     { "files", entry_obj_files },
+    { "files_with_md5", entry_obj_files_with_md5 },
     { "imagefiles", entry_obj_imagefiles },
+    { "imagefiles_with_md5", entry_obj_imagefiles_with_md5 },
     { "activate", entry_obj_activate },
     { "deactivate", entry_obj_filemap },
     /* dep map */
@@ -483,7 +557,6 @@ static entry_obj_cmd_type entry_cmds[] = {
 int entry_obj_cmd(ClientData clientData, Tcl_Interp* interp, int objc,
         Tcl_Obj* CONST objv[]) {
     int cmd_index;
-    int len=0;
     if (objc < 2) {
         Tcl_WrongNumArgs(interp, 1, objv, "cmd ?arg ...?");
         return TCL_ERROR;

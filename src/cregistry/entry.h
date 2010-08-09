@@ -84,7 +84,11 @@ int reg_entry_unmap(reg_entry* entry, char** files, int file_count,
 
 int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr);
 int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr);
-
+int reg_entry_files_with_md5(
+        reg_entry* entry, char*** files, char*** md5sums, reg_error* errPtr);       
+int reg_entry_imagefiles_with_md5(
+        reg_entry* entry, char*** files, char*** md5sums, reg_error* errPtr);
+        
 int reg_entry_activate(reg_entry* entry, char** files, char** as_files,
         int file_count, reg_error* errPtr);
 int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,

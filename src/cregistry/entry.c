@@ -904,8 +904,8 @@ int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums,
                 printf("GSOCDBG: \t\t\tinside first if branch\n");
                 if (sqlite3_bind_text(stmt, 3, md5sums[i], -1, SQLITE_STATIC)
                         == SQLITE_OK) {
-                    printf("GSOCDBG: \t\t\tinside second if branch\n");
                     int r;
+                    printf("GSOCDBG: \t\t\tinside second if branch\n");
                     do {
                         r = sqlite3_step(stmt);
                         switch (r) {
@@ -1063,6 +1063,94 @@ int reg_entry_imagefiles(reg_entry* entry, char*** files, reg_error* errPtr) {
 }
 
 /**
+ * Gets a list of files provided by the given port. These files are in the port
+ * image and do not necessarily correspond to active files on the filesystem.
+ *
+ * TODO: check that the port's installtype is image
+ *
+ * @param [in] entry   entry to get the list for
+ * @param [out] files  a list of files provided by the port
+ * @param [out] md5sums  a list of files provided by the port
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             the number of files if success; negative if failure
+ */
+int reg_entry_imagefiles_with_md5(reg_entry* entry, char*** files,
+        char*** md5sums, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "SELECT path,md5sum FROM registry.files WHERE id=? ORDER BY path";
+    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        char** result_files = malloc(10*sizeof(char*));
+        int result_count_files = 0;
+        int result_space_files = 10;
+        char** result_md5sums = malloc(10*sizeof(char*));
+        int result_count_md5sums = 0;
+        int result_space_md5sums = 10;
+        int r;
+        const char *text_file;
+        const char *text_md5sum;
+        char* element;
+        
+        if (!result_files || !result_md5sums) {
+            return -1;
+        }
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    /* here we're accessing the SQL statement data */
+                    text_file = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text_file) {
+                        element = strdup(text_file);
+                        if (!element || !reg_listcat((void***)&result_files, &result_count_files, &result_space_files, element)) {
+                            r = SQLITE_ERROR;
+                        }
+                    }
+                    text_md5sum = (const char*)sqlite3_column_text(stmt, 1);
+                    if (text_md5sum) {
+                        element = strdup(text_md5sum);
+                        if (!element || !reg_listcat((void***)&result_md5sums, &result_count_md5sums, &result_space_md5sums, element)) {
+                            r = SQLITE_ERROR;
+                        }
+                    }
+                    break;
+                case SQLITE_DONE:
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+        sqlite3_finalize(stmt);
+        if (r == SQLITE_DONE) {
+            *files = result_files;
+            *md5sums = result_md5sums;
+            /*  this is lacking result_count_md5sums, shouldn't be necessary */
+            return result_count_files;
+        } else {
+            int i;
+            for (i=0; i<result_count_files; i++) {
+                free(result_files[i]);
+            }
+            for (i=0; i<result_count_md5sums; i++) {
+                free(result_md5sums[i]);
+            }
+            free(result_files);
+            free(result_md5sums);
+            return -1;
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return -1;
+    }
+}
+
+/**
  * Gets a list of files owned by the given port. These files are active in the
  * filesystem and could be different from the port's imagefiles.
  *
@@ -1119,6 +1207,95 @@ int reg_entry_files(reg_entry* entry, char*** files, reg_error* errPtr) {
                 free(result[i]);
             }
             free(result);
+            return -1;
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return -1;
+    }
+}
+
+/**
+ * Gets a list of files owned by the given port. These files are active in the
+ * filesystem and could be different from the port's imagefiles.
+ *
+ * TODO: check that the port is active
+ *
+ * @param [in] entry   entry to get the list for
+ * @param [out] files  a list of files owned by the port
+ * @param [out] md5sums  a list of files provided by the port
+ * @param [out] errPtr on error, a description of the error that occurred
+ * @return             the number of files if success; negative if failure
+ */
+int reg_entry_files_with_md5(reg_entry* entry, char*** files, char*** md5sums,
+        reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "SELECT actual_path,md5sum FROM registry.files WHERE id=? "
+        "AND active ORDER BY actual_path";
+    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        char** result_files = malloc(10*sizeof(char*));
+        int result_count_files = 0;
+        int result_space_files = 10;
+        char** result_md5sums = malloc(10*sizeof(char*));
+        int result_count_md5sums = 0;
+        int result_space_md5sums = 10;
+        int r;
+        const char *text_file;
+        const char *text_md5sum;
+        char* element;
+        
+        if (!result_files || !result_md5sums) {
+            return -1;
+        }
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    /* here we're accessing the SQL statement data */
+                    text_file = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text_file) {
+                        element = strdup(text_file);
+                        if (!element || !reg_listcat((void***)&result_files, &result_count_files, &result_space_files, element)) {
+                            r = SQLITE_ERROR;
+                        }
+                    }
+                    text_md5sum = (const char*)sqlite3_column_text(stmt, 1);
+                    if (text_md5sum) {
+                        element = strdup(text_md5sum);
+                        if (!element || !reg_listcat((void***)&result_md5sums, &result_count_md5sums, &result_space_md5sums, element)) {
+                            r = SQLITE_ERROR;
+                        }
+                    }
+                    break;
+                case SQLITE_DONE:
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+        sqlite3_finalize(stmt);
+        if (r == SQLITE_DONE) {
+            *files = result_files;
+            *md5sums = result_md5sums;
+            /*  this is lacking result_count_md5sums, shouldn't be necessary */
+            return result_count_files;
+        } else {
+            int i;
+            for (i=0; i<result_count_files; i++) {
+                free(result_files[i]);
+            }
+            for (i=0; i<result_count_md5sums; i++) {
+                free(result_md5sums[i]);
+            }
+            free(result_files);
+            free(result_md5sums);
             return -1;
         }
     } else {
