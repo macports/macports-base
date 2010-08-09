@@ -198,7 +198,16 @@ proc portinstall::install_main {args} {
             
             if {[info exists installPlist]} {
                 # register files
-                $regref map_with_md5 $installPlist
+                set installPlistWithMD5 [list]
+                foreach file $installPlist {
+                    lappend installPlistWithMD5 $file
+                    if {[catch {md5 file "$imagedir$file"} md5sum] == 0} {
+                        lappend installPlistWithMD5 $md5sum
+                    }
+                }    
+                #puts "installPlist:$installPlist"
+                puts "installPlistWithMD5:$installPlistWithMD5"
+                $regref map_with_md5 "$installPlistWithMD5"
             }
             
             # store portfile

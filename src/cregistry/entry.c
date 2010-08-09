@@ -872,26 +872,39 @@ int reg_entry_map(reg_entry* entry, char** files, int file_count,
  * @param [out] errPtr    on error, a description of the error that occurred
  * @return                true if success; false if failure
  */
-int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int arg_count,
-        reg_error* errPtr) {
+int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums,
+        int arg_count, reg_error* errPtr) {
     reg_registry* reg = entry->reg;
     int result = 1;
     sqlite3_stmt* stmt = NULL;
-    char* insert = "INSERT INTO registry.files (id, path, mtime, active, md5sum) "
-        "VALUES (?, ?, 0, 0, ?)";
-    /*  sqlite3_prepare() is documented as legacy, http://www.sqlite.org/c3ref/step.html
-        use sqlite3_prepare_v2() should be used instead */
+    char* insert = "INSERT INTO registry.files "
+        "(id, path, mtime, active, md5sum) VALUES (?, ?, 0, 0, ?)";
+        
+    printf("GSOCDBG: \tentered reg_entry_map_with_md5\n");
+    printf("GSOCDBG: \t\targ_count:%d\n",arg_count);
+    /*  sqlite3_prepare() is documented as legacy, 
+        cf. http://www.sqlite.org/c3ref/step.html
+        sqlite3_prepare_v2() should be used instead */
     if ((sqlite3_prepare(reg->db, insert, -1, &stmt, NULL) == SQLITE_OK)
             && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
         int i;
-        for (i=0; i<(arg_count/2) && result; i++) {
+        printf("GSOCDBG: \tlet's print files[] and md5sums[]\n");
+        for (i=0; i<arg_count; i++) {
+            printf("GSOCDBG: \t\tfiles[%d]:\"%s\"\n",i,files[i]);
+            printf("GSOCDBG: \t\tmd5sums[%d]:\"%s\"\n",i,md5sums[i]);
+        }
+        printf("GSOCDBG: \t\tentering the for loop\n");
+            for (i=0; (i<arg_count) && result; i++) {
+            printf("GSOCDBG: \t\tloop iteration:%d\n",i);
             /*  cycles through files[] array of strings,
                 the if argument parse a file from the array and put in into
                 the SQL statement */
             if (sqlite3_bind_text(stmt, 2, files[i], -1, SQLITE_STATIC)
                     == SQLITE_OK) {
+                printf("GSOCDBG: \t\t\tinside first if branch\n");
                 if (sqlite3_bind_text(stmt, 3, md5sums[i], -1, SQLITE_STATIC)
                         == SQLITE_OK) {
+                    printf("GSOCDBG: \t\t\tinside second if branch\n");
                     int r;
                     do {
                         r = sqlite3_step(stmt);
@@ -917,6 +930,7 @@ int reg_entry_map_with_md5(reg_entry* entry, char** files, char** md5sums, int a
         reg_sqlite_error(reg->db, errPtr, insert);
         result = 0;
     }
+    printf("GSOCDBG: \texiting reg_entry_map_with_md5\n");
     if (stmt) {
         sqlite3_finalize(stmt);
     }
