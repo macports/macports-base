@@ -1127,7 +1127,8 @@ int reg_entry_imagefiles_with_md5(reg_entry* entry, char*** files,
         if (r == SQLITE_DONE) {
             *files = result_files;
             *md5sums = result_md5sums;
-            /*  this is lacking result_count_md5sums, shouldn't be necessary */
+            /*  this is lacking result_count_md5sums, shouldn't be necessary as 
+                both counts will always be the same */
             return result_count_files;
         } else {
             int i;
@@ -1284,7 +1285,8 @@ int reg_entry_files_with_md5(reg_entry* entry, char*** files, char*** md5sums,
         if (r == SQLITE_DONE) {
             *files = result_files;
             *md5sums = result_md5sums;
-            /*  this is lacking result_count_md5sums, shouldn't be necessary */
+            /*  this is lacking result_count_md5sums, shouldn't be necessary as 
+                both counts will always be the same */
             return result_count_files;
         } else {
             int i;
