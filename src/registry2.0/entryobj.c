@@ -277,16 +277,24 @@ static int entry_obj_files_with_md5(Tcl_Interp* interp, reg_entry* entry, int ob
     } else {
         char** files;
         char** md5sums;
+        char** mixed;
         reg_error error;
-        /*  call to entry.c function */
         int file_count = reg_entry_files_with_md5(entry, &files, &md5sums, &error);
         int i;
         if (file_count >= 0) {
             Tcl_Obj** objs;
             int retval = TCL_ERROR;
-            if (list_string_to_obj(&objs, files, file_count, &error)) {
-                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
-                /*  sending the result to Tcl, an object in this case */
+            
+            mixed=malloc(2*file_count*sizeof(char *));
+            for (i=0; i<2*file_count; i+=2) {
+                /*  could Tcl_* functions instead, Tcl_NewListObj and then
+                Tcl_ListObjAppendElement on Tcl_NewString() files[i] md5sums[i]
+                    */
+                mixed[i+0]=files[i];
+                mixed[i+1]=md5sums[i];
+            }
+            if (list_string_to_obj(&objs, mixed, 2*file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(2*file_count, objs);
                 Tcl_SetObjResult(interp, result);
                 free(objs);
                 retval = TCL_OK;
@@ -295,8 +303,11 @@ static int entry_obj_files_with_md5(Tcl_Interp* interp, reg_entry* entry, int ob
             }
             for (i=0; i<file_count; i++) {
                 free(files[i]);
+                free(md5sums[i]);
             }
             free(files);
+            free(md5sums);
+            free(mixed);
             return retval;
         }
         return registry_failed(interp, &error);
@@ -348,14 +359,23 @@ static int entry_obj_imagefiles_with_md5(Tcl_Interp* interp, reg_entry* entry, i
     } else {
         char** files;
         char** md5sums;
+        char** mixed;
         reg_error error;
         int file_count = reg_entry_imagefiles_with_md5(entry, &files, &md5sums, &error);
         int i;
         if (file_count >= 0) {
             Tcl_Obj** objs;
             int retval = TCL_ERROR;
-            if (list_string_to_obj(&objs, files, file_count, &error)) {
-                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+            mixed=malloc(2*file_count*sizeof(char *));
+            for (i=0; i<2*file_count; i+=2) {
+                /*  could Tcl_* functions instead, Tcl_NewListObj and then
+                Tcl_ListObjAppendElement on Tcl_NewString() files[i] md5sums[i]
+                    */
+                mixed[i+0]=files[i];
+                mixed[i+1]=md5sums[i];
+            }
+            if (list_string_to_obj(&objs, mixed, 2*file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(2*file_count, objs);
                 Tcl_SetObjResult(interp, result);
                 free(objs);
                 retval = TCL_OK;
@@ -364,8 +384,11 @@ static int entry_obj_imagefiles_with_md5(Tcl_Interp* interp, reg_entry* entry, i
             }
             for (i=0; i<file_count; i++) {
                 free(files[i]);
+                free(md5sums[i]);
             }
             free(files);
+            free(md5sums);
+            free(mixed);
             return retval;
         }
         return registry_failed(interp, &error);
