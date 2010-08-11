@@ -216,7 +216,6 @@ proc deactivate {name v optionslist} {
         }
     }
 
-    #branch on sqlite-registry-db or old–flatfile
     if {$use_reg2} {
         if { [string equal $name ""] } {
             throw registry::image-error "Registry error: Please specify the name of the port."
@@ -258,7 +257,6 @@ proc deactivate {name v optionslist} {
         ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
     }
 
-    #here we go - 
     if {$use_reg2} {
         if { ![string equal [$requested installtype] "image"] } {
             return -code error "Image error: ${name} @${specifier} not installed as an image."
@@ -699,7 +697,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     variable use_reg2
     set files [list]
 
-    foreach file $imagefiles {  
+    foreach file $imagefiles {
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
             # symlinks (remove the empty directories instead)
@@ -736,7 +734,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
             $port deactivate $imagefiles
             foreach file $files {
                   if {[is_config_file $file]} {
-                          #puts "GSOC: $file is config file, skipping for now"
+                          puts "GSOC: $file is config file"
                           #continue
                       }                  
                 _deactivate_file $file
@@ -751,7 +749,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
 
 proc is_config_file {filename} {
     #replace hardcoded path with $config_path from portmain.tcl, what namespace does "option" add options to?
-    if {[string match ${::macports::prefix} "$filename"]} {return 1} {return 0}
+    if {[string match ${::macports::prefix}/etc "$filename"]} {return 1} {return 0}
 }
 
 # End of portimage namespace

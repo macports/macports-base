@@ -1310,6 +1310,73 @@ int reg_entry_files_with_md5(reg_entry* entry, char*** files, char*** md5sums,
 }
 
 /**
+ * Gets a list of md5sums owned by the given port.
+ *
+ * TODO: check that the port is active
+ *
+ * @param [in] entry    entry to get the list for
+ * @param [out] md5sums a list of md5sums owned by the port
+ * @param [out] errPtr  on error, a description of the error that occurred
+ * @return              the number of md5sums if success; negative if failure
+ */
+int reg_entry_md5sums(reg_entry* entry, char*** md5sums, reg_error* errPtr) {
+    reg_registry* reg = entry->reg;
+    sqlite3_stmt* stmt = NULL;
+    char* query = "SELECT md5sum FROM registry.files WHERE id=? "
+        "AND active ORDER BY actual_path";
+    if ((sqlite3_prepare(reg->db, query, -1, &stmt, NULL) == SQLITE_OK)
+            && (sqlite3_bind_int64(stmt, 1, entry->id) == SQLITE_OK)) {
+        char** result = malloc(10*sizeof(char*));
+        int result_count = 0;
+        int result_space = 10;
+        int r;
+        const char *text;
+        char* element;
+        if (!result) {
+            return -1;
+        }
+        do {
+            r = sqlite3_step(stmt);
+            switch (r) {
+                case SQLITE_ROW:
+                    text = (const char*)sqlite3_column_text(stmt, 0);
+                    if (text) {
+                        element = strdup(text);
+                        if (!element || !reg_listcat((void***)&result, &result_count, &result_space, element)) {
+                            r = SQLITE_ERROR;
+                        }
+                    }
+                    break;
+                case SQLITE_DONE:
+                case SQLITE_BUSY:
+                    break;
+                default:
+                    reg_sqlite_error(reg->db, errPtr, query);
+                    break;
+            }
+        } while (r == SQLITE_ROW || r == SQLITE_BUSY);
+        sqlite3_finalize(stmt);
+        if (r == SQLITE_DONE) {
+            *md5sums = result;
+            return result_count;
+        } else {
+            int i;
+            for (i=0; i<result_count; i++) {
+                free(result[i]);
+            }
+            free(result);
+            return -1;
+        }
+    } else {
+        reg_sqlite_error(reg->db, errPtr, query);
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+        return -1;
+    }
+}
+
+/**
  * Sets an entry's files as being active in the filesystem. This entry will be
  * subsequently returned by `reg_entry_owner` on those files' path. If all files
  * are being activated as the names they are in the registry, then `as_files`

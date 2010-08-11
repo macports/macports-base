@@ -404,6 +404,40 @@ static int entry_obj_imagefiles_with_md5(Tcl_Interp* interp, reg_entry* entry, i
     }
 }
 
+static int entry_obj_md5sums(Tcl_Interp* interp, reg_entry* entry, int objc,
+        Tcl_Obj* CONST objv[]) {
+    reg_registry* reg = registry_for(interp, reg_attached);
+    if (objc != 2) {
+        Tcl_WrongNumArgs(interp, 1, objv, "md5sums");
+        return TCL_ERROR;
+    } else if (reg == NULL) {
+        return TCL_ERROR;
+    } else {
+        char** md5sums;
+        reg_error error;
+        int file_count = reg_entry_md5sums(entry, &md5sums, &error);
+        int i;
+        if (file_count >= 0) {
+            Tcl_Obj** objs;
+            int retval = TCL_ERROR;
+            if (list_string_to_obj(&objs, md5sums, file_count, &error)) {
+                Tcl_Obj* result = Tcl_NewListObj(file_count, objs);
+                Tcl_SetObjResult(interp, result);
+                free(objs);
+                retval = TCL_OK;
+            } else {
+                retval = registry_failed(interp, &error);
+            }
+            for (i=0; i<file_count; i++) {
+                free(md5sums[i]);
+            }
+            free(md5sums);
+            return retval;
+        }
+        return registry_failed(interp, &error);
+    }
+}
+
 static int entry_obj_activate(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
@@ -569,6 +603,7 @@ static entry_obj_cmd_type entry_cmds[] = {
     { "files_with_md5", entry_obj_files_with_md5 },
     { "imagefiles", entry_obj_imagefiles },
     { "imagefiles_with_md5", entry_obj_imagefiles_with_md5 },
+    { "md5sums", entry_obj_md5sums },
     { "activate", entry_obj_activate },
     { "deactivate", entry_obj_filemap },
     /* dep map */
