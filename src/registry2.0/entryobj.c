@@ -192,14 +192,14 @@ static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int 
             else if (element == NULL) {
                 Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
             else {
-                files[list_counter] = Tcl_GetString(element);
+                files[list_counter] = Tcl_GetString(element); }
             element=NULL;
             if (Tcl_ListObjIndex(interp, listv[i+1], 0, &element) != TCL_OK) {
                 free(files); free(md5sums); return TCL_ERROR; } 
             else if (element == NULL) {
                 Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
             else {
-                md5sums[list_counter] = Tcl_GetString(element);
+                md5sums[list_counter] = Tcl_GetString(element); }
         }
         
         /*  change the condition, */
