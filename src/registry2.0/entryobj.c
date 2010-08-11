@@ -159,7 +159,6 @@ static int entry_obj_filemap(Tcl_Interp* interp, reg_entry* entry, int objc,
 static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int objc,
         Tcl_Obj* CONST objv[]) {
     reg_registry* reg = registry_for(interp, reg_attached);
-    printf("GSOCDBG: entering entry_obj_filemap_with_md5\n");
     if (objc != 3) {
         Tcl_WrongNumArgs(interp, 2, objv, "map {file md5checksum}-list");
         return TCL_ERROR;
@@ -180,18 +179,13 @@ static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int 
             return TCL_ERROR;
         }
         
-        printf("GSOCDBG: size of list %d\n", listc);
         /*  remember to add check for malloc return values */
         files=malloc((listc/2)*sizeof(char *));
         md5sums=malloc((listc/2)*sizeof(char*));
         
-        printf("GSOCDBG: for loop\n");
         /*  fill in files[] and md5sums[] */
         for (i=0; i<listc; i+=2) { 
             list_counter=i/2;
-            /*if (Tcl_ListObjLength(interp, listv[i], &length) != TCL_OK) {
-                free(files); free(md5sums); return TCL_ERROR; } */
-            printf("GSOCDBG: \titem %d\n", list_counter); 
             element=NULL;
             if (Tcl_ListObjIndex(interp, listv[i], 0, &element) != TCL_OK) {
                 free(files); free(md5sums); return TCL_ERROR; } 
@@ -199,7 +193,6 @@ static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int 
                 Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
             else {
                 files[list_counter] = Tcl_GetString(element);
-                printf("GSOCDBG: \t\tfiles[%d]=\"%s\"\n", list_counter, files[list_counter]); }
             element=NULL;
             if (Tcl_ListObjIndex(interp, listv[i+1], 0, &element) != TCL_OK) {
                 free(files); free(md5sums); return TCL_ERROR; } 
@@ -207,7 +200,6 @@ static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int 
                 Tcl_SetErrorCode(interp, "illegal input", NULL); return TCL_ERROR; }
             else {
                 md5sums[list_counter] = Tcl_GetString(element);
-                printf("GSOCDBG: \t\tmd5sums[%d]=\"%s\"\n", list_counter, md5sums[list_counter]); }
         }
         
         /*  change the condition, */
@@ -227,7 +219,6 @@ static int entry_obj_filemap_with_md5(Tcl_Interp* interp, reg_entry* entry, int 
             result = registry_failed(interp, &error);
         }
         */
-        printf("GSOCDBG: exiting entry_obj_filemap_with_md5\n");
         return result;
     }
 }
