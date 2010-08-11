@@ -204,7 +204,7 @@ proc portinstall::install_main {args} {
                     if {[catch {md5 file "$imagedir$file"} md5sum] == 0} {
                         lappend installPlistWithMD5 $md5sum
                     } else { lappend installPlistWithMD5 _not_present}
-                }    
+                }
                 $regref map_with_md5 "$installPlistWithMD5"
             }
             
