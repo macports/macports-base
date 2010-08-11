@@ -205,8 +205,6 @@ proc portinstall::install_main {args} {
                         lappend installPlistWithMD5 $md5sum
                     } else { lappend installPlistWithMD5 _not_present}
                 }    
-                #puts "installPlist:$installPlist"
-                puts "installPlistWithMD5:$installPlistWithMD5"
                 $regref map_with_md5 "$installPlistWithMD5"
             }
             
