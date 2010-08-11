@@ -31,11 +31,11 @@ printf "Portfile updated with:\n%s\n%s\n%s\n\n" "$md5" "$sha" "$rmd"
 
 #update Portfile
 cp "$TMPFILE" "$PORTFILE"
-#update distfile
-mkdir -p /opt/mp-gsoc/var/macports/distfiles/gsoc-dummy/
-cp "$TARFILE" /opt/mp-gsoc/var/macports/distfiles/gsoc-dummy
+#update distfile, manual fetch phase
+mkdir -p /opt/mp-gsoc/var/macports/distfiles/gsocdummy/
+cp "$TARFILE" /opt/mp-gsoc/var/macports/distfiles/gsocdummy
 #clean status
-port clean gsoc-dummy
+port clean gsocdummy
 #clean /tmp too
 rm "$TMPFILE"
 
