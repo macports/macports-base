@@ -706,10 +706,6 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
     variable use_reg2
     set files [list]
 
-    puts "GSOCDBG: \tdeactivate_contents"
-    foreach file $imagefiles {
-        puts "GSOCDBG:\tfile:$file:\tmd5sum:[dict get $imagefiles_with_md5 $file]:"
-    }
     foreach file $imagefiles {
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
@@ -742,16 +738,13 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
     set files [lsort -decreasing -unique $files]
 
     # Remove all elements.
-    puts "GSOCDBG:\tremoving all elements"
     if {$use_reg2 && !$rollback} {
         registry::write {
             $port deactivate $imagefiles
             foreach file $files {
                 if { [file isfile $file] && [is_config_file $file]} {
-                        puts "GSOCDBG:\t$file is config file"
                         if {[catch {md5 file "$file"} actual_md5] == 0} {
                             set stored_md5 [dict get $imagefiles_with_md5 $file]
-                            puts "GSOCDBG:\t\tactual_md5:$actual_md5\tstored_md5:$stored_md5"
                             if {[string equal -nocase \
                                     $actual_md5 $stored_md5]} {
                                 puts "GSOCDBG:\t\tnot modified file:$file"
