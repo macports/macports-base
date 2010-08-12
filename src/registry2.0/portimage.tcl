@@ -270,7 +270,8 @@ proc deactivate {name v optionslist} {
             registry::check_dependents $requested $force
         }
 
-        _deactivate_contents $requested [$requested files] $force
+        _deactivate_contents $requested [$requested files] [$requested files_with_md5] $force
+
         $requested state imaged
     } else {
         set ref [registry::open_entry $name $version $revision $variants]
@@ -549,7 +550,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         } catch {*} {
             # roll back activation of this port
             if {[info exists deactivate_this]} {
-                _deactivate_contents $port $rollback_filelist yes yes
+                _deactivate_contents $port $rollback_filelist {} yes yes
             }
             # if any errors occurred, move backed-up files back to their original
             # locations, then rethrow the error. Transaction rollback will take care
@@ -651,7 +652,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                         }
                     }} result]} {
             ui_debug "Activation failed, rolling back."
-            _deactivate_contents $name $rollback_filelist yes yes
+            _deactivate_contents $name $rollback_filelist {} yes yes
             # return backed up files to their old locations
             foreach f $backups {
                 set bakfile "${f}${baksuffix}"
@@ -693,10 +694,14 @@ proc _deactivate_file {dstfile} {
     }
 }
 
-proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
+proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {rollback 0}} {
     variable use_reg2
     set files [list]
 
+    puts "GSOCDBG: \tdeactivate_contents"
+    foreach file $imagefiles {
+        puts "GSOCDBG:\tfile:$file:\tmd5sum:[dict get $imagefiles_with_md5 $file]:"
+    }
     foreach file $imagefiles {
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
@@ -729,14 +734,27 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
     set files [lsort -decreasing -unique $files]
 
     # Remove all elements.
+    puts "GSOCDBG:\tremoving all elements"
     if {$use_reg2 && !$rollback} {
         registry::write {
             $port deactivate $imagefiles
             foreach file $files {
-                  if {[is_config_file $file]} {
-                          puts "GSOC: $file is config file"
-                          #continue
-                      }                  
+                if { [file isfile $file] && [is_config_file $file]} {
+                        puts "GSOCDBG:\t$file is config file"
+                        if {[catch {md5 file "$file"} actual_md5] == 0} {
+                            set stored_md5 [dict get $imagefiles_with_md5 $file]
+                            puts "GSOCDBG:\t\tactual_md5:$actual_md5\tstored_md5:$stored_md5"
+                            if {![string compare -nocase \
+                                    $actual_md5 $stored_md5]} {
+                                puts "GSOCDBG:\t\tnot modified file:$file"
+                            } else {
+                                puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
+                            }
+                            continue
+                        } else {
+                            puts "could'nt catch md5"
+                        }
+                }
                 _deactivate_file $file
             }
         }
@@ -749,7 +767,7 @@ proc _deactivate_contents {port imagefiles {force 0} {rollback 0}} {
 
 proc is_config_file {filename} {
     #replace hardcoded path with $config_path from portmain.tcl, what namespace does "option" add options to?
-    if {[string match ${::macports::prefix}/etc "$filename"]} {return 1} {return 0}
+    if {[string match ${::macports::prefix}/etc* "$filename"]} {return 1} {return 0}
 }
 
 # End of portimage namespace
