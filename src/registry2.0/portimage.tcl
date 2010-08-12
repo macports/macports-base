@@ -406,12 +406,20 @@ proc _activate_file {srcfile dstfile} {
             }
             return 0
         }
-        default {
-            ui_debug "activating file: $dstfile"
-            # Try a hard link first and if that fails, a symlink
-            if {[catch {file link -hard $dstfile $srcfile}]} {
-                ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-                file link -symbolic $dstfile $srcfile
+        default {        
+            ui_debug "activating file: $dstfile"           
+            # copy config files rather than hardlink them
+            if { [is_config_file $dstfile]} {
+                puts "GSOCDBG:\tcopying $srcfile to $dstfile as it is a config file"
+                ui_debug "copying $srcfile to $dstfile as it is a config file"
+                file copy $srcfile $dstfile
+            } else {
+                puts "GSOCDBG:\tlinking $srcfile to $dstfile as it is a config file"
+                # Try a hard link first and if that fails, a symlink
+                if {[catch {file link -hard $dstfile $srcfile}]} {
+                    ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
+                    file link -symbolic $dstfile $srcfile
+                }
             }
             return 1
         }
@@ -744,15 +752,15 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
                         if {[catch {md5 file "$file"} actual_md5] == 0} {
                             set stored_md5 [dict get $imagefiles_with_md5 $file]
                             puts "GSOCDBG:\t\tactual_md5:$actual_md5\tstored_md5:$stored_md5"
-                            if {![string compare -nocase \
+                            if {[string equal -nocase \
                                     $actual_md5 $stored_md5]} {
                                 puts "GSOCDBG:\t\tnot modified file:$file"
                             } else {
                                 puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
+                                continue
                             }
-                            continue
                         } else {
-                            puts "could'nt catch md5"
+                            puts "couldn't catch md5"
                         }
                 }
                 _deactivate_file $file
