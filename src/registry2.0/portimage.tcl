@@ -406,7 +406,7 @@ proc _activate_file {srcfile dstfile} {
             }
             return 0
         }
-        default {        
+        default {
             ui_debug "activating file: $dstfile"           
             # copy config files rather than hardlink them
             if { [is_config_file $dstfile]} {
