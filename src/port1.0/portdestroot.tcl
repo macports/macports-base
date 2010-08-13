@@ -175,7 +175,7 @@ proc portdestroot::destroot_finish {args} {
                   alternative destroot mechanism in the Portfile."
         ui_error "Files might have been installed directly into your system,\
                   check before proceeding."
-        return -code error "Staging $portname into destroot failed"
+        return -code error "Staging $name into destroot failed"
     }
 
     # Compress all manpages with gzip (instead)
