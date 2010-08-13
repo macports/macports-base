@@ -67,6 +67,9 @@ namespace eval portimage {
 variable force 0
 variable use_reg2 0
 variable noexec 0
+# This actually means that we're deactivate an installed port to activate \
+    another version of the same port
+variable is_upgrade 0
 
 # Activate a "Port Image"
 proc activate {name v optionslist} {
@@ -75,6 +78,7 @@ proc activate {name v optionslist} {
     variable force
     variable use_reg2
     variable noexec
+    variable is_upgrade
 
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
@@ -120,6 +124,7 @@ proc activate {name v optionslist} {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
             }
         }
+        if {$todeactivate ne ""} {set is_upgrade 1}
         foreach a $todeactivate {
             if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
                 deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
@@ -199,7 +204,9 @@ proc deactivate {name v optionslist} {
     global UI_PREFIX macports::registry.format macports::registry.path registry_open
     array set options $optionslist
     variable use_reg2
+    variable is_upgrade
 
+    puts "GSOCDBG:\tdeactivate\tis_upgrade:$is_upgrade"
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
@@ -414,7 +421,7 @@ proc _activate_file {srcfile dstfile} {
                 ui_debug "copying $srcfile to $dstfile as it is a config file"
                 file copy $srcfile $dstfile
             } else {
-                puts "GSOCDBG:\tlinking $srcfile to $dstfile as it is a config file"
+                puts "GSOCDBG:\tlinking $srcfile to $dstfile"
                 # Try a hard link first and if that fails, a symlink
                 if {[catch {file link -hard $dstfile $srcfile}]} {
                     ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
