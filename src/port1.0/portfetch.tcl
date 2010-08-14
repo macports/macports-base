@@ -483,7 +483,7 @@ proc portfetch::fetchfiles {args} {
             }
             unset -nocomplain fetched
             foreach site $urlmap($url_var) {
-                ui_msg "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
+                ui_notice "$UI_PREFIX [format [msgcat::mc "Attempting to fetch %s from %s"] $distfile $site]"
                 set file_url [portfetch::assemble_url $site $distfile]
                 if {![catch {eval curl fetch $fetch_options {$file_url} {"${distpath}/${distfile}.TMP"}} result] &&
                     ![catch {file rename -force "${distpath}/${distfile}.TMP" "${distpath}/${distfile}"} result]} {
