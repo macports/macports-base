@@ -80,7 +80,6 @@ proc activate {name v optionslist} {
     variable noexec
     variable is_upgrade
 
-    puts "GSOCDBG:\tactivate is_upgrade:$is_upgrade"
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
     }
@@ -128,7 +127,6 @@ proc activate {name v optionslist} {
         if {$todeactivate ne ""} {set is_upgrade 1}
         foreach a $todeactivate {
             if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
-                puts "GSOCDBG:\t\tactivate called deactivate via direct call"
                 deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
             }
         }
@@ -208,7 +206,7 @@ proc deactivate {name v optionslist} {
     variable use_reg2
     variable is_upgrade
 
-    puts "GSOCDBG:\tdeactivate is_upgrade:$is_upgrade"
+    puts "GSOCDBG:\tdeactivate\tis_upgrade:$is_upgrade"
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
@@ -279,10 +277,6 @@ proc deactivate {name v optionslist} {
             registry::check_dependents $requested $force
         }
 
-        #   put check for config-upgrade here, with AND on $is_upgrade, \
-            this way the actual _deactivate_contents won't start until there's \
-            some config file to upgrade, unless a forcing options has been \
-            provided on CLI
         _deactivate_contents $requested [$requested files] [$requested files_with_md5] $force
 
         $requested state imaged
@@ -423,7 +417,7 @@ proc _activate_file {srcfile dstfile} {
             ui_debug "activating file: $dstfile"           
             # copy config files rather than hardlink them
             if { [is_config_file $dstfile]} {
-                puts "GSOCDBG:\t\tcopying $srcfile to $dstfile as it is a config file"
+                puts "GSOCDBG:\tcopying $srcfile to $dstfile as it is a config file"
                 ui_debug "copying $srcfile to $dstfile as it is a config file"
                 file copy $srcfile $dstfile
             } else {
@@ -444,10 +438,8 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     variable force
     variable use_reg2
     variable noexec
-    variable is_upgrade
     global macports::prefix
 
-    puts "GSOCDBG:\t\t_activate_contents is_upgrade:$is_upgrade"
     set files [list]
     set baksuffix .mp_[clock seconds]
     if {$use_reg2} {
@@ -762,7 +754,7 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
                             set stored_md5 [dict get $imagefiles_with_md5 $file]
                             if {[string equal -nocase \
                                     $actual_md5 $stored_md5]} {
-                                puts "GSOCDBG:\t\tnot modified file:$file - deactivating it"
+                                puts "GSOCDBG:\t\tnot modified file:$file"
                             } else {
                                 puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
                                 continue
