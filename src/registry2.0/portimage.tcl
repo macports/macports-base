@@ -127,6 +127,21 @@ proc activate {name v optionslist} {
         }
         if {$todeactivate ne ""} {set is_upgrade 1}
         foreach a $todeactivate {
+
+## Moving _check_config_files here, this render "is_upgrade" variable useless
+##
+## We need to move the check up here as we have to keep track of both
+## installed version and the version that is going to be installed
+##
+## At this point:
+## $requested is registry::entry for the port to be installed
+## $todeactivate is active version for same port
+            if {[_check_config_files_changed $requested [$requested files]]} {
+                return -code error "Image error: Please run upgrade -config-upgrade"
+                #throw registry::image-error "Image error: Please run upgrade -config-upgrade"           
+            } else {
+                puts "GSOCDBG:\tOn error we shouldn't see this"
+            }
             if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
                 puts "GSOCDBG:\t\tactivate called deactivate via direct call"
                 deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
@@ -279,10 +294,6 @@ proc deactivate {name v optionslist} {
             registry::check_dependents $requested $force
         }
 
-        #   put check for config-upgrade here, with AND on $is_upgrade, \
-            this way the actual _deactivate_contents won't start until there's \
-            some config file to upgrade, unless a forcing options has been \
-            provided on CLI
         _deactivate_contents $requested [$requested files] [$requested files_with_md5] $force
 
         $requested state imaged
@@ -391,6 +402,30 @@ proc _check_contents {name contents imagedir} {
     }
 
     return $imagefiles
+}
+
+## Checks all files in config files for changes comparing actual checksum with 
+## checksum in registry.
+##
+## @param [in] port     portfile upgrading
+## @return 1 if the port doesn't have config files changed, 0 otherwise
+proc _check_config_files_changed {port files} {
+    return 1
+#    foreach file $files {
+#        if { [file isfile $file] && [is_config_file $file]} {
+#            if {[catch {md5 file "$file"} actual_md5] == 0} {
+#                set stored_md5 [dict get $imagefiles_with_md5 $file]
+#                if {[string equal -nocase $actual_md5 $stored_md5]} {
+#                    puts "GSOCDBG:\t\tnot modified file:$file - deactivating it"
+#                } else {
+#                    puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
+#                    continue
+#                }
+#            } else {
+#            puts "couldn't catch md5"
+#            }
+#        }
+#    }
 }
 
 ## Activates a file from an image into the filesystem. Deals with symlinks,
