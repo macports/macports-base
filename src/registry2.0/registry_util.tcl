@@ -82,6 +82,9 @@ proc check_dependents {port force} {
 ## runs the given target of the given port using its stored portfile
 ## @return   true if successful, false otherwise
 proc run_target {port target options} {
+    if {$target eq "deactivate"} {
+        puts "GSOCDBG:\t\tactivate called deactivate via registry::"
+    }
     set portspec "[$port name] @[$port version]_[$port revision][$port variants]"
     if {[$port portfile] == ""} {
         ui_debug "no portfile in registry for $portspec"

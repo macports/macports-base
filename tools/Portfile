@@ -18,6 +18,7 @@ worksrcdir          gsocdummy
 destroot.args-append    PREFIX=$prefix
 
 
-checksums           md5     3d17a980294fdfcae43fb443281ef593 \
-                    sha1    774ff5faa548aa16ad9a6ecb93f7e844031ac2b3 \
-                    rmd160  6ff94757a7d29ac72ea224b8c1103341499fce6a
+
+checksums           md5     c091a72c2bf94856c6279116657ea1d5 \
+                    sha1    ddafe463a88c06358d70b3b3fd978989faf10c33 \
+                    rmd160  e68c40726c4ca7326b08bd1ccbefa8153ef40e1d

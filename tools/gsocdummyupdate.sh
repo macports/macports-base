@@ -24,6 +24,7 @@ md5="checksums           md5     $md5Hash \\"
 sha="                    sha1    $shaHash \\"
 rmd="                    rmd160  $rmdHash"
 
+#   TODO: REPLACE ALL FOLLOWING PART WITH sed -i '' LINES
 read num _ <<< $(wc -l "$PORTFILE")
 head -n $((num-3)) "$PORTFILE" > "$TMPFILE"
 printf "\n%s\n%s\n%s" "$md5" "$sha" "$rmd" >> "$TMPFILE"
