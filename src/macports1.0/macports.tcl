@@ -3302,7 +3302,10 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         catch {mportclose $workername}
         return 1
     }
-
+    # To quietly exit when config files are modified we could add manual
+    # $result handling here and avoid using -code error in portimage::activate
+    
+    
     # Check if we have to do dependents
     if {[info exists options(ports_do_dependents)]} {
         # We do dependents ..
