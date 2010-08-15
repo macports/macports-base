@@ -137,11 +137,15 @@ proc activate {name v optionslist} {
             ## At this point: $requested is registry::entry for the port to be
             ## installed $todeactivate is active version for same port
             
-            puts "GSOCDBG:\t_check_config_files_changed:[_check_config_files_changed $requested [$requested files] [$requested imagefiles_with_md5]]"
-#            if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
-#                puts "GSOCDBG:\t\tactivate called deactivate via direct call"
-#                deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
-#            }
+            set changed_files [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
+            if {$changed_files ne ""} {
+                puts "GSOCDBG:\t_check_config_files_changed: - SKIPPING DEACTIVATE"
+            } else {
+                if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
+                    puts "GSOCDBG:\t\tactivate called deactivate via direct call"
+                    deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
+                }
+            }
         }
     } else {
         # registry1.0
@@ -406,8 +410,9 @@ proc _check_contents {name contents imagedir} {
 ## @param [in] port     portfile upgrading
 ## @return  1 if config files of port changed, 0 otherwise
 proc _check_config_files_changed {port files files_with_md5} {
-    set return_value 0
+    set changed_files [list]
     puts "GSOCDBG:\tentering _check_config_files_changed"
+    puts "GSOCDBG:\t\tfiles:$files"
     foreach file $files {
         if { [file isfile $file] && [is_config_file $file]} {
             puts "GSOCDBG:\tfirst if"
@@ -420,7 +425,7 @@ proc _check_config_files_changed {port files files_with_md5} {
                 } else {
                     puts "GSOCDBG:\tthird if - else"
                     puts "GSOCDBG:\t\tmodified file:$file"
-                    set return_value 1
+                    lappend changed_files  $file
                 }
             } else {
             puts "couldn't catch md5"
@@ -429,8 +434,8 @@ proc _check_config_files_changed {port files files_with_md5} {
             puts "GSOCDBG:\t\telement:$file is not of type file"
         }
     }
-    puts "GSOCDBG:\texiting _check_config_files_changed\t return_value:$return_value"
-    return $return_value
+    puts "GSOCDBG:\texiting _check_config_files_changed\t changed_files:$changed_files"
+    return $changed_files
 }
 
 ## Activates a file from an image into the filesystem. Deals with symlinks,
