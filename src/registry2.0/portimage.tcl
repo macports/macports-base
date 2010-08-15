@@ -795,20 +795,6 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
         registry::write {
             $port deactivate $imagefiles
             foreach file $files {
-                if { [file isfile $file] && [is_config_file $file]} {
-                        if {[catch {md5 file "$file"} actual_md5] == 0} {
-                            set stored_md5 [dict get $imagefiles_with_md5 $file]
-                            if {[string equal -nocase \
-                                    $actual_md5 $stored_md5]} {
-                                puts "GSOCDBG:\t\tnot modified file:$file - deactivating it"
-                            } else {
-                                puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
-                                continue
-                            }
-                        } else {
-                            puts "couldn't catch md5"
-                        }
-                }
                 _deactivate_file $file
             }
         }
