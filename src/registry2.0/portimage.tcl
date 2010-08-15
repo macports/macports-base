@@ -139,7 +139,8 @@ proc activate {name v optionslist} {
             set changed_files [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
             if {$changed_files ne ""} {
                 puts "GSOCDBG:\t_check_config_files_changed: - SKIPPING DEACTIVATE"
-                throw registry::image-error "Image error: run port upgrade -config-upgrade ${name}"
+                return -code error "Image error: run port upgrade -config-upgrade ${name}"
+                #throw registry::image-error "Image error: run port upgrade -config-upgrade ${name}"
             } else {
                 if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
                     puts "GSOCDBG:\t\tactivate called deactivate via direct call"
