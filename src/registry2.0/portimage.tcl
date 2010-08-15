@@ -127,25 +127,21 @@ proc activate {name v optionslist} {
         }
         if {$todeactivate ne ""} {set is_upgrade 1}
         foreach a $todeactivate {
-
-## Moving _check_config_files here, this render "is_upgrade" variable useless
-##
-## We need to move the check up here as we have to keep track of both
-## installed version and the version that is going to be installed
-##
-## At this point:
-## $requested is registry::entry for the port to be installed
-## $todeactivate is active version for same port
-            if {[_check_config_files_changed $requested [$requested files]]} {
-                return -code error "Image error: Please run upgrade -config-upgrade"
-                #throw registry::image-error "Image error: Please run upgrade -config-upgrade"           
-            } else {
-                puts "GSOCDBG:\tOn error we shouldn't see this"
-            }
-            if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
-                puts "GSOCDBG:\t\tactivate called deactivate via direct call"
-                deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
-            }
+            ## Moving _check_config_files here, this render "is_upgrade"
+            ## variable useless
+            ##
+            ## We need to move the check up here as we have to keep track of
+            ## both installed version and the version that is going to be
+            ## installed
+            ##
+            ## At this point: $requested is registry::entry for the port to be
+            ## installed $todeactivate is active version for same port
+            
+            puts "GSOCDBG:\t_check_config_files_changed:[_check_config_files_changed $requested [$requested files] [$requested imagefiles_with_md5]]"
+#            if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
+#                puts "GSOCDBG:\t\tactivate called deactivate via direct call"
+#                deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
+#            }
         }
     } else {
         # registry1.0
@@ -408,24 +404,33 @@ proc _check_contents {name contents imagedir} {
 ## checksum in registry.
 ##
 ## @param [in] port     portfile upgrading
-## @return 1 if the port doesn't have config files changed, 0 otherwise
-proc _check_config_files_changed {port files} {
-    return 1
-#    foreach file $files {
-#        if { [file isfile $file] && [is_config_file $file]} {
-#            if {[catch {md5 file "$file"} actual_md5] == 0} {
-#                set stored_md5 [dict get $imagefiles_with_md5 $file]
-#                if {[string equal -nocase $actual_md5 $stored_md5]} {
-#                    puts "GSOCDBG:\t\tnot modified file:$file - deactivating it"
-#                } else {
-#                    puts "GSOCDBG:\t\tmodified file:$file - PLEASE RUN port upgrade config-upgrade"
-#                    continue
-#                }
-#            } else {
-#            puts "couldn't catch md5"
-#            }
-#        }
-#    }
+## @return  1 if config files of port changed, 0 otherwise
+proc _check_config_files_changed {port files files_with_md5} {
+    set return_value 0
+    puts "GSOCDBG:\tentering _check_config_files_changed"
+    foreach file $files {
+        if { [file isfile $file] && [is_config_file $file]} {
+            puts "GSOCDBG:\tfirst if"
+            if {[catch {md5 file "$file"} actual_md5] == 0} {
+                puts "GSOCDBG:\tsecond if"
+                set stored_md5 [dict get $files_with_md5 $file]                
+                if {[string equal -nocase $actual_md5 $stored_md5]} {
+                    puts "GSOCDBG:\tthird if"
+                    puts "GSOCDBG:\t\tnot modified file:$file"
+                } else {
+                    puts "GSOCDBG:\tthird if - else"
+                    puts "GSOCDBG:\t\tmodified file:$file"
+                    set return_value 1
+                }
+            } else {
+            puts "couldn't catch md5"
+            }
+        } else {
+            puts "GSOCDBG:\t\telement:$file is not of type file"
+        }
+    }
+    puts "GSOCDBG:\texiting _check_config_files_changed\t return_value:$return_value"
+    return $return_value
 }
 
 ## Activates a file from an image into the filesystem. Deals with symlinks,
