@@ -83,4 +83,6 @@ int reg_start_write(reg_registry* reg, reg_error* errPtr);
 int reg_commit(reg_registry* reg, reg_error* errPtr);
 int reg_rollback(reg_registry* reg, reg_error* errPtr);
 
+int reg_vacuum(char* db_path);
+
 #endif /* _CREG_H */

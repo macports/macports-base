@@ -162,6 +162,8 @@ static int entry_delete(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[]) {
             reg_entry_free(entry);
         }
         Tcl_DeleteCommand(interp, Tcl_GetString(objv[2]));
+        /* set flag so that the db will be vacuumed when we close it */
+        Tcl_SetAssocData(interp, "registry::needs_vacuum", NULL, (ClientData)1);
         return TCL_OK;
     }
 }

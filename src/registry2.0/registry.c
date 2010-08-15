@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <tcl.h>
 
@@ -106,9 +107,13 @@ int registry_tcl_detach(Tcl_Interp* interp, reg_registry* reg,
  *
  * Then it will leak memory :(
  */
-static void delete_reg(ClientData reg, Tcl_Interp* interp UNUSED) {
+static void delete_reg(ClientData reg, Tcl_Interp* interp) {
     reg_error error;
     if (((reg_registry*)reg)->status & reg_attached) {
+        if (Tcl_GetAssocData(interp, "registry::needs_vacuum", NULL) != NULL) {
+            reg_vacuum(Tcl_GetAssocData(interp, "registry::db_path", NULL));
+            Tcl_DeleteAssocData(interp, "registry::needs_vacuum");
+        }
         if (!registry_tcl_detach(interp, (reg_registry*)reg, &error)) {
             fprintf(stderr, "%s", error.description);
             reg_error_destruct(&error);
@@ -118,6 +123,11 @@ static void delete_reg(ClientData reg, Tcl_Interp* interp UNUSED) {
         fprintf(stderr, "%s", error.description);
         reg_error_destruct(&error);
     }
+}
+
+/* simple destructor for malloc()ed assoc data */
+static void free_assoc_data(ClientData ptr, Tcl_Interp* interp UNUSED) {
+    free(ptr);
 }
 
 /**
@@ -168,6 +178,10 @@ static int registry_open(ClientData clientData UNUSED, Tcl_Interp* interp,
         char* path = Tcl_GetString(objv[1]);
         reg_registry* reg = registry_for(interp, 0);
         reg_error error;
+        if (Tcl_GetAssocData(interp, "registry::db_path", NULL) == NULL) {
+            char *pathCopy = strdup(path);
+            Tcl_SetAssocData(interp, "registry::db_path", free_assoc_data, pathCopy);
+        }
         if (reg == NULL) {
             return TCL_ERROR;
         } else if (reg_attach(reg, path, &error)) {
@@ -189,6 +203,10 @@ static int registry_close(ClientData clientData UNUSED, Tcl_Interp* interp,
             return TCL_ERROR;
         } else {
             reg_error error;
+            if (Tcl_GetAssocData(interp, "registry::needs_vacuum", NULL) != NULL) {
+                reg_vacuum(Tcl_GetAssocData(interp, "registry::db_path", NULL));
+                Tcl_DeleteAssocData(interp, "registry::needs_vacuum");
+            }
             if (registry_tcl_detach(interp, reg, &error)) {
                 return TCL_OK;
             }

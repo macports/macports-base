@@ -4466,5 +4466,8 @@ if { ($exit_status == 0 || [macports::ui_isset ports_processall]) && [info exist
     set exit_status [process_command_files $ui_options(ports_commandfiles)]
 }
 
+# shut down macports1.0
+mportshutdown
+
 # Return with exit_status
 exit $exit_status

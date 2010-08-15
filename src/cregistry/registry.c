@@ -401,3 +401,44 @@ int reg_rollback(reg_registry* reg, reg_error* errPtr) {
         return 0;
     }
 }
+
+/**
+ * Runs VACUUM (compact/defragment) on the given db file.
+ * Works on a path rather than an open db pointer because you can't vacuum an
+ * attached db, which is what the rest of the registry uses for some reason.
+ *
+ * @param [in] db_path path to db file to vacuum
+ * @return             true if success; false if failure
+ */
+int reg_vacuum(char *db_path) {
+    sqlite3* db;
+    sqlite3_stmt* stmt = NULL;
+    int result = 0;
+    reg_error err;
+
+    if (sqlite3_open(db_path, &db) == SQLITE_OK) {
+        if (!init_db(db, &err)) {
+            sqlite3_close(db);
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+
+    if (sqlite3_prepare(db, "VACUUM", -1, &stmt, NULL) == SQLITE_OK) {
+        int r;
+        /* XXX: Busy waiting, consider using sqlite3_busy_handler/timeout */
+        do {
+            sqlite3_step(stmt);
+            r = sqlite3_reset(stmt);
+            if (r == SQLITE_OK) {
+                result = 1;
+            }
+        } while (r == SQLITE_BUSY);
+    }
+    if (stmt) {
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_close(db);
+    return result;
+}

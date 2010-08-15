@@ -975,6 +975,15 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     }
 }
 
+# call this just before you exit
+proc mportshutdown {} {
+    global macports::registry.format
+    if {${registry.format} == "receipt_sqlite"} {
+        # close it down so the cleanup stuff is called, e.g. vacuuming the db
+        registry::close
+    }
+}
+
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
     global macports::portinterp_options macports::portinterp_deferred_options registry.installtype
 
