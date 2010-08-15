@@ -80,7 +80,6 @@ proc activate {name v optionslist} {
     variable noexec
     variable is_upgrade
 
-    puts "GSOCDBG:\tactivate is_upgrade:$is_upgrade"
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
     }
@@ -140,6 +139,7 @@ proc activate {name v optionslist} {
             set changed_files [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
             if {$changed_files ne ""} {
                 puts "GSOCDBG:\t_check_config_files_changed: - SKIPPING DEACTIVATE"
+                return -code error "Image error: run port upgrade -config-upgrade ${name}"
             } else {
                 if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
                     puts "GSOCDBG:\t\tactivate called deactivate via direct call"
@@ -223,7 +223,6 @@ proc deactivate {name v optionslist} {
     variable use_reg2
     variable is_upgrade
 
-    puts "GSOCDBG:\tdeactivate is_upgrade:$is_upgrade"
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
@@ -411,19 +410,13 @@ proc _check_contents {name contents imagedir} {
 ## @return  1 if config files of port changed, 0 otherwise
 proc _check_config_files_changed {port files files_with_md5} {
     set changed_files [list]
-    puts "GSOCDBG:\tentering _check_config_files_changed"
-    puts "GSOCDBG:\t\tfiles:$files"
     foreach file $files {
         if { [file isfile $file] && [is_config_file $file]} {
-            puts "GSOCDBG:\tfirst if"
             if {[catch {md5 file "$file"} actual_md5] == 0} {
-                puts "GSOCDBG:\tsecond if"
                 set stored_md5 [dict get $files_with_md5 $file]                
                 if {[string equal -nocase $actual_md5 $stored_md5]} {
-                    puts "GSOCDBG:\tthird if"
                     puts "GSOCDBG:\t\tnot modified file:$file"
                 } else {
-                    puts "GSOCDBG:\tthird if - else"
                     puts "GSOCDBG:\t\tmodified file:$file"
                     lappend changed_files  $file
                 }
@@ -434,7 +427,6 @@ proc _check_config_files_changed {port files files_with_md5} {
             puts "GSOCDBG:\t\telement:$file is not of type file"
         }
     }
-    puts "GSOCDBG:\texiting _check_config_files_changed\t changed_files:$changed_files"
     return $changed_files
 }
 
@@ -468,11 +460,9 @@ proc _activate_file {srcfile dstfile} {
             ui_debug "activating file: $dstfile"           
             # copy config files rather than hardlink them
             if { [is_config_file $dstfile]} {
-                puts "GSOCDBG:\t\tcopying $srcfile to $dstfile as it is a config file"
                 ui_debug "copying $srcfile to $dstfile as it is a config file"
                 file copy $srcfile $dstfile
             } else {
-                puts "GSOCDBG:\tlinking $srcfile to $dstfile"
                 # Try a hard link first and if that fails, a symlink
                 if {[catch {file link -hard $dstfile $srcfile}]} {
                     ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
