@@ -2831,6 +2831,8 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 # upgrade API wrapper procedure
 # return codes: 0 = success, 1 = general failure, 2 = port name not found in index
 proc macports::upgrade {portname dspec variationslist optionslist {depscachename ""}} {
+    array set options $optionslist
+    
     # only installed ports can be upgraded
     if {![registry::entry_exists_for_name $portname]} {
         ui_error "$portname is not installed"
@@ -2846,6 +2848,11 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
     if {![info exists macports::global_options(ports_nodeps)]} {
         set macports::global_options(ports_nodeps) yes
         set orig_nodeps no
+    }
+    
+    if {[info exists options(ports_upgrade_config-upgrade)] && $options(ports_upgrade_config-upgrade) eq "yes"} {
+        puts "GSOCDBG:\tport upgrade --config-upgrade | just exiting quietly (for now)"
+        return 0
     }
     
     # run the actual upgrade

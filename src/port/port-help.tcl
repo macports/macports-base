@@ -339,6 +339,7 @@ version of the port, then the variants.conf file.
                     upgrade even if the port is not outdated.
 --no-replace        Do not replace one port with another according to the
                     replaced_by field
+--config-upgrade    Handles changes in config files during upgrade
 }
 
 set porthelp(url) {

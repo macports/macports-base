@@ -3870,7 +3870,7 @@ array set cmd_opts_array {
     lint        {nitpick}
     select      {list set show}
     log         {{phase 1} {level 1}}
-    upgrade     {force enforce-variants no-replace}
+    upgrade     {force enforce-variants no-replace config-upgrade}
 }
 
 ##
