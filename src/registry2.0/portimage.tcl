@@ -839,12 +839,12 @@ proc _is_config_file {filename} {
 }
 
 proc _pick_config_upgrade_actions {requested active changed_files} {
+    global UI_PREFIX
     variable config_upgrade_completed
 
     set actions_list [list]
     foreach file $changed_files {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "    File %s changed"] $file]"
-        #puts "\nFile $file changed";
+        ui_debug "File $file has changed"
         set choice ""
         while {[lsearch "keep new" $choice] < 0} { 
             if {$choice eq "current"} {
@@ -856,7 +856,7 @@ proc _pick_config_upgrade_actions {requested active changed_files} {
                 #set result [string range $a 0 [expr [string length $a]-33]]
                 #ui_msg "$result"                
             }
-            ui_msg "$UI_PREFIX [format [msgcat::mc "    \nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
+            ui_msg "$UI_PREFIX [format [msgcat::mc "Please choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
             #puts "\nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"
             gets stdin choice
         }
