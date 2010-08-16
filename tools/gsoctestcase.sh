@@ -9,6 +9,7 @@ if [[ $vernum = 1 ]]; then
     read vernum <<< $(gsocswitchversion | cut -d \  -f 7)
 fi
 
+sudo port clean gsocdummy
 sudo port uninstall gsocdummy @0.1_0
 sudo port uninstall gsocdummy @0.1_1
 sudo port install gsocdummy @0.1_0
