@@ -842,19 +842,21 @@ proc _pick_config_upgrade_actions {requested active changed_files} {
     global UI_PREFIX
     variable config_upgrade_completed
 
+    set newimagedir [$requested location]
+    set oldimagedir [$active location]
     set actions_list [list]
     foreach file $changed_files {
-        ui_debug "File $file has changed"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "File %s has changed"] $file]"
         set choice ""
         while {[lsearch "keep new" $choice] < 0} { 
             if {$choice eq "current"} {
-                #catch {exec /usr/bin/diff -u [] []} a
-                #set result [string range $a 0 [expr [string length $a]-33]]
-                #ui_msg "$result"
+                catch {exec /usr/bin/diff -u $oldimagedir$file $file} a
+                set result [string range $a 0 [expr [string length $a]-33]]
+                ui_msg "\n$result\n"
             } elseif {$choice eq "upgraded"} {
-                #catch {exec /usr/bin/diff -u [] []} a
-                #set result [string range $a 0 [expr [string length $a]-33]]
-                #ui_msg "$result"                
+                catch {exec /usr/bin/diff -u $file $newimagedir$file} a
+                set result [string range $a 0 [expr [string length $a]-33]]
+                ui_msg "\n$result\n"                
             }
             ui_msg "$UI_PREFIX [format [msgcat::mc "Please choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
             #puts "\nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"
