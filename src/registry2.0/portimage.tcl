@@ -858,7 +858,7 @@ proc _pick_config_upgrade_actions {requested active changed_files} {
                 set result [string range $a 0 [expr [string length $a]-33]]
                 ui_msg "\n$result\n"                
             }
-            ui_msg "$UI_PREFIX [format [msgcat::mc "Please choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
+            ui_msg "$UI_PREFIX [format [msgcat::mc "Please choose one of:\n$UI_PREFIX\t(keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
             #puts "\nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"
             gets stdin choice
         }
