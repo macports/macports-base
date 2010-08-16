@@ -4,3 +4,227 @@ I have created a "gsocdummy" port, Portfile is in branches/gsoc10-configfiles/to
 Here comes the shell:
 
 
+Last login: Mon Aug 16 20:52:44 on ttys001
+bimac:~ andrea$ mpswitch 
+bimac:~ andrea$ echo $PATH
+/Developer/Tools:/opt/mp-gsoc/bin:/opt/mp-gsoc/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/X11/bin
+bimac:~ andrea$ port installed gsocdummy
+None of the specified ports are installed.
+bimac:~ andrea$ gsoctestcase.sh 
+--->  Cleaning gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Installing gsocdummy @0.1_0
+--->  Activating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+Switching gsocdummy from revision 0 to 1
+Ready to upgrade gsocdummy to @0.1_1
+bimac:~ andrea$ port installed gsocdummy
+The following ports are currently installed:
+  gsocdummy @0.1_0 (active)
+bimac:~ andrea$ port info --revision gsocdummy
+revision: 1
+bimac:~ andrea$ port cd etc
+bimac:etc andrea$ ls
+dummyrc  macports
+bimac:etc andrea$ port provides /opt/mp-gsoc/etc/dummyrc
+/opt/mp-gsoc/etc/dummyrc is provided by: gsocdummy
+bimac:etc andrea$ GetFileInfo dummyrc 
+file: "/opt/mp-gsoc/etc/dummyrc"
+type: "\0\0\0\0"
+creator: "\0\0\0\0"
+attributes: avbstclinmedz
+created: 08/16/2010 20:55:45
+modified: 08/16/2010 20:55:45
+bimac:etc andrea$ sudo port upgrade gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Computing dependencies for gsocdummy
+--->  Installing gsocdummy @0.1_1
+--->  Deactivating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+--->  Activating gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+bimac:etc andrea$ GetFileInfo dummyrc 
+file: "/opt/mp-gsoc/etc/dummyrc"
+type: "\0\0\0\0"
+creator: "\0\0\0\0"
+attributes: avbstclinmedz
+created: 08/16/2010 20:57:21
+modified: 08/16/2010 20:57:21
+bimac:etc andrea$ gsoctestcase.sh 
+--->  Cleaning gsocdummy
+--->  Uninstalling gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+--->  Deactivating gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+--->  Uninstalling gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Installing gsocdummy @0.1_0
+--->  Activating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+Switching gsocdummy from revision 0 to 1
+Ready to upgrade gsocdummy to @0.1_1
+bimac:etc andrea$ ls -l
+total 8
+-rwxr-xr-x   1 root  admin   20 16 Ago 20:57 dummyrc
+drwxr-xr-x  10 root  admin  340 16 Ago 20:34 macports
+bimac:etc andrea$ GetFileInfo dummyrc 
+file: "/opt/mp-gsoc/etc/dummyrc"
+type: "\0\0\0\0"
+creator: "\0\0\0\0"
+attributes: avbstclinmedz
+created: 08/16/2010 20:57:32
+modified: 08/16/2010 20:57:32
+bimac:etc andrea$ sudo vi dummyrc 
+bimac:etc andrea$ cat dummyrc 
+Foo bar baz
+text {dummy config}
+bimac:etc andrea$ sudo port upgrade gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Computing dependencies for gsocdummy
+--->  Installing gsocdummy @0.1_1
+Error: Target org.macports.activate returned: Image error: run     port uninstall gsocdummy @0.1_1; port upgrade --config-upgrade gsocdummy
+Log for gsocdummy is at: /opt/mp-gsoc/var/macports/logs/_opt_local_var_macports_sources_local_devel_gsocdummy/main.log
+bimac:etc andrea$ sudo port uninstall gsocdummy @0.1_1;
+--->  Uninstalling gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+bimac:etc andrea$ sudo port upgrade --config-upgrade gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Installing gsocdummy @0.1_1
+--->  File /opt/mp-gsoc/etc/dummyrc has changed
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+current
+
+--- /opt/mp-gsoc/var/macports/software/gsocdummy/0.1_0/opt/mp-gsoc/etc/dummyrc	2010-08-16 20:57:32.000000000 +0200
++++ /opt/mp-gsoc/etc/dummyrc	2010-08-16 20:57:48.000000000 +0200
+@@ -1 +1,2 @@
++Foo bar baz
+ text {dummy config}
+
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+upgraded
+
+--- /opt/mp-gsoc/etc/dummyrc	2010-08-16 20:57:48.000000000 +0200
++++ /opt/mp-gsoc/var/macports/software/gsocdummy/0.1_1/opt/mp-gsoc/etc/dummyrc	2010-08-16 20:58:00.000000000 +0200
+@@ -1,2 +1 @@
+-Foo bar baz
+ text {dummy config}
+
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+new
+--->  Deactivating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+--->  Activating gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+bimac:etc andrea$ GetFileInfo dummyrc 
+file: "/opt/mp-gsoc/etc/dummyrc"
+type: "\0\0\0\0"
+creator: "\0\0\0\0"
+attributes: avbstclinmedz
+created: 08/16/2010 20:58:00
+modified: 08/16/2010 20:58:00
+bimac:etc andrea$ cat dummyrc 
+text {dummy config}
+bimac:etc andrea$ sudo rm dummyrc 
+bimac:etc andrea$ gsoctestcase.sh 
+--->  Cleaning gsocdummy
+--->  Uninstalling gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+--->  Deactivating gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+--->  Uninstalling gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Installing gsocdummy @0.1_0
+--->  Activating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+Switching gsocdummy from revision 0 to 1
+Ready to upgrade gsocdummy to @0.1_1
+bimac:etc andrea$ sudo vi dummyrc 
+bimac:etc andrea$ cat dummyrc 
+Foo bar baz
+this time changes should stay
+text {dummy config}
+bimac:etc andrea$ sudo port upgrade -u --config-upgrade gsocdummy
+--->  Computing dependencies for gsocdummy
+--->  Fetching gsocdummy
+--->  Verifying checksum(s) for gsocdummy
+--->  Extracting gsocdummy
+--->  Configuring gsocdummy
+--->  Building gsocdummy
+--->  Staging gsocdummy into destroot
+--->  Computing dependencies for gsocdummy
+--->  Installing gsocdummy @0.1_1
+--->  File /opt/mp-gsoc/etc/dummyrc has changed
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+current
+
+--- /opt/mp-gsoc/var/macports/software/gsocdummy/0.1_0/opt/mp-gsoc/etc/dummyrc	2010-08-16 20:58:52.000000000 +0200
++++ /opt/mp-gsoc/etc/dummyrc	2010-08-16 20:59:09.000000000 +0200
+@@ -1 +1,3 @@
++Foo bar baz
++this time changes should stay
+ text {dummy config}
+
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+upgraded
+
+--- /opt/mp-gsoc/etc/dummyrc	2010-08-16 20:59:09.000000000 +0200
++++ /opt/mp-gsoc/var/macports/software/gsocdummy/0.1_1/opt/mp-gsoc/etc/dummyrc	2010-08-16 20:59:25.000000000 +0200
+@@ -1,3 +1 @@
+-Foo bar baz
+-this time changes should stay
+ text {dummy config}
+
+--->  Please choose one of:
+---> 	(keep) current, install (new), show diff original-(current), show diff current-(upgraded):
+keep
+--->  Deactivating gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+--->  Activating gsocdummy @0.1_1
+--->  Cleaning gsocdummy
+--->  Uninstalling gsocdummy @0.1_0
+--->  Cleaning gsocdummy
+bimac:etc andrea$ cat dummyrc 
+Foo bar baz
+this time changes should stay
+text {dummy config}
+bimac:etc andrea$ #enjoy
+bimac:etc andrea$ 
+
