@@ -2850,11 +2850,6 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
         set orig_nodeps no
     }
     
-    if {[info exists options(ports_upgrade_config-upgrade)] && $options(ports_upgrade_config-upgrade) eq "yes"} {
-        puts "GSOCDBG:\tport upgrade --config-upgrade | just exiting quietly (for now)"
-        return 0
-    }
-    
     # run the actual upgrade
     set status [macports::_upgrade $portname $dspec $variationslist $optionslist depscache]
     

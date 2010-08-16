@@ -67,9 +67,9 @@ namespace eval portimage {
 variable force 0
 variable use_reg2 0
 variable noexec 0
-# This actually means that we're deactivate an installed port to activate \
-    another version of the same port
 variable is_upgrade 0
+variable config_upgrade_completed no
+variable upgrade_actions_list [list]
 
 # Activate a "Port Image"
 proc activate {name v optionslist} {
@@ -79,7 +79,9 @@ proc activate {name v optionslist} {
     variable use_reg2
     variable noexec
     variable is_upgrade
-
+    variable config_upgrade_completed
+    variable upgrade_actions_list
+    
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         set force 1
     }
@@ -126,26 +128,27 @@ proc activate {name v optionslist} {
         }
         if {$todeactivate ne ""} {set is_upgrade 1}
         foreach a $todeactivate {
-            ## Moving _check_config_files here, this render "is_upgrade"
-            ## variable useless
-            ##
-            ## We need to move the check up here as we have to keep track of
-            ## both installed version and the version that is going to be
-            ## installed
-            ##
-            ## At this point: $requested is registry::entry for the port to be
-            ## installed $todeactivate is active version for same port
+            ## At this point $requested is registry::entry for the port to be
+            ## installed, $todeactivate is active version for same port            
+            set config_files_changed [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
             
-            set changed_files [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
-            if {$changed_files ne ""} {
-                puts "GSOCDBG:\t_check_config_files_changed: - SKIPPING DEACTIVATE"
-                return -code error "Image error: run port upgrade -config-upgrade ${name}"
-                #throw registry::image-error "Image error: run port upgrade -config-upgrade ${name}"
+            if {$config_files_changed ne "" && [info exists options(ports_upgrade_config-upgrade)] && $options(ports_upgrade_config-upgrade) eq "yes"} {
+                puts "GSOCDBG:\there goes _pick_config_upgrade_actions"
+                set upgrade_actions_list [_pick_config_upgrade_actions $config_files_changed]
             } else {
-                if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
-                    puts "GSOCDBG:\t\tactivate called deactivate via direct call"
-                    deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
-                }
+                set config_upgrade_completed "no"
+            }
+            
+            puts "GSOCDBG:\taction_list:$upgrade_actions_list"            
+            puts "GSOCDBG:\tconfig_files_changed:$config_files_changed"            
+            puts "GSOCDBG:\tconfig_upgrade_completed:$config_upgrade_completed"
+            
+            if {$is_upgrade && $config_files_changed ne "" && $config_upgrade_completed ne "yes"} {
+                return -code error "Image error: run port upgrade -config-upgrade ${name}"
+            }
+            
+            if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
+                deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
             }
         }
     } else {
@@ -194,8 +197,8 @@ proc activate {name v optionslist} {
 
     #activate new image
     if {$use_reg2} {
-        _activate_contents $requested
-        $requested state installed
+            _activate_contents $requested
+            $requested state installed
     } else {
         set imagedir [registry::property_retrieve $ref imagedir]
 
@@ -223,7 +226,9 @@ proc deactivate {name v optionslist} {
     array set options $optionslist
     variable use_reg2
     variable is_upgrade
-
+    variable config_upgrade_completed
+    variable upgrade_actions_list
+    
     if {[info exists options(ports_force)] && [string is true -strict $options(ports_force)] } {
         # this not using the namespace variable is correct, since activate
         # needs to be able to force deactivate independently of whether
@@ -412,7 +417,7 @@ proc _check_contents {name contents imagedir} {
 proc _check_config_files_changed {port files files_with_md5} {
     set changed_files [list]
     foreach file $files {
-        if { [file isfile $file] && [is_config_file $file]} {
+        if { [file isfile $file] && [_is_config_file $file]} {
             if {[catch {md5 file "$file"} actual_md5] == 0} {
                 set stored_md5 [dict get $files_with_md5 $file]                
                 if {[string equal -nocase $actual_md5 $stored_md5]} {
@@ -425,7 +430,7 @@ proc _check_config_files_changed {port files files_with_md5} {
             puts "couldn't catch md5"
             }
         } else {
-            puts "GSOCDBG:\t\telement:$file is not of type file"
+            #element not of type file, can safely remove this else branch
         }
     }
     return $changed_files
@@ -460,7 +465,7 @@ proc _activate_file {srcfile dstfile} {
         default {
             ui_debug "activating file: $dstfile"           
             # copy config files rather than hardlink them
-            if { [is_config_file $dstfile]} {
+            if { [_is_config_file $dstfile]} {
                 ui_debug "copying $srcfile to $dstfile as it is a config file"
                 file copy $srcfile $dstfile
             } else {
@@ -480,6 +485,9 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     variable force
     variable use_reg2
     variable noexec
+    variable is_upgrade
+    variable config_upgrade_completed
+    variable upgrade_actions_list
     global macports::prefix
 
     set files [list]
@@ -801,9 +809,29 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
     }
 }
 
-proc is_config_file {filename} {
+proc _is_config_file {filename} {
     #replace hardcoded path with $config_path from portmain.tcl, what namespace does "option" add options to?
     if {[string match ${::macports::prefix}/etc* "$filename"]} {return 1} {return 0}
+}
+
+proc _pick_config_upgrade_actions {changed_files} {
+    variable config_upgrade_completed
+    
+    set actions_list [list]
+    foreach file $changed_files {
+        puts "File $file changed";
+        set choice ""
+        set answered "no"
+        while {[lsearch "keep new diff" $choice] < 0} { 
+            if {$answered eq "yes"} { puts "\nWrong entry, please choose one of keep | new | diff \n" }
+            puts "Choose one of (keep) current, install (new), show (diff):"
+            gets stdin choice
+            set answered "yes"
+        }
+        lappend actions_list "$file $choice"
+    }
+    set config_upgrade_completed "yes"
+    return $actions_list
 }
 
 # End of portimage namespace
