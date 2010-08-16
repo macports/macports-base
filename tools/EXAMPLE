@@ -1,0 +1,6 @@
+This is an example of how the config files should work.
+I have created a "gsocdummy" port, Portfile is in branches/gsoc10-configfiles/tools, I'm also using a gsoctestcase script that basically reset status of the branched installation, prefix /opt/mp-gsoc, to gsocdummy @0.1_0 as active port. This gsoctestcase script also upgrade Portfile to revision 1.
+
+Here comes the shell:
+
+
