@@ -134,15 +134,10 @@ proc activate {name v optionslist} {
             ## installed, $todeactivate is active version for same port            
             set changed_config_files [_check_config_files_changed $requested [$requested imagefiles] [$requested imagefiles_with_md5]]
             if {$changed_config_files ne "" && [info exists options(ports_upgrade_config-upgrade)] && $options(ports_upgrade_config-upgrade) eq "yes"} {
-                puts "GSOCDBG:\there goes _pick_config_upgrade_actions"
                 set upgrade_actions_list [_pick_config_upgrade_actions $requested $a $changed_config_files]
             } else {
                 set config_upgrade_completed "no"
             }
-            
-            puts "GSOCDBG:\taction_list:$upgrade_actions_list"            
-            puts "GSOCDBG:\tchanged_config_files:$changed_config_files"            
-            puts "GSOCDBG:\tconfig_upgrade_completed:$config_upgrade_completed"
             
             if {$is_upgrade && $changed_config_files ne "" && $config_upgrade_completed ne "yes"} {
                 return -code error "Image error: run     port uninstall ${name} @${version}_${revision}${variants}; port upgrade --config-upgrade ${name}"
@@ -423,9 +418,9 @@ proc _check_config_files_changed {port files files_with_md5} {
             if {[catch {md5 file "$file"} actual_md5] == 0} {
                 set stored_md5 [dict get $files_with_md5 $file]                
                 if {[string equal -nocase $actual_md5 $stored_md5]} {
-                    puts "GSOCDBG:\t\tnot modified file:$file"
+                    ui_debug "config file:$file not modified"
                 } else {
-                    puts "GSOCDBG:\t\tmodified file:$file"
+                    ui_debug "config file:$file modified"
                     lappend changed_files  $file
                 }
             } else {
@@ -471,24 +466,17 @@ proc _activate_file {srcfile dstfile} {
         }
         default {
             ui_debug "activating file: $dstfile"           
-            puts "GSOCDBG: _activate_file"
-            puts "GSOCDBG:\tis_upgrade:$is_upgrade"
-            puts "GSOCDBG:\t\[info exists actions($dstfile)\]:[info exists actions($dstfile)]"
-            if {[info exists actions($dstfile)]} {puts "GSOCDBG:\t\$actions(\$dstfile):$actions($dstfile) should be 'new'"}
-            #if {!$is_upgrade || [info exists action($dstfile)] && $actions($dstfile) eq "new"} {
-                puts "GSOCDBG:\t\t\tdeactivating file: $dstfile"
-                if { [_is_config_file $dstfile]} {
-                    ui_debug "copying $srcfile to $dstfile as it is a config file"
-                    # copy config files rather than hardlink them
-                    file copy $srcfile $dstfile
-                } else {
-                    # Try a hard link first and if that fails, a symlink
-                    if {[catch {file link -hard $dstfile $srcfile}]} {
-                        ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-                        file link -symbolic $dstfile $srcfile
-                    }
+            if { [_is_config_file $dstfile]} {
+                ui_debug "copying $srcfile to $dstfile as it is a config file"
+                # copy config files rather than hardlink them
+                file copy $srcfile $dstfile
+            } else {
+                # Try a hard link first and if that fails, a symlink
+                if {[catch {file link -hard $dstfile $srcfile}]} {
+                    ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
+                    file link -symbolic $dstfile $srcfile
                 }
-            #}                        
+            }
             return 1
         }
     }
@@ -512,21 +500,17 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         set imagedir [$port location]
         set imagefiles [$port imagefiles]
 
-        puts "GSOCDBG:imagefiles:$imagefiles"
         foreach file $imagefiles {
-            puts "GSOCDBG:\t\t\tchecking file:$file"
             if {$is_upgrade && [info exists actions($file)] && $actions($file) eq "keep"} {
-                puts "GSOCDBG:\t\t\tskipping check for file:$file"
+                ui_debug "skipping activation for config file:$file"
                 set num [lsearch $imagefiles $file]
                 set imagefiles [lreplace $imagefiles $num $num]
                 continue
             }
         }
-        puts "GSOCDBG:imagefiles:$imagefiles"
     } else {
         set name $port
     }
-    puts "GSOCDBG:\t\t_activate_contents"
     set backups [list]
     # This is big and hairy and probably could be done better.
     # First, we need to check the source file, make sure it exists
@@ -786,15 +770,8 @@ proc _deactivate_file {dstfile} {
             ui_debug "$dstfile is not empty"
         }
     } else {
-        puts "GSOCDBG: _deactivate_file"
-        puts "GSOCDBG:\tis_upgrade:$is_upgrade"
-        puts "GSOCDBG:\t\[info exists actions($dstfile)\]:[info exists actions($dstfile)]"
-        if {[info exists actions($dstfile)]} {puts "GSOCDBG:\t\$actions(\$dstfile):$actions($dstfile) should be 'keep')"}
-       # if {!$is_upgrade && [info exists action($dstfile)] && $actions($dstfile) eq "new"} {    
-            puts "GSOCDBG:\t\t\tdeactivating file: $dstfile"
-            ui_debug "deactivating file: $dstfile"
-            file delete -- $dstfile
-        #}
+        ui_debug "deactivating file: $dstfile"
+        file delete -- $dstfile
     }
 }
 
@@ -806,8 +783,6 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
     array set actions "$upgrade_actions_list"
     set files [list]
 
-    puts "GSOCDBG:_deactivate_contents"
-    puts "GSOCDBG:\timagefiles:$imagefiles"
     foreach file $imagefiles {
         if { [file exists $file] || (![catch {file type $file}] && [file type $file] == "link") } {
             # Normalize the file path to avoid removing the intermediate
@@ -822,12 +797,8 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
             # does not resolve symlinks on OS X < 10.6
             set directory [realpath [file dirname $file]]
 
-            puts "GSOCDBG:\t\t\tchecking file:$file"
-            puts "GSOCDBG:\t\t\t\$is_upgrade:$is_upgrade"
-            puts "GSOCDBG:\t\t\t\[info exists actions($file)\]:[info exists actions($file)]"
-            if {[info exists actions($file)]} {puts "GSOCDBG:\t\t\t\$actions($file):$actions($file)"}
             if {$is_upgrade && [info exists actions($file)] && $actions($file) eq "keep"} {
-                puts "GSOCDBG:\t\t\tskipping check for file:$file"
+                ui_debug "skipping deactivation for config file:$file"
                 continue
             }
             lappend files [file join $directory [file tail $file]]
@@ -842,7 +813,6 @@ proc _deactivate_contents {port imagefiles {imagefiles_with_md5 {}} {force 0} {r
             ui_debug "$file does not exist."
         }
     }
-    puts "GSOCDBG:\tfiles:$files"
     # Sort the list in reverse order, removing duplicates.
     # Since the list is sorted in reverse order, we're sure that directories
     # are after their elements.
@@ -871,17 +841,23 @@ proc _is_config_file {filename} {
 proc _pick_config_upgrade_actions {requested active changed_files} {
     variable config_upgrade_completed
 
-    puts "GSOCDBG:\trequested:$requested";
-    puts "GSOCDBG:\trequested:$active";
     set actions_list [list]
     foreach file $changed_files {
-        puts "\nFile $file changed";
+        ui_msg "$UI_PREFIX [format [msgcat::mc "    File %s changed"] $file]"
+        #puts "\nFile $file changed";
         set choice ""
         while {[lsearch "keep new" $choice] < 0} { 
-            if {$choice eq "diff"} {
-                puts "GSOCDBG: showing diff"
+            if {$choice eq "current"} {
+                #catch {exec /usr/bin/diff -u [] []} a
+                #set result [string range $a 0 [expr [string length $a]-33]]
+                #ui_msg "$result"
+            } elseif {$choice eq "upgraded"} {
+                #catch {exec /usr/bin/diff -u [] []} a
+                #set result [string range $a 0 [expr [string length $a]-33]]
+                #ui_msg "$result"                
             }
-            puts "\nPlease choose one of (keep) current, install (new), show (diff):"
+            ui_msg "$UI_PREFIX [format [msgcat::mc "    \nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"] ]"
+            #puts "\nPlease choose one of (keep) current, install (new), show diff original-(current), show diff current-(upgraded):"
             gets stdin choice
         }
         lappend actions_list "$file" 
