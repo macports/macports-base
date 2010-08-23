@@ -1566,6 +1566,7 @@ proc _mportexec {target mport} {
     } else {
         # An error occurred.
         global ::logenabled ::debuglogname
+        ui_error "Failed to install $portname"
         if {[info exists ::logenabled] && $::logenabled && [info exists ::debuglogname]} {
             ui_notice "Log for $portname is at: $::debuglogname"
         }
@@ -1650,7 +1651,7 @@ proc mportexec {mport target} {
         registry::exclusive_unlock
 
         if {$result != {}} {
-            set errstring "The following dependencies failed to build:"
+            set errstring "The following dependencies were not installed:"
             foreach ditem $result {
                 append errstring " [ditem_key $ditem provides]"
             }
