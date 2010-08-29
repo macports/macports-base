@@ -190,10 +190,8 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 					break;
 				}
 			} else {
-				char theErrorString[512];
-				(void) snprintf(theErrorString, sizeof(theErrorString),
-					"curl fetch: unknown option %s", theOption);
-				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				Tcl_ResetResult(interp);
+				Tcl_AppendResult("curl fetch: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
@@ -470,10 +468,8 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
 				ignoresslcert = 1;
 			} else {
-				char theErrorString[512];
-				(void) snprintf(theErrorString, sizeof(theErrorString),
-					"curl isnewer: unknown option %s", theOption);
-				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				Tcl_ResetResult(interp);
+				Tcl_AppendResult("curl isnewer: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
@@ -706,10 +702,8 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
 				ignoresslcert = 1;
 			} else {
-				char theErrorString[512];
-				(void) snprintf(theErrorString, sizeof(theErrorString),
-					"curl getsize: unknown option %s", theOption);
-				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				Tcl_ResetResult(interp);
+				Tcl_AppendResult("curl getsize: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
