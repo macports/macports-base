@@ -32,4 +32,4 @@ install:: all
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 pkgIndex.tcl ${INSTALLDIR}
 
 test::
-	${TCLSH} tests/portutil.tcl
+	${TCLSH} tests/portutil.tcl ${macports_tcl_dir}

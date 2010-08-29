@@ -2,6 +2,7 @@
 # Requires r/w access to /tmp
 # MacPorts must be installed for this to work
 
+source [file join [lindex $argv 0] macports1.0 macports_fastload.tcl]
 package require macports
 mportinit
 
