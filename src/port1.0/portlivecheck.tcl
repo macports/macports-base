@@ -80,7 +80,7 @@ proc portlivecheck::livecheck_main {args} {
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
     set curl_options {}
-    if [tbool ${livecheck.ignore_sslcert}] {
+    if [tbool livecheck.ignore_sslcert] {
         lappend curl_options "--ignore-ssl-cert"
     }
 
