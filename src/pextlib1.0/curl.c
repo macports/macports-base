@@ -191,7 +191,7 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				}
 			} else {
 				Tcl_ResetResult(interp);
-				Tcl_AppendResult("curl fetch: unknown option ", theOption, NULL);
+				Tcl_AppendResult(interp, "curl fetch: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
@@ -469,7 +469,7 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				ignoresslcert = 1;
 			} else {
 				Tcl_ResetResult(interp);
-				Tcl_AppendResult("curl isnewer: unknown option ", theOption, NULL);
+				Tcl_AppendResult(interp, "curl isnewer: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
@@ -703,7 +703,7 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 				ignoresslcert = 1;
 			} else {
 				Tcl_ResetResult(interp);
-				Tcl_AppendResult("curl getsize: unknown option ", theOption, NULL);
+				Tcl_AppendResult(interp, "curl getsize: unknown option ", theOption, NULL);
 				theResult = TCL_ERROR;
 				break;
 			}
