@@ -1027,8 +1027,7 @@ proc touch {args} {
     # do we have any files to process?
     if {[llength $args] == 0} {
         # print usage
-        ui_msg {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...}
-        return
+        return -code error {usage: touch [-a] [-c] [-m] [-r file] [-t [[CC]YY]MMDDhhmm[.SS]] file ...}
     }
 
     foreach file $args {
@@ -1085,9 +1084,8 @@ proc ln {args} {
     }
 
     if {[llength $args] == 0} {
-        ui_msg {usage: ln [-f] [-h] [-s] [-v] source_file [target_file]}
-        ui_msg {       ln [-f] [-h] [-s] [-v] file ... directory}
-        return
+        return -code error [join {{usage: ln [-f] [-h] [-s] [-v] source_file [target_file]}
+                                  {       ln [-f] [-h] [-s] [-v] file ... directory}} "\n"]
     } elseif {[llength $args] == 1} {
         set files $args
         set target ./
@@ -1125,7 +1123,7 @@ proc ln {args} {
         }
 
         if {[info exists options(v)]} {
-            ui_msg "ln: $linktarget -> $file"
+            ui_notice "ln: $linktarget -> $file"
         }
         if {[info exists options(s)]} {
             symlink $file $linktarget
@@ -1243,7 +1241,7 @@ proc target_run {ditem} {
             if {[info exists ports_dryrun] && $ports_dryrun == "yes"} {
                 # only one message per portname
                 if {$portname != $ports_dry_last_skipped} {
-                    ui_msg "For $portname: skipping $targetname (dry run)"
+                    ui_notice "For $portname: skipping $targetname (dry run)"
                     set ports_dry_last_skipped $portname
                 } else {
                     ui_info "    .. and skipping $targetname"
@@ -1562,12 +1560,12 @@ proc open_statefile {args} {
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             if {![tbool ports_dryrun]} {
-                ui_msg "Portfile changed since last build; discarding previous state."
+                ui_notice "Portfile changed since last build; discarding previous state."
                 chownAsRoot $portbuildpath
                 delete $workpath
                 file mkdir $workpath
             } else {
-                ui_msg "Portfile changed since last build but not discarding previous state (dry run)"
+                ui_notice "Portfile changed since last build but not discarding previous state (dry run)"
             }
         }
     } elseif {[tbool ports_dryrun]} {
@@ -1578,7 +1576,7 @@ proc open_statefile {args} {
     if {![tbool ports_dryrun]} {
         if {[catch {flock $fd -exclusive -noblock} result]} {
             if {"$result" == "EAGAIN"} {
-                ui_msg "Waiting for lock on $statefile"
+                ui_notice "Waiting for lock on $statefile"
                 flock $fd -exclusive
             } elseif {"$result" == "EOPNOTSUPP"} {
                 # Locking not supported, just return

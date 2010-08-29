@@ -27,7 +27,7 @@ set_ui_prefix
 
 proc porttest::test_start {args} {
     global UI_PREFIX name
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Testing %s"] ${name}]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Testing %s"] ${name}]"
 }
 
 proc porttest::test_main {args} {

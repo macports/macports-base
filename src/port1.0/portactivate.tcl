@@ -71,7 +71,7 @@ proc portactivate::activate_main {args} {
 
     # Display notes at the end of the activation phase.
     if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {
-        ui_msg ""
+        ui_notice ""
         foreach note $PortInfo(notes) {
             # If env(COLUMNS) exists, limit each line's width to this width.
             if {[info exists env(COLUMNS)]} {
@@ -94,13 +94,13 @@ proc portactivate::activate_main {args} {
                     if {$newline ne {}} {
                         lappend lines $newline
                     }
-                    ui_msg [join $lines "\n"]
+                    ui_notice [join $lines "\n"]
                 }
             } else {
-                ui_msg $note
+                ui_notice $note
             }
         }
-        ui_msg ""
+        ui_notice ""
     }
 
     return 0

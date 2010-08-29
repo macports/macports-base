@@ -534,7 +534,7 @@ proc portfetch::fetch_init {args} {
 proc portfetch::fetch_start {args} {
     global UI_PREFIX name
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $name]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $name]"
 }
 
 # Main fetch routine

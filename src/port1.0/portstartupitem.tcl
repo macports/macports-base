@@ -379,14 +379,14 @@ RunService "$1"
     close ${para}
     
     # Emit some information for the user
-    ui_msg "###########################################################"
-    ui_msg "# A startup item has been generated that will aid in"
-    ui_msg "# starting ${name} with SystemStarter. It is disabled"
-    ui_msg "# by default. Add the following line to /etc/hostconfig"
-    ui_msg "# or ${prefix}/etc/rc.conf to start it at startup:"
-    ui_msg "#"
-    ui_msg "# ${uppername}=-YES-"
-    ui_msg "###########################################################"
+    ui_notice "###########################################################"
+    ui_notice "# A startup item has been generated that will aid in"
+    ui_notice "# starting ${name} with SystemStarter. It is disabled"
+    ui_notice "# by default. Add the following line to /etc/hostconfig"
+    ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
+    ui_notice "#"
+    ui_notice "# ${uppername}=-YES-"
+    ui_notice "###########################################################"
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
@@ -597,23 +597,23 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     # If launchd is not available, warn the user
     set haveLaunchd ${portutil::autoconf::have_launchd}
     if {![tbool haveLaunchd]} {
-        ui_msg "###########################################################"
-        ui_msg "# WARNING:"
-        ui_msg "# We're building a launchd startup item, but launchd wasn't"
-        ui_msg "# found by configure. Are you sure you didn't mess up your"
-        ui_msg "# macports.conf settings?"
-        ui_msg "###########################################################"
+        ui_notice "###########################################################"
+        ui_notice "# WARNING:"
+        ui_notice "# We're building a launchd startup item, but launchd wasn't"
+        ui_notice "# found by configure. Are you sure you didn't mess up your"
+        ui_notice "# macports.conf settings?"
+        ui_notice "###########################################################"
     }
     
     # Emit some information for the user
-    ui_msg "###########################################################"
-    ui_msg "# A startup item has been generated that will aid in"
-    ui_msg "# starting ${name} with launchd. It is disabled"
-    ui_msg "# by default. Execute the following command to start it,"
-    ui_msg "# and to cause it to launch at startup:"
-    ui_msg "#"
-    ui_msg "# sudo port load ${name}"
-    ui_msg "###########################################################"
+    ui_notice "###########################################################"
+    ui_notice "# A startup item has been generated that will aid in"
+    ui_notice "# starting ${name} with launchd. It is disabled"
+    ui_notice "# by default. Execute the following command to start it,"
+    ui_notice "# and to cause it to launch at startup:"
+    ui_notice "#"
+    ui_notice "# sudo port load ${name}"
+    ui_notice "###########################################################"
 }
 
 proc portstartupitem::startupitem_create {args} {
@@ -640,9 +640,9 @@ proc portstartupitem::startupitem_create {args} {
     }
 
     if { ${startupitem.type} == "none" } {
-        ui_msg "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
+        ui_notice "$UI_PREFIX [msgcat::mc "Skipping creation of control script"]"
     } else {
-        ui_msg "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
+        ui_notice "$UI_PREFIX [msgcat::mc "Creating ${startupitem.type} control script"]"
 
         switch -- ${startupitem.type} {
             launchd         { startupitem_create_darwin_launchd }

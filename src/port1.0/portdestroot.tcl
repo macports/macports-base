@@ -93,7 +93,7 @@ proc portdestroot::destroot_start {args} {
     global applications_dir frameworks_dir
     variable oldmask
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${name}]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${name}]"
 
     # start gsoc08-privileges
     if { [getuid] == 0 && [geteuid] != 0 } {
@@ -337,7 +337,7 @@ proc portdestroot::destroot_finish {args} {
             # error "mtree violation!"
         }
     } else {
-        ui_msg "[format [msgcat::mc "Note: %s installs files outside the common directory structure."] [option name]]"
+        ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] [option name]]"
     }
 
     # Restore umask

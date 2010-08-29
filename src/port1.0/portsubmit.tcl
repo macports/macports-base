@@ -83,7 +83,7 @@ proc portsubmit::submit_main {args} {
     set cmd [join $args]
 
     if {[tbool portverbose]} {
-        ui_msg "Submitting portpkg $pkgpath for $name to $submiturl"
+        ui_notice "Submitting portpkg $pkgpath for $name to $submiturl"
     }
 
     # Invoke curl to do the submit
@@ -104,16 +104,16 @@ proc portsubmit::submit_main {args} {
 
     # Interpret and act on the result
     if {[info exists result(MESSAGE)] && [tbool portverbose]} {
-        ui_msg $result(MESSAGE)
+        ui_notice $result(MESSAGE)
     }
     if {[info exists result(STATUS)]} {
         if { $result(STATUS) == 0 } {
-            ui_msg "Submitted portpkg for $name"
+            ui_notice "Submitted portpkg for $name"
             if {[info exists result(DOWNLOAD_URL)]} {
-                ui_msg "    download URL => $result(DOWNLOAD_URL)"
+                ui_notice "    download URL => $result(DOWNLOAD_URL)"
             }
             if {[info exists result(HUMAN_URL)]} {
-                ui_msg "    human readable URL => $result(HUMAN_URL)"
+                ui_notice "    human readable URL => $result(HUMAN_URL)"
             }
         } else {
             return -code error [format [msgcat::mc "Status %d reported during submit of port %s"] $result(STATUS) $name]
@@ -152,13 +152,13 @@ proc portsubmit::submit_main {args} {
         close $fd
     }
     if {$portsource == ""} {
-        ui_msg "$UI_PREFIX Submitting $name-$version"
+        ui_notice "$UI_PREFIX Submitting $name-$version"
         puts -nonewline "URL: "
         flush stdout
         gets stdin portsource
     }
 
-    ui_msg "$UI_PREFIX Submitting $name-$version to $portsource"
+    ui_notice "$UI_PREFIX Submitting $name-$version to $portsource"
 
     puts -nonewline "Username: "
     flush stdout
@@ -222,8 +222,8 @@ proc portsubmit::submit_main {args} {
         puts $fd "revision: $result(revision)"
         close $fd
 
-        ui_msg "$name-$version submitted successfully."
-        ui_msg "New revision: $result(revision)"
+        ui_notice "$name-$version submitted successfully."
+        ui_notice "New revision: $result(revision)"
     } elseif {[info exists result(ERROR)]} {
         return -code error $result(ERROR)
     } elseif {[info exists result(CONFLICT)]} {

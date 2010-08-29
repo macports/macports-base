@@ -75,7 +75,7 @@ proc portextract::disttagclean {list} {
 proc portextract::extract_start {args} {
     global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {

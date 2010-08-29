@@ -59,7 +59,7 @@ set_ui_prefix
 proc portinstall::install_start {args} {
     global UI_PREFIX name version revision portvariants
     global prefix registry_open registry.format registry.path
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
     
     # start gsoc08-privileges
     if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {

@@ -191,7 +191,7 @@ proc portchecksum::calc_sha256 {file} {
 proc portchecksum::checksum_start {args} {
     global UI_PREFIX
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
 }
 
 # checksum_main
@@ -307,11 +307,11 @@ proc portchecksum::checksum_main {args} {
             # expected. Probably a helpful DNS server sent us to its search results page
             # instead of admitting that the server we asked for doesn't exist, or a mirror that
             # no longer has the file served its error page with a 200 response.
-            ui_msg "***"
-            ui_msg "The non-matching file appears to be HTML. See this page for possible reasons"
-            ui_msg "for the checksum mismatch:"
-            ui_msg "<http://trac.macports.org/wiki/MisbehavingServers>"
-            ui_msg "***"
+            ui_notice "***"
+            ui_notice "The non-matching file appears to be HTML. See this page for possible reasons"
+            ui_notice "for the checksum mismatch:"
+            ui_notice "<http://trac.macports.org/wiki/MisbehavingServers>"
+            ui_notice "***"
         }
 
         return -code error "[msgcat::mc "Unable to verify file checksums"]"
