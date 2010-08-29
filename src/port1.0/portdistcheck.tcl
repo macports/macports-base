@@ -54,11 +54,17 @@ default distcheck.check moddate
 proc portdistcheck::distcheck_main {args} {
     global distcheck.check
     global fetch.type
+    global fetch.ignore_sslcert
     global name portpath
 
     set port_moddate [file mtime ${portpath}/Portfile]
 
     ui_debug "Portfile modification date is [clock format $port_moddate]"
+
+    set curl_options {}
+    if [tbool fetch.ignore_sslcert] {
+        lappend curl_options "--ignore-ssl-cert"
+    }
 
     # Check the distfiles if it's a regular fetch phase.
     if {"${distcheck.check}" != "none"
@@ -80,7 +86,7 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlnewer [curl isnewer $file_url $port_moddate]} error]} {
+                    if {[catch {set urlnewer [eval curl isnewer $curl_options {$file_url} $port_moddate]} error]} {
                         ui_warn "couldn't fetch $file_url for $name ($error)"
                     } else {
                         if {$urlnewer} {
@@ -97,7 +103,7 @@ proc portdistcheck::distcheck_main {args} {
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
                     set file_url [portfetch::assemble_url $site $distfile]
-                    if {[catch {set urlsize [curl getsize $file_url]} error]} {
+                    if {[catch {set urlsize [eval curl getsize $curl_options {$file_url}]} error]} {
                         ui_warn "couldn't fetch $file_url for $name ($error)"
                     } else {
                         incr count

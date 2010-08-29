@@ -452,24 +452,52 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	FILE* theFile = NULL;
 
 	do {
+		int optioncrsr;
+		int lastoption;
+		int ignoresslcert = 0;
 		long theResponseCode = 0;
 		const char* theURL;
 		CURLcode theCurlCode;
 		long theModDate;
 		long userModDate;
 
+		optioncrsr = 2;
+		lastoption = objc - 3;
+		while (optioncrsr <= lastoption) {
+			/* get the option */
+			const char* theOption = Tcl_GetString(objv[optioncrsr]);
+
+			if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
+				ignoresslcert = 1;
+			} else {
+				char theErrorString[512];
+				(void) snprintf(theErrorString, sizeof(theErrorString),
+					"curl isnewer: unknown option %s", theOption);
+				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+
+			optioncrsr++;
+                }
+
+		if (optioncrsr <= lastoption) {
+			/* something went wrong */
+			break;
+		}
+
 		/* first (second) parameter is the url, second (third) parameter is the date */
-		if (objc != 4) {
-			Tcl_WrongNumArgs(interp, 1, objv, "isnewer url date");
+		if (objc < 4 || objc > 5) {
+			Tcl_WrongNumArgs(interp, 1, objv, "isnewer [--ignore-ssl-cert] url date");
 			theResult = TCL_ERROR;
 			break;
 		}
 
 		/* Retrieve the url */
-		theURL = Tcl_GetString(objv[2]);
+		theURL = Tcl_GetString(objv[objc - 2]);
 
 		/* Get the date */
-		theResult = Tcl_GetLongFromObj(interp, objv[3], &userModDate);
+		theResult = Tcl_GetLongFromObj(interp, objv[objc - 1], &userModDate);
 		if (theResult != TCL_OK) {
 			break;
 		}
@@ -546,6 +574,20 @@ CurlIsNewerCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
+		}
+
+		/* we may want to ignore ssl errors */
+		if (ignoresslcert) {
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYPEER, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYHOST, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
 		}
 
 		/* save the modification date */
@@ -647,20 +689,48 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 	FILE* theFile = NULL;
 
 	do {
+		int optioncrsr;
+		int lastoption;
+		int ignoresslcert = 0;
 		char theSizeString[32];
 		const char* theURL;
 		CURLcode theCurlCode;
 		double theFileSize;
 
+		optioncrsr = 2;
+		lastoption = objc - 2;
+		while (optioncrsr <= lastoption) {
+			/* get the option */
+			const char* theOption = Tcl_GetString(objv[optioncrsr]);
+
+			if (strcmp(theOption, "--ignore-ssl-cert") == 0) {
+				ignoresslcert = 1;
+			} else {
+				char theErrorString[512];
+				(void) snprintf(theErrorString, sizeof(theErrorString),
+					"curl getsize: unknown option %s", theOption);
+				Tcl_SetResult(interp, theErrorString, TCL_VOLATILE);
+				theResult = TCL_ERROR;
+				break;
+			}
+
+			optioncrsr++;
+                }
+
+		if (optioncrsr <= lastoption) {
+			/* something went wrong */
+			break;
+		}
+
 		/* first (second) parameter is the url */
-		if (objc != 3) {
-			Tcl_WrongNumArgs(interp, 1, objv, "getsize url");
+		if (objc < 3 || objc > 4) {
+			Tcl_WrongNumArgs(interp, 1, objv, "getsize [--ignore-ssl-cert] url");
 			theResult = TCL_ERROR;
 			break;
 		}
 
 		/* Retrieve the url */
-		theURL = Tcl_GetString(objv[2]);
+		theURL = Tcl_GetString(objv[objc - 1]);
 
 		/* Open the file (dev/null) */
 		theFile = fopen( "/dev/null", "a" );
@@ -734,6 +804,20 @@ CurlGetSizeCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 		if (theCurlCode != CURLE_OK) {
 			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
 			break;
+		}
+
+		/* we may want to ignore ssl errors */
+		if (ignoresslcert) {
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYPEER, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
+			theCurlCode = curl_easy_setopt(theHandle, CURLOPT_SSL_VERIFYHOST, (long) 0);
+			if (theCurlCode != CURLE_OK) {
+				theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
+				break;
+			}
 		}
 
 		/* skip the header data */
