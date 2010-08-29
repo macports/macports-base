@@ -11,8 +11,7 @@ exec @TCLSH@ "$0" "$@"
 # Updates the distfiles to current distfiles by deleting old stuff.
 # Uses the database.
 
-catch {source \
-    [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]}
+source [file join "@macports_tcl_dir@" macports1.0 macports_fastload.tcl]
 package require macports
 package require Pextlib
 
