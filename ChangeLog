@@ -5,6 +5,10 @@
 
 Unreleased changes:
 
+    - Add livecheck.ignore_sslcert; setting fetch.ignore_sslcert does no
+      longer apply to livecheck. distcheck now respects fetch.ignore_sslcert.
+      (#17063, raimue in r70975, r70979, r70982)
+
     - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
       (afb in r57888, r57913; snc in r68955)
 
