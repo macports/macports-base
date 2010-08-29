@@ -46,7 +46,7 @@ namespace eval portlivecheck {
 }
 
 # define options
-options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
+options livecheck.url livecheck.type livecheck.check livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version livecheck.ignore_sslcert
 
 # defaults
 default livecheck.url {$homepage}
@@ -57,13 +57,14 @@ default livecheck.regex ""
 default livecheck.name default
 default livecheck.distname default
 default livecheck.version {$version}
+default livecheck.ignore_sslcert yes
 
 # Deprecation
 option_deprecate livecheck.check livecheck.type
 
 proc portlivecheck::livecheck_main {args} {
     global livecheck.url livecheck.type livecheck.md5 livecheck.regex livecheck.name livecheck.distname livecheck.version
-    global fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
+    global livecheck.ignore_sslcert
     global homepage portpath workpath
     global master_sites name distfiles
 
@@ -78,17 +79,9 @@ proc portlivecheck::livecheck_main {args} {
     ui_debug "Portfile modification date is [clock format $port_moddate]"
     ui_debug "Port (livecheck) version is ${livecheck.version}"
 
-    # Copied over from portfetch in parts
-    set fetch_options {}
-    if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
-        lappend fetch_options -u
-        lappend fetch_options "${fetch.user}:${fetch.password}"
-    }
-    if {${fetch.use_epsv} != "yes"} {
-        lappend fetch_options "--disable-epsv"
-    }
-    if {${fetch.ignore_sslcert} != "no"} {
-        lappend fetch_options "--ignore-ssl-cert"
+    set curl_options {}
+    if [tbool ${livecheck.ignore_sslcert}] {
+        lappend curl_options "--ignore-ssl-cert"
     }
 
     # Check _resources/port1.0/livecheck for available types.
@@ -148,7 +141,7 @@ proc portlivecheck::livecheck_main {args} {
         "regexm" {
             # single and multiline regex
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
+            if {[catch {eval curl fetch $curl_options {${livecheck.url}} $tempfile} error]} {
                 ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
@@ -197,7 +190,7 @@ proc portlivecheck::livecheck_main {args} {
         }
         "md5" {
             ui_debug "Fetching ${livecheck.url}"
-            if {[catch {eval curl fetch $fetch_options {${livecheck.url}} $tempfile} error]} {
+            if {[catch {eval curl fetch $curl_options {${livecheck.url}} $tempfile} error]} {
                 ui_error "cannot check if $name was updated ($error)"
                 set updated -1
             } else {
