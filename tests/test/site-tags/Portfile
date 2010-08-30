@@ -11,10 +11,10 @@ platforms	darwin
 
 long_description ${description}
 
-master_sites	http://www.douglas.stebila.ca/code/vim/app/:app_aqua \
-				http://www.douglas.stebila.ca/code/vim/doc/:doc_aqua
+master_sites	http://www.douglas.stebila.ca/files/code/vim/app/:app_aqua \
+				http://www.douglas.stebila.ca/files/code/vim/doc/:doc_aqua
 distfiles		app-bm.tar.gz:app_aqua \
-				doc.tar.gz:doc_aqua 
+				doc.tar.gz:doc_aqua
 
 checksums		app-bm.tar.gz \
 					md5 418b9e615a34ae5aad918f5c5a694a44 \
