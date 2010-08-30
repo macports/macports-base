@@ -302,7 +302,7 @@ foreach {name array} $res {
 		set logfd ""
 	}
 	#if {[file readable $logfilename]} {
-	#	if {[catch {system "cat $logfilename | /usr/sbin/sendmail -t"} error]} {
+	#	if {[catch {system "<$logfilename /usr/sbin/sendmail -t"} error]} {
 	#		puts stderr "Internal error: $error"
 	#	}
 	#}

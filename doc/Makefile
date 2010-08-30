@@ -32,7 +32,7 @@ install: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${mpconfigdir}
 
-	cat prefix.mtree | $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
+	<prefix.mtree $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi

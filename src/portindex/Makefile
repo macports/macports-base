@@ -9,7 +9,7 @@ all: portregister.cgi portsubmit.cgi initialize.sql register.html
 
 %.cgi: %.pl
 	@ echo $@
-	@ cat $< | sed "/@@PREFIX@@/s//$(subst /,\/,$(PREFIX))/" > $@
+	@ < $< sed "/@@PREFIX@@/s//$(subst /,\/,$(PREFIX))/" > $@
 
 install: all
 	mkdir -p ${DESTDIR}$(PREFIX)
