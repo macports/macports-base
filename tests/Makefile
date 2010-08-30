@@ -42,7 +42,7 @@ $(bindir)/port:
 # For example: make test TESTS="checkums-1 universal"
 test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
 	@for testname in $(TESTS); do\
-	    subdir=test/$$testname; \
+		subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
 			( cd $$subdir && \
