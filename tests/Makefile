@@ -4,9 +4,9 @@ TESTS?=checksums-1 cvs-and-patchsites envvariables site-tags trace universal uni
 
 PWD=$(shell pwd)
 
-.PHONY: test clean PortIndex
+.PHONY: all clean install test PortIndex
 
-all:
+all::
 
 /tmp/macports-tests/opt/local/etc/macports/sources.conf: sources.conf
 	@echo setting up test installation
@@ -26,7 +26,7 @@ all:
 PortIndex:
 	$(bindir)/portindex
 
-clean:
+clean::
 	rm -rf /tmp/macports-tests/
 	rm -f PortIndex PortIndex.quick
 	for testname in $(TESTS); do \
@@ -40,7 +40,7 @@ $(bindir)/port:
 # Run all tests
 # Use TESTS to choose which tests to run
 # For example: make test TESTS="checkums-1 universal"
-test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
+test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
 	@for testname in $(TESTS); do\
 	    subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \
@@ -70,6 +70,6 @@ test: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/et
 test-%:
 	$(MAKE) TESTS="$(@:test-%=%)" test
 
-install:
+install::
 
-distclean: clean
+distclean:: clean

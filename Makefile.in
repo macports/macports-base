@@ -1,7 +1,7 @@
 # $Id$
 
 PATH		= @PATH_CLEANED@
-SUBDIR		= doc src
+SUBDIR		= doc src tests
 DISTDIR		= dist
 DISTVER		=
 DISTTAG		= release_${subst .,_,${DISTVER}}
