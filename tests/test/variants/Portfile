@@ -31,12 +31,12 @@ variant universal {
 	puts "Universal Variant"
 }
 
-# We define the utopia platform twice
-platform utopia {
-	puts "Utopia platform -- 1"
+# We define the utopia variant twice
+variant utopia {
+	puts "Utopia variant -- 1"
 }
-platform utopia {
-	puts "Utopia platform -- 2"
+variant utopia {
+	puts "Utopia variant -- 2"
 }
 
 default_variants	+utopia
