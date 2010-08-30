@@ -53,7 +53,7 @@ test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/e
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port test > output 2>&1 \
 					|| ([ -e error_expected ] || (cat output; exit 1)) && \
 			sed -e "s|${PWD}|PWD|g" < output > output.sed && \
-			diff -u output.sed master 2>&1 | tee difference && \
+			diff -u master output.sed 2>&1 | tee difference && \
 			if [ -s difference ]; then \
 				exit 1; \
 			else \

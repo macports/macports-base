@@ -29,7 +29,7 @@ test:
 	@rm -rf rmdir-trace
 	@rm -f /tmp/hello-trace
 	@sed -e "s|${PWD}|PWD|g" < output > output.sed
-	@diff output.sed master 2>&1 | tee difference
+	@diff -u master output.sed 2>&1 | tee difference
 	@if [ -s difference ]; then \
 		exit 1; \
 	else \
