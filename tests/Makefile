@@ -41,12 +41,15 @@ $(bindir)/port:
 # Use TESTS to choose which tests to run
 # For example: make test TESTS="checkums-1 universal"
 test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/etc/macports/sources.conf
-	@for testname in $(TESTS); do\
+	@num=0; \
+	success=0; \
+	for testname in $(TESTS); do\
 		subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \
 		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
 			( cd $$subdir && \
-				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-macports.conf test) || exit 1; \
+				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-macports.conf test) && \
+			success=$$(( success + 1 )); \
 		else \
 			( cd $$subdir && \
 				PORTSRC=$(PWD)/test-macports.conf $(bindir)/port clean > /dev/null && \
@@ -58,9 +61,12 @@ test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/e
 				exit 1; \
 			else \
 				rm -f difference output.sed; \
-			fi) \
-		fi || exit 1; \
-	done
+			fi) && \
+			success=$$(( success + 1 )); \
+		fi; \
+		num=$$(( num + 1 )); \
+	done; \
+	echo ===\> $$success of $$num tests passed.
 	@rm -rf /tmp/macports-tests/
 	@rm -f PortIndex PortIndex.quick
 
