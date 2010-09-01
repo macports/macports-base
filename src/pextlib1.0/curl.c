@@ -272,13 +272,6 @@ CurlFetchCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* set timeout on connections */
-		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_TIMEOUT, _CURL_CONNECTION_TIMEOUT);
-		if (theCurlCode != CURLE_OK) {
-			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-			break;
-		}
-
 		/* set minimum connection speed */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_LOW_SPEED_LIMIT, _CURL_MINIMUM_XFER_SPEED);
 		if (theCurlCode != CURLE_OK) {
