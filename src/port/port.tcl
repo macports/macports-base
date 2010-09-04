@@ -3441,6 +3441,7 @@ proc action_portcmds { action portlist opts } {
         return 1
     }
     foreachport $portlist {
+        array unset portinfo
         # If we have a url, use that, since it's most specific, otherwise try to map the portname to a url
         if {$porturl == ""} {
         
