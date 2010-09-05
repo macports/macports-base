@@ -2355,12 +2355,12 @@ proc chownAsRoot {path} {
             # if started with sudo but have dropped the privileges
             setegid $egid
             seteuid $euid
-            ui_debug "euid changed to: [geteuid]"
+            ui_debug "euid/egid changed to: [geteuid]/[getegid]"
             chown  ${path} ${macportsuser}
             ui_debug "chowned $path to $macportsuser"
             setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
-            ui_debug "euid changed to: [geteuid]"
+            ui_debug "euid/egid changed to: [geteuid]/[getegid]"
         } else {
             # if started with sudo but have elevated back to root already
             chown  ${path} ${macportsuser}
@@ -2380,12 +2380,12 @@ proc fileAttrsAsRoot {file attributes} {
             # Started as root, but not root now
             setegid $egid
             seteuid $euid
-            ui_debug "euid changed to: [geteuid]"
+            ui_debug "euid/egid changed to: [geteuid]/[getegid]"
             ui_debug "setting attributes on $file"
             eval file attributes {$file} $attributes
             setegid [uname_to_gid "$macportsuser"]
             seteuid [name_to_uid "$macportsuser"]
-            ui_debug "euid changed to: [geteuid]"
+            ui_debug "euid/egid changed to: [geteuid]/[getegid]"
         } else {
             eval file attributes {$file} $attributes
         }
