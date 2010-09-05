@@ -149,7 +149,8 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
         }
         /* drop privileges entirely for child */
         if (getuid() == 0 && (euid = geteuid()) != 0) {
-            if (seteuid(0) || setuid(euid)) {
+            gid_t egid = getegid();
+            if (seteuid(0) || setgid(egid) || setuid(euid)) {
                 _exit(1);
             }
         }
