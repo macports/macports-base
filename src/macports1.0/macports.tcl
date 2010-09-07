@@ -2496,6 +2496,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
                 # Find the porturl
                 if {[catch {set res [mportlookup $dep_portname]} error]} {
                     global errorInfo
+                    ui_msg ""
                     ui_debug "$errorInfo"
                     ui_error "Internal error: port lookup failed: $error"
                     return 1
