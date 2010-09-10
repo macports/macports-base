@@ -5,6 +5,10 @@
 
 Unreleased changes:
 
+    - Add 'system -W path' which changes to the given directory before
+      executing the command.
+      (raimue in r71380)
+
     - Add -w to build.cmd and destroot.cmd if using gnumake
       (raimue in r71370)
 
