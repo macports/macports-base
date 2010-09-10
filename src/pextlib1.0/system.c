@@ -49,6 +49,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <errno.h>
 
 #include "system.h"
 #include "Pextlib.h"
@@ -71,7 +72,7 @@ struct linebuf {
     char *line;
 };
 
-/* usage: system ?-notty? ?-nice value? command */
+/* usage: system ?-notty? ?-nice value? ?-W path? command */
 int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
     char *buf;
@@ -84,6 +85,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int fline, pos, ret;
     int osetsid = 0;
     int oniceval = INT_MAX; /* magic value indicating no change */
+    const char *path = NULL;
     pid_t pid;
     uid_t euid;
     Tcl_Obj *tcl_result;
@@ -91,7 +93,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
     int i;
 
     if (objc < 2) {
-        Tcl_WrongNumArgs(interp, 1, objv, "?-notty? ?-nice value? command");
+        Tcl_WrongNumArgs(interp, 1, objv, "?-notty? ?-nice value? ?-W path? command");
         return TCL_ERROR;
     }
 
@@ -105,6 +107,12 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
             i++;
             if (Tcl_GetIntFromObj(interp, objv[i], &oniceval) != TCL_OK) {
                 Tcl_SetResult(interp, "invalid value for -nice", TCL_STATIC);
+                return TCL_ERROR;
+            }
+        } else if (strcmp(arg, "-W") == 0) {
+            i++;
+            if ((path = Tcl_GetString(objv[i])) == NULL) {
+                Tcl_SetResult(interp, "invalid value for -W", TCL_STATIC);
                 return TCL_ERROR;
             }
         } else {
@@ -154,6 +162,14 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 _exit(1);
             }
         }
+
+        if (path != NULL) {
+            if (chdir(path) == -1) {
+                printf("chdir: %s: %s\n", path, strerror(errno));
+                exit(1);
+            }
+        }
+
         /* XXX ugly string constants */
         args[0] = "sh";
         args[1] = "-c";
