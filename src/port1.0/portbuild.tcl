@@ -53,7 +53,7 @@ default build.dir {${workpath}/${worksrcdir}}
 default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
-default build.pre_args {${build.target}}
+default build.pre_args {[portbuild::build_getargs]}
 default build.target "all"
 default use_parallel_build yes
 
@@ -120,6 +120,16 @@ proc portbuild::build_getjobs {args} {
         set jobs 1
     }
     return $jobs
+}
+
+proc portbuild::build_getargs {args} {
+    if {(![exists build.type] || [option build.type] == "gnu") \
+        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
+        # Print "Entering directory" lines for better log debugging
+        return "-w [option build.target]"
+    }
+
+    return "[option build.target]"
 }
 
 proc portbuild::build_getjobsarg {args} {

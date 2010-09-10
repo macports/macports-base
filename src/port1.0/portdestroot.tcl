@@ -59,7 +59,7 @@ commands destroot
 default destroot.asroot no
 default destroot.dir {${build.dir}}
 default destroot.cmd {${build.cmd}}
-default destroot.pre_args {${destroot.target}}
+default destroot.pre_args {[portdestroot::destroot_getargs]}
 default destroot.target install
 default destroot.post_args {${destroot.destdir}}
 default destroot.destdir {DESTDIR=${destroot}}
@@ -86,6 +86,16 @@ default startupitem.logevents   no
 default startupitem.netchange   no
 
 set_ui_prefix
+
+proc portdestroot::destroot_getargs {args} {
+    if {(![exists build.type] || [option build.type] == "gnu") \
+        && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
+        # Print "Entering directory" lines for better log debugging
+        return "-w [option build.target]"
+    }
+
+    return "[option build.target]"
+}
 
 proc portdestroot::destroot_start {args} {
     global UI_PREFIX prefix name porturl destroot os.platform destroot.clean portsharepath
