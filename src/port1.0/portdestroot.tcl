@@ -91,10 +91,10 @@ proc portdestroot::destroot_getargs {args} {
     if {(![exists build.type] || [option build.type] == "gnu") \
         && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option destroot.cmd]]} {
         # Print "Entering directory" lines for better log debugging
-        return "-w [option build.target]"
+        return "-w [option destroot.target]"
     }
 
-    return "[option build.target]"
+    return "[option destroot.target]"
 }
 
 proc portdestroot::destroot_start {args} {
