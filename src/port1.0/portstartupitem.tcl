@@ -390,7 +390,7 @@ RunService "$1"
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs name os.platform
+    global UI_PREFIX prefix destroot destroot.keepdirs name macosx_deployment_target
     global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
     global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
     global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
@@ -577,7 +577,11 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     
     puts ${plist} "<key>Debug</key><false/>"
     puts ${plist} "<key>Disabled</key><true/>"
-    puts ${plist} "<key>OnDemand</key><false/>"
+    if {$macosx_deployment_target != "10.4"} {
+        puts ${plist} "<key>KeepAlive</key><true/>"
+    } else {
+        puts ${plist} "<key>OnDemand</key><false/>"
+    }
     
     if { [llength ${startupitem.logfile}] } {
         puts ${plist} "<key>StandardOutPath</key><string>${startupitem.logfile}</string>"
