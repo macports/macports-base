@@ -5,6 +5,10 @@
 
 Unreleased changes:
 
+    - Add new ccache_dir and ccache_size options, default path is
+      ${portdbpath}/build/.ccache and a size of 2 GB.
+      (raimue in r71604, r71606)
+
     - Add 'system -W path' which changes to the given directory before
       executing the command.
       (raimue in r71380, r71389)
