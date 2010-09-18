@@ -214,6 +214,21 @@ proc portconfigure::configure_start {args} {
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
+
+    # Additional ccache directory setup
+    global configureccache ccache_dir ccache_size macportsuser
+    if {${configureccache}} {
+        elevateToRoot "configure ccache"
+        if [catch {
+                file mkdir ${ccache_dir}
+                file attributes ${ccache_dir} -owner ${macportsuser} -permissions 0755
+                exec ccache -M ${ccache_size} >/dev/null
+            } result] {
+            ui_warn "ccache_dir ${ccache_dir} could not be initialized; disabling ccache: $result"
+            set configureccache no
+        }
+        dropPrivileges
+    }
 }
 
 # internal function to choose the default configure.build_arch and

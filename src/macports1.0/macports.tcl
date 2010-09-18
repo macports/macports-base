@@ -44,7 +44,7 @@ namespace eval macports {
         portinstalltype portarchivemode portarchivepath portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
-        mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
+        mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
     variable user_options "submitter_name submitter_email submitter_key"
@@ -53,7 +53,7 @@ namespace eval macports {
         registry.path registry.format registry.installtype portarchivemode portarchivepath \
         portarchivetype archivefetch_pubkeys portautoclean porttrace keeplogs portverbose destroot_umask \
         rsync_server rsync_options rsync_dir startupitem_type place_worksymlink macportsuser \
-        mp_remote_url mp_remote_submit_url configureccache configuredistcc configurepipe buildnicevalue buildmakejobs \
+        mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir current_phase frameworks_dir developer_dir universal_archs build_arch \
         os_arch os_endian os_version os_major os_platform macosx_version macosx_deployment_target $user_options"
 
@@ -457,6 +457,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::xcodebuildcmd
     global macports::xcodeversion
     global macports::configureccache
+    global macports::ccache_dir
+    global macports::ccache_size
     global macports::configuredistcc
     global macports::configurepipe
     global macports::buildnicevalue
@@ -783,6 +785,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {![info exists macports::configureccache]} {
         set macports::configureccache no
     }
+    if {![info exists macports::ccache_dir]} {
+        set macports::ccache_dir [file join $portdbpath build .ccache]
+    }
+    if {![info exists macports::ccache_size]} {
+        set macports::ccache_size "2G"
+    }
     if {![info exists macports::configuredistcc]} {
         set macports::configuredistcc no
     }
@@ -941,6 +949,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             set env(NO_PROXY) $sysConfProxies(proxy_skip)
         }
     }
+
+    # add ccache to environment
+    set env(CCACHE_DIR) ${macports::ccache_dir}
 
     # load the quick index
     _mports_load_quickindex
