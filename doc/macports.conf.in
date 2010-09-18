@@ -64,6 +64,13 @@ universal_archs		@UNIVERSAL_ARCHS@
 # Use ccache (C/C++ compiler cache) - see http://ccache.samba.org/
 #configureccache		no
 
+# Location where ccache stores its files
+#ccache_dir			@localstatedir_expanded@/macports/build/.ccache
+
+# Maximum size ccache may use.
+# Use 'G', 'M', or 'K' suffix for giga-, mega- or kilobytes.
+#ccache_size			2G
+
 # Use distcc (distributed compiler) - see http://distcc.samba.org/
 #configuredistcc		no
 

@@ -127,6 +127,18 @@ Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
 .br
 .Ic Default:
 no
+.It Va ccache_dir
+Location where ccache stores its files
+.br
+.Ic Default:
+${portdbpath}/build/.ccache
+.It Va ccache_size
+Maximum size ccache may use.
+.br
+Use 'G', 'M', or 'K' suffix for giga-, mega- or kilobytes.
+.br
+.Ic Default:
+2G
 .It Va configuredistcc
 Use distcc (distributed compiler). Requires that distcc has been installed.
 .br
