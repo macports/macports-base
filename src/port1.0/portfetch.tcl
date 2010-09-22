@@ -426,20 +426,6 @@ proc portfetch::fetchfiles {args} {
     variable fetch_urls
     variable urlmap
 
-    if {![file isdirectory $distpath]} {
-        if {[catch {file mkdir $distpath} result]} {
-            elevateToRoot "fetch"
-            set elevated yes
-            if {[catch {file mkdir $distpath} result]} {
-                return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
-            }
-        }
-    }
-    chownAsRoot $distpath
-    if {[info exists elevated] && $elevated == yes} {
-        dropPrivileges
-    }
-
     set fetch_options {}
     if {[string length ${fetch.user}] || [string length ${fetch.password}]} {
         lappend fetch_options -u
@@ -532,9 +518,24 @@ proc portfetch::fetch_init {args} {
 }
 
 proc portfetch::fetch_start {args} {
-    global UI_PREFIX name
+    global UI_PREFIX name distpath
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $name]"
+
+    # create and chown $distpath
+    if {![file isdirectory $distpath]} {
+        if {[catch {file mkdir $distpath} result]} {
+            elevateToRoot "fetch"
+            set elevated yes
+            if {[catch {file mkdir $distpath} result]} {
+                return -code error [format [msgcat::mc "Unable to create distribution files path: %s"] $result]
+            }
+        }
+    }
+    chownAsRoot $distpath
+    if {[info exists elevated] && $elevated == yes} {
+        dropPrivileges
+    }
 }
 
 # Main fetch routine
