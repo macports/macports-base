@@ -47,14 +47,14 @@ namespace eval portfetch {
 }
 
 # define options: distname master_sites
-options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir
-options fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert
-options master_sites.mirror_subdir patch_sites.mirror_subdir
-options bzr.url bzr.revision
-options cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method
-options svn.url svn.revision svn.method
-options git.cmd git.url git.branch
-options hg.cmd hg.url hg.tag
+options master_sites patch_sites extract.suffix distfiles patchfiles use_bzip2 use_lzma use_xz use_zip use_7z use_dmg dist_subdir \
+    fetch.type fetch.user fetch.password fetch.use_epsv fetch.ignore_sslcert \
+    master_sites.mirror_subdir patch_sites.mirror_subdir \
+    bzr.url bzr.revision \
+    cvs.module cvs.root cvs.password cvs.date cvs.tag cvs.method \
+    svn.url svn.revision svn.method \
+    git.cmd git.url git.branch \
+    hg.cmd hg.url hg.tag
 
 # XXX we use the command framework to buy us some useful features,
 # but this is not a user-modifiable command
@@ -62,7 +62,7 @@ commands bzr
 commands cvs
 commands svn
 
-# defaults
+# Defaults
 default extract.suffix .tar.gz
 default fetch.type standard
 
