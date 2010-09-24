@@ -2460,7 +2460,8 @@ proc action_upgrade { action portlist opts } {
     foreachport $portlist {
         if {![info exists depscache(port:$portname)]} {
             set status [macports::upgrade $portname "port:$portname" [array get requested_variations] [array get options] depscache]
-            if {$status != 0 && ![macports::ui_isset ports_processall]} {
+            # status 2 means the port was not found in the index
+            if {$status != 0 && $status != 2 && ![macports::ui_isset ports_processall]} {
                 break
             }
         }
