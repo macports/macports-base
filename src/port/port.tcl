@@ -1263,11 +1263,11 @@ proc element { resname } {
                   requested_variants [array get requested_variants] \
                   variants [array get requested_variants] \
                   options [array get options]]
+                set el 1
             } else {
                 ui_error "Can't open URL '$token' as a port"
                 set el 0
             }
-            set el 1
         }
 
         default             { # Treat anything else as a portspec (portname, version, variants, options
