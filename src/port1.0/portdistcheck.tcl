@@ -46,13 +46,17 @@ namespace eval portdistcheck {
 }
 
 # define options
-options distcheck.check
+options distcheck.type distcheck.check
 
 # defaults
+default distcheck.type moddate
 default distcheck.check moddate
 
+# Deprecation
+option_deprecate distcheck.check distcheck.type
+
 proc portdistcheck::distcheck_main {args} {
-    global distcheck.check
+    global distcheck.type
     global fetch.type
     global fetch.ignore_sslcert
     global name portpath
@@ -67,7 +71,7 @@ proc portdistcheck::distcheck_main {args} {
     }
 
     # Check the distfiles if it's a regular fetch phase.
-    if {"${distcheck.check}" != "none"
+    if {"${distcheck.type}" != "none"
         && "${fetch.type}" == "standard"} {
         # portfetch 1.0::checkfiles sets fetch_urls list.
         set fetch_urls {}
@@ -81,7 +85,7 @@ proc portdistcheck::distcheck_main {args} {
                 ui_error [format [msgcat::mc "No defined site for tag: %s, using master_sites"] $url_var]
                 set urlmap($url_var) $master_sites
             }
-            if {${distcheck.check} == "moddate"} {
+            if {${distcheck.type} == "moddate"} {
                 set count 0
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
@@ -98,7 +102,7 @@ proc portdistcheck::distcheck_main {args} {
                 if {$count == 0} {
                     ui_error "no mirror had $distfile for $name"
                 }
-            } elseif {${distcheck.check} == "filesize"} {
+            } elseif {${distcheck.type} == "filesize"} {
                 set count 0
                 foreach site $urlmap($url_var) {
                     ui_debug [format [msgcat::mc "Checking %s from %s"] $distfile $site]
@@ -118,12 +122,12 @@ proc portdistcheck::distcheck_main {args} {
                     ui_error "no mirror had $distfile for $name"
                 }
             } else {
-                ui_error "unknown distcheck.check ${distcheck.check}"
+                ui_error "unknown distcheck.type ${distcheck.type}"
                 break
             }
         }
 
-        if {${distcheck.check} == "filesize" && $totalsize > 0} {
+        if {${distcheck.type} == "filesize" && $totalsize > 0} {
             if {$totalsize < 1024} {
                 set size $totalsize
                 set humansize "${size}"
