@@ -431,20 +431,6 @@ proc portconfigure::configure_get_compiler {type} {
                 cpp  { set ret ${prefix}/bin/cpp-apple-4.2 }
             }
         }
-        macports-gcc-3.3 {
-            switch -exact ${type} {
-                cc  { set ret ${prefix}/bin/gcc-mp-3.3 }
-                cxx { set ret ${prefix}/bin/g++-mp-3.3 }
-                cpp { set ret ${prefix}/bin/cpp-mp-3.3 }
-            }
-        }
-        macports-gcc-3.4 {
-            switch -exact ${type} {
-                cc  { set ret ${prefix}/bin/gcc-mp-3.4 }
-                cxx { set ret ${prefix}/bin/g++-mp-3.4 }
-                cpp { set ret ${prefix}/bin/cpp-mp-3.4 }
-            }
-        }
         macports-gcc-4.0 {
             switch -exact ${type} {
                 cc   { set ret ${prefix}/bin/gcc-mp-4.0 }
