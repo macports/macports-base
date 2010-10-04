@@ -3474,7 +3474,7 @@ proc mportselect {command group {version ""}} {
         }
         set {
             # Use $conf_path/$version to read in sources.
-            if {$version == "base" || $version == "current"
+            if {$version == "" || $version == "base" || $version == "current"
                     || [catch {set src_file [open "$conf_path/$version"]} result]} {
                 global errorInfo
                 ui_debug "$result: $errorInfo"
