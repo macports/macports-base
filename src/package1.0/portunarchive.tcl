@@ -137,6 +137,11 @@ proc portunarchive::unarchive_start {args} {
     global UI_PREFIX name version revision portvariants
     global unarchive.type
 
+    if {[getuid] == 0 && [geteuid] != 0} {
+        # run as root if possible so file ownership can be preserved
+        elevateToRoot "unarchive"
+    }
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $name $version $revision $portvariants]"
 
     return 0
@@ -162,7 +167,7 @@ proc portunarchive::unarchive_command_setup {args} {
             if {[catch {set pax [findBinary $pax ${portutil::autoconf::pax_path}]} errmsg] == 0} {
                 ui_debug "Using $pax"
                 set unarchive.cmd "$pax"
-                if {[info exists env(USER)] && $env(USER) == "root"} {
+                if {[geteuid] == 0} {
                     set unarchive.pre_args {-r -v -p e}
                 } else {
                     set unarchive.pre_args {-r -v -p p}
@@ -239,7 +244,7 @@ proc portunarchive::unarchive_command_setup {args} {
             if {[catch {set unzip [findBinary $unzip ${portutil::autoconf::unzip_path}]} errmsg] == 0} {
                 ui_debug "Using $unzip"
                 set unarchive.cmd "$unzip"
-                if {[info exists env(USER)] && $env(USER) == "root"} {
+                if {[geteuid] == 0} {
                     set unarchive.pre_args {-oX}
                 } else {
                     set unarchive.pre_args {-o}
