@@ -1547,7 +1547,7 @@ proc open_statefile {args} {
     }
 
     # de-escalate privileges if MacPorts was started with sudo
-    dropPrivileges
+    #dropPrivileges
 
     # flock Portfile
     set statefile [file join $workpath .macports.${name}.state]
