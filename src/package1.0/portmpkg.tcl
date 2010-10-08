@@ -75,11 +75,7 @@ proc portmpkg::make_dependency_list {portname} {
 
 			foreach depspec $depends {
 				set dep [lindex [split $depspec :] end]
-	
-				# xxx: nasty hack
-				if {$dep != "XFree86"} {
-					eval "lappend result [make_dependency_list $dep]"
-				}
+				eval "lappend result [make_dependency_list $dep]"
 			}
 		}
 		lappend result $portinfo(name)/$portinfo(version)
