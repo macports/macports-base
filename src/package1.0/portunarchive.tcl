@@ -294,9 +294,7 @@ proc portunarchive::unarchive_finish {args} {
     set statefile [file join $workpath .macports.${name}.state]
     file copy -force [file join $destpath "+STATE"] $statefile
     file mtime $statefile [clock seconds]
-
-    # Update the state from unpacked archive version
-    set target_state_fd [open_statefile]
+    chownAsRoot $statefile
 
     # Cleanup all control files when finished
     set control_files [glob -nocomplain -types f [file join $destpath +*]]
@@ -304,6 +302,9 @@ proc portunarchive::unarchive_finish {args} {
         ui_debug "Removing $file"
         file delete -force $file
     }
+
+    # Update the state from unpacked archive version
+    set target_state_fd [open_statefile]
 
     ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
     return 0
