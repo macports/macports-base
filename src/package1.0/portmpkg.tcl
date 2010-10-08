@@ -86,12 +86,16 @@ proc portmpkg::make_dependency_list {portname} {
 }
 
 proc portmpkg::make_one_package {portname portversion destination} {
-	global prefix package.destpath package.flat
+	global prefix package.destpath package.flat macportsuser
 	if {[catch {set res [mport_lookup $portname]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
 		ui_error "port lookup failed: $result"
 		return 1
+	}
+	if {[getuid] == 0 && [geteuid] != 0} {
+		setegid 0; seteuid 0
+		set deprivileged 1
 	}
 	foreach {name array} $res {
 		array set portinfo $array
@@ -104,6 +108,10 @@ proc portmpkg::make_one_package {portname portversion destination} {
 			mport_close $worker
 		}
 		unset portinfo
+	}
+	if {[info exists deprivileged]} {
+		setegid [uname_to_gid "$macportsuser"]
+		seteuid [name_to_uid "$macportsuser"]
 	}
 }
 
