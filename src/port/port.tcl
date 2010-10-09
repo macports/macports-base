@@ -381,14 +381,14 @@ proc require_portlist { nameportlist } {
 
 
 # Execute the enclosed block once for every element in the portlist
-# When the block is entered, the variables portname, portversion, options, and variations
-# will have been set
+# When the block is entered, the following variables will have been set:
+#	portspec, porturl, portname, portversion, options, variations, requestion_variations
 proc foreachport {portlist block} {
-    # Restore cwd after each port, since mportopen changes it, and relative
-    # urls will break on subsequent passes
     set savedir [pwd]
     foreach portspec $portlist {
-        uplevel 1 "array set portspec { $portspec }"
+    
+        # Set the variables for the block
+        uplevel 1 "array unset portspec; array set portspec { $portspec }"
         uplevel 1 {
             set porturl $portspec(url)
             set portname $portspec(name)
@@ -400,7 +400,12 @@ proc foreachport {portlist block} {
             array unset options
             array set options $portspec(options)
         }
+        
+        # Invoke block
         uplevel 1 $block
+        
+        # Restore cwd after each port, since mportopen changes it, and otherwise relative
+        # urls would break on subsequent passes
         if {[file exists $savedir]} {
             cd $savedir
         } else {
