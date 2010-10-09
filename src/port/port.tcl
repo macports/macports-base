@@ -311,7 +311,7 @@ proc add_to_portlist {listname portentry} {
     }
 
 
-    # Form the fully descriminated portname: portname/version_revison+-variants
+    # Form the fully discriminated portname: portname/version_revison+-variants
     set port(fullname) "$port(name)/[composite_version $port(version) $port(variants)]"
     
     # Add it to our portlist
@@ -1383,7 +1383,7 @@ proc opComplement { a b } {
     
     # Return all elements of a not matching elements in b
     
-    # First create a list of the fully descriminated names in b
+    # First create a list of the fully discriminated names in b
     array unset bfull
     set i 0
     foreach bitem $b {
