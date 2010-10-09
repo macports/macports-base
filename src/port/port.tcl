@@ -3479,10 +3479,9 @@ proc action_portcmds { action portlist opts } {
                     
                     # Find an editor to edit the portfile
                     set editor ""
-                    if {[info exists local_options(ports_edit_editor)]} {
-                        set editor [join $local_options(ports_edit_editor)]
-                    } elseif {[info exists local_options(ports_ed_editor)]} {
-                        set editor [join $local_options(ports_ed_editor)]
+                    set editor_var "ports_${action}_editor"
+                    if {[info exists local_options(editor_var)]} {
+                        set editor [join $local_options(editor_var)]
                     } else {
                         foreach ed { VISUAL EDITOR } {
                             if {[info exists env($ed)]} {
@@ -3492,8 +3491,10 @@ proc action_portcmds { action portlist opts } {
                         }
                     }
                     
-                    # Invoke the editor, with a reasonable canned default.
+                    # Use a reasonable canned default if no editor specified or set in env
                     if { $editor == "" } { set editor "/usr/bin/vi" }
+                    
+                    # Invoke the editor
                     if {[catch {eval exec >@stdout <@stdin 2>@stderr $editor {$portfile}} result]} {
                         global errorInfo
                         ui_debug "$errorInfo"
