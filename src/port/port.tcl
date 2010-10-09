@@ -1393,10 +1393,6 @@ proc opComplement { a b } {
     }
     
     # Walk through each item in a, taking all those items that don't match b
-    #
-    # Note: -regexp may not be present in all versions of Tcl we need to work
-    #       against, in which case we may have to fall back to a slower alternative
-    #       for those cases. I'm not worrying about that for now, however. -jdb
     foreach aitem $a {
         array set port $aitem
         
