@@ -1346,9 +1346,9 @@ proc opIntersection { a b } {
     #   a/1.0, a/2.0    ==>
     #
     #   If there's an exact match, we take it.
-    #   If there's a match between simple and descriminated, we take the later.
+    #   If there's a match between simple and discriminated, we take the later.
     
-    # First create a list of the fully descriminated names in b
+    # First create a list of the fully discriminated names in b
     array unset bfull
     set i 0
     foreach bitem $b {
