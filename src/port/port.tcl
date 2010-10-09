@@ -187,6 +187,7 @@ proc print_tickets_url {args} {
 }
 
 # Form a composite version as is sometimes used for registry functions
+# This function sorts the variants and presents them in a canonical representation
 proc composite_version {version variations {emptyVersionOkay 0}} {
     # Form a composite version out of the version and variations
     
