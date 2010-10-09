@@ -91,16 +91,18 @@ all, current, active, inactive, installed, uninstalled, outdated, obsolete,
 requested, unrequested and leaves.
 These pseudo-portnames expand to the set of ports named.
 
-Additional pseudo-portnames start with...
-variants:, variant:, description:, depends:, depends_lib:, depends_run:,
-depends_build:, depends_fetch:, depends_extract:, portdir:, homepage:, epoch:,
-platforms:, platform:, name:, long_description:, maintainers:, maintainer:,
-categories:, category:, version:, revision:, license:, depof:, rdepof:,
-dependentof:, and rdependentof:.
-These each select a set of ports based on a regex search of metadata
+Pseudo-portnames starting with variants:, variant:, description:, depends:,
+depends_lib:, depends_run:, depends_build:, depends_fetch:, depends_extract:,
+portdir:, homepage:, epoch:, platforms:, platform:, name:, long_description:,
+maintainers:, maintainer:, categories:, category:, version:, revision:, and
+license: each select a set of ports based on a regex search of metadata
 about the ports. In all such cases, a standard regex pattern following
 the colon will be used to select the set of ports to which the
 pseudo-portname expands.
+
+Pseudo-portnames starting with depof:, rdepof:, dependentof:, and rdependentof:
+select ports that are direct or recursive dependencies or dependents of the
+following portname, respectively.
 
 Portnames that contain standard glob characters will be expanded to the
 set of ports matching the glob pattern.
