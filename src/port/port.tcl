@@ -1312,21 +1312,12 @@ proc add_multiple_ports { resname ports {remainder ""} } {
 proc opUnion { a b } {
     set result {}
     
-    array unset onetime
-    
-    # Walk through each array, adding to result only those items that haven't
-    # been added before
-    foreach item $a {
+    # Walk through both lists a and b, adding to result only unique ports
+    array unset unique
+    foreach item [concat $a $b] {
         array set port $item
-        if {[info exists onetime($port(fullname))]} continue
-        set onetime($port(fullname)) 1
-        lappend result $item
-    }
-
-    foreach item $b {
-        array set port $item
-        if {[info exists onetime($port(fullname))]} continue
-        set onetime($port(fullname)) 1
+        if {[info exists unique($port(fullname))]} continue
+        set unique($port(fullname)) 1
         lappend result $item
     }
     
