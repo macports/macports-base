@@ -384,7 +384,7 @@ proc require_portlist { nameportlist } {
 
 # Execute the enclosed block once for every element in the portlist
 # When the block is entered, the following variables will have been set:
-#	portspec, porturl, portname, portversion, options, variations, requestion_variations
+#	portspec, porturl, portname, portversion, options, variations, requested_variations
 proc foreachport {portlist block} {
     set savedir [pwd]
     foreach portspec $portlist {
