@@ -3488,8 +3488,8 @@ proc action_portcmds { action portlist opts } {
                     # Find an editor to edit the portfile
                     set editor ""
                     set editor_var "ports_${action}_editor"
-                    if {[info exists local_options(editor_var)]} {
-                        set editor [join $local_options(editor_var)]
+                    if {[info exists local_options($editor_var)]} {
+                        set editor [join $local_options($editor_var)]
                     } else {
                         foreach ed { VISUAL EDITOR } {
                             if {[info exists env($ed)]} {
