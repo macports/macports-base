@@ -1117,7 +1117,7 @@ proc ln {args} {
             if {![file exists $linktarget]} {
                 return -code error "ln: $linktarget: No such file or directory"
             } elseif {![file isdirectory $target]} {
-                # this error isn't striclty what BSD ln gives, but I think it's more useful
+                # this error isn't strictly what BSD ln gives, but I think it's more useful
                 return -code error "ln: $target: Not a directory"
             }
         }
