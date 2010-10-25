@@ -61,6 +61,7 @@
 #include "sha1cmd.h"
 #include "rmd160cmd.h"
 #include "sha256cmd.h"
+#include "base32cmd.h"
 #include "fs-traverse.h"
 #include "filemap.h"
 #include "curl.h"
@@ -485,6 +486,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "rpm-vercomp", RPMVercompCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "rmd160", RMD160Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha256", SHA256Cmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "base32encode", Base32EncodeCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "base32decode", Base32DecodeCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "sha1", SHA1Cmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "umask", UmaskCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "pipe", PipeCmd, NULL, NULL);
