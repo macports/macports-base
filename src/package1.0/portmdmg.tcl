@@ -45,9 +45,13 @@ set_ui_prefix
 
 proc portmdmg::mdmg_main {args} {
     global name version revision package.destpath UI_PREFIX
-    
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating disk image for %s-%s"] ${name} ${version}]"
-    
+
+    if {[getuid] == 0 && [geteuid] != 0} {
+		setegid 0; seteuid 0
+	}
+
     return [package_mdmg $name $version $revision]
 }
 
