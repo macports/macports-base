@@ -256,7 +256,7 @@ int SystemCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
                 ui_info(interp, errorstr);
                 free(errorstr);
             }
-            Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed", -1));
+            Tcl_SetObjResult(interp, Tcl_NewStringObj("shell command failed (see log for details)", -1));
         }
     }
 
