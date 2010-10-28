@@ -148,7 +148,7 @@ proc portfetch::set_extract_type {option action args} {
             }
             use_xz {
                 set extract.suffix .tar.xz
-                depends_extract-append bin:xz:xz-devel
+                depends_extract-append bin:xz:xz
             }
             use_zip {
                 set extract.suffix .zip
