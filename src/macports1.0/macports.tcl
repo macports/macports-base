@@ -1070,6 +1070,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_bulk_register_files registry::register_bulk_files
     $workername alias registry_active registry::active
     $workername alias registry_file_registered registry::file_registered
+    $workername alias registry_port_registered registry::port_registered
 
     # deferred options processing.
     $workername alias getoption macports::getoption
