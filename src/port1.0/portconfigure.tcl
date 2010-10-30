@@ -211,6 +211,7 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.4 { set name "MacPorts gcc 4.4" }
         macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
         macports-gcc-4.6 { set name "MacPorts gcc 4.6" }
+        macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -506,6 +507,17 @@ proc portconfigure::configure_get_compiler {type} {
                 fc   { set ret ${prefix}/bin/gfortran-mp-4.6 }
                 f77  { set ret ${prefix}/bin/gfortran-mp-4.6 }
                 f90  { set ret ${prefix}/bin/gfortran-mp-4.6 }
+            }
+        }
+        macports-llvm-gcc-4.2 {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/llvm-gcc-4.2 }
+                objc { set ret ${prefix}/bin/llvm-gcc-4.2 }
+                cxx  { set ret ${prefix}/bin/llvm-g++-4.2 }
+                cpp  { set ret ${prefix}/bin/llvm-cpp-4.2 }
+                fc   { set ret ${prefix}/bin/llvm-gfortran-4.2 }
+                f77  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
+                f90  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
             }
         }
     }
