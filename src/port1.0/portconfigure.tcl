@@ -212,6 +212,7 @@ proc portconfigure::configure_start {args} {
         macports-gcc-4.5 { set name "MacPorts gcc 4.5" }
         macports-gcc-4.6 { set name "MacPorts gcc 4.6" }
         macports-llvm-gcc-4.2 { set name "MacPorts llvm-gcc 4.2" }
+        macports-clang { set name "MacPorts clang" }
         default { return -code error "Invalid value for configure.compiler" }
     }
     ui_debug "Using compiler '$name'"
@@ -340,7 +341,8 @@ proc portconfigure::arch_flag_supported {args} {
         llvm-gcc-4.2 -
         clang -
         apple-gcc-4.0 -
-        apple-gcc-4.2 {
+        apple-gcc-4.2 -
+        macports-clang {
             return yes
         }
         default {
@@ -518,6 +520,14 @@ proc portconfigure::configure_get_compiler {type} {
                 fc   { set ret ${prefix}/bin/llvm-gfortran-4.2 }
                 f77  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
                 f90  { set ret ${prefix}/bin/llvm-gfortran-4.2 }
+            }
+        }
+        macports-clang {
+            switch -exact ${type} {
+                cc   { set ret ${prefix}/bin/clang }
+                objc { set ret ${prefix}/bin/clang }
+                cxx  { set ret ${prefix}/bin/clang++ }
+                cpp  { set ret ${prefix}/bin/clang++ }
             }
         }
     }
