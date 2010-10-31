@@ -1605,7 +1605,7 @@ proc mportexec {mport target} {
 
     # Before we build the port, we must build its dependencies.
     set dlist {}
-    if {[macports::_target_needs_deps $target]} {
+    if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
         registry::exclusive_lock
         # see if we actually need to build this port
         if {($target != "activate" && $target != "install") ||
@@ -2656,6 +2656,17 @@ proc macports::_explain_arch_mismatch {port dep required_archs supported_archs h
     }
     ui_error "its dependency $dep does not build for the required arch(s) by default"
     ui_error "and does not have a universal variant."
+}
+
+# check if the given mport has any dependencies of the given types
+proc macports::_mport_has_deptypes {mport deptypes} {
+    array set portinfo [mportinfo $mport]
+    foreach type $deptypes {
+        if {[info exists portinfo($type)] && $portinfo($type) != ""} {
+            return 1
+        }
+    }
+    return 0
 }
 
 # check if the given target needs dependencies installed first
