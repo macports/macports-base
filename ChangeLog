@@ -50,7 +50,7 @@ Release 1.9.2 (future):
       only in epoch (jmr in r69436)
 
     - Fixed [un]setrequested when using the flat registry format
-      (jmr in r69387)
+      (#26352, jmr in r69387)
 
     - Fixed checking for conflicting ports before installation
       (#25386, jmr in r69105)
