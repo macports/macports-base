@@ -2439,10 +2439,15 @@ proc _mportkey {mport key} {
 #                  dependencies ports.
 # accDeps -> accumulator for recursive calls
 # return 0 if everything was ok, an non zero integer otherwise.
-proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
+proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 0}} {
 
     array set portinfo [mportinfo $mport]
     set deptypes {}
+    if {$accDeps} {
+        upvar depspec_seen depspec_seen
+    } else {
+        array set depspec_seen {}
+    }
 
     # progress indicator
     if {![macports::ui_isset ports_debug]} {
@@ -2484,6 +2489,13 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
             continue
         }
         foreach depspec $portinfo($deptype) {
+            # skip depspecs we've already seen
+            if {[info exists depspec_seen($depspec)]} {
+                continue
+            } else {
+                set depspec_seen($depspec) 1
+            }
+            
             # Is that dependency satisfied or this port installed?
             # If we don't skip or if it is not, add it to the list.
             set present [_mportispresent $mport $depspec]
@@ -2578,7 +2590,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1}} {
     if {$recurseDeps} {
         foreach subport $subPorts {
             # Sub ports should be installed (all dependencies must be satisfied).
-            set res [mportdepends $subport "" $recurseDeps $skipSatisfied]
+            set res [mportdepends $subport "" $recurseDeps $skipSatisfied 1]
             if {$res != 0} {
                 return $res
             }
