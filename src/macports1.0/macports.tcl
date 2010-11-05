@@ -2489,11 +2489,12 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             continue
         }
         foreach depspec $portinfo($deptype) {
-            # skip depspecs we've already seen
-            if {[info exists depspec_seen($depspec)]} {
+            # skip depspec/archs combos we've already seen
+            set seenkey "${depspec},[join $required_archs ,]"
+            if {[info exists depspec_seen($seenkey)]} {
                 continue
             } else {
-                set depspec_seen($depspec) 1
+                set depspec_seen($seenkey) 1
             }
             
             # Is that dependency satisfied or this port installed?
