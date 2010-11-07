@@ -5,6 +5,8 @@
 
 Unreleased changes:
 
+    - Add '-n' option to reinplace (#26406, ryandesign in r73227)
+
     - Add new ccache_dir and ccache_size options, default path is
       ${portdbpath}/build/.ccache and a size of 2 GB.
       (raimue in r71604, r71606)
