@@ -23,7 +23,7 @@ Unreleased changes:
     - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
       (afb in r57888, r57913; snc in r68955)
 
-Release 1.9.2 (future):
+Release 1.9.2 (2010-11-07 by jmr):
 
     - Added more locking to avoid TOCTOU errors when running multiple port(1)
       instances (#19935, jmr in r70174)
@@ -63,7 +63,7 @@ Release 1.9.2 (future):
 
     - Fixed premature privilege dropping (#25331, jmr in r68952)
 
-Release 1.9.1 (2010-06-18):
+Release 1.9.1 (2010-06-18 by jmr):
     - Fixed a couple of problems with new 1.9 features when using the flat
       registry format (jmr in r68910, r68913)
 
