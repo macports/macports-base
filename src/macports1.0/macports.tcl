@@ -2842,7 +2842,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
 
             set cc_arg ""
             switch -glob -- $::macports::macosx_version {
-                10.{4,5} { set cc_arg "CC=/usr/bin/gcc-4.0 " }
+                10.[45] { set cc_arg "CC=/usr/bin/gcc-4.0 " }
                 10.6     { set cc_arg "CC=/usr/bin/gcc-4.2 " }
                 10.*     { set cc_arg "CC=/usr/bin/llvm-gcc-4.2 " }
             }
