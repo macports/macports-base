@@ -1565,7 +1565,7 @@ proc mportexec {mport target} {
 
     # Before we build the port, we must build its dependencies.
     set dlist {}
-    if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target $workername]]} {
+    if {[macports::_target_needs_deps $target] && [macports::_mport_has_deptypes $mport [macports::_deptypes_for_target $target]]} {
         registry::exclusive_lock
         # possibly warn or error out depending on how old xcode is
         if {[$workername eval _check_xcode_version] != 0} {
