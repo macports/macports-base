@@ -858,6 +858,7 @@ proc ldelete {list value} {
 proc reinplace {args}  {
 
     set extended 0
+    set suppress 0
     while 1 {
         set arg [lindex $args 0]
         if {[string index $arg 0] eq "-"} {
@@ -865,6 +866,9 @@ proc reinplace {args}  {
             switch -- [string range $arg 1 end] {
                 E {
                     set extended 1
+                }
+                n {
+                    set suppress 1
                 }
                 - {
                     break
@@ -903,6 +907,9 @@ proc reinplace {args}  {
                 return -code error "reinplace sed(1) too old"
             }
             lappend cmdline $portutil::autoconf::sed_ext_flag
+        }
+        if {$suppress} {
+            lappend cmdline -n
         }
         set cmdline [concat $cmdline [list $pattern < $file >@ $tmpfd]]
         if {[catch {eval exec $cmdline} error]} {
