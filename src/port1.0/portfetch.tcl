@@ -144,7 +144,7 @@ proc portfetch::set_extract_type {option action args} {
             }
             use_lzma {
                 set extract.suffix .tar.lzma
-                depends_extract-append bin:lzma:lzmautils
+                depends_extract-append bin:xz:xz
             }
             use_xz {
                 set extract.suffix .tar.xz
