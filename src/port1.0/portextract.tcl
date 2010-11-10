@@ -87,7 +87,7 @@ proc portextract::extract_start {args} {
     if {[tbool use_bzip2]} {
         option extract.cmd [findBinary bzip2 ${portutil::autoconf::bzip2_path}]
     } elseif {[tbool use_lzma]} {
-        option extract.cmd [binaryInPath "xz"]
+        option extract.cmd [binaryInPath "lzma"]
     } elseif {[tbool use_xz]} {
         option extract.cmd [binaryInPath "xz"]
     } elseif {[tbool use_zip]} {
