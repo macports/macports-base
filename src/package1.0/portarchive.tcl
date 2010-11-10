@@ -193,7 +193,7 @@ proc portarchive::archive_command_setup {args} {
                         set level 9
                     } elseif {[regexp {lz$} ${archive.type}]} {
                         set gzip "lzma"
-                        set level 7
+                        set level ""
                     } elseif {[regexp {xz$} ${archive.type}]} {
                         set gzip "xz"
                         set level 6
