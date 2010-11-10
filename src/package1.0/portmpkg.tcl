@@ -86,7 +86,7 @@ proc portmpkg::make_dependency_list {portname} {
 }
 
 proc portmpkg::make_one_package {portname portversion destination} {
-	global prefix package.destpath package.flat macportsuser
+	global prefix package.destpath package.flat macportsuser variations
 	if {[catch {set res [mport_lookup $portname]} result]} {
 		global errorInfo
 		ui_debug "$errorInfo"
@@ -103,7 +103,7 @@ proc portmpkg::make_one_package {portname portversion destination} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat}] {} yes]
+			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat}] [array get variations] yes]
 			mport_exec $worker pkg
 			mport_close $worker
 		}
