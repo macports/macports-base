@@ -2492,9 +2492,11 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
             # skip depspec/archs combos we've already seen
             set seenkey "${depspec},[join $required_archs ,]"
             if {[info exists depspec_seen($seenkey)]} {
+                if {$depspec_seen($seenkey) != 0} {
+                    # nonzero means the dep is not satisfied, so we have to record it
+                    ditem_append_unique $mport requires $depspec_seen($seenkey)
+                }
                 continue
-            } else {
-                set depspec_seen($seenkey) 1
             }
             
             # Is that dependency satisfied or this port installed?
@@ -2582,7 +2584,11 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 }
     
                 # Append the sub-port's provides to the port's requirements list.
-                ditem_append_unique $mport requires "[ditem_key $subport provides]"
+                set subport_provides "[ditem_key $subport provides]"
+                ditem_append_unique $mport requires $subport_provides
+                set depspec_seen($seenkey) $subport_provides
+            } else {
+                set depspec_seen($seenkey) 0
             }
         }
     }
