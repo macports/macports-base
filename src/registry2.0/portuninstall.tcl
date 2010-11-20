@@ -245,8 +245,11 @@ proc uninstall {portname {v ""} optionslist} {
                 array set depportinfo [lindex $result 1]
                 set porturl $depportinfo(porturl)
                 set variations {}
-                set minusvariant [lrange [split [$port negated_variants] -] 1 end]
-                set plusvariant [lrange [split [$port variants] +] 1 end]
+                if {$use_reg2} {
+                    set ref $port
+                }
+                set minusvariant [lrange [split [registry::property_retrieve $ref negated_variants] -] 1 end]
+                set plusvariant [lrange [split $variants +] 1 end]
                 foreach v $plusvariant {
                     lappend variations $v "+"
                 }
