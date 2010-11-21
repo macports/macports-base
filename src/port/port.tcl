@@ -2446,7 +2446,7 @@ proc action_setrequested { action portlist opts } {
 
 
 proc action_upgrade { action portlist opts } {
-    if {[require_portlist portlist] || [prefix_unwritable]} {
+    if {[require_portlist portlist] || ([prefix_unwritable] && ![macports::global_option_isset ports_dryrun])} {
         return 1
     }
     # shared depscache for all ports in the list
@@ -3605,7 +3605,7 @@ proc action_target { action portlist opts } {
     if {[require_portlist portlist]} {
         return 1
     }
-    if {($action == "install" || $action == "archive") && [prefix_unwritable]} {
+    if {($action == "install" || $action == "archive") && [prefix_unwritable] && ![macports::global_option_isset ports_dryrun]} {
         return 1
     }
     foreachport $portlist {
