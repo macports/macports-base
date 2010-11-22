@@ -202,8 +202,6 @@ proc portconfigure::configure_start {args} {
         apple-gcc-3.3 { set name "MacPorts Apple gcc 3.3" }
         apple-gcc-4.0 { set name "MacPorts Apple gcc 4.0" }
         apple-gcc-4.2 { set name "MacPorts Apple gcc 4.2" }
-        macports-gcc-3.3 { set name "MacPorts gcc 3.3" }
-        macports-gcc-3.4 { set name "MacPorts gcc 3.4" }
         macports-gcc-4.0 { set name "MacPorts gcc 4.0" }
         macports-gcc-4.1 { set name "MacPorts gcc 4.1" }
         macports-gcc-4.2 { set name "MacPorts gcc 4.2" }
