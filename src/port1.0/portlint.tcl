@@ -130,6 +130,7 @@ proc portlint::lint_main {args} {
     # read binary (to check UTF-8)
     fconfigure $f -encoding binary
     set lineno 1
+    set hashline false
     while {1} {
         set line [gets $f]
         if {[eof $f]} {
@@ -254,13 +255,26 @@ proc portlint::lint_main {args} {
         }
 
         # Check for hardcoded version numbers
-        if {![regexp {^PortSystem|^PortGroup|^version} $line]
+        # Support for skipping checksums lines
+        if {[regexp {^checksums} $line]} {
+            # We enter a serie one or more lines containing checksums
+            set hashline true}
+
+        if {!$hashline
+                && ![regexp {^PortSystem|^PortGroup|^version} $line]
                 && ![regexp {^[a-z0-9]+\.setup} $line]
                 && [string first [option version] $line] != -1} {
             ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
             incr warnings
         }
 
+        if {$hashline &&
+            ![string match \\\\ [string index $line [string length $line]-1]]} {
+                # if the last character is not a backslash we're done with
+                # line skipping
+                set hashline false
+            }
+            
         ### TODO: more checks to Portfile syntax
 
         incr lineno
