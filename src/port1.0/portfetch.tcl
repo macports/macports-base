@@ -93,7 +93,7 @@ default svn.revision ""
 default svn.env {}
 default svn.pre_args {"--non-interactive --trust-server-cert"}
 default svn.args ""
-default svn.post_args {"${svn.url}"}
+default svn.post_args ""
 
 default git.cmd {[findBinary git $portutil::autoconf::git_path]}
 default git.dir {${workpath}}
@@ -351,10 +351,10 @@ proc portfetch::svnfetch {args} {
         return -code error [msgcat::mc "Subversion URL cannot contain whitespace"]
     }
 
-    set svn.args "${svn.method} ${svn.args}"
     if {[string length ${svn.revision}]} {
         append svn.url "@${svn.revision}"
     }
+    set svn.args "${svn.method} ${svn.args} ${svn.url}"
 
     if {[catch {command_exec svn "" "2>&1"} result]} {
         return -code error [msgcat::mc "Subversion check out failed"]
