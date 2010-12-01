@@ -101,7 +101,7 @@ int Base32EncodeCmd(ClientData dummy UNUSED, Tcl_Interp *interp, int objc, Tcl_O
       	return TCL_ERROR;
       }
       for (i = 0; i < ndigest; i++) {
-      	if (!ishexnumber(digest[i])) {
+      	if (!isxdigit(digest[i])) {
 		    tcl_result = Tcl_NewStringObj(hex_message, sizeof(hex_message) - 1);
 		    Tcl_SetObjResult(interp, tcl_result);
       	    return TCL_ERROR;
