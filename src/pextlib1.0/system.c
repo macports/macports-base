@@ -61,6 +61,10 @@
 extern char **environ;
 #endif
 
+#if !HAVE_FGETLN
+char *fgetln(FILE *stream, size_t *len);
+#endif
+
 #ifndef _PATH_DEVNULL
 #define _PATH_DEVNULL "/dev/null"
 #endif

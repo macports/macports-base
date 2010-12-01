@@ -90,10 +90,6 @@ extern char **environ;
 #include "setmode.h"
 #endif
 
-#if !HAVE_FGETLN
-char *fgetln(FILE *stream, size_t *len);
-#endif
-
 static char *
 ui_escape(const char *source)
 {
