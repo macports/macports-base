@@ -105,8 +105,7 @@ extern int copyfile(const char *from, const char *to, void *state,
 #endif
 
 #if !HAVE_SETMODE
-void * setmode(const char *mode_str); 
-mode_t getmode(const void *set, mode_t mode);
+#include "setmode.h"
 #endif
 
 /* Bootstrap aid - this doesn't exist in most older releases */
