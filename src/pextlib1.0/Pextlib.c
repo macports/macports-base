@@ -86,6 +86,10 @@
 extern char **environ;
 #endif
 
+#if !HAVE_SETMODE
+#include "setmode.h"
+#endif
+
 #if !HAVE_FGETLN
 char *fgetln(FILE *stream, size_t *len);
 #endif
