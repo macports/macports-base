@@ -22,8 +22,15 @@ if {[catch {set sourcesConfChannel [open $sourcesConf r]}]} {
    exit 0
 }
 
+if {[file executable /usr/bin/mktemp]} {
+    set mktemp /usr/bin/mktemp
+} elseif {[file executable /bin/mktemp]} {
+    set mktemp /bin/mktemp
+} else {
+    set mktemp mktemp
+}
 
-set mktempChannel [open "|/usr/bin/mktemp -t macports_sources_upgrade.XXXXXXXXXX" r]
+set mktempChannel [open "|$mktemp -t macports_sources_upgrade.XXXXXXXXXX" r]
 set tempfile [read -nonewline $mktempChannel]
 close $mktempChannel
 
