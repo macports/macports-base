@@ -69,7 +69,7 @@ proc portmirror::mirror_main {args} {
     if {"${fetch.type}" == "standard"} {
         # fetch the files.
         portfetch::fetch_init $args
-        #fetch_start
+        portfetch::fetch_start $args
         portfetch::fetch_main $args
 
         # checksum the files.
