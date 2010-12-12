@@ -7,6 +7,8 @@ test::
 include ../../Mk/macports.autoconf.mk
 
 CFLAGS+= -fPIC
+# will need to update this to cope with 64-bit inodes someday
+CPPFLAGS+= -D_DARWIN_NO_64_BIT_INODE
 
 all:: ${SHLIB_NAME}
 

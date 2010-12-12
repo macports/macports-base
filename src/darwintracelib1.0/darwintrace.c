@@ -465,6 +465,8 @@ inline void __darwintrace_cleanup_path(char *path) {
  */
 static int is_directory(const char * path)
 {
+/* will need to update this to cope with 64-bit inodes someday - for now, we
+ build with -D_DARWIN_NO_64_BIT_INODE */
 #define stat(path, sb) syscall(SYS_stat, path, sb)
 	struct stat s;
 	if(stat(path, &s)==-1)
@@ -920,9 +922,37 @@ int stat(const char * path, struct stat * sb)
 #undef stat
 }
 
+int stat64(const char * path, struct stat64 * sb)
+{
+#define stat64(path, sb) syscall(SYS_stat64, path, sb)
+	int result=0;
+	char newpath[260];
+		
+	*newpath=0;
+	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
+	{
+		errno=ENOENT;
+		result=-1;
+	}else
+	{
+		if(*newpath)
+			path=newpath;
+			
+		result=stat64(path, sb);
+	}
+	
+	return result;
+#undef stat64
+}
+
+int stat$INODE64(const char * path, struct stat64 * sb)
+{
+    return stat64(path, sb);
+}
+
 int lstat(const char * path, struct stat * sb)
 {
-#define stat(path, sb) syscall(SYS_lstat, path, sb)
+#define lstat(path, sb) syscall(SYS_lstat, path, sb)
 	int result=0;
 	char newpath[260];
 	
@@ -936,9 +966,37 @@ int lstat(const char * path, struct stat * sb)
 		if(*newpath)
 			path=newpath;
 			
-		result=stat(path, sb);
+		result=lstat(path, sb);
 	}
 	
 	return result;
-#undef stat
+#undef lstat
+}
+
+int lstat64(const char * path, struct stat64 * sb)
+{
+#define lstat64(path, sb) syscall(SYS_lstat64, path, sb)
+	int result=0;
+	char newpath[260];
+	
+	*newpath=0;
+	if(!is_directory(path)&&__darwintrace_is_in_sandbox(path, newpath)==0)
+	{
+		errno=ENOENT;
+		result=-1;
+	}else
+	{
+		if(*newpath)
+			path=newpath;
+			
+		result=lstat64(path, sb);
+	}
+	
+	return result;
+#undef lstat64
+}
+
+int lstat$INODE64(const char * path, struct stat64 * sb)
+{
+    return lstat64(path, sb);
 }
