@@ -38,6 +38,19 @@
 #include <config.h>
 #endif
 
+#if HAVE_SYS_CDEFS_H
+#include <sys/cdefs.h>
+#endif
+#if defined(_DARWIN_FEATURE_64_BIT_INODE) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
+/* The architecture we're building for has multiple versions of stat.
+   We need to undo sys/cdefs.h changes for _DARWIN_FEATURE_64_BIT_INODE */
+#undef  __DARWIN_64_BIT_INO_T
+#define __DARWIN_64_BIT_INO_T 0
+#undef  __DARWIN_SUF_64_BIT_INO_T
+#define __DARWIN_SUF_64_BIT_INO_T ""
+#undef _DARWIN_FEATURE_64_BIT_INODE
+#endif
+
 #ifdef HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
 #endif
@@ -465,8 +478,6 @@ inline void __darwintrace_cleanup_path(char *path) {
  */
 static int is_directory(const char * path)
 {
-/* will need to update this to cope with 64-bit inodes someday - for now, we
- build with -D_DARWIN_NO_64_BIT_INODE */
 #define stat(path, sb) syscall(SYS_stat, path, sb)
 	struct stat s;
 	if(stat(path, &s)==-1)
@@ -922,6 +933,8 @@ int stat(const char * path, struct stat * sb)
 #undef stat
 }
 
+#if defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
+
 int stat64(const char * path, struct stat64 * sb)
 {
 #define stat64(path, sb) syscall(SYS_stat64, path, sb)
@@ -950,6 +963,9 @@ int stat$INODE64(const char * path, struct stat64 * sb)
     return stat64(path, sb);
 }
 
+#endif /* defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE) */
+
+
 int lstat(const char * path, struct stat * sb)
 {
 #define lstat(path, sb) syscall(SYS_lstat, path, sb)
@@ -972,6 +988,8 @@ int lstat(const char * path, struct stat * sb)
 	return result;
 #undef lstat
 }
+
+#if defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE)
 
 int lstat64(const char * path, struct stat64 * sb)
 {
@@ -1000,3 +1018,5 @@ int lstat$INODE64(const char * path, struct stat64 * sb)
 {
     return lstat64(path, sb);
 }
+
+#endif /* defined(__DARWIN_64_BIT_INO_T) && !defined(_DARWIN_FEATURE_ONLY_64_BIT_INODE) */
