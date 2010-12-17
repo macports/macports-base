@@ -49,7 +49,7 @@ options use_parallel_build
 commands build
 # defaults
 default build.asroot no
-default build.dir {${workpath}/${worksrcdir}}
+default build.dir {${worksrcpath}}
 default build.cmd {[portbuild::build_getmaketype]}
 default build.nice {${buildnicevalue}}
 default build.jobs {[portbuild::build_getjobs]}
