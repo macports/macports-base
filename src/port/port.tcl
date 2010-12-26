@@ -3546,6 +3546,15 @@ proc action_portcmds { action portlist opts } {
                     puts $portfile
                 }
 
+                logfile {
+                    set logfile [file join [macports::getportlogpath $portdir] "main.log"]
+                    if {[file isfile $logfile]} {
+                        puts $logfile
+                    } else {
+                        ui_error "Log file not found for port in $portdir"
+                    }
+                }
+
                 gohome {
                     set homepage ""
 
@@ -3790,6 +3799,7 @@ array set action_array [list \
     cd          [list action_portcmds       [ACTION_ARGS_PORTS]] \
     url         [list action_portcmds       [ACTION_ARGS_PORTS]] \
     file        [list action_portcmds       [ACTION_ARGS_PORTS]] \
+    logfile     [list action_portcmds       [ACTION_ARGS_PORTS]] \
     gohome      [list action_portcmds       [ACTION_ARGS_PORTS]] \
     \
     fetch       [list action_target         [ACTION_ARGS_PORTS]] \
