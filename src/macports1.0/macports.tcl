@@ -3031,9 +3031,9 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set version [lindex $i 1]
         set revision [lindex $i 2]
         set epoch [lindex $i 5]
-        if { $version_installed == {} || $epoch > $epoch_installed ||
-                ($epoch == $epoch_installed && [rpm-vercomp $version $version_installed] > 0)
-                || ($epoch == $epoch_installed
+        if { $version_installed == {} || ($epoch > $epoch_installed && $version != $version_installed) ||
+                ($epoch >= $epoch_installed && [rpm-vercomp $version $version_installed] > 0)
+                || ($epoch >= $epoch_installed
                     && [rpm-vercomp $version $version_installed] == 0
                     && $revision > $revision_installed)} {
             set version_installed $version

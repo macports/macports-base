@@ -773,12 +773,15 @@ proc get_outdated_ports {} {
             }
 
             # Compare versions, first checking epoch, then version, then revision
-            set comp_result [expr $installed_epoch - $latest_epoch]
-            if { $comp_result == 0 } {
-                set comp_result [rpm-vercomp $installed_version $latest_version]
+            set comp_result 0
+            if {$installed_version != $latest_version} {
+                set comp_result [expr $installed_epoch - $latest_epoch]
                 if { $comp_result == 0 } {
-                    set comp_result [rpm-vercomp $installed_revision $latest_revision]
+                    set comp_result [rpm-vercomp $installed_version $latest_version]
                 }
+            }
+            if { $comp_result == 0 } {
+                set comp_result [expr $installed_revision - $latest_revision]
             }
             if {$comp_result == 0} {
                 set regref [registry::open_entry $portname $installed_version $installed_revision $installed_variants $installed_epoch]
@@ -3010,10 +3013,10 @@ proc action_outdated { action portlist opts } {
             set epoch_comp_result [expr $installed_epoch - $latest_epoch]
             set comp_result [rpm-vercomp $installed_version $latest_version]
             if { $comp_result == 0 } {
-                set comp_result [rpm-vercomp $installed_revision $latest_revision]
+                set comp_result [expr $installed_revision - $latest_revision]
             }
             set reason ""
-            if {$epoch_comp_result != 0} {
+            if {$epoch_comp_result != 0 && $installed_version != $latest_version} {
                 if {($comp_result >= 0 && $epoch_comp_result < 0) || ($comp_result <= 0 && $epoch_comp_result > 0)} {
                     set reason { (epoch $installed_epoch $relation $latest_epoch)}
                 }
