@@ -43,10 +43,11 @@ namespace eval portextract {
 }
 
 # define options
-options extract.only extract.mkdir
+options extract.only extract.mkdir extract.asroot
 commands extract
 
 # Set up defaults
+default extract.asroot no
 # XXX call out to code in portutil.tcl XXX
 # This cleans the distfiles list of all site tags
 default extract.only {[portextract::disttagclean $distfiles]}
