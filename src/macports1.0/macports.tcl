@@ -46,7 +46,8 @@ namespace eval macports {
         rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
-        macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip"
+        macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
+        master_site_local patch_site_local archive_site_local"
     variable user_options "submitter_name submitter_email submitter_key"
     variable portinterp_options "\
         portdbpath porturl portpath portbuildpath auto_path prefix prefix_frozen portsharepath \
@@ -884,6 +885,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     if {[info exists master_site_local] && ![info exists env(MASTER_SITE_LOCAL)]} {
         set env(MASTER_SITE_LOCAL) "$master_site_local"
+    }
+    if {[info exists patch_site_local] && ![info exists env(PATCH_SITE_LOCAL)]} {
+        set env(PATCH_SITE_LOCAL) "$patch_site_local"
+    }
+    if {[info exists archive_site_local] && ![info exists env(ARCHIVE_SITE_LOCAL)]} {
+        set env(ARCHIVE_SITE_LOCAL) "$archive_site_local"
     }
 
     if {[file isdirectory $libpath]} {
