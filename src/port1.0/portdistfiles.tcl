@@ -56,7 +56,7 @@ proc portdistfiles::distfiles_main {args} {
     global UI_PREFIX master_sites checksums_array portdbpath dist_subdir
     
     # give up on ports that do not provide URLs
-    if {$master_sites == "{}"} {
+    if {![info exists master_sites] || $master_sites == "{}"} {
         return 0
     }
 
