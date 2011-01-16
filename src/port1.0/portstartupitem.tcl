@@ -197,12 +197,16 @@ proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
     ########################
     # Create the startup item directory
     file mkdir ${startupItemDir}
-    file attributes ${startupItemDir} -owner root -group wheel
+    if {[getuid] == 0} {
+        file attributes ${startupItemDir} -owner root -group wheel
+    }
     
     ########################
     # Generate the startup item script
     set item [open "${startupItemScript}" w 0755]
-    file attributes "${startupItemScript}" -owner root -group wheel
+    if {[getuid] == 0} {
+        file attributes "${startupItemScript}" -owner root -group wheel
+    }
     
     # Emit the header
     puts ${item} {#!/bin/sh
@@ -366,7 +370,9 @@ RunService "$1"
     ########################
     # Generate the plist
     set para [open "${startupItemPlist}" w 0644]
-    file attributes "${startupItemPlist}" -owner root -group wheel
+    if {[getuid] == 0} {
+        file attributes "${startupItemPlist}" -owner root -group wheel
+    }
     
     puts ${para} "\{"
     puts ${para} "\tDescription\t= \"${itemname}\";"
@@ -408,7 +414,9 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
                         ]
     
     file mkdir ${destroot}${itemdir}
-    file attributes ${destroot}${itemdir} -owner root -group wheel
+    if {[getuid] == 0} {
+        file attributes ${destroot}${itemdir} -owner root -group wheel
+    }
         
     if { [llength ${startupitem.executable}] && 
       ![llength ${startupitem.init}] &&
@@ -445,7 +453,9 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
 
         # Create the wrapper script
         set item [open "${destroot}${wrapper}" w 0755]
-        file attributes "${destroot}${wrapper}" -owner root -group wheel
+        if {[getuid] == 0} {
+            file attributes "${destroot}${wrapper}" -owner root -group wheel
+        }
 
         puts ${item} "#!/bin/sh"
         puts ${item} "#"
