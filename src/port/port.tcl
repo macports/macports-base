@@ -1909,6 +1909,7 @@ proc action_info { action portlist opts } {
         # Tune for sort(1)
         if {[info exists options(ports_info_line)]} {
             array unset options ports_info_line
+            set noseparator 1
             set show_label 0
             set field_sep "\t"
             set subfield_sep ","
@@ -2082,7 +2083,9 @@ proc action_info { action portlist opts } {
                 puts [join $fields_tried ", "]
             }
         }
-        set separator "--\n"
+        if {![info exists noseparator]} {
+            set separator "--\n"
+        }
     }
     
     return $status
