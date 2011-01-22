@@ -52,7 +52,7 @@ namespace eval registry {
 ## @return               true if `specifier` is a valid specifier, else false
 proc decode_spec {specifier version revision variants} {
     upvar 1 $version ver $revision rev $variants var
-    return [regexp {^([^+]+?)(_(\d+)(([-+][^-+]+)*))?$} $specifier - ver - rev var]
+    return [regexp {^([^+]+?)(_(\d+)(([-+][^-+]*[^-+[:digit:]_][^-+]*)*))?$} $specifier - ver - rev var]
 }
 
 ## Checks that the given port has no dependent ports. If it does, throws an
