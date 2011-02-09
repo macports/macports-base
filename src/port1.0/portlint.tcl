@@ -269,7 +269,7 @@ proc portlint::lint_main {args} {
         }
 
         if {$hashline &&
-            ![string match \\\\ [string index $line [string length $line]-1]]} {
+            ![string match \\\\ [string index $line end]]} {
                 # if the last character is not a backslash we're done with
                 # line skipping
                 set hashline false
