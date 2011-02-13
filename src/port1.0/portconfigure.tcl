@@ -525,7 +525,6 @@ proc portconfigure::configure_get_compiler {type} {
                 cc   { set ret ${prefix}/bin/clang }
                 objc { set ret ${prefix}/bin/clang }
                 cxx  { set ret ${prefix}/bin/clang++ }
-                cpp  { set ret ${prefix}/bin/clang++ }
             }
         }
     }
