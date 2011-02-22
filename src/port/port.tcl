@@ -3497,7 +3497,7 @@ proc action_portcmds { action portlist opts } {
                     if {[info exists local_options($editor_var)]} {
                         set editor [join $local_options($editor_var)]
                     } else {
-                        foreach ed { VISUAL EDITOR } {
+                        foreach ed { MP_EDITOR VISUAL EDITOR } {
                             if {[info exists env($ed)]} {
                                 set editor $env($ed)
                                 break
