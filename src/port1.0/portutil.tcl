@@ -923,11 +923,11 @@ proc reinplace {args}  {
 
         close $tmpfd
 
+        set attributes [file attributes $file]
         # start gsoc08-privileges
         chownAsRoot $file
         # end gsoc08-privileges
 
-        set attributes [file attributes $file]
         # We need to overwrite this file
         if {[catch {file attributes $file -permissions u+w} error]} {
             global errorInfo
