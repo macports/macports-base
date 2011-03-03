@@ -410,6 +410,13 @@ proc portconfigure::configure_get_compiler {type} {
             switch -exact ${type} {
                 cc   { set ret ${developer_dir}/usr/bin/clang }
                 objc { set ret ${developer_dir}/usr/bin/clang }
+                cxx  {
+                    if {[file executable ${developer_dir}/usr/bin/clang++]} {
+                        set ret ${developer_dir}/usr/bin/clang++
+                    } else {
+                        set ret ${developer_dir}/usr/bin/llvm-g++-4.2
+                    }
+                }
             }
         }
         apple-gcc-3.3 {
