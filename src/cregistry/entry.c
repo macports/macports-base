@@ -1229,7 +1229,7 @@ int reg_entry_deactivate(reg_entry* entry, char** files, int file_count,
 int reg_entry_dependents(reg_entry* entry, reg_entry*** dependents,
         reg_error* errPtr) {
     reg_registry* reg = entry->reg;
-    char* query = sqlite3_mprintf("SELECT dependent.id FROM ports port "
+    char* query = sqlite3_mprintf("SELECT dependencies.id FROM ports port "
             "INNER JOIN dependencies USING(name) INNER JOIN ports dependent "
             "USING(id) WHERE port.id=%lld ORDER BY dependent.name,"
             "dependent.epoch, dependent.version, dependent.revision,"
