@@ -354,6 +354,28 @@ proc portarchive::archive_main {args} {
             puts $fd "@portvariant +${v}"
         }
     }
+    set res [mport_lookup $name]
+    if {[llength $res] < 2} {
+        ui_error "Port $name not found"
+    } else {
+        array set portinfo [lindex $res 1]
+        foreach key "depends_lib depends_run" {
+             if {[info exists portinfo($key)]} {
+                 foreach depspec $portinfo($key) {
+                     set depname [lindex [split $depspec :] end]
+                     set dep [mport_lookup $depname]
+                     if {[llength $dep] < 2} {
+                         ui_error "Dependency $dep not found"
+                     } else {
+                         array set portinfo [lindex $dep 1]
+                         set depver $portinfo(version)
+                         set deprev $portinfo(revision)
+                         puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
+                     }
+                 }
+             }
+        }
+    }
     fs-traverse -depth fullpath $destpath {
         if {[file isdirectory $fullpath]} {
             continue
