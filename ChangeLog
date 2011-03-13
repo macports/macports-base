@@ -25,6 +25,9 @@ Unreleased changes:
     - Add SHA256 checksums in addition to MD5, SHA1 and RIPEMD160.
       (afb in r57888, r57913; snc in r68955)
 
+    - Add @pkgdep lines to archives, with build-time dependencies.
+      (afb in r76919)
+
 Release 1.9.2 (2010-11-07 by jmr):
 
     - Added more locking to avoid TOCTOU errors when running multiple port(1)
