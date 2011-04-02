@@ -101,7 +101,6 @@ proc get_head_entry_receipt_path {portname portversion} {
 #
 # Open an existing entry and return its reference number.
 proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
-	global macports::registry.installtype
 	global macports::registry.path
 	variable ref_index
 	
@@ -131,10 +130,9 @@ proc open_entry {name {version ""} {revision 0} {variants ""} {epoch ""}} {
 			regexp "^$name-(.*)\$" $theFileName match version
 		}
 	} else {
-		# If version wasn't specified, find out the version number.  This will
-		# depend on which installtype mode we're in, "direct" or "image"	
+		# If version wasn't specified, find out the version number.
 		if { $version == "" } {
-			# xxx: If we're in image mode, we really should have had the 
+			# xxx: We really should have had the 
 			# version given to us.  How should we handle this?
 			set x [glob -nocomplain -directory ${receipt_path} *]
 			if { [string length $x] } {
@@ -311,7 +309,6 @@ proc convert_entry_from_HEAD {name version revision variants receipt_contents re
 # version			the version of the port.
 # variants			the variants of the port.
 proc write_entry {ref name version {revision 0} {variants ""}} {
-	global macports::registry.installtype
 	variable receipt_$ref
 
 	set receipt_contents [array get receipt_$ref]

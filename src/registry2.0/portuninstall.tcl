@@ -42,7 +42,7 @@ namespace eval registry_uninstall {
 
 proc uninstall {portname {v ""} optionslist} {
     global uninstall.force uninstall.nochecksum UI_PREFIX \
-           macports::registry.format macports::registry.installtype
+           macports::registry.format macports::portimagefilepath
     array set options $optionslist
 
     if {![info exists uninstall.force]} {
@@ -141,15 +141,13 @@ proc uninstall {portname {v ""} optionslist} {
             # check its dependents
             registry::check_dependents $port ${uninstall.force}
         }
-        # if it's an image, deactivate it
+        # if it's active, deactivate it
         if { [string equal [$port state] installed] } {
             if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
                 ui_msg "For $portname @${v}: skipping deactivate (dry run)"
             } else {
                 if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                    if {[$port installtype] == "image"} {
-                        portimage::deactivate $portname $v [array get options]
-                    }
+                    portimage::deactivate $portname $v [array get options]
                 }
             }
         }
@@ -205,8 +203,7 @@ proc uninstall {portname {v ""} optionslist} {
             }
         }
     
-        set installtype [registry::property_retrieve $ref installtype]
-        if { $installtype == "image" && [registry::property_retrieve $ref active] == 1} {
+        if { [registry::property_retrieve $ref active] == 1} {
             if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
                 ui_msg "For $portname @${version}_${revision}${variants}: skipping deactivate (dry run)"
             } else {
@@ -214,7 +211,11 @@ proc uninstall {portname {v ""} optionslist} {
             }
         }
     }
-    
+
+    if {$use_reg2} {
+        set ref $port
+    }
+
     # note deps before we uninstall if we're going to uninstall them too
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
         set deptypes {depends_fetch depends_extract depends_build depends_lib depends_run}
@@ -245,9 +246,6 @@ proc uninstall {portname {v ""} optionslist} {
                 array set depportinfo [lindex $result 1]
                 set porturl $depportinfo(porturl)
                 set variations {}
-                if {$use_reg2} {
-                    set ref $port
-                }
                 set minusvariant [lrange [split [registry::property_retrieve $ref negated_variants] -] 1 end]
                 set plusvariant [lrange [split $variants +] 1 end]
                 foreach v $plusvariant {
@@ -304,71 +302,13 @@ proc uninstall {portname {v ""} optionslist} {
             }
         }
     
-        # Now look for a contents list
-        if {$use_reg2} {
-            # imagefiles gives the actual installed files in direct mode
-            set contents [$port imagefiles]
-            set imagedir [$port location]
-        } else {
-            set contents [registry::property_retrieve $ref contents]
-            if { $contents == "" } {
-                return -code error [msgcat::mc "Uninstall failed: Port has no contents entry"]
-            }
-        }
-        set bak_suffix ".mp_[clock seconds]"
-        set files [list]
-        foreach f $contents {
-            if {$use_reg2} {
-                set fname "${imagedir}${f}"
-                #set sum1 [$port md5sum $f]
-                # there's an md5 column in registry.files in the db, but
-                # no way to get or set it seems to be implemented
-                set sum1 NONE
-            } else {
-                set fname [lindex $f 0]
-                set md5index [lsearch -regex [lrange $f 1 end] MD5]
-                if {$md5index != -1} {
-                    set sumx [lindex $f [expr $md5index + 1]]
-                } else {
-                    # XXX There is no MD5 listed, set sumx to an
-                    # empty list, causing the next conditional to
-                    # return a checksum error
-                    set sumx {}
-                }
-                set sum1 [lindex $sumx [expr [llength $sumx] - 1]]
-            }
-            if {![string match $sum1 NONE] && !([info exists uninstall.nochecksum] && [string is true -strict ${uninstall.nochecksum}]) } {
-                if {![catch {set sum2 [md5 $fname]}] && ![string match $sum1 $sum2]} {
-                    ui_warn "$UI_PREFIX  [format [msgcat::mc "Original checksum does not match for %s, saving a copy to %s"] $fname ${fname}${bak_suffix}]"
-                    catch {file copy $fname "${fname}${bak_suffix}"}
-                }
-            }
+        # Get the full path to the image file
+        set imagefile [registry::property_retrieve $ref location]
+        file delete $imagefile
+        # Try to delete the port's image dir; will fail if there are more image
+        # files so just ignore the failure
+        catch {file delete [file dirname $imagefile]}
 
-            if { [file exists $fname] || (![catch {file type $fname}] && [file type $fname] == "link") } {
-                # Normalize the file path to avoid removing the intermediate
-                # symlinks (remove the empty directories instead)
-                # The custom realpath proc is necessary because file normalize
-                # does not resolve symlinks on OS X < 10.6
-                set directory [realpath [file dirname $fname]]
-                lappend files [file join $directory [file tail $fname]]
-    
-                # Split out the filename's subpaths and add them to the
-                # list as well.
-                while { [lsearch -exact $files $directory] == -1 } { 
-                    lappend files $directory
-                    set directory [file dirname $directory]
-                }
-            }
-        }
-    
-        # Sort the list in reverse order, removing duplicates.
-        # Since the list is sorted in reverse order, we're sure that directories
-        # are after their elements.
-        set files [lsort -decreasing -unique $files]
-    
-        # Remove all elements.
-        _uninstall_list $files
-    
         if {$use_reg2} {
             registry::entry delete $port
         } else {
@@ -411,34 +351,6 @@ proc uninstall {portname {v ""} optionslist} {
     }
     
     return 0
-}
-
-proc _uninstall_file {dstfile} {
-    if { ![catch {set type [file type $dstfile]}] } {
-        if { $type == "link" } {
-            ui_debug "uninstalling link: $dstfile"
-            file delete -- $dstfile
-        } elseif { [file isdirectory $dstfile] } {
-            # 0 item means empty.
-            if { [llength [readdir $dstfile]] == 0 } {
-                ui_debug "uninstalling directory: $dstfile"
-                file delete -- $dstfile
-            } else {
-                ui_debug "$dstfile is not empty"
-            }
-        } else {
-            ui_debug "uninstalling file: $dstfile"
-            file delete -- $dstfile
-        }
-    } else {
-        ui_debug "skip missing file: $dstfile"
-    }
-}
-
-proc _uninstall_list {filelist} {
-    foreach file $filelist {
-        _uninstall_file $file
-    }
 }
 
 # End of registry_uninstall namespace

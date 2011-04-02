@@ -98,13 +98,11 @@ MacPorts runtime data
 Where ports are built and destrooted
 .It Pa distfiles/
 Holds the distfiles of the fetched ports
-.It Pa packages/
-Contains archives (packages) of installed ports
 .It Pa receipts/
 Holds the registry information and receipts for the installed ports
 .It Pa software/
-In Image-mode (which is default) Holds the installed files. These
-are linked to ${prefix}.
+Holds compressed images of the installed ports. These
+are extracted to ${prefix} when activated.
 .It Pa sources/
 Holds the sources of both the porttree (the Portfiles) and the
 sources for the base system

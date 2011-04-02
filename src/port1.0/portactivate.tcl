@@ -40,11 +40,7 @@ set org.macports.activate [target_new org.macports.activate portactivate::activa
 target_runtype ${org.macports.activate} always
 target_state ${org.macports.activate} no
 target_provides ${org.macports.activate} activate
-if {[option portarchivemode] == "yes"} {
-    target_requires ${org.macports.activate} main archivefetch unarchive fetch checksum extract patch configure build destroot archive install
-} else {
-    target_requires ${org.macports.activate} main fetch checksum extract patch configure build destroot install
-}
+target_requires ${org.macports.activate} main archivefetch fetch checksum extract patch configure build destroot install
 target_prerun ${org.macports.activate} portactivate::activate_start
 
 namespace eval portactivate {
@@ -54,20 +50,17 @@ options activate.asroot
 default activate.asroot no
 
 proc portactivate::activate_start {args} {
-    global prefix registry.installtype
-    if { (![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)) && ${registry.installtype} == "image"} {
+    global prefix
+    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
         # if install location is not writable, need root privileges
         elevateToRoot "activate"
     }
 }
 
 proc portactivate::activate_main {args} {
-    global env name version revision portvariants user_options PortInfo registry.installtype
+    global env name version revision portvariants user_options PortInfo
 
-    # skip the actual activation in direct mode (we still want the notes and the pre/post procs)
-    if {${registry.installtype} == "image"} {
-        registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
-    }
+    registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {

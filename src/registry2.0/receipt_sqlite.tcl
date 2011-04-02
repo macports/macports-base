@@ -124,9 +124,6 @@ proc property_retrieve {ref property} {
         active {
             set ret [string equal [$ref state] "installed"]
         }
-        imagedir {
-            set ret [$ref location]
-        }
         default {
             if {[catch {set ret [$ref $property]}]} {
                 # match behaviour of receipt_flat
@@ -152,9 +149,6 @@ proc property_store {ref property value} {
                 $ref state "installed"
             }
         }
-        imagedir {
-            $ref location $value
-        }
         default {
             $ref $property $value
         }
@@ -167,8 +161,6 @@ proc property_store {ref property value} {
 # Otherwise, return only ports that exactly match this version.
 # What we call version here is version_revision+variants.
 proc installed {{name ""} {version ""}} {
-    global macports::registry.installtype
-
 	if { $name == "" && $version == "" } {
 	    set ports [registry::entry imaged]
 	} elseif { $name != "" && $version == ""} {

@@ -1296,7 +1296,6 @@ proc target_run {ditem} {
                         test        -
                         destroot    -
                         install     -
-                        archive     -
                         dmg         -
                         pkg         -
                         portpkg     -
@@ -2154,6 +2153,26 @@ proc PortGroup {group version} {
     }
 }
 
+# return path where the image/archive for this port will be stored
+proc get_portimage_path {} {
+    global registry.path name version revision portvariants os.platform os.major portarchivetype
+    return [file join ${registry.path} software ${name} "${name}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"]
+}
+
+# return list of archive types that we can extract
+proc supportedArchiveTypes {} {
+    global supported_archive_types
+    if {![info exists supported_archive_types]} {
+        set supported_archive_types {}
+        foreach type {tbz2 tbz tgz tar txz tlz xar xpkg zip cpgz cpio} {
+            if {[catch {archiveTypeIsSupported $type}] == 0} {
+                lappend supported_archive_types $type
+            }
+        }
+    }
+    return $supported_archive_types
+}
+
 # check if archive type is supported by current system
 # returns an error code if it is not
 proc archiveTypeIsSupported {type} {
@@ -2199,7 +2218,7 @@ proc archiveTypeIsSupported {type} {
                 }
             }
         }
-        xar {
+        xar|xpkg {
             set xar "xar"
             if {[catch {set xar [findBinary $xar ${portutil::autoconf::xar_path}]} errmsg] == 0} {
                 return 0
@@ -2531,14 +2550,9 @@ proc _pathtest {depspec {return_match 0}} {
 
 # returns the name of the port that will actually be satisfying $depspec
 proc _get_dep_port {depspec} {
-    global registry.installtype
     set speclist [split $depspec :]
     set portname [lindex $speclist end]
-    if {[string equal ${registry.installtype} "image"]} {
-        set res [_portnameactive $portname]
-    } else {
-        set res [registry_exists_for_name $portname]
-    }
+    set res [_portnameactive $portname]
     if {$res != 0} {
         return $portname
     }
@@ -2636,30 +2650,25 @@ proc _check_xcode_version {} {
 
 # check if we can unarchive this port
 proc _archive_available {} {
-    global name version revision portvariants ports_source_only
-    global unarchive.srcpath workpath
+    global name version revision portvariants ports_source_only workpath \
+           registry.path os.platform os.major
 
-    if {[option portarchivemode] != "yes" || [tbool ports_source_only]} {
+    if {[tbool ports_source_only]} {
         return 0
     }
 
-    # Define archive directory, file, and path
-    if {![string equal ${unarchive.srcpath} ${workpath}] && ![string equal ${unarchive.srcpath} ""]} {
-        set unarchive.fullsrcpath [file join ${unarchive.srcpath} [option archive.subdir]]
-    } else {
-        set unarchive.fullsrcpath ${unarchive.srcpath}
-    }
-
     set found 0
-    foreach unarchive.type [option portarchivetype] {
-        if {[catch {archiveTypeIsSupported ${unarchive.type}} errmsg] == 0} {
-            set archstring [join [get_canonical_archs] -]
-            set unarchive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${unarchive.type}"
-            if {[file isfile [file join ${unarchive.fullsrcpath} ${unarchive.file}]]} {
-                set found 1
-                break
-            }
+    foreach unarchive.type [supportedArchiveTypes] {
+        set fullarchivepath [file join ${registry.path} software ${name} "${name}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${unarchive.type}"]
+        if {[file isfile $fullarchivepath]} {
+            set found 1
+            break
         }
     }
+    
+    # TODO: also check if porturl points to an archive
+    # maybe check if there's an archive available on the server too - this
+    # is kind of useless otherwise now that archive == installed image
+
     return $found
 }

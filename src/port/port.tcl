@@ -715,9 +715,6 @@ proc get_inactive_ports {} {
 
 
 proc get_outdated_ports {} {
-    global macports::registry.installtype
-    set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
-
     # Get the list of installed ports
     set ilist {}
     if { [catch {set ilist [registry::installed]} result] } {
@@ -741,7 +738,7 @@ proc get_outdated_ports {} {
             set installed_variants  [lindex $i 3]
 
             set is_active           [lindex $i 4]
-            if { $is_active == 0 && $is_image_mode } continue
+            if {$is_active == 0} continue
 
             set installed_epoch     [lindex $i 5]
 
@@ -2112,13 +2109,9 @@ proc action_location { action portlist opts } {
         }
 
         set ref [registry::open_entry $portname $version $revision $variants $epoch]
-        if { [string equal [registry::property_retrieve $ref installtype] "image"] } {
-            set imagedir [registry::property_retrieve $ref imagedir]
-            ui_notice "Port $portname ${version}_${revision}${variants} is installed as an image in:"
-            puts $imagedir
-        } else {
-            break_softcontinue "Port $portname is not installed as an image." 1 status
-        }
+        set imagedir [registry::property_retrieve $ref location]
+        ui_notice "Port $portname ${version}_${revision}${variants} is installed as an image in:"
+        puts $imagedir
     }
     
     return $status
@@ -2932,9 +2925,7 @@ proc action_installed { action portlist opts } {
 
 
 proc action_outdated { action portlist opts } {
-    global macports::registry.installtype private_options
-    set is_image_mode [expr 0 == [string compare "image" ${macports::registry.installtype}]]
-
+    global private_options
     set status 0
 
     # If port names were supplied, limit ourselves to those ports, else check all installed ports
@@ -2976,7 +2967,7 @@ proc action_outdated { action portlist opts } {
             set installed_compound "${installed_version}_${installed_revision}"
 
             set is_active [lindex $i 4]
-            if { $is_active == 0 && $is_image_mode } {
+            if {$is_active == 0} {
                 continue
             }
             set installed_epoch [lindex $i 5]
@@ -3827,7 +3818,6 @@ array set action_array [list \
     unload      [list action_target         [ACTION_ARGS_PORTS]] \
     distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
     \
-    archive     [list action_target         [ACTION_ARGS_PORTS]] \
     archivefetch [list action_target         [ACTION_ARGS_PORTS]] \
     unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
     dmg         [list action_target         [ACTION_ARGS_PORTS]] \
@@ -3899,7 +3889,7 @@ array set cmd_opts_array {
     deactivate  {no-exec}
     uninstall   {follow-dependents follow-dependencies no-exec}
     variants    {index}
-    clean       {all archive dist work logs}
+    clean       {all dist work logs}
     mirror      {new}
     lint        {nitpick}
     select      {list set show}

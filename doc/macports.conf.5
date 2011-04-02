@@ -67,17 +67,6 @@ also available as a legacy format.
 .br
 .Ic Default:
 sqlite
-.It Va portinstalltype
-Sets the mode in which ports are installed by MacPorts. Supported values are 'direct' or 'image'.
-The 'direct' mode is often used on systems that do not support 'image' due to limitations in their
-installed version of Tcl. In 'direct' mode ports are installed directly into '${prefix}' and only
-one flavor of a port can be installed at any given time. In 'image' mode multiple flavors of a port
-(i.e., different versions and/or any possible combination of its variants) can be installed concurrently
-into '${portdbpath}/software/${portname}' and only one can be "activated" onto '${prefix}' via soft or
-hard links from the former to the latter.
-.br
-.Ic Default:
-image
 .It Va applications_dir
 Directory containing Applications installed from ports.
 .br
@@ -102,26 +91,16 @@ ports if available.
 .br
 .Ic Default:
 ${prefix}/etc/macports/variants.conf
-.It Va portarchivemode
-Key governing the creation of binary archives of installed ports for installation/reinstallation ease.
-.br
-.Ic Default:
-yes
-.It Va portarchivepath
-Location to store ports' binary archive files when archive mode is active.
-.br
-.Ic Default:
-${portdbpath}/packages
 .It Va portarchivetype
-Colon or comma separated, space free list of supported formats of archives to create or read from when
-\&'${archivemode}' is set to 'yes'. Use of multiple types will cause archive creation to build all the
-specified types in one step. Unarchive uses multiple types as a search list to locate any existing archive,
-with the first found match being used.
+Format of archives in which to store port images. This controls both the type
+of archive created locally after building from source, and the type to request
+from remote servers. Changing this will not affect the usability of already
+installed archives; they can be of any supported type.
 .br
 Supported types are: tgz, tar, tbz, tbz2, tlz, txz, xar, zip, cpgz, cpio
 .br
 .Ic Default:
-tgz
+tbz2
 .It Va configureccache
 Use ccache (C/C++ compiler cache). Requires that ccache has been installed.
 .br

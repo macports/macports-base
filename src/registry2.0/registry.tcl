@@ -45,7 +45,7 @@ namespace eval registry {
 # Begin creating a new registry entry for the port version_revision+variant
 # This process assembles the directory name and creates a receipt dlist
 proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
-	global macports::registry.path macports::registry.format macports::registry.installtype macports::prefix
+	global macports::registry.path macports::registry.format macports::prefix
 
 	
 	# Make sure we don't already have an entry in the Registry for this
@@ -60,13 +60,9 @@ proc new_entry {name version {revision 0} {variants ""} {epoch 0} } {
 		property_store $ref variants $variants
 		property_store $ref epoch $epoch
 		property_store $ref date [clock seconds]
-		property_store $ref installtype ${macports::registry.installtype}
+		property_store $ref installtype image
 		property_store $ref receipt_f ${macports::registry.format}
-		if { ${macports::registry.installtype} == "image" } {
-			set imagedir [file join ${macports::registry.path} software ${name} ${version}_${revision}${variants}]
-			property_store $ref imagedir $imagedir
-			property_store $ref active 0
-		}
+        property_store $ref active 0
 
 		return $ref
 	} else {
@@ -459,31 +455,32 @@ proc convert_to_sqlite {} {
 
         set installtype [receipt_flat::property_retrieve $iref installtype]
         lappend proplist installtype $installtype
-        if { $installtype == "image" } {
-            set imagedir [receipt_flat::property_retrieve $iref imagedir]
-            set contents [receipt_flat::property_retrieve $iref contents]
-            set imagefiles [list]
-            set idlen [string length $imagedir]
-            foreach f $contents {
-                set fullpath [lindex $f 0]
-                # strip image dir from start
+        set location [receipt_flat::property_retrieve $iref location]
+        if {$location == "0"} {
+            set location [receipt_flat::property_retrieve $iref imagedir]
+        }
+        set contents [receipt_flat::property_retrieve $iref contents]
+        set imagefiles [list]
+        set idlen [string length $location]
+        foreach f $contents {
+            set fullpath [lindex $f 0]
+            # strip image dir from start
+            if {[string range $fullpath 0 [expr $idlen - 1]] == $location} {
                 set path [string range $fullpath $idlen [string length $fullpath]]
-                lappend imagefiles $path
-            }
-            lappend proplist imagefiles $imagefiles
-            set active [receipt_flat::property_retrieve $iref active]
-            if {$active} {
-                set state installed
-                lappend proplist files [receipt_flat::port_registered $iname]
             } else {
-                set state imaged
+                set path $fullpath
             }
-        } else {
-            set imagedir ""
+            lappend imagefiles $path
+        }
+        lappend proplist imagefiles $imagefiles
+        set active [receipt_flat::property_retrieve $iref active]
+        if {$active} {
             set state installed
             lappend proplist files [receipt_flat::port_registered $iname]
+        } else {
+            set state imaged
         }
-        lappend proplist location $imagedir
+        lappend proplist location $location
         lappend proplist state $state
         
         receipt_flat::open_dep_map

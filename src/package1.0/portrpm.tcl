@@ -36,7 +36,7 @@ package require portutil 1.0
 set org.macports.rpm [target_new org.macports.rpm portrpm::rpm_main]
 target_runtype ${org.macports.rpm} always
 target_provides ${org.macports.rpm} rpm
-target_requires ${org.macports.rpm} destroot
+target_requires ${org.macports.rpm} archivefetch unarchive destroot
 
 namespace eval portrpm {
 }

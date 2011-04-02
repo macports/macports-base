@@ -62,55 +62,32 @@ default archivefetch.pubkeys {$archivefetch_pubkeys}
 default archive_sites macports_archives
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
-default archive.subdir {[portarchivefetch::get_archive_subdir]}
 
 set_ui_prefix
 
-proc portarchivefetch::get_archive_subdir {} {
-    set archs [get_canonical_archs]
-    if {[llength $archs] > 1} {
-        return [file join [option os.platform]_[option os.major] "universal" [option name]]
-    } else {
-        return [file join [option os.platform]_[option os.major] $archs [option name]]
-    }
-}
-
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
-    global all_archive_files archivefetch.fulldestpath \
-           portarchivepath name version revision portvariants archive_sites
+    global all_archive_files archivefetch.fulldestpath portarchivetype \
+           name version revision portvariants archive_sites
     upvar $urls fetch_urls
 
-    # Define archive directory, file, and path
-    set archivefetch.fulldestpath [file join ${portarchivepath} [option archive.subdir]]
+    # Define archive directory path
+    set archive.path [get_portimage_path]
+    set archivefetch.fulldestpath [file dirname ${archive.path}]
 
-    set unsupported 0
-    set found 0
-    foreach archive.type [option portarchivetype] {
-        if {[catch {archiveTypeIsSupported ${archive.type}} errmsg] == 0} {
-            set archstring [join [get_canonical_archs] -]
-            set archive.file "${name}-${version}_${revision}${portvariants}.${archstring}.${archive.type}"
-            set archive.path [file join ${archivefetch.fulldestpath} ${archive.file}]
-            if {[file exists ${archive.path}]} {
-                set found 1
-                break
-            } else {
-                lappend all_archive_files ${archive.file}
-                if {[info exists archive_sites]} {
-                    lappend fetch_urls archive_sites ${archive.file}
-                }
-            }
-        } else {
-            ui_debug "Skipping [string toupper ${archive.type}] archive: $errmsg"
-            incr unsupported
-        }
-    }
-    if {$found} {
-        ui_debug "Found [string toupper ${archive.type}] archive: ${archive.path}"
+    # throws an error if unsupported
+    archiveTypeIsSupported $portarchivetype
+
+    if {[file isfile ${archive.path}]} {
+        ui_debug "Found archive: ${archive.path}"
         set all_archive_files {}
         set fetch_urls {}
-    } elseif {[llength [option portarchivetype]] == $unsupported} {
-        return -code error "Unable to fetch archive ($name) since specified archive types not supported"
+    } else {
+        set archive.file [file tail ${archive.path}]
+        lappend all_archive_files ${archive.file}
+        if {[info exists archive_sites]} {
+            lappend fetch_urls archive_sites ${archive.file}
+        }
     }
 }
 
@@ -133,7 +110,7 @@ proc portarchivefetch::checkfiles {urls} {
 # Perform a standard fetch, assembling fetch urls from
 # the listed url variable and associated archive file
 proc portarchivefetch::fetchfiles {args} {
-    global portarchivepath archivefetch.fulldestpath UI_PREFIX
+    global archivefetch.fulldestpath UI_PREFIX
     global archivefetch.user archivefetch.password archivefetch.use_epsv \
            archivefetch.ignore_sslcert
     global portverbose ports_binary_only
@@ -149,7 +126,7 @@ proc portarchivefetch::fetchfiles {args} {
             }
         }
     }
-    set incoming_path [file join ${portarchivepath} incoming]
+    set incoming_path [file join [option portdbpath] incoming]
     if {![file isdirectory $incoming_path]} {
         if {[catch {file mkdir $incoming_path} result]} {
             elevateToRoot "archivefetch"
@@ -245,11 +222,19 @@ proc portarchivefetch::fetchfiles {args} {
                     return -code error "Failed to move downloaded archive into place: $result"
                 }
                 file delete -force $signature
-                return 0
+                set archive_exists 1
             }
         } else {
-            return 0
+            set archive_exists 1
         }
+    }
+    if {[info exists archive_exists]} {
+        # modify state file to skip remaining phases up to destroot
+        global target_state_fd
+        foreach target {fetch checksum extract patch configure build destroot} {
+            write_statefile target "org.macports.${target}" $target_state_fd
+        }
+        return 0
     }
     if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
         return -code error "archivefetch failed for [option name] @[option version]_[option revision][option portvariants]"
@@ -260,9 +245,7 @@ proc portarchivefetch::fetchfiles {args} {
 
 # Initialize archivefetch target and call checkfiles.
 proc portarchivefetch::archivefetch_init {args} {
-    if {[option portarchivemode] != "yes"} {
-        return -code error "Archive mode is not enabled!"
-    }
+    return 0
 }
 
 proc portarchivefetch::archivefetch_start {args} {
@@ -282,8 +265,7 @@ proc portarchivefetch::archivefetch_main {args} {
     global all_archive_files
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
         # Fetch the files
-        return [portarchivefetch::fetchfiles]
-    } else {
-        return 0
+        portarchivefetch::fetchfiles
     }
+    return 0
 }

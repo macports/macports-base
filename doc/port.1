@@ -249,9 +249,9 @@ force mode (ignore state file)
 .It Fl o
 honor state files older than Portfile
 .It Fl s
-source-only mode (build and install from source, ignore all binary archives, do not create/recreate binary archives) (only applies when archive mode is enabled)
+source-only mode (build and install from source, do not attempt to fetch binary archives)
 .It Fl b
-binary-only mode (build and install from binary archives, ignore source, abort if no archive present; do not create/recreate binary archives from source) (only applies when archive mode is enabled)
+binary-only mode (build and install from binary archives, ignore source, abort if no archive available)
 .It Fl c
 autoclean mode (execute clean after install)
 .It Fl k
@@ -471,27 +471,15 @@ To just remove the work files, use the
 This is the default when no flag is given.
 To remove the distribution files (tarballs, etc), specify
 .Fl -dist .
-To remove the archive(s) for the current version of a port, pass
-.Fl -archive .
-To remove the work files, distribution files and archives, pass
+To remove the work files, distribution files and logs, pass
 .Fl -all .
 To remove log files for certain port, pass
 .Fl -logs .
 For example:
 .Pp
 .Dl "port clean --dist vim"
-.Dl "port clean --archive vim"
 .Dl "port clean --logs vim"
 .Pp
-To remove only certain version(s) of a port's archives (
-.Ar version
-is any valid UNIX glob pattern), you can use:
-.Pp
-.Dl "port clean --archive vim 6.2.114"
-.Pp
-or:
-.Pp
-.Dl "port clean --archive vim '6.*'"
 .Ss log
 Parses and shows log files for
 .Ar portname .
@@ -605,12 +593,6 @@ flag on the command line to specify an alternative editor. For example:
 .Ss ed
 An alias for
 .Ic edit .
-.Ss unarchive
-Unpack the port from a pre-built binary archive. When archive mode is enabled, this command is called automatically, prior to
-.Ar fetch ,
-to check for an existing binary archive to unpack. If found, it is unpacked and all stages up to
-.Ar install
-are then skipped.
 .Ss fetch
 Fetches the distribution files required to build
 .Ar portname .
@@ -644,14 +626,6 @@ Verifies Portfile for
 .Ar portname .
 To nitpick about whitespace and patchfile names, use
 .Fl -nitpick .
-.Ss archive
-Archive the port for a later
-.Ar unarchive .
-When archive mode is enabled, binary archives will be created automatically whenever an
-.Ar install
-is performed, or when the
-.Ar archive
-target is called explicitly.
 .Ss distcheck
 Check if the distfiles haven't changed and can be fetched.
 .Ss distfiles

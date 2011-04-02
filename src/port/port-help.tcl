@@ -13,10 +13,6 @@ Activate the given ports
 --no-exec   Do not execute any stored pre- or post-activate procedures
 }
 
-set porthelp(archive) {
-Archive the given ports
-}
-
 set porthelp(archivefetch) {
 Fetch archive for the given ports
 }
@@ -42,7 +38,6 @@ Compares the checksums for the downloaded files of the given ports
 set porthelp(clean) {
 Removes files associated with the given ports
 
---archive     Removes created archives
 --dist        Removes downloaded distfiles
 --logs        Removes log files
 --work        Removes work directory (default)
@@ -319,7 +314,7 @@ Run tests on each of the given ports
 }
 
 set porthelp(unarchive) {
-Unarchive the given ports
+Unarchive the destroot of the given ports from installed images
 }
 
 set porthelp(uninstall) {

@@ -32,6 +32,7 @@
 package provide macports 1.0
 
 namespace eval macports::autoconf {
+    variable bzip2_path "@BZIP2@"
     variable chown_path "@CHOWN@"
     variable gzip_path "@GZIP@"
     variable macports_conf_path "@MPCONFIGDIR_EXPANDED@"
@@ -39,7 +40,10 @@ namespace eval macports::autoconf {
     variable macports_user_dir "~/.macports"
     variable macportsuser "@RUNUSR@"
     variable open_path "@OPEN@"
+    variable pax_path "@PAX@"
     variable rsync_path "@RSYNC@"
     variable tar_command "@TAR_CMD@"
     variable tar_path "@TAR@"
+    variable unzip_path "@UNZIP@"
+    variable xar_path "@XAR@"
 }

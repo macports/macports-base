@@ -37,7 +37,7 @@ package require portutil 1.0
 set org.macports.dpkg [target_new org.macports.dpkg portdpkg::main]
 target_runtype ${org.macports.dpkg} always
 target_provides ${org.macports.dpkg} dpkg
-target_requires ${org.macports.dpkg} destroot
+target_requires ${org.macports.dpkg} archivefetch unarchive destroot
 
 namespace eval portdpkg {
 }

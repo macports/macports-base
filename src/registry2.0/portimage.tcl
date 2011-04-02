@@ -41,26 +41,22 @@ package require Pextlib 1.0
 
 set UI_PREFIX "--> "
 
-#
-# Port Images are basically just installations of the destroot of a port into
-# ${macports::registry.path}/software/${name}/${version}_${revision}${variants}
+# Port Images are installations of the destroot of a port into a compressed
+# tarball in ${macports::registry.path}/software/${name}.
 # They allow the user to install multiple versions of the same port, treating
 # each revision and each different combination of variants as a "version".
 #
-# From there, the user can "activate" a port image.  This creates {sym,hard}links for
-# all files in the image into the ${prefix}.  Directories are created.
+# From there, the user can "activate" a port image.  This extracts the port's
+# files from the image into the ${prefix}.  Directories are created.
 # Activation checks the registry's file_map for any files which conflict with
 # other "active" ports, and will not overwrite the links to the those files.
 # The conflicting port must be deactivated first.
 #
-# The user can also "deactivate" an active port.  This will remove all {sym,hard}links
-# from ${prefix}, and if any directories are empty, remove them as well.  It
-# will also remove all of the references of the files from the registry's
-# file_map
-#
-# For the creating and removing of links during activation and deactivation,
-# code very similar to what is used in portinstall is used.
-#
+# The user can also "deactivate" an active port.  This will remove all the
+# port's files from ${prefix}, and if any directories are empty, remove them
+# as well. It will also remove all of the references of the files from the 
+# registry's file_map.
+
 
 namespace eval portimage {
 
@@ -101,6 +97,7 @@ proc activate {name v optionslist} {
             set revision [$requested revision]
             set variants [$requested variants]
             set specifier "${version}_${revision}${variants}"
+            set location [$requested location]
 
             # if another version of this port is active, deactivate it first
             set current [registry::entry installed $name]
@@ -114,7 +111,9 @@ proc activate {name v optionslist} {
             if { ![string equal [$requested installtype] "image"] } {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
             }
-
+            if {![file isfile $location]} {
+                return -code error "Image error: Can't find image file $location"
+            }
             if { [string equal [$requested state] "installed"] } {
                 return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
             }
@@ -152,6 +151,10 @@ proc activate {name v optionslist} {
         if { ![string equal [registry::property_retrieve $ref installtype] "image"] } {
             return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
         }
+        set location [registry::property_retrieve $ref location]
+        if {![file isfile $location]} {
+            return -code error "Image error: Can't find image file $location"
+        }
         if { [registry::property_retrieve $ref active] != 0 } {
             return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
         }
@@ -171,14 +174,15 @@ proc activate {name v optionslist} {
         _activate_contents $requested
         $requested state installed
     } else {
-        set imagedir [registry::property_retrieve $ref imagedir]
-
         set contents [registry::property_retrieve $ref contents]
 
-        set imagefiles [_check_contents $name $contents $imagedir]
+        set imagefiles {}
+        foreach content_element $contents {
+            lappend imagefiles [lindex $content_element 0]
+        }
 
         registry::open_file_map
-        _activate_contents $name $imagefiles $imagedir
+        _activate_contents $name $imagefiles $location
 
         registry::property_store $ref active 1
 
@@ -297,7 +301,7 @@ proc deactivate {name v optionslist} {
 }
 
 proc _check_registry {name v} {
-    global UI_PREFIX macports::registry.installtype
+    global UI_PREFIX
     variable use_reg2
 
     if {$use_reg2} {
@@ -358,24 +362,6 @@ proc _check_registry {name v} {
     }
 }
 
-proc _check_contents {name contents imagedir} {
-
-    set imagefiles [list]
-    set idlen [string length $imagedir]
-
-    # generate list of activated file paths from list of paths in the image dir
-    foreach fe $contents {
-        set srcfile [lindex $fe 0]
-        if { ![string equal $srcfile ""] && [file type $srcfile] != "directory" } {
-            set file [string range $srcfile $idlen [string length $srcfile]]
-
-            lappend imagefiles $file
-        }
-    }
-
-    return $imagefiles
-}
-
 ## Activates a file from an image into the filesystem. Deals with symlinks,
 ## directories and files.
 ##
@@ -384,11 +370,6 @@ proc _check_contents {name contents imagedir} {
 ## @return 1 if file needs to be explicitly deleted if we have to roll back, 0 otherwise
 proc _activate_file {srcfile dstfile} {
     switch [file type $srcfile] {
-        link {
-            ui_debug "activating link: $dstfile"
-            file copy -force -- $srcfile $dstfile
-            return 1
-        }
         directory {
             # Don't recursively copy directories
             ui_debug "activating directory: $dstfile"
@@ -404,18 +385,149 @@ proc _activate_file {srcfile dstfile} {
         }
         default {
             ui_debug "activating file: $dstfile"
-            # Try a hard link first and if that fails, a symlink
-            if {[catch {file link -hard $dstfile $srcfile}]} {
-                ui_debug "hardlinking $srcfile to $dstfile failed, symlinking instead"
-                file link -symbolic $dstfile $srcfile
-            }
+            file rename $srcfile $dstfile
             return 1
         }
     }
 }
 
+# extract an archive to a temporary location
+# returns: path to the extracted directory
+proc extract_archive_to_tmpdir {location} {
+    set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
+
+    try {
+        set startpwd [pwd]
+        if {[catch {cd $extractdir} err]} {
+            throw MACPORTS $err
+        }
+    
+        # clagged straight from unarchive... this really needs to be factored
+        # out, but it's a little tricky as the places where it's used run in
+        # different interpreter contexts with access to different packages.
+        set unarchive.cmd {}
+        set unarchive.pre_args {}
+        set unarchive.args {}
+        set unarchive.pipe_cmd ""
+        set unarchive.type [file tail $location]
+        switch -regex ${unarchive.type} {
+            cp(io|gz) {
+                set pax "pax"
+                if {[catch {set pax [macports::findBinary $pax ${macports::autoconf::pax_path}]} errmsg] == 0} {
+                    ui_debug "Using $pax"
+                    set unarchive.cmd "$pax"
+                    if {[geteuid] == 0} {
+                        set unarchive.pre_args {-r -v -p e}
+                    } else {
+                        set unarchive.pre_args {-r -v -p p}
+                    }
+                    if {[regexp {z$} ${unarchive.type}]} {
+                        set unarchive.args {.}
+                        set gzip "gzip"
+                        if {[catch {set gzip [macports::findBinary $gzip ${macports::autoconf::gzip_path}]} errmsg] == 0} {
+                            ui_debug "Using $gzip"
+                            set unarchive.pipe_cmd "$gzip -d -c ${location} |"
+                        } else {
+                            ui_debug $errmsg
+                            throw MACPORTS "No '$gzip' was found on this system!"
+                        }
+                    } else {
+                        set unarchive.args "-f ${location} ."
+                    }
+                } else {
+                    ui_debug $errmsg
+                    throw MACPORTS "No '$pax' was found on this system!"
+                }
+            }
+            t(ar|bz|lz|xz|gz) {
+                set tar "tar"
+                if {[catch {set tar [macports::findBinary $tar ${macports::autoconf::tar_path}]} errmsg] == 0} {
+                    ui_debug "Using $tar"
+                    set unarchive.cmd "$tar"
+                    set unarchive.pre_args {-xvpf}
+                    if {[regexp {z2?$} ${unarchive.type}]} {
+                        set unarchive.args {-}
+                        if {[regexp {bz2?$} ${unarchive.type}]} {
+                            set gzip "bzip2"
+                        } elseif {[regexp {lz$} ${unarchive.type}]} {
+                            set gzip "lzma"
+                        } elseif {[regexp {xz$} ${unarchive.type}]} {
+                            set gzip "xz"
+                        } else {
+                            set gzip "gzip"
+                        }
+                        if {[info exists macports::autoconf::${gzip}_path]} {
+                            set hint [set macports::autoconf::${gzip}_path]
+                        } else {
+                            set hint ""
+                        }
+                        if {[catch {set gzip [macports::findBinary $gzip $hint]} errmsg] == 0} {
+                            ui_debug "Using $gzip"
+                            set unarchive.pipe_cmd "$gzip -d -c ${location} |"
+                        } else {
+                            ui_debug $errmsg
+                            throw MACPORTS "No '$gzip' was found on this system!"
+                        }
+                    } else {
+                        set unarchive.args "${location}"
+                    }
+                } else {
+                    ui_debug $errmsg
+                    throw MACPORTS "No '$tar' was found on this system!"
+                }
+            }
+            xar|xpkg {
+                set xar "xar"
+                if {[catch {set xar [macports::findBinary $xar ${macports::autoconf::xar_path}]} errmsg] == 0} {
+                    ui_debug "Using $xar"
+                    set unarchive.cmd "$xar"
+                    set unarchive.pre_args {-xvpf}
+                    set unarchive.args "${location}"
+                } else {
+                    ui_debug $errmsg
+                    throw MACPORTS "No '$xar' was found on this system!"
+                }
+            }
+            zip {
+                set unzip "unzip"
+                if {[catch {set unzip [macports::findBinary $unzip ${macports::autoconf::unzip_path}]} errmsg] == 0} {
+                    ui_debug "Using $unzip"
+                    set unarchive.cmd "$unzip"
+                    if {[geteuid] == 0} {
+                        set unarchive.pre_args {-oX}
+                    } else {
+                        set unarchive.pre_args {-o}
+                    }
+                    set unarchive.args "${location} -d ."
+                } else {
+                    ui_debug $errmsg
+                    throw MACPORTS "No '$unzip' was found on this system!"
+                }
+            }
+            default {
+                throw MACPORTS "Unsupported port archive type '${unarchive.type}'!"
+            }
+        }
+        
+        # and finally, reinvent command_exec
+        if {${unarchive.pipe_cmd} == ""} {
+            set cmdstring "${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args}"
+        } else {
+            set cmdstring "${unarchive.pipe_cmd} ( ${unarchive.cmd} ${unarchive.pre_args} ${unarchive.args} )"
+        }
+        system $cmdstring
+    } catch {*} {
+        file delete -force $extractdir
+        throw
+    } finally {
+        cd $startpwd
+    }
+
+    return $extractdir
+}
+
 ## Activates the contents of a port
-proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
+proc _activate_contents {port {imagefiles {}} {location {}}} {
     variable force
     variable use_reg2
     variable noexec
@@ -424,16 +536,17 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
     set files [list]
     set baksuffix .mp_[clock seconds]
     if {$use_reg2} {
-        set imagedir [$port location]
+        set location [$port location]
         set imagefiles [$port imagefiles]
     } else {
         set name $port
     }
+    set extracted_dir [extract_archive_to_tmpdir $location]
 
     set backups [list]
     # This is big and hairy and probably could be done better.
     # First, we need to check the source file, make sure it exists
-    # Then we remove the $imagedir from the path of the file in the contents
+    # Then we remove the $location from the path of the file in the contents
     #  list  and check to see if that file exists
     # Last, if the file exists, and belongs to another port, and force is set
     #  we remove the file from the file_map, take ownership of it, and
@@ -443,7 +556,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
         try {
             registry::write {
                 foreach file $imagefiles {
-                    set srcfile "${imagedir}${file}"
+                    set srcfile "${extracted_dir}${file}"
 
                     # To be able to install links, we test if we can lstat the file to
                     # figure out if the source file exists (file exists will return
@@ -532,7 +645,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 try {
                     $port activate $imagefiles
                     foreach file $files {
-                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                        if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
                             lappend rollback_filelist $file
                         }
                     }
@@ -561,18 +674,21 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                     activate [$entry name] $pvers [list ports_activate_no-exec $noexec]
                 }
             }
+            # remove temp image dir
+            file delete -force $extracted_dir
             throw
         }
     } else {
         # registry1.0
         set deactivated [list]
         foreach file $imagefiles {
-            set srcfile "${imagedir}${file}"
+            set srcfile "${extracted_dir}${file}"
 
             # To be able to install links, we test if we can lstat the file to
             # figure out if the source file exists (file exists will return
             # false for symlinks on files that do not exist)
             if { [catch {file lstat $srcfile dummystatvar}] } {
+                file delete -force $extracted_dir
                 return -code error "Image error: Source file $srcfile does not appear to exist (cannot lstat it).  Unable to activate port $name."
             }
 
@@ -583,6 +699,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
                 if {[catch {mportlookup $port} result]} {
                     global errorInfo
                     ui_debug "$errorInfo"
+                    file delete -force $extracted_dir
                     return -code error "port lookup failed: $result"
                 }
                 array unset portinfo
@@ -595,8 +712,10 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             }
     
             if { $port != 0  && $force != 1 && $port != $name } {
+                file delete -force $extracted_dir
                 return -code error "Image error: $file is being used by the active $port port.  Please deactivate this port first, or use 'port -f activate $name' to force the activation."
             } elseif { [file exists $file] && $force != 1 } {
+                file delete -force $extracted_dir
                 return -code error "Image error: $file already exists and does not belong to a registered port.  Unable to activate port $name. Use 'port -f activate $name' to force the activation."
             } elseif { $force == 1 && [file exists $file] || $port != 0 } {
                 set bakfile "${file}${baksuffix}"
@@ -643,7 +762,7 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
 
         # Activate it, and catch errors so we can roll-back
         if { [catch { foreach file $files {
-                        if {[_activate_file "${imagedir}${file}" $file] == 1} {
+                        if {[_activate_file "${extracted_dir}${file}" $file] == 1} {
                             lappend rollback_filelist $file
                         }
                     }} result]} {
@@ -667,9 +786,11 @@ proc _activate_contents {port {imagefiles {}} {imagedir {}}} {
             }
             registry::write_file_map
 
+            file delete -force $extracted_dir
             return -code error $result
         }
     }
+    file delete -force $extracted_dir
 }
 
 proc _deactivate_file {dstfile} {
