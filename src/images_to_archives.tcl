@@ -22,6 +22,8 @@ if {[catch {set ilist [registry::installed]}]} {
     exit 0
 }
 
+puts "This could take a while..."
+
 foreach installed $ilist {
     set iname [lindex $installed 0]
     set iversion [lindex $installed 1]
