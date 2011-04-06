@@ -13,6 +13,10 @@ Activate the given ports
 --no-exec   Do not execute any stored pre- or post-activate procedures
 }
 
+set porthelp(archive) {
+Archive the given ports, i.e. install the port image but do not activate
+}
+
 set porthelp(archivefetch) {
 Fetch archive for the given ports
 }

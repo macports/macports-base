@@ -3662,6 +3662,8 @@ proc action_target { action portlist opts } {
             set options(ports_requested) 1
             # we actually activate as well
             set target activate
+        } elseif {$action == "archive"} {
+            set target install
         } else {
             set target $action
         }
@@ -3819,6 +3821,7 @@ array set action_array [list \
     distfiles   [list action_target         [ACTION_ARGS_PORTS]] \
     \
     archivefetch [list action_target         [ACTION_ARGS_PORTS]] \
+    archive     [list action_target         [ACTION_ARGS_PORTS]] \
     unarchive   [list action_target         [ACTION_ARGS_PORTS]] \
     dmg         [list action_target         [ACTION_ARGS_PORTS]] \
     mdmg        [list action_target         [ACTION_ARGS_PORTS]] \
