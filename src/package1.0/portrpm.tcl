@@ -41,7 +41,12 @@ target_requires ${org.macports.rpm} archivefetch unarchive destroot
 namespace eval portrpm {
 }
 
+# Options
+options rpm.asroot
 options package.destpath
+
+# Set up defaults
+default rpm.asroot yes
 
 set_ui_prefix
 
@@ -54,11 +59,12 @@ proc portrpm::rpm_main {args} {
 }
 
 proc portrpm::rpm_pkg {portname portversion portrevision} {
-    global UI_PREFIX package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
+    global UI_PREFIX rpm.asroot package.destpath portdbpath destpath workpath prefix categories maintainers description long_description homepage epoch portpath
 	global os.platform os.arch os.version os.major supported_archs configure.build_arch license
     
     set rpmdestpath ""
     if {![string equal ${package.destpath} ${workpath}] && ![string equal ${package.destpath} ""]} {
+        set rpm.asroot no
         set pkgpath ${package.destpath}
         file mkdir ${pkgpath}/BUILD \
                    ${pkgpath}/RPMS \
