@@ -43,7 +43,11 @@ namespace eval portdpkg {
 }
 
 # Options
+options dpkg.asroot
 options package.destpath
+
+# Set up defaults
+default dpkg.asroot yes
 
 set_ui_prefix
 
