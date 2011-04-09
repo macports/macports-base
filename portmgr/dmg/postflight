@@ -74,6 +74,8 @@ function update_macports {
     
     # Add [default] tag to the central MacPorts repository, if it isn't already
     ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
+    # Convert image directories (and direct mode installs) to image archives
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
