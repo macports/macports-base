@@ -641,15 +641,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     set registry.path $portdbpath
 
-    # Format for receipts, can currently be either "flat" or "sqlite"
-    if {[info exists portdbformat]} {
-        if {$portdbformat == "flat" || $portdbformat == "sqlite"} {
-            set registry.format receipt_${portdbformat}
-        } else {
-            return -code error "unknown registry format '$portdbformat' set in macports.conf"
-        }
-    } else {
+    # Format for receipts; currently only "sqlite" is allowed
+    # could previously be "flat", so we switch that to sqlite
+    if {![info exists portdbformat] || $portdbformat == "flat" || $portdbformat == "sqlite"} {
         set registry.format receipt_sqlite
+    } else {
+        return -code error "unknown registry format '$portdbformat' set in macports.conf"
     }
 
     # Autoclean mode, whether to automatically call clean after "install"
