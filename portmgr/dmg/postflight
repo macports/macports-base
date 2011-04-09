@@ -74,8 +74,6 @@ function update_macports {
     
     # Add [default] tag to the central MacPorts repository, if it isn't already
     ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
-    # Remove any duplicates from the dep map (could occur with 1.6 and earlier)
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/dep_map_clean.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
