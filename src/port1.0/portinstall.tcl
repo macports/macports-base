@@ -474,13 +474,14 @@ proc portinstall::extract_contents {location type} {
     }
     set contents {}
     set ignore 0
+    set sep [file separator]
     foreach line [split $raw_contents \n] {
         if {$ignore} {
             set ignore 0
             continue
         }
         if {[string index $line 0] != "@"} {
-            lappend contents $line
+            lappend contents "${sep}${line}"
         } elseif {$line == "@ignore"} {
             set ignore 1
         }
