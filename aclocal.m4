@@ -919,6 +919,21 @@ AC_DEFUN([MP_SED_EXTENDED_REGEXP],[
 	AC_SUBST(SED_EXT)
 ])
 
+dnl This macro tests for tar support of -q (BSD) or not (GNU)
+AC_DEFUN([MP_TAR_FAST_READ],[
+	AC_PATH_PROG(TAR, [tar])
+	
+	AC_MSG_CHECKING([whether tar supports -q])
+	if $TAR -t -q -f - </dev/null 2>/dev/null ; then
+		AC_MSG_RESULT([yes (bsdtar)])
+		TAR_Q='q'
+	else
+		AC_MSG_RESULT([no (gnutar)])
+		TAR_Q=
+	fi
+	AC_SUBST(TAR_Q)
+])
+
 dnl This macro tests for tar support of --no-same-owner
 AC_DEFUN([MP_TAR_NO_SAME_OWNER],[
 	AC_PATH_PROG(TAR, [tar])

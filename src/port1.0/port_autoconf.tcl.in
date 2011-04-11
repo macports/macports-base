@@ -63,6 +63,7 @@ namespace eval portutil::autoconf {
 	variable sed_ext_flag "@SED_EXT@"
 	variable tar_command "@TAR_CMD@"
 	variable tar_path "@TAR@"
+	variable tar_q "@TAR_Q@"
 	variable hdiutil_path "@HDIUTIL@"
 	variable have_launchd "@HAVE_LAUNCHD@"
 	variable launchctl_path "@LAUNCHCTL@"
