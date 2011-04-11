@@ -425,11 +425,7 @@ proc portinstall::create_archive {location archive.type} {
 }
 
 proc portinstall::extract_contents {location type} {
-    set qflag ""
-    # should probably really check if this is supported by tar at configure time
-    if {([option os.major] >= 10 && [option os.platform] == "darwin") || [string match *bsd [option os.platform]]} {
-        set qflag "q"
-    }
+    set qflag ${portutil::autoconf::tar_q}
     switch -- $type {
         tbz -
         tbz2 {
