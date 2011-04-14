@@ -85,7 +85,6 @@ default cvs.pre_args {"-z9 -f -d ${cvs.root}"}
 default cvs.args ""
 default cvs.post_args {"${cvs.module}"}
 
-# we want the svn port so we know --trust-server-cert will work
 default svn.cmd {[portfetch::find_svn_path]}
 default svn.dir {${workpath}}
 default svn.method {export}
@@ -194,6 +193,7 @@ proc portfetch::set_fetch_type {option action args} {
 
 proc portfetch::find_svn_path {args} {
     global prefix os.platform os.major
+    # Snow Leopard is the first Mac OS X version to include a recent enough svn (1.6.x) to support the --trust-server-cert option.
     if {${os.platform} == "darwin" && ${os.major} >= 10} {
         return [findBinary svn $portutil::autoconf::svn_path]
     } else {
