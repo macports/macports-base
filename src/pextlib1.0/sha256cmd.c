@@ -58,18 +58,34 @@
 #define SHA256_Final(m, c)              CC_SHA256_Final(m,c)
 #endif
 
-#else
-/* We do not have CommonCrypto.
-* let's use our own version of sha256* libraries.
-*/
+#include "md_wrappers.h"
+CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
+CHECKSUMFile(SHA256_, SHA256_CTX)
+
+#elif defined(HAVE_LIBMD) && defined(HAVE_SHA256_H) && !defined(__FreeBSD__) /*dumps core*/
 #include <sys/types.h>
-#include "sha2.h"
-#include "sha2.c"
+#include <sha256.h>
+#ifndef SHA256_DIGEST_LENGTH
+#define SHA256_DIGEST_LENGTH 32
 #endif
+#elif defined(HAVE_LIBCRYPTO) && defined(HAVE_OPENSSL_SHA_H) && defined(HAVE_SHA256_UPDATE)
+#include <openssl/sha.h>
 
 #include "md_wrappers.h"
 CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
 CHECKSUMFile(SHA256_, SHA256_CTX)
+#else
+/*
+ * let's use our own version of sha256* libraries.
+ */
+#include <sys/types.h>
+#include "sha2.h"
+#include "sha2.c"
+
+#include "md_wrappers.h"
+CHECKSUMEnd(SHA256_, SHA256_CTX, SHA256_DIGEST_LENGTH)
+CHECKSUMFile(SHA256_, SHA256_CTX)
+#endif
 
 int SHA256Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {

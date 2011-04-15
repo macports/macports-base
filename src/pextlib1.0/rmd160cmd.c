@@ -35,29 +35,39 @@
 #endif
 
 #include <string.h>
-
-#include <tcl.h>
-
-#include "rmd160cmd.h"
-
-/*
- * let's use our own version of rmd160* libraries.
- */
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 
-#include <sys/types.h>
+#include <tcl.h>
 
+#include "rmd160cmd.h"
+
+#if defined(HAVE_LIBMD) && defined(HAVE_RIPEMD_H)
+#include <sys/types.h>
+#include <ripemd.h>
+#elif defined(HAVE_LIBCRYPTO) && defined(HAVE_OPENSSL_RIPEMD_H)
+#include <openssl/ripemd.h>
+
+#include "md_wrappers.h"
+CHECKSUMEnd(RIPEMD160_, RIPEMD160_CTX, RIPEMD160_DIGEST_LENGTH)
+CHECKSUMFile(RIPEMD160_, RIPEMD160_CTX)
+#else
+/*
+ * let's use our own version of rmd160* libraries.
+ */
+#include <sys/types.h>
 #include "rmd160.h"
 #include "rmd160.c"
 #define RIPEMD160_DIGEST_LENGTH 20
+#define RIPEMD160_File(x,y) RMD160File(x,y)
+
 #include "md_wrappers.h"
 CHECKSUMEnd(RMD160, RMD160_CTX, RIPEMD160_DIGEST_LENGTH)
 CHECKSUMFile(RMD160, RMD160_CTX)
-
+#endif
 
 int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
 {
@@ -83,7 +93,7 @@ int RMD160Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Ob
 	}
 	file = Tcl_GetString(objv[2]);
 
-	if (!RMD160File(file, buf)) {
+	if (!RIPEMD160_File(file, buf)) {
 		tcl_result = Tcl_NewStringObj(error_message, sizeof(error_message) - 1);
 		Tcl_AppendObjToObj(tcl_result, Tcl_NewStringObj(file, -1));
 		Tcl_SetObjResult(interp, tcl_result);

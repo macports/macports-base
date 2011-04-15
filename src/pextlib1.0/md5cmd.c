@@ -58,11 +58,18 @@
 CHECKSUMEnd(MD5, MD5_CTX, MD5_DIGEST_LENGTH)
 CHECKSUMFile(MD5, MD5_CTX)
 
-#elif defined(HAVE_LIBMD)
+#elif defined(HAVE_LIBMD) && defined(HAVE_MD5_H)
 #include <sys/types.h>
 #include <md5.h>
+#elif defined(HAVE_LIBCRYPTO) && defined(HAVE_OPENSSL_MD5_H)
+#include <openssl/md5.h>
+
+#include "md_wrappers.h"
+CHECKSUMEnd(MD5_, MD5_CTX, MD5_DIGEST_LENGTH)
+CHECKSUMFile(MD5_, MD5_CTX)
+#define MD5File(x,y) MD5_File(x,y)
 #else
-#error CommonCrypto or libmd required
+#error CommonCrypto, libmd or libcrypto required
 #endif
 
 int MD5Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])

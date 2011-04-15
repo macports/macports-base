@@ -54,13 +54,23 @@
 CHECKSUMEnd(SHA1_, SHA_CTX, SHA_DIGEST_LENGTH)
 CHECKSUMFile(SHA1_, SHA_CTX)
 
-#elif defined(HAVE_LIBMD)
+#elif defined(HAVE_LIBMD) && defined(HAVE_SHA_H)
 #include <sys/types.h>
 #include <sha.h>
-#define SHA_DIGEST_LENGTH (SHA_HASHBYTES)
+#ifndef SHA_DIGEST_LENGTH
+#define SHA_DIGEST_LENGTH 20
+#endif
+#ifndef HAVE_SHA1_FILE
 #define SHA1_File(x,y) SHAFile(x,y)
+#endif
+#elif defined(HAVE_LIBCRYPTO) && defined(HAVE_OPENSSL_SHA_H)
+#include <openssl/sha.h>
+
+#include "md_wrappers.h"
+CHECKSUMEnd(SHA1_, SHA_CTX, SHA_DIGEST_LENGTH)
+CHECKSUMFile(SHA1_, SHA_CTX)
 #else
-#error CommonCrypto or libmd required
+#error CommonCrypto, libmd or libcrypto required
 #endif
 
 int SHA1Cmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[])
