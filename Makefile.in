@@ -18,7 +18,7 @@ all:: Mk/macports.autoconf.mk
 
 Mk/macports.autoconf.mk: Mk/macports.autoconf.mk.in src/config.h.in Makefile.in config.status
 	./config.status
-	make clean
+	${MAKE} clean
 
 config.status: configure
 	@if test -f ./config.status ; then	\
