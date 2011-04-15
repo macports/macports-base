@@ -204,7 +204,7 @@ proc portfetch::find_svn_path {args} {
 set_ui_prefix
 
 
-# Given a distname, return a suffix based on the use_zip / use_bzip2 / use_dmg / extract.suffix options
+# Given a distname, return the distname with extract.suffix appended
 proc portfetch::suffix {distname} {
     global extract.suffix fetch.type
     switch -- "${fetch.type}" {
