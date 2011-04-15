@@ -54,8 +54,6 @@ CONFIGURE_ENV=	RSYNC=${LOCALBASE}/bin/rsync \
 pre-configure:
 	@# foundation.m4 is somewhat bashist (MacPorts Bug #12252)
 	@${REINPLACE_CMD} -e 's|#! /bin/sh|#!/usr/bin/env bash|' ${WRKSRC}/configure
-	@# should really have been #!/bin/sh
-	@${REINPLACE_CMD} -e 's|#!/bin/bash|#!/usr/bin/env bash|' ${WRKSRC}/src/pkg_mkindex.sh.in
 post-configure:
 	@# Makefile only works with GNU make (MacPorts Bug #12247)
 	@${LN} -s Makefile ${WRKSRC}/GNUmakefile

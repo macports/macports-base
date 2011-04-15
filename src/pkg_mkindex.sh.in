@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # pkg_mkindex.sh
 #
 # Copyright (c) 2009 The MacPorts Project
