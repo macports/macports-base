@@ -83,6 +83,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
 /* Define if you have the `md' library (-lmd). */
 #undef HAVE_LIBMD
 
@@ -110,6 +113,15 @@
 /* Define to 1 if you have the <objc/objc.h> header file. */
 #undef HAVE_OBJC_OBJC_H
 
+/* Define to 1 if you have the <openssl/md5.h> header file. */
+#undef HAVE_OPENSSL_MD5_H
+
+/* Define to 1 if you have the <openssl/ripemd.h> header file. */
+#undef HAVE_OPENSSL_RIPEMD_H
+
+/* Define to 1 if you have the <openssl/sha.h> header file. */
+#undef HAVE_OPENSSL_SHA_H
+
 /* Define to 1 if you have the <paths.h> header file. */
 #undef HAVE_PATHS_H
 
@@ -125,8 +137,23 @@
 /* Define to 1 if you have the <readline/readline.h> header file. */
 #undef HAVE_READLINE_READLINE_H
 
+/* Define to 1 if you have the <ripemd.h> header file. */
+#undef HAVE_RIPEMD_H
+
 /* Define to 1 if you have the `setmode' function. */
 #undef HAVE_SETMODE
+
+/* Define to 1 if you have the `SHA1_File' function. */
+#undef HAVE_SHA1_FILE
+
+/* Define to 1 if you have the <sha256.h> header file. */
+#undef HAVE_SHA256_H
+
+/* Define to 1 if you have the `SHA256_Update' function. */
+#undef HAVE_SHA256_UPDATE
+
+/* Define to 1 if you have the <sha.h> header file. */
+#undef HAVE_SHA_H
 
 /* Define to 1 if you have the <sqlite3ext.h> header file. */
 #undef HAVE_SQLITE3EXT_H

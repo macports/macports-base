@@ -5789,7 +5789,7 @@ fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether tar supports -q" >&5
 $as_echo_n "checking whether tar supports -q... " >&6; }
-	if $TAR -t -q </dev/null 2>/dev/null ; then
+	if $TAR -t -q -f - </dev/null 2>/dev/null ; then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes (bsdtar)" >&5
 $as_echo "yes (bsdtar)" >&6; }
 		TAR_Q='q'
@@ -8442,10 +8442,10 @@ $as_echo "#define HAVE_COMMONCRYPTO_COMMONDIGEST_H 1" >>confdefs.h
 else
 
 
-	# Check for libmd, which is prefered
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MD5Update in -lmd" >&5
-$as_echo_n "checking for MD5Update in -lmd... " >&6; }
-if ${ac_cv_lib_md_MD5Update+:} false; then :
+	# Check for libmd from FreeBSD, which is preferred
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MD5File in -lmd" >&5
+$as_echo_n "checking for MD5File in -lmd... " >&6; }
+if ${ac_cv_lib_md_MD5File+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
@@ -8459,49 +8459,67 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char MD5Update ();
+char MD5File ();
 int
 main ()
 {
-return MD5Update ();
+return MD5File ();
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_md_MD5Update=yes
+  ac_cv_lib_md_MD5File=yes
 else
-  ac_cv_lib_md_MD5Update=no
+  ac_cv_lib_md_MD5File=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_md_MD5Update" >&5
-$as_echo "$ac_cv_lib_md_MD5Update" >&6; }
-if test "x$ac_cv_lib_md_MD5Update" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_md_MD5File" >&5
+$as_echo "$ac_cv_lib_md_MD5File" >&6; }
+if test "x$ac_cv_lib_md_MD5File" = xyes; then :
 
-		for ac_header in md5.h
+		for ac_header in md5.h sha.h
 do :
-  ac_fn_c_check_header_mongrel "$LINENO" "md5.h" "ac_cv_header_md5_h" "$ac_includes_default"
-if test "x$ac_cv_header_md5_h" = xyes; then :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_MD5_H 1
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
 
 else
 
-			case $host_os in
-				darwin*)
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install the BSD SDK package from the Xcode Developer Tools CD." >&5
-$as_echo "$as_me: Please install the BSD SDK package from the Xcode Developer Tools CD." >&6;}
-					;;
-				*)
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install the libmd developer headers for your platform." >&5
-$as_echo "$as_me: Please install the libmd developer headers for your platform." >&6;}
-					;;
-			esac
-			as_fn_error $? "libmd was found, but md5.h is missing." "$LINENO" 5
+			as_fn_error $? "libmd was found, but md5.h or sha.h is missing." "$LINENO" 5
+
+fi
+
+done
+
+		ac_save_LIBS="$LIBS"
+		LIBS="-lmd $LIBS"
+		for ac_func in SHA1_File
+do :
+  ac_fn_c_check_func "$LINENO" "SHA1_File" "ac_cv_func_SHA1_File"
+if test "x$ac_cv_func_SHA1_File" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SHA1_FILE 1
+_ACEOF
+
+fi
+done
+
+		LIBS="$ac_save_LIBS"
+		for ac_header in ripemd.h sha256.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
 
 fi
 
@@ -8515,7 +8533,98 @@ $as_echo "#define HAVE_LIBMD /**/" >>confdefs.h
 fi
 
 	if test "x$MD5_LIBS" = "x"; then
-		as_fn_error $? "Neither CommonCrypto nor libmd were found. A working md5 implementation is required." "$LINENO" 5
+		# If libmd is not found, check for libcrypto from OpenSSL
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MD5_Update in -lcrypto" >&5
+$as_echo_n "checking for MD5_Update in -lcrypto... " >&6; }
+if ${ac_cv_lib_crypto_MD5_Update+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrypto  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char MD5_Update ();
+int
+main ()
+{
+return MD5_Update ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_crypto_MD5_Update=yes
+else
+  ac_cv_lib_crypto_MD5_Update=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_MD5_Update" >&5
+$as_echo "$ac_cv_lib_crypto_MD5_Update" >&6; }
+if test "x$ac_cv_lib_crypto_MD5_Update" = xyes; then :
+
+			for ac_header in openssl/md5.h openssl/sha.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+
+else
+
+				as_fn_error $? "libcrypto was found, but openssl/md5.h or openssl/sha.h is missing." "$LINENO" 5
+
+fi
+
+done
+
+			for ac_header in openssl/ripemd.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "openssl/ripemd.h" "ac_cv_header_openssl_ripemd_h" "$ac_includes_default"
+if test "x$ac_cv_header_openssl_ripemd_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_OPENSSL_RIPEMD_H 1
+_ACEOF
+
+fi
+
+done
+
+			ac_save_LIBS="$LIBS"
+			LIBS="-lcrypto $LIBS"
+			for ac_func in SHA256_Update
+do :
+  ac_fn_c_check_func "$LINENO" "SHA256_Update" "ac_cv_func_SHA256_Update"
+if test "x$ac_cv_func_SHA256_Update" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SHA256_UPDATE 1
+_ACEOF
+
+fi
+done
+
+			LIBS="$ac_save_LIBS"
+
+$as_echo "#define HAVE_LIBCRYPTO /**/" >>confdefs.h
+
+			MD5_LIBS="-lcrypto"
+
+fi
+
+	fi
+	if test "x$MD5_LIBS" = "x"; then
+		as_fn_error $? "Neither CommonCrypto, libmd nor libcrypto were found. A working md5 implementation is required." "$LINENO" 5
 	fi
 
 
