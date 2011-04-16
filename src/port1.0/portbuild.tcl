@@ -123,7 +123,7 @@ proc portbuild::build_getjobs {args} {
 }
 
 proc portbuild::build_getargs {args} {
-    if {(![exists build.type] || [option build.type] == "gnu") \
+    if {((![exists build.type] && [option os.platform] != "freebsd") || ([exists build.type] && [option build.type] == "gnu")) \
         && [regexp "^(/\\S+/|)(g|gnu|)make(\\s+.*|)$" [option build.cmd]]} {
         # Print "Entering directory" lines for better log debugging
         return "-w [option build.target]"
