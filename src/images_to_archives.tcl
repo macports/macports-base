@@ -51,18 +51,23 @@ foreach installed $ilist {
         set oldarchiverootname "${iname}-${iversion}_${irevision}${ivariants}.[join $archs -]"
         set archivetype tbz2
         set oldarchivedir [file join ${macports::portdbpath} packages ${macports::os_platform}_${macports::os_major}]
+        set olderarchivedir [file join ${macports::portdbpath} packages ${macports::os_platform}]
         if {[llength $archs] == 1} {
             set oldarchivedir [file join $oldarchivedir $archs $iname]
+            set olderarchivedir [file join $olderarchivedir $archs]
         } else {
             set oldarchivedir [file join $oldarchivedir universal $iname]
+            set olderarchivedir [file join $olderarchivedir universal]
         }
         set found 0
-        foreach type {tbz2 tbz tgz tar txz tlz xar xpkg zip cpgz cpio} {
-            set oldarchivefullpath "[file join $oldarchivedir $oldarchiverootname].${type}"
-            if {[file isfile $oldarchivefullpath]} {
-                set found 1
-                set archivetype $type
-                break
+        foreach adir [list $oldarchivedir $olderarchivedir] {
+            foreach type {tbz2 tbz tgz tar txz tlz xar xpkg zip cpgz cpio} {
+                set oldarchivefullpath "[file join $adir $oldarchiverootname].${type}"
+                if {[file isfile $oldarchivefullpath]} {
+                    set found 1
+                    set archivetype $type
+                    break
+                }
             }
         }
 
@@ -72,29 +77,38 @@ foreach installed $ilist {
             set targetdir [file dirname $location]
         } else {
             set targetdir [file join ${macports::registry.path} software ${iname}]
+            file mkdir $targetdir
+            if {${macports::registry.format} == "receipt_sqlite"} {
+                set contents [$iref imagefiles]
+            } else {
+                set contents {}
+                set rawcontents [registry::property_retrieve $iref contents]
+                foreach entry $rawcontents {
+                    lappend contents [lindex $entry 0]
+                }
+            }
         }
         set newlocation [file join $targetdir $archivename]
-        
+
         if {$found} {
             file rename $oldarchivefullpath $newlocation
         } elseif {$installtype == "image"} {
             # create archive from image dir
-            system "cd $location && $tarcmd -cjf $newlocation *"
+            system "cd $location && $tarcmd -cjf $newlocation * > ${targetdir}/error.log 2>&1"
+            file delete -force ${targetdir}/error.log
         } else {
             # direct mode, create archive from installed files
             # we tell tar to read filenames from a file so as not to run afoul of command line length limits
             set fd [open ${targetdir}/tarlist w]
-            set contents [registry::property_retrieve $iref contents]
             foreach entry $contents {
-                puts $fd [lindex $entry 0]
-                if {${macports::registry.format} == "receipt_flat"} {
-                    registry::register_file [lindex $entry 0] $iname
-                }
+                puts $fd $entry
             }
-            system "$tarcmd -cjf $newlocation -T ${targetdir}/tarlist"
             close $fd
-            file delete -force ${targetdir}/tarlist
-            
+            system "$tarcmd -cjf $newlocation -T ${targetdir}/tarlist > ${targetdir}/error.log 2>&1"
+            file delete -force ${targetdir}/tarlist ${targetdir}/error.log
+        }
+
+        if {$installtype == "direct"} {
             # change receipt to image
             if {${macports::registry.format} == "receipt_sqlite"} {
                 $iref installtype image
@@ -103,6 +117,9 @@ foreach installed $ilist {
                 $iref state installed
             } else {
                 registry::property_store $iref installtype image
+                foreach entry $contents {
+                    registry::register_file $entry $iname
+                }
                 registry::property_store $iref active 1
             }
         }
