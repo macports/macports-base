@@ -954,7 +954,7 @@ proc reinplace {args}  {
 
 # delete
 # file delete -force by itself doesn't handle directories properly
-# on systems older than Tiger. Lets recurse using fs-traverse instead
+# on systems older than Tiger. Let's recurse using fs-traverse instead.
 proc delete {args} {
     ui_debug "delete: $args"
     fs-traverse -depth file $args {
