@@ -191,7 +191,7 @@ proc portchecksum::calc_sha256 {file} {
 proc portchecksum::checksum_start {args} {
     global UI_PREFIX
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Verifying checksum(s) for %s"] [option subport]]"
 }
 
 # checksum_main

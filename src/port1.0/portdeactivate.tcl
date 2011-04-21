@@ -57,7 +57,7 @@ proc portdeactivate::deactivate_start {args} {
 }
 
 proc portdeactivate::deactivate_main {args} {
-    global name version revision portvariants user_options
-    registry_deactivate $name "${version}_${revision}${portvariants}" [array get user_options]
+    global subport version revision portvariants user_options
+    registry_deactivate $subport "${version}_${revision}${portvariants}" [array get user_options]
     return 0
 }

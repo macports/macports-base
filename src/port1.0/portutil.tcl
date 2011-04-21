@@ -198,13 +198,13 @@ proc options_export {args} {
 # @param action read/set
 # @param value ignored
 proc handle_deprecated_option {option action {value ""}} {
-    global name $option deprecated_options
+    global subport $option deprecated_options
     set newoption [lindex $deprecated_options($option) 0]
     set refcount  [lindex $deprecated_options($option) 1]
     global $newoption
 
     if {$newoption == ""} {
-        ui_warn "Port $name using deprecated option \"$option\"."
+        ui_warn "Port $subport using deprecated option \"$option\"."
         return
     }
 
@@ -740,6 +740,20 @@ proc platform {args} {
     }
 }
 
+# Portfiles may define more than one port.
+# This executes the given code in 'body' if we were opened as the specified
+# subport, and also adds it to the list of subports that are defined.
+proc subport {subname body} {
+    global subport PortInfo
+    if {![info exists PortInfo(subports)] || [lsearch -exact $PortInfo(subports) $subname] == -1} {
+        lappend PortInfo(subports) $subname
+    }
+    if {$subname == $subport} {
+        set PortInfo(name) $subname
+        uplevel 1 $body
+    }
+}
+
 ########### Environment utility functions ###########
 
 # Parse the environment string of a command, storing the values into the
@@ -1213,8 +1227,8 @@ global ports_dry_last_skipped
 set ports_dry_last_skipped ""
 
 proc target_run {ditem} {
-    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped worksrcpath prefix
-    set portname [option name]
+    global target_state_fd workpath portpath ports_trace PortInfo ports_dryrun ports_dry_last_skipped worksrcpath prefix subport
+    set portname $subport
     set result 0
     set skipped 0
     set procedure [ditem_key $ditem procedure]
@@ -1453,20 +1467,20 @@ proc recursive_collect_deps {portname deptypes {depsfound {}}} \
 
 
 proc eval_targets {target} {
-    global targets target_state_fd name version revision portvariants epoch ports_dryrun user_options
+    global targets target_state_fd subport version revision portvariants epoch ports_dryrun user_options
     set dlist $targets
 
     # the statefile will likely be autocleaned away after install,
     # so special-case already-completed install and activate
-    if {[registry_exists $name $version $revision $portvariants]} {
+    if {[registry_exists $subport $version $revision $portvariants]} {
         if {$target == "install"} {
-            ui_debug "Skipping $target ($name) since this port is already installed"
+            ui_debug "Skipping $target ($subport) since this port is already installed"
             return 0
         } elseif {$target == "activate"} {
-            set regref [registry_open $name $version $revision $portvariants $epoch]
+            set regref [registry_open $subport $version $revision $portvariants $epoch]
             if {[registry_prop_retr $regref active] != 0} {
                 # Something to close the registry entry may be called here, if it existed.
-                ui_debug "Skipping $target ($name @${version}_${revision}${portvariants}) since this port is already active"
+                ui_debug "Skipping $target ($subport @${version}_${revision}${portvariants}) since this port is already active"
                 return 0
             } else {
                 # run the activate target but ignore its (completed) dependencies
@@ -1500,7 +1514,7 @@ proc eval_targets {target} {
 
     if {[llength $dlist] > 0} {
         # somebody broke!
-        set errstring "Warning: the following items did not execute (for $name):"
+        set errstring "Warning: the following items did not execute (for $subport):"
         foreach ditem $dlist {
             append errstring " [ditem_key $ditem name]"
         }
@@ -1516,8 +1530,8 @@ proc eval_targets {target} {
 # open_statefile
 # open file to store name of completed targets
 proc open_statefile {args} {
-    global workpath worksymlink place_worksymlink name portpath ports_ignore_older ports_dryrun
-    global usealtworkpath altprefix env applications_dir portbuildpath
+    global workpath worksymlink place_worksymlink subport portpath ports_ignore_older ports_dryrun
+    global usealtworkpath altprefix env applications_dir subbuildpath
 
     if {$usealtworkpath} {
          ui_warn_once "privileges" "MacPorts running without privileges.\
@@ -1544,7 +1558,7 @@ proc open_statefile {args} {
 
     if {![file isdirectory $workpath] && ![tbool ports_dryrun]} {
         file mkdir $workpath
-        chownAsRoot $portbuildpath
+        chownAsRoot $subbuildpath
         # Create a symlink to the workpath for port authors
         if {[tbool place_worksymlink] && ![file isdirectory $worksymlink]} {
             ui_debug "Attempting ln -sf $workpath $worksymlink"
@@ -1556,7 +1570,7 @@ proc open_statefile {args} {
     dropPrivileges
 
     # flock Portfile
-    set statefile [file join $workpath .macports.${name}.state]
+    set statefile [file join $workpath .macports.${subport}.state]
     if {[file exists $statefile]} {
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
@@ -1567,7 +1581,7 @@ proc open_statefile {args} {
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
             if {![tbool ports_dryrun]} {
                 ui_notice "Portfile changed since last build; discarding previous state."
-                chownAsRoot $portbuildpath
+                chownAsRoot $subbuildpath
                 delete $workpath
                 file mkdir $workpath
             } else {
@@ -1744,7 +1758,7 @@ proc eval_variants {variations} {
     set chosen [choose_variants $dlist upvariations]
     set negated [lindex $chosen 1]
     set chosen [lindex $chosen 0]
-    set portname $PortInfo(name)
+    set portname [option subport]
 
     # Check to make sure the requested variations are available with this
     # port, if one is not, warn the user and remove the variant from the
@@ -1845,7 +1859,7 @@ proc check_variants {target} {
 
         array set oldvariations {}
         if {[check_statefile_variants variations oldvariations $state_fd]} {
-            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean [option name]' or specify the force option (-f)."
+            ui_error "Requested variants \"[canonicalize_variants [array get variations]]\" do not match original selection \"[canonicalize_variants [array get oldvariations]]\".\nPlease use the same variants again, perform 'port clean [option subport]' or specify the force option (-f)."
             set result 1
         } elseif {!([info exists ports_dryrun] && $ports_dryrun == "yes")} {
             # Write variations out to the statefile
@@ -2155,8 +2169,8 @@ proc PortGroup {group version} {
 
 # return path where the image/archive for this port will be stored
 proc get_portimage_path {} {
-    global registry.path name version revision portvariants os.platform os.major portarchivetype
-    return [file join ${registry.path} software ${name} "${name}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"]
+    global registry.path subport version revision portvariants os.platform os.major portarchivetype
+    return [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${portarchivetype}"]
 }
 
 # return list of archive types that we can extract
@@ -2597,20 +2611,20 @@ proc get_canonical_archs {} {
 
 # check that the selected archs are supported
 proc check_supported_archs {} {
-    global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs name
+    global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs subport
     if {$supported_archs == "noarch"} {
         return 0
     } elseif {[variant_exists universal] && [variant_isset universal]} {
         if {[llength ${configure.universal_archs}] > 1 || $universal_archs == ${configure.universal_archs}} {
             return 0
         } else {
-            ui_error "$name cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
+            ui_error "$subport cannot be installed for the configured universal_archs '$universal_archs' because it only supports the arch(s) '$supported_archs'."
             return 1
         }
     } elseif {$build_arch == "" || ${configure.build_arch} != ""} {
         return 0
     }
-    ui_error "$name cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
+    ui_error "$subport cannot be installed for the configured build_arch '$build_arch' because it only supports the arch(s) '$supported_archs'."
     return 1
 }
 
@@ -2650,7 +2664,7 @@ proc _check_xcode_version {} {
 
 # check if we can unarchive this port
 proc _archive_available {} {
-    global name version revision portvariants ports_source_only workpath \
+    global subport version revision portvariants ports_source_only workpath \
            registry.path os.platform os.major
 
     if {[tbool ports_source_only]} {
@@ -2659,7 +2673,7 @@ proc _archive_available {} {
 
     set found 0
     foreach unarchive.type [supportedArchiveTypes] {
-        set fullarchivepath [file join ${registry.path} software ${name} "${name}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${unarchive.type}"]
+        set fullarchivepath [file join ${registry.path} software ${subport} "${subport}-${version}_${revision}${portvariants}.${os.platform}_${os.major}.[join [get_canonical_archs] -].${unarchive.type}"]
         if {[file isfile $fullarchivepath]} {
             set found 1
             break

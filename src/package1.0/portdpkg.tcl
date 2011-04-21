@@ -54,16 +54,16 @@ set_ui_prefix
 proc portdpkg::main {args} {
 	global UI_PREFIX destpath os.arch os.platform
     
-	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option name] [option version]]"
+	ui_msg "$UI_PREFIX [format [msgcat::mc "Creating dpkg for %s-%s"] [option subport] [option version]]"
 
 	# get deplist
-	set deps [make_dependency_list [option name]]
+	set deps [make_dependency_list [option subport]]
 	set deps [lsort -unique $deps]
 	foreach dep $deps {
 		set name [lindex [split $dep /] 0]
 		set vers [lindex [split $dep /] 1]
 		# don't re-package ourself
-		if {$name != [option name]} {
+		if {$name != [option subport]} {
 			lappend dependencies "${name} (>= ${vers})"
 		}
 	}
@@ -114,7 +114,7 @@ proc portdpkg::main {args} {
 	} elseif {[exists description]} {
 		set pkg_long_description " [option description]\n"
 	} else {
-		set pkg_long_description " [option name]\n"
+		set pkg_long_description " [option subport]\n"
 	}
 
 	if {[exists homepage]} {
@@ -141,7 +141,7 @@ proc portdpkg::main {args} {
 		set pkg_arch "${os.platform}-${pkg_arch}"
 	}
 
-	puts $controlfd "Package: [option name]"
+	puts $controlfd "Package: [option subport]"
 	puts $controlfd "Architecture: ${pkg_arch}"
 	puts $controlfd "Version: ${pkg_version}"
 	puts $controlfd "Section: ${pkg_category}"

@@ -62,7 +62,25 @@ option_proc notes handle_option_string
 # Export options via PortInfo
 options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by
 
-default workpath {[getportworkpath_from_buildpath $portbuildpath]}
+default subport {[portmain::get_default_subport]}
+proc portmain::get_default_subport {} {
+    global name
+    if {[info exists name]} {
+        return $name
+    }
+    return ""
+}
+default subbuildpath {[portmain::get_subbuildpath]}
+proc portmain::get_subbuildpath {} {
+    global portpath portbuildpath subport
+    if {$subport != ""} {
+        set subdir $subport
+    } else {
+        set subdir [file tail $portpath]
+    }
+    return [file join $portbuildpath $subdir]
+}
+default workpath {[getportworkpath_from_buildpath $subbuildpath]}
 default prefix /opt/local
 default applications_dir /Applications/MacPorts
 default frameworks_dir {${prefix}/Library/Frameworks}

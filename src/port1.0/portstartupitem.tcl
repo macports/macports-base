@@ -74,7 +74,7 @@ namespace eval portstartupitem {
 set_ui_prefix
 
 proc portstartupitem::startupitem_create_rcng {args} {
-    global prefix destroot name os.platform
+    global prefix destroot os.platform
     global startupitem.name startupitem.requires
     global startupitem.start startupitem.stop startupitem.restart
     global startupitem.type
@@ -120,7 +120,7 @@ proc portstartupitem::startupitem_create_rcng {args} {
 }
 
 proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs name os.platform
+    global UI_PREFIX prefix destroot destroot.keepdirs subport os.platform
     global startupitem.name startupitem.requires startupitem.init
     global startupitem.start startupitem.stop startupitem.restart startupitem.executable
     global startupitem.pidfile startupitem.logfile startupitem.logevents
@@ -181,10 +181,10 @@ proc portstartupitem::startupitem_create_darwin_systemstarter {args} {
         # An executable is specified, and there is no init, start, stop, or restart
     } else {
         if { ![llength ${startupitem.start} ] } {
-            set startupitem.start [list "sh ${scriptdir}/${name}.sh start"]
+            set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
         }
         if { ![llength ${startupitem.stop} ] } {
-            set startupitem.stop [list "sh ${scriptdir}/${name}.sh stop"]
+            set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
         }
     }
     if { ![llength ${startupitem.requires} ] } {
@@ -387,7 +387,7 @@ RunService "$1"
     # Emit some information for the user
     ui_notice "###########################################################"
     ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${name} with SystemStarter. It is disabled"
+    ui_notice "# starting ${subport} with SystemStarter. It is disabled"
     ui_notice "# by default. Add the following line to /etc/hostconfig"
     ui_notice "# or ${prefix}/etc/rc.conf to start it at startup:"
     ui_notice "#"
@@ -396,7 +396,7 @@ RunService "$1"
 }
 
 proc portstartupitem::startupitem_create_darwin_launchd {args} {
-    global UI_PREFIX prefix destroot destroot.keepdirs name macosx_deployment_target
+    global UI_PREFIX prefix destroot destroot.keepdirs subport macosx_deployment_target
     global startupitem.name startupitem.uniquename startupitem.plist startupitem.location
     global startupitem.init startupitem.start startupitem.stop startupitem.restart startupitem.executable
     global startupitem.pidfile startupitem.logfile startupitem.logevents startupitem.netchange
@@ -437,10 +437,10 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
         set wrapper         "${itemdir}/${wrappername}"
 
         if { ![llength ${startupitem.start}] } {
-            set startupitem.start [list "sh ${scriptdir}/${name}.sh start"]
+            set startupitem.start [list "sh ${scriptdir}/${subport}.sh start"]
         }
         if { ![llength ${startupitem.stop}] } {
-            set startupitem.stop [list "sh ${scriptdir}/${name}.sh stop"]
+            set startupitem.stop [list "sh ${scriptdir}/${subport}.sh stop"]
         }
         if { ![llength ${startupitem.restart}] } {
             set startupitem.restart [list Stop Start]
@@ -622,11 +622,11 @@ proc portstartupitem::startupitem_create_darwin_launchd {args} {
     # Emit some information for the user
     ui_notice "###########################################################"
     ui_notice "# A startup item has been generated that will aid in"
-    ui_notice "# starting ${name} with launchd. It is disabled"
+    ui_notice "# starting ${subport} with launchd. It is disabled"
     ui_notice "# by default. Execute the following command to start it,"
     ui_notice "# and to cause it to launch at startup:"
     ui_notice "#"
-    ui_notice "# sudo port load ${name}"
+    ui_notice "# sudo port load ${subport}"
     ui_notice "###########################################################"
 }
 

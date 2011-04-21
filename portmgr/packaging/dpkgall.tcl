@@ -439,6 +439,9 @@ proc main {argc argv} {
 			continue
 		}
 
+        # open correct subport
+        set options(subport) $portinfo(name)
+
 		# Skip un-supported ports
 		if {[info exists portinfo(platforms)] && ${anyplatform_flag} != "true"} {
 			if {[lsearch $portinfo(platforms) $platformString] == -1} {
@@ -690,6 +693,7 @@ proc initialize_system {args} {
 	set variations ""
 
 	foreach port [get_required_ports] {
+	    set options(subport) $port
 		if {[catch {do_portexec $port [array get options] [array get variants] activate} result]} {
 			global errorInfo
 			ui_debug "$errorInfo"

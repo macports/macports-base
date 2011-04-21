@@ -48,8 +48,8 @@ namespace eval portdistfiles {
 set_ui_prefix
 
 proc portdistfiles::distfiles_start {args} {
-    global UI_PREFIX name
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Distfiles for %s"] ${name}]"
+    global UI_PREFIX subport
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Distfiles for %s"] ${subport}]"
 }
 
 proc portdistfiles::distfiles_main {args} {

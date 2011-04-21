@@ -36,7 +36,7 @@ package require portutil 1.0
 
 set org.macports.extract [target_new org.macports.extract portextract::extract_main]
 target_provides ${org.macports.extract} extract
-target_requires ${org.macports.extract} fetch checksum
+target_requires ${org.macports.extract} main fetch checksum
 target_prerun ${org.macports.extract} portextract::extract_start
 
 namespace eval portextract {
@@ -76,7 +76,7 @@ proc portextract::disttagclean {list} {
 proc portextract::extract_start {args} {
     global UI_PREFIX extract.dir extract.mkdir use_bzip2 use_lzma use_xz use_zip use_7z use_dmg
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {

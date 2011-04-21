@@ -57,7 +57,7 @@ proc portuninstall::uninstall_start {args} {
 }
 
 proc portuninstall::uninstall_main {args} {
-    global name version revision portvariants user_options
-    registry_uninstall $name "${version}_${revision}${portvariants}" [array get user_options]
+    global subport version revision portvariants user_options
+    registry_uninstall $subport "${version}_${revision}${portvariants}" [array get user_options]
     return 0
 }

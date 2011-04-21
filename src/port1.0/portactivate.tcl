@@ -58,9 +58,9 @@ proc portactivate::activate_start {args} {
 }
 
 proc portactivate::activate_main {args} {
-    global env name version revision portvariants user_options PortInfo
+    global env subport version revision portvariants user_options PortInfo
 
-    registry_activate $name "${version}_${revision}${portvariants}" [array get user_options]
+    registry_activate $subport "${version}_${revision}${portvariants}" [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {

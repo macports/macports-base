@@ -53,9 +53,9 @@ default install.asroot no
 set_ui_prefix
 
 proc portinstall::install_start {args} {
-    global UI_PREFIX name version revision portvariants
+    global UI_PREFIX subport version revision portvariants
     global prefix registry_open registry.format registry.path
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $name $version $revision $portvariants]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges
     if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
@@ -106,10 +106,11 @@ proc portinstall::putlist { fd listel itemel list } {
 }
 
 proc portinstall::create_archive {location archive.type} {
-    global workpath destpath portpath name version revision portvariants \
+    global workpath destpath portpath subport version revision portvariants \
            epoch os.platform PortInfo installPlist \
            archive.env archive.cmd archive.pre_args archive.args \
-           archive.post_args archive.dir
+           archive.post_args archive.dir \
+           depends_fetch depends_extract depends_build depends_lib depends_run
     set archive.env {}
     set archive.cmd {}
     set archive.pre_args {}
@@ -238,7 +239,7 @@ proc portinstall::create_archive {location archive.type} {
 
     # Copy state file into destroot for archiving
     # +STATE contains a copy of the MacPorts state information
-    set statefile [file join $workpath .macports.${name}.state]
+    set statefile [file join $workpath .macports.${subport}.state]
     file copy -force $statefile [file join $destpath "+STATE"]
 
     # Copy Portfile into destroot for archiving
@@ -273,8 +274,8 @@ proc portinstall::create_archive {location archive.type} {
     # files and checksums
     set control [list]
     set fd [open [file join $destpath "+CONTENTS"] w]
-    puts $fd "@name ${name}-${version}_${revision}${portvariants}"
-    puts $fd "@portname ${name}"
+    puts $fd "@name ${subport}-${version}_${revision}${portvariants}"
+    puts $fd "@portname ${subport}"
     puts $fd "@portepoch ${epoch}"
     puts $fd "@portversion ${version}"
     puts $fd "@portrevision ${revision}"
@@ -286,28 +287,24 @@ proc portinstall::create_archive {location archive.type} {
             puts $fd "@portvariant +${v}"
         }
     }
-    set res [mport_lookup $name]
-    if {[llength $res] < 2} {
-        ui_error "Port $name not found"
-    } else {
-        array set portinfo [lindex $res 1]
-        foreach key "depends_lib depends_run" {
-             if {[info exists portinfo($key)]} {
-                 foreach depspec $portinfo($key) {
-                     set depname [lindex [split $depspec :] end]
-                     set dep [mport_lookup $depname]
-                     if {[llength $dep] < 2} {
-                         ui_error "Dependency $dep not found"
-                     } else {
-                         array set portinfo [lindex $dep 1]
-                         set depver $portinfo(version)
-                         set deprev $portinfo(revision)
-                         puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
-                     }
+
+    foreach key "depends_lib depends_run" {
+         if {[info exists $key]} {
+             foreach depspec [set $key] {
+                 set depname [lindex [split $depspec :] end]
+                 set dep [mport_lookup $depname]
+                 if {[llength $dep] < 2} {
+                     ui_error "Dependency $dep not found"
+                 } else {
+                     array set portinfo [lindex $dep 1]
+                     set depver $portinfo(version)
+                     set deprev $portinfo(revision)
+                     puts $fd "@pkgdep ${depname}-${depver}_${deprev}"
                  }
              }
-        }
+         }
     }
+
     # also save the contents for our own use later
     set installPlist {}
     fs-traverse -depth fullpath $destpath {
@@ -341,7 +338,7 @@ proc portinstall::create_archive {location archive.type} {
         # TODO: split contents into <buildinfo> (new) and <package> (current)
         #       see existing <portpkg> for the matching source package layout
 
-        putel $sd name ${name}
+        putel $sd name ${subport}
         putel $sd epoch ${epoch}
         putel $sd version ${version}
         putel $sd revision ${revision}
@@ -372,19 +369,13 @@ proc portinstall::create_archive {location archive.type} {
 
             # Emit dependencies provided by this package
             puts $sd "<provides>"
-                set name ${name}
                 puts $sd "<item>"
-                putel $sd name $name
+                putel $sd name $subport
                 putel $sd major 0
                 putel $sd minor 0
                 puts $sd "</item>"
             puts $sd "</provides>"
-            
-    set res [mport_lookup $name]
-    if {[llength $res] < 2} {
-        ui_error "Dependency $name not found"
-    } else {
-    array set portinfo [lindex $res 1]
+
 
             # Emit build, library, and runtime dependencies
             puts $sd "<requires>"
@@ -395,17 +386,16 @@ proc portinstall::create_archive {location archive.type} {
                 depends_lib "library"
                 depends_run "runtime"
             } {
-                if {[info exists portinfo($key)]} {
-                    set name [lindex [split $portinfo($key) :] end]
+                if {[info exists $key]} {
+                    set depname [lindex [split [set $key] :] end]
                     puts $sd "<item type=\"$type\">"
-                    putel $sd name $name
+                    putel $sd name $depname
                     putel $sd major 0
                     putel $sd minor 0
                     puts $sd "</item>"
                 }
             }
             puts $sd "</requires>"
-    }
 
         puts $sd "</xpkg>"
         close $sd
@@ -486,7 +476,7 @@ proc portinstall::extract_contents {location type} {
 }
 
 proc portinstall::install_main {args} {
-    global name version portpath categories description long_description \
+    global subport version portpath categories description long_description \
     homepage depends_run package-install workdir workpath \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
@@ -528,7 +518,7 @@ proc portinstall::install_main {args} {
 
         registry::write {
 
-            set regref [registry::entry create $name $version $revision $portvariants $epoch]
+            set regref [registry::entry create $subport $version $revision $portvariants $epoch]
 
             $regref requested $user_options(ports_requested)
             $regref os_platform ${os.platform}
@@ -560,7 +550,7 @@ proc portinstall::install_main {args} {
         }
     } else {
         # Begin the registry entry
-        set regref [registry_new $name $version $revision $portvariants $epoch]
+        set regref [registry_new $subport $version $revision $portvariants $epoch]
         if {[info exists negated_variants]} {
             registry_prop_store $regref negated_variants $negated_variants
         }
@@ -591,11 +581,11 @@ proc portinstall::install_main {args} {
         }
         if {[info exists depends_run]} {
             registry_prop_store $regref depends_run $depends_run
-            registry_register_deps $depends_run $name
+            registry_register_deps $depends_run $subport
         }
         if {[info exists depends_lib]} {
             registry_prop_store $regref depends_lib $depends_lib
-            registry_register_deps $depends_lib $name
+            registry_register_deps $depends_lib $subport
         }
         if {[info exists installPlist]} {
             registry_prop_store $regref contents [_fake_fileinfo_for_index $installPlist]

@@ -51,11 +51,11 @@ default rpm.asroot yes
 set_ui_prefix
 
 proc portrpm::rpm_main {args} {
-    global name version revision UI_PREFIX
+    global subport version revision UI_PREFIX
     
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${name} ${version}]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Creating RPM package for %s-%s"] ${subport} ${version}]"
     
-    return [rpm_pkg $name $version $revision]
+    return [rpm_pkg $subport $version $revision]
 }
 
 proc portrpm::rpm_pkg {portname portversion portrevision} {

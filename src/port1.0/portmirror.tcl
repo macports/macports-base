@@ -52,7 +52,7 @@ namespace eval portmirror {
 # It also records the path in a database.
 
 proc portmirror::mirror_main {args} {
-    global fetch.type name mirror_filemap ports_mirror_new portdbpath
+    global fetch.type mirror_filemap ports_mirror_new portdbpath
 
     set mirror_filemap_path [file join $portdbpath distfiles_mirror.db]
     if {![info exists mirror_filemap]

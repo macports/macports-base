@@ -254,7 +254,7 @@ proc uninstall {portname {v ""} optionslist} {
                 foreach v $minusvariant {
                     lappend variations $v "-"
                 }
-                if {![catch {set mport [mportopen $porturl $optionslist [array get variations]]} result]} {
+                if {![catch {set mport [mportopen $porturl [concat $optionslist subport $portname] [array get variations]]} result]} {
                     array unset depportinfo
                     array set depportinfo [mportinfo $mport]
                     mportclose $mport

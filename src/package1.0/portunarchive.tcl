@@ -63,7 +63,7 @@ set_ui_prefix
 proc portunarchive::unarchive_init {args} {
     global target_state_fd unarchive.skip \
            ports_force ports_source_only ports_binary_only \
-           name version revision portvariants \
+           subport version revision portvariants \
            unarchive.type unarchive.file unarchive.path
 
     # Determine if unarchive should be skipped
@@ -71,13 +71,13 @@ proc portunarchive::unarchive_init {args} {
     if {[check_statefile target org.macports.unarchive $target_state_fd]} {
         return 0
     } elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
-        ui_debug "Skipping unarchive ($name) since source-only is set"
+        ui_debug "Skipping unarchive ($subport) since source-only is set"
         set skipped 1
     } elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
-        ui_debug "Skipping unarchive ($name) since destroot completed"
+        ui_debug "Skipping unarchive ($subport) since destroot completed"
         set skipped 1
     } elseif {[info exists ports_force] && $ports_force == "yes"} {
-        ui_debug "Skipping unarchive ($name) since force is set"
+        ui_debug "Skipping unarchive ($subport) since force is set"
         set skipped 1
     } else {
         set found 0
@@ -96,9 +96,9 @@ proc portunarchive::unarchive_init {args} {
             ui_debug "Found [string toupper ${unarchive.type}] archive: ${unarchive.path}"
         } else {
             if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-                return -code error "Archive for ${name} ${version}_${revision}${portvariants} not found, required when binary-only is set!"
+                return -code error "Archive for ${subport} ${version}_${revision}${portvariants} not found, required when binary-only is set!"
             } else {
-                ui_debug "Skipping unarchive ($name) since no suitable archive found"
+                ui_debug "Skipping unarchive ($subport) since no suitable archive found"
                 set skipped 1
             }
         }
@@ -110,7 +110,7 @@ proc portunarchive::unarchive_init {args} {
 }
 
 proc portunarchive::unarchive_start {args} {
-    global UI_PREFIX name version revision portvariants \
+    global UI_PREFIX subport version revision portvariants \
            unarchive.type unarchive.skip
 
     if {${unarchive.skip}} {
@@ -122,7 +122,7 @@ proc portunarchive::unarchive_start {args} {
         elevateToRoot "unarchive"
     }
 
-    ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $name $version $revision $portvariants]"
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $subport $version $revision $portvariants]"
 
     return 0
 }
@@ -268,7 +268,7 @@ proc portunarchive::unarchive_main {args} {
 }
 
 proc portunarchive::unarchive_finish {args} {
-    global UI_PREFIX target_state_fd unarchive.file name workpath destpath unarchive.skip
+    global UI_PREFIX target_state_fd unarchive.file subport workpath destpath unarchive.skip
 
     if {${unarchive.skip}} {
         return 0
@@ -276,7 +276,7 @@ proc portunarchive::unarchive_finish {args} {
 
     # Reset state file with archive version
     close $target_state_fd
-    set statefile [file join $workpath .macports.${name}.state]
+    set statefile [file join $workpath .macports.${subport}.state]
     file copy -force [file join $destpath "+STATE"] $statefile
     file mtime $statefile [clock seconds]
     chownAsRoot $statefile

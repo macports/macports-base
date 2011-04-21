@@ -134,7 +134,7 @@ proc macports::ch_logging {mport} {
 
     ui_debug "Starting logging for $portname"
 
-    set logname [macports::getportlogpath $portpath]
+    set logname [file join [macports::getportlogpath $portpath] $portname]
     file mkdir $logname
     set logname [file join $logname "main.log"]
 
@@ -1240,14 +1240,17 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     global macports::portdbpath macports::portconf macports::open_mports auto_path
 
     # Look for an already-open MPort with the same URL.
-    # XXX: should compare options and variations here too.
     # if found, return the existing reference and bump the refcount.
     if {$nocache != ""} {
         set mport {}
     } else {
         set mport [dlist_search $macports::open_mports porturl $porturl]
+        set mport [dlist_search $mport variations $variations]
+        set mport [dlist_search $mport options $options]
     }
     if {$mport != {}} {
+        # just in case more than one somehow matches
+        set mport [lindex $mport 0]
         set refcnt [ditem_key $mport refcnt]
         incr refcnt
         ditem_key $mport refcnt $refcnt
@@ -1325,7 +1328,7 @@ proc mportopen_installed {name version revision variants options} {
     foreach v $minusvariant {
         lappend variations $v "-"
     }
-    
+    lappend options subport $name
     return [mportopen "file://${portfile_dir}/" $options $variations]
 }
 
@@ -1796,11 +1799,11 @@ proc _source_is_snapshot {url {filename ""} {extension ""}} {
     return 0
 }
 
-proc macports::getportbuildpath {id} {
+proc macports::getportbuildpath {id {portname ""}} {
     global macports::portdbpath
     regsub {://} $id {.} port_path
     regsub -all {/} $port_path {_} port_path
-    return [file join $portdbpath build $port_path]
+    return [file join $portdbpath build $port_path $portname]
 }
 
 proc macports::getportlogpath {id} {
@@ -1814,8 +1817,8 @@ proc macports::getportworkpath_from_buildpath {portbuildpath} {
     return [file join $portbuildpath work]
 }
 
-proc macports::getportworkpath_from_portdir {portpath} {
-    return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath]]
+proc macports::getportworkpath_from_portdir {portpath {portname ""}} {
+    return [macports::getportworkpath_from_buildpath [macports::getportbuildpath $portpath $portname]]
 }
 
 proc macports::getindex {source} {
@@ -2429,6 +2432,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         array set optionsarray [ditem_key $mport options]
         # avoid propagating requested flag from parent
         set optionsarray(ports_requested) 0
+        # subport will be different for deps
+        unset optionsarray(subport)
         set options [array get optionsarray]
         set variations [ditem_key $mport variations]
         set required_archs [$workername eval get_canonical_archs]
@@ -2490,10 +2495,13 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     ui_error "Dependency '$dep_portname' not found."
                     return 1
                 }
+                lappend options subport $dep_portname
                 # Figure out the subport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
                 set subport [dlist_search $macports::open_mports porturl $dep_portinfo(porturl)]
+                set subport [dlist_search $subport options $options]
+                set subport [dlist_search $subport variations $variations]
                 
                 if {$subport == {}} {
                     # We haven't opened this one yet.
@@ -2866,6 +2874,7 @@ proc macports::upgrade {portname dspec variationslist optionslist {depscachename
 proc macports::_upgrade {portname dspec variationslist optionslist {depscachename ""}} {
     global macports::global_variations
     array set options $optionslist
+    set options(subport) $portname
 
     if {![string match "" $depscachename]} {
         upvar $depscachename depscache
@@ -3095,6 +3104,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
 
     array set interp_options [array get options]
     set interp_options(ports_requested) $requestedflag
+    set interp_options(subport) $newname
 
     if {[catch {set workername [mportopen $porturl [array get interp_options] [array get variations]]} result]} {
         global errorInfo

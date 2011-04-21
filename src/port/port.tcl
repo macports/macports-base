@@ -933,7 +933,7 @@ proc get_dep_ports {portname recursive} {
     set porturl $portinfo(porturl)
 
     # open portfile
-    if {[catch {set mport [mportopen $porturl {} [array get global_variations]]} result]} {
+    if {[catch {set mport [mportopen $porturl [list subport $portname] [array get global_variations]]} result]} {
         ui_debug "$::errorInfo"
         return -code error "Unable to open port: $result"
     }
@@ -979,7 +979,7 @@ proc get_dep_ports {portname recursive} {
                     set porturl $portinfo(porturl)
                 
                     # open its portfile
-                    if {[catch {set mport [mportopen $porturl {} [array get global_variations]]} result]} {
+                    if {[catch {set mport [mportopen $porturl [list subport $depname] [array get global_variations]]} result]} {
                         ui_debug "$::errorInfo"
                         ui_error "Unable to open port: $result"
                         continue
@@ -1807,11 +1807,15 @@ proc action_info { action portlist opts } {
                     set merged_variations($variation) $value 
                 } 
             }
+            if {![info exists options(subport)]} {
+                set options(subport) $portname
+            }
  
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
             }
+            unset options(subport)
             array unset portinfo
             array set portinfo [mportinfo $mport]
             mportclose $mport
@@ -1838,6 +1842,7 @@ proc action_info { action portlist opts } {
             platforms       1
             variants        1
             conflicts       1
+            subports        1
         "
 
         # Label map for pretty printing
@@ -1858,6 +1863,7 @@ proc action_info { action portlist opts } {
             license     License
             conflicts   "Conflicts with"
             replaced_by "Replaced by"
+            subports    "Sub-ports"
         }
 
         # Wrap-length map for pretty printing
@@ -1877,6 +1883,7 @@ proc action_info { action portlist opts } {
             license 22
             conflicts 22
             maintainers 22
+            subports 22
         }
 
         # Interpret a convenient field abbreviation
@@ -1930,6 +1937,7 @@ proc action_info { action portlist opts } {
         if {![llength $opts_todo]} {
             set opts_todo {ports_info_heading
                 ports_info_replaced_by
+                ports_info_subports
                 ports_info_variants 
                 ports_info_skip_line
                 ports_info_long_description ports_info_homepage 
@@ -2150,6 +2158,9 @@ proc action_notes { action portlist opts } {
             if { ![info exists merged_variations($variation)] } { 
                 set merged_variations($variation) $value 
             } 
+        }
+        if {![info exists options(subport)]} {
+            set options(subport) $portname
         }
 
         # Open the Portfile associated with this port.
@@ -2651,6 +2662,9 @@ proc action_deps { action portlist opts } {
                     set merged_variations($variation) $value 
                 } 
             }
+            if {![info exists options(subport)]} {
+                set options(subport) $portname
+            }
             if {[catch {set mport [mportopen $porturl [array get options] [array get merged_variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
@@ -2729,6 +2743,7 @@ proc action_deps { action portlist opts } {
                     array unset portinfo
                     array set portinfo [lindex $result 1]
                     set porturl $portinfo(porturl)
+                    set options(subport) $depname
                     
                     # open the portfile if requested
                     if {!([info exists options(ports_${action}_index)] && $options(ports_${action}_index) eq "yes")} {
@@ -3121,6 +3136,9 @@ proc action_variants { action portlist opts } {
         }
 
         if {!([info exists options(ports_variants_index)] && $options(ports_variants_index) eq "yes")} {
+            if {![info exists options(subport)]} {
+                set options(subport) $portname
+            }
             if {[catch {set mport [mportopen $porturl [array get options] [array get variations]]} result]} {
                 ui_debug "$::errorInfo"
                 break_softcontinue "Unable to open port: $result" 1 status
@@ -3521,7 +3539,7 @@ proc action_portcmds { action portlist opts } {
 
                 work {
                     # output the path to the port's work directory
-                    set workpath [macports::getportworkpath_from_portdir $portdir]
+                    set workpath [macports::getportworkpath_from_portdir $portdir $portname]
                     if {[file exists $workpath]} {
                         puts $workpath
                     }
@@ -3666,6 +3684,9 @@ proc action_target { action portlist opts } {
             set target install
         } else {
             set target $action
+        }
+        if {![info exists options(subport)]} {
+            set options(subport) $portname
         }
         if {[catch {set workername [mportopen $porturl [array get options] [array get requested_variations]]} result]} {
             global errorInfo

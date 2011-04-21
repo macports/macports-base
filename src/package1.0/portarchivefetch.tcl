@@ -62,14 +62,14 @@ default archivefetch.pubkeys {$archivefetch_pubkeys}
 default archive_sites macports_archives
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
-default archive.subdir {${name}}
+default archive.subdir {${subport}}
 
 set_ui_prefix
 
 # Checks possible archive files to assemble url lists for later fetching
 proc portarchivefetch::checkarchivefiles {urls} {
     global all_archive_files archivefetch.fulldestpath portarchivetype \
-           name version revision portvariants archive_sites
+           version revision portvariants archive_sites
     upvar $urls fetch_urls
 
     # Define archive directory path
@@ -238,7 +238,7 @@ proc portarchivefetch::fetchfiles {args} {
         return 0
     }
     if {[info exists ports_binary_only] && $ports_binary_only == "yes"} {
-        return -code error "archivefetch failed for [option name] @[option version]_[option revision][option portvariants]"
+        return -code error "archivefetch failed for [option subport] @[option version]_[option revision][option portvariants]"
     } else {
         return 0
     }
@@ -251,12 +251,12 @@ proc portarchivefetch::archivefetch_init {args} {
 
 proc portarchivefetch::archivefetch_start {args} {
     variable archivefetch_urls
-    global UI_PREFIX name all_archive_files ports_source_only
+    global UI_PREFIX subport all_archive_files ports_source_only
     if {![tbool ports_source_only]} {
         portarchivefetch::checkfiles archivefetch_urls
     }
     if {[info exists all_archive_files] && [llength $all_archive_files] > 0} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $name]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Fetching archive for %s"] $subport]"
     }
 }
 

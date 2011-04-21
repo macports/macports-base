@@ -450,6 +450,7 @@ foreach {name array} $allpackages {
 			}
 			array set prebuildinfo [lindex $search 1]
 			set ui_options(ports_verbose) yes
+			set options(subport) ${prebuild}
 			if {[catch {set workername [mportopen $prebuildinfo(porturl) [array get options] [array get variations] yes]} result] ||
 				$result == 1} {
 				global errorInfo
@@ -470,6 +471,7 @@ foreach {name array} $allpackages {
 
 	# Turn on verbose output for the build
 	set ui_options(ports_verbose) yes
+	set options(subport) $name
 	if {[catch {set workername [mportopen $porturl [array get options] [array get variations]]} result] ||
 		$result == 1} {
 		global errorInfo

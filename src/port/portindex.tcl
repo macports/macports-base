@@ -60,6 +60,26 @@ proc pindex {portdir} {
                 puts -nonewline $fd $line
 
                 incr stats(skipped)
+
+                # also reuse the entries for its subports
+                array set portinfo $line
+                if {![info exists portinfo(subports)]} {
+                    return
+                }
+                foreach sub $portinfo(subports) {
+                    set offset $qindex([string tolower $sub])
+                    seek $oldfd $offset
+                    gets $oldfd line
+                    set name [lindex $line 0]
+                    set len [lindex $line 1]
+                    set line [read $oldfd $len]
+    
+                    puts $fd [list $name $len]
+                    puts -nonewline $fd $line
+    
+                    incr stats(skipped)
+                }
+
                 return
             }
         } catch {*} {
@@ -100,7 +120,8 @@ proc pindex {portdir} {
         }
 
         foreach availkey [array names portinfo] {
-            if {![info exists keepkeys($availkey)]} {
+            # store list of subports for top-level ports only
+            if {![info exists keepkeys($availkey)] && $availkey != "subports"} {
                 unset portinfo($availkey)
             }
         }
@@ -111,6 +132,34 @@ proc pindex {portdir} {
         set mtime [file mtime [file join $directory $portdir Portfile]]
         if {$mtime > $newest} {
             set newest $mtime
+        }
+        # now index this portfile's subports (if any)
+        if {![info exists portinfo(subports)]} {
+            return
+        }
+        foreach sub $portinfo(subports) {
+            incr stats(total)
+            set prefix {\${prefix}}
+            if {[catch {set interp [mportopen file://[file join $directory $portdir] [concat $port_options subport $sub]]} result]} {
+                puts stderr "Failed to parse file $portdir/Portfile with subport '${sub}': $result"
+                set prefix $save_prefix
+                incr stats(failed)
+            } else {
+                set prefix $save_prefix
+                array set portinfo [mportinfo $interp]
+                mportclose $interp
+                set portinfo(portdir) $portdir
+                puts "Adding subport $sub"
+                foreach availkey [array names portinfo] {
+                    if {![info exists keepkeys($availkey)]} {
+                        unset portinfo($availkey)
+                    }
+                }
+                set output [array get portinfo]
+                set len [expr [string length $output] + 1]
+                puts $fd [list $portinfo(name) $len]
+                puts $fd $output
+            }
         }
     }
 }

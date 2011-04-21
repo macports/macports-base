@@ -518,9 +518,9 @@ proc portfetch::fetch_init {args} {
 }
 
 proc portfetch::fetch_start {args} {
-    global UI_PREFIX name distpath
+    global UI_PREFIX subport distpath
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $name]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Fetching %s"] $subport]"
 
     # create and chown $distpath
     if {![file isdirectory $distpath]} {

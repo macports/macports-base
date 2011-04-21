@@ -52,7 +52,7 @@ set_ui_prefix
 proc portclean::clean_start {args} {
     global UI_PREFIX
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option subport]]"
 }
 
 proc portclean::clean_main {args} {
@@ -66,13 +66,13 @@ proc portclean::clean_main {args} {
 
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_dist] && $ports_clean_dist == "yes"} {
-        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option name]]"
+        ui_info "$UI_PREFIX [format [msgcat::mc "Removing distfiles for %s"] [option subport]]"
         clean_dist
     }
     if {[info exists ports_clean_all] && $ports_clean_all == "yes" || \
         [info exists ports_clean_work] && $ports_clean_work == "yes" || \
         !([info exists ports_clean_logs] && $ports_clean_logs == "yes")} {
-         ui_info "$UI_PREFIX [format [msgcat::mc "Removing work directory for %s"] [option name]]"
+         ui_info "$UI_PREFIX [format [msgcat::mc "Removing work directory for %s"] [option subport]]"
          clean_work
     }
     if {(([info exists ports_clean_logs] && $ports_clean_logs == "yes") || ($keeplogs == "no"))
@@ -88,7 +88,7 @@ proc portclean::clean_main {args} {
 # This is crude, but works.
 #
 proc portclean::clean_dist {args} {
-    global ports_force name distpath dist_subdir distfiles patchfiles usealtworkpath portdbpath altprefix
+    global name ports_force distpath dist_subdir distfiles patchfiles usealtworkpath portdbpath altprefix
 
     # remove known distfiles for sure (if they exist)
     set count 0
@@ -199,26 +199,29 @@ proc portclean::clean_dist {args} {
 }
 
 proc portclean::clean_work {args} {
-    global portbuildpath worksymlink usealtworkpath altprefix portpath
+    global portbuildpath subbuildpath worksymlink usealtworkpath altprefix portpath
 
-    if {[file isdirectory $portbuildpath]} {
-        ui_debug "Removing directory: ${portbuildpath}"
-        if {[catch {delete $portbuildpath} result]} {
+    if {[file isdirectory $subbuildpath]} {
+        ui_debug "Removing directory: ${subbuildpath}"
+        if {[catch {delete $subbuildpath} result]} {
             ui_debug "$::errorInfo"
             ui_error "$result"
         }
+        # silently fail if non-empty (other subports might be using portbuildpath)
+        catch {file delete $portbuildpath}
     } else {
-        ui_debug "No work directory found to remove at ${portbuildpath}"
+        ui_debug "No work directory found to remove at ${subbuildpath}"
     }
 
-    if {!$usealtworkpath && [file isdirectory ${altprefix}${portbuildpath}]} {
-        ui_debug "Removing directory: ${altprefix}${portbuildpath}"
-        if {[catch {delete ${altprefix}${portbuildpath}} result]} {
+    if {!$usealtworkpath && [file isdirectory ${altprefix}${subbuildpath}]} {
+        ui_debug "Removing directory: ${altprefix}${subbuildpath}"
+        if {[catch {delete ${altprefix}${subbuildpath}} result]} {
             ui_debug "$::errorInfo"
             ui_error "$result"
         }
+        catch {file delete ${altprefix}${portbuildpath}}
     } else {
-        ui_debug "No work directory found to remove at ${altprefix}${portbuildpath}"
+        ui_debug "No work directory found to remove at ${altprefix}${subbuildpath}"
     }
 
     # Clean symlink, if necessary
@@ -236,7 +239,7 @@ proc portclean::clean_work {args} {
     return 0
 }
 proc portclean::clean_logs {args} {
-    global portpath portbuildpath worksymlink name portverbose keeplogs prefix
+    global portpath portbuildpath worksymlink portverbose keeplogs prefix
     set logpath [getportlogpath $portpath]
   	if {[file isdirectory $logpath]} {
         ui_debug "Removing directory: ${logpath}"

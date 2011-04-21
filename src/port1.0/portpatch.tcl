@@ -75,7 +75,7 @@ proc portpatch::patch_main {args} {
         return 0
     }
 
-    ui_notice "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option name]]"
+    ui_notice "$UI_PREFIX [format [msgcat::mc "Applying patches to %s"] [option subport]]"
 
     foreach patch [option patchfiles] {
         set patch_file [getdistname $patch]
