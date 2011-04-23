@@ -139,7 +139,7 @@ proc uninstall {portname {v ""} optionslist} {
             }
         } else {
             # check its dependents
-            registry::check_dependents $port ${uninstall.force}
+            registry::check_dependents $port ${uninstall.force} "uninstall"
         }
         # if it's active, deactivate it
         if { [string equal [$port state] installed] } {

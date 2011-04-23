@@ -268,7 +268,7 @@ proc deactivate {name v optionslist} {
         }
 
         if {![info exists options(ports_nodepcheck)] || ![string is true -strict $options(ports_nodepcheck)]} {
-            registry::check_dependents $requested $force
+            registry::check_dependents $requested $force "deactivate"
         }
 
         _deactivate_contents $requested [$requested files] $force
