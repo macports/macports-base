@@ -69,6 +69,7 @@ foreach installed $ilist {
                     break
                 }
             }
+            if {$found} {break}
         }
 
         # compute new name and location of archive
