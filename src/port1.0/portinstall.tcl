@@ -308,7 +308,7 @@ proc portinstall::create_archive {location archive.type} {
     # also save the contents for our own use later
     set installPlist {}
     fs-traverse -depth fullpath $destpath {
-        if {[file isdirectory $fullpath]} {
+        if {[file type $fullpath] == "directory"} {
             continue
         }
         set relpath [strsed $fullpath "s|^$destpath/||"]
