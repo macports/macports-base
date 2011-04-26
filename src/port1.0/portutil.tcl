@@ -387,6 +387,7 @@ proc command_exec {command args} {
     array set env [array get ${command}.env_array]
     # Call the command.
     set fullcmdstring "$command_prefix $cmdstring $command_suffix"
+    ui_debug "Executing command line: $fullcmdstring"
     set code [catch {eval system $notty $nice \$fullcmdstring} result]
 
     # Unset the command array until next time.
