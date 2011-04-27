@@ -241,7 +241,7 @@ proc portclean::clean_work {args} {
 proc portclean::clean_logs {args} {
     global portpath portbuildpath worksymlink portverbose keeplogs prefix subport
     set logpath [getportlogpath $portpath]
-    ser subdir [file join $logpath $subport]
+    set subdir [file join $logpath $subport]
   	if {[file isdirectory $subdir]} {
         ui_debug "Removing directory: ${subdir}"
         if {[catch {delete $subdir} result]} {
