@@ -275,11 +275,18 @@ proc portunarchive::unarchive_finish {args} {
     }
 
     # Reset state file with archive version
-    close $target_state_fd
     set statefile [file join $workpath .macports.${subport}.state]
-    file copy -force [file join $destpath "+STATE"] $statefile
-    file mtime $statefile [clock seconds]
-    chownAsRoot $statefile
+    set plus_state [file join $destpath "+STATE"]
+    if {[file isfile $plus_state]} {
+        close $target_state_fd
+        file copy -force $plus_state $statefile
+        file mtime $statefile [clock seconds]
+        chownAsRoot $statefile
+        set newstate 1
+    } else {
+        # fake it
+        write_statefile target org.macports.destroot $target_state_fd
+    }
 
     # Cleanup all control files when finished
     set control_files [glob -nocomplain -types f [file join $destpath +*]]
@@ -288,8 +295,10 @@ proc portunarchive::unarchive_finish {args} {
         file delete -force $file
     }
 
-    # Update the state from unpacked archive version
-    set target_state_fd [open_statefile]
+    if {[info exists newstate]} {
+        # Update the state from unpacked archive version
+        set target_state_fd [open_statefile]
+    }
 
     ui_info "$UI_PREFIX [format [msgcat::mc "Archive %s unpacked"] ${unarchive.file}]"
     return 0
