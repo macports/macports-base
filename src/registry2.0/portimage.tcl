@@ -377,7 +377,12 @@ proc _activate_file {srcfile dstfile} {
             if { ![file isdirectory $dstfile] } {
                 file mkdir $dstfile
                 # fix attributes on the directory.
-                eval file attributes {$dstfile} [file attributes $srcfile]
+                if {[getuid] == 0} {
+                    eval file attributes {$dstfile} [file attributes $srcfile]
+                } else {
+                    # not root, so can't set owner/group
+                    eval file attributes {$dstfile} -permissions [file attributes -permissions $srcfile]
+                }
                 # set mtime on installed element
                 file mtime $dstfile [file mtime $srcfile]
             }
