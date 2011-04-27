@@ -1712,7 +1712,7 @@ proc action_log { action portlist opts } {
             array set portinfo [lindex $result 1]
         }
         set portpath [macports::getportdir $porturl]
-        set logfile [file join [macports::getportlogpath $portpath] "main.log"]
+        set logfile [file join [macports::getportlogpath $portpath $portname] "main.log"]
         if {[file exists $logfile]} {
             if {[catch {set fp [open $logfile r]} result]} {
                 break_softcontinue "Could not open file $logfile: $result" 1 status
@@ -3562,7 +3562,7 @@ proc action_portcmds { action portlist opts } {
                 }
 
                 logfile {
-                    set logfile [file join [macports::getportlogpath $portdir] "main.log"]
+                    set logfile [file join [macports::getportlogpath $portdir $portname] "main.log"]
                     if {[file isfile $logfile]} {
                         puts $logfile
                     } else {

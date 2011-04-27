@@ -134,7 +134,7 @@ proc macports::ch_logging {mport} {
 
     ui_debug "Starting logging for $portname"
 
-    set logname [file join [macports::getportlogpath $portpath] $portname]
+    set logname [macports::getportlogpath $portpath $portname]
     file mkdir $logname
     set logname [file join $logname "main.log"]
 
@@ -1806,11 +1806,11 @@ proc macports::getportbuildpath {id {portname ""}} {
     return [file join $portdbpath build $port_path $portname]
 }
 
-proc macports::getportlogpath {id} {
+proc macports::getportlogpath {id {portname ""}} {
     global macports::portdbpath
     regsub {://} $id {.} port_path
     regsub -all {/} $port_path {_} port_path
-    return [file join $portdbpath logs $port_path]
+    return [file join $portdbpath logs $port_path $portname]
 }
 
 proc macports::getportworkpath_from_buildpath {portbuildpath} {

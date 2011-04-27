@@ -239,14 +239,16 @@ proc portclean::clean_work {args} {
     return 0
 }
 proc portclean::clean_logs {args} {
-    global portpath portbuildpath worksymlink portverbose keeplogs prefix
+    global portpath portbuildpath worksymlink portverbose keeplogs prefix subport
     set logpath [getportlogpath $portpath]
-  	if {[file isdirectory $logpath]} {
-        ui_debug "Removing directory: ${logpath}"
-        if {[catch {delete $logpath} result]} {
+    ser subdir [file join $logpath $subport]
+  	if {[file isdirectory $subdir]} {
+        ui_debug "Removing directory: ${subdir}"
+        if {[catch {delete $subdir} result]} {
             ui_debug "$::errorInfo"
             ui_error "$result"
         }
+        catch {file delete $logpath}
     } else {
         ui_debug "No log directory found to remove at ${logpath}"
     }           	
