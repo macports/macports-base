@@ -232,9 +232,9 @@ proc portsubmit::submit_main {args} {
         set tmpdir [mktemp "/tmp/mports.XXXXXXXX"]
         file mkdir $tmpdir/new
         file mkdir $tmpdir/old
-        set worker [mport_open $portsource/files/$name/$version/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new]]
+        set worker [mport_open $portsource/files/$name/$version/$result(revision)/Portfile.tar.gz [list portdir $tmpdir/new subport $name]]
         if {$base_rev != ""} {
-            set worker2 [mport_open $portsource/files/$name/$version/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old]]
+            set worker2 [mport_open $portsource/files/$name/$version/$base_rev/Portfile.tar.gz [list portdir $tmpdir/old subport $name]]
             catch {system "diff3 -m -E -- $portpath/Portfile $tmpdir/old/$name-$version/Portfile $tmpdir/new/$name-$version/Portfile > $tmpdir/Portfile"}
             file rename -force "${tmpdir}/Portfile" "${portpath}/Portfile"
             mport_close $worker2

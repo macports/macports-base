@@ -103,7 +103,7 @@ proc portmpkg::make_one_package {portname portversion destination} {
 		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
 			# only the prefix gets passed to the worker.
 			ui_debug "building dependency package: $portname"
-			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat}] [array get variations] yes]
+			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get variations] yes]
 			mport_exec $worker pkg
 			mport_close $worker
 		}

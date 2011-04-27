@@ -2433,7 +2433,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
         # avoid propagating requested flag from parent
         set optionsarray(ports_requested) 0
         # subport will be different for deps
-        unset optionsarray(subport)
+        unset -nocomplain optionsarray(subport)
         set options [array get optionsarray]
         set variations [ditem_key $mport variations]
         set required_archs [$workername eval get_canonical_archs]
