@@ -428,7 +428,7 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
     int result_count = 0;
     int result_space = 10;
     sqlite3_stmt* stmt = NULL;
-    if (!results) {
+    if (!results || !fn) {
         return -1;
     }
     if (sqlite3_prepare(reg->db, query, query_len, &stmt, NULL) == SQLITE_OK) {
@@ -458,7 +458,7 @@ static int reg_all_objects(reg_registry* reg, char* query, int query_len,
         if (r == SQLITE_DONE) {
             *objects = results;
             return result_count;
-        } else {
+        } else if (del) {
             int i;
             for (i=0; i<result_count; i++) {
                 del(NULL, results[i]);
