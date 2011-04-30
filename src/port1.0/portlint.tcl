@@ -255,25 +255,28 @@ proc portlint::lint_main {args} {
         }
 
         # Check for hardcoded version numbers
-        # Support for skipping checksums lines
-        if {[regexp {^checksums} $line]} {
-            # We enter a serie one or more lines containing checksums
-            set hashline true}
-
-        if {!$hashline
-                && ![regexp {^PortSystem|^PortGroup|^version} $line]
-                && ![regexp {^[a-z0-9]+\.setup} $line]
-                && [string first [option version] $line] != -1} {
-            ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
-            incr warnings
-        }
-
-        if {$hashline &&
-            ![string match \\\\ [string index $line end]]} {
-                # if the last character is not a backslash we're done with
-                # line skipping
-                set hashline false
+        if {$nitpick} {
+            # Support for skipping checksums lines
+            if {[regexp {^checksums} $line]} {
+                # We enter a series of one or more lines containing checksums
+                set hashline true
             }
+    
+            if {!$hashline
+                    && ![regexp {^PortSystem|^PortGroup|^version} $line]
+                    && ![regexp {^[a-z0-9]+\.setup} $line]
+                    && [string first [option version] $line] != -1} {
+                ui_warn "Line $lineno seems to hardcode the version number, consider using \${version} instead"
+                incr warnings
+            }
+    
+            if {$hashline &&
+                ![string match \\\\ [string index $line end]]} {
+                    # if the last character is not a backslash we're done with
+                    # line skipping
+                    set hashline false
+            }
+        }
             
         ### TODO: more checks to Portfile syntax
 
