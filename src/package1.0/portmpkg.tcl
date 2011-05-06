@@ -50,66 +50,66 @@ proc portmpkg::mpkg_main {args} {
     global subport version revision package.destpath package.flat UI_PREFIX
 
     # Make sure the destination path exists.
-    system "mkdir -p ${package.destpath}"
+    file mkdir ${package.destpath}
 
     return [package_mpkg $subport $version $revision]
 }
 
-proc portmpkg::make_dependency_list {portname} {
+proc portmpkg::make_dependency_list {portname destination} {
+    global variations prefix package.destpath package.flat
 	set result {}
 	if {[catch {set res [mport_lookup $portname]} error]} {
 		global errorInfo
 		ui_debug "$errorInfo"
-		ui_error "port lookup failed: $error"
-		return 1
+		return -code error "port lookup failed: $error"
 	}
-	foreach {name array} $res {
-		array set portinfo $array
+	array set portinfo [lindex $res 1]
 
-		if {[info exists portinfo(depends_run)] || [info exists portinfo(depends_lib)]} {
-			# get the union of depends_run and depends_lib
-			# xxx: only examines the portfile component of the depspec
-			set depends {}
-			if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
-			if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
-
-			foreach depspec $depends {
-				set dep [lindex [split $depspec :] end]
-				eval "lappend result [make_dependency_list $dep]"
-			}
-		}
-		lappend result $portinfo(name)/$portinfo(version)
-		unset portinfo
-	}
-	ui_debug "dependencies for ${portname}: $result"
-	return $result
-}
-
-proc portmpkg::make_one_package {portname portversion destination} {
-	global prefix package.destpath package.flat macportsuser variations
-	if {[catch {set res [mport_lookup $portname]} result]} {
-		global errorInfo
-		ui_debug "$errorInfo"
-		ui_error "port lookup failed: $result"
-		return 1
-	}
 	if {[getuid] == 0 && [geteuid] != 0} {
 		setegid 0; seteuid 0
 		set deprivileged 1
 	}
-	foreach {name array} $res {
-		array set portinfo $array
-		
-		if {[info exists portinfo(porturl)] && [info exists portinfo(version)] && $portinfo(version) == $portversion} {
-			# only the prefix gets passed to the worker.
-			ui_debug "building dependency package: $portname"
-			set worker [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get variations] yes]
-			mport_exec $worker pkg
-			mport_close $worker
-		}
-		unset portinfo
+
+	set mport [mport_open $portinfo(porturl) [list prefix $prefix package.destpath ${destination} package.flat ${package.flat} subport $portinfo(name)] [array get variations]]
+
+    if {[info exists deprivileged]} {
+	    global macportsuser
+		setegid [uname_to_gid "$macportsuser"]
+		seteuid [name_to_uid "$macportsuser"]
 	}
+
+    unset portinfo
+    array set portinfo [mport_info $mport]
+
+    # get the union of depends_run and depends_lib
+    set depends {}
+    if {[info exists portinfo(depends_run)]} { eval "lappend depends $portinfo(depends_run)" }
+    if {[info exists portinfo(depends_lib)]} { eval "lappend depends $portinfo(depends_lib)" }
+
+    foreach depspec $depends {
+        set dep [_get_dep_port $depspec]
+        if {$dep != ""} {
+            eval "lappend result [make_dependency_list $dep $destination]"
+        }
+    }
+
+    lappend result [list $portinfo(name) $portinfo(version) $mport]
+	ui_debug "dependencies for ${portname}: $result"
+	return $result
+}
+
+proc portmpkg::make_one_package {portname portversion mport} {
+	if {[getuid] == 0 && [geteuid] != 0} {
+		setegid 0; seteuid 0
+		set deprivileged 1
+	}
+
+    ui_debug "building dependency package: $portname"
+    mport_exec $mport pkg
+    mport_close $mport
+
 	if {[info exists deprivileged]} {
+	    global macportsuser
 		setegid [uname_to_gid "$macportsuser"]
 		seteuid [name_to_uid "$macportsuser"]
 	}
@@ -125,18 +125,19 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
 
 	set dependencies {}
 	# get deplist
-	set deps [make_dependency_list $portname]
+	set deps [make_dependency_list $portname ${mpkgpath}/Contents/Packages]
 	set deps [lsort -unique $deps]
 	foreach dep $deps {
-		set name [lindex [split $dep /] 0]
-		set vers [lindex [split $dep /] 1]
+		set name [lindex $dep 0]
+		set vers [lindex $dep 1]
+		set mport [lindex $dep 2]
 		# don't re-package ourself
 		if {$name != $portname} {
-			make_one_package $name $vers $mpkgpath/Contents/Packages
+			make_one_package $name $vers $mport
 			lappend dependencies ${name}-${vers}.pkg
 		}
 	}
-	
+
 	# copy our own pkg into the mpkg
 	system "cp -PR ${pkgpath} ${mpkgpath}/Contents/Packages/"
 	lappend dependencies ${portname}-${portversion}.pkg
@@ -146,11 +147,11 @@ proc portmpkg::package_mpkg {portname portversion portrevision} {
     portpkg::write_description_plist ${mpkgpath}/Contents/Resources/Description.plist $portname $portversion $description
     # long_description, description, or homepage may not exist
     foreach variable {long_description description homepage} {
-	if {![info exists $variable]} {
-	    set pkg_$variable ""
-	} else {
-	    set pkg_$variable [set $variable]
-	}
+        if {![info exists $variable]} {
+            set pkg_$variable ""
+        } else {
+            set pkg_$variable [set $variable]
+        }
     }
     portpkg::write_welcome_html ${mpkgpath}/Contents/Resources/Welcome.html $portname $portversion $pkg_long_description $pkg_description $pkg_homepage
     file copy -force -- [getportresourcepath $porturl "port1.0/package/background.tiff"] ${mpkgpath}/Contents/Resources/background.tiff
