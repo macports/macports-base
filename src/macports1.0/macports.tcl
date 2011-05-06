@@ -1245,9 +1245,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
     if {$nocache != ""} {
         set mport {}
     } else {
-        set mport [dlist_search $macports::open_mports porturl $porturl]
-        set mport [dlist_search $mport variations $variations]
-        set mport [dlist_search $mport options $options]
+        set mport [dlist_match_multi $macports::open_mports [list porturl $porturl variations $variations options $options]]
     }
     if {$mport != {}} {
         # just in case more than one somehow matches
@@ -1263,9 +1261,6 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         set portdir $options_array(portdir)
     } else {
         set portdir ""
-    }
-    if {![info exists options_array(ports_requested)]} {
-        lappend options ports_requested 0
     }
 
     set portpath [macports::getportdir $porturl $portdir]
@@ -2432,7 +2427,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
     if {[llength $deptypes] > 0} {
         array set optionsarray [ditem_key $mport options]
         # avoid propagating requested flag from parent
-        set optionsarray(ports_requested) 0
+        unset -nocomplain optionsarray(ports_requested)
         # subport will be different for deps
         unset -nocomplain optionsarray(subport)
         set options [array get optionsarray]
@@ -2500,9 +2495,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                 # Figure out the subport. Check the open_mports list first, since
                 # we potentially leak mport references if we mportopen each time,
                 # because mportexec only closes each open mport once.
-                set subport [dlist_search $macports::open_mports porturl $dep_portinfo(porturl)]
-                set subport [dlist_search $subport options $options]
-                set subport [dlist_search $subport variations $variations]
+                set subport [dlist_match_multi $macports::open_mports [list porturl $dep_portinfo(porturl) options $options variations $variations]]
                 
                 if {$subport == {}} {
                     # We haven't opened this one yet.

@@ -520,7 +520,11 @@ proc portinstall::install_main {args} {
 
             set regref [registry::entry create $subport $version $revision $portvariants $epoch]
 
-            $regref requested $user_options(ports_requested)
+            if {[info exists user_options(ports_requested)]} {
+                $regref requested $user_options(ports_requested)
+            } else {
+                $regref requested 0
+            }
             $regref os_platform ${os.platform}
             $regref os_major ${os.major}
             $regref archs [get_canonical_archs]
@@ -557,7 +561,11 @@ proc portinstall::install_main {args} {
 
         registry_prop_store $regref location $location
 
-        registry_prop_store $regref requested $user_options(ports_requested)
+        if {[info exists user_options(ports_requested)]} {
+            registry_prop_store $regref requested $user_options(ports_requested)
+        } else {
+            registry_prop_store $regref requested 0
+        }
         registry_prop_store $regref categories $categories
 
         registry_prop_store $regref os_platform ${os.platform}

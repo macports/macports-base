@@ -52,6 +52,28 @@ package provide macports_dlist 1.0
 # Values in the status dict will be {-1, 0, 1} for {failure,
 # pending, success} respectively.
 
+# dlist_match_multi
+# Returns all dependency entries for which the entry's value for 'key' exactly matches the given 'value'.
+#	dlist - the dependency list to search
+#	criteria - the key/value pairs to compare
+
+proc dlist_match_multi {dlist criteria} {
+	set result {}
+	foreach ditem $dlist {
+	    set match 1
+	    foreach {key value} $criteria {
+		    if {[ditem_key $ditem $key] != $value} {
+			    set match 0
+			    break
+		    }
+		}
+		if {$match} {
+		    lappend result $ditem
+		}
+	}
+	return $result
+}
+
 # dlist_search
 # Returns all dependency entries whose 'key' contains 'value'.
 #	dlist - the dependency list to search
