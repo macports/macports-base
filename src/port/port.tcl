@@ -1761,10 +1761,14 @@ proc action_info { action portlist opts } {
 
     set separator ""
     foreachport $portlist {
+        set index_only 0
+        if {[info exists options(ports_info_index)] && $options(ports_info_index)} {
+            set index_only 1
+        }
         puts -nonewline $separator
         # If we have a url, use that, since it's most specific
         # otherwise try to map the portname to a url
-        if {$porturl eq ""} {
+        if {$porturl == "" || $index_only} {
         # Verify the portname, getting portinfo to map to a porturl
             if {[catch {mportlookup $portname} result]} {
                 ui_debug "$::errorInfo"
@@ -1777,27 +1781,9 @@ proc action_info { action portlist opts } {
             array set portinfo [lindex $result 1]
             set porturl $portinfo(porturl)
             set portdir $portinfo(portdir)
-        } elseif {$porturl ne "file://."} {
-            # Extract the portdir from porturl and use it to search PortIndex.
-            # Only the last two elements of the path (porturl) make up the
-            # portdir.
-            set portdir [file split [macports::getportdir $porturl]]
-            set lsize [llength $portdir]
-            set portdir \
-                [file join [lindex $portdir [expr $lsize - 2]] \
-                           [lindex $portdir [expr $lsize - 1]]]
-            if {[catch {mportsearch $portdir no exact portdir} result]} {
-                ui_debug "$::errorInfo"
-                break_softcontinue "Portdir $portdir not found" 1 status
-            }
-            if {[llength $result] < 2} {
-                break_softcontinue "Portdir $portdir not found" 1 status
-            }
-            array unset portinfo
-            array set portinfo [lindex $result 1]
         }
 
-        if {!([info exists options(ports_info_index)] && $options(ports_info_index) eq "yes")} {
+        if {!$index_only} {
             # Add any global_variations to the variations
             # specified for the port (so we get e.g. dependencies right)
             array unset merged_variations
@@ -1823,7 +1809,7 @@ proc action_info { action portlist opts } {
                 set portinfo(portdir) $portdir
             }
         } elseif {![info exists portinfo]} {
-            ui_warn "port info --index does not work with 'current' pseudo-port"
+            ui_warn "no PortIndex entry found for $portname"
             continue
         }
         array unset options ports_info_index
