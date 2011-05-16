@@ -382,6 +382,25 @@ in the deprecated port and list the new one to be used.
 .br
 .Sy Example:
 .Dl replaced_by xorg-renderproto
+.It Ic add_users
+Consists of a list of usernames and settings. At appropriate times during the
+port installation process, a user will be created for each username with the
+corresponding settings. Settings are of the form name=value. A setting
+applies to the username that appeared most recently before it in the list.
+.sp
+Applicable options are: group, gid (may be used instead of group), passwd,
+realname, home, and shell.
+.sp
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none (empty)
+.br
+.Sy Example:
+.Dl add_users squid group=squid realname=Squid\e Proxy home=${prefix}/var/squid
+.sp
+.Dl add_users user1 group=mygroup user2 group=mygroup
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard
@@ -1952,7 +1971,10 @@ is newer than
 .Op Cm shell Ns = Ns shell
 .Xc
 Add a new local user to the system with the specified uid, gid,
-password, real name, home directory and login shell.
+password, real name, home directory and login shell. Note that it is usually
+preferable to set the add_users option rather than call adduser directly,
+since it may need to be called in multiple places to handle all cases (e.g.
+installing from a binary archive).
 .It Ic existsuser Ar username
 Check if a local user exists.
 .It Ic nextuid
