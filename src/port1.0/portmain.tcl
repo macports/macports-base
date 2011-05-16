@@ -44,13 +44,16 @@ namespace eval portmain {
 }
 
 # define options
-options prefix name version revision epoch categories maintainers
-options long_description description homepage notes license provides conflicts replaced_by
-options worksrcdir filesdir distname portdbpath libpath distpath sources_conf os.platform os.subplatform os.version os.major os.arch os.endian platforms default_variants install.user install.group macosx_deployment_target
-options universal_variant os.universal_supported
-options supported_archs depends_skip_archcheck
-options copy_log_files
-options compiler.cpath compiler.library_path
+options prefix name version revision epoch categories maintainers \
+        long_description description homepage notes license \
+        provides conflicts replaced_by \
+        worksrcdir filesdir distname portdbpath libpath distpath sources_conf \
+        os.platform os.subplatform os.version os.major os.arch os.endian \
+        platforms default_variants install.user install.group \
+        macosx_deployment_target universal_variant os.universal_supported \
+        supported_archs depends_skip_archcheck \
+        copy_log_files \
+        compiler.cpath compiler.library_path
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
