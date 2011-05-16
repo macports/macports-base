@@ -2043,6 +2043,29 @@ proc handle_default_variants {option action {value ""}} {
     }
 }
 
+# create all users/groups listed in the add_users option
+# format: [username [option=value ...] ...]
+proc handle_add_users {} {
+    set cur ""
+    foreach val [option add_users] {
+        if {[string match *=* $val] && $cur != ""} {
+            set split_arg [split $val =]
+            if {[lindex $split_arg 0] == "group"} {
+                set groupname [lindex $split_arg 1]
+                addgroup $groupname
+                lappend args($cur) gid=[existsgroup $groupname]
+            } else {
+                lappend args($cur) $val
+            }
+        } else {
+            set cur $val
+        }
+    }
+    foreach username [array names args] {
+        eval adduser $username $args($username)
+    }
+}
+
 proc adduser {name args} {
     global os.platform
 

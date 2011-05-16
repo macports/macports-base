@@ -78,6 +78,9 @@ proc portextract::extract_start {args} {
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Extracting %s"] [option subport]]"
 
+    # create any users and groups needed by the port
+    handle_add_users
+
     # should the distfiles be extracted to worksrcpath instead?
     if {[tbool extract.mkdir]} {
         global worksrcpath

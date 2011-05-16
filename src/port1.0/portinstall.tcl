@@ -70,6 +70,9 @@ proc portinstall::install_start {args} {
         registry::open [file join ${registry.path} registry registry.db]
         set registry_open yes
     }
+
+    # create any users and groups needed by the port
+    handle_add_users
 }
 
 # fake some info for a list of files to match the format

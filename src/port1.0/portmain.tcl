@@ -53,7 +53,8 @@ options prefix name version revision epoch categories maintainers \
         macosx_deployment_target universal_variant os.universal_supported \
         supported_archs depends_skip_archcheck \
         copy_log_files \
-        compiler.cpath compiler.library_path
+        compiler.cpath compiler.library_path \
+        add_users
 
 # Order of option_proc and option_export matters. Filter before exporting.
 
@@ -103,6 +104,7 @@ default worksrcpath {[file join $workpath $worksrcdir]}
 # empty list means all archs are supported
 default supported_archs {}
 default depends_skip_archcheck {}
+default add_users {}
 
 # Configure settings
 default install.user {${portutil::autoconf::install_user}}

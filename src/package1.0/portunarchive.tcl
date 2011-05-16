@@ -122,6 +122,9 @@ proc portunarchive::unarchive_start {args} {
         elevateToRoot "unarchive"
     }
 
+    # create any users and groups needed by the port
+    handle_add_users
+
     ui_msg "$UI_PREFIX [format [msgcat::mc "Unpacking ${unarchive.type} archive for %s %s_%s%s"] $subport $version $revision $portvariants]"
 
     return 0
