@@ -369,7 +369,14 @@ proc macports::setxcodeinfo {name1 name2 op} {
                 if {[regexp {Xcode ([0-9.]+)} $xcodebuildversion - xcode_v] == 1} {
                     set macports::xcodeversion $xcode_v
                 } elseif {[regexp "DevToolsCore-(.*);" $xcodebuildversion - devtoolscore_v] == 1} {
-                    if {$devtoolscore_v >= 921.0} {
+                    if {$devtoolscore_v >= 1809.0} {
+                        set macports::xcodeversion "3.2.6"
+                    } elseif {$devtoolscore_v >= 1204.0} {
+                        set macports::xcodeversion "3.1.4"
+                    } elseif {$devtoolscore_v > 921.0} {
+                        # XXX find actual version corresponding to 3.1
+                        set macports::xcodeversion "3.1"
+                    } elseif {$devtoolscore_v >= 921.0} {
                         set macports::xcodeversion "3.0"
                     } elseif {$devtoolscore_v >= 798.0} {
                         set macports::xcodeversion "2.5"
