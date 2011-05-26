@@ -2671,7 +2671,7 @@ proc _check_xcode_version {} {
             default {
                 set min 3.2
                 set ok 3.2
-                set rec 3.2.4
+                set rec 3.2.6
             }
         }
         if {$xcodeversion == "none"} {
