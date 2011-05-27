@@ -259,7 +259,7 @@ set save_prefix ${macports::prefix}
 foreach key {categories depends_fetch depends_extract depends_build \
              depends_lib depends_run description epoch homepage \
              long_description maintainers name platforms revision variants \
-             version portdir portarchive replaced_by license} {
+             version portdir portarchive replaced_by license installs_libs} {
     set keepkeys($key) 1
 }
 mporttraverse pindex $directory

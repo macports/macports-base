@@ -1711,6 +1711,11 @@ proc macports::_upgrade_mport_deps {mport target} {
                         set res [mportlookup $dep_portname]
                         array unset dep_portinfo
                         array set dep_portinfo [lindex $res 1]
+                        if {[info exists dep_portinfo(installs_libs)] && !$dep_portinfo(installs_libs)} {
+                            set missing {}
+                        }
+                    }
+                    if {[llength $missing] > 0} {
                         if {[info exists dep_portinfo(variants)] && [lsearch $dep_portinfo(variants) universal] != -1} {
                             # dep offers a universal variant
                             if {[llength $active_archs] == 1} {
@@ -2497,6 +2502,8 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     }
                     ui_error "Dependency '$dep_portname' not found."
                     return 1
+                } elseif {[info exists dep_portinfo(installs_libs)] && !$dep_portinfo(installs_libs)} {
+                    set check_archs 0
                 }
                 lappend options subport $dep_portname
                 # Figure out the subport. Check the open_mports list first, since

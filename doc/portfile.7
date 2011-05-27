@@ -401,6 +401,26 @@ realname, home, and shell.
 .Dl add_users squid group=squid realname=Squid\e Proxy home=${prefix}/var/squid
 .sp
 .Dl add_users user1 group=mygroup user2 group=mygroup
+.It Ic installs_libs
+By default, it is assumed that ports may install libraries or headers that can
+be incorporated into their dependents. If this is not the case, set
+.Cm installs_libs
+to
+.Em no .
+This means that this port's dependents need not check that it is installed
+for the same architectures as them; that it is permissible to distribute
+binaries of the dependents even if their licenses conflict with the license
+of this port; and that updates to this port can never result in broken dynamic
+linking in its dependents.
+.br
+.Sy Type:
+.Em optional
+.br
+.Sy Default:
+.Em none
+.br
+.Sy Example:
+.Dl installs_libs no
 .El
 .Sh TARGET HOOKS
 A number of hooks are available for customizing many of the standard
