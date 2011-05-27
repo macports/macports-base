@@ -129,3 +129,8 @@ universal_archs		@UNIVERSAL_ARCHS@
 # hosts not to go through the proxy (comma-separated, applies to HTTP, HTTPS,
 # and FTP, but not rsync):
 #proxy_skip            internal1, internal2, internal3
+
+# Options for MacPorts usage statistics collection
+# If you would like to participate change this value to yes
+# The default is no
+stats_participate	no
