@@ -305,6 +305,25 @@ set porthelp(unsetrequested) {
 Marks each of the given ports as unrequested
 }
 
+set porthelp(stats) {
+Returns the information that will be submitted to MacPorts if you choose to 
+participate in the usage statistics collection program.
+
+Data will only be submitted to MacPorts if you volunteer to participate.
+You can opt-in by setting the stats_participate varible in macports.conf
+
+If you participate MacPorts will automatically and regularly submit
+1. The ports that you have installed
+2. Information about your system that is relavant to building ports
+
+<arguments> may be exactly one of the following
+submit  -   Submit collected data to MacPorts
+
+example:
+port stats
+port stats submit 
+}
+
 set porthelp(submit) {
 Submit a port to the MacPorts Web Application (unimplemented)
 }
