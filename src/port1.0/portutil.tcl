@@ -1576,7 +1576,7 @@ proc open_statefile {args} {
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
-        if {[file mtime ${portpath}/Portfile] >= [clock seconds]} {
+        if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
