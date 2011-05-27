@@ -2477,6 +2477,44 @@ proc action_platform { action portlist opts } {
     return 0
 }
 
+proc action_stats { action portlist opts } {    
+
+    # If no subcommands are given (portlist is empty) print out OS information
+    if {$portlist == ""} {
+        # Print information
+        puts "Build Information"
+        puts "- MacPorts Version [macports::version]"
+        puts "- Mac OS X Version ${macports::macosx_version}"
+        puts "- Platform ${macports::os_arch} ${macports::os_platform}"
+        puts "- Build Arch is ${macports::build_arch}"
+        puts "- XCode Version ${macports::xcodeversion}"
+        return 0
+    }
+
+    # Make sure there aren't too many subcommands
+    if {[llength $portlist] > 1} {
+        puts "Please select only one subcommand. See port help stats"
+        return 0
+    }
+
+    # Get the command
+    set cmd [lindex $portlist 0]
+        
+    switch $cmd {
+        "submit" {
+            # Only submit if the user is participating
+            if {[string equal ${macports::stats_participate} "yes"]} {
+                # TODO: proc call which will submit data
+                puts "Will submit collected data"
+            }
+        }
+        default {
+            puts "Unknown subcommand. See port help stats"
+        }
+    }
+    
+    return 0
+}
 
 proc action_dependents { action portlist opts } {
     if {[require_portlist portlist]} {
@@ -3782,6 +3820,7 @@ array set action_array [list \
     \
     version     [list action_version        [ACTION_ARGS_NONE]] \
     platform    [list action_platform       [ACTION_ARGS_NONE]] \
+    stats       [list action_stats          [ACTION_ARGS_STRINGS]] \
     \
     uninstall   [list action_uninstall      [ACTION_ARGS_PORTS]] \
     \
