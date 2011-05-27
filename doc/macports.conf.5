@@ -210,6 +210,11 @@ and accept the consequences.
 ${prefix}/bin:${prefix}/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 .It Va extra_env
 List of extra environment variables MacPorts should keep in the user's environment when sanitizing it.
+.It Va stats_participate
+Participate in MacPorts usage statistics collection program. If set to "yes" 
+a weekly launchd task will submit information to the MacPorts project. This 
+submission will include details of about your build environment and the 
+ports that you have installed.
 .El
 .Sh FILES
 .Bl -tag -width
