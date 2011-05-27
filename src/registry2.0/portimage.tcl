@@ -381,7 +381,7 @@ proc _activate_file {srcfile dstfile} {
                     eval file attributes {$dstfile} [file attributes $srcfile]
                 } else {
                     # not root, so can't set owner/group
-                    eval file attributes {$dstfile} -permissions [file attributes -permissions $srcfile]
+                    eval file attributes {$dstfile} -permissions [file attributes $srcfile -permissions]
                 }
                 # set mtime on installed element
                 file mtime $dstfile [file mtime $srcfile]
