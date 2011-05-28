@@ -61,7 +61,7 @@ default unarchive.skip 0
 set_ui_prefix
 
 proc portunarchive::unarchive_init {args} {
-    global target_state_fd unarchive.skip \
+    global target_state_fd unarchive.skip destroot \
            ports_force ports_source_only ports_binary_only \
            subport version revision portvariants \
            unarchive.type unarchive.file unarchive.path
@@ -73,7 +73,8 @@ proc portunarchive::unarchive_init {args} {
     } elseif {[info exists ports_source_only] && $ports_source_only == "yes"} {
         ui_debug "Skipping unarchive ($subport) since source-only is set"
         set skipped 1
-    } elseif {[check_statefile target org.macports.destroot $target_state_fd]} {
+    } elseif {[check_statefile target org.macports.destroot $target_state_fd]
+              && [file isdirectory $destroot]} {
         ui_debug "Skipping unarchive ($subport) since destroot completed"
         set skipped 1
     } elseif {[info exists ports_force] && $ports_force == "yes"} {
