@@ -59,10 +59,21 @@ default archivefetch.use_epsv no
 default archivefetch.ignore_sslcert no
 default archivefetch.pubkeys {$archivefetch_pubkeys}
 
-default archive_sites macports_archives
+default archive_sites {[portarchivefetch::filter_sites]}
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
 default archive.subdir {${subport}}
+
+proc portarchivefetch::filter_sites {} {
+    global prefix
+    set ret {}
+    foreach site [array names portfetch::mirror_sites::archive_prefix] {
+        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
+            lappend ret $site
+        }
+    }
+    return $ret
+}
 
 set_ui_prefix
 
