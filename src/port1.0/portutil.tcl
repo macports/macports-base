@@ -1273,13 +1273,14 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
-                set target [ditem_key $ditem provides]
+                # change current phase shown in log
+                set_phase $target
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
-                set_phase  $target
+
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
