@@ -38,7 +38,7 @@ package require registry2 2.0
 set org.macports.install [target_new org.macports.install portinstall::install_main]
 target_provides ${org.macports.install} install
 target_runtype ${org.macports.install} always
-target_requires ${org.macports.install} main archivefetch fetch checksum extract patch configure build destroot
+target_requires ${org.macports.install} main archivefetch fetch checksum extract patch configure build destroot postdestroot
 target_prerun ${org.macports.install} portinstall::install_start
 
 namespace eval portinstall {
