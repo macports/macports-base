@@ -65,12 +65,15 @@ default archive_sites.listpath {"port1.0/fetch"}
 default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
-    global prefix
+    global prefix porturl
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
         if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
             lappend ret $site
         }
+    }
+    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]]} {
+        lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]
     }
     return $ret
 }
@@ -257,6 +260,11 @@ proc portarchivefetch::fetchfiles {args} {
 
 # Initialize archivefetch target and call checkfiles.
 proc portarchivefetch::archivefetch_init {args} {
+    global porturl portarchivetype
+    # installing straight from a binary archive
+    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
+        set portarchivetype [string range [file extension $porturl] 1 end]
+    }
     return 0
 }
 

@@ -1129,25 +1129,83 @@ proc macports::create_thread {} {
     return $result
 }
 
-proc macports::fetch_port {url} {
+proc macports::get_tar_flags {suffix} {
+    switch -- $suffix {
+        .tbz -
+        .tbz2 {
+            return "-j"
+        }
+        .tgz {
+            return "-z"
+        }
+        .txz {
+            return "--use-compress-program [findBinary xz {}] -"
+        }
+        .tlz {
+            return "--use-compress-program [findBinary lzma {}] -"
+        }
+        default {
+            return "-"
+        }
+    }
+}
+
+proc macports::fetch_port {url {local 0}} {
     global macports::portdbpath
     set fetchdir [file join $portdbpath portdirs]
-    set fetchfile [file tail $url]
     file mkdir $fetchdir
     if {![file writable $fetchdir]} {
         return -code error "Port remote fetch failed: You do not have permission to write to $fetchdir"
     }
-    if {[catch {curl fetch $url [file join $fetchdir $fetchfile]} result]} {
-        return -code error "Port remote fetch failed: $result"
+    if {$local} {
+        set fetchfile $url
+    } else {
+        set fetchfile [file tail $url]
+        if {[catch {curl fetch $url [file join $fetchdir $fetchfile]} result]} {
+            return -code error "Port remote fetch failed: $result"
+        }
     }
+    set oldpwd [pwd]
     cd $fetchdir
-    if {[catch {exec [findBinary tar $macports::autoconf::tar_path] -zxf $fetchfile} result]} {
+    # check if this is a binary archive or just the port dir
+    set tarcmd [findBinary tar $macports::autoconf::tar_path]
+    set tarflags [get_tar_flags [file extension $fetchfile]]
+    set qflag ${macports::autoconf::tar_q}
+    set cmdline "$tarcmd ${tarflags}${qflag}xOf {$fetchfile} +CONTENTS"
+    ui_debug "$cmdline"
+    set contents [eval exec $cmdline]
+    if {![catch {set contents [eval exec $cmdline]}]} {
+        set binary 1
+        ui_debug "getting port name from binary archive"
+        # get the portname from the contents file
+        foreach line [split $contents "\n"] {
+            if {[lindex $line 0] == "@name"} {
+                # actually ${name}-${version}_${revision}
+                set portname [lindex $line 1]
+            }
+        }
+        ui_debug "port name is '$portname'"
+        file mkdir $portname
+        cd $portname
+    } else {
+        set binary 0
+        set portname [file rootname $fetchfile]
+    }
+
+    # extract the portfile (and possibly files dir if not a binary archive)
+    ui_debug "extracting port archive to [pwd]"
+    if {$binary} {
+        set cmdline "$tarcmd ${tarflags}${qflag}xOf {$fetchfile} +PORTFILE > Portfile"
+    } else {
+        set cmdline "$tarcmd ${tarflags}xf {$fetchfile}"
+    }
+    ui_debug "$cmdline"
+    if {[catch {eval exec $cmdline} result]} {
         return -code error "Port extract failed: $result"
     }
-    if {[regexp {(.+).tgz} $fetchfile match portdir] != 1} {
-        return -code error "Can't decipher portdir from $fetchfile"
-    }
-    return [file join $fetchdir $portdir]
+
+    cd $oldpwd
+    return [file join $fetchdir $portname]
 }
 
 proc macports::getprotocol {url} {
@@ -1163,10 +1221,20 @@ proc macports::getprotocol {url} {
 # fetched port will be downloaded to (currently only applies to
 # mports:// sources).
 proc macports::getportdir {url {destdir "."}} {
+    global macports::extracted_portdirs
     set protocol [macports::getprotocol $url]
     switch ${protocol} {
         file {
-            return [file normalize [string range $url [expr [string length $protocol] + 3] end]]
+            set path [file normalize [string range $url [expr [string length $protocol] + 3] end]]
+            if {[file isdirectory $path]} {
+                return $path
+            } else {
+                # need to create a local dir for the exracted port, but only once
+                if {![info exists macports::extracted_portdirs($url)]} {
+                    set macports::extracted_portdirs($url) [macports::fetch_port $path 1]
+                }
+                return $macports::extracted_portdirs($url)
+            }
         }
         mports {
             return [macports::index::fetch_port $url $destdir]
@@ -1174,7 +1242,10 @@ proc macports::getportdir {url {destdir "."}} {
         https -
         http -
         ftp {
-            return [macports::fetch_port $url]
+            if {![info exists macports::extracted_portdirs($url)]} {
+                set macports::extracted_portdirs($url) [macports::fetch_port $url 0]
+            }
+            return $macports::extracted_portdirs($url)
         }
         default {
             return -code error "Unsupported protocol $protocol"

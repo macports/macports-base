@@ -2690,7 +2690,7 @@ proc _check_xcode_version {} {
 # check if we can unarchive this port
 proc _archive_available {} {
     global subport version revision portvariants ports_source_only workpath \
-           registry.path os.platform os.major
+           registry.path os.platform os.major porturl
 
     if {[tbool ports_source_only]} {
         return 0
@@ -2704,10 +2704,13 @@ proc _archive_available {} {
             break
         }
     }
-    
-    # TODO: also check if porturl points to an archive
-    # maybe check if there's an archive available on the server too - this
-    # is kind of useless otherwise now that archive == installed image
+
+    if {!$found && [file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
+        set found 1
+    }
+
+    # TODO: maybe check if there's an archive available on the server - this
+    # is much less useful otherwise now that archive == installed image
 
     return $found
 }
