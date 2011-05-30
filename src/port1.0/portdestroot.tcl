@@ -47,7 +47,6 @@ namespace eval portdestroot {
 
 # define options
 options destroot.target destroot.destdir destroot.clean destroot.keepdirs destroot.umask
-options destroot.violate_mtree destroot.asroot
 options startupitem.create startupitem.requires startupitem.init
 options startupitem.name startupitem.start startupitem.stop startupitem.restart
 options startupitem.type startupitem.executable
@@ -67,7 +66,6 @@ default destroot.nice {${buildnicevalue}}
 default destroot.umask {$system_options(destroot_umask)}
 default destroot.clean no
 default destroot.keepdirs ""
-default destroot.violate_mtree no
 
 default startupitem.name        {${subport}}
 default startupitem.uniquename  {org.macports.${startupitem.name}}
@@ -105,17 +103,6 @@ proc portdestroot::destroot_start {args} {
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Staging %s into destroot"] ${subport}]"
 
-    # start gsoc08-privileges
-    if { [getuid] == 0 && [geteuid] != 0 } {
-    # if started with sudo but have dropped the privileges
-        ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
-        ui_debug "Run destroot without sudo to avoid root privileges."
-        ui_debug "Going to escalate privileges back to root."
-        setegid $egid
-        seteuid $euid
-        ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
-    }
-
     if { [tbool destroot.asroot] && [getuid] != 0 } {
         return -code error "You cannot run this port without root privileges. You need to re-run with 'sudo port'.";
     }
@@ -123,20 +110,10 @@ proc portdestroot::destroot_start {args} {
     # end gsoc08-privileges
 
     set oldmask [umask ${destroot.umask}]
-    set mtree [findBinary mtree ${portutil::autoconf::mtree_path}]
 
     if { ${destroot.clean} == "yes" } {
         delete "${destroot}"
     }
-
-    file mkdir "${destroot}"
-    if { ${os.platform} == "darwin" } {
-        system "cd \"${destroot}\" && ${mtree} -e -U -f [file join ${portsharepath} install macosx.mtree]"
-        file mkdir "${destroot}${applications_dir}"
-        file mkdir "${destroot}${frameworks_dir}"
-    }
-    file mkdir "${destroot}${prefix}"
-    system "cd \"${destroot}${prefix}\" && ${mtree} -e -U -f [file join ${portsharepath} install prefix.mtree]"
 }
 
 proc portdestroot::destroot_main {args} {
@@ -145,7 +122,7 @@ proc portdestroot::destroot_main {args} {
 }
 
 proc portdestroot::destroot_finish {args} {
-    global UI_PREFIX destroot prefix subport startupitem.create destroot.violate_mtree
+    global UI_PREFIX destroot prefix subport startupitem.create
     global applications_dir frameworks_dir destroot.keepdirs
     global os.platform os.version
     variable oldmask
@@ -275,79 +252,6 @@ proc portdestroot::destroot_finish {args} {
         } else {
             ui_debug "No man pages found to compress."
         }
-    }
-
-    # test for violations of mtree
-    if { ${destroot.violate_mtree} != "yes" } {
-        ui_debug "checking for mtree violations"
-        set mtree_violation "no"
-
-        set prefixPaths [list bin etc include lib libexec sbin share src var www Applications Developer Library]
-
-        set pathsToCheck [list /]
-        while {[llength $pathsToCheck] > 0} {
-            set pathToCheck [lshift pathsToCheck]
-            foreach file [glob -nocomplain -directory $destroot$pathToCheck .* *] {
-                if {[file tail $file] eq "." || [file tail $file] eq ".."} {
-                    continue
-                }
-                if {[string equal -length [string length $destroot] $destroot $file]} {
-                    # just double-checking that $destroot is a prefix, as is appropriate
-                    set dfile [file join / [string range $file [string length $destroot] end]]
-                } else {
-                    throw MACPORTS "Unexpected filepath `${file}' while checking for mtree violations"
-                }
-                if {$dfile eq $prefix} {
-                    # we've found our prefix
-                    foreach pfile [glob -nocomplain -tails -directory $file .* *] {
-                        if {$pfile eq "." || $pfile eq ".."} {
-                            continue
-                        }
-                        if {[lsearch -exact $prefixPaths $pfile] == -1} {
-                            ui_warn "violation by [file join $dfile $pfile]"
-                            set mtree_violation "yes"
-                        }
-                    }
-                } elseif {[string equal -length [expr [string length $dfile] + 1] $dfile/ $prefix]} {
-                    # we've found a subpath of our prefix
-                    lpush pathsToCheck $dfile
-                } else {
-                    set dir_allowed no
-                    # these files are (at least potentially) outside of the prefix
-                    foreach dir "$applications_dir $frameworks_dir /Library/LaunchAgents /Library/LaunchDaemons /Library/StartupItems" {
-                        if {[string equal -length [expr [string length $dfile] + 1] $dfile/ $dir]} {
-                            # it's a prefix of one of the allowed paths
-                            set dir_allowed yes
-                            break
-                        }
-                    }
-                    if {$dir_allowed} {
-                        lpush pathsToCheck $dfile
-                    } else {
-                        # not a prefix of an allowed path, so it's either the path itself or a violation
-                        switch -- $dfile \
-                            $applications_dir - \
-                            $frameworks_dir - \
-                            /Library/LaunchAgents - \
-                            /Library/LaunchDaemons - \
-                            /Library/StartupItems { ui_debug "port installs files in $dfile" } \
-                            default {
-                                ui_warn "violation by $dfile"
-                                set mtree_violation "yes"
-                            }
-                    }
-                }
-            }
-        }
-
-        # abort here only so all violations can be observed
-        if { ${mtree_violation} != "no" } {
-            ui_warn "[format [msgcat::mc "%s violates the layout of the ports-filesystems!"] [option subport]]"
-            ui_warn "Please fix or indicate this misbehavior (if it is intended), it will be an error in future releases!"
-            # error "mtree violation!"
-        }
-    } else {
-        ui_warn "[format [msgcat::mc "%s installs files outside the common directory structure."] [option subport]]"
     }
 
     # Restore umask
