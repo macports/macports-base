@@ -52,10 +52,12 @@ TCLSH			= @TCLSH@
 TCL_PACKAGE_DIR		= @TCL_PACKAGE_DIR@
 macports_tcl_dir	= @macports_tcl_dir@
 
+DSCL			= @DSCL@
+DSEDITGROUP		= @DSEDITGROUP@
 DSTUSR			= @DSTUSR@
 DSTGRP			= @DSTGRP@
 DSTMODE			= @DSTMODE@
-
+RUNUSR			= @RUNUSR@
 
 prefix			= @prefix@
 sysconfdir		= @sysconfdir@

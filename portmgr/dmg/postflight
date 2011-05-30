@@ -45,6 +45,8 @@ CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
 MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
+DSCL=/usr/bin/dscl
+RUNUSR=macports
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
@@ -128,6 +130,28 @@ function link_tcl_package {
 	fi
 }
 
+# create the user to use for privilege dropping
+function create_run_user {
+    DSEDITGROUP=/usr/sbin/dseditgroup
+    if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then
+        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then
+            echo "Creating group \"${RUNUSR}\""
+            ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
+        fi
+        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
+            echo "Creating user \"${RUNUSR}\""
+            ${DSCL} -q . -create /Users/${RUNUSR} Password *
+            ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1))
+            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+            ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null
+            ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
+        fi
+    else
+        echo "Can't find ${DSCL} / ${DSEDITGROUP}, unable to create user \"${RUNUSR}\""
+        exit 1
+    fi
+}
+
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
 # Set up config files
@@ -141,7 +165,7 @@ delete_reg1
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(dscl . -read /users/${USER} shell | awk -F'/' '{print $NF}') || {
+USHELL=$(${DSCL} . -read /Users/${USER} shell | awk -F'/' '{print $NF}') || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1

@@ -37,6 +37,31 @@ install::
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  $(DESTDIR)${datadir}/macports/
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
+# create run user if it doesn't exist
+	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
+        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then \
+            if test $$USER = root; then \
+                echo "Creating group \"${RUNUSR}\"" ; \
+                ${DSEDITGROUP} -q -o create -n . ${RUNUSR} ; \
+            else \
+                echo "Not creating group \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
+            if test $$USER = root; then \
+                echo "Creating user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} Password * ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1)) ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}') ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
+            else \
+                echo "Not creating user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+    else \
+        echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+    fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) src/upgrade_sources_conf_default.tcl "${prefix}"
 # Convert image directories (and direct mode installs) to image archives
