@@ -70,7 +70,7 @@ if {[catch {dlist_count_unmet [list] status "foo"} value] || $value != 0 ||
 }
 
 # Replicate Shantonu's Bug #354 to test dlist functionality.
-# http://trac.macports.org/projects/macports/ticket/354
+# https://trac.macports.org/ticket/354
 # A depends on B, C.
 # B depends on C.
 # C has no dependencies.

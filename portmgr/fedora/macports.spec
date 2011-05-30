@@ -4,8 +4,8 @@ Version: 1.6.0
 Release: 0%{?dist}
 License: BSD
 Group: System Environment/Base
-URL: http://www.macports.org
-Source: http://svn.macosforge.org/repository/macports/distfiles/MacPorts/MacPorts-%{version}.tar.bz2
+URL: http://www.macports.org/
+Source: https://svn.macports.org/repository/macports/distfiles/MacPorts/MacPorts-%{version}.tar.bz2
 Prefix: /opt/local
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 

@@ -310,7 +310,7 @@ proc portchecksum::checksum_main {args} {
             ui_notice "***"
             ui_notice "The non-matching file appears to be HTML. See this page for possible reasons"
             ui_notice "for the checksum mismatch:"
-            ui_notice "<http://trac.macports.org/wiki/MisbehavingServers>"
+            ui_notice "<https://trac.macports.org/wiki/MisbehavingServers>"
             ui_notice "***"
         }
 

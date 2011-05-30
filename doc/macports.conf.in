@@ -78,7 +78,7 @@ universal_archs		@UNIVERSAL_ARCHS@
 
 # Rsync server to fetch MacPorts sources from. Note that this is only used
 # for selfupdate. The source(s) for the ports tree are set in sources.conf.
-# Known mirrors at time of writing (see http://trac.macports.org/wiki/Mirrors
+# Known mirrors at time of writing (see https://trac.macports.org/wiki/Mirrors
 # for the current list):
 #   rsync.macports.org        - California, USA (master)
 #   trd.no.rsync.macports.org - Trondheim, Norway

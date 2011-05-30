@@ -39,9 +39,9 @@ consistent name. To do this, two things are required:
    first creating the needed branch directory to preserve the required directory structure
    (the 'base' directory level *needs* to exist in each release branch, otherwise selfupdate breaks):
 
- svn mkdir -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_6
- svn cp [-r<rev>] -m "commit-message" http://svn.macports.org/repository/macports/trunk/base \
-     http://svn.macports.org/repository/macports/branches/release_1_6
+ svn mkdir -m "commit-message" https://svn.macports.org/repository/macports/branches/release_1_6
+ svn cp [-r<rev>] -m "commit-message" https://svn.macports.org/repository/macports/trunk/base \
+     https://svn.macports.org/repository/macports/branches/release_1_6
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all
 live on this branch, and tagged appropriately and if necessary (a must for the actual releases,
@@ -88,8 +88,8 @@ Tagging conventions:
 
 We first tag the branched base directory to make up the final release:
 
- svn cp -m "commit-message" http://svn.macports.org/repository/macports/branches/release_1_6 \
-     http://svn.macports.org/repository/macports/tags/release_1_6_0
+ svn cp -m "commit-message" https://svn.macports.org/repository/macports/branches/release_1_6 \
+     https://svn.macports.org/repository/macports/tags/release_1_6_0
 
 Although only the base subdirectory is branched and tagged for a given major release, we also create a
 separate tag for the entire tree (base sources and full ports tree) at the time the final release tag is
@@ -101,14 +101,14 @@ The necessary working copy to create such a tag is created by checking out all o
 revision of the final tagging of base and then switching the base directory to the appropriate release
 tag URL. For instance:
 
- svn co [-r<rev>] http://svn.macports.org/repository/macports/trunk release_1.6.0-archive
+ svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_1.6.0-archive
  cd release_1.6.0-archive/base
- svn switch http://svn.macports.org/repository/macports/tags/release_1_6_0/base
+ svn switch https://svn.macports.org/repository/macports/tags/release_1_6_0/base
 
 And finally we tag the entire directory as release_1_6_0-archive:
 
  cd ../../
- svn cp -m "commit-message" release_1.6.0-archive http://svn.macports.org/repository/macports/tags/release_1_6_0-archive
+ svn cp -m "commit-message" release_1.6.0-archive https://svn.macports.org/repository/macports/tags/release_1_6_0-archive
 
 
 === Create & Post Release Tarballs ===
@@ -217,7 +217,7 @@ Once the release has been posted, notification of the release should be sent/pos
 
  * The macports-announce@, macports-users@ and macports-dev@ mailing lists.
  * The MacPorts website, by adapting the $macports_version_major and $macports_version_latest variables as appropriate in the trunk/www/includes/common.inc file.
- * [http://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
+ * [https://trac.macports.org/news/] The MacOSforge news section (submitter: portmgr@)
  * [http://www.apple.com/downloads/macosx/unix_open_source/macports.html Apple's downloads page] (submitter: jmpp@)
  * [http://freshmeat.net/projects/macports/ Freshmeat] (submitter: mww@)
  * [http://www.versiontracker.com/dyn/moreinfo/macosx/26679 VersionTracker] (submitter: mij@)
