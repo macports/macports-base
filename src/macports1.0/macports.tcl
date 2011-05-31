@@ -43,7 +43,7 @@ namespace eval macports {
         portdbpath libpath binpath auto_path extra_env sources_conf prefix portdbformat \
         portarchivetype portautoclean \
         porttrace portverbose keeplogs destroot_umask variants_conf rsync_server rsync_options \
-        rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd \
+        rsync_dir startupitem_type place_worksymlink xcodeversion xcodebuildcmd gccversion \
         mp_remote_url mp_remote_submit_url configureccache ccache_dir ccache_size configuredistcc configurepipe buildnicevalue buildmakejobs \
         applications_dir frameworks_dir developer_dir universal_archs build_arch macosx_deployment_target \
         macportsuser proxy_override_env proxy_http proxy_https proxy_ftp proxy_rsync proxy_skip \
@@ -61,7 +61,7 @@ namespace eval macports {
     # deferred options are only computed when needed.
     # they are not exported to the trace thread.
     # they are not exported to the interpreter in system_options array.
-    variable portinterp_deferred_options "xcodeversion xcodebuildcmd"
+    variable portinterp_deferred_options "xcodeversion xcodebuildcmd gccversion"
 
     variable open_mports {}
 
@@ -407,6 +407,38 @@ proc macports::setxcodeinfo {name1 name2 op} {
     }
 }
 
+# deferred and on-need extraction of gcc version.
+proc macports::setgccinfo {name1 name2 op} {
+    global macports::gccversion
+
+    trace remove variable macports::gccversion read macports::setgccinfo
+    
+    # Default value
+    set macports::gccversion "none"
+    
+    # Find gcc in path
+    if {[catch {set gccpath [binaryInPath "gcc"]}] != 0} {
+        # Failed
+        return
+    }
+    
+    # Call gcc -v - Note that output will be on stderr not stdout
+    # This succeeds if catch returns nonzero
+    if { [catch { exec $gccpath -v } gccinfo] == 0} {
+        # Failed
+        return
+    }
+    
+    
+    # Extract version
+    if {[regexp {gcc version ([0-9.]+)} $gccinfo - gcc_v] == 1} {
+        # Set gcc version
+        set macports::gccversion $gcc_v
+    } else {
+        ui_warn "gcc exists but could not read version information"
+    }
+}
+
 proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     if {$up_ui_options eq ""} {
         array set macports::ui_options {}
@@ -457,6 +489,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global macports::stats_participate
     global macports::xcodebuildcmd
     global macports::xcodeversion
+    global macports::gccversion
     global macports::configureccache
     global macports::ccache_dir
     global macports::ccache_size
@@ -844,6 +877,12 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         # We'll resolve these later (if needed)
         trace add variable macports::xcodeversion read macports::setxcodeinfo
         trace add variable macports::xcodebuildcmd read macports::setxcodeinfo
+    }
+    
+    # Add trace for gcc version check
+    if {![info exists gccversion]} {
+        # We'll resolve these later (if needed)
+        trace add variable macports::gccversion read macports::setgccinfo
     }
 
     # Set the default umask
