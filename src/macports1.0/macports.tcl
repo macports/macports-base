@@ -945,35 +945,30 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
         }
     }
     
-    # init registry if needed
-    if {${registry.format} == "receipt_sqlite"} {
-        set db_path [file join ${registry.path} registry registry.db]
-        set db_exists [file exists $db_path]
-        registry::open $db_path
-        # for the benefit of the portimage code that is called from multiple interpreters
-        global registry_open
-        set registry_open yes
-        # convert any flat receipts if we just created a new db
-        if {$db_exists == 0 && [file writable $db_path]} {
-            ui_warn "Converting your registry to sqlite format, this might take a while..."
-            if {[catch {registry::convert_to_sqlite}]} {
-                ui_debug "$::errorInfo"
-                file delete -force $db_path
-                error "Failed to convert your registry to sqlite!"
-            } else {
-                ui_warn "Successfully converted your registry to sqlite!"
-            }
+    # init registry
+    set db_path [file join ${registry.path} registry registry.db]
+    set db_exists [file exists $db_path]
+    registry::open $db_path
+    # for the benefit of the portimage code that is called from multiple interpreters
+    global registry_open
+    set registry_open yes
+    # convert any flat receipts if we just created a new db
+    if {$db_exists == 0 && [file writable $db_path]} {
+        ui_warn "Converting your registry to sqlite format, this might take a while..."
+        if {[catch {registry::convert_to_sqlite}]} {
+            ui_debug "$::errorInfo"
+            file delete -force $db_path
+            error "Failed to convert your registry to sqlite!"
+        } else {
+            ui_warn "Successfully converted your registry to sqlite!"
         }
     }
 }
 
 # call this just before you exit
 proc mportshutdown {} {
-    global macports::registry.format
-    if {${registry.format} == "receipt_sqlite"} {
-        # close it down so the cleanup stuff is called, e.g. vacuuming the db
-        registry::close
-    }
+    # close it down so the cleanup stuff is called, e.g. vacuuming the db
+    registry::close
 }
 
 proc macports::worker_init {workername portpath porturl portbuildpath options variations} {
@@ -1381,10 +1376,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
 # mportopen_installed
 # opens a portfile stored in the registry
 proc mportopen_installed {name version revision variants options} {
-    global macports::registry.format macports::registry.path
-    if {${registry.format} != "receipt_sqlite"} {
-        return -code error "mportopen_installed requires sqlite registry"
-    }
+    global macports::registry.path
     set regref [lindex [registry::entry imaged $name $version $revision $variants] 0]
     set portfile_dir [file join ${registry.path} registry portfiles $name "${version}_${revision}${variants}"]
     file mkdir $portfile_dir
@@ -3293,7 +3285,6 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         }
     }
 
-    global macports::registry.format
     # are we installing an existing version due to force or epoch override?
     if {[registry::entry_exists $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants)]
         && ([info exists options(ports_upgrade_force)] || $build_override == 1)} {
@@ -3305,7 +3296,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         set newregref [registry::open_entry $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) $existing_epoch]
         if {$is_dryrun eq "yes"} {
             ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
-        } elseif {!(${registry.format} == "receipt_sqlite" && [registry::run_target $newregref uninstall [array get options]])
+        } elseif {![registry::run_target $newregref uninstall [array get options]]
                   && [catch {registry_uninstall::uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
@@ -3329,7 +3320,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {$is_dryrun eq "yes"} {
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
         } elseif {![catch {registry::active $portname}] &&
-                  !(${registry.format} == "receipt_sqlite" && [registry::run_target $regref deactivate [array get options]])
+                  ![registry::run_target $regref deactivate [array get options]]
                   && [catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
@@ -3405,7 +3396,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             set regref [registry::open_entry $portname $version $revision $variant $epoch]
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
-            } elseif {!(${registry.format} == "receipt_sqlite" && [registry::run_target $regref uninstall $optionslist])
+            } elseif {![registry::run_target $regref uninstall $optionslist]
                       && [catch {registry_uninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"

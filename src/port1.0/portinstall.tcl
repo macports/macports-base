@@ -54,7 +54,7 @@ set_ui_prefix
 
 proc portinstall::install_start {args} {
     global UI_PREFIX subport version revision portvariants
-    global prefix registry_open registry.format registry.path
+    global prefix registry_open registry.path
     ui_notice "$UI_PREFIX [format [msgcat::mc "Installing %s @%s_%s%s"] $subport $version $revision $portvariants]"
     
     # start gsoc08-privileges
@@ -66,7 +66,7 @@ proc portinstall::install_start {args} {
     }
     # end gsoc08-privileges
     
-    if {${registry.format} == "receipt_sqlite" && ![info exists registry_open]} {
+    if {![info exists registry_open]} {
         registry::open [file join ${registry.path} registry registry.db]
         set registry_open yes
     }
@@ -483,7 +483,7 @@ proc portinstall::install_main {args} {
     homepage depends_run package-install workdir workpath \
     worksrcdir UI_PREFIX destroot revision maintainers user_options \
     portvariants negated_variants targets depends_lib PortInfo epoch license \
-    registry.format os.platform os.major portarchivetype installPlist
+    os.platform os.major portarchivetype installPlist
 
     set oldpwd [pwd]
     if {$oldpwd == ""} {
@@ -503,112 +503,54 @@ proc portinstall::install_main {args} {
         set installPlist [extract_contents $location $portarchivetype]
     }
 
-    if {[string equal ${registry.format} "receipt_sqlite"]} {
-        # registry2.0
-
-        # can't do this inside the write transaction due to deadlock issues with _get_dep_port
-        set dep_portnames [list]
-        foreach deplist {depends_lib depends_run} {
-            if {[info exists $deplist]} {
-                foreach dep [set $deplist] {
-                    set dep_portname [_get_dep_port $dep]
-                    if {$dep_portname != ""} {
-                        lappend dep_portnames $dep_portname
-                    }
+    # can't do this inside the write transaction due to deadlock issues with _get_dep_port
+    set dep_portnames [list]
+    foreach deplist {depends_lib depends_run} {
+        if {[info exists $deplist]} {
+            foreach dep [set $deplist] {
+                set dep_portname [_get_dep_port $dep]
+                if {$dep_portname != ""} {
+                    lappend dep_portnames $dep_portname
                 }
             }
         }
+    }
 
-        registry::write {
+    registry::write {
 
-            set regref [registry::entry create $subport $version $revision $portvariants $epoch]
-
-            if {[info exists user_options(ports_requested)]} {
-                $regref requested $user_options(ports_requested)
-            } else {
-                $regref requested 0
-            }
-            $regref os_platform ${os.platform}
-            $regref os_major ${os.major}
-            $regref archs [get_canonical_archs]
-            # Trick to have a portable GMT-POSIX epoch-based time.
-            $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
-            if {[info exists negated_variants]} {
-                $regref negated_variants $negated_variants
-            }
-
-            foreach dep_portname $dep_portnames {
-                $regref depends $dep_portname
-            }
-
-            $regref installtype image
-            $regref state imaged
-            $regref location $location
-
-            if {[info exists installPlist]} {
-                # register files
-                $regref map $installPlist
-            }
-            
-            # store portfile
-            set fd [open [file join ${portpath} Portfile]]
-            $regref portfile [read $fd]
-            close $fd
-        }
-    } else {
-        # Begin the registry entry
-        set regref [registry_new $subport $version $revision $portvariants $epoch]
-        if {[info exists negated_variants]} {
-            registry_prop_store $regref negated_variants $negated_variants
-        }
-
-        registry_prop_store $regref location $location
+        set regref [registry::entry create $subport $version $revision $portvariants $epoch]
 
         if {[info exists user_options(ports_requested)]} {
-            registry_prop_store $regref requested $user_options(ports_requested)
+            $regref requested $user_options(ports_requested)
         } else {
-            registry_prop_store $regref requested 0
+            $regref requested 0
         }
-        registry_prop_store $regref categories $categories
+        $regref os_platform ${os.platform}
+        $regref os_major ${os.major}
+        $regref archs [get_canonical_archs]
+        # Trick to have a portable GMT-POSIX epoch-based time.
+        $regref date [expr [clock scan now -gmt true] - [clock scan "1970-1-1 00:00:00" -gmt true]]
+        if {[info exists negated_variants]} {
+            $regref negated_variants $negated_variants
+        }
 
-        registry_prop_store $regref os_platform ${os.platform}
-        registry_prop_store $regref os_major ${os.major}
-        registry_prop_store $regref archs [get_canonical_archs]
+        foreach dep_portname $dep_portnames {
+            $regref depends $dep_portname
+        }
 
-        if {[info exists description]} {
-            registry_prop_store $regref description [string map {\n \\n} ${description}]
-        }
-        if {[info exists long_description]} {
-            registry_prop_store $regref long_description [string map {\n \\n} ${long_description}]
-        }
-        if {[info exists license]} {
-            registry_prop_store $regref license ${license}
-        }
-        if {[info exists homepage]} {
-            registry_prop_store $regref homepage ${homepage}
-        }
-        if {[info exists maintainers]} {
-            registry_prop_store $regref maintainers ${maintainers}
-        }
-        if {[info exists depends_run]} {
-            registry_prop_store $regref depends_run $depends_run
-            registry_register_deps $depends_run $subport
-        }
-        if {[info exists depends_lib]} {
-            registry_prop_store $regref depends_lib $depends_lib
-            registry_register_deps $depends_lib $subport
-        }
+        $regref installtype image
+        $regref state imaged
+        $regref location $location
+
         if {[info exists installPlist]} {
-            registry_prop_store $regref contents [_fake_fileinfo_for_index $installPlist]
+            # register files
+            $regref map $installPlist
         }
-        if {[info exists package-install]} {
-            registry_prop_store $regref package-install ${package-install}
-        }
-        if {[info proc pkg_uninstall] == "pkg_uninstall"} {
-            registry_prop_store $regref pkg_uninstall [proc_disasm pkg_uninstall]
-        }
-
-        registry_write $regref
+        
+        # store portfile
+        set fd [open [file join ${portpath} Portfile]]
+        $regref portfile [read $fd]
+        close $fd
     }
 
     _cd $oldpwd

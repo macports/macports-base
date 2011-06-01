@@ -2217,15 +2217,13 @@ proc action_provides { action portlist opts } {
 
 
 proc action_activate { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_activate_no-exec)]
+        if {![info exists options(ports_activate_no-exec)]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
@@ -2251,15 +2249,13 @@ proc action_activate { action portlist opts } {
 
 
 proc action_deactivate { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_deactivate_no-exec)]
+        if {![info exists options(ports_deactivate_no-exec)]
             && ![catch {set ilist [registry::active $portname]}]} {
 
             set i [lindex $ilist 0]
@@ -2412,7 +2408,6 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_setrequested { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
@@ -2426,9 +2421,6 @@ proc action_setrequested { action portlist opts } {
             foreach i $ilist {
                 set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
                 registry::property_store $regref requested $val
-                if {${macports::registry.format} != "receipt_sqlite"} {
-                    registry::write_entry $regref
-                }
             }
         } else {
             global errorInfo
@@ -2809,7 +2801,6 @@ proc action_deps { action portlist opts } {
 
 
 proc action_uninstall { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[macports::global_option_isset port_uninstall_old]} {
         # if -u then uninstall all inactive ports
@@ -2831,8 +2822,7 @@ proc action_uninstall { action portlist opts } {
             continue
         }
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_uninstall_no-exec)]
+        if {![info exists options(ports_uninstall_no-exec)]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
