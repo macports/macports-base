@@ -58,7 +58,7 @@ set checksum_types "md5 sha1 rmd160 sha256"
 set checksum_types_count [llength $checksum_types]
 
 # types to recommend if none are specified in the portfile
-set default_checksum_types {sha1 rmd160}
+set default_checksum_types {rmd160 sha256}
 
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
