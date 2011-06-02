@@ -40,6 +40,7 @@ namespace eval macports::autoconf {
     variable macports_user_dir "~/.macports"
     variable macportsuser "@RUNUSR@"
     variable open_path "@OPEN@"
+    variable openssl_path "@OPENSSL@"
     variable pax_path "@PAX@"
     variable rsync_path "@RSYNC@"
     variable tar_command "@TAR_CMD@"

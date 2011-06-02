@@ -1860,7 +1860,7 @@ proc _source_is_snapshot {url {filename ""} {extension ""}} {
     upvar $filename myfilename
     upvar $extension myextension
 
-    if {[regexp {^(?:https?|ftp)://.+/(.+\.(tar\.gz|tar\.bz2))$} $url -> f e]} {
+    if {[regexp {^(?:https?|ftp|rsync)://.+/(.+\.(tar\.gz|tar\.bz2|tar))$} $url -> f e]} {
         set myfilename $f
         set myextension $e
 
@@ -1904,7 +1904,7 @@ proc macports::getindex {source} {
 proc mportsync {{optionslist {}}} {
     global macports::sources macports::portdbpath macports::rsync_options tcl_platform
     global macports::portverbose
-    global macports::autoconf::rsync_path
+    global macports::autoconf::rsync_path macports::autoconf::tar_path macports::autoconf::openssl_path
     array set options $optionslist
 
     set numfailed 0
@@ -1956,13 +1956,21 @@ proc mportsync {{optionslist {}}} {
                 # Where to, boss?
                 set indexfile [macports::getindex $source]
                 set destdir [file dirname $indexfile]
+                set is_tarball [_source_is_snapshot $source]
                 file mkdir $destdir
-                # Keep rsync happy with a trailing slash
-                if {[string index $source end] != "/"} {
-                    append source "/"
+
+                if {$is_tarball} {
+                    set exclude_option ""
+                    # need to do a few things before replacing the ports tree in this case
+                    set destdir [file dirname $destdir]
+                } else {
+                    # Keep rsync happy with a trailing slash
+                    if {[string index $source end] != "/"} {
+                        append source "/"
+                    }
+                    # don't sync PortIndex yet; we grab the platform specific one afterwards
+                    set exclude_option "'--exclude=/PortIndex*'"
                 }
-                # don't sync PortIndex yet; we grab the platform specific one afterwards
-                set exclude_option "'--exclude=/PortIndex*'"
                 # Do rsync fetch
                 set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${exclude_option} ${source} ${destdir}"
                 ui_debug $rsync_commandline
@@ -1971,15 +1979,97 @@ proc mportsync {{optionslist {}}} {
                     incr numfailed
                     continue
                 }
+
+                if {$is_tarball} {
+                    # verify signature for tarball
+                    global macports::archivefetch_pubkeys
+                    set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${exclude_option} ${source}.rmd160 ${destdir}"
+                    ui_debug $rsync_commandline
+                    if {[catch {system $rsync_commandline}]} {
+                        ui_error "Synchronization of the ports tree signature failed doing rsync"
+                        incr numfailed
+                        continue
+                    }
+                    set tarball "${destdir}/[file tail $source]"
+                    set signature "${tarball}.rmd160"
+                    set openssl [findBinary openssl $macports::autoconf::openssl_path]
+                    set verified 0
+                    foreach pubkey ${macports::archivefetch_pubkeys} {
+                        if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball} result]} {
+                            set verified 1
+                            ui_debug "successful verification with key $pubkey"
+                            break
+                        } else {
+                            ui_debug "failed verification with key $pubkey"
+                            ui_debug "openssl output: $result"
+                        }
+                    }
+                    if {!$verified} {
+                        ui_error "Failed to verify signature for ports tree!"
+                        incr numfailed
+                        continue
+                    }
+
+                    # extract tarball and move into place
+                    set tar [macports::findBinary tar $macports::autoconf::tar_path]
+                    file mkdir ${destdir}/tmp
+                    set tar_cmd "$tar -C ${destdir}/tmp -xf ${tarball}"
+                    ui_debug $tar_cmd
+                    if {[catch {system $tar_cmd}]} {
+                        ui_error "Failed to extract ports tree from tarball!"
+                        incr numfailed
+                        continue
+                    }
+                    # save the local PortIndex data
+                    if {[file isfile $indexfile]} {
+                        file rename -force $indexfile ${destdir}/tmp/ports/
+                        if {[file isfile ${indexfile}.quick]} {
+                            file rename -force ${indexfile}.quick ${destdir}/tmp/ports/
+                        }
+                    }
+                    file delete -force ${destdir}/ports
+                    file rename ${destdir}/tmp/ports ${destdir}/ports
+                    file delete -force ${destdir}/tmp
+                }
+
                 # now sync the index if the local file is missing or older than a day
                 if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400} {
+                    if {$is_tarball} {
+                        # chop ports.tar off the end
+                        set source [string range $source 0 end-[string length [file tail $source]]]
+                    }
                     set remote_indexfile "${source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
                     set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} $remote_indexfile ${destdir}"
                     ui_debug $rsync_commandline
                     if {[catch {system $rsync_commandline}]} {
                         ui_debug "Synchronization of the PortIndex failed doing rsync"
                     } else {
-                        mports_generate_quickindex $indexfile
+                        set ok 1
+                        if {$is_tarball} {
+                            set ok 0
+                            # verify signature for PortIndex
+                            set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} ${remote_indexfile}.rmd160 ${destdir}"
+                            ui_debug $rsync_commandline
+                            if {![catch {system $rsync_commandline}]} {
+                                foreach pubkey ${macports::archivefetch_pubkeys} {
+                                    if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature ${destdir}/PortIndex.rmd160 ${destdir}/PortIndex} result]} {
+                                        set ok 1
+                                        ui_debug "successful verification with key $pubkey"
+                                        break
+                                    } else {
+                                        ui_debug "failed verification with key $pubkey"
+                                        ui_debug "openssl output: $result"
+                                    }
+                                }
+                                if {$ok} {
+                                    # move PortIndex into place
+                                    file rename -force ${destdir}/PortIndex ${destdir}/ports/
+                                }
+                            }
+                        }
+                        if {$ok} {
+                            mports_generate_quickindex $indexfile
+                        }
                     }
                 }
                 if {[catch {system "chmod -R a+r \"$destdir\""}]} {
@@ -2786,6 +2876,7 @@ proc macports::_deptypes_for_target {target workername} {
 proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     global macports::prefix macports::portdbpath macports::libpath macports::rsync_server macports::rsync_dir macports::rsync_options
     global macports::autoconf::macports_version macports::autoconf::rsync_path tcl_platform
+    global macports::autoconf::openssl_path macports::autoconf::tar_path
     array set options $optionslist
     
     # variable that indicates whether we actually updated base
@@ -2802,8 +2893,18 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
         }
     }
 
+    # are we syncing a tarball? (implies detached signature)
+    set is_tarball 0
+    if {[string range ${rsync_dir} end-3 end] == ".tar"} {
+        set is_tarball 1
+        set mp_source_path [file join $portdbpath sources ${rsync_server} [file dirname ${rsync_dir}]]
+    } else {
+        if {[string index $rsync_dir end] != "/"} {
+            append rsync_dir "/"
+        }
+        set mp_source_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}]
+    }
     # create the path to the to be downloaded sources if it doesn't exist
-    set mp_source_path [file join $portdbpath sources ${rsync_server} ${rsync_dir}/]
     if {![file exists $mp_source_path]} {
         file mkdir $mp_source_path
     }
@@ -2813,6 +2914,45 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
     ui_msg "--->  Updating MacPorts base sources using rsync"
     if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir} $mp_source_path" } result ] } {
        return -code error "Error synchronizing MacPorts sources: $result"
+    }
+
+    if {$is_tarball} {
+        # verify signature for tarball
+        global macports::archivefetch_pubkeys
+        if { [catch { system "$rsync_path $rsync_options rsync://${rsync_server}/${rsync_dir}.rmd160 $mp_source_path" } result ] } {
+            return -code error "Error synchronizing MacPorts source signature: $result"
+        }
+        set openssl [findBinary openssl $macports::autoconf::openssl_path]
+        set tarball "${mp_source_path}/[file tail $rsync_dir]"
+        set signature "${tarball}.rmd160"
+        set verified 0
+        foreach pubkey ${macports::archivefetch_pubkeys} {
+            if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball} result]} {
+                set verified 1
+                ui_debug "successful verification with key $pubkey"
+                break
+            } else {
+                ui_debug "failed verification with key $pubkey"
+                ui_debug "openssl output: $result"
+            }
+        }
+        if {!$verified} {
+            return -code error "Failed to verify signature for MacPorts source!"
+        }
+        
+        # extract tarball and move into place
+        set tar [macports::findBinary tar $macports::autoconf::tar_path]
+        file mkdir ${mp_source_path}/tmp
+        set tar_cmd "$tar -C ${mp_source_path}/tmp -xf ${tarball}"
+        ui_debug $tar_cmd
+        if {[catch {system $tar_cmd}]} {
+            return -code error "Failed to extract MacPorts sources from tarball!"
+        }
+        file delete -force ${mp_source_path}/base
+        file rename ${mp_source_path}/tmp/base ${mp_source_path}/base
+        file delete -force ${mp_source_path}/tmp
+        # set the final extracted source path
+        set mp_source_path ${mp_source_path}/base
     }
 
     # echo current MacPorts version
