@@ -218,9 +218,9 @@ proc portarchivefetch::fetchfiles {args} {
                     ui_debug "$::errorInfo"
                     return -code error "Failed to fetch signature for archive: $result"
                 }
+                set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                 set verified 0
                 foreach pubkey [option archivefetch.pubkeys] {
-                    set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature "${incoming_path}/${archive}.TMP"} result]} {
                         set verified 1
                         break
