@@ -57,9 +57,9 @@ proc portpostdestroot::postdestroot_symlink_check {} {
         if { [string compare [file pathtype $points_to] {absolute}] == 0 } {
             if {[regexp $destroot $points_to]} {
                 ui_debug "Absolute link path pointing to inside of destroot"
-                return -code error "Absolute link path poiting to inside of destroot"
+                return -code error "Absolute link path pointing to inside of destroot"
             } else {
-                ui_debug "Absolute link path poiting to outside of destroot"
+                ui_debug "Absolute link path pointing to outside of destroot"
             }
         } elseif { [string compare [file pathtype $points_to] {relative}] == 0 } {
             regsub $destroot$prefix/ $link "" link_without_destroot
@@ -69,8 +69,8 @@ proc portpostdestroot::postdestroot_symlink_check {} {
             if { $return_delta < $dir_depth } {
                 ui_debug "Relative link path pointing to inside of destroot"
             } else {
-                ui_debug "Relative link path poiting to outside of destroot"
-                return -code error "Relative link path poiting to outside of destroot"
+                ui_debug "Relative link path pointing to outside of destroot"
+                return -code error "Relative link path pointing to outside of destroot"
             }
         }
     }
