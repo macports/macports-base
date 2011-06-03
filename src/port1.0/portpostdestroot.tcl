@@ -48,7 +48,7 @@ proc portpostdestroot::links_list {dir} {
     return $ret
 }
 
-# Check for erros on port symlinks
+# Check for errors on port symlinks
 proc portpostdestroot::postdestroot_symlink_check {} {
     global UI_PREFIX destroot prefix
     ui_notice "$UI_PREFIX Checking for links"
@@ -56,7 +56,7 @@ proc portpostdestroot::postdestroot_symlink_check {} {
         set points_to [file link $link]
         if { [string compare [file pathtype $points_to] {absolute}] == 0 } {
             if {[regexp $destroot $points_to]} {
-                ui_debug "Absolute link path poiting to inside of destroot"
+                ui_debug "Absolute link path pointing to inside of destroot"
                 return -code error "Absolute link path poiting to inside of destroot"
             } else {
                 ui_debug "Absolute link path poiting to outside of destroot"
@@ -67,7 +67,7 @@ proc portpostdestroot::postdestroot_symlink_check {} {
             set return_depth [regsub -all {\.\./} $points_to "" points_to_without_returns]
             set return_delta [expr $return_depth - [regexp -all / $points_to_without_returns]]
             if { $return_delta < $dir_depth } {
-                ui_debug "Relative link path poiting to inside of destroot"
+                ui_debug "Relative link path pointing to inside of destroot"
             } else {
                 ui_debug "Relative link path poiting to outside of destroot"
                 return -code error "Relative link path poiting to outside of destroot"
