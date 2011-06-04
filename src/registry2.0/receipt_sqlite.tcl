@@ -172,8 +172,8 @@ proc installed {{name ""} {version ""}} {
 	    set ports {}
 	    set possible_ports [registry::entry imaged $name]
 	    foreach p $possible_ports {
-	        if {"[$port version]_[$port revision][$port variants]" == $version
-	            || [$port version] == $version} {
+	        if {"[$p version]_[$p revision][$p variants]" == $version
+	            || [$p version] == $version} {
 	            lappend ports $p
 	        }
 	    }
