@@ -63,8 +63,18 @@ namespace eval portimage {
 variable force 0
 variable noexec 0
 
+# takes a composite version spec rather than separate version,revision,variants
+proc activate_composite {name {v ""} {optionslist ""}} {
+    if {$v == ""} {
+        return [activate $name "" "" 0 $optionslist]
+    } elseif {[registry::decode_spec $v version revision variants]} {
+        return [activate $name $version $revision $variants $optionslist]
+    }
+    throw registry::invalid "Registry error: Invalid version '$v' specified for ${name}. Please specify a version as recorded in the port registry."
+}
+
 # Activate a "Port Image"
-proc activate {name v optionslist} {
+proc activate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
     global macports::prefix macports::registry.path registry_open UI_PREFIX
     array set options $optionslist
     variable force
@@ -84,7 +94,7 @@ proc activate {name v optionslist} {
 
     registry::read {
 
-        set requested [_check_registry $name $v]
+        set requested [_check_registry $name $version $revision $variants]
         # set name again since the one we were passed may not have had the correct case
         set name [$requested name]
         set version [$requested version]
@@ -103,32 +113,38 @@ proc activate {name v optionslist} {
 
         # this shouldn't be possible
         if { ![string equal [$requested installtype] "image"] } {
-            return -code error "Image error: ${name} @${version}_${revision}${variants} not installed as an image."
+            return -code error "Image error: ${name} @${specifier} not installed as an image."
         }
         if {![file isfile $location]} {
             return -code error "Image error: Can't find image file $location"
         }
         if { [string equal [$requested state] "installed"] } {
-            return -code error "Image error: ${name} @${version}_${revision}${variants} is already active."
+            return -code error "Image error: ${name} @${specifier} is already active."
         }
     }
     foreach a $todeactivate {
         if {$noexec || ![registry::run_target $a deactivate [list ports_nodepcheck 1]]} {
-            deactivate $name "[$a version]_[$a revision][$a variants]" [list ports_nodepcheck 1]
+            deactivate $name [$a version] [$a revision] [$a variants] [list ports_nodepcheck 1]
         }
     }
 
-    if {$v != ""} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $v]"
-    } else {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s"] $name]"
-    }
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Activating %s @%s"] $name $specifier]"
 
     _activate_contents $requested
     $requested state installed
 }
 
-proc deactivate {name v optionslist} {
+# takes a composite version spec rather than separate version,revision,variants
+proc deactivate_composite {name {v ""} {optionslist ""}} {
+    if {$v == ""} {
+        return [deactivate $name "" "" 0 $optionslist]
+    } elseif {[registry::decode_spec $v version revision variants]} {
+        return [deactivate $name $version $revision $variants $optionslist]
+    }
+    throw registry::invalid "Registry error: Invalid version '$v' specified for ${name}. Please specify a version as recorded in the port registry."
+}
+
+proc deactivate {name {version ""} {revision ""} {variants 0} {optionslist ""}} {
     global UI_PREFIX macports::registry.path registry_open
     array set options $optionslist
 
@@ -156,20 +172,18 @@ proc deactivate {name v optionslist} {
     }
     # set name again since the one we were passed may not have had the correct case
     set name [$requested name]
-    set version [$requested version]
-    set revision [$requested revision]
-    set variants [$requested variants]
-    set specifier "${version}_${revision}${variants}"
+    set specifier "[$requested version]_[$requested revision][$requested variants]"
 
-    if { $v != "" && ![string equal $specifier $v] } {
+    if {$version != "" && ($version != [$requested version] ||
+        ($revision != "" && ($revision != [$requested revision] || $variants != [$requested variants])))} {
+        set v $version
+        if {$revision != ""} {
+            append v _${revision}${variants}
+        }
         return -code error "Active version of $name is not $v but ${specifier}."
     }
 
-    if {$v != ""} {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $v]"
-    } else {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s"] $name]"
-    }
+    ui_msg "$UI_PREFIX [format [msgcat::mc "Deactivating %s @%s"] $name $specifier]"
 
     if { ![string equal [$requested installtype] "image"] } {
         return -code error "Image error: ${name} @${specifier} not installed as an image."
@@ -187,18 +201,24 @@ proc deactivate {name v optionslist} {
     $requested state imaged
 }
 
-proc _check_registry {name v} {
+proc _check_registry {name version revision variants} {
     global UI_PREFIX
 
-    if { [registry::decode_spec $v version revision variants] } {
-        set ilist [registry::entry imaged $name $version $revision $variants]
-        set valid 1
-    } else {
-        set valid [string equal $v {}]
-        set ilist [registry::entry imaged $name]
+    set searchkeys $name
+    set composite_spec ""
+    if {$version != ""} {
+        lappend searchkeys $version
+        set composite_spec $version
+        # restriction imposed by underlying registry API (see entry.c):
+        # if a revision is specified, so must variants be
+        if {$revision != ""} {
+            lappend searchkeys $revision $variants
+            append composite_spec _${revision}${variants}
+        }
     }
+    set ilist [eval registry::entry imaged $searchkeys]
 
-    if { [llength $ilist] > 1 || (!$valid && [llength $ilist] == 1) } {
+    if { [llength $ilist] > 1 } {
         ui_msg "$UI_PREFIX [msgcat::mc "The following versions of $name are currently installed:"]"
         foreach i $ilist {
             set iname [$i name]
@@ -211,15 +231,14 @@ proc _check_registry {name v} {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s_%s%s"] $iname $iversion $irevision $ivariants]"
             }
         }
-        if { $valid } {
-            throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
-        } else {
-            throw registry::invalid "Registry error: Invalid version specified. Please specify a version as recorded in the port registry."
-        }
+        throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
         return [lindex $ilist 0]
     }
-    throw registry::invalid "Registry error: No port of $name installed."
+    if {$composite_spec != ""} {
+        set composite_spec " @${composite_spec}"
+    }
+    throw registry::invalid "Registry error: ${name}${composite_spec} is not installed."
 }
 
 ## Activates a file from an image into the filesystem. Deals with symlinks,
@@ -487,7 +506,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         # deactivate ports replaced_by this one
         foreach owner [array names todeactivate] {
             if {$noexec || ![registry::run_target $owner deactivate [list ports_nodepcheck 1]]} {
-                deactivate [$owner name] "" [list ports_nodepcheck 1]
+                deactivate [$owner name] "" "" 0 [list ports_nodepcheck 1]
             }
         }
 
@@ -529,8 +548,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
         # reactivate deactivated ports
         foreach entry [array names todeactivate] {
             if {[$entry state] == "imaged" && ($noexec || ![registry::run_target $entry activate ""])} {
-                set pvers "[$entry version]_[$entry revision][$entry variants]"
-                activate [$entry name] $pvers [list ports_activate_no-exec $noexec]
+                activate [$entry name] [$entry version] [$entry revision] [$entry variants] [list ports_activate_no-exec $noexec]
             }
         }
         # remove temp image dir

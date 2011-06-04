@@ -2234,7 +2234,7 @@ proc action_activate { action portlist opts } {
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::activate $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::activate_composite $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port activate failed: $result" 1 status
@@ -2270,7 +2270,7 @@ proc action_deactivate { action portlist opts } {
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::deactivate $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::deactivate_composite $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port deactivate failed: $result" 1 status
@@ -2834,7 +2834,7 @@ proc action_uninstall { action portlist opts } {
             }
         }
 
-        if { [catch {registry_uninstall::uninstall $portname $composite_version [array get options]} result] } {
+        if { [catch {registry_uninstall::uninstall_composite $portname $composite_version [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "port uninstall failed: $result" 1 status

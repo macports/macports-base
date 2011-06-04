@@ -160,26 +160,22 @@ proc property_store {ref property value} {
 # If version is "", return all ports of that name.
 # Otherwise, return only ports that exactly match this version.
 # What we call version here is version_revision+variants.
+# The syntax for that can be ambiguous if there's an underscore and dash in
+# version for example, so we don't attempt to split up the composite version
+# into its components, we just compare the whole thing.
 proc installed {{name ""} {version ""}} {
 	if { $name == "" && $version == "" } {
 	    set ports [registry::entry imaged]
 	} elseif { $name != "" && $version == ""} {
 	    set ports [registry::entry imaged $name]
 	} else {
-	    set cmd "registry::entry imaged $name"
-	    registry::decode_spec $version version revision variants
-	    if {[info exists version] && $version != ""} {
-                append cmd " $version"
-                if {[info exists revision] && $revision != ""} {
-                    append cmd " $revision"
-                    if {![info exists variants]} {
-                        set variants ""
-                    }
-                    append cmd " {$variants}"
-                }
-        }
-	    if {[catch {set ports [eval $cmd]}]} {
-	        set ports [list]
+	    set ports {}
+	    set possible_ports [registry::entry imaged $name]
+	    foreach p $possible_ports {
+	        if {"[$port version]_[$port revision][$port variants]" == $version
+	            || [$port version] == $version} {
+	            lappend ports $p
+	        }
 	    }
 	}
 

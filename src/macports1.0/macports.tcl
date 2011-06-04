@@ -3437,7 +3437,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
         if {$is_dryrun eq "yes"} {
             ui_msg "Skipping uninstall $newname @${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) (dry run)"
         } elseif {![registry::run_target $newregref uninstall [array get options]]
-                  && [catch {registry_uninstall::uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) [array get options]} result]} {
+                  && [catch {registry_uninstall::uninstall $newname $version_in_tree $revision_in_tree $portinfo(canonical_active_variants) [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Uninstall $newname ${version_in_tree}_${revision_in_tree}$portinfo(canonical_active_variants) failed: $result"
@@ -3461,7 +3461,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             ui_msg "Skipping deactivate $portname @${version_active}_${revision_active}${variant_active} (dry run)"
         } elseif {![catch {registry::active $portname}] &&
                   ![registry::run_target $regref deactivate [array get options]]
-                  && [catch {portimage::deactivate $portname ${version_active}_${revision_active}${variant_active} [array get options]} result]} {
+                  && [catch {portimage::deactivate $portname $version_active $revision_active $variant_active [array get options]} result]} {
             global errorInfo
             ui_debug "$errorInfo"
             ui_error "Deactivating $portname @${version_active}_${revision_active}${variant_active} failed: $result"
@@ -3537,7 +3537,7 @@ proc macports::_upgrade {portname dspec variationslist optionslist {depscachenam
             if {$is_dryrun eq "yes"} {
                 ui_msg "Skipping uninstall $portname @${version}_${revision}${variant} (dry run)"
             } elseif {![registry::run_target $regref uninstall $optionslist]
-                      && [catch {registry_uninstall::uninstall $portname ${version}_${revision}${variant} $optionslist} result]} {
+                      && [catch {registry_uninstall::uninstall $portname $version $revision $variant $optionslist} result]} {
                 global errorInfo
                 ui_debug "$errorInfo"
                 # replaced_by can mean that we try to uninstall all versions of the old port, so handle errors due to dependents

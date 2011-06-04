@@ -40,7 +40,17 @@ set UI_PREFIX "---> "
 
 namespace eval registry_uninstall {
 
-proc uninstall {portname {v ""} optionslist} {
+# takes a composite version spec rather than separate version,revision,variants
+proc uninstall_composite {portname {v ""} {optionslist ""}} {
+    if {$v == ""} {
+        return [uninstall $portname "" "" 0 $optionslist]
+    } elseif {[registry::decode_spec $v version revision variants]} {
+        return [uninstall $portname $version $revision $variants $optionslist]
+    }
+    throw registry::invalid "Registry error: Invalid version '$v' specified for ${portname}. Please specify a version as recorded in the port registry."
+}
+
+proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""}} {
     global uninstall.force uninstall.nochecksum UI_PREFIX \
            macports::portimagefilepath
     array set options $optionslist
@@ -57,13 +67,19 @@ proc uninstall {portname {v ""} optionslist} {
         set options(ports_deactivate_no-exec) $options(ports_uninstall_no-exec)
     }
 
-    if { [registry::decode_spec $v version revision variants] } {
-        set ilist [registry::entry imaged $portname $version $revision $variants]
-        set valid 1
-    } else {
-        set valid [string equal $v {}]
-        set ilist [registry::entry imaged $portname]
+    set searchkeys $portname
+    set composite_spec ""
+    if {$version != ""} {
+        lappend searchkeys $version
+        set composite_spec $version
+        # restriction imposed by underlying registry API (see entry.c):
+        # if a revision is specified, so must variants be
+        if {$revision != ""} {
+            lappend searchkeys $revision $variants
+            append composite_spec _${revision}${variants}
+        }
     }
+    set ilist [eval registry::entry imaged $searchkeys]
     if { [llength $ilist] > 1 } {
         # set portname again since the one we were passed may not have had the correct case
         set portname [[lindex $ilist 0] name]
@@ -76,21 +92,18 @@ proc uninstall {portname {v ""} optionslist} {
                 ui_msg "$UI_PREFIX [format [msgcat::mc "    %s @%s"] [$i name] $ispec]"
             }
         }
-        if { $valid } {
-            throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
-        } else {
-            throw registry::invalid "Registry error: Invalid version specified. Please specify a version as recorded in the port registry."
-        }
+        throw registry::invalid "Registry error: Please specify the full version as recorded in the port registry."
     } elseif { [llength $ilist] == 1 } {
         set port [lindex $ilist 0]
         set version [$port version]
         set revision [$port revision]
         set variants [$port variants]
-        if {$v == ""} {
-            set v "${version}_${revision}${variants}"
-        }
+        set composite_spec "${version}_${revision}${variants}"
     } else {
-        throw registry::invalid "Registry error: $portname not registered as installed"
+        if {$composite_spec != ""} {
+            set composite_spec " @${composite_spec}"
+        }
+        throw registry::invalid "Registry error: ${portname}${composite_spec} not registered as installed"
     }
 
     # uninstall dependents if requested
@@ -99,9 +112,7 @@ proc uninstall {portname {v ""} optionslist} {
             # make sure it's still installed, since a previous dep uninstall may have removed it
             if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
                 if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $depport uninstall $optionslist]} {
-                    set depname [$depport name]
-                    set depver "[$depport version]_[$depport revision][$depport variants]"
-                    registry_uninstall::uninstall $depname $depver $optionslist
+                    registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $optionslist
                 }
             }
         }
@@ -112,10 +123,10 @@ proc uninstall {portname {v ""} optionslist} {
     # if it's active, deactivate it
     if { [string equal [$port state] installed] } {
         if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
-            ui_msg "For $portname @${v}: skipping deactivate (dry run)"
+            ui_msg "For $portname @${composite_spec}: skipping deactivate (dry run)"
         } else {
             if {[info exists options(ports_uninstall_no-exec)] || ![registry::run_target $port deactivate $optionslist]} {
-                portimage::deactivate $portname $v [array get options]
+                portimage::deactivate $portname $version $revision $variants [array get options]
             }
         }
     }
@@ -179,9 +190,9 @@ proc uninstall {portname {v ""} optionslist} {
     }
 
     if {[info exists options(ports_dryrun)] && [string is true -strict $options(ports_dryrun)]} {
-        ui_msg "For $portname @${v}: skipping uninstall (dry run)"
+        ui_msg "For $portname @${composite_spec}: skipping uninstall (dry run)"
     } else {
-        ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $v]"
+        ui_msg "$UI_PREFIX [format [msgcat::mc "Uninstalling %s @%s"] $portname $composite_spec]"
 
         # Get the full path to the image file
         set imagefile [registry::property_retrieve $ref location]
@@ -207,8 +218,7 @@ proc uninstall {portname {v ""} optionslist} {
                         if {[llength [registry::list_dependents $dep $iversion $irevision $ivariants]] == 0} {
                             set regref [registry::open_entry $dep $iversion $irevision $ivariants [lindex $i 5]]
                             if {![registry::property_retrieve $regref requested] && ([info exists options(ports_uninstall_no-exec)] || ![registry::run_target $regref uninstall $optionslist])} {
-                                set depver "${iversion}_${irevision}${ivariants}"
-                                registry_uninstall::uninstall $dep $depver $optionslist
+                                registry_uninstall::uninstall $dep $iversion $irevision $ivariants $optionslist
                             }
                         } else {
                             set remaining 1
