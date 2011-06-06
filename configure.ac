@@ -347,6 +347,7 @@ AC_CONFIG_FILES([
 	Doxyfile
 	Makefile
 	Mk/macports.autoconf.mk
+	doc/base.mtree
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf
