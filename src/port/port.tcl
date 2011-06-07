@@ -3833,7 +3833,41 @@ array set action_array [list \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
 ]
 
+# Expand "action".
+# Returns an action proc, or a list of matching action procs, or the action passed in
+proc find_action { action } {
+    global action_array
+    
+    if { ! [info exists action_array($action)] } {
+        set guess [guess_action $action]
+        if { [info exists action_array($guess)] } {
+            return $guess
+        }
+        return $guess
+    }
+    
+    return $action
+}
+
+# Expand action
+# If there's more than one match, return the next possibility
 proc find_action_proc { action } {
+    global action_array
+    
+    set action_proc ""
+    if { [info exists action_array($action)] } {
+        set action_proc [lindex $action_array($action) 0]
+    } else {
+        set action [complete_action $action]
+        if { [info exists action_array($action)] } {
+            set action_proc [lindex $action_array($action) 0]
+        }
+    }
+    
+    return $action_proc
+}
+
+proc get_action_proc { action } {
     global action_array
     
     set action_proc ""
@@ -4120,9 +4154,16 @@ proc process_cmd { argv } {
         array set global_options $global_options_base
         
         # Find an action to execute
-        set action_proc [find_action_proc $action]
-        if { $action_proc == "" } {
-            puts "Unrecognized action \"$action\""
+        set actions [find_action $action]
+        if {[llength $actions] == 1} {
+            set action [lindex $actions 0]
+            set action_proc [get_action_proc $action]
+        } else {
+            if {[llength $actions] > 1} {
+                puts "Ambiguous action \"$action\": could be any of {$actions}."
+            } else {
+                puts "Unrecognized action \"$action\""
+            }
             set action_status 1
             break
         }
@@ -4212,6 +4253,7 @@ proc complete_portname { text state } {
 }
 
 
+# return text action beginning with $text
 proc complete_action { text state } {   
     global action_array
     global complete_choices complete_position
@@ -4227,6 +4269,18 @@ proc complete_action { text state } {
     return $word
 }
 
+# return all actions beginning with $text
+proc guess_action { text } {   
+    global action_array
+
+    return [array names action_array "[string tolower $text]*"]
+
+    if { [llength $complete_choices ] == 1 } {
+        return [lindex $complete_choices 0]
+    }
+
+    return {}
+}
 
 proc attempt_completion { text word start end } {
     # If the word starts with '~', or contains '.' or '/', then use the build-in
