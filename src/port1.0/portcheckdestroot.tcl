@@ -54,23 +54,21 @@ proc portcheckdestroot::checkdestroot_symlink {} {
     ui_notice "$UI_PREFIX Checking for links"
     foreach link [links_list $destroot] {
         set points_to [file link $link]
-        if { [string compare [file pathtype $points_to] {absolute}] == 0 } {
-            if {[regexp $destroot $points_to]} {
-                ui_debug "Absolute link path pointing to inside of destroot"
-                return -code error "Absolute link path pointing to inside of destroot"
+        if { [file pathtype $points_to] eq {absolute} } {
+            #This might be changed for RegExp support
+            if {[regexp $destroot$prefix $points_to]} {
+                ui_debug "$link is an absolute link to a path inside destroot"
+                return -code error "$link is an absolute link to a path inside destroot"
             } else {
-                ui_debug "Absolute link path pointing to outside of destroot"
+                ui_debug "$link is an absolute link to a path outside destroot"
             }
-        } elseif { [string compare [file pathtype $points_to] {relative}] == 0 } {
-            regsub $destroot$prefix/ $link "" link_without_destroot
-            set dir_depth [regexp -all / $link_without_destroot]
-            set return_depth [regsub -all {\.\./} $points_to "" points_to_without_returns]
-            set return_delta [expr $return_depth - [regexp -all / $points_to_without_returns]]
-            if { $return_delta < $dir_depth } {
                 ui_debug "Relative link path pointing to inside of destroot"
+        } elseif {[file pathtype $points_to] eq {relative}} {
+            if {[regexp $destroot$prefix [file normalize [file join [file dirname $link] $points_to]]]} {
+                ui_debug "$link is a relative link to a path inside destroot"
             } else {
-                ui_debug "Relative link path pointing to outside of destroot"
-                return -code error "Relative link path pointing to outside of destroot"
+                ui_debug "$link is a relative link to a path outside destroot"
+                return -code error "$link is a relative link to a path outside destroot"
             }
         }
     }
