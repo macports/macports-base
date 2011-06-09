@@ -49,7 +49,7 @@ proc portcheckdestroot::links_list {dir} {
 }
 
 # Check for errors on port symlinks
-proc portcheckdestroot::checkdestroot_symlink_check {} {
+proc portcheckdestroot::checkdestroot_symlink {} {
     global UI_PREFIX destroot prefix
     ui_notice "$UI_PREFIX Checking for links"
     foreach link [links_list $destroot] {
@@ -77,7 +77,7 @@ proc portcheckdestroot::checkdestroot_symlink_check {} {
 }
 
 # Check for erros that violates the macports directory tree.
-proc portcheckdestroot::checkdestroot_mtree_check {} {
+proc portcheckdestroot::checkdestroot_mtree {} {
 
     global destroot prefix portsharepath destroot.violate_mtree
     global os.platform applications_dir frameworks_dir
@@ -164,7 +164,7 @@ proc portcheckdestroot::checkdestroot_main {args} {
     global UI_PREFIX
     ui_notice "$UI_PREFIX Executing check-destroot phase"
 
-    checkdestroot_symlink_check
-    checkdestroot_mtree_check
+    checkdestroot_symlink
+    checkdestroot_mtree
     return 0
 }
