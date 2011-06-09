@@ -7,7 +7,7 @@ SRCS=	port.tcl portchecksum.tcl portconfigure.tcl portextract.tcl	    \
 	portdeactivate.tcl portsubmit.tcl port_autoconf.tcl portstartupitem.tcl \
 	porttrace.tcl portlivecheck.tcl portdistcheck.tcl portmirror.tcl \
 	portload.tcl portunload.tcl portdistfiles.tcl fetch_common.tcl \
-	portpostdestroot.tcl
+	portcheckdestroot.tcl
 
 include ../../Mk/macports.subdir.mk
 include ../../Mk/macports.autoconf.mk

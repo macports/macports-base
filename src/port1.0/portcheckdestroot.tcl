@@ -1,15 +1,15 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
-# portpostdestroot.tcl
+# portcheckdestroot.tcl
 
-package provide portpostdestroot 1.0
+package provide portcheckdestroot 1.0
 package require portutil 1.0
 
-set org.macports.postdestroot [target_new org.macports.postdestroot portpostdestroot::postdestroot_main]
-target_provides ${org.macports.postdestroot} postdestroot
-target_requires ${org.macports.postdestroot} main destroot
-target_prerun ${org.macports.postdestroot} portpostdestroot::postdestroot_start
+set org.macports.checkdestroot [target_new org.macports.checkdestroot portcheckdestroot::checkdestroot_main]
+target_provides ${org.macports.checkdestroot} checkdestroot
+target_requires ${org.macports.checkdestroot} main destroot
+target_prerun ${org.macports.checkdestroot} portcheckdestroot::checkdestroot_start
 
-namespace eval portpostdestroot {
+namespace eval portcheckdestroot {
 }
 
 #options
@@ -21,8 +21,8 @@ default destroot.violate_mtree no
 set_ui_prefix
 
 
-# Starting procedure from postdestroot phase. Check for permissions.
-proc portpostdestroot::postdestroot_start {args} {
+# Starting procedure from checkdestroot phase. Check for permissions.
+proc portcheckdestroot::checkdestroot_start {args} {
     if { [getuid] == 0 && [geteuid] != 0 } {
         # if started with sudo but have dropped the privileges
         ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
@@ -35,7 +35,7 @@ proc portpostdestroot::postdestroot_start {args} {
 }
 
 # List all links on a directory recursively. This function is for internal use.
-proc portpostdestroot::links_list {dir} {
+proc portcheckdestroot::links_list {dir} {
     set ret {}
     foreach item [glob -nocomplain -type {d l} -directory $dir *] {
         if {[file isdirectory $item]} {
@@ -49,7 +49,7 @@ proc portpostdestroot::links_list {dir} {
 }
 
 # Check for errors on port symlinks
-proc portpostdestroot::postdestroot_symlink_check {} {
+proc portcheckdestroot::checkdestroot_symlink_check {} {
     global UI_PREFIX destroot prefix
     ui_notice "$UI_PREFIX Checking for links"
     foreach link [links_list $destroot] {
@@ -77,7 +77,7 @@ proc portpostdestroot::postdestroot_symlink_check {} {
 }
 
 # Check for erros that violates the macports directory tree.
-proc portpostdestroot::postdestroot_mtree_check {} {
+proc portcheckdestroot::checkdestroot_mtree_check {} {
 
     global destroot prefix portsharepath destroot.violate_mtree
     global os.platform applications_dir frameworks_dir
@@ -160,11 +160,11 @@ proc portpostdestroot::postdestroot_mtree_check {} {
     }
 }
 
-proc portpostdestroot::postdestroot_main {args} {
+proc portcheckdestroot::checkdestroot_main {args} {
     global UI_PREFIX
-    ui_notice "$UI_PREFIX Executing post-destroot phase"
+    ui_notice "$UI_PREFIX Executing check-destroot phase"
 
-    postdestroot_symlink_check
-    postdestroot_mtree_check
+    checkdestroot_symlink_check
+    checkdestroot_mtree_check
     return 0
 }
