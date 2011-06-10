@@ -154,6 +154,50 @@ proc _const value {
 }
 
 
+# Format an integer representing bytes using given units
+proc bytesize {siz {unit {}}} {
+    if {$unit == {}} {
+        if {$siz > 0x40000000} {
+            set unit "GiB"
+        } elseif {$siz > 0x100000} {
+            set unit "MiB"
+        } elseif {$siz > 0x400} {
+            set unit "KiB"
+        } else {
+            set unit "B"
+        }
+    }
+    switch -- $unit {
+        KiB {
+            set siz [expr $siz / 1024.0]
+        }
+        kB {
+            set siz [expr $siz / 1000.0]
+        }
+        MiB {
+            set siz [expr $siz / 1048576.0]
+        }
+        MB {
+            set siz [expr $siz / 1000000.0]
+        }
+        GiB {
+            set siz [expr $siz / 1073741824.0]
+        }
+        GB {
+            set siz [expr $siz / 1000000000.0]
+        }
+        B { }
+        default {
+            ui_warn "Unknown file size unit '$unit' specified"
+            set unit "B"
+        }
+    }
+    if {[expr round($siz)] != $siz} {
+        set siz [format {%.3f} $siz]
+    }
+    return "$siz $unit"
+}
+
 
 # Produce an error message, and exit, unless
 # we're handling errors in a soft fashion, in which
@@ -3086,6 +3130,64 @@ proc action_contents { action portlist opts } {
     return $status
 }
 
+# expand abbreviations of size units
+proc complete_size_units {units} {
+    if {$units == "K" || $units == "Ki"} {
+        return "KiB"
+    } elseif {$units == "k"} {
+        return "kB"
+    } elseif {$units == "Mi"} {
+        return "MiB"
+    } elseif {$units == "M"} {
+        return "MB"
+    } elseif {$units == "Gi"} {
+        return "GiB"
+    } elseif {$units == "G"} {
+        return "GB"
+    } else {
+        return $units
+    }
+}
+
+# Show space used by the given ports' files
+proc action_space {action portlist opts} {
+    global global_options
+    require_portlist portlist
+
+    set units {}
+    if {[info exists global_options(ports_space_units)]} {
+        set units [complete_size_units $global_options(ports_space_units)]
+    }
+    set spaceall 0.0
+    foreachport $portlist {
+        set space 0.0
+        set files [registry::port_registered $portname]
+        if { $files != 0 } {
+            if { [llength $files] > 0 } {
+                foreach file $files {
+                    catch {
+                        set space [expr $space + [file size $file] ]
+                    }
+                }
+                set msg "[bytesize $space $units] $portname"
+                if { $portversion != {} } {
+                    append msg " @$portversion"
+                }
+                puts $msg
+                set spaceall [expr $space + $spaceall]
+            } else {
+                puts "Port $portname does not contain any file or is not active."
+            }
+        } else {
+            puts "Port $portname is not installed."
+        }
+    }
+    if {[llength $portlist] > 1} {
+        puts "[bytesize $spaceall $units] total"
+    }
+    return 0
+}
+
 proc action_variants { action portlist opts } {
     global global_variations
     set status 0
@@ -3778,6 +3880,7 @@ array set action_array [list \
     installed   [list action_installed      [ACTION_ARGS_PORTS]] \
     outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
+    space       [list action_space          [ACTION_ARGS_PORTS]] \
     dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
     rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
     deps        [list action_deps           [ACTION_ARGS_PORTS]] \
@@ -3919,6 +4022,7 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
+    space       {{units 1}}
     activate    {no-exec}
     deactivate  {no-exec}
     uninstall   {follow-dependents follow-dependencies no-exec}

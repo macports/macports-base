@@ -293,6 +293,13 @@ set porthelp(selfupdate) {
 Upgrade MacPorts itself and run the sync target
 }
 
+set porthelp(space) {
+Show the disk space used by the given ports
+
+--units <units> Specify units to use. Accepted units are: B, kB, KiB, MB, MiB,
+                GB, GiB. The 'B' may be omitted.
+}
+
 set porthelp(srpm) {
 Creates a srpm for each of the given ports
 }
