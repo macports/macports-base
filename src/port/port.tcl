@@ -198,6 +198,13 @@ proc bytesize {siz {unit {}}} {
     return "$siz $unit"
 }
 
+proc filesize {fil {unit {}}} {
+    set siz {@}
+    catch {
+        set siz [bytesize [file size $fil] $unit]
+    }
+    return $siz
+}
 
 # Produce an error message, and exit, unless
 # we're handling errors in a soft fashion, in which
@@ -3102,10 +3109,20 @@ proc action_outdated { action portlist opts } {
 
 
 proc action_contents { action portlist opts } {
-    set status 0
+    global global_options
     if {[require_portlist portlist]} {
         return 1
     }
+    if {[info exists global_options(ports_contents_size)]} {
+        set units {}
+        if {[info exists global_options(ports_contents_units)]} {
+            set units [complete_size_units $global_options(ports_contents_units)]
+        }
+        set outstring {[format "%12s $file" [filesize $file $units]]}
+    } else {
+        set outstring {  $file}
+    }
+
     foreachport $portlist {
         if { ![catch {set ilist [registry::installed $portname]} result] } {
             # set portname again since the one we were passed may not have had the correct case
@@ -3116,7 +3133,7 @@ proc action_contents { action portlist opts } {
             if { [llength $files] > 0 } {
                 ui_notice "Port $portname contains:"
                 foreach file $files {
-                    puts "  $file"
+                    puts [subst $outstring]
                 }
             } else {
                 ui_notice "Port $portname does not contain any files or is not active."
@@ -3127,7 +3144,7 @@ proc action_contents { action portlist opts } {
     }
     registry::close_file_map
 
-    return $status
+    return 0
 }
 
 # expand abbreviations of size units
@@ -4013,6 +4030,7 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
+    contents    {size {units 1}}
     deps        {index no-build}
     rdeps       {index no-build full}
     rdependents {full}
