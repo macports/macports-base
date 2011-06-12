@@ -1041,6 +1041,7 @@ proc macports::worker_init {workername portpath porturl portbuildpath options va
     $workername alias registry_exists_for_name registry::entry_exists_for_name
     $workername alias registry_activate portimage::activate
     $workername alias registry_deactivate portimage::deactivate
+    $workername alias registry_deactivate_composite portimage::deactivate_composite
     $workername alias registry_uninstall registry_uninstall::uninstall
     $workername alias registry_register_deps registry::register_dependencies
     $workername alias registry_fileinfo_for_index registry::fileinfo_for_index
