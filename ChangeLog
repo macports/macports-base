@@ -3,7 +3,104 @@
 # $Id$
 ###
 
-Unreleased changes:
+Release 2.0.0 (unreleased):
+
+    - Multiple ports can now be defined in one Portfile using the 'subport'
+      procedure. This reduces code duplication when several ports use very
+      similar code. (jmr in r78062)
+
+    - Privilege dropping is now on by default. The runtime user can be changed
+      when building from source but defaults to 'macports'; this user is
+      created at install time. (jmr in r79025)
+
+    - Fetching from some extremely slow or partially unresponsive servers
+      should now time out as expected. (raimue in r71038)
+
+    - The registry is now "vacuumed" (compacted/defragmented) after
+      uninstalling ports. (jmr in r70608)
+
+    - Downloaded archives are now checked for integrity using digital
+      signatures. New pubkeys.conf file allows configuring keys to trust.
+      (jmr in r68996)
+
+    - Added 'actinact' pseudo-portname that expands to installed ports with an
+      active version and at least one inactive version.
+      (#27666, jmr in r79421, based on patch from gmail.com:ww.galen)
+
+    - Added --size option for 'contents' action that makes it print the size
+      of each file. (#27245, jmr in r79365, based on patch from
+      gmail.com:ww.galen)
+
+    - Added 'space' action to show the disk space used by ports' active files.
+      (#27244, jmr in r79349, based on patch from gmail.com:ww.galen)
+
+    - Actions can be abbreviated to an unambiguous prefix of the full name.
+      (#27242, patch from gmail.com:ww.galen committed in r79259)
+
+    - Fixed error when activating ports whose version contains an underscore
+      followed by an integer and a dash. (#28084, jmr in r79167)
+
+    - Deactivating a port that has dependents no longer needs to be forced
+      when the dependents are all inactive. (#29505, jmr in r78086)
+
+    - New option 'add_users' has been added. Setting it will ensure that the
+      listed users are created before all operations that may require them to
+      exist. (#11563, jmr in r78660)
+
+    - 'port info --index' should be much faster and will work with the
+      'current' pseudo-port provided the port has been indexed.
+      (#13673, jmr in r78621)
+
+    - Relocation is explicitly disabled when building pkgs on 10.6, so Apple's
+      Installer won't attempt to overwrite other copies of the same software
+      not installed by MacPorts. (#25174, jmr in r78178)
+
+    - Non-Darwin platforms can once again build base against OpenSSL for
+      checksum support. (#26813, afb in r77865)
+
+    - It is now safe to set svn.post_args, rather than that option being
+      reserved for svn.url. (#27454, jmr in r73825)
+
+    - Variants specified when running 'port mpkg' are now set in the
+      dependencies as well. (#27231, jmr in r73303)
+
+    - Fixed various issues with privilege dropping.
+      (#26899, jmr in r69453 etc.)
+
+    - Trace mode no longer fails on 10.6. (#21582, jmr in r74318, r74369)
+
+    - Ports that create StartupItems (aka launchd plists) should now be
+      installable by unprivileged users. (#10879, jmr in r66700, r75143)
+
+    - Fixed incorrect output from 'port dependents' when using newer SQLite
+      versions. (#27506, patch from gmail.com:mmpestorich committed in r76827)
+
+    - The flat registry format is no longer available. Setting portdbformat to
+      'flat' in macports.conf will result in the sqlite registry being used.
+      (jmr in r77681)
+
+    - Port images are now stored as archives. Archive mode is now effectively
+      always on. Among other benefits, this fixes some bugs with the handling
+      of hard links installed by ports (e.g. #13601).
+
+      Direct mode is no longer available. Existing port image directories, and
+      installed files for direct mode, will be converted to archives when
+      upgrading.
+
+      (#19458, branch by blb, merged by jmr in r77511)
+
+    - master_site_local, patch_site_local, and archive_site_local can be set
+      in macports.conf, with the same effects as the corresponding environment
+      variables. (jmr in r74924)
+
+    - Added 'logfile' action that prints the path to a port's log file.
+      (jmr in r74655)
+
+    - Computing large dependency trees that contain the same port(s) multiple
+      times should be considerably faster. (jmr in r73133)
+
+    - configure.compiler can now be set to macports-llvm-gcc-4.2 or
+      macports-clang (mfeiri in r72936, r72937)
 
     - Add '-n' option to reinplace (#26406, ryandesign in r73227)
 
