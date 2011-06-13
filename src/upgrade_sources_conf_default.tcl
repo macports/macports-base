@@ -68,18 +68,15 @@ while {[gets $sourcesConfChannel line] >= 0} {
                      regexp {^URL: (.*)} $svnLine -> svnURL
                   }
                   if {[catch {close $svnChannel} err]} {
-                     if {![string match "*This client is too old to work with working copy*" $err]} {
-                        return -code error $err
-                     } else {
-                        puts $err
-                        puts "WARNING: Unable to check svn URL for '$filepath' as it has been checked out with a newer Subversion client; please manually verify $sourcesConf!"
-                     }
+                     puts $err
+                     puts "WARNING: Unable to check svn URL for '$filepath'; please manually verify $sourcesConf!"
                   }
                   if {[regexp {^https?://svn\.(macports|macosforge)\.org/repository/macports/trunk/dports} $svnURL]} {
                      set addDefault true
                   }
                } else {
-                  return -code error $err
+                  puts $err
+                  puts "WARNING: Unable to check svn URL for '$filepath'; please manually verify $sourcesConf!"
                }
             }
          }
