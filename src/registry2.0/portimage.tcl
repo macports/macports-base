@@ -558,6 +558,11 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
     file delete -force $extracted_dir
 }
 
+# These directories should not be removed during deactivation even if they are empty.
+# TODO: look into what other dirs should go here
+variable precious_dirs
+array set precious_dirs { /Library/LaunchDaemons 1 /Library/LaunchAgents 1 }
+
 proc _deactivate_file {dstfile} {
     if { [file type $dstfile] == "link" } {
         ui_debug "deactivating link: $dstfile"
@@ -565,8 +570,13 @@ proc _deactivate_file {dstfile} {
     } elseif { [file isdirectory $dstfile] } {
         # 0 item means empty.
         if { [llength [readdir $dstfile]] == 0 } {
-            ui_debug "deactivating directory: $dstfile"
-            file delete -- $dstfile
+            variable precious_dirs
+            if {![info exists precious_dirs($dstfile)]} {
+                ui_debug "deactivating directory: $dstfile"
+                file delete -- $dstfile
+            } else {
+                ui_debug "directory $dstfile does not belong to us"
+            }
         } else {
             ui_debug "$dstfile is not empty"
         }
