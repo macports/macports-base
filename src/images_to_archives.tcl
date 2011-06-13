@@ -79,15 +79,7 @@ foreach installed $ilist {
         } else {
             set targetdir [file join ${macports::registry.path} software ${iname}]
             file mkdir $targetdir
-            if {${macports::registry.format} == "receipt_sqlite"} {
-                set contents [$iref imagefiles]
-            } else {
-                set contents {}
-                set rawcontents [registry::property_retrieve $iref contents]
-                foreach entry $rawcontents {
-                    lappend contents [lindex $entry 0]
-                }
-            }
+            set contents [$iref imagefiles]
         }
         set newlocation [file join $targetdir $archivename]
 
@@ -111,46 +103,14 @@ foreach installed $ilist {
 
         if {$installtype == "direct"} {
             # change receipt to image
-            if {${macports::registry.format} == "receipt_sqlite"} {
-                $iref installtype image
-                $iref state imaged
-                $iref activate [$iref imagefiles]
-                $iref state installed
-            } else {
-                registry::property_store $iref installtype image
-                foreach entry $contents {
-                    registry::register_file $entry $iname
-                }
-                registry::property_store $iref active 1
-            }
+            $iref installtype image
+            $iref state imaged
+            $iref activate [$iref imagefiles]
+            $iref state installed
         }
 
-        if {${macports::registry.format} == "flat" && $installtype == "image"} {
-            # flat receipts also need file paths in contents trimmed to exclude image dir
-            set loclen [string length $location]
-            set locend [expr $loclen - 1]
-            set oldcontents [registry::property_retrieve $iref contents]
-            set newcontents {}
-            foreach fe $contents {
-                set oldfilepath [lindex $fe 0]
-                if {[string range $oldfilepath 0 $locend] == $location} {
-                    set newfilepath [string range $oldfilepath $loclen end]
-                    set newentry [list $newfilepath]
-                    foreach other [lrange $fe 1 end] {
-                        lappend newentry $other
-                    }
-                    lappend newcontents $newentry
-                } else {
-                    lappend newcontents $fe
-                }
-            }
-            registry::property_store $iref contents $newcontents
-        }
         # set the new location in the registry and delete the old dir
         registry::property_store $iref location $newlocation
-        if {${macports::registry.format} == "flat"} {
-            registry::write_entry $iref
-        }
         if {$location != "" && [file isdirectory $location]} {
             file delete -force $location
         }
