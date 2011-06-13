@@ -277,7 +277,7 @@ becomes the one most would consider the default, e.g. the one run without
 specifying any version.
 
 One example is the set of python ports, where there are (among others)
-python25, python26, and python30.  The select action lets you set which
+python25, python26, and python31.  The select action lets you set which
 of these becomes the version run when you simply use 'python'.
 
 <arguments> must include the group upon which to be acted, and may include
