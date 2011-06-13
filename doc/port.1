@@ -381,6 +381,31 @@ For example:
 .Dl "port uninstall vim"
 .Dl "port -u uninstall"
 .Dl "port uninstall --follow-dependents python24"
+.Ss select
+For a given
+.Ar group ,
+selects a
+.Ar version
+to be the default by creating appropriate symbolic links.
+For instance,
+.Ic "python"
+might be linked to
+.Ic "python2.6" .
+Available select groups are installed as subdirectories of
+.Ar ${prefix}/etc/select/ .
+To list the available versions in a group, use
+.Fl -list .
+To see which version is currently selected for a group, use
+.Fl -show .
+To change the selected version for a group, use
+.Fl -set .
+.Pp
+For example:
+.Pp
+.Dl "port select --list python"
+.Dl "port select --show gcc"
+.Dl "port select --set gcc mp-gcc44"
+.Pp
 .Ss activate
 Activate the installed
 .Ar portname .
