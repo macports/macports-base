@@ -8,6 +8,10 @@
 source [file join [lindex $argv 0] macports1.0 macports_fastload.tcl]
 package require macports 1.0
 package require registry 1.0
+package require registry2 2.0
+package require Pextlib 1.0
+
+umask 022
 
 mportinit
 
@@ -23,6 +27,10 @@ if {[catch {set ilist [registry::installed]}]} {
 }
 
 puts "This could take a while..."
+
+# list of ports we successfully create an archive of, to be used to update
+# the registry only after we know all creation attempts were successful.
+set archived_list {}
 
 foreach installed $ilist {
     set iname [lindex $installed 0]
@@ -101,6 +109,16 @@ foreach installed $ilist {
             file delete -force ${targetdir}/tarlist ${targetdir}/error.log
         }
 
+        lappend archived_list [list $installtype $iref $location $newlocation]
+    }
+}
+
+registry::write {
+    foreach archived $archived_list {
+        set installtype [lindex $archived 0]
+        set iref [lindex $archived 1]
+        set newlocation [lindex $archived 3]
+    
         if {$installtype == "direct"} {
             # change receipt to image
             $iref installtype image
@@ -108,11 +126,17 @@ foreach installed $ilist {
             $iref activate [$iref imagefiles]
             $iref state installed
         }
-
+    
         # set the new location in the registry and delete the old dir
-        registry::property_store $iref location $newlocation
-        if {$location != "" && [file isdirectory $location]} {
-            file delete -force $location
+        $iref location $newlocation
+    }
+}
+
+foreach archived $archived_list {
+    set location [lindex $archived 2]
+    if {$location != "" && [file isdirectory $location]} {
+        if {[catch {file delete -force $location} result]} {
+            ui_warn "Failed to delete ${location}: $result"
         }
     }
 }
