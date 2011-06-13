@@ -87,8 +87,8 @@ Pseudo-portnames
 ----------------
 Pseudo-portnames are words that may be used in place of a portname, and
 which expand to some set of ports. The common pseudo-portnames are:
-all, current, active, inactive, installed, uninstalled, outdated, obsolete,
-requested, unrequested and leaves.
+all, current, active, inactive, actinact, installed, uninstalled, outdated,
+obsolete, requested, unrequested and leaves.
 These pseudo-portnames expand to the set of ports named.
 
 Pseudo-portnames starting with variants:, variant:, description:, depends:,
@@ -764,6 +764,34 @@ proc get_inactive_ports {} {
     return [get_installed_ports no no]
 }
 
+proc get_actinact_ports {} {
+    set inactive_ports [get_inactive_ports]
+    set active_ports [get_active_ports]
+    set results {}
+
+    foreach port $inactive_ports {
+        array set portspec $port
+        set portname $portspec(name)
+        lappend inact($portname) $port
+    }
+
+    foreach port $active_ports {
+        array set portspec $port
+        set portname $portspec(name)
+
+        if {[info exists inact($portname)]} {
+            if {![info exists added_inact($portname)]} {
+                foreach inact_spec $inact($portname) {
+                    lappend results $inact_spec
+                }
+                set added_inact($portname) 1
+            }
+            lappend results $port
+        }
+    }
+    return $results
+}
+
 
 proc get_outdated_ports {} {
     # Get the list of installed ports
@@ -1214,6 +1242,7 @@ proc element { resname } {
         ^uninstalled(@.*)?$ -
         ^active(@.*)?$      -
         ^inactive(@.*)?$    -
+        ^actinact(@.*)?$    -
         ^leaves(@.*)?$      -
         ^outdated(@.*)?$    -
         ^obsolete(@.*)?$    -
