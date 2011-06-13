@@ -53,7 +53,7 @@ proc portdistfiles::distfiles_start {args} {
 }
 
 proc portdistfiles::distfiles_main {args} {
-    global UI_PREFIX master_sites checksums_array portdbpath dist_subdir
+    global UI_PREFIX master_sites checksums_array portdbpath dist_subdir all_dist_files
     
     # give up on ports that do not provide URLs
     if {![info exists master_sites] || $master_sites == "{}"} {
@@ -63,6 +63,11 @@ proc portdistfiles::distfiles_main {args} {
     # from portfetch... process the sites, files and patches
     set fetch_urls {}
     portfetch::checkfiles fetch_urls
+
+    # also give up on ports that don't have any distfiles
+    if {![info exists all_dist_files]} {
+        return 0
+    }
 
     # get checksum data from the portfile and parse it
     set checksums_str [option checksums]
