@@ -647,8 +647,8 @@ UNIVERSAL_ARCHS
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
-RUNUSR
 TCL_PACKAGE_DIR
+RUNUSR
 DSTGRP
 DSTUSR
 MPCONFIGDIR
@@ -7715,6 +7715,14 @@ $as_echo_n "checking for install group... " >&6; }
 		DSTGRP=`id -gn`
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $DSTGRP" >&5
 $as_echo "$DSTGRP" >&6; }
+
+
+		# Set run-user to current user
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for macports user" >&5
+$as_echo_n "checking for macports user... " >&6; }
+		RUNUSR=`id -un`
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $RUNUSR" >&5
+$as_echo "$RUNUSR" >&6; }
 
 
 		# Set Tcl package directory to ~/Library/Tcl

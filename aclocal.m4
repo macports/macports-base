@@ -327,6 +327,12 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 		AC_MSG_RESULT([$DSTGRP])
 		AC_SUBST(DSTGRP)
 
+		# Set run-user to current user
+		AC_MSG_CHECKING([for macports user])
+		RUNUSR=`id -un`
+		AC_MSG_RESULT([$RUNUSR])
+		AC_SUBST(RUNUSR)
+
 		# Set Tcl package directory to ~/Library/Tcl
 	    AC_MSG_CHECKING(for Tcl package directory)
 		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
