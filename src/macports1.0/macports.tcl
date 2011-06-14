@@ -1993,7 +1993,7 @@ proc mportsync {{optionslist {}}} {
                     }
                     set tarball "${destdir}/[file tail $source]"
                     set signature "${tarball}.rmd160"
-                    set openssl [findBinary openssl $macports::autoconf::openssl_path]
+                    set openssl [macports::findBinary openssl $macports::autoconf::openssl_path]
                     set verified 0
                     foreach pubkey ${macports::archivefetch_pubkeys} {
                         if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature $tarball} result]} {
