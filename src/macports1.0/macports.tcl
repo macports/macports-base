@@ -2023,6 +2023,7 @@ proc mportsync {{optionslist {}}} {
                     }
                     # save the local PortIndex data
                     if {[file isfile $indexfile]} {
+                        file copy -force $indexfile ${destdir}/
                         file rename -force $indexfile ${destdir}/tmp/ports/
                         if {[file isfile ${indexfile}.quick]} {
                             file rename -force ${indexfile}.quick ${destdir}/tmp/ports/
@@ -2037,9 +2038,11 @@ proc mportsync {{optionslist {}}} {
                 if {![file isfile $indexfile] || [expr [clock seconds] - [file mtime $indexfile]] > 86400} {
                     if {$is_tarball} {
                         # chop ports.tar off the end
-                        set source [string range $source 0 end-[string length [file tail $source]]]
+                        set index_source [string range $source 0 end-[string length [file tail $source]]]
+                    } else {
+                        set index_source $source 
                     }
-                    set remote_indexfile "${source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
+                    set remote_indexfile "${index_source}PortIndex_${macports::os_platform}_${macports::os_major}_${macports::os_arch}/PortIndex"
                     set rsync_commandline "${macports::autoconf::rsync_path} ${rsync_options} $remote_indexfile ${destdir}"
                     ui_debug $rsync_commandline
                     if {[catch {system $rsync_commandline}]} {
