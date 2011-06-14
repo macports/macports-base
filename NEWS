@@ -1,3 +1,29 @@
+== Overview of changes from MacPorts 1.9.2 to 2.0.0 ==
+
+# For regular users:
+
+*) Downloaded archives are now checked for integrity using digital signatures.
+   New pubkeys.conf file allows configuring keys to trust.
+
+*) Actions can be abbreviated to an unambiguous prefix of the full name.
+
+*) Ports that create StartupItems (aka launchd plists) should now be
+   installable by unprivileged users.
+
+*) Port images are now stored as archives. Archive mode is now effectively
+   always on. Direct mode and the flat registry format are no longer
+   available. Conversion will happen automatically.
+
+# For Portfile writers:
+
+*) Multiple ports can now be defined in one Portfile using the 'subport'
+   procedure.
+
+*) New option 'add_users' can be set to ensure that the listed users are
+   created at the right times during the install process.
+
+*) SHA256 checksums are now supported.
+
 == Overview of changes from MacPorts 1.8.2 to 1.9.0 ==
 
 # For regular users:
