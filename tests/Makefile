@@ -47,7 +47,7 @@ test:: clean /tmp/macports-tests/ports/PortIndex /tmp/macports-tests/opt/local/e
 	for testname in $(TESTS); do\
 		subdir=test/$$testname; \
 		echo ===\> test ${DIRPRFX}$$subdir; \
-		if [ -e ${DIRPRFX}$$subdir/Makefile ]; then \
+		if [ -e $$subdir/Makefile ]; then \
 			( cd $$subdir && \
 				$(MAKE) DIRPRFX=${DIRPRFX}$$subdir/ PORTSRC=$(PWD)/test-macports.conf test) && \
 			success=$$(( success + 1 )); \

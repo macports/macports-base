@@ -1,9 +1,8 @@
---->  Computing dependencies for xcodeversion
 --->  Fetching xcodeversion
 --->  Verifying checksum(s) for xcodeversion
 --->  Extracting xcodeversion
 --->  Configuring xcodeversion
 --->  Building xcodeversion
 --->  Testing xcodeversion
-xcodeversion = 2.1
-xcodebuildcmd = xcodebuild
+xcodeversion >= 2.1
+xcodebuildcmd = /usr/bin/xcodebuild

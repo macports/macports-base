@@ -11,16 +11,18 @@ platforms	darwin
 
 long_description ${description}
 
-fetch		{}
-checksum	{}
-extract		{}
-configure	{}
+distfiles
+use_configure no
 build		{}
 destroot	{
 	system "touch ${destroot}${prefix}/lib/${name}"
 }
 
 test {
-	ui_msg "xcodeversion = $xcodeversion"
+	if {$xcodeversion != "" && [rpm-vercomp $xcodeversion 2.1] >= 0} {
+		ui_msg "xcodeversion >= 2.1"
+	} else {
+		ui_msg "xcodeversion = $xcodeversion"
+	}
 	ui_msg "xcodebuildcmd = $xcodebuildcmd"
 }

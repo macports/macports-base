@@ -11,10 +11,8 @@ platforms	darwin
 
 long_description ${description}
 
-fetch		{}
-checksum	{}
-extract		{}
-configure	{}
+distfiles
+use_configure no
 build		{}
 destroot	{
 	system "touch ${destroot}${prefix}/lib/${name}"

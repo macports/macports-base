@@ -1,4 +1,6 @@
 --->  Computing dependencies for dependencies-c
+--->  Dependencies to be installed: dependencies-a dependencies-b
+--->  Fetching archive for dependencies-b
 --->  Fetching dependencies-b
 --->  Verifying checksum(s) for dependencies-b
 --->  Extracting dependencies-b
@@ -8,6 +10,7 @@
 --->  Installing dependencies-b @1_0
 --->  Activating dependencies-b @1_0
 --->  Cleaning dependencies-b
+--->  Fetching archive for dependencies-a
 --->  Fetching dependencies-a
 --->  Verifying checksum(s) for dependencies-a
 --->  Extracting dependencies-a
