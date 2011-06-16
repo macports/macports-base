@@ -35,6 +35,9 @@ install::
 	[ ! -f $(DESTDIR)${sysconfdir}/macports/mp_version ] || rm -vf $(DESTDIR)${sysconfdir}/macports/mp_version
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 setupenv.bash  $(DESTDIR)${datadir}/macports/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 macports-pubkey.pem  $(DESTDIR)${datadir}/macports/
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 544 submitstats.sh $(DESTDIR)${datadir}/macports/
+	# Install launchd script that runs submistats.sh
+	./install_launchd.sh $(DESTDIR)${datadir}/macports/submitstats.sh $(DESTDIR)${sysconfdir}/macports/macports.conf
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
 # Add [default] tag to the central MacPorts repository, if it isn't already
