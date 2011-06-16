@@ -113,6 +113,12 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
 
     # uninstall dependents if requested
     if {[info exists options(ports_uninstall_follow-dependents)] && $options(ports_uninstall_follow-dependents) eq "yes"} {
+        # don't uninstall dependents' dependencies
+        if {[info exists options(ports_uninstall_follow-dependencies)]} {
+            set orig_follow_dependencies $options(ports_uninstall_follow-dependencies)
+            unset options(ports_uninstall_follow-dependencies)
+            set optionslist [array get options]
+        }
         foreach depport [$port dependents] {
             # make sure it's still installed, since a previous dep uninstall may have removed it
             if {[registry::entry exists $depport] && ([$depport state] == "imaged" || [$depport state] == "installed")} {
@@ -120,6 +126,10 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
                     registry_uninstall::uninstall [$depport name] [$depport version] [$depport revision] [$depport variants] $optionslist
                 }
             }
+        }
+        if {[info exists orig_follow_dependencies]} {
+            set options(ports_uninstall_follow-dependencies) $orig_follow_dependencies
+            set optionslist [array get options]
         }
     } else {
         # check its dependents
@@ -211,6 +221,11 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     
     # uninstall dependencies if requested
     if {[info exists options(ports_uninstall_follow-dependencies)] && [string is true -strict $options(ports_uninstall_follow-dependencies)]} {
+        # don't uninstall dependencies' dependents
+        if {[info exists options(ports_uninstall_follow-dependents)]} {
+            unset options(ports_uninstall_follow-dependents)
+            set optionslist [array get options]
+        }
         while 1 {
             set remaining_list {}
             foreach dep $all_dependencies {
