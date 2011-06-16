@@ -170,8 +170,16 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-if test x$prefix = x/usr/local; then
-    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported])
+AC_ARG_WITH(
+		unsupported-prefix,
+		AS_HELP_STRING([--with-unsupported-prefix],
+		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[with_unsupported_prefix=$withval],
+		[with_unsupported_prefix=no])
+if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
+    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported. If \
+you understand this and wish to do so anyway, pass --with-unsupported-prefix \
+to configure.])
 fi
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR

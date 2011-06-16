@@ -793,6 +793,7 @@ enable_option_checking
 enable_werror
 with_objc_runtime
 with_objc_foundation
+with_unsupported_prefix
 with_ports_dir
 with_no_root_privileges
 with_install_user
@@ -1466,6 +1467,9 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-objc-runtime     Specify either "GNU" or "apple"
   --with-objc-foundation  Specify either "GNUstep" or "apple"
+  --with-unsupported-prefix
+                          Acknowledge that you accept the consequences of
+                          using an unsupported prefix.
   --with-ports-dir=DIR    Specify alternate ports directory
   --with-no-root-privileges
                           Specify that MacPorts should be installed in your
@@ -7633,8 +7637,18 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 
-if test x$prefix = x/usr/local; then
-    as_fn_error $? "Installing MacPorts into /usr/local is not supported" "$LINENO" 5
+
+# Check whether --with-unsupported-prefix was given.
+if test "${with_unsupported_prefix+set}" = set; then :
+  withval=$with_unsupported_prefix; with_unsupported_prefix=$withval
+else
+  with_unsupported_prefix=no
+fi
+
+if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
+    as_fn_error $? "Installing MacPorts into /usr/local is not supported. If \
+you understand this and wish to do so anyway, pass --with-unsupported-prefix \
+to configure." "$LINENO" 5
 fi
 
 
