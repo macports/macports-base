@@ -3019,6 +3019,10 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
                 ui_warn "Disabling readline support due to readline in /usr/local"
             }
 
+            if {$prefix == "/usr/local"} {
+                append configure_args " --with-unsupported-prefix"
+            }
+
             set cc_arg ""
             switch -glob -- $::macports::macosx_version {
                 10.[45] { set cc_arg "CC=/usr/bin/gcc-4.0 " }
