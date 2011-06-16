@@ -54,6 +54,11 @@ proc uninstall {portname {version ""} {revision ""} {variants 0} {optionslist ""
     global uninstall.force uninstall.nochecksum UI_PREFIX \
            macports::portimagefilepath
     array set options $optionslist
+    if {[info exists options(subport)]} {
+        # don't want this set when calling registry::run_target
+        unset options(subport)
+        set optionslist [array get options]
+    }
 
     if {![info exists uninstall.force]} {
         set uninstall.force no

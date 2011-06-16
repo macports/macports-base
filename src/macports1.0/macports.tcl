@@ -129,7 +129,7 @@ proc macports::init_logging {mport} {
 proc macports::ch_logging {mport} {
     global ::debuglog ::debuglogname
 
-    set portname [_mportkey $mport name]
+    set portname [_mportkey $mport subport]
     set portpath [_mportkey $mport portpath]
 
     ui_debug "Starting logging for $portname"
@@ -1369,7 +1369,7 @@ proc mportopen {porturl {options ""} {variations ""} {nocache ""}} {
         error "Error evaluating variants"
     }
 
-    ditem_key $mport provides [$workername eval return \$name]
+    ditem_key $mport provides [$workername eval return \$subport]
 
     return $mport
 }
@@ -1403,11 +1403,11 @@ proc mportopen_installed {name version revision variants options} {
 # close mport opened with mportopen_installed and clean up associated files
 proc mportclose_installed {mport} {
     global macports::registry.path
-    foreach key {name version revision portvariants} {
+    foreach key {subport version revision portvariants} {
         set $key [_mportkey $mport $key]
     }
     mportclose $mport
-    set portfiles_dir [file join ${registry.path} registry portfiles $name]
+    set portfiles_dir [file join ${registry.path} registry portfiles $subport]
     set portfile [file join $portfiles_dir "${version}_${revision}${portvariants}" Portfile]
     file delete -force $portfile [file dirname $portfile]
     if {[llength [glob -nocomplain -directory $portfiles_dir *]] == 0} {
@@ -1502,13 +1502,13 @@ proc _mportsearchpath {depregex search_path {executable 0} {return_match 0}} {
 proc _mportinstalled {mport} {
     # Check for the presence of the port in the registry
     set workername [ditem_key $mport workername]
-    return [$workername eval registry_exists_for_name \${name}]
+    return [$workername eval registry_exists_for_name \${subport}]
 }
 
 # Determine if a port is active
 proc _mportactive {mport} {
     set workername [ditem_key $mport workername]
-    if {![catch {set reslist [$workername eval registry_active \${name}]}] && [llength $reslist] > 0} {
+    if {![catch {set reslist [$workername eval registry_active \${subport}]}] && [llength $reslist] > 0} {
         set i [lindex $reslist 0]
         set name [lindex $i 0]
         set version [lindex $i 1]
@@ -1573,14 +1573,14 @@ proc _mportispresent {mport depspec} {
 proc _mportconflictsinstalled {mport conflictinfo} {
     set conflictlist {}
     if {[llength $conflictinfo] > 0} {
-        ui_debug "Checking for conflicts against [_mportkey $mport name]"
+        ui_debug "Checking for conflicts against [_mportkey $mport subport]"
         foreach conflictport ${conflictinfo} {
             if {[_mportispresent $mport port:${conflictport}]} {
                 lappend conflictlist $conflictport
             }
         }
     } else {
-        ui_debug "[_mportkey $mport name] has no conflicts"
+        ui_debug "[_mportkey $mport subport] has no conflicts"
     }
 
     return $conflictlist
@@ -1590,7 +1590,7 @@ proc _mportconflictsinstalled {mport conflictinfo} {
 ### _mportexec is private; may change without notice
 
 proc _mportexec {target mport} {
-    set portname [_mportkey $mport name]
+    set portname [_mportkey $mport subport]
     macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
@@ -1633,7 +1633,7 @@ proc mportexec {mport target} {
     if {[$workername eval check_variants $target] != 0} {
         return 1
     }
-    set portname [_mportkey $mport name]
+    set portname [_mportkey $mport subport]
     if {$target != "clean"} {
         macports::push_log $mport
     }
@@ -1644,7 +1644,7 @@ proc mportexec {mport target} {
         registry::exclusive_lock
         # see if we actually need to build this port
         if {($target != "activate" && $target != "install") ||
-            ![$workername eval registry_exists \$name \$version \$revision \$portvariants]} {
+            ![$workername eval registry_exists \$subport \$version \$revision \$portvariants]} {
             # possibly warn or error out depending on how old xcode is
             if {[$workername eval _check_xcode_version] != 0} {
                 return 1
@@ -1660,7 +1660,7 @@ proc mportexec {mport target} {
             }
         }
 
-        ui_msg -nonewline "--->  Computing dependencies for [_mportkey $mport name]"
+        ui_msg -nonewline "--->  Computing dependencies for [_mportkey $mport subport]"
         if {[macports::ui_isset ports_debug]} {
             # play nice with debug messages
             ui_msg ""
@@ -1791,7 +1791,7 @@ proc macports::_upgrade_mport_deps {mport target} {
                                     }
                                 }
                                 if {[llength $missing] > 0} {
-                                    ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                                    ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
                                     ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
                                     ui_error "and the configured universal_archs '$macports::universal_archs' are not sufficient."
                                     return -code error "architecture mismatch"
@@ -1803,12 +1803,12 @@ proc macports::_upgrade_mport_deps {mport target} {
                                 }
                             } else {
                                 # already universal
-                                ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                                ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
                                 ui_error "its dependency $dep_portname is only installed for the archs '$active_archs'."
                                 return -code error "architecture mismatch"
                             }
                         } else {
-                            ui_error "Cannot install [_mportkey $mport name] for the arch(s) '$required_archs' because"
+                            ui_error "Cannot install [_mportkey $mport subport] for the arch(s) '$required_archs' because"
                             ui_error "its dependency $dep_portname is only installed for the arch '$active_archs'"
                             ui_error "and does not have a universal variant."
                             return -code error "architecture mismatch"
@@ -2697,7 +2697,7 @@ proc mportdepends {mport {target ""} {recurseDeps 1} {skipSatisfied 1} {accDeps 
                     }
                 }
                 if {$arch_mismatch} {
-                    macports::_explain_arch_mismatch [_mportkey $mport name] $dep_portname $required_archs $supported_archs $has_universal
+                    macports::_explain_arch_mismatch [_mportkey $mport subport] $dep_portname $required_archs $supported_archs $has_universal
                     return -code error "architecture mismatch"
                 }
             }
@@ -2865,7 +2865,7 @@ proc macports::_deptypes_for_target {target workername} {
         install     -
         activate    -
         ""          {
-            if {[$workername eval registry_exists \$name \$version \$revision \$portvariants]
+            if {[$workername eval registry_exists \$subport \$version \$revision \$portvariants]
                 || [$workername eval _archive_available]} {
                 return "depends_lib depends_run"
             } else {
