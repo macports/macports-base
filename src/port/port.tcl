@@ -2478,42 +2478,184 @@ proc action_platform { action portlist opts } {
 }
 
 proc action_stats { action portlist opts } {    
-
+    # Build dictionary of os information
+    dict set os macports_version [macports::version]
+    dict set os osx_version ${macports::macosx_version}
+    dict set os os_arch ${macports::os_arch} 
+    dict set os os_platform ${macports::os_platform}
+    dict set os build_arch ${macports::build_arch}
+    dict set os gcc_version ${macports::gccversion}
+    dict set os xcode_version ${macports::xcodeversion}
+    
+    # Build dictionary of port information 
+    dict set ports active   [get_active_ports]
+    dict set ports inactive [get_inactive_ports]
+    
     # If no subcommands are given (portlist is empty) print out OS information
     if {$portlist == ""} {
-        # Print information
-        puts "Build Information"
-        puts "- MacPorts Version [macports::version]"
-        puts "- Mac OS X Version ${macports::macosx_version}"
-        puts "- Platform ${macports::os_arch} ${macports::os_platform}"
-        puts "- Build Arch is ${macports::build_arch}"
-        puts "- XCode Version ${macports::xcodeversion}"
+        # Print information from os dictionary
+        dict for {key values} $os {
+            puts "$key: [dict get $os $key]"
+        }
         return 0
     }
-
+    
     # Make sure there aren't too many subcommands
     if {[llength $portlist] > 1} {
-        puts "Please select only one subcommand. See port help stats"
+        ui_error "Please select only one subcommand. See port help stats"
         return 0
     }
 
-    # Get the command
+    # Get the subcommand
     set cmd [lindex $portlist 0]
-        
+
+    ###### JSON Encoding helper procs ######
+    
+    # Return JSON encoding of a flat "key":"value" dictionary
+    proc json_encode_dict { data } {
+        upvar 1 $data db
+
+        set size [dict size $db]
+        set i 1
+
+        # Initialize the JSON string string
+        set json "\{"
+
+        dict for {key values} $db {
+            set line "\"$key\":\"[dict get $db $key]\""
+
+            # Check if there are any subsequent items
+            if {$i < $size} {
+                set line "$line, "
+            } 
+
+            # Add line to the JSON string
+            set json "$json$line"
+
+            incr i
+        }
+
+        set json "$json\}"
+
+        return $json
+    }
+
+    # Encodes a list of strings as a JSON array
+    proc json_encode_list { data } {    
+        set size [llength $data]
+        set i 1
+
+        set json "\["
+
+        foreach item $data {
+            set json "$json$data"
+
+            # Check if there are any subsequent items
+            if {$i < $size} {
+                set json "$json, "
+            }
+
+            incr i
+        }
+
+        set json "$json \]"
+
+        return $json
+    }
+
+    # Encode a port (from a portlist entry) as a JSON object
+    proc json_encode_port { port_info } {
+        upvar 1 $port_info port
+
+        set first true
+
+        set json "\{"
+        foreach name [array names port] {
+
+            # Skip fullname and empty strings
+            if {$name == "fullname" || $port($name) == ""} {
+                continue
+            }
+
+            # Prepend a comma if this isn't the first item that has been processed
+            if {!$first} {
+                # Add a comma
+                set json "$json, "
+           } else {
+               set first false
+           }
+
+            # Format the entry as "name_string":"value"
+            set entry "\"$name\":\"$port($name)\"" 
+            set json "$json$entry"
+
+
+        }
+
+        set json "$json\}"
+
+        return $json
+    }
+
+    # Encode portlist as a JSON array of port objects
+    proc json_encode_portlist { portlist } {
+        set json "\["
+        set first true
+
+        foreach i $portlist {
+            array set port $i
+
+            set encoded [json_encode_port port]
+
+            # Prepend a comma if this isn't the first item that has been processed
+            if {!$first} {
+                # Add a comma
+                set json "$json, "
+           } else {
+               set first false
+           }
+
+            # Append encoded json object
+            set json "$json$encoded"
+        }
+
+        set json "$json\]"
+
+        return $json
+    }
+
+    # Top level container for os and port data
+    # Returns a JSON Object with three  
+    proc json_encode_stats {os_dict ports_dict} {
+        upvar 1 $os_dict os
+        upvar 1 $ports_dict ports
+
+        set os_json [json_encode_dict os]
+        set active_ports_json [json_encode_portlist [dict get $ports "active"]]
+        set inactive_ports_json [json_encode_portlist [dict get $ports "inactive"]]
+
+        set json "\{"
+        set json "$json \"os\":$os_json,"
+        set json "$json \"active_ports\":$active_ports_json,"
+        set json "$json \"inactive_ports\":$inactive_ports_json"
+        set json "$json\}"
+
+        return $json
+    }
+
     switch $cmd {
         "submit" {
-            # Only submit if the user is participating
-            if {[string equal ${macports::stats_participate} "yes"]} {
-                # TODO: proc call which will submit data
-                puts "Will submit collected data"
-            }
+            # TODO: Get URL from a configuration variable
+            set url "http://127.0.0.1/cgi-bin/data.py"
+            set json [json_encode_stats os ports]
+            curl post "data=$json" $url      
         }
         default {
             puts "Unknown subcommand. See port help stats"
         }
     }
-    
-    return 0
+
+   return 0
 }
 
 proc action_dependents { action portlist opts } {
