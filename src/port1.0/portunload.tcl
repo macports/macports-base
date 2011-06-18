@@ -36,6 +36,7 @@ package require portutil 1.0
 
 set org.macports.unload [target_new org.macports.unload portunload::unload_main]
 target_runtype ${org.macports.unload} always
+target_state ${org.macports.unload} no
 target_provides ${org.macports.unload} unload 
 target_requires ${org.macports.unload} main
 

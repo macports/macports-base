@@ -36,6 +36,7 @@ package require portutil 1.0
 
 set org.macports.load [target_new org.macports.load portload::load_main]
 target_runtype ${org.macports.load} always
+target_state ${org.macports.load} no
 target_provides ${org.macports.load} load 
 target_requires ${org.macports.load} main
 
