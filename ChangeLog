@@ -20,8 +20,9 @@ Release 2.0.0 (unreleased):
       uninstalling ports. (jmr in r70608)
 
     - Downloaded archives are now checked for integrity using digital
-      signatures. New pubkeys.conf file allows configuring keys to trust.
-      (jmr in r68996)
+      signatures. Sync and selfupdate can also use a signed tarball. New
+      pubkeys.conf file allows configuring keys to trust.
+      (jmr in r68996, r79093)
 
     - Added 'actinact' pseudo-portname that expands to installed ports with an
       active version and at least one inactive version.
