@@ -2,6 +2,7 @@
 # macports1.0/test_dlist.tcl
 # $Id$
 #
+# Copyright (c) 2007 The MacPorts Project
 # Copyright (c) 2003 Kevin Van Vechten <kevin@opendarwin.org>
 
 # Test suite for macports_dlist package.

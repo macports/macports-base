@@ -3,7 +3,8 @@
  * $Id$
  * Copied from md5cmd.c 20040903 EH
  *
- * Copyright (c) 2002 - 2003 Apple Computer, Inc.
+ * Copyright (c) 2004 - 2005, 2009 - 2011 The MacPorts Project
+ * Copyright (c) 2002 - 2003 Apple Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+ * 3. Neither the name of Apple Inc. nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 
