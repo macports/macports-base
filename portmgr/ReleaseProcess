@@ -157,7 +157,7 @@ file in the downloads directory:
 
  cd work
  mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5-Leopard.dmg
- for dmg in MacPorts-1.6.0-*.dmg; do for type in -md5 -sha1 -ripemd160; do openssl dgst $type $dmg; done >> MacPorts-1.6.0.chk.txt; done
+ for dmg in MacPorts-1.6.0-*.dmg; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $dmg; done >> MacPorts-1.6.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate
 directory of the MacPorts distfiles server. Developers are required to validate the generated installer as

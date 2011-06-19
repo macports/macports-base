@@ -96,7 +96,7 @@ _pkgdist:
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
 	cd ${DISTDIR}; for tarball in ${PKGNAME}.tar.*; do { \
-		for type in -md5 -sha1 -ripemd160; do { \
+		for type in -md5 -sha1 -ripemd160 -sha256; do { \
 			openssl dgst $$type $$tarball; \
 		}; done >> ${DISTNAME}.chk.txt; \
 	}; done
