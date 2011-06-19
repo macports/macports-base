@@ -2,6 +2,7 @@
 # portuninstall.tcl
 # $Id$
 #
+# Copyright (c) 2004-2005, 2008-2011 The MacPorts Project
 # Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
