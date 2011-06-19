@@ -66,6 +66,13 @@ function setup_configs {
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
+    # Add [default] tag to the central MacPorts repository, if it isn't already
+    echo "Adding [default] tag to sources.conf if needed..."
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
+    # Convert image directories (and direct mode installs) to image archives
+    echo "Updating port image format..."
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
+
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
@@ -73,11 +80,6 @@ function update_macports {
     else
         echo "Successful!"
     fi
-    
-    # Add [default] tag to the central MacPorts repository, if it isn't already
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
-    # Convert image directories (and direct mode installs) to image archives
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
