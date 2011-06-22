@@ -2588,8 +2588,6 @@ proc action_stats { action portlist opts } {
             # Format the entry as "name_string":"value"
             set entry "\"$name\":\"$port($name)\"" 
             set json "$json$entry"
-
-
         }
 
         set json "$json\}"
@@ -2626,7 +2624,7 @@ proc action_stats { action portlist opts } {
 
     # Top level container for os and port data
     # Returns a JSON Object with three  
-    proc json_encode_stats {os_dict ports_dict} {
+    proc json_encode_stats {id os_dict ports_dict} {
         upvar 1 $os_dict os
         upvar 1 $ports_dict ports
 
@@ -2635,6 +2633,7 @@ proc action_stats { action portlist opts } {
         set inactive_ports_json [json_encode_portlist [dict get $ports "inactive"]]
 
         set json "\{"
+        set json "$json \"id\":\"$id\","
         set json "$json \"os\":$os_json,"
         set json "$json \"active_ports\":$active_ports_json,"
         set json "$json \"inactive_ports\":$inactive_ports_json"
@@ -2643,12 +2642,20 @@ proc action_stats { action portlist opts } {
         return $json
     }
 
+
     switch $cmd {
         "submit" {
-            # TODO: Get URL from a configuration variable
-            set url "http://127.0.0.1/cgi-bin/data.py"
-            set json [json_encode_stats os ports]
-            curl post "data=$json" $url      
+            if {![info exists macports::stats_url]} {
+                ui_error "Configuration variable stats_url is not set"
+                return 0
+            }
+            if {![info exists macports::stats_id]} {
+                ui_error "Configuration variable stats_id is not set"
+                return 0
+            }
+            
+            set json [json_encode_stats ${macports::stats_id} os ports]
+            curl post "data=$json" ${macports::stats_url}  
         }
         default {
             puts "Unknown subcommand. See port help stats"
