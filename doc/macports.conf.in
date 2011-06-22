@@ -134,3 +134,9 @@ universal_archs		@UNIVERSAL_ARCHS@
 # If you would like to participate change this value to yes
 # The default is no
 stats_participate	no
+
+# Where to submit usage data
+stats_url	localhost
+
+# Unique identifier for usage statistics
+stats_id	@STATS_UUID@

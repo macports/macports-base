@@ -730,6 +730,7 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+STATS_UUID
 DEVELOPER_DIR
 XCODE_SELECT
 DEFAULTS
@@ -823,10 +824,6 @@ LIBS
 CPPFLAGS
 OBJC
 OBJCFLAGS
-LDFLAGS
-LIBS
-CPPFLAGS
-OBJC
 MTREE
 CVS
 SVN
@@ -842,9 +839,7 @@ BZIP2
 XAR
 OPEN
 OBJCPP
-CPPFLAGS
-CPP
-CPPFLAGS'
+CPP'
 ac_subdirs_all='src/thread2.6'
 
 # Initialize some variables set by options.
@@ -2978,6 +2973,10 @@ $as_echo "$as_me: WARNING: Please consider upgrading as some ports fail compilin
   *)
     ;;
 esac
+
+# Generate UUID for data collection
+STATS_UUID=`uuidgen`
+
 
 # Checks for programs.
 ac_ext=c

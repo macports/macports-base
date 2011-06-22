@@ -80,6 +80,10 @@ case "$XCODE_VERSION" in
     ;;
 esac
 
+# Generate UUID for data collection
+STATS_UUID=`uuidgen`
+AC_SUBST(STATS_UUID)
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_OBJC
