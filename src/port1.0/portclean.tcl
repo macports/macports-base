@@ -51,9 +51,13 @@ namespace eval portclean {
 set_ui_prefix
 
 proc portclean::clean_start {args} {
-    global UI_PREFIX
+    global UI_PREFIX prefix
 
     ui_notice "$UI_PREFIX [format [msgcat::mc "Cleaning %s"] [option subport]]"
+
+    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
+        elevateToRoot "clean"
+    }
 }
 
 proc portclean::clean_main {args} {

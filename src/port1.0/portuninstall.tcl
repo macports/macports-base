@@ -50,7 +50,7 @@ default uninstall.asroot no
 
 proc portuninstall::uninstall_start {args} {
     global prefix
-    if { ![file writable $prefix] } {
+    if {![file writable $prefix] || ([getuid] == 0 && [geteuid] != 0)} {
         # if install location is not writable, need root privileges
         elevateToRoot "uninstall"
     }
