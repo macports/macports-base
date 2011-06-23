@@ -1016,13 +1016,6 @@ CurlPostCmd(Tcl_Interp* interp, int objc, Tcl_Obj* CONST objv[])
 			break;
 		}
 
-		/* skip the body data */
-		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOBODY, 1);
-		if (theCurlCode != CURLE_OK) {
-			theResult = SetResultFromCurlErrorCode(interp, theCurlCode);
-			break;
-		}
-
 		/* we do not want any progress */
 		theCurlCode = curl_easy_setopt(theHandle, CURLOPT_NOPROGRESS, 1);
 		if (theCurlCode != CURLE_OK) {
