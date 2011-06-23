@@ -2090,7 +2090,7 @@ proc action_info { action portlist opts } {
                             array unset variant
                             array set variant $vinfo($v)
                             if {[info exists variant(is_default)]} {
-                                set varmodifier "\[+]"
+                                set varmodifier "\[$variant(is_default)]"
                             }
                         }
                         lappend inf "$varmodifier$v"
@@ -3319,7 +3319,7 @@ proc action_variants { action portlist opts } {
                         # selected by variants.conf, prefixed with (+)/(-)
                         set varmodifier "($global_variations($v))"
                     } elseif {[info exists variant(is_default)]} {
-                        set varmodifier "\[+]"
+                        set varmodifier "\[$variant(is_default)\]"
                     } else {
                         set varmodifier "   "
                     }

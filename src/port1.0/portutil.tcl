@@ -2029,8 +2029,7 @@ proc handle_default_variants {option action {value ""}} {
 
                     if {![info exists variations($variant)]} {
                         # Set is_default and update vinfo.
-                        array set info [list is_default val]
-                        array set vinfo [list $variant [array get info]]
+                        array set vinfo [list $variant [list is_default $val]]
 
                         set variations($variant) $val
                     }
