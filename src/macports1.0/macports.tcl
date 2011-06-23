@@ -1630,6 +1630,8 @@ proc _mportexec {target mport} {
 proc mportexec {mport target} {
     set workername [ditem_key $mport workername]
 
+    # check for existence of macportsuser and use fallback if necessary
+    $workername eval validate_macportsuser
     # check variants
     if {[$workername eval check_variants $target] != 0} {
         return 1
