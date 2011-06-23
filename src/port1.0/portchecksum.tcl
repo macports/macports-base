@@ -2,8 +2,9 @@
 # portchecksum.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2004 Apple Computer, Inc.
+# Copyright (c) 2002 - 2004 Apple Inc.
 # Copyright (c) 2004 - 2005 Paul Guyot <pguyot@kallisys.net>
+# Copyright (c) 2006-2011 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -58,7 +59,7 @@ set checksum_types "md5 sha1 rmd160 sha256"
 set checksum_types_count [llength $checksum_types]
 
 # types to recommend if none are specified in the portfile
-set default_checksum_types {sha1 rmd160}
+set default_checksum_types {rmd160 sha256}
 
 # Using global all_dist_files, parse the checksums and store them into the
 # global array checksums_array.
@@ -310,7 +311,7 @@ proc portchecksum::checksum_main {args} {
             ui_notice "***"
             ui_notice "The non-matching file appears to be HTML. See this page for possible reasons"
             ui_notice "for the checksum mismatch:"
-            ui_notice "<http://trac.macports.org/wiki/MisbehavingServers>"
+            ui_notice "<https://trac.macports.org/wiki/MisbehavingServers>"
             ui_notice "***"
         }
 

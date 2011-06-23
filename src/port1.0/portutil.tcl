@@ -2,9 +2,10 @@
 # portutil.tcl
 # $Id$
 #
+# Copyright (c) 2002-2003 Apple Inc.
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2002 Apple Computer, Inc.
-# Copyright (c) 2006, 2007 Markus W. Weissmann <mww@macports.org>
+# Copyright (c) 2006-2007 Markus W. Weissmann <mww@macports.org>
+# Copyright (c) 2004-2011 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -15,7 +16,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -1273,13 +1274,14 @@ proc target_run {ditem} {
 
             # otherwise execute the task.
             if {$skipped == 0} {
-                set target [ditem_key $ditem provides]
+                # change current phase shown in log
+                set_phase $target
 
                 # Execute pre-run procedure
                 if {[ditem_contains $ditem prerun]} {
                     set result [catch {[ditem_key $ditem prerun] $targetname} errstr]
                 }
-                set_phase  $target
+
                 #start tracelib
                 if {($result ==0
                   && [info exists ports_trace]
@@ -1576,7 +1578,7 @@ proc open_statefile {args} {
         if {![file writable $statefile] && ![tbool ports_dryrun]} {
             return -code error "$statefile is not writable - check permission on port directory"
         }
-        if {[file mtime ${portpath}/Portfile] >= [clock seconds]} {
+        if {[file mtime ${portpath}/Portfile] > [clock seconds]} {
             return -code error "Portfile is from the future - check date and time of your system"
         }
         if {!([info exists ports_ignore_older] && $ports_ignore_older == "yes") && [file mtime $statefile] < [file mtime ${portpath}/Portfile]} {
@@ -2671,7 +2673,7 @@ proc _check_xcode_version {} {
             default {
                 set min 3.2
                 set ok 3.2
-                set rec 3.2.4
+                set rec 3.2.6
             }
         }
         if {$xcodeversion == "none"} {
@@ -2689,7 +2691,7 @@ proc _check_xcode_version {} {
 # check if we can unarchive this port
 proc _archive_available {} {
     global subport version revision portvariants ports_source_only workpath \
-           registry.path os.platform os.major
+           registry.path os.platform os.major porturl
 
     if {[tbool ports_source_only]} {
         return 0
@@ -2703,10 +2705,13 @@ proc _archive_available {} {
             break
         }
     }
-    
-    # TODO: also check if porturl points to an archive
-    # maybe check if there's an archive available on the server too - this
-    # is kind of useless otherwise now that archive == installed image
+
+    if {!$found && [file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
+        set found 1
+    }
+
+    # TODO: maybe check if there's an archive available on the server - this
+    # is much less useful otherwise now that archive == installed image
 
     return $found
 }

@@ -647,8 +647,8 @@ UNIVERSAL_ARCHS
 MPFRAMEWORKSDIR
 MPAPPLICATIONSDIR
 DSTMODE
-RUNUSR
 TCL_PACKAGE_DIR
+RUNUSR
 DSTGRP
 DSTUSR
 MPCONFIGDIR
@@ -709,6 +709,7 @@ SVN
 CVS
 BZR
 FILE
+DSEDITGROUP
 DSCL
 DIFF
 CPIO
@@ -793,6 +794,7 @@ enable_option_checking
 enable_werror
 with_objc_runtime
 with_objc_foundation
+with_unsupported_prefix
 with_ports_dir
 with_no_root_privileges
 with_install_user
@@ -1466,6 +1468,9 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-objc-runtime     Specify either "GNU" or "apple"
   --with-objc-foundation  Specify either "GNUstep" or "apple"
+  --with-unsupported-prefix
+                          Acknowledge that you accept the consequences of
+                          using an unsupported prefix.
   --with-ports-dir=DIR    Specify alternate ports directory
   --with-no-root-privileges
                           Specify that MacPorts should be installed in your
@@ -2918,13 +2923,13 @@ case "$MACOSX_VERSION" in
     as_fn_error $? "This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/" "$LINENO" 5
     ;;
-  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-3])
+  10.4.[0-9]|10.4.10|10.5.[0-7]|10.6.[0-6])
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This version of Mac OS X is out of date" >&5
 $as_echo "$as_me: WARNING: This version of Mac OS X is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please run Software Update to update it" >&5
 $as_echo "$as_me: WARNING: Please run Software Update to update it" >&2;}
     ;;
-  10.4*|10.5*|10.6*)
+  10.4*|10.5*|10.6*|10.7*)
         ;;
   *)
     ;;
@@ -2968,7 +2973,7 @@ $as_echo "$as_me: WARNING: This version of Xcode Tools is out of date" >&2;}
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Please consider upgrading as some ports fail compiling" >&5
 $as_echo "$as_me: WARNING: Please consider upgrading as some ports fail compiling" >&2;}
     ;;
-  2.*|3.*)
+  2.*|3.*|4.*)
         ;;
   *)
     ;;
@@ -4391,6 +4396,46 @@ DSCL=$ac_cv_path_DSCL
 if test -n "$DSCL"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DSCL" >&5
 $as_echo "$DSCL" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+# Extract the first word of "dseditgroup", so it can be a program name with args.
+set dummy dseditgroup; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_DSEDITGROUP+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $DSEDITGROUP in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DSEDITGROUP="$DSEDITGROUP" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_DSEDITGROUP="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+DSEDITGROUP=$ac_cv_path_DSEDITGROUP
+if test -n "$DSEDITGROUP"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DSEDITGROUP" >&5
+$as_echo "$DSEDITGROUP" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -7597,8 +7642,18 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 
-if test x$prefix = x/usr/local; then
-    as_fn_error $? "Installing MacPorts into /usr/local is not supported" "$LINENO" 5
+
+# Check whether --with-unsupported-prefix was given.
+if test "${with_unsupported_prefix+set}" = set; then :
+  withval=$with_unsupported_prefix; with_unsupported_prefix=$withval
+else
+  with_unsupported_prefix=no
+fi
+
+if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
+    as_fn_error $? "Installing MacPorts into /usr/local is not supported. If \
+you understand this and wish to do so anyway, pass --with-unsupported-prefix \
+to configure." "$LINENO" 5
 fi
 
 
@@ -7679,6 +7734,14 @@ $as_echo_n "checking for install group... " >&6; }
 		DSTGRP=`id -gn`
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $DSTGRP" >&5
 $as_echo "$DSTGRP" >&6; }
+
+
+		# Set run-user to current user
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for macports user" >&5
+$as_echo_n "checking for macports user... " >&6; }
+		RUNUSR=`id -un`
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $RUNUSR" >&5
+$as_echo "$RUNUSR" >&6; }
 
 
 		# Set Tcl package directory to ~/Library/Tcl
@@ -7767,7 +7830,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for macports user" >&5
 $as_echo_n "checking for macports user... " >&6; }
 	if test "x$RUNUSR" = "x" ; then
-	   RUNUSR=nobody
+	   RUNUSR=macports
 	fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $RUNUSR" >&5
@@ -9591,7 +9654,7 @@ prefix=$oldprefix
 
 
 # Output
-ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/prefix.mtree doc/macosx.mtree doc/macports.conf doc/pubkeys.conf portmgr/freebsd/Makefile src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry2.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
+ac_config_files="$ac_config_files Doxyfile Makefile Mk/macports.autoconf.mk doc/base.mtree doc/prefix.mtree doc/macosx.mtree doc/macports.conf doc/pubkeys.conf portmgr/freebsd/Makefile src/Makefile src/macports1.0/macports_autoconf.tcl src/port1.0/port_autoconf.tcl src/registry2.0/registry_autoconf.tcl src/programs/Makefile src/macports1.0/macports_fastload.tcl setupenv.bash"
 
 
 ac_config_files="$ac_config_files src/pkg_mkindex.sh"
@@ -10304,6 +10367,7 @@ do
     "Doxyfile") CONFIG_FILES="$CONFIG_FILES Doxyfile" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "Mk/macports.autoconf.mk") CONFIG_FILES="$CONFIG_FILES Mk/macports.autoconf.mk" ;;
+    "doc/base.mtree") CONFIG_FILES="$CONFIG_FILES doc/base.mtree" ;;
     "doc/prefix.mtree") CONFIG_FILES="$CONFIG_FILES doc/prefix.mtree" ;;
     "doc/macosx.mtree") CONFIG_FILES="$CONFIG_FILES doc/macosx.mtree" ;;
     "doc/macports.conf") CONFIG_FILES="$CONFIG_FILES doc/macports.conf" ;;

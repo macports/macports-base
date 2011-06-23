@@ -240,20 +240,6 @@
     src
     ..
     var
-        macports
-            build
-            ..
-            distfiles
-            ..
-            logs
-            ..
-            packages
-            ..
-            receipts
-            ..
-            registry
-            ..
-        ..
     ..
     www
     ..

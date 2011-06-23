@@ -2,6 +2,7 @@
  * rmd160cmd.c
  * $Id$
  *
+ * Copyright (c) 2006, 2009-2011 The MacPorts Project
  * Copyright (c) 2005 Paul Guyot <pguyot@kallisys.net>.
  * All rights reserved.
  *
@@ -13,7 +14,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+ * 3. Neither the name of The MacPorts Project nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  * 

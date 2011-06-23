@@ -2,8 +2,9 @@
 # portactivate.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2005, 2007, 2009-2011 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
+# Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -14,7 +15,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 #
@@ -60,7 +61,7 @@ proc portactivate::activate_start {args} {
 proc portactivate::activate_main {args} {
     global env subport version revision portvariants user_options PortInfo
 
-    registry_activate $subport "${version}_${revision}${portvariants}" [array get user_options]
+    registry_activate $subport $version $revision $portvariants [array get user_options]
 
     # Display notes at the end of the activation phase.
     if {[info exists PortInfo(notes)] && $PortInfo(notes) ne {}} {

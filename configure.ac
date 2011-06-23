@@ -32,11 +32,11 @@ case "$MACOSX_VERSION" in
     AC_MSG_ERROR([This version of Mac OS X is not supported
                   Please upgrade at http://store.apple.com/])
     ;;
-  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-3]])
+  10.4.[[0-9]]|10.4.10|10.5.[[0-7]]|10.6.[[0-6]])
     AC_MSG_WARN([This version of Mac OS X is out of date])
     AC_MSG_WARN([Please run Software Update to update it])
     ;;
-  10.4*|10.5*|10.6*)
+  10.4*|10.5*|10.6*|10.7*)
     dnl Supported version
     ;;
   *)
@@ -73,7 +73,7 @@ case "$XCODE_VERSION" in
     AC_MSG_WARN([This version of Xcode Tools is out of date])
     AC_MSG_WARN([Please consider upgrading as some ports fail compiling])
     ;;
-  2.*|3.*)
+  2.*|3.*|4.*)
     dnl Supported version
     ;;
   *)
@@ -96,6 +96,7 @@ AC_PATH_PROG(CP, [cp], [])
 AC_PATH_PROG(CPIO, [cpio], [])
 AC_PATH_PROG(DIFF, [diff], [])
 AC_PATH_PROG(DSCL, [dscl], [])
+AC_PATH_PROG(DSEDITGROUP, [dseditgroup], [])
 AC_PATH_PROG(FILE, [file], [])
 AC_PATH_PROG(BZR, [bzr], [])
 AC_PATH_PROG(CVS, [cvs], [])
@@ -173,8 +174,16 @@ PORTS_DIR_DEFAULT=`pwd | sed -e "s/base/ports/"`
 
 # Check for paths
 AC_PREFIX_DEFAULT(/opt/local)
-if test x$prefix = x/usr/local; then
-    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported])
+AC_ARG_WITH(
+		unsupported-prefix,
+		AS_HELP_STRING([--with-unsupported-prefix],
+		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
+		[with_unsupported_prefix=$withval],
+		[with_unsupported_prefix=no])
+if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
+    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported. If \
+you understand this and wish to do so anyway, pass --with-unsupported-prefix \
+to configure.])
 fi
 MP_PATH_PORTSDIR([$PORTS_DIR_DEFAULT])
 MP_PATH_MPCONFIGDIR
@@ -350,6 +359,7 @@ AC_CONFIG_FILES([
 	Doxyfile
 	Makefile
 	Mk/macports.autoconf.mk
+	doc/base.mtree
 	doc/prefix.mtree
 	doc/macosx.mtree
 	doc/macports.conf

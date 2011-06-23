@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004-2010 The MacPorts Project
+# Copyright (c) 2004 - 2011 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -241,8 +241,13 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
         }
 
         foreach site $urllist {
+            if {[string range $site 0 6] == "file://"} {
+                set pingtimes(localhost) 0
+                continue
+            }
+            
             regexp $hostregex $site -> host
-
+            
             if { [info exists seen($host)] } {
                 continue
             }
@@ -284,7 +289,11 @@ proc portfetch::sortsites {urls fallback_mirror_list default_listvar} {
 
         set pinglist {}
         foreach site $urllist {
-            regexp $hostregex $site -> host
+            if {[string range $site 0 6] == "file://"} {
+                set host localhost
+            } else {
+                regexp $hostregex $site -> host
+            }
             lappend pinglist [ list $site $pingtimes($host) ]
         }
 

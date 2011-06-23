@@ -11,9 +11,7 @@ platforms	darwin
 
 long_description ${description}
 
-fetch		{}
-checksum	{}
-extract		{}
+distfiles
 configure	{}
 build		{}
 destroot	{

@@ -2,7 +2,7 @@
 # $Id$
 #
 # Copyright (c) 2002 - 2003 Apple Inc.
-# Copyright (c) 2004-2010 The MacPorts Project
+# Copyright (c) 2004 - 2011 The MacPorts Project
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -59,10 +59,24 @@ default archivefetch.use_epsv no
 default archivefetch.ignore_sslcert no
 default archivefetch.pubkeys {$archivefetch_pubkeys}
 
-default archive_sites macports_archives
+default archive_sites {[portarchivefetch::filter_sites]}
 default archive_sites.listfile {"archive_sites.tcl"}
 default archive_sites.listpath {"port1.0/fetch"}
 default archive.subdir {${subport}}
+
+proc portarchivefetch::filter_sites {} {
+    global prefix porturl
+    set ret {}
+    foreach site [array names portfetch::mirror_sites::archive_prefix] {
+        if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
+            lappend ret $site
+        }
+    }
+    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]]} {
+        lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]
+    }
+    return $ret
+}
 
 set_ui_prefix
 
@@ -204,9 +218,9 @@ proc portarchivefetch::fetchfiles {args} {
                     ui_debug "$::errorInfo"
                     return -code error "Failed to fetch signature for archive: $result"
                 }
+                set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                 set verified 0
                 foreach pubkey [option archivefetch.pubkeys] {
-                    set openssl [findBinary openssl $portutil::autoconf::openssl_path]
                     if {![catch {exec $openssl dgst -ripemd160 -verify $pubkey -signature $signature "${incoming_path}/${archive}.TMP"} result]} {
                         set verified 1
                         break
@@ -246,6 +260,11 @@ proc portarchivefetch::fetchfiles {args} {
 
 # Initialize archivefetch target and call checkfiles.
 proc portarchivefetch::archivefetch_init {args} {
+    global porturl portarchivetype
+    # installing straight from a binary archive
+    if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]] && [file extension $porturl] != ""} {
+        set portarchivetype [string range [file extension $porturl] 1 end]
+    }
     return 0
 }
 

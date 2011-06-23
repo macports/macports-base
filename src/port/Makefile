@@ -22,7 +22,8 @@ port: port.tcl ../../Mk/macports.autoconf.mk
 	${edit} port.tcl > $@
 
 mkdirs:
-	<../../doc/prefix.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
+	< ../../doc/prefix.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
+	< ../../doc/base.mtree $(MTREE) -U -d -e -p ${INSTALLDIR} > /dev/null
 
 clean:
 	rm -f ${SCRIPTS}

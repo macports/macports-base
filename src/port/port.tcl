@@ -5,9 +5,9 @@ exec @TCLSH@ "$0" "$@"
 # port.tcl
 # $Id$
 #
-# Copyright (c) 2002-2007 The MacPorts Project.
+# Copyright (c) 2004-2011 The MacPorts Project
 # Copyright (c) 2004 Robert Shaw <rshaw@opendarwin.org>
-# Copyright (c) 2002 Apple Computer, Inc.
+# Copyright (c) 2002-2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -18,7 +18,7 @@ exec @TCLSH@ "$0" "$@"
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -87,8 +87,8 @@ Pseudo-portnames
 ----------------
 Pseudo-portnames are words that may be used in place of a portname, and
 which expand to some set of ports. The common pseudo-portnames are:
-all, current, active, inactive, installed, uninstalled, outdated, obsolete,
-requested, unrequested and leaves.
+all, current, active, inactive, actinact, installed, uninstalled, outdated,
+obsolete, requested, unrequested and leaves.
 These pseudo-portnames expand to the set of ports named.
 
 Pseudo-portnames starting with variants:, variant:, description:, depends:,
@@ -154,6 +154,57 @@ proc _const value {
 }
 
 
+# Format an integer representing bytes using given units
+proc bytesize {siz {unit {}}} {
+    if {$unit == {}} {
+        if {$siz > 0x40000000} {
+            set unit "GiB"
+        } elseif {$siz > 0x100000} {
+            set unit "MiB"
+        } elseif {$siz > 0x400} {
+            set unit "KiB"
+        } else {
+            set unit "B"
+        }
+    }
+    switch -- $unit {
+        KiB {
+            set siz [expr $siz / 1024.0]
+        }
+        kB {
+            set siz [expr $siz / 1000.0]
+        }
+        MiB {
+            set siz [expr $siz / 1048576.0]
+        }
+        MB {
+            set siz [expr $siz / 1000000.0]
+        }
+        GiB {
+            set siz [expr $siz / 1073741824.0]
+        }
+        GB {
+            set siz [expr $siz / 1000000000.0]
+        }
+        B { }
+        default {
+            ui_warn "Unknown file size unit '$unit' specified"
+            set unit "B"
+        }
+    }
+    if {[expr round($siz)] != $siz} {
+        set siz [format {%.3f} $siz]
+    }
+    return "$siz $unit"
+}
+
+proc filesize {fil {unit {}}} {
+    set siz {@}
+    catch {
+        set siz [bytesize [file size $fil] $unit]
+    }
+    return $siz
+}
 
 # Produce an error message, and exit, unless
 # we're handling errors in a soft fashion, in which
@@ -713,6 +764,34 @@ proc get_inactive_ports {} {
     return [get_installed_ports no no]
 }
 
+proc get_actinact_ports {} {
+    set inactive_ports [get_inactive_ports]
+    set active_ports [get_active_ports]
+    set results {}
+
+    foreach port $inactive_ports {
+        array set portspec $port
+        set portname $portspec(name)
+        lappend inact($portname) $port
+    }
+
+    foreach port $active_ports {
+        array set portspec $port
+        set portname $portspec(name)
+
+        if {[info exists inact($portname)]} {
+            if {![info exists added_inact($portname)]} {
+                foreach inact_spec $inact($portname) {
+                    lappend results $inact_spec
+                }
+                set added_inact($portname) 1
+            }
+            lappend results $port
+        }
+    }
+    return $results
+}
+
 
 proc get_outdated_ports {} {
     # Get the list of installed ports
@@ -1163,6 +1242,7 @@ proc element { resname } {
         ^uninstalled(@.*)?$ -
         ^active(@.*)?$      -
         ^inactive(@.*)?$    -
+        ^actinact(@.*)?$    -
         ^leaves(@.*)?$      -
         ^outdated(@.*)?$    -
         ^obsolete(@.*)?$    -
@@ -2217,15 +2297,13 @@ proc action_provides { action portlist opts } {
 
 
 proc action_activate { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_activate_no-exec)]
+        if {![info exists options(ports_activate_no-exec)]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
@@ -2236,7 +2314,7 @@ proc action_activate { action portlist opts } {
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::activate $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::activate_composite $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port activate failed: $result" 1 status
@@ -2251,15 +2329,13 @@ proc action_activate { action portlist opts } {
 
 
 proc action_deactivate { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
     }
     foreachport $portlist {
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_deactivate_no-exec)]
+        if {![info exists options(ports_deactivate_no-exec)]
             && ![catch {set ilist [registry::active $portname]}]} {
 
             set i [lindex $ilist 0]
@@ -2274,7 +2350,7 @@ proc action_deactivate { action portlist opts } {
             }
         }
         if {![macports::global_option_isset ports_dryrun]} {
-            if { [catch {portimage::deactivate $portname $composite_version [array get options]} result] } {
+            if { [catch {portimage::deactivate_composite $portname $composite_version [array get options]} result] } {
                 global errorInfo
                 ui_debug "$errorInfo"
                 break_softcontinue "port deactivate failed: $result" 1 status
@@ -2412,7 +2488,6 @@ proc action_selfupdate { action portlist opts } {
 
 
 proc action_setrequested { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[require_portlist portlist] || [prefix_unwritable]} {
         return 1
@@ -2426,9 +2501,6 @@ proc action_setrequested { action portlist opts } {
             foreach i $ilist {
                 set regref [registry::open_entry $portname [lindex $i 1] [lindex $i 2] [lindex $i 3] [lindex $i 5]]
                 registry::property_store $regref requested $val
-                if {${macports::registry.format} != "receipt_sqlite"} {
-                    registry::write_entry $regref
-                }
             }
         } else {
             global errorInfo
@@ -2655,7 +2727,7 @@ proc action_stats { action portlist opts } {
             }
             
             set json [json_encode_stats ${macports::stats_id} os ports]
-            curl post "data=$json" ${macports::stats_url}  
+            curl post "submit\[data\]=$json" ${macports::stats_url}  
         }
         default {
             puts "Unknown subcommand. See port help stats"
@@ -2996,7 +3068,6 @@ proc action_deps { action portlist opts } {
 
 
 proc action_uninstall { action portlist opts } {
-    global macports::registry.format
     set status 0
     if {[macports::global_option_isset port_uninstall_old]} {
         # if -u then uninstall all inactive ports
@@ -3018,8 +3089,7 @@ proc action_uninstall { action portlist opts } {
             continue
         }
         set composite_version [composite_version $portversion [array get variations]]
-        if {${macports::registry.format} == "receipt_sqlite"
-            && ![info exists options(ports_uninstall_no-exec)]
+        if {![info exists options(ports_uninstall_no-exec)]
             && ![catch {set ilist [registry::installed $portname $composite_version]}]
             && [llength $ilist] == 1} {
 
@@ -3031,7 +3101,7 @@ proc action_uninstall { action portlist opts } {
             }
         }
 
-        if { [catch {registry_uninstall::uninstall $portname $composite_version [array get options]} result] } {
+        if { [catch {registry_uninstall::uninstall_composite $portname $composite_version [array get options]} result] } {
             global errorInfo
             ui_debug "$errorInfo"
             break_softcontinue "port uninstall failed: $result" 1 status
@@ -3255,10 +3325,20 @@ proc action_outdated { action portlist opts } {
 
 
 proc action_contents { action portlist opts } {
-    set status 0
+    global global_options
     if {[require_portlist portlist]} {
         return 1
     }
+    if {[info exists global_options(ports_contents_size)]} {
+        set units {}
+        if {[info exists global_options(ports_contents_units)]} {
+            set units [complete_size_units $global_options(ports_contents_units)]
+        }
+        set outstring {[format "%12s $file" [filesize $file $units]]}
+    } else {
+        set outstring {  $file}
+    }
+
     foreachport $portlist {
         if { ![catch {set ilist [registry::installed $portname]} result] } {
             # set portname again since the one we were passed may not have had the correct case
@@ -3269,7 +3349,7 @@ proc action_contents { action portlist opts } {
             if { [llength $files] > 0 } {
                 ui_notice "Port $portname contains:"
                 foreach file $files {
-                    puts "  $file"
+                    puts [subst $outstring]
                 }
             } else {
                 ui_notice "Port $portname does not contain any files or is not active."
@@ -3280,7 +3360,65 @@ proc action_contents { action portlist opts } {
     }
     registry::close_file_map
 
-    return $status
+    return 0
+}
+
+# expand abbreviations of size units
+proc complete_size_units {units} {
+    if {$units == "K" || $units == "Ki"} {
+        return "KiB"
+    } elseif {$units == "k"} {
+        return "kB"
+    } elseif {$units == "Mi"} {
+        return "MiB"
+    } elseif {$units == "M"} {
+        return "MB"
+    } elseif {$units == "Gi"} {
+        return "GiB"
+    } elseif {$units == "G"} {
+        return "GB"
+    } else {
+        return $units
+    }
+}
+
+# Show space used by the given ports' files
+proc action_space {action portlist opts} {
+    global global_options
+    require_portlist portlist
+
+    set units {}
+    if {[info exists global_options(ports_space_units)]} {
+        set units [complete_size_units $global_options(ports_space_units)]
+    }
+    set spaceall 0.0
+    foreachport $portlist {
+        set space 0.0
+        set files [registry::port_registered $portname]
+        if { $files != 0 } {
+            if { [llength $files] > 0 } {
+                foreach file $files {
+                    catch {
+                        set space [expr $space + [file size $file] ]
+                    }
+                }
+                set msg "[bytesize $space $units] $portname"
+                if { $portversion != {} } {
+                    append msg " @$portversion"
+                }
+                puts $msg
+                set spaceall [expr $space + $spaceall]
+            } else {
+                puts "Port $portname does not contain any file or is not active."
+            }
+        } else {
+            puts "Port $portname is not installed."
+        }
+    }
+    if {[llength $portlist] > 1} {
+        puts "[bytesize $spaceall $units] total"
+    }
+    return 0
 }
 
 proc action_variants { action portlist opts } {
@@ -3976,6 +4114,7 @@ array set action_array [list \
     installed   [list action_installed      [ACTION_ARGS_PORTS]] \
     outdated    [list action_outdated       [ACTION_ARGS_PORTS]] \
     contents    [list action_contents       [ACTION_ARGS_PORTS]] \
+    space       [list action_space          [ACTION_ARGS_PORTS]] \
     dependents  [list action_dependents     [ACTION_ARGS_PORTS]] \
     rdependents [list action_dependents     [ACTION_ARGS_PORTS]] \
     deps        [list action_deps           [ACTION_ARGS_PORTS]] \
@@ -4031,7 +4170,41 @@ array set action_array [list \
     exit        [list action_exit           [ACTION_ARGS_NONE]] \
 ]
 
+# Expand "action".
+# Returns an action proc, or a list of matching action procs, or the action passed in
+proc find_action { action } {
+    global action_array
+    
+    if { ! [info exists action_array($action)] } {
+        set guess [guess_action $action]
+        if { [info exists action_array($guess)] } {
+            return $guess
+        }
+        return $guess
+    }
+    
+    return $action
+}
+
+# Expand action
+# If there's more than one match, return the next possibility
 proc find_action_proc { action } {
+    global action_array
+    
+    set action_proc ""
+    if { [info exists action_array($action)] } {
+        set action_proc [lindex $action_array($action) 0]
+    } else {
+        set action [complete_action $action]
+        if { [info exists action_array($action)] } {
+            set action_proc [lindex $action_array($action) 0]
+        }
+    }
+    
+    return $action_proc
+}
+
+proc get_action_proc { action } {
     global action_array
     
     set action_proc ""
@@ -4074,6 +4247,7 @@ array set cmd_opts_array {
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
                  replaced_by revision variant variants version}
+    contents    {size {units 1}}
     deps        {index no-build}
     rdeps       {index no-build full}
     rdependents {full}
@@ -4083,6 +4257,7 @@ array set cmd_opts_array {
                  long_description maintainer maintainers name platform
                  platforms portdir regex revision variant variants version}
     selfupdate  {nosync}
+    space       {{units 1}}
     activate    {no-exec}
     deactivate  {no-exec}
     uninstall   {follow-dependents follow-dependencies no-exec}
@@ -4318,9 +4493,16 @@ proc process_cmd { argv } {
         array set global_options $global_options_base
         
         # Find an action to execute
-        set action_proc [find_action_proc $action]
-        if { $action_proc == "" } {
-            puts "Unrecognized action \"$action\""
+        set actions [find_action $action]
+        if {[llength $actions] == 1} {
+            set action [lindex $actions 0]
+            set action_proc [get_action_proc $action]
+        } else {
+            if {[llength $actions] > 1} {
+                puts "Ambiguous action \"$action\": could be any of {$actions}."
+            } else {
+                puts "Unrecognized action \"$action\""
+            }
             set action_status 1
             break
         }
@@ -4410,6 +4592,7 @@ proc complete_portname { text state } {
 }
 
 
+# return text action beginning with $text
 proc complete_action { text state } {   
     global action_array
     global complete_choices complete_position
@@ -4425,6 +4608,18 @@ proc complete_action { text state } {
     return $word
 }
 
+# return all actions beginning with $text
+proc guess_action { text } {   
+    global action_array
+
+    return [array names action_array "[string tolower $text]*"]
+
+    if { [llength $complete_choices ] == 1 } {
+        return [lindex $complete_choices 0]
+    }
+
+    return {}
+}
 
 proc attempt_completion { text word start end } {
     # If the word starts with '~', or contains '.' or '/', then use the build-in

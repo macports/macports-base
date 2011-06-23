@@ -8,6 +8,10 @@
 source [file join [lindex $argv 0] macports1.0 macports_fastload.tcl]
 package require macports 1.0
 package require registry 1.0
+package require registry2 2.0
+package require Pextlib 1.0
+
+umask 022
 
 mportinit
 
@@ -23,6 +27,10 @@ if {[catch {set ilist [registry::installed]}]} {
 }
 
 puts "This could take a while..."
+
+# list of ports we successfully create an archive of, to be used to update
+# the registry only after we know all creation attempts were successful.
+set archived_list {}
 
 foreach installed $ilist {
     set iname [lindex $installed 0]
@@ -79,15 +87,7 @@ foreach installed $ilist {
         } else {
             set targetdir [file join ${macports::registry.path} software ${iname}]
             file mkdir $targetdir
-            if {${macports::registry.format} == "receipt_sqlite"} {
-                set contents [$iref imagefiles]
-            } else {
-                set contents {}
-                set rawcontents [registry::property_retrieve $iref contents]
-                foreach entry $rawcontents {
-                    lappend contents [lindex $entry 0]
-                }
-            }
+            set contents [$iref imagefiles]
         }
         set newlocation [file join $targetdir $archivename]
 
@@ -109,50 +109,34 @@ foreach installed $ilist {
             file delete -force ${targetdir}/tarlist ${targetdir}/error.log
         }
 
+        lappend archived_list [list $installtype $iref $location $newlocation]
+    }
+}
+
+registry::write {
+    foreach archived $archived_list {
+        set installtype [lindex $archived 0]
+        set iref [lindex $archived 1]
+        set newlocation [lindex $archived 3]
+    
         if {$installtype == "direct"} {
             # change receipt to image
-            if {${macports::registry.format} == "receipt_sqlite"} {
-                $iref installtype image
-                $iref state imaged
-                $iref activate [$iref imagefiles]
-                $iref state installed
-            } else {
-                registry::property_store $iref installtype image
-                foreach entry $contents {
-                    registry::register_file $entry $iname
-                }
-                registry::property_store $iref active 1
-            }
+            $iref installtype image
+            $iref state imaged
+            $iref activate [$iref imagefiles]
+            $iref state installed
         }
-
-        if {${macports::registry.format} == "flat" && $installtype == "image"} {
-            # flat receipts also need file paths in contents trimmed to exclude image dir
-            set loclen [string length $location]
-            set locend [expr $loclen - 1]
-            set oldcontents [registry::property_retrieve $iref contents]
-            set newcontents {}
-            foreach fe $contents {
-                set oldfilepath [lindex $fe 0]
-                if {[string range $oldfilepath 0 $locend] == $location} {
-                    set newfilepath [string range $oldfilepath $loclen end]
-                    set newentry [list $newfilepath]
-                    foreach other [lrange $fe 1 end] {
-                        lappend newentry $other
-                    }
-                    lappend newcontents $newentry
-                } else {
-                    lappend newcontents $fe
-                }
-            }
-            registry::property_store $iref contents $newcontents
-        }
+    
         # set the new location in the registry and delete the old dir
-        registry::property_store $iref location $newlocation
-        if {${macports::registry.format} == "flat"} {
-            registry::write_entry $iref
-        }
-        if {$location != "" && [file isdirectory $location]} {
-            file delete -force $location
+        $iref location $newlocation
+    }
+}
+
+foreach archived $archived_list {
+    set location [lindex $archived 2]
+    if {$location != "" && [file isdirectory $location]} {
+        if {[catch {file delete -force $location} result]} {
+            ui_warn "Failed to delete ${location}: $result"
         }
     }
 }

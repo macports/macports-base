@@ -26,7 +26,7 @@ checksums		app-bm.tar.gz \
 					rmd160 3cbae7e39e8c78eca03a0db709cf520003896a12
 
 extract		{}
-configure	{}
+use_configure no
 build		{}
 destroot	{
 	system "touch ${destroot}${prefix}/lib/${name}"

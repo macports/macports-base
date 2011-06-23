@@ -1,7 +1,7 @@
 include ../../../Mk/macports.autoconf.mk
 
 # see test-macports.conf for the value of prefix
-TESTFILE=/tmp/macports-tests/opt/local/var/macports/case
+TESTFILE=/tmp/macports-tests/opt/local/var/test/case
 TESTPORT1=casesensitive
 TESTPORT2=CaseSensitivE
 

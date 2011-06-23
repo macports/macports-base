@@ -1,6 +1,7 @@
 #!/bin/bash
 # -*- coding: utf-8; mode: shell-script-mode; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=sh:et:sw=4:ts=4:sts=4
 #
+# Copyright (c) 2008-2011 The MacPorts Project
 # Copyright (c) 2002-2007 Juan Manuel Palacios <jmpp@macports.org>, The MacPorts Project.
 # All rights reserved.
 #
@@ -12,7 +13,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple, Inc., The MacPorts Project nor the
+# 3. Neither the name of The MacPorts Project nor the
 #    names of its contributors may be used to endorse or promote products
 #    derived from this software without specific prior written permission.
 #
@@ -45,6 +46,8 @@ CONFIGPATH=${PREFIX}/etc/macports
 MANPAGES=${PREFIX}/share/man
 MACPORTS_TCL_DIR=${PREFIX}/share/macports/Tcl
 REG1DIR=${MACPORTS_TCL_DIR}/registry1.0
+DSCL=/usr/bin/dscl
+RUNUSR=macports
 TCLSH=/usr/bin/tclsh
 TCL_PACKAGE_DIR=/Library/Tcl
 TIMESTAMP=$(date +"%Y-%m-%d_at_%H:%M:%S")
@@ -53,7 +56,7 @@ OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 
 # Create config files from defaults if not present
 function setup_configs {
-    for f in macports.conf sources.conf variants.conf ; do
+    for f in macports.conf pubkeys.conf sources.conf variants.conf ; do
         if [ ! -f ${CONFIGPATH}/${f} ]; then
             echo "Copying ${f}.default to ${f}"
             /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
@@ -64,6 +67,13 @@ function setup_configs {
 
 # Command to update the MacPorts installation through "selfupdate":
 function update_macports {
+    # Add [default] tag to the central MacPorts repository, if it isn't already
+    echo "Adding [default] tag to sources.conf if needed..."
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
+    # Convert image directories (and direct mode installs) to image archives
+    echo "Updating port image format..."
+    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
+
     echo "Synchronizing the MacPorts installation with the project's rsync server..."
     if ! ${BINPATH}/port -v selfupdate; then 
         echo "An attempt to synchronize your recent MacPorts installation with the project's rsync server failed!"
@@ -71,11 +81,6 @@ function update_macports {
     else
         echo "Successful!"
     fi
-    
-    # Add [default] tag to the central MacPorts repository, if it isn't already
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/upgrade_sources_conf_default.tcl ${PREFIX}
-    # Convert image directories (and direct mode installs) to image archives
-    ${TCLSH} ${PACKAGE_PATH}/Contents/Resources/images_to_archives.tcl ${MACPORTS_TCL_DIR}
 }
 
 # Through this command we write an environment variable to an appropriate shell configuration file,
@@ -128,6 +133,28 @@ function link_tcl_package {
 	fi
 }
 
+# create the user to use for privilege dropping
+function create_run_user {
+    DSEDITGROUP=/usr/sbin/dseditgroup
+    if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then
+        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then
+            echo "Creating group \"${RUNUSR}\""
+            ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
+        fi
+        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
+            echo "Creating user \"${RUNUSR}\""
+            ${DSCL} -q . -create /Users/${RUNUSR} Password *
+            ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1))
+            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+            ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null
+            ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
+        fi
+    else
+        echo "Can't find ${DSCL} / ${DSEDITGROUP}, unable to create user \"${RUNUSR}\""
+        exit 1
+    fi
+}
+
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
 # Set up config files
@@ -141,7 +168,7 @@ delete_reg1
 
 # Determine the user's shell, in order to choose an appropriate configuration file we'll be tweaking.
 # Exit nicely if the shell is any other than bash or tcsh, as that's considered non-standard.
-USHELL=$(dscl . -read /users/${USER} shell | awk -F'/' '{print $NF}') || {
+USHELL=$(${DSCL} . -read /Users/${USER} shell | awk -F'/' '{print $NF}') || {
     echo "An attempt to determine your shell name failed! Please set your MacPorts compatible environment manually."
     update_macports
     exit 1

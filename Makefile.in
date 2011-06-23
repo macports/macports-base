@@ -8,7 +8,7 @@ DISTTAG		= release_${subst .,_,${DISTVER}}
 DISTNAME	= MacPorts-${DISTVER}
 DISTARCTAG	= ${DISTTAG}-archive
 DISTARCNAME	= ${DISTNAME}-archive
-SVNURL		= http://svn.macports.org/repository/macports
+SVNURL		= https://svn.macports.org/repository/macports
 
 
 include Mk/macports.autoconf.mk
@@ -41,6 +41,31 @@ install::
 	
 # Only run these scripts when not building in a destroot
 ifeq ($(DESTDIR),)
+# create run user if it doesn't exist
+	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
+        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then \
+            if test $$USER = root; then \
+                echo "Creating group \"${RUNUSR}\"" ; \
+                ${DSEDITGROUP} -q -o create -n . ${RUNUSR} ; \
+            else \
+                echo "Not creating group \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
+            if test $$USER = root; then \
+                echo "Creating user \"${RUNUSR}\"" ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$(($$(${DSCL} -q . -list /Users UniqueID | /usr/bin/awk '{print $$2}' | sort -ug | tail -1)+1)) ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
+            else \
+                echo "Not creating user \"${RUNUSR}\" (not root)" ; \
+            fi ; \
+        fi ; \
+    else \
+        echo "Can't find ${DSCL} / ${DSEDITGROUP}, not creating user \"${RUNUSR}\"" ; \
+    fi
 # Add [default] tag to the central MacPorts repository, if it isn't already
 	$(TCLSH) src/upgrade_sources_conf_default.tcl "${prefix}"
 # Convert image directories (and direct mode installs) to image archives
@@ -48,7 +73,7 @@ ifeq ($(DESTDIR),)
 endif
 	@echo ""; echo "Congratulations, you have successfully installed the MacPorts system. To get the Portfiles and update the system, add ${prefix}/bin to your PATH and run:"; echo ""
 	@echo "sudo port -v selfupdate"; echo ""
-	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at http://trac.macports.org/ for full documentation."; echo ""
+	@echo "Please read \"man port\", the MacPorts guide at http://guide.macports.org/ and Wiki at https://trac.macports.org/ for full documentation."; echo ""
 
 group::
 	@echo "creating a macports group..." && sudo dseditgroup -o create -n . macports && echo "done! use './configure --with-install-group=macports --with-shared-directory' if you haven't already"
@@ -75,7 +100,7 @@ _pkgdist:
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | gzip > ${PKGNAME}.tar.gz
 	cd ${DISTDIR}; COPY_EXTENDED_ATTRIBUTES_DISABLE=true tar -c ${PKGNAME} | bzip2 > ${PKGNAME}.tar.bz2
 	cd ${DISTDIR}; for tarball in ${PKGNAME}.tar.*; do { \
-		for type in -md5 -sha1 -ripemd160; do { \
+		for type in -md5 -sha1 -ripemd160 -sha256; do { \
 			openssl dgst $$type $$tarball; \
 		}; done >> ${DISTNAME}.chk.txt; \
 	}; done

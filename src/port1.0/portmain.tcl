@@ -2,7 +2,8 @@
 # portmain.tcl
 # $Id$
 #
-# Copyright (c) 2002 - 2003 Apple Computer, Inc.
+# Copyright (c) 2004 - 2005, 2007 - 2011 The MacPorts Project
+# Copyright (c) 2002 - 2003 Apple Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -13,7 +14,7 @@
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of Apple Computer, Inc. nor the names of its contributors
+# 3. Neither the name of Apple Inc. nor the names of its contributors
 #    may be used to endorse or promote products derived from this software
 #    without specific prior written permission.
 # 
@@ -51,7 +52,7 @@ options prefix name version revision epoch categories maintainers \
         os.platform os.subplatform os.version os.major os.arch os.endian \
         platforms default_variants install.user install.group \
         macosx_deployment_target universal_variant os.universal_supported \
-        supported_archs depends_skip_archcheck \
+        supported_archs depends_skip_archcheck installs_libs \
         copy_log_files \
         compiler.cpath compiler.library_path \
         add_users
@@ -64,7 +65,7 @@ option_proc default_variants handle_default_variants
 option_proc notes handle_option_string
 
 # Export options via PortInfo
-options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by
+options_export name version revision epoch categories maintainers platforms description long_description notes homepage license provides conflicts replaced_by installs_libs
 
 default subport {[portmain::get_default_subport]}
 proc portmain::get_default_subport {} {

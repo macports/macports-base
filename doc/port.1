@@ -1,6 +1,7 @@
 .\" port.1
 .\"
-.\" Copyright (c) 2002 Apple Computer, Inc.
+.\" Copyright (c) 2004-2011 The MacPorts Project
+.\" Copyright (c) 2002-2003 Apple Inc.
 .\" All rights reserved.
 .\"
 .\" Redistribution and use in source and binary forms, with or without
@@ -11,7 +12,7 @@
 .\" 2. Redistributions in binary form must reproduce the above copyright
 .\"    notice, this list of conditions and the following disclaimer in the
 .\"    documentation and/or other materials provided with the distribution.
-.\" 3. Neither the name of Apple Computer, Inc. nor the names of its
+.\" 3. Neither the name of Apple Inc. nor the names of its
 .\"    contributors may be used to endorse or promote products derived from
 .\"    this software without specific prior written permission.
 .\"
@@ -102,6 +103,10 @@ set of installed and active ports.
 .It
 .Ar inactive :
 set of installed but inactive ports.
+.Pp
+.It
+.Ar actinact :
+set of installed ports that have both an active version and one or more inactive versions.
 .Pp
 .It
 .Ar installed :
@@ -377,6 +382,31 @@ For example:
 .Dl "port uninstall vim"
 .Dl "port -u uninstall"
 .Dl "port uninstall --follow-dependents python24"
+.Ss select
+For a given
+.Ar group ,
+selects a
+.Ar version
+to be the default by creating appropriate symbolic links.
+For instance,
+.Ic "python"
+might be linked to
+.Ic "python2.6" .
+Available select groups are installed as subdirectories of
+.Ar ${prefix}/etc/select/ .
+To list the available versions in a group, use
+.Fl -list .
+To see which version is currently selected for a group, use
+.Fl -show .
+To change the selected version for a group, use
+.Fl -set .
+.Pp
+For example:
+.Pp
+.Dl "port select --list python"
+.Dl "port select --show gcc"
+.Dl "port select --set gcc mp-gcc44"
+.Pp
 .Ss activate
 Activate the installed
 .Ar portname .

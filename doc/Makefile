@@ -17,7 +17,7 @@ clean:
 test:
 
 distclean: clean
-	rm -f macports.conf macosx.mtree prefix.mtree pubkeys.conf
+	rm -f macports.conf base.mtree macosx.mtree prefix.mtree pubkeys.conf
 
 %.1.gz: %.1
 	gzip -c $^ > $@
@@ -32,7 +32,8 @@ install: all
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${DESTDIR}${mpconfigdir}
 
-	<prefix.mtree $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
+	< prefix.mtree $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
+	< base.mtree $(MTREE) -U -e -p ${INSTALLDIR} > /dev/null
 	if test -L "${INSTALLDIR}/man" ; then \
 		rm -f "${INSTALLDIR}/man"; \
 	fi
@@ -55,6 +56,7 @@ install: all
 	for m in ${MAN7}; do rm -f ${INSTALLDIR}/share/man/man7/$$m ; done
 
 	$(INSTALL) -d -o ${DSTUSR} -g ${DSTGRP} -m ${DSTMODE} ${INSTALLDIR}/share/macports/install
+	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 base.mtree ${INSTALLDIR}/share/macports/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 prefix.mtree ${INSTALLDIR}/share/macports/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 644 macosx.mtree ${INSTALLDIR}/share/macports/install/
 	$(INSTALL) -o ${DSTUSR} -g ${DSTGRP} -m 444 port.1.gz ${INSTALLDIR}/share/man/man1
