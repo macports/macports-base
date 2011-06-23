@@ -40,7 +40,7 @@ ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
 	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
         if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then \
-            if test $$USER = root; then \
+            if test `id -u` -eq 0; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
                 ${DSEDITGROUP} -q -o create -n . ${RUNUSR} ; \
             else \
@@ -48,7 +48,7 @@ ifeq ($(DESTDIR),)
             fi ; \
         fi ; \
         if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
-            if test $$USER = root; then \
+            if test `id -u` -eq 0; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$(($$(${DSCL} -q . -list /Users UniqueID | /usr/bin/awk '{print $$2}' | sort -ug | tail -1)+1)) ; \
