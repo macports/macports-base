@@ -57,7 +57,7 @@ OUR_STRING="MacPorts Installer addition on ${TIMESTAMP}"
 # Create config files from defaults if not present
 function setup_configs {
     for f in macports.conf pubkeys.conf sources.conf variants.conf ; do
-        if [ ! -f ${CONFIGPATH}/${f} ]; then
+        if [[ ! -f ${CONFIGPATH}/${f} ]]; then
             echo "Copying ${f}.default to ${f}"
             /bin/cp ${CONFIGPATH}/${f}.default ${CONFIGPATH}/${f}
             /bin/chmod 644 ${CONFIGPATH}/${f}
@@ -87,7 +87,7 @@ function update_macports {
 # backing up the original only if it exists and if it doesn't contain the ${OUR_STRING} identification string,
 # which hints that we've already tweaked it and therefore already backed it up.
 function write_setting () {
-    if [ -f ${HOME}/.${CONF_FILE} ] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
+    if [[ -f ${HOME}/.${CONF_FILE} ]] && ! grep "${OUR_STRING}" ${HOME}/.${CONF_FILE} > /dev/null; then
         echo "Backing up your ${HOME}/.${CONF_FILE} shell confguration file as ${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX} before adapting it for MacPorts."
         /bin/cp -fp ${HOME}/.${CONF_FILE} "${HOME}/.${CONF_FILE}.${BACKUP_SUFFIX}" || {
             echo "An attempt to backup your original configuration file failed! Please set your MacPorts compatible environment manually."
@@ -117,7 +117,7 @@ function cleanup_man () {
 
 # Delete the old registry1.0 directory
 function delete_reg1 {
-    if [ -d ${REG1DIR} ]; then
+    if [[ -d ${REG1DIR} ]]; then
         rm -vrf ${REG1DIR}
     fi
 }
@@ -125,10 +125,10 @@ function delete_reg1 {
 # link macports1.0 into tcl package dir if possible
 function link_tcl_package {
     # delete old directory if present
-    if ! test -L "${TCL_PACKAGE_DIR}/macports1.0" && test -d "${TCL_PACKAGE_DIR}/macports1.0"; then
+    if [[ ! -L "${TCL_PACKAGE_DIR}/macports1.0" ]] && [[ -d "${TCL_PACKAGE_DIR}/macports1.0" ]]; then
         rm -vrf "${TCL_PACKAGE_DIR}/macports1.0" || true
     fi
-    if ! test -e "${TCL_PACKAGE_DIR}/macports1.0" && test -w "${TCL_PACKAGE_DIR}"; then
+    if [[ ! -e "${TCL_PACKAGE_DIR}/macports1.0" ]] && [[ -w "${TCL_PACKAGE_DIR}" ]]; then
 		ln -vs "${MACPORTS_TCL_DIR}/macports1.0" "${TCL_PACKAGE_DIR}/macports1.0" || true
 	fi
 }
@@ -136,22 +136,17 @@ function link_tcl_package {
 # create the user to use for privilege dropping
 function create_run_user {
     DSEDITGROUP=/usr/sbin/dseditgroup
-    if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then
-        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then
-            echo "Creating group \"${RUNUSR}\""
-            ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
-        fi
-        if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
-            echo "Creating user \"${RUNUSR}\""
-            ${DSCL} -q . -create /Users/${RUNUSR} Password *
-            ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1))
-            ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
-            ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null
-            ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
-        fi
-    else
-        echo "Can't find ${DSCL} / ${DSEDITGROUP}, unable to create user \"${RUNUSR}\""
-        exit 1
+    if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then
+        echo "Creating group \"${RUNUSR}\""
+        ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
+    fi
+    if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
+        echo "Creating user \"${RUNUSR}\""
+        ${DSCL} -q . -create /Users/${RUNUSR} Password *
+        ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1))
+        ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
+        ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null
+        ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false
     fi
 }
 
@@ -179,9 +174,9 @@ case "${USHELL}" in
         LOGIN_FLAG=""
         ENV_COMMAND="setenv"
         ASSIGN=" "
-        if [ -f ${HOME}/.tcshrc ]; then
+        if [[ -f ${HOME}/.tcshrc ]]; then
             CONF_FILE=tcshrc
-        elif [ -f ${HOME}/.cshrc ]; then
+        elif [[ -f ${HOME}/.cshrc ]]; then
             CONF_FILE=cshrc
         else
             CONF_FILE=tcshrc
@@ -192,9 +187,9 @@ case "${USHELL}" in
         LOGIN_FLAG="-l"
         ENV_COMMAND="export"
         ASSIGN="="
-        if [ -f ${HOME}/.bash_profile ]; then
+        if [[ -f ${HOME}/.bash_profile ]]; then
             CONF_FILE=bash_profile
-        elif [ -f ${HOME}/.bash_login ]; then
+        elif [[ -f ${HOME}/.bash_login ]]; then
             CONF_FILE=bash_login
         else
             CONF_FILE=profile
@@ -220,15 +215,15 @@ ORIGINAL_MANPATH="$(${SHELL} ${LOGIN_FLAG} -c "/usr/bin/printenv MANPATH")"
 # Adding our setting to the MANPATH variable only if it exists:
 if ! ${SHELL} ${LOGIN_FLAG} -c "/usr/bin/env | grep MANPATH" > /dev/null || \
 # and following that, if it's not empty:
-  [ -z "${ORIGINAL_MANPATH}" ] || \
+  [[ -z "${ORIGINAL_MANPATH}" ]] || \
 # or if it doesn't already contain our path:
   echo "${ORIGINAL_MANPATH}" | grep ${MANPAGES} > /dev/null || \
 # or if there's no empty component somewhere in the middle of it:
   echo "${ORIGINAL_MANPATH}" | grep :: > /dev/null || \
 # or at the start of it:
-  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $1}')" ] || \
+  [[ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $1}')" ]] || \
 # or at the end of it:
-  [ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]; then
+  [[ -z "$(echo "${ORIGINAL_MANPATH}" | awk -F : '{print $NF}')" ]]; then
     echo "Your shell already has the right MANPATH environment variable for use with MacPorts!"
 else
     write_setting MANPATH "${MANPAGES}:\$MANPATH"
