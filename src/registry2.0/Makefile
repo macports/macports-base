@@ -6,7 +6,7 @@ OBJS = registry.o util.o \
 	../cregistry/cregistry.a
 	#graph.o graphobj.o
 
-SHLIB_NAME= ./registry${SHLIB_SUFFIX}
+SHLIB_NAME= registry${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/registry2.0
 
 include ../../Mk/macports.autoconf.mk
@@ -20,8 +20,8 @@ LIBS+=	${SQLITE3_LIBS}
 .PHONY: test
 
 test:: ${SHLIB_NAME}
-	${TCLSH} tests/entry.tcl ${SHLIB_NAME}
-	${TCLSH} tests/depends.tcl ${SHLIB_NAME}
+	${TCLSH} tests/entry.tcl ./${SHLIB_NAME}
+	${TCLSH} tests/depends.tcl ./${SHLIB_NAME}
 
 distclean:: clean
 	rm -f registry_autoconf.tcl
