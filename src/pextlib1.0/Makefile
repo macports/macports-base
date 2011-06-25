@@ -4,7 +4,7 @@ OBJS= \
 	sha1cmd.o curl.o rmd160cmd.o sha256cmd.o readline.o uid.o \
 	tracelib.o tty.o readdir.o pipe.o flock.o \
 	system.o mktemp.o realpath.o
-SHLIB_NAME= Pextlib${SHLIB_SUFFIX}
+SHLIB_NAME= ./Pextlib${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/pextlib1.0
 
 include ../../Mk/macports.autoconf.mk
