@@ -6,7 +6,7 @@ OBJS = registry.o util.o \
 	../cregistry/cregistry.a
 	#graph.o graphobj.o
 
-SHLIB_NAME= registry${SHLIB_SUFFIX}
+SHLIB_NAME= ./registry${SHLIB_SUFFIX}
 INSTALLDIR= ${DESTDIR}${datadir}/macports/Tcl/registry2.0
 
 include ../../Mk/macports.autoconf.mk
