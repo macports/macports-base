@@ -53,7 +53,7 @@ ifeq ($(DESTDIR),)
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$(($$(${DSCL} -q . -list /Users UniqueID | /usr/bin/awk '{print $$2}' | sort -ug | tail -1)+1)) ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /dev/null ; \
+                ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
             else \
                 echo "Not creating user \"${RUNUSR}\" (not root)" ; \
