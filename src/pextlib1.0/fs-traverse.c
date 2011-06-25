@@ -146,6 +146,8 @@ extract_tail(const char *target, const char *path)
             xpath = ".";
         } else if (*(xpath + tlen) == '/') {
             xpath += tlen + 1;
+        } else if (*(target + tlen - 1) == '/') {
+            xpath += tlen;
         }
     }
 
