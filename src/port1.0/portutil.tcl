@@ -2643,6 +2643,18 @@ proc get_canonical_archs {} {
     }
 }
 
+# returns the flags that should be passed to the compiler to choose arch(s)
+proc get_canonical_archflags {{tool cc}} {
+    if {![variant_exists universal] || ![variant_isset universal]} {
+        return [option configure.${tool}_archflags]
+    } else {
+        if {$tool == "cc" || $tool == "objc"} {
+            set tool c
+        }
+        return [option configure.universal_${tool}flags]
+    }
+}
+
 # check that the selected archs are supported
 proc check_supported_archs {} {
     global supported_archs build_arch universal_archs configure.build_arch configure.universal_archs subport
