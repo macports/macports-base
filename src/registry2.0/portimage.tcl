@@ -463,7 +463,7 @@ proc _activate_contents {port {imagefiles {}} {location {}}} {
                         # if we're forcing the activation, then we move any existing
                         # files to a backup file, both in the filesystem and in the
                         # registry
-                        if { [file exists $file] } {
+                        if { ![catch {file type $file}] } {
                             set bakfile "${file}${baksuffix}"
                             ui_warn "File $file already exists.  Moving to: $bakfile."
                             file rename -force -- $file $bakfile
