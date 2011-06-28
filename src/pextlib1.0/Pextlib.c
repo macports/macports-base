@@ -399,6 +399,7 @@ int UnsetEnvCmd(ClientData clientData UNUSED, Tcl_Interp *interp, int objc, Tcl_
 #ifndef __APPLE__
         /* Crashes on Linux without this. */
         setenv("MACPORTS_DUMMY", "", 0);
+        unsetenv("MACPORTS_DUMMY");
 #endif
     } else {
         (void) unsetenv(name);
