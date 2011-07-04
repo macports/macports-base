@@ -352,28 +352,15 @@ proc portconfigure::arch_flag_supported {args} {
 
 # internal function to determine the default compiler
 proc portconfigure::configure_get_default_compiler {args} {
-    global macosx_deployment_target developer_dir
-    switch -exact ${macosx_deployment_target} {
-        "10.4"      -
-        "10.5"      {
-            if {![file executable /usr/bin/gcc-4.0]} {
-                if {[file executable /usr/bin/gcc-4.2]} {
-                    return gcc-4.2
-                } elseif {[file executable ${developer_dir}/usr/bin/llvm-gcc-4.2]} {
-                    return llvm-gcc-4.2
-                }
-            }
-            return gcc-4.0
-        }
-        "10.6"      {
-            if {![file executable /usr/bin/gcc-4.2] &&
-                [file executable ${developer_dir}/usr/bin/llvm-gcc-4.2]} {
-                return llvm-gcc-4.2
-            }
-            return gcc-4.2
-        }
-        "10.7"      { return llvm-gcc-4.2 }
-        default     { return gcc }
+    global xcodeversion macosx_deployment_target
+    if {$xcodeversion == "none" || $xcodeversion == ""} {
+        return gcc
+    } elseif {[rpm-vercomp $xcodeversion 4.0] >= 0} {
+        return llvm-gcc-4.2
+    } elseif {[rpm-vercomp $xcodeversion 3.2] >= 0 && $macosx_deployment_target != "10.4"} {
+        return gcc-4.2
+    } else {
+        return gcc-4.0
     }
 }
 
