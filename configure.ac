@@ -176,8 +176,8 @@ AC_ARG_WITH(
 		[Acknowledge that you accept the consequences of using an unsupported prefix.]),
 		[with_unsupported_prefix=$withval],
 		[with_unsupported_prefix=no])
-if test x$prefix = x/usr/local -a x$with_unsupported_prefix != xyes; then
-    AC_MSG_ERROR([Installing MacPorts into /usr/local is not supported. If \
+if test x$prefix = x/usr/local -o x$prefix = x/usr && test x$with_unsupported_prefix != xyes; then
+    AC_MSG_ERROR([Installing MacPorts into $prefix is not supported. If \
 you understand this and wish to do so anyway, pass --with-unsupported-prefix \
 to configure.])
 fi
