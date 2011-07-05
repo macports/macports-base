@@ -374,8 +374,7 @@ proc macports::setxcodeinfo {name1 name2 op} {
                         set macports::xcodeversion "3.2.6"
                     } elseif {$devtoolscore_v >= 1204.0} {
                         set macports::xcodeversion "3.1.4"
-                    } elseif {$devtoolscore_v > 921.0} {
-                        # XXX find actual version corresponding to 3.1
+                    } elseif {$devtoolscore_v >= 1100.0} {
                         set macports::xcodeversion "3.1"
                     } elseif {$devtoolscore_v >= 921.0} {
                         set macports::xcodeversion "3.0"
@@ -3026,11 +3025,10 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
                 append configure_args " --with-unsupported-prefix"
             }
 
+            # Choose a sane compiler
             set cc_arg ""
-            switch -glob -- $::macports::macosx_version {
-                10.[45] { set cc_arg "CC=/usr/bin/gcc-4.0 " }
-                10.6     { set cc_arg "CC=/usr/bin/gcc-4.2 " }
-                10.*     { set cc_arg "CC=/usr/bin/llvm-gcc-4.2 " }
+            if {$::macports::os_platform == "darwin"} {
+                set cc_arg "CC=/usr/bin/cc "
             }
 
             # do the actual configure, build and installation of new base
