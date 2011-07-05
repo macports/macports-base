@@ -3021,7 +3021,7 @@ proc macports::selfupdate {{optionslist {}} {updatestatusvar ""}} {
                 ui_warn "Disabling readline support due to readline in /usr/local"
             }
 
-            if {$prefix == "/usr/local"} {
+            if {$prefix == "/usr/local" || $prefix == "/usr"} {
                 append configure_args " --with-unsupported-prefix"
             }
 
