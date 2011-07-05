@@ -236,7 +236,9 @@ proc break_softcontinue { msg status name_status } {
 
 # show the URL for the ticket reporting instructions
 proc print_tickets_url {args} {
-    ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
+    if {${macports::prefix} != "/usr/local" && ${macports::prefix} != "/usr"} {
+        ui_notice "To report a bug, see <http://guide.macports.org/#project.tickets>"
+    }
 }
 
 # Form a composite version as is sometimes used for registry functions
