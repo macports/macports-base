@@ -13,7 +13,9 @@ package require Pextlib 1.0
 
 umask 022
 
-mportinit
+array set ui_options {ports_verbose yes}
+
+mportinit ui_options
 
 # always converting to tbz2 should be fine as both these programs are
 # needed elsewhere and assumed to be available
