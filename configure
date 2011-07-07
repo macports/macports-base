@@ -7742,7 +7742,7 @@ $as_echo "$RUNUSR" >&6; }
 		# Set Tcl package directory to ~/Library/Tcl
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Tcl package directory" >&5
 $as_echo_n "checking for Tcl package directory... " >&6; }
-		ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+		ac_cv_c_tclpkgd=`echo ~$DSTUSR/Library/Tcl`
 	    # Convert to a native path and substitute into the output files.
 	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
 	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
@@ -9205,7 +9205,7 @@ else
 			        fi
 			    fi
 			elif test "$path" = "~/Library/Tcl"; then
-			    ac_cv_c_tclpkgd="~$DSTUSR/Library/Tcl"
+			    ac_cv_c_tclpkgd=`echo ~$DSTUSR/Library/Tcl`
 			    break
 			fi
 			done
