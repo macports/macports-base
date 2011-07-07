@@ -152,6 +152,8 @@ function create_run_user {
 
 echo "The MacPorts Project, postflight script version ${VERSION}: checking the shell environment for user \"${USER}\"."
 
+# create macports user
+create_run_user
 # Set up config files
 setup_configs
 # link macports1.0 pkg
