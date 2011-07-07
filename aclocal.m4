@@ -335,7 +335,7 @@ AC_DEFUN([MP_CHECK_NOROOTPRIVILEGES],[
 
 		# Set Tcl package directory to ~/Library/Tcl
 	    AC_MSG_CHECKING(for Tcl package directory)
-		ac_cv_c_tclpkgd=`echo ~$DSTUSR/Library/Tcl`
+		ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
 	    # Convert to a native path and substitute into the output files.
 	    PACKAGE_DIR_NATIVE=`${CYGPATH} ${ac_cv_c_tclpkgd}`
 	    TCL_PACKAGE_DIR=${PACKAGE_DIR_NATIVE}
@@ -646,7 +646,7 @@ AC_DEFUN(MP_TCL_PACKAGE_DIR, [
 			        fi
 			    fi
 			elif test "$path" = "~/Library/Tcl"; then
-			    ac_cv_c_tclpkgd=`echo ~$DSTUSR/Library/Tcl`
+			    ac_cv_c_tclpkgd=`eval echo ~$DSTUSR/Library/Tcl`
 			    break
 			fi
 			done
