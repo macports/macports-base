@@ -6,7 +6,7 @@ test::
 
 include ../../Mk/macports.autoconf.mk
 
-CFLAGS+= -fPIC
+CFLAGS+= -fPIC -Wno-deprecated-declarations
 
 all:: ${SHLIB_NAME}
 
