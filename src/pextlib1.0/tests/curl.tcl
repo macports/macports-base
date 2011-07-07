@@ -24,8 +24,8 @@ proc main {pextlibname} {
 	test {![curl isnewer $dummyroot/dummy [clock scan 2007-06-17Z]]}
 	
 	# use --disable-epsv
-	curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
-	test {[md5 file $tempfile] == "a4b0f4a5fbd8bec23002ad8023e01729"}
+	#curl fetch --disable-epsv ftp://ftp.cup.hp.com/dist/networking/benchmarks/netperf/archive/netperf-2.2pl5.tar.gz $tempfile
+	#test {[md5 file $tempfile] == "a4b0f4a5fbd8bec23002ad8023e01729"}
 	
 	# use -u
 	# This URL does not work anymore, disabled the test
