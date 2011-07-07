@@ -36,7 +36,7 @@
 #set -x
 
 # Script identification ('cause more often than not the svn Id is not expanded):
-VERSION=1.9.0
+VERSION=2.0.0
 
 # Abstraction variables:
 PREFIX=__PREFIX__
