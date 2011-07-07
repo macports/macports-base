@@ -1594,6 +1594,7 @@ proc _mportexec {target mport} {
     macports::push_log $mport
     # xxx: set the work path?
     set workername [ditem_key $mport workername]
+    $workername eval validate_macportsuser
     if {![catch {$workername eval check_variants $target} result] && $result == 0 &&
         ![catch {$workername eval check_supported_archs} result] && $result == 0 &&
         ![catch {$workername eval eval_targets $target} result] && $result == 0} {
