@@ -490,6 +490,8 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     } else {
         # Otherwise define the user directory as a direcotory that will never exist
         set macports::macports_user_dir "/dev/null/NO_HOME_DIR"
+        # Tcl library code wants to do tilde expansion in various places
+        set env(HOME) ${macports::macports_user_dir}
     }
 
     # set up platform info variables
