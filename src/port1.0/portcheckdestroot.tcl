@@ -4,6 +4,7 @@
 package provide portcheckdestroot 1.0
 package require portutil 1.0
 
+
 set org.macports.checkdestroot [target_new org.macports.checkdestroot portcheckdestroot::checkdestroot_main]
 target_provides ${org.macports.checkdestroot} checkdestroot
 target_requires ${org.macports.checkdestroot} main destroot
@@ -24,13 +25,17 @@ set_ui_prefix
 proc portcheckdestroot::checkdestroot_start {args} {
     if { [getuid] == 0 && [geteuid] != 0 } {
         # if started with sudo but have dropped the privileges
-        ui_debug "Can't run destroot under sudo without elevated privileges (due to mtree)."
+        ui_debug "Can't run checkdestroot under sudo without elevated privileges (due to mtree)."
         ui_debug "Run destroot without sudo to avoid root privileges."
         ui_debug "Going to escalate privileges back to root."
         setegid $egid
         seteuid $euid
         ui_debug "euid changed to: [geteuid]. egid changed to: [getegid]."
     }
+}
+
+# List contents for a given port.
+proc portcheckdestroot::get_port_files {portname} {
 }
 
 # Check if a file is binary file
@@ -45,7 +50,7 @@ proc portcheckdestroot::binary? filename {
 
 # escape chars in order to be usable as regexp. This function is for internal use.
 proc portcheckdestroot::escape_chars {str} {
-    return [regsub {\+} $str {\+}]
+    return [regsub -all {\W} $str {\\&}]
 }
 
 # List all links on a directory recursively. This function is for internal use.
@@ -68,7 +73,7 @@ proc portcheckdestroot::types_list {dir type {bin 0} } {
     set ret {}
     foreach item [glob -nocomplain -type "d $type" -directory $dir *] {
         if {[file isdirectory $item]} {
-            set ret [concat $ret [types_list $item $type]]
+            set ret [concat $ret [types_list $item $type $bin]]
         } else {
             #is from the correct type
             if { $bin } {
@@ -234,7 +239,7 @@ proc portcheckdestroot::checkdestroot_libs {} {
     #Get dependencies files list.
     set dep_files {}
     foreach dep [get_dependencies] {
-        lappend dep_files [get_files [exec port contents $dep]]
+        lappend dep_files [registry_port_registered $dep]
     }
     set self_files [bin_list $destroot$prefix]
     set dep_files [concat $dep_files $self_files]
