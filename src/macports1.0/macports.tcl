@@ -955,7 +955,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
     global registry_open
     set registry_open yes
     # convert any flat receipts if we just created a new db
-    if {$db_exists == 0 && [file writable $db_path]} {
+    if {$db_exists == 0 && [file exists ${registry.path}/receipts] && [file writable $db_path]} {
         ui_warn "Converting your registry to sqlite format, this might take a while..."
         if {[catch {registry::convert_to_sqlite}]} {
             ui_debug "$::errorInfo"
