@@ -39,7 +39,7 @@ install::
 ifeq ($(DESTDIR),)
 # create run user if it doesn't exist
 	@if test -n "${DSCL}" -a -n "${DSEDITGROUP}" ; then \
-        if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then \
+        if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then \
             if test `id -u` -eq 0; then \
                 echo "Creating group \"${RUNUSR}\"" ; \
                 ${DSEDITGROUP} -q -o create -n . ${RUNUSR} ; \
