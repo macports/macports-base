@@ -136,13 +136,13 @@ function link_tcl_package {
 # create the user to use for privilege dropping
 function create_run_user {
     DSEDITGROUP=/usr/sbin/dseditgroup
-    if ! ${DSEDITGROUP} -q -o read ${RUNUSR} > /dev/null 2>&1 ; then
+    if ! ${DSCL} -q . -read /Groups/${RUNUSR} > /dev/null 2>&1 ; then
         echo "Creating group \"${RUNUSR}\""
         ${DSEDITGROUP} -q -o create -n . ${RUNUSR}
     fi
     if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then
         echo "Creating user \"${RUNUSR}\""
-        ${DSCL} -q . -create /Users/${RUNUSR} Password *
+        ${DSCL} -q . -create /Users/${RUNUSR} Password \*
         ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $(($(${DSCL} . -list /Users UniqueID | /usr/bin/awk '{print $2}' | sort -ug | tail -1)+1))
         ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $2}')
         ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty
