@@ -78,6 +78,7 @@ proc portarchivefetch::filter_sites {} {
     }
     if {[file rootname [file tail $porturl]] == [file rootname [file tail [get_portimage_path]]]} {
         lappend ret [string range $porturl 0 end-[string length [file tail $porturl]]]
+        archive.subdir
     }
     return $ret
 }
