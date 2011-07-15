@@ -66,6 +66,10 @@ default archive.subdir {${subport}}
 
 proc portarchivefetch::filter_sites {} {
     global prefix porturl
+    set mirrorfile [get_full_archive_sites_path]
+    if {[file exists $mirrorfile]} {
+        source $mirrorfile
+    }
     set ret {}
     foreach site [array names portfetch::mirror_sites::archive_prefix] {
         if {$portfetch::mirror_sites::archive_prefix($site) == $prefix} {
