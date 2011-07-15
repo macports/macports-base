@@ -93,16 +93,10 @@ proc portarchivefetch::checkarchivefiles {urls} {
     # throws an error if unsupported
     archiveTypeIsSupported $portarchivetype
 
-    if {[file isfile ${archive.path}]} {
-        ui_debug "Found archive: ${archive.path}"
-        set all_archive_files {}
-        set fetch_urls {}
-    } else {
-        set archive.file [file tail ${archive.path}]
-        lappend all_archive_files ${archive.file}
-        if {[info exists archive_sites]} {
-            lappend fetch_urls archive_sites ${archive.file}
-        }
+    set archive.file [file tail ${archive.path}]
+    lappend all_archive_files ${archive.file}
+    if {[info exists archive_sites]} {
+        lappend fetch_urls archive_sites ${archive.file}
     }
 }
 
