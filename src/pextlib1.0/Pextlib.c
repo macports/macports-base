@@ -78,6 +78,7 @@
 #include "system.h"
 #include "mktemp.h"
 #include "realpath.h"
+#include "macho.h"
 
 #if HAVE_CRT_EXTERNS_H
 #include <crt_externs.h>
@@ -513,6 +514,8 @@ int Pextlib_Init(Tcl_Interp *interp)
 	Tcl_CreateObjCommand(interp, "uname_to_gid", uname_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "name_to_gid", name_to_gidCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "gid_to_name", gid_to_nameCmd, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "list_dlibs", list_dlibs, NULL, NULL);
+	Tcl_CreateObjCommand(interp, "list_archs", list_archs, NULL, NULL);
 
 	Tcl_CreateObjCommand(interp, "tracelib", TracelibCmd, NULL, NULL);
 	Tcl_CreateObjCommand(interp, "isatty", IsattyCmd, NULL, NULL);
