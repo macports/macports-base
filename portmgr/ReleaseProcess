@@ -31,17 +31,17 @@ The following steps to a release are documented in more detail below:
 
 === Create a Release Branch ===
 
-For each major release (i.e. 1.5.x, 1.6.x, etc.) an appropriate branch is created with a
+For each major release (i.e. 1.9.x, 2.0.x, etc.) an appropriate branch is created with a
 consistent name. To do this, two things are required:
 
  * Choose the svn revision from which to create the branch, most likely based off trunk.
- * Create the branch (e.g. release_1_6) through the svn "copy" command for history preservation,
+ * Create the branch (e.g. release_2_0) through the svn "copy" command for history preservation,
    first creating the needed branch directory to preserve the required directory structure
    (the 'base' directory level *needs* to exist in each release branch, otherwise selfupdate breaks):
 
- svn mkdir -m "commit-message" https://svn.macports.org/repository/macports/branches/release_1_6
+ svn mkdir -m "commit-message" https://svn.macports.org/repository/macports/branches/release_2_0
  svn cp [-r<rev>] -m "commit-message" https://svn.macports.org/repository/macports/trunk/base \
-     https://svn.macports.org/repository/macports/branches/release_1_6
+     https://svn.macports.org/repository/macports/branches/release_2_0
 
 The actual release, alpha or beta releases, release candidates, and any point releases will all
 live on this branch, and tagged appropriately and if necessary (a must for the actual releases,
@@ -81,19 +81,20 @@ approved as the actual release, an additional tag is created that names the same
 
 Tagging conventions:
 
- * release_1_6_0-rc1 (release candidate 1 for release 1.6.0)
- * release_1_6_0 (tagged release 1.6.0)
- * release_1_6_0-archive (tagged release 1.6.0 -- complete archive)
- * release_1_6_1 (1.6.1 release)
+ * release_2_0_0-beta2 (beta 2 for release 2.0.0)
+ * release_2_0_0-rc1 (release candidate 1 for release 2.0.0)
+ * release_2_0_0 (tagged release 2.0.0)
+ * release_2_0_0-archive (tagged release 2.0.0 -- complete archive)
+ * release_2_0_1 (2.0.1 release)
 
 We first tag the branched base directory to make up the final release:
 
- svn cp -m "commit-message" https://svn.macports.org/repository/macports/branches/release_1_6 \
-     https://svn.macports.org/repository/macports/tags/release_1_6_0
+ svn cp -m "commit-message" https://svn.macports.org/repository/macports/branches/release_2_0 \
+     https://svn.macports.org/repository/macports/tags/release_2_0_0
 
 Although only the base subdirectory is branched and tagged for a given major release, we also create a
 separate tag for the entire tree (base sources and full ports tree) at the time the final release tag is
-created (only for major releases, 1.x.0), in order to provide a stake in the ground that specifies a set
+created (only for major releases, x.y.0), in order to provide a stake in the ground that specifies a set
 of ports intended to work with that release. Note that this tag incorporates the entire svn trunk directory
 at the revision number at which the final release was tagged.
 
@@ -101,14 +102,14 @@ The necessary working copy to create such a tag is created by checking out all o
 revision of the final tagging of base and then switching the base directory to the appropriate release
 tag URL. For instance:
 
- svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_1.6.0-archive
- cd release_1.6.0-archive/base
- svn switch https://svn.macports.org/repository/macports/tags/release_1_6_0/base
+ svn co [-r<rev>] https://svn.macports.org/repository/macports/trunk release_2.0.0-archive
+ cd release_2.0.0-archive/base
+ svn switch https://svn.macports.org/repository/macports/tags/release_2_0_0/base
 
-And finally we tag the entire directory as release_1_6_0-archive:
+And finally we tag the entire directory as release_2_0_0-archive:
 
  cd ../../
- svn cp -m "commit-message" release_1.6.0-archive https://svn.macports.org/repository/macports/tags/release_1_6_0-archive
+ svn cp -m "commit-message" release_2.0.0-archive https://svn.macports.org/repository/macports/tags/release_2_0_0-archive
 
 
 === Create & Post Release Tarballs ===
@@ -116,12 +117,12 @@ And finally we tag the entire directory as release_1_6_0-archive:
 The release tarballs are tar.bz2 and tar.gz archives of the base directory only and of the entire svn tree
 for a particular release. They are named with the following naming convention:
 
- MacPorts-1.6.0.tar.{bz2,gz} (base directory only, corresponding to tag release_1_6_0)
- MacPorts-1.6.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_1_6_0-archive)
+ MacPorts-2.0.0.tar.{bz2,gz} (base directory only, corresponding to tag release_2_0_0)
+ MacPorts-2.0.0-archive.tar.{bz2,gz} (complete archives corresponding to tag release_2_0_0-archive)
 
 The following commands issued to the top level Makefile will generate all the tarballs and checksums:
 
- make ARC=yes DISTVER=1.6.0 distfromsvn
+ make ARC=yes DISTVER=2.0.0 distfromsvn
 
 Note that if you omit the "ARC=yes" flag at the start of the make call then the full archive tarballs will not be produced.
 
@@ -131,7 +132,7 @@ be done with the help of the MacOSForge sysadmin.
 Additionally, a file is created, and posted to the same location, that contains md5, sha1, and rmd160 checksums
 for each of the files:
 
- MacPorts-1.6.0.chk.txt
+ MacPorts-2.0.0.chk.txt
  (We should have a way to sign these checksums, and have the signer's keys posted somewhere.
  Security experts in the project, would you be interested in leading this effort? Eric? Mark? Anyone else?)
 
@@ -139,11 +140,12 @@ for each of the files:
 === Create Release Disk Image(s) ===
 
 The dmg is a Mac OS X disk image that contains a standalone installer, configured in the usual way, for major
-MacPorts releases (1.x.0), named in a consistent fashion and incorporating the OS version for which it
+MacPorts releases (x.y.0), named in a consistent fashion and incorporating the OS version for which it
 was built.
 
- MacPorts-1.6.0-10.4-Tiger.dmg
- MacPorts-1.6.0-10.5-Leopard.dmg
+ MacPorts-2.0.0-10.5-Leopard.dmg
+ MacPorts-2.0.0-10.6-SnowLeopard.dmg
+ MacPorts-2.0.0-10.7-Lion.dmg
 
 To create a disk image, use the MacPorts port. The Portfile will need to be updated to incorporate the
 proper release version and checksums, and the release tarballs will need to be already uploaded to the
@@ -156,8 +158,8 @@ Name the dmg appropriately, and generate checksums, which will need to be added 
 file in the downloads directory:
 
  cd work
- mv MacPorts-1.6.0.dmg MacPorts-1.6.0-10.5-Leopard.dmg
- for dmg in MacPorts-1.6.0-*.dmg; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $dmg; done >> MacPorts-1.6.0.chk.txt; done
+ mv MacPorts-2.0.0.dmg MacPorts-2.0.0-10.6-SnowLeopard.dmg
+ for dmg in MacPorts-2.0.0-*.dmg; do for type in -md5 -sha1 -ripemd160 -sha256; do openssl dgst $type $dmg; done >> MacPorts-2.0.0.chk.txt; done
 
 These new products, along with the new checksums, also have to be posted to the appropriate
 directory of the MacPorts distfiles server. Developers are required to validate the generated installer as
@@ -207,7 +209,7 @@ practice to update the same file accordingly in its branched guise.
 
 === Update trunk's version for next release ===
 Once trunk is to be used for development of the next major version, increase its version information to
-indicate it's moved past the release version by setting the patch-level version to 99, e.g., 1.8.99 (in
+indicate it's moved past the release version by setting the patch-level version to 99, e.g. 2.0.99 (in
 trunk/base/config/macports_version).
 
 
