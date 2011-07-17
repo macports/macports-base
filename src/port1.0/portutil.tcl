@@ -2082,8 +2082,8 @@ proc adduser {name args} {
     set uid [nextuid]
     set gid [existsgroup nogroup]
     set realname ${name}
-    set home /dev/null
-    set shell /dev/null
+    set home /var/empty
+    set shell /usr/bin/false
 
     foreach arg $args {
         if {[regexp {([a-z]*)=(.*)} $arg match key val]} {
