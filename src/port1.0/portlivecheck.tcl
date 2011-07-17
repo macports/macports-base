@@ -101,6 +101,14 @@ proc portlivecheck::livecheck_main {args} {
         if {$has_master_sites} {
             foreach {master_site} ${master_sites} {
                 if {[regexp "^($available_types)(?::(\[^:\]+))?" ${master_site} _ site subdir]} {
+                    set subdirs [split $subdir /]
+                    if {[llength $subdirs] > 1} {
+                        if {[lindex $subdirs 0] == "project"} {
+                            set subdir [lindex $subdirs 1]
+                        } else {
+                            set subdir ""
+                        }
+                    }
                     if {${subdir} ne "" && ${livecheck.name} eq "default"} {
                         set livecheck.name ${subdir}
                     }
