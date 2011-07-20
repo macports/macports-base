@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
-#include <err.h>
 #include <string.h>
 
 #include <mach-o/arch.h>
@@ -29,7 +28,6 @@ typedef struct macho_input {
 /* Verify that the given range is within bounds. */
 static const void *macho_read (macho_input_t *input, const void *address, size_t length) {
 	if ((((uint8_t *) address) - ((uint8_t *) input->data)) + length > input->length) {
-		warnx("Short read parsing Mach-O input");
 		return NULL;
 	}
 
@@ -119,8 +117,7 @@ Tcl_Obj * list_macho_dlibs_l (macho_input_t *input, Tcl_Obj * dlibs) {
 			break;
 
 		default:
-			warnx("Unknown Mach-O magic: 0x%" PRIx32 "", *magic);
-			return false;
+			return TCL_ERROR;
 	}
 
 	/* Parse universal file. */
@@ -157,7 +154,7 @@ Tcl_Obj * list_macho_dlibs_l (macho_input_t *input, Tcl_Obj * dlibs) {
 	/* Parse the Mach-O load commands */
 	cmd = macho_offset(input, header, header_size, sizeof(struct load_command));
 	if (cmd == NULL)
-		return false;
+		return TCL_ERROR;
 	ncmds = swap32(header->ncmds);
 
 	/* Iterate over the load commands */
@@ -166,7 +163,7 @@ Tcl_Obj * list_macho_dlibs_l (macho_input_t *input, Tcl_Obj * dlibs) {
 		uint32_t cmdsize = swap32(cmd->cmdsize);
 		cmd = macho_read(input, cmd, cmdsize);
 		if (cmd == NULL)
-			return false;
+			return TCL_ERROR;
 
 		/* Handle known types */
 		uint32_t cmd_type = swap32(cmd->cmd);
@@ -174,14 +171,13 @@ Tcl_Obj * list_macho_dlibs_l (macho_input_t *input, Tcl_Obj * dlibs) {
 			case LC_RPATH: {
 				/* Fetch the path */
 				if (cmdsize < sizeof(struct rpath_command)) {
-					warnx("Incorrect cmd size");
-					return false;
+					return TCL_ERROR;
 				}
 
 				size_t pathlen = cmdsize - sizeof(struct rpath_command);
 				const void *pathptr = macho_offset(input, cmd, sizeof(struct rpath_command), pathlen);
 				if (pathptr == NULL)
-					return false;
+					return TCL_ERROR;
 
 				char *path = malloc(pathlen);
 				strlcpy(path, pathptr, pathlen);
@@ -197,14 +193,13 @@ Tcl_Obj * list_macho_dlibs_l (macho_input_t *input, Tcl_Obj * dlibs) {
 
 				/* Extract the install name */
 				if (cmdsize < sizeof(struct dylib_command)) {
-					warnx("Incorrect name size");
-					return false;
+					return TCL_ERROR;
 				}
 
 				size_t namelen = cmdsize - sizeof(struct dylib_command);
 				const void *nameptr = macho_offset(input, cmd, sizeof(struct dylib_command), namelen);
 				if (nameptr == NULL)
-					return false;
+					return TCL_ERROR;
 
 				char *name = malloc(namelen);
 				strlcpy(name, nameptr, namelen);
@@ -285,7 +280,6 @@ Tcl_Obj * list_macho_archs_l(macho_input_t *input, Tcl_Obj * archs_list) {
 			break;
 
 		default:
-			warnx("Unknown Mach-O magic: 0x%" PRIx32 "", *magic);
 			return TCL_ERROR;
 	}
 
@@ -353,7 +347,7 @@ int list_dlibs(ClientData clientData , Tcl_Interp *interp, int objc, Tcl_Obj *CO
 	/* mmap */
 	void *data = mmap(NULL, stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fd, 0);
 	if (data == MAP_FAILED)
-		err(1, "mmap()");
+		return TCL_ERROR;
 
 	/* Parse */
 	macho_input_t input_file;
@@ -393,7 +387,7 @@ int list_archs(ClientData clientData , Tcl_Interp *interp, int objc, Tcl_Obj *CO
 	/* mmap */
 	void *data = mmap(NULL, stbuf.st_size, PROT_READ, MAP_FILE|MAP_PRIVATE, fd, 0);
 	if (data == MAP_FAILED)
-		err(1, "mmap()");
+		return TCL_ERROR;
 
 	/* Parse */
 	macho_input_t input_file;
