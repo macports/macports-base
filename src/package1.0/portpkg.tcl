@@ -56,6 +56,10 @@ proc portpkg::pkg_main {args} {
 
     ui_msg "$UI_PREFIX [format [msgcat::mc "Creating pkg for %s-%s"] ${subport} ${version}]"
 
+    if {[getuid] == 0 && [geteuid] != 0} {
+        elevateToRoot "pkg"
+    }
+
     return [package_pkg $subport $version $revision]
 }
 
