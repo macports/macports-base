@@ -483,7 +483,6 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Set the system encoding to utf-8
     encoding system utf-8
-    set env(LANG) en_US.UTF-8
 
     # Ensure that the macports user directory exists if HOME is defined
     if {[info exists env(HOME)]} {
@@ -848,6 +847,9 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
             unset env($envkey)
         }
     }
+
+    # make tools we run operate in UTF-8 mode
+    set env(LANG) en_US.UTF-8
 
     if {![info exists xcodeversion] || ![info exists xcodebuildcmd]} {
         # We'll resolve these later (if needed)
