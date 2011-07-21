@@ -3,7 +3,7 @@
 # $Id$
 ###
 
-Release 2.0.0 (unreleased):
+Release 2.0.0 (2011-07-22 by jmr):
 
     - Multiple ports can now be defined in one Portfile using the 'subport'
       procedure. This reduces code duplication when several ports use very
