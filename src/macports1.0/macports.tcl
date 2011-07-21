@@ -483,6 +483,7 @@ proc mportinit {{up_ui_options {}} {up_options {}} {up_variations {}}} {
 
     # Set the system encoding to utf-8
     encoding system utf-8
+    set env(LANG) en_US.UTF-8
 
     # Ensure that the macports user directory exists if HOME is defined
     if {[info exists env(HOME)]} {
