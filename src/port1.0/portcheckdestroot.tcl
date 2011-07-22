@@ -39,16 +39,6 @@ proc portcheckdestroot::checkdestroot_start {args} {
 proc portcheckdestroot::get_port_files {portname} {
 }
 
-# Check if a file is binary file
-# TODO: Somewhat probabilistic. Must be a better way.
-proc portcheckdestroot::binary? filename {
-    set f [open $filename]
-    set data [read $f 1024]
-    close $f
-    expr {[string first \x00 $data]>=0}
-}
-
-
 # escape chars in order to be usable as regexp. This function is for internal use.
 proc portcheckdestroot::escape_chars {str} {
     return [regsub -all {\W} $str {\\&}]
@@ -248,8 +238,8 @@ proc portcheckdestroot::checkdestroot_mtree {} {
 
         #Get package files
         foreach file [files_list $destroot] {
-            if { [binary? "$file"] } {
-                foreach file_lib [list_dlibs $file] {
+            foreach file_lib [list_dlibs $file] {
+            if { ! [regexp $file_lib $file] } {
                 if { [lsearch $dep_files $file_lib] != -1 } {
                     ui_debug "$file_lib binary dependency is met"
                 } else {
@@ -276,12 +266,10 @@ proc portcheckdestroot::checkdestroot_mtree {} {
 proc portcheckdestroot::checkdestroot_arches { archs } {
     global destroot
     foreach file [files_list $destroot] {
-        if { [binary? "$file"] } {
-            set file_archs [list_archs $file]
-            foreach arch $archs {
-                if { [lsearch $file_archs $arch] == -1 } {
-                    return -code error "$file supports the arch $arch, and should not"
-                }
+        set file_archs [list_archs $file]
+        foreach arch $file_archs {
+            if { [lsearch $arch $archs] == -1 } {
+                return -code error "$file supports the arch $arch, and should not"
             }
         }
     }
