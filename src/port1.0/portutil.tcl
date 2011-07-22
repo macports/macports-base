@@ -2020,19 +2020,18 @@ proc handle_default_variants {option action {value ""}} {
             array set vinfo $PortInfo(vinfo)
 
             foreach v $value {
-                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant]} {
+                if {[regexp {([-+])([-A-Za-z0-9_]+)} $v whole val variant] && ![info exists variations($variant)]} {
                     # Retrieve the information associated with this variant.
                     if {![info exists vinfo($variant)]} {
                         set vinfo($variant) {}
                     }
+                    array unset info
                     array set info $vinfo($variant)
+                    # Set is_default and update vinfo.
+                    set info(is_default) $val
+                    array set vinfo [list $variant [array get info]]
 
-                    if {![info exists variations($variant)]} {
-                        # Set is_default and update vinfo.
-                        array set vinfo [list $variant [list is_default $val]]
-
-                        set variations($variant) $val
-                    }
+                    set variations($variant) $val
                 }
             }
             # Update PortInfo(vinfo).
