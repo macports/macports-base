@@ -3300,6 +3300,7 @@ proc action_variants { action portlist opts } {
             ui_notice "$portname has the variants:"
             foreach v [lsort $portinfo(variants)] {
                 unset -nocomplain vconflicts vdescription vrequires
+                set varmodifier "   "
                 # Retrieve variants' information from the new format.
                 if {[info exists vinfo]} {
                     array unset variant
@@ -3322,8 +3323,6 @@ proc action_variants { action portlist opts } {
                         set varmodifier "($global_variations($v))"
                     } elseif {[info exists variant(is_default)]} {
                         set varmodifier "\[$variant(is_default)\]"
-                    } else {
-                        set varmodifier "   "
                     }
                     if {[info exists variant(requires)]} {
                         set vrequires $variant(requires)
