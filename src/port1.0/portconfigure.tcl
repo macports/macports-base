@@ -194,6 +194,7 @@ proc portconfigure::configure_start {args} {
 
     set name ""
     switch -exact ${configure.compiler} {
+        cc { set name "System cc" }
         gcc { set name "System gcc" }
         gcc-3.3 { set name "Mac OS X gcc 3.3" }
         gcc-4.0 { set name "Mac OS X gcc 4.0" }
@@ -369,6 +370,14 @@ proc portconfigure::configure_get_compiler {type} {
     global configure.compiler prefix developer_dir
     set ret ""
     switch -exact ${configure.compiler} {
+        cc {
+            switch -exact ${type} {
+                cc   { set ret /usr/bin/cc }
+                objc { set ret /usr/bin/cc }
+                cxx  { set ret /usr/bin/c++ }
+                cpp  { set ret /usr/bin/cpp }
+            }
+        }
         gcc {
             switch -exact ${type} {
                 cc   { set ret /usr/bin/gcc }
