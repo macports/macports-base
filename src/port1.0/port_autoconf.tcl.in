@@ -33,6 +33,8 @@ package provide port 1.0
 
 namespace eval portutil::autoconf {
 	variable bzip2_path "@BZIP2@"
+	variable lzma_path "@LZMA@"
+	variable xz_path "@XZ@"
 	variable cp_path "@CP@"
 	variable cpio_path "@CPIO@"
 	variable diff_path "@DIFF@"
