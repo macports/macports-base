@@ -280,9 +280,9 @@ proc _activate_file {srcfile dstfile} {
 # returns: path to the extracted directory
 proc extract_archive_to_tmpdir {location} {
     set extractdir [mkdtemp [file join [macports::gettmpdir] mpextractXXXXXXXX]]
+    set startpwd [pwd]
 
     try {
-        set startpwd [pwd]
         if {[catch {cd $extractdir} err]} {
             throw MACPORTS $err
         }
