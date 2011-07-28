@@ -4059,7 +4059,7 @@ array set cmd_opts_array {
                  depends description epoch fullname heading homepage index license
                  line long_description
                  maintainer maintainers name platform platforms portdir pretty
-                 replaced_by revision variant variants version}
+                 replaced_by revision subports variant variants version}
     contents    {size {units 1}}
     deps        {index no-build}
     rdeps       {index no-build full}
