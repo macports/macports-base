@@ -146,6 +146,7 @@ proc pindex {portdir} {
                 incr stats(failed)
             } else {
                 set prefix $save_prefix
+                array unset portinfo
                 array set portinfo [mportinfo $interp]
                 mportclose $interp
                 set portinfo(portdir) $portdir
