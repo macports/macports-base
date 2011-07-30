@@ -36,11 +36,6 @@ proc portcheckdestroot::checkdestroot_start {args} {
 }
 
 
-# escape chars in order to be usable as regexp. This function is for internal use.
-proc portcheckdestroot::escape_chars {str} {
-    return [regsub -all {\W} $str {\\&}]
-}
-
 # List all links on a directory recursively. This function is for internal use.
 proc portcheckdestroot::links_list {dir} {
     return [types_list $dir "l"]
