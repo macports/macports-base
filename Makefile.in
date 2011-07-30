@@ -50,8 +50,12 @@ ifeq ($(DESTDIR),)
         if ! ${DSCL} -q . -list /Users/${RUNUSR} > /dev/null 2>&1 ; then \
             if test `id -u` -eq 0; then \
                 echo "Creating user \"${RUNUSR}\"" ; \
+                NEXTUID=501; \
+                while test -n "`dscl -q /Search -search /Users UniqueID $$NEXTUID`"; do \
+                    let "NEXTUID=NEXTUID+1"; \
+                done; \
+                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$NEXTUID ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} Password \* ; \
-                ${DSCL} -q . -create /Users/${RUNUSR} UniqueID $$(($$(${DSCL} -q . -list /Users UniqueID | /usr/bin/awk '{print $$2}' | sort -ug | tail -1)+1)) ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} PrimaryGroupID $$(${DSCL} -q . -read /Groups/${RUNUSR} PrimaryGroupID | /usr/bin/awk '{print $$2}') ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} NFSHomeDirectory /var/empty ; \
                 ${DSCL} -q . -create /Users/${RUNUSR} UserShell /usr/bin/false ; \
